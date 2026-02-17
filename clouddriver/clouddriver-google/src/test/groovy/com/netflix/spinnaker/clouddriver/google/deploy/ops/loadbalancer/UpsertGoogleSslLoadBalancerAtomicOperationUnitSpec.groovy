@@ -409,10 +409,10 @@ class UpsertGoogleSslLoadBalancerAtomicOperationUnitSpec extends Specification {
 
   void "first ssl certificate name helper handles null and empty list"() {
     expect:
-    UpsertGoogleSslLoadBalancerAtomicOperation.getFirstSslCertificateName(null) == null
-    UpsertGoogleSslLoadBalancerAtomicOperation.getFirstSslCertificateName([]) == null
-    UpsertGoogleSslLoadBalancerAtomicOperation.getFirstSslCertificateName(
-      ["https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/my-cert"]
-    ) == "my-cert"
+      UpsertGoogleSslLoadBalancerAtomicOperation.getFirstSslCertificateName(null) == null
+      UpsertGoogleSslLoadBalancerAtomicOperation.getFirstSslCertificateName([]) == null
+      UpsertGoogleSslLoadBalancerAtomicOperation.getFirstSslCertificateName(
+        ["https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/sslCertificates/my-cert"]
+      ) == "my-cert"
   }
 }

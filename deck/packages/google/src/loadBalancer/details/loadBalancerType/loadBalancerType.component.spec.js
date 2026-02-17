@@ -56,4 +56,30 @@ describe('Component: gceLoadBalancerType', () => {
 
     expect(ctrl.type).toBe('HTTP');
   });
+
+  // Both fields populated simultaneously — the || means either triggers HTTPS.
+  it('detects HTTPS when both certificate and certificateMap are present', () => {
+    const ctrl = buildController({
+      loadBalancerType: 'HTTP',
+      certificate: 'legacy-cert',
+      certificateMap: 'cm',
+    });
+
+    ctrl.$onInit();
+
+    expect(ctrl.type).toBe('HTTPS');
+  });
+
+  // Non-HTTP types pass through the else branch and return verbatim.
+  it('returns loadBalancerType verbatim for non-HTTP types', () => {
+    const ctrl = buildController({
+      loadBalancerType: 'SSL',
+      certificate: null,
+      certificateMap: null,
+    });
+
+    ctrl.$onInit();
+
+    expect(ctrl.type).toBe('SSL');
+  });
 });

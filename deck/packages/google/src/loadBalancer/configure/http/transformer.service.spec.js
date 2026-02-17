@@ -99,4 +99,84 @@ describe('Service: gceHttpLoadBalancerTransformer', () => {
     expect(commandLoadBalancer.listeners[0].certificate).toBeNull();
     expect(commandLoadBalancer.listeners[0].certificateMap).toBe('cm');
   });
+
+  // The serialize fallback path: when certificateSource is absent, the
+  // condition `!listener.certificate && !!listener.certificateMap` at line 89
+  // of transformer.service.js infers certificateMap mode. This covers LBs
+  // created before the certificateSource field existed.
+  it('serializes certificateMap listener without explicit certificateSource via fallback', () => {
+    const command = buildBaseCommand({
+      name: 'app-main',
+      port: 443,
+      certificate: null,
+      certificateMap: 'cm',
+      ipAddress: '10.0.0.1',
+      subnet: null,
+    });
+
+    const commands = gceHttpLoadBalancerTransformer.serialize(command, null);
+
+    expect(commands.length).toBe(1);
+    expect(commands[0].certificate).toBeNull();
+    expect(commands[0].certificateMap).toBe('cm');
+  });
+
+  it('deserializes cert-only listener and infers certificateSource as certificate', () => {
+    const loadBalancer = {
+      defaultService: {
+        name: 'default-service',
+        healthCheck: { name: 'hc-1' },
+        sessionAffinity: 'NONE',
+      },
+      hostRules: [],
+      listeners: [
+        {
+          name: 'app-main',
+          certificate: 'legacy-cert',
+          certificateMap: null,
+        },
+      ],
+      network: 'default',
+      region: 'global',
+      urlMapName: 'app',
+      account: 'test-account',
+    };
+
+    const commandLoadBalancer = gceHttpLoadBalancerTransformer.deserialize(loadBalancer);
+
+    expect(commandLoadBalancer.listeners.length).toBe(1);
+    expect(commandLoadBalancer.listeners[0].certificateSource).toBe('certificate');
+    expect(commandLoadBalancer.listeners[0].certificate).toBe('legacy-cert');
+    expect(commandLoadBalancer.listeners[0].certificateMap).toBeNull();
+  });
+
+  it('deserializes listener with neither cert nor map and defaults to certificate source', () => {
+    const loadBalancer = {
+      defaultService: {
+        name: 'default-service',
+        healthCheck: { name: 'hc-1' },
+        sessionAffinity: 'NONE',
+      },
+      hostRules: [],
+      listeners: [
+        {
+          name: 'app-main',
+          certificate: null,
+          certificateMap: null,
+        },
+      ],
+      network: 'default',
+      region: 'global',
+      urlMapName: 'app',
+      account: 'test-account',
+    };
+
+    const commandLoadBalancer = gceHttpLoadBalancerTransformer.deserialize(loadBalancer);
+
+    expect(commandLoadBalancer.listeners.length).toBe(1);
+    // With neither field set, certificateSource defaults to 'certificate' (HTTP mode).
+    expect(commandLoadBalancer.listeners[0].certificateSource).toBe('certificate');
+    expect(commandLoadBalancer.listeners[0].certificate).toBeNull();
+    expect(commandLoadBalancer.listeners[0].certificateMap).toBeNull();
+  });
 });

@@ -54,4 +54,19 @@ class GoogleLoadBalancerCertificateExtractionSpec extends Specification {
         ["https://www.googleapis.com/compute/v1/projects/test/global/sslCertificates/cert-c"]
       ) == "https://www.googleapis.com/compute/v1/projects/test/global/sslCertificates/cert-c"
   }
+
+  // Compound scenario: a proxy using Certificate Manager has certificateMap set
+  // but sslCertificates is null (GCP omits the field when a map takes precedence).
+  // This is the exact production state the null-safety hardening addresses.
+  void "http load balancer cert helper returns null when proxy uses certificateMap with no sslCertificates"() {
+    given:
+      def proxy = new TargetHttpsProxy(
+        certificateMap: "//certificatemanager.googleapis.com/projects/test/locations/global/certificateMaps/my-map"
+      )
+
+    expect:
+      proxy.getSslCertificates() == null
+      GoogleHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy) == null
+      proxy.getCertificateMap() == "//certificatemanager.googleapis.com/projects/test/locations/global/certificateMaps/my-map"
+  }
 }
