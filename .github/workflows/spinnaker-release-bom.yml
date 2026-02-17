@@ -107,11 +107,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
       - name: Create Spinnaker release BoM and changelog
         id: spinnaker-release-bom
         uses: ./.github/actions/spinnaker-release
         with:
-          github-pat: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          github-pat: ${{ steps.app-token.outputs.token }}
           credentials-json: ${{ secrets.GAR_JSON_KEY }}
           version: ${{ inputs.spinnaker-version }}
           previous-version: ${{ inputs.spinnaker-previous-version }}
@@ -136,31 +142,33 @@ jobs:
       - name: Summarize
         shell: bash
         run: |
-          echo "### Release Info" >> "$GITHUB_STEP_SUMMARY"
-          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Version__ | ${{ inputs.spinnaker-version }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __BoM__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Changelog__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __versions.yml__ | ${{ steps.spinnaker-release-bom.outputs.versions-yml-url }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "<details>" >> "$GITHUB_STEP_SUMMARY"
-          echo "<summary>BoM Contents</summary>" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ steps.spinnaker-release-bom.outputs.bom }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "</details>" >> "$GITHUB_STEP_SUMMARY"
-          echo "<details>" >> "$GITHUB_STEP_SUMMARY"
-          echo "<summary>Changelog Contents</summary>" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ steps.spinnaker-release-bom.outputs.changelog }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "</details>" >> "$GITHUB_STEP_SUMMARY"
-          echo "<details>" >> "$GITHUB_STEP_SUMMARY"
-          echo "<summary>versions.yml Contents</summary>" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ steps.spinnaker-release-bom.outputs.versions-yml }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+          cat <<EOF> "$GITHUB_STEP_SUMMARY"
+          ### Release Info
+          | | |
+          | --- | --- |
+          | __Version__ | ${{ inputs.spinnaker-version }} |
+          | __BoM__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |
+          | __Changelog__ | ${{ steps.spinnaker-release-bom.outputs.bom-url }} |
+          | __versions.yml__ | ${{ steps.spinnaker-release-bom.outputs.versions-yml-url }} |
+          <details>
+          <summary>BoM Contents</summary>
+          
+          ```
+          ${{ steps.spinnaker-release-bom.outputs.bom }}
+          ```
+          </details>
+          <details>
+          <summary>Changelog Contents</summary>
+          
+          ```
+          ${{ steps.spinnaker-release-bom.outputs.changelog }}
+          ```
+          </details>
+          <details>
+          <summary>versions.yml Contents</summary>
+          
+          ```
+          ${{ steps.spinnaker-release-bom.outputs.versions-yml }}
+          ```
+          </details>
+          EOF
