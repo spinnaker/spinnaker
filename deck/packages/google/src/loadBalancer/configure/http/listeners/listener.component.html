@@ -188,7 +188,11 @@
             placeholder="certificate-map-name"
           />
         </div>
-        <div class="col-md-1" style="padding-left: 0; margin-top: 4px" ng-if="$ctrl.listener.certificateSource !== 'certificateMap'">
+        <div
+          class="col-md-1"
+          style="padding-left: 0; margin-top: 4px"
+          ng-if="$ctrl.listener.certificateSource !== 'certificateMap'"
+        >
           <gce-cache-refresh
             cache-key="certificates"
             render-compact="true"
