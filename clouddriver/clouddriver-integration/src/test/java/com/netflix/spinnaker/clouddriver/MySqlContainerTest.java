@@ -18,6 +18,11 @@ package com.netflix.spinnaker.clouddriver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+<<<<<<< HEAD
+=======
+import java.time.Duration;
+import java.util.HashMap;
+>>>>>>> b98144765e (fix(builds): Fix testcontainer due to docker client upgrade issue (#7471))
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -57,6 +63,8 @@ public class MySqlContainerTest extends BaseContainerTest {
     jdbcUrl = String.format("jdbc:mysql://%s:%d/clouddriver", MYSQL_NETWORK_ALIAS, MYSQL_PORT);
     clouddriverContainer
         .dependsOn(mysql)
+        .withNetwork(network)
+        .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(120)))
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 
