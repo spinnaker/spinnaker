@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.core
+package com.netflix.spinnaker.clouddriver.core;
 
-import groovy.transform.Canonical
-import org.springframework.boot.context.properties.ConfigurationProperties
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Canonical
-@ConfigurationProperties('services.front50')
-class Front50ConfigurationProperties {
-  boolean enabled = true
-  String baseUrl
+@Data
+@ConfigurationProperties("services.front50")
+public class Front50ConfigurationProperties {
+  private boolean enabled = true;
+  private String baseUrl;
 }
