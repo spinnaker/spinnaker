@@ -8,7 +8,9 @@ import javax.annotation.Nullable;
 /** Allows mutating an {@link Application} at different {@link Type} hooks. */
 public interface ApplicationEventListener
     extends Consumer<ApplicationEventListener.ApplicationModelEvent> {
-  /** @return Whether the listener supports {@code type}. */
+  /**
+   * @return Whether the listener supports {@code type}.
+   */
   boolean supports(Type type);
 
   enum Type {

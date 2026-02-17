@@ -26,6 +26,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public abstract class UserInputValidatedArtifactAccount implements ArtifactAccount {
   private final String name;
+
   /**
    * This is used in cases where user input is allowed for the URL. Specific github file references,
    * and simple http references. NOT all accounts need this as many define the access IN the
