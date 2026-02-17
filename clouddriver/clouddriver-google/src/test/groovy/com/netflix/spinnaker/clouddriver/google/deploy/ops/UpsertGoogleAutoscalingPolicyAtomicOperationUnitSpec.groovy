@@ -339,6 +339,68 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     true       | REGION
   }
 
+  @Unroll
+  void "can upsert auto-healing policy via MIG patch for zonal and regional server groups"() {
+    setup:
+    def registry = new DefaultRegistry()
+    def computeMock = Mock(Compute)
+    def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional, selfLink: SELF_LINK).view
+
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
+    def description = new UpsertGoogleAutoscalingPolicyDescription(
+      accountName: ACCOUNT_NAME,
+      region: REGION,
+      serverGroupName: SERVER_GROUP_NAME,
+      autoHealingPolicy: new GoogleAutoHealingPolicy(
+        healthCheck: 'hc',
+        initialDelaySec: 30),
+      writeMetadata: false,
+      credentials: credentials)
+
+    GroovySpy(GCEUtil, global: true)
+    GCEUtil.queryHealthCheck(_, _, _, _, _, _, _, _, _) >> [selfLink: 'hc-link']
+
+    // zonal setup
+    def zonalManagerMock = Mock(Compute.InstanceGroupManagers)
+    def zonalPatchMock = Mock(Compute.InstanceGroupManagers.Patch)
+    def zonalTimerId = GoogleApiTestUtils.makeOkId(
+      registry,
+      "compute.instanceGroupManagers.patch",
+      [scope: "zonal", zone: ZONE])
+
+    // regional setup
+    def regionalManagerMock = Mock(Compute.RegionInstanceGroupManagers)
+    def regionalPatchMock = Mock(Compute.RegionInstanceGroupManagers.Patch)
+    def regionalTimerId = GoogleApiTestUtils.makeOkId(
+      registry,
+      "compute.regionInstanceGroupManagers.patch",
+      [scope: "regional", region: REGION])
+
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock, atomicOperationsRegistryMock, orchestrationProcessorMock, cacheView, objectMapper])
+    operation.registry = registry
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+
+    if (isRegional) {
+      1 * computeMock.regionInstanceGroupManagers() >> regionalManagerMock
+      1 * regionalManagerMock.patch(PROJECT_NAME, REGION, SERVER_GROUP_NAME, _) >> regionalPatchMock
+      1 * regionalPatchMock.execute() >> [name: 'autoHealingOp']
+    } else {
+      1 * computeMock.instanceGroupManagers() >> zonalManagerMock
+      1 * zonalManagerMock.patch(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> zonalPatchMock
+      1 * zonalPatchMock.execute() >> [name: 'autoHealingOp']
+    }
+    registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)
+    registry.timer(zonalTimerId).count() == (isRegional ? 0 : 1)
+
+    where:
+    isRegional << [true, false]
+  }
+
   void "builds autoHealing policy based on ancestor autoHealing policy and input description; overrides everything"() {
     given:
     def ancestorPolicy = new GoogleAutoHealingPolicy(
