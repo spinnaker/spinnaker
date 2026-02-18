@@ -41,9 +41,13 @@ public interface DataProvider {
    */
   void getAdhocData(String groupId, String bucketId, String objectId, OutputStream outputStream);
 
-  /** @return true if this identifier is supported by the data provider */
+  /**
+   * @return true if this identifier is supported by the data provider
+   */
   boolean supportsIdentifier(IdentifierType identifierType, String id);
 
-  /** @return the account name corresponding to the provided identifier */
+  /**
+   * @return the account name corresponding to the provided identifier
+   */
   String getAccountForIdentifier(IdentifierType identifierType, String id);
 }
