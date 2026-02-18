@@ -23,7 +23,9 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import lombok.Getter;
 
-/** @see AssumeRoleAmazonCredentials */
+/**
+ * @see AssumeRoleAmazonCredentials
+ */
 @Getter
 public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {
 
