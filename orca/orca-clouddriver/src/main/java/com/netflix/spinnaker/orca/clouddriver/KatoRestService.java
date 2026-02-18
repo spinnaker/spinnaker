@@ -21,7 +21,9 @@ import retrofit2.http.Query;
  * http://kato.test.netflix.net:7001/manual/index.html}.
  */
 public interface KatoRestService {
-  /** @deprecated Use {@code /{cloudProvider}/ops} instead */
+  /**
+   * @deprecated Use {@code /{cloudProvider}/ops} instead
+   */
   @Deprecated
   @POST("ops")
   Call<TaskId> requestOperations(

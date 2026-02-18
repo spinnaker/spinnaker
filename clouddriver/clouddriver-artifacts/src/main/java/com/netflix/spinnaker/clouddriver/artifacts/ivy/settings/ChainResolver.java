@@ -28,10 +28,12 @@ import lombok.EqualsAndHashCode;
 @Data
 final class ChainResolver extends Resolver<org.apache.ivy.plugins.resolver.ChainResolver> {
   @JsonIgnore private final Resolvers resolvers = new Resolvers();
+
   /** If the first found should be returned. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable
   private Boolean returnFirst;
+
   /** If the chain should behave like a dual chain. */
   @JacksonXmlProperty(isAttribute = true)
   @Nullable

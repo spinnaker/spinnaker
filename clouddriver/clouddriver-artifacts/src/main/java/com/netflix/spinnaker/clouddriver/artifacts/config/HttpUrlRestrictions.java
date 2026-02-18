@@ -74,8 +74,10 @@ public class HttpUrlRestrictions {
   @Builder.Default private boolean rejectLocalhost = true;
   @Builder.Default private boolean rejectLinkLocal = true;
   @Builder.Default private boolean rejectVerbatimIps = true;
+
   /** Whitelist range of addresses if set. */
   @Builder.Default private List<String> allowedDomains = List.of();
+
   /**
    * List of ip ranges (or IPs) to reject for access - this can protect against SOME attacks but not
    * all.
@@ -88,6 +90,7 @@ public class HttpUrlRestrictions {
 
   @Builder.Default
   private List<String> excludedDomains = List.of("spinnaker", "local", "localdomain", "internal");
+
   // Generate exclusion patterns based on the values of environment variables
   // Useful for dynamically excluding all requests to the current k8s namespace, for example
   @Builder.Default private List<String> excludedDomainsFromEnvironment = List.of();

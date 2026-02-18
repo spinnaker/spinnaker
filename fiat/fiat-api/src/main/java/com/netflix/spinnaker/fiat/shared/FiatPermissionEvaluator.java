@@ -80,7 +80,9 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
     RetryHandler NOOP = new RetryHandler() {};
   }
 
-  /** @see ExponentialBackOff */
+  /**
+   * @see ExponentialBackOff
+   */
   static class ExponentialBackoffRetryHandler implements RetryHandler {
     private final FiatClientConfigurationProperties.RetryConfiguration retryConfiguration;
 
