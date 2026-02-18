@@ -18,11 +18,7 @@ package com.netflix.spinnaker.clouddriver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-<<<<<<< HEAD
-=======
 import java.time.Duration;
-import java.util.HashMap;
->>>>>>> b98144765e (fix(builds): Fix testcontainer due to docker client upgrade issue (#7471))
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
