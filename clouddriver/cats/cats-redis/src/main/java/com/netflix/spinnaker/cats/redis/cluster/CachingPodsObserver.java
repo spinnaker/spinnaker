@@ -119,8 +119,15 @@ public class CachingPodsObserver implements ShardingFilter, Runnable {
     if (agent.getProviderName().equals(CORE_PROVIDER)) {
       return true;
     }
-    return podCount == 1
-        || Math.abs(getAccountName(agent.getAgentType()).hashCode() % podCount) == podIndex;
+    // If sharding state is not yet established, default to pass-through to avoid stalls
+    if (podCount <= 1 || podIndex < 0) {
+      return true;
+    }
+    String account = getAccountName(agent.getAgentType());
+    int hash = account.hashCode();
+    // Safe modulo to avoid Integer.MIN_VALUE corner case
+    int slot = ((hash % podCount) + podCount) % podCount;
+    return slot == podIndex;
   }
 
   private String getAccountName(String agentType) {
