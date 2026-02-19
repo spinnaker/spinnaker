@@ -112,6 +112,10 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            spinnaker.io
+            spinnaker
 
       - name: Create Spinnaker release BoM and changelog
         id: spinnaker-release-bom
