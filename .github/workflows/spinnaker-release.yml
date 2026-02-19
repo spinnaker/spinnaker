@@ -94,17 +94,41 @@ jobs:
       version-override: ${{ needs.version.outputs.version }}
   deck:
     needs: version
-    uses: ./.github/workflows/deck.yml
-    secrets: inherit
-    with:
-      publish-debs: true
-      version-override: ${{ needs.version.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Deck Release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deck.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                'publish-debs': true,
+                'version-override': '${{ needs.version.outputs.version }}'
+              }
+            });
   deck-kayenta:
     needs: version
-    uses: ./.github/workflows/deck-kayenta.yml
-    secrets: inherit
-    with:
-      version-override: ${{ needs.version.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Deck Kayenta Release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.SPINNAKERBOT_PERSONAL_ACCESS_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deck-kayenta.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                'version-override': '${{ needs.version.outputs.version }}'
+              }
+            });
   echo:
     needs: version
     uses: ./.github/workflows/echo.yml
