@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
@@ -48,10 +50,12 @@ public class RedisContainerTest extends BaseContainerTest {
         new GenericContainer<>(DockerImageName.parse("library/redis:5-alpine"))
             .withNetwork(network)
             .withNetworkAliases(REDIS_NETWORK_ALIAS)
+            .withStartupTimeout(Duration.ofSeconds(60))
             .withExposedPorts(REDIS_PORT);
     redis.start();
     clouddriverContainer
         .dependsOn(redis)
+        .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(180)))
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 

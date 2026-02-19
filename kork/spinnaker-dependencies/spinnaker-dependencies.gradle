@@ -68,7 +68,7 @@ dependencies {
   api(platform("io.strikt:strikt-bom:0.31.0"))
   api(platform("org.spockframework:spock-bom:2.3-groovy-4.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
-  api(platform("org.testcontainers:testcontainers-bom:1.19.8"))
+  api(platform("org.testcontainers:testcontainers-bom:1.21.4"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
 
   constraints {
