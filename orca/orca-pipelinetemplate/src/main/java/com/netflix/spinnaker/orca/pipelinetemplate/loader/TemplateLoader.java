@@ -67,7 +67,9 @@ public class TemplateLoader {
     this.renderer = renderer;
   }
 
-  /** @return a LIFO list of pipeline templates */
+  /**
+   * @return a LIFO list of pipeline templates
+   */
   public List<PipelineTemplate> load(
       TemplateConfiguration.TemplateSource template,
       @Nullable TemplateConfiguration tc,

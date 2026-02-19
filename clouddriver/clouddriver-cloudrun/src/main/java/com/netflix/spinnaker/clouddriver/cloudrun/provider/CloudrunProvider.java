@@ -55,13 +55,17 @@ public class CloudrunProvider extends BaseProvider implements SearchableProvider
     return defaultCaches;
   }
 
-  /** @return */
+  /**
+   * @return
+   */
   @Override
   public Map<String, String> getUrlMappingTemplates() {
     return urlMappingTemplates;
   }
 
-  /** @return */
+  /**
+   * @return
+   */
   @Override
   public Map<SearchableResource, SearchResultHydrator> getSearchResultHydrators() {
     return searchResultHydrators;

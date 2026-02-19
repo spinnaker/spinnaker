@@ -113,6 +113,7 @@ public class SecuritySamlProperties {
     }
     return property;
   }
+
   // @formatter:off
   /**
    * Try to match the standard spring saml config LIKE the below. This would be a keylcoak
