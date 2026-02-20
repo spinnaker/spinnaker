@@ -170,8 +170,10 @@ dependencies {
     api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
     api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
-    // Springdoc pulls in a newer Jackson version that is incompatible with the Snakeyaml bundled with Spring Boot 3.0.13.
-    // To resolve the conflict, we’ve aligned the Jackson version with the one provided by Spring Boot 3.0.13.
+    // Springdoc and liquibase bring in a version of snakeyaml (2.0 and 2.2
+    // respectively) that is incompatible with the Snakeyaml bundled with Spring
+    // Boot 3.1.12.  To resolve the conflict, pin to the one provided by Spring
+    // Boot 3.1.12.
     api("org.yaml:snakeyaml:1.33")
   }
 }
