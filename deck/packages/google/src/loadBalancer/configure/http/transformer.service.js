@@ -81,9 +81,16 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
       return loadBalancer.listeners.map((listener) => {
         let command = _.cloneDeep(loadBalancer);
         command = _.omit(command, keysToOmit);
+        // Determine the authoritative cert source. The certificateSource field is explicit when
+        // present, but listeners deserialized from LBs created before this field existed may only
+        // have certificate/certificateMap values without a source. The fallback condition handles
+        // that: no certificate + truthy certificateMap implies certificateMap mode.
+        const useCertificateMap =
+          listener.certificateSource === 'certificateMap' || (!listener.certificate && !!listener.certificateMap);
         command.name = listener.name;
         command.portRange = listener.port;
-        command.certificate = listener.certificate || null;
+        command.certificate = useCertificateMap ? null : listener.certificate || null;
+        command.certificateMap = useCertificateMap ? listener.certificateMap || null : null;
         command.ipAddress = listener.ipAddress;
         command.subnet = listener.subnet;
 
@@ -151,6 +158,14 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
         listener.stack = stack;
         listener.detail = freeFormDetails;
         listener.created = true;
+        listener.certificate = listener.certificate || null;
+        // Normalize certificateMap from the full Certificate Manager URL returned by the server
+        // (e.g. //certificatemanager.googleapis.com/projects/p/locations/global/certificateMaps/cm)
+        // to its short resource name. This mirrors getCertificateMapName in listener.component.js.
+        listener.certificateMap = listener.certificateMap ? _.last(listener.certificateMap.split('/')) : null;
+        // Infer certificateSource for listeners deserialized from LBs created before this field
+        // existed. The presence of certificateMap implies certificateMap mode.
+        listener.certificateSource = listener.certificateMap ? 'certificateMap' : 'certificate';
       });
 
       return loadBalancer.listeners;
