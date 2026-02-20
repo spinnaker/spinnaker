@@ -15,7 +15,7 @@ spec:
         envFrom:
         - configMapRef:
             name: deck-env
-        image: us-docker.pkg.dev/spinnaker-community/docker/deck:latest
+        image: ghcr.io/spinnaker/deck:main-latest
         name: deck
         ports:
         - name: http
