@@ -1,0 +1,17 @@
+name: ID Token Callee
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug OIDC Claims (Callee)
+        uses: ./.github/actions/oidc-debugger-action
+        with:
+          audience: '${{ github.server_url }}/${{ github.repository_owner }}'
