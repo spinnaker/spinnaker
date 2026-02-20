@@ -45,9 +45,11 @@ dependencies {
    * For example, `junit-bom` and `jackson-bom` will win out over the versions of JUnit and Jackson
    * specified by `spring-boot-dependencies`.
    */
-  // Springdoc includes a newer version of Jackson, which conflicts with the SnakeYaml pin below
-  // Jackson 2.15+ requires SnakeYaml 2.x, last Jackson version with SnakeYaml 1.33 compat is 2.14.3
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.14.3"))
+
+  // Without pinning jackson-bom to the version that spring boot 3.1.12 brings
+  // in (2.15.4), we get a newer one from version 2.2.22 of swagger: 2.16.2.
+  // Let's keep more of the code running with the version it expects.
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.4"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))
