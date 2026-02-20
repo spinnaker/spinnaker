@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
@@ -36,7 +37,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 
 class OortServiceTest {
 
-  private final WireMockServer mockServer = new WireMockServer();
+  private final WireMockServer mockServer =
+      new WireMockServer(WireMockConfiguration.options().dynamicPort());
   private OortService oortService;
 
   @BeforeEach
