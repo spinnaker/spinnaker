@@ -37,6 +37,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist
+
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
@@ -167,6 +169,25 @@ class WebhookServiceSpec extends Specification {
     preconfiguredWebhooks == [webhook1, webhook3]
   }
 
+  def 'Should find an enabled preconfigured webhook by its type'() {
+    given:
+    def webhook1 = new WebhookProperties.PreconfiguredWebhook(label: "1", enabled: true, type: "type1")
+    def webhook2 = new WebhookProperties.PreconfiguredWebhook(label: "2", enabled: false, type: "type2")
+    def webhook2ButEnabled = new WebhookProperties.PreconfiguredWebhook(label: "2", enabled: true, type: "type2")
+    def webhook3 = new WebhookProperties.PreconfiguredWebhook(label: "3", enabled: true, type: "type3")
+    preconfiguredWebhookProperties.preconfigured << webhook1
+    preconfiguredWebhookProperties.preconfigured << webhook2
+    preconfiguredWebhookProperties.preconfigured << webhook2ButEnabled
+    preconfiguredWebhookProperties.preconfigured << webhook3
+
+    when:
+    def maybeAPreconfiguredWebhook = webhookService.findPreconfiguredWebhook("type2")
+
+    then:
+    maybeAPreconfiguredWebhook.isPresent()
+    maybeAPreconfiguredWebhook.get() == webhook2ButEnabled
+  }
+
   def "Content-Type text/plain is turned into a string"() {
     expect:
     def responseActions = server.expect(requestTo("https://localhost/v1/text/test"))
@@ -174,7 +195,6 @@ class WebhookServiceSpec extends Specification {
     responseActions.andRespond(withSuccess('This is text/plain', MediaType.TEXT_PLAIN))
 
     when:
-    webhookService
     StageExecution stageExecution = new StageExecutionImpl(null, null, null, [
         'url': "https://localhost/v1/text/test",
         'method': HttpMethod.GET,
@@ -196,13 +216,52 @@ class WebhookServiceSpec extends Specification {
     responseActions.andRespond(withSuccess())
 
     when:
-    webhookService
     StageExecution stageExecution = new StageExecutionImpl(null, null, null, [
         'url': "https://localhost/v1/test",
         'method': HttpMethod.PATCH,
         'customHeaders': null,
         'payload': null
     ])
+    def responseEntity = webhookService.callWebhook(stageExecution)
+
+    then:
+    noExceptionThrown()
+    server.verify()
+    responseEntity.statusCode == HttpStatus.OK
+  }
+
+  def 'Should read sensitive headers from preconfigured webhook config and include them in request headers'() {
+    setup:
+    def webhook = new WebhookProperties.PreconfiguredWebhook(label: "1", enabled: true, type: "type1",
+        customHeaders: [
+            // these headers should be ignored
+            "Content-type": ["application/yaml"],
+            "Accept": ["application/yaml"],
+            "Other": ["value"]
+        ],
+        sensitiveHeaders: [
+            // but this should be included
+            "Authorization": ["Basic Zm9vOmJhcg=="]
+        ])
+    preconfiguredWebhookProperties.preconfigured << webhook
+    def stageExecution = new StageExecutionImpl(null, "type1", null, [
+        'type': "type1",
+        'url': "https://localhost/v1/test",
+        'method': HttpMethod.GET,
+        'customHeaders': [
+            "Content-type": ["application/json"],
+            "Accept": ["application/json"]
+        ],
+    ])
+    def responseActions = server.expect(requestTo("https://localhost/v1/test"))
+        .andExpect(method(HttpMethod.GET))
+        .andExpect(header("Content-type", "application/json"))
+        .andExpect(header("Accept", "application/json"))
+        .andExpect(header("Authorization", "Basic Zm9vOmJhcg=="))
+        .andExpect(headerDoesNotExist("Other"))
+    responseActions.andRespond(withSuccess())
+
+    when:
     def responseEntity = webhookService.callWebhook(stageExecution)
 
     then:

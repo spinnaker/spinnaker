@@ -47,7 +47,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
     preconfiguredWebhookStage.taskGraph(stage, builder)
 
     then:
-    1 * webhookService.preconfiguredWebhooks >> [createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1")]
+    1 * webhookService.findPreconfiguredWebhook("webhook_1") >> Optional.of(
+        createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1"))
     stage.context == [
       url: "a",
       customHeaders: ["header": ["value1"]],
@@ -105,7 +106,8 @@ class PreconfiguredWebhookStageSpec extends Specification {
     preconfiguredWebhookStage.taskGraph(stage, builder)
 
     then:
-    1 * webhookService.preconfiguredWebhooks >> [new WebhookProperties.PreconfiguredWebhook(label: "Webhook #1", description: "Description #1", type: "webhook_1")]
+    1 * webhookService.findPreconfiguredWebhook("webhook_1") >> Optional.of(
+        new WebhookProperties.PreconfiguredWebhook(label: "Webhook #1", description: "Description #1", type: "webhook_1"))
     stage.context == [
       url: "a",
       customHeaders: ["header": ["value1"]],
@@ -130,6 +132,55 @@ class PreconfiguredWebhookStageSpec extends Specification {
       retryStatusCodes: null,
       waitBeforeMonitor: null
     ]
+  }
+
+  def "Sensitive headers should be excluded from context while custom headers are preserved"() {
+    given:
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "webhook_1", [:])
+    def sensitiveHeaders = [
+      "Authorization": ["Bearer token"],
+      "X-Api-Key": ["secret"],
+      "X-Custom-Secret": ["value1", "value2"]
+    ]
+    def webhook = new WebhookProperties.PreconfiguredWebhook(
+      label: "Webhook #1",
+      description: "Description #1",
+      type: "webhook_1",
+      url: "https://example.com",
+      sensitiveHeaders: sensitiveHeaders,
+      customHeaders: ["X-Public": ["public-value"]],
+      method: HttpMethod.POST
+    )
+
+    when:
+    preconfiguredWebhookStage.taskGraph(stage, builder)
+
+    then:
+    1 * webhookService.findPreconfiguredWebhook("webhook_1") >> Optional.of(webhook)
+    stage.context.sensitiveHeaders == null
+    stage.context.customHeaders == ["X-Public": ["public-value"]]
+  }
+
+  def "Empty customHeaders and sensitiveHeaders should be handled correctly"() {
+    given:
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "webhook_1", [:])
+    def webhook = new WebhookProperties.PreconfiguredWebhook(
+      label: "Webhook #1",
+      description: "Description #1",
+      type: "webhook_1",
+      url: "https://example.com",
+      customHeaders: [:],
+      sensitiveHeaders: [:],
+      method: HttpMethod.GET
+    )
+
+    when:
+    preconfiguredWebhookStage.taskGraph(stage, builder)
+
+    then:
+    1 * webhookService.findPreconfiguredWebhook("webhook_1") >> Optional.of(webhook)
+    stage.context.sensitiveHeaders == null
+    stage.context.customHeaders == [:]
   }
 
   static WebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(def label, def description, def type) {
