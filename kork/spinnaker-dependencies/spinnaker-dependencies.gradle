@@ -26,9 +26,14 @@ ext {
     springBoot       : "3.1.12",
     springCloud      : "2022.0.5",
     swagger          : "2.2.22",
-    // 3.0.13 brings in 10.1.16, which introduce CVEs. Continue to pin till >=3.2.12.
-    // See https://tomcat.apache.org/security-10.html for latest security fixes.
-    tomcat           : "10.1.33"
+    // 3.1.12 brings in 10.1.24, whichs introduce CVEs. Continue to pin till
+    // >=3.1.11 which brings in 10.1.52 and currently (20-feb-26) has no
+    // reported vulnerabilities.
+    //
+    // See https://tomcat.apache.org/security-10.html for latest security fixes
+    // and https://tomcat.apache.org/tomcat-10.1-doc/changelog.html for release
+    // notes.
+    tomcat           : "10.1.52"
   ]
 }
 
