@@ -238,7 +238,7 @@ class GateConfig {
                                 OkHttp3MetricsInterceptor interceptor,
                                 @Value('${services.kayenta.externalhttps:false}') boolean kayentaExternalHttps) {
     if (kayentaExternalHttps) {
-      def noSslCustomizationProps = props.clone()
+      OkHttpClientConfigurationProperties noSslCustomizationProps = props.deepCopy()
       noSslCustomizationProps.keyStore = null
       noSslCustomizationProps.trustStore = null
       createClient "kayenta", KayentaService

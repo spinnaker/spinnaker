@@ -1,3 +1,6 @@
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
 dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")

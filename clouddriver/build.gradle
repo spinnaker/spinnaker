@@ -36,9 +36,6 @@ subprojects {
     apply plugin: "kotlin-allopen"
     apply plugin: "jacoco"
 
-    sourceSets.main.java.srcDirs = []
-    sourceSets.main.groovy.srcDirs += ["src/main/java"]
-
     dependencies {
       api enforcedPlatform("io.spinnaker.kork:kork-bom")
 
@@ -96,5 +93,17 @@ subprojects {
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7102'
     }
+  }
+
+  // Avoid warnings like
+  //
+  // Using deprecated '-debug' fallback for parameter name resolution. Compile
+  // the affected code with '-parameters' instead or avoid its introspection:
+  // com.netflix.spinnaker.clouddriver.cache.JedisCacheConfig
+  //
+  // FWIW, the spring boot gradle plugin enables this since 2.0 via
+  // https://github.com/spring-projects/spring-boot/pull/9839.
+  tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters"
   }
 }

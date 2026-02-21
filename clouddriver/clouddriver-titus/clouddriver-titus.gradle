@@ -5,6 +5,9 @@ ext {
   grpcVersion = '1.63.0'
 }
 
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
 dependencies {
   protobuf 'com.netflix.titus:titus-api-definitions:0.0.1-rc71'
 

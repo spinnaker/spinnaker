@@ -50,7 +50,8 @@ public final class ManifestFetcher {
       Class<?> referenceClass, String basePath) {
     ObjectMapper mapper = new ObjectMapper();
     return StreamSupport.stream(
-            Yaml.getSnakeYaml().loadAll(getResource(referenceClass, basePath)).spliterator(), false)
+            Yaml.getSnakeYaml(null).loadAll(getResource(referenceClass, basePath)).spliterator(),
+            false)
         .filter(Objects::nonNull)
         .map(o -> mapper.convertValue(o, KubernetesManifest.class))
         .collect(ImmutableList.toImmutableList());

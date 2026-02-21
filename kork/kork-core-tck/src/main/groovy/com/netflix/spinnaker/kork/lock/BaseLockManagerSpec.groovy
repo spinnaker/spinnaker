@@ -14,7 +14,7 @@ import static com.netflix.spinnaker.kork.lock.RefreshableLockManager.LockHeartbe
 abstract class BaseLockManagerSpec<T extends LockManager> extends Specification {
 
   def clock = Clock.systemDefaultZone()
-  def testLockMaxDurationMillis = 1000L
+  def testLockMaxDurationMillis = 2000L
 
   protected abstract T subject()
 

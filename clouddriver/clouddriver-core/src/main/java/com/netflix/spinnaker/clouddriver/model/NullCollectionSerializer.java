@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.clouddriver.model;
 
-package com.netflix.spinnaker.clouddriver.model
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import java.util.Collection;
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
-
-class NullCollectionSerializer extends JsonSerializer<Collection> {
+public class NullCollectionSerializer extends JsonSerializer<Collection> {
   @Override
-  void serialize(Collection value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
-    gen.writeStartArray()
-    gen.writeEndArray()
+  public void serialize(Collection value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException, JsonProcessingException {
+    gen.writeStartArray();
+    gen.writeEndArray();
   }
 }

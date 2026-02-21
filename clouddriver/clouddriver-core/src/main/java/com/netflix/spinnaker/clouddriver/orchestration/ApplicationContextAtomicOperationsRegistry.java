@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.orchestration
+package com.netflix.spinnaker.clouddriver.orchestration;
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * This class is to support older naming convention for operations. Do NOT use this for new
  * operations - this is just used until older operations are migrated to new scheme
- *
  */
-class ApplicationContextAtomicOperationsRegistry implements AtomicOperationsRegistry {
+@Getter
+public class ApplicationContextAtomicOperationsRegistry implements AtomicOperationsRegistry {
 
-  @Autowired
-  ApplicationContext applicationContext
+  @Autowired ApplicationContext applicationContext;
 
   @Override
-  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider) {
-    return (AtomicOperationConverter) applicationContext.getBean(description)
+  public AtomicOperationConverter getAtomicOperationConverter(
+      String description, String cloudProvider) {
+    return (AtomicOperationConverter) applicationContext.getBean(description);
   }
 
   @Override
-  DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider) {
-    return (DescriptionValidator) applicationContext.getBean(validator)
+  public DescriptionValidator getAtomicOperationDescriptionValidator(
+      String validator, String cloudProvider) {
+    return (DescriptionValidator) applicationContext.getBean(validator);
   }
 }
