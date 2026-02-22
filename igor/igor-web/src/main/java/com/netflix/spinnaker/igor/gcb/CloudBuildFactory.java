@@ -66,6 +66,16 @@ final class CloudBuildFactory {
     return builder.build();
   }
 
+  CloudBuild getCloudBuild(
+      GoogleCredentials credentials, String applicationName, String cloudBuildRegion) {
+    HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
+    CloudBuild.Builder builder =
+        new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
+            .setApplicationName(applicationName);
+    builder.setRootUrl("https://" + cloudBuildRegion + "-cloudbuild.googleapis.com/");
+    return builder.build();
+  }
+
   Storage getCloudStorage(GoogleCredentials credentials, String applicationName) {
     HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
     Storage.Builder builder =
