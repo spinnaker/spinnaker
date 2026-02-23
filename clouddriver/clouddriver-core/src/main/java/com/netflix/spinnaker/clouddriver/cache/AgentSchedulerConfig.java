@@ -31,14 +31,18 @@ import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import java.net.URI;
+import java.util.Locale;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import redis.clients.jedis.JedisPool;
 
 @Configuration
@@ -48,21 +52,47 @@ public class AgentSchedulerConfig {
 
   private static final Logger log = LoggerFactory.getLogger(AgentSchedulerConfig.class);
   private static final int DEFAULT_REDIS_PORT = 6379;
+  private static final String SCHEDULER_TYPE_DEFAULT = "default";
+  private static final String SCHEDULER_TYPE_SORT = "sort";
+  private static final String SCHEDULER_TYPE_PRIORITY = "priority";
+  private static final Set<String> SUPPORTED_SCHEDULER_TYPES =
+      Set.of(SCHEDULER_TYPE_DEFAULT, SCHEDULER_TYPE_SORT, SCHEDULER_TYPE_PRIORITY);
+  private static final String PROPERTY_REDIS_SCHEDULER = "redis.scheduler";
+  private static final String PROPERTY_REDIS_SCHEDULER_TYPE = "redis.scheduler.type";
+  private static final String PROPERTY_REDIS_SCHEDULER_PARALLELISM = "redis.scheduler.parallelism";
+  private static final String PROPERTY_REDIS_PARALLELISM = "redis.parallelism";
 
   @Bean
   public PrioritySchedulerMetrics prioritySchedulerMetrics(Registry registry) {
     return new PrioritySchedulerMetrics(registry);
   }
 
+  /** Validates scheduler config in strict mode at startup. */
+  @Bean(name = "redisSchedulerTypeValidation")
+  @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
+  public String redisSchedulerTypeValidation(Environment environment) {
+    String schedulerType = normalizedStringProperty(environment, PROPERTY_REDIS_SCHEDULER_TYPE);
+    if (schedulerType == null) {
+      throw new IllegalStateException(
+          String.format(
+              "%s must be explicitly set to one of %s",
+              PROPERTY_REDIS_SCHEDULER_TYPE, SUPPORTED_SCHEDULER_TYPES));
+    }
+    assertSupportedSchedulerType(schedulerType);
+    rejectLegacySchedulerScalar(environment);
+    rejectLegacyParallelism(environment);
+
+    return schedulerType;
+  }
+
   /**
    * Creates the "default" Redis agent scheduler. This bean is only created if redis.scheduler.type
-   * is "default" or not specified.
+   * is "default".
    */
   @Bean
   @ConditionalOnProperty(
-      value = "redis.scheduler.type",
-      havingValue = "default",
-      matchIfMissing = true)
+      value = PROPERTY_REDIS_SCHEDULER_TYPE,
+      havingValue = SCHEDULER_TYPE_DEFAULT)
   @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
   public AgentScheduler defaultRedisAgentScheduler(
       RedisConfigurationProperties redisConfigurationProperties,
@@ -100,7 +130,7 @@ public class AgentSchedulerConfig {
    * "sort".
    */
   @Bean
-  @ConditionalOnProperty(value = "redis.scheduler.type", havingValue = "sort")
+  @ConditionalOnProperty(value = PROPERTY_REDIS_SCHEDULER_TYPE, havingValue = SCHEDULER_TYPE_SORT)
   @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
   public AgentScheduler sortRedisAgentScheduler(
       JedisPool jedisPool,
@@ -137,7 +167,9 @@ public class AgentSchedulerConfig {
    * is "priority". Uses Spring dependency injection for configuration properties.
    */
   @Bean
-  @ConditionalOnProperty(value = "redis.scheduler.type", havingValue = "priority")
+  @ConditionalOnProperty(
+      value = PROPERTY_REDIS_SCHEDULER_TYPE,
+      havingValue = SCHEDULER_TYPE_PRIORITY)
   @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
   public AgentScheduler priorityRedisAgentScheduler(
       JedisPool jedisPool,
@@ -153,7 +185,7 @@ public class AgentSchedulerConfig {
     int parallelism = redisConfigurationProperties.getScheduler().getParallelism();
     if (parallelism != 0) {
       log.warn(
-          "redis.scheduler.parallelism ({}) is completely ignored by PriorityAgentScheduler. "
+          "redis.scheduler.parallelism ({}) is ignored by PriorityAgentScheduler. "
               + "Use redis.agent.max-concurrent-agents instead (current: {})",
           parallelism,
           agentProperties.getMaxConcurrentAgents());
@@ -273,5 +305,51 @@ public class AgentSchedulerConfig {
         agentProperties,
         schedulerProperties,
         metrics);
+  }
+
+  /** Validates that scheduler type is one of default, sort, or priority. */
+  static void assertSupportedSchedulerType(String schedulerType) {
+    if (!SUPPORTED_SCHEDULER_TYPES.contains(schedulerType)) {
+      throw new IllegalStateException(
+          String.format(
+              "Unknown redis scheduler type '%s'. Supported values: %s",
+              schedulerType, SUPPORTED_SCHEDULER_TYPES));
+    }
+  }
+
+  private static void rejectLegacySchedulerScalar(Environment environment) {
+    String legacyScheduler = normalizedStringProperty(environment, PROPERTY_REDIS_SCHEDULER);
+    if (legacyScheduler != null) {
+      throw new IllegalStateException(
+          String.format(
+              "Legacy scalar '%s' is not supported. Use '%s' with one of %s.",
+              PROPERTY_REDIS_SCHEDULER, PROPERTY_REDIS_SCHEDULER_TYPE, SUPPORTED_SCHEDULER_TYPES));
+    }
+  }
+
+  private static void rejectLegacyParallelism(Environment environment) {
+    Integer legacyParallelism =
+        Binder.get(environment).bind(PROPERTY_REDIS_PARALLELISM, Integer.class).orElse(null);
+    if (legacyParallelism != null) {
+      throw new IllegalStateException(
+          String.format(
+              "Legacy '%s' is not supported. Use '%s' for sort scheduler.",
+              PROPERTY_REDIS_PARALLELISM, PROPERTY_REDIS_SCHEDULER_PARALLELISM));
+    }
+  }
+
+  /** Reads, trims, and lowercases a string property; returns null when unset/blank. */
+  private static String normalizedStringProperty(Environment environment, String propertyKey) {
+    String value = Binder.get(environment).bind(propertyKey, String.class).orElse(null);
+    if (value == null) {
+      return null;
+    }
+
+    String trimmed = value.trim();
+    if (trimmed.isEmpty()) {
+      return null;
+    }
+
+    return trimmed.toLowerCase(Locale.US);
   }
 }

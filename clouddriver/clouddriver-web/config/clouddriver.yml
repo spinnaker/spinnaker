@@ -9,7 +9,7 @@ redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
   scheduler:
     type: default
-  parallelism: -1
+    parallelism: -1
 
 services:
   front50:
