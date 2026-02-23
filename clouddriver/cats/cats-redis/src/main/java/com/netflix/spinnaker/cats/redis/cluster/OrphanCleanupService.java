@@ -176,9 +176,6 @@ public class OrphanCleanupService {
       return;
     }
 
-    // Update timestamp immediately after acquiring leadership (or confirming forced run)
-    lastOrphanCleanup = nowMs();
-
     if (log.isDebugEnabled()) {
       log.debug(
           "Starting orphan cleanup cycle (forced={}, budget={}ms)",
@@ -186,10 +183,25 @@ public class OrphanCleanupService {
           schedulerProperties.getOrphanCleanup().getRunBudgetMs());
     }
 
-    try (Jedis jedis = jedisPool.getResource()) {
+    Jedis jedis;
+    try {
+      jedis = jedisPool.getResource();
+    } catch (Exception e) {
+      log.error("Failed to acquire Redis resource during orphan cleanup", e);
+      // Release leadership when Redis acquisition fails before cleanup enters try/finally.
+      if (!forceCleanup) {
+        releaseCleanupLeadership();
+      }
+      return;
+    }
+
+    try (Jedis closeableJedis = jedis) {
+      // Advance cadence only after Redis resource acquisition succeeds.
+      lastOrphanCleanup = nowMs();
       final long budgetMs = schedulerProperties.getOrphanCleanup().getRunBudgetMs();
 
-      int workingCleaned = cleanupOrphanedAgentsFromSet(jedis, WORKING_SET, start, budgetMs);
+      int workingCleaned =
+          cleanupOrphanedAgentsFromSet(closeableJedis, WORKING_SET, start, budgetMs);
       long workingElapsedMs = nowMs() - start;
       if (overBudget(start, budgetMs)) {
         log.info(
@@ -199,7 +211,8 @@ public class OrphanCleanupService {
             workingCleaned);
         return;
       }
-      int waitingCleaned = cleanupOrphanedAgentsFromSet(jedis, WAITING_SET, start, budgetMs);
+      int waitingCleaned =
+          cleanupOrphanedAgentsFromSet(closeableJedis, WAITING_SET, start, budgetMs);
       int totalCleaned = workingCleaned + waitingCleaned;
       long totalElapsedMs = nowMs() - start;
 

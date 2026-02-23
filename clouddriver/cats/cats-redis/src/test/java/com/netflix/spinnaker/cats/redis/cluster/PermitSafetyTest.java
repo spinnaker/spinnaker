@@ -158,7 +158,7 @@ class PermitSafetyTest {
       }
 
       ExecutorService rejecting = mock(ExecutorService.class);
-      doThrow(new RejectedExecutionException("full")).when(rejecting).submit(any(Runnable.class));
+      doThrow(new RejectedExecutionException("full")).when(rejecting).execute(any(Runnable.class));
 
       Semaphore sem = new Semaphore(1);
       int initialPermits = sem.availablePermits();
@@ -262,11 +262,11 @@ class PermitSafetyTest {
         j.zadd("waiting", now - 1, "submit-oom-agent");
       }
 
-      // Executor that throws OutOfMemoryError on submit
+      // Executor that throws OutOfMemoryError on execute
       ExecutorService faultyExecutor =
           new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()) {
             @Override
-            public java.util.concurrent.Future<?> submit(Runnable task) {
+            public void execute(Runnable task) {
               throw new OutOfMemoryError("simulated-submit-oom");
             }
           };

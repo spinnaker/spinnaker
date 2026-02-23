@@ -4075,18 +4075,11 @@ public class AgentAcquisitionService {
       AgentWorker worker, ExecutorService agentWorkPool, Semaphore maxConcurrentSemaphore) {
 
     String agentType = worker.getAgent().getAgentType();
+    java.util.concurrent.FutureTask<Void> futureTask = null;
 
     try {
-      // Design decision: Nested anonymous class (FutureTask with done() callback)
-      // --------------------------------------------------------------------------
-      // This pattern is required to guarantee exactly-once semaphore release even when tasks are
-      // cancelled before run() starts (pre-start cancellation). Alternative approaches considered:
-      // 1. CompletableFuture: Doesn't integrate cleanly with ExecutorService.submit()
-      // 2. Separate completion callback: Would require additional synchronization
-      // 3. ExecutorCompletionService: Adds complexity without solving pre-start cancellation
-      // JVM optimizes anonymous class instantiation well (no reflection, direct bytecode). The
-      // per-agent allocation is acceptable since agent execution itself is the expensive part.
-      java.util.concurrent.FutureTask<Void> futureTask =
+      // Keep an explicit FutureTask so done() is guaranteed to run for cancel-before-start paths.
+      futureTask =
           new java.util.concurrent.FutureTask<Void>(worker, null) {
             @Override
             protected void done() {
@@ -4116,19 +4109,21 @@ public class AgentAcquisitionService {
             }
           };
 
-      // Submit to pool; only track the future after a successful submit
-      java.util.concurrent.Future<?> future = agentWorkPool.submit(futureTask);
-      activeAgentsFutures.put(agentType, future);
+      // Track the same FutureTask instance we execute so done() map cleanup can match by identity.
+      activeAgentsFutures.put(agentType, futureTask);
+      agentWorkPool.execute(futureTask);
       log.debug("Successfully submitted agent {} to thread pool", agentType);
-      return future;
+      return futureTask;
 
     } catch (java.util.concurrent.RejectedExecutionException rex) {
+      if (futureTask != null) {
+        activeAgentsFutures.remove(agentType, futureTask);
+      }
       // Handle rejection - release permit and track metric
       log.warn(
           "Agent {} submission rejected by thread pool (queue full or pool shutdown)", agentType);
 
-      // Critical: Clean up RunState and release permit via CAS to maintain consistency.
-      // RunState was created in the submit loop before calling this method.
+      // Release permit state via CAS for rejected submissions.
       RunState runStateToClean = runStates.remove(agentType);
       if (runStateToClean != null && runStateToClean.permitHeld.compareAndSet(true, false)) {
         try {
@@ -4142,8 +4137,7 @@ public class AgentAcquisitionService {
         }
       }
 
-      // Critical: Remove from activeAgents to prevent permit_mismatch.
-      // activeAgents entry was added before submission attempt.
+      // Remove activeAgents entry that was added before submission.
       String removed = activeAgents.remove(agentType);
       if (removed != null) {
         activeAgentMapSize.decrementAndGet();
@@ -4158,16 +4152,15 @@ public class AgentAcquisitionService {
 
       return null;
 
-      // Design note: Catch Throwable to handle all submission failure modes.
-      // - Critical: A permit was acquired before calling this method. If an Error occurs during
-      //   FutureTask creation or executor.submit(), we must release the permit to prevent leaks.
-      // - Examples: OutOfMemoryError creating FutureTask, ThreadDeath during submit, etc.
+      // Catch Throwable to release permit and state on submit-time errors.
     } catch (Throwable e) {
+      if (futureTask != null) {
+        activeAgentsFutures.remove(agentType, futureTask);
+      }
       // Handle other submission errors
       log.error("Failed to submit agent {} due to unexpected error", agentType, e);
 
-      // Critical: Clean up RunState and release permit via CAS to maintain consistency.
-      // RunState was created in the submit loop before calling this method.
+      // Release permit state via CAS on submit failure.
       RunState runStateToClean = runStates.remove(agentType);
       if (runStateToClean != null && runStateToClean.permitHeld.compareAndSet(true, false)) {
         try {
@@ -4181,8 +4174,7 @@ public class AgentAcquisitionService {
         }
       }
 
-      // Critical: Remove from activeAgents to prevent permit_mismatch.
-      // activeAgents entry was added before submission attempt.
+      // Remove activeAgents entry that was added before submission.
       String removed = activeAgents.remove(agentType);
       if (removed != null) {
         activeAgentMapSize.decrementAndGet();
@@ -4362,12 +4354,14 @@ public class AgentAcquisitionService {
       boolean success = false;
       FailureClass failureClass = null;
       Throwable capturedCause = null;
+      boolean runStateObservedAtStart = false;
 
       try {
         // Mark as started for fairness accounting
         try {
           RunState runStateForAgent = acquisitionService.runStates.get(agentType);
           if (runStateForAgent != null) {
+            runStateObservedAtStart = true;
             runStateForAgent.started.set(true);
           }
         } catch (Exception e) {
@@ -4440,31 +4434,34 @@ public class AgentAcquisitionService {
           log.debug("Dead-man cleanup failed for {}", agentType, ex);
         }
 
-        // Queue completion BEFORE removing from tracking to avoid race with cleanup services
+        // Queue completion before local tracking cleanup.
         acquisitionService.conditionalReleaseAgent(
             agent, deadlineScore, success, failureClass, capturedCause);
 
-        // Critical: Exactly-once permit release (perform BEFORE Redis cleanup)
+        // Perform exactly-once permit release before Redis cleanup.
         RunState runStateForAgent = acquisitionService.runStates.remove(agentType);
         if (runStateForAgent == null) {
-          // Unexpected: RunState should exist - may indicate double cleanup or unregister race
-          if (maxConcurrentSemaphore != null) {
+          // Missing RunState usually means another cleanup path already released the permit.
+          acquisitionService.metrics.incrementCasContention("worker_completion_missing_runstate");
+          if (!runStateObservedAtStart && maxConcurrentSemaphore != null) {
+            // Legacy/manual execution path still owns the permit.
             maxConcurrentSemaphore.release();
             log.warn(
-                "Released permit for {} with no RunState (unexpected - possible double cleanup)",
+                "Released permit for {} with no RunState (legacy/manual worker path)", agentType);
+          } else {
+            log.warn(
+                "RunState missing for {} during worker completion; skipping permit release to avoid over-release",
                 agentType);
           }
         } else {
-          // Release permit via CAS - ensures exactly-once release
+          // Release permit via CAS.
           if (runStateForAgent.permitHeld.compareAndSet(true, false)) {
             if (maxConcurrentSemaphore != null) {
               maxConcurrentSemaphore.release();
               log.debug("Released permit for {}", agentType);
             }
           } else {
-            // CAS failed - permit already released by another path (e.g.,
-            // removeActiveAgentWithPermitRelease)
-            // This is unexpected in normal flow but valid if cleanup raced with worker completion
+            // Permit already released by another path.
             acquisitionService.metrics.incrementCasContention("worker_completion");
             log.warn(
                 "Permit for {} already released (CAS failed) - cleanup raced with worker completion",

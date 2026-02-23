@@ -40,6 +40,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -2158,6 +2159,60 @@ class OrphanCleanupServiceTest {
         String v = j.get(props.getKeys().getCleanupLeaderKey());
         assertThat(v).isEqualTo("node-1");
       }
+    }
+
+    @Test
+    @DisplayName("Resource acquisition failure does not advance orphan cleanup cadence")
+    void resourceAcquireFailureDoesNotAdvanceCleanupCadence() {
+      PrioritySchedulerProperties props = new PrioritySchedulerProperties();
+      props.getKeys().setWaitingSet("waiting-cadence");
+      props.getKeys().setWorkingSet("working-cadence");
+      props.getKeys().setCleanupLeaderKey("cleanup-leader-cadence");
+      props.getOrphanCleanup().setEnabled(true);
+      props.getOrphanCleanup().setIntervalMs(60_000L); // Large interval to expose suppression bug
+      props.getOrphanCleanup().setLeadershipTtlMs(30_000L);
+
+      com.netflix.spectator.api.DefaultRegistry localRegistry =
+          new com.netflix.spectator.api.DefaultRegistry();
+      PrioritySchedulerMetrics localMetrics = new PrioritySchedulerMetrics(localRegistry);
+
+      AtomicInteger getResourceCalls = new AtomicInteger(0);
+      JedisPool flakyPool = mock(JedisPool.class);
+      try {
+        when(flakyPool.getResource())
+            .thenAnswer(
+                invocation -> {
+                  int call = getResourceCalls.incrementAndGet();
+                  if (call == 2 || call == 5) {
+                    throw new redis.clients.jedis.exceptions.JedisConnectionException(
+                        "resource acquisition failure");
+                  }
+                  return jedisPool.getResource();
+                });
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+
+      RedisScriptManager scripts = mock(RedisScriptManager.class);
+      when(scripts.evalshaWithSelfHeal(
+              any(), eq(RedisScriptManager.RELEASE_LEADERSHIP), any(), any()))
+          .thenReturn("1");
+
+      OrphanCleanupService svc = new OrphanCleanupService(flakyPool, scripts, props, localMetrics);
+
+      long farPastTime = System.currentTimeMillis() - 120_000L;
+      TestFixtures.setField(svc, OrphanCleanupService.class, "lastOrphanCleanup", farPastTime);
+
+      svc.cleanupOrphanedAgentsIfNeeded();
+      assertThat(svc.getLastOrphanCleanup())
+          .describedAs("Cadence should not advance when main cleanup resource acquisition fails")
+          .isEqualTo(farPastTime);
+
+      int callsAfterFirstAttempt = getResourceCalls.get();
+      svc.cleanupOrphanedAgentsIfNeeded();
+      assertThat(getResourceCalls.get())
+          .describedAs("Second call should not be interval-suppressed after failed acquisition")
+          .isGreaterThan(callsAfterFirstAttempt);
     }
   }
 

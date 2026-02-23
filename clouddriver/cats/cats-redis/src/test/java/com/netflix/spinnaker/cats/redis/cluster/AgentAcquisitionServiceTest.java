@@ -34,11 +34,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -5698,6 +5700,99 @@ class AgentAcquisitionServiceTest {
           ((java.util.concurrent.atomic.AtomicLong) last.get(null)).set(0L);
         } catch (Exception ignore) {
         }
+        pool.close();
+      }
+    }
+
+    @Test
+    @DisplayName("Cancel-before-start releases permit via tracked FutureTask done callback")
+    void cancelBeforeStartReleasesPermitViaDoneCallback() throws Exception {
+      JedisPool pool = TestFixtures.createTestJedisPool(redis);
+      try {
+        PriorityAgentProperties agentProps = new PriorityAgentProperties();
+        agentProps.setEnabledPattern(".*");
+        agentProps.setDisabledPattern("");
+        agentProps.setMaxConcurrentAgents(1);
+
+        PrioritySchedulerProperties props = new PrioritySchedulerProperties();
+        props.getKeys().setWaitingSet("waiting");
+        props.getKeys().setWorkingSet("working");
+        props.getKeys().setCleanupLeaderKey("cleanup-leader");
+        props.getBatchOperations().setEnabled(false);
+
+        AgentAcquisitionService svc =
+            new AgentAcquisitionService(
+                pool,
+                TestFixtures.createTestScriptManager(pool),
+                (AgentIntervalProvider) a -> new AgentIntervalProvider.Interval(1000L, 1000L),
+                (ShardingFilter) a -> true,
+                agentProps,
+                props,
+                TestFixtures.createTestMetrics());
+
+        String agentType = "cancel-before-start-agent";
+        Agent agent = TestFixtures.createMockAgent(agentType, "test");
+        svc.registerAgent(
+            agent, mock(AgentExecution.class), TestFixtures.createMockInstrumentation());
+
+        try (Jedis j = pool.getResource()) {
+          long now = TestFixtures.getRedisTimeSeconds(j);
+          j.zadd("waiting", now - 1, agentType);
+        }
+
+        AbstractExecutorService deferredExecutor =
+            new AbstractExecutorService() {
+              private final java.util.concurrent.atomic.AtomicBoolean shutdown =
+                  new java.util.concurrent.atomic.AtomicBoolean(false);
+
+              @Override
+              public void shutdown() {
+                shutdown.set(true);
+              }
+
+              @Override
+              public java.util.List<Runnable> shutdownNow() {
+                shutdown.set(true);
+                return java.util.Collections.emptyList();
+              }
+
+              @Override
+              public boolean isShutdown() {
+                return shutdown.get();
+              }
+
+              @Override
+              public boolean isTerminated() {
+                return shutdown.get();
+              }
+
+              @Override
+              public boolean awaitTermination(long timeout, TimeUnit unit) {
+                return true;
+              }
+
+              @Override
+              public void execute(Runnable command) {
+                if (shutdown.get()) {
+                  throw new RejectedExecutionException("executor shut down");
+                }
+                // Intentionally do not run command to simulate queued/not-started task.
+              }
+            };
+
+        Semaphore permits = new Semaphore(1);
+        int acquired = svc.saturatePool(1L, permits, deferredExecutor);
+        assertThat(acquired).isEqualTo(1);
+        assertThat(permits.availablePermits()).isEqualTo(0);
+
+        Future<?> tracked = svc.getActiveAgentsFuturesSnapshot().get(agentType);
+        assertThat(tracked).isNotNull();
+        assertThat(tracked.cancel(true)).isTrue();
+
+        boolean permitReturned =
+            TestFixtures.waitForCondition(() -> permits.availablePermits() == 1, 1000, 20);
+        assertThat(permitReturned).isTrue();
+      } finally {
         pool.close();
       }
     }

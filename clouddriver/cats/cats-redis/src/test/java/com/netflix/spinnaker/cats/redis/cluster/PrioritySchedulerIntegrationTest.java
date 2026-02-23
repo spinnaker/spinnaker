@@ -1266,81 +1266,95 @@ public class PrioritySchedulerIntegrationTest {
     @Test
     @DisplayName("Should handle graceful shutdown properly")
     void shouldHandleGracefulShutdownProperly() throws Exception {
-      // Given - Agents that might be executing
-      Agent agent1 = TestFixtures.createMockAgent("shutdown-agent-1", "test-provider");
-      MockAgentExecution execution1 = new MockAgentExecution();
-      execution1.setHangDuration(100); // Brief hang to simulate work
+      Logger schedulerLogger = (Logger) LoggerFactory.getLogger(PriorityAgentScheduler.class);
+      Level previousLevel = schedulerLogger.getLevel();
+      schedulerLogger.setLevel(Level.DEBUG);
+      ListAppender<ILoggingEvent> appender =
+          TestFixtures.captureLogsFor(PriorityAgentScheduler.class);
+      try {
+        // Given - Agents that might be executing
+        Agent agent1 = TestFixtures.createMockAgent("shutdown-agent-1", "test-provider");
+        MockAgentExecution execution1 = new MockAgentExecution();
+        execution1.setHangDuration(100); // Brief hang to simulate work
 
-      scheduler.schedule(agent1, execution1, new MockInstrumentation());
-      scheduler.initialize();
+        scheduler.schedule(agent1, execution1, new MockInstrumentation());
+        scheduler.initialize();
 
-      // Trigger scheduler run
-      scheduler.run();
+        // Trigger scheduler run
+        scheduler.run();
 
-      // Wait briefly for scheduler to process
-      waitForCondition(
-          () -> {
-            // Just wait briefly to ensure scheduler processes
-            return true;
-          },
-          200,
-          50);
+        // Wait briefly for scheduler to process
+        waitForCondition(
+            () -> {
+              // Just wait briefly to ensure scheduler processes
+              return true;
+            },
+            200,
+            50);
 
-      // When - Shutdown scheduler
-      scheduler.shutdown();
+        // When - Shutdown scheduler
+        String shutdownMarker = "shutdown-cleanup-marker-" + System.nanoTime();
+        String testThread = Thread.currentThread().getName();
+        schedulerLogger.debug(shutdownMarker);
+        scheduler.shutdown();
 
-      // Then - Should complete gracefully without errors
-      assertThat(scheduler).isNotNull();
+        // Then - Should complete gracefully without errors
+        assertThat(scheduler).isNotNull();
 
-      // Verify agents requeued to WAITING_SET after shutdown (if they were working)
-      // Wait for shutdown requeue to complete using polling
-      waitForCondition(
-          () -> {
-            try (Jedis jedis = jedisPool.getResource()) {
-              // Check if agent has been requeued (not in WORKING_SET anymore)
-              Double workingScore = jedis.zscore("working", "shutdown-agent-1");
-              // Return true if agent is not in WORKING_SET (requeue completed) or if we've waited
-              // long enough
-              return workingScore == null;
-            }
-          },
-          1000,
-          50);
-      try (Jedis jedis = jedisPool.getResource()) {
-        // Verify agent NOT in WORKING_SET after shutdown (should be requeued or
-        // completed)
-        Double workingScore = jedis.zscore("working", "shutdown-agent-1");
-        assertThat(workingScore)
-            .describedAs(
-                "Agent should NOT be in WORKING_SET after shutdown (should be requeued or completed)")
-            .isNull();
+        // Verify agents requeued to WAITING_SET after shutdown (if they were working)
+        // Wait for shutdown requeue to complete using polling
+        waitForCondition(
+            () -> {
+              try (Jedis jedis = jedisPool.getResource()) {
+                Double workingScore = jedis.zscore("working", "shutdown-agent-1");
+                return workingScore == null;
+              }
+            },
+            1000,
+            50);
+        try (Jedis jedis = jedisPool.getResource()) {
+          Double workingScore = jedis.zscore("working", "shutdown-agent-1");
+          assertThat(workingScore)
+              .describedAs("Agent should not remain in WORKING_SET after shutdown")
+              .isNull();
+        }
 
-        // Agent should be in waiting set (requeued from shutdown) OR have completed and been
-        // rescheduled
-        // If agent completed quickly before shutdown, it might already be rescheduled with a new
-        // score
-        // The key verification is that agent is NOT in working set (confirms shutdown handled it
-        // correctly)
-        Double waitingScore = jedis.zscore("waiting", "shutdown-agent-1");
-        // Agent might be in waiting set (requeued) or might have completed and been rescheduled
-        // The key check is that it's NOT in working set (confirms shutdown handled it)
-        // If waitingScore is null, agent might have completed and been rescheduled, which is also
-        // acceptable
-        // The key is that shutdown completed gracefully without errors
+        // Verify resources cleaned up after shutdown
+        PriorityAgentScheduler.SchedulerStats stats = scheduler.getStats();
+        assertThat(stats).describedAs("Stats remain accessible after shutdown").isNotNull();
+        // Verify scheduler is not running after shutdown
+        assertThat(stats.isRunning())
+            .describedAs("Scheduler should be stopped after shutdown")
+            .isFalse();
+
+        int markerIndex = -1;
+        for (int i = 0; i < appender.list.size(); i++) {
+          ILoggingEvent event = appender.list.get(i);
+          if (testThread.equals(event.getThreadName())
+              && event.getFormattedMessage().contains(shutdownMarker)) {
+            markerIndex = i;
+            break;
+          }
+        }
+        long cleanupSubmissionFailures = 0L;
+        for (int i = markerIndex + 1; i < appender.list.size(); i++) {
+          ILoggingEvent event = appender.list.get(i);
+          String msg = event.getFormattedMessage();
+          if (testThread.equals(event.getThreadName())
+              && (msg.contains("Failed to schedule ThreadLocal cleanup on zombie executor")
+                  || msg.contains("Failed to schedule ThreadLocal cleanup on orphan executor")
+                  || msg.contains(
+                      "Failed to schedule ThreadLocal cleanup on reconcile executor"))) {
+            cleanupSubmissionFailures++;
+          }
+        }
+        assertThat(cleanupSubmissionFailures)
+            .describedAs("Cleanup tasks should be submitted before executor shutdown")
+            .isEqualTo(0L);
+      } finally {
+        schedulerLogger.setLevel(previousLevel);
+        TestFixtures.detachLogs(appender, PriorityAgentScheduler.class);
       }
-
-      // Verify resources cleaned up after shutdown
-      PriorityAgentScheduler.SchedulerStats stats = scheduler.getStats();
-      assertThat(stats)
-          .describedAs(
-              "Scheduler stats should be accessible after shutdown (confirms scheduler state is accessible)")
-          .isNotNull();
-      // Verify scheduler is not running after shutdown
-      assertThat(stats.isRunning())
-          .describedAs(
-              "Scheduler should not be running after shutdown (confirms resources cleaned up)")
-          .isFalse();
-      // The shutdown process should handle any active agents properly
     }
 
     /**
