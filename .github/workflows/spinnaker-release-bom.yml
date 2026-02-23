@@ -112,12 +112,17 @@ jobs:
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            spinnaker.io
+            spinnaker
 
       - name: Create Spinnaker release BoM and changelog
         id: spinnaker-release-bom
         uses: ./.github/actions/spinnaker-release
         with:
-          github-pat: ${{ steps.app-token.outputs.token }}
+          ## https://github.com/octokit/auth-token.js/?tab=readme-ov-file#use-token-for-git-operations Since using a GHA, must prefix with x-access-token apparently.
+          github-pat:  x-access-token:${{ steps.app-token.outputs.token }}
           credentials-json: ${{ secrets.GAR_JSON_KEY }}
           version: ${{ inputs.spinnaker-version }}
           previous-version: ${{ inputs.spinnaker-previous-version }}
