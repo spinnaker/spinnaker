@@ -72,9 +72,9 @@ class DefaultOkHttp3ClientFactory(
       config.connection.readTimeout?.let {
         readTimeoutMs = it.toMillis()
       }
-      refreshableKeys.enabled = false
+      refreshableKeys.setEnabled(false)
 
-      retryOnConnectionFailure = config.connection.isRetryOnConnectionFailure
+      this.setRetryOnConnectionFailure(config.connection.isRetryOnConnectionFailure)
 
       if (config.security.keyStorePath != null && config.security.trustStorePath != null) {
         keyStore = config.security.keyStorePath.toFile()
