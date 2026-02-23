@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.core
+package com.netflix.spinnaker.clouddriver.core;
 
-import java.lang.annotation.Annotation
+import java.lang.annotation.Annotation;
+import lombok.Getter;
 
-class NoopCloudProvider implements CloudProvider {
-  final String id = "noop"
-  final String displayName = "noop"
-  final Class<Annotation> operationAnnotationType = null
+@Getter
+public class NoopCloudProvider implements CloudProvider {
+  private final String id = "noop";
+  private final String displayName = "noop";
+  private final Class<? extends Annotation> operationAnnotationType = null;
 }
