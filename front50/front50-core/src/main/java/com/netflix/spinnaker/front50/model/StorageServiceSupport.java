@@ -204,7 +204,9 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     }
   }
 
-  /** @return Healthy if refreshed in the past `getHealthMillis()` */
+  /**
+   * @return Healthy if refreshed in the past `getHealthMillis()`
+   */
   public boolean isHealthy() {
     boolean isHealthy =
         (System.currentTimeMillis() - lastRefreshedTime.get()) < getHealthMillis()
