@@ -49,6 +49,18 @@ subprojects {
       }
     }
 
+    // Avoid warnings like
+    //
+    // Using deprecated '-debug' fallback for parameter name resolution. Compile
+    // the affected code with '-parameters' instead or avoid its introspection:
+    // com.netflix.spinnaker.fiat.controllers.RolesController
+    //
+    // FWIW, the spring boot gradle plugin enables this since 2.0 via
+    // https://github.com/spring-projects/spring-boot/pull/9839.
+    tasks.withType(JavaCompile) {
+      options.compilerArgs << "-parameters"
+    }
+
     dependencies {
       implementation enforcedPlatform("io.spinnaker.kork:kork-bom")
       compileOnly "org.projectlombok:lombok"
