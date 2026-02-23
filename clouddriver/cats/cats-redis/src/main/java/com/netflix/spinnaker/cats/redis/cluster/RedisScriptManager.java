@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.cats.redis.cluster;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -47,6 +48,8 @@ import redis.clients.jedis.JedisPool;
 @Component
 @Slf4j
 public class RedisScriptManager {
+  private static final String EVALSHA_RETRY_FALLBACK_LOG =
+      "EVALSHA retry failed for '{}' after reload; using EVAL fallback";
 
   // Script name constants for Redis Lua operations
 
@@ -81,11 +84,13 @@ public class RedisScriptManager {
 
   private final JedisPool jedisPool;
   private final PrioritySchedulerMetrics metrics;
-  private final Map<String, String> scriptShas = new ConcurrentHashMap<>();
+  private volatile Map<String, String> scriptShas = Collections.emptyMap();
   private final AtomicBoolean initialized = new AtomicBoolean(false);
 
   // Single source of truth for Lua bodies used by both scriptLoad and EVAL fallback
-  private final Map<String, String> scriptBodies = new ConcurrentHashMap<>();
+  private volatile Map<String, String> scriptBodies = Collections.emptyMap();
+  private final Object scriptReloadLock = new Object();
+  private final AtomicLong scriptGeneration = new AtomicLong(0L);
 
   /**
    * Constructs a new RedisScriptManager.
@@ -175,14 +180,9 @@ public class RedisScriptManager {
     } catch (redis.clients.jedis.exceptions.JedisDataException e) {
       String msg = e.getMessage();
       if (msg != null && msg.contains("NOSCRIPT")) {
+        long observedGeneration = scriptGeneration.get();
         try {
-          // Script evicted from Redis - reload all scripts
-          log.warn(
-              "NOSCRIPT detected for script '{}' - reloading all scripts "
-                  + "(possible Redis failover, restart, or SCRIPT FLUSH)",
-              scriptName);
-          metrics.incrementScriptsReload();
-          loadAllScripts(jedis);
+          reloadAllScriptsIfStale(jedis, observedGeneration, scriptName, "NOSCRIPT");
           // Retry with reloaded SHA
           long retryStart = System.nanoTime();
           Object result = jedis.evalsha(getScriptSha(scriptName), keys, args);
@@ -191,11 +191,7 @@ public class RedisScriptManager {
           return result;
         } catch (Exception retry) {
           // Fallback: execute script body directly via EVAL
-          log.warn(
-              "EVALSHA retry failed for script '{}' after reload - "
-                  + "falling back to EVAL (degraded performance mode)",
-              scriptName,
-              retry);
+          log.warn(EVALSHA_RETRY_FALLBACK_LOG, scriptName, retry);
           String body = getScriptBody(scriptName);
           if (body != null) {
             long evalStart = System.nanoTime();
@@ -220,9 +216,9 @@ public class RedisScriptManager {
       } catch (Exception ignoreMetric) {
       }
 
+      long observedGeneration = scriptGeneration.get();
       try {
-        loadAllScripts(jedis);
-        metrics.incrementScriptsReload();
+        reloadAllScriptsIfStale(jedis, observedGeneration, scriptName, "ClassCastException");
         long retryStart = System.nanoTime();
         Object result = jedis.evalsha(getScriptSha(scriptName), keys, args);
         metrics.recordScriptEval(
@@ -230,11 +226,7 @@ public class RedisScriptManager {
         return result;
       } catch (Exception retry) {
         // Fall back to EVAL body
-        log.warn(
-            "EVALSHA retry failed for script '{}' after reload - "
-                + "falling back to EVAL (degraded performance mode)",
-            scriptName,
-            retry);
+        log.warn(EVALSHA_RETRY_FALLBACK_LOG, scriptName, retry);
         String body = getScriptBody(scriptName);
         if (body != null) {
           long evalStart = System.nanoTime();
@@ -248,7 +240,7 @@ public class RedisScriptManager {
     }
   }
 
-  // Returns the script body for a given name from the single-source map.
+  /** Returns Lua body for a script name. */
   private String getScriptBody(String scriptName) {
     return scriptBodies.get(scriptName);
   }
@@ -260,6 +252,28 @@ public class RedisScriptManager {
    */
   public boolean isInitialized() {
     return initialized.get();
+  }
+
+  /**
+   * Reloads scripts only when no other thread has already done so.
+   *
+   * <p>The generation check avoids duplicate reload work under concurrent NOSCRIPT/error paths.
+   */
+  private void reloadAllScriptsIfStale(
+      Jedis jedis, long observedGeneration, String scriptName, String trigger) {
+    synchronized (scriptReloadLock) {
+      if (scriptGeneration.get() != observedGeneration) {
+        log.debug("Skipping reload for '{}' after {} (already reloaded)", scriptName, trigger);
+        return;
+      }
+
+      log.warn(
+          "Reloading Redis scripts for '{}' after {} (possible Redis failover, restart, or SCRIPT FLUSH)",
+          scriptName,
+          trigger);
+      loadAllScripts(jedis);
+      metrics.incrementScriptsReload();
+    }
   }
 
   private void loadAllScripts(Jedis jedis) {
@@ -509,13 +523,14 @@ public class RedisScriptManager {
             + "  return 0\n"
             + "end\n");
 
-    // Persist and load
-    scriptBodies.clear();
-    scriptBodies.putAll(bodies);
-    scriptShas.clear();
+    // Load SHAs first, then atomically publish both maps as immutable snapshots.
+    Map<String, String> loadedShas = new LinkedHashMap<>();
     for (Map.Entry<String, String> entry : bodies.entrySet()) {
-      scriptShas.put(entry.getKey(), jedis.scriptLoad(entry.getValue()));
+      loadedShas.put(entry.getKey(), jedis.scriptLoad(entry.getValue()));
     }
+    scriptBodies = Collections.unmodifiableMap(new LinkedHashMap<>(bodies));
+    scriptShas = Collections.unmodifiableMap(loadedShas);
+    scriptGeneration.incrementAndGet();
 
     log.debug("Loaded Redis Lua scripts: {}", scriptShas.keySet());
   }

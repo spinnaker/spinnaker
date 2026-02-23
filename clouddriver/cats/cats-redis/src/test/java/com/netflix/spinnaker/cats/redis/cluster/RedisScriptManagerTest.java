@@ -933,6 +933,71 @@ class RedisScriptManagerTest {
       }
     }
 
+    @Test
+    @DisplayName("Should perform single script reload under concurrent NOSCRIPT storm")
+    void shouldPerformSingleReloadUnderConcurrentNoScriptStorm() throws InterruptedException {
+      com.netflix.spectator.api.Registry registry = new com.netflix.spectator.api.DefaultRegistry();
+      PrioritySchedulerMetrics metrics = new PrioritySchedulerMetrics(registry);
+      RedisScriptManager concurrentManager = new RedisScriptManager(jedisPool, metrics);
+      concurrentManager.initializeScripts();
+
+      try (Jedis jedis = jedisPool.getResource()) {
+        jedis.scriptFlush();
+      }
+
+      int threadCount = 8;
+      java.util.concurrent.ExecutorService executor =
+          java.util.concurrent.Executors.newFixedThreadPool(threadCount);
+      java.util.concurrent.CountDownLatch ready =
+          new java.util.concurrent.CountDownLatch(threadCount);
+      java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+      java.util.concurrent.CountDownLatch done =
+          new java.util.concurrent.CountDownLatch(threadCount);
+      java.util.concurrent.atomic.AtomicReference<Throwable> failure =
+          new java.util.concurrent.atomic.AtomicReference<>();
+
+      for (int i = 0; i < threadCount; i++) {
+        final int index = i;
+        executor.submit(
+            () -> {
+              ready.countDown();
+              try {
+                start.await();
+                try (Jedis jedis = jedisPool.getResource()) {
+                  concurrentManager.evalshaWithSelfHeal(
+                      jedis,
+                      RedisScriptManager.ADD_AGENTS,
+                      java.util.Arrays.asList("working", "waiting"),
+                      java.util.Arrays.asList("storm-agent-" + index, String.valueOf(100 + index)));
+                }
+              } catch (Throwable t) {
+                failure.compareAndSet(null, t);
+              } finally {
+                done.countDown();
+              }
+            });
+      }
+
+      assertThat(ready.await(5, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+      start.countDown();
+      assertThat(done.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+      executor.shutdownNow();
+
+      assertThat(failure.get()).isNull();
+      try (Jedis jedis = jedisPool.getResource()) {
+        assertThat(jedis.zcard("waiting")).isEqualTo((long) threadCount);
+      }
+
+      double reloadCount =
+          registry
+              .counter(
+                  registry
+                      .createId("cats.priorityScheduler.scripts.reloads")
+                      .withTag("scheduler", "priority"))
+              .count();
+      assertThat(reloadCount).isEqualTo(1.0d);
+    }
+
     /**
      * Tests that all scripts have non-null, non-empty bodies accessible via reflection and that
      * bodies are directly executable via EVAL, verifying the single-source-of-truth pattern.
