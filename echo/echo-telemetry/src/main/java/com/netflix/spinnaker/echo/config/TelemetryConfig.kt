@@ -49,7 +49,10 @@ open class TelemetryConfig {
     okHttpClientConfig: OkHttp3ClientConfiguration,
     okHttpClient: OkHttpClient
   ): TelemetryService {
-    val clientProps = OkHttpClientConfigurationProperties(configProps.connectionTimeoutMillis.toLong(), configProps.readTimeoutMillis.toLong())
+    val clientProps = OkHttpClientConfigurationProperties().apply {
+      connectTimeoutMs = configProps.connectionTimeoutMillis.toLong()
+      readTimeoutMs = configProps.readTimeoutMillis.toLong()
+    }
     val clientProvider = DefaultOkHttpClientBuilderProvider(okHttpClient, clientProps)
     log.info("Telemetry service loaded")
     return Retrofit.Builder()
