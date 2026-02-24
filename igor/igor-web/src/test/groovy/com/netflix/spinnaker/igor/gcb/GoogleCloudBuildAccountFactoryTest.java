@@ -65,6 +65,40 @@ public class GoogleCloudBuildAccountFactoryTest {
   }
 
   @Test
+  public void cloudBuildRegional() {
+    GoogleCloudBuildProperties.Account accountConfig =
+        GoogleCloudBuildProperties.Account.builder()
+            .name("test-account")
+            .project("test-project")
+            .cloudBuildRegion("north")
+            .build();
+
+    when(googleCredentialsService.getApplicationDefault()).thenReturn(googleCredentials);
+    when(googleCloudBuildClientFactory.create(eq(googleCredentials), any(String.class)))
+        .thenReturn(googleCloudBuildClient);
+
+    GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
+    verify(googleCloudBuildClientFactory)
+        .create(eq(googleCredentials), any(String.class), any(String.class));
+  }
+
+  @Test
+  public void cloudBuildGlobal() {
+    GoogleCloudBuildProperties.Account accountConfig =
+        GoogleCloudBuildProperties.Account.builder()
+            .name("test-account")
+            .project("test-project")
+            .build();
+
+    when(googleCredentialsService.getApplicationDefault()).thenReturn(googleCredentials);
+    when(googleCloudBuildClientFactory.create(eq(googleCredentials), any(String.class)))
+        .thenReturn(googleCloudBuildClient);
+
+    GoogleCloudBuildAccount account = googleCloudBuildAccountFactory.build(accountConfig);
+    verify(googleCloudBuildClientFactory).create(eq(googleCredentials), any(String.class));
+  }
+
+  @Test
   public void jsonCredentials() {
     GoogleCloudBuildProperties.Account accountConfig =
         GoogleCloudBuildProperties.Account.builder()
