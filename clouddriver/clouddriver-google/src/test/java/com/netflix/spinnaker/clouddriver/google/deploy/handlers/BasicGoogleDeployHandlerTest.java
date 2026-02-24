@@ -2259,6 +2259,56 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_singleSelectionMissingRank_mapsSelection() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(true);
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection
+        selection =
+            new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection();
+    selection.setMachineTypes(List.of("n2-standard-8"));
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("preferred", selection);
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNotNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+    assertEquals(
+        1, instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().size());
+    assertTrue(
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .containsKey("preferred"));
+    assertNull(
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .get("preferred")
+            .getRank());
+    assertEquals(
+        List.of("n2-standard-8"),
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .get("preferred")
+            .getMachineTypes());
+  }
+
+  @Test
   void testSetInstanceFlexibilityPolicyToInstanceGroup_mapsValidSelectionsOnly() {
     InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
     BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
@@ -2342,9 +2392,13 @@ public class BasicGoogleDeployHandlerTest {
         selections = new HashMap<>();
     selections.put("nullSelection", null);
     selections.put(
-        "missingRank",
+        "missingRankA",
         new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
             .InstanceSelection(null, List.of("n2-standard-8")));
+    selections.put(
+        "missingRankB",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(null, List.of("n2-standard-16")));
     selections.put(
         "missingMachineTypes",
         new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy

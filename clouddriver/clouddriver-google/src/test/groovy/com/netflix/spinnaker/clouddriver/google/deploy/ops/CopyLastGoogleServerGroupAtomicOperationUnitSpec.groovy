@@ -622,4 +622,45 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           it.distributionPolicy?.targetShape == "BALANCED"
       }, _) >> deploymentResult
   }
+
+  void "operation allows inherited single-selection flexibility policy without rank"() {
+    setup:
+      def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      selection.setMachineTypes(["n2-standard-8"])
+      def flexPolicy = new GoogleInstanceFlexibilityPolicy()
+      flexPolicy.setInstanceSelections(["preferred": selection])
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        regional: true,
+        region: REGION,
+        asg: [desiredCapacity: 2],
+        distributionPolicy: new GoogleDistributionPolicy(["us-central1-a", "us-central1-b"], "BALANCED"),
+        instanceFlexibilityPolicy: flexPolicy
+      ).view
+
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        targetSize: 2,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials
+      )
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({
+        it.instanceFlexibilityPolicy?.instanceSelections?.get("preferred") != null &&
+          it.instanceFlexibilityPolicy.instanceSelections.get("preferred").rank == null &&
+          it.distributionPolicy?.targetShape == "BALANCED"
+      }, _) >> deploymentResult
+  }
 }

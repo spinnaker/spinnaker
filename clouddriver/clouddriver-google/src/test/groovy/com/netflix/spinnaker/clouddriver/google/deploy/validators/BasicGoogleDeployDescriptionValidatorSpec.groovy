@@ -614,7 +614,35 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                              "Instance flexibility policy must not contain null selection entries.")
   }
 
-  void "flexibility policy with missing rank fails validation"() {
+  void "flexibility policy with missing rank in multiple selections fails validation"() {
+    setup:
+      def errors = Mock(ValidationErrors)
+      def missingRank = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      missingRank.setMachineTypes(["n2-standard-8"])
+      def ranked = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
+      ranked.setRank(1)
+      ranked.setMachineTypes(["n2-standard-16"])
+      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
+      flexPolicy.setInstanceSelections(["preferred": missingRank, "fallback": ranked])
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(
+        instanceFlexibilityPolicy: flexPolicy,
+        regional: true,
+        region: REGION,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          zones: ["us-central1-a", "us-central1-b"],
+          targetShape: "BALANCED"
+        )
+      ), errors)
+
+    then:
+      1 * errors.rejectValue("instanceFlexibilityPolicy",
+                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.missingRank",
+                             "Each instance selection must specify rank when multiple selections are configured.")
+  }
+
+  void "flexibility policy with single selection and missing rank passes validation"() {
     setup:
       def errors = Mock(ValidationErrors)
       def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
@@ -626,13 +654,15 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       validator.validate([], new BasicGoogleDeployDescription(
         instanceFlexibilityPolicy: flexPolicy,
         regional: true,
-        region: REGION
+        region: REGION,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          zones: ["us-central1-a", "us-central1-b"],
+          targetShape: "BALANCED"
+        )
       ), errors)
 
     then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.missingRank",
-                             "Each instance selection must specify rank.")
+      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
   }
 
   void "flexibility policy with negative rank fails validation"() {
