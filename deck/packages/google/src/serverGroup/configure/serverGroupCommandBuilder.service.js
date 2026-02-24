@@ -589,6 +589,8 @@ angular
             pipelineCluster.strategy = pipelineCluster.strategy || '';
 
             const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+            // partnerMetadata is beta-only and rejected by stable Compute v1 APIs; strip from
+            // pipeline-derived commands for backward compatibility with older saved pipelines.
             delete extendedCommand.partnerMetadata;
 
             return populateDisksFromPipeline(extendedCommand).then(function () {

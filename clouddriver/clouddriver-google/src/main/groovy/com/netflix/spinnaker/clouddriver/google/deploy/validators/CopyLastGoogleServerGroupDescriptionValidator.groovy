@@ -81,6 +81,10 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
       return description
     }
 
+    // Validate clone requests against the effective runtime description (request overrides +
+    // ancestor fallback), matching what the operation will ultimately deploy.
+    // This closes a validation gap when clone payloads omit fields like regional/distribution
+    // policy and inherit them from the source server group.
     def ancestorServerGroup = googleClusterProvider.getServerGroup(
       description.accountName,
       description.source.region,

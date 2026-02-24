@@ -690,6 +690,8 @@ public abstract class AbstractGoogleServerGroupCachingAgent
     if (gcePolicy == null || gcePolicy.getInstanceSelections() == null) {
       return null;
     }
+    // Mirror deploy-handler hardening: skip malformed entries so cache decode remains resilient
+    // to partially invalid payloads and mixed-version data.
     Map<String, GoogleInstanceFlexibilityPolicy.InstanceSelection> selections =
         gcePolicy.getInstanceSelections().entrySet().stream()
             .filter(entry -> entry.getKey() != null)
@@ -706,6 +708,7 @@ public abstract class AbstractGoogleServerGroupCachingAgent
                       sel.setMachineTypes(gceSel.getMachineTypes());
                       return sel;
                     }));
+    // Keep model semantics consistent: an empty/fully filtered policy is treated as absent.
     if (selections.isEmpty()) {
       return null;
     }
