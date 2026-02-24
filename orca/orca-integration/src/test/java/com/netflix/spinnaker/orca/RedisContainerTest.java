@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
@@ -47,11 +49,13 @@ public class RedisContainerTest extends BaseContainerTest {
     redis =
         new GenericContainer<>(DockerImageName.parse("library/redis:5-alpine"))
             .withNetwork(network)
+            .withStartupTimeout(Duration.ofSeconds(120))
             .withNetworkAliases(REDIS_NETWORK_ALIAS)
             .withExposedPorts(REDIS_PORT);
     redis.start();
     orcaContainer
         .dependsOn(redis)
+        .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(150)))
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 

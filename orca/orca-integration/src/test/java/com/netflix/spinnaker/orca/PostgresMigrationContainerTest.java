@@ -76,7 +76,7 @@ public class PostgresMigrationContainerTest extends BaseContainerTest {
         new GenericContainer(previousDockerImageName)
             .withNetwork(network)
             .withExposedPorts(ORCA_PORT)
-            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(150)))
+            .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(150)))
             .dependsOn(postgres)
             .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson());
     orcaInitialContainer.start();
@@ -86,6 +86,7 @@ public class PostgresMigrationContainerTest extends BaseContainerTest {
 
     orcaContainer
         .dependsOn(postgres)
+        .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(150)))
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 
