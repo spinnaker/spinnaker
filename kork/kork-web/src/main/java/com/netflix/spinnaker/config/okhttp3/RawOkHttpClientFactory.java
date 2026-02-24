@@ -53,7 +53,7 @@ public class RawOkHttpClientFactory {
             .readTimeout(
                 okHttpClientConfigurationProperties.getReadTimeoutMs(), TimeUnit.MILLISECONDS)
             .retryOnConnectionFailure(
-                okHttpClientConfigurationProperties.getRetryOnConnectionFailure())
+                okHttpClientConfigurationProperties.isRetryOnConnectionFailure())
             .dispatcher(dispatcher)
             .addNetworkInterceptor(zipkinTracingInterceptor(httpTracing))
             .connectionPool(

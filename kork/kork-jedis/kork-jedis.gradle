@@ -15,6 +15,7 @@ dependencies {
   testImplementation "com.hubspot.jinjava:jinjava"
   testImplementation project(":kork-core-tck")
   testImplementation project(":kork-jedis-test")
+  testImplementation "org.assertj:assertj-core"
   testImplementation "org.mockito:mockito-core"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"

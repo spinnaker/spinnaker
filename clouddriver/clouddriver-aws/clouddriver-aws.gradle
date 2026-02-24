@@ -3,6 +3,11 @@ plugins {
 }
 
 sourceSets {
+  main {
+    java.srcDirs = []
+    groovy.srcDirs += ["src/main/java"]
+  }
+
   integration {
     java.srcDirs = ["src/integration/java"]
     resources.srcDirs = ["src/integration/resources"]

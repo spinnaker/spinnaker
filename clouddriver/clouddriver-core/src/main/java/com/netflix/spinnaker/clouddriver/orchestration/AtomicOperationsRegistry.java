@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.orchestration
+package com.netflix.spinnaker.clouddriver.orchestration;
 
-import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
-
-import javax.annotation.Nullable
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator;
+import javax.annotation.Nullable;
 
 /**
- * A registry which does a lookup of AtomicOperationConverters and DescriptionValidators based on their names and
- * cloud providers
- *
+ * A registry which does a lookup of AtomicOperationConverters and DescriptionValidators based on
+ * their names and cloud providers
  */
-interface AtomicOperationsRegistry {
+public interface AtomicOperationsRegistry {
 
   /**
-   *
    * @param description
    * @param cloudProvider
    * @return
    */
-  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider)
+  AtomicOperationConverter getAtomicOperationConverter(String description, String cloudProvider);
 
   /**
-   *
    * @param validator
    * @param cloudProvider
    * @return
    */
-  @Nullable DescriptionValidator getAtomicOperationDescriptionValidator(String validator, String cloudProvider)
+  @Nullable
+  DescriptionValidator getAtomicOperationDescriptionValidator(
+      String validator, String cloudProvider);
 }
