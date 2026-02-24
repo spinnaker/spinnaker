@@ -550,10 +550,13 @@ public class PrioritySchedulerProperties {
   public static class Keys {
     /** Base name of the waiting/ready set. Default: "waiting". */
     private String waitingSet = "waiting";
+
     /** Base name of the working/leased set. Default: "working". */
     private String workingSet = "working";
+
     /** Leadership key used for orphan cleanup coordination. Default: "cleanup-leader". */
     private String cleanupLeaderKey = "cleanup-leader";
+
     /**
      * Optional prefix added to all keys. Default: empty.
      *
@@ -561,6 +564,7 @@ public class PrioritySchedulerProperties {
      */
     @Setter(AccessLevel.NONE)
     private String prefix = "";
+
     /**
      * Optional hash-tag value to force all keys into the same Redis Cluster slot. When non-empty,
      * the final keys will include the value wrapped in braces (e.g., "{ps}").
@@ -601,7 +605,9 @@ class FailureBackoffProperties {
   /** Throttled backoff policy parameters. */
   private ThrottledPolicy throttled = new ThrottledPolicy();
 
-  /** @return throttled backoff policy parameters */
+  /**
+   * @return throttled backoff policy parameters
+   */
   public ThrottledPolicy getThrottled() {
     if (throttled == null) {
       throttled = new ThrottledPolicy();
@@ -624,8 +630,10 @@ class FailureBackoffProperties {
   static class ThrottledPolicy {
     /** Starting backoff for throttled errors. */
     private long baseMs = java.util.concurrent.TimeUnit.SECONDS.toMillis(30);
+
     /** Exponential multiplier for throttled errors. */
     private double multiplier = 2.0d;
+
     /** Upper cap for throttled exponential backoff. */
     private long capMs = java.util.concurrent.TimeUnit.MINUTES.toMillis(10);
   }
@@ -698,8 +706,10 @@ class ZombieCleanupProperties {
 
   /** Graceful wait for zombie-cleanup executor shutdown (milliseconds). Default: 10000. */
   private long executorShutdownAwaitMs = 10000L;
+
   /** Forced wait after zombie-cleanup shutdownNow (milliseconds). Default: 5000. */
   private long executorShutdownForceAwaitMs = 5000L;
+
   /** Optional max runtime budget per cleanup pass (milliseconds). 0 disables. */
   private long runBudgetMs = 0L;
 
@@ -768,8 +778,10 @@ class OrphanCleanupProperties {
 
   /** Graceful wait for orphan-cleanup executor shutdown (milliseconds). Default: 10000. */
   private long executorShutdownAwaitMs = 10000L;
+
   /** Forced wait after orphan-cleanup shutdownNow (milliseconds). Default: 5000. */
   private long executorShutdownForceAwaitMs = 5000L;
+
   /** Optional max runtime budget per cleanup pass (milliseconds). 0 disables. */
   private long runBudgetMs = 0L;
 
@@ -783,8 +795,10 @@ class OrphanCleanupProperties {
 class ReconcileProperties {
   /** Graceful wait for reconcile executor shutdown (milliseconds). Default: 5000. */
   private long executorShutdownAwaitMs = 5000L;
+
   /** Forced wait after reconcile shutdownNow (milliseconds). Default: 2000. */
   private long executorShutdownForceAwaitMs = 2000L;
+
   /** Optional max runtime budget per reconcile pass (milliseconds). 0 disables. */
   private long runBudgetMs = 0L;
 }
