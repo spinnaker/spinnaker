@@ -582,7 +582,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
   }
 
-  void "partnerMetadata is rejected under v1 API"() {
+  void "partnerMetadata on description does not trigger validation rejection"() {
     setup:
       def errors = Mock(ValidationErrors)
 
@@ -592,9 +592,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       ), errors)
 
     then:
-      1 * errors.rejectValue("partnerMetadata",
-                             "basicGoogleDeployDescription.partnerMetadata.notSupportedInV1",
-                             "partnerMetadata is not supported under the stable v1 compute API and will not be propagated to GCE.")
+      0 * errors.rejectValue("partnerMetadata", _, _)
   }
 
   void "flexibility policy with null selection entry fails validation"() {

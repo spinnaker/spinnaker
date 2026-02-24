@@ -180,7 +180,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
                              "Instance flexibility policy cannot be used with EVEN target distribution shape.")
   }
 
-  void "partnerMetadata is rejected under v1 API"() {
+  void "partnerMetadata on description does not trigger validation rejection"() {
     setup:
       def errors = Mock(ValidationErrors)
 
@@ -191,9 +191,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
       ), errors)
 
     then:
-      1 * errors.rejectValue("partnerMetadata",
-                             "copyLastGoogleServerGroupDescription.partnerMetadata.notSupportedInV1",
-                             "partnerMetadata is not supported under the stable v1 compute API and will not be propagated to GCE.")
+      0 * errors.rejectValue("partnerMetadata", _, _)
   }
 
   void "flexibility policy with null selection entry fails validation"() {

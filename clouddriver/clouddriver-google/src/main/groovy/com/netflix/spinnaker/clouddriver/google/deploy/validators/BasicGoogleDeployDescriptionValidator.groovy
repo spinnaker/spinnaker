@@ -80,13 +80,6 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
 
     helper.validateAutoHealingPolicy(description.autoHealingPolicy)
 
-    // partnerMetadata is not supported under the stable v1 compute API.
-    if (description.partnerMetadata) {
-      errors.rejectValue("partnerMetadata",
-        "basicGoogleDeployDescription.partnerMetadata.notSupportedInV1",
-        "partnerMetadata is not supported under the stable v1 compute API and will not be propagated to GCE.")
-    }
-
     InstanceFlexibilityPolicyValidationSupport.rejectIssues(
       errors,
       "instanceFlexibilityPolicy",

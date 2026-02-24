@@ -65,13 +65,6 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
                                     description.credentials)
     }
 
-    // partnerMetadata is not supported under the stable v1 compute API.
-    if (description.partnerMetadata) {
-      errors.rejectValue("partnerMetadata",
-        "copyLastGoogleServerGroupDescription.partnerMetadata.notSupportedInV1",
-        "partnerMetadata is not supported under the stable v1 compute API and will not be propagated to GCE.")
-    }
-
     def effectiveDescription = resolveEffectiveDescription(description)
     InstanceFlexibilityPolicyValidationSupport.rejectIssues(
       errors,
