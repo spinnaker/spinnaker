@@ -55,6 +55,7 @@ public class RedisConfigurationProperties {
 
   @NestedConfigurationProperty
   private final SchedulerProperties scheduler = new SchedulerProperties();
+
   private String connection = "redis://localhost:6379";
   private String connectionPrevious;
 
