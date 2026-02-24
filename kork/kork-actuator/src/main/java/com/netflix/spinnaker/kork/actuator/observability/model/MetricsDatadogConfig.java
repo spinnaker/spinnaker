@@ -37,6 +37,7 @@ public class MetricsDatadogConfig extends MetricsIntegrationConfig {
   @Builder.Default
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private String applicationKey = null;
+
   // @Builder.Default private String hostTag = null;
   @Builder.Default private String uri = "https://api.datadoghq.com";
   // @Builder.Default private String descriptions = null;

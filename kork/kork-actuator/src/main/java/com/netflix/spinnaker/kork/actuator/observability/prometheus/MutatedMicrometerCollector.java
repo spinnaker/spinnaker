@@ -48,7 +48,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-/** @author Jon Schneider */
+/**
+ * @author Jon Schneider
+ */
 class MutatedMicrometerCollector extends Collector {
 
   static final class TagsHolder {

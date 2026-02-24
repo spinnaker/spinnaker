@@ -75,7 +75,9 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
-/** @author Jon Schneider */
+/**
+ * @author Jon Schneider
+ */
 public class MutatedPrometheusMeterRegistry extends MeterRegistry {
   private final CollectorRegistry registry;
   private final ConcurrentMap<String, MutatedMicrometerCollector> collectorMap =
@@ -503,7 +505,9 @@ public class MutatedPrometheusMeterRegistry extends MeterRegistry {
     return TimeUnit.SECONDS;
   }
 
-  /** @return The underlying Prometheus {@link CollectorRegistry}. */
+  /**
+   * @return The underlying Prometheus {@link CollectorRegistry}.
+   */
   public CollectorRegistry getPrometheusRegistry() {
     return registry;
   }
