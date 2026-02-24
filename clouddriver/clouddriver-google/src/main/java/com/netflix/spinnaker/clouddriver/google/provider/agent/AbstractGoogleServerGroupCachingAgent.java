@@ -696,6 +696,10 @@ public abstract class AbstractGoogleServerGroupCachingAgent
         gcePolicy.getInstanceSelections().entrySet().stream()
             .filter(entry -> entry.getKey() != null)
             .filter(entry -> entry.getValue() != null)
+            .filter(
+                entry ->
+                    entry.getValue().getMachineTypes() != null
+                        && !entry.getValue().getMachineTypes().isEmpty())
             .collect(
                 toImmutableMap(
                     Map.Entry::getKey,

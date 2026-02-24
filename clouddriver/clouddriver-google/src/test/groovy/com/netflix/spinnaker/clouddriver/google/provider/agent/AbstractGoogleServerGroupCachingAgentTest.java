@@ -235,6 +235,11 @@ class AbstractGoogleServerGroupCachingAgentTest {
             .setRank(1)
             .setMachineTypes(ImmutableList.of("n2-standard-8")));
     instanceSelections.put("malformed", null);
+    instanceSelections.put(
+        "emptyMachineTypes",
+        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+            .setRank(2)
+            .setMachineTypes(ImmutableList.of()));
 
     InstanceGroupManager instanceGroupManager =
         new InstanceGroupManager()
