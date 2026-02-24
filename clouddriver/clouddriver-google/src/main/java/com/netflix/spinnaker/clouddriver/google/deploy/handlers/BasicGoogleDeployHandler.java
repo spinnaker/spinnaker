@@ -1111,9 +1111,9 @@ public class BasicGoogleDeployHandler
 
   /**
    * Maps the Spinnaker flexibility policy model to the GCE v1 {@code
-   * InstanceGroupManagerInstanceFlexibilityPolicy}. Malformed entries (null key, null selection,
-   * missing rank, or empty machineTypes) are silently filtered out as a defense-in-depth measure —
-   * the upstream validator should have already rejected such payloads.
+   * InstanceGroupManagerInstanceFlexibilityPolicy}. Malformed entries (null key, null selection, or
+   * empty machineTypes) are silently filtered out as a defense-in-depth measure. Rank is optional
+   * when there is only one effective selection, but required when multiple selections are present.
    *
    * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers">
    *     InstanceGroupManager resource — instanceFlexibilityPolicy field (v1)</a>
@@ -1141,12 +1141,20 @@ public class BasicGoogleDeployHandler
       return;
     }
     int totalEntries = rawSelections.size();
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        structurallyValidSelections =
+            rawSelections.entrySet().stream()
+                .filter(entry -> entry.getKey() != null)
+                .filter(entry -> entry.getValue() != null)
+                .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    boolean allowMissingRank = structurallyValidSelections.size() == 1;
     Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
-        rawSelections.entrySet().stream()
-            .filter(entry -> entry.getKey() != null)
-            .filter(entry -> entry.getValue() != null)
-            .filter(entry -> entry.getValue().getRank() != null)
-            .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
+        structurallyValidSelections.entrySet().stream()
+            .filter(entry -> allowMissingRank || entry.getValue().getRank() != null)
             .collect(
                 Collectors.toMap(
                     Map.Entry::getKey,
@@ -1158,7 +1166,7 @@ public class BasicGoogleDeployHandler
     if (droppedEntries > 0) {
       log.warn(
           "Dropped {} of {} instance flexibility selections due to null key, null value, "
-              + "missing rank, or empty machineTypes",
+              + "missing rank when multiple selections are present, or empty machineTypes",
           droppedEntries,
           totalEntries);
     }

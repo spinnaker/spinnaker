@@ -43,7 +43,7 @@ final class InstanceFlexibilityPolicyValidationSupport {
   static final String NULL_SELECTION_MESSAGE =
     "Instance flexibility policy must not contain null selection entries."
   static final String MISSING_RANK_MESSAGE =
-    "Each instance selection must specify rank."
+    "Each instance selection must specify rank when multiple selections are configured."
   static final String NEGATIVE_RANK_MESSAGE =
     "Each instance selection rank must be zero or greater."
   static final String EMPTY_MACHINE_TYPES_MESSAGE =
@@ -76,7 +76,10 @@ final class InstanceFlexibilityPolicyValidationSupport {
       issues.add(new ValidationIssue(NULL_SELECTION_CODE, NULL_SELECTION_MESSAGE))
     }
 
-    if (selections.values().any { it != null && it.rank == null }) {
+    // Rank is optional when there is exactly one selection. With multiple selections,
+    // rank is required so preference order is explicit.
+    def nonNullSelections = selections.values().findAll { it != null }
+    if (nonNullSelections.size() > 1 && nonNullSelections.any { it.rank == null }) {
       issues.add(new ValidationIssue(MISSING_RANK_CODE, MISSING_RANK_MESSAGE))
     }
 
