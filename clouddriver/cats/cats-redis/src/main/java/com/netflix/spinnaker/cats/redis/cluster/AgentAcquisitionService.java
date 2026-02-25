@@ -101,6 +101,10 @@ public class AgentAcquisitionService {
 
   // Exactly-once permit release handshake for zombie cancellation fairness
   private final ConcurrentHashMap<String, RunState> runStates = new ConcurrentHashMap<>();
+  // Monotonic run generation tag for RunState diagnostics/correlation.
+  private final AtomicLong runStateGeneration = new AtomicLong(0L);
+  // Prevent overlapping repopulation attempts while allowing immediate retries after failure.
+  private final AtomicBoolean repopulateInProgress = new AtomicBoolean(false);
   private volatile Semaphore
       maxConcurrentSemaphoreRef; // Provided by scheduler when calling saturatePool
 
@@ -109,6 +113,8 @@ public class AgentAcquisitionService {
 
   // Compiled exceptional-agents pattern to mirror zombie cleanup semantics
   private volatile java.util.regex.Pattern zombieExceptionalAgentsPattern;
+  // Safety cap for ZMSCORE ARGV in unbounded mode to avoid oversized Lua invocations.
+  private static final int ZMSCORE_MAX_BATCH_SIZE = 512;
 
   /**
    * Per-agent state for exactly-once permit release handshake.
@@ -131,11 +137,16 @@ public class AgentAcquisitionService {
    * agents from crashed pods). Shutdown may race with worker finally (safe via CAS).
    */
   private static final class RunState {
+    final long generation;
     final java.util.concurrent.atomic.AtomicBoolean permitHeld =
         new java.util.concurrent.atomic.AtomicBoolean(true);
     final java.util.concurrent.atomic.AtomicBoolean started =
         new java.util.concurrent.atomic.AtomicBoolean(false);
     volatile java.util.concurrent.ScheduledFuture<?> deadmanHandle;
+
+    RunState(long generation) {
+      this.generation = generation;
+    }
   }
 
   /** Determine zombie threshold for the agent, honoring exceptional agents config. */
@@ -976,12 +987,19 @@ public class AgentAcquisitionService {
 
         // Critical: Set semaphore before execution so it can be released when done
         worker.setMaxConcurrentSemaphore(maxConcurrentSemaphore);
-        // Initialize run-state for exactly-once permit release
-        runStates.put(agentType, new RunState());
+        // Initialize ownership-bound run-state for exactly-once permit release.
+        RunState runState = new RunState(runStateGeneration.incrementAndGet());
+        worker.setRunState(runState);
+        runStates.put(agentType, runState);
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "Prepared run-state for agent {} (generation={})", agentType, runState.generation);
+        }
 
         // Submit with proper rejection handling
         java.util.concurrent.Future<?> future =
-            submitAgentWithRejectionHandling(worker, agentWorkPool, maxConcurrentSemaphore);
+            submitAgentWithRejectionHandling(
+                worker, agentWorkPool, maxConcurrentSemaphore, runState);
 
         if (future != null) {
           // Schedule dead-man cancellation exactly at (completion deadline + threshold)
@@ -997,7 +1015,6 @@ public class AgentAcquisitionService {
                 // fire earlier than intended.
                 long nowMsForTimer = nowMsCached != null ? nowMsCached : nowMsWithOffset();
                 long delayMs = Math.max(0L, (completionDeadlineMs + thresholdMs) - nowMsForTimer);
-                RunState runState = runStates.get(agentType);
                 if (runState != null) {
                   runState.deadmanHandle =
                       deadmanScheduler.schedule(
@@ -1075,18 +1092,26 @@ public class AgentAcquisitionService {
       return;
     }
 
+    if (!repopulateInProgress.compareAndSet(false, true)) {
+      log.debug(
+          "Skipping repopulation for cycle {} - another repopulation is in progress", runCount);
+      return;
+    }
+
     long start = System.currentTimeMillis();
+    long nowMsForRepop = start;
+    long refreshPeriodMs = Math.max(1L, schedulerProperties.getRefreshPeriodSeconds()) * 1000L;
+    long last = lastRepopulateEpochMs.get();
+    if (nowMsForRepop - last < refreshPeriodMs) {
+      return;
+    }
+
     // Note: cachedMinEnabledIntervalSec is event-driven (updated on register/unregister)
     try (Jedis jedis = jedisPool.getResource()) {
-      long nowMsForRepop = start;
-      long refreshPeriodMs = Math.max(1L, schedulerProperties.getRefreshPeriodSeconds()) * 1000L;
-      long last = lastRepopulateEpochMs.get();
-      if (nowMsForRepop - last >= refreshPeriodMs
-          && lastRepopulateEpochMs.compareAndSet(last, nowMsForRepop)) {
-        repopulateRedisAgents(jedis);
-        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
-        redisCircuitBreaker.recordSuccess();
-      }
+      repopulateRedisAgents(jedis);
+      lastRepopulateEpochMs.set(nowMsForRepop);
+      metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+      redisCircuitBreaker.recordSuccess();
     } catch (redis.clients.jedis.exceptions.JedisConnectionException e) {
       log.warn("Redis connection error during repopulation", e);
       redisCircuitBreaker.recordFailure(e);
@@ -1096,6 +1121,8 @@ public class AgentAcquisitionService {
       log.warn("Repopulation attempt failed", e);
       metrics.incrementRepopulateError(e.getClass().getSimpleName());
       metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+    } finally {
+      repopulateInProgress.set(false);
     }
   }
 
@@ -1104,31 +1131,37 @@ public class AgentAcquisitionService {
    * for schedulers to decide whether to skip acquisition on the same tick.
    */
   public boolean repopulateIfDueNow() {
-    long now = nowMs();
-    long refreshPeriodMs = Math.max(1L, schedulerProperties.getRefreshPeriodSeconds()) * 1000L;
-    long last = lastRepopulateEpochMs.get();
-    // Note: cachedMinEnabledIntervalSec is event-driven (updated on register/unregister)
-    if (last == 0L) {
-      // Do not initialize here; allow caller (scheduler) to trigger repopulation
-      // on first run when required by tests/config.
-      return false;
-    }
-    if (!isPeriodElapsed(last, refreshPeriodMs)) {
-      return false;
-    }
-    if (!lastRepopulateEpochMs.compareAndSet(last, now)) {
+    if (!repopulateInProgress.compareAndSet(false, true)) {
       return false;
     }
 
-    long start = now;
-    try (Jedis jedis = jedisPool.getResource()) {
-      repopulateRedisAgents(jedis);
-      metrics.recordRepopulateTime(System.currentTimeMillis() - start);
-      return true;
-    } catch (Exception e) {
-      log.warn("Repopulation attempt failed", e);
-      metrics.incrementRepopulateError(e.getClass().getSimpleName());
-      return false;
+    try {
+      long now = nowMs();
+      long refreshPeriodMs = Math.max(1L, schedulerProperties.getRefreshPeriodSeconds()) * 1000L;
+      long last = lastRepopulateEpochMs.get();
+      // Note: cachedMinEnabledIntervalSec is event-driven (updated on register/unregister)
+      if (last == 0L) {
+        // Do not initialize here; allow caller (scheduler) to trigger repopulation
+        // on first run when required by tests/config.
+        return false;
+      }
+      if (!isPeriodElapsed(last, refreshPeriodMs)) {
+        return false;
+      }
+
+      long start = now;
+      try (Jedis jedis = jedisPool.getResource()) {
+        repopulateRedisAgents(jedis);
+        lastRepopulateEpochMs.set(now);
+        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+        return true;
+      } catch (Exception e) {
+        log.warn("Repopulation attempt failed", e);
+        metrics.incrementRepopulateError(e.getClass().getSimpleName());
+        return false;
+      }
+    } finally {
+      repopulateInProgress.set(false);
     }
   }
 
@@ -1899,7 +1932,10 @@ public class AgentAcquisitionService {
         boolean cancelled = future.cancel(false);
         if (cancelled && !runState.started.get()) {
           // Task was queued but never started - worker will never run, so we must release permit
-          RunState removed = runStates.remove(agentType);
+          RunState removed = runState;
+          if (removed != null) {
+            runStates.remove(agentType, removed);
+          }
           if (removed != null && removed.permitHeld.compareAndSet(true, false)) {
             if (maxConcurrentSemaphoreRef != null) {
               maxConcurrentSemaphoreRef.release();
@@ -2650,8 +2686,10 @@ public class AgentAcquisitionService {
       if (configured > 0) {
         batchSize = configured;
       } else {
-        batchSize = agentNames.size();
+        // Unbounded config (0) still needs a hard cap to avoid oversized Lua ARGV payloads.
+        batchSize = Math.min(agentNames.size(), ZMSCORE_MAX_BATCH_SIZE);
       }
+      batchSize = Math.max(1, batchSize);
       Set<String> allAgents = new HashSet<>();
       for (int start = 0; start < agentNames.size(); start += batchSize) {
         int end = Math.min(start + batchSize, agentNames.size());
@@ -3572,7 +3610,7 @@ public class AgentAcquisitionService {
       // ATOMIC RESCHEDULE: Move from working to waiting in a single Redis operation.
       // This eliminates the race condition between completion queue processing and
       // worker cleanup that previously caused agent loss.
-      atomicRescheduleInRedis(agent, Math.max(0L, offsetMs));
+      atomicRescheduleInRedis(agent, deadlineScore, Math.max(0L, offsetMs));
 
       // Queue completion for metrics/observability only (no longer used for Redis state)
       if (!success) {
@@ -3884,9 +3922,10 @@ public class AgentAcquisitionService {
    * </ul>
    *
    * @param agent the agent to reschedule
+   * @param expectedWorkingScore working score captured at acquisition (ownership token)
    * @param offsetMs offset from current time for the new waiting score
    */
-  private void atomicRescheduleInRedis(Agent agent, long offsetMs) {
+  private void atomicRescheduleInRedis(Agent agent, String expectedWorkingScore, long offsetMs) {
     String agentType = agent.getAgentType();
 
     try (Jedis jedis = jedisPool.getResource()) {
@@ -3902,16 +3941,27 @@ public class AgentAcquisitionService {
               jedis,
               RedisScriptManager.RESCHEDULE_AGENT,
               java.util.Arrays.asList(WORKING_SET, WAITING_SET),
-              java.util.Arrays.asList(agentType, nextScore));
+              java.util.Arrays.asList(
+                  agentType, nextScore, expectedWorkingScore != null ? expectedWorkingScore : ""));
 
       String resultStr = result != null ? result.toString() : "null";
       log.debug(
-          "Atomic reschedule for agent {}: result={}, score={}", agentType, resultStr, nextScore);
+          "Atomic reschedule for agent {}: result={}, score={}, expected_working_score={}",
+          agentType,
+          resultStr,
+          nextScore,
+          expectedWorkingScore);
 
       // Log based on result for observability
       if ("added".equals(resultStr)) {
         // Agent was already removed from working (concurrent cleanup) - log for visibility
         log.debug("Agent {} was not in working during reschedule (concurrent cleanup)", agentType);
+      } else if ("mismatch".equals(resultStr)) {
+        metrics.incrementCasContention("reschedule_ownership_mismatch");
+        log.warn(
+            "Skipped atomic reschedule for {} due to ownership mismatch (expected working score: {})",
+            agentType,
+            expectedWorkingScore);
       }
       // "moved" = normal completion, "exists" = already in waiting (no-op)
 
@@ -4069,10 +4119,14 @@ public class AgentAcquisitionService {
    * @param worker The agent worker to submit
    * @param agentWorkPool The thread pool to submit to
    * @param maxConcurrentSemaphore The semaphore for concurrency control (may be null)
+   * @param runStateForSubmission Ownership-bound run-state for this specific submission
    * @return The Future for the submitted task, or null if submission failed
    */
   private java.util.concurrent.Future<?> submitAgentWithRejectionHandling(
-      AgentWorker worker, ExecutorService agentWorkPool, Semaphore maxConcurrentSemaphore) {
+      AgentWorker worker,
+      ExecutorService agentWorkPool,
+      Semaphore maxConcurrentSemaphore,
+      RunState runStateForSubmission) {
 
     String agentType = worker.getAgent().getAgentType();
     java.util.concurrent.FutureTask<Void> futureTask = null;
@@ -4089,9 +4143,12 @@ public class AgentAcquisitionService {
 
                 // Exactly-once permit release fallback: if the worker's finally block did not
                 // run (e.g., cancelled before start), release the permit here.
-                RunState runStateForAgent = runStates.remove(agentType);
-                if (runStateForAgent != null
-                    && runStateForAgent.permitHeld.compareAndSet(true, false)) {
+                if (runStateForSubmission != null) {
+                  // Remove only if this callback still owns the current mapping.
+                  runStates.remove(agentType, runStateForSubmission);
+                }
+                if (runStateForSubmission != null
+                    && runStateForSubmission.permitHeld.compareAndSet(true, false)) {
                   Semaphore semaphoreToRelease =
                       maxConcurrentSemaphore != null
                           ? maxConcurrentSemaphore
@@ -4099,7 +4156,9 @@ public class AgentAcquisitionService {
                   if (semaphoreToRelease != null) {
                     semaphoreToRelease.release();
                     log.debug(
-                        "Released semaphore permit for agent {} in completion listener", agentType);
+                        "Released semaphore permit for agent {} in completion listener (generation={})",
+                        agentType,
+                        runStateForSubmission.generation);
                   }
                 }
               } catch (Exception e) {
@@ -4124,7 +4183,10 @@ public class AgentAcquisitionService {
           "Agent {} submission rejected by thread pool (queue full or pool shutdown)", agentType);
 
       // Release permit state via CAS for rejected submissions.
-      RunState runStateToClean = runStates.remove(agentType);
+      RunState runStateToClean = runStateForSubmission;
+      if (runStateToClean != null) {
+        runStates.remove(agentType, runStateToClean);
+      }
       if (runStateToClean != null && runStateToClean.permitHeld.compareAndSet(true, false)) {
         try {
           Semaphore semaphoreToRelease =
@@ -4161,7 +4223,10 @@ public class AgentAcquisitionService {
       log.error("Failed to submit agent {} due to unexpected error", agentType, e);
 
       // Release permit state via CAS on submit failure.
-      RunState runStateToClean = runStates.remove(agentType);
+      RunState runStateToClean = runStateForSubmission;
+      if (runStateToClean != null) {
+        runStates.remove(agentType, runStateToClean);
+      }
       if (runStateToClean != null && runStateToClean.permitHeld.compareAndSet(true, false)) {
         try {
           Semaphore semaphoreToRelease =
@@ -4201,8 +4266,7 @@ public class AgentAcquisitionService {
     String agentType = worker.getAgent().getAgentType();
 
     try (Jedis jedis = jedisPool.getResource()) {
-      // Ensure we don't leak local run-state or active tracking on submission failure
-      runStates.remove(agentType);
+      // RunState cleanup is performed by ownership-bound submit paths; only clean active tracking.
       String removedScore = activeAgents.remove(agentType);
       if (removedScore != null) {
         activeAgentMapSize.decrementAndGet();
@@ -4331,6 +4395,7 @@ public class AgentAcquisitionService {
     private final ExecutionInstrumentation executionInstrumentation;
     private final AgentAcquisitionService acquisitionService;
     private Semaphore maxConcurrentSemaphore; // Semaphore to release when execution completes
+    private volatile RunState runState; // Ownership-bound run-state for the current execution
 
     // Set by acquisition service when agent is acquired
     String deadlineScore;
@@ -4345,11 +4410,15 @@ public class AgentAcquisitionService {
       this.executionInstrumentation = executionInstrumentation;
       this.acquisitionService = acquisitionService;
       this.maxConcurrentSemaphore = null; // Will be set before execution
+      this.runState = null;
     }
 
     @Override
     public void run() {
       String agentType = agent.getAgentType();
+      final String runDeadlineScore = this.deadlineScore;
+      final RunState runStateForExecution = this.runState;
+      final Semaphore runSemaphore = this.maxConcurrentSemaphore;
       long startTimeMs = System.currentTimeMillis();
       boolean success = false;
       FailureClass failureClass = null;
@@ -4359,10 +4428,9 @@ public class AgentAcquisitionService {
       try {
         // Mark as started for fairness accounting
         try {
-          RunState runStateForAgent = acquisitionService.runStates.get(agentType);
-          if (runStateForAgent != null) {
+          if (runStateForExecution != null) {
             runStateObservedAtStart = true;
-            runStateForAgent.started.set(true);
+            runStateForExecution.started.set(true);
           }
         } catch (Exception e) {
           log.debug("Failed to mark run-state started for {}", agentType, e);
@@ -4418,7 +4486,7 @@ public class AgentAcquisitionService {
       } finally {
         // Cancel any scheduled dead-man action FIRST
         try {
-          RunState runState = acquisitionService.runStates.get(agentType);
+          RunState runState = runStateForExecution;
           if (runState != null && runState.deadmanHandle != null) {
             try {
               boolean cancelled = runState.deadmanHandle.cancel(false);
@@ -4436,16 +4504,16 @@ public class AgentAcquisitionService {
 
         // Queue completion before local tracking cleanup.
         acquisitionService.conditionalReleaseAgent(
-            agent, deadlineScore, success, failureClass, capturedCause);
+            agent, runDeadlineScore, success, failureClass, capturedCause);
 
         // Perform exactly-once permit release before Redis cleanup.
-        RunState runStateForAgent = acquisitionService.runStates.remove(agentType);
+        RunState runStateForAgent = runStateForExecution;
         if (runStateForAgent == null) {
           // Missing RunState usually means another cleanup path already released the permit.
           acquisitionService.metrics.incrementCasContention("worker_completion_missing_runstate");
-          if (!runStateObservedAtStart && maxConcurrentSemaphore != null) {
+          if (!runStateObservedAtStart && runSemaphore != null) {
             // Legacy/manual execution path still owns the permit.
-            maxConcurrentSemaphore.release();
+            runSemaphore.release();
             log.warn(
                 "Released permit for {} with no RunState (legacy/manual worker path)", agentType);
           } else {
@@ -4454,10 +4522,12 @@ public class AgentAcquisitionService {
                 agentType);
           }
         } else {
+          // Remove mapping only if it still points at this execution's run-state.
+          acquisitionService.runStates.remove(agentType, runStateForAgent);
           // Release permit via CAS.
           if (runStateForAgent.permitHeld.compareAndSet(true, false)) {
-            if (maxConcurrentSemaphore != null) {
-              maxConcurrentSemaphore.release();
+            if (runSemaphore != null) {
+              runSemaphore.release();
               log.debug("Released permit for {}", agentType);
             }
           } else {
@@ -4501,6 +4571,15 @@ public class AgentAcquisitionService {
      */
     void setMaxConcurrentSemaphore(Semaphore maxConcurrentSemaphore) {
       this.maxConcurrentSemaphore = maxConcurrentSemaphore;
+    }
+
+    /**
+     * Set ownership-bound run-state before submission.
+     *
+     * @param runState run-state token for this execution attempt
+     */
+    void setRunState(RunState runState) {
+      this.runState = runState;
     }
   }
 

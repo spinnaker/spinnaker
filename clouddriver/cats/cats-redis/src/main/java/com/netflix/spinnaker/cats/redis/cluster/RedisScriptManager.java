@@ -326,9 +326,11 @@ public class RedisScriptManager {
     // - If agent is in working set: remove from working, add to waiting with new score.
     // - If agent is in neither set: add to waiting (defensive, handles concurrent cleanup).
     // - If agent is already in waiting: no-op (already rescheduled by another path).
-    // Args: KEYS[1]=working, KEYS[2]=waiting, ARGV[1]=agentName, ARGV[2]=newScore
+    // - If expected working score is provided, move is allowed only when score matches ownership.
+    // Args: KEYS[1]=working, KEYS[2]=waiting, ARGV[1]=agentName, ARGV[2]=newScore,
+    // ARGV[3]=expectedWorkingScore (optional)
     // Returns: 'moved' if moved from working, 'added' if added (was in neither), 'exists' if
-    // already in waiting
+    // already in waiting, 'mismatch' if working score ownership check fails
     // Usage: Worker thread calls this in conditionalReleaseAgent() via atomicRescheduleInRedis()
     bodies.put(
         RESCHEDULE_AGENT,
@@ -340,6 +342,12 @@ public class RedisScriptManager {
             + "-- Check if in working set (race: completion queued before removeActiveAgent)\n"
             + "local workingScore = redis.call('zscore', KEYS[1], ARGV[1])\n"
             + "if workingScore then\n"
+            + "  local expectedWorkingScore = ARGV[3]\n"
+            + "  if expectedWorkingScore and expectedWorkingScore ~= '' then\n"
+            + "    if tonumber(workingScore) ~= tonumber(expectedWorkingScore) then\n"
+            + "      return 'mismatch'\n"
+            + "    end\n"
+            + "  end\n"
             + "  -- Move from working to waiting\n"
             + "  redis.call('zrem', KEYS[1], ARGV[1])\n"
             + "  redis.call('zadd', KEYS[2], ARGV[2], ARGV[1])\n"
