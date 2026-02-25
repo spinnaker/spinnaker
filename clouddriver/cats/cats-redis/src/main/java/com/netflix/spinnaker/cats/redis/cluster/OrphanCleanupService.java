@@ -316,17 +316,18 @@ public class OrphanCleanupService {
   private int cleanupOrphanedAgentsFromSet(
       Jedis jedis, String setName, long startEpochMs, long budgetMs) {
     long cutoffScore;
+    long cutoffNowMs = nowMsForRedisCutoff();
 
     if (WAITING_SET.equals(setName)) {
       // Waiting set: score = next execution time.
       // Orphan candidates are entries whose ready-time is older than (now - threshold).
       long orphanThreshold = schedulerProperties.getOrphanCleanup().getThresholdMs();
-      cutoffScore = (nowMs() - orphanThreshold) / 1000;
+      cutoffScore = (cutoffNowMs - orphanThreshold) / 1000;
     } else {
       // Working set: score = completion deadline (acquire_time + timeout).
       // Orphan candidates are entries whose deadline is older than (now - threshold).
       long orphanThreshold = schedulerProperties.getOrphanCleanup().getThresholdMs();
-      cutoffScore = (nowMs() - orphanThreshold) / 1000;
+      cutoffScore = (cutoffNowMs - orphanThreshold) / 1000;
     }
 
     try {
@@ -1238,6 +1239,26 @@ public class OrphanCleanupService {
         acquisitionService != null ? () -> acquisitionService.nowMsWithOffset() : null;
     return com.netflix.spinnaker.cats.redis.cluster.support.RedisTimeUtils.scoreFromMsDelay(
         jedis, delayMs, supplier);
+  }
+
+  /**
+   * Returns Redis-aligned "now" for orphan cutoff calculations.
+   *
+   * <p>When acquisitionService is available we align to the Redis/server offset cache to keep
+   * cutoff timing consistent with acquisition/reschedule score generation.
+   */
+  private long nowMsForRedisCutoff() {
+    try {
+      if (acquisitionService != null) {
+        long redisAlignedNowMs = acquisitionService.nowMsWithOffset();
+        if (redisAlignedNowMs > 0L) {
+          return redisAlignedNowMs;
+        }
+      }
+    } catch (Exception e) {
+      log.debug("Falling back to local clock for orphan cutoff timing", e);
+    }
+    return nowMs();
   }
 
   /**

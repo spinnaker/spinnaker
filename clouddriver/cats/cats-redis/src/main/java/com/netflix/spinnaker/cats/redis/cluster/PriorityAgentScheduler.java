@@ -1154,6 +1154,13 @@ public class PriorityAgentScheduler extends CatsModuleAware
         reconcileExecutor.awaitTermination(reconcileForceAwait, TimeUnit.MILLISECONDS);
       }
 
+      // Ensure dead-man scheduler stops with orchestrator lifecycle (not only bean destruction).
+      try {
+        acquisitionService.shutdownDeadmanScheduler();
+      } catch (Exception e) {
+        log.warn("Failed to shut down dead-man scheduler during orchestrator shutdown", e);
+      }
+
       // Step 3: Shutdown all services
       config.shutdown();
 

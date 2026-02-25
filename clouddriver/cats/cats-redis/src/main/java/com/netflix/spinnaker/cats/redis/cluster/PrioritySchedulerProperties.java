@@ -484,21 +484,23 @@ public class PrioritySchedulerProperties {
     validateNonNegative(
         orphanCleanup.getRunBudgetMs(), "redis.scheduler.orphan-cleanup.run-budget-ms");
 
-    // Warn if leadership TTL is not sufficiently larger than run budget to prevent duplicate work
-    // during cleanup. If cleanup takes longer than leadership TTL, another pod may acquire
-    // leadership and start a duplicate cleanup pass.
+    // Enforce leadership TTL headroom over run budget to prevent duplicate orphan-cleanup passes.
+    // If cleanup can run close to/longer than leadership TTL, another pod may acquire leadership
+    // mid-pass and perform overlapping work.
     long leadershipTtlMs = orphanCleanup.getLeadershipTtlMs();
     long runBudgetMs = orphanCleanup.getRunBudgetMs();
     long minimumMarginMs = 60000L; // 1 minute margin
     if (runBudgetMs > 0 && leadershipTtlMs < runBudgetMs + minimumMarginMs) {
-      log.warn(
-          "Orphan cleanup leadership-ttl-ms ({}) should be >= run-budget-ms ({}) + {}ms margin "
-              + "to prevent duplicate cleanup work when cleanup approaches budget limit. "
-              + "Consider increasing leadership-ttl-ms to at least {}.",
-          leadershipTtlMs,
-          runBudgetMs,
-          minimumMarginMs,
-          runBudgetMs + minimumMarginMs);
+      throw new IllegalArgumentException(
+          "redis.scheduler.orphan-cleanup.leadership-ttl-ms ("
+              + leadershipTtlMs
+              + ") must be >= redis.scheduler.orphan-cleanup.run-budget-ms ("
+              + runBudgetMs
+              + ") + "
+              + minimumMarginMs
+              + "ms margin (required minimum: "
+              + (runBudgetMs + minimumMarginMs)
+              + ")");
     }
 
     if (reconcile == null) {
