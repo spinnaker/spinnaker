@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -120,6 +121,7 @@ public class WebhookStage implements StageDefinitionBuilder {
     public List<Integer> webhookRetryStatusCodes;
 
     public int waitBeforeMonitor;
+
     /**
      * Retry configuration for specific status codes. Retries are cumulative and do not reset if a
      * different status code is returned in between.
@@ -152,11 +154,12 @@ public class WebhookStage implements StageDefinitionBuilder {
     private String error;
     private Map<String, String> headers;
     private Object body;
-    private HttpStatus statusCode;
+    private HttpStatusCode statusCode;
     private Integer statusCodeValue;
     private String progressMessage;
     private Number percentComplete;
     private Object resolvedValue;
+
     /**
      * A list of status codes that previously resulted in a retry being triggered. Ordered from
      * oldest to newest.

@@ -7,8 +7,7 @@ set -o pipefail
 
 REPOSITORY_URL="https://us-apt.pkg.dev/projects/spinnaker-community"
 SPINNAKER_REPOSITORY_URL="https://us-apt.pkg.dev/projects/spinnaker-community"
-SPINNAKER_DOCKER_REGISTRY="us-docker.pkg.dev/spinnaker-community/docker"
-SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
+SPINNAKER_DOCKER_REGISTRY="ghcr.io/spinnaker"
 CONFIG_BUCKET="halconfig"
 
 VERSION=""
@@ -84,11 +83,7 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
                                     rather than the default registry, which is
                                     $SPINNAKER_DOCKER_REGISTRY.
 
-    --spinnaker-gce-project <name>  Obtain Spinnaker GCE images from <url>
-                                    rather than the default project, which is
-                                    $SPINNAKER_GCE_PROJECT.
-
-    --version <version>             Specify the exact version of Halyard to 
+    --version <version>             Specify the exact version of Halyard to
                                     install.
 
     --dependencies_only             Do not install any Spinnaker services.
@@ -129,11 +124,6 @@ function process_args() {
       --spinnaker-registry)
         echo "spinnaker-registry"
         SPINNAKER_DOCKER_REGISTRY="$1"
-        shift
-        ;;
-      --spinnaker-gce-project)
-        echo "spinnaker-gce-project"
-        SPINNAKER_GCE_PROJECT="$1"
         shift
         ;;
       --config-bucket)
@@ -207,7 +197,7 @@ function install_halyard() {
       if [ -n "$VERSION" ]; then
         version="${package}_${VERSION}_all.deb"
         debfile=$version
-      else 
+      else
         version=`curl -s $REPOSITORY_URL/dists/apt/main/binary-all/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
         debfile=`echo $version | awk -F "/" '{print $NF}'`
       fi
@@ -239,7 +229,7 @@ function configure_bash_completion() {
       echo ""
       read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
     fi
-    
+
     if [ -z "$bashrc" ]; then
       bashrc="$HOME/.bashrc"
     fi
@@ -253,7 +243,7 @@ function configure_bash_completion() {
     echo "$(tput bold)To use the auto-completion either restart your shell, or run$(tput sgr0)"
     echo "$(tput bold). $bashrc$(tput sgr0)"
   fi
-  
+
 }
 
 function configure_halyard_defaults() {
@@ -271,7 +261,6 @@ spinnaker:
   artifacts:
     debianRepository: $SPINNAKER_REPOSITORY_URL
     dockerRegistry: $SPINNAKER_DOCKER_REGISTRY
-    googleImageProject: $SPINNAKER_GCE_PROJECT
   config:
     input:
       bucket: $CONFIG_BUCKET
@@ -324,7 +313,7 @@ printf 'Waiting for the Halyard daemon to start running'
 
 WAIT_START=$(date +%s)
 
-set +e 
+set +e
 hal --ready &> /dev/null
 
 while [ "$?" != "0" ]; do
@@ -342,7 +331,7 @@ while [ "$?" != "0" ]; do
   hal --ready &> /dev/null
 done
 
-echo 
+echo
 
 if [ -z "$QUIET" ]; then
 cat <<EOF

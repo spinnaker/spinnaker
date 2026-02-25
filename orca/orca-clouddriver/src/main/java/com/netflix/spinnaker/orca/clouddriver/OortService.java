@@ -141,7 +141,7 @@ public interface OortService {
       @Path("region") String region,
       @Path("instanceId") String instanceId);
 
-  @PUT("artifacts/fetch/")
+  @PUT("artifacts/fetch")
   Call<ResponseBody> fetchArtifact(@Body Artifact artifact);
 
   @GET("{provider}/loadBalancers/{account}/{region}/{name}")

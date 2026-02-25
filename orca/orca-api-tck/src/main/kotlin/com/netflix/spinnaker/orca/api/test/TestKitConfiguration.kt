@@ -28,6 +28,8 @@ import java.time.Clock
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.web.SecurityFilterChain
 
 /**
  * Configuration for Orca integration tests, configuring the application to
@@ -55,4 +57,11 @@ class TestKitConfiguration {
   @Bean
   fun memoryPendingExecutionService(): PendingExecutionService =
     InMemoryPendingExecutionService()
+
+  @Bean
+  fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    http.csrf().disable()
+      .authorizeHttpRequests { it.anyRequest().permitAll() }
+    return http.build()
+  }
 }

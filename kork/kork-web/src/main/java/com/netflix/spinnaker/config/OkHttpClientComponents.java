@@ -31,6 +31,7 @@ import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
 import com.netflix.spinnaker.retrofit.Retrofit2ConfigurationProperties;
+import jakarta.inject.Provider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -42,7 +43,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
-import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -80,7 +80,7 @@ public class OkHttpClientComponents {
   @Bean
   public SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
     return new SpinnakerRequestHeaderInterceptor(
-        clientProperties.getPropagateSpinnakerHeaders(), clientProperties.getAdditionalHeaders());
+        clientProperties.isPropagateSpinnakerHeaders(), clientProperties.getAdditionalHeaders());
   }
 
   @Bean

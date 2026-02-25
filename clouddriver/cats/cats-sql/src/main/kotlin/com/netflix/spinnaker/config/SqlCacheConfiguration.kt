@@ -18,7 +18,6 @@ import com.netflix.spinnaker.cats.sql.cache.SqlNamedCacheFactory
 import com.netflix.spinnaker.cats.sql.cache.SqlNames
 import com.netflix.spinnaker.cats.sql.cache.SqlTableMetricsAgent
 import com.netflix.spinnaker.cats.sql.cache.SqlUnknownAgentCleanupAgent
-import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
 import com.netflix.spinnaker.cats.cluster.ShardingFilter
 import com.netflix.spinnaker.clouddriver.cache.CustomSchedulableAgentIntervalProvider
 import com.netflix.spinnaker.clouddriver.cache.DiscoveryStatusNodeStatusProvider
@@ -54,7 +53,7 @@ const val coroutineThreadPrefix = "catsSql"
 @Configuration
 @ConditionalOnProperty("sql.cache.enabled")
 @Import(DefaultSqlConfiguration::class)
-@EnableConfigurationProperties(SqlAgentProperties::class, SqlConstraintsProperties::class)
+@EnableConfigurationProperties(SqlAgentProperties::class, SqlConstraintsProperties::class, SqlUnknownAgentCleanupProperties::class)
 @ComponentScan("com.netflix.spinnaker.cats.sql.controllers")
 class SqlCacheConfiguration {
 
@@ -178,9 +177,20 @@ class SqlCacheConfiguration {
     jooq: DSLContext,
     registry: Registry,
     sqlConstraints: SqlConstraints,
+    cleanupProperties: SqlUnknownAgentCleanupProperties,
+    shardingFilter: ShardingFilter,
+    @Value("\${cache-sharding.enabled:false}") shardingEnabled: Boolean,
     @Value("\${sql.table-namespace:#{null}}") tableNamespace: String?
   ): SqlUnknownAgentCleanupAgent =
-    SqlUnknownAgentCleanupAgent(providerRegistry, jooq, registry, SqlNames(tableNamespace, sqlConstraints))
+    SqlUnknownAgentCleanupAgent(
+      providerRegistry = providerRegistry,
+      jooq = jooq,
+      registry = registry,
+      sqlNames = SqlNames(tableNamespace, sqlConstraints),
+      cleanupProperties = cleanupProperties,
+      shardingFilter = shardingFilter,
+      shardingEnabled = shardingEnabled
+    )
 
   @Bean
   @ConditionalOnExpression("\${sql.read-only:false} == false")

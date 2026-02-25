@@ -34,7 +34,9 @@ public interface OrcaService {
       @Path("application") String app,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses,
-      @Query("expand") Boolean expand);
+      @Query("expand") Boolean expand,
+      @Query("pipelineNameFilter") String pipelineNameFilter,
+      @Query("pipelineLimit") Integer pipelineLimit);
 
   @Headers("Accept: application/json")
   @GET("projects/{projectId}/pipelines")
@@ -101,6 +103,18 @@ public interface OrcaService {
       @Query("reason") String reason,
       @Query("force") boolean force,
       @Body String ignored);
+
+  @Headers("Accept: application/json")
+  @PUT("/admin/forceCancelExecution")
+  Call<Map> forceCancelPipeline(
+      @Query("executionId") String executionId,
+      @Query("executionType") String executionType,
+      @Query("canceledBy") String canceledBy);
+
+  @Headers("Accept: application/json")
+  @POST("/admin/queue/hydrate")
+  Call<Map> rehydrateExecution(
+      @Query("executionId") String executionId, @Query("dryRun") boolean dryRun);
 
   @Headers("Accept: application/json")
   @PUT("pipelines/{id}/pause")

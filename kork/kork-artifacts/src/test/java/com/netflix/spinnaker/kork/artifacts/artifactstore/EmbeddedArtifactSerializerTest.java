@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
-import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreIOException;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreGetter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreStorer;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -30,7 +29,9 @@ import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.stream.Stream;
+import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,8 +39,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.*;
 
 class EmbeddedArtifactSerializerTest {
   @ParameterizedTest(name = "{index} {0}")
@@ -61,17 +61,19 @@ class EmbeddedArtifactSerializerTest {
     assertEquals(expectedJson, result);
   }
 
+  @SneakyThrows
   @Test
   public void ensureS3ExceptionHasProperMessages() {
     S3Client client = mock(S3Client.class);
-    when(client.headObject((HeadObjectRequest) Mockito.any()))
-        .thenThrow(S3Exception.builder().statusCode(400).build());
+    when(client.listObjectsV2((ListObjectsV2Request) Mockito.any()))
+        .thenReturn(ListObjectsV2Response.builder().contents(S3Object.builder().build()).build());
     AuthenticatedRequest.set(Header.APPLICATION, "my-application");
     ArtifactStoreGetter s3ArtifactStoreGetter =
         new S3ArtifactStoreGetter(client, null, "my-bucket");
     ArtifactStoreStorer artifactStoreStorer =
         new S3ArtifactStoreStorer(client, "my-bucket", new ArtifactStoreURISHA256Builder(), null);
-    ArtifactStore artifactStore = new ArtifactStore(s3ArtifactStoreGetter, artifactStoreStorer);
+    ArtifactStore artifactStore =
+        new ArtifactStore(s3ArtifactStoreGetter, artifactStoreStorer, new HashMap<>());
 
     EmbeddedArtifactSerializer serializer =
         new EmbeddedArtifactSerializer(new ObjectMapper(), artifactStore);
@@ -80,28 +82,19 @@ class EmbeddedArtifactSerializerTest {
     module.addSerializer(Artifact.class, serializer);
     objectMapper.registerModule(module);
 
-    ArtifactStoreIOException e =
-        assertThrows(
-            ArtifactStoreIOException.class,
-            () -> {
-              objectMapper.writeValue(
-                  new ByteArrayOutputStream(),
-                  Artifact.builder()
-                      .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
-                      .reference("aGVsbG8gd29ybGQK") // arbitrary
-                      .build());
-            });
-
-    String expectedExceptionMessage =
-        "com.netflix.spinnaker.kork.exceptions.SpinnakerException: Failed to query artifact due to invalid request";
-    assertEquals(expectedExceptionMessage, e.getMessage());
+    objectMapper.writeValue(
+        new ByteArrayOutputStream(),
+        Artifact.builder()
+            .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
+            .reference("aGVsbG8gd29ybGQK") // arbitrary
+            .build());
   }
 
   private static Stream<Arguments> generateTestCase() {
     return Stream.of(
         Arguments.of(
             "simple",
-            "{\"type\":\"remote/base64\",\"customKind\":false,\"name\":null,\"version\":null,\"location\":null,\"reference\":\"link\",\"metadata\":{},\"artifactAccount\":null,\"provenance\":null,\"uuid\":null}",
+            "{\"type\":\"remote/base64\",\"customKind\":false,\"reference\":\"link\",\"metadata\":{}}",
             Artifact.builder()
                 .type(ArtifactTypes.EMBEDDED_BASE64.getMimeType())
                 .reference(Base64.encodeBase64String("foo".getBytes()))
@@ -112,7 +105,7 @@ class EmbeddedArtifactSerializerTest {
                 .build()),
         Arguments.of(
             "stored",
-            "{\"type\":\"remote/base64\",\"customKind\":false,\"name\":null,\"version\":null,\"location\":null,\"reference\":\"link\",\"metadata\":{},\"artifactAccount\":null,\"provenance\":null,\"uuid\":null}",
+            "{\"type\":\"remote/base64\",\"customKind\":false,\"reference\":\"link\",\"metadata\":{}}",
             Artifact.builder()
                 .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
                 .reference("link")
@@ -123,7 +116,7 @@ class EmbeddedArtifactSerializerTest {
                 .build()),
         Arguments.of(
             "does-not-exist",
-            "{\"type\":\"nonexistent-type\",\"customKind\":false,\"name\":null,\"version\":null,\"location\":null,\"reference\":\"Zm9v\",\"metadata\":{},\"artifactAccount\":null,\"provenance\":null,\"uuid\":null}",
+            "{\"type\":\"nonexistent-type\",\"customKind\":false,\"reference\":\"Zm9v\",\"metadata\":{}}",
             Artifact.builder()
                 .type("nonexistent-type")
                 .reference(Base64.encodeBase64String("foo".getBytes()))

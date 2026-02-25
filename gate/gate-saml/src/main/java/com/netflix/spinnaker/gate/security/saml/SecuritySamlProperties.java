@@ -19,6 +19,9 @@ package com.netflix.spinnaker.gate.security.saml;
 
 import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.constraints.NotEmpty;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -34,9 +37,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -113,6 +113,7 @@ public class SecuritySamlProperties {
     }
     return property;
   }
+
   // @formatter:off
   /**
    * Try to match the standard spring saml config LIKE the below. This would be a keylcoak

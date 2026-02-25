@@ -49,11 +49,16 @@ import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.apache.catalina.Container
+import org.apache.catalina.Context
+import org.apache.catalina.core.StandardHost
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.websocket.servlet.TomcatWebSocketServletWebServerCustomizer
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -233,7 +238,7 @@ class GateConfig {
                                 OkHttp3MetricsInterceptor interceptor,
                                 @Value('${services.kayenta.externalhttps:false}') boolean kayentaExternalHttps) {
     if (kayentaExternalHttps) {
-      def noSslCustomizationProps = props.clone()
+      OkHttpClientConfigurationProperties noSslCustomizationProps = props.deepCopy()
       noSslCustomizationProps.keyStore = null
       noSslCustomizationProps.trustStore = null
       createClient "kayenta", KayentaService
@@ -376,5 +381,28 @@ class GateConfig {
                                                   FiatService fiatService,
                                                   FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)
+  }
+
+  /**
+   * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
+   * to customize tomcat exception handling, and specifically to generate json responses for
+   * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
+   */
+  @Bean
+  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
+    return new TomcatWebSocketServletWebServerCustomizer() {
+      @Override
+      public void customize(TomcatServletWebServerFactory factory) {
+        factory.addContextCustomizers(
+            (Context context) -> {
+              Container parent = context.getParent();
+              if (parent instanceof StandardHost) {
+                ((StandardHost) parent)
+                    .setErrorReportValveClass(
+                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
+              }
+            });
+      }
+    };
   }
 }

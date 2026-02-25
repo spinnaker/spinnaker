@@ -2,13 +2,6 @@ apply plugin: "java-library"
 apply plugin: "groovy"
 apply from: "$rootDir/gradle/lombok.gradle"
 
-sourceSets {
-  main {
-    java { srcDirs = [] }
-    groovy { srcDirs += ['src/main/java'] }
-  }
-}
-
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
@@ -27,7 +20,7 @@ dependencies {
   api "com.squareup.okhttp3:okhttp"
 
   implementation "com.google.guava:guava"
-  implementation "javax.inject:javax.inject:1"
+  implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation("com.netflix.spectator:spectator-web-spring") {
     // exclude transitives since this brings in a newer version of spring (boot)
     // dependencies than we're compatible with (2.2.x for spring boot and 5.2.x
@@ -40,6 +33,7 @@ dependencies {
   compileOnly "org.springframework.boot:spring-boot-starter-actuator"
 
   runtimeOnly "org.hibernate.validator:hibernate-validator"
+  runtimeOnly("org.springframework.boot:spring-boot-properties-migrator")
 
   testImplementation project(":kork-test")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"

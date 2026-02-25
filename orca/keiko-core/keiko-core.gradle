@@ -8,7 +8,7 @@ dependencies {
   api "org.springframework:spring-context"
 
   implementation "com.netflix.spectator:spectator-api"
-  implementation "javax.annotation:javax.annotation-api"
+  implementation "jakarta.annotation:jakarta.annotation-api"
 
   testImplementation project(":keiko-test-common")
 }

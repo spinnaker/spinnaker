@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.kork.crypto;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
-import org.springframework.core.NestedIOException;
 
-public class NestedSecurityIOException extends NestedIOException {
+public class NestedSecurityIOException extends IOException {
   public NestedSecurityIOException(GeneralSecurityException e) {
     super(e.getMessage(), e);
   }

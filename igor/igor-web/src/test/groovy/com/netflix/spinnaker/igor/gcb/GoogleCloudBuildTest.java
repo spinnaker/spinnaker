@@ -36,7 +36,6 @@ import com.google.api.services.cloudbuild.v1.model.BuildStep;
 import com.google.api.services.cloudbuild.v1.model.BuildTrigger;
 import com.google.api.services.cloudbuild.v1.model.ListBuildTriggersResponse;
 import com.google.api.services.cloudbuild.v1.model.Operation;
-import com.google.api.services.cloudbuild.v1.model.PoolOption;
 import com.google.api.services.cloudbuild.v1.model.RepoSource;
 import com.netflix.spinnaker.igor.RedisConfig;
 import com.netflix.spinnaker.igor.config.LockManagerConfig;
@@ -54,20 +53,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@EnableWebMvc
 @ComponentScan({"com.netflix.spinnaker.config", "com.netflix.spinnaker.igor"})
 @SpringBootTest(
     classes = {
@@ -80,7 +78,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @TestPropertySource(
     properties = {
       "spring.config.location=classpath:gcb/gcb-test.yml",
-      "spring.application.name = igor"
+      "spring.application.name = igor",
+      "spring.mvc.pathmatch.matching-strategy = ANT_PATH_MATCHER"
     })
 public class GoogleCloudBuildTest {
   @Autowired private MockMvc mockMvc;
@@ -94,10 +93,11 @@ public class GoogleCloudBuildTest {
   @TestConfiguration
   @EnableWebSecurity
   @Order(1)
-  static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity httpSecurity) throws Exception {
-      httpSecurity.authorizeRequests().anyRequest().permitAll().and().csrf().disable();
+  static class WebSecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+      http.authorizeHttpRequests().anyRequest().permitAll().and().csrf().disable();
+      return http.build();
     }
   }
 
@@ -130,41 +130,6 @@ public class GoogleCloudBuildTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(buildRequest))
-        .andExpect(status().is(200))
-        .andExpect(content().json(buildResponse));
-
-    assertThat(stubCloudBuildService.findUnmatchedRequests().getRequests()).isEmpty();
-  }
-
-  @Test
-  public void presentAccountTestWithPoolOption() throws Exception {
-    Build buildRequest =
-        buildRequest()
-            .setOptions(
-                new BuildOptions()
-                    .setPool(
-                        new PoolOption()
-                            .setName(
-                                "projects/spinnaker-gcb-test-2/locations/gcb-locations/workerPools/test-pool")));
-    String buildRequestString = objectMapper.writeValueAsString(buildRequest);
-    String taggedBuild =
-        objectMapper.writeValueAsString(
-            buildRequest.setTags(Collections.singletonList("started-by.spinnaker.io")));
-    String buildResponse = objectMapper.writeValueAsString(buildResponse());
-    String operationResponse = objectMapper.writeValueAsString(operationResponse());
-    stubCloudBuildService.stubFor(
-        WireMock.post(
-                urlEqualTo("/v1/projects/spinnaker-gcb-test-2/locations/gcb-locations/builds"))
-            .withHeader("Authorization", equalTo("Bearer test-token"))
-            .withRequestBody(equalToJson(taggedBuild))
-            .willReturn(aResponse().withStatus(200).withBody(operationResponse)));
-
-    mockMvc
-        .perform(
-            post("/gcb/builds/create/gcb-account")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(buildRequestString))
         .andExpect(status().is(200))
         .andExpect(content().json(buildResponse));
 

@@ -15,13 +15,22 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
 @ConfigurationProperties("artifact-store")
 public class ArtifactStoreConfigurationProperties {
+  /** Need a wrapper type due to YAML stripping '/'. */
+  @Data
+  public static class ArtifactFilter {
+    public String type;
+    public String value;
+  }
+
   private String applicationsRegex = null;
+  private List<ArtifactFilter> exclude = List.of();
 
   /** The type of artifact store to use (e.g. s3). */
   private String type = null;
@@ -32,6 +41,7 @@ public class ArtifactStoreConfigurationProperties {
     private boolean enabled = false;
     private String profile = null;
     private String region = null;
+
     /**
      * Url may be used to override the contact URL to an s3 compatible object store. This is useful
      * for testing utilizing things like seaweedfs.

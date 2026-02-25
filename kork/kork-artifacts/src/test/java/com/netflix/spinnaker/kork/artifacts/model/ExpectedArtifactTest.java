@@ -220,6 +220,11 @@ final class ExpectedArtifactTest {
         Arguments.of("SGVsbG8gV29ybGQK", null, false, "other reference as null"),
         Arguments.of("SGVsbG8gV29ybGQK", "", false, "other reference is empty"),
         Arguments.of("", "SGVsbG8gV29ybGQK", true, "match reference is empty"),
+        Arguments.of(
+            "H4sIAAAAAAAAA9VRy27TQBDF7ynWLVoUuEaiFRzdxEBDqyYMAaVKDZqqtRAwIkFYNzVZ3nLzKvl0jRJY9oX6xTj/L/vl58duJWZPbUnXz4qW2WfOc+3ek//Sznje/P/uUcE+ujb73i8gNSrDX7/6oZcAqPvRd38UaKfJX8ce+vOWHwQ18S2/qn4n9LWn5t0/7RSLQ7c7XW4v1Dh+lRGiey0m2sROZlybnYaf8T9/0GkYRcsJ1RoKU3Zfh3jPvM/2q3JkNnEhq+7G5JXx6M2",
+            "H4sIAAAAAAAAA9VRy27TQBDF7ynWLVoUuEaiFRzdxEBDqyYMAaVKDZqqtRAwIkFYNzVZ3nLzKvl0jRJY9oX6xTj/L/vl58duJWZPbUnXz4qW2WfOc+3ek//Sznje/P/uUcE+ujb73i8gNSrDX7/6oZcAqPvRd38UaKfJX8ce+vOWHwQ18S2/qn4n9LWn5t0/7RSLQ7c7XW4v1Dh+lRGiey0m2sROZlybnYaf8T9/0GkYRcsJ1RoKU3Zfh3jPvM/2q3JkNnEhq+7G5JXx6M2",
+            true,
+            "all possible base64 characters"),
         Arguments.of("+++", "+++", true, "valid base64 but invalid regex"));
   }
 }
