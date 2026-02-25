@@ -189,7 +189,15 @@ class AgentAcquisitionServiceTest {
       AgentAcquisitionService service, int expectedCount, long timeoutMs) {
     boolean conditionMet =
         TestFixtures.waitForBackgroundTask(
-            () -> service.getActiveAgentCount() >= expectedCount, timeoutMs, 10);
+            () -> {
+              int activeCount = service.getActiveAgentCount();
+              if (expectedCount == 0) {
+                return activeCount == 0;
+              }
+              return activeCount >= expectedCount;
+            },
+            timeoutMs,
+            10);
     assertThat(conditionMet)
         .describedAs("Active agent count should reach %d within %dms", expectedCount, timeoutMs)
         .isTrue();

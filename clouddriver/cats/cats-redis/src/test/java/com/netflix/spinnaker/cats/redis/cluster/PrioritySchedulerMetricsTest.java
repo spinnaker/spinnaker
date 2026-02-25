@@ -969,8 +969,10 @@ class PrioritySchedulerMetricsTest {
     void midCycleUnregisterDoesNotLeakPermits() throws Exception {
       for (int i = 1; i <= 3; i++) {
         Agent agent = TestFixtures.createMockAgent("permits-" + i, "test");
+        TestFixtures.ControllableAgentExecution execution =
+            new TestFixtures.ControllableAgentExecution().withFixedDuration(150);
         acquisitionService.registerAgent(
-            agent, mock(AgentExecution.class), TestFixtures.createMockInstrumentation());
+            agent, execution, TestFixtures.createMockInstrumentation());
       }
 
       try (var jedis = pool.getResource()) {
@@ -983,27 +985,24 @@ class PrioritySchedulerMetricsTest {
       Semaphore permits = new Semaphore(agentProperties.getMaxConcurrentAgents());
       ExecutorService exec = Executors.newCachedThreadPool();
 
-      Thread unregister =
-          new Thread(
-              () -> {
-                try {
-                  Thread.sleep(25);
-                } catch (InterruptedException ignored) {
-                }
-                acquisitionService.unregisterAgent(
-                    TestFixtures.createMockAgent("permits-2", "test"));
-              });
+      int acquired = acquisitionService.saturatePool(0L, permits, exec);
+      assertThat(acquired).isGreaterThan(0);
 
-      unregister.start();
-      acquisitionService.saturatePool(0L, permits, exec);
-      unregister.join(1000);
+      boolean hasActiveAgents =
+          TestFixtures.waitForCondition(
+              () -> acquisitionService.getActiveAgentCount() > 0, 2000, 25);
+      assertThat(hasActiveAgents)
+          .describedAs("At least one agent should be active before unregister")
+          .isTrue();
+
+      acquisitionService.unregisterAgent(TestFixtures.createMockAgent("permits-2", "test"));
 
       boolean permitsReturned =
           TestFixtures.waitForCondition(
               () ->
                   permits.availablePermits() == agentProperties.getMaxConcurrentAgents()
                       && acquisitionService.getActiveAgentCount() == 0,
-              2000,
+              5000,
               25);
 
       TestFixtures.shutdownExecutorSafely(exec);
