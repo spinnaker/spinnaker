@@ -49,7 +49,7 @@ public class BakeService {
     this.roscoServiceSelector = roscoServiceSelector.orElse(null);
   }
 
-  public Object bakeOptions() {
+  public List bakeOptions() {
     return (roscoServiceSelector != null && !useDefaultBakeOptions)
         ? Retrofit2SyncCall.execute(roscoServiceSelector.withLocation(null).bakeOptions())
         : this.bakeOptions;
