@@ -5310,39 +5310,66 @@ class AgentAcquisitionServiceTest {
       // We verify the agent was processed by checking that it's either in WORKING (still running)
       // or
       // in WAITING with a future score (rescheduled).
-      try (Jedis jedis = jedisPool.getResource()) {
-        Double workingScore = jedis.zscore("working", "overdue-agent");
-        Double waitingScore = jedis.zscore("waiting", "overdue-agent");
+      if (acquired > 0) {
+        // IMPORTANT: Checking working and waiting scores in a single immediate sample is racy:
+        // the agent can complete and move between sets between two zscore() calls.
+        // Poll until the agent settles in exactly one set to avoid TOCTOU flakes.
+        java.util.concurrent.atomic.AtomicReference<Double> workingScoreRef =
+            new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.concurrent.atomic.AtomicReference<Double> waitingScoreRef =
+            new java.util.concurrent.atomic.AtomicReference<>();
+        boolean membershipSettled =
+            TestFixtures.waitForBackgroundTask(
+                () -> {
+                  try (Jedis j = jedisPool.getResource()) {
+                    Double ws = j.zscore("working", "overdue-agent");
+                    Double wt = j.zscore("waiting", "overdue-agent");
+                    workingScoreRef.set(ws);
+                    waitingScoreRef.set(wt);
+                    return (ws != null) != (wt != null);
+                  }
+                },
+                2000,
+                50);
 
-        if (acquired > 0) {
-          // Agent was acquired - should be in WORKING (still running) or WAITING (completed and
-          // rescheduled)
-          assertThat(workingScore != null || waitingScore != null)
+        assertThat(membershipSettled)
+            .describedAs(
+                "Overdue agent should settle in exactly one Redis set (WORKING or WAITING)")
+            .isTrue();
+
+        Double workingScore = workingScoreRef.get();
+        Double waitingScore = waitingScoreRef.get();
+
+        // Agent was acquired - should be in WORKING (still running) or WAITING (completed and
+        // rescheduled)
+        assertThat(workingScore != null || waitingScore != null)
+            .describedAs(
+                "Agent should be in Redis (WORKING if running, WAITING if completed). "
+                    + "Working: "
+                    + workingScore
+                    + ", Waiting: "
+                    + waitingScore)
+            .isTrue();
+
+        // If in WORKING, single-membership invariant applies
+        if (workingScore != null) {
+          assertThat(waitingScore)
+              .describedAs("Agent in WORKING should not also be in WAITING")
+              .isNull();
+        }
+
+        // If rescheduled to WAITING, the new score should be in the future (not the original
+        // overdue score which was 2 minutes in the past)
+        if (waitingScore != null && workingScore == null) {
+          long nowSeconds = TestFixtures.nowSeconds();
+          assertThat(waitingScore.longValue())
               .describedAs(
-                  "Agent should be in Redis (WORKING if running, WAITING if completed). "
-                      + "Working: "
-                      + workingScore
-                      + ", Waiting: "
-                      + waitingScore)
-              .isTrue();
-
-          // If in WORKING, single-membership invariant applies
-          if (workingScore != null) {
-            assertThat(waitingScore)
-                .describedAs("Agent in WORKING should not also be in WAITING")
-                .isNull();
-          }
-
-          // If rescheduled to WAITING, the new score should be in the future (not the original
-          // overdue score which was 2 minutes in the past)
-          if (waitingScore != null && workingScore == null) {
-            long nowSeconds = TestFixtures.nowSeconds();
-            assertThat(waitingScore.longValue())
-                .describedAs(
-                    "Rescheduled agent should have future score (not original overdue score)")
-                .isGreaterThanOrEqualTo(nowSeconds - 1); // Allow 1s tolerance
-          }
-        } else {
+                  "Rescheduled agent should have future score (not original overdue score)")
+              .isGreaterThanOrEqualTo(nowSeconds - 1); // Allow 1s tolerance
+        }
+      } else {
+        try (Jedis jedis = jedisPool.getResource()) {
+          Double waitingScore = jedis.zscore("waiting", "overdue-agent");
           assertThat(waitingScore)
               .describedAs("Overdue agent should remain selectable when not yet acquired")
               .isNotNull();
@@ -5705,6 +5732,68 @@ class AgentAcquisitionServiceTest {
     }
 
     @Test
+    @DisplayName("repopulateIfDueNow keeps retry window on failure")
+    void repopulateIfDueNowKeepsRetryWindowOnFailure() throws Exception {
+      JedisPool mockPool = mock(JedisPool.class);
+      Jedis mockJedis = mock(Jedis.class);
+      when(mockPool.getResource())
+          .thenThrow(new RuntimeException("simulated first repopulation failure"))
+          .thenReturn(mockJedis);
+
+      PriorityAgentProperties agentProps = new PriorityAgentProperties();
+      PrioritySchedulerProperties props = new PrioritySchedulerProperties();
+      props.setRefreshPeriodSeconds(30);
+
+      AgentAcquisitionService svc =
+          new AgentAcquisitionService(
+              mockPool,
+              mock(RedisScriptManager.class),
+              (AgentIntervalProvider) a -> new AgentIntervalProvider.Interval(1000L, 1000L),
+              (ShardingFilter) a -> true,
+              agentProps,
+              props,
+              TestFixtures.createTestMetrics());
+
+      java.util.concurrent.atomic.AtomicLong last =
+          TestFixtures.getField(svc, AgentAcquisitionService.class, "lastRepopulateEpochMs");
+      long staleTimestamp =
+          System.currentTimeMillis() - java.util.concurrent.TimeUnit.MINUTES.toMillis(5);
+      last.set(staleTimestamp);
+
+      // First attempt fails and must NOT advance lastRepopulateEpochMs.
+      assertThat(svc.repopulateIfDueNow()).isFalse();
+      assertThat(last.get()).isEqualTo(staleTimestamp);
+
+      // Second attempt should retry immediately (no delayed window) and succeed.
+      assertThat(svc.repopulateIfDueNow()).isTrue();
+      assertThat(last.get()).isGreaterThan(staleTimestamp);
+      verify(mockPool, times(2)).getResource();
+    }
+
+    @Test
+    @DisplayName("conditionalReleaseAgent should reject stale working ownership score")
+    void conditionalReleaseAgentShouldRejectStaleWorkingOwnershipScore() {
+      String agentType = "ownership-mismatch-reschedule-agent";
+      Agent agent = TestFixtures.createMockAgent(agentType, "test");
+      acquisitionService.registerAgent(
+          agent, mock(AgentExecution.class), TestFixtures.createMockInstrumentation());
+
+      try (Jedis jedis = jedisPool.getResource()) {
+        jedis.zadd("working", 500, agentType);
+        jedis.zrem("waiting", agentType);
+      }
+
+      acquisitionService.conditionalReleaseAgent(
+          agent, "499", // stale expected score; should not move current owner
+          true, null, null);
+
+      try (Jedis jedis = jedisPool.getResource()) {
+        assertThat(jedis.zscore("working", agentType)).isEqualTo(500.0);
+        assertThat(jedis.zscore("waiting", agentType)).isNull();
+      }
+    }
+
+    @Test
     @DisplayName("Cancel-before-start releases permit via tracked FutureTask done callback")
     void cancelBeforeStartReleasesPermitViaDoneCallback() throws Exception {
       JedisPool pool = TestFixtures.createTestJedisPool(redis);
@@ -5792,6 +5881,122 @@ class AgentAcquisitionServiceTest {
         boolean permitReturned =
             TestFixtures.waitForCondition(() -> permits.availablePermits() == 1, 1000, 20);
         assertThat(permitReturned).isTrue();
+      } finally {
+        pool.close();
+      }
+    }
+
+    @Test
+    @DisplayName("Cancel-before-start callback must not steal newer RunState ownership")
+    void cancelBeforeStartCallbackMustNotStealNewerRunStateOwnership() throws Exception {
+      JedisPool pool = TestFixtures.createTestJedisPool(redis);
+      try {
+        PriorityAgentProperties agentProps = new PriorityAgentProperties();
+        agentProps.setEnabledPattern(".*");
+        agentProps.setDisabledPattern("");
+        agentProps.setMaxConcurrentAgents(1);
+
+        PrioritySchedulerProperties props = new PrioritySchedulerProperties();
+        props.getKeys().setWaitingSet("waiting");
+        props.getKeys().setWorkingSet("working");
+        props.getKeys().setCleanupLeaderKey("cleanup-leader");
+        props.getBatchOperations().setEnabled(false);
+
+        AgentAcquisitionService svc =
+            new AgentAcquisitionService(
+                pool,
+                TestFixtures.createTestScriptManager(pool),
+                (AgentIntervalProvider) a -> new AgentIntervalProvider.Interval(1000L, 1000L),
+                (ShardingFilter) a -> true,
+                agentProps,
+                props,
+                TestFixtures.createTestMetrics());
+
+        String agentType = "ownership-guard-agent";
+        Agent agent = TestFixtures.createMockAgent(agentType, "test");
+        svc.registerAgent(
+            agent, mock(AgentExecution.class), TestFixtures.createMockInstrumentation());
+
+        try (Jedis j = pool.getResource()) {
+          long now = TestFixtures.getRedisTimeSeconds(j);
+          j.zadd("waiting", now - 1, agentType);
+        }
+
+        AbstractExecutorService deferredExecutor =
+            new AbstractExecutorService() {
+              private final java.util.concurrent.atomic.AtomicBoolean shutdown =
+                  new java.util.concurrent.atomic.AtomicBoolean(false);
+
+              @Override
+              public void shutdown() {
+                shutdown.set(true);
+              }
+
+              @Override
+              public java.util.List<Runnable> shutdownNow() {
+                shutdown.set(true);
+                return java.util.Collections.emptyList();
+              }
+
+              @Override
+              public boolean isShutdown() {
+                return shutdown.get();
+              }
+
+              @Override
+              public boolean isTerminated() {
+                return shutdown.get();
+              }
+
+              @Override
+              public boolean awaitTermination(long timeout, TimeUnit unit) {
+                return true;
+              }
+
+              @Override
+              public void execute(Runnable command) {
+                if (shutdown.get()) {
+                  throw new RejectedExecutionException("executor shut down");
+                }
+                // Intentionally do not run command to keep FutureTask in not-started state.
+              }
+            };
+
+        Semaphore permits = new Semaphore(1);
+        int acquired = svc.saturatePool(1L, permits, deferredExecutor);
+        assertThat(acquired).isEqualTo(1);
+
+        Future<?> tracked = svc.getActiveAgentsFuturesSnapshot().get(agentType);
+        assertThat(tracked).isNotNull();
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> runStates =
+            (Map<String, Object>)
+                TestFixtures.getField(svc, AgentAcquisitionService.class, "runStates");
+        Object oldRunState = runStates.get(agentType);
+        assertThat(oldRunState).isNotNull();
+
+        Class<?> runStateClass = oldRunState.getClass();
+        java.lang.reflect.Constructor<?> ctor = runStateClass.getDeclaredConstructor(long.class);
+        ctor.setAccessible(true);
+        Object newerRunState = ctor.newInstance(999_999L);
+        runStates.put(agentType, newerRunState);
+
+        assertThat(tracked.cancel(true)).isTrue();
+        boolean permitReturned =
+            TestFixtures.waitForCondition(() -> permits.availablePermits() == 1, 1000, 20);
+        assertThat(permitReturned).isTrue();
+
+        // Critical ownership invariant: stale callback must not remove/flip the newer run-state.
+        assertThat(runStates.get(agentType)).isSameAs(newerRunState);
+
+        java.lang.reflect.Field permitHeldField = runStateClass.getDeclaredField("permitHeld");
+        permitHeldField.setAccessible(true);
+        AtomicBoolean oldPermitHeld = (AtomicBoolean) permitHeldField.get(oldRunState);
+        AtomicBoolean newPermitHeld = (AtomicBoolean) permitHeldField.get(newerRunState);
+
+        assertThat(oldPermitHeld.get()).isFalse();
+        assertThat(newPermitHeld.get()).isTrue();
       } finally {
         pool.close();
       }
@@ -11260,6 +11465,73 @@ class AgentAcquisitionServiceTest {
       } finally {
         TestFixtures.shutdownExecutorSafely(pool);
       }
+    }
+
+    @Test
+    @DisplayName("Unbounded repopulation should cap ZMSCORE argument batch size")
+    void unboundedRepopulationShouldCapZmscoreArgumentBatchSize() throws Exception {
+      PriorityAgentProperties agentProps = new PriorityAgentProperties();
+      agentProps.setEnabledPattern(".*");
+      agentProps.setDisabledPattern("");
+      agentProps.setMaxConcurrentAgents(10);
+
+      PrioritySchedulerProperties schedulerProps = new PrioritySchedulerProperties();
+      schedulerProps.getKeys().setWaitingSet("waiting");
+      schedulerProps.getKeys().setWorkingSet("working");
+      schedulerProps.getBatchOperations().setEnabled(true);
+      schedulerProps.getBatchOperations().setBatchSize(0); // Unbounded config
+      schedulerProps.getCircuitBreaker().setEnabled(false);
+
+      AgentIntervalProvider intervalProvider = mock(AgentIntervalProvider.class);
+      when(intervalProvider.getInterval(any(Agent.class)))
+          .thenReturn(new AgentIntervalProvider.Interval(60000L, 120000L));
+      ShardingFilter shardingFilter = mock(ShardingFilter.class);
+      when(shardingFilter.filter(any(Agent.class))).thenReturn(true);
+
+      java.util.concurrent.atomic.AtomicInteger maxObservedArgs =
+          new java.util.concurrent.atomic.AtomicInteger(0);
+      RedisScriptManager spyScriptManager = spy(unboundedScriptManager);
+      doAnswer(
+              invocation -> {
+                String scriptName = invocation.getArgument(1);
+                @SuppressWarnings("unchecked")
+                List<String> scriptArgs = invocation.getArgument(3);
+                if (RedisScriptManager.ZMSCORE_AGENTS.equals(scriptName) && scriptArgs != null) {
+                  maxObservedArgs.accumulateAndGet(scriptArgs.size(), Math::max);
+                }
+                return invocation.callRealMethod();
+              })
+          .when(spyScriptManager)
+          .evalshaWithSelfHeal(any(Jedis.class), anyString(), anyList(), anyList());
+
+      AgentAcquisitionService acquisitionService =
+          new AgentAcquisitionService(
+              unboundedJedisPool,
+              spyScriptManager,
+              intervalProvider,
+              shardingFilter,
+              agentProps,
+              schedulerProps,
+              unboundedMetrics);
+
+      int agentCount = 1300; // large enough to require chunking when capped
+      for (int i = 0; i < agentCount; i++) {
+        Agent agent = TestFixtures.createMockAgent("zmscore-cap-" + i, "test");
+        acquisitionService.registerAgent(
+            agent, (AgentExecution) a -> {}, TestFixtures.createNoOpInstrumentation());
+      }
+
+      java.lang.reflect.Method repopulateMethod =
+          AgentAcquisitionService.class.getDeclaredMethod("repopulateRedisAgents", Jedis.class);
+      repopulateMethod.setAccessible(true);
+      try (Jedis jedis = unboundedJedisPool.getResource()) {
+        repopulateMethod.invoke(acquisitionService, jedis);
+      }
+
+      assertThat(maxObservedArgs.get()).isGreaterThan(0);
+      assertThat(maxObservedArgs.get())
+          .describedAs("ZMSCORE ARGV batch size should be hard-capped in unbounded mode")
+          .isLessThanOrEqualTo(512);
     }
 
     /** Tests that diagnostics window defaults to 64 when batch size is 0. */

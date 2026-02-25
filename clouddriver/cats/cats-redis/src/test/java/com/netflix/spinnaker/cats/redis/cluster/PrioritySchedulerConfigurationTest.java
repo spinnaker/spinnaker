@@ -739,6 +739,32 @@ class PrioritySchedulerConfigurationTest {
     }
 
     @Nested
+    @DisplayName("Leadership TTL Validation Tests")
+    class LeadershipTtlValidationTests {
+
+      @Test
+      @DisplayName("Should reject leadership TTL below run-budget safety margin")
+      void shouldRejectLeadershipTtlBelowRunBudgetSafetyMargin() {
+        properties.getOrphanCleanup().setRunBudgetMs(120000L);
+        properties.getOrphanCleanup().setLeadershipTtlMs(150000L); // < 120000 + 60000
+
+        assertThatThrownBy(() -> properties.validate())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("leadership-ttl-ms")
+            .hasMessageContaining("run-budget-ms");
+      }
+
+      @Test
+      @DisplayName("Should allow leadership TTL at required run-budget margin")
+      void shouldAllowLeadershipTtlAtRequiredRunBudgetMargin() {
+        properties.getOrphanCleanup().setRunBudgetMs(120000L);
+        properties.getOrphanCleanup().setLeadershipTtlMs(180000L); // == 120000 + 60000
+
+        assertThatCode(() -> properties.validate()).doesNotThrowAnyException();
+      }
+    }
+
+    @Nested
     @DisplayName("Backward Compatibility Tests")
     class BackwardCompatibilityTests {
 

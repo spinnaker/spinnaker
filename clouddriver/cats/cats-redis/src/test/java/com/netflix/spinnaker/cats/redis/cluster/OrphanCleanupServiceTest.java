@@ -2240,13 +2240,16 @@ class OrphanCleanupServiceTest {
 
       PriorityAgentProperties agentProps = new PriorityAgentProperties();
       agentProps.setMaxConcurrentAgents(1);
+      com.netflix.spinnaker.cats.cluster.ShardingFilter shardingFilter =
+          mock(com.netflix.spinnaker.cats.cluster.ShardingFilter.class);
+      when(shardingFilter.filter(any(Agent.class))).thenReturn(true);
 
       timeSourceAcquisitionService =
           new AgentAcquisitionService(
               jedisPool,
               scriptManager,
               intervalProvider,
-              mock(com.netflix.spinnaker.cats.cluster.ShardingFilter.class),
+              shardingFilter,
               agentProps,
               props,
               TestFixtures.createTestMetrics());
@@ -2298,6 +2301,50 @@ class OrphanCleanupServiceTest {
           long delta = Math.abs(waitingScore.longValue() - nowOffsetSec);
           assertThat(delta).isLessThanOrEqualTo(3L);
         }
+      }
+    }
+
+    @Test
+    @DisplayName("Orphan cutoff uses Redis-aligned offset time")
+    void orphanCutoffUsesRedisAlignedOffsetTime() throws Exception {
+      java.lang.reflect.Field offsetField =
+          AgentAcquisitionService.class.getDeclaredField("serverClientOffset");
+      offsetField.setAccessible(true);
+      java.util.concurrent.atomic.AtomicLong offsetRef =
+          (java.util.concurrent.atomic.AtomicLong) offsetField.get(null);
+
+      java.lang.reflect.Field lastTimeCheckField =
+          AgentAcquisitionService.class.getDeclaredField("lastTimeCheck");
+      lastTimeCheckField.setAccessible(true);
+      java.util.concurrent.atomic.AtomicLong lastTimeCheckRef =
+          (java.util.concurrent.atomic.AtomicLong) lastTimeCheckField.get(null);
+
+      long originalOffset = offsetRef.get();
+      long originalLastCheck = lastTimeCheckRef.get();
+      try {
+        // Push perceived "now" ahead of local clock so cutoff relies on Redis-aligned offset.
+        offsetRef.set(java.util.concurrent.TimeUnit.MINUTES.toMillis(11));
+        lastTimeCheckRef.set(System.currentTimeMillis());
+
+        try (Jedis j = jedisPool.getResource()) {
+          long nowSec = Long.parseLong(j.time().get(0));
+          // 5 minutes old: below default 10m threshold by local clock, but beyond threshold with
+          // +11m
+          // offset.
+          j.zadd("waiting", nowSec - 300L, "offset-cutoff-agent");
+        }
+
+        int cleaned = timeSourceOrphanService.forceCleanupOrphanedAgents();
+        assertThat(cleaned).isGreaterThanOrEqualTo(1);
+
+        try (Jedis j = jedisPool.getResource()) {
+          assertThat(j.zscore("waiting", "offset-cutoff-agent"))
+              .describedAs("Offset-aligned orphan cutoff should remove stale waiting entry")
+              .isNull();
+        }
+      } finally {
+        offsetRef.set(originalOffset);
+        lastTimeCheckRef.set(originalLastCheck);
       }
     }
   }

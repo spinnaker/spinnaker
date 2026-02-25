@@ -534,7 +534,8 @@ class RedisScriptManagerTest {
      * to waiting if not in either set.
      *
      * <p>This script lets the worker thread handle the full Redis state transition upon agent
-     * completion, eliminating race conditions.
+     * completion, eliminating race conditions while enforcing working-score ownership when
+     * provided.
      */
     @Test
     @DisplayName("Should execute RESCHEDULE_AGENT script correctly")
@@ -548,7 +549,7 @@ class RedisScriptManagerTest {
             jedis.evalsha(
                 scriptManager.getScriptSha(RedisScriptManager.RESCHEDULE_AGENT),
                 java.util.Arrays.asList("working", "waiting"),
-                java.util.Arrays.asList("agent1", "200"));
+                java.util.Arrays.asList("agent1", "200", "100"));
 
         assertThat(result).isEqualTo("moved");
         TestFixtures.assertAgentNotInSet(jedis, "working", "agent1");
@@ -562,7 +563,7 @@ class RedisScriptManagerTest {
             jedis.evalsha(
                 scriptManager.getScriptSha(RedisScriptManager.RESCHEDULE_AGENT),
                 java.util.Arrays.asList("working", "waiting"),
-                java.util.Arrays.asList("agent2", "300"));
+                java.util.Arrays.asList("agent2", "300", ""));
 
         assertThat(result).isEqualTo("added");
         TestFixtures.assertAgentNotInSet(jedis, "working", "agent2");
@@ -576,10 +577,23 @@ class RedisScriptManagerTest {
             jedis.evalsha(
                 scriptManager.getScriptSha(RedisScriptManager.RESCHEDULE_AGENT),
                 java.util.Arrays.asList("working", "waiting"),
-                java.util.Arrays.asList("agent3", "500"));
+                java.util.Arrays.asList("agent3", "500", "400"));
 
         assertThat(result).isEqualTo("exists");
         assertThat(jedis.zscore("waiting", "agent3")).isEqualTo(400.0); // Score unchanged
+
+        // Scenario 4: Agent in working with mismatched expected score - should not move
+        jedis.zadd("working", 600, "agent4");
+        jedis.zrem("waiting", "agent4");
+        result =
+            jedis.evalsha(
+                scriptManager.getScriptSha(RedisScriptManager.RESCHEDULE_AGENT),
+                java.util.Arrays.asList("working", "waiting"),
+                java.util.Arrays.asList("agent4", "700", "601"));
+
+        assertThat(result).isEqualTo("mismatch");
+        assertThat(jedis.zscore("working", "agent4")).isEqualTo(600.0);
+        TestFixtures.assertAgentNotInSet(jedis, "waiting", "agent4");
       }
     }
   }
