@@ -1357,6 +1357,30 @@ public class PrioritySchedulerIntegrationTest {
       }
     }
 
+    @Test
+    @DisplayName("Scheduler shutdown should explicitly stop deadman scheduler")
+    void schedulerShutdownShouldStopDeadmanScheduler() throws Exception {
+      java.lang.reflect.Field acquisitionField =
+          PriorityAgentScheduler.class.getDeclaredField("acquisitionService");
+      acquisitionField.setAccessible(true);
+      AgentAcquisitionService acquisitionService =
+          (AgentAcquisitionService) acquisitionField.get(scheduler);
+
+      java.lang.reflect.Field deadmanField =
+          AgentAcquisitionService.class.getDeclaredField("deadmanScheduler");
+      deadmanField.setAccessible(true);
+      java.util.concurrent.ScheduledExecutorService deadmanScheduler =
+          (java.util.concurrent.ScheduledExecutorService) deadmanField.get(acquisitionService);
+
+      try {
+        assertThat(deadmanScheduler.isShutdown()).isFalse();
+        scheduler.shutdown();
+        assertThat(deadmanScheduler.isShutdown()).isTrue();
+      } finally {
+        scheduler.shutdown();
+      }
+    }
+
     /**
      * Verifies that Redis-based coordination prevents double execution across multiple scheduler
      * instances.
@@ -6035,9 +6059,11 @@ public class PrioritySchedulerIntegrationTest {
       orphanCleaner2.get(10, TimeUnit.SECONDS);
       shutdownToggler.get(10, TimeUnit.SECONDS);
 
-      // Drain workers and completion queues
-      drainWorkers(acquisitionService1, agentWorkPool1);
-      drainWorkers(acquisitionService2, agentWorkPool2);
+      // Freeze acquisition and drain worker pools without starting new work.
+      acquisitionService1.setShuttingDown(true);
+      acquisitionService2.setShuttingDown(true);
+      drainWorkers(agentWorkPool1);
+      drainWorkers(agentWorkPool2);
 
       // THEN: Assert eventual consistency invariants
       try (Jedis j = multiInstanceJedisPool.getResource()) {
@@ -6049,27 +6075,37 @@ public class PrioritySchedulerIntegrationTest {
             new java.util.concurrent.atomic.AtomicReference<>();
         java.util.concurrent.atomic.AtomicReference<List<String>> workingRef =
             new java.util.concurrent.atomic.AtomicReference<>();
-        waitForCondition(
-            () -> {
-              List<String> w = j.zrange(WAITING_KEY, 0, -1);
-              List<String> wo = j.zrange(WORKING_KEY, 0, -1);
-              waitingRef.set(w);
-              workingRef.set(wo);
-              int completing1 = Math.max(0, acquisitionService1.getCompletionQueueSize());
-              int completing2 = Math.max(0, acquisitionService2.getCompletionQueueSize());
-              int active1 = Math.max(0, acquisitionService1.getActiveAgentCount());
-              int active2 = Math.max(0, acquisitionService2.getActiveAgentCount());
+        boolean settled =
+            waitForCondition(
+                () -> {
+                  List<String> w = j.zrange(WAITING_KEY, 0, -1);
+                  List<String> wo = j.zrange(WORKING_KEY, 0, -1);
+                  waitingRef.set(w);
+                  workingRef.set(wo);
 
-              int totalCompleting = completing1 + completing2;
-              int totalActive = active1 + active2;
-              int sumSets = w.size() + wo.size();
+                  int active1 = Math.max(0, acquisitionService1.getActiveAgentCount());
+                  int active2 = Math.max(0, acquisitionService2.getActiveAgentCount());
+                  int permitHeld1 =
+                      Math.max(0, acquisitionService1.getRunStatesWithPermitHeldCount());
+                  int permitHeld2 =
+                      Math.max(0, acquisitionService2.getRunStatesWithPermitHeldCount());
 
-              // Registered is union across both instances (same agents registered on both)
-              int registered = numAgents;
-              return (registered - sumSets) <= (totalCompleting + totalActive);
-            },
-            2000,
-            50);
+                  java.util.Set<String> overlap = new java.util.HashSet<>(w);
+                  overlap.retainAll(wo);
+
+                  int totalActive = active1 + active2;
+                  boolean noInFlight = totalActive == 0 && permitHeld1 == 0 && permitHeld2 == 0;
+                  boolean permitsRestored =
+                      semaphore1.availablePermits() >= 5 && semaphore2.availablePermits() >= 5;
+                  boolean setsDisjoint = overlap.isEmpty();
+
+                  return noInFlight && permitsRestored && setsDisjoint;
+                },
+                20_000,
+                50);
+        assertThat(settled)
+            .describedAs("Multi-instance scheduler state should quiesce before final assertions")
+            .isTrue();
         List<String> waiting = waitingRef.get();
         List<String> working = workingRef.get();
 
@@ -6100,16 +6136,7 @@ public class PrioritySchedulerIntegrationTest {
       TestFixtures.shutdownExecutorSafely(testThreads);
     }
 
-    private void drainWorkers(AgentAcquisitionService acquisitionService, ExecutorService pool)
-        throws Exception {
-      // Process completion queue
-      try {
-        acquisitionService.saturatePool(Long.MAX_VALUE, null, pool);
-      } catch (Exception e) {
-        // Best-effort
-      }
-
-      // Wait for pool to drain
+    private void drainWorkers(ExecutorService pool) {
       TestFixtures.shutdownExecutorSafely(pool);
     }
 
