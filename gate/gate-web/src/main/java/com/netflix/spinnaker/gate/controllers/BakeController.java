@@ -14,40 +14,38 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.controllers
+package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spinnaker.gate.services.BakeService
-import io.swagger.v3.oas.annotations.Operation
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import com.netflix.spinnaker.gate.services.BakeService;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/bakery")
 @RestController
-class BakeController {
+public class BakeController {
 
-  @Autowired
-  BakeService bakeService
+  @Autowired private BakeService bakeService;
 
   @Operation(summary = "Retrieve a list of available bakery base images, grouped by cloud provider")
   @RequestMapping(value = "/options", method = RequestMethod.GET)
-  def bakeOptions() {
-    bakeService.bakeOptions()
+  public Object bakeOptions() {
+    return bakeService.bakeOptions();
   }
 
   @Operation(summary = "Retrieve a list of available bakery base images for a given cloud provider")
   @RequestMapping(value = "/options/{cloudProvider}", method = RequestMethod.GET)
-  def bakeOptions(@PathVariable("cloudProvider") String cloudProvider) {
-    bakeService.bakeOptions(cloudProvider)
+  public Object bakeOptions(@PathVariable("cloudProvider") String cloudProvider) {
+    return bakeService.bakeOptions(cloudProvider);
   }
 
   @Operation(summary = "Retrieve the logs for a given bake")
   @RequestMapping(value = "/logs/{region}/{statusId}", method = RequestMethod.GET)
-  def lookupLogs(@PathVariable("region") String region,
-                 @PathVariable("statusId") String statusId) {
-    bakeService.lookupLogs(region, statusId)
+  public String lookupLogs(
+      @PathVariable("region") String region, @PathVariable("statusId") String statusId) {
+    return bakeService.lookupLogs(region, statusId);
   }
-
 }
