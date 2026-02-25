@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.model
+package com.netflix.spinnaker.clouddriver.model;
 
-import groovy.transform.Canonical
+import java.util.Date;
+import lombok.Data;
 
-@Canonical
-class Certificate {
-  Date expiration
-  String path
-  String serverCertificateId
-  String serverCertificateName
+@Data
+public class Certificate {
+  private Date expiration;
+  private String path;
+  private String serverCertificateId;
+  private String serverCertificateName;
 }

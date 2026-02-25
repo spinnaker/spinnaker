@@ -30,7 +30,9 @@ import java.util.concurrent.TimeoutException;
  * to the event.
  */
 public interface TriggerEventHandler<T extends TriggerEvent> {
-  /** @return the list of trigger types */
+  /**
+   * @return the list of trigger types
+   */
   List<String> supportedTriggerTypes();
 
   /**
