@@ -18,14 +18,10 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.BakeService
 import io.swagger.v3.oas.annotations.Operation
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/bakery")
@@ -54,11 +50,4 @@ class BakeController {
     bakeService.lookupLogs(region, statusId)
   }
 
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleBakeOptionsException(Exception e) {
-    def errorMsg = e instanceof SpinnakerServerException && e.getUrl().contains("/logs/") ? "logs.not.found" : "bake.options.not.found"
-
-    return [error: errorMsg, status: HttpStatus.NOT_FOUND, message: e.message]
-  }
 }

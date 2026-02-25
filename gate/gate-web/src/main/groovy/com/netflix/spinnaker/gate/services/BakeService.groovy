@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.gate.services.internal.RoscoServiceSelector
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -63,7 +64,7 @@ class BakeService {
       if (logsMap?.logsContent) {
         return "<pre>$logsMap.logsContent</pre>"
       } else {
-        throw new IllegalArgumentException("Bake logs not found.")
+        throw new NotFoundException("Bake logs not found.")
       }
     } else {
       throw new IllegalArgumentException("Bake logs retrieval not supported.")

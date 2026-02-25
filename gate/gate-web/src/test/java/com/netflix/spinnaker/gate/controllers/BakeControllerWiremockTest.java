@@ -185,13 +185,10 @@ class BakeControllerWiremockTest {
                 .header(USER.getHeader(), USERNAME)
                 .header(ACCOUNTS.getHeader(), ACCOUNT))
         .andDo(print())
-        // FIXME: expect an internal server error here.
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error").value("bake.options.not.found"))
-        .andExpect(jsonPath("$.status").value("NOT_FOUND"))
+        .andExpect(status().isInternalServerError())
         .andExpect(
-            jsonPath("$.message")
-                .value(
+            status()
+                .reason(
                     "Status: 500, Method: GET, URL: "
                         + wmRosco.baseUrl()
                         + "/bakeOptions, Message: Server Error"));
@@ -211,13 +208,10 @@ class BakeControllerWiremockTest {
                 .header(USER.getHeader(), USERNAME)
                 .header(ACCOUNTS.getHeader(), ACCOUNT))
         .andDo(print())
-        // FIXME: expect an internal server error here.
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error").value("logs.not.found"))
-        .andExpect(jsonPath("$.status").value("NOT_FOUND"))
+        .andExpect(status().isInternalServerError())
         .andExpect(
-            jsonPath("$.message")
-                .value(
+            status()
+                .reason(
                     "Status: 500, Method: GET, URL: "
                         + wmRosco.baseUrl()
                         + "/api/v1/us-east-1/logs/some-status-id, Message: Server Error"));
@@ -238,11 +232,9 @@ class BakeControllerWiremockTest {
                 .header(ACCOUNTS.getHeader(), ACCOUNT))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error").value("logs.not.found"))
-        .andExpect(jsonPath("$.status").value("NOT_FOUND"))
         .andExpect(
-            jsonPath("$.message")
-                .value(
+            status()
+                .reason(
                     "Status: 404, Method: GET, URL: "
                         + wmRosco.baseUrl()
                         + "/api/v1/us-east-1/logs/some-status-id, Message: Not Found"));
@@ -268,9 +260,7 @@ class BakeControllerWiremockTest {
                 .header(ACCOUNTS.getHeader(), ACCOUNT))
         .andDo(print())
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.error").value("bake.options.not.found"))
-        .andExpect(jsonPath("$.status").value("NOT_FOUND"))
-        .andExpect(jsonPath("$.message").value("Bake logs not found."));
+        .andExpect(status().reason("Bake logs not found."));
 
     wmRosco.verify(1, getRequestedFor(urlPathEqualTo("/api/v1/us-east-1/logs/some-status-id")));
   }
