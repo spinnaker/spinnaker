@@ -7423,8 +7423,28 @@ class AgentAcquisitionServiceTest {
             agent, rejectionAgentExecution, rejectionExecutionInstrumentation);
       }
 
-      // Try to acquire and submit agents - should handle rejections gracefully
-      int acquired = rejectionService.saturatePool(1, maxConcurrentSemaphore, rejectingPool);
+      // Try to acquire and submit agents. Readiness scoring is second-based, so immediate
+      // acquisition can race with the current second boundary. Poll briefly to avoid flakiness.
+      AtomicInteger acquiredRef = new AtomicInteger(0);
+      boolean acquiredAny =
+          TestFixtures.waitForBackgroundTask(
+              () -> {
+                int acquiredNow =
+                    rejectionService.saturatePool(1, maxConcurrentSemaphore, rejectingPool);
+                if (acquiredNow > 0) {
+                  acquiredRef.set(acquiredNow);
+                  return true;
+                }
+                return false;
+              },
+              3000,
+              25);
+
+      assertThat(acquiredAny)
+          .describedAs(
+              "At least one agent should become ready and be acquired for rejection handling")
+          .isTrue();
+      int acquired = acquiredRef.get();
 
       // Should have acquired agents from Redis
       assertThat(acquired).isGreaterThan(0);
