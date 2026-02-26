@@ -48,17 +48,24 @@ public class GoogleCloudBuildProperties {
 
     private final String name;
     private final String project;
+    private final Optional<String> cloudBuildRegion;
     private final Optional<String> jsonKey;
     private final Permissions permissions;
 
     @Builder
     @ConstructorBinding
     @ParametersAreNullableByDefault
-    public Account(String name, String project, String jsonKey, Permissions.Builder permissions) {
+    public Account(
+        String name,
+        String project,
+        String cloudBuildRegion,
+        String jsonKey,
+        Permissions.Builder permissions) {
       this.name = Preconditions.checkNotNull(Strings.emptyToNull(name), ERROR_TEMPLATE, "", "name");
       this.project =
           Preconditions.checkNotNull(
               Strings.emptyToNull(project), ERROR_TEMPLATE, this.name, "project");
+      this.cloudBuildRegion = Optional.ofNullable(Strings.emptyToNull(cloudBuildRegion));
       this.jsonKey = Optional.ofNullable(Strings.emptyToNull(jsonKey));
       this.permissions =
           Optional.ofNullable(permissions)
