@@ -1,5 +1,9 @@
 {
   "name": "spinnaker-release",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.0",
   "description": "Github Action for generating a Spinnaker release",
   "main": "index.js",
@@ -22,7 +26,7 @@
     "@actions/artifact": "^1.1.2",
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
-    "@google-cloud/storage": "^7.5.0",
+    "@google-cloud/storage": "^7.19.0",
     "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
     "uuid": "^11.1.0",

@@ -37,6 +37,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
   private static final String OVERRIDES_FILE_PREFIX = "overrides_";
   private static final String YML_FILE_EXTENSION = ".yml";
   private final RoscoHelmConfigurationProperties helmConfigurationProperties;
+
   /**
    * Dedicated ObjectMapper for YAML processing. This custom ObjectMapper ensures specialized
    * handling of YAML format, allowing distinct settings from the default JSON ObjectMapper.
@@ -221,6 +222,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
 
     return largeMap;
   }
+
   /**
    * Constructs a comma-separated string representation of the given overrides map in the format
    * "key1=value1,key2=value2,...".
@@ -232,6 +234,7 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
     List<String> overrideList = buildOverrideList(overrides);
     return String.join(",", overrideList);
   }
+
   /**
    * Writes Helm chart overrides to a YAML file. This method takes a map of Helm chart overrides,
    * creates a YAML file with a unique filename (generated using a prefix, a random UUID, and a file

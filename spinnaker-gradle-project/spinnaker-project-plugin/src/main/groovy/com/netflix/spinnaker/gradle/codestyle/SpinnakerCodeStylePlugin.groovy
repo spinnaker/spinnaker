@@ -62,7 +62,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
         void execute(JavaExtension javaExtension) {
           javaExtension.target("src/**/*.java")
           javaExtension.targetExclude("src/generated/**/*")
-          javaExtension.googleJavaFormat("1.11.0")
+          javaExtension.googleJavaFormat("1.17.0")
           javaExtension.removeUnusedImports()
           javaExtension.trimTrailingWhitespace()
           javaExtension.endWithNewline()

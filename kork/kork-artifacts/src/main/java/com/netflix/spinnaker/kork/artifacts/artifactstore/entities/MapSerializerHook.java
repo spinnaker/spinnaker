@@ -47,6 +47,7 @@ public class MapSerializerHook extends MapSerializer {
   private final MapSerializer defaultSerializer;
 
   private final ArtifactStore storage;
+
   /** Handlers to handle specific keys in the JSON. */
   private final List<ArtifactHandler> handlers;
 

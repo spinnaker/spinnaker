@@ -56,7 +56,8 @@ on:
 # https://docs.npmjs.com/trusted-publishers#github-actions-configuration
 permissions:
   id-token: write
-  contents: read
+  contents: write
+  packages: write
 
 jobs:
   build:

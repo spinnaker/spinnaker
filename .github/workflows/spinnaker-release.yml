@@ -13,6 +13,10 @@ on:
         required: true
       spinnaker-previous-version:
         description: Override the previous version used for changelog generation (picks the last patch version if unset)
+permissions:
+  id-token: write
+  contents: write
+  packages: write
 
 jobs:
   check-preconditions:
@@ -90,17 +94,53 @@ jobs:
       version-override: ${{ needs.version.outputs.version }}
   deck:
     needs: version
-    uses: ./.github/workflows/deck.yml
-    secrets: inherit
-    with:
-      publish-debs: true
-      version-override: ${{ needs.version.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+
+
+      - name: Trigger Deck Release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deck.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                'publish-debs': true,
+                'version-override': '${{ needs.version.outputs.version }}'
+              }
+            });
   deck-kayenta:
     needs: version
-    uses: ./.github/workflows/deck-kayenta.yml
-    secrets: inherit
-    with:
-      version-override: ${{ needs.version.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PRIVATE_KEY }}
+      - name: Trigger Deck Kayenta Release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deck-kayenta.yml',
+              ref: '${{ github.ref_name }}',
+              inputs: {
+                'version-override': '${{ needs.version.outputs.version }}'
+              }
+            });
   echo:
     needs: version
     uses: ./.github/workflows/echo.yml
