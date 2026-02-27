@@ -25,12 +25,19 @@ import org.springframework.mock.env.MockEnvironment;
 class AgentSchedulerConfigTest {
 
   @Test
-  void requiresExplicitSchedulerType() {
+  void defaultsSchedulerTypeWhenUnset() {
     MockEnvironment environment = new MockEnvironment();
 
-    assertThatThrownBy(() -> new AgentSchedulerConfig().redisSchedulerTypeValidation(environment))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("redis.scheduler.type must be explicitly set");
+    String resolved = new AgentSchedulerConfig().redisSchedulerTypeValidation(environment);
+    assertThat(resolved).isEqualTo("default");
+  }
+
+  @Test
+  void defaultsSchedulerTypeWhenBlank() {
+    MockEnvironment environment = new MockEnvironment().withProperty("redis.scheduler.type", "   ");
+
+    String resolved = new AgentSchedulerConfig().redisSchedulerTypeValidation(environment);
+    assertThat(resolved).isEqualTo("default");
   }
 
   @Test
@@ -55,11 +62,29 @@ class AgentSchedulerConfigTest {
   }
 
   @Test
+  void rejectsLegacyScalarSchedulerPropertyWhenTypeUnset() {
+    MockEnvironment environment = new MockEnvironment().withProperty("redis.scheduler", "priority");
+
+    assertThatThrownBy(() -> new AgentSchedulerConfig().redisSchedulerTypeValidation(environment))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Legacy scalar 'redis.scheduler' is not supported");
+  }
+
+  @Test
   void rejectsLegacyParallelismProperty() {
     MockEnvironment environment =
         new MockEnvironment()
             .withProperty("redis.scheduler.type", "sort")
             .withProperty("redis.parallelism", "9");
+
+    assertThatThrownBy(() -> new AgentSchedulerConfig().redisSchedulerTypeValidation(environment))
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessageContaining("Legacy 'redis.parallelism' is not supported");
+  }
+
+  @Test
+  void rejectsLegacyParallelismPropertyWhenTypeUnset() {
+    MockEnvironment environment = new MockEnvironment().withProperty("redis.parallelism", "9");
 
     assertThatThrownBy(() -> new AgentSchedulerConfig().redisSchedulerTypeValidation(environment))
         .isInstanceOf(IllegalStateException.class)

@@ -67,16 +67,18 @@ public class AgentSchedulerConfig {
     return new PrioritySchedulerMetrics(registry);
   }
 
-  /** Validates scheduler config in strict mode at startup. */
+  /** Validates scheduler config at startup with compatibility-safe defaulting. */
   @Bean(name = "redisSchedulerTypeValidation")
   @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
   public String redisSchedulerTypeValidation(Environment environment) {
     String schedulerType = normalizedStringProperty(environment, PROPERTY_REDIS_SCHEDULER_TYPE);
     if (schedulerType == null) {
-      throw new IllegalStateException(
-          String.format(
-              "%s must be explicitly set to one of %s",
-              PROPERTY_REDIS_SCHEDULER_TYPE, SUPPORTED_SCHEDULER_TYPES));
+      schedulerType = SCHEDULER_TYPE_DEFAULT;
+      log.warn(
+          "{} is unset; defaulting to '{}' for backward compatibility. Set it explicitly to one of {}.",
+          PROPERTY_REDIS_SCHEDULER_TYPE,
+          schedulerType,
+          SUPPORTED_SCHEDULER_TYPES);
     }
     assertSupportedSchedulerType(schedulerType);
     rejectLegacySchedulerScalar(environment);
