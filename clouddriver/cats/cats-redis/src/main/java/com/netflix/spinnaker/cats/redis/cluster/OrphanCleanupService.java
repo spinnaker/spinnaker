@@ -371,6 +371,7 @@ public class OrphanCleanupService {
                   "Orphan scan ({}/{}): {} set analyzed, 0 candidates found (total_scanned={}, total_cleaned={})",
                   setName,
                   passNumber,
+                  setName,
                   totalScanned,
                   totalCleaned);
             }
@@ -400,6 +401,7 @@ public class OrphanCleanupService {
                   "Orphan scan ({}/{}): {} set made no progress this pass; exiting early before budget is exhausted (total_scanned={}, total_cleaned={})",
                   setName,
                   passNumber,
+                  setName,
                   totalScanned,
                   totalCleaned);
             }
@@ -481,6 +483,7 @@ public class OrphanCleanupService {
                   "Orphan scan ({}/{}): {} set made no progress this pass; exiting early before budget is exhausted (total_scanned={}, total_cleaned={})",
                   setName,
                   pageNumber,
+                  setName,
                   totalScanned,
                   totalCleaned);
             }
@@ -531,6 +534,7 @@ public class OrphanCleanupService {
                   "Orphan scan ({}/{}): {} page empty at offset {} (total_scanned={}, total_cleaned={})",
                   setName,
                   pageNumber,
+                  setName,
                   offset,
                   totalScanned,
                   totalCleaned);
@@ -682,16 +686,16 @@ public class OrphanCleanupService {
                     if (Thread.currentThread().isInterrupted()) {
                       log.warn(
                           "Stopping per-item fallback due to interrupt (processed={}, remaining={})",
-                          attemptedInvalid.size() - attemptedInvalid.indexOf(agentName),
-                          attemptedInvalid.indexOf(agentName));
+                          attemptedInvalid.indexOf(agentName),
+                          attemptedInvalid.size() - attemptedInvalid.indexOf(agentName));
                       break;
                     }
                     long elapsedMs = nowMs() - startEpochMs;
                     if (overBudget(startEpochMs, budgetMs)) {
                       log.info(
                           "Stopping per-item fallback due to budget deadline (processed={}, remaining={}, elapsed={}ms, budget={}ms)",
-                          attemptedInvalid.size() - attemptedInvalid.indexOf(agentName),
                           attemptedInvalid.indexOf(agentName),
+                          attemptedInvalid.size() - attemptedInvalid.indexOf(agentName),
                           elapsedMs,
                           budgetMs);
                       break;
@@ -722,7 +726,7 @@ public class OrphanCleanupService {
                                     RedisScriptManager.REMOVE_AGENT,
                                     java.util.Arrays.asList(WORKING_SET, WAITING_SET),
                                     java.util.Collections.singletonList(agentName));
-                            if (fallback != null && ((Long) fallback).intValue() == 1) {
+                            if (ScriptResults.parseRemovalCount(fallback) == 1) {
                               totalCleaned += 1;
                             }
                           }
@@ -802,7 +806,7 @@ public class OrphanCleanupService {
                             RedisScriptManager.REMOVE_AGENT,
                             java.util.Arrays.asList(WORKING_SET, WAITING_SET),
                             java.util.Collections.singletonList(agentName));
-                    if (fallback != null && ((Long) fallback).intValue() == 1) {
+                    if (ScriptResults.parseRemovalCount(fallback) == 1) {
                       totalCleaned += 1;
                     }
                   }
@@ -1061,24 +1065,16 @@ public class OrphanCleanupService {
                       java.util.Collections.singletonList(agentName));
 
               // removeAgent returns 1 for success
-              boolean removed = result != null && ((Long) result).intValue() == 1;
+              boolean removed = ScriptResults.parseRemovalCount(result) == 1;
               if (removed) {
                 cleaned++;
-                if (isStillValid) {
-                  log.info(
-                      "Successfully removed orphaned agent {} (original score: {}) from {} set.",
-                      agentName,
-                      (long) score,
-                      setName);
-                } else {
-                  log.info(
-                      "Successfully removed invalid orphaned agent {} (original score: {}) from {} set.",
-                      agentName,
-                      (long) score,
-                      setName);
-                }
+                log.info(
+                    "Successfully removed invalid orphaned agent {} (original score: {}) from {} set.",
+                    agentName,
+                    (long) score,
+                    setName);
 
-                // Clean up local active tracking; waiting is preserved if present.
+                // Clean up local active tracking after REMOVE_AGENT (removes from both sets).
                 removeActiveAgent(agentName, scoreInSet, localFutureSnapshot);
               } else {
                 log.debug(
@@ -1108,7 +1104,7 @@ public class OrphanCleanupService {
                     RedisScriptManager.REMOVE_AGENT,
                     java.util.Arrays.asList(WORKING_SET, WAITING_SET),
                     java.util.Collections.singletonList(agentName));
-            boolean removed = result != null && ((Long) result).intValue() == 1;
+            boolean removed = ScriptResults.parseRemovalCount(result) == 1;
             if (removed) {
               cleaned++;
               log.info(

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.ShardingFilter;
+import com.netflix.spinnaker.cats.redis.cluster.support.ScriptResults;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -130,6 +131,8 @@ public class AgentAcquisitionService {
   private volatile java.util.regex.Pattern zombieExceptionalAgentsPattern;
   // Safety cap for ZMSCORE ARGV in unbounded mode to avoid oversized Lua invocations.
   private static final int ZMSCORE_MAX_BATCH_SIZE = 512;
+  // Bounded retries for lock-free score/future token snapshots under churn.
+  private static final int ACTIVE_TRACKING_TOKEN_SNAPSHOT_RETRIES = 3;
 
   /**
    * Per-agent state for exactly-once permit release handshake.
@@ -1223,6 +1226,38 @@ public class AgentAcquisitionService {
   }
 
   /**
+   * Coerce a ZMSCORE presence entry to a boolean.
+   *
+   * <p>The Lua script may return numeric values encoded as {@link Number}, {@link String}, or
+   * {@code byte[]}, depending on Jedis/protocol behavior.
+   *
+   * @param rawValue raw script element for one agent
+   * @return true when the value is parsed as non-zero presence, false otherwise
+   */
+  private static boolean hasNonZeroZmscorePresence(Object rawValue) {
+    if (rawValue instanceof Number) {
+      return ((Number) rawValue).longValue() != 0L;
+    }
+    if (rawValue instanceof String) {
+      try {
+        return Long.parseLong((String) rawValue) != 0L;
+      } catch (Exception ignore) {
+        return false;
+      }
+    }
+    if (rawValue instanceof byte[]) {
+      try {
+        return Long.parseLong(
+                new String((byte[]) rawValue, java.nio.charset.StandardCharsets.UTF_8))
+            != 0L;
+      } catch (Exception ignore) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Find the earliest future local agent score by scanning agents with scores greater than
    * currentScore. This is used for stall detection when no ready agents are available.
    *
@@ -2033,7 +2068,7 @@ public class AgentAcquisitionService {
    * removing a replacement execution's future handle with mixed-cycle tokens.
    */
   private ActiveTrackingTokens snapshotActiveTrackingTokens(String agentType) {
-    for (int attempt = 0; attempt < 2; attempt++) {
+    for (int attempt = 0; attempt < ACTIVE_TRACKING_TOKEN_SNAPSHOT_RETRIES; attempt++) {
       String scoreBefore = activeAgents.get(agentType);
       if (scoreBefore == null) {
         return new ActiveTrackingTokens(null, null);
@@ -2045,6 +2080,8 @@ public class AgentAcquisitionService {
       }
     }
 
+    // Fallback to score-only token under persistent churn. This can preserve stale future handles
+    // temporarily, but avoids deleting a replacement execution's future by mixed-cycle identity.
     String latestScore = activeAgents.get(agentType);
     return new ActiveTrackingTokens(latestScore, null);
   }
@@ -2131,20 +2168,21 @@ public class AgentAcquisitionService {
    *   <li>Permit CAS succeeds
    * </ul>
    *
-   * <p>Return semantics are CAS-based: a {@code false} result can still mean this method removed
-   * the run-state map entry but did not win permit CAS (for example, owner path released first).
+   * <p>Order of operations is intentional: verify current ownership by identity, win permit CAS,
+   * then remove map entry conditionally. This avoids map deletion when CAS fails.
    */
   private boolean tryReleaseOrphanedPermit(
       String agentType, RunState runState, boolean ownerCannotRunFinally, String source) {
     if (runState == null || !ownerCannotRunFinally || runState.started.get()) {
       return false;
     }
-    if (!runStates.remove(agentType, runState)) {
+    if (runStates.get(agentType) != runState) {
       return false;
     }
     if (!runState.permitHeld.compareAndSet(true, false)) {
       return false;
     }
+    runStates.remove(agentType, runState);
     cancelDeadmanHandle(agentType, runState);
     if (maxConcurrentSemaphoreRef != null) {
       maxConcurrentSemaphoreRef.release();
@@ -2852,8 +2890,8 @@ public class AgentAcquisitionService {
         List<String> batch = agentNames.subList(start, end);
 
         @SuppressWarnings("unchecked")
-        List<Long> presence =
-            (List<Long>)
+        List<?> presence =
+            (List<?>)
                 scriptManager.evalshaWithSelfHeal(
                     jedis,
                     RedisScriptManager.ZMSCORE_AGENTS,
@@ -2861,8 +2899,8 @@ public class AgentAcquisitionService {
                     batch);
 
         for (int i = 0; i < batch.size(); i++) {
-          Long presenceValue = (presence != null && i < presence.size()) ? presence.get(i) : 0L;
-          if (presenceValue != null && presenceValue != 0L) {
+          Object presenceValue = (presence != null && i < presence.size()) ? presence.get(i) : null;
+          if (hasNonZeroZmscorePresence(presenceValue)) {
             allAgents.add(batch.get(i));
           }
         }
@@ -2958,7 +2996,7 @@ public class AgentAcquisitionService {
                     RedisScriptManager.ADD_AGENTS,
                     Arrays.asList(WORKING_SET, WAITING_SET),
                     batchArgs);
-        int added = parseAddAgentsCount(result);
+        int added = ScriptResults.parseAddAgentsCount(result);
         log.debug("Batch added {} missing agents to Redis", added);
         if (added > 0) {
           metrics.incrementRepopulateAdded(added);
@@ -3358,34 +3396,6 @@ public class AgentAcquisitionService {
       return false;
     }
     return true;
-  }
-
-  /** Parse the count returned by ADD_AGENTS script which typically returns [count, ...]. */
-  private int parseAddAgentsCount(Object result) {
-    try {
-      if (result instanceof java.util.List) {
-        java.util.List<?> list = (java.util.List<?>) result;
-        if (!list.isEmpty()) {
-          Object c0 = list.get(0);
-          if (c0 instanceof Number) {
-            return ((Number) c0).intValue();
-          } else if (c0 instanceof String) {
-            try {
-              return Integer.parseInt((String) c0);
-            } catch (Exception ignore) {
-            }
-          } else if (c0 instanceof byte[]) {
-            try {
-              return Integer.parseInt(
-                  new String((byte[]) c0, java.nio.charset.StandardCharsets.UTF_8));
-            } catch (Exception ignore) {
-            }
-          }
-        }
-      }
-    } catch (Exception ignore) {
-    }
-    return 0;
   }
 
   /**
@@ -4673,6 +4683,8 @@ public class AgentAcquisitionService {
                 agentType);
           }
         } else if (runSemaphore != null) {
+          // Conservative fail-safe: skipping release avoids semaphore over-count on unknown
+          // ownership; this path should only occur in abnormal/test-only initialization.
           log.warn(
               "Missing captured RunState for {} in worker finally; permit release is skipped",
               agentType);

@@ -34,6 +34,9 @@ import com.netflix.spinnaker.cats.agent.AgentExecution;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.ShardingFilter;
+import com.netflix.spinnaker.cats.redis.cluster.support.ScriptResults;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -3087,6 +3090,46 @@ class OrphanCleanupServiceTest {
             .describedAs("valid-orphan should be in waiting")
             .isNotNull();
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("Script Results Coercion Tests")
+  class ScriptResultsCoercionTests {
+
+    @Test
+    @DisplayName("parseRemovalCount supports number, string, and byte array")
+    void parseRemovalCountSupportsCommonRedisShapes() {
+      assertThat(ScriptResults.parseRemovalCount(1L)).isEqualTo(1);
+      assertThat(ScriptResults.parseRemovalCount("1")).isEqualTo(1);
+      assertThat(ScriptResults.parseRemovalCount("0".getBytes(StandardCharsets.UTF_8)))
+          .isEqualTo(0);
+      assertThat(ScriptResults.parseRemovalCount(null)).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("parseRemoveAgentsConditional tolerates mixed member element types")
+    void parseRemoveAgentsConditionalToleratesMixedMemberTypes() {
+      Object result =
+          Arrays.asList(
+              "3",
+              Arrays.asList(
+                  "agent-a", "agent-b".getBytes(StandardCharsets.UTF_8), 123L, new Object()));
+
+      ScriptResults.BatchRemovalResult parsed = ScriptResults.parseRemoveAgentsConditional(result);
+
+      assertThat(parsed.getRemovedCount()).isEqualTo(3);
+      assertThat(parsed.getMembers()).containsExactly("agent-a", "agent-b", "123");
+    }
+
+    @Test
+    @DisplayName("parseAddAgentsCount handles non-number count encodings")
+    void parseAddAgentsCountHandlesStringAndBytes() {
+      assertThat(ScriptResults.parseAddAgentsCount(Arrays.asList("5"))).isEqualTo(5);
+      assertThat(
+              ScriptResults.parseAddAgentsCount(
+                  Arrays.asList("7".getBytes(StandardCharsets.UTF_8), "ignored")))
+          .isEqualTo(7);
     }
   }
 }

@@ -6095,6 +6095,53 @@ class AgentAcquisitionServiceTest {
     }
 
     @Test
+    @DisplayName("Orphan permit CAS failure must not remove current run-state entry")
+    void orphanPermitCasFailureMustNotRemoveCurrentRunStateEntry() throws Exception {
+      String agentType = "orphan-cas-failure-agent";
+
+      @SuppressWarnings("unchecked")
+      Map<String, String> activeAgents =
+          (Map<String, String>)
+              TestFixtures.getField(
+                  acquisitionService, AgentAcquisitionService.class, "activeAgents");
+      @SuppressWarnings("unchecked")
+      Map<String, Future<?>> activeFutures =
+          (Map<String, Future<?>>)
+              TestFixtures.getField(
+                  acquisitionService, AgentAcquisitionService.class, "activeAgentsFutures");
+      @SuppressWarnings("unchecked")
+      Map<String, Object> runStates =
+          (Map<String, Object>)
+              TestFixtures.getField(acquisitionService, AgentAcquisitionService.class, "runStates");
+
+      Class<?> runStateClass =
+          Class.forName(
+              "com.netflix.spinnaker.cats.redis.cluster.AgentAcquisitionService$RunState");
+      java.lang.reflect.Constructor<?> ctor = runStateClass.getDeclaredConstructor(long.class);
+      ctor.setAccessible(true);
+      Object runState = ctor.newInstance(77L);
+
+      java.lang.reflect.Field permitHeldField = runStateClass.getDeclaredField("permitHeld");
+      permitHeldField.setAccessible(true);
+      AtomicBoolean permitHeld = (AtomicBoolean) permitHeldField.get(runState);
+      permitHeld.set(false); // Simulate another path already winning permit release CAS.
+
+      Future<?> doneFuture = mock(Future.class);
+      when(doneFuture.isDone()).thenReturn(true);
+
+      activeAgents.put(agentType, "300");
+      activeFutures.put(agentType, doneFuture);
+      runStates.put(agentType, runState);
+
+      boolean result =
+          acquisitionService.removeActiveAgentWithPermitRelease(agentType, "300", doneFuture);
+
+      assertThat(result).isTrue(); // tracking removal still reports work done
+      assertThat(runStates.get(agentType)).isSameAs(runState);
+      assertThat(permitHeld.get()).isFalse();
+    }
+
+    @Test
     @DisplayName("unregisterAgent must not remove replacement state during cancel race")
     void unregisterAgentMustNotRemoveReplacementStateDuringCancelRace() throws Exception {
       String agentType = "unregister-race-agent";
@@ -11708,6 +11755,61 @@ class AgentAcquisitionServiceTest {
       assertThat(maxObservedArgs.get())
           .describedAs("ZMSCORE ARGV batch size should be hard-capped in unbounded mode")
           .isLessThanOrEqualTo(512);
+    }
+
+    @Test
+    @DisplayName("ZMSCORE presence parsing handles mixed Redis return shapes")
+    void zmscorePresenceParsingHandlesMixedRedisReturnShapes() throws Exception {
+      PriorityAgentProperties agentProps = new PriorityAgentProperties();
+      agentProps.setEnabledPattern(".*");
+      agentProps.setDisabledPattern("");
+
+      PrioritySchedulerProperties schedulerProps = new PrioritySchedulerProperties();
+      schedulerProps.getBatchOperations().setEnabled(true);
+      schedulerProps.getBatchOperations().setBatchSize(32);
+      schedulerProps.getCircuitBreaker().setEnabled(false);
+
+      RedisScriptManager scriptManager = mock(RedisScriptManager.class);
+      when(scriptManager.evalshaWithSelfHeal(
+              any(Jedis.class), eq(RedisScriptManager.ZMSCORE_AGENTS), anyList(), anyList()))
+          .thenReturn(
+              java.util.Arrays.asList(
+                  1L,
+                  "1",
+                  "1".getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                  "0",
+                  null,
+                  "0".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+
+      AgentAcquisitionService acquisitionService =
+          new AgentAcquisitionService(
+              mock(JedisPool.class),
+              scriptManager,
+              a -> new AgentIntervalProvider.Interval(1000L, 1000L),
+              a -> true,
+              agentProps,
+              schedulerProps,
+              TestFixtures.createTestMetrics());
+
+      java.lang.reflect.Method method =
+          AgentAcquisitionService.class.getDeclaredMethod(
+              "getCurrentRedisAgents", Jedis.class, Set.class);
+      method.setAccessible(true);
+
+      @SuppressWarnings("unchecked")
+      Set<String> present =
+          (Set<String>)
+              method.invoke(
+                  acquisitionService,
+                  mock(Jedis.class),
+                  new java.util.LinkedHashSet<>(
+                      java.util.Arrays.asList("z-a", "z-b", "z-c", "z-d", "z-e", "z-f")));
+
+      assertThat(present).containsExactlyInAnyOrder("z-a", "z-b", "z-c");
+      verify(scriptManager, never()).initializeScripts();
+      verify(scriptManager, never())
+          .evalshaWithSelfHeal(
+              any(Jedis.class), eq(RedisScriptManager.SCORE_AGENTS), anyList(), anyList());
     }
 
     /** Tests that diagnostics window defaults to 64 when batch size is 0. */

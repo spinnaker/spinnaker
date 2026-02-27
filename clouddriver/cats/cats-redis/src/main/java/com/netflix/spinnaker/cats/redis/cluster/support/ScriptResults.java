@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.cats.redis.cluster.support;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +34,50 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class ScriptResults {
   private ScriptResults() {}
+
+  /**
+   * Coerce a Lua numeric field to Integer from common Redis/Jedis encodings.
+   *
+   * @param value raw Lua element
+   * @return parsed integer value, or null when value is absent/unparseable
+   */
+  private static Integer coerceInt(Object value) {
+    if (value instanceof Number) {
+      return ((Number) value).intValue();
+    }
+    if (value instanceof String) {
+      try {
+        return Integer.parseInt((String) value);
+      } catch (Exception ignore) {
+      }
+    }
+    if (value instanceof byte[]) {
+      try {
+        return Integer.parseInt(new String((byte[]) value, StandardCharsets.UTF_8));
+      } catch (Exception ignore) {
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Coerce a Lua member element to String from common Redis/Jedis encodings.
+   *
+   * @param value raw Lua element
+   * @return member string, or null when value type is unsupported
+   */
+  private static String coerceString(Object value) {
+    if (value instanceof String) {
+      return (String) value;
+    }
+    if (value instanceof byte[]) {
+      return new String((byte[]) value, StandardCharsets.UTF_8);
+    }
+    if (value instanceof Number) {
+      return String.valueOf(value);
+    }
+    return null;
+  }
 
   /** Result holder for batch removal operations. */
   @Getter
@@ -72,8 +117,9 @@ public final class ScriptResults {
       }
       if (list.size() >= 1) {
         Object countObj = list.get(0);
-        if (countObj instanceof Number) {
-          count = ((Number) countObj).intValue();
+        Integer parsedCount = coerceInt(countObj);
+        if (parsedCount != null) {
+          count = parsedCount;
         } else {
           log.warn(
               "Unexpected count element type in Lua result: {}",
@@ -84,8 +130,13 @@ public final class ScriptResults {
         Object membersObj = list.get(1);
         if (membersObj instanceof List<?>) {
           for (Object elem : (List<?>) membersObj) {
-            if (elem instanceof String) {
-              cleaned.add((String) elem);
+            String member = coerceString(elem);
+            if (member != null) {
+              cleaned.add(member);
+            } else if (elem != null) {
+              log.warn(
+                  "Unexpected member element type in Lua result list: {}",
+                  elem.getClass().getSimpleName());
             }
           }
         } else {
@@ -114,24 +165,32 @@ public final class ScriptResults {
       if (result instanceof java.util.List) {
         java.util.List<?> list = (java.util.List<?>) result;
         if (!list.isEmpty()) {
-          Object c0 = list.get(0);
-          if (c0 instanceof Number) {
-            return ((Number) c0).intValue();
-          } else if (c0 instanceof String) {
-            try {
-              return Integer.parseInt((String) c0);
-            } catch (Exception ignore) {
-            }
-          } else if (c0 instanceof byte[]) {
-            try {
-              return Integer.parseInt(
-                  new String((byte[]) c0, java.nio.charset.StandardCharsets.UTF_8));
-            } catch (Exception ignore) {
-            }
+          Integer parsed = coerceInt(list.get(0));
+          if (parsed != null) {
+            return parsed;
           }
         }
       }
     } catch (Exception ignore) {
+    }
+    return 0;
+  }
+
+  /**
+   * Parses unary numeric script results (such as REMOVE_AGENT's return value).
+   *
+   * @param result raw Lua script result
+   * @return parsed numeric value, or 0 when unparsable
+   */
+  public static int parseRemovalCount(Object result) {
+    Integer parsed = coerceInt(result);
+    if (parsed != null) {
+      return parsed;
+    }
+    if (result != null) {
+      log.warn(
+          "Unexpected unary Lua result type for removal count: {}",
+          result.getClass().getSimpleName());
     }
     return 0;
   }
