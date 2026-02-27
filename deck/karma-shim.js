@@ -1,4 +1,6 @@
 /* eslint-disable @spinnaker/import-sort */
+// Polyfill setImmediate for browser environment (webpack 5 no longer auto-polyfills Node.js globals)
+import 'setimmediate';
 import jQuery from 'jquery';
 // jquery has to be first or many a test will break
 global.$ = global.jQuery = jQuery;

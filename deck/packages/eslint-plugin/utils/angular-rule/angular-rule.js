@@ -131,7 +131,7 @@ function angularRule(ruleDefinition) {
       return {
         callExpression: callExpressionNode,
         node: findInjectedArgument(callExpressionNode),
-        scope: context.getScope(),
+        scope: context.sourceCode.getScope(callExpressionNode),
       };
     }
 
@@ -182,7 +182,7 @@ function angularRule(ruleDefinition) {
       } else if (callee.object.type === 'Identifier') {
         // var app = angular.module(); app.factory()
         //                                 ^^^^^^^
-        var scope = context.getScope();
+        var scope = context.sourceCode.getScope(callExpressionNode);
         var isAngularModule = scope.variables.some(function (variable) {
           if (callee.object.name !== variable.name) {
             return false;

@@ -1,6 +1,5 @@
 import type { TSESTree } from '@typescript-eslint/types';
 import type { Rule } from 'eslint';
-import type { ImportDeclaration } from 'estree';
 import _ from 'lodash';
 
 /**
@@ -50,7 +49,8 @@ const rule = function (context: Rule.RuleContext) {
     },
 
     // If there are any unused IPromise imports, remove them
-    ImportDeclaration: function (node: ImportDeclaration) {
+    ImportDeclaration: function (_node: any) {
+      const node = _node;
       const importIPromise = {
         type: 'ImportSpecifier',
         imported: {
@@ -66,7 +66,7 @@ const rule = function (context: Rule.RuleContext) {
       const specifiers = node.specifiers || [];
       const foundIPromiseImport = specifiers.find((s) => _.isMatch(s, importIPromise));
 
-      const variables = context.getScope().variables;
+      const variables = context.sourceCode.getScope(node).variables;
       const variable = variables.find((x) => x.defs.some((def) => def.node === foundIPromiseImport));
       const unused = variable && variable.references.length === 0;
 

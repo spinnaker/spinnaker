@@ -200,7 +200,7 @@ angular
           result.dirty.securityGroups = true;
         }
 
-        if (command.backingData.filtered.securityGroups === []) {
+        if (command.backingData.filtered.securityGroups.length === 0) {
           command.viewState.securityGroupsConfigured = false;
         } else {
           command.viewState.securityGroupsConfigured = true;
