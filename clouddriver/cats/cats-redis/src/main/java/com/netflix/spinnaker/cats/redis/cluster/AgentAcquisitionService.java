@@ -1114,28 +1114,30 @@ public class AgentAcquisitionService {
     }
 
     long start = System.currentTimeMillis();
-    long nowMsForRepop = start;
-    long refreshPeriodMs = Math.max(1L, schedulerProperties.getRefreshPeriodSeconds()) * 1000L;
-    long last = lastRepopulateEpochMs.get();
-    if (nowMsForRepop - last < refreshPeriodMs) {
-      return;
-    }
+    try {
+      long nowMsForRepop = start;
+      long refreshPeriodMs = Math.max(1L, schedulerProperties.getRefreshPeriodSeconds()) * 1000L;
+      long last = lastRepopulateEpochMs.get();
+      if (nowMsForRepop - last < refreshPeriodMs) {
+        return;
+      }
 
-    // Note: cachedMinEnabledIntervalSec is event-driven (updated on register/unregister)
-    try (Jedis jedis = jedisPool.getResource()) {
-      repopulateRedisAgents(jedis);
-      lastRepopulateEpochMs.set(nowMsForRepop);
-      metrics.recordRepopulateTime(System.currentTimeMillis() - start);
-      redisCircuitBreaker.recordSuccess();
-    } catch (redis.clients.jedis.exceptions.JedisConnectionException e) {
-      log.warn("Redis connection error during repopulation", e);
-      redisCircuitBreaker.recordFailure(e);
-      metrics.incrementRepopulateError("redis_connection");
-      metrics.recordRepopulateTime(System.currentTimeMillis() - start);
-    } catch (Exception e) {
-      log.warn("Repopulation attempt failed", e);
-      metrics.incrementRepopulateError(e.getClass().getSimpleName());
-      metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+      // Note: cachedMinEnabledIntervalSec is event-driven (updated on register/unregister)
+      try (Jedis jedis = jedisPool.getResource()) {
+        repopulateRedisAgents(jedis);
+        lastRepopulateEpochMs.set(nowMsForRepop);
+        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+        redisCircuitBreaker.recordSuccess();
+      } catch (redis.clients.jedis.exceptions.JedisConnectionException e) {
+        log.warn("Redis connection error during repopulation", e);
+        redisCircuitBreaker.recordFailure(e);
+        metrics.incrementRepopulateError("redis_connection");
+        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+      } catch (Exception e) {
+        log.warn("Repopulation attempt failed", e);
+        metrics.incrementRepopulateError(e.getClass().getSimpleName());
+        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+      }
     } finally {
       repopulateInProgress.set(false);
     }
@@ -1146,6 +1148,12 @@ public class AgentAcquisitionService {
    * for schedulers to decide whether to skip acquisition on the same tick.
    */
   public boolean repopulateIfDueNow() {
+    // Keep circuit-breaker behavior aligned with repopulateIfDue(runCount)
+    if (!redisCircuitBreaker.allowRequest()) {
+      metrics.recordCircuitBreakerBlocked("redis");
+      return false;
+    }
+
     if (!repopulateInProgress.compareAndSet(false, true)) {
       return false;
     }
@@ -1169,10 +1177,19 @@ public class AgentAcquisitionService {
         repopulateRedisAgents(jedis);
         lastRepopulateEpochMs.set(now);
         metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+        redisCircuitBreaker.recordSuccess();
         return true;
+      } catch (redis.clients.jedis.exceptions.JedisConnectionException e) {
+        log.warn("Redis connection error during repopulation", e);
+        redisCircuitBreaker.recordFailure(e);
+        metrics.incrementRepopulateError("redis_connection");
+        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
+        return false;
       } catch (Exception e) {
         log.warn("Repopulation attempt failed", e);
+        redisCircuitBreaker.recordFailure(e);
         metrics.incrementRepopulateError(e.getClass().getSimpleName());
+        metrics.recordRepopulateTime(System.currentTimeMillis() - start);
         return false;
       }
     } finally {

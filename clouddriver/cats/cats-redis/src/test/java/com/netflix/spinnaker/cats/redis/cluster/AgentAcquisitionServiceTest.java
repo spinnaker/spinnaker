@@ -5779,6 +5779,41 @@ class AgentAcquisitionServiceTest {
     }
 
     @Test
+    @DisplayName("repopulateIfDue clears in-progress flag when cadence window skips")
+    void repopulateIfDueClearsInProgressOnCadenceSkip() {
+      JedisPool mockPool = mock(JedisPool.class);
+
+      PriorityAgentProperties agentProps = new PriorityAgentProperties();
+      PrioritySchedulerProperties props = new PrioritySchedulerProperties();
+      props.setRefreshPeriodSeconds(60);
+
+      AgentAcquisitionService svc =
+          new AgentAcquisitionService(
+              mockPool,
+              mock(RedisScriptManager.class),
+              (AgentIntervalProvider) a -> new AgentIntervalProvider.Interval(1000L, 1000L),
+              (ShardingFilter) a -> true,
+              agentProps,
+              props,
+              TestFixtures.createTestMetrics());
+
+      java.util.concurrent.atomic.AtomicLong last =
+          TestFixtures.getField(svc, AgentAcquisitionService.class, "lastRepopulateEpochMs");
+      java.util.concurrent.atomic.AtomicBoolean inProgress =
+          TestFixtures.getField(svc, AgentAcquisitionService.class, "repopulateInProgress");
+
+      // Not due: ensure cadence check does not leak repopulateInProgress=true.
+      last.set(System.currentTimeMillis());
+      svc.repopulateIfDue(1L);
+      assertThat(inProgress.get()).isFalse();
+
+      // Second call should also remain clear (no stuck CAS state).
+      svc.repopulateIfDue(2L);
+      assertThat(inProgress.get()).isFalse();
+      verify(mockPool, never()).getResource();
+    }
+
+    @Test
     @DisplayName("conditionalReleaseAgent should reject stale working ownership score")
     void conditionalReleaseAgentShouldRejectStaleWorkingOwnershipScore() {
       String agentType = "ownership-mismatch-reschedule-agent";
@@ -10239,8 +10274,11 @@ class AgentAcquisitionServiceTest {
                       .withTag("name", "redis"))
               .count();
 
-      // Attempt repopulation while OPEN - should be blocked
+      // Attempt repopulation while OPEN - both paths should be blocked
       cbAcquisitionService.repopulateIfDue(0);
+      assertThat(cbAcquisitionService.repopulateIfDueNow())
+          .describedAs("repopulateIfDueNow should return false when Redis breaker is OPEN")
+          .isFalse();
 
       // Verify blocked metric incremented for redis circuit breaker
       long blockedAfter =
@@ -10252,8 +10290,8 @@ class AgentAcquisitionServiceTest {
                       .withTag("name", "redis"))
               .count();
       assertThat(blockedAfter)
-          .describedAs("Redis circuit breaker blocked metric should be incremented")
-          .isGreaterThan(blockedBefore);
+          .describedAs("Redis circuit breaker blocked metric should increment for both repop paths")
+          .isGreaterThanOrEqualTo(blockedBefore + 2);
     }
 
     /** Tests that resetting circuit breakers allows acquisition to resume. */
