@@ -3110,6 +3110,96 @@ public class PrioritySchedulerIntegrationTest {
 
       pool.close();
     }
+
+    @Test
+    @DisplayName("Zombie cleanup submit failure clears running gate")
+    void zombieCleanupSubmitFailureClearsRunningGate() {
+      JedisPool pool = createLocalhostJedisPool();
+      try {
+        PriorityAgentProperties agentProps = new PriorityAgentProperties();
+        agentProps.setMaxConcurrentAgents(10);
+        agentProps.setEnabledPattern(".*");
+        agentProps.setDisabledPattern("");
+
+        PrioritySchedulerProperties schedProps = new PrioritySchedulerProperties();
+        schedProps.setIntervalMs(50L);
+        schedProps.getZombieCleanup().setEnabled(true);
+        schedProps.getZombieCleanup().setIntervalMs(1L);
+        schedProps.getOrphanCleanup().setEnabled(false);
+
+        PriorityAgentScheduler sched =
+            new PriorityAgentScheduler(
+                pool,
+                () -> true,
+                a -> new AgentIntervalProvider.Interval(1000L, 5000L),
+                a -> true,
+                agentProps,
+                schedProps,
+                TestFixtures.createTestMetrics());
+
+        ExecutorService zombieExec =
+            TestFixtures.getField(sched, PriorityAgentScheduler.class, "zombieCleanupExecutor");
+        AtomicBoolean zombieRunning =
+            TestFixtures.getField(sched, PriorityAgentScheduler.class, "zombieCleanupRunning");
+
+        zombieExec.shutdownNow(); // Force submit failure path
+        assertDoesNotThrow(sched::run);
+        assertThat(zombieRunning.get())
+            .describedAs("Zombie running gate must reset on submit failure")
+            .isFalse();
+
+        // A second run should also proceed without a stuck gate.
+        assertDoesNotThrow(sched::run);
+        assertThat(zombieRunning.get()).isFalse();
+      } finally {
+        pool.close();
+      }
+    }
+
+    @Test
+    @DisplayName("Orphan cleanup submit failure clears running gate")
+    void orphanCleanupSubmitFailureClearsRunningGate() {
+      JedisPool pool = createLocalhostJedisPool();
+      try {
+        PriorityAgentProperties agentProps = new PriorityAgentProperties();
+        agentProps.setMaxConcurrentAgents(10);
+        agentProps.setEnabledPattern(".*");
+        agentProps.setDisabledPattern("");
+
+        PrioritySchedulerProperties schedProps = new PrioritySchedulerProperties();
+        schedProps.setIntervalMs(50L);
+        schedProps.getZombieCleanup().setEnabled(false);
+        schedProps.getOrphanCleanup().setEnabled(true);
+        schedProps.getOrphanCleanup().setIntervalMs(1L);
+
+        PriorityAgentScheduler sched =
+            new PriorityAgentScheduler(
+                pool,
+                () -> true,
+                a -> new AgentIntervalProvider.Interval(1000L, 5000L),
+                a -> true,
+                agentProps,
+                schedProps,
+                TestFixtures.createTestMetrics());
+
+        ExecutorService orphanExec =
+            TestFixtures.getField(sched, PriorityAgentScheduler.class, "orphanCleanupExecutor");
+        AtomicBoolean orphanRunning =
+            TestFixtures.getField(sched, PriorityAgentScheduler.class, "orphanCleanupRunning");
+
+        orphanExec.shutdownNow(); // Force submit failure path
+        assertDoesNotThrow(sched::run);
+        assertThat(orphanRunning.get())
+            .describedAs("Orphan running gate must reset on submit failure")
+            .isFalse();
+
+        // A second run should also proceed without a stuck gate.
+        assertDoesNotThrow(sched::run);
+        assertThat(orphanRunning.get()).isFalse();
+      } finally {
+        pool.close();
+      }
+    }
   }
 
   @Nested

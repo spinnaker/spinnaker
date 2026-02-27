@@ -91,6 +91,8 @@ public class PriorityAgentScheduler extends CatsModuleAware
   // scheduler
   private final AtomicLong zombieCleanupStartMs = new AtomicLong(0);
   private final AtomicLong orphanCleanupStartMs = new AtomicLong(0);
+  private final AtomicLong zombieCleanupGeneration = new AtomicLong(0);
+  private final AtomicLong orphanCleanupGeneration = new AtomicLong(0);
   private volatile java.util.concurrent.Future<?> zombieCleanupFuture;
   private volatile java.util.concurrent.Future<?> orphanCleanupFuture;
 
@@ -476,6 +478,7 @@ public class PriorityAgentScheduler extends CatsModuleAware
             long externalTimeoutMs = budgetMs > 0 ? budgetMs + 30000L : 60000L;
             long elapsedMs = nowMs() - zombieStartMs;
             if (elapsedMs > externalTimeoutMs) {
+              long timedOutGeneration = zombieCleanupGeneration.get();
               log.error(
                   "Zombie cleanup hung for {}ms (timeout={}ms), forcibly cancelling to recover",
                   elapsedMs,
@@ -489,7 +492,7 @@ public class PriorityAgentScheduler extends CatsModuleAware
               } catch (Exception ce) {
                 log.debug("Failed to cancel hung zombie cleanup", ce);
               }
-              resetZombieCleanupState();
+              resetZombieCleanupState(timedOutGeneration);
             }
           }
 
@@ -499,41 +502,48 @@ public class PriorityAgentScheduler extends CatsModuleAware
           if (zombieDueToSubmit && zombieCleanupRunning.compareAndSet(false, true)) {
             lastZombieSubmitEpochMs.set(nowMs());
             zombieCleanupStartMs.set(nowMs());
-            zombieCleanupFuture =
-                zombieCleanupExecutor.submit(
-                    () -> {
-                      try {
-                        java.util.Map<String, String> activeAgentsSnapshot =
-                            new java.util.HashMap<>(acquisitionService.getActiveAgentsMap());
-                        java.util.Map<String, java.util.concurrent.Future<?>> futuresSnapshot =
-                            new java.util.HashMap<>(acquisitionService.getActiveAgentsFutures());
-                        long startTs = nowMs();
-                        long budgetMs = config.getZombieRunBudgetMs();
-                        zombieService.cleanupZombieAgentsIfNeeded(
-                            activeAgentsSnapshot, futuresSnapshot);
-                        if (budgetMs > 0 && nowMs() - startTs > budgetMs) {
-                          log.info(
-                              "Zombie cleanup exceeded budget {}ms (elapsed={}ms); subsequent work will be deferred",
-                              budgetMs,
-                              nowMs() - startTs);
-                          // Cooperative hard stop: interrupt to signal budget breach
-                          Thread.currentThread().interrupt();
-                        }
-                      } catch (Exception e) {
-                        if (e instanceof InterruptedException) {
-                          Thread.currentThread().interrupt();
-                          return;
-                        }
-                        log.warn("Zombie cleanup failed", e);
+            final long submissionGeneration = zombieCleanupGeneration.incrementAndGet();
+            try {
+              zombieCleanupFuture =
+                  zombieCleanupExecutor.submit(
+                      () -> {
                         try {
-                          metrics.incrementRunFailure(e.getClass().getSimpleName());
-                        } catch (Exception me) {
-                          log.debug("Failed to record zombie cleanup failure metric", me);
+                          java.util.Map<String, String> activeAgentsSnapshot =
+                              new java.util.HashMap<>(acquisitionService.getActiveAgentsMap());
+                          java.util.Map<String, java.util.concurrent.Future<?>> futuresSnapshot =
+                              new java.util.HashMap<>(acquisitionService.getActiveAgentsFutures());
+                          long startTs = nowMs();
+                          long budgetMs = config.getZombieRunBudgetMs();
+                          zombieService.cleanupZombieAgentsIfNeeded(
+                              activeAgentsSnapshot, futuresSnapshot);
+                          if (budgetMs > 0 && nowMs() - startTs > budgetMs) {
+                            log.info(
+                                "Zombie cleanup exceeded budget {}ms (elapsed={}ms); subsequent work will be deferred",
+                                budgetMs,
+                                nowMs() - startTs);
+                            // Cooperative hard stop: interrupt to signal budget breach
+                            Thread.currentThread().interrupt();
+                          }
+                        } catch (Exception e) {
+                          if (e instanceof InterruptedException) {
+                            Thread.currentThread().interrupt();
+                            return;
+                          }
+                          log.warn("Zombie cleanup failed", e);
+                          try {
+                            metrics.incrementRunFailure(e.getClass().getSimpleName());
+                          } catch (Exception me) {
+                            log.debug("Failed to record zombie cleanup failure metric", me);
+                          }
+                        } finally {
+                          resetZombieCleanupState(submissionGeneration);
                         }
-                      } finally {
-                        resetZombieCleanupState();
-                      }
-                    });
+                      });
+            } catch (Exception submitEx) {
+              // Preserve single in-flight invariant when task submission fails.
+              resetZombieCleanupState(submissionGeneration);
+              throw submitEx;
+            }
           } else {
             if (!zombieDueToSubmit) {
               if (log.isDebugEnabled()) {
@@ -566,6 +576,7 @@ public class PriorityAgentScheduler extends CatsModuleAware
           long externalTimeoutMs = budgetMs > 0 ? budgetMs + 30000L : 60000L;
           long elapsedMs = nowMs() - orphanStartMs;
           if (elapsedMs > externalTimeoutMs) {
+            long timedOutGeneration = orphanCleanupGeneration.get();
             log.error(
                 "Orphan cleanup hung for {}ms (timeout={}ms), forcibly cancelling to recover",
                 elapsedMs,
@@ -579,7 +590,7 @@ public class PriorityAgentScheduler extends CatsModuleAware
             } catch (Exception ce) {
               log.debug("Failed to cancel hung orphan cleanup", ce);
             }
-            resetOrphanCleanupState();
+            resetOrphanCleanupState(timedOutGeneration);
           }
         }
 
@@ -589,36 +600,43 @@ public class PriorityAgentScheduler extends CatsModuleAware
         if (dueToSubmit && orphanCleanupRunning.compareAndSet(false, true)) {
           lastOrphanSubmitEpochMs.set(nowMs());
           orphanCleanupStartMs.set(nowMs());
-          orphanCleanupFuture =
-              orphanCleanupExecutor.submit(
-                  () -> {
-                    try {
-                      long startTs = nowMs();
-                      long budgetMs = config.getOrphanRunBudgetMs();
-                      orphanService.cleanupOrphanedAgentsIfNeeded();
-                      if (budgetMs > 0 && nowMs() - startTs > budgetMs) {
-                        log.info(
-                            "Orphan cleanup exceeded budget {}ms (elapsed={}ms); subsequent work will be deferred",
-                            budgetMs,
-                            nowMs() - startTs);
-                        Thread.currentThread().interrupt();
-                        return;
-                      }
-                    } catch (Exception e) {
-                      if (e instanceof InterruptedException) {
-                        Thread.currentThread().interrupt();
-                        return;
-                      }
-                      log.warn("Orphan cleanup failed", e);
+          final long submissionGeneration = orphanCleanupGeneration.incrementAndGet();
+          try {
+            orphanCleanupFuture =
+                orphanCleanupExecutor.submit(
+                    () -> {
                       try {
-                        metrics.incrementRunFailure(e.getClass().getSimpleName());
-                      } catch (Exception me) {
-                        log.debug("Failed to record orphan cleanup failure metric", me);
+                        long startTs = nowMs();
+                        long budgetMs = config.getOrphanRunBudgetMs();
+                        orphanService.cleanupOrphanedAgentsIfNeeded();
+                        if (budgetMs > 0 && nowMs() - startTs > budgetMs) {
+                          log.info(
+                              "Orphan cleanup exceeded budget {}ms (elapsed={}ms); subsequent work will be deferred",
+                              budgetMs,
+                              nowMs() - startTs);
+                          Thread.currentThread().interrupt();
+                          return;
+                        }
+                      } catch (Exception e) {
+                        if (e instanceof InterruptedException) {
+                          Thread.currentThread().interrupt();
+                          return;
+                        }
+                        log.warn("Orphan cleanup failed", e);
+                        try {
+                          metrics.incrementRunFailure(e.getClass().getSimpleName());
+                        } catch (Exception me) {
+                          log.debug("Failed to record orphan cleanup failure metric", me);
+                        }
+                      } finally {
+                        resetOrphanCleanupState(submissionGeneration);
                       }
-                    } finally {
-                      resetOrphanCleanupState();
-                    }
-                  });
+                    });
+          } catch (Exception submitEx) {
+            // Preserve single in-flight invariant when task submission fails.
+            resetOrphanCleanupState(submissionGeneration);
+            throw submitEx;
+          }
         } else {
           if (!dueToSubmit) {
             if (log.isDebugEnabled()) {
@@ -1568,14 +1586,20 @@ public class PriorityAgentScheduler extends CatsModuleAware
   }
 
   /** Resets zombie cleanup tracking state after completion or forced cancellation. */
-  private void resetZombieCleanupState() {
+  private void resetZombieCleanupState(long generation) {
+    if (zombieCleanupGeneration.get() != generation) {
+      return;
+    }
     zombieCleanupRunning.set(false);
     zombieCleanupStartMs.set(0);
     zombieCleanupFuture = null;
   }
 
   /** Resets orphan cleanup tracking state after completion or forced cancellation. */
-  private void resetOrphanCleanupState() {
+  private void resetOrphanCleanupState(long generation) {
+    if (orphanCleanupGeneration.get() != generation) {
+      return;
+    }
     orphanCleanupRunning.set(false);
     orphanCleanupStartMs.set(0);
     orphanCleanupFuture = null;
