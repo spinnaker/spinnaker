@@ -63,7 +63,6 @@ import redis.clients.jedis.JedisPool;
  *   <li>Submission rejection (RejectedExecutionException) - permit released, agent requeued
  *   <li>OutOfMemoryError during submission - permit released, metrics tagged, no orphaned state
  *   <li>OutOfMemoryError during execution - permit released, agent requeued
- *   <li>Cancellation before execution - exactly-once permit release via handshake mechanism
  * </ul>
  */
 @Testcontainers
@@ -164,7 +163,7 @@ class PermitSafetyTest {
       int initialPermits = sem.availablePermits();
 
       int acquired = acq.saturatePool(1L, sem, rejecting);
-      assertThat(acquired).isGreaterThanOrEqualTo(0);
+      assertThat(acquired).isEqualTo(1);
 
       // Verify permit released (critical for permit safety)
       assertThat(sem.availablePermits())
@@ -275,7 +274,7 @@ class PermitSafetyTest {
       int initialPermits = running.availablePermits();
 
       int acquired = acq.saturatePool(1L, running, faultyExecutor);
-      assertThat(acquired).isGreaterThanOrEqualTo(0);
+      assertThat(acquired).isEqualTo(1);
 
       // Permit must be released
       assertThat(running.availablePermits()).isEqualTo(initialPermits);
@@ -525,15 +524,16 @@ class PermitSafetyTest {
           for (int i = 1; i <= 5; i++) {
             jedis.zadd("waiting", nowSeconds - 100, "batch-permit-agent-" + i);
           }
+          // Inject numeric-only invalid entries so Phase 3 cleanup path is exercised.
+          jedis.zadd("waiting", nowSeconds - 100, "1234567890");
+          jedis.zadd("waiting", nowSeconds - 100, "1234567891");
         }
 
         // Run acquisition (batch mode enabled)
         int acquired = service.saturatePool(1L, semaphore, executor);
 
-        // Verify some agents were acquired
-        assertThat(acquired)
-            .describedAs("Some agents should be acquired")
-            .isGreaterThanOrEqualTo(0);
+        // All 5 registered agents should be acquired.
+        assertThat(acquired).describedAs("All registered agents should be acquired").isEqualTo(5);
 
         // Wait for agent executions to complete (all permits returned)
         TestFixtures.waitForBackgroundTask(
@@ -545,6 +545,12 @@ class PermitSafetyTest {
             .describedAs(
                 "All permits should be released after completion (no leaks from permit accounting)")
             .isEqualTo(initialPermits);
+
+        // Numeric-only invalid entries should not be moved into working execution state.
+        try (Jedis jedis = jedisPool.getResource()) {
+          assertThat(jedis.zscore("working", "1234567890")).isNull();
+          assertThat(jedis.zscore("working", "1234567891")).isNull();
+        }
 
       } finally {
         executor.shutdown();

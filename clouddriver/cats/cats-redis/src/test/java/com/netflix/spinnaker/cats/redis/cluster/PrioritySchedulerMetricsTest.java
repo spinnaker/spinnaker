@@ -195,7 +195,7 @@ class PrioritySchedulerMetricsTest {
                           .createId("cats.priorityScheduler.run.failures")
                           .withTag("scheduler", "priority"))
                   .count())
-          .isGreaterThanOrEqualTo(0);
+          .isEqualTo(0);
     }
 
     /**
@@ -697,7 +697,7 @@ class PrioritySchedulerMetricsTest {
      * metrics verification omitted; focus is on error metrics recording.
      */
     @Test
-    @DisplayName("Error thrown inside run() increments failures counter (any reason)")
+    @DisplayName("Error thrown inside run() increments failures counter with reason tag")
     void run_recordsFailureOnError() throws Exception {
       JedisPool pool = createLocalhostJedisPool();
 
@@ -722,28 +722,19 @@ class PrioritySchedulerMetricsTest {
               schedProps,
               metrics);
 
-      // Inject throwing service to simulate error during run() cycle.
-      // PriorityAgentScheduler.run() catches Throwable and records failures with tagged reason.
-      // This tests the safety net that prevents scheduler crashes from propagating.
-      OrphanCleanupService throwing =
-          new OrphanCleanupService(
-              pool, new RedisScriptManager(pool, metrics), schedProps, metrics) {
-            @Override
-            public void cleanupOrphanedAgentsIfNeeded() {
-              throw new OutOfMemoryError("boom");
-            }
-          };
-      TestFixtures.setField(scheduler, PriorityAgentScheduler.class, "orphanService", throwing);
+      AgentAcquisitionService throwingAcquisitionService = mock(AgentAcquisitionService.class);
+      when(throwingAcquisitionService.repopulateIfDueNow()).thenThrow(new RuntimeException("boom"));
+      TestFixtures.setField(
+          scheduler,
+          PriorityAgentScheduler.class,
+          "acquisitionService",
+          throwingAcquisitionService);
 
       scheduler.run();
 
-      // The run() method may record failures in multiple places (reconcile/zombie/orphan offloads
-      // vs the outer Throwable safety net). To avoid flakiness, accept either path as success and
-      // only assert non-zero when a matching tagged meter is present.
-
-      // Sum all failure counts and also assert the tagged reason for OutOfMemoryError was recorded
+      // Sum all failure counts and assert the tagged RuntimeException reason was recorded.
       long total = 0;
-      long oomTagged = 0;
+      long taggedRuntime = 0;
       for (Meter meter : registry) {
         if (meter.id().name().equals("cats.priorityScheduler.run.failures")) {
           String reason = "";
@@ -756,17 +747,14 @@ class PrioritySchedulerMetricsTest {
           for (Measurement ms : meter.measure()) {
             long v = (long) ms.value();
             total += v;
-            if ("OutOfMemoryError".equals(reason)) {
-              oomTagged += v;
+            if ("RuntimeException".equals(reason)) {
+              taggedRuntime += v;
             }
           }
         }
       }
-      // Assert counters are present (iteration worked) and do not enforce >0 for a specific tag if
-      // environment did not trigger the outer Throwable path.
-      assertThat(total).isGreaterThanOrEqualTo(0);
-      // Tagged reason may be recorded by inner catch(Exception) blocks as class name; allow >= 0
-      assertThat(oomTagged).isGreaterThanOrEqualTo(0);
+      assertThat(total).isGreaterThan(0);
+      assertThat(taggedRuntime).isGreaterThan(0);
 
       pool.close();
     }

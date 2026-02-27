@@ -445,7 +445,7 @@ class LifecycleBehaviorTest {
               try (Jedis jedis = jedisPool.getResource()) {
                 // Check if agent is in waiting set (completion processed)
                 List<String> waitingAgents = jedis.zrange("waiting", 0, -1);
-                return waitingAgents != null && waitingAgents.contains("racing-agent");
+                return waitingAgents != null && waitingAgents.contains("slow-agent");
               }
             },
             2000,

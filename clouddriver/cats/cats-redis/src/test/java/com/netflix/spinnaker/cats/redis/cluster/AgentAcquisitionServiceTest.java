@@ -4331,17 +4331,34 @@ class AgentAcquisitionServiceTest {
         pod2Service.registerAgent(agent, execution, instrumentation);
       }
 
-      // Both pods try to acquire simultaneously
-      int acquired1 = pod1Service.saturatePool(0L, null, executorService);
-      int acquired2 = pod2Service.saturatePool(0L, null, executorService);
+      // Both pods try to acquire at the same time.
+      ExecutorService raceExecutor = Executors.newFixedThreadPool(2);
+      CountDownLatch startGate = new CountDownLatch(1);
+      int acquired1;
+      int acquired2;
+      try {
+        Future<Integer> pod1Result =
+            raceExecutor.submit(
+                () -> {
+                  startGate.await(2, TimeUnit.SECONDS);
+                  return pod1Service.saturatePool(0L, null, executorService);
+                });
+        Future<Integer> pod2Result =
+            raceExecutor.submit(
+                () -> {
+                  startGate.await(2, TimeUnit.SECONDS);
+                  return pod2Service.saturatePool(0L, null, executorService);
+                });
+        startGate.countDown();
+        acquired1 = pod1Result.get(5, TimeUnit.SECONDS);
+        acquired2 = pod2Result.get(5, TimeUnit.SECONDS);
+      } finally {
+        TestFixtures.shutdownExecutorSafely(raceExecutor);
+      }
 
-      // Each pod should acquire some agents, total should be reasonable
-      assertThat(acquired1)
-          .describedAs("Pod1 should acquire >= 0 agents")
-          .isGreaterThanOrEqualTo(0);
-      assertThat(acquired2)
-          .describedAs("Pod2 should acquire >= 0 agents")
-          .isGreaterThanOrEqualTo(0);
+      assertThat(acquired1 + acquired2)
+          .describedAs("Concurrent pod acquisition should claim all 3 agents exactly once")
+          .isEqualTo(3);
 
       // Verify metrics: incrementAcquireAttempts(), incrementAcquired() for both pods
       assertThat(

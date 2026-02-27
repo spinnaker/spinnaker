@@ -1597,6 +1597,7 @@ class ZombieCleanupServiceTest {
       try (Jedis jedis = jedisPool.getResource()) {
         assertThat(jedis.zcard("working")).isEqualTo(0);
         assertAgentNotInWaitingSet(jedis, "batch-zombie-1");
+        assertAgentNotInWaitingSet(jedis, "batch-zombie-2");
         assertAgentNotInWaitingSet(jedis, "batch-zombie-3");
       }
 
