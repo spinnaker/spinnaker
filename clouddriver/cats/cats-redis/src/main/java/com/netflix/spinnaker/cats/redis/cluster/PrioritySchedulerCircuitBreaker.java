@@ -120,7 +120,7 @@ public class PrioritySchedulerCircuitBreaker {
             log.info(
                 "Circuit breaker '{}' transitioning from OPEN to HALF_OPEN after cooldown", name);
             totalAllowed.increment();
-            return true; // Allow one probe request
+            return true; // Allow the initial probe request after cooldown.
           }
         }
         totalBlocked.increment();

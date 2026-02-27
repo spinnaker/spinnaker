@@ -351,7 +351,8 @@ public class ZombieCleanupService {
           zombieAgentTypes.stream().limit(5).collect(java.util.stream.Collectors.toList()),
           scanElapsedMs);
 
-      // Check if batch operations are enabled (disabled by default for safety)
+      // Batch operations are configurable (enabled by default); fall back to individual mode when
+      // disabled.
       boolean batchOperationsEnabled = schedulerProperties.getBatchOperations().isEnabled();
       int totalCleaned = 0;
 

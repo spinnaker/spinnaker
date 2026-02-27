@@ -114,7 +114,8 @@ public class PriorityAgentScheduler extends CatsModuleAware
 
   // Reconciliation cadence control
   private final AtomicLong lastReconcileEpochMs = new AtomicLong(0);
-  // Local submission gate for orphan cleanup to avoid per-second submits when not due/leader
+  // Local submission gate for orphan cleanup to avoid per-second submits when not due or not
+  // currently eligible to run cleanup.
   private final AtomicLong lastOrphanSubmitEpochMs = new AtomicLong(0);
   // Local submission gate for zombie cleanup to avoid per-second submits
   private final AtomicLong lastZombieSubmitEpochMs = new AtomicLong(0);
@@ -199,7 +200,9 @@ public class PriorityAgentScheduler extends CatsModuleAware
     this.nodeStatusProvider = nodeStatusProvider;
     this.shardingFilter = shardingFilter;
 
-    // Dedicated on-demand single-thread executors so the scheduler loop never blocks.
+    // Dedicated on-demand single-thread executors keep cleanup/reconcile work off the scheduler
+    // thread.
+    // The scheduler loop can still block on direct Redis operations (e.g., acquisition/repopulate).
     // Threads are created only when needed and time out when idle for cleaner metrics.
     // For zombie cleanup, prefer to keep the worker thread parked when budget=0 by using the
     // zombie-cleanup interval as keep-alive. With a positive budget, keep-alive equals the budget
@@ -713,7 +716,7 @@ public class PriorityAgentScheduler extends CatsModuleAware
       return;
     }
     if (!lastHealthLogEpochMs.compareAndSet(last, now)) {
-      return; // another thread logged
+      return; // another caller advanced the cadence gate
     }
 
     SchedulerStats stats = getStats();

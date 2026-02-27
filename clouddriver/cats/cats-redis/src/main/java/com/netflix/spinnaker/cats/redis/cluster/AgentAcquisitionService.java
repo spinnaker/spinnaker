@@ -237,8 +237,8 @@ public class AgentAcquisitionService {
   // These ThreadLocal collections reduce GC pressure in the scheduler hot path by reusing
   // containers across cycles. This is safe because:
   // 1. saturatePool() runs in a single-threaded scheduler executor (no concurrency within thread)
-  // 2. All containers are cleared in finally blocks after each use (removeThreadLocals() on
-  // shutdown)
+  // 2. Containers are cleared before reuse; ThreadLocal entries are removed during shutdown
+  //    (removeThreadLocals())
   // 3. trimToSize() is called to shed capacity after large spikes
   // 4. JVM thread-local storage is efficient for this access pattern
   // The alternative (new ArrayList/HashSet per cycle) would create ~10 objects x 1Hz = GC pressure
@@ -605,7 +605,8 @@ public class AgentAcquisitionService {
           // Examine a small sorted-set window so we can count the oldest agents this pod could
           // actually execute (restricted to locally registered + enabled agents).
           int batchSize = schedulerProperties.getBatchOperations().getBatchSize();
-          // If batchSize is 0 or negative, use a default window size for diagnostics
+          // batchSize=0 means unbounded; use a bounded default diagnostics window.
+          // The non-positive guard is defensive for unexpected values.
           final int window =
               batchSize > 0
                   ? Math.max(8, Math.min(64, batchSize))
@@ -690,7 +691,8 @@ public class AgentAcquisitionService {
           // Fetch a small window of the oldest ready entries and pick the first matching local
           // agent.
           int batchSizeForWindow = schedulerProperties.getBatchOperations().getBatchSize();
-          // If batchSize is 0 or negative (unbounded), use default window size for diagnostics
+          // batchSize=0 means unbounded; use a bounded default diagnostics window.
+          // The non-positive guard is defensive for unexpected values.
           final int window =
               batchSizeForWindow > 0
                   ? Math.max(8, Math.min(64, batchSizeForWindow))
@@ -2889,7 +2891,6 @@ public class AgentAcquisitionService {
         int end = Math.min(start + batchSize, agentNames.size());
         List<String> batch = agentNames.subList(start, end);
 
-        @SuppressWarnings("unchecked")
         List<?> presence =
             (List<?>)
                 scriptManager.evalshaWithSelfHeal(
