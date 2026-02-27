@@ -3660,12 +3660,12 @@
   dependencies:
     "@types/node" "*"
 
-"@types/cheerio@*":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-1.0.0.tgz#7b0bc1451711a85291b30f0426e46d6d8bf2e0fd"
-  integrity sha512-zAaImHWoh5RY2CLgU2mvg3bl2k3F65B0N5yphuII3ythFLPmJhL7sj1RDu6gSxcgqHlETbr/lhA2OBY+WF1fXQ==
+"@types/cheerio@*", "@types/cheerio@0.22.35":
+  version "0.22.35"
+  resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.35.tgz#0d16dc1f24d426231c181b9c31847f673867595f"
+  integrity sha512-yD57BchKRvTV+JD53UZ6PD8KWY5g5rvvMLRnZR3EQBCZXiDT/HR+pKpMzFGlWNhFrXlo7VPZXtKvIEwZkAWOIA==
   dependencies:
-    cheerio "*"
+    "@types/node" "*"
 
 "@types/classnames@2.2.0":
   version "2.2.0"
@@ -5801,7 +5801,7 @@ check-peer-dependencies@^4.0.0:
     shelljs "^0.8.4"
     yargs "^16.2.0"
 
-cheerio@*, cheerio@=1.0.0-rc.3, cheerio@^1.0.0-rc.3:
+cheerio@=1.0.0-rc.3, cheerio@^1.0.0-rc.3:
   version "1.0.0-rc.3"
   resolved "https://registry.yarnpkg.com/cheerio/-/cheerio-1.0.0-rc.3.tgz#094636d425b2e9c0f4eb91a46c05630c9a1a8bf6"
   integrity sha512-0td5ijfUPuubwLUu0OBoe98gZj8C/AA+RW3v67GPlGOrvxWjZmBXiBCRU+I8VEiNyJzjth40POfHiz2RB3gImA==

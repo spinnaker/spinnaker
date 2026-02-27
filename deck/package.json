@@ -81,6 +81,7 @@
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
     "angular": "1.8.0",
+    "@types/cheerio": "0.22.35",
     "cheerio": "=1.0.0-rc.3",
     "nth-check": "2.0.1",
     "react": "^16.14.0",
