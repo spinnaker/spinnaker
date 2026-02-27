@@ -99,7 +99,22 @@ public class AgentAcquisitionService {
   private final LongAdder agentsExecuted = new LongAdder();
   private final LongAdder agentsFailed = new LongAdder();
 
-  // Exactly-once permit release handshake for zombie cancellation fairness
+  // Exactly-once permit release handshake for zombie cancellation fairness.
+  //
+  // Authoritative permit-release path inventory (11 paths):
+  //  1) AgentWorker.run() finally block CAS-releases captured RunState permit (owner path).
+  //  2) FutureTask.done() in submitAgentWithRejectionHandling CAS-releases pre-start cancellations.
+  //  3) submitAgentWithRejectionHandling RejectedExecutionException handler CAS-releases.
+  //  4) submitAgentWithRejectionHandling Throwable handler CAS-releases.
+  //  5) removeActiveAgentWithPermitRelease performs orphan-only release with conditional ownership.
+  //  6) unregisterAgent performs orphan-only release with conditional ownership.
+  //  7) onDeadmanTimeout cancels future; permit release is delegated to owner paths (1/2).
+  //  8) PriorityAgentScheduler.gracefullyReleaseActiveAgents cancels futures; owner releases
+  // permit.
+  //  9) ZombieCleanupService batch cleanup cancels futures; owner releases permit.
+  // 10) ZombieCleanupService individual cleanup cancels futures; owner releases permit.
+  // 11) Shutdown/pool-cancellation races are resolved by owner CAS paths (1-4) and orphan rules
+  // (5-6).
   private final ConcurrentHashMap<String, RunState> runStates = new ConcurrentHashMap<>();
   // Monotonic run generation tag for RunState diagnostics/correlation.
   private final AtomicLong runStateGeneration = new AtomicLong(0L);
@@ -988,9 +1003,9 @@ public class AgentAcquisitionService {
         // Critical: Set semaphore before execution so it can be released when done
         worker.setMaxConcurrentSemaphore(maxConcurrentSemaphore);
         // Initialize ownership-bound run-state for exactly-once permit release.
+        // The worker captures this exact instance so all owner CAS paths act on one token.
         RunState runState = new RunState(runStateGeneration.incrementAndGet());
-        worker.setRunState(runState);
-        runStates.put(agentType, runState);
+        worker.captureRunState(runState);
         if (log.isDebugEnabled()) {
           log.debug(
               "Prepared run-state for agent {} (generation={})", agentType, runState.generation);
@@ -1917,62 +1932,41 @@ public class AgentAcquisitionService {
     // agents)
     failureStreaks.remove(agentType);
 
-    // Check if agent has an active RunState (meaning it's currently executing with a permit).
-    // We must NOT remove from activeAgents if a permit is held, otherwise permit_mismatch occurs
-    // (heldPermits > activeAgents.size). The worker's finally block will handle cleanup when
-    // the permit is actually released.
-    Future<?> future = activeAgentsFutures.remove(agentType);
+    // Snapshot local ownership tokens. Unregister is a non-owner path and must mutate maps
+    // conditionally to avoid removing replacement execution state after re-acquisition.
+    ActiveTrackingTokens tokens = snapshotActiveTrackingTokens(agentType);
     RunState runState = runStates.get(agentType);
+    Future<?> future = tokens.future;
+    String expectedScore = tokens.score;
 
-    if (runState != null && runState.permitHeld.get()) {
-      // Agent has a permit held. Two cases:
-      // 1. Worker started (runState.started=true): defer cleanup to worker's finally block
-      // 2. Worker NOT started: cancel() will prevent it from running, so WE must release permit
-      if (future != null) {
-        boolean cancelled = future.cancel(false);
-        if (cancelled && !runState.started.get()) {
-          // Task was queued but never started - worker will never run, so we must release permit
-          RunState removed = runState;
-          if (removed != null) {
-            runStates.remove(agentType, removed);
-          }
-          if (removed != null && removed.permitHeld.compareAndSet(true, false)) {
-            if (maxConcurrentSemaphoreRef != null) {
-              maxConcurrentSemaphoreRef.release();
-              log.debug("Released permit for {} (cancelled before worker started)", agentType);
-            }
-            // Also clean up activeAgents since worker won't do it
-            String removedScore = activeAgents.remove(agentType);
-            if (removedScore != null) {
-              activeAgentMapSize.decrementAndGet();
-            }
-          }
-        } else {
-          log.debug(
-              "Unregister deferred: agent {} worker already started, cleanup deferred to finally",
-              agentType);
-        }
-      } else {
+    boolean cancelRequested = false;
+    if (future != null && !future.isDone()) {
+      cancelRequested = future.cancel(false);
+    }
+
+    // Only release permit locally when we prove the worker will not run its finally:
+    // - worker never started, and
+    // - future is absent/done or cancellation succeeded before start, and
+    // - runStates still points to this same RunState instance.
+    boolean ownerCannotRunFinally = future == null || future.isDone() || cancelRequested;
+    boolean releasedOrphanPermit =
+        tryReleaseOrphanedPermit(agentType, runState, ownerCannotRunFinally, "unregister");
+
+    boolean permitStillOwnedByWorker =
+        runState != null && runState.permitHeld.get() && !releasedOrphanPermit;
+    if (!permitStillOwnedByWorker) {
+      removeActiveAgent(agentType, expectedScore, future);
+      if (runState == null && future != null) {
         log.debug(
-            "Unregister deferred: agent {} has permit held but no future, cleanup deferred",
+            "Unregistration observed future without RunState for {} (likely replacement/cleanup race)",
             agentType);
       }
+    } else if (future != null) {
+      log.debug(
+          "Unregister deferred: agent {} still executing, cleanup delegated to worker/done()",
+          agentType);
     } else {
-      // No permit held - safe to remove from activeAgents immediately
-      boolean wasActive = activeAgents.remove(agentType) != null;
-      if (wasActive) {
-        activeAgentMapSize.decrementAndGet();
-      }
-
-      if (future != null) {
-        // Future exists but no RunState or permit not held - cancel and log
-        future.cancel(false);
-        if (runState == null) {
-          log.warn(
-              "Unexpected state: agent {} has future but no RunState during unregistration",
-              agentType);
-        }
-      }
+      log.debug("Unregister deferred: agent {} has permit held with no future handle", agentType);
     }
 
     log.debug("Unregistered agent {} from scheduling", agentType);
@@ -2001,72 +1995,207 @@ public class AgentAcquisitionService {
    */
   @VisibleForTesting
   void removeActiveAgent(String agentType) {
-    // Redis work (working→waiting transition) is now handled atomically by
-    // conditionalReleaseAgent() via atomicRescheduleInRedis(). This method only cleans up local
-    // in-memory tracking.
-    //
-    // Critical: Capture removed value to ensure atomic consistency between map and counter
-    String removedScore = activeAgents.remove(agentType);
-    if (removedScore != null) {
-      // Only decrement counter if we actually removed something
-      activeAgentMapSize.decrementAndGet();
-      // Remove future tracking - this cleanup is non-critical if it fails
-      activeAgentsFutures.remove(agentType);
-      log.debug(
-          "Removed agent {} from active tracking (Redis handled by atomicReschedule)", agentType);
+    removeActiveAgent(agentType, null, null);
+  }
+
+  /** Immutable holder for local active-tracking ownership tokens. */
+  private static final class ActiveTrackingTokens {
+    final String score;
+    final Future<?> future;
+
+    ActiveTrackingTokens(String score, Future<?> future) {
+      this.score = score;
+      this.future = future;
     }
   }
 
   /**
-   * Removes an agent from active tracking AND releases its permit via CAS.
+   * Snapshot score/future ownership tokens with a score-stability check.
+   *
+   * <p>If score changes during sampling, this method intentionally drops the future token to avoid
+   * removing a replacement execution's future handle with mixed-cycle tokens.
+   */
+  private ActiveTrackingTokens snapshotActiveTrackingTokens(String agentType) {
+    for (int attempt = 0; attempt < 2; attempt++) {
+      String scoreBefore = activeAgents.get(agentType);
+      if (scoreBefore == null) {
+        return new ActiveTrackingTokens(null, null);
+      }
+      Future<?> futureCandidate = activeAgentsFutures.get(agentType);
+      String scoreAfter = activeAgents.get(agentType);
+      if (scoreBefore.equals(scoreAfter)) {
+        return new ActiveTrackingTokens(scoreBefore, futureCandidate);
+      }
+    }
+
+    String latestScore = activeAgents.get(agentType);
+    return new ActiveTrackingTokens(latestScore, null);
+  }
+
+  /**
+   * Removes an agent from active tracking with optional ownership tokens.
+   *
+   * <p>When tokens are provided, map removals are conditional to avoid deleting replacement
+   * execution state created by re-acquisition.
+   *
+   * @param agentType The type identifier of the agent to remove
+   * @param expectedScore Expected active score ownership token (nullable)
+   * @param expectedFuture Expected future ownership token (nullable)
+   * @return true if either active score or future tracking was removed
+   */
+  @VisibleForTesting
+  boolean removeActiveAgent(String agentType, String expectedScore, Future<?> expectedFuture) {
+    // Redis work (working→waiting transition) is now handled atomically by
+    // conditionalReleaseAgent() via atomicRescheduleInRedis(). This method only cleans up local
+    // in-memory tracking.
+    boolean removedActive;
+    if (expectedScore != null) {
+      removedActive = activeAgents.remove(agentType, expectedScore);
+    } else if (expectedFuture == null) {
+      // Legacy no-token cleanup path used only in single-owner contexts.
+      // If we only have a future token, skip activeAgents mutation to avoid deleting a replacement
+      // execution inserted after snapshot.
+      removedActive = activeAgents.remove(agentType) != null;
+    } else {
+      removedActive = false;
+    }
+    if (removedActive) {
+      activeAgentMapSize.decrementAndGet();
+    }
+
+    boolean removedFuture = false;
+    if (expectedFuture != null) {
+      removedFuture = activeAgentsFutures.remove(agentType, expectedFuture);
+    } else if (expectedScore == null && removedActive) {
+      // Legacy no-token cleanup path used only in single-owner contexts.
+      removedFuture = activeAgentsFutures.remove(agentType) != null;
+    } else if (expectedScore != null && removedActive) {
+      // Score-only token cleanup intentionally preserves futures because removing a future without
+      // identity can delete a replacement execution's handle inserted concurrently.
+    }
+
+    if (removedActive || removedFuture) {
+      log.debug(
+          "Removed agent {} from active tracking (removed_active={}, removed_future={}, tokenized={})",
+          agentType,
+          removedActive,
+          removedFuture,
+          expectedScore != null || expectedFuture != null);
+    }
+    return removedActive || removedFuture;
+  }
+
+  /**
+   * Cancels and clears the dead-man handle for a specific run-state.
+   *
+   * <p>Best-effort only: failures are logged at debug level and do not propagate.
+   */
+  private void cancelDeadmanHandle(String agentType, RunState runState) {
+    if (runState != null && runState.deadmanHandle != null) {
+      try {
+        runState.deadmanHandle.cancel(false);
+      } catch (Exception e) {
+        log.debug("Dead-man handle cancel failed for {}", agentType, e);
+      } finally {
+        runState.deadmanHandle = null;
+      }
+    }
+  }
+
+  /**
+   * Releases a permit only for a proven orphaned execution.
+   *
+   * <p>Strict requirements:
+   *
+   * <ul>
+   *   <li>Caller proves owner cannot run finally
+   *   <li>RunState has not started
+   *   <li>Current map entry still points to the same RunState instance
+   *   <li>Permit CAS succeeds
+   * </ul>
+   *
+   * <p>Return semantics are CAS-based: a {@code false} result can still mean this method removed
+   * the run-state map entry but did not win permit CAS (for example, owner path released first).
+   */
+  private boolean tryReleaseOrphanedPermit(
+      String agentType, RunState runState, boolean ownerCannotRunFinally, String source) {
+    if (runState == null || !ownerCannotRunFinally || runState.started.get()) {
+      return false;
+    }
+    if (!runStates.remove(agentType, runState)) {
+      return false;
+    }
+    if (!runState.permitHeld.compareAndSet(true, false)) {
+      return false;
+    }
+    cancelDeadmanHandle(agentType, runState);
+    if (maxConcurrentSemaphoreRef != null) {
+      maxConcurrentSemaphoreRef.release();
+    }
+    log.debug("Released orphan permit for {} via {} path", agentType, source);
+    return true;
+  }
+
+  /**
+   * Removes an agent from active tracking and delegates permit cleanup to owner paths.
    *
    * <p>This method should be used by cleanup paths (reconcile validation, state consistency checks)
-   * that need to remove agents that may still be holding permits. It uses the same CAS mechanism as
-   * the worker's finally block to ensure exactly-once permit release.
+   * that need to remove agents that may still be holding permits.
    *
    * <p>Unlike {@link #removeActiveAgent(String)}, this method:
    *
    * <ul>
-   *   <li>Removes the RunState and releases the permit via CAS (if held)
-   *   <li>Cancels any associated future (non-interrupt to allow graceful cleanup)
-   *   <li>Removes from activeAgents and activeAgentsFutures
+   *   <li>Cancels any associated future (non-interrupt) so owner cleanup can run
+   *   <li>Mutates active maps conditionally using ownership tokens
+   *   <li>Only locally CAS-releases permit for proven orphaned never-started execution
    * </ul>
+   *
+   * <p>Prefer {@link #removeActiveAgentWithPermitRelease(String, String, Future)} when the caller
+   * already has score/future ownership tokens.
    *
    * @param agentType The type identifier of the agent to remove
    * @return true if the agent was found and removed, false if not present
    */
   public boolean removeActiveAgentWithPermitRelease(String agentType) {
-    // Step 1: Release permit via CAS (exactly-once, same pattern as worker finally block)
-    RunState runState = runStates.remove(agentType);
-    if (runState != null && runState.permitHeld.compareAndSet(true, false)) {
-      if (maxConcurrentSemaphoreRef != null) {
-        maxConcurrentSemaphoreRef.release();
-        log.debug("Released permit for {} during cleanup with permit release", agentType);
-      }
-      // Cancel dead-man timer if present
-      if (runState.deadmanHandle != null) {
-        try {
-          runState.deadmanHandle.cancel(false);
-        } catch (Exception ignore) {
-        }
-      }
-    }
+    ActiveTrackingTokens tokens = snapshotActiveTrackingTokens(agentType);
+    return removeActiveAgentWithPermitRelease(agentType, tokens.score, tokens.future);
+  }
 
-    // Step 2: Cancel future (non-interrupt to allow worker's finally block to run if in progress)
-    Future<?> future = activeAgentsFutures.remove(agentType);
+  /**
+   * Removes active tracking with ownership tokens and attempts orphan-only permit release.
+   *
+   * <p>This overload is intended for callers that already captured score/future identity and want
+   * to avoid non-owner deletion of replacement executions.
+   *
+   * @param agentType agent identifier
+   * @param expectedScore expected active score token (nullable)
+   * @param expectedFuture expected future token (nullable)
+   * @return true when local tracking was removed, orphan permit was released, or cancel was
+   *     requested
+   */
+  public boolean removeActiveAgentWithPermitRelease(
+      String agentType, String expectedScore, Future<?> expectedFuture) {
+    // Snapshot ownership tokens; all non-owner mutations below are conditional on these snapshots.
+    RunState runState = runStates.get(agentType);
+    Future<?> future = expectedFuture != null ? expectedFuture : activeAgentsFutures.get(agentType);
+    String scoreToken = expectedScore != null ? expectedScore : activeAgents.get(agentType);
+
+    // Delegate normal permit release to owner paths (worker finally / FutureTask.done()).
+    boolean cancelRequested = false;
     if (future != null && !future.isDone()) {
-      future.cancel(false);
+      cancelRequested = future.cancel(false);
     }
 
-    // Step 3: Remove from activeAgents map
-    String removedScore = activeAgents.remove(agentType);
-    if (removedScore != null) {
-      activeAgentMapSize.decrementAndGet();
-      log.debug("Removed agent {} from active tracking with permit release", agentType);
-      return true;
-    }
+    // Remove local active tracking conditionally so we never drop replacement executions.
+    boolean removedTracking = removeActiveAgent(agentType, scoreToken, future);
 
-    return runState != null; // Return true if we found RunState even if not in activeAgents
+    // Orphan release is allowed only when worker cannot run finally and ownership still matches.
+    boolean ownerCannotRunFinally = future == null || future.isDone() || cancelRequested;
+    boolean releasedOrphanPermit =
+        tryReleaseOrphanedPermit(
+            agentType, runState, ownerCannotRunFinally, "removeActiveAgentWithPermitRelease");
+
+    return removedTracking || releasedOrphanPermit || cancelRequested;
   }
 
   /**
@@ -2099,6 +2228,16 @@ public class AgentAcquisitionService {
       snapshot.put(entry.getKey(), entry.getValue());
     }
     return snapshot;
+  }
+
+  /**
+   * Get the active future currently associated with an agent.
+   *
+   * @param agentType agent identifier
+   * @return future token for the current local execution, or null if absent
+   */
+  Future<?> getActiveAgentFuture(String agentType) {
+    return activeAgentsFutures.get(agentType);
   }
 
   /**
@@ -4114,6 +4253,42 @@ public class AgentAcquisitionService {
   }
 
   /**
+   * Releases the semaphore permit owned by a captured RunState using exactly-once CAS semantics.
+   *
+   * @param agentType agent identifier
+   * @param runState captured ownership token
+   * @param preferredSemaphore per-run semaphore (falls back to service reference when null)
+   * @param source logical callsite used in logs
+   * @return true when this call wins the CAS and performs permit-release handling
+   */
+  private boolean releasePermitFromCapturedRunState(
+      String agentType, RunState runState, Semaphore preferredSemaphore, String source) {
+    if (runState == null) {
+      log.debug("Missing captured RunState for {} in {}", agentType, source);
+      return false;
+    }
+    if (!runState.permitHeld.compareAndSet(true, false)) {
+      return false;
+    }
+
+    try {
+      Semaphore semaphoreToRelease =
+          preferredSemaphore != null ? preferredSemaphore : maxConcurrentSemaphoreRef;
+      if (semaphoreToRelease != null) {
+        semaphoreToRelease.release();
+        log.debug(
+            "Released semaphore permit for agent {} via {} (generation={})",
+            agentType,
+            source,
+            runState.generation);
+      }
+    } catch (Exception e) {
+      log.debug("Failed semaphore release for {} via {}", agentType, source, e);
+    }
+    return true;
+  }
+
+  /**
    * Submit an agent to the thread pool with proper rejection handling and permit management.
    *
    * @param worker The agent worker to submit
@@ -4138,28 +4313,16 @@ public class AgentAcquisitionService {
             @Override
             protected void done() {
               try {
-                // Remove from tracking map when the task completes (best-effort)
                 activeAgentsFutures.remove(agentType, this);
-
-                // Exactly-once permit release fallback: if the worker's finally block did not
-                // run (e.g., cancelled before start), release the permit here.
-                if (runStateForSubmission != null) {
-                  // Remove only if this callback still owns the current mapping.
-                  runStates.remove(agentType, runStateForSubmission);
-                }
-                if (runStateForSubmission != null
-                    && runStateForSubmission.permitHeld.compareAndSet(true, false)) {
-                  Semaphore semaphoreToRelease =
-                      maxConcurrentSemaphore != null
-                          ? maxConcurrentSemaphore
-                          : maxConcurrentSemaphoreRef;
-                  if (semaphoreToRelease != null) {
-                    semaphoreToRelease.release();
-                    log.debug(
-                        "Released semaphore permit for agent {} in completion listener (generation={})",
-                        agentType,
-                        runStateForSubmission.generation);
-                  }
+                // Exactly-once permit release fallback for pre-start cancellation.
+                // CAS on the worker's captured RunState (not a map lookup) so we never
+                // accidentally release a permit belonging to a re-acquisition cycle.
+                RunState rs = worker.capturedRunState;
+                releasePermitFromCapturedRunState(
+                    agentType, rs, maxConcurrentSemaphore, "completion listener");
+                // Conditional map cleanup: only remove if the entry is still OUR RunState
+                if (rs != null) {
+                  runStates.remove(agentType, rs);
                 }
               } catch (Exception e) {
                 // Never propagate from listener
@@ -4168,8 +4331,15 @@ public class AgentAcquisitionService {
             }
           };
 
-      // Track the same FutureTask instance we execute so done() map cleanup can match by identity.
+      // Publish future token before RunState visibility to avoid non-owner orphan-release windows.
+      worker.setSubmissionFuture(futureTask);
       activeAgentsFutures.put(agentType, futureTask);
+      if (runStateForSubmission != null) {
+        runStates.put(agentType, runStateForSubmission);
+      } else {
+        log.debug("Missing run-state during submission for {}", agentType);
+      }
+      // Track the same FutureTask instance we execute so done() map cleanup can match by identity.
       agentWorkPool.execute(futureTask);
       log.debug("Successfully submitted agent {} to thread pool", agentType);
       return futureTask;
@@ -4182,29 +4352,15 @@ public class AgentAcquisitionService {
       log.warn(
           "Agent {} submission rejected by thread pool (queue full or pool shutdown)", agentType);
 
-      // Release permit state via CAS for rejected submissions.
-      RunState runStateToClean = runStateForSubmission;
-      if (runStateToClean != null) {
-        runStates.remove(agentType, runStateToClean);
-      }
-      if (runStateToClean != null && runStateToClean.permitHeld.compareAndSet(true, false)) {
-        try {
-          Semaphore semaphoreToRelease =
-              maxConcurrentSemaphore != null ? maxConcurrentSemaphore : maxConcurrentSemaphoreRef;
-          if (semaphoreToRelease != null) {
-            semaphoreToRelease.release();
-            log.debug("Released semaphore permit for rejected agent {}", agentType);
-          }
-        } catch (Exception ignore) {
-        }
+      // CAS on captured RunState (not map lookup) to avoid releasing a replacement's permit
+      RunState rs = worker.capturedRunState;
+      releasePermitFromCapturedRunState(agentType, rs, maxConcurrentSemaphore, "rejection handler");
+      if (rs != null) {
+        runStates.remove(agentType, rs);
       }
 
-      // Remove activeAgents entry that was added before submission.
-      String removed = activeAgents.remove(agentType);
-      if (removed != null) {
-        activeAgentMapSize.decrementAndGet();
-        log.debug("Cleaned up activeAgents for rejected agent {}", agentType);
-      }
+      // Remove active tracking conditionally using the worker's ownership tokens.
+      removeActiveAgent(agentType, worker.deadlineScore, futureTask);
 
       // Track rejection metric
       metrics.incrementSubmissionFailure("rejected");
@@ -4222,29 +4378,16 @@ public class AgentAcquisitionService {
       // Handle other submission errors
       log.error("Failed to submit agent {} due to unexpected error", agentType, e);
 
-      // Release permit state via CAS on submit failure.
-      RunState runStateToClean = runStateForSubmission;
-      if (runStateToClean != null) {
-        runStates.remove(agentType, runStateToClean);
-      }
-      if (runStateToClean != null && runStateToClean.permitHeld.compareAndSet(true, false)) {
-        try {
-          Semaphore semaphoreToRelease =
-              maxConcurrentSemaphore != null ? maxConcurrentSemaphore : maxConcurrentSemaphoreRef;
-          if (semaphoreToRelease != null) {
-            semaphoreToRelease.release();
-            log.debug("Released semaphore permit for failed submission of agent {}", agentType);
-          }
-        } catch (Exception ignore) {
-        }
+      // CAS on captured RunState (not map lookup) to avoid releasing a replacement's permit
+      RunState rs = worker.capturedRunState;
+      releasePermitFromCapturedRunState(
+          agentType, rs, maxConcurrentSemaphore, "submit-error handler");
+      if (rs != null) {
+        runStates.remove(agentType, rs);
       }
 
-      // Remove activeAgents entry that was added before submission.
-      String removed = activeAgents.remove(agentType);
-      if (removed != null) {
-        activeAgentMapSize.decrementAndGet();
-        log.debug("Cleaned up activeAgents for failed submission of agent {}", agentType);
-      }
+      // Remove active tracking conditionally using the worker's ownership tokens.
+      removeActiveAgent(agentType, worker.deadlineScore, futureTask);
 
       // Track generic submission failure
       metrics.incrementSubmissionFailure(e.getClass().getSimpleName());
@@ -4260,17 +4403,20 @@ public class AgentAcquisitionService {
    * Requeue an agent that was rejected due to thread pool saturation. This preserves the agent's
    * original priority in the queue to maintain fairness.
    *
+   * <p><b>Precondition:</b> submit-failure handlers must have already cleaned local active tracking
+   * via {@link #removeActiveAgent(String, String, Future)} before invoking this method.
+   *
    * @param worker The agent worker that was rejected
    */
   private void requeueRejectedAgent(AgentWorker worker) {
     String agentType = worker.getAgent().getAgentType();
 
     try (Jedis jedis = jedisPool.getResource()) {
-      // RunState cleanup is performed by ownership-bound submit paths; only clean active tracking.
-      String removedScore = activeAgents.remove(agentType);
-      if (removedScore != null) {
-        activeAgentMapSize.decrementAndGet();
-        activeAgentsFutures.remove(agentType);
+      // Active tracking was already cleaned in submit-failure handlers before requeue.
+      if (log.isDebugEnabled() && activeAgents.containsKey(agentType)) {
+        log.debug(
+            "Requeue precondition mismatch for {}: active tracking still present (or re-acquired concurrently)",
+            agentType);
       }
 
       // Calculate the score to preserve queue position
@@ -4395,10 +4541,14 @@ public class AgentAcquisitionService {
     private final ExecutionInstrumentation executionInstrumentation;
     private final AgentAcquisitionService acquisitionService;
     private Semaphore maxConcurrentSemaphore; // Semaphore to release when execution completes
-    private volatile RunState runState; // Ownership-bound run-state for the current execution
+    private volatile java.util.concurrent.Future<?> submissionFuture;
 
     // Set by acquisition service when agent is acquired
     String deadlineScore;
+
+    // Captured at submission time so that both worker and done() CAS the SAME instance,
+    // preventing races when the map entry is replaced by a re-acquisition cycle.
+    private volatile RunState capturedRunState;
 
     AgentWorker(
         Agent agent,
@@ -4410,27 +4560,26 @@ public class AgentAcquisitionService {
       this.executionInstrumentation = executionInstrumentation;
       this.acquisitionService = acquisitionService;
       this.maxConcurrentSemaphore = null; // Will be set before execution
-      this.runState = null;
+      this.submissionFuture = null;
     }
 
     @Override
     public void run() {
       String agentType = agent.getAgentType();
       final String runDeadlineScore = this.deadlineScore;
-      final RunState runStateForExecution = this.runState;
       final Semaphore runSemaphore = this.maxConcurrentSemaphore;
+      final java.util.concurrent.Future<?> runFuture = this.submissionFuture;
+      final RunState runState = this.capturedRunState;
       long startTimeMs = System.currentTimeMillis();
       boolean success = false;
       FailureClass failureClass = null;
       Throwable capturedCause = null;
-      boolean runStateObservedAtStart = false;
 
       try {
-        // Mark as started for fairness accounting
+        // Mark as started for fairness accounting (uses captured reference, no map lookup)
         try {
-          if (runStateForExecution != null) {
-            runStateObservedAtStart = true;
-            runStateForExecution.started.set(true);
+          if (runState != null) {
+            runState.started.set(true);
           }
         } catch (Exception e) {
           log.debug("Failed to mark run-state started for {}", agentType, e);
@@ -4484,20 +4633,9 @@ public class AgentAcquisitionService {
           log.debug("Failed to record per-agent failure metric for {}", agentType, metricEx);
         }
       } finally {
-        // Cancel any scheduled dead-man action FIRST
+        // Cancel any scheduled dead-man action FIRST (uses captured reference)
         try {
-          RunState runState = runStateForExecution;
-          if (runState != null && runState.deadmanHandle != null) {
-            try {
-              boolean cancelled = runState.deadmanHandle.cancel(false);
-              if (!cancelled && log.isDebugEnabled()) {
-                log.debug("Dead-man timer already fired for {}", agentType);
-              }
-            } catch (Exception cancelEx) {
-              log.debug("Dead-man handle cancel failed for {}", agentType, cancelEx);
-            }
-            runState.deadmanHandle = null;
-          }
+          acquisitionService.cancelDeadmanHandle(agentType, runState);
         } catch (Exception ex) {
           log.debug("Dead-man cleanup failed for {}", agentType, ex);
         }
@@ -4506,41 +4644,31 @@ public class AgentAcquisitionService {
         acquisitionService.conditionalReleaseAgent(
             agent, runDeadlineScore, success, failureClass, capturedCause);
 
-        // Perform exactly-once permit release before Redis cleanup.
-        RunState runStateForAgent = runStateForExecution;
-        if (runStateForAgent == null) {
-          // Missing RunState usually means another cleanup path already released the permit.
-          acquisitionService.metrics.incrementCasContention("worker_completion_missing_runstate");
-          if (!runStateObservedAtStart && runSemaphore != null) {
-            // Legacy/manual execution path still owns the permit.
-            runSemaphore.release();
-            log.warn(
-                "Released permit for {} with no RunState (legacy/manual worker path)", agentType);
-          } else {
-            log.warn(
-                "RunState missing for {} during worker completion; skipping permit release to avoid over-release",
+        // Exactly-once permit release via CAS on the CAPTURED RunState.
+        // Using the captured reference (not a map lookup) prevents two races:
+        //  1. done() callback removing a replacement RunState from the map
+        //  2. Re-acquisition replacing the map entry between conditionalReleaseAgent and here
+        if (runState != null) {
+          if (!acquisitionService.releasePermitFromCapturedRunState(
+              agentType, runState, runSemaphore, "worker finally")) {
+            log.debug(
+                "Permit for {} already released by another path (cleanup or done() callback)",
                 agentType);
           }
-        } else {
-          // Remove mapping only if it still points at this execution's run-state.
-          acquisitionService.runStates.remove(agentType, runStateForAgent);
-          // Release permit via CAS.
-          if (runStateForAgent.permitHeld.compareAndSet(true, false)) {
-            if (runSemaphore != null) {
-              runSemaphore.release();
-              log.debug("Released permit for {}", agentType);
-            }
-          } else {
-            // Permit already released by another path.
-            acquisitionService.metrics.incrementCasContention("worker_completion");
-            log.warn(
-                "Permit for {} already released (CAS failed) - cleanup raced with worker completion",
-                agentType);
-          }
+        } else if (runSemaphore != null) {
+          log.warn(
+              "Missing captured RunState for {} in worker finally; permit release is skipped",
+              agentType);
         }
 
-        // Now remove from active tracking and Redis
-        acquisitionService.removeActiveAgent(agentType);
+        // Conditional map cleanup: only remove if the entry is still OUR RunState.
+        // If a re-acquisition cycle replaced it, the new RunState belongs to the new worker.
+        if (runState != null) {
+          acquisitionService.runStates.remove(agentType, runState);
+        }
+
+        // Remove from active tracking
+        acquisitionService.removeActiveAgent(agentType, runDeadlineScore, runFuture);
 
         log.debug("Agent {} execution cleanup completed", agentType);
       }
@@ -4573,13 +4701,33 @@ public class AgentAcquisitionService {
       this.maxConcurrentSemaphore = maxConcurrentSemaphore;
     }
 
+    /** Capture the RunState instance that owns this specific execution attempt. */
+    void captureRunState(RunState runState) {
+      this.capturedRunState = runState;
+    }
+
+    /** Record the exact submission Future used for ownership-safe cleanup. */
+    void setSubmissionFuture(java.util.concurrent.Future<?> submissionFuture) {
+      this.submissionFuture = submissionFuture;
+    }
+
+    /** Return the submission Future captured for this execution attempt. */
+    java.util.concurrent.Future<?> getSubmissionFuture() {
+      return submissionFuture;
+    }
+
     /**
-     * Set ownership-bound run-state before submission.
+     * Initialize run-state for tests that exercise permit CAS paths without full submission flow.
      *
-     * @param runState run-state token for this execution attempt
+     * <p>This helper does not set submissionFuture/deadlineScore or active map entries, so tests
+     * that depend on future-token cleanup semantics should construct workers through the normal
+     * submission path instead.
      */
-    void setRunState(RunState runState) {
-      this.runState = runState;
+    @VisibleForTesting
+    void initRunState() {
+      RunState rs = new RunState(acquisitionService.runStateGeneration.incrementAndGet());
+      this.capturedRunState = rs;
+      acquisitionService.runStates.put(agent.getAgentType(), rs);
     }
   }
 

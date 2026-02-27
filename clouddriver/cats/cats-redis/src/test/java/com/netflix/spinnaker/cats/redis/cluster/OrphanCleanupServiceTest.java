@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.cats.redis.cluster.TestFixtures.waitForCondi
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -1514,7 +1513,8 @@ class OrphanCleanupServiceTest {
       reset(mockAcquisitionService);
       when(mockAcquisitionService.getRegisteredAgent("valid-agent")).thenReturn(mockValidAgent);
       when(mockAcquisitionService.belongsToThisShard("valid-agent")).thenReturn(true);
-      doNothing().when(mockAcquisitionService).removeActiveAgent("valid-agent");
+      when(mockAcquisitionService.removeActiveAgent(eq("valid-agent"), any(), any()))
+          .thenReturn(true);
 
       try (Jedis jedis = jedisPool.getResource()) {
         jedis.zadd("working", oldScoreSeconds, "valid-agent");
@@ -1525,7 +1525,7 @@ class OrphanCleanupServiceTest {
 
       // Then - Local state cleanup should be called
       assertThat(cleaned).isEqualTo(1);
-      verify(mockAcquisitionService).removeActiveAgent("valid-agent");
+      verify(mockAcquisitionService).removeActiveAgent(eq("valid-agent"), any(), any());
     }
   }
 

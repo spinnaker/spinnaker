@@ -966,6 +966,21 @@ public class OrphanCleanupService {
         double score = orphan.getScore();
         String scoreInSet =
             String.valueOf((long) score); // Convert to long to match score() method format
+        String localActiveScoreSnapshot = null;
+        java.util.concurrent.Future<?> localFutureSnapshot = null;
+        if (acquisitionService != null) {
+          try {
+            java.util.Map<String, String> activeMap = acquisitionService.getActiveAgentsMap();
+            if (activeMap != null) {
+              localActiveScoreSnapshot = activeMap.get(agentName);
+            }
+            if (scoreInSet.equals(localActiveScoreSnapshot)) {
+              localFutureSnapshot = acquisitionService.getActiveAgentFuture(agentName);
+            }
+          } catch (Exception e) {
+            log.debug("Failed to snapshot local ownership tokens for {}", agentName, e);
+          }
+        }
 
         // Determine if this is a valid agent or an agent for a removed account
         boolean isStillValid = isAgentStillValid(agentName);
@@ -978,10 +993,8 @@ public class OrphanCleanupService {
 
         if (WORKING_SET.equals(setName)) {
           // Skip locally active agents; zombie cleanup manages overruns
-          // Defensive: avoid double map access that could race to null; read once and check.
-          java.util.Map<String, String> activeMap =
-              acquisitionService != null ? acquisitionService.getActiveAgentsMap() : null;
-          boolean locallyActive = activeMap != null && activeMap.containsKey(agentName);
+          // Use the score snapshot captured at orphan-iteration time.
+          boolean locallyActive = localActiveScoreSnapshot != null;
           if (locallyActive) {
             log.debug("Skipping locally active working agent {} during orphan cleanup", agentName);
             continue;
@@ -1029,7 +1042,7 @@ public class OrphanCleanupService {
                   preservedScore != null);
 
               // Clean up local active tracking; acquisition service preserves waiting if present.
-              removeActiveAgent(agentName);
+              removeActiveAgent(agentName, scoreInSet, localFutureSnapshot);
             } else {
               log.debug(
                   "Failed to move orphaned agent {} (original score: {}) from working to waiting. It might have been removed or modified by another process.",
@@ -1066,7 +1079,7 @@ public class OrphanCleanupService {
                 }
 
                 // Clean up local active tracking; waiting is preserved if present.
-                removeActiveAgent(agentName);
+                removeActiveAgent(agentName, scoreInSet, localFutureSnapshot);
               } else {
                 log.debug(
                     "Failed to remove orphaned agent {} (score: {}) from {} set. It might have been removed by another process.",
@@ -1262,14 +1275,16 @@ public class OrphanCleanupService {
   }
 
   /**
-   * Remove an active agent from local tracking and clean up its execution state. This includes
-   * canceling futures and releasing semaphore permits.
+   * Remove an active agent from local tracking using conditional ownership.
    *
    * @param agentType The agent to remove
+   * @param expectedScore Expected active score for conditional removal
+   * @param expectedFuture Expected future token captured with the same local snapshot as score
    */
-  private void removeActiveAgent(String agentType) {
+  private void removeActiveAgent(
+      String agentType, String expectedScore, java.util.concurrent.Future<?> expectedFuture) {
     if (acquisitionService != null) {
-      acquisitionService.removeActiveAgent(agentType);
+      acquisitionService.removeActiveAgent(agentType, expectedScore, expectedFuture);
       log.debug("Removed active agent {} from local tracking", agentType);
     } else {
       log.debug("AgentAcquisitionService not available, cannot remove active agent {}", agentType);

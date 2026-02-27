@@ -1301,6 +1301,8 @@ public class PriorityAgentScheduler extends CatsModuleAware
       // Lightweight local state validation: ensure activeAgents keys belong to registered agents
       try {
         java.util.Map<String, String> active = acquisitionService.getActiveAgentsMap();
+        java.util.Map<String, Future<?>> activeFutures =
+            acquisitionService.getActiveAgentsFuturesSnapshot();
         for (java.util.Map.Entry<String, String> entry : active.entrySet()) {
           if (Thread.currentThread().isInterrupted()) {
             if (log.isDebugEnabled()) {
@@ -1332,7 +1334,8 @@ public class PriorityAgentScheduler extends CatsModuleAware
             // Inconsistent local tracking; clean it up with permit release to avoid leaks.
             // Use removeActiveAgentWithPermitRelease to ensure the permit is also released,
             // preventing permit_mismatch where heldPermits > activeAgents.size().
-            acquisitionService.removeActiveAgentWithPermitRelease(agentType);
+            acquisitionService.removeActiveAgentWithPermitRelease(
+                agentType, scoreString, activeFutures.get(agentType));
             metrics.incrementStateInconsistentActive();
           }
         }

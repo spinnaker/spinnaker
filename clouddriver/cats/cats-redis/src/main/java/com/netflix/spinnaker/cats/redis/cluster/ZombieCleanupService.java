@@ -605,7 +605,8 @@ public class ZombieCleanupService {
                   cleanedByBatch,
                   zombieAgentTypes.size());
               for (String agentType : parsed.getMembers()) {
-                Future<?> future = activeAgentsFutures.remove(agentType);
+                Future<?> future = activeAgentsFutures.get(agentType);
+                String expectedScore = activeAgents.get(agentType);
                 if (future != null && !future.isDone()) {
                   boolean cancelled = future.cancel(true);
                   if (log.isDebugEnabled()) {
@@ -615,15 +616,33 @@ public class ZombieCleanupService {
                 // Permit is released when thread exits in worker finally block
                 if (acquisitionService != null) {
                   try {
-                    acquisitionService.removeActiveAgent(agentType);
+                    acquisitionService.removeActiveAgent(agentType, expectedScore, future);
                   } catch (Exception e) {
                     log.debug(
                         "Failed to remove active agent via service; falling back to map removal",
                         e);
-                    activeAgents.remove(agentType);
+                    if (expectedScore != null) {
+                      activeAgents.remove(agentType, expectedScore);
+                    } else {
+                      log.debug(
+                          "Skipping local active-agent removal for {} due to missing score token",
+                          agentType);
+                    }
+                    if (future != null) {
+                      activeAgentsFutures.remove(agentType, future);
+                    }
                   }
                 } else {
-                  activeAgents.remove(agentType);
+                  if (expectedScore != null) {
+                    activeAgents.remove(agentType, expectedScore);
+                  } else {
+                    log.debug(
+                        "Skipping local active-agent removal for {} due to missing score token",
+                        agentType);
+                  }
+                  if (future != null) {
+                    activeAgentsFutures.remove(agentType, future);
+                  }
                 }
                 if (log.isDebugEnabled()) {
                   log.debug("Cleaned up zombie agent: {}", agentType);
@@ -761,7 +780,7 @@ public class ZombieCleanupService {
 
     try {
       // Snapshot current future and then delegate active tracking removal to acquisition service
-      Future<?> future = activeAgentsFutures.remove(agentType);
+      Future<?> future = activeAgentsFutures.get(agentType);
       String deadlineScore = activeAgents.get(agentType);
 
       if (deadlineScore == null) {
@@ -810,9 +829,12 @@ public class ZombieCleanupService {
 
       // Always clean local state regardless of Redis outcome to prevent leaks
       if (acquisitionService != null) {
-        acquisitionService.removeActiveAgent(agentType);
+        acquisitionService.removeActiveAgent(agentType, deadlineScore, future);
       } else {
-        activeAgents.remove(agentType);
+        activeAgents.remove(agentType, deadlineScore);
+      }
+      if (future != null) {
+        activeAgentsFutures.remove(agentType, future);
       }
 
       if (removed) {

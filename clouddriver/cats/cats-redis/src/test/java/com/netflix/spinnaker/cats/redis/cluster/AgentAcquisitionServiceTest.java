@@ -6010,6 +6010,113 @@ class AgentAcquisitionServiceTest {
       }
     }
 
+    @Test
+    @DisplayName("Tokenized cleanup must preserve replacement ownership state")
+    void tokenizedCleanupMustPreserveReplacementOwnershipState() throws Exception {
+      String agentType = "tokenized-cleanup-race-agent";
+
+      @SuppressWarnings("unchecked")
+      Map<String, String> activeAgents =
+          (Map<String, String>)
+              TestFixtures.getField(
+                  acquisitionService, AgentAcquisitionService.class, "activeAgents");
+      @SuppressWarnings("unchecked")
+      Map<String, Future<?>> activeFutures =
+          (Map<String, Future<?>>)
+              TestFixtures.getField(
+                  acquisitionService, AgentAcquisitionService.class, "activeAgentsFutures");
+      @SuppressWarnings("unchecked")
+      Map<String, Object> runStates =
+          (Map<String, Object>)
+              TestFixtures.getField(acquisitionService, AgentAcquisitionService.class, "runStates");
+
+      Class<?> runStateClass =
+          Class.forName(
+              "com.netflix.spinnaker.cats.redis.cluster.AgentAcquisitionService$RunState");
+      java.lang.reflect.Constructor<?> ctor = runStateClass.getDeclaredConstructor(long.class);
+      ctor.setAccessible(true);
+      Object newerRunState = ctor.newInstance(2L);
+
+      Future<?> staleFuture = mock(Future.class);
+      Future<?> newerFuture = mock(Future.class);
+      when(newerFuture.isDone()).thenReturn(false);
+
+      activeAgents.put(agentType, "200");
+      activeFutures.put(agentType, newerFuture);
+      runStates.put(agentType, newerRunState);
+
+      boolean removed =
+          acquisitionService.removeActiveAgentWithPermitRelease(agentType, "100", staleFuture);
+
+      assertThat(removed).isFalse();
+      assertThat(activeAgents.get(agentType)).isEqualTo("200");
+      assertThat(activeFutures.get(agentType)).isSameAs(newerFuture);
+      assertThat(runStates.get(agentType)).isSameAs(newerRunState);
+
+      java.lang.reflect.Field permitHeldField = runStateClass.getDeclaredField("permitHeld");
+      permitHeldField.setAccessible(true);
+      AtomicBoolean newerPermitHeld = (AtomicBoolean) permitHeldField.get(newerRunState);
+      assertThat(newerPermitHeld.get()).isTrue();
+    }
+
+    @Test
+    @DisplayName("unregisterAgent must not remove replacement state during cancel race")
+    void unregisterAgentMustNotRemoveReplacementStateDuringCancelRace() throws Exception {
+      String agentType = "unregister-race-agent";
+      Agent agent = TestFixtures.createMockAgent(agentType, "test");
+      acquisitionService.registerAgent(
+          agent, mock(AgentExecution.class), TestFixtures.createMockInstrumentation());
+
+      @SuppressWarnings("unchecked")
+      Map<String, String> activeAgents =
+          (Map<String, String>)
+              TestFixtures.getField(
+                  acquisitionService, AgentAcquisitionService.class, "activeAgents");
+      @SuppressWarnings("unchecked")
+      Map<String, Future<?>> activeFutures =
+          (Map<String, Future<?>>)
+              TestFixtures.getField(
+                  acquisitionService, AgentAcquisitionService.class, "activeAgentsFutures");
+      @SuppressWarnings("unchecked")
+      Map<String, Object> runStates =
+          (Map<String, Object>)
+              TestFixtures.getField(acquisitionService, AgentAcquisitionService.class, "runStates");
+
+      Class<?> runStateClass =
+          Class.forName(
+              "com.netflix.spinnaker.cats.redis.cluster.AgentAcquisitionService$RunState");
+      java.lang.reflect.Constructor<?> ctor = runStateClass.getDeclaredConstructor(long.class);
+      ctor.setAccessible(true);
+      Object staleRunState = ctor.newInstance(11L);
+      Object replacementRunState = ctor.newInstance(22L);
+
+      Future<?> replacementFuture = mock(Future.class);
+      when(replacementFuture.isDone()).thenReturn(false);
+
+      Future<?> staleFuture = mock(Future.class);
+      when(staleFuture.isDone()).thenReturn(false);
+      doAnswer(
+              invocation -> {
+                // Simulate a re-acquire race that swaps ownership tokens during unregister.
+                activeAgents.put(agentType, "222");
+                activeFutures.put(agentType, replacementFuture);
+                runStates.put(agentType, replacementRunState);
+                return true;
+              })
+          .when(staleFuture)
+          .cancel(false);
+
+      activeAgents.put(agentType, "111");
+      activeFutures.put(agentType, staleFuture);
+      runStates.put(agentType, staleRunState);
+
+      acquisitionService.unregisterAgent(agent);
+
+      assertThat(activeAgents.get(agentType)).isEqualTo("222");
+      assertThat(activeFutures.get(agentType)).isSameAs(replacementFuture);
+      assertThat(runStates.get(agentType)).isSameAs(replacementRunState);
+    }
+
     /**
      * Verifies that acquisition metrics are incremented even when Redis connection fails.
      *
@@ -6516,6 +6623,7 @@ class AgentAcquisitionServiceTest {
           new AgentWorker(testAgent, agentExecution, executionInstrumentation, semaphoreService);
       worker.deadlineScore = "1751564649";
       worker.setMaxConcurrentSemaphore(testSemaphore);
+      worker.initRunState();
 
       // Acquire semaphore permit (simulate what saturatePool does)
       testSemaphore.acquire();
@@ -6561,6 +6669,7 @@ class AgentAcquisitionServiceTest {
           new AgentWorker(testAgent, agentExecution, executionInstrumentation, semaphoreService);
       worker.deadlineScore = "1751564649";
       worker.setMaxConcurrentSemaphore(testSemaphore);
+      worker.initRunState();
 
       // Acquire semaphore permit (simulate what saturatePool does)
       testSemaphore.acquire();
@@ -6617,6 +6726,7 @@ class AgentAcquisitionServiceTest {
           new AgentWorker(testAgent, agentExecution, executionInstrumentation, semaphoreService);
       worker.deadlineScore = "1751564649";
       worker.setMaxConcurrentSemaphore(testSemaphore);
+      worker.initRunState();
 
       // Acquire semaphore permit
       testSemaphore.acquire();

@@ -20,6 +20,7 @@ import static com.netflix.spinnaker.cats.redis.cluster.TestFixtures.waitForCondi
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -202,20 +203,6 @@ class ZombieCleanupServiceTest {
     when(mockFuture.isDone()).thenReturn(true);
     when(mockFuture.cancel(true)).thenReturn(false);
     return mockFuture;
-  }
-
-  /**
-   * Verifies metrics counter increment after cleanup operation.
-   *
-   * @param service the cleanup service to check
-   * @param initialCount the counter value before cleanup
-   * @param expectedIncrement the expected increment amount
-   * @param description description for the assertion
-   */
-  private void verifyMetricsCounterIncrement(
-      ZombieCleanupService service, long initialCount, long expectedIncrement, String description) {
-    long finalCount = service.getZombiesCleanedUp();
-    assertThat(finalCount).describedAs(description).isEqualTo(initialCount + expectedIncrement);
   }
 
   /**
@@ -1888,7 +1875,8 @@ class ZombieCleanupServiceTest {
       // Permit release happens when thread exits in worker finally block
       assertThat(cleaned).isEqualTo(1);
       verify(mockFuture).cancel(true);
-      verify(acquisition).removeActiveAgent(agentType);
+      verify(acquisition)
+          .removeActiveAgent(eq(agentType), eq(String.valueOf(oldScoreSeconds)), eq(mockFuture));
 
       // Verify metrics counter incremented (confirms recordCleanupTime and incrementCleanupCleaned
       // called)
@@ -1961,9 +1949,6 @@ class ZombieCleanupServiceTest {
       RedisScriptManager scriptManager =
           TestFixtures.getField(sched, PriorityAgentScheduler.class, "scriptManager");
       scriptManager.initializeScripts();
-
-      AgentAcquisitionService acq =
-          TestFixtures.getField(sched, PriorityAgentScheduler.class, "acquisitionService");
 
       // Provide a fake active map/futures and a sleeping zombie cleanup
       java.util.concurrent.atomic.AtomicInteger calls =
