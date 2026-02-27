@@ -88,14 +88,15 @@ public class AgentSchedulerConfig {
   }
 
   /**
-   * Creates the "default" Redis agent scheduler. This bean is only created if redis.scheduler.type
-   * is "default".
+   * Creates the "default" Redis agent scheduler.
+   *
+   * <p>This bean is created when {@code redis.scheduler.type} is {@code default}, unset, or blank.
    */
   @Bean
-  @ConditionalOnProperty(
-      value = PROPERTY_REDIS_SCHEDULER_TYPE,
-      havingValue = SCHEDULER_TYPE_DEFAULT)
-  @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
+  @ConditionalOnExpression(
+      "${redis.enabled:true} && ${redis.scheduler.enabled:true} && "
+          + "('${redis.scheduler.type:default}'.trim().isEmpty() || "
+          + "'${redis.scheduler.type:default}'.trim().equalsIgnoreCase('default'))")
   public AgentScheduler defaultRedisAgentScheduler(
       RedisConfigurationProperties redisConfigurationProperties,
       RedisClientDelegate redisClientDelegate,
