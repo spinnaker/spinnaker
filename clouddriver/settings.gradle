@@ -24,18 +24,18 @@ def cloudProviderProjects = [
   'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-lambda'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
   'aws-minimal': [':clouddriver-aws', ':clouddriver-eureka'],
   'azure': [':clouddriver-azure'],
-  'cloudfoundry': [':clouddriver-cloudfoundry'],
+  'cloudfoundry': [':clouddriver-cloudfoundry', 'clouddriver-docker'],
 //  'dcos': [':clouddriver-dcos'],
   'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
-  'huaweicloud': [':clouddriver-huaweicloud'],
+// 'huaweicloud': [':clouddriver-huaweicloud'],
   'kubernetes': [':clouddriver-kubernetes'],
   'oracle': [':clouddriver-oracle'],
-  'tencentcloud': [':clouddriver-tencentcloud'],
-  'yandex': [':clouddriver-yandex'],
+//  'tencentcloud': [':clouddriver-tencentcloud'],
+//  'yandex': [':clouddriver-yandex'],
   'cloudrun':  [':clouddriver-cloudrun', ':clouddriver-google-common']
 ]
 cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
-cloudProviderProjects.put('titus', cloudProviderProjects['aws-minimal'] + ':clouddriver-titus' + ':clouddriver-docker')
+// cloudProviderProjects.put('titus', cloudProviderProjects['aws-minimal'] + ':clouddriver-titus' + ':clouddriver-docker')
 cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
 
 String icp = settings.ext.has('includeCloudProviders') ? settings.ext.get('includeCloudProviders') : 'all'
