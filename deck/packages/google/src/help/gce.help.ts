@@ -3,6 +3,8 @@ import { HelpContentsRegistry } from '@spinnaker/core';
 const helpContents: { [key: string]: string } = {
   'gce.httpLoadBalancer.certificate':
     'The name of an SSL certificate. If specified, Spinnaker will create an HTTPS load balancer.',
+  'gce.httpLoadBalancer.certificateMap':
+    'A Certificate Manager certificate map name. Certificate maps let GCP manage and auto-rotate TLS certificates, replacing individual certificate selection.',
   'gce.httpLoadBalancer.defaultService':
     'A default service handles any requests that do not match a specified host rule or path matching rule.',
   'gce.httpLoadBalancer.externalIP':
