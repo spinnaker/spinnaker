@@ -69,6 +69,7 @@ class GoogleServerGroup implements GoogleLabeledResource {
    * Optional explicit specification of zones for an RMIG.
    */
   GoogleDistributionPolicy distributionPolicy
+  GoogleInstanceFlexibilityPolicy instanceFlexibilityPolicy
   Boolean selectZones
 
   GoogleAutoscalingPolicy autoscalingPolicy
@@ -78,6 +79,14 @@ class GoogleServerGroup implements GoogleLabeledResource {
 
   List<String> autoscalingMessages
   //Map<String, String> scalingSchedulingMessages
+  /**
+   * Overall status of the autoscaler (e.g., ACTIVE, ERROR, PENDING).
+   */
+  String autoscalerStatus
+  /**
+   * The number of instances the autoscaler recommends for this group.
+   */
+  Integer recommendedSize
 
   @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="class")
   InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
@@ -129,8 +138,11 @@ class GoogleServerGroup implements GoogleLabeledResource {
     GoogleAutoscalingPolicy autoscalingPolicy
     StatefulPolicy statefulPolicy
     List<String> autoscalingMessages
+    String autoscalerStatus
+    Integer recommendedSize
     InstanceGroupManagerAutoHealingPolicy autoHealingPolicy
     GoogleDistributionPolicy distributionPolicy
+    GoogleInstanceFlexibilityPolicy instanceFlexibilityPolicy
     Boolean selectZones
 
     View(GoogleServerGroup googleServerGroup){
@@ -160,8 +172,11 @@ class GoogleServerGroup implements GoogleLabeledResource {
       autoscalingPolicy = googleServerGroup.autoscalingPolicy
       statefulPolicy = googleServerGroup.statefulPolicy
       autoscalingMessages = googleServerGroup.autoscalingMessages
+      autoscalerStatus = googleServerGroup.autoscalerStatus
+      recommendedSize = googleServerGroup.recommendedSize
       autoHealingPolicy = googleServerGroup.autoHealingPolicy
       distributionPolicy = googleServerGroup.distributionPolicy
+      instanceFlexibilityPolicy = googleServerGroup.instanceFlexibilityPolicy
       selectZones = googleServerGroup.selectZones
     }
 

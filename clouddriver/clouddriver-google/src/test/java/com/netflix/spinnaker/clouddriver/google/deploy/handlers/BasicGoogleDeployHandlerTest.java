@@ -95,7 +95,6 @@ import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -125,7 +124,6 @@ public class BasicGoogleDeployHandlerTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    MockitoAnnotations.initMocks(this);
     mockDescription = new BasicGoogleDeployDescription();
     mockCredentials = mock(GoogleNamedAccountCredentials.class);
     mockTask = mock(Task.class);
@@ -1506,10 +1504,6 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setAcceleratorConfigs(List.of(new AcceleratorConfig()));
     mockDescription.setCanIpForward(true);
     mockDescription.setResourceManagerTags(Map.of("resource-tag-key", "resource-tag-value"));
-    mockDescription.setPartnerMetadata(
-        Map.of(
-            "partner-metadata-key",
-            new StructuredEntries().setEntries(Map.of("entries", new Object()))));
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1535,7 +1529,6 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertEquals(mockDescription.getResourceManagerTags(), result.getResourceManagerTags());
-    assertEquals(mockDescription.getPartnerMetadata(), result.getPartnerMetadata());
   }
 
   @Test
@@ -1552,7 +1545,6 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setAcceleratorConfigs(Collections.emptyList());
     mockDescription.setCanIpForward(false);
     mockDescription.setResourceManagerTags(Collections.emptyMap());
-    mockDescription.setPartnerMetadata(Collections.emptyMap());
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1578,7 +1570,6 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertTrue(result.getResourceManagerTags().isEmpty());
-    assertTrue(result.getPartnerMetadata().isEmpty());
   }
 
   @Test
@@ -1595,7 +1586,6 @@ public class BasicGoogleDeployHandlerTest {
     mockDescription.setAcceleratorConfigs(null);
     mockDescription.setCanIpForward(false);
     mockDescription.setResourceManagerTags(Collections.emptyMap());
-    mockDescription.setPartnerMetadata(Collections.emptyMap());
 
     InstanceProperties result =
         basicGoogleDeployHandler.buildInstancePropertiesFromInput(
@@ -1621,23 +1611,22 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(scheduling, result.getScheduling());
     assertEquals(serviceAccounts, result.getServiceAccounts());
     assertTrue(result.getResourceManagerTags().isEmpty());
-    assertTrue(result.getPartnerMetadata().isEmpty());
   }
 
   @Test
   void addShieldedVmConfigToInstanceProperties_shieldedVmCompatible_configAdded() {
     InstanceProperties instanceProperties = new InstanceProperties();
     Image bootImage = new Image();
-    ShieldedVmConfig shieldedVmConfig = new ShieldedVmConfig();
+    ShieldedInstanceConfig shieldedVmConfig = new ShieldedInstanceConfig();
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(true);
     mockedGCEUtil
-        .when(() -> GCEUtil.buildShieldedVmConfig(mockDescription))
+        .when(() -> GCEUtil.buildShieldedInstanceConfig(mockDescription))
         .thenReturn(shieldedVmConfig);
 
     basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
         mockDescription, instanceProperties, bootImage);
-    assertEquals(shieldedVmConfig, instanceProperties.getShieldedVmConfig());
+    assertEquals(shieldedVmConfig, instanceProperties.getShieldedInstanceConfig());
   }
 
   @Test
@@ -1649,7 +1638,7 @@ public class BasicGoogleDeployHandlerTest {
 
     basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
         mockDescription, instanceProperties, bootImage);
-    assertNull(instanceProperties.getShieldedVmConfig());
+    assertNull(instanceProperties.getShieldedInstanceConfig());
   }
 
   @Test
@@ -2255,6 +2244,211 @@ public class BasicGoogleDeployHandlerTest {
         .isEqualTo("static-zone");
     assertThat(instanceGroupManager.getDistributionPolicy().getTargetShape())
         .isEqualTo("ANY_SHAPE");
+  }
+
+  @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_nullPolicy_doesNotModifyInstanceGroup() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setInstanceFlexibilityPolicy(null);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+  }
+
+  @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_singleSelectionMissingRank_mapsSelection() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(true);
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection
+        selection =
+            new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection();
+    selection.setMachineTypes(List.of("n2-standard-8"));
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("preferred", selection);
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNotNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+    assertEquals(
+        1, instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().size());
+    assertTrue(
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .containsKey("preferred"));
+    assertNull(
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .get("preferred")
+            .getRank());
+    assertEquals(
+        List.of("n2-standard-8"),
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .get("preferred")
+            .getMachineTypes());
+  }
+
+  @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_mapsValidSelectionsOnly() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(true);
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection
+        selection =
+            new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection();
+    selection.setRank(1);
+    selection.setMachineTypes(List.of("n2-standard-8"));
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("preferred", selection);
+    selections.put("malformed", null);
+    selections.put(
+        "missingRank",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(null, List.of("n2-standard-16")));
+    selections.put(
+        "missingMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(2, null));
+    selections.put(
+        "emptyMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(3, Collections.emptyList()));
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNotNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+    assertEquals(
+        1, instanceGroupManager.getInstanceFlexibilityPolicy().getInstanceSelections().size());
+    assertTrue(
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .containsKey("preferred"));
+    assertFalse(
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .containsKey("malformed"));
+    assertEquals(
+        Integer.valueOf(1),
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .get("preferred")
+            .getRank());
+    assertEquals(
+        List.of("n2-standard-8"),
+        instanceGroupManager
+            .getInstanceFlexibilityPolicy()
+            .getInstanceSelections()
+            .get("preferred")
+            .getMachineTypes());
+  }
+
+  @Test
+  void
+      testSetInstanceFlexibilityPolicyToInstanceGroup_allMalformedSelections_doesNotModifyInstanceGroup() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(true);
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("nullSelection", null);
+    selections.put(
+        "missingRankA",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(null, List.of("n2-standard-8")));
+    selections.put(
+        "missingRankB",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(null, List.of("n2-standard-16")));
+    selections.put(
+        "missingMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(1, null));
+    selections.put(
+        "emptyMachineTypes",
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+            .InstanceSelection(2, Collections.emptyList()));
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNull(instanceGroupManager.getInstanceFlexibilityPolicy());
+  }
+
+  @Test
+  void testSetInstanceFlexibilityPolicyToInstanceGroup_nonRegional_doesNotModifyInstanceGroup() {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setRegional(false);
+    description.setApplication("myapp");
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection
+        selection =
+            new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection();
+    selection.setRank(1);
+    selection.setMachineTypes(List.of("n2-standard-8"));
+
+    Map<
+            String,
+            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
+                .InstanceSelection>
+        selections = new HashMap<>();
+    selections.put("preferred", selection);
+
+    com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy flexPolicy =
+        new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(selections);
+    description.setInstanceFlexibilityPolicy(flexPolicy);
+
+    basicGoogleDeployHandler.setInstanceFlexibilityPolicyToInstanceGroup(
+        description, instanceGroupManager);
+
+    assertNull(instanceGroupManager.getInstanceFlexibilityPolicy());
   }
 
   private GoogleLoadBalancerView mockLoadBalancer(GoogleLoadBalancerType loadBalancerType) {

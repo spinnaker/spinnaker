@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.BaseGoogleIns
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
@@ -56,6 +57,12 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
    * Optional explicit specification of zones and target shape for an RMIG.
    */
   GoogleDistributionPolicy distributionPolicy
+  /**
+   * Optional instance flexibility policy for specifying multiple machine types
+   * with ranked preferences. Only supported for regional MIGs with a non-EVEN
+   * target distribution shape.
+   */
+  GoogleInstanceFlexibilityPolicy instanceFlexibilityPolicy
   // Capacity is optional. If it is specified, capacity.desired takes precedence over targetSize.
   // If autoscalingPolicy is also specified, capacity.min and capacity.max take precedence over
   // autoscalingPolicy.minNumReplicas and autoscalingPolicy.maxNumReplicas.

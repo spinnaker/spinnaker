@@ -97,4 +97,22 @@ class CopyLastGoogleServerGroupAtomicOperationConverterUnitSpec extends Specific
     then:
       operation instanceof CopyLastGoogleServerGroupAtomicOperation
   }
+
+  void "should strip partnerMetadata from pipeline input"() {
+    setup:
+      def input = [application: APPLICATION,
+                   targetSize: TARGET_SIZE,
+                   image: IMAGE,
+                   instanceType: INSTANCE_TYPE,
+                   zone: ZONE,
+                   credentials: ACCOUNT_NAME,
+                   partnerMetadata: [key: [entries: [:]]]]
+
+    when:
+      def description = converter.convertDescription(input)
+
+    then:
+      description instanceof BasicGoogleDeployDescription
+      description.partnerMetadata == null
+  }
 }
