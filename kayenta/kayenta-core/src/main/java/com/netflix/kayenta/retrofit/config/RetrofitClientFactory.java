@@ -23,7 +23,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import okhttp3.Credentials;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +91,26 @@ public class RetrofitClientFactory {
         .create(type);
   }
 
+  /**
+   * Interceptor that proactively adds the Authorization header to all requests. This ensures that
+   * authentication credentials are sent on the first request, rather than waiting for a 401
+   * response. This is necessary for services like Coralogix that return 200 with empty/invalid
+   * responses when authentication is missing, rather than returning 401.
+   */
+  private static class AuthorizationInterceptor implements Interceptor {
+    private final String credential;
+
+    AuthorizationInterceptor(String credential) {
+      this.credential = credential;
+    }
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+      Request request = chain.request().newBuilder().addHeader("Authorization", credential).build();
+      return chain.proceed(request);
+    }
+  }
+
   private static OkHttpClient createAuthenticatedClient(
       OkHttpClient.Builder okHttp3ClientBuilder,
       String username,
@@ -109,9 +132,8 @@ public class RetrofitClientFactory {
     }
 
     return okHttp3ClientBuilder
-        .authenticator(
-            (route, response) ->
-                response.request().newBuilder().header("Authorization", credential).build())
+        // Add interceptor to proactively send Authorization header on all requests
+        .addInterceptor(new AuthorizationInterceptor(credential))
         .build();
   }
 
