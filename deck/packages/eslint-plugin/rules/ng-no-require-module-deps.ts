@@ -1,5 +1,4 @@
 import type { Rule } from 'eslint';
-import type { ArrayExpression, Node } from 'estree';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,7 +11,8 @@ import path from 'path';
  */
 const rule = function (context: Rule.RuleContext) {
   return {
-    ArrayExpression: function (node: ArrayExpression) {
+    ArrayExpression: function (_node: any) {
+      const node = _node;
       if (isInAngularModuleCall(node)) {
         const requireDotNames = node.elements.map((element) => getRequireDotNameNode(element)).filter((x) => !!x);
         requireDotNames.forEach(([_node, relativePath]) => {
@@ -54,7 +54,7 @@ angular.module('module', [
   ANGULAR_UI_BOOTSTRAP
 ]);
  */
-function getFixForBareRequire(node: Node, requiredString: string) {
+function getFixForBareRequire(node: any, requiredString: string) {
   return function (fixer: Rule.RuleFixer) {
     const variableName = requiredString.replace(/[^\w_]/g, '_').toUpperCase();
     const lastImport = findLastImportStatement(node);
@@ -80,7 +80,7 @@ angular.module('module', [
   SOME_REQUIRE_STRING
 ]);
  */
-function getFixForRequireDotAnything(node: Node, requiredString: string, property: string) {
+function getFixForRequireDotAnything(node: any, requiredString: string, property: string) {
   return function (fixer: Rule.RuleFixer) {
     const variableName = requiredString
       .replace(/^[^\w_]*/g, '')
@@ -109,7 +109,7 @@ angular.module('module', [
   DEPENDENCY_SYMBOL
 ]);
  */
-function getFixForRequireDotName(node: Node, filename: string, relativePath: string) {
+function getFixForRequireDotName(node: any, filename: string, relativePath: string) {
   const modulesPath = filename.replace(/modules\/.*/, 'modules/');
 
   const path1 = path.resolve(filename, '..', relativePath);
@@ -138,7 +138,7 @@ function getFixForRequireDotName(node: Node, filename: string, relativePath: str
   }
 }
 
-function findLastImportStatement(_node: Node) {
+function findLastImportStatement(_node: any) {
   let program = _node as Rule.Node;
   while (program && program.parent) {
     program = program.parent;
@@ -153,7 +153,7 @@ function findLastImportStatement(_node: Node) {
 }
 
 // require('./some/nested/angularjs/module').name
-function getRequireDotNameNode(node: Node): [Node, string] {
+function getRequireDotNameNode(node: any): [any, string] {
   if (node.type !== 'MemberExpression') return undefined;
   if (node.property.type !== 'Identifier' || node.property.name !== 'name') return undefined;
   if (node.object.type !== 'CallExpression' || (node.object.callee as any).name !== 'require') return undefined;
@@ -164,7 +164,7 @@ function getRequireDotNameNode(node: Node): [Node, string] {
 }
 
 // require('something').anything
-function getRequireDotAnythingNode(node: Node): [Node, string, string] {
+function getRequireDotAnythingNode(node: any): [any, string, string] {
   if (node.type !== 'MemberExpression') return undefined;
   if (node.property.type !== 'Identifier') return undefined;
   if (node.object.type !== 'CallExpression' || (node.object.callee as any).name !== 'require') return undefined;
@@ -175,7 +175,7 @@ function getRequireDotAnythingNode(node: Node): [Node, string, string] {
 }
 
 // require('something')
-function getBareRequireNode(node): [Node, string] {
+function getBareRequireNode(node): [any, string] {
   if (node.type !== 'CallExpression' || node.callee.name !== 'require') return undefined;
   if (node.arguments.length !== 1 || node.arguments[0].type !== 'Literal') return undefined;
 

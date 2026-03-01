@@ -22,7 +22,7 @@ declare module 'react-ultimate-pagination' {
 
   export function createUltimatePagination(options: {
     itemTypeToComponent: ItemTypeToComponent;
-    WrapperComponent: React.ComponentClass = 'div';
+    WrapperComponent?: React.ComponentClass | string;
   }): React.ComponentClass<IUltimatePaginationProps>;
   export interface ItemTypes {
     PAGE: 'PAGE';

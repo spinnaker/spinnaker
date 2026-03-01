@@ -8,19 +8,17 @@
  * angular.module('mymodule', [])
  */
 import type { Rule, Scope } from 'eslint';
-import type { ImportDeclaration, MemberExpression } from 'estree';
 import { getProgram, isMemberExpression } from '../utils/utils';
 
 const rule = function (context: Rule.RuleContext) {
   return {
-    'MemberExpression[object.name="angular"][property.name="module"]': function (
-      node: MemberExpression & Rule.NodeParentExtension,
-    ) {
+    'MemberExpression[object.name="angular"][property.name="module"]': function (_node: any) {
+      const node = _node;
       const angularVar = findAngularVariable(node, context);
       const angularImport = findAngularImportStatement(node);
       // Double check that there is only a single use of 'angular' variable and that it's 'angular.module()')
       if (angularImport && angularVar && angularVar.references.length === 1) {
-        const { parent } = angularVar.references[0].identifier as Rule.Node;
+        const { parent } = angularVar.references[0].identifier as any;
         if (isMemberExpression(parent)) {
           if (
             'name' in parent.object &&
@@ -46,7 +44,7 @@ function findAngularVariable(_node, context): Scope.Variable {
   return moduleScope && moduleScope.variables.find((v) => v.name === 'angular');
 }
 
-function findAngularImportStatement(_node): ImportDeclaration {
+function findAngularImportStatement(_node): any {
   let program = _node;
   while (program && program.parent) {
     program = program.parent;
@@ -59,7 +57,7 @@ function findAngularImportStatement(_node): ImportDeclaration {
       node.source.type === 'Literal' &&
       node.source.value === 'angular'
     );
-  }) as ImportDeclaration;
+  });
 }
 
 /*
@@ -71,7 +69,7 @@ import { module } from 'angular';
 
 module('module', ['dep']);
  */
-function getFixForAngularModule(angularDotModuleNode: Rule.Node, importStatement: ImportDeclaration) {
+function getFixForAngularModule(angularDotModuleNode: Rule.Node, importStatement: any) {
   return function (fixer: Rule.RuleFixer) {
     return [
       fixer.replaceText(angularDotModuleNode, 'module'),

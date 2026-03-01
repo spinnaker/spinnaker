@@ -7,7 +7,7 @@ import './TargetTrackingAdditionalSettings.less';
 
 export interface ITargetTrackingAdditionalSettingsProps {
   command: IUpsertScalingPolicyCommand;
-  cooldowns?: Boolean;
+  cooldowns?: boolean;
   policyName?: string;
   updateCommand: (command: IUpsertScalingPolicyCommand) => void;
 }

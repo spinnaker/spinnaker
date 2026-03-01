@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 const { execSync } = require('child_process');
 const { assertJsonFile } = require('../asserters/assertJsonFile');
 const { readJson } = require('@spinnaker/scripts/read-write-json');

@@ -37,7 +37,7 @@ DeploymentStrategyRegistry.registerStrategy({
       order: 'oldest',
       relaunchAllInstances: true,
       concurrentRelaunches: 1,
-      totalRelaunches: Number(command?.capacity?.max) ?? 1,
+      totalRelaunches: Number(command?.capacity?.max ?? 1),
     };
   },
 });
