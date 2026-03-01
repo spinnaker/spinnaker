@@ -22,6 +22,7 @@ dependencies {
   if (!rootProject.hasProperty("excludeSqlDrivers")) {
     runtimeOnly(project(":clouddriver-sql-mysql"))
     runtimeOnly(project(":clouddriver-sql-postgres"))
+    runtimeOnly(project(":cats:cats-pubsub"))
   }
 
   implementation "com.netflix.frigga:frigga"
