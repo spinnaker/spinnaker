@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -174,7 +175,14 @@ class AgentSchedulerConfigTest {
 
     @Bean
     DynamicConfigService dynamicConfigService() {
-      return mock(DynamicConfigService.class);
+      DynamicConfigService dynamicConfigService = mock(DynamicConfigService.class);
+      org.mockito.Mockito.when(
+              dynamicConfigService.getConfig(
+                  org.mockito.ArgumentMatchers.any(),
+                  org.mockito.ArgumentMatchers.anyString(),
+                  org.mockito.ArgumentMatchers.any()))
+          .thenAnswer(invocation -> invocation.getArgument(2));
+      return dynamicConfigService;
     }
 
     @Bean
@@ -185,6 +193,11 @@ class AgentSchedulerConfigTest {
     @Bean
     Registry registry() {
       return new DefaultRegistry();
+    }
+
+    @Bean
+    HealthEndpoint healthEndpoint() {
+      return mock(HealthEndpoint.class);
     }
   }
 }
