@@ -28,7 +28,7 @@
     "@actions/github": "^6.0.0",
     "@google-cloud/storage": "^7.19.0",
     "dayjs": "^1.11.13",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "uuid": "^11.1.0",
     "yaml": "^2.3.4"
   }

@@ -24,7 +24,7 @@
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "ngimport": "0.6.1",
     "react": "16.14.0",
     "react-select": "1.2.1",
