@@ -193,9 +193,10 @@ class PrioritySchedulerMetricsTest {
                   .counter(
                       registry
                           .createId("cats.priorityScheduler.run.failures")
-                          .withTag("scheduler", "priority"))
+                          .withTag("scheduler", "priority")
+                          .withTag("reason", "IllegalStateException"))
                   .count())
-          .isEqualTo(0);
+          .isGreaterThanOrEqualTo(1);
     }
 
     /**
