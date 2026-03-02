@@ -20,6 +20,8 @@ Redis-backed schedulers for Clouddriver caching agents live in this module. They
 - Coordination: `waiting` and `working` sorted sets; lower scores = higher priority. All state transitions are Lua-backed and atomic.
 - Safety/cleanup: dual circuit breakers, failure-aware backoff (opt-in), zombie and orphan cleanup, dead-man timeout, schedule recovery queue, dynamic agent reconciliation.
 - Performance: batch Redis operations, bounded ready scans, cached Redis `TIME` offset; concurrency via semaphore with optional unbounded mode.
+- Activation: selected via `redis.scheduler.type=priority` (with `redis.enabled=true` and `redis.scheduler.enabled=true`).
+- Compatibility: legacy `redis.scheduler` scalar and `redis.parallelism` are rejected at startup; in priority mode, `redis.scheduler.parallelism` and `redis.agent.disabledAgents` are ignored.
 - Requirements: Redis 6.2+ (uses `ZMSCORE`); supports namespacing and Redis Cluster hash tags via configuration.
 - Docs: see [`docs/priority-scheduler.md`](docs/priority-scheduler.md) for full behavior and configuration reference.
 

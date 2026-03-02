@@ -15,6 +15,15 @@ redis:
     max-concurrent-agents: 100  # Instance-wide limit; ≤0 = unbounded mode
 ```
 
+## Activation and Compatibility
+
+- Scheduler beans are created only when both `redis.enabled=true` and `redis.scheduler.enabled=true`.
+- Set `redis.scheduler.type` explicitly (`default`, `sort`, or `priority`); this guide covers `priority`.
+- Legacy scalar `redis.scheduler` and legacy `redis.parallelism` are rejected at startup.
+- In priority mode:
+  - `redis.scheduler.parallelism` is ignored (use `redis.agent.max-concurrent-agents`).
+  - `redis.agent.disabledAgents` is ignored (use `redis.agent.disabled-pattern`).
+
 ## Architecture
 
 ### Components
@@ -107,7 +116,7 @@ When Redis scheduling fails after retry exhaustion (e.g., during completion resc
 - Recovery is attempted during `saturatePool` Phase 2 (before acquisition)
 - Maximum 3 recovery attempts to prevent infinite loops during Redis outages
 - After 3 failures, agents are dropped (recovered by periodic repopulation when Redis returns)
-- Circuit breaker protection: recovery is skipped entirely when breaker is OPEN
+- Circuit breaker protection: recovery is skipped when the acquisition circuit breaker is OPEN (the cycle exits before Phase 2). The Redis circuit breaker separately gates repopulation paths.
 - Metrics: `schedule.retryExhausted` (failures), `schedule.recovery` (success/fail tagged)
 
 ### Cleanup Services
@@ -167,7 +176,7 @@ redis:
     
     batch-operations:
       enabled: true                 # Enable batch Redis operations
-      batch-size: 0                 # Agents per batch (≤0 = unlimited)
+      batch-size: 0                 # Agents per batch (0 = unlimited; negative values are rejected at startup)
       chunk-attempt-multiplier: 0.0 # Extra scan attempts for filtered agents
     
     jitter:
@@ -185,6 +194,18 @@ redis:
         cap-ms: 600000                   # Default: 10 min; maximum backoff cap
 ```
 
+#### Startup Validation Rules
+
+- `redis.scheduler.interval-ms` and `redis.scheduler.refresh-period-seconds` must be `> 0`.
+- `redis.scheduler.batch-operations.batch-size` must be `>= 0`.
+- `redis.scheduler.batch-operations.chunk-attempt-multiplier` must be finite and `>= 0`.
+- `redis.scheduler.keys.waiting-set`, `working-set`, and `cleanup-leader-key` must be non-empty.
+- `redis.scheduler.jitter.initial-registration-seconds` and `shutdown-seconds` must be `>= 0`.
+- `redis.scheduler.jitter.failure-backoff-ratio` must be in `[0.0, 1.0]`.
+- Cleanup and reconcile shutdown waits/run budgets must be non-negative.
+- When `redis.scheduler.orphan-cleanup.run-budget-ms > 0`, startup requires:
+  - `redis.scheduler.orphan-cleanup.leadership-ttl-ms >= run-budget-ms + 60000`
+
 ### Circuit Breaker (`redis.scheduler.circuit-breaker.*`)
 
 ```yaml
@@ -197,6 +218,8 @@ redis:
       cooldown-ms: 30000      # Wait before testing recovery
       half-open-duration-ms: 5000
 ```
+
+The scheduler uses two breakers internally: acquisition and Redis. The Redis breaker is intentionally tuned more aggressively (lower threshold, shorter windows/cooldown/half-open) and is primarily used on Redis repopulation paths; acquisition breaker state gates the main `saturatePool` cycle.
 
 ### Zombie Cleanup (`redis.scheduler.zombie-cleanup.*`)
 
@@ -215,6 +238,8 @@ redis:
         threshold-ms: 3600000   # Buffer for exceptional agents (default: 60m)
 ```
 
+If `exceptional-agents.pattern` is invalid, the scheduler logs an error and falls back to the default zombie threshold for all agents.
+
 ### Orphan Cleanup (`redis.scheduler.orphan-cleanup.*`)
 
 ```yaml
@@ -230,6 +255,9 @@ redis:
       run-budget-ms: 0           # Max runtime per pass; 0 disables budget
       executor-shutdown-await-ms: 10000      # Graceful shutdown wait
       executor-shutdown-force-await-ms: 5000 # Forced shutdown wait
+```
+
+When `run-budget-ms > 0`, `leadership-ttl-ms` must be at least `run-budget-ms + 60000` (1 minute margin) or startup validation fails.
 
 ### Reconcile Executor (`redis.scheduler.reconcile.*`)
 
@@ -240,7 +268,6 @@ redis:
       run-budget-ms: 0                 # Max runtime per reconcile pass; 0 disables
       executor-shutdown-await-ms: 5000 # Graceful shutdown wait
       executor-shutdown-force-await-ms: 2000 # Forced shutdown wait
-```
 ```
 
 ### Redis Key Configuration
@@ -353,11 +380,22 @@ Additional metrics:
 ### Redis Commands
 
 ```bash
-redis-cli zcard waiting                      # Waiting queue size
-redis-cli zcard working                      # Working queue size
-redis-cli zrange waiting 0 10 WITHSCORES     # View oldest waiting agents
-redis-cli zscore waiting "agent-name"        # Check specific agent
-redis-cli get cleanup-leader                 # Check cleanup leadership
+# Use base keys when prefix/hash-tag are not configured.
+WAITING_KEY="waiting"
+WORKING_KEY="working"
+LEADER_KEY="cleanup-leader"
+
+# If keys are configured with prefix/hash-tag, use effective keys instead.
+# Example:
+# WAITING_KEY="myapp:waiting{ps}"
+# WORKING_KEY="myapp:working{ps}"
+# LEADER_KEY="myapp:cleanup-leader{ps}"
+
+redis-cli zcard "$WAITING_KEY"                       # Waiting queue size
+redis-cli zcard "$WORKING_KEY"                       # Working queue size
+redis-cli zrange "$WAITING_KEY" 0 10 WITHSCORES     # View oldest waiting agents
+redis-cli zscore "$WAITING_KEY" "agent-name"         # Check specific agent
+redis-cli get "$LEADER_KEY"                          # Check cleanup leadership
 ```
 
 Debug logging: `com.netflix.spinnaker.cats.redis.cluster: DEBUG`
