@@ -56,6 +56,7 @@ dependencies {
   testImplementation project(":gate-basic")
   testImplementation project(":gate-header")
   testImplementation project(":gate-oauth2")
+  testImplementation project(":gate-iap")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "com.squareup.okhttp3:mockwebserver"
 

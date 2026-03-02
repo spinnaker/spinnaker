@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.security.iap;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.gate.security.iap.IapSsoConfig.IapSecurityConfigProperties;
@@ -70,7 +71,7 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
 
   private Front50Service front50Service;
 
-  private final Map<String, JWK> keyCache = new HashMap<>();
+  @VisibleForTesting final Map<String, JWK> keyCache = new HashMap<>();
 
   public IapAuthenticationFilter(
       IapSecurityConfigProperties configProperties,
@@ -97,13 +98,21 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
 
       Base64URL signatureInSession = (Base64URL) session.getAttribute(SIGNATURE_ATTRIBUTE);
 
-      if (signatureInSession != null && signatureInSession.equals(jwt.getSignature())) {
-        // Signature matches in previous request signatures in current session, skip validation.
-        chain.doFilter(request, response);
-        return;
-      }
+      User verifiedUser;
+      boolean isNewAuthentication = true;
 
-      User verifiedUser = verifyJWTAndGetUser(jwt);
+      if (signatureInSession != null && signatureInSession.equals(jwt.getSignature())) {
+        // Signature matches previous request in current session, skip validation but still
+        // need to set authentication in SecurityContext
+        JWTClaimsSet claims = jwt.getJWTClaimsSet();
+        String email = (String) claims.getClaim("email");
+        verifiedUser = new User();
+        verifiedUser.setEmail(email);
+        isNewAuthentication = false;
+      } else {
+        // New JWT or different signature, perform full validation
+        verifiedUser = verifyJWTAndGetUser(jwt);
+      }
 
       PreAuthenticatedAuthenticationToken authentication =
           new PreAuthenticatedAuthenticationToken(
@@ -113,14 +122,17 @@ public class IapAuthenticationFilter extends OncePerRequestFilter {
               verifiedUser.getAuthorities());
 
       // Service accounts are already logged in.
-      if (!isServiceAccount(verifiedUser.getEmail())) {
+      // Only call login on new authentication to avoid redundant calls
+      if (isNewAuthentication && !isServiceAccount(verifiedUser.getEmail())) {
         permissionService.login(verifiedUser.getEmail());
       }
 
       SecurityContextHolder.getContext().setAuthentication(authentication);
 
       // Save the signature to skip validation for subsequent requests with same token.
-      session.setAttribute(SIGNATURE_ATTRIBUTE, jwt.getSignature());
+      if (isNewAuthentication) {
+        session.setAttribute(SIGNATURE_ATTRIBUTE, jwt.getSignature());
+      }
 
     } catch (Exception e) {
       log.error("Could not verify JWT Token for request {}", request.getPathInfo(), e);
