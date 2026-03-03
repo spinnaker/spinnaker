@@ -61,6 +61,9 @@ public class AzureImageTagger extends ImageTagger {
               operation.put("regions", Collections.singletonList(matchedImage.region));
               operation.put("tags", tags);
               operation.put("isCustomImage", true);
+              if (isSigResourceId(matchedImage.imageId)) {
+                operation.put("isGalleryImage", true);
+              }
 
               operations.add(Collections.singletonMap(OPERATION, operation));
             });
@@ -84,14 +87,37 @@ public class AzureImageTagger extends ImageTagger {
         .map(
             imageId -> {
               if (imageId.startsWith("/subscriptions/")) {
-                // Extract image name from resource ID like:
-                // /subscriptions/.../resourceGroups/.../providers/Microsoft.Compute/images/imageName
+                if (imageId.contains("/galleries/")) {
+                  // SIG path like:
+                  // /subscriptions/.../galleries/my-gallery/images/my-image/versions/1.0.9
+                  // Extract the image definition name (segment after /images/)
+                  return extractSigImageName(imageId);
+                }
+                // Managed image path like:
+                // /subscriptions/.../providers/Microsoft.Compute/images/imageName
                 String[] parts = imageId.split("/");
                 return parts[parts.length - 1];
               }
               return imageId;
             })
         .collect(toList());
+  }
+
+  static String extractSigImageName(String sigResourceId) {
+    String[] parts = sigResourceId.split("/");
+    for (int i = 0; i < parts.length - 1; i++) {
+      if ("images".equals(parts[i])) {
+        return parts[i + 1];
+      }
+    }
+    // Fallback: return last segment
+    return parts[parts.length - 1];
+  }
+
+  static boolean isSigResourceId(String resourceId) {
+    return resourceId != null
+        && resourceId.startsWith("/subscriptions/")
+        && resourceId.contains("/galleries/");
   }
 
   @Override
@@ -101,6 +127,7 @@ public class AzureImageTagger extends ImageTagger {
     for (Image targetImage : targetImages) {
       Map<String, String> additionalFilters = new HashMap<>();
       additionalFilters.put("managedImages", "true");
+      additionalFilters.put("galleryImages", "true");
 
       List<Map> foundImages =
           oortService.findImage(

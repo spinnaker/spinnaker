@@ -33,6 +33,7 @@ class Keys {
     AZURE_VMIMAGES,
     AZURE_CUSTOMVMIMAGES,
     AZURE_MANAGEDIMAGES,
+    AZURE_GALLERYIMAGES,
     AZURE_ON_DEMAND,
     AZURE_EVICTIONS
 
@@ -106,6 +107,9 @@ class Keys {
         break
       case Namespace.AZURE_MANAGEDIMAGES.ns:
         result << [account: parts[2], resourceGroup: parts[3], region: parts[4], name: parts[5], osType: parts[6]]
+        break
+      case Namespace.AZURE_GALLERYIMAGES.ns:
+        result << [account: parts[2], resourceGroup: parts[3], region: parts[4], galleryName: parts[5], imageDefinitionName: parts[6], version: parts[7], osType: parts[8]]
         break
       case Namespace.AZURE_SERVER_GROUPS.ns:
         def names = Names.parseName(parts[2])
@@ -233,6 +237,28 @@ class Keys {
                               String vmImageName,
                               String vmImageVersion)  {
     "${azureCloudProviderId}:${Namespace.AZURE_VMIMAGES}:${account}:${region}:${vmImageName}:${vmImageVersion}"
+  }
+
+  static String getGalleryImageKey(AzureCloudProvider azureCloudProvider,
+                              String account,
+                              String region,
+                              String resourceGroup,
+                              String galleryName,
+                              String imageDefinitionName,
+                              String version,
+                              String osType) {
+    getGalleryImageKey(azureCloudProvider.id, account, region, resourceGroup, galleryName, imageDefinitionName, version, osType)
+  }
+
+  static String getGalleryImageKey(String azureCloudProviderId,
+                              String account,
+                              String region,
+                              String resourceGroup,
+                              String galleryName,
+                              String imageDefinitionName,
+                              String version,
+                              String osType) {
+    "${azureCloudProviderId}:${Namespace.AZURE_GALLERYIMAGES}:${account}:${resourceGroup}:${region}:${galleryName}:${imageDefinitionName}:${version}:${osType}"
   }
 
   static String getCustomVMImageKey(AzureCloudProvider azureCloudProvider,
