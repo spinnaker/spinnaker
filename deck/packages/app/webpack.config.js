@@ -27,12 +27,28 @@ function configure(env, webpackOpts) {
   console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const plugins = [
-    new ESLintPlugin({ failOnError: ESLINT_FAIL_ON_ERROR, threads: 4 }),
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new CopyWebpackPlugin([
-      { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
-      { from: `./public/plugin-manifest.json`, to: `./plugin-manifest.json` },
-    ]),
+    // eslint plugin isn't fully compatible with eslint 9 TypeScript changes,
+    // so we use the use-at-your-own-risk version with experimental TS compatibility
+    new ESLintPlugin({ failOnError: ESLINT_FAIL_ON_ERROR, threads: 4, eslintPath: 'eslint/use-at-your-own-risk' }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        diagnosticOptions: {
+          syntactics: true,
+        },
+      },
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
+          to: `./styleguide.html`,
+        },
+        {
+          from: `./public/plugin-manifest.json`,
+          to: `./plugin-manifest.json`,
+        },
+      ],
+    }),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: 'index.deck',
@@ -82,9 +98,7 @@ function configure(env, webpackOpts) {
       minimizer: IS_PRODUCTION
         ? [
             new TerserPlugin({
-              cache: true,
               parallel: true,
-              sourceMap: true,
               terserOptions: {
                 ecma: 2017,
                 mangle: false,
@@ -110,6 +124,9 @@ function configure(env, webpackOpts) {
           'commonImports.less',
         ),
         root: DECK_ROOT,
+        // Fix react-virtualized circular dependency issue with webpack 5
+        // https://github.com/bvaughn/react-virtualized/issues/1632
+        'react-virtualized$': path.resolve(NODE_MODULE_PATH, 'react-virtualized/dist/commonjs/index.js'),
       },
     },
     module: {
@@ -126,7 +143,7 @@ function configure(env, webpackOpts) {
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'babel-loader' },
           ],
-          exclude: /(node_modules(?!\/clipboard)|settings\.js)/,
+          exclude: /(node_modules(?!\/clipboard)|settings\.js|packages\/[^/]+\/dist\/)/,
         },
         {
           test: /\.tsx?$/,
@@ -171,7 +188,12 @@ function configure(env, webpackOpts) {
               options: {
                 filterSourceMappingUrl: (url, resourcePath) => {
                   if (IS_PRODUCTION) return true;
+                  // Skip source maps that cause issues with thread-loader
                   if (/.*\/node_modules\/(rxjs-compat|graphql-tag)\/.*/.test(resourcePath)) {
+                    return false;
+                  }
+                  // Skip @spinnaker package source maps (pre-bundled, causes thread-loader issues)
+                  if (/\/packages\/[^/]+\/dist\//.test(resourcePath)) {
                     return false;
                   }
                   return true;
@@ -184,15 +206,17 @@ function configure(env, webpackOpts) {
     },
     plugins,
     devServer: {
-      hot: true,
-      disableHostCheck: true,
+      hot: false,
+      allowedHosts: 'all',
       historyApiFallback: {
         index: '/',
       },
       port: process.env.DECK_PORT || 9000,
       host: process.env.DECK_HOST || 'localhost',
-      https: process.env.DECK_HTTPS === 'true',
-      stats: 'errors-only',
+      server: process.env.DECK_HTTPS === 'true' ? 'https' : 'http',
+      devMiddleware: {
+        stats: 'errors-only',
+      },
     },
     externals: {
       'react/addons': 'react',
@@ -202,11 +226,14 @@ function configure(env, webpackOpts) {
   };
 
   if (process.env.DECK_CERT) {
-    config.devServer.cert = fs.readFileSync(process.env.DECK_CERT);
-    config.devServer.key = fs.readFileSync(process.env.DECK_KEY);
-    if (process.env.DECK_CA_CERT) {
-      config.devServer.ca = fs.readFileSync(process.env.DECK_CA_CERT);
-    }
+    config.devServer.server = {
+      type: 'https',
+      options: {
+        cert: fs.readFileSync(process.env.DECK_CERT),
+        key: fs.readFileSync(process.env.DECK_KEY),
+        ca: process.env.DECK_CA_CERT ? fs.readFileSync(process.env.DECK_CA_CERT) : undefined,
+      },
+    };
   }
 
   return config;
