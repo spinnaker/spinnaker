@@ -3,7 +3,6 @@
  */
 
 import type { AST, Rule } from 'eslint';
-import type { AssignmentExpression, CallExpression, MemberExpression } from 'estree';
 import { isCallExpression, isIdentifier, isMemberExpression } from '../utils/utils';
 
 const rule = function (context: Rule.RuleContext) {
@@ -20,7 +19,8 @@ const rule = function (context: Rule.RuleContext) {
   }
 
   return {
-    AssignmentExpression: function (node: AssignmentExpression) {
+    AssignmentExpression: function (_node: any) {
+      const node = _node;
       const left = node.left;
       const right = node.right;
       const isModuleExports = isModuleExportMemberExpression(left);
@@ -65,13 +65,13 @@ function getAngularModuleNameNode(node) {
   if (!isCallExpression(node)) return false;
   const callee = node.callee as Rule.Node;
 
-  function angularModuleNameNode(callExpression: CallExpression) {
+  function angularModuleNameNode(callExpression: any) {
     const isLiteral =
       callExpression.arguments && callExpression.arguments[0] && callExpression.arguments[0].type === 'Literal';
     return isLiteral ? callExpression.arguments[0] : undefined;
   }
 
-  function isChainedCallExpression(_callee: Rule.Node): _callee is MemberExpression & Rule.NodeParentExtension {
+  function isChainedCallExpression(_callee: any): boolean {
     if (isMemberExpression(_callee)) {
       return _callee.object && _callee.object.type === 'CallExpression';
     }
@@ -95,7 +95,7 @@ function getAngularModuleNameNode(node) {
   }
 
   if (isChainedCallExpression(callee)) {
-    return getAngularModuleNameNode(callee.object);
+    return getAngularModuleNameNode((callee as any).object);
   } else if (isRawModuleCall(callee)) {
     if (node.arguments && node.arguments[0] && node.arguments[0].type === 'Literal') return angularModuleNameNode(node);
   } else if (isAngularModuleCall(callee)) {

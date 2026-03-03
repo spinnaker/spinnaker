@@ -1,16 +1,16 @@
 import type { Rule, Scope } from 'eslint';
-import type {
-  CallExpression,
-  Expression,
-  Identifier,
-  Literal,
-  MemberExpression,
-  NewExpression,
-  Node,
-  Program,
-  SpreadElement,
-} from 'estree';
+import type * as ESTree from 'estree';
 import * as _ from 'lodash/fp';
+
+type Node = ESTree.Node;
+type CallExpression = ESTree.CallExpression;
+type Expression = ESTree.Expression;
+type Identifier = ESTree.Identifier;
+type Literal = ESTree.Literal;
+type MemberExpression = ESTree.MemberExpression;
+type NewExpression = ESTree.NewExpression;
+type Program = ESTree.Program;
+type SpreadElement = ESTree.SpreadElement;
 
 export const getNodeType = (obj: Node) => obj?.type;
 export const isType = <T extends Node>(type: string) => (obj: Node): obj is T => getNodeType(obj) === type;
@@ -53,7 +53,7 @@ export function getVariableInScope(context: Rule.RuleContext, identifier: Identi
     return undefined;
   }
 
-  const { references } = context.getScope();
+  const { references } = context.sourceCode.getScope((identifier as unknown) as Rule.Node);
   const ref = references.find((r) => r.identifier.name === identifier.name);
   return ref ? ref.resolved : undefined;
 }
@@ -61,10 +61,10 @@ export function getVariableInScope(context: Rule.RuleContext, identifier: Identi
 export const getVariableInitializer = _.get('defs[0].node.init');
 
 export function getProgram(node: Node): Program {
-  let _node = node as Node & Rule.NodeParentExtension;
+  let _node = node as any;
   while (_node.parent) {
     if (_node.parent.type === 'Program') {
-      return _node.parent;
+      return _node.parent as Program;
     }
     _node = _node.parent;
   }

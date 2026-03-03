@@ -5,19 +5,33 @@ This package is an ESLint plugin containing:
 - A base ESLint config
   - Parser configured for typescript
   - A set of default plugins, e.g. `react-hooks` plugin
-  - Recommended rule sets, e.g. `prettier/@typescript-eslint`
+  - Recommended rule sets, e.g. `prettier`, `@typescript-eslint/recommended`
     - Specific from the recommended rule sets are disabled
 - Custom ESLint rules specific to Spinnaker
 
 ### Use
 
-To use the rules, create a `.eslintrc.js` containing:
+This plugin requires **ESLint 9+** and uses the flat config format.
+
+To use the rules, create an `eslint.config.js` containing:
 
 ```js
-module.exports = {
-  plugins: ['@spinnaker/eslint-plugin'],
-  extends: ['plugin:@spinnaker/base'],
-};
+const { defineConfig } = require('eslint/config');
+const spinnakerEslintPlugin = require('@spinnaker/eslint-plugin');
+const { FlatCompat } = require('@eslint/eslintrc');
+const js = require('@eslint/js');
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+});
+
+module.exports = defineConfig([{
+  plugins: {
+    '@spinnaker': spinnakerEslintPlugin,
+  },
+  extends: compat.extends('plugin:@spinnaker/base'),
+}]);
 ```
 
 ## Creating a custom lint rule
