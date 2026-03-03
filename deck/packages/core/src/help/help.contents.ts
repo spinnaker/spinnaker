@@ -492,7 +492,7 @@ const helpContents: { [key: string]: string } = {
     'if unchecked, marks the stage as successful right away without waiting for the Wercker job to complete',
   'script.waitForCompletion':
     'if unchecked, marks the stage as successful right away without waiting for the script to complete',
-  // eslint-disable-next-line no-useless-escape
+
   'markdown.examples': `
     Some examples of markdown syntax: <br/> \`*italic*\` <br/> \`**bold**\` <br/> \`[link text](http://url-goes-here)\`
   `,
