@@ -311,20 +311,17 @@ class SAMLConfigurationIntegrationTest {
     We'll check the body of the payload for the SAML request string instead.
      */
     String body = response.body();
-    System.out.println("Form to login:" + body);
-    // Example of what we're looking for.  THIS IS VERY specific to SPRING.  IF something changes
+    // Example of what we're looking for.  THIS Is a fairly standard set of form handling and
+    // doesn't change much (it's from the RFC).  IF something changes
     // probably start gate, look at the endpoint via curl to show what could have changed.
     // <input type="hidden" name="SAMLRequest"
     // value="PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c2FtbDJwOkF1dGhuUmVxdWVzdCB4bWxuczpzYW1sMnA9InVybjpvYXNpczpuYW1lczp0YzpTQU1MOjIuMDpwcm90b2NvbCIgQXNzZXJ0aW9uQ29uc3VtZXJTZXJ2aWNlVVJMPSJodHRwOi8vbG9jYWxob3N0OjU0NDM2L3NhbWwvU1NPIiBEZXN0aW5hdGlvbj0iaHR0cHM6Ly9pbnRlZ3JhdG9yLTMzOTU3Njcub2t0YS5jb20vYXBwL2ludGVncmF0b3ItMzM5NTc2N19zcGlubmFrZXJfMS9leGt1MXJ4ZXloSmVQMTZpSjY5Ny9zc28vc2FtbCIgRm9yY2VBdXRobj0iZmFsc2UiIElEPSJBUlExMDkwNWQ3LWE4YTQtNDJmOC1hMDZlLWUwMjFhZjllZjc0YiIgSXNQYXNzaXZlPSJmYWxzZSIgSXNzdWVJbnN0YW50PSIyMDI2LTAzLTA1VDAzOjE0OjQ4LjYyMFoiIFByb3RvY29sQmluZGluZz0idXJuOm9hc2lzOm5hbWVzOnRjOlNBTUw6Mi4wOmJpbmRpbmdzOkhUVFAtUE9TVCIgVmVyc2lvbj0iMi4wIj48c2FtbDI6SXNzdWVyIHhtbG5zOnNhbWwyPSJ1cm46b2FzaXM6bmFtZXM6dGM6U0FNTDoyLjA6YXNzZXJ0aW9uIj50ZXN0LXJlYWxtPC9zYW1sMjpJc3N1ZXI+PC9zYW1sMnA6QXV0aG5SZXF1ZXN0Pg=="/>
     String samlRequest = extractFieldFromBody("SAMLRequest", body);
     String relayState = extractFieldFromBody("RelayState", body);
-    System.out.println("Relay state: " + relayState);
-    System.out.println("SAML Request: " + samlRequest);
     // Extract and decode SAML request
 
     // Verify SAML request contains expected elements
     String decodeSamlRequest = decodeSamlRequest(samlRequest);
-    System.out.println("SAML Request: " + decodeSamlRequest);
     assertThat(decodeSamlRequest)
         .contains("AuthnRequest")
         .contains("AssertionConsumerServiceURL")
@@ -346,11 +343,13 @@ class SAMLConfigurationIntegrationTest {
             .followRedirects(HttpClient.Redirect.ALWAYS)
             .build();
     HttpResponse<String> authResponse = client.send(authPost, HttpResponse.BodyHandlers.ofString());
-    System.out.println(authResponse.body());
-    System.out.println(keycloak.getLogs());
-    assertThat(authResponse.statusCode()).isEqualTo(200);
-    // NOW... we have to LOGIN to keycloak ugh!  Manual SAML flow == PIA
-
+    assertThat(authResponse.statusCode())
+        .isEqualTo(200); // This is now the "login" page for keycloak... aka auth redirect WORKED
+    // Instead of continuing to create a browser flow next test will use html unit to really do all
+    // this auth stuff.  The above
+    // should allow someone to get an UNDERSTANDING of the SAML flow in spinnaker.  AS WELL as basic
+    // validation of saml
+    // configuration
   }
 
   private static @NotNull String extractFieldFromBody(String fieldName, String body) {
@@ -426,7 +425,6 @@ class SAMLConfigurationIntegrationTest {
     // Verify we're back at the application
     String currentUrl = driver.getCurrentUrl();
     assertThat(currentUrl).contains("localhost:" + port + "/beans");
-    System.out.println(driver.getPageSource());
     assertThat(driver.getPageSource()).contains("beans");
 
     // Check auth user to make sure login REALLY worked
