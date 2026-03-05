@@ -37,9 +37,23 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
       return
     }
 
-    project.gradle.parent.rootProject.file(".git/hooks").mkdirs()
-    project.gradle.parent.rootProject.file(".git/hooks/pre-commit").write(getClass().getResource("/pre-commit").text)
-    project.gradle.parent.rootProject.file(".git/hooks/pre-commit").executable = true
+    def gitFile = project.gradle.parent.rootProject.file(".git")
+    def hooksDir
+    if (gitFile.isFile()) {
+      // Git worktree: .git is a file containing "gitdir: <path>"
+      def gitDirPath = gitFile.text.trim().replaceFirst("gitdir: ", "")
+      def gitDir = new File(gitDirPath)
+      if (!gitDir.isAbsolute()) {
+        gitDir = new File(project.gradle.parent.rootProject.projectDir, gitDirPath)
+      }
+      hooksDir = new File(gitDir, "hooks")
+    } else {
+      hooksDir = new File(gitFile, "hooks")
+    }
+    hooksDir.mkdirs()
+    def preCommit = new File(hooksDir, "pre-commit")
+    preCommit.write(getClass().getResource("/pre-commit").text)
+    preCommit.executable = true
 
     project.plugins.apply(SpotlessPlugin)
     project.spotless { SpotlessExtension spotless ->

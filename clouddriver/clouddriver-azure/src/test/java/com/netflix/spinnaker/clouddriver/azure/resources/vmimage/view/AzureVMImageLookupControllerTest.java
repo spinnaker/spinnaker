@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider;
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys;
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage;
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureGalleryVMImage;
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureManagedVMImage;
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage;
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage;
@@ -91,6 +92,8 @@ class AzureVMImageLookupControllerTest {
         .willReturn(List.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
         .willReturn(List.of());
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString()))
+        .willReturn(List.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyString()))
         .willReturn(List.of());
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
@@ -101,6 +104,10 @@ class AzureVMImageLookupControllerTest {
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of());
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
@@ -358,6 +365,8 @@ class AzureVMImageLookupControllerTest {
         .willReturn(List.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
         .willReturn(List.of());
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString()))
+        .willReturn(List.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyString()))
         .willReturn(List.of(vmImageKey));
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
@@ -368,6 +377,10 @@ class AzureVMImageLookupControllerTest {
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of());
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class)))
         .willReturn(List.of());
     given(
             cache.getAll(
@@ -399,14 +412,15 @@ class AzureVMImageLookupControllerTest {
         .returns(NOT_AVAILABLE, AzureNamedImage::getUri);
 
     verify(this.accountCredentialsProvider, times(1)).getAll();
-    verify(this.cache, times(3)).filterIdentifiers(anyString(), anyString());
-    verify(this.cache, times(3)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
+    verify(this.cache, times(4)).filterIdentifiers(anyString(), anyString());
+    verify(this.cache, times(4)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
     assertThat(keyNamespace)
         .containsOnly(
             Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs(),
             Keys.Namespace.AZURE_VMIMAGES.getNs(),
-            Keys.Namespace.AZURE_MANAGEDIMAGES.getNs());
+            Keys.Namespace.AZURE_MANAGEDIMAGES.getNs(),
+            Keys.Namespace.AZURE_GALLERYIMAGES.getNs());
   }
 
   @Test
@@ -438,6 +452,13 @@ class AzureVMImageLookupControllerTest {
                 eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
         .willReturn(List.of(c));
 
+    // Mock credentials for buildAzureNamedImage
+    var mockCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials.class);
+    var mockAzureCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials.class);
+    given(mockCreds.getCredentials()).willReturn(mockAzureCreds);
+    given(mockAzureCreds.getSubscriptionId()).willReturn(SUBSCRIPTION_ID);
+    doReturn(mockCreds).when(accountCredentialsProvider).getCredentials(AZURE_ACCOUNT);
+
     // act
     List<AzureNamedImage> list = lookupController.list(lookupOptions, new HashMap<>());
 
@@ -445,6 +466,8 @@ class AzureVMImageLookupControllerTest {
     ArgumentCaptor<String> namespace = ArgumentCaptor.forClass(String.class);
     assertThat(list).isNotEmpty().hasSize(1);
     AzureNamedImage namedImage = list.get(0);
+    String expectedUri = "/subscriptions/" + SUBSCRIPTION_ID + "/resourceGroups/" + RESOURCE_GROUP
+        + "/providers/Microsoft.Compute/images/" + VM_IMAGE_NAME;
     assertThat(namedImage)
         .isNotNull()
         .returns(VM_IMAGE_NAME, AzureNamedImage::getImageName)
@@ -455,7 +478,7 @@ class AzureVMImageLookupControllerTest {
         .returns(NOT_AVAILABLE, AzureNamedImage::getOffer)
         .returns(NOT_AVAILABLE, AzureNamedImage::getSku)
         .returns(NOT_AVAILABLE, AzureNamedImage::getVersion)
-        .returns(NOT_AVAILABLE, AzureNamedImage::getUri);
+        .returns(expectedUri, AzureNamedImage::getUri);
 
     verify(cache, times(2)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
     List<String> keyNamespace = namespace.getAllValues();
@@ -494,6 +517,13 @@ class AzureVMImageLookupControllerTest {
                 eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
         .willReturn(List.of(c));
 
+    // Mock credentials for buildAzureNamedImage
+    var mockCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials.class);
+    var mockAzureCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials.class);
+    given(mockCreds.getCredentials()).willReturn(mockAzureCreds);
+    given(mockAzureCreds.getSubscriptionId()).willReturn(SUBSCRIPTION_ID);
+    doReturn(mockCreds).when(accountCredentialsProvider).getCredentials(AZURE_ACCOUNT);
+
     // act
     List<AzureNamedImage> list = lookupController.getVMImage(AZURE_ACCOUNT, REGION, VM_IMAGE_NAME);
 
@@ -501,6 +531,8 @@ class AzureVMImageLookupControllerTest {
     ArgumentCaptor<String> namespace = ArgumentCaptor.forClass(String.class);
     assertThat(list).isNotEmpty().hasSize(1);
     AzureNamedImage namedImage = list.get(0);
+    String expectedUri = "/subscriptions/" + SUBSCRIPTION_ID + "/resourceGroups/" + RESOURCE_GROUP
+        + "/providers/Microsoft.Compute/images/" + VM_IMAGE_NAME;
     assertThat(namedImage)
         .isNotNull()
         .returns(VM_IMAGE_NAME, AzureNamedImage::getImageName)
@@ -511,7 +543,7 @@ class AzureVMImageLookupControllerTest {
         .returns(NOT_AVAILABLE, AzureNamedImage::getOffer)
         .returns(NOT_AVAILABLE, AzureNamedImage::getSku)
         .returns(NOT_AVAILABLE, AzureNamedImage::getVersion)
-        .returns(NOT_AVAILABLE, AzureNamedImage::getUri);
+        .returns(expectedUri, AzureNamedImage::getUri);
 
     verify(cache, times(2)).filterIdentifiers(anyString(), anyString());
     verify(cache, times(2)).getAll(namespace.capture(), anyList(), any(CacheFilter.class));
@@ -563,5 +595,151 @@ class AzureVMImageLookupControllerTest {
     azureVMImage.setPublisher(PUBLISHER);
     azureVMImage.setVersion(VERSION);
     return azureVMImage;
+  }
+
+  private static final String GALLERY_NAME = "my-gallery";
+  private static final String IMAGE_DEF_NAME = "my-image-def";
+  private static final String GALLERY_VERSION = "1.0.0";
+  private static final String SUBSCRIPTION_ID = "sub123";
+
+  private static Map<String, Object> getGalleryImageAsJsonMap() {
+    var galleryImage = new AzureGalleryVMImage();
+    galleryImage.setName(IMAGE_DEF_NAME);
+    galleryImage.setGalleryName(GALLERY_NAME);
+    galleryImage.setImageDefinitionName(IMAGE_DEF_NAME);
+    galleryImage.setVersion(GALLERY_VERSION);
+    galleryImage.setResourceGroup(RESOURCE_GROUP);
+    galleryImage.setRegion(REGION);
+    galleryImage.setOsType(OS_TYPE);
+    galleryImage.setTags(Map.of("build_host", "packer", "appversion", "1.0.0"));
+    galleryImage.setResourceId(
+        "/subscriptions/" + SUBSCRIPTION_ID + "/resourceGroups/" + RESOURCE_GROUP
+            + "/providers/Microsoft.Compute/galleries/" + GALLERY_NAME
+            + "/images/" + IMAGE_DEF_NAME + "/versions/" + GALLERY_VERSION);
+    return objectMapper.convertValue(galleryImage, new TypeReference<>() {});
+  }
+
+  @Test
+  @DisplayName("findImagesByTags should return gallery images matching tags")
+  void shouldReturnGalleryImagesWhenSearchingByTags() {
+    // prepare
+    LookupOptions lookupOptions = new LookupOptions();
+    lookupOptions.setAccount(AZURE_ACCOUNT);
+    lookupOptions.setRegion(REGION);
+    lookupOptions.setTags(Map.of("appversion", "1.0.0"));
+
+    // Mock managed images - empty
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
+        .willReturn(List.of());
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of());
+
+    // Mock gallery images - one match
+    String galleryKey =
+        Keys.getGalleryImageKey(
+            azureCloudProvider,
+            AZURE_ACCOUNT,
+            REGION,
+            RESOURCE_GROUP,
+            GALLERY_NAME,
+            IMAGE_DEF_NAME,
+            GALLERY_VERSION,
+            OS_TYPE);
+
+    Map<String, Object> galleryImageMap = getGalleryImageAsJsonMap();
+    CacheData galleryCacheData =
+        new DefaultCacheData(galleryKey, Map.of("vmimage", galleryImageMap), Map.of());
+
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString()))
+        .willReturn(List.of(galleryKey));
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of(galleryCacheData));
+
+    // Mock credentials for buildGalleryAzureNamedImage
+    var mockCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials.class);
+    var mockAzureCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials.class);
+    given(mockCreds.getCredentials()).willReturn(mockAzureCreds);
+    given(mockAzureCreds.getSubscriptionId()).willReturn(SUBSCRIPTION_ID);
+    doReturn(mockCreds).when(accountCredentialsProvider).getCredentials(AZURE_ACCOUNT);
+
+    // act
+    List<AzureNamedImage> results =
+        lookupController.list(lookupOptions, Map.of("tag:appversion", "1.0.0"));
+
+    // assert
+    assertThat(results).isNotEmpty().hasSize(1);
+    AzureNamedImage result = results.get(0);
+    assertThat(result.getImageName()).isEqualTo(IMAGE_DEF_NAME);
+    assertThat(result.getIsCustom()).isTrue();
+    assertThat(result.getVersion()).isEqualTo(GALLERY_VERSION);
+    assertThat(result.getOstype()).isEqualTo(OS_TYPE);
+    assertThat(result.getRegion()).isEqualTo(REGION);
+    assertThat(result.getAccount()).isEqualTo(AZURE_ACCOUNT);
+    assertThat(result.getUri()).contains("/galleries/" + GALLERY_NAME);
+    assertThat(result.getUri()).contains("/images/" + IMAGE_DEF_NAME);
+    assertThat(result.getTags()).containsEntry("appversion", "1.0.0");
+  }
+
+  @Test
+  @DisplayName("list with galleryImages=true should return gallery images from cache")
+  void shouldReturnGalleryImagesWhenGalleryFlagIsTrue() {
+    // prepare
+    LookupOptions lookupOptions = new LookupOptions();
+    lookupOptions.setAccount(AZURE_ACCOUNT);
+    lookupOptions.setRegion(REGION);
+    lookupOptions.setGalleryImages(true);
+    lookupOptions.setCustomOnly(true);
+
+    // Mock custom images - empty
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
+        .willReturn(List.of());
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of());
+
+    // Mock gallery images - one match
+    String galleryKey =
+        Keys.getGalleryImageKey(
+            azureCloudProvider,
+            AZURE_ACCOUNT,
+            REGION,
+            RESOURCE_GROUP,
+            GALLERY_NAME,
+            IMAGE_DEF_NAME,
+            GALLERY_VERSION,
+            OS_TYPE);
+
+    Map<String, Object> galleryImageMap = getGalleryImageAsJsonMap();
+    CacheData galleryCacheData =
+        new DefaultCacheData(galleryKey, Map.of("vmimage", galleryImageMap), Map.of());
+
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString()))
+        .willReturn(List.of(galleryKey));
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of(galleryCacheData));
+
+    // Mock credentials
+    var mockCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials.class);
+    var mockAzureCreds = mock(com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials.class);
+    given(mockCreds.getCredentials()).willReturn(mockAzureCreds);
+    given(mockAzureCreds.getSubscriptionId()).willReturn(SUBSCRIPTION_ID);
+    doReturn(mockCreds).when(accountCredentialsProvider).getCredentials(AZURE_ACCOUNT);
+
+    // act
+    List<AzureNamedImage> results = lookupController.list(lookupOptions, new HashMap<>());
+
+    // assert
+    assertThat(results).isNotEmpty().hasSize(1);
+    AzureNamedImage result = results.get(0);
+    assertThat(result.getImageName()).isEqualTo(IMAGE_DEF_NAME);
+    assertThat(result.getIsCustom()).isTrue();
+    assertThat(result.getUri()).contains("/galleries/" + GALLERY_NAME);
   }
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.azure.AzureCloudProvider
 import com.netflix.spinnaker.clouddriver.azure.resources.common.cache.Keys
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCustomVMImage
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureGalleryVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureManagedVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureNamedImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
@@ -118,6 +119,20 @@ class AzureVMImageLookupController {
       return result
     }
 
+    /// Search for any matches in the Gallery image cache
+    result.addAll(
+      getAllMatchingKeyPattern(
+        imageId,
+        Keys.Namespace.AZURE_GALLERYIMAGES,
+        Keys.getGalleryImageKey(azureCloudProvider,
+          account,
+          region,
+          "*", "*", "*", "*", "*")))
+
+    if (!result.isEmpty()) {
+      // found at least one match
+      return result
+    }
 
     /// Search for any matches in the market store VM image cache
     result.addAll(
@@ -171,6 +186,16 @@ class AzureVMImageLookupController {
             "*", "*")))
     }
 
+    if (lookupOptions.galleryImages) {
+      result.addAll(
+        getAllMatchingKeyPattern(
+          lookupOptions.q,
+          Keys.Namespace.AZURE_GALLERYIMAGES,
+          Keys.getGalleryImageKey(azureCloudProvider,
+            lookupOptions.account ?: '*',
+            lookupOptions.region ?: '*',
+            "*", "*", "*", "*", "*")))
+    }
 
     if (!lookupOptions.customOnly) {
       // return a list of virtual machine images as read from the config.yml file
@@ -227,6 +252,10 @@ class AzureVMImageLookupController {
 
       if( type == Keys.Namespace.AZURE_MANAGEDIMAGES) {
         item = fromManagedImageCacheData(vmImagePartName, cacheData)
+      }
+
+      if (type == Keys.Namespace.AZURE_GALLERYIMAGES) {
+        item = fromGalleryImageCacheData(vmImagePartName, cacheData)
       }
 
       if(type == Keys.Namespace.AZURE_VMIMAGES) {
@@ -311,8 +340,26 @@ class AzureVMImageLookupController {
     null
   }
 
+  AzureNamedImage fromGalleryImageCacheData(String vmImagePartName, CacheData cacheData) {
+    try {
+      AzureGalleryVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureGalleryVMImage)
+      def parts = Keys.parse(azureCloudProvider, cacheData.id)
+
+      if ((vmImage.region == parts.region) &&
+          (vmImagePartName == null || vmImage.imageDefinitionName.toLowerCase().contains(vmImagePartName.toLowerCase()))) {
+        return buildGalleryAzureNamedImage(vmImage, parts)
+      }
+    } catch (Exception e) {
+      log.error("fromGalleryImageCacheData -> Unexpected exception", e)
+    }
+
+    null
+  }
+
   List<AzureNamedImage> findImagesByTags(LookupOptions lookupOptions) {
     def results = [] as List<AzureNamedImage>
+
+    // Search managed images
     def pattern = Keys.getManagedVMImageKey(azureCloudProvider,
       lookupOptions.account ?: '*',
       lookupOptions.region ?: '*',
@@ -338,6 +385,34 @@ class AzureVMImageLookupController {
       }
     }
 
+    // Also search gallery images
+    if (results.size() < MAX_SEARCH_RESULTS) {
+      def galleryPattern = Keys.getGalleryImageKey(azureCloudProvider,
+        lookupOptions.account ?: '*',
+        lookupOptions.region ?: '*',
+        "*", "*", "*", "*", "*")
+
+      def galleryIdentifiers = cacheView.filterIdentifiers(Keys.Namespace.AZURE_GALLERYIMAGES.ns, galleryPattern)
+      def galleryData = cacheView.getAll(Keys.Namespace.AZURE_GALLERYIMAGES.ns, galleryIdentifiers, RelationshipCacheFilter.none())
+
+      for (cacheData in galleryData) {
+        try {
+          AzureGalleryVMImage galleryImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureGalleryVMImage)
+          def parts = Keys.parse(azureCloudProvider, cacheData.id)
+
+          if (matchesGalleryFilters(galleryImage, lookupOptions)) {
+            results += buildGalleryAzureNamedImage(galleryImage, parts)
+
+            if (results.size() >= MAX_SEARCH_RESULTS) {
+              break
+            }
+          }
+        } catch (Exception e) {
+          log.error("findImagesByTags (gallery) -> Unexpected exception", e)
+        }
+      }
+    }
+
     results
   }
 
@@ -358,6 +433,49 @@ class AzureVMImageLookupController {
     }
 
     return true
+  }
+
+  private boolean matchesGalleryFilters(AzureGalleryVMImage galleryImage, LookupOptions lookupOptions) {
+    // Check tags match
+    if (lookupOptions.tags && !lookupOptions.tags.isEmpty()) {
+      if (!galleryImage.tags) return false
+      for (entry in lookupOptions.tags.entrySet()) {
+        if (galleryImage.tags.get(entry.key) != entry.value) {
+          return false
+        }
+      }
+    }
+
+    // Check image name match (matches against imageDefinitionName)
+    if (lookupOptions.q && !lookupOptions.q.isEmpty()) {
+      return galleryImage.imageDefinitionName.toLowerCase().contains(lookupOptions.q.toLowerCase())
+    }
+
+    return true
+  }
+
+  private AzureNamedImage buildGalleryAzureNamedImage(AzureGalleryVMImage galleryImage, def parts) {
+    def credentials = accountCredentialsProvider.getCredentials(parts.account) as AzureNamedAccountCredentials
+    def subscriptionId = credentials.credentials.subscriptionId
+    def resourceGroup = galleryImage.resourceGroup
+
+    def imageUri = "/subscriptions/${subscriptionId}/resourceGroups/${resourceGroup}" +
+      "/providers/Microsoft.Compute/galleries/${galleryImage.galleryName}" +
+      "/images/${galleryImage.imageDefinitionName}/versions/${galleryImage.version}"
+
+    return new AzureNamedImage(
+      imageName: galleryImage.imageDefinitionName,
+      isCustom: true,
+      publisher: "na",
+      offer: "na",
+      sku: "na",
+      version: galleryImage.version,
+      uri: imageUri,
+      ostype: galleryImage.osType,
+      account: parts.account,
+      region: parts.region ?: galleryImage.region,
+      tags: galleryImage.tags
+    )
   }
 
   private AzureNamedImage buildAzureNamedImage(AzureManagedVMImage vmImage, def parts) {
@@ -402,6 +520,7 @@ class AzureVMImageLookupController {
     Boolean configOnly = true
     Boolean customOnly = false
     Boolean managedImages = false
+    Boolean galleryImages = false
     Map<String, String> tags
   }
 }

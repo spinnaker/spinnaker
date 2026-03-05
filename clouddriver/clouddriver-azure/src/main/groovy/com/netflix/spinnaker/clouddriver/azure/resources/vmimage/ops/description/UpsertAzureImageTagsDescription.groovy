@@ -9,4 +9,5 @@ class UpsertAzureImageTagsDescription extends AzureResourceOpsDescription {
   Collection<String> regions
   Map<String, String> tags
   boolean isCustomImage = false
+  boolean isGalleryImage = false
 }

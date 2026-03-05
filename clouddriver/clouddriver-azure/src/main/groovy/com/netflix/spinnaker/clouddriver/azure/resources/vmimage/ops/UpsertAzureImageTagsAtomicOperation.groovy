@@ -28,7 +28,9 @@ class UpsertAzureImageTagsAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus(BASE_PHASE, "Initializing Upsert Image Tags operation for ${descriptor}...")
 
     try {
-      if (description.isCustomImage) {
+      if (description.isGalleryImage) {
+        updateGalleryImageTags()
+      } else if (description.isCustomImage) {
         updateManagedImageTags()
       } else {
         task.updateStatus(BASE_PHASE, "Marketplace images cannot be tagged in Azure")
@@ -41,6 +43,35 @@ class UpsertAzureImageTagsAtomicOperation implements AtomicOperation<Void> {
     }
 
     null
+  }
+
+  private void updateGalleryImageTags() {
+    def task = getTask()
+    def imageIdentifier = description.imageId ?: description.imageName
+
+    task.updateStatus(BASE_PHASE, "Updating tags for gallery image ${imageIdentifier}...")
+
+    def resourceId = description.imageId
+    if (!resourceId) {
+      task.updateStatus(BASE_PHASE, "No image ID provided for gallery image tagging")
+      task.fail()
+      return
+    }
+
+    def success = description.credentials.computeClient.updateCustomImageTags(
+        resourceId,
+        description.imageName,
+        description.resourceGroupName ?: description.appName,
+        description.tags
+    )
+
+    if (success) {
+      task.updateStatus(BASE_PHASE, "Successfully updated tags for gallery image ${imageIdentifier}")
+      log.info("Updated tags for gallery image ${imageIdentifier}: ${description.tags}")
+    } else {
+      task.updateStatus(BASE_PHASE, "Failed to update tags for gallery image ${imageIdentifier}")
+      task.fail()
+    }
   }
 
   private void updateManagedImageTags() {

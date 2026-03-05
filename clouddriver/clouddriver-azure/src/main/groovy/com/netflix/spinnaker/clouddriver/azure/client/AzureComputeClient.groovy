@@ -29,6 +29,7 @@ import com.azure.resourcemanager.compute.models.VirtualMachineSizes
 import com.azure.resourcemanager.compute.models.VirtualMachineSku
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureInstance
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.AzureServerGroupDescription
+import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureGalleryVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureManagedVMImage
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials
@@ -86,6 +87,69 @@ public class AzureComputeClient extends AzureBaseClient {
     result
   }
 
+  /**
+   * Return list of gallery VM images (Shared Image Gallery / Azure Compute Gallery)
+   * @param resourceGroup - filter by resource group containing the galleries
+   * @param region - filter by region (checks target regions and gallery location)
+   * @return List of AzureGalleryVMImage
+   */
+  List<AzureGalleryVMImage> getAllGalleryImages(String resourceGroup, String region) {
+    def result = [] as List<AzureGalleryVMImage>
+    try {
+      def galleries = executeOp({
+        azure.galleries()
+          .listByResourceGroup(resourceGroup)
+          .asList()
+      })
+
+      galleries?.each { gallery ->
+        try {
+          def imageDefinitions = executeOp({
+            azure.galleryImages()
+              .listByGallery(resourceGroup, gallery.name())
+              .asList()
+          })
+
+          imageDefinitions?.each { imageDef ->
+            try {
+              def versions = executeOp({
+                azure.galleryImageVersions()
+                  .listByGalleryImage(resourceGroup, gallery.name(), imageDef.name())
+                  .asList()
+              })
+
+              versions?.each { ver ->
+                def publishedInRegion = ver.publishingProfile()?.targetRegions()?.any {
+                  it.name()?.replace(" ", "")?.equalsIgnoreCase(region?.replace(" ", ""))
+                }
+                if (publishedInRegion || gallery.regionName()?.equalsIgnoreCase(region)) {
+                  result += new AzureGalleryVMImage(
+                    name: imageDef.name(),
+                    galleryName: gallery.name(),
+                    imageDefinitionName: imageDef.name(),
+                    version: ver.name(),
+                    resourceGroup: gallery.resourceGroupName(),
+                    region: region,
+                    osType: imageDef.osType()?.name() ?: "Unknown",
+                    tags: ver.tags() ?: imageDef.tags() ?: [:],
+                    resourceId: ver.id()
+                  )
+                }
+              }
+            } catch (Exception e) {
+              log.info("getAllGalleryImages -> Error listing versions for ${gallery.name()}/${imageDef.name()}: ${e.message}")
+            }
+          }
+        } catch (Exception e) {
+          log.info("getAllGalleryImages -> Error listing image definitions for gallery ${gallery.name()}: ${e.message}")
+        }
+      }
+    } catch (Exception e) {
+      log.error("getAllGalleryImages -> Unexpected exception", e)
+    }
+
+    result
+  }
 
   /**
    * Return list of available VM images
