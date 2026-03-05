@@ -37,8 +37,8 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Job
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Jobs
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Repository
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import okhttp3.MediaType
 import okhttp3.ResponseBody

@@ -31,7 +31,6 @@ import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.config.RestProperties;
 import com.netflix.spinnaker.echo.config.RestUrls;
 import com.netflix.spinnaker.echo.rest.RestService;
-import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -60,14 +59,14 @@ public class RestEventServiceTest {
     port = wireMockServer.port();
     WireMock.configureFor("localhost", port);
 
-    stubFor(post(urlEqualTo("/api/")).willReturn(aResponse().withStatus(200)));
+    stubFor(post(urlEqualTo("/api")).willReturn(aResponse().withStatus(200)));
 
     baseUrl = baseUrl.replaceFirst("PORT", String.valueOf(port));
 
     // Create the RestService
     RestService restService =
         new Retrofit.Builder()
-            .baseUrl(RetrofitUtils.getBaseUrl(baseUrl))
+            .baseUrl("http://not-used.com")
             .client(new OkHttpClient())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create())
@@ -98,7 +97,7 @@ public class RestEventServiceTest {
     service =
         RestUrls.Service.builder()
             .client(restService)
-            .config(new RestProperties.RestEndpointConfiguration())
+            .config(new RestProperties.RestEndpointConfiguration().setUrl(baseUrl))
             .build();
   }
 
@@ -110,6 +109,6 @@ public class RestEventServiceTest {
   @Test
   void testSendEvent() {
     restEventService.sendEvent(eventMap, service);
-    verify(1, postRequestedFor(urlEqualTo("/api/")));
+    verify(1, postRequestedFor(urlEqualTo("/api")));
   }
 }

@@ -12,13 +12,15 @@ import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
 import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig
 import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
-import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.util.concurrent.BlockingVariable
+
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 
 @SpringBootTest(classes = [Retrofit2TestConfig, Retrofit2BasicLogTestConfig],
   webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -36,7 +38,7 @@ class RestConfigSpec extends Specification {
 
   RestUrls configureRestServices(RestProperties.RestEndpointConfiguration endpoint, RestConfig.HeadersFromFile headersFromFile) {
     RestProperties restProperties =  new RestProperties(endpoints: [endpoint])
-    return config.restServices(restProperties, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())], new Retrofit2EncodeCorrectionInterceptor()), okHttpClientConfig, headersFromFile)
+    return config.restServices(restProperties, new OkHttpClientProvider([new InsecureOkHttpClientBuilderProvider(new OkHttpClient())]), okHttpClientConfig, headersFromFile)
   }
 
   def setup() {
@@ -72,7 +74,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "Basic dGVzdHVzZXI6dGVzdHBhc3N3b3Jk"
@@ -88,7 +90,7 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "FromConfig"
@@ -113,9 +115,27 @@ class RestConfigSpec extends Specification {
     RestUrls restUrls = configureRestServices(endpoint, headersFromFile)
 
     when:
-    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent([:]))
+    Retrofit2SyncCall.execute(restUrls.getServices().get(0).getClient().recordEvent(wireMockServer.baseUrl(), [:]))
 
     then:
     headers.get().get("Authorization") == "FromFile"
+  }
+
+  void "Handle splunk URLs with a NON / ending"() {
+    given:
+      String actualUrl = wireMockServer.baseUrl() + "/hec/services/collector/event?"
+
+    when:
+    wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/hec/services/collector/event"))
+      .willReturn(WireMock.aResponse()
+        .withStatus(200).withBody("{\"confirmed\"}")))
+    RestProperties.RestEndpointConfiguration endpoint = new RestProperties.RestEndpointConfiguration(
+      url: actualUrl)
+    RestUrls restUrls = configureRestServices(endpoint, EmptyHeadersFile)
+
+
+    then:
+      restUrls.getServices().get(0).getClient().recordEvent(actualUrl, [:]).execute().body().string().contains("confirmed")
+      wireMockServer.verify(1, postRequestedFor(urlEqualTo("/hec/services/collector/event")))
   }
 }

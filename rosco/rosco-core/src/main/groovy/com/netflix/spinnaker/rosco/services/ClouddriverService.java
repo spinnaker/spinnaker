@@ -27,10 +27,10 @@ import retrofit2.http.PUT;
 import retrofit2.http.Query;
 
 public interface ClouddriverService {
-  @PUT("/artifacts/fetch/")
+  @PUT("artifacts/fetch")
   Call<ResponseBody> fetchArtifact(@Body Artifact artifact);
 
-  @GET("/aws/images/find")
+  @GET("aws/images/find")
   Call<List<AWSNamedImage>> findAmazonImageByName(
       @Query("q") String name, @Query("account") String account, @Query("region") String region);
 }

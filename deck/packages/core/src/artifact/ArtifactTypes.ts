@@ -22,6 +22,7 @@ export const ArtifactTypePatterns: IArtifactTypePatterns = {
   HTTP_FILE: /http\/file/,
   FRONT50_PIPELINE_TEMPLATE: /front50\/pipelineTemplate/,
   ORACLE_OBJECT: /oracle\/object/,
+  HELM_IMAGE: /helm\/image/,
 };
 
 export const excludeAllTypesExcept = (...types: RegExp[]) =>

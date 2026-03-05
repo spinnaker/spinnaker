@@ -26,33 +26,33 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AgentApi {
-  @GET("/v1/agent/checks")
+  @GET("v1/agent/checks")
   Call<Map<String, CheckResult>> checks()
 
-  @GET("/v1/agent/services")
+  @GET("v1/agent/services")
   Call<Map<String, ServiceResult>> services()
 
-  @GET("/v1/agent/self")
+  @GET("v1/agent/self")
   Call<AgentDefinition> self()
 
-  @GET("/v1/agent/join/{address}")
+  @GET("v1/agent/join/{address}")
   Call<ResponseBody> join(@Path("address") String address, @Query("wan") Integer wan)
 
-  @PUT("/v1/agent/check/register")
+  @PUT("v1/agent/check/register")
   Call<ResponseBody> registerCheck(@Body CheckDefinition check, @Query("token") String tokenId)
 
-  @PUT("/v1/agent/check/deregister/{checkId}")
+  @PUT("v1/agent/check/deregister/{checkId}")
   Call<ResponseBody> deregisterCheck(@Path("checkId") String checkId)
 
-  @PUT("/v1/agent/service/register")
+  @PUT("v1/agent/service/register")
   Call<ResponseBody> registerService(@Body ServiceDefinition service, @Query("token") String tokenId)
 
-  @PUT("/v1/agent/service/deregister/{serviceId}")
+  @PUT("v1/agent/service/deregister/{serviceId}")
   Call<ResponseBody> deregisterService(@Path("serviceId") String serviceId)
 
-  @PUT("/v1/agent/service/maintenance/{serviceId}")
+  @PUT("v1/agent/service/maintenance/{serviceId}")
   Call<ResponseBody> maintenance(@Path("serviceId") String serviceId, @Query("enable") boolean enable, @Query("reason") String reason)
 
-  @PUT("/v1/agent/maintenance")
+  @PUT("v1/agent/maintenance")
   Call<ResponseBody> maintenance(@Query("enable") boolean enable, @Query("reason") String reason, @Body String _empty /* Retrofit requires a body, even if it's empty... */)
 }

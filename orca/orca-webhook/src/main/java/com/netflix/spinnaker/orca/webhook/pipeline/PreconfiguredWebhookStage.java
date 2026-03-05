@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.exceptions.SystemException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties.PreconfiguredWebhook;
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookNotFoundException;
 import com.netflix.spinnaker.orca.webhook.exception.PreconfiguredWebhookUnauthorizedException;
@@ -39,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class PreconfiguredWebhookStage extends WebhookStage {
 
   private static final Set<String> IGNORE_FIELDS =
-      Set.of("props", "enabled", "label", "description", "type", "parameters");
+      Set.of("props", "enabled", "label", "description", "type", "parameters", "sensitiveHeaders");
   private static List<Field> ALL_FIELDS =
       Arrays.stream(PreconfiguredWebhook.class.getDeclaredFields())
           .filter(f -> !f.isSynthetic())
@@ -53,8 +54,9 @@ public class PreconfiguredWebhookStage extends WebhookStage {
   PreconfiguredWebhookStage(
       WebhookService webhookService,
       FiatService fiatService,
-      MonitorWebhookTask monitorWebhookTask) {
-    super(monitorWebhookTask);
+      MonitorWebhookTask monitorWebhookTask,
+      WebhookProperties webhookProperties) {
+    super(monitorWebhookTask, webhookProperties);
 
     this.webhookService = webhookService;
     this.fiatService = fiatService;
@@ -63,9 +65,8 @@ public class PreconfiguredWebhookStage extends WebhookStage {
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     var preconfiguredWebhook =
-        webhookService.getPreconfiguredWebhooks().stream()
-            .filter(webhook -> Objects.equals(stage.getType(), webhook.getType()))
-            .findFirst()
+        webhookService
+            .findPreconfiguredWebhook(stage.getType())
             .orElseThrow(() -> new PreconfiguredWebhookNotFoundException(stage.getType()));
 
     var permissions = preconfiguredWebhook.getPermissions();

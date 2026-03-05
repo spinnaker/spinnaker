@@ -54,8 +54,6 @@ allprojects {
         "com.squareup.okhttp3:okhttp-sse:$okHttpVersion",
         "com.squareup.okhttp3:mockwebserver:$okHttpVersion",
         "com.squareup.okhttp3:logging-interceptor:$okHttpVersion",
-        "io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion",
-        "io.github.resilience4j:resilience4j-retry:$resilience4jVersion",
         "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0",
         "io.github.microutils:kotlin-logging:1.4.4",
         // needed due to incompatibility with dgs libs

@@ -109,7 +109,9 @@ public class StageExpressionFunctionProvider implements ExpressionFunctionProvid
                 new SpelHelperFunctionException("No stage found with id '" + currentStageId + "'"));
   }
 
-  /** @return the current authenticated user in the Execution or anonymous. */
+  /**
+   * @return the current authenticated user in the Execution or anonymous.
+   */
   @SuppressWarnings("unused")
   public static String currentUser() {
     return Optional.ofNullable(ExecutionContext.get())

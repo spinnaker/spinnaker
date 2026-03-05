@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.security;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
-import com.netflix.spinnaker.kork.secrets.StandardSecretParameter;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretManager;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
 import java.util.Collections;
@@ -51,10 +50,8 @@ public class AccountDefinitionSecretManager {
     refsByAccountName
         .computeIfAbsent(accountName, ignored -> ConcurrentHashMap.newKeySet())
         .add(reference);
-    var parameterName = StandardSecretParameter.KEY.getParameterName();
-    var secretKey = reference.getParameters().getOrDefault(parameterName, "");
     try {
-      return secret.getSecretString(secretKey);
+      return secret.getSecretString(reference);
     } catch (NoSuchElementException e) {
       throw new SecretDecryptionException(e);
     }

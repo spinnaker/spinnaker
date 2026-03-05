@@ -46,7 +46,7 @@ class DeleteLoadBalancerForceRefreshTask implements CloudProviderAware, Task {
     List<String> regions = stage.context.regions
 
     regions.each { region ->
-      def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true]
+      def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true] as Map
       cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     }
     TaskResult.ofStatus(ExecutionStatus.SUCCEEDED)

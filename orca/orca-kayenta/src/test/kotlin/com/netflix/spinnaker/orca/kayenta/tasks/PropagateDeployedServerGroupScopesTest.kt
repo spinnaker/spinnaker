@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.kayenta.pipeline.DeployCanaryServerGroupsStage
 import com.netflix.spinnaker.orca.kayenta.pipeline.DeployCanaryServerGroupsStage.Companion.DEPLOY_CONTROL_SERVER_GROUPS
 import com.netflix.spinnaker.orca.kayenta.pipeline.DeployCanaryServerGroupsStage.Companion.DEPLOY_EXPERIMENT_SERVER_GROUPS
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.assertj.core.api.Assertions.assertThat
@@ -33,11 +34,12 @@ import org.assertj.core.api.Assertions.fail
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
+import retrofit2.mock.Calls
 
 object PropagateDeployedServerGroupScopesTest : Spek({
   val mort = mock<MortService> {
-    on { getAccountDetails("foo") } doReturn mapOf("accountId" to "abc123")
-    on { getAccountDetails("bar") } doReturn mapOf("accountId" to "def456")
+    on { getAccountDetails("foo") } doAnswer { Calls.response(mapOf("accountId" to "abc123")) }
+    on { getAccountDetails("bar") } doAnswer {  Calls.response(mapOf("accountId" to "def456")) }
   }
 
   val subject = PropagateDeployedServerGroupScopes(mort)

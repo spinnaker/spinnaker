@@ -24,7 +24,9 @@ import lombok.NonNull;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public interface CanaryMetricSetQueryConfig {
 
-  /** @deprecated Use getCustomInlineTemplate instead. */
+  /**
+   * @deprecated Use getCustomInlineTemplate instead.
+   */
   @Deprecated
   default String getCustomFilter() {
     return null;

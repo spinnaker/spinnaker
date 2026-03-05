@@ -25,18 +25,18 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface DomainService {
-  @GET("/v2/shared_domains/{guid}")
+  @GET("v2/shared_domains/{guid}")
   Call<Resource<Domain>> findSharedDomainById(@Path("guid") String guid);
 
-  @GET("/v2/private_domains/{guid}")
+  @GET("v2/private_domains/{guid}")
   Call<Resource<Domain>> findPrivateDomainById(@Path("guid") String guid);
 
-  @GET("/v2/private_domains")
+  @GET("v2/private_domains")
   Call<Page<Domain>> allPrivate(@Query("page") Integer page);
 
-  @GET("/v2/shared_domains")
+  @GET("v2/shared_domains")
   Call<Page<Domain>> allShared(@Query("page") Integer page);
 
-  @GET("/v2/domains")
+  @GET("v2/domains")
   Call<Page<Domain>> all(@Query("page") Integer page);
 }

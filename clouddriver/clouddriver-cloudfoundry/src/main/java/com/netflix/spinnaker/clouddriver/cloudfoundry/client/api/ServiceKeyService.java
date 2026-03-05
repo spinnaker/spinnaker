@@ -23,13 +23,13 @@ import retrofit2.Call;
 import retrofit2.http.*;
 
 public interface ServiceKeyService {
-  @POST("/v2/service_keys")
+  @POST("v2/service_keys")
   Call<Resource<ServiceCredentials>> createServiceKey(@Body CreateServiceKey body);
 
-  @GET("/v2/service_keys")
+  @GET("v2/service_keys")
   Call<Page<ServiceKey>> getServiceKey(
       @Query("page") Integer page, @Query("q") List<String> queryParams);
 
-  @DELETE("/v2/service_keys/{guid}")
+  @DELETE("v2/service_keys/{guid}")
   Call<ResponseBody> deleteServiceKey(@Path("guid") String guid);
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.monitoreddeploy;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.DeploymentMonitorDefinition;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -42,7 +43,8 @@ public class NotifyDeployStartingTask extends MonitoredDeployBaseTask {
   public @Nonnull TaskResult executeInternal(
       StageExecution stage, DeploymentMonitorDefinition monitorDefinition) {
     RequestBase request = new RequestBase(stage);
-    EvaluateHealthResponse response = monitorDefinition.getService().notifyStarting(request);
+    EvaluateHealthResponse response =
+        Retrofit2SyncCall.execute(monitorDefinition.getService().notifyStarting(request));
 
     sanitizeAndLogResponse(response, monitorDefinition, stage.getExecution().getId());
 

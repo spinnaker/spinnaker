@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import okhttp3.Request;
-import retrofit.RetrofitError;
 
 /** Represents a network error while attempting to execute a retrofit http client request. */
 @NonnullByDefault
@@ -38,11 +37,6 @@ public final class SpinnakerNetworkException extends SpinnakerServerException {
    */
   public SpinnakerNetworkException(String message, SpinnakerNetworkException cause) {
     super(message, cause);
-  }
-
-  /** Construct a SpinnakerNetworkException corresponding to a RetrofitError. */
-  public SpinnakerNetworkException(RetrofitError e) {
-    super(e);
   }
 
   @Override

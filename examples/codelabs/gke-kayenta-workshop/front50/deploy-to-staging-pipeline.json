@@ -163,7 +163,7 @@
                                         "command": [
                                             "/bin/sh"
                                         ],
-                                        "image": "us-docker.pkg.dev/spinnaker-community/docker/halyard:stable",
+                                        "image": "ghcr.io/spinnaker/halyard:main-latest",
                                         "name": "call-curl"
                                     }
                                 ],

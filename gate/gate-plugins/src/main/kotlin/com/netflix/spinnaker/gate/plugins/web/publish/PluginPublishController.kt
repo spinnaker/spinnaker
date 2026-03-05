@@ -28,12 +28,10 @@ import io.swagger.v3.oas.annotations.Operation
 
 import java.lang.String.format
 import lombok.SneakyThrows
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
 import org.springframework.web.bind.annotation.PathVariable
@@ -52,7 +50,7 @@ class PluginPublishController(
   private val pluginRepositoriesConfig: Map<String, PluginsConfigurationProperties.PluginRepositoryProperties>
 ) {
 
-  private val front50Url = serviceConfiguration.getServiceEndpoint("front50").url
+  private val front50Url = serviceConfiguration.getServiceEndpoint("front50")
   private val okHttpClient: OkHttpClient = okHttpClientProvider.getClient(DefaultServiceEndpoint("front50", front50Url))
 
   @SneakyThrows

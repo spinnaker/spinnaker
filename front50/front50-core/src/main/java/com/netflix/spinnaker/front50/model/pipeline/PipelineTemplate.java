@@ -41,12 +41,16 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     return scopes != null ? scopes : Collections.emptyList();
   }
 
-  /** @return Un-decorated MPT id. */
+  /**
+   * @return Un-decorated MPT id.
+   */
   public String undecoratedId() {
     return (String) super.get("id");
   }
 
-  /** @return Decorated id with appended digest or tag. */
+  /**
+   * @return Decorated id with appended digest or tag.
+   */
   @Override
   public String getId() {
     String digest = getDigest();

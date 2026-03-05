@@ -18,11 +18,14 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import lombok.Getter;
 
-/** @see AssumeRoleAmazonCredentials */
+/**
+ * @see AssumeRoleAmazonCredentials
+ */
 @Getter
 public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials {
 
@@ -90,11 +93,25 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         sessionName,
         sessionDurationSeconds,
         lambdaEnabled,
-        externalId);
+        externalId,
+        null /* awsConfigurationProperties */);
   }
 
+  /**
+   * Construct a new NetflixAssumeRoleAmazonCredentials object by copying an existing one. Even
+   * though NetflixAssumeRoleAmazonCredentials objects have (via AmazonCredentials) both a
+   * credentialsProvider and awsConfigurationProperties, this method takes those as separate
+   * arguments in case the existing object doesn't have them, which is the case when it was
+   * constructed via deserialization. This is what AmazonCredentialsParser does.
+   *
+   * @param copy the object to copy
+   * @param credentialsProvider a credentials provider
+   * @param awsConfigurationProperties configuration properties
+   */
   public NetflixAssumeRoleAmazonCredentials(
-      NetflixAssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
+      NetflixAssumeRoleAmazonCredentials copy,
+      AWSCredentialsProvider credentialsProvider,
+      AwsConfigurationProperties awsConfigurationProperties) {
     this(
         copy.getName(),
         copy.getEnvironment(),
@@ -122,7 +139,8 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
         copy.getSessionName(),
         copy.getSessionDurationSeconds(),
         copy.isLambdaEnabled(),
-        copy.getExternalId());
+        copy.getExternalId(),
+        awsConfigurationProperties);
   }
 
   NetflixAssumeRoleAmazonCredentials(
@@ -152,7 +170,8 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
       String sessionName,
       Integer sessionDurationSeconds,
       Boolean lambdaEnabled,
-      String externalId) {
+      String externalId,
+      AwsConfigurationProperties awsConfigurationProperties) {
     super(
         name,
         environment,
@@ -172,7 +191,8 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
             assumeRole,
             sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName,
             sessionDurationSeconds,
-            externalId),
+            externalId,
+            awsConfigurationProperties),
         edda,
         eddaEnabled,
         discovery,

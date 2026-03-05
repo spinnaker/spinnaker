@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -72,7 +71,6 @@ public class SignalFxConfiguration {
   MetricsService signalFxMetricService(
       SignalFxConfigurationProperties signalFxConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
-      OkHttpClient okHttpClient,
       AccountCredentialsRepository accountCredentialsRepository) {
 
     SignalFxMetricsService.SignalFxMetricsServiceBuilder metricsServiceBuilder =
@@ -102,8 +100,7 @@ public class SignalFxConfiguration {
               retrofitClientFactory.createClient(
                   SignalFxSignalFlowRemoteService.class,
                   new SignalFxConverter(),
-                  signalFxSignalFlowEndpoint,
-                  okHttpClient));
+                  signalFxSignalFlowEndpoint));
         }
         accountCredentialsBuilder.supportedTypes(supportedTypes);
       }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -27,7 +28,6 @@ import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Client
 
 @Deprecated
 @Component
@@ -35,9 +35,6 @@ import retrofit.client.Client
 class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
   @Autowired
   ObjectMapper objectMapper
-
-  @Autowired
-  Client retrofitClient
 
   private static final long DEFAULT_INSTANCE_VERSION_SLEEP = 10000
 
@@ -76,8 +73,8 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
             instances.remove(instanceId)
         } else {
           try {
-            def instanceResponse = instanceService.patchInstance(packageName, version, "")
-            def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
+            def instanceResponse = Retrofit2SyncCall.executeCall(instanceService.patchInstance(packageName, version, ""))
+            def ref = objectMapper.readValue(instanceResponse.body().byteStream().text, Map).ref
             taskIdMap.put(instanceHostName, ref.substring(1 + ref.lastIndexOf('/')))
             patchedInstanceIds << instanceId
           } catch (SpinnakerServerException e) {
@@ -108,8 +105,8 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
 
     while (retries) {
       try {
-        instanceResponse = instanceService.getCurrentVersion(packageName)
-        version = objectMapper.readValue(instanceResponse.body.in().text, Map)?.version
+        instanceResponse = Retrofit2SyncCall.executeCall(instanceService.getCurrentVersion(packageName))
+        version = objectMapper.readValue(instanceResponse.body().byteStream().text, Map)?.version
         if (version && !version.isEmpty()) {
           return version
         }

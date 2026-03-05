@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -33,10 +35,6 @@ import okhttp3.Response;
  * URL encoding for certain characters. This interceptor addresses this by decoding and re-encoding
  * the path segments and query parameters.
  *
- * <p>The behavior of this interceptor can be controlled via the {@code skipEncodingCorrection}
- * flag. When this flag is set to {@code true}, the interceptor will bypass the encoding correction
- * process and simply forward the request as-is.
- *
  * <p>Refer <a
  * href="https://github.com/spinnaker/spinnaker/issues/7021">spinnaker/spinnaker/issues/7021</a> and
  * <a href="https://github.com/square/retrofit/issues/4312">square/retrofit/issues/4312</a> for more
@@ -44,21 +42,8 @@ import okhttp3.Response;
  */
 public class Retrofit2EncodeCorrectionInterceptor implements Interceptor {
 
-  private final boolean skipEncodingCorrection;
-
-  public Retrofit2EncodeCorrectionInterceptor() {
-    this.skipEncodingCorrection = false;
-  }
-
-  public Retrofit2EncodeCorrectionInterceptor(boolean skipEncodingCorrection) {
-    this.skipEncodingCorrection = skipEncodingCorrection;
-  }
-
   @Override
   public Response intercept(Interceptor.Chain chain) throws IOException {
-    if (skipEncodingCorrection) {
-      return chain.proceed(chain.request());
-    }
 
     Request originalRequest = chain.request();
     HttpUrl originalUrl = originalRequest.url();
@@ -74,10 +59,14 @@ public class Retrofit2EncodeCorrectionInterceptor implements Interceptor {
 
     // Decode and encode the query parameters to correct the partial encoding done by retrofit2
     for (String paramName : originalUrl.queryParameterNames()) {
-      String retrofit2EncodedParam = getEncodedQueryParam(originalUrl, paramName);
-      if (retrofit2EncodedParam != null) {
-        String encodedParam = processRetrofit2EncodedString(retrofit2EncodedParam);
-        newUrlBuilder.setEncodedQueryParameter(paramName, encodedParam);
+      List<String> retrofit2EncodedParamValues = getEncodedQueryParamValues(originalUrl, paramName);
+      if (retrofit2EncodedParamValues != null && !retrofit2EncodedParamValues.isEmpty()) {
+        // Clear any existing values for this parameter
+        newUrlBuilder.removeAllEncodedQueryParameters(paramName);
+        // Add each value after processing
+        for (String value : retrofit2EncodedParamValues) {
+          newUrlBuilder.addEncodedQueryParameter(paramName, processRetrofit2EncodedString(value));
+        }
       }
     }
 
@@ -95,9 +84,11 @@ public class Retrofit2EncodeCorrectionInterceptor implements Interceptor {
    *
    * @param url the {@link HttpUrl} to extract the query parameter from
    * @param paramName the name of the query parameter to extract
-   * @return the encoded query parameter value, or {@code null} if the parameter is not present
+   * @return the list of encoded query parameter values, or {@code null} if the parameter is not
+   *     present
    */
-  private String getEncodedQueryParam(HttpUrl url, String paramName) {
+  private List<String> getEncodedQueryParamValues(HttpUrl url, String paramName) {
+    List<String> paramValues = new ArrayList<>();
     String encodedQuery = url.encodedQuery();
     if (encodedQuery == null) {
       return null;
@@ -106,10 +97,10 @@ public class Retrofit2EncodeCorrectionInterceptor implements Interceptor {
     for (String pair : encodedQuery.split("&")) {
       String[] parts = pair.split("=", 2);
       if (parts.length == 2 && parts[0].equals(paramName)) {
-        return parts[1];
+        paramValues.add(parts[1]);
       }
     }
-    return null;
+    return paramValues;
   }
 
   /**

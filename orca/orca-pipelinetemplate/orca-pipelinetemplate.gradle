@@ -20,9 +20,10 @@ dependencies {
   implementation("com.netflix.spectator:spectator-api")
   implementation("com.netflix.frigga:frigga")
   implementation("io.spinnaker.kork:kork-exceptions")
+  implementation("io.spinnaker.kork:kork-retrofit")
   implementation("com.squareup.okhttp3:okhttp")
   implementation("commons-codec:commons-codec")
-  implementation("javax.validation:validation-api")
+  implementation("jakarta.validation:jakarta.validation-api")
 
   compileOnly("org.projectlombok:lombok")
   annotationProcessor("org.projectlombok:lombok")
@@ -31,6 +32,13 @@ dependencies {
   testImplementation("org.spockframework:spock-unitils")
   testImplementation("org.apache.groovy:groovy-json")
   testImplementation("io.spinnaker.fiat:fiat-core")
-  testImplementation("io.spinnaker.kork:kork-retrofit")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
+  testImplementation("com.squareup.retrofit2:converter-jackson")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
+}
+
+test {
+  useJUnitPlatform()
 }

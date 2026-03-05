@@ -1,5 +1,4 @@
 import { mount } from 'enzyme';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Option } from 'react-select';
 import Select, { Creatable } from 'react-select';
@@ -25,8 +24,8 @@ describe('<ManifestSelector />', () => {
   let searchService: Spy;
 
   beforeEach(() => {
-    searchService = spyOn(ManifestKindSearchService, 'search').and.returnValue($q.resolve([]));
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue($q.resolve([]));
+    searchService = spyOn(ManifestKindSearchService, 'search').and.returnValue(Promise.resolve([]));
+    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]));
   });
 
   describe('initialization', () => {

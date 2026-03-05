@@ -22,6 +22,8 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import java.util.ArrayList;
@@ -56,7 +58,9 @@ public abstract class ImageTagger {
       Collection<String> consideredStageRefIds,
       StageExecution stage);
 
-  /** @return The cloud provider type that this object supports. */
+  /**
+   * @return The cloud provider type that this object supports.
+   */
   protected abstract String getCloudProvider();
 
   protected ImageTagger(OortService oortService, ObjectMapper objectMapper) {
@@ -87,8 +91,8 @@ public abstract class ImageTagger {
           additionalFilters.put("managedImages", "true");
         }
         List<Map> allMatchedImages =
-            oortService.findImage(
-                getCloudProvider(), upstreamImageId, null, null, additionalFilters);
+            Retrofit2SyncCall.execute(
+                oortService.findImage(getCloudProvider(), upstreamImageId, null, null, additionalFilters));
         if (allMatchedImages.isEmpty()) {
           throw new ImageNotFound(format("No image found (imageId: %s)", upstreamImageId), true);
         }
@@ -111,7 +115,8 @@ public abstract class ImageTagger {
         additionalFilters.put("managedImages", "true");
       }
       List<Map> allMatchedImages =
-          oortService.findImage(getCloudProvider(), targetImageName, null, null, additionalFilters);
+          Retrofit2SyncCall.execute(
+              oortService.findImage(getCloudProvider(), targetImageName, null, null, additionalFilters));
       Map matchedImage =
           allMatchedImages.stream()
               .filter(image -> image.get("imageName").equals(targetImageName))

@@ -43,7 +43,7 @@ class PipelineControllerSpec extends Specification {
     createAndWaitForCompletion(_) >> { [id: 'task-id', application: 'application', status: 'SUCCEEDED'] }
   }
   def front50Service = Mock(Front50Service){
-    getPipelineConfigsForApplication('application', null, true) >> Calls.response([['name': 'testpipeline', 'application': 'application']])
+    getPipelineConfigsForApplication('application', null, null, true) >> Calls.response([['name': 'testpipeline', 'application': 'application']])
   }
   def pipelineService = Mock(PipelineService)
   def pipelineControllerConfig = new PipelineControllerConfigProperties()

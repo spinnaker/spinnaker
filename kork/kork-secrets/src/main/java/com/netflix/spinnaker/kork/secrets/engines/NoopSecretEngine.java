@@ -17,13 +17,14 @@
 package com.netflix.spinnaker.kork.secrets.engines;
 
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
+import com.netflix.spinnaker.kork.secrets.NoopUserSecretData;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
-import com.netflix.spinnaker.kork.secrets.user.OpaqueUserSecretData;
+import com.netflix.spinnaker.kork.secrets.SecretReference;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretMetadata;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class NoopSecretEngine implements SecretEngine {
   private static final String IDENTIFIER = "noop";
-  private static final String PARAM_VALUE = "v";
 
   @Override
   public String identifier() {
@@ -43,25 +43,42 @@ public class NoopSecretEngine implements SecretEngine {
 
   @Override
   public byte[] decrypt(EncryptedSecret encryptedSecret) {
-    return encryptedSecret.getParams().get(PARAM_VALUE).getBytes();
+    String value = encryptedSecret.getRequiredParameter(NoopSecretParameter.VALUE);
+    return value.getBytes(StandardCharsets.UTF_8);
   }
 
   @Override
   @Nonnull
   public UserSecret decrypt(@Nonnull UserSecretReference reference) {
+    String value = reference.getRequiredParameter(NoopSecretParameter.VALUE);
     return UserSecret.builder()
-        .data(new OpaqueUserSecretData(Map.copyOf(reference.getParameters())))
+        .data(new NoopUserSecretData(value))
         .metadata(
             UserSecretMetadata.builder().type("opaque").encoding("json").roles(List.of()).build())
         .build();
   }
 
   @Override
-  public void validate(EncryptedSecret encryptedSecret) {}
+  public void validate(EncryptedSecret encryptedSecret) {
+    encryptedSecret.getRequiredParameter(NoopSecretParameter.VALUE);
+  }
 
   @Override
-  public void validate(@Nonnull UserSecretReference reference) {}
+  public void validate(@Nonnull UserSecretReference reference) {
+    reference.getRequiredParameter(NoopSecretParameter.VALUE);
+  }
 
   @Override
   public void clearCache() {}
+
+  @Override
+  public boolean supports(@Nonnull SecretReference reference) {
+    return reference.getEngineIdentifier().equals(IDENTIFIER);
+  }
+
+  @Override
+  @Nonnull
+  public String resolve(@Nonnull SecretReference reference) {
+    return reference.getRequiredParameter(NoopSecretParameter.VALUE);
+  }
 }

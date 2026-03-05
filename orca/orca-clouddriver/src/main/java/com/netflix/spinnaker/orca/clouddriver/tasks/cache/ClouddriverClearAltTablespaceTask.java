@@ -2,6 +2,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cache;
 
 import static java.util.Collections.emptyList;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -40,7 +41,7 @@ public class ClouddriverClearAltTablespaceTask implements Task {
     }
 
     try {
-      Map<String, Object> result = river.clearNamespace(namespace);
+      Map<String, Object> result = Retrofit2SyncCall.execute(river.clearNamespace(namespace));
       log.info(
           "Cleared clouddriver namespace {}, tables truncated: {}",
           namespace,

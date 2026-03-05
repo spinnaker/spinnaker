@@ -72,7 +72,7 @@ class CloudFormationControllerSpec extends Specification {
     cloudFormationProvider.get(stackId) >> Optional.of(new AmazonCloudFormationStack(stackId: stackId))
 
     when:
-    def results = mockMvc.perform(get("/aws/cloudFormation/stacks/$stackId"))
+    def results = mockMvc.perform(get("/aws/cloudFormation/stacks/stack?stackId=$stackId"))
 
     then:
     results.andExpect(status().is2xxSuccessful())
@@ -85,7 +85,7 @@ class CloudFormationControllerSpec extends Specification {
     cloudFormationProvider.get(stackId) >> { throw new NotFoundException() }
 
     when:
-    mockMvc.perform(get("/aws/cloudFormation/stacks/$stackId"))
+    mockMvc.perform(get("/aws/cloudFormation/stacks/stack?stackId=$stackId"))
 
     then:
     thrown(Exception) //loosened because we removed the dependency on spring data rest

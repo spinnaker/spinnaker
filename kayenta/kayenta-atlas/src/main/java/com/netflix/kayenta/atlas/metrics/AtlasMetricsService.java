@@ -39,12 +39,13 @@ import com.netflix.kayenta.retrofit.config.RetrofitClientFactory;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.util.Retry;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
+import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -71,6 +72,8 @@ public class AtlasMetricsService implements MetricsService {
 
   @Autowired private final Registry registry;
 
+  @Autowired private final OkHttp3ClientConfiguration okHttp3ClientConfig;
+
   private final Retry retry = new Retry();
 
   @Override
@@ -95,7 +98,8 @@ public class AtlasMetricsService implements MetricsService {
       CanaryScope canaryScope) {
 
     OkHttpClient okHttpClient =
-        new OkHttpClient.Builder()
+        okHttp3ClientConfig
+            .createForRetrofit2()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(90, TimeUnit.SECONDS)
             .build();

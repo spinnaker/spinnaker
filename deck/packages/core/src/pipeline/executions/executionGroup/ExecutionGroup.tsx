@@ -9,6 +9,7 @@ import { MigrationTag } from './MigrationTag';
 import { AccountTag } from '../../../account';
 import type { Application } from '../../../application/application.model';
 import { CollapsibleSectionStateCache } from '../../../cache';
+import { PipelineConfigService } from '../../config/services/PipelineConfigService';
 import { SETTINGS } from '../../../config/settings';
 import { PipelineTemplateReader, PipelineTemplateV2Service } from '../../config/templates';
 import type {
@@ -153,7 +154,9 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
             .then((plan) => resolve(plan))
             .catch(() => resolve(config));
         } else {
-          resolve(config);
+          PipelineConfigService.getPipelineForApplication(this.props.application.name, config.name)
+            .then((pipeline) => resolve(pipeline))
+            .catch(() => resolve(config));
         }
       }),
     )

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -58,6 +60,8 @@ public class PostgresContainerTest extends BaseContainerTest {
         String.format("jdbc:postgresql://%s:%d/clouddriver", POSTGRES_NETWORK_ALIAS, POSTGRES_PORT);
     clouddriverContainer
         .dependsOn(postgres)
+        .withNetwork(network)
+        .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(120)))
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 

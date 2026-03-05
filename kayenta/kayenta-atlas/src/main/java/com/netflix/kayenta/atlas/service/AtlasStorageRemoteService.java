@@ -17,10 +17,10 @@ package com.netflix.kayenta.atlas.service;
 
 import com.netflix.kayenta.atlas.model.AtlasStorage;
 import java.util.Map;
-import retrofit.http.GET;
+import retrofit2.http.GET;
 
 public interface AtlasStorageRemoteService {
 
-  @GET("/api/v1/atlas/storage.json")
+  @GET("api/v1/atlas/storage.json")
   Map<String, Map<String, AtlasStorage>> fetch();
 }

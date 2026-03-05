@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kork.secrets.engines;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -40,11 +41,13 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -57,6 +60,11 @@ public class SecretsManagerSecretEngineIntegrationTest {
   @Autowired private UserSecretSerdeFactory serdeFactory;
 
   @Autowired private UserSecretManager userSecretManager;
+
+  @BeforeAll
+  static void setupOnce() {
+    assumeTrue(DockerClientFactory.instance().isDockerAvailable());
+  }
 
   @Test
   public void canDecryptUserSecret() {
@@ -88,15 +96,19 @@ public class SecretsManagerSecretEngineIntegrationTest {
             .withSecretBinary(serializedSecretPayload)
             .withTags(tagsForMetadata(metadata)));
 
-    UserSecretReference ref =
-        UserSecretReference.parse(
-            String.format("secret://secrets-manager?r=%s&s=my-user-secret", container.getRegion()));
+    var baseRefUri =
+        String.format("secret://secrets-manager?r=%s&s=my-user-secret", container.getRegion());
+    UserSecretReference ref = UserSecretReference.parse(baseRefUri);
     UserSecret userSecret = userSecretManager.getUserSecret(ref);
 
     assertEquals(metadata.getType(), userSecret.getType());
     assertEquals(metadata.getEncoding(), userSecret.getEncoding());
     assertEquals(metadata.getRoles(), userSecret.getRoles());
-    secretMap.forEach((key, value) -> assertEquals(value, userSecret.getSecretString(key)));
+    secretMap.forEach(
+        (key, value) -> {
+          var keyRef = UserSecretReference.parse(baseRefUri + "&k=" + key);
+          assertEquals(value, userSecret.getSecretString(keyRef));
+        });
   }
 
   private static Collection<Tag> tagsForMetadata(UserSecretMetadata metadata) {
@@ -113,6 +125,7 @@ public class SecretsManagerSecretEngineIntegrationTest {
 
   @TestConfiguration
   public static class IntegrationTestConfig {
+
     private static final DockerImageName DOCKER_IMAGE =
         DockerImageName.parse("localstack/localstack:0.11.3");
 

@@ -17,20 +17,21 @@
 package com.netflix.spinnaker.orca.clouddriver;
 
 import java.util.Map;
-import retrofit.client.Response;
-import retrofit.http.Body;
-import retrofit.http.POST;
-import retrofit.http.PUT;
-import retrofit.http.Path;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 
 public interface CloudDriverCacheService {
 
   @POST("/cache/{cloudProvider}/{type}")
-  Response forceCacheUpdate(
+  Call<ResponseBody> forceCacheUpdate(
       @Path("cloudProvider") String cloudProvider,
       @Path("type") String type,
-      @Body Map<String, ?> data);
+      @Body Map<String, Object> data);
 
   @PUT("/admin/db/truncate/{namespace}")
-  Map<String, Object> clearNamespace(@Path("namespace") String namespace);
+  Call<Map<String, Object>> clearNamespace(@Path("namespace") String namespace);
 }

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import com.amazonaws.arn.Arn;
+import software.amazon.awssdk.arns.Arn;
 
 /**
  * Util for easy parsing of an Amazon Resource Names (ARNS)
@@ -34,9 +34,9 @@ public class ARN {
 
     Arn awsArn = Arn.fromString(arn);
 
-    this.region = awsArn.getRegion();
-    this.account = awsArn.getAccountId();
-    this.name = awsArn.getResourceAsString();
+    this.region = awsArn.region().orElseThrow();
+    this.account = awsArn.accountId().orElseThrow();
+    this.name = awsArn.resourceAsString();
   }
 
   public String getArn() {

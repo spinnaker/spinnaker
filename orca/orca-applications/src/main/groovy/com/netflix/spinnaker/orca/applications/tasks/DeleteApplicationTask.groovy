@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
@@ -69,12 +70,12 @@ class DeleteApplicationTask extends AbstractFront50Task {
     Map<String, Object> outputs = [:]
 
     try {
-      def existingApplication = front50Service.get(application.name)
+      def existingApplication = Retrofit2SyncCall.execute(front50Service.get(application.name))
       if (existingApplication) {
         outputs.previousState = existingApplication
-        front50Service.delete(application.name)
+        Retrofit2SyncCall.executeCall(front50Service.delete(application.name))
         try {
-          front50Service.deletePermission(application.name)
+          Retrofit2SyncCall.executeCall(front50Service.deletePermission(application.name))
         } catch (SpinnakerHttpException re) {
           if (re.responseCode == 404) {
             return TaskResult.SUCCEEDED
@@ -88,7 +89,7 @@ class DeleteApplicationTask extends AbstractFront50Task {
         // delete Managed Delivery data
         if (keelService != null) {
           log.debug("Deleting Managed Delivery data for {}", application.name)
-          keelService.deleteDeliveryConfig(application.name)
+          Retrofit2SyncCall.executeCall(keelService.deleteDeliveryConfig(application.name))
         }
       }
     } catch (SpinnakerHttpException httpException){

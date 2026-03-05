@@ -15,24 +15,50 @@
  */
 package com.netflix.spinnaker.orca.webhook.config;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.shared.FiatService;
+import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
+import com.netflix.spinnaker.orca.webhook.util.WebhookLoggingEventListener;
 import java.lang.reflect.Field;
+import okhttp3.Call;
+import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.client.RestTemplate;
 
 class WebhookConfigurationTest {
+
+  private static final String TEST_PATH = "/test";
+
+  private static final String TEST_RESPONSE = "test response";
+
+  /** See https://wiremock.org/docs/junit-jupiter/#advanced-usage---programmatic */
+  @RegisterExtension
+  private static WireMockExtension wiremock =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
@@ -41,7 +67,17 @@ class WebhookConfigurationTest {
               UserConfigurations.of(
                   WebhookConfiguration.class,
                   OkHttpClientConfigurationProperties.class,
+                  ProvidedIdRequestFilterConfigurationProperties.class,
                   WebhookTestConfiguration.class));
+
+  @BeforeEach
+  void init(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
+
+    wiremock.stubFor(
+        get(urlMatching(TEST_PATH))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value()).withBody(TEST_RESPONSE)));
+  }
 
   @Test
   void testReadTimeoutViaWebhookProperties() {
@@ -151,6 +187,81 @@ class WebhookConfigurationTest {
             });
   }
 
+  @Test
+  void testNoEventListenerByDefault() {
+    runner.run(
+        ctx -> {
+          OkHttpClient client = getOkHttpClient(ctx);
+          // EventListener.NONE.asFactory() isn't available, so here's an alternative to
+          //
+          // assertThat(client.eventListenerFactory()).isEqualTo(EventListener.NONE.asFactory());
+          EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+          assertThat(eventListenerFactory.create(mock(Call.class))).isEqualTo(EventListener.NONE);
+        });
+  }
+
+  @Test
+  void testEventLoggingDisabled() {
+    runner
+        .withPropertyValues("webhook.eventLoggingEnabled: false")
+        .run(
+            ctx -> {
+              OkHttpClient client = getOkHttpClient(ctx);
+              // EventListener.NONE.asFactory() isn't available, so here's an alternative to
+              //
+              // assertThat(client.eventListenerFactory()).isEqualTo(EventListener.NONE.asFactory());
+              EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+              assertThat(eventListenerFactory.create(mock(Call.class)))
+                  .isEqualTo(EventListener.NONE);
+            });
+  }
+
+  @Test
+  void testEventLoggingEnabled() {
+    runner
+        .withPropertyValues("webhook.eventLoggingEnabled: true")
+        .run(
+            ctx -> {
+              OkHttpClient client = getOkHttpClient(ctx);
+              EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+              // While we're at it, verify the default verbosity
+              assertThat(eventListenerFactory)
+                  .isInstanceOfSatisfying(
+                      WebhookLoggingEventListener.Factory.class,
+                      webhookLoggingEventListener -> {
+                        assertThat(webhookLoggingEventListener.isVerbose()).isEqualTo(false);
+                      });
+            });
+  }
+
+  @ParameterizedTest(name = "{index} => testEventLoggingVerbosity: verbose = {0}")
+  @ValueSource(booleans = {false, true})
+  void testEventLoggingVerbosity(boolean verbose) {
+    runner
+        .withPropertyValues(
+            "webhook.eventLoggingEnabled: true",
+            "webhook.eventLoggingVerbose: " + String.valueOf(verbose))
+        .run(
+            ctx -> {
+              OkHttpClient client = getOkHttpClient(ctx);
+              EventListener.Factory eventListenerFactory = client.eventListenerFactory();
+              assertThat(eventListenerFactory)
+                  .isInstanceOfSatisfying(
+                      WebhookLoggingEventListener.Factory.class,
+                      webhookLoggingEventListener -> {
+                        assertThat(webhookLoggingEventListener.isVerbose()).isEqualTo(verbose);
+                      });
+              // Actually make an http request to exercise WebhookLoggingEventListener.  No
+              // assertions about the details of log messages, but at least they're in the test
+              // results for manual inspection.  This also ensures the code doesn't throw any
+              // exceptions.
+              RestTemplate restTemplate = ctx.getBean(RestTemplate.class);
+              String response =
+                  restTemplate.getForObject(wiremock.baseUrl() + TEST_PATH, String.class);
+              assertThat(response).isEqualTo(TEST_RESPONSE);
+            });
+  }
+
   /** Retrieve the client member from the OkHttp3ClientHttpRequestFactory bean */
   private static OkHttpClient getOkHttpClient(AssertableApplicationContext ctx) {
     OkHttp3ClientHttpRequestFactory requestFactory =
@@ -179,6 +290,11 @@ class WebhookConfigurationTest {
     @Bean
     FiatService fiatService() {
       return mock(FiatService.class);
+    }
+
+    @Bean
+    OortService oortService() {
+      return mock(OortService.class);
     }
   }
 }

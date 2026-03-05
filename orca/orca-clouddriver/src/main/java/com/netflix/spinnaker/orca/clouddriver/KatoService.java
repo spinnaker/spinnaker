@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.exceptions.IntegrationException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.ExecutionContext;
 import com.netflix.spinnaker.orca.clouddriver.model.OperationContext;
 import com.netflix.spinnaker.orca.clouddriver.model.SubmitOperationResult;
@@ -11,15 +12,15 @@ import com.netflix.spinnaker.orca.clouddriver.model.Task;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskOwner;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
-import java.io.InputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import okhttp3.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.client.Response;
+import org.springframework.http.HttpStatus;
 
 public class KatoService {
 
@@ -41,18 +42,22 @@ public class KatoService {
     this.objectMapper = objectMapper;
   }
 
-  public TaskId requestOperations(Collection<? extends Map<String, Map>> operations) {
+  public TaskId requestOperations(Collection<Map<String, Map>> operations) {
     return retrySupport.retry(
-        () -> katoRestService.requestOperations(requestId(operations), operations),
+        () ->
+            Retrofit2SyncCall.execute(
+                katoRestService.requestOperations(requestId(operations), operations)),
         3,
         Duration.ofSeconds(1),
         false);
   }
 
-  public TaskId requestOperations(
-      String cloudProvider, Collection<? extends Map<String, Map>> operations) {
+  public TaskId requestOperations(String cloudProvider, Collection<Map<String, Map>> operations) {
     return retrySupport.retry(
-        () -> katoRestService.requestOperations(requestId(operations), cloudProvider, operations),
+        () ->
+            Retrofit2SyncCall.execute(
+                katoRestService.requestOperations(
+                    cloudProvider, requestId(operations), operations)),
         3,
         Duration.ofSeconds(1),
         false);
@@ -60,51 +65,52 @@ public class KatoService {
 
   public SubmitOperationResult submitOperation(
       @Nonnull String cloudProvider, OperationContext operation) {
-    Response response =
-        katoRestService.submitOperation(
-            requestId(operation), cloudProvider, operation.getOperationType(), operation);
-
     TaskId taskId;
-    try (InputStream body = response.getBody().in()) {
-      taskId = objectMapper.readValue(body, TaskId.class);
+    try (ResponseBody responseBody =
+        Retrofit2SyncCall.execute(
+            katoRestService.submitOperation(
+                cloudProvider, operation.getOperationType(), requestId(operation), operation))) {
+
+      taskId = objectMapper.readValue(responseBody.byteStream(), TaskId.class);
     } catch (Exception e) {
       throw new IntegrationException("Unable to read response from submitted operation.", e);
     }
 
     SubmitOperationResult result = new SubmitOperationResult();
     result.setId(taskId.getId());
-    result.setStatus(response.getStatus());
+    result.setStatus(HttpStatus.OK.value());
 
     return result;
   }
 
   public Task lookupTask(String id, boolean skipReplica) {
     if (skipReplica) {
-      return katoRestService.lookupTask(id);
+      return Retrofit2SyncCall.execute(katoRestService.lookupTask(id));
     }
 
-    return cloudDriverTaskStatusService.lookupTask(id);
+    return Retrofit2SyncCall.execute(cloudDriverTaskStatusService.lookupTask(id));
   }
 
   @Nonnull
   public TaskId resumeTask(@Nonnull String id) {
-    return katoRestService.resumeTask(id);
+    return Retrofit2SyncCall.execute(katoRestService.resumeTask(id));
   }
 
   public TaskOwner lookupTaskOwner(@Nonnull String cloudProvider, String id) {
-    return cloudDriverTaskStatusService.lookupTaskOwner(cloudProvider, id);
+    return Retrofit2SyncCall.execute(
+        cloudDriverTaskStatusService.lookupTaskOwner(cloudProvider, id));
   }
 
   public TaskId updateTaskRetryability(@Nonnull String cloudProvider, String id, boolean retry) {
-    return katoRestService.updateTask(cloudProvider, id, Map.of("retry", retry));
+    return Retrofit2SyncCall.execute(
+        katoRestService.updateTask(cloudProvider, id, Map.of("retry", retry)));
   }
 
   @Nonnull
   public TaskId restartTask(
-      @Nonnull String cloudProvider,
-      @Nonnull String id,
-      Collection<? extends Map<String, Map>> operations) {
-    return katoRestService.restartTaskViaOperations(cloudProvider, id, operations);
+      @Nonnull String cloudProvider, @Nonnull String id, Collection<Map<String, Map>> operations) {
+    return Retrofit2SyncCall.execute(
+        katoRestService.restartTaskViaOperations(cloudProvider, id, operations));
   }
 
   private String requestId(Object payload) {

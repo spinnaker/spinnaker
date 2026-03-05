@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.core;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.io.IOException;
 import lombok.Data;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 /**
  * This is the collection of general, top-level flags that come from the application configuration
@@ -52,7 +52,7 @@ public class GlobalApplicationOptions {
 
   public static GlobalApplicationOptions getInstance() {
     if (GlobalApplicationOptions.options == null) {
-      Yaml yamlParser = new Yaml(new SafeConstructor());
+      Yaml yamlParser = YamlHelper.newYamlSafeConstructor();
       ObjectMapper objectMapper = new ObjectMapper();
 
       objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

@@ -17,26 +17,18 @@
 package com.netflix.spinnaker.orca.igor.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jakewharton.retrofit.Ok3Client
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
-import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter
-import retrofit.converter.JacksonConverter
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
@@ -45,27 +37,13 @@ import static retrofit.Endpoints.newFixedEndpoint
 @ComponentScan("com.netflix.spinnaker.orca.igor")
 class IgorConfiguration {
 
-  @Autowired OkHttpClientProvider clientProvider
-  @Autowired RestAdapter.LogLevel retrofitLogLevel
-  @Autowired ObjectMapper objectMapper
-
   @Bean
-  Endpoint igorEndpoint(
-    @Value('${igor.base-url}') String igorBaseUrl) {
-    newFixedEndpoint(igorBaseUrl)
-  }
-
-  @Bean
-  IgorService igorService(Endpoint igorEndpoint, ObjectMapper mapper, RequestInterceptor spinnakerRequestInterceptor) {
-    new RestAdapter.Builder()
-      .setEndpoint(igorEndpoint)
-      .setClient(new Ok3Client(clientProvider.getClient(new DefaultServiceEndpoint("igor", igorEndpoint.url), true)))
-      .setLogLevel(retrofitLogLevel)
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .setRequestInterceptor(spinnakerRequestInterceptor)
-      .setLog(new RetrofitSlf4jLog(IgorService))
-      .setConverter(new JacksonConverter(mapper))
-      .build()
-      .create(IgorService)
+  IgorService igorService(@Value('${igor.base-url}') String igorBaseUrl,
+                          ObjectMapper mapper,
+                          ServiceClientProvider serviceClientProvider) {
+    serviceClientProvider.getService(
+        IgorService,
+        new DefaultServiceEndpoint("igor", RetrofitUtils.getBaseUrl(igorBaseUrl)),
+        mapper)
   }
 }

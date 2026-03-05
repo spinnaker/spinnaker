@@ -29,7 +29,6 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import java.io.IOException;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -71,7 +70,6 @@ public class PrometheusConfiguration {
       PrometheusResponseConverter prometheusConverter,
       PrometheusConfigurationProperties prometheusConfigurationProperties,
       RetrofitClientFactory retrofitClientFactory,
-      OkHttpClient okHttpClient,
       AccountCredentialsRepository accountCredentialsRepository) {
     PrometheusMetricsService.PrometheusMetricsServiceBuilder prometheusMetricsServiceBuilder =
         PrometheusMetricsService.builder();
@@ -92,7 +90,6 @@ public class PrometheusConfiguration {
                     PrometheusRemoteService.class,
                     prometheusConverter,
                     prometheusManagedAccount.getEndpoint(),
-                    okHttpClient,
                     prometheusManagedAccount.getUsername(),
                     prometheusManagedAccount.getPassword(),
                     prometheusManagedAccount.getUsernamePasswordFile(),

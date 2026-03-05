@@ -1,3 +1,6 @@
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")
@@ -23,7 +26,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.netflix.spectator:spectator-api"
   implementation "commons-io:commons-io"
-  implementation "org.apache.commons:commons-compress:1.21"
+  implementation "org.apache.commons:commons-compress:$commonsCompressVersion"
   implementation "org.apache.groovy:groovy"
   implementation "org.apache.groovy:groovy-json"
   implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.13.1.202206130422-r"

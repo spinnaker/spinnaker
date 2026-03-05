@@ -18,8 +18,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformatio
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.CharStreams;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -30,7 +31,6 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,12 +39,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.parser.ParserException;
-import retrofit.client.Response;
 
 @Slf4j
 @Component
@@ -102,16 +100,14 @@ public class DeployCloudFormationTask implements CloudProviderAware, Task {
             StringUtils.replace(artifact.getReference(), "s3://", "https://s3.amazonaws.com/"));
 
       } else {
-        Response response = oortService.fetchArtifact(artifact);
-        try {
-          String template = CharStreams.toString(new InputStreamReader(response.getBody().in()));
+        try (ResponseBody responseBody =
+            Retrofit2SyncCall.execute(oortService.fetchArtifact(artifact))) {
+          String template = responseBody.string();
           log.debug("Fetched template from artifact {}: {}", artifact.getReference(), template);
           task.put("templateBody", template);
         } catch (IOException e) {
           throw new IllegalArgumentException(
               "Failed to read template from artifact definition " + artifact, e);
-        } catch (ParserException e) {
-          throw new IllegalArgumentException("Template body must be valid JSON or YAML.", e);
         }
       }
     }
@@ -119,12 +115,14 @@ public class DeployCloudFormationTask implements CloudProviderAware, Task {
     Object templateBody = task.get("templateBody");
 
     if (templateBody instanceof Map && !((Map) templateBody).isEmpty()) {
-      templateBody = new Yaml().dump(templateBody);
+      templateBody = YamlHelper.newYaml().dump(templateBody);
       task.put("templateBody", templateBody);
     } else if (templateBody instanceof List && !((List) templateBody).isEmpty()) {
       templateBody =
           ((List<?>) templateBody)
-              .stream().map(part -> new Yaml().dump(part)).collect(Collectors.joining("\n---\n"));
+              .stream()
+                  .map(part -> YamlHelper.newYaml().dump(part))
+                  .collect(Collectors.joining("\n---\n"));
       task.put("templateBody", templateBody);
     }
 

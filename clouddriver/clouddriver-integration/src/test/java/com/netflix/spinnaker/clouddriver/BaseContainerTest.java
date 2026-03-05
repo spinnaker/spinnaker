@@ -44,7 +44,7 @@ public class BaseContainerTest {
 
   protected GenericContainer<?> clouddriverContainer;
 
-  private static DockerImageName dockerImageName;
+  protected static DockerImageName dockerImageName;
 
   @BeforeAll
   static void setupInit() {

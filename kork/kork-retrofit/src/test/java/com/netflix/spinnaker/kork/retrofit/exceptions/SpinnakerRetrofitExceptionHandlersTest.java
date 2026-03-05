@@ -21,12 +21,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
-import com.google.gson.Gson;
 import com.netflix.spinnaker.config.ErrorConfiguration;
 import com.netflix.spinnaker.config.RetrofitErrorConfiguration;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import java.net.URI;
-import java.util.List;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -36,24 +36,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UriComponentsBuilder;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.converter.GsonConverter;
-import retrofit.mime.TypedString;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -62,7 +60,6 @@ import retrofit.mime.TypedString;
       RetrofitErrorConfiguration.class,
       SpinnakerRetrofitExceptionHandlersTest.TestControllerConfiguration.class
     })
-@TestPropertySource(properties = {"retrofit.enabled = false"})
 class SpinnakerRetrofitExceptionHandlersTest {
 
   private static final String CUSTOM_MESSAGE = "custom message";
@@ -153,10 +150,12 @@ class SpinnakerRetrofitExceptionHandlersTest {
   @EnableAutoConfiguration
   static class TestControllerConfiguration {
     @EnableWebSecurity
-    class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-      @Override
-      protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().headers().disable().authorizeRequests().anyRequest().permitAll();
+    class WebSecurityConfig implements WebMvcConfigurer {
+      @Bean
+      protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
+        http.csrf().disable().headers().disable();
+        http.authorizeRequests().anyRequest().permitAll();
+        return http.build();
       }
     }
 
@@ -172,28 +171,6 @@ class SpinnakerRetrofitExceptionHandlersTest {
 
     @GetMapping("/spinnakerServerException")
     void spinnakerServerException() {
-      // Building a "real" RetrofitError object to pass to the
-      // SpinnakerServerException constructor isn't great, e.g.:
-      //
-      // String url = "https://some-url";
-      // Response response = new Response(url, HttpStatus.BAD_GATEWAY.value(), "arbitrary reason",
-      // List.of(), new TypedString("{ message: \"message\" }"))
-      // RetrofitError retrofitError = RetrofitError.httpError(url, response,
-      // Platform.get().defaultConverter(), Response.class)
-      //
-      // and neither is a mock RetrofitError object since it means exposing
-      // SpinnakerServerException.RetrofitErrorResponseBody, e.g:
-      //
-      // RetrofitError retrofitError = mock(RetrofitError.class)
-      // String message = "message";
-      // SpinnakerServerException.RetrofitErrorResponseBody retrofitErrorResponseBody = new
-      // SpinnakerServerException.RetrofitErrorResponseBody(message);
-      // when(retrofitError.getBodyAs(any())).thenReturn retrofitErrorResponseBody;
-      // throw new SpinnakerServerException(retrofitError)
-      //
-      // And in the end, the thing we care about is how SpinnakerServerException
-      // gets handled.  This isn't a test of how the SpinnakerServerException
-      // class uses a RetrofitError to build its message.
       SpinnakerServerException spinnakerServerException = mock(SpinnakerServerException.class);
       when(spinnakerServerException.getMessage()).thenReturn("message");
       throw spinnakerServerException;
@@ -221,28 +198,22 @@ class SpinnakerRetrofitExceptionHandlersTest {
       throw new SpinnakerHttpException(CUSTOM_MESSAGE, makeSpinnakerHttpException(status));
     }
 
-    SpinnakerHttpException makeSpinnakerHttpException(int status) {
-      // SpinnakerHttpException spinnakerHttpException = mock(SpinnakerHttpException.class);
-      // when(spinnakerHttpException.getMessage()).thenReturn("message");
-      // when(spinnakerHttpException.getResponseCode()).thenReturn(status);
-      // return spinnakerHttpException;
-      //
-      // would be sufficient, except in the chained case, where the return value
-      // of this method is the cause of a real SpinnakerHttpException object.
-      // There, getResponseCode needs a real underlying response, at least real
-      // enough for response.getStatus() to work.  So, go ahead and build one.
+    static SpinnakerHttpException makeSpinnakerHttpException(int status) {
       String url = "https://some-url";
-      Response response =
-          new Response(
-              url,
-              status,
-              "arbitrary reason",
-              List.of(),
-              new TypedString("{ message: \"arbitrary message\" }"));
 
-      // choose GsonConverter since retrofit's (private) Base class does.
-      return new SpinnakerHttpException(
-          RetrofitError.httpError(url, response, new GsonConverter(new Gson()), Response.class));
+      retrofit2.Response retrofit2Response =
+          retrofit2.Response.error(
+              status,
+              ResponseBody.create(
+                  MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+
+      Retrofit retrofit =
+          new Retrofit.Builder()
+              .baseUrl(url)
+              .addConverterFactory(JacksonConverterFactory.create())
+              .build();
+
+      return new SpinnakerHttpException(retrofit2Response, retrofit);
     }
   }
 }

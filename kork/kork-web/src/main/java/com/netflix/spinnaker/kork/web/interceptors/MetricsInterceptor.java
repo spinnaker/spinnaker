@@ -22,16 +22,16 @@ import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.histogram.PercentileDistributionSummary;
 import com.netflix.spectator.api.histogram.PercentileTimer;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 /**
  * An interceptor that logs Controller metrics to an underlying {@link
@@ -43,7 +43,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  * 500, etc.) - success (true/false depending on whether the request resulted in an exception) -
  * cause (if success == false, the name of the raised exception)
  */
-public class MetricsInterceptor extends HandlerInterceptorAdapter {
+public class MetricsInterceptor implements HandlerInterceptor {
   static final String TIMER_ATTRIBUTE = "Metrics_startTime";
 
   private final Registry registry;
@@ -53,7 +53,9 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
   private final Set<String> queryParamsToTag = new HashSet<String>();
   private final Set<String> controllersToExclude = new HashSet<String>();
 
-  /** @deprecated Instead use the other constructor. */
+  /**
+   * @deprecated Instead use the other constructor.
+   */
   @Deprecated
   public MetricsInterceptor(
       Registry registry,

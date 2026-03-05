@@ -11,15 +11,17 @@ dependencies {
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.squareup.retrofit2:retrofit"
-  implementation "io.reactivex:rxjava"
+  implementation "io.reactivex.rxjava3:rxjava"
   implementation "org.apache.commons:commons-exec"
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "redis.clients:jedis"
+  implementation "com.google.code.gson:gson"
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.springframework:spring-test"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation project(":rosco-web")
 }

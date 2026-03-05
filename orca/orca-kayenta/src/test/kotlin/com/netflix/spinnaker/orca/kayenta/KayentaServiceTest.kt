@@ -28,8 +28,10 @@ import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.stubFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
-import com.jakewharton.retrofit.Ok3Client
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
+import com.netflix.spinnaker.orca.test.Retrofit2TestConfig
 import com.netflix.spinnaker.time.fixedClock
 import java.time.Duration
 import java.time.Instant
@@ -41,27 +43,34 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
-import retrofit.Endpoint
-import retrofit.Endpoints.newFixedEndpoint
-import retrofit.RequestInterceptor
-import retrofit.RestAdapter.LogLevel
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 object KayentaServiceTest : Spek({
 
   val wireMockServer = WireMockServer(options().dynamicPort())
+
+  val context by memoized {
+    AnnotationConfigApplicationContext(Retrofit2TestConfig::class.java)
+  }
+
+  val serviceClientProvider by memoized {
+    context.getBean(ServiceClientProvider::class.java)
+  }
+
   lateinit var subject: KayentaService
   beforeGroup {
     wireMockServer.start()
     configureFor(wireMockServer.port())
     subject = KayentaConfiguration()
       .kayentaService(
-        Ok3Client(),
-        wireMockServer.endpoint,
-        LogLevel.FULL,
-        RequestInterceptor.NONE
-      )
+        wireMockServer.baseUrl(),
+        serviceClientProvider
+        )
   }
-  afterGroup(wireMockServer::stop)
+  afterGroup{
+    wireMockServer.stop()
+    context.close()
+  }
 
   describe("the Kayenta service") {
 
@@ -86,7 +95,7 @@ object KayentaServiceTest : Spek({
       }
 
       on("posting the request to Kayenta") {
-        subject.create(
+        Retrofit2SyncCall.execute(subject.create(
           canaryConfigId = canaryConfigId,
           application = "covfefe",
           parentPipelineExecutionId = randomUUID().toString(),
@@ -112,7 +121,7 @@ object KayentaServiceTest : Spek({
             ),
             thresholds = Thresholds(pass = 50, marginal = 75)
           )
-        )
+        ))
       }
 
       it("renders timestamps as ISO strings") {
@@ -425,7 +434,7 @@ object KayentaServiceTest : Spek({
         }
 
         it("parses the JSON response correctly") {
-          subject.getCanaryResults(storageAccountName, canaryId)
+          Retrofit2SyncCall.execute(subject.getCanaryResults(canaryId, storageAccountName))
             .let { response ->
               assertThat(response.complete).isTrue()
               assertThat(response.buildTimeIso).isEqualTo(Instant.ofEpochMilli(1521059331684))
@@ -495,7 +504,7 @@ object KayentaServiceTest : Spek({
         }
 
         it("parses the JSON response correctly") {
-          subject.getCanaryResults(storageAccountName, canaryId)
+          Retrofit2SyncCall.execute(subject.getCanaryResults(canaryId, storageAccountName))
             .let { response ->
               assertThat(response.complete).isTrue()
               assertThat(response.result).isNull()
@@ -508,5 +517,3 @@ object KayentaServiceTest : Spek({
   }
 })
 
-val WireMockServer.endpoint: Endpoint
-  get() = newFixedEndpoint(url("/"))

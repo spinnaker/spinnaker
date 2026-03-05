@@ -23,6 +23,6 @@ import retrofit2.Call
 
 interface HealthCheckableService {
   @Headers("Accept: application/json")
-  @GET("/health")
+  @GET("health")
   Call<Map> health()
 }

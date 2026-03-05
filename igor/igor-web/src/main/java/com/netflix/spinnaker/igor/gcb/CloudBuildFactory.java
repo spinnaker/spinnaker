@@ -55,14 +55,24 @@ final class CloudBuildFactory {
   }
 
   CloudBuild getCloudBuild(GoogleCredentials credentials, String applicationName) {
+    return getCloudBuild(credentials, applicationName, null);
+  }
+
+  CloudBuild getCloudBuild(
+      GoogleCredentials credentials, String applicationName, String cloudBuildRegion) {
+
     HttpRequestInitializer requestInitializer = getRequestInitializer(credentials);
+
     CloudBuild.Builder builder =
         new CloudBuild.Builder(httpTransport, jsonFactory, requestInitializer)
             .setApplicationName(applicationName);
 
-    if (overrideRootUrl != null) {
+    if (cloudBuildRegion != null) {
+      builder.setRootUrl("https://" + cloudBuildRegion + "-cloudbuild.googleapis.com/");
+    } else if (overrideRootUrl != null) {
       builder.setRootUrl(overrideRootUrl);
     }
+
     return builder.build();
   }
 

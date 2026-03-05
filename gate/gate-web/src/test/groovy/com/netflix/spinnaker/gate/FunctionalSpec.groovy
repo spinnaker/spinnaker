@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import okhttp3.OkHttpClient
 import org.springframework.boot.SpringApplication
@@ -44,7 +45,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.web.SecurityFilterChain
 import retrofit2.Retrofit
 import retrofit2.mock.Calls
 import retrofit2.converter.jackson.JacksonConverterFactory
@@ -112,14 +113,13 @@ class FunctionalSpec extends Specification {
     System.setProperty('spring.session.store-type', 'NONE')
     System.setProperty("spring.main.allow-bean-definition-overriding", "true")
     System.setProperty("spring.profiles.active", "test")
-    System.setProperty("retrofit.enabled", "false")
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration, OkHttpClientProvider] as Set)
     ctx = spring.run()
 
     def localPort = ctx.environment.getProperty("local.server.port")
     api = new Retrofit.Builder()
-        .baseUrl("http://localhost:${localPort}")
+        .baseUrl(RetrofitUtils.getBaseUrl("http://localhost:${localPort}"))
         .client(new OkHttpClient())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create())
@@ -191,7 +191,7 @@ class FunctionalSpec extends Specification {
   @Order(10)
   @Import(ErrorConfiguration)
   @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration, GsonAutoConfiguration])
-  private static class FunctionalConfiguration extends WebSecurityConfigurerAdapter {
+  private static class FunctionalConfiguration{
 
     @Bean
     ClouddriverServiceSelector clouddriverSelector() {
@@ -297,11 +297,13 @@ class FunctionalSpec extends Specification {
       return new Retrofit2EncodeCorrectionInterceptor();
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-      http
+    @Bean
+    SecurityFilterChain configure(HttpSecurity http) throws Exception {
+      return http
         .csrf().disable()
-        .authorizeRequests().antMatchers("/**").permitAll()
+        .authorizeHttpRequests(
+          (authz) -> authz.requestMatchers("/**").permitAll())
+        .build()
     }
   }
 }

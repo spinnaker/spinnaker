@@ -16,12 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.jakewharton.retrofit.Ok3Client
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.model.Instance.InstanceInfo
 import org.slf4j.Logger
-import retrofit.converter.JacksonConverter
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
@@ -42,7 +43,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
-import retrofit.RestAdapter
 
 @Slf4j
 @Component
@@ -64,6 +64,9 @@ class JarDiffsTask implements DiffTask {
 
   @Autowired
   OortHelper oortHelper
+
+  @Autowired
+  ServiceClientProvider serviceClientProvider
 
   int platformPort = 8077
 
@@ -126,14 +129,9 @@ class JarDiffsTask implements DiffTask {
     .retryOnConnectionFailure(false)
     .build()
 
-    RestAdapter restAdapter = new RestAdapter.Builder()
-      .setEndpoint(address)
-      .setConverter(new JacksonConverter())
-      .setClient(new Ok3Client(okHttpClient))
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .build()
-
-    return restAdapter.create(InstanceService.class)
+    return serviceClientProvider.getService(
+        InstanceService.class,
+        new DefaultServiceEndpoint("instance", RetrofitUtils.getBaseUrl(address)))
   }
 
   List<Library> getJarList(Map<String, InstanceInfo> instances) {
@@ -151,8 +149,8 @@ class JarDiffsTask implements DiffTask {
       getLog().debug("attempting to get a jar list from : ${key} (${hostName}:${platformPort})")
       def instanceService = createInstanceService("http://${hostName}:${platformPort}")
       try {
-        def instanceResponse = instanceService.getJars()
-        jarMap = objectMapper.readValue(instanceResponse.body.in().text, Map)
+        def instanceResponse = Retrofit2SyncCall.executeCall(instanceService.getJars())
+        jarMap = objectMapper.readValue(instanceResponse.body().byteStream().text, Map)
         return true
       } catch(Exception e) {
         getLog().debug("could not get a jar list from : ${key} (${hostName}:${platformPort}) - ${e.message}")

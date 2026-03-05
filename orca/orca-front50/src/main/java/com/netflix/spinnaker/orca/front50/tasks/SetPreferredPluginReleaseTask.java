@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.front50.tasks;
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -47,7 +48,8 @@ public class SetPreferredPluginReleaseTask implements RetryableTask {
     Objects.requireNonNull(version, "preferredVersion must be provided");
 
     try {
-      front50Service.setPreferredPluginVersion(pluginId, version, true);
+      Retrofit2SyncCall.executeCall(
+          front50Service.setPreferredPluginVersion(pluginId, version, true));
     } catch (Exception e) {
       log.error("Failed setting preferred plugin version '{}' to '{}'", pluginId, version, e);
       return TaskResult.RUNNING;

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import java.util.regex.Pattern
 
 @Slf4j
@@ -84,6 +84,18 @@ class AuthController {
     if (fiatRoles) {
       user.roles = fiatRoles
     }
+    return user
+  }
+
+  @Operation(summary = "Get raw user")
+  @RequestMapping(value = "/rawUser", method = RequestMethod.GET)
+  User rawUser(@Parameter(hidden = true) @SpinnakerUser User user) {
+    if (!user) {
+      log.info("GET /auth/rawUser: null user")
+      return user
+    }
+
+    log.info("GET /auth/rawUser: username: '${user.getUsername()}' email: '${user.getEmail()}' roles: '${user.getRoles()}'")
     return user
   }
 

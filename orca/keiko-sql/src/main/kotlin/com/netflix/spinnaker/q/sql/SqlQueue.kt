@@ -22,6 +22,7 @@ import com.netflix.spinnaker.q.metrics.MessageProcessing
 import com.netflix.spinnaker.q.metrics.MessagePushed
 import com.netflix.spinnaker.q.metrics.MessageRescheduled
 import com.netflix.spinnaker.q.metrics.MessageRetried
+import com.netflix.spinnaker.q.metrics.MessageRetryFailed
 import com.netflix.spinnaker.q.metrics.MonitorableQueue
 import com.netflix.spinnaker.q.metrics.QueuePolled
 import com.netflix.spinnaker.q.metrics.QueueState
@@ -682,7 +683,6 @@ class SqlQueue(
       var dlq = false
       var message: Message
       var acks: Int
-
       try {
         message = mapper.readValue(runSerializationMigration(rs.getString("body")))
 
@@ -698,7 +698,7 @@ class SqlQueue(
           ?: 0
 
         if (ackAttemptsAttribute.ackAttempts >= Queue.maxRetries ||
-          (maxAttempts > 0 && attempts > maxAttempts)
+          (maxAttempts in 1 until attempts)
         ) {
           log.warn("Message $fingerprint with payload $message exceeded max ack retries")
           dlq = true
@@ -709,56 +709,62 @@ class SqlQueue(
         continue
       }
 
-      if (dlq) {
-        deleteAll(fingerprint)
-        handleDeadMessage(message)
-        continue
-      }
-
-      jooq.transaction { config ->
-        val txn = DSL.using(config)
-
-        rows = txn.delete(unackedTable)
-          .where(idField.eq(rs.getString("id")))
-          .execute()
-
-        if (rows == 1) {
-          log.warn("Retrying message $fingerprint after $acks ack attempts")
-
-          txn.insertInto(queueTable)
-            .set(idField, ULID.nextValue().toString())
-            .set(fingerprintField, fingerprint)
-            .set(deliveryField, atTime(lockTtlDuration))
-            .set(lockedField, "0")
-            .run {
-              when (jooq.dialect()) {
-                SQLDialect.POSTGRES ->
-                  onConflict(fingerprintField)
-                    .doUpdate()
-                    .set(deliveryField, atTime(lockTtlDuration))
-                    .execute()
-                else ->
-                  onDuplicateKeyUpdate()
-                    .set(deliveryField, MySQLDSL.values(deliveryField) as Any)
-                    .execute()
-              }
-            }
+      try {
+        if (dlq) {
+          deleteAll(fingerprint)
+          handleDeadMessage(message)
+          continue
         }
-      }
 
-      /**
-       * Updating message with increment ackAttempt value outside of the above txn to minimize
-       * lock times related to the [queueTable] insert. If this does not complete within
-       * [lockTtlSeconds], the ackAttempt attribute increment may be lost, making it best effort.
-       */
-      if (rows == 1) {
-        jooq.update(messagesTable)
-          .set(bodyField, mapper.writeValueAsString(message))
-          .set(updatedAtField, unackBaseTime)
-          .where(fingerprintField.eq(fingerprint))
-          .execute()
+        jooq.transaction { config ->
+          val txn = DSL.using(config)
 
-        fire(MessageRetried)
+          rows = txn.delete(unackedTable)
+            .where(idField.eq(rs.getString("id")))
+            .execute()
+
+          if (rows == 1) {
+            log.warn("Retrying message $fingerprint after $acks ack attempts")
+
+            txn.insertInto(queueTable)
+              .set(idField, ULID.nextValue().toString())
+              .set(fingerprintField, fingerprint)
+              .set(deliveryField, atTime(lockTtlDuration))
+              .set(lockedField, "0")
+              .run {
+                when (jooq.dialect()) {
+                  SQLDialect.POSTGRES ->
+                    onConflict(fingerprintField)
+                      .doUpdate()
+                      .set(deliveryField, atTime(lockTtlDuration))
+                      .execute()
+                  else ->
+                    onDuplicateKeyUpdate()
+                      .set(deliveryField, MySQLDSL.values(deliveryField) as Any)
+                      .execute()
+                }
+              }
+          }
+        }
+
+        /**
+         * Updating message with increment ackAttempt value outside of the above txn to minimize
+         * lock times related to the [queueTable] insert. If this does not complete within
+         * [lockTtlSeconds], the ackAttempt attribute increment may be lost, making it best effort.
+         */
+        if (rows == 1) {
+          jooq.update(messagesTable)
+            .set(bodyField, mapper.writeValueAsString(message))
+            .set(updatedAtField, unackBaseTime)
+            .where(fingerprintField.eq(fingerprint))
+            .execute()
+
+          fire(MessageRetried)
+        }
+      } catch (e: Throwable) {
+        log.error("Caught unhandled exception while retrying unacked message $fingerprint. " +
+          "Ignoring it and proceeding with the rest of the messages in the unacked queue.", e)
+        fire(MessageRetryFailed)
       }
     }
     fire(RetryPolled)

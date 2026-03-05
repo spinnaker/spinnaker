@@ -17,7 +17,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import org.springframework.stereotype.Component
 
 @OracleOperation(AtomicOperations.ENABLE_SERVER_GROUP)
-@Component("enableGoogleServerGroupDescription")
+@Component("enableOracleServerGroupDescription")
 class EnableOracleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override

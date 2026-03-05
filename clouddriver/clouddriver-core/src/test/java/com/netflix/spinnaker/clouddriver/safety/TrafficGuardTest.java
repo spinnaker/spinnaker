@@ -43,6 +43,7 @@ import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -127,7 +128,8 @@ public class TrafficGuardTest {
 
     @Bean
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {
-      return new SpinnakerRequestHeaderInterceptor(false);
+      return new SpinnakerRequestHeaderInterceptor(
+          false /* propagateSpinnakerHeaders */, Collections.emptyList() /* additionalHeaders */);
     }
   }
 }

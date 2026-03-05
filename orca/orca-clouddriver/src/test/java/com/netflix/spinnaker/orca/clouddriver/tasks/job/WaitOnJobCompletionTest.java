@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.job;
 
 import static com.netflix.spinnaker.orca.TestUtils.getResource;
-import static com.netflix.spinnaker.orca.TestUtils.getResourceAsStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,7 +43,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,6 +51,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,8 +60,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
+import retrofit2.mock.Calls;
 
 public final class WaitOnJobCompletionTest {
   private ObjectMapper objectMapper;
@@ -116,15 +116,11 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingContextApplication() {
-    Response mockResponse =
-        new Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", "{ \"jobState\": \"Succeeded\"}".getBytes()));
+    ResponseBody mockResponseBody =
+        ResponseBody.create(MediaType.parse("application/json"), "{ \"jobState\": \"Succeeded\"}");
 
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(Calls.response(mockResponseBody));
 
     StageExecutionImpl myStage =
         createStageWithContext(
@@ -142,15 +138,11 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingContextMoniker() {
-    Response mockResponse =
-        new Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", "{ \"jobState\": \"Succeeded\"}".getBytes()));
+    ResponseBody mockResponseBody =
+        ResponseBody.create(MediaType.parse("application/json"), "{ \"jobState\": \"Succeeded\"}");
 
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(Calls.response(mockResponseBody));
 
     StageExecutionImpl myStage =
         createStageWithContext(
@@ -167,16 +159,12 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingParsedName() {
-    Response mockResponse =
-        new Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", "{ \"jobState\": \"Succeeded\"}".getBytes()));
+    ResponseBody mockResponseBody =
+        ResponseBody.create(MediaType.parse("application/json"), "{ \"jobState\": \"Succeeded\"}");
 
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
-    when(mockFront50Service.get(any())).thenReturn(new Application("atest"));
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(Calls.response(mockResponseBody));
+    when(mockFront50Service.get(any())).thenReturn(Calls.response(new Application("atest")));
 
     StageExecutionImpl myStage =
         createStageWithContextWithoutExecutionApplication(
@@ -191,15 +179,11 @@ public final class WaitOnJobCompletionTest {
 
   @Test
   void taskSearchJobByApplicationUsingExecutionApp() {
-    Response mockResponse =
-        new Response(
-            "test-url",
-            200,
-            "test-reason",
-            Collections.emptyList(),
-            new TypedByteArray("application/json", "{ \"jobState\": \"Succeeded\"}".getBytes()));
+    ResponseBody mockResponseBody =
+        ResponseBody.create(MediaType.parse("application/json"), "{ \"jobState\": \"Succeeded\"}");
 
-    when(mockKatoRestService.collectJob(any(), any(), any(), any())).thenReturn(mockResponse);
+    when(mockKatoRestService.collectJob(any(), any(), any(), any()))
+        .thenReturn(Calls.response(mockResponseBody));
 
     StageExecutionImpl myStage =
         createStageWithContext(
@@ -221,8 +205,8 @@ public final class WaitOnJobCompletionTest {
     // setup
     when(mockKatoRestService.collectJob(any(), any(), any(), any()))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/successful-runjob-status.json"));
+            Calls.response(
+                createJobStatusFromResource("kubernetes/successful-runjob-status.json")));
 
     Map<String, Object> propertyFileContents = new HashMap<>();
     if (!isPropertyFileContentsEmpty) {
@@ -230,7 +214,11 @@ public final class WaitOnJobCompletionTest {
     }
     when(mockKatoRestService.getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
-        .thenReturn(propertyFileContents);
+        .thenReturn(Calls.response(propertyFileContents));
+
+    when(mockKatoRestService.getFileContentsFromKubernetesPod(
+            eq("test-app"), eq("test-account"), eq("test"), eq("testrep"), eq("testrep")))
+        .thenReturn(Calls.response(propertyFileContents));
 
     StageExecution myStage =
         createStageFromResource(
@@ -257,6 +245,9 @@ public final class WaitOnJobCompletionTest {
     verifyNoInteractions(mockExecutionRepository);
 
     if (isPropertyFileContentsEmpty) {
+      verify(mockKatoRestService, times(1))
+          .getFileContentsFromKubernetesPod(
+              eq("test-app"), eq("test-account"), eq("test"), eq("testrep"), eq("testrep"));
       // the expected exception should be the one that was thrown when retrieving the property file
       // contents
       assertNotNull(thrown);
@@ -278,12 +269,16 @@ public final class WaitOnJobCompletionTest {
   void testPropertyFileContentsErrorHandlingForASuccessfulK8sRunJob() throws IOException {
     when(mockKatoRestService.collectJob(any(), any(), any(), any()))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/successful-runjob-status.json"));
+            Calls.response(
+                createJobStatusFromResource("kubernetes/successful-runjob-status.json")));
 
     when(mockKatoRestService.getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
         .thenThrow(new RuntimeException("some exception"));
+
+    when(mockKatoRestService.getFileContentsFromKubernetesPod(
+            eq("test-app"), eq("test-account"), eq("test"), eq("testrep"), eq("testrep")))
+        .thenReturn(Calls.response(Collections.emptyMap()));
 
     // when
     ConfigurationException thrown =
@@ -334,13 +329,14 @@ public final class WaitOnJobCompletionTest {
     // mocked JobStatus response from clouddriver
     when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/successful-runjob-status-with-multiple-pods.json"));
+            Calls.response(
+                createJobStatusFromResource(
+                    "kubernetes/successful-runjob-status-with-multiple-pods.json")));
 
     // when
     when(mockKatoRestService.getFileContents(
             "test-app", "test-account", "test", "job testrep", "testrep"))
-        .thenReturn(Map.of("some-key", "some-value"));
+        .thenReturn(Calls.response(Map.of("some-key", "some-value")));
 
     TaskResult result =
         task.execute(
@@ -372,17 +368,18 @@ public final class WaitOnJobCompletionTest {
     // mocked JobStatus response from clouddriver
     when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/successful-runjob-status-with-multiple-pods.json"));
+            Calls.response(
+                createJobStatusFromResource(
+                    "kubernetes/successful-runjob-status-with-multiple-pods.json")));
 
     // when
     when(mockKatoRestService.getFileContents(
             "test-app", "test-account", "test", "job testrep", "testrep"))
-        .thenReturn(Map.of());
+        .thenReturn(Calls.response(Map.of()));
 
     when(mockKatoRestService.getFileContentsFromKubernetesPod(
             "test-app", "test-account", "test", "testrep-rn5qt", "testrep"))
-        .thenReturn(Map.of("some-key", "some-value"));
+        .thenReturn(Calls.response(Map.of("some-key", "some-value")));
 
     TaskResult result =
         task.execute(
@@ -415,17 +412,18 @@ public final class WaitOnJobCompletionTest {
     // mocked JobStatus response from clouddriver
     when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/successful-runjob-status-with-multiple-pods.json"));
+            Calls.response(
+                createJobStatusFromResource(
+                    "kubernetes/successful-runjob-status-with-multiple-pods.json")));
 
     // when
     when(mockKatoRestService.getFileContents(
             "test-app", "test-account", "test", "job testrep", "testrep"))
-        .thenReturn(Map.of());
+        .thenReturn(Calls.response(Map.of()));
 
     when(mockKatoRestService.getFileContentsFromKubernetesPod(
             "test-app", "test-account", "test", "testrep-rn5qt", "testrep"))
-        .thenReturn(Map.of());
+        .thenReturn(Calls.response(Map.of()));
 
     // then
     ConfigurationException thrown =
@@ -458,12 +456,14 @@ public final class WaitOnJobCompletionTest {
     // setup
     when(mockKatoRestService.collectJob(any(), any(), any(), any()))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/failed-runjob-status.json"));
+            Calls.response(createJobStatusFromResource("kubernetes/failed-runjob-status.json")));
 
     String stageContextResource =
         "clouddriver/tasks/job/kubernetes/runjob-stage-context-without-property-file.json";
     if (includePropertyFile) {
+      when(mockKatoRestService.getFileContents(
+              "test-app", "test-account", "test", "job testrep", "testrep"))
+          .thenReturn(Calls.response(Map.of("some-key", "some-value")));
       stageContextResource =
           "clouddriver/tasks/job/kubernetes/runjob-stage-context-with-property-file.json";
     }
@@ -513,8 +513,7 @@ public final class WaitOnJobCompletionTest {
     // setup
     when(mockKatoRestService.collectJob(any(), any(), any(), any()))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/failed-runjob-status.json"));
+            Calls.response(createJobStatusFromResource("kubernetes/failed-runjob-status.json")));
 
     Map<String, Object> propertyFileContents = new HashMap<>();
     if (!isPropertyFileContentsEmpty) {
@@ -523,7 +522,7 @@ public final class WaitOnJobCompletionTest {
 
     when(mockKatoRestService.getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
-        .thenReturn(propertyFileContents);
+        .thenReturn(Calls.response(propertyFileContents));
 
     StageExecution myStage =
         createStageFromResource(
@@ -573,8 +572,7 @@ public final class WaitOnJobCompletionTest {
     // setup
     when(mockKatoRestService.collectJob(any(), any(), any(), any()))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/failed-runjob-status.json"));
+            Calls.response(createJobStatusFromResource("kubernetes/failed-runjob-status.json")));
 
     when(mockKatoRestService.getFileContents(
             eq("test-app"), eq("test-account"), eq("test"), eq("job testrep"), eq("testrep")))
@@ -641,15 +639,12 @@ public final class WaitOnJobCompletionTest {
     return createStageWithContext(context);
   }
 
-  private Response createJobStatusFromResource(String resourceName) throws IOException {
-    InputStream jobStatusInputStream = getResourceAsStream(resourceName);
+  private ResponseBody createJobStatusFromResource(String resourceName) throws IOException {
+    String jobStatus =
+        IOUtils.toString(
+            WaitOnJobCompletionTest.class.getResource(resourceName), StandardCharsets.UTF_8);
 
-    return new Response(
-        "test-url",
-        200,
-        "test-reason",
-        Collections.emptyList(),
-        new TypedByteArray("application/json", IOUtils.toByteArray(jobStatusInputStream)));
+    return ResponseBody.create(MediaType.parse("application/json"), jobStatus);
   }
 
   @DisplayName(
@@ -670,12 +665,12 @@ public final class WaitOnJobCompletionTest {
     // when
     when(mockKatoRestService.collectJob("test-app", "test-account", "test", "job testrep"))
         .thenReturn(
-            createJobStatusFromResource(
-                "clouddriver/tasks/job/kubernetes/successful-runjob-status.json"));
+            Calls.response(
+                createJobStatusFromResource("kubernetes/successful-runjob-status.json")));
 
     when(mockKatoRestService.getFileContents(
             "test-app", "test-account", "test", "job testrep", "testrep"))
-        .thenReturn(Map.of("some-key", "some-value"));
+        .thenReturn(Calls.response(Map.of("some-key", "some-value")));
 
     TaskResult result =
         task.execute(

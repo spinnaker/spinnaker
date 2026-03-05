@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.echo.spring
 
 import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
@@ -143,7 +144,7 @@ class EchoNotifyingStageListener implements StageListener {
         MDC.put(Header.EXECUTION_ID.header, stage.execution.id)
         MDC.put(Header.USER.header, stage.execution?.authentication?.user ?: "anonymous")
         AuthenticatedRequest.allowAnonymous({
-          echoService.recordEvent(event)
+          Retrofit2SyncCall.execute(echoService.recordEvent(event as Map))
         })
       } finally {
         MDC.remove(Header.EXECUTION_ID.header)

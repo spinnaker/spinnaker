@@ -16,9 +16,9 @@
 
 package com.netflix.kayenta.influxdb.model;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

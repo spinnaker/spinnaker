@@ -155,6 +155,7 @@ class SqlAccountDefinitionRepository(
               if (jooq.dialect() == SQLDialect.POSTGRES) onConflict(idColumn).doUpdate()
               else onDuplicateKeyUpdate()
             }
+            .set(typeColumn, typeName)
             .set(bodyColumn, body)
             .set(lastModifiedColumn, timestamp)
             .set(modifiedByColumn, user)
@@ -184,6 +185,7 @@ class SqlAccountDefinitionRepository(
       try {
         jooq.transactional { ctx ->
           val rows = ctx.update(accountsTable)
+            .set(typeColumn, typeName)
             .set(bodyColumn, body)
             .set(lastModifiedColumn, timestamp)
             .set(modifiedByColumn, user)

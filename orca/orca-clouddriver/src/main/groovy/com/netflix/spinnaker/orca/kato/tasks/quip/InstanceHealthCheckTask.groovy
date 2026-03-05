@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -60,7 +61,7 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
       def host = instance.privateIpAddress ?: healthCheckUrl.host
       def instanceService = createInstanceService("http://${host}:${healthCheckUrl.port}")
       try { // keep trying until we get a 200 or time out
-        instanceService.healthCheck(healthCheckUrl.path.substring(1))
+        Retrofit2SyncCall.executeCall(instanceService.healthCheck(healthCheckUrl.path.substring(1)))
       } catch (SpinnakerServerException e) {
         executionStatus = ExecutionStatus.RUNNING
       }

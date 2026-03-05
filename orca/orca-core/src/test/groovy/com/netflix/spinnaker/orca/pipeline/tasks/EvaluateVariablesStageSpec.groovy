@@ -106,4 +106,84 @@ class EvaluateVariablesStageSpec extends Specification {
     then:
     variablesCleaned == true
   }
+
+  void "Should eval variable correctly when evaluating default entries failed"() {
+    setup:
+    def summary = new ExpressionEvaluationSummary()
+
+    def correctVars = [
+      [key: "a", value: 10, sourceValue: "{1+2+3+4}", description: null],
+      [key: "b", value: 24, sourceValue: "{1*2*3*4}", description: null],
+      [key: "product", value: 240, sourceValue: "{a * b}", description: "product of a(10) and b(24)"]
+    ]
+
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["notifications"] = [
+        [address: '${someFailingVar}']
+      ]
+      context["variables"] = [
+        [key: "a", value: '${1+2+3+4}'],
+        [key: "b", value: '${1*2*3*4}'],
+        [key: "product", value: '${a * b}', description: 'product of a(${a}) and b(${b})']
+      ]
+    }
+
+    when:
+    def shouldContinue = evaluateVariablesStage.processExpressions(stage, contextParameterProcessor, summary)
+
+    then:
+    shouldContinue == false
+
+    // If the processDefaultEntries failure isn't accounted for properly, the
+    // first variable can be treated as failed to evaluate, even when it's
+    // correct.  Explicitly assert that the first variable is correct so it's
+    // easier to see when something isn't working than with assert on all
+    // variables.
+    stage.context.variables[0].value == correctVars[0].value
+    stage.context.variables == correctVars
+    summary.totalEvaluated == 5
+    summary.failureCount == 1
+    summary.expressionResult.size() == 1
+    summary.expressionResult.keySet().contains("someFailingVar")
+  }
+
+  void "Should eval variable correctly when evaluating variables and default entries both failed"() {
+    setup:
+    def summary = new ExpressionEvaluationSummary()
+
+    def correctVars = [
+      [key: "a", value: 10, sourceValue: "{1+2+3+4}", description: null],
+      [key: "b", value: 24, sourceValue: "{1*2*3*4}", description: null],
+      [key: "product", value: 240, sourceValue: "{a * b}", description: "product of a(10) and b(24)"],
+      [key: "nonworking", value: 'this one should fail: ${a * c}', sourceValue: 'this one should fail: {a * c}', description: null]
+    ]
+
+    def stage = stage {
+      refId = "1"
+      type = "evaluateVariables"
+      context["notifications"] = [
+        [address: '${someFailingVar}']
+      ]
+      context["variables"] = [
+        [key: "a", value: '${1+2+3+4}'],
+        [key: "b", value: '${1*2*3*4}'],
+        [key: "product", value: '${a * b}', description: 'product of a(${a}) and b(${b})'],
+        [key: "nonworking", value: 'this one should fail: ${a * c}']
+      ]
+    }
+
+    when:
+    def shouldContinue = evaluateVariablesStage.processExpressions(stage, contextParameterProcessor, summary)
+
+    then:
+    shouldContinue == false
+    stage.context.variables == correctVars
+    summary.totalEvaluated == 6
+    summary.failureCount == 2
+    summary.expressionResult.size() == 2
+    summary.expressionResult.keySet().contains("this one should fail: a * c")
+    summary.expressionResult.keySet().contains("someFailingVar")
+  }
 }

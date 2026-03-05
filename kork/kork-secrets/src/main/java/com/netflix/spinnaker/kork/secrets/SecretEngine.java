@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.kork.secrets;
 
+import com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretEngineException;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import java.nio.charset.StandardCharsets;
 import javax.annotation.Nonnull;
 
 /**
@@ -25,14 +27,14 @@ import javax.annotation.Nonnull;
  * Identifiers are used in order to identify which SecretEngine an EncryptedSecret refers to.
  * SecretEngines are used by the SecretManager in order to decrypt a given secret.
  */
-public interface SecretEngine {
+public interface SecretEngine extends SecretReferenceResolver {
   String identifier();
 
   byte[] decrypt(EncryptedSecret encryptedSecret);
 
   @Nonnull
   default UserSecret decrypt(@Nonnull UserSecretReference reference) {
-    throw new UnsupportedOperationException("This operation is not supported");
+    throw new UnsupportedUserSecretEngineException(identifier());
   }
 
   /**
@@ -53,4 +55,16 @@ public interface SecretEngine {
   default void validate(@Nonnull UserSecretReference reference) {}
 
   void clearCache();
+
+  @Override
+  default boolean supports(@Nonnull SecretReference reference) {
+    return identifier().equals(reference.getEngineIdentifier())
+        && reference instanceof EncryptedSecret;
+  }
+
+  @Override
+  @Nonnull
+  default String resolve(@Nonnull SecretReference reference) {
+    return new String(decrypt((EncryptedSecret) reference), StandardCharsets.UTF_8);
+  }
 }

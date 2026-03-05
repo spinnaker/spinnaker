@@ -27,12 +27,12 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface KeyValueApi {
-  @GET("/v1/kv/{key}")
+  @GET("v1/kv/{key}")
   Call<List<KeyValuePair>> getKey(@Path("key") String key, @Query("dc") String dc, @Query("recurse") Boolean recurse)
 
-  @PUT("/v1/kv/{key}")
+  @PUT("v1/kv/{key}")
   Call<ResponseBody> putKey(@Path("key") String key, @Body String data, @Query("dc") String dc)
 
-  @DELETE("/v1/kv/{key}")
+  @DELETE("v1/kv/{key}")
   Call<ResponseBody> deleteKey(@Path("key") String key, @Query("dc") String dc, @Query("recurse") Boolean recurse)
 }

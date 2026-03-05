@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.echo.pubsub.aws;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
-import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.netflix.spectator.api.Registry;
@@ -33,6 +29,7 @@ import com.netflix.spinnaker.echo.pubsub.model.PubsubSubscriber;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,12 +37,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Supplier;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 /** * Starts the individual SQS workers (one for each subscription) */
 @Component
@@ -54,7 +54,7 @@ public class SQSSubscriberProvider {
   private static final Logger log = LoggerFactory.getLogger(SQSSubscriberProvider.class);
 
   private final ObjectMapper objectMapper;
-  private final AWSCredentialsProvider awsCredentialsProvider;
+  private final AwsCredentialsProvider awsCredentialsProvider;
   private final AmazonPubsubProperties properties;
   private final PubsubSubscribers pubsubSubscribers;
   private final PubsubMessageHandler.Factory pubsubMessageHandlerFactory;
@@ -66,7 +66,7 @@ public class SQSSubscriberProvider {
   @Autowired
   SQSSubscriberProvider(
       ObjectMapper objectMapper,
-      AWSCredentialsProvider awsCredentialsProvider,
+      AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,
       PubsubSubscribers pubsubSubscribers,
       PubsubMessageHandler.Factory pubsubMessageHandlerFactory,
@@ -101,14 +101,14 @@ public class SQSSubscriberProvider {
             (AmazonPubsubProperties.AmazonPubsubSubscription subscription) -> {
               log.info("Bootstrapping SQS for SNS topic: {}", subscription.getTopicARN());
               if (subscription.getTemplatePath() != null
-                  && !subscription.getTemplatePath().equals("")) {
+                  && !subscription.getTemplatePath().isEmpty()) {
                 log.info(
                     "Using template: {} for subscription: {}",
                     subscription.getTemplatePath(),
                     subscription.getName());
               }
-
               ARN queueArn = new ARN(subscription.getQueueARN());
+              Region awsRegion = Region.of(queueArn.getRegion());
 
               Optional<MessageArtifactTranslator> messageArtifactTranslator = Optional.empty();
               if (subscription.getMessageFormat() != AmazonPubsubProperties.MessageFormat.NONE) {
@@ -118,21 +118,23 @@ public class SQSSubscriberProvider {
               }
               EventCreator eventCreator = new PubsubEventCreator(messageArtifactTranslator);
 
+              SnsClient snsClient =
+                  SnsClient.builder()
+                      .credentialsProvider(awsCredentialsProvider)
+                      .region(awsRegion)
+                      .build();
+              SqsClient sqsClient =
+                  SqsClient.builder()
+                      .credentialsProvider(awsCredentialsProvider)
+                      .region(awsRegion)
+                      .build();
               SQSSubscriber worker =
                   new SQSSubscriber(
                       objectMapper,
                       subscription,
                       pubsubMessageHandlerFactory.create(eventCreator),
-                      AmazonSNSClientBuilder.standard()
-                          .withCredentials(awsCredentialsProvider)
-                          .withClientConfiguration(new ClientConfiguration())
-                          .withRegion(queueArn.getRegion())
-                          .build(),
-                      AmazonSQSClientBuilder.standard()
-                          .withCredentials(awsCredentialsProvider)
-                          .withClientConfiguration(new ClientConfiguration())
-                          .withRegion(queueArn.getRegion())
-                          .build(),
+                      snsClient,
+                      sqsClient,
                       isEnabledSupplier(),
                       registry);
 

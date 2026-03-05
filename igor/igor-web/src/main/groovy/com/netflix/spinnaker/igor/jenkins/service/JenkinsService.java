@@ -49,6 +49,7 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -66,7 +67,6 @@ import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriUtils;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit2.Response;
 
 @Slf4j
@@ -186,7 +186,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
 
   @Override
   public long triggerBuildWithParameters(String job, Map<String, String> queryParameters) {
-    Response<ResponseBody> response = buildWithParameters(job, queryParameters);
+    Response<Void> response = buildWithParameters(job, queryParameters);
     if (response.code() != 201) {
       throw new BuildJobError("Received a non-201 status when submitting job '" + job + "'");
     }
@@ -246,16 +246,15 @@ public class JenkinsService implements BuildOperations, BuildProperties {
     }
   }
 
-  public Response<ResponseBody> build(String jobName) {
+  public Response<Void> build(String jobName) {
     return circuitBreaker.executeSupplier(
-        () -> Retrofit2SyncCall.execute(jenkinsClient.build(encode(jobName), "", getCrumb())));
+        () -> Retrofit2SyncCall.executeCall(jenkinsClient.build(encode(jobName), "", getCrumb())));
   }
 
-  public Response<ResponseBody> buildWithParameters(
-      String jobName, Map<String, String> queryParams) {
+  public Response<Void> buildWithParameters(String jobName, Map<String, String> queryParams) {
     return circuitBreaker.executeSupplier(
         () ->
-            Retrofit2SyncCall.execute(
+            Retrofit2SyncCall.executeCall(
                 jenkinsClient.buildWithParameters(encode(jobName), queryParams, "", getCrumb())));
   }
 
@@ -287,7 +286,7 @@ public class JenkinsService implements BuildOperations, BuildProperties {
       try (InputStream propertyStream =
           this.getPropertyFile(job, build.getNumber(), path).byteStream()) {
         if (fileName.endsWith(".yml") || fileName.endsWith(".yaml")) {
-          Yaml yml = new Yaml(new SafeConstructor());
+          Yaml yml = YamlHelper.newYamlSafeConstructor();
           map = yml.load(propertyStream);
         } else if (fileName.endsWith(".json")) {
           map = objectMapper.readValue(propertyStream, new TypeReference<Map<String, Object>>() {});

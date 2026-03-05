@@ -206,8 +206,10 @@ class InvokePipelineConfigTest {
         .andExpect(
             status()
                 .reason(
-                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Pipeline configuration not found (id: "
+                    "Unable to trigger pipeline (application: my-application, pipelineNameOrId: my-pipeline-name). Error: Pipeline configuration not found (nameOrId: "
                         + PIPELINE_NAME
+                        + " in application "
+                        + APPLICATION
                         + "): Status: 404, Method: GET, URL: "
                         + wmFront50.baseUrl()
                         + "/pipelines/my-pipeline-name/get, Message: message from front50"))

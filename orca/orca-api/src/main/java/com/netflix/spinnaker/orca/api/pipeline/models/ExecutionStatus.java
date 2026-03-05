@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.api.pipeline.models;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Execution Status enumerations used for executions and stages.
@@ -80,14 +79,15 @@ public enum ExecutionStatus implements CharSequence {
     return halt;
   }
 
-  public static final Collection<ExecutionStatus> COMPLETED =
-      Collections.unmodifiableList(
-          Arrays.asList(CANCELED, SUCCEEDED, STOPPED, SKIPPED, TERMINAL, FAILED_CONTINUE));
+  public static final ImmutableSet<ExecutionStatus> COMPLETED =
+      Sets.immutableEnumSet(CANCELED, SUCCEEDED, STOPPED, SKIPPED, TERMINAL, FAILED_CONTINUE);
 
-  private static final Collection<ExecutionStatus> SUCCESSFUL =
-      Collections.unmodifiableList(Arrays.asList(SUCCEEDED, STOPPED, SKIPPED));
-  private static final Collection<ExecutionStatus> FAILURE =
-      Collections.unmodifiableList(Arrays.asList(TERMINAL, STOPPED, FAILED_CONTINUE));
+  private static final ImmutableSet<ExecutionStatus> SUCCESSFUL =
+      Sets.immutableEnumSet(SUCCEEDED, STOPPED, SKIPPED);
+
+  private static final ImmutableSet<ExecutionStatus> FAILURE =
+      Sets.immutableEnumSet(TERMINAL, STOPPED, FAILED_CONTINUE);
+
   private final boolean complete;
   private final boolean halt;
 

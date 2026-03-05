@@ -1,0 +1,135 @@
+{
+  "account": "k8s-local",
+  "name": "replicaSet backend-65b97dd546",
+  "location": "dev",
+  "moniker": {
+    "app": "kubernetesapp",
+    "cluster": "deployment backend",
+    "sequence": 1
+  },
+  "manifest": {
+    "metadata": {
+      "annotations": {
+        "artifact.spinnaker.io/location": "dev",
+        "artifact.spinnaker.io/name": "backend",
+        "artifact.spinnaker.io/type": "kubernetes/deployment",
+        "artifact.spinnaker.io/version": "",
+        "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span class=\"label-text\">Account:</span> {{ account }}</div>\n  <div class=\"item\"><span class=\"label-text\">Display Name:</span> {{ displayName }}</div>\n</dl>\n",
+        "deployment.kubernetes.io/desired-replicas": "2",
+        "deployment.kubernetes.io/max-replicas": "3",
+        "deployment.kubernetes.io/revision": "1",
+        "moniker.spinnaker.io/application": "kubernetesapp",
+        "moniker.spinnaker.io/cluster": "deployment backend"
+      },
+      "creationTimestamp": "2025-07-28T21:38:14Z",
+      "generation": 1,
+      "labels": {
+        "app": "backend",
+        "app.kubernetes.io/managed-by": "spinnaker",
+        "app.kubernetes.io/name": "kubernetesapp",
+        "custom-label": "custom-value",
+        "pod-template-hash": "65b97dd546"
+      },
+      "name": "backend-65b97dd546",
+      "namespace": "dev",
+      "ownerReferences": [
+        {
+          "apiVersion": "apps/v1",
+          "blockOwnerDeletion": true,
+          "controller": true,
+          "kind": "Deployment",
+          "name": "backend",
+          "uid": "82a44163-a724-4f8d-b1ec-adf410dbf3e7"
+        }
+      ],
+      "resourceVersion": "246257",
+      "uid": "549dc861-1cb0-471d-9ab8-db49862c0b83"
+    },
+    "apiVersion": "apps/v1",
+    "kind": "ReplicaSet",
+    "spec": {
+      "replicas": 2,
+      "selector": {
+        "matchLabels": {
+          "app": "backend",
+          "pod-template-hash": "65b97dd546"
+        }
+      },
+      "template": {
+        "metadata": {
+          "annotations": {
+            "artifact.spinnaker.io/location": "dev",
+            "artifact.spinnaker.io/name": "backend",
+            "artifact.spinnaker.io/type": "kubernetes/deployment",
+            "artifact.spinnaker.io/version": "",
+            "moniker.spinnaker.io/application": "kubernetesapp",
+            "moniker.spinnaker.io/cluster": "deployment backend"
+          },
+          "labels": {
+            "app": "backend",
+            "app.kubernetes.io/managed-by": "spinnaker",
+            "app.kubernetes.io/name": "kubernetesapp",
+            "custom-label": "custom-value",
+            "pod-template-hash": "65b97dd546"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "image": "nginx:1.27.3",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "backend",
+              "ports": [
+                {
+                  "containerPort": 80,
+                  "protocol": "TCP"
+                }
+              ],
+              "resources": {},
+              "terminationMessagePath": "/dev/termination-log",
+              "terminationMessagePolicy": "File"
+            }
+          ],
+          "dnsPolicy": "ClusterFirst",
+          "restartPolicy": "Always",
+          "schedulerName": "default-scheduler",
+          "securityContext": {},
+          "terminationGracePeriodSeconds": 30
+        }
+      }
+    },
+    "status": {
+      "availableReplicas": 2,
+      "fullyLabeledReplicas": 2,
+      "observedGeneration": 1,
+      "readyReplicas": 2,
+      "replicas": 2
+    }
+  },
+  "status": {
+    "stable": {
+      "state": true
+    },
+    "paused": {
+      "state": false
+    },
+    "available": {
+      "state": true
+    },
+    "failed": {
+      "state": false
+    }
+  },
+  "artifacts": [
+    {
+      "type": "docker/image",
+      "customKind": false,
+      "name": "nginx",
+      "reference": "nginx:1.27.3",
+      "metadata": {}
+    }
+  ],
+  "events": [],
+  "warnings": [],
+  "metrics": []
+}

@@ -66,7 +66,9 @@ public interface AccountCredentials<T> extends Credentials {
    */
   String getAccountType();
 
-  /** @return the id for the account (may be null if not supported by underlying cloud provider) */
+  /**
+   * @return the id for the account (may be null if not supported by underlying cloud provider)
+   */
   default String getAccountId() {
     return null;
   }

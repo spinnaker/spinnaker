@@ -17,24 +17,25 @@
 package com.netflix.spinnaker.orca.echo
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import retrofit.client.Response
-import retrofit.http.Body
-import retrofit.http.GET
-import retrofit.http.Headers
-import retrofit.http.POST
-import retrofit.http.Path
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface EchoService {
 
-  @POST("/")
-  Response recordEvent(@Body Map<String, ?> notification)
+  @POST(".")
+  Call<Void> recordEvent(@Body Map<String, Object> notification)
 
-  @GET("/events/recent/{type}/{since}/")
-  Response getEvents(@Path("type") String type, @Path("since") Long since)
+  @GET("events/recent/{type}/{since}/")
+  Call<ResponseBody> getEvents(@Path("type") String type, @Path("since") Long since)
 
   @Headers("Content-type: application/json")
-  @POST("/notifications")
-  Response create(@Body Notification notification)
+  @POST("notifications")
+  Call<ResponseBody> create(@Body Notification notification)
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   static class Notification {

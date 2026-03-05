@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/presentation",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "description": "Provides re-usable UI components for deck",
   "version": "0.3.1",
   "module": "dist/index.js",
@@ -19,13 +23,13 @@
     "react": "~16.14.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^17.0.0",
-    "@rollup/plugin-node-resolve": "^11.0.1",
-    "@rollup/plugin-typescript": "^8.1.0",
-    "@rollup/plugin-url": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-typescript": "^12.0.0",
+    "@rollup/plugin-url": "^8.0.0",
     "@svgr/rollup": "^6.3.1",
     "@types/react": "~16.14.0",
-    "rollup": "^2.35.1",
+    "rollup": "^4.59.0",
     "typescript": "5.0.4"
   },
   "dependencies": {

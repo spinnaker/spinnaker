@@ -24,13 +24,6 @@ dependencies {
 
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-  testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
   testRuntimeOnly("org.jetbrains.spek:spek-junit-platform-engine")
   testImplementation("io.strikt:strikt-core")
-}
-
-test {
-  useJUnitPlatform {
-    includeEngines "spek", "junit-vintage", "junit-jupiter"
-  }
 }

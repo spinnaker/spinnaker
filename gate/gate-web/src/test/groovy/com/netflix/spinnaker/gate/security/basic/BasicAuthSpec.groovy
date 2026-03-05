@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.MvcResult
 import org.springframework.util.Base64Utils
 import spock.lang.Specification
 
-import javax.servlet.http.Cookie
+import jakarta.servlet.http.Cookie
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print
@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @GateSystemTest
-@SpringBootTest(properties = ["retrofit.enabled=true","fiat.enabled=false"])
+@SpringBootTest(properties = ["fiat.enabled=false"])
 @ContextConfiguration(
   classes = [Main, GateConfig, BasicAuthConfig, BasicTestConfig, RedisTestConfig],
   initializers = YamlFileApplicationContextInitializer
@@ -76,7 +76,7 @@ class BasicAuthSpec extends Specification {
       .cookie(sessionCookie))
       .andDo(print())
       .andExpect(status().is(302))
-      .andExpect(redirectedUrl("http://localhost/credentials"))
+      .andExpect(redirectedUrl("http://localhost/credentials?continue"))
       .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))

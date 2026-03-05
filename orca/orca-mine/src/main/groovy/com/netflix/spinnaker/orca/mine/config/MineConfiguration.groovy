@@ -17,26 +17,18 @@
 package com.netflix.spinnaker.orca.mine.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler
+import com.netflix.spinnaker.config.DefaultServiceEndpoint
+import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
-import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import retrofit.Endpoint
-import retrofit.RestAdapter
-import retrofit.client.Client
-import retrofit.converter.JacksonConverter
-
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
-@Import([RetrofitConfiguration])
 @ComponentScan([
   "com.netflix.spinnaker.orca.mine.pipeline",
   "com.netflix.spinnaker.orca.mine.tasks"
@@ -45,29 +37,12 @@ import static retrofit.Endpoints.newFixedEndpoint
 class MineConfiguration {
 
   @Autowired
-  Client retrofitClient
-  @Autowired
-  RestAdapter.LogLevel retrofitLogLevel
-
-  @Autowired
   ObjectMapper objectMapper
 
   @Bean
-  Endpoint mineEndpoint(
-    @Value('${mine.base-url}') String mineBaseUrl) {
-    newFixedEndpoint(mineBaseUrl)
-  }
-
-  @Bean
-  MineService mineService(Endpoint mineEndpoint) {
-    new RestAdapter.Builder()
-      .setEndpoint(mineEndpoint)
-      .setClient(retrofitClient)
-      .setLogLevel(retrofitLogLevel)
-      .setLog(new RetrofitSlf4jLog(MineService))
-      .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-      .setConverter(new JacksonConverter(objectMapper))
-      .build()
-      .create(MineService)
+  MineService mineService(@Value('${mine.base-url}') String mineBaseUrl, ServiceClientProvider serviceClientProvider) {
+    serviceClientProvider.getService(
+        MineService,
+        new DefaultServiceEndpoint("mine", RetrofitUtils.getBaseUrl(mineBaseUrl)))
   }
 }

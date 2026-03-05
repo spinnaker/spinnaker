@@ -28,6 +28,9 @@ task modules(type: YarnTask) {
   dependsOn "yarn"
 
   yarnCommand = ["modules"]
+  environment = [
+    "NODE_ENV": "production",
+  ]
 }
 
 task eslintPluginCompile(type: YarnTask) {
@@ -102,7 +105,7 @@ task webpack(type: YarnTask) {
   environment = [
     "NODE_ENV": "production",
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
-    "NODE_OPTIONS": "--max_old_space_size=8192",
+    "NODE_OPTIONS": "--max_old_space_size=8192 --openssl-legacy-provider",
   ]
 }
 webpack.outputs.dir file('build/webpack')

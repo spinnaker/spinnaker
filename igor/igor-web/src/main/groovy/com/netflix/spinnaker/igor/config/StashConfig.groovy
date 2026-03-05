@@ -19,8 +19,8 @@ package com.netflix.spinnaker.igor.config
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.scm.stash.client.StashClient
 import com.netflix.spinnaker.igor.scm.stash.client.StashMaster
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import okhttp3.Credentials
@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
-import javax.validation.Valid
+import jakarta.validation.Valid
 
 /**
  * Converts the list of Stash Configuration properties a collection of clients to access the Stash hosts

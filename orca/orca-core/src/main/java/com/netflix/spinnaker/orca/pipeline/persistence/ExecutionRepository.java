@@ -22,11 +22,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import io.reactivex.rxjava3.core.Observable;
 import java.time.Instant;
 import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import rx.Observable;
 
 public interface ExecutionRepository {
   void store(@Nonnull PipelineExecution execution);
@@ -67,14 +67,37 @@ public interface ExecutionRepository {
 
   void updateStatus(ExecutionType type, @Nonnull String id, @Nonnull ExecutionStatus status);
 
+  void delete(@Nonnull ExecutionType type, @Nonnull String id);
+
+  void delete(@Nonnull ExecutionType type, @Nonnull List<String> idsToDelete);
+
   @Nonnull
   @Metered(metricName = "retrieveById")
   PipelineExecution retrieve(@Nonnull ExecutionType type, @Nonnull String id)
       throws ExecutionNotFoundException;
 
-  void delete(@Nonnull ExecutionType type, @Nonnull String id);
-
-  void delete(@Nonnull ExecutionType type, @Nonnull List<String> idsToDelete);
+  /**
+   * In ExecutionRepository implementations with replication lag, the caller can specify whether
+   * they require the latest version of the PipelineExecution in the repository. Set
+   * requireLatestVersion according to the needs of the application as there are tradeoffs.
+   * Repository implementations without replication lag will behave as if requireLatestVersion =
+   * true
+   *
+   * <p>Specifying requireLatestVersion = true provides strict consistency but comes with the cost
+   * of higher database load and a slower query. Specifying requireLatestVersion = false reduces
+   * database load and provides a faster query, but the returned PipelineExecution may not be the
+   * latest version.
+   *
+   * @param type Execution type
+   * @param id Execution id
+   * @param requireLatestVersion Whether this operation needs to fetch the latest PipelineExecution
+   * @return A PipelineExecution that satisfies the given parameters
+   * @throws ExecutionNotFoundException
+   */
+  @Nonnull
+  PipelineExecution retrieve(
+      @Nonnull ExecutionType type, @Nonnull String id, boolean requireLatestVersion)
+      throws ExecutionNotFoundException;
 
   @Nonnull
   @Metered(metricName = "retrieveByType")

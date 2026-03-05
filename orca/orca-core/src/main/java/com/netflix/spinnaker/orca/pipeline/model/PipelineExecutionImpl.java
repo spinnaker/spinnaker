@@ -84,6 +84,16 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
     this.id = id;
   }
 
+  private String rootId;
+
+  public @Nonnull String getRootId() {
+    return rootId;
+  }
+
+  public void setRootId(@Nonnull String rootId) {
+    this.rootId = rootId;
+  }
+
   private String application;
 
   public @Nonnull String getApplication() {
@@ -447,6 +457,18 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
         totalSize);
 
     return Optional.of(totalSize);
+  }
+
+  private Map<String, String> additionalHeaders = new HashMap<>();
+
+  @Override
+  public void setAdditionalHeaders(Map<String, String> additionalHeaders) {
+    this.additionalHeaders = additionalHeaders;
+  }
+
+  @Override
+  public Map<String, String> getAdditionalHeaders() {
+    return this.additionalHeaders;
   }
 
   @Nullable

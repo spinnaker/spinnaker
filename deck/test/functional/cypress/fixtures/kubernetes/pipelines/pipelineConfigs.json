@@ -1,0 +1,1347 @@
+[
+  {
+    "id": "da637be2-8219-4fb4-a118-aa685837ebdd",
+    "name": "bake_and_deploy_manifest",
+    "application": "kubernetesapp",
+    "schema": "1",
+    "triggers": [],
+    "index": 0,
+    "updateTs": "1746425396492",
+    "lastModifiedBy": "anonymous",
+    "stages": [
+      {
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "deleteManifest",
+        "name": "Delete (Manifest)",
+        "mode": "static",
+        "app": "kubernetesapp",
+        "cloudProvider": "kubernetes",
+        "options": {
+          "cascading": true
+        },
+        "account": "k8s-local",
+        "manifestName": "service dev-p01-nginx",
+        "location": "spinnaker-dev"
+      },
+      {
+        "refId": "2",
+        "requisiteStageRefIds": ["1"],
+        "type": "bakeManifest",
+        "name": "Bake (Manifest)",
+        "inputArtifacts": [
+          {
+            "artifact": {
+              "id": "858c307c-2b99-4dae-8538-6f3a118e7bcc",
+              "artifactAccount": "helm-apple",
+              "type": "helm/chart",
+              "name": "nginx",
+              "version": "0.2.4"
+            },
+            "account": "helm-apple"
+          }
+        ],
+        "overrides": {
+          "environment": "dev",
+          "image.repository": "index.docker.io/library",
+          "nameOverride": "nginx",
+          "namespace": "spinnaker-dev"
+        },
+        "expectedArtifacts": [
+          {
+            "id": "504af956-b5e0-4f76-95dc-2de45af4c26e",
+            "usePriorArtifact": false,
+            "useDefaultArtifact": false,
+            "matchArtifact": {
+              "id": "55f282d1-e3c6-4655-b25d-d07ae735473f",
+              "customKind": false,
+              "type": "embedded/base64",
+              "artifactAccount": "embedded-artifact",
+              "name": "nginx"
+            },
+            "defaultArtifact": {
+              "id": "75d4bd7b-d49e-451d-a354-74aab195366f",
+              "customKind": true
+            },
+            "displayName": "baked manifest"
+          }
+        ],
+        "templateRenderer": "HELM2",
+        "outputName": "nginx",
+        "namespace": "spinnaker-dev"
+      },
+      {
+        "refId": "3",
+        "requisiteStageRefIds": ["2"],
+        "type": "deployManifest",
+        "name": "Deploy (Manifest)",
+        "source": "artifact",
+        "skipExpressionEvaluation": false,
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "services": [],
+            "enableTraffic": false
+          }
+        },
+        "cloudProvider": "kubernetes",
+        "moniker": {},
+        "account": "k8s-local",
+        "namespaceOverride": "spinnaker-dev",
+        "manifestArtifactId": "504af956-b5e0-4f76-95dc-2de45af4c26e"
+      },
+      {
+        "refId": "4",
+        "requisiteStageRefIds": ["3"],
+        "type": "rollingRestartManifest",
+        "name": "Rollout Restart (Manifest)",
+        "mode": "static",
+        "app": "kubernetesapp",
+        "cloudProvider": "kubernetes",
+        "account": "k8s-local",
+        "location": "spinnaker-dev",
+        "manifestName": "deployment dev-p01-nginx"
+      },
+      {
+        "refId": "5",
+        "requisiteStageRefIds": ["4"],
+        "type": "scaleManifest",
+        "name": "Scale (Manifest)",
+        "app": "kubernetesapp",
+        "cloudProvider": "kubernetes",
+        "replicas": 5,
+        "mode": "static",
+        "account": "k8s-local",
+        "location": "spinnaker-dev",
+        "manifestName": "deployment dev-p01-nginx"
+      },
+      {
+        "refId": "6",
+        "requisiteStageRefIds": [],
+        "type": "manualJudgment",
+        "name": "Manual Judgment",
+        "notifications": [],
+        "judgmentInputs": [],
+        "failPipeline": true
+      }
+    ],
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "spelEvaluator": "v4"
+  },
+  {
+    "id": "0583a83a-45d3-43a7-821e-474fc238e2a4",
+    "name": "deployment",
+    "application": "kubernetesapp",
+    "schema": "1",
+    "triggers": [],
+    "index": 1,
+    "updateTs": "1754974290764",
+    "lastModifiedBy": "anonymous",
+    "stages": [
+      {
+        "namespaceOverride": "dev",
+        "source": "text",
+        "moniker": {
+          "app": "kubernetesapp"
+        },
+        "type": "deployManifest",
+        "requisiteStageRefIds": [],
+        "cloudProvider": "kubernetes",
+        "name": "Deploy (Manifest)",
+        "manifests": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "annotations": {
+                "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span class=\"label-text\">Account:</span> {{ account }}</div>\n  <div class=\"item\"><span class=\"label-text\">Display Name:</span> {{ displayName }}</div>\n</dl>\n"
+              },
+              "labels": {
+                "app": "backend"
+              },
+              "name": "backend"
+            },
+            "spec": {
+              "replicas": 2,
+              "selector": {
+                "matchLabels": {
+                  "app": "backend"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "backend",
+                    "custom-label": "custom-value"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx:1.27.3",
+                      "name": "backend",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+              "name": "backend",
+              "labels": {
+                "app": "backend"
+              }
+            },
+            "spec": {
+              "ports": [
+                {
+                  "port": 80,
+                  "targetPort": 80,
+                  "protocol": "TCP"
+                }
+              ],
+              "selector": {
+                "app": "backend"
+              }
+            }
+          },
+          {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "Ingress",
+            "metadata": {
+              "name": "backend"
+            },
+            "spec": {
+              "rules": [
+                {
+                  "host": "backend.com",
+                  "http": {
+                    "paths": [
+                      {
+                        "path": "/",
+                        "pathType": "Prefix",
+                        "backend": {
+                          "service": {
+                            "name": "backend",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "host": "api.backend.com",
+                  "http": {
+                    "paths": [
+                      {
+                        "path": "/",
+                        "pathType": "Prefix",
+                        "backend": {
+                          "service": {
+                            "name": "workload-service",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "name": "frontend",
+              "namespace": "default",
+              "labels": {
+                "role": "frontend"
+              }
+            },
+            "spec": {
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "role": "frontend"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "role": "frontend"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "name": "frontend",
+                      "image": "nginx",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "name": "database",
+              "namespace": "default",
+              "labels": {
+                "role": "db"
+              }
+            },
+            "spec": {
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "role": "db"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "role": "db"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "name": "database",
+                      "image": "mysql",
+                      "env": [
+                        {
+                          "name": "MYSQL_ROOT_PASSWORD",
+                          "value": "rootpassword"
+                        }
+                      ],
+                      "ports": [
+                        {
+                          "containerPort": 3306
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "NetworkPolicy",
+            "metadata": {
+              "annotations": {
+                "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span>Account:</span> {{ account }}</div>\n  <div class=\"item\"><span>Application Name:</span> {{ app }}</div>\n  <div class=\"item\"><span>Display Name:</span> {{ displayName }}</div>\n</dl>\n"
+              },
+              "name": "backend-security-policy",
+              "namespace": "default"
+            },
+            "spec": {
+              "podSelector": {
+                "matchLabels": {
+                  "app": "backend"
+                }
+              },
+              "policyTypes": ["Ingress", "Egress"],
+              "ingress": [
+                {
+                  "from": [
+                    {
+                      "podSelector": {
+                        "matchLabels": {
+                          "role": "frontend"
+                        }
+                      }
+                    }
+                  ],
+                  "ports": [
+                    {
+                      "protocol": "TCP",
+                      "port": 80
+                    }
+                  ]
+                }
+              ],
+              "egress": [
+                {
+                  "to": [
+                    {
+                      "podSelector": {
+                        "matchLabels": {
+                          "role": "db"
+                        }
+                      }
+                    }
+                  ],
+                  "ports": [
+                    {
+                      "protocol": "TCP",
+                      "port": 3306
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "DaemonSet",
+            "metadata": {
+              "name": "daemonset",
+              "labels": {
+                "app": "daemonset"
+              }
+            },
+            "spec": {
+              "selector": {
+                "matchLabels": {
+                  "app": "daemonset"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "daemonset"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "name": "daemonset",
+                      "image": "nginx:latest",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ],
+                      "resources": {
+                        "limits": {
+                          "memory": "128Mi",
+                          "cpu": "500m"
+                        },
+                        "requests": {
+                          "memory": "64Mi",
+                          "cpu": "250m"
+                        }
+                      },
+                      "readinessProbe": {
+                        "httpGet": {
+                          "path": "/",
+                          "port": 80
+                        },
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 10
+                      },
+                      "livenessProbe": {
+                        "httpGet": {
+                          "path": "/",
+                          "port": 80
+                        },
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 10
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+              "name": "statefulset",
+              "labels": {
+                "app": "statefulset"
+              }
+            },
+            "spec": {
+              "ports": [
+                {
+                  "port": 80,
+                  "name": "web"
+                }
+              ],
+              "clusterIP": "None",
+              "selector": {
+                "app": "statefulset"
+              }
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "StatefulSet",
+            "metadata": {
+              "name": "statefulset"
+            },
+            "spec": {
+              "selector": {
+                "matchLabels": {
+                  "app": "statefulset"
+                }
+              },
+              "replicas": 3,
+              "minReadySeconds": 10,
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "statefulset"
+                  }
+                },
+                "spec": {
+                  "terminationGracePeriodSeconds": 10,
+                  "containers": [
+                    {
+                      "name": "nginx",
+                      "image": "registry.k8s.io/nginx-slim:0.24",
+                      "ports": [
+                        {
+                          "containerPort": 80,
+                          "name": "web"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "services": [],
+            "enableTraffic": false
+          }
+        },
+        "refId": "1",
+        "skipExpressionEvaluation": false,
+        "account": "k8s-local"
+      },
+      {
+        "refId": "2",
+        "requisiteStageRefIds": ["1"],
+        "account": "k8s-local",
+        "cloudProvider": "kubernetes",
+        "manifests": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "annotations": {
+                "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span class=\"label-text\">Account:</span> {{ account }}</div>\n  <div class=\"item\"><span class=\"label-text\">Display Name:</span> {{ displayName }}</div>\n</dl>\n"
+              },
+              "labels": {
+                "app": "backend"
+              },
+              "name": "backend"
+            },
+            "spec": {
+              "replicas": 2,
+              "selector": {
+                "matchLabels": {
+                  "app": "backend"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "backend",
+                    "custom-label": "custom-value"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx:1.27.3",
+                      "name": "backend",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+              "labels": {
+                "app": "backend"
+              },
+              "name": "backend"
+            },
+            "spec": {
+              "ports": [
+                {
+                  "port": 80,
+                  "protocol": "TCP",
+                  "targetPort": 80
+                }
+              ],
+              "selector": {
+                "app": "backend"
+              }
+            }
+          },
+          {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "Ingress",
+            "metadata": {
+              "name": "backend"
+            },
+            "spec": {
+              "rules": [
+                {
+                  "host": "backend.com",
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "backend",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        },
+                        "path": "/",
+                        "pathType": "Prefix"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "host": "api.backend.com",
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "workload-service",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        },
+                        "path": "/",
+                        "pathType": "Prefix"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "labels": {
+                "role": "frontend"
+              },
+              "name": "frontend",
+              "namespace": "default"
+            },
+            "spec": {
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "role": "frontend"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "role": "frontend"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx",
+                      "name": "frontend",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "labels": {
+                "role": "db"
+              },
+              "name": "database",
+              "namespace": "default"
+            },
+            "spec": {
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "role": "db"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "role": "db"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "env": [
+                        {
+                          "name": "MYSQL_ROOT_PASSWORD",
+                          "value": "rootpassword"
+                        }
+                      ],
+                      "image": "mysql",
+                      "name": "database",
+                      "ports": [
+                        {
+                          "containerPort": 3306
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "NetworkPolicy",
+            "metadata": {
+              "annotations": {
+                "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span>Account:</span> {{ account }}</div>\n  <div class=\"item\"><span>Application Name:</span> {{ app }}</div>\n  <div class=\"item\"><span>Display Name:</span> {{ displayName }}</div>\n</dl>\n"
+              },
+              "name": "backend-security-policy",
+              "namespace": "default"
+            },
+            "spec": {
+              "egress": [
+                {
+                  "ports": [
+                    {
+                      "port": 3306,
+                      "protocol": "TCP"
+                    }
+                  ],
+                  "to": [
+                    {
+                      "podSelector": {
+                        "matchLabels": {
+                          "role": "db"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "ingress": [
+                {
+                  "from": [
+                    {
+                      "podSelector": {
+                        "matchLabels": {
+                          "role": "frontend"
+                        }
+                      }
+                    }
+                  ],
+                  "ports": [
+                    {
+                      "port": 80,
+                      "protocol": "TCP"
+                    }
+                  ]
+                }
+              ],
+              "podSelector": {
+                "matchLabels": {
+                  "app": "backend"
+                }
+              },
+              "policyTypes": ["Ingress", "Egress"]
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "DaemonSet",
+            "metadata": {
+              "labels": {
+                "app": "daemonset"
+              },
+              "name": "daemonset"
+            },
+            "spec": {
+              "selector": {
+                "matchLabels": {
+                  "app": "daemonset"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "daemonset"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx:latest",
+                      "livenessProbe": {
+                        "httpGet": {
+                          "path": "/",
+                          "port": 80
+                        },
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 10
+                      },
+                      "name": "daemonset",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ],
+                      "readinessProbe": {
+                        "httpGet": {
+                          "path": "/",
+                          "port": 80
+                        },
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 10
+                      },
+                      "resources": {
+                        "limits": {
+                          "cpu": "500m",
+                          "memory": "128Mi"
+                        },
+                        "requests": {
+                          "cpu": "250m",
+                          "memory": "64Mi"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+              "labels": {
+                "app": "statefulset"
+              },
+              "name": "statefulset"
+            },
+            "spec": {
+              "clusterIP": "None",
+              "ports": [
+                {
+                  "name": "web",
+                  "port": 80
+                }
+              ],
+              "selector": {
+                "app": "statefulset"
+              }
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "StatefulSet",
+            "metadata": {
+              "name": "statefulset"
+            },
+            "spec": {
+              "minReadySeconds": 10,
+              "replicas": 3,
+              "selector": {
+                "matchLabels": {
+                  "app": "statefulset"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "statefulset"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "registry.k8s.io/nginx-slim:0.24",
+                      "name": "nginx",
+                      "ports": [
+                        {
+                          "containerPort": 80,
+                          "name": "web"
+                        }
+                      ]
+                    }
+                  ],
+                  "terminationGracePeriodSeconds": 10
+                }
+              }
+            }
+          }
+        ],
+        "moniker": {
+          "app": "kubernetesapp"
+        },
+        "name": "Deploy (Manifest)",
+        "namespaceOverride": "test",
+        "skipExpressionEvaluation": false,
+        "source": "text",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      },
+      {
+        "refId": "3",
+        "requisiteStageRefIds": ["2"],
+        "account": "k8s-local",
+        "cloudProvider": "kubernetes",
+        "manifests": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "annotations": {
+                "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span class=\"label-text\">Account:</span> {{ account }}</div>\n  <div class=\"item\"><span class=\"label-text\">Display Name:</span> {{ displayName }}</div>\n</dl>\n"
+              },
+              "labels": {
+                "app": "backend"
+              },
+              "name": "backend"
+            },
+            "spec": {
+              "replicas": 2,
+              "selector": {
+                "matchLabels": {
+                  "app": "backend"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "backend",
+                    "custom-label": "custom-value"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx:1.27.3",
+                      "name": "backend",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+              "labels": {
+                "app": "backend"
+              },
+              "name": "backend"
+            },
+            "spec": {
+              "ports": [
+                {
+                  "port": 80,
+                  "protocol": "TCP",
+                  "targetPort": 80
+                }
+              ],
+              "selector": {
+                "app": "backend"
+              }
+            }
+          },
+          {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "Ingress",
+            "metadata": {
+              "name": "backend"
+            },
+            "spec": {
+              "rules": [
+                {
+                  "host": "backend.com",
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "backend",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        },
+                        "path": "/",
+                        "pathType": "Prefix"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "host": "api.backend.com",
+                  "http": {
+                    "paths": [
+                      {
+                        "backend": {
+                          "service": {
+                            "name": "workload-service",
+                            "port": {
+                              "number": 80
+                            }
+                          }
+                        },
+                        "path": "/",
+                        "pathType": "Prefix"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "labels": {
+                "role": "frontend"
+              },
+              "name": "frontend",
+              "namespace": "default"
+            },
+            "spec": {
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "role": "frontend"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "role": "frontend"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx",
+                      "name": "frontend",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "Deployment",
+            "metadata": {
+              "labels": {
+                "role": "db"
+              },
+              "name": "database",
+              "namespace": "default"
+            },
+            "spec": {
+              "replicas": 1,
+              "selector": {
+                "matchLabels": {
+                  "role": "db"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "role": "db"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "env": [
+                        {
+                          "name": "MYSQL_ROOT_PASSWORD",
+                          "value": "rootpassword"
+                        }
+                      ],
+                      "image": "mysql",
+                      "name": "database",
+                      "ports": [
+                        {
+                          "containerPort": 3306
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "networking.k8s.io/v1",
+            "kind": "NetworkPolicy",
+            "metadata": {
+              "annotations": {
+                "deployment-info.details.html.spinnaker.io": "<dl class=\"dl-horizontal dl-narrow\">\n  <div class=\"item\"><span>Account:</span> {{ account }}</div>\n  <div class=\"item\"><span>Application Name:</span> {{ app }}</div>\n  <div class=\"item\"><span>Display Name:</span> {{ displayName }}</div>\n</dl>\n"
+              },
+              "name": "backend-security-policy",
+              "namespace": "default"
+            },
+            "spec": {
+              "egress": [
+                {
+                  "ports": [
+                    {
+                      "port": 3306,
+                      "protocol": "TCP"
+                    }
+                  ],
+                  "to": [
+                    {
+                      "podSelector": {
+                        "matchLabels": {
+                          "role": "db"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "ingress": [
+                {
+                  "from": [
+                    {
+                      "podSelector": {
+                        "matchLabels": {
+                          "role": "frontend"
+                        }
+                      }
+                    }
+                  ],
+                  "ports": [
+                    {
+                      "port": 80,
+                      "protocol": "TCP"
+                    }
+                  ]
+                }
+              ],
+              "podSelector": {
+                "matchLabels": {
+                  "app": "backend"
+                }
+              },
+              "policyTypes": ["Ingress", "Egress"]
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "DaemonSet",
+            "metadata": {
+              "labels": {
+                "app": "daemonset"
+              },
+              "name": "daemonset"
+            },
+            "spec": {
+              "selector": {
+                "matchLabels": {
+                  "app": "daemonset"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "daemonset"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "nginx:latest",
+                      "livenessProbe": {
+                        "httpGet": {
+                          "path": "/",
+                          "port": 80
+                        },
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 10
+                      },
+                      "name": "daemonset",
+                      "ports": [
+                        {
+                          "containerPort": 80
+                        }
+                      ],
+                      "readinessProbe": {
+                        "httpGet": {
+                          "path": "/",
+                          "port": 80
+                        },
+                        "initialDelaySeconds": 5,
+                        "periodSeconds": 10
+                      },
+                      "resources": {
+                        "limits": {
+                          "cpu": "500m",
+                          "memory": "128Mi"
+                        },
+                        "requests": {
+                          "cpu": "250m",
+                          "memory": "64Mi"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+              "labels": {
+                "app": "statefulset"
+              },
+              "name": "statefulset"
+            },
+            "spec": {
+              "clusterIP": "None",
+              "ports": [
+                {
+                  "name": "web",
+                  "port": 80
+                }
+              ],
+              "selector": {
+                "app": "statefulset"
+              }
+            }
+          },
+          {
+            "apiVersion": "apps/v1",
+            "kind": "StatefulSet",
+            "metadata": {
+              "name": "statefulset"
+            },
+            "spec": {
+              "minReadySeconds": 10,
+              "replicas": 3,
+              "selector": {
+                "matchLabels": {
+                  "app": "statefulset"
+                }
+              },
+              "template": {
+                "metadata": {
+                  "labels": {
+                    "app": "statefulset"
+                  }
+                },
+                "spec": {
+                  "containers": [
+                    {
+                      "image": "registry.k8s.io/nginx-slim:0.24",
+                      "name": "nginx",
+                      "ports": [
+                        {
+                          "containerPort": 80,
+                          "name": "web"
+                        }
+                      ]
+                    }
+                  ],
+                  "terminationGracePeriodSeconds": 10
+                }
+              }
+            }
+          }
+        ],
+        "moniker": {
+          "app": "kubernetesapp"
+        },
+        "name": "Deploy (Manifest)",
+        "namespaceOverride": "prod",
+        "skipExpressionEvaluation": false,
+        "source": "text",
+        "trafficManagement": {
+          "enabled": false,
+          "options": {
+            "enableTraffic": false,
+            "services": []
+          }
+        },
+        "type": "deployManifest"
+      }
+    ],
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "spelEvaluator": "v4"
+  }
+]

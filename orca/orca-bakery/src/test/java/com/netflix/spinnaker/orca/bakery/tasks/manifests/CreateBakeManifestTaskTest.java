@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import retrofit2.mock.Calls;
 
 public class CreateBakeManifestTaskTest {
 
@@ -283,8 +284,8 @@ public class CreateBakeManifestTaskTest {
 
     StageExecutionImpl stage = new StageExecutionImpl();
     stage.setContext(mapper.readValue(stageJson, Map.class));
+    when(bakery.bakeManifest(any(), any())).thenReturn(Calls.response(Artifact.builder().build()));
     when(artifactUtils.getBoundArtifactForStage(any(), any(), any()))
-        .thenReturn(Artifact.builder().build())
         .thenReturn(Artifact.builder().build());
 
     assertDoesNotThrow(

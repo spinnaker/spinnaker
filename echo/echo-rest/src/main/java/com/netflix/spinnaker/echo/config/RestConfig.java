@@ -20,7 +20,6 @@ import com.netflix.spinnaker.config.DefaultServiceEndpoint;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
 import com.netflix.spinnaker.echo.rest.RestService;
-import com.netflix.spinnaker.echo.util.RetrofitUtils;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -117,7 +116,9 @@ public class RestConfig {
 
       Retrofit.Builder retrofitBuilder =
           new Retrofit.Builder()
-              .baseUrl(RetrofitUtils.getBaseUrl(endpoint.getUrl()))
+              .baseUrl(
+                  "https://example.com") // This is ignored, as the actual retrofit call passes the
+              // URL as part of the rest call in RestService
               .client(okHttpClient)
               .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
               .addConverterFactory(JacksonConverterFactory.create());

@@ -17,12 +17,21 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.test.model.ExecutionBuilder
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.jackson.JacksonConverterFactory
+import retrofit2.mock.Calls
 import spock.lang.Unroll
 
 class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
@@ -56,14 +65,13 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
 
     and:
     if (foundById) {
-      1 * oortService.findImage("aws", "ami-id", null, null, null) >> {
-        [["imageName": "ami-name"]]
-      }
-      1 * oortService.findImage("aws", "ami-name", null, null, null) >> { [] }
+      1 * oortService.findImage("aws", "ami-id", null, null, Map.of()) >> Calls.response(
+          [["imageName": "ami-name"]])
+      1 * oortService.findImage("aws", "ami-name", null, null, Map.of()) >> Calls.response([])
     } else if (imageId != null) {
-      1 * oortService.findImage("aws", imageId, null, null, null) >> { [] }
+      1 * oortService.findImage("aws", imageId, null, null, Map.of()) >> Calls.response([])
     } else {
-      1 * oortService.findImage("aws", imageName, null, null, null) >> { [] }
+      1 * oortService.findImage("aws", imageName, null, null, Map.of()) >> Calls.response([])
     }
 
     when:
@@ -115,19 +123,15 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     pipeline.stages << stage1 << stage2 << stage3
 
     when:
-    1 * oortService.findImage("aws", "ami-1", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-1", _, _, _) >> Calls.response([[imageName: name]])
 
-    1 * oortService.findImage("aws", "ami-2", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-2", _, _, _) >> Calls.response([[imageName: name]])
 
     1 * oortService.findImage("aws", name, _, _, _) >> {
-      [[
+      Calls.response([[
          imageName: name,
          amis     : ["us-east-1": ["ami-1"]]
-       ]]
+       ]])
     }
 
     imageTagger.getOperationContext(stage3)
@@ -137,15 +141,11 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     e.shouldRetry == true
 
     when:
-    1 * oortService.findImage("aws", "ami-1", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-1", _, _, _) >> Calls.response([[imageName: name]])
 
-    1 * oortService.findImage("aws", "ami-2", _, _, _) >> {
-      [[imageName: name]]
-    }
+    1 * oortService.findImage("aws", "ami-2", _, _, _) >> Calls.response([[imageName: name]])
 
-    1 * oortService.findImage("aws", name, _, _, _) >> {
+    1 * oortService.findImage("aws", name, _, _, _) >> Calls.response(
       [[
          imageName: name,
          amis     : [
@@ -154,7 +154,7 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
          ],
          accounts : ["compute"]
        ]]
-    }
+    )
 
     imageTagger.getOperationContext(stage3)
 
@@ -176,12 +176,12 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami", null, null, null) >> {
+    1 * oortService.findImage("aws", "my-ami", null, null, Map.of()) >> Calls.response(
       [
         [imageName: "my-ami-v2", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]],
         [imageName: "my-ami", accounts: ["test", "prod"], amis: ["us-east-1": ["my-ami-00001"]], tagsByImageId: ["my-ami-00001": [tag1: "originalValue1"]]]
       ]
-    }
+    )
 
     operationContext.operations.size() == 2
     operationContext.operations[0]["upsertImageTags"] == [
@@ -215,16 +215,16 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
     def operationContext = imageTagger.getOperationContext(stage)
 
     then:
-    1 * oortService.findImage("aws", "my-ami-1", null, null, null) >> {
+    1 * oortService.findImage("aws", "my-ami-1", null, null, Map.of()) >> Calls.response(
       [
         [imageName: "my-ami-1", accounts: ["test"], amis: ["us-east-1": ["my-ami-00002"]]]
       ]
-    }
-    1 * oortService.findImage("aws", "my-ami-2", null, null, null) >> {
+    )
+    1 * oortService.findImage("aws", "my-ami-2", null, null, Map.of()) >> Calls.response(
       [
         [imageName: "my-ami-2", accounts: ["test"], amis: ["us-west-1": ["my-ami-00001"]]]
       ]
-    }
+    )
 
     operationContext.operations.size() == 2
     operationContext.operations[0]["upsertImageTags"] == [
@@ -244,5 +244,58 @@ class AmazonImageTaggerSpec extends ImageTaggerSpec<AmazonImageTagger> {
       credentials: imageTagger.defaultBakeAccount
     ]
     operationContext.extraOutput.regions == ["us-east-1", "us-west-1"]
+  }
+
+  def "should handle query map in findImage calls using WireMock"() {
+    given:
+    // Set up WireMock server
+    def server = new WireMockServer(WireMockConfiguration.options().dynamicPort())
+    server.start()
+
+    // Create a Retrofit instance that points to the mock server
+    def retrofit = new Retrofit.Builder()
+      .baseUrl(server.url("/"))
+      .client(new OkHttpClient.Builder()
+        .addInterceptor(new Retrofit2EncodeCorrectionInterceptor())
+        .build())
+      .addConverterFactory(JacksonConverterFactory.create(new ObjectMapper()))
+      .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+      .build()
+
+    // Create the OortService using the Retrofit instance
+    def mockOortService = retrofit.create(OortService)
+
+    // Create an ImageTagger with the mocked OortService
+    def testImageTagger = new AmazonImageTagger(mockOortService, new ObjectMapper())
+    testImageTagger.defaultBakeAccount = "test"
+
+    // Set up pipeline and stage
+    def pipeline = PipelineExecutionImpl.newPipeline("orca")
+    def stage = new StageExecutionImpl(pipeline, "upsertImageTags", [
+      imageNames: ["test-image"],
+      cloudProvider: "aws"
+    ])
+
+    // Stub the WireMock server for the findImage endpoint
+    // This simulates the HTTP response that OortService would get
+    server.stubFor(WireMock.get(WireMock.urlPathMatching("/aws/images/find"))
+      .withQueryParam("q", WireMock.equalTo("test-image"))
+    // No query parameters for additionalFilters - this simulates the null query map
+      .willReturn(WireMock.aResponse()
+        .withStatus(200)
+        .withHeader("Content-Type", "application/json")
+        .withBody('''[{"imageName":"test-image", "accounts":["test"], "amis":{"us-east-1":["ami-123"]}}]''')))
+
+    when:
+    def result = testImageTagger.findImages(["test-image"], [], stage, AmazonImageTagger.MatchedImage.class)
+
+    then:
+    result.size() == 1
+    result[0].imageName == "test-image"
+    server.verify(1, WireMock.getRequestedFor(WireMock.urlPathMatching("/aws/images/find"))
+      .withQueryParam("q", WireMock.equalTo("test-image")))
+
+    cleanup:
+    server.stop()
   }
 }

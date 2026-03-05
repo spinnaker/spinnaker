@@ -36,7 +36,7 @@ import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.http.GET;
+import retrofit2.http.GET;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -124,10 +124,10 @@ public abstract class KayentaService extends SpringService<KayentaService.Kayent
   }
 
   public interface Kayenta {
-    @GET("/resolvedEnv")
+    @GET("resolvedEnv")
     Map<String, String> resolvedEnv();
 
-    @GET("/health")
+    @GET("health")
     SpringHealth health();
   }
 

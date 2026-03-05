@@ -18,8 +18,8 @@ package com.netflix.kayenta.canary.providers.metrics;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.kayenta.canary.CanaryMetricSetQueryConfig;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
-import javax.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.util.StringUtils;
 
@@ -40,7 +40,9 @@ public class PrometheusCanaryMetricSetQueryConfig implements CanaryMetricSetQuer
 
   @Getter private List<String> groupByFields;
 
-  /** @deprecated Use customInlineTemplate instead. */
+  /**
+   * @deprecated Use customInlineTemplate instead.
+   */
   @Deprecated @Getter private String customFilter;
 
   @Getter private String customInlineTemplate;

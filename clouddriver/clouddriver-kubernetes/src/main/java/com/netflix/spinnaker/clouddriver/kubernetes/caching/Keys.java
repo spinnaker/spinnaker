@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class Keys {
   private static final Logger log = LoggerFactory.getLogger(Keys.class);
+
   /**
    * Keys are split into "logical" and "infrastructure" kinds. "logical" keys are for spinnaker
    * groupings that exist by naming/moniker convention, whereas "infrastructure" keys correspond to

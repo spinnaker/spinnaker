@@ -17,14 +17,14 @@
 package com.netflix.kayenta.datadog.service;
 
 import com.netflix.kayenta.model.DatadogMetricDescriptorsResponse;
-import retrofit.http.GET;
-import retrofit.http.Header;
-import retrofit.http.Query;
+import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Query;
 
 public interface DatadogRemoteService {
 
   // See https://docs.datadoghq.com/api/?lang=python#query-time-series-points
-  @GET("/api/v1/query")
+  @GET("api/v1/query")
   DatadogTimeSeries getTimeSeries(
       @Header("DD-API-KEY") String apiKey,
       @Header("DD-APPLICATION-KEY") String applicationKey,
@@ -32,7 +32,7 @@ public interface DatadogRemoteService {
       @Query("to") int endTimestamp,
       @Query("query") String query);
 
-  @GET("/api/v1/metrics")
+  @GET("api/v1/metrics")
   DatadogMetricDescriptorsResponse getMetrics(
       @Header("DD-API-KEY") String apiKey,
       @Header("DD-APPLICATION-KEY") String applicationKey,

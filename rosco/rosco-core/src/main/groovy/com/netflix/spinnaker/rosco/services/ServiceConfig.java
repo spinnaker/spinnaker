@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,10 +48,10 @@ public class ServiceConfig {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     /*
-     * ErrorHandlingExecutorCallAdapterFactory handles exceptions globally in retrofit2, similar to SpinnakerRetrofitErrorHandler with retrofit.
+     * ErrorHandlingExecutorCallAdapterFactory handles exceptions globally in retrofit2
      * */
     return new Retrofit.Builder()
-        .baseUrl(clouddriverBaseUrl)
+        .baseUrl(RetrofitUtils.getBaseUrl(clouddriverBaseUrl))
         .client(okHttpClientConfig.createForRetrofit2().build())
         .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))

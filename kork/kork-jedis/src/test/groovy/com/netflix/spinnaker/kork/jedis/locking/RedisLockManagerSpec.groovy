@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kork.jedis.locking
 
+import static org.assertj.core.api.Assertions.assertThat
+
 import java.util.function.Consumer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
@@ -61,28 +63,28 @@ class RedisLockManagerSpec extends BaseLockManagerSpec<RedisLockManager> {
   @Override protected void ensureLockExists(String lockName) {
     redisClientDelegate.withCommandsClient({ JedisCommands c ->
       // ensure that the lock was actually created
-      assert c.exists("{korkLock:${lockName.toLowerCase()}}")
+      assertThat(c.exists("{korkLock:${lockName.toLowerCase()}}")).isTrue()
     } as Consumer<JedisCommands>)
   }
 
   @Override protected void ensureLockReleased(String lockName) {
     redisClientDelegate.withCommandsClient({ JedisCommands c ->
       // ensure that the lock no longer exists (default `successInterval` of zero should immediately expire the lock)
-      assert !c.exists("{korkLock:${lockName.toLowerCase()}}")
+      assertThat(c.exists("{korkLock:${lockName.toLowerCase()}}")).isFalse()
     } as Consumer<JedisCommands>)
   }
 
   @Override protected void ensureLockTtlGreaterThan(String lockName, int ttlSeconds) {
     redisClientDelegate.withCommandsClient({ JedisCommands c ->
       // ensure that the lock exists and has been tt'l corresponding to the `successInterval`
-      assert c.ttl("{korkLock:${lockName.toLowerCase()}}") > ttlSeconds
+      assertThat(c.ttl("{korkLock:${lockName.toLowerCase()}}")).isGreaterThan(ttlSeconds.toLong())
     } as Consumer<JedisCommands>)
   }
 
   @Override protected void ensureLockTtlLessThanOrEqualTo(String lockName, int ttlSeconds) {
     redisClientDelegate.withCommandsClient({ JedisCommands c ->
       // ensure that the lock exists and has been tt'l corresponding to the `failureInterval`
-      assert c.ttl("{korkLock:${lockName.toLowerCase()}}") <= ttlSeconds
+      assertThat(c.ttl("{korkLock:${lockName.toLowerCase()}}")).isLessThanOrEqualTo(ttlSeconds.toLong())
     } as Consumer<JedisCommands>)
   }
 }

@@ -34,14 +34,14 @@ import org.springframework.stereotype.Component
  */
 @Slf4j
 @Component
-public class GoogleUserDataProvider {
+class GoogleUserDataProvider {
   @Autowired
   private ConfigFileService configFileService
 
   /**
    * Returns the user data as a Map.
    */
-  Map getUserData(final String serverGroupName, final String instanceTemplateName,
+  Map<String,String> getUserData(final String serverGroupName, final String instanceTemplateName,
                   BasicGoogleDeployDescription description,
                   GoogleNamedAccountCredentials credentials, String customUserData) {
     String userDataFile = credentials.getUserDataFile()

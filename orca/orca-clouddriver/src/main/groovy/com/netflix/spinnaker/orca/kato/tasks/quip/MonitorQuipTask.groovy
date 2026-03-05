@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -24,14 +25,11 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.client.Client
 
 @Deprecated
 @Component
 class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
   @Autowired ObjectMapper objectMapper
-
-  @Autowired Client retrofitClient
 
   long backoffPeriod = 10000
   long timeout = 1200000 // 20mins
@@ -58,8 +56,8 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
       def taskId = stage.context.taskIds.get(hostName)
       def instanceService = createInstanceService("http://${hostName}:5050")
       try {
-        def instanceResponse = instanceService.listTask(taskId)
-        def status = objectMapper.readValue(instanceResponse.body.in().text, Map).status
+        def instanceResponse = Retrofit2SyncCall.executeCall(instanceService.listTask(taskId))
+        def status = objectMapper.readValue(instanceResponse.body().byteStream().text, Map).status
         if(status == "Successful") {
           // noop unless they all succeeded
         } else if(status == "Failed") {

@@ -195,6 +195,20 @@ class SqlCachingPodsObserver (
     log.debug("Pod count : {} and current pod's index : {}", podCount, podIndex)
   }
 
+  /**
+   * Returns this pod's index in the sorted list of all known caching pods.
+   * Used by cleanup agents to determine which records this pod is responsible for.
+   * Returns -1 if sharding state has not yet been established via heartbeat.
+   */
+  fun getPodIndex(): Int = podIndex
+
+  /**
+   * Returns the total number of caching pods discovered via heartbeat.
+   * Used together with podIndex to hash-partition work: `hash(account) % podCount == podIndex`.
+   * Returns 0 if sharding state has not yet been established.
+   */
+  fun getPodCount(): Int = podCount
+
   override fun filter(agent: Agent) : Boolean{
     if(agent.providerName.equals(CoreProvider.PROVIDER_NAME)){
       return true

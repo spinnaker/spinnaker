@@ -26,6 +26,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 @Configuration
 public class AwsComponents {
@@ -33,6 +35,12 @@ public class AwsComponents {
   @ConditionalOnMissingBean(AWSCredentialsProvider.class)
   AWSCredentialsProvider awsCredentialsProvider() {
     return new DefaultAWSCredentialsProviderChain();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AwsCredentialsProvider.class)
+  AwsCredentialsProvider v2AwsCredentialsProvider() {
+    return DefaultCredentialsProvider.builder().build();
   }
 
   @Bean

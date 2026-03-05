@@ -30,4 +30,10 @@ import lombok.Data;
 public class ExternalUser {
   private String id;
   private List<Role> externalRoles = new ArrayList<>();
+
+  public static ExternalUser forId(String id) {
+    ExternalUser externalUser = new ExternalUser();
+    externalUser.setId(id);
+    return externalUser;
+  }
 }

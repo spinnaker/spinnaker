@@ -32,7 +32,9 @@ public class Front50Service {
     this.front50ServiceAccountLoader = front50ServiceAccountLoader;
   }
 
-  /** @deprecated use {@code getAllApplications} - the restricted parameter is ignored */
+  /**
+   * @deprecated use {@code getAllApplications} - the restricted parameter is ignored
+   */
   @Deprecated
   public List<Application> getAllApplications(boolean restricted) {
     return getAllApplications();

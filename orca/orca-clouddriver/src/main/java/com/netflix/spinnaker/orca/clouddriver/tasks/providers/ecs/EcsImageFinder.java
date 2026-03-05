@@ -21,15 +21,14 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageFinder;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,24 +44,23 @@ public class EcsImageFinder implements ImageFinder {
       String packageName,
       Map<String, String> tags,
       List<String> warningsCollector) {
-    StageData stageData = (StageData) stage.mapTo(StageData.class);
 
     List<Map> result =
-        oortService.findImage(
-            getCloudProvider(),
-            (String) stage.getContext().get("imageLabelOrSha"),
-            null,
-            null,
-            null);
+        Retrofit2SyncCall.execute(
+            oortService.findImage(
+                getCloudProvider(),
+                (String) stage.getContext().get("imageLabelOrSha"),
+                null,
+                null,
+                Map.of()));
 
     List<EcsImage> allMatchedImages =
         result.stream()
             .map(image -> objectMapper.convertValue(image, EcsImage.class))
             .sorted()
-            .collect(Collectors.toList());
+            .toList();
 
-    HashSet<ImageDetails> response = Sets.newHashSet(allMatchedImages.get(0).toImageDetails());
-    return response;
+    return Sets.newHashSet(allMatchedImages.get(0).toImageDetails());
   }
 
   @Override

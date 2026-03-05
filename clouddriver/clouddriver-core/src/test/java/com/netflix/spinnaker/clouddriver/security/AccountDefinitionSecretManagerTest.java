@@ -59,8 +59,9 @@ class AccountDefinitionSecretManagerTest {
   @Test
   void canAccessUserSecret() {
     var userSecret = mock(UserSecret.class);
+    var ref = UserSecretReference.parse("secret://test?k=foo");
     given(userSecret.getRoles()).willReturn(List.of("group", "group2"));
-    given(userSecret.getSecretString(eq("foo"))).willReturn("bar");
+    given(userSecret.getSecretString(eq(ref))).willReturn("bar");
     given(userSecretManager.getUserSecret(any())).willReturn(userSecret);
     given(policy.isAdmin(any())).willReturn(false);
     var username = "user";
@@ -68,7 +69,6 @@ class AccountDefinitionSecretManagerTest {
     given(policy.getRoles(username)).willReturn(Set.of("group"));
     given(policy.canUseAccount(username, accountName)).willReturn(true);
 
-    var ref = UserSecretReference.parse("secret://test?k=foo");
     assertThat(accountDefinitionSecretManager.getUserSecretString(ref, accountName))
         .isEqualTo("bar");
     assertThat(accountDefinitionSecretManager.canAccessAccountWithSecrets(username, accountName))
@@ -78,12 +78,12 @@ class AccountDefinitionSecretManagerTest {
   @Test
   void adminHasAccess() {
     var userSecret = mock(UserSecret.class);
+    var ref = UserSecretReference.parse("secret://test?k=foo");
     given(userSecret.getRoles()).willReturn(List.of("group", "group2"));
-    given(userSecret.getSecretString(eq("foo"))).willReturn("bar");
+    given(userSecret.getSecretString(eq(ref))).willReturn("bar");
     given(userSecretManager.getUserSecret(any())).willReturn(userSecret);
     given(policy.isAdmin(any())).willReturn(true);
 
-    var ref = UserSecretReference.parse("secret://test?k=foo");
     var accountName = "cube";
     assertThat(accountDefinitionSecretManager.getUserSecretString(ref, accountName))
         .isEqualTo("bar");
@@ -94,14 +94,14 @@ class AccountDefinitionSecretManagerTest {
   @Test
   void cannotAccessUserSecret() {
     var userSecret = mock(UserSecret.class);
+    var ref = UserSecretReference.parse("secret://test?k=foo");
     given(userSecret.getRoles()).willReturn(List.of("group0", "group1"));
-    given(userSecret.getSecretString(eq("foo"))).willReturn("bar");
+    given(userSecret.getSecretString(eq(ref))).willReturn("bar");
     given(userSecretManager.getUserSecret(any())).willReturn(userSecret);
     given(policy.isAdmin(any())).willReturn(false);
     given(policy.getRoles(any())).willReturn(Set.of("group2", "group3"));
 
     var accountName = "cube";
-    var ref = UserSecretReference.parse("secret://test?k=foo");
     assertThat(accountDefinitionSecretManager.getUserSecretString(ref, accountName))
         .isEqualTo("bar");
     assertThat(accountDefinitionSecretManager.canAccessAccountWithSecrets("sphere", accountName))
@@ -111,15 +111,15 @@ class AccountDefinitionSecretManagerTest {
   @Test
   void canAccessSecretButNotAccount() {
     var userSecret = mock(UserSecret.class);
+    var ref = UserSecretReference.parse("secret://test?k=foo");
     given(userSecret.getRoles()).willReturn(List.of("group0", "group1"));
-    given(userSecret.getSecretString(eq("foo"))).willReturn("bar");
+    given(userSecret.getSecretString(eq(ref))).willReturn("bar");
     given(userSecretManager.getUserSecret(any())).willReturn(userSecret);
     given(policy.isAdmin(any())).willReturn(false);
     given(policy.getRoles(any())).willReturn(Set.of("group0", "group1"));
     given(policy.canUseAccount(any(), any())).willReturn(false);
 
     var accountName = "cube";
-    var ref = UserSecretReference.parse("secret://test?k=foo");
     assertThat(accountDefinitionSecretManager.getUserSecretString(ref, accountName))
         .isEqualTo("bar");
     assertThat(accountDefinitionSecretManager.canAccessAccountWithSecrets("sphere", accountName))

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -34,9 +35,9 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.ResponseBody;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import retrofit.client.Response;
 
 /**
  * Abstract class that is meant to test the presence of a spinnaker application. It will first check
@@ -98,16 +99,14 @@ public abstract class AbstractCheckIfApplicationExistsTask implements Task {
     }
     if (fetchedApplication == null) {
       if (this.config.isAuditModeEnabled()) {
-        String pipelineName = "unknown";
-        if (stage.getParent() != null) {
-          pipelineName = stage.getParent().getName();
-        }
         log.warn(
-            "Warning: stage: {}, pipeline: {}, message: {}. "
-                + "This will be a terminal failure in the near future.",
+            "Warning: {} in stage: {}, type: {}, pipeline: {}. "
+                + "This would be a terminal failure if"
+                + " 'tasks.clouddriver.check-if-application-exists.audit-mode-enabled: false'",
             errorMessage,
             stage.getName(),
-            pipelineName);
+            stage.getType(),
+            stage.getExecution().getName());
         outputs.put("checkIfApplicationExistsWarning", errorMessage);
       } else {
         log.error(errorMessage);
@@ -136,7 +135,8 @@ public abstract class AbstractCheckIfApplicationExistsTask implements Task {
     return retrySupport.retry(
         () -> {
           try {
-            Application fetchedApplication = front50Service.get(applicationName);
+            Application fetchedApplication =
+                Retrofit2SyncCall.execute(front50Service.get(applicationName));
             if (fetchedApplication == null) {
               log.warn("Application: " + applicationName + " does not exist in front50");
             } else {
@@ -168,10 +168,10 @@ public abstract class AbstractCheckIfApplicationExistsTask implements Task {
   protected Application getApplicationFromClouddriver(String applicationName) {
     return retrySupport.retry(
         () -> {
-          try {
-            Response response = oortService.getApplication(applicationName);
+          try (ResponseBody responseBody =
+              Retrofit2SyncCall.execute(oortService.getApplication(applicationName))) {
             Application fetchedApplication =
-                objectMapper.readValue(response.getBody().in(), Application.class);
+                objectMapper.readValue(responseBody.byteStream(), Application.class);
             if (fetchedApplication == null) {
               log.warn("Application: " + applicationName + " does not exist in clouddriver");
             } else {

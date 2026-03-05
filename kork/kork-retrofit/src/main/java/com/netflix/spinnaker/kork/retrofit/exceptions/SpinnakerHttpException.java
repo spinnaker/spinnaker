@@ -16,42 +16,30 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
-import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 
 /**
- * An exception that exposes the {@link Response} of a given HTTP {@link RetrofitError} or {@link
- * okhttp3.Response} if retrofit 2.x used and a detail message that extracts useful information from
- * the {@link Response} or {@link okhttp3.Response}. Both {@link Response} and {@link
- * okhttp3.Response} can't be set together.
+ * An exception that exposes the {@link okhttp3.Response} of a given HTTP exception and a detail
+ * message that extracts useful information from the {@link okhttp3.Response}
  */
 @NullableByDefault
 @Slf4j
 public class SpinnakerHttpException extends SpinnakerServerException {
 
-  private final Response response;
-
   private HttpHeaders headers;
 
   private final retrofit2.Response<?> retrofit2Response;
 
-  /**
-   * A message derived from a RetrofitError's response body, or null if a custom message has been
-   * provided.
-   */
+  /** A message derived from the response body, or null if a custom message has been provided. */
   private final String rawMessage;
 
   private final Map<String, Object> responseBody;
@@ -64,47 +52,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
    */
   private final String reason;
 
-  /** Construct a SpinnakerHttpException corresponding to a RetrofitError. */
-  public SpinnakerHttpException(RetrofitError e) {
-    super(e);
-
-    // Arbitrary RetrofitErrors can have a null Response object (e.g. see
-    // RetrofitError.networkError).  But, given that RetrofitError.httpError
-    // assumes a non-null Response, let's do the same in SpinnakerHttpException.
-    Objects.requireNonNull(e.getResponse(), "SpinnakerHttpException requires a Response object");
-
-    this.response = e.getResponse();
-    this.retrofit2Response = null;
-
-    String tmpMessage = null;
-    Map<String, Object> body = null;
-    try {
-      body = (Map<String, Object>) e.getBodyAs(HashMap.class);
-    } catch (Exception responseBodyException) {
-      // This is only an error if the mime type indicates json, but then it's
-      // not spinnaker's error, it's an arguably malformed http response.  It's
-      // potentially interesting to log, but...what to include in the log
-      // message?  We've already (likely) read the response body once, so unless
-      // we copy it ahead of time, we can't depend on being able to e.g. attempt
-      // to convert it to a String and use that in a log message (or potentially
-      // even in message for this exception.  That seems like a lot to do for
-      // malformed json, and even for non-json responses (e.g. html).  So, don't
-      // try to log anything from the response body itself.
-      log.debug(
-          "unable to convert response to map ({}, {})",
-          e.getUrl(),
-          e.getMessage(),
-          responseBodyException);
-    }
-    responseBody = body;
-    if (responseBody != null) {
-      tmpMessage = (String) responseBody.get("message");
-    }
-    responseCode = response.getStatus();
-    reason = response.getReason();
-    rawMessage = tmpMessage != null ? tmpMessage : reason;
-  }
-
   /**
    * The constructor handles the HTTP retrofit2 exception, similar to retrofit logic. It is used
    * with {@link com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory}.
@@ -112,7 +59,6 @@ public class SpinnakerHttpException extends SpinnakerServerException {
   public SpinnakerHttpException(
       retrofit2.Response<?> retrofit2Response, retrofit2.Retrofit retrofit) {
     super(retrofit2Response.raw().request());
-    this.response = null;
     this.retrofit2Response = retrofit2Response;
     if ((retrofit2Response.code() == HttpStatus.NOT_FOUND.value())
         || (retrofit2Response.code() == HttpStatus.BAD_REQUEST.value())) {
@@ -137,23 +83,14 @@ public class SpinnakerHttpException extends SpinnakerServerException {
    * SpinnakerRetrofitExceptionHandlers to handle the exception and respond with the appropriate
    * http status code.
    *
-   * <p>Validating only one of {@link Response} or {@link okhttp3.Response} is set at a time using
-   * {@link Preconditions}.checkState.
-   *
    * @param message the message
    * @param cause the cause. Note that this is required (i.e. can't be null) since in the absence of
-   *     a cause or a RetrofitError that provides the cause, SpinnakerHttpException is likely not
-   *     the appropriate exception class to use.
+   *     a cause, SpinnakerHttpException is likely not the appropriate exception class to use.
    */
   public SpinnakerHttpException(String message, SpinnakerHttpException cause) {
     super(message, cause);
     // Note that getRawMessage() is null in this case.
 
-    Preconditions.checkState(
-        !(cause.response != null && cause.retrofit2Response != null),
-        "Can't set both response and retrofit2Response");
-
-    this.response = cause.response;
     this.retrofit2Response = cause.retrofit2Response;
     rawMessage = null;
     this.responseBody = cause.responseBody;
@@ -169,17 +106,13 @@ public class SpinnakerHttpException extends SpinnakerServerException {
   public HttpHeaders getHeaders() {
     if (headers == null) {
       headers = new HttpHeaders();
-      if (response != null) {
-        response.getHeaders().forEach(header -> headers.add(header.getName(), header.getValue()));
-      } else {
-        retrofit2Response
-            .headers()
-            .names()
-            .forEach(
-                key -> {
-                  headers.addAll(key, retrofit2Response.headers().values(key));
-                });
-      }
+      retrofit2Response
+          .headers()
+          .names()
+          .forEach(
+              key -> {
+                headers.addAll(key, retrofit2Response.headers().values(key));
+              });
     }
     return headers;
   }

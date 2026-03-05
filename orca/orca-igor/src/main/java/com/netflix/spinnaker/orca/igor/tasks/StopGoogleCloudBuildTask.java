@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.igor.tasks;
 
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -30,7 +32,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -40,7 +41,7 @@ public class StopGoogleCloudBuildTask implements Task {
 
   private final RetrySupport retrySupport = new RetrySupport();
   private static final ThreadLocal<Yaml> yamlParser =
-      ThreadLocal.withInitial(() -> new Yaml(new SafeConstructor()));
+      ThreadLocal.withInitial(() -> YamlHelper.newYamlSafeConstructor());
 
   @Override
   @Nonnull
@@ -49,8 +50,9 @@ public class StopGoogleCloudBuildTask implements Task {
         stage.mapTo(GoogleCloudBuildStageDefinition.class);
     GoogleCloudBuild result;
     result =
-        igorService.stopGoogleCloudBuild(
-            stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId());
+        Retrofit2SyncCall.execute(
+            igorService.stopGoogleCloudBuild(
+                stageDefinition.getAccount(), stageDefinition.getBuildInfo().getId()));
 
     Map<String, Object> context = stage.getContext();
     context.put("buildInfo", result);

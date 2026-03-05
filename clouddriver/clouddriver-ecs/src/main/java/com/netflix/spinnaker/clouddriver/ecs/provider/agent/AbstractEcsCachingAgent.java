@@ -234,6 +234,7 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
       Map<String, Collection<String>> evictions) {
     return evictions;
   }
+
   /**
    * Returns the account name with which this agent is associated.
    *

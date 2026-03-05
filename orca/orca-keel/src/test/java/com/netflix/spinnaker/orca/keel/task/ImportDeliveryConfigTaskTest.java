@@ -35,10 +35,8 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-import com.jakewharton.retrofit.Ok3Client;
+import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerRetrofitErrorHandler;
-import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import com.netflix.spinnaker.orca.KeelService;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
@@ -55,6 +53,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,13 +62,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
-import retrofit.RestAdapter;
-import retrofit.converter.JacksonConverter;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /*
  *  @see com.netflix.spinnaker.orca.keel.ImportDeliveryConfigTaskTests.kt already covers up few tests related to @see ImportDeliveryConfigTask.
  * This new java class is Introduced to improvise the API testing with the help of wiremock.
- * Test using wiremock would help in smooth migration to retrofit2.x along with the addition of {@link SpinnakerRetrofitErrorHandler}.
+ * Test using wiremock would help in smooth migration to retrofit2.x.
  * */
 public class ImportDeliveryConfigTaskTest {
 
@@ -88,16 +87,12 @@ public class ImportDeliveryConfigTaskTest {
 
   @BeforeAll
   static void setupOnce(WireMockRuntimeInfo wmRuntimeInfo) {
-    RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.NONE;
-
     keelService =
-        new RestAdapter.Builder()
-            .setRequestInterceptor(new SpinnakerRequestInterceptor(true))
-            .setEndpoint(wmRuntimeInfo.getHttpBaseUrl())
-            .setClient(new Ok3Client())
-            .setErrorHandler(SpinnakerRetrofitErrorHandler.getInstance())
-            .setLogLevel(retrofitLogLevel)
-            .setConverter(new JacksonConverter(objectMapper))
+        new Retrofit.Builder()
+            .baseUrl(wmRuntimeInfo.getHttpBaseUrl())
+            .client(new OkHttpClient())
+            .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
             .build()
             .create(KeelService.class);
   }
@@ -253,7 +248,7 @@ public class ImportDeliveryConfigTaskTest {
             HttpStatus.BAD_REQUEST.value(),
             "HTTP 400 "
                 + wireMock.baseUrl()
-                + "/delivery-configs/: Status: 400, URL: "
+                + "/delivery-configs/: Status: 400, Method: POST, URL: "
                 + wireMock.baseUrl()
                 + "/delivery-configs/, Message: Bad Request");
 
@@ -284,7 +279,7 @@ public class ImportDeliveryConfigTaskTest {
         "errorFromLastAttempt",
         "Retryable HTTP response 500 received from downstream service: HTTP 500 "
             + wireMock.baseUrl()
-            + "/delivery-configs/: Status: 500, URL: "
+            + "/delivery-configs/: Status: 500, Method: POST, URL: "
             + wireMock.baseUrl()
             + "/delivery-configs/, Message: Server Error");
 
@@ -310,7 +305,7 @@ public class ImportDeliveryConfigTaskTest {
     contextMap.put(
         "errorFromLastAttempt",
         String.format(
-            "Network error talking to downstream service, attempt 1 of %s: Connection reset: Connection reset",
+            "Network error talking to downstream service, attempt 1 of %s: java.net.SocketException: Connection reset: Connection reset",
             contextMap.get("maxRetries")));
 
     TaskResult running = TaskResult.builder(ExecutionStatus.RUNNING).context(contextMap).build();

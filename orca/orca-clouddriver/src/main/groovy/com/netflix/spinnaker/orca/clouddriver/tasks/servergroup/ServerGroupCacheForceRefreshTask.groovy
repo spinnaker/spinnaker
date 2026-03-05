@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 
 import java.time.Clock
@@ -137,8 +138,8 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
     boolean allUpdatesApplied = true
     refreshableServerGroups.each { Map<String, String> model ->
       try {
-        def response = cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
-        if (response.status != HttpURLConnection.HTTP_OK) {
+        def response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, (Map) model))
+        if (response.code() != HttpURLConnection.HTTP_OK) {
           // cache update was not applied immediately; need to poll for completion
           allUpdatesApplied = false
         }
@@ -177,7 +178,7 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
                                                   StageData stageData,
                                                   Long startTime) {
 
-    def pendingForceCacheUpdates = cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE)
+    def pendingForceCacheUpdates = Retrofit2SyncCall.execute(cacheStatusService.pendingForceCacheUpdates(cloudProvider, REFRESH_TYPE))
     boolean isRecent = (startTime != null) ? pendingForceCacheUpdates.find { it.cacheTime >= startTime } : false
 
     boolean finishedProcessing = true

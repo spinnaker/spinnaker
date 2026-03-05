@@ -7,3 +7,4 @@ export * from './LoadBalancerClusterContainer';
 export * from './LoadBalancerInstances';
 export * from './LoadBalancerServerGroup';
 export * from './LoadBalancersTagWrapper';
+export * from './details';

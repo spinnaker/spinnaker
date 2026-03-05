@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.clouddriver.artifacts.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.util.Optional;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -28,9 +30,9 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 @Slf4j
-public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
+public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedArtifactAccount> {
   @JsonIgnore private final OkHttpClient okHttpClient;
-  @JsonIgnore private final T account;
+  @Getter @VisibleForTesting @JsonIgnore private final T account;
 
   protected BaseHttpArtifactCredentials(OkHttpClient okHttpClient, T account) {
     this.okHttpClient = okHttpClient;
@@ -67,7 +69,13 @@ public abstract class BaseHttpArtifactCredentials<T extends ArtifactAccount> {
   protected HttpUrl parseUrl(String stringUrl) {
     HttpUrl httpUrl = HttpUrl.parse(stringUrl);
     if (httpUrl == null) {
-      throw new IllegalArgumentException("Malformed URL: " + stringUrl);
+      throw new IllegalArgumentException(
+          "Malformed URL (check artifact references): "
+              + stringUrl
+              + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
+    }
+    if (account.getUrlRestrictions() != null) {
+      account.getUrlRestrictions().validateURI(httpUrl);
     }
     return httpUrl;
   }

@@ -39,7 +39,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import retrofit.Endpoint
 
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 
@@ -53,8 +52,8 @@ class NotificationService {
 
   private OkHttpClient echoOkHttpClient
   private OkHttpClient keelOkHttpClient
-  private Endpoint echoEndpoint
-  private Endpoint keelEndpoint
+  private String echoEndpoint
+  private String keelEndpoint
 
   NotificationService(@Autowired(required = false) Front50Service front50Service,
                       @Autowired OkHttpClientProvider okHttpClientProvider,
@@ -67,8 +66,8 @@ class NotificationService {
     // the original body unmodified along to echo.
     this.echoEndpoint = serviceConfiguration.getServiceEndpoint("echo")
     this.keelEndpoint = serviceConfiguration.getServiceEndpoint("keel")
-    this.echoOkHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint.url))
-    this.keelOkHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("keel", keelEndpoint.url))
+    this.echoOkHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("echo", echoEndpoint))
+    this.keelOkHttpClient =  okHttpClientProvider.getClient(new DefaultServiceEndpoint("keel", keelEndpoint))
   }
 
   Map getNotificationConfigs(String type, String app) {
@@ -97,7 +96,7 @@ class NotificationService {
    * @return
    */
   ResponseEntity<String> processNotificationCallback(String source, RequestEntity<String> request, String service = "echo") {
-    Endpoint endpointToUse = echoEndpoint
+    String endpointToUse = echoEndpoint
     OkHttpClient clientToUse = echoOkHttpClient
     String path = request.url.path
 
@@ -117,9 +116,9 @@ class NotificationService {
       path = "/slack/notifications/callbacks"
     }
 
-    log.debug("Building request with URL ${endpointToUse.url + path}, Content-Type: $contentType")
+    log.debug("Building request with URL ${endpointToUse + path}, Content-Type: $contentType")
     Request.Builder builder = new Request.Builder()
-      .url(endpointToUse.url + path)
+      .url(endpointToUse + path)
       .post(RequestBody.create(mediaType, request.body))
 
     request.getHeaders().each { String name, List values ->

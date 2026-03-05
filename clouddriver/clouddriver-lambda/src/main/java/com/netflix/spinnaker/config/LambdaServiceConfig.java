@@ -53,6 +53,8 @@ public class LambdaServiceConfig {
 
   private Retry retry = new Retry();
 
+  private boolean tcpKeepAlive = false;
+
   /**
    * Duplicated by the {@link
    * com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties.ClientConfig} class and the
@@ -62,6 +64,7 @@ public class LambdaServiceConfig {
   public static class Retry {
     // SDK Default is 20 seconds.... this is a touch lower
     private int timeout = 15;
+
     // Default to the aws client max error retries if NOT set
     @Value("#{'${aws.lambda.retries:${aws.client.maxErrorRetry}}'}")
     private int retries = 3;

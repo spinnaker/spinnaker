@@ -24,37 +24,67 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.ExternalUser;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
-import com.netflix.spinnaker.fiat.roles.github.client.GitHubClient;
-import com.netflix.spinnaker.fiat.roles.github.model.Member;
-import com.netflix.spinnaker.fiat.roles.github.model.Team;
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.kohsuke.github.GHFileNotFoundException;
+import org.kohsuke.github.GHOrganization;
+import org.kohsuke.github.GHRateLimit;
+import org.kohsuke.github.GHTeam;
+import org.kohsuke.github.GitHub;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+/**
+ * User roles provider that fetches team memberships from GitHub.
+ *
+ * <p>This provider authenticates users based on their GitHub organization and team memberships.
+ * Users must be active members of the configured organization to receive any roles.
+ *
+ * <p>Uses hub4j/github-api library which provides:
+ *
+ * <ul>
+ *   <li>Automatic pagination of results
+ *   <li>Built-in rate limit handling
+ *   <li>Type-safe domain models (GHOrganization, GHTeam, GHUser)
+ *   <li>Better error messages and exception handling
+ * </ul>
+ *
+ * <p><b>Caching Strategy:</b>
+ *
+ * <ul>
+ *   <li>Organization members: Cached with configurable TTL (default: 5 minutes)
+ *   <li>Organization teams: Cached with configurable TTL (default: 5 minutes)
+ *   <li>Team memberships: Cached per team with configurable TTL and size limits
+ *   <li>Cache refresh happens asynchronously in background to minimize latency
+ * </ul>
+ *
+ * <p><b>Error Handling:</b>
+ *
+ * <ul>
+ *   <li>404 errors (organization/team not found) are logged with specific context
+ *   <li>Rate limit errors provide actionable guidance and rate limit URL
+ *   <li>Authentication errors (401) suggest credential verification
+ *   <li>Permission errors (403) suggest permission and rate limit checks
+ *   <li>Rate limit status is tracked and warnings are logged when quota is low
+ * </ul>
+ *
+ * @see GitHubProperties for configuration options
+ */
 @Slf4j
 @Component
 @ConditionalOnProperty(value = "auth.group-membership.service", havingValue = "github")
 public class GithubTeamsUserRolesProvider implements UserRolesProvider, InitializingBean {
 
-  private static List<String> RATE_LIMITING_HEADERS =
-      Arrays.asList("X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset");
-
-  @Autowired @Setter private GitHubClient gitHubClient;
+  @Autowired @Setter private GitHub gitHubClient;
 
   @Autowired @Setter private GitHubProperties gitHubProperties;
 
@@ -62,11 +92,9 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
 
   private LoadingCache<String, Set<String>> membersCache;
 
-  private LoadingCache<String, List<Team>> teamsCache;
+  private LoadingCache<String, Map<String, GHTeam>> teamsCache;
 
   private LoadingCache<String, Set<String>> teamMembershipCache;
-
-  private static final String ACTIVE = "active";
 
   @Override
   public void afterPropertiesSet() throws Exception {
@@ -78,93 +106,79 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     this.initializeTeamMembershipCache();
   }
 
+  /**
+   * Initializes the organization members cache.
+   *
+   * <p>Caches the set of all active members in the organization. This cache is refreshed
+   * asynchronously in the background after the TTL expires, ensuring low-latency responses even
+   * during cache refresh.
+   *
+   * <p><b>Cache Size:</b> Limited to 1 entry (single organization support). If multi-org support is
+   * added in the future, this size limit must be increased.
+   */
   private void initializeMembersCache() {
-    // Note if multiple github orgs is ever supported the maximumSize will need to change
     this.membersCache =
         CacheBuilder.newBuilder()
-            .maximumSize(1) // This will only be a cache of one entry keyed by org name.
+            .maximumSize(1) // Single org support - increase if multi-org is needed
             .refreshAfterWrite(
                 this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
             .build(
                 new CacheLoader<String, Set<String>>() {
                   public Set<String> load(String key) {
-                    Set<String> members = new HashSet<>();
-                    int page = 1;
-                    boolean hasMorePages = true;
-
-                    do {
-                      List<Member> membersPage = getMembersInOrgPaginated(key, page++);
-                      membersPage.forEach(m -> members.add(m.getLogin().toLowerCase()));
-                      if (membersPage.size() != gitHubProperties.paginationValue) {
-                        hasMorePages = false;
-                      }
-                      log.debug(
-                          "Got "
-                              + membersPage.size()
-                              + " members back. hasMorePages: "
-                              + hasMorePages);
-                    } while (hasMorePages);
-
-                    return members;
+                    return fetchOrgMembers(key);
                   }
 
                   public ListenableFuture<Set<String>> reload(
                       final String key, final Set<String> prev) {
                     ListenableFutureTask<Set<String>> task =
-                        ListenableFutureTask.create(
-                            new Callable<Set<String>>() {
-                              public Set<String> call() {
-                                return load(key);
-                              }
-                            });
+                        ListenableFutureTask.create(() -> load(key));
                     executor.execute(task);
                     return task;
                   }
                 });
   }
 
+  /**
+   * Initializes the organization teams cache.
+   *
+   * <p>Caches all teams in the organization as a map (team slug -> GHTeam). This enables fast
+   * lookups when checking team memberships for users. Refresh happens asynchronously.
+   *
+   * <p><b>Cache Size:</b> Limited to 1 entry (single organization support). If multi-org support is
+   * added in the future, this size limit must be increased.
+   */
   private void initializeTeamsCache() {
-    // Note if multiple github orgs is ever supported the maximumSize will need to change
     this.teamsCache =
         CacheBuilder.newBuilder()
-            .maximumSize(1) // This will only be a cache of one entry keyed by org name.
+            .maximumSize(1) // Single org support - increase if multi-org is needed
             .refreshAfterWrite(
                 this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
             .build(
-                new CacheLoader<String, List<Team>>() {
-                  public List<Team> load(String key) {
-                    List<Team> teams = new ArrayList<>();
-                    int page = 1;
-                    boolean hasMorePages = true;
-
-                    do {
-                      List<Team> teamsPage = getTeamsInOrgPaginated(key, page++);
-                      teams.addAll(teamsPage);
-                      if (teamsPage.size() != gitHubProperties.paginationValue) {
-                        hasMorePages = false;
-                      }
-                      log.debug(
-                          "Got " + teamsPage.size() + " teams back. hasMorePages: " + hasMorePages);
-                    } while (hasMorePages);
-
-                    return teams;
+                new CacheLoader<String, Map<String, GHTeam>>() {
+                  public Map<String, GHTeam> load(String key) {
+                    return fetchOrgTeams(key);
                   }
 
-                  public ListenableFuture<List<Team>> reload(
-                      final String key, final List<Team> prev) {
-                    ListenableFutureTask<List<Team>> task =
-                        ListenableFutureTask.create(
-                            new Callable<List<Team>>() {
-                              public List<Team> call() {
-                                return load(key);
-                              }
-                            });
+                  public ListenableFuture<Map<String, GHTeam>> reload(
+                      final String key, final Map<String, GHTeam> prev) {
+                    ListenableFutureTask<Map<String, GHTeam>> task =
+                        ListenableFutureTask.create(() -> load(key));
                     executor.execute(task);
                     return task;
                   }
                 });
   }
 
+  /**
+   * Initializes the team membership cache.
+   *
+   * <p>Caches the members of each team individually (keyed by team slug). This is more
+   * memory-efficient than caching all team memberships upfront, especially for organizations with
+   * many teams.
+   *
+   * <p><b>Cache Size:</b> Configurable per deployment. Default allows caching multiple teams based
+   * on usage patterns. LRU eviction ensures most-accessed teams stay cached.
+   */
   private void initializeTeamMembershipCache() {
     this.teamMembershipCache =
         CacheBuilder.newBuilder()
@@ -173,193 +187,381 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
                 this.gitHubProperties.getMembershipCacheTTLSeconds(), TimeUnit.SECONDS)
             .build(
                 new CacheLoader<String, Set<String>>() {
-                  public Set<String> load(String key) {
-                    Set<String> memberships = new HashSet<>();
-                    int page = 1;
-                    boolean hasMorePages = true;
-                    do {
-                      List<Member> members =
-                          getMembersInTeamPaginated(
-                              gitHubProperties.getOrganization(), key, page++);
-                      members.forEach(m -> memberships.add(m.getLogin().toLowerCase()));
-                      if (members.size() != gitHubProperties.paginationValue) {
-                        hasMorePages = false;
-                      }
-                      log.debug(
-                          "Got " + members.size() + " teams back. hasMorePages: " + hasMorePages);
-                    } while (hasMorePages);
-
-                    return memberships;
+                  public Set<String> load(String teamSlug) {
+                    return fetchTeamMembers(teamSlug);
                   }
 
                   public ListenableFuture<Set<String>> reload(
                       final String key, final Set<String> prev) {
                     ListenableFutureTask<Set<String>> task =
-                        ListenableFutureTask.create(
-                            new Callable<Set<String>>() {
-                              public Set<String> call() {
-                                return load(key);
-                              }
-                            });
+                        ListenableFutureTask.create(() -> load(key));
                     executor.execute(task);
                     return task;
                   }
                 });
   }
 
+  /**
+   * Fetches organization members using hub4j. Pagination is handled automatically by PagedIterable.
+   *
+   * <p>By default, hub4j's listMembers() returns all members with state "active". Suspended or
+   * pending members are excluded automatically by the GitHub API.
+   */
+  private Set<String> fetchOrgMembers(String orgName) {
+    try {
+      log.debug("Fetching members for organization: {}", orgName);
+
+      GHOrganization org = gitHubClient.getOrganization(orgName);
+
+      // hub4j handles pagination automatically!
+      Set<String> memberLogins =
+          org.listMembers().toList().stream()
+              .map(user -> user.getLogin().toLowerCase())
+              .collect(Collectors.toSet());
+
+      log.info("Fetched {} members from organization {}", memberLogins.size(), orgName);
+      logRateLimitInfo("fetchOrgMembers");
+      return memberLogins;
+
+    } catch (GHFileNotFoundException e) {
+      log.error("GitHub organization not found: {}", orgName, e);
+      // For 404, return empty set (org doesn't exist, no retries will help)
+      return Collections.emptySet();
+    } catch (IOException e) {
+      String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+
+      // Log specific error types with actionable information
+      if (message.contains("rate limit")) {
+        log.error(
+            "GitHub API rate limit exceeded for organization: {}. Check rate limit at: https://api.github.com/rate_limit",
+            orgName,
+            e);
+      } else if (message.contains("401")) {
+        log.error(
+            "GitHub authentication failed (401 Unauthorized) for organization: {}. Verify credentials.",
+            orgName,
+            e);
+      } else if (message.contains("403")) {
+        log.error(
+            "GitHub access forbidden (403) for organization: {}. Check permissions and rate limits.",
+            orgName,
+            e);
+      } else {
+        log.error("Failed to fetch members for organization: {}", orgName, e);
+      }
+
+      // For authentication/authorization errors (401/403), throw exception instead of returning
+      // empty set
+      // This allows Guava cache to keep using stale cached values until issue is resolved
+      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
+        throw new RuntimeException(
+            "Critical GitHub API error - using cached values if available", e);
+      }
+
+      // For other transient errors, return empty set
+      return Collections.emptySet();
+    }
+  }
+
+  /** Fetches organization teams using hub4j. Returns a map of slug -> GHTeam for easy lookup. */
+  private Map<String, GHTeam> fetchOrgTeams(String orgName) {
+    try {
+      log.debug("Fetching teams for organization: {}", orgName);
+
+      GHOrganization org = gitHubClient.getOrganization(orgName);
+      Map<String, GHTeam> teams = org.getTeams();
+
+      log.info("Fetched {} teams from organization {}", teams.size(), orgName);
+      logRateLimitInfo("fetchOrgTeams");
+      return teams;
+
+    } catch (GHFileNotFoundException e) {
+      log.error("GitHub organization not found: {}", orgName, e);
+      // For 404, return empty map (org doesn't exist, no retries will help)
+      return Collections.emptyMap();
+    } catch (IOException e) {
+      String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+
+      // Log specific error types with actionable information
+      if (message.contains("rate limit")) {
+        log.error(
+            "GitHub API rate limit exceeded for organization: {}. Check rate limit at: https://api.github.com/rate_limit",
+            orgName,
+            e);
+      } else if (message.contains("401")) {
+        log.error(
+            "GitHub authentication failed (401 Unauthorized) for organization: {}. Verify credentials.",
+            orgName,
+            e);
+      } else if (message.contains("403")) {
+        log.error(
+            "GitHub access forbidden (403) for organization: {}. Check permissions and rate limits.",
+            orgName,
+            e);
+      } else {
+        log.error("Failed to fetch teams for organization: {}", orgName, e);
+      }
+
+      // For authentication/authorization errors (401/403), throw exception instead of returning
+      // empty map
+      // This allows Guava cache to keep using stale cached values until issue is resolved
+      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
+        throw new RuntimeException(
+            "Critical GitHub API error - using cached values if available", e);
+      }
+
+      // For other transient errors, return empty map
+      return Collections.emptyMap();
+    }
+  }
+
+  /** Fetches members of a specific team using hub4j. */
+  private Set<String> fetchTeamMembers(String teamSlug) {
+    try {
+      log.debug(
+          "Fetching members for team: {} in organization: {}",
+          teamSlug,
+          gitHubProperties.getOrganization());
+
+      GHOrganization org = gitHubClient.getOrganization(gitHubProperties.getOrganization());
+      GHTeam team = org.getTeamBySlug(teamSlug);
+
+      if (team == null) {
+        log.warn(
+            "Team not found: {} in organization: {}", teamSlug, gitHubProperties.getOrganization());
+        return Collections.emptySet();
+      }
+
+      // hub4j handles pagination automatically!
+      Set<String> memberLogins =
+          team.listMembers().toList().stream()
+              .map(user -> user.getLogin().toLowerCase())
+              .collect(Collectors.toSet());
+
+      log.debug("Fetched {} members for team {}", memberLogins.size(), teamSlug);
+      logRateLimitInfo("fetchTeamMembers");
+      return memberLogins;
+
+    } catch (GHFileNotFoundException e) {
+      log.error(
+          "GitHub team or organization not found: {} in organization: {}",
+          teamSlug,
+          gitHubProperties.getOrganization(),
+          e);
+      // For 404, return empty set (team doesn't exist, no retries will help)
+      return Collections.emptySet();
+    } catch (IOException e) {
+      String message = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+
+      // Log specific error types with actionable information
+      if (message.contains("rate limit")) {
+        log.error(
+            "GitHub API rate limit exceeded for team: {} in organization: {}. Check rate limit at: https://api.github.com/rate_limit",
+            teamSlug,
+            gitHubProperties.getOrganization(),
+            e);
+      } else if (message.contains("401")) {
+        log.error(
+            "GitHub authentication failed (401 Unauthorized) for team: {} in organization: {}. Verify credentials.",
+            teamSlug,
+            gitHubProperties.getOrganization(),
+            e);
+      } else if (message.contains("403")) {
+        log.error(
+            "GitHub access forbidden (403) for team: {} in organization: {}. Check permissions and rate limits.",
+            teamSlug,
+            gitHubProperties.getOrganization(),
+            e);
+      } else {
+        log.error(
+            "Failed to fetch members for team: {} in organization: {}",
+            teamSlug,
+            gitHubProperties.getOrganization(),
+            e);
+      }
+
+      // For authentication/authorization errors (401/403), throw exception instead of returning
+      // empty set
+      // This allows Guava cache to keep using stale cached values until issue is resolved
+      if (message.contains("401") || message.contains("403") || message.contains("rate limit")) {
+        throw new RuntimeException(
+            "Critical GitHub API error - using cached values if available", e);
+      }
+
+      // For other transient errors, return empty set
+      return Collections.emptySet();
+    }
+  }
+
+  /**
+   * Logs GitHub API rate limit information for debugging and monitoring.
+   *
+   * <p>This helps track API usage and identify potential rate limit issues before they occur.
+   *
+   * @param operation The operation that just completed (for context in logs)
+   */
+  private void logRateLimitInfo(String operation) {
+    try {
+      GHRateLimit rateLimit = gitHubClient.getRateLimit();
+
+      // Handle null rate limit (can happen in tests or with certain GitHub API responses)
+      if (rateLimit == null) {
+        log.debug("Rate limit info not available after {}", operation);
+        return;
+      }
+
+      GHRateLimit.Record core = rateLimit.getCore();
+
+      // Handle null core record
+      if (core == null) {
+        log.debug("Rate limit core record not available after {}", operation);
+        return;
+      }
+
+      int limit = core.getLimit();
+      int remaining = core.getRemaining();
+
+      log.debug(
+          "GitHub rate limit after {}: {}/{} remaining, resets at {}",
+          operation,
+          remaining,
+          limit,
+          core.getResetDate());
+
+      // Guard against division by zero - can happen in tests or unexpected API responses
+      if (limit <= 0) {
+        log.debug(
+            "Rate limit value is {} after {}, skipping percentage calculation", limit, operation);
+        return;
+      }
+
+      // Warn if rate limit is getting low (less than 10% remaining)
+      if (remaining < limit * 0.1) {
+        log.warn(
+            "GitHub API rate limit is running low: {}/{} remaining ({}%). Resets at {}",
+            remaining, limit, (remaining * 100 / limit), core.getResetDate());
+      }
+    } catch (IOException e) {
+      log.debug("Could not fetch rate limit info after {}", operation, e);
+    } catch (Exception e) {
+      log.debug("Unexpected error fetching rate limit info after {}", operation, e);
+    }
+  }
+
+  /**
+   * Loads all roles for a given user based on GitHub organization and team memberships.
+   *
+   * <p><b>Role Assignment Logic:</b>
+   *
+   * <ol>
+   *   <li>Checks if user is an active member of the configured organization
+   *   <li>If not a member, returns empty list (no roles)
+   *   <li>If member, assigns organization role (e.g., "my-org")
+   *   <li>Checks membership in each team within the organization
+   *   <li>Assigns team role for each team the user belongs to (e.g., "team-developers")
+   * </ol>
+   *
+   * <p><b>Example:</b> For user "john" in organization "acme" who is member of teams "developers"
+   * and "reviewers", returns roles: ["acme", "developers", "reviewers"]
+   *
+   * <p><b>Note:</b> All role names are converted to lowercase for consistency.
+   *
+   * @param user External user to load roles for (must have a valid ID/username)
+   * @return List of roles (organization + teams), or empty list if not an org member
+   */
   @Override
   public List<Role> loadRoles(ExternalUser user) {
     String username = user.getId();
 
-    log.debug("loadRoles for user " + username);
+    log.debug("Loading roles for user: {}", username);
+
     if (StringUtils.isEmpty(username) || StringUtils.isEmpty(gitHubProperties.getOrganization())) {
       return new ArrayList<>();
     }
 
     if (!isMemberOfOrg(username)) {
-      log.debug(username + "is not a member of organization " + gitHubProperties.getOrganization());
+      log.debug(
+          "User {} is not a member of organization {}",
+          username,
+          gitHubProperties.getOrganization());
       return new ArrayList<>();
     }
-    log.debug(username + "is a member of organization " + gitHubProperties.getOrganization());
+
+    log.debug(
+        "User {} is a member of organization {}", username, gitHubProperties.getOrganization());
 
     List<Role> result = new ArrayList<>();
     result.add(toRole(gitHubProperties.getOrganization()));
 
     // Get teams of the org
-    List<Team> teams = getTeams();
-    log.debug("Found " + teams.size() + " teams in org.");
+    Map<String, GHTeam> teams = getTeams();
+    log.debug("Found {} teams in organization", teams.size());
 
-    teams.forEach(
-        t -> {
-          String debugMsg = username + " is a member of team " + t.getName();
-          if (isMemberOfTeam(t, username)) {
-            result.add(toRole(t.getSlug()));
-            debugMsg += ": true";
-          } else {
-            debugMsg += ": false";
-          }
-          log.debug(debugMsg);
-        });
+    teams
+        .values()
+        .forEach(
+            team -> {
+              String teamSlug = team.getSlug();
+              String teamName = team.getName();
+              String debugMsg = username + " is a member of team " + teamName;
+
+              if (isMemberOfTeam(teamSlug, username)) {
+                result.add(toRole(teamSlug));
+                debugMsg += ": true";
+              } else {
+                debugMsg += ": false";
+              }
+              log.debug(debugMsg);
+            });
 
     return result;
   }
 
   private boolean isMemberOfOrg(String username) {
-    boolean isMemberOfOrg = false;
     try {
-      isMemberOfOrg =
-          this.membersCache
-              .get(gitHubProperties.getOrganization())
-              .contains(username.toLowerCase());
+      return this.membersCache
+          .get(gitHubProperties.getOrganization())
+          .contains(username.toLowerCase());
     } catch (ExecutionException e) {
       log.error("Failed to read from cache when getting org membership", e);
+      return false;
     }
-    return isMemberOfOrg;
   }
 
-  private List<Team> getTeams() {
+  private Map<String, GHTeam> getTeams() {
     try {
       return this.teamsCache.get(gitHubProperties.getOrganization());
     } catch (ExecutionException e) {
       log.error("Failed to read from cache when getting teams", e);
+      return Collections.emptyMap();
     }
-    return Collections.emptyList();
   }
 
-  private List<Team> getTeamsInOrgPaginated(String organization, int page) {
-    List<Team> teams = new ArrayList<>();
+  private boolean isMemberOfTeam(String teamSlug, String username) {
     try {
-      log.debug("Requesting page " + page + " of teams.");
-      teams =
-          Retrofit2SyncCall.execute(
-              gitHubClient.getOrgTeams(organization, page, gitHubProperties.paginationValue));
-    } catch (SpinnakerNetworkException e) {
-      log.error(String.format("Could not find the server %s", gitHubProperties.getBaseUrl()), e);
-    } catch (SpinnakerHttpException e) {
-      if (e.getResponseCode() != HttpStatus.NOT_FOUND.value()) {
-        handleNon404s(e);
-        throw e;
-      } else {
-        log.error("404 when getting teams", e);
-      }
-    }
-
-    return teams;
-  }
-
-  private List<Member> getMembersInOrgPaginated(String organization, int page) {
-    List<Member> members = new ArrayList<>();
-    try {
-      log.debug("Requesting page " + page + " of members.");
-      members =
-          Retrofit2SyncCall.execute(
-              gitHubClient.getOrgMembers(organization, page, gitHubProperties.paginationValue));
-    } catch (SpinnakerNetworkException e) {
-      log.error(String.format("Could not find the server %s", gitHubProperties.getBaseUrl()), e);
-    } catch (SpinnakerHttpException e) {
-      if (e.getResponseCode() != HttpStatus.NOT_FOUND.value()) {
-        handleNon404s(e);
-        throw e;
-      } else {
-        log.error("404 when getting members", e);
-      }
-    }
-
-    return members;
-  }
-
-  private List<Member> getMembersInTeamPaginated(String organization, String teamSlug, int page) {
-    List<Member> members = new ArrayList<>();
-    try {
-      log.debug("Requesting page " + page + " of members team " + teamSlug + ".");
-      members =
-          Retrofit2SyncCall.execute(
-              gitHubClient.getMembersOfTeam(
-                  organization, teamSlug, page, gitHubProperties.paginationValue));
-    } catch (SpinnakerNetworkException e) {
-      log.error(String.format("Could not find the server %s", gitHubProperties.getBaseUrl()), e);
-    } catch (SpinnakerHttpException e) {
-      if (e.getResponseCode() != HttpStatus.NOT_FOUND.value()) {
-        handleNon404s(e);
-        throw e;
-      } else {
-        log.error("404 when getting members of team", e);
-      }
-    }
-
-    return members;
-  }
-
-  private boolean isMemberOfTeam(Team t, String username) {
-    try {
-      return this.teamMembershipCache.get(t.getSlug()).contains(username.toLowerCase());
+      return this.teamMembershipCache.get(teamSlug).contains(username.toLowerCase());
     } catch (ExecutionException e) {
       log.error("Failed to read from cache when getting team membership", e);
+      return false;
     }
-    return false;
-  }
-
-  private void handleNon404s(SpinnakerHttpException e) {
-    String msg = "";
-    if (e.getResponseCode() == HttpStatus.UNAUTHORIZED.value()) {
-      msg = "HTTP 401 Unauthorized.";
-    } else if (e.getResponseCode() == HttpStatus.FORBIDDEN.value()) {
-      HttpHeaders headers = e.getHeaders();
-      val rateHeaders =
-          RATE_LIMITING_HEADERS.stream()
-              .filter(headers::containsKey)
-              .map(headers::getFirst)
-              .collect(Collectors.toList());
-
-      msg = "HTTP 403 Forbidden. Rate limit info: " + StringUtils.join(rateHeaders, ", ");
-    }
-    log.error(msg, e);
   }
 
   private static Role toRole(String name) {
     return new Role().setName(name.toLowerCase()).setSource(Role.Source.GITHUB_TEAMS);
   }
 
+  /**
+   * Loads roles for multiple users in a single operation.
+   *
+   * <p>This is a convenience method that calls {@link #loadRoles(ExternalUser)} for each user. The
+   * GitHub API cache is shared across all users, so this is efficient for batch operations.
+   *
+   * <p><b>Performance:</b> Cached data (org members, teams) is reused across all users in the
+   * batch, making this much more efficient than individual calls for large user sets.
+   *
+   * @param users Collection of external users to load roles for
+   * @return Map of user ID to their collection of roles, or empty map if input is null/empty
+   */
   @Override
   public Map<String, Collection<Role>> multiLoadRoles(Collection<ExternalUser> users) {
     if (users == null || users.isEmpty()) {
@@ -372,15 +574,106 @@ public class GithubTeamsUserRolesProvider implements UserRolesProvider, Initiali
     return emailGroupsMap;
   }
 
-  @Data
-  private class OrgMembershipKey {
-    private final String organization;
-    private final String username;
+  /**
+   * Invalidates all caches (members, teams, and team memberships).
+   *
+   * <p>This method is primarily intended for testing purposes to force fresh fetches from the
+   * GitHub API. In production, the caches refresh automatically based on the configured refresh
+   * intervals.
+   *
+   * <p><b>Use Cases:</b>
+   *
+   * <ul>
+   *   <li>Testing error scenarios that require fresh API calls
+   *   <li>Manual cache clearing during debugging
+   *   <li>Forcing cache refresh after configuration changes
+   * </ul>
+   */
+  public void invalidateAll() {
+    if (membersCache != null) {
+      membersCache.invalidateAll();
+    }
+    if (teamsCache != null) {
+      teamsCache.invalidateAll();
+    }
+    if (teamMembershipCache != null) {
+      teamMembershipCache.invalidateAll();
+    }
+    log.debug("All GitHub caches invalidated (members, teams, team memberships)");
   }
 
-  @Data
-  private class TeamMembershipKey {
-    private final Long teamId;
-    private final String username;
+  /**
+   * Invalidates the organization members cache.
+   *
+   * <p>This forces a fresh fetch of organization members on the next access. Team and team
+   * membership caches are not affected.
+   */
+  public void invalidateMembersCache() {
+    if (membersCache != null) {
+      membersCache.invalidateAll();
+      log.debug("GitHub members cache invalidated");
+    }
+  }
+
+  /**
+   * Invalidates the organization teams cache.
+   *
+   * <p>This forces a fresh fetch of organization teams on the next access. Members and team
+   * membership caches are not affected.
+   */
+  public void invalidateTeamsCache() {
+    if (teamsCache != null) {
+      teamsCache.invalidateAll();
+      log.debug("GitHub teams cache invalidated");
+    }
+  }
+
+  /**
+   * Invalidates the team memberships cache.
+   *
+   * <p>This forces a fresh fetch of team memberships on the next access. Members and teams caches
+   * are not affected.
+   */
+  public void invalidateTeamMembershipsCache() {
+    if (teamMembershipCache != null) {
+      teamMembershipCache.invalidateAll();
+      log.debug("GitHub team memberships cache invalidated");
+    }
+  }
+
+  /**
+   * Invalidates a specific team's membership cache.
+   *
+   * <p>This allows selective cache invalidation for a single team without affecting other cached
+   * data.
+   *
+   * @param teamSlug The team slug to invalidate
+   */
+  public void invalidateTeamMembership(String teamSlug) {
+    if (teamMembershipCache != null && teamSlug != null) {
+      teamMembershipCache.invalidate(teamSlug);
+      log.debug("GitHub team membership cache invalidated for team: {}", teamSlug);
+    }
+  }
+
+  /**
+   * Returns the current size of all caches combined.
+   *
+   * <p>This method is primarily intended for monitoring and testing purposes.
+   *
+   * @return Total number of cached entries across all caches
+   */
+  public long getCacheSize() {
+    long size = 0;
+    if (membersCache != null) {
+      size += membersCache.size();
+    }
+    if (teamsCache != null) {
+      size += teamsCache.size();
+    }
+    if (teamMembershipCache != null) {
+      size += teamMembershipCache.size();
+    }
+    return size;
   }
 }

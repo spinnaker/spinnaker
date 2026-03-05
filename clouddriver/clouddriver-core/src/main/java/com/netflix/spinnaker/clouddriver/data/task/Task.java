@@ -105,7 +105,9 @@ public interface Task {
   void updateOutput(
       String manifest, String phase, @Nullable String stdOut, @Nullable String stdError);
 
-  /** @return */
+  /**
+   * @return
+   */
   List<TaskOutput> getOutputs();
 
   // updates the owner id in case the task was picked up by another clouddriver pod

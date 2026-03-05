@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.igor.codebuild;
 
-import com.amazonaws.services.codebuild.model.Build;
-import com.amazonaws.services.codebuild.model.StartBuildRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
@@ -26,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import software.amazon.awssdk.services.codebuild.model.Build;
+import software.amazon.awssdk.services.codebuild.model.StartBuildRequest;
 
 @ConditionalOnProperty("codebuild.enabled")
 @RestController

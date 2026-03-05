@@ -303,7 +303,7 @@ const helpContents: { [key: string]: string } = {
     '<p>Explicitly evaluate SpEL expressions in overrides just prior to manifest baking. Can be paired with the "Skip SpEL evaluation" option in the Deploy Manifest stage when baking a third-party manifest artifact with expressions not meant for Spinnaker to evaluate as SpEL.</p>',
   'pipeline.config.bake.manifest.templateRenderer': '<p>This is the engine used for rendering your manifest.</p>',
   'pipeline.config.bake.manifest.helm.chartFilePath': `
-    <p>This is the relative path to the directory containing the Chart.yaml file within your Git repo.</p>
+    <p>This is the relative path to the directory containing the Chart.yaml file within your Git repo (or helm/image artifact).</p>
     <p>e.g.: <b>helm/my-chart</b></p>`,
   'pipeline.config.bake.manifest.helm.rawOverrides':
     'Use <i>--set</i> instead of <i>--set-string</i> when injecting override values. Values injected using <i>--set</i> will be converted to primitive types by Helm.',
@@ -492,7 +492,7 @@ const helpContents: { [key: string]: string } = {
     'if unchecked, marks the stage as successful right away without waiting for the Wercker job to complete',
   'script.waitForCompletion':
     'if unchecked, marks the stage as successful right away without waiting for the script to complete',
-  // eslint-disable-next-line no-useless-escape
+
   'markdown.examples': `
     Some examples of markdown syntax: <br/> \`*italic*\` <br/> \`**bold**\` <br/> \`[link text](http://url-goes-here)\`
   `,

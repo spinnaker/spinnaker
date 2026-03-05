@@ -21,20 +21,19 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.ClouddriverService
-import com.netflix.spinnaker.igor.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import groovy.transform.CompileStatic
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Conditional
 import org.springframework.context.annotation.Configuration
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
 @Configuration
-@ConditionalOnProperty(['services.clouddriver.base-url', 'docker-registry.enabled'])
-@EnableConfigurationProperties(DockerRegistryProperties)
-@CompileStatic
+@Conditional(DockerRegistryEnabledCondition)
+@EnableConfigurationProperties([DockerRegistryProperties,HelmOciDockerRegistryProperties])
 class DockerRegistryConfig {
     @Bean
     DockerRegistryAccounts dockerRegistryAccounts() {
@@ -47,7 +46,7 @@ class DockerRegistryConfig {
       IgorConfigurationProperties igorConfigurationProperties,
       ObjectMapper objectMapper
     ) {
-        def address = igorConfigurationProperties.services.clouddriver.baseUrl ?: 'none'
+         def address = igorConfigurationProperties.services.clouddriver.baseUrl ?: 'none'
         if (address == 'none') {
             null
         }

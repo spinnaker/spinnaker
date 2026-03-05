@@ -20,8 +20,8 @@ import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.echo.config.TelemetryConfig.TelemetryConfigProps
 import com.netflix.spinnaker.echo.telemetry.TelemetryService
-import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import de.huxhorn.sulky.ulid.ULID
 import okhttp3.OkHttpClient
@@ -49,7 +49,10 @@ open class TelemetryConfig {
     okHttpClientConfig: OkHttp3ClientConfiguration,
     okHttpClient: OkHttpClient
   ): TelemetryService {
-    val clientProps = OkHttpClientConfigurationProperties(configProps.connectionTimeoutMillis.toLong(), configProps.readTimeoutMillis.toLong())
+    val clientProps = OkHttpClientConfigurationProperties().apply {
+      connectTimeoutMs = configProps.connectionTimeoutMillis.toLong()
+      readTimeoutMs = configProps.readTimeoutMillis.toLong()
+    }
     val clientProvider = DefaultOkHttpClientBuilderProvider(okHttpClient, clientProps)
     log.info("Telemetry service loaded")
     return Retrofit.Builder()

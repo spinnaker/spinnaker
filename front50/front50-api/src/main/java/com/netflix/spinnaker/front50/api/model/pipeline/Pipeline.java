@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @EqualsAndHashCode(of = {"id", "name", "application"})
-public class Pipeline implements Timestamped {
+public class Pipeline implements Timestamped, Cloneable {
 
   public static final String TYPE_TEMPLATED = "templatedPipeline";
 
@@ -102,5 +102,16 @@ public class Pipeline implements Timestamped {
       return "1";
     }
     return get;
+  }
+
+  @Override
+  public Pipeline clone() {
+    try {
+      return (Pipeline) super.clone();
+    } catch (CloneNotSupportedException e) {
+      // checked exceptions for the win.
+      throw new RuntimeException(
+          String.format("unable to clone pipeline (id: %s, name: %s)", id, name), e);
+    }
   }
 }

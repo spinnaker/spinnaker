@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/azure",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
   "version": "0.4.10",
   "module": "dist/index.js",
@@ -20,7 +24,7 @@
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
     "react-select": "1.2.1"

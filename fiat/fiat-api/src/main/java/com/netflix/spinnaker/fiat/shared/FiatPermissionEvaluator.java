@@ -80,7 +80,9 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
     RetryHandler NOOP = new RetryHandler() {};
   }
 
-  /** @see ExponentialBackOff */
+  /**
+   * @see ExponentialBackOff
+   */
   static class ExponentialBackoffRetryHandler implements RetryHandler {
     private final FiatClientConfigurationProperties.RetryConfiguration retryConfiguration;
 
@@ -501,7 +503,7 @@ public class FiatPermissionEvaluator implements UserPermissionEvaluator {
    */
   @SuppressWarnings("unused")
   public boolean isAdmin() {
-    return true; // TODO(ttomsu): Chosen by fair dice roll. Guaranteed to be random.
+    return isAdmin(SecurityContextHolder.getContext().getAuthentication());
   }
 
   public boolean isAdmin(Authentication authentication) {

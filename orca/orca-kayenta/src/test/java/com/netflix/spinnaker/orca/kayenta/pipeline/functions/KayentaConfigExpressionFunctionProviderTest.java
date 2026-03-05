@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import retrofit2.mock.Calls;
 
 public class KayentaConfigExpressionFunctionProviderTest {
 
@@ -38,7 +39,7 @@ public class KayentaConfigExpressionFunctionProviderTest {
     KayentaCanaryConfig config =
         new KayentaCanaryConfig("myconfig", "myname", 0L, null, Collections.singletonList("myapp"));
     canaryConfigs.add(config);
-    when(kayentaService.getAllCanaryConfigs()).thenReturn(canaryConfigs);
+    when(kayentaService.getAllCanaryConfigs()).thenReturn(Calls.response(canaryConfigs));
 
     KayentaConfigExpressionFunctionProvider provider =
         new KayentaConfigExpressionFunctionProvider(kayentaService);
@@ -54,7 +55,7 @@ public class KayentaConfigExpressionFunctionProviderTest {
     KayentaCanaryConfig config =
         new KayentaCanaryConfig("myconfig", "myname", 0L, null, Collections.singletonList("myapp"));
     canaryConfigs.add(config);
-    when(kayentaService.getAllCanaryConfigs()).thenReturn(canaryConfigs);
+    when(kayentaService.getAllCanaryConfigs()).thenReturn(Calls.response(canaryConfigs));
 
     KayentaConfigExpressionFunctionProvider provider =
         new KayentaConfigExpressionFunctionProvider(kayentaService);

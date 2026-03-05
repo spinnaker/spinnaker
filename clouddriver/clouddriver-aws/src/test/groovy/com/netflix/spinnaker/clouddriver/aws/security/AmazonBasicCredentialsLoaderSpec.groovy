@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.aws.security
 import com.amazonaws.SDKGlobalConfiguration
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties
 import com.netflix.spinnaker.clouddriver.aws.security.config.AmazonCredentialsParser
 import com.netflix.spinnaker.clouddriver.aws.security.config.CredentialsConfig
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration
@@ -132,8 +133,21 @@ class AmazonBasicCredentialsLoaderSpec extends Specification{
         .collect(Collectors.toList()))
 
     CredentialsDefinitionSource<Account> amazonCredentialsSource = { -> accountsConfig.getAccounts() } as CredentialsDefinitionSource
+    AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
+    AWSAccountInfoLookupFactory lookupFactory = Mock(AWSAccountInfoLookupFactory)
+    AWSCredentialsProviderFactory credentialsProviderFactory = Mock(AWSCredentialsProviderFactory)
     AmazonCredentialsParser<Account, NetflixAmazonCredentials> ci = new AmazonCredentialsParser<>(
-      provider, lookup, NetflixAmazonCredentials.class, credentialsConfig, accountsConfig)
+      provider,
+      amazonClientProvider,
+      lookup,
+      lookupFactory,
+      credentialsProviderFactory,
+      NetflixAmazonCredentials.class,
+      credentialsConfig,
+      accountsConfig,
+      new AwsConfigurationProperties()
+    )
+
     def loader = new AmazonBasicCredentialsLoader<Account, NetflixAmazonCredentials>(
       amazonCredentialsSource, ci, credentialsRepository, credentialsConfig, accountsConfig, defaultAccountConfigurationProperties
     )

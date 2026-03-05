@@ -20,6 +20,7 @@ import static java.lang.String.format;
 
 import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.kork.common.Header;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -48,14 +50,18 @@ public class AuthenticatedRequest {
    * identity and allowed accounts.
    */
   public interface PrincipalExtractor {
-    /** @return the user principal in the current security scope. */
+    /**
+     * @return the user principal in the current security scope.
+     */
     default Object principal() {
       return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
           .map(Authentication::getPrincipal)
           .orElse(null);
     }
 
-    /** @return The comma separated list of accounts for the current principal. */
+    /**
+     * @return The comma separated list of accounts for the current principal.
+     */
     default Optional<String> getSpinnakerAccounts() {
       return getSpinnakerAccounts(principal());
     }
@@ -75,9 +81,13 @@ public class AuthenticatedRequest {
       return get(Header.ACCOUNTS);
     }
 
-    /** @return the user id of the current user */
+    /**
+     * @return the user id of the current user
+     */
     default Optional<String> getSpinnakerUser() {
-      return getSpinnakerUser(principal());
+      return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+          .map(Authentication::getName)
+          .or(() -> getSpinnakerUser(principal()));
     }
 
     /**
@@ -85,9 +95,16 @@ public class AuthenticatedRequest {
      * @return the user id of the provided principal
      */
     default Optional<String> getSpinnakerUser(Object principal) {
-      return (principal instanceof UserDetails)
-          ? Optional.ofNullable(((UserDetails) principal).getUsername())
-          : get(Header.USER);
+      if (principal instanceof UserDetails) {
+        return Optional.ofNullable(((UserDetails) principal).getUsername());
+      }
+      if (principal instanceof AuthenticatedPrincipal) {
+        return Optional.ofNullable(((AuthenticatedPrincipal) principal).getName());
+      }
+      if (principal instanceof Principal) {
+        return Optional.ofNullable(((Principal) principal).getName());
+      }
+      return Optional.ofNullable(principal).map(Object::toString).or(() -> get(Header.USER));
     }
   }
 
@@ -235,13 +252,17 @@ public class AuthenticatedRequest {
     return wrapCallableForPrincipal(closure, restoreOriginalContext, principal());
   }
 
-  /** @deprecated use runAs instead to switch to a different user */
+  /**
+   * @deprecated use runAs instead to switch to a different user
+   */
   @Deprecated
   public static <V> Callable<V> propagate(Callable<V> closure, Object principal) {
     return wrapCallableForPrincipal(closure, true, principal);
   }
 
-  /** @deprecated use runAs instead to switch to a different user */
+  /**
+   * @deprecated use runAs instead to switch to a different user
+   */
   @Deprecated
   public static <V> Callable<V> propagate(
       Callable<V> closure, boolean restoreOriginalContext, Object principal) {
@@ -411,7 +432,7 @@ public class AuthenticatedRequest {
 
     try {
       // force clear to avoid the potential for a memory leak if log4j is being used
-      Class log4jMDC = Class.forName("org.apache.log4j.MDC");
+      Class<?> log4jMDC = Class.forName("org.apache.log4j.MDC");
       log4jMDC.getDeclaredMethod("clear").invoke(null);
     } catch (Exception ignored) {
     }

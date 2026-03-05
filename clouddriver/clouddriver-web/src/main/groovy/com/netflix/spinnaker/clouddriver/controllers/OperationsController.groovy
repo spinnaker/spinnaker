@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController
 
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
-import javax.annotation.PreDestroy
+import jakarta.annotation.PreDestroy
 import javax.naming.OperationNotSupportedException
 import java.util.concurrent.TimeUnit
 
@@ -156,7 +156,7 @@ class OperationsController {
       throw new NotFoundException("Task not found (id: $id)")
     }
 
-    if (!t.status.retryable) {
+    if (!t.status.isRetryable()) {
       throw new ConstraintViolationException("Task id: $id is not retryable").with {
         setRetryable(false)
         it
@@ -164,7 +164,7 @@ class OperationsController {
     }
     log.debug("restarting task: ${t.id}")
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, requestBody)
-    return start(atomicOperations, t.requestId)
+    return start(cloudProvider, atomicOperations, t.requestId)
   }
 
   @GetMapping("/task/{id}")

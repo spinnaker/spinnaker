@@ -19,9 +19,9 @@ package com.netflix.spinnaker.echo.notification;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
 import com.netflix.spinnaker.echo.api.Notification;
 import com.netflix.spinnaker.echo.api.Notification.InteractiveActionCallback
-import com.netflix.spinnaker.echo.util.RetrofitUtils
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import okhttp3.ResponseBody;

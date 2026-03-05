@@ -27,7 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')

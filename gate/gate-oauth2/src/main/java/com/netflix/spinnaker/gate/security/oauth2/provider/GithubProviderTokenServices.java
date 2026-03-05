@@ -17,32 +17,36 @@ package com.netflix.spinnaker.gate.security.oauth2.provider;
 
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.security.oauth2.client.OAuth2RestOperations;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.resource.BaseOAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
-import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+/**
+ * This class implements {@link SpinnakerProviderTokenServices} to verify if a user meets the
+ * provider-specific authentication requirements for GitHub.
+ *
+ * <p>It checks if a user is a member of a required GitHub organization before granting access.
+ */
 @Slf4j
 @Component
-@ConditionalOnProperty(name = "security.oauth2.provider-requirements.type", havingValue = "github")
+@ConditionalOnProperty(name = "spring.security.oauth2.client.registration.github.client-id")
 public class GithubProviderTokenServices implements SpinnakerProviderTokenServices {
 
-  @Autowired private ResourceServerProperties sso;
   @Autowired private GithubRequirements requirements;
-  private String tokenType = DefaultOAuth2AccessToken.BEARER_TYPE;
-  private OAuth2RestOperations restTemplate;
 
   private boolean githubOrganizationMember(
       String organization, List<Map<String, String>> organizations) {
-    for (int i = 0; i < organizations.size(); i++) {
-      if (organization.equals(organizations.get(i).get("login"))) {
+    for (Map<String, String> org : organizations) {
+      if (organization.equals(org.get("login"))) {
         return true;
       }
     }
@@ -53,22 +57,17 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
       String accessToken, String organizationsUrl, String organization) {
     try {
       log.debug("Getting user organizations from URL {}", organizationsUrl);
-      OAuth2RestOperations restTemplate = this.restTemplate;
-      if (restTemplate == null) {
-        BaseOAuth2ProtectedResourceDetails resource = new BaseOAuth2ProtectedResourceDetails();
-        resource.setClientId(sso.getClientId());
-        restTemplate = new OAuth2RestTemplate(resource);
-      }
+      RestTemplate restTemplate = new RestTemplate();
 
-      OAuth2AccessToken existingToken = restTemplate.getOAuth2ClientContext().getAccessToken();
-      if (existingToken == null || !accessToken.equals(existingToken.getValue())) {
-        DefaultOAuth2AccessToken token = new DefaultOAuth2AccessToken(accessToken);
-        token.setTokenType(this.tokenType);
-        restTemplate.getOAuth2ClientContext().setAccessToken(token);
-      }
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Authorization", "Bearer " + accessToken);
+      headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
 
-      List<Map<String, String>> organizations =
-          restTemplate.getForEntity(organizationsUrl, List.class).getBody();
+      ResponseEntity<List> response =
+          restTemplate.exchange(
+              organizationsUrl, HttpMethod.GET, new HttpEntity<>(headers), List.class);
+
+      List<Map<String, String>> organizations = response.getBody();
       return githubOrganizationMember(organization, organizations);
     } catch (Exception e) {
       log.warn("Could not fetch user organizations", e);
@@ -91,16 +90,10 @@ public class GithubProviderTokenServices implements SpinnakerProviderTokenServic
   }
 
   @Component
-  @ConfigurationProperties("security.oauth2.provider-requirements")
+  @ConfigurationProperties(
+      "spring.security.oauth2.client.registration.github.provider-requirements")
+  @Data
   public static class GithubRequirements {
-    public String getOrganization() {
-      return organization;
-    }
-
-    public void setOrganization(String organization) {
-      this.organization = organization;
-    }
-
     private String organization;
   }
 }

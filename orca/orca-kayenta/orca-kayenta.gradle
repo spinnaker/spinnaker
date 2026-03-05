@@ -30,6 +30,8 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.spinnaker.kork:kork-retrofit")
 
+  testImplementation(project(":orca-test"))
   testImplementation(project(":orca-test-kotlin"))
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
+  testImplementation("com.squareup.retrofit2:retrofit-mock")
 }

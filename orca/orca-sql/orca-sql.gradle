@@ -30,6 +30,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-telemetry")
   implementation("com.netflix.spectator:spectator-api")
   implementation("io.spinnaker.kork:kork-core")
+  implementation "io.github.resilience4j:resilience4j-vavr"
   implementation("org.springframework:spring-jdbc")
   implementation("org.springframework:spring-tx")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
@@ -41,6 +42,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:4.44.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.44.0")
 
+  testImplementation(project(":orca-test"))
   testImplementation(project(":orca-core-tck"))
   testImplementation(project(":orca-test-groovy"))
   testImplementation("io.spinnaker.kork:kork-sql-test")
@@ -54,6 +56,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.testcontainers:postgresql")
+  testImplementation("io.spinnaker.kork:kork-web")
 
   testRuntimeOnly("com.mysql:mysql-connector-j")
   testRuntimeOnly("org.postgresql:postgresql")

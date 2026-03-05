@@ -19,11 +19,13 @@ dependencies {
   implementation project(':echo-core')
   implementation project(':echo-model')
   implementation project(':echo-pubsub-core')
-  implementation "com.amazonaws:aws-java-sdk-sqs"
   implementation "io.spinnaker.kork:kork-core"
+  implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-aws"
   implementation "io.spinnaker.kork:kork-pubsub-aws"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "javax.validation:validation-api"
+  implementation "software.amazon.awssdk:sns"
+  implementation "software.amazon.awssdk:sqs"
+  implementation "jakarta.validation:jakarta.validation-api"
   testImplementation "io.spinnaker.kork:kork-test"
 }

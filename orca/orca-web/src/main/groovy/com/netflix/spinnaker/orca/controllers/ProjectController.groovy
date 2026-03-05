@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -24,7 +25,8 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import rx.schedulers.Schedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.core.Observable
 
 @RestController
 class ProjectController {
@@ -47,7 +49,7 @@ class ProjectController {
 
     def pipelineConfigIds = []
     try {
-      def project = front50Service.getProject(projectId)
+      def project = Retrofit2SyncCall.execute(front50Service.getProject(projectId))
       pipelineConfigIds = project.config.pipelineConfigs*.pipelineConfigId
     } catch (SpinnakerHttpException e) {
       if (e.responseCode == 404) {
@@ -63,9 +65,9 @@ class ProjectController {
       statuses: (statuses.split(",") as Collection)
     )
 
-    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
+    def allPipelines = Observable.merge(pipelineConfigIds.collect {
       executionRepository.retrievePipelinesForPipelineConfigId(it, executionCriteria)
-    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+    }).subscribeOn(Schedulers.io()).toList().blockingGet().sort(startTimeOrId)
 
     return allPipelines
   }

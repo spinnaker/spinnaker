@@ -17,18 +17,18 @@
 package com.netflix.spinnaker.kork.secrets.user;
 
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
+import com.netflix.spinnaker.kork.secrets.ParsedSecretReference;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
+import com.netflix.spinnaker.kork.secrets.SecretReference;
+import com.netflix.spinnaker.kork.secrets.SecretReferenceParser;
+import com.netflix.spinnaker.kork.secrets.SecretUriReferenceParser;
+import com.netflix.spinnaker.kork.secrets.SecretUriType;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import lombok.experimental.Delegate;
 
 /**
  * Parses a URI reference to a {@link UserSecret}. These URIs use the scheme {@code secret://}
@@ -51,53 +51,31 @@ import lombok.ToString;
  *
  * <p>User secrets may contain more than one secret value. The {@code k} parameter may be specified
  * to select one of the secrets by name which will return a projected version of the secret with the
- * selected key.
+ * selected key. <em>Only one {@code k} parameter should be specified in a secret URI.</em>
  *
  * @see UserSecret
  */
-@EqualsAndHashCode
-@ToString
-@Getter
-public class UserSecretReference {
-  private static final Pattern SECRET_URI = Pattern.compile("^secret(File)?://.+");
+@Value
+@RequiredArgsConstructor
+public class UserSecretReference implements SecretReference {
   public static final String SECRET_SCHEME = "secret";
+  private static final SecretReferenceParser PARSER =
+      new SecretUriReferenceParser(SECRET_SCHEME + "://", "&", "=", SecretUriType.HIERARCHICAL);
 
-  @Nonnull private final String engineIdentifier;
-  @Nonnull private final Map<String, String> parameters = new ConcurrentHashMap<>();
-
-  private UserSecretReference(URI uri) {
-    if (!SECRET_SCHEME.equals(uri.getScheme())) {
-      throw new InvalidSecretFormatException("Only secret:// URIs supported");
-    }
-    engineIdentifier = uri.getAuthority();
-    String[] queryKeyValues = uri.getQuery().split("&");
-    if (queryKeyValues.length == 0) {
-      throw new InvalidSecretFormatException(
-          "Invalid user secret URI has no query parameters defined");
-    }
-    for (String keyValue : queryKeyValues) {
-      String[] pair = keyValue.split("=", 2);
-      if (pair.length != 2) {
-        throw new InvalidSecretFormatException(
-            "Invalid user secret query string; missing parameter value for '" + keyValue + "'");
-      }
-      parameters.put(pair[0], pair[1]);
-    }
-  }
+  @Delegate ParsedSecretReference reference;
 
   /**
    * Parses a user secret URI. Invalid URIs will throw an InvalidSecretFormatException.
    *
    * @param input URI data to parse
    * @return the parsed UserSecretReference
-   * @throws InvalidSecretFormatException when the URI is invalid
+   * @throws InvalidUserSecretReferenceException when the URI is invalid
    */
-  @Nonnull
-  public static UserSecretReference parse(@Nonnull String input) {
+  public static UserSecretReference parse(String input) {
     try {
-      return new UserSecretReference(new URI(input));
-    } catch (URISyntaxException e) {
-      throw new InvalidSecretFormatException(e);
+      return new UserSecretReference(PARSER.parse(input));
+    } catch (InvalidSecretFormatException e) {
+      throw new InvalidUserSecretReferenceException(input, e);
     }
   }
 
@@ -105,20 +83,19 @@ public class UserSecretReference {
    * Tries to parse a user secret URI into a UserSecretReference. Invalid secret URIs return an
    * empty value.
    */
-  @Nonnull
   public static Optional<UserSecretReference> tryParse(@Nullable Object value) {
     if (!(value instanceof String && isUserSecret((String) value))) {
       return Optional.empty();
     }
     try {
-      return Optional.of(new UserSecretReference(new URI((String) value)));
-    } catch (URISyntaxException | InvalidSecretFormatException e) {
+      return Optional.of(new UserSecretReference(PARSER.parse((String) value)));
+    } catch (InvalidSecretFormatException e) {
       return Optional.empty();
     }
   }
 
   /** Checks if the provided input string looks like a user secret URI. */
-  public static boolean isUserSecret(@Nonnull String input) {
-    return SECRET_URI.matcher(input).matches();
+  public static boolean isUserSecret(String input) {
+    return PARSER.matches(input);
   }
 }
