@@ -272,7 +272,7 @@ const rule = function (context: Rule.RuleContext) {
     'CallExpression:exit': function (node) {
       const { object, property } = node.callee;
       if (object && object.name === '$provide' && property && property.name === 'decorator') {
-        checkDi(null, { node: node.arguments[1], scope: context.getScope() });
+        checkDi(null, { node: node.arguments[1], scope: context.sourceCode.getScope(node) });
       }
     },
     AssignmentExpression: function (node) {

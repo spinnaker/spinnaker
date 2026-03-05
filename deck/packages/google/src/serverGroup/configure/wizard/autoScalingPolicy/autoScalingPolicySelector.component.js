@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 import { IComponentOptions, module } from 'angular';
 import { cloneDeep } from 'lodash';
 
