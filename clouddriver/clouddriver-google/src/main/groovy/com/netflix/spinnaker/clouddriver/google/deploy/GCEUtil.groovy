@@ -633,7 +633,7 @@ class GCEUtil {
 
     def networkInterface = instanceTemplateProperties.networkInterfaces[0]
     def serviceAccountEmail = instanceTemplateProperties.serviceAccounts?.getAt(0)?.email
-    def shieldedVmConfig = instanceTemplateProperties.shieldedVmConfig
+    def shieldedVmConfig = instanceTemplateProperties.shieldedInstanceConfig
 
     return new BaseGoogleInstanceDescription(
       image: image,
@@ -939,22 +939,25 @@ class GCEUtil {
     return scheduling
   }
 
-  static ShieldedVmConfig buildShieldedVmConfig(BaseGoogleInstanceDescription description) {
-    def shieldedVmConfig = new ShieldedVmConfig()
+  // Builds the v1 ShieldedInstanceConfig (replaces beta ShieldedVmConfig).
+  // See: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
+  //      (shieldedInstanceConfig on InstanceProperties)
+  static ShieldedInstanceConfig buildShieldedInstanceConfig(BaseGoogleInstanceDescription description) {
+    def shieldedInstanceConfig = new ShieldedInstanceConfig()
 
     if (description.enableSecureBoot != null) {
-      shieldedVmConfig.enableSecureBoot = description.enableSecureBoot
+      shieldedInstanceConfig.enableSecureBoot = description.enableSecureBoot
     }
 
     if (description.enableVtpm != null) {
-      shieldedVmConfig.enableVtpm = description.enableVtpm
+      shieldedInstanceConfig.enableVtpm = description.enableVtpm
     }
 
     if (description.enableIntegrityMonitoring != null) {
-      shieldedVmConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
+      shieldedInstanceConfig.enableIntegrityMonitoring = description.enableIntegrityMonitoring
     }
 
-    return shieldedVmConfig
+    return shieldedInstanceConfig
   }
 
   static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {

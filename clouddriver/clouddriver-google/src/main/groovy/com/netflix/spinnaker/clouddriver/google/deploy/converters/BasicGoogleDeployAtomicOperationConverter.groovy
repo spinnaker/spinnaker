@@ -60,6 +60,14 @@ class BasicGoogleDeployAtomicOperationConverter extends AbstractAtomicOperations
       }
     }
 
+    // Pipelines saved before the v1 migration may still contain partnerMetadata (a beta-only
+    // feature removed in the stable API).  Strip it here so existing pipelines deploy without
+    // errors — the field is not propagated to GCE regardless.
+    if (input.containsKey('partnerMetadata')) {
+      log.warn("Stripping partnerMetadata from deploy description — not supported under the stable v1 compute API.")
+      input.remove('partnerMetadata')
+    }
+
     GoogleAtomicOperationConverterHelper.convertDescription(input, this, BasicGoogleDeployDescription)
   }
 }

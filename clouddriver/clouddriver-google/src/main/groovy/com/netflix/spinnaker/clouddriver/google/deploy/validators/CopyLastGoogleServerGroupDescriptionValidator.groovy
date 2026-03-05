@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.config.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
@@ -35,6 +36,9 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
 
   @Autowired
   private GoogleConfiguration.DeployDefaults googleDeployDefaults
+
+  @Autowired(required = false)
+  GoogleClusterProvider googleClusterProvider
 
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, ValidationErrors errors) {
@@ -60,5 +64,47 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
                                     description.regional ? description.region : description.zone,
                                     description.credentials)
     }
+
+    def effectiveDescription = resolveEffectiveDescription(description)
+    InstanceFlexibilityPolicyValidationSupport.rejectIssues(
+      errors,
+      "instanceFlexibilityPolicy",
+      "copyLastGoogleServerGroupDescription.instanceFlexibilityPolicy",
+      InstanceFlexibilityPolicyValidationSupport.validate(effectiveDescription))
+  }
+
+  private BasicGoogleDeployDescription resolveEffectiveDescription(BasicGoogleDeployDescription description) {
+    if (!googleClusterProvider
+      || !description?.accountName
+      || !description?.source?.region
+      || !description?.source?.serverGroupName) {
+      return description
+    }
+
+    // Validate clone requests against the effective runtime description (request overrides +
+    // ancestor fallback), matching what the operation will ultimately deploy.
+    // This closes a validation gap when clone payloads omit fields like regional/distribution
+    // policy and inherit them from the source server group.
+    def ancestorServerGroup = googleClusterProvider.getServerGroup(
+      description.accountName,
+      description.source.region,
+      description.source.serverGroupName)
+    if (!ancestorServerGroup) {
+      return description
+    }
+
+    BasicGoogleDeployDescription effectiveDescription = description.clone()
+    effectiveDescription.regional =
+      description.regional != null ? description.regional : ancestorServerGroup.regional
+    effectiveDescription.distributionPolicy =
+      description.distributionPolicy != null
+        ? description.distributionPolicy
+        : ancestorServerGroup.distributionPolicy
+    effectiveDescription.instanceFlexibilityPolicy =
+      description.instanceFlexibilityPolicy != null
+        ? description.instanceFlexibilityPolicy
+        : ancestorServerGroup.instanceFlexibilityPolicy
+
+    return effectiveDescription
   }
 }
