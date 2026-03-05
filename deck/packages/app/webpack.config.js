@@ -208,6 +208,9 @@ function configure(env, webpackOpts) {
     devServer: {
       hot: false,
       allowedHosts: 'all',
+      client: {
+        overlay: false,
+      },
       historyApiFallback: {
         index: '/',
       },
