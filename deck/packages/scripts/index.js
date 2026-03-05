@@ -3,7 +3,9 @@
 const chalk = require('chalk');
 const child_process = require('child_process');
 const fs = require('fs');
-const loadConfigFile = require('rollup/dist/loadConfigFile');
+
+const { loadConfigFile } = require('rollup/loadConfigFile');
+
 const ora = require('ora');
 const path = require('path');
 const process = require('process');
@@ -11,6 +13,30 @@ const rollup = require('rollup');
 const util = require('util');
 
 const exec = util.promisify(child_process.exec);
+
+const ESM_SYNTAX = /^\s*(import\s+|export\s+(default\s+)?)/m;
+
+// Rollup 4's loadConfigFile writes temporary .cjs files (named with Date.now()) to the same
+// directory as the config file. When multiple packages build in parallel and share the same
+// config (e.g. rollup.config.base.module.js), one build can delete another's temp file before
+// it's been loaded causing "Cannot find module" errors. To work around this, CJS configs are
+// loaded directly via require() (no temp files), while ESM configs still use loadConfigFile
+// (only used in sequential builds, so safe).
+const loadConfig = async (configPath) => {
+  const source = fs.readFileSync(configPath, 'utf8');
+  if (ESM_SYNTAX.test(source)) {
+    // ESM configs must go through loadConfigFile which bundles them to CJS.
+    // These are only used in sequential builds (core, presentation) so no race condition.
+    const { options, warnings } = await loadConfigFile(configPath, { bundleConfigAsCjs: true });
+    warnings.flush();
+    return options;
+  }
+  // CJS configs can be required directly, avoiding the race condition where
+  // parallel builds sharing the same config collide on temp .cjs files.
+  delete require.cache[require.resolve(configPath)];
+  const config = require(configPath);
+  return Array.isArray(config) ? config : [config];
+};
 
 const getRollupConfigPath = (file) => {
   if (file && !fs.existsSync(path.resolve(path.join('.', file)))) {
@@ -65,15 +91,13 @@ const runTsc = (options, exitOnFailure) => {
 const startHandler = async ({ file, push }) => {
   process.env.ROLLUP_WATCH = true;
 
-  const { options, warnings } = await loadConfigFile(getRollupConfigPath(file));
+  const options = await loadConfig(getRollupConfigPath(file));
   // A map of `input-output` bundle key to a tracker object. This is used to quickly access a spinner object and
   // startTime when succeeding/failing that object on receiving a `BUNDLE_END`/`ERROR` event.
   const buildTracker = {};
   // Kick-starting rollup's bundling process in watch mode.
   const watcher = rollup.watch(options);
   let startTime;
-
-  warnings.flush();
   watcher.on('event', (event) => {
     // Rollup will be emitting lifecycle events for the bundling process such as start, end and error. These events are
     // used to control a spinner in the terminal for each `input-output` bundle.
@@ -137,8 +161,7 @@ const printBundleComplete = (option, completedTimeInMS) => {
 };
 
 const buildHandler = async ({ file }) => {
-  const { options, warnings } = await loadConfigFile(getRollupConfigPath(file));
-  warnings.flush();
+  const options = await loadConfig(getRollupConfigPath(file));
 
   for (const o of options) {
     const start = Date.now();

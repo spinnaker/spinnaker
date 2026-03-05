@@ -36,7 +36,7 @@
     "rxjs": "6.6.7"
   },
   "devDependencies": {
-    "@rollup/plugin-alias": "^3.1.2",
+    "@rollup/plugin-alias": "^6.0.0",
     "@spinnaker/eslint-plugin": "^3.0.2",
     "@spinnaker/mocks": "1.0.7",
     "@spinnaker/scripts": "^0.4.0",
