@@ -5,6 +5,7 @@ export class HttpLoadBalancerTemplate {
   public region = 'global';
   public loadBalancerType = 'HTTP';
   public certificate = '';
+  public certificateMap = '';
   public defaultService: BackendServiceTemplate;
   public hostRules: HostRuleTemplate[] = [];
   public listeners: ListenerTemplate[] = [];
@@ -45,4 +46,6 @@ export class ListenerTemplate {
   public name: string;
   public port: number;
   public certificate: string | null = null;
+  public certificateMap: string | null = null;
+  public certificateSource: 'certificate' | 'certificateMap' = 'certificate';
 }

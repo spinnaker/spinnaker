@@ -50,6 +50,10 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     this.description = description
   }
 
+  protected static String getFirstSslCertificateName(List<String> sslCertificates) {
+    return sslCertificates ? GCEUtil.getLocalName(sslCertificates[0]) : null
+  }
+
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertLoadBalancer": { "region": "global", "portRange": "443", "ipProtocol": "TCP", "credentials" : "my-account-name", "loadBalancerName" : "testlb", "certificate": "my-google-cert", "backendService": {"name": "default-backend-service", "sessionAffinity": "NONE", "backends": [], "healthCheck": {"name": "basic-check", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1, "healthCheckType": "TCP"}}, "loadBalancerType": "SSL"}} ]' localhost:7002/gce/ops
    *
@@ -114,8 +118,9 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
     }
 
     if (existingTargetProxy) {
+      def existingCertificateName = getFirstSslCertificateName(existingTargetProxy.getSslCertificates())
       needToUpdateTargetProxy = backendServiceName != GCEUtil.getLocalName(existingTargetProxy.getService()) ||
-        description.certificate != GCEUtil.getLocalName(existingTargetProxy.getSslCertificates()[0])
+        description.certificate != existingCertificateName
     }
 
     existingBackendService = safeRetry.doRetry(

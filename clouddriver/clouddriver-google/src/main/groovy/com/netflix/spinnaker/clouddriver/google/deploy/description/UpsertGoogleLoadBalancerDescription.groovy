@@ -44,6 +44,10 @@ class UpsertGoogleLoadBalancerDescription extends AbstractGoogleCredentialsDescr
    * Certificate name in Google Cloud Platform.
    */
   String certificate
+  /**
+   * Certificate map name in Certificate Manager.
+   */
+  String certificateMap
   List<String> listenersToDelete
   /**
    * If we update an L7 and change the backend services, this field is the difference between the old and new.
