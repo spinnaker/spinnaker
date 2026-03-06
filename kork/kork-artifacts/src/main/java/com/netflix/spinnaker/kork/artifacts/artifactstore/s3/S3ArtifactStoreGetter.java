@@ -91,7 +91,7 @@ public class S3ArtifactStoreGetter implements ArtifactStoreGetter {
           e);
     } catch (Exception e) {
       throw new RuntimeException(
-          String.format("artifact failed to be stored %s/%s", this.bucket, uri), e);
+          String.format("artifact failed to be retrieved %s/%s", this.bucket, uri), e);
     }
   }
 
