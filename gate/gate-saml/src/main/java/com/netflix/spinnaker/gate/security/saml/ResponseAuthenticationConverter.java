@@ -44,12 +44,17 @@ public class ResponseAuthenticationConverter
   private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
   private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
   private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
+<<<<<<< HEAD
+=======
+  private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
+>>>>>>> 943997b230 (fix(saml): Fix wiring issue on saml.  Add FULL end to end integration test using keycloak & htmlunitdriver (#7525))
 
   @Override
   public PreAuthenticatedAuthenticationToken convert(ResponseToken source) {
     UserIdentifierExtractor userIdentifierExtractor = userIdentifierExtractorFactory.getObject();
     UserRolesExtractor userRolesExtractor = userRolesExtractorFactory.getObject();
     AuthenticationService loginService = authenticationServiceFactory.getObject();
+    AllowedAccountsSupport allowedAccountsSupport = allowedAccountsSupportFactory.getObject();
     log.debug("Decoding SAML response: {}", source.getToken());
 
     Saml2Authentication authentication = convertToken(source);
