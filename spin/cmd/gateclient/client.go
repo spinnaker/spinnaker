@@ -178,6 +178,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 			return nil, unwrapErr(ui, err)
 		}
 
+		gateClient.Context = context.WithValue(gateClient.Context, gate.ContextAccessToken, gateClient.Config.Auth.OAuth2.CachedToken.AccessToken)
 		updatedMessage = "Caching oauth2 token."
 	}
 
