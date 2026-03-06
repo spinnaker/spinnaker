@@ -46,22 +46,22 @@ import retrofit2.http.GET;
 /**
  * Tests for {@link RetrofitClientFactory} authentication behavior.
  *
- * <p>These tests prove the bug described in
- * https://github.com/spinnaker/spinnaker/issues/7454:
+ * <p>These tests prove the bug described in https://github.com/spinnaker/spinnaker/issues/7454:
  *
  * <p>OkHttp's {@code .authenticator()} only fires after an HTTP 401 response. Prometheus-compatible
  * providers like Coralogix never return 401 — they return HTTP 200 with a non-JSON body (e.g.,
- * "OK") when authentication is missing. This causes Kayenta to fail with a
- * {@code JsonParseException} because the authenticator never triggers and the Authorization header
- * is never sent.
+ * "OK") when authentication is missing. This causes Kayenta to fail with a {@code
+ * JsonParseException} because the authenticator never triggers and the Authorization header is
+ * never sent.
  *
  * <p>The fix replaces {@code .authenticator()} with {@code .addInterceptor()} so the Authorization
  * header is sent proactively on every request.
  *
  * <h3>Test structure:</h3>
+ *
  * <ul>
- *   <li>{@link OldAuthenticatorBehavior} — reproduces the bug using the old {@code .authenticator()}
- *       approach
+ *   <li>{@link OldAuthenticatorBehavior} — reproduces the bug using the old {@code
+ *       .authenticator()} approach
  *   <li>{@link NewInterceptorBehavior} — proves the fix using the new {@code .addInterceptor()}
  *       approach
  * </ul>
@@ -139,14 +139,8 @@ public class RetrofitClientFactoryTest {
 
     // Unauthenticated request → 200 with non-JSON body (the problematic behavior)
     mockServerClient
-        .when(
-            request()
-                .withMethod("GET")
-                .withPath("/api/v1/query"))
-        .respond(
-            response()
-                .withStatusCode(200)
-                .withBody("OK", MediaType.TEXT_PLAIN));
+        .when(request().withMethod("GET").withPath("/api/v1/query"))
+        .respond(response().withStatusCode(200).withBody("OK", MediaType.TEXT_PLAIN));
   }
 
   // ---------------------------------------------------------------------------
@@ -169,14 +163,8 @@ public class RetrofitClientFactoryTest {
 
     // Unauthenticated request → 401 (standard challenge-response)
     mockServerClient
-        .when(
-            request()
-                .withMethod("GET")
-                .withPath("/api/v1/query"))
-        .respond(
-            response()
-                .withStatusCode(401)
-                .withBody("Unauthorized"));
+        .when(request().withMethod("GET").withPath("/api/v1/query"))
+        .respond(response().withStatusCode(401).withBody("Unauthorized"));
   }
 
   // =========================================================================
@@ -223,8 +211,8 @@ public class RetrofitClientFactoryTest {
     }
 
     /**
-     * Shows that the old authenticator approach ONLY works with servers that return 401. This is the
-     * assumption that breaks for Prometheus-compatible providers like Coralogix.
+     * Shows that the old authenticator approach ONLY works with servers that return 401. This is
+     * the assumption that breaks for Prometheus-compatible providers like Coralogix.
      */
     @Test
     @DisplayName("WORKS: authenticator fires only when server returns 401 first")
@@ -252,9 +240,9 @@ public class RetrofitClientFactoryTest {
     }
 
     /**
-     * Demonstrates that the old approach sends TWO requests to a 401 server: the first without
-     * auth (gets 401), then a retry with auth. This is wasteful and breaks entirely when the server
-     * does not return 401.
+     * Demonstrates that the old approach sends TWO requests to a 401 server: the first without auth
+     * (gets 401), then a retry with auth. This is wasteful and breaks entirely when the server does
+     * not return 401.
      */
     @Test
     @DisplayName("WASTEFUL: authenticator causes double request even on 401 servers")
@@ -355,9 +343,7 @@ public class RetrofitClientFactoryTest {
           org.mockserver.verify.VerificationTimes.exactly(1));
     }
 
-    /**
-     * Verifies that Basic auth credentials are also sent proactively on the first request.
-     */
+    /** Verifies that Basic auth credentials are also sent proactively on the first request. */
     @Test
     @DisplayName("WORKS: Basic auth is also sent proactively")
     public void basicAuthIsSentProactively() throws Exception {
@@ -487,6 +473,7 @@ public class RetrofitClientFactoryTest {
      * </pre>
      *
      * <p>The old authenticator approach causes this because:
+     *
      * <ol>
      *   <li>Request sent without Authorization header
      *   <li>Coralogix returns 200 + "OK" (not 401, so authenticator doesn't fire)
@@ -501,10 +488,7 @@ public class RetrofitClientFactoryTest {
       // Simulate Coralogix: returns 200 with "OK" when no auth is provided
       mockServerClient
           .when(request().withMethod("GET").withPath("/api/v1/query"))
-          .respond(
-              response()
-                  .withStatusCode(200)
-                  .withBody("OK", MediaType.TEXT_PLAIN));
+          .respond(response().withStatusCode(200).withBody("OK", MediaType.TEXT_PLAIN));
 
       // Old authenticator-based client (pre-fix behavior)
       OkHttpClient oldClient =
