@@ -56,11 +56,8 @@ dependencies {
   testImplementation project(":gate-basic")
   testImplementation project(":gate-header")
   testImplementation project(":gate-oauth2")
-<<<<<<< HEAD
-=======
   testImplementation project(":gate-iap")
   testImplementation project(":gate-saml")
->>>>>>> 943997b230 (fix(saml): Fix wiring issue on saml.  Add FULL end to end integration test using keycloak & htmlunitdriver (#7525))
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "com.squareup.okhttp3:mockwebserver"
 
