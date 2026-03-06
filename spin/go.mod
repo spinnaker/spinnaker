@@ -1,6 +1,6 @@
 module github.com/spinnaker/spin
 
-go 1.17
+go 1.23.0
 
 require (
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
