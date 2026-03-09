@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.clouddriver.config;
 
+import com.netflix.spinnaker.kork.annotations.Alpha;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "cats.pubsub")
 @Component
 @Data
+@Alpha
 public class PubSubSchedulerProperties {
   private int delayBetweenSchedulerRunsMs =
       15000; // Rune very 15 seconds to refresh state & queue as needed

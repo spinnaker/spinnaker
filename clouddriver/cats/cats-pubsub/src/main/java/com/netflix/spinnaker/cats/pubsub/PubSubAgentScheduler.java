@@ -9,6 +9,7 @@ import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
+import com.netflix.spinnaker.kork.annotations.Alpha;
 import java.time.Duration;
 import java.util.Set;
 import lombok.extern.log4j.Log4j2;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty("cats.pubsub.enabled")
 @Log4j2
+@Alpha
 public class PubSubAgentScheduler extends CatsModuleAware
     implements Runnable, AgentScheduler<AgentLock> {
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.pubsub.PubSubAgentRunner;
 import com.netflix.spinnaker.cats.pubsub.PubSubAgentScheduler;
+import com.netflix.spinnaker.kork.annotations.Alpha;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
@@ -26,6 +27,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan(basePackages = "com.netflix.spinnaker.cats.pubsub")
 @ConditionalOnProperty("cats.pubsub.enabled")
 @Log4j2
+@Alpha
 public class PubSubSchedulerConfig {
 
   @Bean

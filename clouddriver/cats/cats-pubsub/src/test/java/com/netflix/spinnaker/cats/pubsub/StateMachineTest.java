@@ -34,7 +34,6 @@ import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
-import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -55,8 +54,7 @@ class StateMachineTest {
   private DSLContext dslContext;
   private Connection connection;
 
-  private PubSubSchedulerProperties mockProperties = new PubSubSchedulerProperties();
-  private Agent mockAgent =
+  private final Agent mockAgent =
       new CachingAgent() {
 
         @Override
@@ -102,9 +100,7 @@ class StateMachineTest {
       """);
 
     // Set up StateMachine with real DSLContext
-    stateMachine = new StateMachine();
-    stateMachine.setJooq(dslContext);
-    stateMachine.setProperties(mockProperties);
+    stateMachine = new StateMachine(dslContext);
   }
 
   @AfterEach

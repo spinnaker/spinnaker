@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.cats.pubsub.StateMachine;
+import com.netflix.spinnaker.kork.annotations.Alpha;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ConditionalOnProperty("cats.pubsub.enabled")
 @RestController
 @RequestMapping("/admin/scheduler")
+@Alpha
 public class PubSubAdminController extends JsonSerializer<Long> {
   @Autowired StateMachine stateMachine;
   private ObjectMapper mapper;

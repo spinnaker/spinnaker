@@ -4,33 +4,34 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
 import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
+import com.netflix.spinnaker.kork.annotations.Alpha;
 import java.sql.ResultSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
 @Setter
+@RequiredArgsConstructor
+@Alpha
 public class StateMachine {
   public static final String PUBSUB_AGENT_STATE = "pubsub_agent_state";
   public static final String AGENT_TYPE = "agent_type";
   private static final int MAX_DURATION_FOR_AN_AGENT =
       7200; // up to 2 hours.  NO AGENT should EVER take this long.  WE HOPE!
 
-  @Autowired PubSubSchedulerProperties properties;
-  @Autowired private DSLContext jooq;
+  private final DSLContext jooq;
   private static final RecordMapper<Record, AgentState> agentStateMapper =
       row ->
           AgentState.builder()
@@ -43,10 +44,14 @@ public class StateMachine {
               .build();
 
   public AgentState getAgent(String agentType) {
-    try (var result =
-        jooq.selectFrom(table(PUBSUB_AGENT_STATE)).where(field(AGENT_TYPE).eq(agentType))) {
-      return result.fetch().map(agentStateMapper).stream().findFirst().orElse(null);
-    }
+    return jooq
+        .selectFrom(table(PUBSUB_AGENT_STATE))
+        .where(field(AGENT_TYPE).eq(agentType))
+        .fetch()
+        .map(agentStateMapper)
+        .stream()
+        .findFirst()
+        .orElse(null);
   }
 
   /**
@@ -125,7 +130,7 @@ public class StateMachine {
     try (@NotNull
         ResultSet agentRecord =
             jooq.select(
-                    field("agent_type"),
+                    field(AGENT_TYPE),
                     field("current_state"),
                     field("last_execution_time"),
                     field("last_transition_time"),
@@ -164,7 +169,8 @@ public class StateMachine {
   }
 
   public List<AgentState> listAgentsFilteredWhereIn(Set<State> filterList) {
-    try (@NotNull var query = jooq.selectFrom(table(PUBSUB_AGENT_STATE))) {
+    try {
+      var query = jooq.selectFrom(table(PUBSUB_AGENT_STATE));
       if (filterList != null && !filterList.isEmpty()) {
         query.where(field("current_state").in(filterList.stream().map(State::name).toList()));
       }

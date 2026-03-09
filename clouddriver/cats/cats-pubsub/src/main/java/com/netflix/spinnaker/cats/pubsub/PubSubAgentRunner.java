@@ -6,6 +6,7 @@ import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
+import com.netflix.spinnaker.kork.annotations.Alpha;
 import com.netflix.spinnaker.kork.lock.LockManager;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -24,6 +25,7 @@ import org.springframework.util.StopWatch;
 // Uses messagelistener interfaces from redis by default, but supports others
 @Log4j2
 @Component
+@Alpha
 public class PubSubAgentRunner implements MessageListener {
   @Autowired private ProviderRegistry providerRegistry;
   @Autowired StateMachine stateMachine;
@@ -60,59 +62,62 @@ public class PubSubAgentRunner implements MessageListener {
                 new String[] {".", ".", ".", "."});
         // QUESTION: DD we really NEED the lock here?  OR just allow that "We want start if one
         // already running?
-        lockManager.acquireLock(
-            agentSantized,
-            lastDurationWithBuffer,
-            () -> {
-              stateMachine.changeStateUnlessMarkedForDeletion(
-                  agent.getAgentType(), StateMachine.State.RUNNING);
-              if (agent instanceof CachingAgent cacheExecutionAgent) {
-                CachingAgent.CacheExecution cacheAgentExecution =
-                    (CachingAgent.CacheExecution)
-                        cacheExecutionAgent.getAgentExecution(providerRegistry);
-                List<Tag> tags =
-                    List.of(
-                        Tag.of("agentType", agentType),
-                        Tag.of("state", StateMachine.State.FINISHED.name()));
-                StopWatch timer = new StopWatch();
-                timer.start();
-                intervalProvider.getInterval(agent).getTimeout();
-                // Run this up to the interval timeout and fail if it runs longer.
-                CacheResult cacheResult = cacheAgentExecution.executeAgentWithoutStore(agent);
-                totalDataCached.set(
-                    cacheResult.getCacheResults().values().stream()
-                        .map(Collection::size)
-                        .reduce(0, Integer::sum));
-                timer.stop();
-                meterRegistry.gauge(
-                    "cats.pubsub.execution.duration", tags, timer.getTotalTimeMillis());
-                meterRegistry.gauge("cats.pubsub.execution.size", tags, totalDataCached);
-
-                timer = new StopWatch();
-                timer.start();
-                cacheAgentExecution.storeAgentResult(agent, cacheResult);
-                timer.stop();
-                meterRegistry.gauge(
-                    "cats.pubsub.execution.storagetime", tags, timer.getTotalTimeMillis());
-                meterRegistry
-                    .counter(
-                        "cats.pubsub.agents.processed",
+        lock =
+            lockManager.acquireLock(
+                agentSantized,
+                lastDurationWithBuffer,
+                () -> {
+                  stateMachine.changeStateUnlessMarkedForDeletion(
+                      agent.getAgentType(), StateMachine.State.RUNNING);
+                  if (agent instanceof CachingAgent cacheExecutionAgent) {
+                    CachingAgent.CacheExecution cacheAgentExecution =
+                        (CachingAgent.CacheExecution)
+                            cacheExecutionAgent.getAgentExecution(providerRegistry);
+                    List<Tag> tags =
                         List.of(
                             Tag.of("agentType", agentType),
-                            Tag.of("state", StateMachine.State.FINISHED.name())))
-                    .increment();
-              } else {
-                agent.getAgentExecution(providerRegistry).executeAgent(agent);
-                // UNFORTUNATELY... unless this is a  CachingAgent.CacheExecution agent, we won't
-                // know how
-                // much data it processed.  There
-                // are a FEW agents that are NOT CacheExecution agents at this time.
-                log.debug(
-                    "We completed {} but since it's not a CacheExecution agent we can't track how much data it processed.",
-                    agent.getAgentType());
-              }
-              totalDuration.stop();
-            });
+                            Tag.of("state", StateMachine.State.FINISHED.name()));
+                    StopWatch timer = new StopWatch();
+                    timer.start();
+                    intervalProvider.getInterval(agent).getTimeout();
+                    // Run this up to the interval timeout and fail if it runs longer.
+                    CacheResult cacheResult = cacheAgentExecution.executeAgentWithoutStore(agent);
+                    totalDataCached.set(
+                        cacheResult.getCacheResults().values().stream()
+                            .map(Collection::size)
+                            .reduce(0, Integer::sum));
+                    timer.stop();
+                    meterRegistry.gauge(
+                        "cats.pubsub.execution.duration", tags, timer.getTotalTimeMillis());
+                    meterRegistry.gauge("cats.pubsub.execution.size", tags, totalDataCached);
+
+                    timer = new StopWatch();
+                    timer.start();
+                    cacheAgentExecution.storeAgentResult(agent, cacheResult);
+                    timer.stop();
+                    meterRegistry.gauge(
+                        "cats.pubsub.execution.storagetime", tags, timer.getTotalTimeMillis());
+                    meterRegistry
+                        .counter(
+                            "cats.pubsub.agents.processed",
+                            List.of(
+                                Tag.of("agentType", agentType),
+                                Tag.of("state", StateMachine.State.FINISHED.name())))
+                        .increment();
+                  } else {
+                    agent.getAgentExecution(providerRegistry).executeAgent(agent);
+                    // UNFORTUNATELY... unless this is a  CachingAgent.CacheExecution agent, we
+                    // won't
+                    // know how
+                    // much data it processed.  There
+                    // are a FEW agents that are NOT CacheExecution agents at this time.
+                    log.debug(
+                        "We completed {} but since it's not a CacheExecution agent we can't track how much data it processed.",
+                        agent.getAgentType());
+                  }
+                  totalDuration.stop();
+                });
+
         stateMachine.markAgentCompleted(
             agent.getAgentType(), totalDuration.getTotalTimeMillis(), totalDataCached.get());
       }
