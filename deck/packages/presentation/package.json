@@ -23,13 +23,13 @@
     "react": "~16.14.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^17.0.0",
-    "@rollup/plugin-node-resolve": "^11.0.1",
-    "@rollup/plugin-typescript": "^8.1.0",
-    "@rollup/plugin-url": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-typescript": "^12.0.0",
+    "@rollup/plugin-url": "^8.0.0",
     "@svgr/rollup": "^6.3.1",
     "@types/react": "~16.14.0",
-    "rollup": "^2.79.0",
+    "rollup": "^4.59.0",
     "typescript": "5.0.4"
   },
   "dependencies": {
