@@ -156,6 +156,7 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 	gateClient.httpClient = httpClient
 	updatedConfig := false
 	updatedMessage := ""
+	var oauth2Tok oauth2.TokenSource // set when OAuth2 used; RoundTripper uses it so Bearer is sent even if API client doesn't attach context
 
 	if gateClient.Config.Auth != nil && gateClient.Config.Auth.OAuth2 != nil {
 		// The below will fail if the token is expired and there is no refresh token.
@@ -176,6 +177,14 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		if err != nil {
 			ui.Error(fmt.Sprintf("OAuth2 Authentication failed: %v", err))
 			return nil, unwrapErr(ui, err)
+		}
+
+		// Attach OAuth2 token source to context so every API request sends Authorization: Bearer.
+		// Gate's ExternalAuthTokenFilter only runs when Bearer is present; without it, FiatSessionFilter
+		// sees no user and logs "Authenticated user was not present in authenticated request."
+		if gateClient.Config.Auth.OAuth2.CachedToken != nil {
+			oauth2Tok = oauth2TokenSource(gateClient.Config.Auth)
+			gateClient.Context = context.WithValue(gateClient.Context, gate.ContextOAuth2, oauth2Tok)
 		}
 
 		updatedMessage = "Caching oauth2 token."
@@ -215,13 +224,14 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		}
 	}
 
-	cfg := &gate.Configuration{
+	// Wrap the HTTP client so every Gate API request gets auth headers (e.g. OAuth2 Bearer).
+	// We pass oauth2Tok into the RoundTripper because the generated API may not attach context to the request.
+	gateClient.APIClient = gate.NewAPIClient(&gate.Configuration{
 		BasePath:      gateClient.GateEndpoint(),
 		DefaultHeader: m,
 		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
-		HTTPClient:    httpClient,
-	}
-	gateClient.APIClient = gate.NewAPIClient(cfg)
+		HTTPClient:    &http.Client{Transport: &authTransport{base: httpClient.Transport, addAuth: AddAuthHeaders, oauth2: oauth2Tok}},
+	})
 
 	// TODO: Verify version compatibility between Spin CLI and Gate.
 	_, _, err = gateClient.VersionControllerApi.GetVersion(gateClient.Context)
@@ -354,6 +364,34 @@ func Authenticate(output func(string), httpClient *http.Client, endpoint string,
 	return false, nil
 }
 
+// authTransport implements http.RoundTripper and adds auth headers (e.g. OAuth2 Bearer)
+// before delegating to the base transport. oauth2 is set when using OAuth2 so the Bearer
+// token is sent on every request even if the generated API client does not attach context.
+type authTransport struct {
+	base   http.RoundTripper
+	addAuth func(context.Context, *http.Request) error
+	oauth2 oauth2.TokenSource
+}
+
+func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Always add OAuth2 Bearer if we have a token source (generated client often doesn't attach context to req).
+	if t.oauth2 != nil {
+		tok, err := t.oauth2.Token()
+		if err != nil {
+			return nil, err
+		}
+		tok.SetAuthHeader(req)
+	} else if t.addAuth != nil && req.Context() != nil {
+		if err := t.addAuth(req.Context(), req); err != nil {
+			return nil, err
+		}
+	}
+	if t.base == nil {
+		t.base = http.DefaultTransport
+	}
+	return t.base.RoundTrip(req)
+}
+
 // ContextWithAuth will set context variables that maybe necessary for IAP or Basic
 // authentication per-request.  This can be used in conjunction with AddAuthHeaders
 // to ensure auth headers from the context are added to all requests.
@@ -375,17 +413,15 @@ func ContextWithAuth(ctx context.Context, auth *auth.Config) (context.Context, e
 	return ctx, nil
 }
 
-// AddAuthHeaders will use the context variables to set via ContextWithAuth
-// to add any necessary authentication headers to the request.
+// AddAuthHeaders will use the context variables set via ContextWithAuth (or OAuth2
+// token source set on the gate client context) to add authentication headers to the request.
 func AddAuthHeaders(ctx context.Context, req *http.Request) error {
-	if ctx != nil {
+	if ctx == nil {
 		return nil
 	}
 
-	// add context to the request
-	req = req.WithContext(ctx)
-
-	// Walk through any authentication.
+	// Set headers on the request that will be sent (do not replace req with WithContext,
+	// or the caller would send the original request without the header).
 
 	// OAuth2 authentication
 	if tok, ok := ctx.Value(gate.ContextOAuth2).(oauth2.TokenSource); ok {
@@ -417,6 +453,26 @@ func initializeX509Config(client http.Client, clientCA []byte, cert tls.Certific
 	client.Transport.(*http.Transport).TLSClientConfig.PreferServerCipherSuites = true
 	client.Transport.(*http.Transport).TLSClientConfig.Certificates = []tls.Certificate{cert}
 	return &client
+}
+
+// oauth2TokenSource returns an oauth2.TokenSource for the auth config's OAuth2 cached token,
+// so the token can be sent on every API request (Authorization: Bearer).
+func oauth2TokenSource(cfg *auth.Config) oauth2.TokenSource {
+	if cfg == nil || cfg.OAuth2 == nil || cfg.OAuth2.CachedToken == nil {
+		return nil
+	}
+	o2 := cfg.OAuth2
+	oc := &oauth2.Config{
+		ClientID:     o2.ClientId,
+		ClientSecret: o2.ClientSecret,
+		RedirectURL:  "http://localhost:8085",
+		Scopes:       o2.Scopes,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  o2.AuthUrl,
+			TokenURL: o2.TokenUrl,
+		},
+	}
+	return oc.TokenSource(context.Background(), o2.CachedToken)
 }
 
 func authenticateOAuth2(output func(string), httpClient *http.Client, endpoint string, auth *auth.Config) (configUpdated bool, err error) {
