@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import org.springframework.util.StopWatch;
 // Uses messagelistener interfaces from redis by default, but supports others
 @Log4j2
 @Component
+@ConditionalOnProperty("cats.pubsub.enabled")
 @Alpha
 public class PubSubAgentRunner implements MessageListener {
   @Autowired private ProviderRegistry providerRegistry;
