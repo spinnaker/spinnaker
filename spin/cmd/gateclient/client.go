@@ -368,9 +368,9 @@ func Authenticate(output func(string), httpClient *http.Client, endpoint string,
 // before delegating to the base transport. oauth2 is set when using OAuth2 so the Bearer
 // token is sent on every request even if the generated API client does not attach context.
 type authTransport struct {
-	base   http.RoundTripper
+	base    http.RoundTripper
 	addAuth func(context.Context, *http.Request) error
-	oauth2 oauth2.TokenSource
+	oauth2  oauth2.TokenSource
 }
 
 func (t *authTransport) RoundTrip(req *http.Request) (*http.Response, error) {
