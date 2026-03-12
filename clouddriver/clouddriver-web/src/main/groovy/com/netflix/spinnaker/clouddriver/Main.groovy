@@ -31,6 +31,8 @@ import org.springframework.boot.actuate.autoconfigure.elasticsearch.Elasticsearc
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
 import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -62,7 +64,9 @@ import java.security.Security
   GsonAutoConfiguration,
   DataSourceAutoConfiguration,
   ElasticsearchDataAutoConfiguration,
-  ElasticsearchRestHealthContributorAutoConfiguration
+  ElasticsearchRestHealthContributorAutoConfiguration,
+  RedisAutoConfiguration,
+  RedisRepositoriesAutoConfiguration
 ])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
