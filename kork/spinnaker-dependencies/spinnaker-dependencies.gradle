@@ -82,7 +82,7 @@ dependencies {
     api("com.google.cloud:google-cloud-secretmanager:2.37.0")
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.0.0-jre")
-    api("com.hubspot.jinjava:jinjava:2.7.1")
+    api("com.hubspot.jinjava:jinjava:2.7.6") // fixes CVE-2026-25526
     api("com.jayway.jsonpath:json-path:2.9.0") // until spring boot >= 3.1.9 or 3.2.3
     api("com.jcraft:jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
