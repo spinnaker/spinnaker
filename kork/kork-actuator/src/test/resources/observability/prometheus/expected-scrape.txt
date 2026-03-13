@@ -1,0 +1,7 @@
+# HELP http_request_seconds_max  
+# TYPE http_request_seconds_max gauge
+http_request_seconds_max{response="200",uri="/foo",} 2.0
+# HELP http_request_seconds  
+# TYPE http_request_seconds summary
+http_request_seconds_count{response="200",uri="/foo",} 1.0
+http_request_seconds_sum{response="200",uri="/foo",} 2.0
