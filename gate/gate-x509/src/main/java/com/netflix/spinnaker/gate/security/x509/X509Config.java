@@ -55,9 +55,11 @@ public class X509Config {
   private String subjectPrincipalRegex;
 
   @Bean
-  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(2)
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain and
+  // SAMLConfiguration#securityFilterChain
+  // have more priority in case of they are enabled.
+  @Order(3)
+  public SecurityFilterChain x509SecurityFilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http);
     return http.securityContext(
             context -> context.securityContextRepository(new NullSecurityContextRepository()))
