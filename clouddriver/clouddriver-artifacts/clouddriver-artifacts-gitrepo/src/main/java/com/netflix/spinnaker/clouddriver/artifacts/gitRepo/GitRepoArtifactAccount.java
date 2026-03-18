@@ -43,7 +43,6 @@ public class GitRepoArtifactAccount implements ArtifactAccount, TokenAuth {
   private final List<String> allowedHosts;
 
   @Builder
-  @ConstructorBinding
   @ParametersAreNullableByDefault
   public GitRepoArtifactAccount(
       String name,
