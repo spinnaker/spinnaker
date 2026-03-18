@@ -89,16 +89,21 @@ class GitJobExecutorSecurityTest {
 
   // Tests for valid git references
   @Test
-  @DisplayName(
-      "Should allow a URL WITH username/auth in the repoUrl.  Not a good idea but valid option.")
-  void shouldPassWhenAuthIsInTheUrlStilLBadButValid() throws IOException {
+  @DisplayName("Verify a set of common URL patterns are valid.")
+  void checkSomeCommonUrlPatterns() throws IOException {
     Path localPath = tempDir.resolve("clone");
     Files.createDirectories(localPath);
+    String[] validUrls = {
+      "https://github.com/repo.git",
+      "https://gitlab.com/repo.git",
+      "https://bitbucket.org/repo.git",
+      "https://internal.company.com/repo.git",
+      "https://localhost:3000/project/repo" // gitea where a .git extension is NOT needed
+    };
 
-    assertDoesNotThrow(
-        () ->
-            gitJobExecutor.cloneOrPull(
-                "http://user:password@example.com/repo.git", "main", localPath, "repo"));
+    for (String url : validUrls) {
+      assertDoesNotThrow(() -> gitJobExecutor.cloneOrPull(url, "main", localPath, "repo"));
+    }
   }
 
   @Test
