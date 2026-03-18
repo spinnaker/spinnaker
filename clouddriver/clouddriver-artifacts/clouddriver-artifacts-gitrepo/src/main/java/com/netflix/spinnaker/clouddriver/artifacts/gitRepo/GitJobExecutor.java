@@ -59,7 +59,7 @@ public class GitJobExecutor {
   // file:///path/to/source/folder` - which intentionally removing here.
   // from the regex
   private static final String GIT_URL_REGEX_PATTERN =
-      "((http|git|ssh|http(s))|(git@[\\w\\.]+))(:(\\/\\/)?)([\\w\\.@\\:\\/-~]+)(\\.git)(\\/)?";
+      "((http|git|ssh|http(s))|(git@[\\w\\.]+))(:(\\/\\/)?)([\\w\\.@\\:\\/-~]+)(\\/)?";
   private static final Pattern GIT_URL_PATTERN = Pattern.compile(GIT_URL_REGEX_PATTERN);
 
   private static Path genericAskPassBinary;
