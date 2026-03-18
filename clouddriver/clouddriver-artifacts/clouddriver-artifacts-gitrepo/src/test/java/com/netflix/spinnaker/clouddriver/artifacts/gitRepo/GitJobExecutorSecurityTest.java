@@ -98,6 +98,7 @@ class GitJobExecutorSecurityTest {
       "https://gitlab.com/repo.git",
       "https://bitbucket.org/repo.git",
       "https://internal.company.com/repo.git",
+      "https://janedoe:password@example.com/project/repo.git",
       "https://localhost:3000/project/repo" // gitea where a .git extension is NOT needed
     };
 
