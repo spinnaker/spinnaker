@@ -21,11 +21,13 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.clouddriver.artifacts.config.ArtifactCredentials;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import jakarta.annotation.Nullable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.Getter;
@@ -44,11 +46,14 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
 
   private final GitJobExecutor executor;
   private final GitRepoFileSystem gitRepoFileSystem;
+  private final List<String> allowedHosts;
 
-  public GitRepoArtifactCredentials(GitJobExecutor executor, GitRepoFileSystem gitRepoFileSystem) {
+  public GitRepoArtifactCredentials(
+      GitJobExecutor executor, GitRepoFileSystem gitRepoFileSystem, List<String> allowedHosts) {
     this.executor = executor;
     this.gitRepoFileSystem = gitRepoFileSystem;
     this.name = this.executor.getAccount().getName();
+    this.allowedHosts = allowedHosts;
   }
 
   @Override
@@ -59,6 +64,7 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
   @Override
   public InputStream download(Artifact artifact) throws IOException {
     String repoUrl = artifact.getReference();
+    validateHostIsAlllowedHost(repoUrl);
     String subPath = artifactSubPath(artifact);
     String branch = artifactVersion(artifact);
     Path stagingPath = gitRepoFileSystem.getLocalClonePath(repoUrl, branch);
@@ -76,6 +82,61 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
               + ").",
           e);
     }
+  }
+
+  private void validateHostIsAlllowedHost(@Nullable String repoUrl)
+      throws IllegalArgumentException {
+    // If allowedHosts is null or empty, allow all hosts
+    if (allowedHosts == null || allowedHosts.isEmpty()) {
+      log.warn(
+          "No allow hosts set on the account "
+              + executor.getAccount().getName()
+              + " - should set some limits on these accounts on which hosts it can connect to");
+      return;
+    }
+    String hostname = extractHostname(repoUrl);
+
+    // Check if hostname matches any allowed host (case-insensitive)
+    // Supports both exact matches and subdomain matches
+    boolean isAllowed =
+        allowedHosts.stream()
+            .anyMatch(
+                allowedHost ->
+                    allowedHost.equalsIgnoreCase(hostname)
+                        || hostname.endsWith("." + allowedHost.toLowerCase()));
+
+    if (!isAllowed) {
+      throw new IllegalArgumentException(
+          "Repository host '" + hostname + "' is not in the allowed hosts list: " + allowedHosts);
+    }
+  }
+
+  private String extractHostname(@Nullable String repoUrl) {
+    if (Strings.isNullOrEmpty(repoUrl)) {
+      throw new IllegalArgumentException("Repository URL cannot be null or empty");
+    }
+
+    // Handle git@ style URLs (e.g., git@github.com:user/repo.git)
+    if (repoUrl.startsWith("git@")) {
+      int colonIndex = repoUrl.indexOf(':', 4);
+      if (colonIndex > 0) {
+        return repoUrl.substring(4, colonIndex).toLowerCase();
+      }
+      throw new IllegalArgumentException("Invalid git@ URL format: " + repoUrl);
+    }
+
+    // Handle standard URLs (http, https, git, ssh)
+    try {
+      java.net.URI uri = new java.net.URI(repoUrl);
+      String host = uri.getHost();
+      if (host != null) {
+        return host.toLowerCase();
+      }
+    } catch (java.net.URISyntaxException e) {
+      throw new IllegalArgumentException("Unable to parse repository URL: " + repoUrl, e);
+    }
+
+    throw new IllegalArgumentException("Unable to extract hostname from URL: " + repoUrl);
   }
 
   @NotNull
