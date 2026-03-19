@@ -3,9 +3,14 @@ package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.model.Pipeline;
+import com.netflix.spinnaker.echo.model.Trigger;
+import com.netflix.spinnaker.echo.model.WebhookContent;
+import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact;
 import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary;
 import com.netflix.spinnaker.kork.expressions.ExpressionTransform;
+import com.netflix.spinnaker.kork.expressions.ExpressionsSupport;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +23,6 @@ import org.springframework.expression.ParserContext;
 import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,10 +34,24 @@ public class ExpectedArtifactExpressionEvaluationPostProcessor implements Pipeli
   private final ObjectMapper mapper;
   private final ExpressionParser parser;
   private final ParserContext parserContext = new TemplateParserContext("${", "}");
+  private final ExpressionsSupport expressionsSupport;
 
   public ExpectedArtifactExpressionEvaluationPostProcessor(
       ObjectMapper mapper, ExpressionProperties expressionProperties) {
     this.mapper = mapper;
+    this.expressionsSupport =
+        new ExpressionsSupport(
+            new Class[] {
+              Artifact.class,
+              ExpectedArtifact.class,
+              Pipeline.class,
+              WebhookContent.class,
+              TriggerEvent.class,
+              Trigger.class
+            },
+            null,
+            null,
+            expressionProperties);
     parser =
         new SpelExpressionParser(
             expressionProperties.getMaxExpressionLength() > 0
@@ -44,7 +62,8 @@ public class ExpectedArtifactExpressionEvaluationPostProcessor implements Pipeli
 
   @Override
   public Pipeline processPipeline(Pipeline inputPipeline) {
-    EvaluationContext evaluationContext = new StandardEvaluationContext(inputPipeline);
+    EvaluationContext evaluationContext =
+        expressionsSupport.buildEvaluationContext(inputPipeline, false);
 
     List<ExpectedArtifact> expectedArtifacts = inputPipeline.getExpectedArtifacts();
     if (expectedArtifacts == null) {

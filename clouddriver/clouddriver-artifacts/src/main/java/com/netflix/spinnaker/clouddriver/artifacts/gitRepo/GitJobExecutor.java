@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 @Slf4j
@@ -44,6 +45,23 @@ public class GitJobExecutor {
   private static final String SSH_KEY_PWD_ENV_VAR = "SSH_KEY_PWD";
   private static final Pattern FULL_SHA_PATTERN = Pattern.compile("[0-9a-f]{40}");
   private static final Pattern SHORT_SHA_PATTERN = Pattern.compile("[0-9a-f]{7}");
+  // Valid git reference pattern: allows alphanumeric, hyphens, underscores, forward slashes, and
+  // dots
+  // but prevents command injection characters like semicolons, pipes, backticks, etc.
+  private static final Pattern VALID_GIT_REF_PATTERN = Pattern.compile("^[a-zA-Z0-9/_.-]+$");
+  // Valid path pattern: allows alphanumeric, hyphens, underscores, forward slashes, and dots
+  private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^[a-zA-Z0-9/_.-]+$");
+
+  // TODO: Do we need to allow someone... to bypass this for ANY reason??
+  // Regex pattern from GeeksforGeeks covering common git URL formats
+  // https://www.geeksforgeeks.org/dsa/validate-git-repository-using-regular-expression/
+  // NOTE:  The above ALLOWS a file reference.  aka `git clone --local
+  // file:///path/to/source/folder` - which intentionally removing here.
+  // from the regex
+  private static final String GIT_URL_REGEX_PATTERN =
+      "((http|git|ssh|http(s))|(git@[\\w\\.]+))(:(\\/\\/)?)([\\w\\.@\\:\\/-~]+)(\\/)?";
+  private static final Pattern GIT_URL_PATTERN = Pattern.compile(GIT_URL_REGEX_PATTERN);
+
   private static Path genericAskPassBinary;
 
   @Getter private final GitRepoArtifactAccount account;
@@ -82,8 +100,47 @@ public class GitJobExecutor {
     askPassBinary = initAskPass();
   }
 
+  /**
+   * Validates that a git reference (branch, tag, or SHA) contains only safe characters to prevent
+   * command injection attacks.
+   *
+   * @param reference the git reference to validate
+   * @throws IllegalArgumentException if the reference contains unsafe characters
+   */
+  private void validateGitReference(String reference) {
+    if (ObjectUtils.isEmpty(reference)) {
+      throw new IllegalArgumentException("Git reference cannot be null or empty");
+    }
+    if (!VALID_GIT_REF_PATTERN.matcher(reference).matches()) {
+      throw new IllegalArgumentException(
+          "Git reference \""
+              + reference
+              + "\" contains invalid characters. Only alphanumeric characters, hyphens, underscores, forward slashes, and dots are allowed.");
+    }
+  }
+
+  /**
+   * Validates that a file path contains only safe characters to prevent command injection attacks.
+   *
+   * @param path the file path to validate
+   * @throws IllegalArgumentException if the path contains unsafe characters
+   */
+  private void validateFilePath(String path) {
+    if (StringUtils.isEmpty(path)) {
+      return; // Empty paths are acceptable in some contexts
+    }
+    if (!VALID_PATH_PATTERN.matcher(path).matches()) {
+      throw new IllegalArgumentException(
+          "File path \""
+              + path
+              + "\" contains invalid characters. Only alphanumeric characters, hyphens, underscores, forward slashes, and dots are allowed.");
+    }
+  }
+
   public void cloneOrPull(String repoUrl, String branch, Path localPath, String repoBasename)
       throws IOException {
+    validateRepoUrl(repoUrl);
+    validateGitReference(branch);
     File localPathFile = localPath.toFile();
     if (!localPathFile.exists()) {
       clone(repoUrl, branch, localPath, repoBasename);
@@ -118,6 +175,16 @@ public class GitJobExecutor {
     // localPath has "<repo>/.git" directory
 
     pull(repoUrl, branch, dotGitPath.getParent());
+  }
+
+  private void validateRepoUrl(String repoUrl) {
+    if (StringUtils.isEmpty(repoUrl)) {
+      throw new IllegalArgumentException("Repo URL cannot be null or empty");
+    }
+    if (!GIT_URL_PATTERN.matcher(repoUrl).matches()) {
+      throw new IllegalArgumentException(
+          "Git URL does not looked like a valid git reference.\"" + repoUrl);
+    }
   }
 
   private void clone(String repoUrl, String branch, Path destination, String repoBasename)
@@ -238,6 +305,8 @@ public class GitJobExecutor {
 
   public void archive(Path localClone, String branch, String subDir, Path outputFile)
       throws IOException {
+    validateGitReference(branch);
+    validateFilePath(subDir);
     String cmd =
         gitExecutable + " archive --format tgz --output " + outputFile.toString() + " " + branch;
 
