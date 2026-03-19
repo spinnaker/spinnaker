@@ -1,6 +1,7 @@
 dependencies {
   implementation "commons-io:commons-io"
   implementation "org.apache.commons:commons-compress:${commonsCompressVersion}"
+  testImplementation "org.mockito:mockito-core"
 
   integrationImplementation project(":clouddriver-web")
   integrationImplementation project(":clouddriver-artifacts:clouddriver-artifacts-gitrepo")
