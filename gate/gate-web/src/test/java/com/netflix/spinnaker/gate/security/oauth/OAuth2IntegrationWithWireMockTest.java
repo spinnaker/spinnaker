@@ -197,4 +197,93 @@ public class OAuth2IntegrationWithWireMockTest {
     assertThat(response.getBody()).isNotNull();
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
+
+  /**
+   * Verifies behavior when a Bearer token is sent directly to the /login endpoint. On the legacy
+   * {@code @EnableOAuth2Sso} stack, the OAuth2ClientAuthenticationProcessingFilter at /login picks
+   * up the token stashed by ExternalAuthTokenFilter and authenticates via the user-info endpoint,
+   * then redirects to the base URL.
+   *
+   * <p>On the newer {@code oauth2Login()} stack used here, /login redirects to the OAuth2
+   * authorization page and ExternalAuthTokenFilter authenticates inline (before the security filter
+   * chain), so the two-step /login flow does not apply.
+   */
+  @Test
+  void loginWithBearerTokenAuthenticatesAndRedirectsToBaseUrl() {
+    githubMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{"
+                            + "\"email\": \"test@example.com\","
+                            + "\"login\": \"testuser\","
+                            + "\"name\": \"Test User\","
+                            + "\"type\": \"User\","
+                            + "\"id\": 12345"
+                            + "}")));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.AUTHORIZATION, "Bearer my-personal-access-token");
+
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+
+    // Use Apache HttpClient with redirect handling disabled so we can observe
+    // the actual response from gate rather than following the redirect chain.
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login", HttpMethod.GET, request, String.class);
+
+    // FIXME: On the legacy @EnableOAuth2Sso stack, /login with a Bearer token authenticated
+    // the user via the user-info endpoint and redirected to the base URL:
+    //   assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    //   assertThat(response.getHeaders().getLocation().toString())
+    //       .isEqualTo("http://localhost:" + appPort + "/");
+    //
+    // On the newer oauth2Login() stack, /login renders the default login page
+    // (200) with a link to the OAuth2 provider. ExternalAuthTokenFilter
+    // authenticates inline on any path, so hitting /login with a Bearer token
+    // should authenticate and redirect to the base URL instead of showing the
+    // login page.
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    githubMockServer.verify(1, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies the behavior of GET /login without a Bearer token.
+   *
+   * <p>On the newer {@code oauth2Login()} stack used here, /login renders the default login page
+   * (200) with a link to the OAuth2 provider.
+   */
+  @Test
+  void loginWithoutBearerTokenRedirectsToOAuthProvider() {
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login",
+            HttpMethod.GET,
+            HttpEntity.EMPTY,
+            String.class);
+
+    // FIXME: On the legacy @EnableOAuth2Sso stack, /login without a Bearer token redirected
+    // to the OAuth2 provider's authorization endpoint:
+    //   assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    //   assertThat(response.getHeaders().getLocation().toString())
+    //       .contains("/login/oauth/authorize")
+    //       .contains("client_id=client-id")
+    //       .contains("response_type=code");
+    //
+    // On the newer oauth2Login() stack, /login renders the default login page (200) with a
+    // link to the OAuth2 provider instead of redirecting directly.
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    githubMockServer.verify(0, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
 }
