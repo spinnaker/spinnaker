@@ -367,7 +367,8 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     }
   }
 
-  private static Map<String, Map> queryAcceleratorTypes(Compute compute,
+  @VisibleForTesting
+  static Map<String, Map> queryAcceleratorTypes(Compute compute,
                                                         String project) {
     AcceleratorTypeAggregatedList acceleratorTypeList = GoogleExecutor.timeExecute(
       GoogleExecutor.getRegistry(),
@@ -381,7 +382,7 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     while (nextPageToken) {
       acceleratorTypeList = GoogleExecutor.timeExecute(
         GoogleExecutor.getRegistry(),
-        compute.acceleratorTypes().aggregatedList(project),
+        compute.acceleratorTypes().aggregatedList(project).setPageToken(nextPageToken),
         "google.api",
         "compute.acceleratorTypes.aggregatedList",
         GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_GLOBAL)
@@ -400,7 +401,8 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     return zoneToAcceleratorTypesMap
   }
 
-  private static Map<String, Map> queryInstanceTypes(Compute compute,
+  @VisibleForTesting
+  static Map<String, Map> queryInstanceTypes(Compute compute,
                                                      String project,
                                                      Map<String, List<String>> regionToZonesMap) {
     MachineTypeAggregatedList instanceTypeList = GoogleExecutor.timeExecute(
@@ -438,6 +440,7 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     return zoneToInstanceTypesMap
   }
 
+  @VisibleForTesting
   static Map<String, Map> convertAcceleratorTypeListToMap(AcceleratorTypeAggregatedList acceleratorTypeList) {
     def zoneToAcceleratorTypesMap = acceleratorTypeList.items.collectEntries { zone, acceleratorTypesScopedList ->
       zone = GCEUtil.getLocalName(zone)
@@ -501,6 +504,7 @@ class GoogleNamedAccountCredentials extends AbstractAccountCredentials<GoogleCre
     }
   }
 
+  @VisibleForTesting
   static Map<String, List<String>> queryCpuPlatforms(Compute compute,
                                                      String project,
                                                      Map<String, List<String>> regionToZonesMap) {

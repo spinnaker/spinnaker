@@ -23,5 +23,5 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
  */
 public interface ArtifactStoreStorer {
 
-  Artifact store(Artifact artifact);
+  Artifact store(Artifact artifact, ArtifactDecorator... decorators);
 }

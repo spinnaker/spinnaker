@@ -68,7 +68,9 @@ public class CompositeCredentialsRepository<T extends Credentials> {
         .orElse(null);
   }
 
-  /** @return All credentials across all repositories */
+  /**
+   * @return All credentials across all repositories
+   */
   public List<T> getAllCredentials() {
     return Collections.unmodifiableList(
         allRepositories.values().stream()

@@ -38,7 +38,7 @@ dependencies {
   testImplementation("com.icegreen:greenmail:2.0.1") {
     exclude group: "com.sun.mail", module: "jakarta.mail"
   }
-  testImplementation "org.apache.httpcomponents:httpclient"
+  testImplementation "org.apache.httpcomponents.client5:httpclient5"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework:spring-test"
   testImplementation "com.squareup.retrofit2:retrofit-mock"

@@ -12,6 +12,7 @@ protobuf {
 
 dependencies {
   implementation project(":clouddriver-artifacts")
+  implementation project(":clouddriver-artifacts:clouddriver-artifacts-maven")
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
   implementation project(":clouddriver-security")

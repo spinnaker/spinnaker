@@ -279,7 +279,9 @@ public class BulkUpsertEntityTagsAtomicOperation
     return wasModified;
   }
 
-  /** @return true if all {@code target} tags are contained in {@code source}, otherwise false */
+  /**
+   * @return true if all {@code target} tags are contained in {@code source}, otherwise false
+   */
   private static boolean containedWithin(EntityTags source, EntityTags target) {
     return target.getTags().stream()
         .allMatch(

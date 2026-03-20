@@ -18,13 +18,19 @@ public interface JobRunner {
    */
   List<Map> getOperations(StageExecution stage);
 
-  /** @return any additional values that should be included in task outputs */
+  /**
+   * @return any additional values that should be included in task outputs
+   */
   Map<String, Object> getAdditionalOutputs(StageExecution stage, List<Map> operations);
 
-  /** @return true if the resulting value from the Kato call should be used. */
+  /**
+   * @return true if the resulting value from the Kato call should be used.
+   */
   boolean isKatoResultExpected();
 
-  /** @return The cloud provider type that this object supports. */
+  /**
+   * @return The cloud provider type that this object supports.
+   */
   String getCloudProvider();
 
   /**

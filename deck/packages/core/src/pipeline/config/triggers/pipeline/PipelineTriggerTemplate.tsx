@@ -2,7 +2,7 @@ import { get, has } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
-import type { IExecution, IPipeline, IPipelineTrigger } from '../../../../domain';
+import type { IExecution, IPipeline, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { TetheredSelect } from '../../../../presentation/TetheredSelect';
@@ -51,8 +51,11 @@ export class PipelineTriggerTemplate extends React.Component<
     };
   }
 
-  private initialize = () => {
-    const { command } = this.props;
+  /**
+   * Fetches available executions for the source pipeline and sets up form state.
+   * @param command - Use when calling from componentWillReceiveProps to avoid stale props.
+   */
+  private initialize = (command: IPipelineCommand = this.props.command) => {
     command.triggerInvalid = true;
     const trigger = command.trigger as IPipelineTrigger;
 
@@ -77,9 +80,18 @@ export class PipelineTriggerTemplate extends React.Component<
       .then(this.executionLoadSuccess, this.executionLoadFailure);
   };
 
+  /**
+   * Only re-initialize when trigger.pipeline changes (user selects different source pipeline).
+   * Formik creates new command object references on every keystroke; comparing object
+   * references would reset the dropdown on any form field change.
+   */
   public componentWillReceiveProps(nextProps: ITriggerTemplateComponentProps) {
-    if (nextProps.command !== this.props.command) {
-      this.initialize();
+    const nextTrigger = nextProps.command.trigger as IPipelineTrigger;
+    const currentTrigger = this.props.command.trigger as IPipelineTrigger;
+
+    // Only re-initialize when the source pipeline actually changes
+    if (nextTrigger?.pipeline !== currentTrigger?.pipeline) {
+      this.initialize(nextProps.command);
     }
   }
 

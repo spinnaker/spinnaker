@@ -35,6 +35,7 @@ public class SpinnakerAuthorities {
   private static final String ROLE_PREFIX = "ROLE_";
 
   public static final String ADMIN = "SPINNAKER_ADMIN";
+
   /** Granted authority for Spinnaker administrators. */
   public static final GrantedAuthority ADMIN_AUTHORITY = new SimpleGrantedAuthority(ADMIN);
 

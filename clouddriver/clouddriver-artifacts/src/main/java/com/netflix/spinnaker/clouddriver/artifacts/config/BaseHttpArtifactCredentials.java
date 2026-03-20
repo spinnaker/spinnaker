@@ -75,7 +75,7 @@ public abstract class BaseHttpArtifactCredentials<T extends UserInputValidatedAr
               + ". Read more here https://www.spinnaker.io/reference/artifacts/types/");
     }
     if (account.getUrlRestrictions() != null) {
-      account.getUrlRestrictions().validateURI(httpUrl.uri().normalize());
+      account.getUrlRestrictions().validateURI(httpUrl);
     }
     return httpUrl;
   }

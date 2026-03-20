@@ -16,14 +16,22 @@
 package com.netflix.spinnaker.kork.artifacts.artifactstore;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.ApplicationStorageFilter;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.filters.RegexApplicationStorageFilter;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.s3.S3ArtifactStoreConfiguration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
+@ComponentScan
 @EnableConfigurationProperties(ArtifactStoreConfigurationProperties.class)
 @Import(S3ArtifactStoreConfiguration.class)
 public class ArtifactStoreConfiguration {
@@ -56,9 +64,46 @@ public class ArtifactStoreConfiguration {
 
   @Bean
   public ArtifactStore artifactStore(
-      ArtifactStoreGetter artifactStoreGetter, ArtifactStoreStorer artifactStoreStorer) {
-    ArtifactStore artifactStore = new ArtifactStore(artifactStoreGetter, artifactStoreStorer);
+      ArtifactStoreGetter artifactStoreGetter,
+      ArtifactStoreStorer artifactStoreStorer,
+      Map<String, List<ApplicationStorageFilter>> exclude) {
+    ArtifactStore artifactStore =
+        new ArtifactStore(artifactStoreGetter, artifactStoreStorer, exclude);
     ArtifactStore.setInstance(artifactStore);
     return artifactStore;
+  }
+
+  /**
+   * Creates a map of artifact type exclusion filters.
+   *
+   * <p>This method processes the configured artifact filters from properties and organizes them
+   * into a map where:
+   *
+   * <ul>
+   *   <li>Keys are artifact type strings (e.g., "embedded/map/base64") that identify which artifact
+   *       types the filters apply to
+   *   <li>Values are lists of {@link ApplicationStorageFilter} implementations that determine which
+   *       applications should be excluded from artifact storage for that type
+   * </ul>
+   *
+   * <p>For example, a configuration might exclude large Kubernetes manifests from being stored as
+   * artifacts for specific applications that don't need this optimization.
+   *
+   * @param properties The configuration properties containing artifact exclusion filters
+   * @return A map of artifact types to application filters
+   */
+  @Bean
+  public Map<String, List<ApplicationStorageFilter>> excludeFilters(
+      ArtifactStoreConfigurationProperties properties) {
+    List<ArtifactStoreConfigurationProperties.ArtifactFilter> artifactFilters =
+        properties.getExclude();
+    Map<String, List<ApplicationStorageFilter>> exclude = new HashMap<>();
+    for (ArtifactStoreConfigurationProperties.ArtifactFilter filter : artifactFilters) {
+      if (!exclude.containsKey(filter.type)) {
+        exclude.put(filter.type, new ArrayList<>());
+      }
+      exclude.get(filter.type).add(new RegexApplicationStorageFilter(filter.value));
+    }
+    return exclude;
   }
 }

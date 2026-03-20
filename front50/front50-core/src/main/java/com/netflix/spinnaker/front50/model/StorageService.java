@@ -25,7 +25,9 @@ import java.util.Map;
 
 public interface StorageService {
 
-  /** @return true if the storage service supports versioning. */
+  /**
+   * @return true if the storage service supports versioning.
+   */
   boolean supportsVersioning();
 
   default boolean supportsEventing(ObjectType objectType) {

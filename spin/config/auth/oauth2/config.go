@@ -26,6 +26,7 @@ type Config struct {
 	ClientId     string        `json:"clientId" yaml:"clientId"`
 	ClientSecret string        `json:"clientSecret" yaml:"clientSecret"`
 	Scopes       []string      `json:"scopes" yaml:"scopes"`
+	Provider     string        `json:"provider" yaml:"provider"`
 	CachedToken  *oauth2.Token `json:"cachedToken,omitempty" yaml:"cachedToken,omitempty"`
 }
 

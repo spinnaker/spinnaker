@@ -132,7 +132,9 @@ class WebhookServiceTest {
             Optional.empty(),
             providedIdRequestFilterConfigurationProperties);
 
-    String url = "https://localhost"; // arbitrary, but needs to include a resolvable hostname
+    String url =
+        "https://localhost/"; // arbitrary, but needs to include a resolvable hostname. MUST be a
+    // normalized URI for tests to work
 
     // The StageExecutionImpl constructor mutates the map, so use a mutable map.
     Map<String, Object> webhookStageData =

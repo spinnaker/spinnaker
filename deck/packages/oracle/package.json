@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/oracle",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
   "version": "0.0.91",
   "module": "dist/index.js",
@@ -21,7 +25,7 @@
     "@uirouter/core": "6.0.8",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "ngimport": "0.6.1"
   },
   "devDependencies": {

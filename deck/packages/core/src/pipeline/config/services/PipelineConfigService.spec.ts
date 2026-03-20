@@ -142,6 +142,24 @@ describe('PipelineConfigService', () => {
     });
   });
 
+  describe('getPipeline', () => {
+    it('makes correct get pipeline request', async () => {
+      const http = mockHttpClient();
+      const pipeline: IPipeline = buildPipeline({});
+
+      let result: IPipeline = null;
+      http.expectGET('/applications/foo/pipelineConfigs/bar%20name').respond(200, pipeline);
+
+      PipelineConfigService.getPipelineForApplication('foo', 'bar name').then((pipelines: IPipeline) => {
+        result = pipelines;
+      });
+
+      $scope.$digest();
+      await http.flush();
+      expect(result).toEqual(pipeline);
+    });
+  });
+
   describe('stage dependencies', () => {
     let a: IStage, b: IStage, c: IStage, d: IStage;
     let pipeline: IPipeline;

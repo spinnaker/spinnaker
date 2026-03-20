@@ -24,7 +24,9 @@ import java.util.Map;
  * <p>Created by ttomsu on 8/20/15.
  */
 public class DebugSupport {
-  /** @return a prettier, loggable string version of a Map. */
+  /**
+   * @return a prettier, loggable string version of a Map.
+   */
   public static String prettyPrint(final Map m) {
     try {
       return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(m);

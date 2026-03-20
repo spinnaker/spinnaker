@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/cloudfoundry",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "license": "Apache-2.0",
   "version": "0.1.13",
   "module": "dist/index.js",
@@ -24,7 +28,7 @@
     "enzyme": "3.11.0",
     "formik": "1.5.1",
     "js-yaml": "3.13.1",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "ngimport": "0.6.1",
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
@@ -32,7 +36,7 @@
     "rxjs": "6.6.7"
   },
   "devDependencies": {
-    "@rollup/plugin-alias": "^3.1.2",
+    "@rollup/plugin-alias": "^6.0.0",
     "@spinnaker/eslint-plugin": "^3.0.2",
     "@spinnaker/mocks": "1.0.7",
     "@spinnaker/scripts": "^0.4.0",

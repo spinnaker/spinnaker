@@ -49,7 +49,7 @@ dependencies {
 
   implementation("io.spinnaker.fiat:fiat-api")
   implementation("io.spinnaker.fiat:fiat-core")
-  implementation("org.apache.httpcomponents:httpclient")
+  implementation("org.apache.httpcomponents.client5:httpclient5")
   implementation("org.springframework.security:spring-security-config")
   implementation("org.springframework.security:spring-security-core")
   implementation("org.springframework.security:spring-security-web")

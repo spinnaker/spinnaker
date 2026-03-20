@@ -20,13 +20,19 @@ import com.netflix.spinnaker.cats.agent.Agent;
 
 /** Allows an Agent to customize it's poll interval. */
 public interface CustomScheduledAgent extends Agent {
-  /** @return the interval in milliseconds, or -1 to use the system default poll interval */
+  /**
+   * @return the interval in milliseconds, or -1 to use the system default poll interval
+   */
   long getPollIntervalMillis();
 
-  /** @return the timeout in milliseconds, or -1 to use the system default timeout */
+  /**
+   * @return the timeout in milliseconds, or -1 to use the system default timeout
+   */
   long getTimeoutMillis();
 
-  /** @return the error interval in milliseconds, or -1 to use the system default error interval */
+  /**
+   * @return the error interval in milliseconds, or -1 to use the system default error interval
+   */
   default long getErrorIntervalMillis() {
     return getPollIntervalMillis();
   }

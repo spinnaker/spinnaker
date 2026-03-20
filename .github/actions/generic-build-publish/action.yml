@@ -18,8 +18,6 @@ inputs:
     description: Google Artifact Registry JSON key
   gar-npm-password:
     description: Google Artifact Registry NPM password
-  npm-auth-token:
-    description: npmjs.org publishing token
   gradle-opts:
     description: Additional Gradle options set via GRADLE_OPTS
     default: -Xmx4g -Xms4g
@@ -159,7 +157,6 @@ runs:
         project: ${{ inputs.project }}
         version: ${{ steps.version.outputs.semver }}
         gar-npm-password: ${{ inputs.gar-npm-password }}
-        npm-auth-token: ${{ inputs.npm-auth-token }}
 
     - name: Create Tag
       uses: actions/github-script@v7

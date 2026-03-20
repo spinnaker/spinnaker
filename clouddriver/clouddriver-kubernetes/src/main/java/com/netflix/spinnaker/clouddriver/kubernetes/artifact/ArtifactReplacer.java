@@ -22,6 +22,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -32,6 +33,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.spi.json.JacksonJsonNodeJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.SerializerHookRegistry;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -44,11 +46,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @ParametersAreNonnullByDefault
 public class ArtifactReplacer {
   private static final Logger log = LoggerFactory.getLogger(ArtifactReplacer.class);
-  private static final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper;
   private static final Configuration configuration =
       Configuration.builder()
           .jsonProvider(new JacksonJsonNodeJsonProvider())
@@ -59,6 +62,15 @@ public class ArtifactReplacer {
 
   public ArtifactReplacer(Collection<Replacer> replacers) {
     this.replacers = ImmutableList.copyOf(replacers);
+    ObjectMapper mapper = Jackson2ObjectMapperBuilder.json().build();
+    SerializerHookRegistry serializer = SerializerHookRegistry.getINSTANCE();
+    if (serializer != null) {
+      SimpleModule module = new SimpleModule();
+      module.setSerializerModifier(serializer);
+      mapper.registerModule(module);
+    }
+
+    this.mapper = mapper;
   }
 
   private static ImmutableList<Artifact> filterArtifacts(

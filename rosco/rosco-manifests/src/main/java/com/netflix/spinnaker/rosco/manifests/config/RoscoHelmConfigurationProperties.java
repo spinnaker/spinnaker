@@ -24,6 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class RoscoHelmConfigurationProperties {
   private String v3ExecutablePath = "helm3";
   private String v2ExecutablePath = "helm";
+
   /**
    * The threshold for determining whether to include overrides directly in the Helm command or
    * write them to a separate file. If the total length of override values is less than this

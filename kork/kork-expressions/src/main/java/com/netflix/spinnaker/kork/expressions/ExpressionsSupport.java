@@ -21,6 +21,7 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.EntityPropertyAccessor;
 import com.netflix.spinnaker.kork.expressions.allowlist.AllowListTypeLocator;
 import com.netflix.spinnaker.kork.expressions.allowlist.FilteredMethodResolver;
 import com.netflix.spinnaker.kork.expressions.allowlist.FilteredPropertyAccessor;
@@ -62,6 +63,12 @@ public class ExpressionsSupport {
   private final Set<Class<?>> allowedReturnTypes;
   private final List<ExpressionFunctionProvider> expressionFunctionProviders;
   private final ExpressionProperties expressionProperties;
+  private final EntityPropertyAccessor entityPropertyAccessor;
+  private final FilteredPropertyAccessor filteredPropertyAccessor;
+  private final FilteredMethodResolver filteredMethodResolver;
+  private final MapPropertyAccessor falseMapPropertyAccessor;
+  private final MapPropertyAccessor trueMapPropertyAccessor;
+  private final AllowListTypeLocator allowListTypeLocator;
 
   public ExpressionsSupport(
       Class<?> extraAllowedReturnType, ExpressionProperties expressionProperties) {
@@ -116,6 +123,16 @@ public class ExpressionsSupport {
       allowedReturnTypes.add(NotEvaluableExpression.class);
       expressionFunctionProviders.add(new FlowExpressionFunctionProvider());
     }
+    ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
+    this.entityPropertyAccessor =
+        new EntityPropertyAccessor(
+            this.expressionProperties.getPropertyExpansionTypes(),
+            this.expressionProperties.getAggressiveExpansionKeys());
+    this.filteredPropertyAccessor = new FilteredPropertyAccessor(returnTypeRestrictor);
+    this.filteredMethodResolver = new FilteredMethodResolver(returnTypeRestrictor);
+    this.falseMapPropertyAccessor = new MapPropertyAccessor(false);
+    this.trueMapPropertyAccessor = new MapPropertyAccessor(true);
+    this.allowListTypeLocator = new AllowListTypeLocator();
   }
 
   public List<ExpressionFunctionProvider> getExpressionFunctionProviders() {
@@ -163,19 +180,18 @@ public class ExpressionsSupport {
 
   private StandardEvaluationContext createEvaluationContext(
       Object rootObject, boolean allowUnknownKeys) {
-    ReturnTypeRestrictor returnTypeRestrictor = new ReturnTypeRestrictor(allowedReturnTypes);
 
     StandardEvaluationContext evaluationContext = new StandardEvaluationContext(rootObject);
-    evaluationContext.setTypeLocator(new AllowListTypeLocator());
+    evaluationContext.setTypeLocator(allowListTypeLocator);
     evaluationContext.setTypeConverter(
         new ArtifactUriToReferenceConverter(ArtifactStore.getInstance()));
 
-    evaluationContext.setMethodResolvers(
-        Collections.singletonList(new FilteredMethodResolver(returnTypeRestrictor)));
+    evaluationContext.setMethodResolvers(Collections.singletonList(filteredMethodResolver));
     evaluationContext.setPropertyAccessors(
         Arrays.asList(
-            new MapPropertyAccessor(allowUnknownKeys),
-            new FilteredPropertyAccessor(returnTypeRestrictor)));
+            entityPropertyAccessor,
+            allowUnknownKeys ? trueMapPropertyAccessor : falseMapPropertyAccessor,
+            filteredPropertyAccessor));
 
     return evaluationContext;
   }

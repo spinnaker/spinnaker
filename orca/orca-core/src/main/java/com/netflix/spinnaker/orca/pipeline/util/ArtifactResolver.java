@@ -178,6 +178,7 @@ public final class ArtifactResolver {
      * only once.
      */
     private final ImmutableList<Artifact> resolvedArtifacts;
+
     /**
      * This field contains the resolved expected artifacts; each resolved expected artifact is a
      * copy of the input expected artifact with its {@link ExpectedArtifact#getBoundArtifact()} set

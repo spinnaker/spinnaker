@@ -77,6 +77,10 @@ resilience4j.retry:
 #        AnotherHeader:
 #          - valueOne
 #          - valueTwo
+#      # Sensitive headers will be hidden in the pipeline context and logs
+#      sensitiveHeaders:
+#        Authorization:
+#          - Basic dXNlcm5hbWU6cGFzc3dvcmQ=
 #      method: POST
 #      payload: |
 #        {

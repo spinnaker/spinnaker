@@ -41,7 +41,9 @@ public interface SecurityGroupUpserter {
   boolean isSecurityGroupUpserted(
       MortService.SecurityGroup upsertedSecurityGroup, StageExecution stage);
 
-  /** @return The cloud provider type that this object supports. */
+  /**
+   * @return The cloud provider type that this object supports.
+   */
   String getCloudProvider();
 
   @Data

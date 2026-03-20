@@ -28,19 +28,25 @@ public class CloudrunCloudProvider implements CloudProvider {
   final String displayName = "Cloud run";
   final Class<? extends Annotation> operationAnnotationType = CloudrunOperation.class;
 
-  /** @return */
+  /**
+   * @return
+   */
   @Override
   public String getId() {
     return id;
   }
 
-  /** @return */
+  /**
+   * @return
+   */
   @Override
   public String getDisplayName() {
     return displayName;
   }
 
-  /** @return */
+  /**
+   * @return
+   */
   @Override
   public Class<? extends Annotation> getOperationAnnotationType() {
     return operationAnnotationType;

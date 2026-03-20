@@ -40,6 +40,43 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
     this.templateConfiguration = templateConfiguration;
   }
 
+  /**
+   * Builds a context string identifying the pipeline configuration for error messages.
+   *
+   * @return A string containing application, pipeline name, and pipeline config ID
+   */
+  private String getPipelineConfigContext() {
+    StringBuilder context = new StringBuilder();
+    context.append("[Pipeline Config: ");
+
+    String application = templateConfiguration.getApplication();
+    String name = templateConfiguration.getName();
+    String pipelineConfigId = templateConfiguration.getPipelineConfigId();
+
+    if (application != null && !application.isEmpty()) {
+      context.append("application='").append(application).append("'");
+    }
+    if (name != null && !name.isEmpty()) {
+      if (context.length() > 18) { // length of "[Pipeline Config: "
+        context.append(", ");
+      }
+      context.append("name='").append(name).append("'");
+    }
+    if (pipelineConfigId != null && !pipelineConfigId.isEmpty()) {
+      if (context.length() > 18) {
+        context.append(", ");
+      }
+      context.append("id='").append(pipelineConfigId).append("'");
+    }
+
+    if (context.length() == 18) {
+      context.append("unknown");
+    }
+    context.append("]");
+
+    return context.toString();
+  }
+
   @Override
   public void visitPipelineTemplate(V2PipelineTemplate pipelineTemplate) {
     List<V2PipelineTemplate.Variable> pipelineTemplateVariables = pipelineTemplate.getVariables();
@@ -72,7 +109,9 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
 
     if (!missingVariables.isEmpty()) {
       throw new PipelineMissingTemplateVariabledException(
-          "Missing variable values for: " + StringUtils.join(missingVariables, ", "));
+          getPipelineConfigContext()
+              + " Missing variable values for: "
+              + StringUtils.join(missingVariables, ", "));
     }
 
     List<String> wrongNullableErrorMessages =
@@ -88,7 +127,9 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
             .collect(Collectors.toList());
     if (!wrongNullableErrorMessages.isEmpty()) {
       throw new IllegalTemplateConfigurationException(
-          "Incorrectly defined variable(s): " + StringUtils.join(wrongNullableErrorMessages, ", "));
+          getPipelineConfigContext()
+              + " Incorrectly defined variable(s): "
+              + StringUtils.join(wrongNullableErrorMessages, ", "));
     }
 
     // collect variables where value type doesn't match the required type
@@ -127,7 +168,9 @@ public class V2DefaultVariableAssignmentTransform implements V2PipelineTemplateV
 
     if (!wrongTypeErrorMessages.isEmpty()) {
       throw new IllegalTemplateConfigurationException(
-          "Incorrectly defined variable(s): " + StringUtils.join(wrongTypeErrorMessages, ", "));
+          getPipelineConfigContext()
+              + " Incorrectly defined variable(s): "
+              + StringUtils.join(wrongTypeErrorMessages, ", "));
     }
   }
 

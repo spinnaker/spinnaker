@@ -85,8 +85,7 @@ class SpringConfig {
 
     if (oauth2.getClient().getPreEstablishedRedirectUri() != null
         && !oauth2.getClient().getPreEstablishedRedirectUri().isEmpty()) {
-      registration.put(
-          "redirect-uri", "\"" + oauth2.getClient().getPreEstablishedRedirectUri() + "\"");
+      registration.put("redirect-uri", oauth2.getClient().getPreEstablishedRedirectUri());
     }
     prvdr.put("token-uri", oauth2.getClient().getAccessTokenUri());
     prvdr.put("authorization-uri", oauth2.getClient().getUserAuthorizationUri());

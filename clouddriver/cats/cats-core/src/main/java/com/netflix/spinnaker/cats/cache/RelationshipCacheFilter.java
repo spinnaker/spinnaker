@@ -25,7 +25,9 @@ public class RelationshipCacheFilter implements CacheFilter {
     this.allowableRelationshipPrefixes = allowableRelationshipPrefixes;
   }
 
-  /** @return CacheFilter that will filter out all relationships */
+  /**
+   * @return CacheFilter that will filter out all relationships
+   */
   public static RelationshipCacheFilter none() {
     return new RelationshipCacheFilter(Collections.<String>emptyList());
   }

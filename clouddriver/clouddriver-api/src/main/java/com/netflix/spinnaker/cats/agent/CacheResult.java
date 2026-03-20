@@ -25,7 +25,9 @@ import java.util.Map;
 /** The result of a CachingAgent run. */
 @Beta
 public interface CacheResult {
-  /** @return The CacheDatas to cache, keyed by item type. */
+  /**
+   * @return The CacheDatas to cache, keyed by item type.
+   */
   Map<String, Collection<CacheData>> getCacheResults();
 
   /**

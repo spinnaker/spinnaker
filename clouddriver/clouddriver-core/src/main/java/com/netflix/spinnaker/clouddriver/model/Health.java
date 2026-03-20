@@ -21,6 +21,8 @@ package com.netflix.spinnaker.clouddriver.model;
  * consumers.
  */
 public interface Health {
-  /** @return health state indication */
+  /**
+   * @return health state indication
+   */
   HealthState getState();
 }

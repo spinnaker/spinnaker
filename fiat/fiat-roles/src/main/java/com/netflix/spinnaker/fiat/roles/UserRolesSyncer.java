@@ -19,14 +19,16 @@ package com.netflix.spinnaker.fiat.roles;
 import com.netflix.spectator.api.Gauge;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.fiat.config.SyncConfig;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
+import com.netflix.spinnaker.kork.lock.LockManager;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -36,41 +38,69 @@ import org.springframework.stereotype.Component;
 @ConditionalOnExpression("${fiat.write-mode.enabled:true}")
 public class UserRolesSyncer {
   private final DiscoveryStatusListener discoveryStatusListener;
+  private final LockManager lockManager;
+  private final long syncDelayMs;
+  private final long syncFailureDelayMs;
+  private final long syncDelayTimeoutMs;
+  private final String lockName;
   private final Registry registry;
   private final Gauge userRolesSyncCount;
   private final UserRolesSyncStrategy syncStrategy;
-  private final SyncConfig syncConfigProperties;
 
   @Autowired
   public UserRolesSyncer(
       DiscoveryStatusListener discoveryStatusListener,
       Registry registry,
+      LockManager lockManager,
       UserRolesSyncStrategy syncStrategy,
-      SyncConfig syncConfigProperties) {
+      @Value("${fiat.write-mode.sync-delay-ms:600000}") long syncDelayMs,
+      @Value("${fiat.write-mode.sync-failure-delay-ms:600000}") long syncFailureDelayMs,
+      @Value("${fiat.write-mode.sync-delay-timeout-ms:30000}") long syncDelayTimeoutMs,
+      @Value("${fiat.write-mode.lock-name:}") String lockName) {
     this.discoveryStatusListener = discoveryStatusListener;
+
+    this.lockManager = lockManager;
+    this.syncDelayMs = syncDelayMs;
+    this.syncFailureDelayMs = syncFailureDelayMs;
+    this.syncDelayTimeoutMs = syncDelayTimeoutMs;
+    this.lockName = lockName;
     this.registry = registry;
     this.userRolesSyncCount = registry.gauge(metricName("syncCount"));
     this.syncStrategy = syncStrategy;
-    this.syncConfigProperties = syncConfigProperties;
   }
 
   @Scheduled(fixedDelay = 30000L)
   public void schedule() {
-    if (syncConfigProperties.getSyncDelayMs() < 0 || !discoveryStatusListener.isEnabled()) {
+    if (syncDelayMs < 0 || !discoveryStatusListener.isEnabled()) {
       log.warn(
           "User roles syncing is disabled (syncDelayMs: {}, isEnabled: {})",
-          syncConfigProperties.getSyncDelayMs(),
+          syncDelayMs,
           discoveryStatusListener.isEnabled());
       return;
     }
 
-    try {
-      timeIt(
-          "syncTime", () -> userRolesSyncCount.set(syncStrategy.syncAndReturn(new ArrayList<>())));
-    } catch (Exception e) {
-      log.error("User roles synchronization failed", e);
-      userRolesSyncCount.set(-1);
-    }
+    LockManager.LockOptions lockOptions =
+        new LockManager.LockOptions()
+            .withLockName(
+                (lockName != null && !lockName.isEmpty())
+                    ? lockName.toLowerCase()
+                    : "Fiat.UserRolesSyncer".toLowerCase())
+            .withMaximumLockDuration(Duration.ofMillis(syncDelayMs + syncDelayTimeoutMs))
+            .withSuccessInterval(Duration.ofMillis(syncDelayMs))
+            .withFailureInterval(Duration.ofMillis(syncFailureDelayMs));
+
+    lockManager.acquireLock(
+        lockOptions,
+        () -> {
+          try {
+            timeIt(
+                "syncTime",
+                () -> userRolesSyncCount.set(syncStrategy.syncAndReturn(new ArrayList<>())));
+          } catch (Exception e) {
+            log.error("User roles synchronization failed", e);
+            userRolesSyncCount.set(-1);
+          }
+        });
   }
 
   public long syncAndReturn(List<String> roles) {

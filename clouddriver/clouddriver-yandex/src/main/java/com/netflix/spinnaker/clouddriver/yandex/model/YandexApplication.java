@@ -27,6 +27,7 @@ public class YandexApplication implements Application {
   private String name;
   private Map<String, String> attributes = new HashMap<>();
   private List<Map<String, String>> instances = new ArrayList<>();
+
   /** Account name -> cluster names */
   private Map<String, Set<String>> clusterNames = new HashMap<>();
 }

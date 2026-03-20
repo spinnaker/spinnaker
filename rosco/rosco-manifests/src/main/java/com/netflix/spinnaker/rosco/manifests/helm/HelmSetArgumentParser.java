@@ -47,6 +47,7 @@ public class HelmSetArgumentParser {
    * https://github.com/helm/helm/blob/v3.14.2/pkg/strvals/parser.go#L36
    */
   private static final int MAX_INDEX = 65536;
+
   /**
    * The maximum level of nesting allowed for names within the helm3's set arguments.
    * https://github.com/helm/helm/blob/v3.14.2/pkg/strvals/parser.go#L40
@@ -54,6 +55,7 @@ public class HelmSetArgumentParser {
   private static final int MAX_NESTED_NAME_LEVEL = 30;
 
   private final PushbackReader stringReader;
+
   /**
    * Specifies whether all parsed values should be treated as strings, ignoring any potential for
    * type inference based on the value content. When true, the parser does not attempt to infer
@@ -496,6 +498,7 @@ public class HelmSetArgumentParser {
       return stopCharacter.isEmpty();
     }
   }
+
   /**
    * Converts a string value to its corresponding Java type based on its content. If the {@code
    * treatValuesAsString} flag is set, all values are returned as strings. Otherwise, it tries to

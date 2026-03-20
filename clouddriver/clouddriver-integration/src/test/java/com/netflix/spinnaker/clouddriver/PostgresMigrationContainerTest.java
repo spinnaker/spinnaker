@@ -78,7 +78,7 @@ public class PostgresMigrationContainerTest extends BaseContainerTest {
         new GenericContainer(previousDockerImageName)
             .withNetwork(network)
             .withExposedPorts(CLOUDDRIVER_PORT)
-            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(120)))
+            .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(180)))
             .dependsOn(postgres)
             .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson());
     clouddriverInitialContainer.start();
@@ -89,6 +89,7 @@ public class PostgresMigrationContainerTest extends BaseContainerTest {
     // Start the second clouddriver(latest) container to validate migration
     clouddriverContainer
         .dependsOn(postgres)
+        .waitingFor(Wait.forHttp("/health").withStartupTimeout(Duration.ofSeconds(120)))
         .withEnv("SPRING_APPLICATION_JSON", getSpringApplicationJson())
         .start();
 

@@ -34,6 +34,18 @@ subprojects {
     jvmArgs += '--add-opens=java.base/java.util=ALL-UNNAMED'
   }
 
+  // Avoid warnings like
+  //
+  // Using deprecated '-debug' fallback for parameter name resolution. Compile
+  // the affected code with '-parameters' instead or avoid its introspection:
+  // com.netflix.spinnaker.config.DefaultServiceClientProvider
+  //
+  // FWIW, the spring boot gradle plugin enables this since 2.0 via
+  // https://github.com/spring-projects/spring-boot/pull/9839.
+  tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters"
+  }
+
   if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
     apply plugin: 'java-library'
     test {

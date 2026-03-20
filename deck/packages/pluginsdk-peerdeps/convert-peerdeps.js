@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-disable no-console */
-
 const FD = { STDIN: 0, STDOUT: 1 };
 const _ = require('lodash');
 const fs = require('fs');

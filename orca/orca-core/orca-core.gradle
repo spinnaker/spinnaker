@@ -49,7 +49,7 @@ dependencies {
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.apache.commons:commons-lang3")
-  implementation("org.apache.httpcomponents:httpclient")
+  implementation("org.apache.httpcomponents.client5:httpclient5")
   implementation("jakarta.servlet:jakarta.servlet-api")
   implementation("jakarta.validation:jakarta.validation-api")
   implementation("com.jayway.jsonpath:json-path")

@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+
 // TODO: If we choose to use fiat, this needs to be removed.
 //
 // This allows anything through without authentication or csrf protection.

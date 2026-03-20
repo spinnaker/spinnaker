@@ -21,10 +21,12 @@ import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationListener;
 
 /** Adapts events emitted by the nu-orca queue to an old-style listener. */
+@Slf4j
 public final class ExecutionListenerAdapter implements ApplicationListener<ExecutionEvent> {
   private final ExecutionListener delegate;
   private final Persister persister;
@@ -37,6 +39,10 @@ public final class ExecutionListenerAdapter implements ApplicationListener<Execu
   @Override
   public void onApplicationEvent(ExecutionEvent event) {
     try {
+      log.debug(
+          "ExecutionListenerAdapter.onApplicationEvent({}): adding execution id {} to the MDC",
+          event,
+          event.getExecutionId());
       MDC.put(Header.EXECUTION_ID.getHeader(), event.getExecutionId());
       if (event instanceof ExecutionStarted) {
         onExecutionStarted((ExecutionStarted) event);
@@ -44,6 +50,10 @@ public final class ExecutionListenerAdapter implements ApplicationListener<Execu
         onExecutionComplete((ExecutionComplete) event);
       }
     } finally {
+      log.debug(
+          "ExecutionListenerAdapter.onApplicationEvent({}): removing execution id {} from the MDC",
+          event,
+          MDC.get(Header.EXECUTION_ID.getHeader()));
       MDC.remove(Header.EXECUTION_ID.getHeader());
     }
   }

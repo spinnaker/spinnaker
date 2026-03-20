@@ -57,7 +57,9 @@ public abstract class ImageTagger {
       Collection<String> consideredStageRefIds,
       StageExecution stage);
 
-  /** @return The cloud provider type that this object supports. */
+  /**
+   * @return The cloud provider type that this object supports.
+   */
   protected abstract String getCloudProvider();
 
   protected ImageTagger(OortService oortService, ObjectMapper objectMapper) {

@@ -36,12 +36,14 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
     extends AbstractCredentialsLoader<U> {
   protected final CredentialsParser<T, U> parser;
   protected final CredentialsDefinitionSource<T> definitionSource;
+
   /**
    * When parallel is true, the loader may apply changes in parallel. See {@link
    * java.util.concurrent.ForkJoinPool} for limitations. This can be useful when adding or updating
    * credentials is expected to take some time, as for instance when making a network call.
    */
   @Setter @Getter protected boolean parallel;
+
   // Definition is kept so we can quickly check for changes before parsing
   protected final Map<String, T> loadedDefinitions = new ConcurrentHashMap<>();
 

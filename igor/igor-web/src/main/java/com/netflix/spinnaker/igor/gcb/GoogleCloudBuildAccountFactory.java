@@ -35,9 +35,14 @@ final class GoogleCloudBuildAccountFactory {
 
   GoogleCloudBuildAccount build(GoogleCloudBuildProperties.Account account) {
     GoogleCredentials credentials = getCredentials(account);
-
-    GoogleCloudBuildClient client =
-        googleCloudBuildClientFactory.create(credentials, account.getProject());
+    GoogleCloudBuildClient client;
+    if (account.getCloudBuildRegion().isPresent()) {
+      client =
+          googleCloudBuildClientFactory.create(
+              credentials, account.getProject(), account.getCloudBuildRegion().get());
+    } else {
+      client = googleCloudBuildClientFactory.create(credentials, account.getProject());
+    }
     return new GoogleCloudBuildAccount(
         client,
         googleCloudBuildCacheFactory.create(account.getName()),

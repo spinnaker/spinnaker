@@ -3,6 +3,6 @@ dependencies {
   implementation project(":kayenta-aws")
 
   api "com.amazonaws:aws-java-sdk-s3"
-  api "org.apache.httpcomponents:httpclient"
-  api "org.apache.httpcomponents:httpcore"
+  api "org.apache.httpcomponents.client5:httpclient5"
+  api "org.apache.httpcomponents.core5:httpcore5"
 }

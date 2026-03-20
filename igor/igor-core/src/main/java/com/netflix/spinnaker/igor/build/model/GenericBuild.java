@@ -37,6 +37,7 @@ public class GenericBuild {
   private String name;
   private long number;
   private Integer duration;
+
   /** String representation of time in nanoseconds since Unix epoch */
   private String timestamp;
 

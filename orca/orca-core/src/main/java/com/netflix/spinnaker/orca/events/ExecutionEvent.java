@@ -45,4 +45,9 @@ public abstract class ExecutionEvent extends ApplicationEvent {
   public final @Nonnull String getExecutionId() {
     return executionId;
   }
+
+  @Override
+  public String toString() {
+    return super.toString() + " executionType: " + executionType + ", executionId: " + executionId;
+  }
 }

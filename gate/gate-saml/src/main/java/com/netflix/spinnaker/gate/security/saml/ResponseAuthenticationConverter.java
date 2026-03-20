@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.security.saml;
 
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
 import com.netflix.spinnaker.security.User;
 import java.util.Collection;
@@ -44,12 +45,14 @@ public class ResponseAuthenticationConverter
   private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
   private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
   private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
+  private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
 
   @Override
   public PreAuthenticatedAuthenticationToken convert(ResponseToken source) {
     UserIdentifierExtractor userIdentifierExtractor = userIdentifierExtractorFactory.getObject();
     UserRolesExtractor userRolesExtractor = userRolesExtractorFactory.getObject();
     AuthenticationService loginService = authenticationServiceFactory.getObject();
+    AllowedAccountsSupport allowedAccountsSupport = allowedAccountsSupportFactory.getObject();
     log.debug("Decoding SAML response: {}", source.getToken());
 
     Saml2Authentication authentication = convertToken(source);
@@ -68,6 +71,8 @@ public class ResponseAuthenticationConverter
 
     Set<String> roles = userRolesExtractor.getRoles(principal);
     user.setRoles(roles);
+
+    user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(userid, roles));
 
     if (!CollectionUtils.isEmpty(properties.getRequiredRoles())) {
       var requiredRoles = Set.copyOf(properties.getRequiredRoles());

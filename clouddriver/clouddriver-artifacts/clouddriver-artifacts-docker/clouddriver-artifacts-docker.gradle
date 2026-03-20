@@ -1,0 +1,10 @@
+dependencies {
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-docker"
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "commons-io:commons-io"
+
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "com.squareup.retrofit2:converter-jackson"
+}

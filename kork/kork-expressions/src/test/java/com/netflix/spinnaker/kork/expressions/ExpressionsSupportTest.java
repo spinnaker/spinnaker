@@ -20,20 +20,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDecorator;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.entities.EntityHelper;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -43,9 +48,16 @@ import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ExpressionsSupportTest {
   private final ExpressionParser parser = new SpelExpressionParser();
   private final ParserContext parserContext = new TemplateParserContext("${", "}");
+  private final MockArtifactStore artifactStore = new MockArtifactStore();
+
+  @BeforeAll
+  public void init() {
+    ArtifactStore.setInstance(artifactStore);
+  }
 
   @Test
   public void testToJsonWhenExpression() {
@@ -113,13 +125,11 @@ public class ExpressionsSupportTest {
 
   @ParameterizedTest
   @MethodSource("artifactReferenceArgs")
-  public void artifactReferenceInSpEL(String reference, String expected, String expr) {
-    MockArtifactStore artifactStore = new MockArtifactStore();
-    ArtifactStore.setInstance(artifactStore);
+  public void artifactReferenceInSpEL(String uri, String reference, String expected, String expr) {
     ExpressionProperties expressionProperties = new ExpressionProperties();
-    artifactStore.cache.put("ref://app/sha", reference);
+    artifactStore.cache.put(uri, reference);
     Map<String, Object> testContext =
-        Collections.singletonMap("artifact", Artifact.builder().reference("ref://app/sha"));
+        Collections.singletonMap("artifact", Artifact.builder().reference(uri));
 
     ExpressionsSupport expressionsSupport = new ExpressionsSupport(null, expressionProperties);
 
@@ -136,8 +146,10 @@ public class ExpressionsSupportTest {
   @SneakyThrows
   public static Stream<Arguments> artifactReferenceArgs() {
     return Stream.of(
-        Arguments.of("Hello world", "Hello world", "${#fromBase64(\"ref://app/sha\")}"),
         Arguments.of(
+            "ref://app/sha1", "Hello world", "Hello world", "${#fromBase64(\"ref://app/sha1\")}"),
+        Arguments.of(
+            "ref://app/sha2",
             "Hello world",
             Base64.getEncoder().encodeToString("Hello world".getBytes()),
             "${#fetchReference(artifact.reference)}"));
@@ -161,6 +173,52 @@ public class ExpressionsSupportTest {
                 new ExpressionEvaluationSummary());
 
     assertThat(evaluated).isEqualTo("00000000-0000-0000-0000-000000000000");
+  }
+
+  @ParameterizedTest
+  @MethodSource("checkMethodFilteringArgs")
+  public void checkMethodFiltering(String input, Object expected) {
+    System.setProperty("long", "123");
+    System.setProperty("int", "456");
+    System.setProperty("bool", "true");
+
+    ExpressionProperties expressionProperties = new ExpressionProperties();
+    expressionProperties.getDoNotEvalSpel().setEnabled(true);
+
+    Object evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transform(
+                input,
+                new ExpressionsSupport(null, expressionProperties)
+                    .buildEvaluationContext(Map.of(), true),
+                new ExpressionEvaluationSummary(),
+                Map.of());
+
+    assertThat(evaluated).isEqualTo(expected);
+  }
+
+  public static Stream<Arguments> checkMethodFilteringArgs() {
+    // reject static methods that retrieve from System.Properties as the values
+    // there can contain sensitive information
+    String invalidLongInput = "${ T(Long).getLong(\"long\") }";
+    String invalidIntInput = "${ T(Integer).getInteger(\"int\") }";
+    String invalidBoolInput = "${ T(Boolean).getBoolean(\"bool\") }";
+
+    // Ensure other static methods are able to pass
+    String validLongInput = "${ T(Long).parseLong(\"123\") }";
+    String validIntInput = "${ T(Integer).parseInt(\"456\") }";
+    String validBoolInput = "${ T(Boolean).parseBoolean(\"true\") }";
+
+    return Stream.of(
+        // Ensure rejected methods return themselves as when a SpEL evaluation
+        // fails, Spinnaker returns the same expression.
+        Arguments.of(invalidLongInput, invalidLongInput),
+        Arguments.of(invalidIntInput, invalidIntInput),
+        Arguments.of(invalidBoolInput, invalidBoolInput),
+        // Ensure our allowed methods evaluate correctly
+        Arguments.of(validLongInput, 123L),
+        Arguments.of(validIntInput, 456),
+        Arguments.of(validBoolInput, true));
   }
 
   @Test
@@ -187,15 +245,88 @@ public class ExpressionsSupportTest {
     assertThat(evaluated).isEqualTo("{foo=bar}");
   }
 
+  @ParameterizedTest
+  @MethodSource("manifestsAndSpELArgs")
+  public void manifestsAndSpEL(
+      String uri, String expr, String reference, Object expected, Map<String, Object> testContext) {
+    ExpressionProperties expressionProperties = new ExpressionProperties();
+    artifactStore.cache.put(uri, reference);
+
+    ExpressionsSupport expressionsSupport = new ExpressionsSupport(null, expressionProperties);
+
+    StandardEvaluationContext evaluationContext =
+        expressionsSupport.buildEvaluationContext(testContext, true);
+
+    Object evaluated =
+        new ExpressionTransform(parserContext, parser, Function.identity())
+            .transform(expr, evaluationContext, new ExpressionEvaluationSummary(), Map.of());
+
+    assertThat(evaluated).isEqualTo(expected);
+  }
+
+  public Stream<Arguments> manifestsAndSpELArgs() {
+    return Stream.of(
+        Arguments.of(
+            "ref://app/manifestsAndSpEL1",
+            "${ manifest.name }",
+            "{\"name\":\"foo\"}",
+            "foo",
+            Collections.singletonMap(
+                "manifest",
+                EntityHelper.toMap(
+                    Artifact.builder()
+                        .type(ArtifactTypes.REMOTE_MAP_BASE64.getMimeType())
+                        .reference("ref://app/manifestsAndSpEL1")
+                        .build()))),
+        Arguments.of(
+            "ref://app/manifestsAndSpEL2",
+            "${ manifests[0].name }",
+            "{\"name\":\"foo\"}",
+            "foo",
+            Collections.singletonMap(
+                "manifests",
+                List.of(
+                    EntityHelper.toMap(
+                        Artifact.builder()
+                            .type(ArtifactTypes.REMOTE_MAP_BASE64.getMimeType())
+                            .reference("ref://app/manifestsAndSpEL2")
+                            .build())))),
+        Arguments.of(
+            "ref://app/manifestsAndSpEL3",
+            "${ manifest.name }",
+            "{\"name\":\"foo\"}",
+            "foo",
+            Collections.singletonMap(
+                "manifest",
+                Map.of(
+                    "type",
+                    ArtifactTypes.REMOTE_MAP_BASE64.getMimeType(),
+                    "reference",
+                    "ref://app/manifestsAndSpEL3"))),
+        Arguments.of(
+            "ref://app/manifestsAndSpEL4",
+            "${ manifests[0].name }",
+            "{\"name\":\"foo\"}",
+            "foo",
+            Collections.singletonMap(
+                "manifests",
+                List.of(
+                    Map.of(
+                        "type",
+                        ArtifactTypes.REMOTE_MAP_BASE64.getMimeType(),
+                        "reference",
+                        "ref://app/manifestsAndSpEL4")))));
+  }
+
   public class MockArtifactStore extends ArtifactStore {
     public Map<String, String> cache = new HashMap<>();
 
     public MockArtifactStore() {
-      super(null, null);
+      super(null, null, new HashMap<>());
     }
 
     @Override
-    public Artifact store(Artifact artifact) {
+    public Artifact store(Artifact artifact, ArtifactDecorator... decorators) {
       return null;
     }
 

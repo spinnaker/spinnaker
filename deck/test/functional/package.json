@@ -1,5 +1,9 @@
 {
   "name": "@spinnaker/functionaltests",
+  "repository": {
+    "type":"git",
+    "url": "https://github.com/spinnaker/spinnaker.git"
+  },
   "version": "1.0.0",
   "description": "",
   "private": true,

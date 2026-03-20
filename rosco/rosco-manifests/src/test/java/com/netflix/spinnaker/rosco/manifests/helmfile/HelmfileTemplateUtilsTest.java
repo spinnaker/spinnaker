@@ -705,8 +705,10 @@ final class HelmfileTemplateUtilsTest {
     List<Artifact> artifacts = new ArrayList<>();
     Artifact artifact = Artifact.builder().build();
     Artifact testValue = Artifact.builder().build();
+    Artifact testValue2 = Artifact.builder().build();
     artifacts.add(artifact);
     artifacts.add(testValue);
+    artifacts.add(testValue2);
 
     request.setInputArtifacts(artifacts);
     request.setOverrides(Collections.emptyMap());
@@ -716,6 +718,23 @@ final class HelmfileTemplateUtilsTest {
       assertTrue(recipe.getCommand().contains("--values"));
       // Assert that the flag position goes after 'helmfile template' subcommand
       assertTrue(recipe.getCommand().indexOf("--values") > 1);
+      // Assert that the number of --values match the number of extra values artifacts
+      assertEquals(
+          artifacts.size() - 1,
+          (int) recipe.getCommand().stream().filter(arg -> arg.equals("--values")).count());
+
+      // Verify each '--values' flag is followed by a path to a file
+      for (int i = 0; i < recipe.getCommand().size(); i++) {
+        if ("--values".equals(recipe.getCommand().get(i))) {
+          int nextIdx = i + 1;
+          assertTrue(nextIdx < recipe.getCommand().size(), "Missing value path after --values");
+          String path = recipe.getCommand().get(nextIdx);
+          // Assert that next arg is not empty
+          assertFalse(path.isEmpty(), "Value path should not be empty");
+          // Assert that next arg is not --values or other --option
+          assertFalse(path.startsWith("-"), "Path to values file must be provided");
+        }
+      }
     }
   }
 

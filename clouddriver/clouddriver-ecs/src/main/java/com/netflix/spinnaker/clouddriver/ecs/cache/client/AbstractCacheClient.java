@@ -48,7 +48,9 @@ abstract class AbstractCacheClient<T> {
    */
   protected abstract T convert(CacheData cacheData);
 
-  /** @return A list of all generic type objects belonging to the key namespace. */
+  /**
+   * @return A list of all generic type objects belonging to the key namespace.
+   */
   public Collection<T> getAll() {
     Collection<CacheData> allData = cacheView.getAll(keyNamespace);
     return convertAll(allData);

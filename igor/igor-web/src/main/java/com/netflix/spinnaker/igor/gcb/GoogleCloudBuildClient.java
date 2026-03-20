@@ -49,18 +49,27 @@ class GoogleCloudBuildClient {
 
     GoogleCloudBuildClient create(GoogleCredentials credentials, String projectId) {
       CloudBuild cloudBuild = cloudBuildFactory.getCloudBuild(credentials, applicationName);
+      return createClient(credentials, projectId, cloudBuild);
+    }
+
+    GoogleCloudBuildClient create(
+        GoogleCredentials credentials, String projectId, String cloudBuildRegion) {
+
+      CloudBuild cloudBuild =
+          cloudBuildFactory.getCloudBuild(credentials, applicationName, cloudBuildRegion);
+      return createClient(credentials, projectId, cloudBuild);
+    }
+
+    private GoogleCloudBuildClient createClient(
+        GoogleCredentials credentials, String projectId, CloudBuild cloudBuild) {
+
       Storage cloudStorage = cloudBuildFactory.getCloudStorage(credentials, applicationName);
+
       return new GoogleCloudBuildClient(projectId, cloudBuild, cloudStorage, executor);
     }
   }
 
   Operation createBuild(Build build) {
-    if (build.getOptions() != null && build.getOptions().getPool() != null) {
-      String[] parts = build.getOptions().getPool().getName().split("/");
-      String parent = "projects/" + parts[1] + "/locations/" + parts[3];
-      return executor.execute(
-          () -> cloudBuild.projects().locations().builds().create(parent, build));
-    }
     return executor.execute(() -> cloudBuild.projects().builds().create(projectId, build));
   }
 
