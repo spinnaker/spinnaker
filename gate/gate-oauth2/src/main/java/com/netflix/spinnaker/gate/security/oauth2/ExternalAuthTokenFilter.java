@@ -130,6 +130,13 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
           if (authentication != null) {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.debug("Successfully authenticated user via external bearer token");
+
+            // /login has no controller on the oauth2Login() stack, so redirect
+            // authenticated users to the base URL instead of continuing into a 404.
+            if ("/login".equals(request.getRequestURI())) {
+              response.sendRedirect("/");
+              return;
+            }
           }
         } catch (Exception e) {
           log.debug("Failed to authenticate with external bearer token", e);

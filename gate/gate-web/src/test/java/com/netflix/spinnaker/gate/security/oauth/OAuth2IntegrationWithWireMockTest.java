@@ -19,7 +19,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -46,7 +45,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -201,14 +199,8 @@ public class OAuth2IntegrationWithWireMockTest {
   }
 
   /**
-   * Verifies behavior when a Bearer token is sent directly to the /login endpoint. On the legacy
-   * {@code @EnableOAuth2Sso} stack, the OAuth2ClientAuthenticationProcessingFilter at /login picks
-   * up the token stashed by ExternalAuthTokenFilter and authenticates via the user-info endpoint,
-   * then redirects to the base URL.
-   *
-   * <p>On the newer {@code oauth2Login()} stack used here, /login redirects to the OAuth2
-   * authorization page and ExternalAuthTokenFilter authenticates inline (before the security filter
-   * chain), so the two-step /login flow does not apply.
+   * Verifies that a Bearer token sent to /login authenticates the user via the user-info endpoint
+   * and redirects to the base URL.
    */
   @Test
   void loginWithBearerTokenAuthenticatesAndRedirectsToBaseUrl() {
@@ -237,23 +229,13 @@ public class OAuth2IntegrationWithWireMockTest {
     RestTemplate noRedirectRestTemplate =
         new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-    // FIXME: On the legacy @EnableOAuth2Sso stack, /login with a Bearer token authenticated
-    // the user via the user-info endpoint and redirected to the base URL:
-    //   assertThat(response.getStatusCodeValue()).isEqualTo(302);
-    //   assertThat(response.getHeaders().getLocation().toString())
-    //       .isEqualTo("http://localhost:" + appPort + "/");
-    //
-    // On the oauth2Login() stack with a custom loginPage, /login is no longer a Spring
-    // Security endpoint.  ExternalAuthTokenFilter authenticates inline (calls user-info),
-    // but there is no controller mapped to /login, so the authenticated request returns 404.
-    assertThatThrownBy(
-            () ->
-                noRedirectRestTemplate.exchange(
-                    "http://localhost:" + appPort + "/login",
-                    HttpMethod.GET,
-                    request,
-                    String.class))
-        .isInstanceOf(HttpClientErrorException.NotFound.class);
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login", HttpMethod.GET, request, String.class);
+
+    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getHeaders().getLocation().toString())
+        .isEqualTo("http://localhost:" + appPort + "/");
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 
