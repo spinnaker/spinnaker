@@ -1,7 +1,7 @@
 {
   "name": "spinnaker-release",
   "repository": {
-    "type":"git",
+    "type": "git",
     "url": "https://github.com/spinnaker/spinnaker.git"
   },
   "version": "1.0.0",

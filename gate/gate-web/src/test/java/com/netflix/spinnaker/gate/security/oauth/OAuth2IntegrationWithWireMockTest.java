@@ -26,6 +26,8 @@ import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.oauth.config.OAuth2TestConfiguration;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -38,6 +40,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -150,6 +153,48 @@ public class OAuth2IntegrationWithWireMockTest {
             String.class);
     assertThat(response.getBody()).isEqualTo("authenticated");
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/authorize")));
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies that a Bearer token provided directly in the Authorization header (e.g. from spin-cli)
+   * authenticates the user by calling the OAuth2 provider's user-info endpoint with the token. This
+   * is handled by {@link com.netflix.spinnaker.gate.security.oauth2.ExternalAuthTokenFilter
+   * ExternalAuthTokenFilter}.
+   */
+  @Test
+  void bearerTokenAuthenticatesViaUserInfoEndpoint() {
+    githubMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{"
+                            + "\"email\": \"test@example.com\","
+                            + "\"login\": \"testuser\","
+                            + "\"name\": \"Test User\","
+                            + "\"type\": \"User\","
+                            + "\"id\": 12345"
+                            + "}")));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.AUTHORIZATION, "Bearer my-personal-access-token");
+
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+
+    // Use Apache HttpClient with redirect handling disabled so we can observe
+    // the actual response from gate rather than following the redirect chain.
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/credentials", HttpMethod.GET, request, String.class);
+
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getBody()).isNotNull();
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 }
