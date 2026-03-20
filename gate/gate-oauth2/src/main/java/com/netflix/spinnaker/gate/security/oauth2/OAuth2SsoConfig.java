@@ -37,6 +37,7 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCo
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -70,25 +71,35 @@ public class OAuth2SsoConfig {
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
     defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
+    String registrationId = getFirstRegistrationId();
+
     httpSecurity
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
         .oauth2Login(
-            oauth2 ->
-                oauth2
-                    .userInfoEndpoint(
-                        userInfo ->
-                            userInfo
-                                .userService(customOAuth2UserService)
-                                .oidcUserService(oidcUserInfoService))
-                    // Using same token response client that get sets by default this is to allows
-                    // injection of a mock or test implementation
-                    // for unit/integration tests, so we don't need to call GitHub (or any real
-                    // OAuth2 provider)
-                    .tokenEndpoint()
-                    .accessTokenResponseClient(tokenResponseClient));
-
-    // Add external auth token filter if there is a registration ID
-    String registrationId = getFirstRegistrationId();
+            oauth2 -> {
+              // Redirect /login directly to the OAuth2 provider instead of showing the
+              // default login page.  This restores the behavior of the legacy
+              // @EnableOAuth2Sso stack where /login issued a 302 to the authorization
+              // endpoint.
+              if (registrationId != null) {
+                oauth2.loginPage(
+                    OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+                        + "/"
+                        + registrationId);
+              }
+              oauth2
+                  .userInfoEndpoint(
+                      userInfo ->
+                          userInfo
+                              .userService(customOAuth2UserService)
+                              .oidcUserService(oidcUserInfoService))
+                  // Using same token response client that get sets by default this is to allows
+                  // injection of a mock or test implementation
+                  // for unit/integration tests, so we don't need to call GitHub (or any real
+                  // OAuth2 provider)
+                  .tokenEndpoint()
+                  .accessTokenResponseClient(tokenResponseClient);
+            });
     if (registrationId != null) {
       RestTemplate restTemplate = createRestTemplateWithTimeouts();
       ExternalAuthTokenFilter externalAuthTokenFilter =

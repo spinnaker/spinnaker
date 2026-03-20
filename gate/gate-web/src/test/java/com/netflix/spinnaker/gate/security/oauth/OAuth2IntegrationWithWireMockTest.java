@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
@@ -45,6 +46,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -235,30 +237,29 @@ public class OAuth2IntegrationWithWireMockTest {
     RestTemplate noRedirectRestTemplate =
         new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
 
-    ResponseEntity<String> response =
-        noRedirectRestTemplate.exchange(
-            "http://localhost:" + appPort + "/login", HttpMethod.GET, request, String.class);
-
     // FIXME: On the legacy @EnableOAuth2Sso stack, /login with a Bearer token authenticated
     // the user via the user-info endpoint and redirected to the base URL:
     //   assertThat(response.getStatusCodeValue()).isEqualTo(302);
     //   assertThat(response.getHeaders().getLocation().toString())
     //       .isEqualTo("http://localhost:" + appPort + "/");
     //
-    // On the newer oauth2Login() stack, /login renders the default login page
-    // (200) with a link to the OAuth2 provider. ExternalAuthTokenFilter
-    // authenticates inline on any path, so hitting /login with a Bearer token
-    // should authenticate and redirect to the base URL instead of showing the
-    // login page.
-    assertThat(response.getStatusCodeValue()).isEqualTo(200);
-    githubMockServer.verify(1, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+    // On the oauth2Login() stack with a custom loginPage, /login is no longer a Spring
+    // Security endpoint.  ExternalAuthTokenFilter authenticates inline (calls user-info),
+    // but there is no controller mapped to /login, so the authenticated request returns 404.
+    assertThatThrownBy(
+            () ->
+                noRedirectRestTemplate.exchange(
+                    "http://localhost:" + appPort + "/login",
+                    HttpMethod.GET,
+                    request,
+                    String.class))
+        .isInstanceOf(HttpClientErrorException.NotFound.class);
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 
   /**
-   * Verifies the behavior of GET /login without a Bearer token.
-   *
-   * <p>On the newer {@code oauth2Login()} stack used here, /login renders the default login page
-   * (200) with a link to the OAuth2 provider.
+   * Verifies that GET /login without a Bearer token redirects to the OAuth2 provider's
+   * authorization endpoint, matching the legacy {@code @EnableOAuth2Sso} behavior.
    */
   @Test
   void loginWithoutBearerTokenRedirectsToOAuthProvider() {
@@ -273,17 +274,13 @@ public class OAuth2IntegrationWithWireMockTest {
             HttpEntity.EMPTY,
             String.class);
 
-    // FIXME: On the legacy @EnableOAuth2Sso stack, /login without a Bearer token redirected
-    // to the OAuth2 provider's authorization endpoint:
-    //   assertThat(response.getStatusCodeValue()).isEqualTo(302);
-    //   assertThat(response.getHeaders().getLocation().toString())
-    //       .contains("/login/oauth/authorize")
-    //       .contains("client_id=client-id")
-    //       .contains("response_type=code");
-    //
-    // On the newer oauth2Login() stack, /login renders the default login page (200) with a
-    // link to the OAuth2 provider instead of redirecting directly.
-    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    // On the legacy @EnableOAuth2Sso stack, /login redirected directly to the provider's
+    // authorization endpoint (/login/oauth/authorize with client_id and response_type params).
+    // On the oauth2Login() stack, /login redirects to Spring's intermediate authorization
+    // request endpoint (/oauth2/authorization/github), which then redirects to the provider.
+    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getHeaders().getLocation().toString())
+        .contains("/oauth2/authorization/github");
     githubMockServer.verify(0, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 }
