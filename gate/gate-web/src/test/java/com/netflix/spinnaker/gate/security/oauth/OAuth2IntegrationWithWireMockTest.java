@@ -30,6 +30,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -111,9 +112,8 @@ public class OAuth2IntegrationWithWireMockTest {
   }
 
   @BeforeEach
-  public void setUp() {
-    // Now appPort (@LocalServerPort) is available — set the supplier so transformer can use it
-    RedirectWithStateTransformer.setAppPortSupplier(() -> appPort);
+  public void setUp(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
   }
 
   @Test
