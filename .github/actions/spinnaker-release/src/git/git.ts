@@ -9,7 +9,9 @@ export interface Tag {
   sha: string;
 }
 
-export const github = getOctokit(util.getInput('github-pat'));
+// Strip x-access-token: prefix if present (used for git operations, not REST API)
+const githubPat = util.getInput('github-pat').replace(/^x-access-token:/, '');
+export const github = getOctokit(githubPat);
 
 export function gitCmd(command: string, execOpts?: object): string | undefined {
   const out = gitCmdMulti(command, execOpts);
