@@ -34,7 +34,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -121,9 +120,7 @@ public class OAuth2SsoConfig {
 
   private String getFirstRegistrationId() {
     if (clientRegistrationRepository instanceof InMemoryClientRegistrationRepository inMemoryRepo) {
-      for (ClientRegistration registration : inMemoryRepo) {
-        return registration.getRegistrationId();
-      }
+      return inMemoryRepo.iterator().next().getRegistrationId();
     }
     log.warn(
         "ClientRegistrationRepository is not an InMemoryClientRegistrationRepository (found: {}). "
