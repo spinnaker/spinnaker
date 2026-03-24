@@ -93,4 +93,12 @@ public class APITokenHelper {
         .map(this::fetchAccount)
         .collect(Collectors.toSet());
   }
+
+  //  public Set<ApiTokenAccount> fetchTokens(String username) {
+  //    return pool.getResource().keys(REDIS_PATH + "*").stream()
+  //      .map(this::fetchAccount)
+  //      .filter(account -> account.getUsername().equals(username) ||
+  // account.getUsername().equals(username + "-apitokenaccount"))
+  //      .collect(Collectors.toSet());
+  //  }
 }
