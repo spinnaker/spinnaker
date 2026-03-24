@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import redis.clients.jedis.JedisPool;
 
 @Log
 @Component
+@ConditionalOnProperty("auth.apitokens.enabled")
 public class APITokenHelper {
 
   public static final String REDIS_PATH = "api-tokens:";

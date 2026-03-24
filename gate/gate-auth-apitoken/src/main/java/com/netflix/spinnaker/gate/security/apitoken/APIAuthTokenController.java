@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.apache.commons.collections4.SetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(path = "/token")
+@ConditionalOnProperty("auth.apitokens.enabled")
 public class APIAuthTokenController {
 
   @Value("${auth.apitokens.maxValidInSeconds:604800}") // 7 days by default
