@@ -39,8 +39,15 @@ public class ArtifactorySearch {
   /** Filter published artifact searches to just this group id. */
   @Nullable private String groupId;
 
+  /** Override the default artifact extension for this repo type (e.g. ".tar.gz"). */
+  @Nullable private String artifactExtension;
+
   public String getArtifactExtension() {
-    return repoType.getArtifactExtension();
+    if (artifactExtension == null) {
+      return repoType.getArtifactExtension();
+    }
+    String normalizedExtension = artifactExtension.trim();
+    return normalizedExtension.isEmpty() ? repoType.getArtifactExtension() : normalizedExtension;
   }
 
   public String getPartitionName() {
