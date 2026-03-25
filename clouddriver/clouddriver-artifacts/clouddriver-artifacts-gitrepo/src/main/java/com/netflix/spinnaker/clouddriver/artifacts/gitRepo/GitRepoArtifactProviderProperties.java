@@ -26,6 +26,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("artifacts.git-repo")
 public class GitRepoArtifactProviderProperties implements ArtifactProvider<GitRepoArtifactAccount> {
   public static final int DEFAULT_CLONE_RETENTION_CHECK_MS = 60000;
+
+  // Regex pattern from GeeksforGeeks covering common git URL formats
+  // https://www.geeksforgeeks.org/dsa/validate-git-repository-using-regular-expression/
+  // NOTE:  The above ALLOWS a file reference.  aka `git clone --local
+  // file:///path/to/source/folder` - which intentionally removing here.
+  // from the regex
   public static final String DEFAULT_GIT_URL_REGEX_PATTERN =
       "((http|git|ssh|http(s))|(git@[\\w\\.]+))(:(\\/\\/)?)([\\w\\.@\\:\\/\\-_~]+)(\\/)?";
 

@@ -52,13 +52,6 @@ public class GitJobExecutor {
   // Valid path pattern: allows alphanumeric, hyphens, underscores, forward slashes, and dots
   private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^[a-zA-Z0-9/_.-]+$");
 
-  // TODO: Do we need to allow someone... to bypass this for ANY reason?
-  // Regex pattern from GeeksforGeeks covering common git URL formats
-  // https://www.geeksforgeeks.org/dsa/validate-git-repository-using-regular-expression/
-  // NOTE:  The above ALLOWS a file reference.  aka `git clone --local
-  // file:///path/to/source/folder` - which intentionally removing here.
-  // from the regex
-
   private final Pattern gitUrlPattern;
 
   private static Path genericAskPassBinary;
