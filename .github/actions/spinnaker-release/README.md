@@ -19,7 +19,7 @@ This is a sample Spinnaker BoM from release `1.31.2`:
 ```yaml
 artifactSources:
   debianRepository: https://us-apt.pkg.dev/projects/spinnaker-community
-  dockerRegistry: us-docker.pkg.dev/spinnaker-community/docker
+  dockerRegistry: ghcr.io/spinnaker
   gitPrefix: https://github.com/spinnaker
   googleImageProject: marketplace-spinnaker-release
 dependencies:
