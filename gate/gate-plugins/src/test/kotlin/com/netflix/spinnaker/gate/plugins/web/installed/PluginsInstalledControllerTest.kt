@@ -29,7 +29,6 @@ import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
-import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 
@@ -67,13 +66,9 @@ class PluginsInstalledControllerTest {
     contextRunner
       .withPropertyValues("spinnaker.extensibility.deck-proxy.enabled=false")
       .run { context ->
-        // FIXME: This should succeed with no DeckPluginService bean, but currently
-        // PluginsInstalledController hard-requires DeckPluginService, so any context
-        // that includes it will fail when deck-proxy is disabled.
-        assertThat(context).hasFailed()
-        assertThat(context.startupFailure)
-          .hasRootCauseInstanceOf(NoSuchBeanDefinitionException::class.java)
-          .hasMessageContaining("DeckPluginService")
+        assertThat(context).hasNotFailed()
+        assertThat(context).doesNotHaveBean(DeckPluginService::class.java)
+        assertThat(context).hasSingleBean(PluginsInstalledController::class.java)
       }
   }
 
@@ -92,11 +87,8 @@ class PluginsInstalledControllerTest {
     contextRunner
       .withPropertyValues("spinnaker.extensibility.remote-plugins.enabled=false")
       .run { context ->
-        // FIXME: PluginsInstalledController has no @ConditionalOnProperty, so it
-        // still loads even when remote-plugins is disabled. It should be conditional
-        // on spinnaker.extensibility.remote-plugins.enabled.
         assertThat(context).hasNotFailed()
-        assertThat(context).hasSingleBean(PluginsInstalledController::class.java)
+        assertThat(context).doesNotHaveBean(PluginsInstalledController::class.java)
       }
   }
 
@@ -108,12 +100,9 @@ class PluginsInstalledControllerTest {
         "spinnaker.extensibility.remote-plugins.enabled=false"
       )
       .run { context ->
-        // FIXME: With both disabled, PluginsInstalledController should not load at
-        // all. Instead it still loads and fails because DeckPluginService is missing.
-        assertThat(context).hasFailed()
-        assertThat(context.startupFailure)
-          .hasRootCauseInstanceOf(NoSuchBeanDefinitionException::class.java)
-          .hasMessageContaining("DeckPluginService")
+        assertThat(context).hasNotFailed()
+        assertThat(context).doesNotHaveBean(PluginsInstalledController::class.java)
+        assertThat(context).doesNotHaveBean(DeckPluginService::class.java)
       }
   }
 }
