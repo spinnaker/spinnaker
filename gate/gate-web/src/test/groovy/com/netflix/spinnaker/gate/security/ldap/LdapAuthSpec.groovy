@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.ldap
 
 import com.netflix.spinnaker.gate.Main
 import com.netflix.spinnaker.gate.config.RedisTestConfig
+import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.gate.security.ldap.LdapSsoConfig.LdapConfigProps
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import groovy.util.logging.Slf4j
+import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -55,6 +57,12 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 )
 @AutoConfigureMockMvc
 class LdapAuthSpec extends Specification {
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not available.
+   */
+  @SpringBean ApplicationService applicationService = Mock()
 
   @Autowired
   MockMvc mockMvc
