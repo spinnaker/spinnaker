@@ -106,7 +106,7 @@ class GitJobExecutorSecurityTest {
       "https://github.com/example/customer_example.git",
       "https://github.com/example/customer_example.git",
       "git@github.com:jasonmcintosh/aex-with_underscore-and_dashes.git", // a more... complicated
-      // exaample
+      // example
       "git@github.com:org/example-helm-chart.git",
       "git@gitlab.com:project/with/folder/example-helm-chart.git",
       "https://gitlab.com/project/with/folder/example-agent.git",
