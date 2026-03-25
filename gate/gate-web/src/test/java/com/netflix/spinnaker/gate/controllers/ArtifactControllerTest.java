@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import java.io.InputStream;
@@ -55,6 +56,13 @@ public class ArtifactControllerTest {
   private static final String ARTIFACT_DATA = "Some data";
 
   private MockMvc mockMvc;
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockBean private ApplicationService applicationService;
 
   @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
 
