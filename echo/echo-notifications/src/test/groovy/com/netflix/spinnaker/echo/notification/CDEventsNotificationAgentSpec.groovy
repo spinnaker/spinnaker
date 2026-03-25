@@ -19,6 +19,8 @@ package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.api.events.Event
 import com.netflix.spinnaker.echo.cdevents.CDEventTaskRunFinished
 import com.netflix.spinnaker.echo.cdevents.CDEventsBuilderService
+import com.netflix.spinnaker.echo.cdevents.CDEventsConfigProperties
+import com.netflix.spinnaker.echo.cdevents.CDEventsOTelSender
 import com.netflix.spinnaker.echo.cdevents.CDEventsSenderService
 import com.netflix.spinnaker.echo.model.trigger.CDEvent
 import dev.cdevents.events.TaskrunFinishedCDEvent
@@ -35,8 +37,18 @@ class CDEventsNotificationAgentSpec extends Specification {
   def cdEventsBuilder = new CDEventsBuilderService();
 
   def cdeventsSender = Mock(CDEventsSenderService)
+  def cdEventsOTelSender = Mock(CDEventsOTelSender)
+  def httpConfig = new CDEventsConfigProperties(transport: "http")
+  def otlpConfig = new CDEventsConfigProperties(transport: "otlp")
+
   @Subject
-  def agent = new CDEventsNotificationAgent(cdEventsSenderService: cdeventsSender, cdEventsBuilderService: cdEventsBuilder, spinnakerUrl: 'http://spinnaker')
+  def agent = new CDEventsNotificationAgent(
+    cdEventsSenderService: cdeventsSender,
+    cdEventsBuilderService: cdEventsBuilder,
+    cdEventsOTelSender: cdEventsOTelSender,
+    cdEventsConfigProperties: httpConfig,
+    spinnakerUrl: 'http://spinnaker'
+  )
 
   @Unroll
   def "sends CDEvent of type #cdEventsType when pipeline status has #status"() {
@@ -174,5 +186,61 @@ class CDEventsNotificationAgentSpec extends Specification {
     JsonSlurper jsonSlurper = new JsonSlurper()
     def parsedData = jsonSlurper.parseText(jsonString)
     return parsedData
+  }
+
+  @Unroll
+  def "sends CDEvent via OTel when transport is otlp for #cdEventsType"() {
+    given:
+    def otlpAgent = new CDEventsNotificationAgent(
+      cdEventsSenderService: cdeventsSender,
+      cdEventsBuilderService: cdEventsBuilder,
+      cdEventsOTelSender: cdEventsOTelSender,
+      cdEventsConfigProperties: otlpConfig,
+      spinnakerUrl: 'http://spinnaker'
+    )
+
+    when:
+    otlpAgent.sendNotifications([address: otlpEndpoint, cdEventsType: cdEventsType], application, event, [type: type, link: "link"], status)
+
+    then:
+    1 * cdEventsOTelSender.send(_, otlpEndpoint)
+    0 * cdeventsSender.sendCDEvent(*_)
+
+    where:
+    cdEventsType                        || status
+    "dev.cdevents.pipelinerun.queued"   || /starting/
+    "dev.cdevents.pipelinerun.started"  || /started/
+    "dev.cdevents.pipelinerun.finished" || /complete/
+    "dev.cdevents.taskrun.started"      || /started/
+    "dev.cdevents.taskrun.finished"     || /complete/
+
+    otlpEndpoint = "http://signoz-collector:4317"
+    application = "whatever"
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"]
+    ])
+    type = "pipeline"
+  }
+
+  def "sends CDEvent via HTTP when transport is http"() {
+    given:
+    cdeventsSender.sendCDEvent(*_) >> null
+
+    when:
+    agent.sendNotifications([address: brokerURL, cdEventsType: cdEventsType], application, event, [type: type, link: "link"], status)
+
+    then:
+    1 * cdeventsSender.sendCDEvent(*_)
+    0 * cdEventsOTelSender.send(*_)
+
+    where:
+    cdEventsType = "dev.cdevents.pipelinerun.started"
+    status = "started"
+    brokerURL = "http://dev.cdevents.server/default/events-broker"
+    application = "whatever"
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"]
+    ])
+    type = "pipeline"
   }
 }
