@@ -26,6 +26,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("artifacts.git-repo")
 public class GitRepoArtifactProviderProperties implements ArtifactProvider<GitRepoArtifactAccount> {
   public static final int DEFAULT_CLONE_RETENTION_CHECK_MS = 60000;
+  public static final String DEFAULT_GIT_URL_REGEX_PATTERN =
+      "((http|git|ssh|http(s))|(git@[\\w\\.]+))(:(\\/\\/)?)([\\w\\.@\\:\\/\\-_~]+)(\\/)?";
+
+  private String validGitUrlRegex = DEFAULT_GIT_URL_REGEX_PATTERN;
 
   private boolean enabled;
   private int cloneRetentionMinutes = 0;

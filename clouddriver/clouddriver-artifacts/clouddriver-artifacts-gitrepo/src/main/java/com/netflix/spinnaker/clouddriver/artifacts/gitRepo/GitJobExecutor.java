@@ -58,9 +58,8 @@ public class GitJobExecutor {
   // NOTE:  The above ALLOWS a file reference.  aka `git clone --local
   // file:///path/to/source/folder` - which intentionally removing here.
   // from the regex
-  private static final String GIT_URL_REGEX_PATTERN =
-      "((http|git|ssh|http(s))|(git@[\\w\\.]+))(:(\\/\\/)?)([\\w\\.@\\:\\/\\-_~]+)(\\/)?";
-  private static final Pattern GIT_URL_PATTERN = Pattern.compile(GIT_URL_REGEX_PATTERN);
+
+  private final Pattern gitUrlPattern;
 
   private static Path genericAskPassBinary;
 
@@ -79,8 +78,12 @@ public class GitJobExecutor {
   }
 
   public GitJobExecutor(
-      GitRepoArtifactAccount account, JobExecutor jobExecutor, String gitExecutable)
+      GitRepoArtifactAccount account,
+      JobExecutor jobExecutor,
+      String gitExecutable,
+      String gitUrlRegex)
       throws IOException {
+    this.gitUrlPattern = Pattern.compile(gitUrlRegex);
     this.account = account;
     this.jobExecutor = jobExecutor;
     this.gitExecutable = gitExecutable;
@@ -181,7 +184,7 @@ public class GitJobExecutor {
     if (StringUtils.isEmpty(repoUrl)) {
       throw new IllegalArgumentException("Repo URL cannot be null or empty");
     }
-    if (!GIT_URL_PATTERN.matcher(repoUrl).matches()) {
+    if (!gitUrlPattern.matcher(repoUrl).matches()) {
       throw new IllegalArgumentException(
           "Git URL does not looked like a valid git reference.\"" + repoUrl);
     }

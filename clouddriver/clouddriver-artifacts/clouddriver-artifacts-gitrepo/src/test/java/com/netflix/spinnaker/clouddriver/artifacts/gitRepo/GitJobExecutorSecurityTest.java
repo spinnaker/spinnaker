@@ -58,7 +58,12 @@ class GitJobExecutorSecurityTest {
 
     GitRepoArtifactAccount account = GitRepoArtifactAccount.builder().name("test-account").build();
 
-    gitJobExecutor = new GitJobExecutor(account, mockJobExecutor, "git");
+    gitJobExecutor =
+        new GitJobExecutor(
+            account,
+            mockJobExecutor,
+            "git",
+            GitRepoArtifactProviderProperties.DEFAULT_GIT_URL_REGEX_PATTERN);
   }
 
   // Tests for valid git references
