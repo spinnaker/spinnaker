@@ -26,6 +26,7 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.security.saml.SecuritySamlProperties;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import java.io.IOException;
@@ -92,6 +93,13 @@ import retrofit2.mock.Calls;
     },
     classes = Main.class)
 class SAMLConfigurationIntegrationTest {
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockBean ApplicationService applicationService;
 
   @MockBean ClouddriverService clouddriverService;
 

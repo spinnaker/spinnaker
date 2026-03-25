@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.Main
+import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.json.JsonSlurper
 import org.spockframework.spring.SpringBean
@@ -41,6 +42,11 @@ class BuildControllerSpec extends Specification {
 
   @Autowired
   private MockMvc mockMvc
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not available.
+   */
+  @SpringBean ApplicationService applicationService = Mock()
   @SpringBean IgorService igorService = Mock()
   @Shared def MASTER = 'MASTER'
   @Shared def BUILD_NUMBER = 123
