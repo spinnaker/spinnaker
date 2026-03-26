@@ -247,13 +247,13 @@ class PipelineController {
 
   @Operation(summary = "Update a stage execution")
   @PatchMapping("/{id}/stages/{stageId}")
-  Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+  Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map<String, Object> context) {
     pipelineService.updatePipelineStage(id, stageId, context)
   }
 
   @Operation(summary = "Restart a stage execution")
   @PutMapping("/{id}/stages/{stageId}/restart")
-  Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+  Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map<String, Object> context) {
     Map pipelineMap = getPipeline(id)
 
     String pipelineName = pipelineMap.get("name");
@@ -281,7 +281,7 @@ class PipelineController {
 
   @Operation(summary = "Initiate a pipeline execution")
   @PostMapping('/start')
-  ResponseEntity start(@RequestBody Map map) {
+  ResponseEntity start(@RequestBody Map<String, Object> map) {
     if (map.containsKey("application")) {
       AuthenticatedRequest.setApplication(map.get("application").toString())
     }

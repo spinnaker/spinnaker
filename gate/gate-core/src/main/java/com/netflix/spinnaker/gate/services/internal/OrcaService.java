@@ -133,16 +133,18 @@ public interface OrcaService {
   Call<Map> restartPipelineStage(
       @Path("executionId") String executionId,
       @Path("stageId") String stageId,
-      @Body Map restartDetails);
+      @Body Map<String, Object> restartDetails);
 
   @Headers("Accept: application/json")
   @POST("orchestrate")
-  Call<Map> startPipeline(@Body Map pipelineConfig, @Query("user") String user);
+  Call<Map> startPipeline(@Body Map<String, Object> pipelineConfig, @Query("user") String user);
 
   @Headers("Accept: application/json")
   @PATCH("pipelines/{executionId}/stages/{stageId}")
   Call<Map> updatePipelineStage(
-      @Path("executionId") String executionId, @Path("stageId") String stageId, @Body Map context);
+      @Path("executionId") String executionId,
+      @Path("stageId") String stageId,
+      @Body Map<String, Object> context);
 
   @Headers("Accept: application/json")
   @GET("pipelines/{id}/evaluateExpression")
@@ -180,7 +182,7 @@ public interface OrcaService {
       @Query("pipelineConfigId") String pipelineConfigId);
 
   @POST("convertPipelineToTemplate")
-  Call<ResponseBody> convertToPipelineTemplate(@Body Map<String, ? extends Object> pipelineConfig);
+  Call<ResponseBody> convertToPipelineTemplate(@Body Map<String, Object> pipelineConfig);
 
   @Headers("Accept: application/json")
   @POST("v2/pipelineTemplates/plan")

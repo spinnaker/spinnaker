@@ -162,7 +162,7 @@ class PipelineService {
     ]
   }
 
-  Map startPipeline(Map pipelineConfig, String user) {
+  Map startPipeline(Map<String, Object> pipelineConfig, String user) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, user))
   }
 
@@ -190,12 +190,12 @@ class PipelineService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().deletePipeline(id))
   }
 
-  Map updatePipelineStage(String executionId, String stageId, Map context) {
+  Map updatePipelineStage(String executionId, String stageId, Map<String, Object> context) {
     setApplicationForExecution(executionId)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().updatePipelineStage(executionId, stageId, context))
   }
 
-  Map restartPipelineStage(String executionId, String stageId, Map context) {
+  Map restartPipelineStage(String executionId, String stageId, Map<String, Object> context) {
     setApplicationForExecution(executionId)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().restartPipelineStage(executionId, stageId, context))
   }
