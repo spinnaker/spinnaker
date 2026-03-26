@@ -102,7 +102,7 @@ public class TaskService {
    * @param intervalMs milliseconds to wait between polls
    * @return the task result from orca, or the create result if it has no ref field
    */
-  public Map createAndWaitForCompletion(Map body, int maxPolls, int intervalMs) {
+  public Map createAndWaitForCompletion(Map<String, Object> body, int maxPolls, int intervalMs) {
     Preconditions.checkArgument(maxPolls > 0, "maxPolls must be positive, got %s", maxPolls);
     log.info("Creating and waiting for completion: " + body);
 
@@ -145,7 +145,7 @@ public class TaskService {
     return task;
   }
 
-  public Map createAndWaitForCompletion(Map body) {
+  public Map createAndWaitForCompletion(Map<String, Object> body) {
     return createAndWaitForCompletion(
         body,
         taskServiceProperties.getMaxNumberOfPolls(),

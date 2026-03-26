@@ -43,7 +43,7 @@ public class TaskServiceTest {
 
   @Test
   public void callAsManyTimesAsSet() {
-    Map operation = new LinkedHashMap();
+    Map<String, Object> operation = new LinkedHashMap<>();
 
     Map task = Map.of("ref", "apps/bob/someRandomId");
     when(selector.select()).thenReturn(orcaService);
