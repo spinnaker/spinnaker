@@ -84,6 +84,24 @@ class GitRepoArtifactCredentialsTest {
   }
 
   @Test
+  @DisplayName("Should not allow a parent if a subdomain is set")
+  void failIfSubDomainAllowedAndTryToUseParent() throws Exception {
+    List<String> allowedHosts = Collections.singletonList("internal.github.com");
+
+    GitRepoArtifactCredentials credentials =
+        new GitRepoArtifactCredentials(mockExecutor, mockFileSystem, allowedHosts);
+
+    Artifact artifact =
+        Artifact.builder()
+            .reference("https://github.com/repos/spinnaker/clouddriver.git")
+            .version("main")
+            .build();
+    IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
+    assertThat(exception.getMessage()).containsIgnoringCase("host");
+  }
+
+  @Test
   @DisplayName("Should reject download when URL host is not in allowedHosts list")
   void shouldRejectDownloadWhenHostNotInList() {
     List<String> allowedHosts = Arrays.asList("github.com", "gitlab.com");
@@ -319,7 +337,7 @@ class GitRepoArtifactCredentialsTest {
   @DisplayName("Should support multiple allowed hosts")
   void shouldSupportMultipleAllowedHosts() throws Exception {
     List<String> allowedHosts =
-        Arrays.asList("github.com", "gitlab.com", "bitbucket.org", "internal.company.com");
+        Arrays.asList("github.com", "gitlab.com", "bitbucket.org", "company.com");
 
     GitRepoArtifactCredentials credentials =
         new GitRepoArtifactCredentials(mockExecutor, mockFileSystem, allowedHosts);
@@ -329,7 +347,17 @@ class GitRepoArtifactCredentialsTest {
       "https://github.com/repo.git",
       "https://gitlab.com/repo.git",
       "https://bitbucket.org/repo.git",
-      "https://internal.company.com/repo.git"
+      "https://github.com/example/customer-example.git",
+      "git@github.com:org/example-helm-chart.git",
+      "git@gitlab.com:project/with/folder/example-helm-chart.git",
+      "https://gitlab.com/project/with/folder/example-agent.git",
+      "https://janedoe:password@gitlab.com/project/repo.git",
+      "https://github.com/repo.git",
+      "https://gitlab.com/repo.git",
+      "https://bitbucket.org/repo.git",
+      "https://github.com/example/customer-example.git",
+      "https://internal.company.com/repo.git", // allow subdomains ON the parent domain
+      "https://company.com:3000/project/repo", // gitea where a .git extension is NOT needed
     };
 
     for (String url : validUrls) {
