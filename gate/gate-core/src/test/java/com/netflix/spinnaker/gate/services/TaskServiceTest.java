@@ -45,9 +45,10 @@ public class TaskServiceTest {
   public void callAsManyTimesAsSet() {
     Map<String, Object> operation = new LinkedHashMap<>();
 
-    Map task = Map.of("ref", "apps/bob/someRandomId");
+    Map<String, String> operationResult = Map.of("ref", "apps/bob/someRandomId");
+    Map<String, Object> task = Map.of("id", "someRandomId", "status", "RUNNING");
     when(selector.select()).thenReturn(orcaService);
-    when(orcaService.doOperation(operation)).thenReturn(Calls.response(task));
+    when(orcaService.doOperation(operation)).thenReturn(Calls.response(operationResult));
     when(orcaService.getTask("someRandomId")).thenAnswer(invocation -> Calls.response(task));
     taskService.createAndWaitForCompletion(operation, 32, 1);
     verify(orcaService, times(32)).getTask("someRandomId");

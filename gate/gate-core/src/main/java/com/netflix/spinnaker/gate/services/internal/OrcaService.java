@@ -18,7 +18,7 @@ import retrofit2.http.Query;
 public interface OrcaService {
   @Headers("Content-type: application/context+json")
   @POST("ops")
-  Call<Map> doOperation(@Body Map<String, Object> body);
+  Call<Map<String, String>> doOperation(@Body Map<String, Object> body);
 
   @Headers("Accept: application/json")
   @GET("applications/{application}/tasks")
@@ -47,7 +47,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("tasks/{id}")
-  Call<Map> getTask(@Path("id") String id);
+  Call<Map<String, Object>> getTask(@Path("id") String id);
 
   @Headers("Accept: application/json")
   @DELETE("tasks/{id}")
