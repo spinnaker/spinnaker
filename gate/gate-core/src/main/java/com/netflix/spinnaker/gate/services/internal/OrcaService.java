@@ -22,7 +22,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("applications/{application}/tasks")
-  Call<List> getTasks(
+  Call<List<Map<String, Object>>> getTasks(
       @Path("application") String app,
       @Query("page") Integer page,
       @Query("limit") Integer limit,
@@ -30,7 +30,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("v2/applications/{application}/pipelines")
-  Call<List> getPipelines(
+  Call<List<Map<String, Object>>> getPipelines(
       @Path("application") String app,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses,
