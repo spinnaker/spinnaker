@@ -145,10 +145,6 @@ public class TaskService {
     return task;
   }
 
-  public Map createAndWaitForCompletion(Map body, int maxPolls) {
-    return createAndWaitForCompletion(body, maxPolls, 1000);
-  }
-
   public Map createAndWaitForCompletion(Map body) {
     return createAndWaitForCompletion(
         body,
