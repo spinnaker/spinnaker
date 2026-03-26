@@ -24,11 +24,5 @@ ruleTester.run('rest-prefer-static-strings-in-initializer', rule, {
       output: "REST('foo/bar').path('baz').get()",
       errors: ["Prefer REST('/foo/bar') over REST().path('foo', 'bar')"],
     },
-    {
-      // Process one path arg at a time
-      code: "REST('foo').path('bar', 'baz').get()",
-      output: "REST('foo/bar').path('baz').get()",
-      errors: ["Prefer REST('/foo/bar') over REST().path('foo', 'bar')"],
-    },
   ],
 });

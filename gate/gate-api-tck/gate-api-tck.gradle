@@ -5,6 +5,8 @@ dependencies {
   implementation("io.spinnaker.kork:kork-jedis-test")
   implementation("org.springframework.session:spring-session-data-redis")
 
+  testImplementation(project(":gate-core"))
+
   api("org.springframework.boot:spring-boot-starter-test")
   api("dev.minutest:minutest")
 }

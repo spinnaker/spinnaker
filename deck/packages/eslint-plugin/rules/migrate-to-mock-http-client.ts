@@ -1,5 +1,4 @@
 import type { Rule } from 'eslint';
-import type { FunctionExpression, ImportDeclaration, ImportSpecifier } from 'estree';
 
 import { getImportName } from '../utils/ast';
 import { getProgram } from '../utils/utils';
@@ -9,13 +8,14 @@ const ruleModule: Rule.RuleModule = {
     const text = (node) => context.getSourceCode().getText(node);
 
     return {
-      CallExpression(node) {
+      CallExpression(_node: any) {
+        const node = _node;
         /** it(() => {}) */
         const isItBlock = node.callee.type === 'Identifier' && node.callee.name === 'it';
 
         if (isItBlock) {
           const itBlockText = text(node);
-          const testFunction = node.arguments[1] as FunctionExpression;
+          const testFunction = node.arguments[1] as any;
 
           const doesFunctionIncludeHttpBackend = !!testFunction && itBlockText.includes('$httpBackend');
 
@@ -38,12 +38,10 @@ const ruleModule: Rule.RuleModule = {
                 !text(testFunction.body.body[0]).includes('mockHttpClient')
               ) {
                 const program = getProgram(node);
-                const allImports = program.body.filter(
-                  (item) => item.type === 'ImportDeclaration',
-                ) as ImportDeclaration[];
+                const allImports = program.body.filter((item) => item.type === 'ImportDeclaration') as any[];
 
                 const importSpecifiers = allImports
-                  .map((decl) => decl.specifiers as ImportSpecifier[])
+                  .map((decl) => decl.specifiers as any[])
                   .reduce((acc, x) => acc.concat(x), []);
 
                 const mockHttpClientImport = importSpecifiers.find((specifier) => {

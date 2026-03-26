@@ -31,8 +31,8 @@ on:
       - '.github/workflows/spin.yml'
 
 env:
-  REGISTRY_REGION: us-docker.pkg.dev
-  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
+  REGISTRY_REGION: ghcr.io/spinnaker
+  CONTAINER_REGISTRY: ghcr.io/spinnaker
   GCS_BUCKET: 'spinnaker-artifacts/spin'
 
 jobs:

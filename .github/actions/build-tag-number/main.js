@@ -24,7 +24,7 @@ function request(method, path, data, callback) {
                 'Content-Type': 'application/json',
                 'Content-Length': data ? data.length : 0,
                 'Accept-Encoding' : 'gzip',
-                'Authorization' : `token ${env.INPUT_TOKEN}`,
+                'Authorization' : `Bearer ${env.INPUT_TOKEN}`,
                 'User-Agent' : 'GitHub Action - development'
             }
         }
@@ -92,7 +92,20 @@ function writeOutput(nextBuildNumber, cacheBuildNumber = true) {
 function fetchBuildTags(opts, callback) {
     request('GET', `/repos/${env.GITHUB_REPOSITORY}/git/refs/tags/${opts.finalTag}-`, null, (err, status, result) => {
         let nextBuildNumber, tags;
-
+/*
+[
+  {
+    "ref": "refs/tags/bn-spinnaker-release-2025.3.x-0",
+    "node_id": "MDM6UmVmMjE0MzY4MTY6cmVmcy90YWdzL2JuLXNwaW5uYWtlci1yZWxlYXNlLTIwMjUuMy54LTA=",
+    "url": "https://api.github.com/repos/spinnaker/spinnaker/git/refs/tags/bn-spinnaker-release-2025.3.x-0",
+    "object": {
+      "sha": "ed0023ebff55956d438e0a2424c1c1c66e220f41",
+      "type": "commit",
+      "url": "https://api.github.com/repos/spinnaker/spinnaker/git/commits/ed0023ebff55956d438e0a2424c1c1c66e220f41"
+    }
+  }
+]
+ */
         if (status === 404) {
             console.log('No build-number ref available, starting at 0.');
             nextBuildNumber = 0;
@@ -133,7 +146,6 @@ function createBuildTags(opts, nextBuildNumber, callback) {
         ref:`refs/tags/${opts.finalTag}-${nextBuildNumber}`,
         sha: env.GITHUB_SHA
     };
-
     request('POST', `/repos/${env.GITHUB_REPOSITORY}/git/refs`, newRefData, (err, status, result) => {
         if (status !== 201 || err) {
             fail(`Failed to create new build-number ref. Status: ${status}, err: ${err}, result: ${JSON.stringify(result)}`);
@@ -169,11 +181,18 @@ function main() {
     }
 
     const opts = {
-        prefix,
-        suffix,
+        prefix, // ''
+        suffix, // 'spinnaker-release-2025.3.x'
         tagBaseName,
         finalTag: `${prefix}${tagBaseName}${suffix}`
     }
+    /*
+      with:
+    token: ***
+    suffix: spinnaker-release-2025.3.x
+    skip-increment: false
+    skip-tag: true
+     */
 
     fetchBuildTags(opts, (currentBuildNumber, nextBuildNumber, tags) => {
         const skipTag = env['INPUT_SKIP-TAG'] === 'true';
