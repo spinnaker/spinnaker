@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Body;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.GateBootAuthIntegrationTest;
@@ -55,8 +56,13 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   }
 
   @Test
-  public void verifyCanCallOracKillATask() throws Exception {
-    setupOrcaMock();
+  public void verifyCanCallOrcaKillATask() throws Exception {
+    // Orca's PUT /admin/forceCancelExecution returns void, so the response body is empty.
+    wmOrca.stubFor(
+        WireMock.put(
+                urlEqualTo(
+                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
+            .willReturn(aResponse().withStatus(200).withResponseBody(Body.none())));
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
         callGateWithPath(
@@ -90,16 +96,6 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     ObjectMapper objectMapper = new ObjectMapper();
     wmOrca.stubFor(
         WireMock.post(urlEqualTo("/admin/queue/hydrate?executionId=randomExecutionId&dryRun=false"))
-            .willReturn(
-                aResponse()
-                    .withStatus(200)
-                    .withBody(objectMapper.writeValueAsString(Map.of("foo", "bar")))));
-
-    // simulate Orca response to the delete request
-    wmOrca.stubFor(
-        WireMock.put(
-                urlEqualTo(
-                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
             .willReturn(
                 aResponse()
                     .withStatus(200)
