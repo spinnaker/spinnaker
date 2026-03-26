@@ -100,7 +100,6 @@ class TaskControllerTest {
   @Test
   void deleteTaskWithEmptyOrcaResponse() throws Exception {
     // Orca's DELETE /tasks/{id} returns void, so the response body is empty.
-    // FIXME: Gate should return 200 with an empty body, not 500.
     stubOrcaGetTask();
     wmOrca.stubFor(
         WireMock.delete(urlPathEqualTo("/tasks/" + TASK_ID))
@@ -113,19 +112,13 @@ class TaskControllerTest {
                 .header(USER.getHeader(), USERNAME)
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(status().isInternalServerError())
-        .andExpect(
-            status()
-                .reason(
-                    "Failed to process response body: No content to map due to end-of-input\n"
-                        + " at [Source: (okhttp3.ResponseBody$BomAwareReader); line: 1, column: 0]"))
+        .andExpect(status().isOk())
         .andExpect(content().string(""));
   }
 
   @Test
   void cancelTaskWithEmptyOrcaResponse() throws Exception {
     // Orca's PUT /tasks/{id}/cancel returns void, so the response body is empty.
-    // FIXME: Gate should return 200 with an empty body, not 500.
     stubOrcaGetTask();
     wmOrca.stubFor(
         WireMock.put(urlPathEqualTo("/tasks/" + TASK_ID + "/cancel"))
@@ -138,19 +131,13 @@ class TaskControllerTest {
                 .header(USER.getHeader(), USERNAME)
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(status().isInternalServerError())
-        .andExpect(
-            status()
-                .reason(
-                    "Failed to process response body: No content to map due to end-of-input\n"
-                        + " at [Source: (okhttp3.ResponseBody$BomAwareReader); line: 1, column: 0]"))
+        .andExpect(status().isOk())
         .andExpect(content().string(""));
   }
 
   @Test
   void cancelTasksWithEmptyOrcaResponse() throws Exception {
     // Orca's PUT /tasks/cancel returns void, so the response body is empty.
-    // FIXME: Gate should return 200 with an empty body, not 500.
     stubOrcaGetTask();
     wmOrca.stubFor(
         WireMock.put(urlPathEqualTo("/tasks/cancel"))
@@ -165,12 +152,7 @@ class TaskControllerTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .characterEncoding(StandardCharsets.UTF_8.toString()))
         .andDo(print())
-        .andExpect(status().isInternalServerError())
-        .andExpect(
-            status()
-                .reason(
-                    "Failed to process response body: No content to map due to end-of-input\n"
-                        + " at [Source: (okhttp3.ResponseBody$BomAwareReader); line: 1, column: 0]"))
+        .andExpect(status().isOk())
         .andExpect(content().string(""));
   }
 
