@@ -73,9 +73,9 @@ public class TaskService {
     return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().getTask(id));
   }
 
-  public Map deleteTask(final String id) {
+  public void deleteTask(final String id) {
     setApplicationForTask(id);
-    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().deleteTask(id));
+    Retrofit2SyncCall.execute(getOrcaServiceSelector().select().deleteTask(id));
   }
 
   public Map getTaskDetails(final String taskDetailsId, String selectorKey) {
@@ -83,14 +83,14 @@ public class TaskService {
         getClouddriverServiceSelector().select().getTaskDetails(taskDetailsId));
   }
 
-  public Map cancelTask(final String id) {
+  public void cancelTask(final String id) {
     setApplicationForTask(id);
-    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTask(id, ""));
+    Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTask(id, ""));
   }
 
-  public Map cancelTasks(final List<String> taskIds) {
+  public void cancelTasks(final List<String> taskIds) {
     setApplicationForTask(taskIds.get(0));
-    return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTasks(taskIds));
+    Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTasks(taskIds));
   }
 
   public Map createAndWaitForCompletion(Map body, int maxPolls, int intervalMs) {
