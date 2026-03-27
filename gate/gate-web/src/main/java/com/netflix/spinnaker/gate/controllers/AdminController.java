@@ -3,6 +3,7 @@ package com.netflix.spinnaker.gate.controllers;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.io.IOException;
@@ -70,17 +71,21 @@ public class AdminController {
     String username = SecurityContextHolder.getContext().getAuthentication().getName();
     log.info("Force killing pipeline with execution id {} by user {}", executionId, username);
     try {
-      orcaService
-          .select()
-          .forceCancelPipeline(
-              executionId, Optional.ofNullable(executionType).orElse("PIPELINE"), username)
-          .execute();
-
+      Retrofit2SyncCall.execute(
+          orcaService
+              .select()
+              .forceCancelPipeline(
+                  executionId, Optional.ofNullable(executionType).orElse("PIPELINE"), username));
+    } catch (SpinnakerException e) {
+      throw e.newInstance(getFailureMessage(e));
     } catch (Exception e) {
-      throw new SpinnakerException(
-          "Error invoking killing of the zombie pipeline!  Check logs - particularly on orca for more information",
-          e);
+      throw new SpinnakerException(getFailureMessage(e));
     }
+  }
+
+  private String getFailureMessage(Exception e) {
+    return "Error invoking killing of the zombie pipeline!  Check logs - particularly on orca for more information: "
+        + e.getMessage();
   }
 
   /**
