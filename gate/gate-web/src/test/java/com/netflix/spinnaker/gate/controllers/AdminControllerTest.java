@@ -8,9 +8,11 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Body;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.GateBootAuthIntegrationTest;
@@ -81,6 +83,68 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
             "/admin/executions/hydrate?executionId=randomExecutionId&dryRun=false", "POST");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(200);
+  }
+
+  @Test
+  public void killZombieNetworkError() throws Exception {
+    // When Orca causes an IOException (e.g. connection reset), killZombie catches it and wraps it
+    // in a generic SpinnakerException, hiding the actual cause from the caller.
+    wmOrca.stubFor(
+        WireMock.put(
+                urlEqualTo(
+                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    HttpResponse<String> response =
+        callGateWithPath(
+            "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
+            "PUT");
+    assertNotNull(response);
+    assertThat(response.statusCode()).isEqualTo(500);
+    Map<String, Object> responseBody =
+        new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
+    // AdminController.killZombie wraps the exception in a SpinnakerException with the message
+    // "Error invoking killing of the zombie pipeline!..." but Spring's
+    // ExceptionHandlerExceptionResolver walks the cause chain and finds
+    // SpinnakerNetworkException, which SpinnakerRetrofitExceptionHandlers handles directly.
+    // The SpinnakerException wrapper and its message are never used.
+    assertThat(responseBody.get("exception"))
+        .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException");
+    assertThat(responseBody.get("message")).isEqualTo("java.net.SocketException: Connection reset");
+  }
+
+  @Test
+  public void killZombieOrcaNotFound() throws Exception {
+    // When Orca returns a 404, killZombie catches the resulting exception and wraps it in a
+    // SpinnakerException. But Spring's ExceptionHandlerExceptionResolver walks the cause chain,
+    // finds SpinnakerHttpException, and SpinnakerRetrofitExceptionHandlers handles it directly —
+    // propagating the 404 status and Orca's error message. The SpinnakerException wrapper and its
+    // "Error invoking killing of the zombie pipeline!" message are never used.
+    wmOrca.stubFor(
+        WireMock.put(
+                urlEqualTo(
+                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
+            .willReturn(
+                aResponse()
+                    .withStatus(404)
+                    .withBody(
+                        "{\"error\":\"Not Found\",\"message\":\"Execution not found\",\"status\":404}")));
+    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    HttpResponse<String> response =
+        callGateWithPath(
+            "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
+            "PUT");
+    assertNotNull(response);
+    assertThat(response.statusCode()).isEqualTo(404);
+    Map<String, Object> responseBody =
+        new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
+    assertThat(responseBody.get("exception"))
+        .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException");
+    assertThat(responseBody.get("message"))
+        .isEqualTo(
+            "Status: 404, Method: PUT, URL: "
+                + wmOrca.baseUrl()
+                + "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser, Message: Execution not found");
   }
 
   @Test
