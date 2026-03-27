@@ -51,15 +51,15 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @DELETE("tasks/{id}")
-  Call<Map> deleteTask(@Path("id") String id);
+  Call<Void> deleteTask(@Path("id") String id);
 
   @Headers("Accept: application/json")
   @PUT("tasks/{id}/cancel")
-  Call<Map> cancelTask(@Path("id") String id, @Body String ignored);
+  Call<Void> cancelTask(@Path("id") String id, @Body String ignored);
 
   @Headers("Accept: application/json")
   @PUT("tasks/cancel")
-  Call<Map> cancelTasks(@Body List<String> taskIds);
+  Call<Void> cancelTasks(@Body List<String> taskIds);
 
   @Headers("Accept: application/json")
   @GET("pipelines")
@@ -106,7 +106,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @PUT("/admin/forceCancelExecution")
-  Call<Map> forceCancelPipeline(
+  Call<Void> forceCancelPipeline(
       @Query("executionId") String executionId,
       @Query("executionType") String executionType,
       @Query("canceledBy") String canceledBy);

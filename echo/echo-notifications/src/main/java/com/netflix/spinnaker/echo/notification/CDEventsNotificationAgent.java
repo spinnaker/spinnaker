@@ -18,6 +18,8 @@ package com.netflix.spinnaker.echo.notification;
 
 import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.cdevents.CDEventsBuilderService;
+import com.netflix.spinnaker.echo.cdevents.CDEventsConfigProperties;
+import com.netflix.spinnaker.echo.cdevents.CDEventsOTelSender;
 import com.netflix.spinnaker.echo.cdevents.CDEventsSenderService;
 import com.netflix.spinnaker.echo.exceptions.FieldNotFoundException;
 import io.cloudevents.CloudEvent;
@@ -37,6 +39,11 @@ import retrofit2.Response;
 public class CDEventsNotificationAgent extends AbstractEventNotificationAgent {
   @Autowired CDEventsBuilderService cdEventsBuilderService;
   @Autowired CDEventsSenderService cdEventsSenderService;
+
+  @Autowired(required = false)
+  CDEventsOTelSender cdEventsOTelSender;
+
+  @Autowired CDEventsConfigProperties cdEventsConfigProperties;
 
   @Override
   public String getNotificationType() {
@@ -61,7 +68,7 @@ public class CDEventsNotificationAgent extends AbstractEventNotificationAgent {
         Optional.ofNullable(preference)
             .map(p -> (String) p.get("cdEventsType"))
             .orElseThrow(() -> new FieldNotFoundException("notifications.cdEventsType"));
-    String eventsBrokerUrl =
+    String address =
         Optional.ofNullable(preference)
             .map(p -> (String) p.get("address"))
             .orElseThrow(() -> new FieldNotFoundException("notifications.address"));
@@ -69,25 +76,34 @@ public class CDEventsNotificationAgent extends AbstractEventNotificationAgent {
     CloudEvent cdEvent =
         cdEventsBuilderService.createCDEvent(
             preference, application, event, config, status, getSpinnakerUrl());
-    log.info(
-        "Sending CDEvent {} notification to events broker url {}", cdEventsType, eventsBrokerUrl);
-    Response<ResponseBody> response = cdEventsSenderService.sendCDEvent(cdEvent, eventsBrokerUrl);
-    if (response != null) {
-      try {
-        log.info(
-            "Received response from events broker : {} {} for execution id {}. {}",
-            response.code(),
-            response.message(),
-            executionId,
-            response.body() != null ? response.body().string() : "");
-      } catch (IOException e) {
-        log.info(
-            "Received response from events broker : {} {} for execution id {} "
-                + "but unable to serialize the response body: {}",
-            response.code(),
-            response.message(),
-            executionId,
-            e.getMessage());
+
+    if ("otlp".equalsIgnoreCase(cdEventsConfigProperties.getTransport())) {
+      log.info(
+          "Sending CDEvent {} as OTel span to OTLP endpoint {} for execution id {}",
+          cdEventsType,
+          address,
+          executionId);
+      cdEventsOTelSender.send(cdEvent, address);
+    } else {
+      log.info("Sending CDEvent {} notification to events broker url {}", cdEventsType, address);
+      Response<ResponseBody> response = cdEventsSenderService.sendCDEvent(cdEvent, address);
+      if (response != null) {
+        try {
+          log.info(
+              "Received response from events broker : {} {} for execution id {}. {}",
+              response.code(),
+              response.message(),
+              executionId,
+              response.body() != null ? response.body().string() : "");
+        } catch (IOException e) {
+          log.info(
+              "Received response from events broker : {} {} for execution id {} "
+                  + "but unable to serialize the response body: {}",
+              response.code(),
+              response.message(),
+              executionId,
+              e.getMessage());
+        }
       }
     }
   }
