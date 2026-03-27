@@ -110,7 +110,10 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     // The SpinnakerException wrapper and its message are never used.
     assertThat(responseBody.get("exception"))
         .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException");
-    assertThat(responseBody.get("message")).isEqualTo("java.net.SocketException: Connection reset");
+    assertThat(responseBody.get("message"))
+        .isEqualTo(
+            "Error invoking killing of the zombie pipeline!  Check logs - particularly on orca for more information: "
+                + "java.net.SocketException: Connection reset");
   }
 
   @Test
@@ -142,7 +145,8 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
         .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException");
     assertThat(responseBody.get("message"))
         .isEqualTo(
-            "Status: 404, Method: PUT, URL: "
+            "Error invoking killing of the zombie pipeline!  Check logs - particularly on orca for more information: "
+                + "Status: 404, Method: PUT, URL: "
                 + wmOrca.baseUrl()
                 + "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser, Message: Execution not found");
   }
