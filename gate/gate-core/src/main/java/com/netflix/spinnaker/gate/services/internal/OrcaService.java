@@ -106,7 +106,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @PUT("/admin/forceCancelExecution")
-  Call<Map> forceCancelPipeline(
+  Call<Void> forceCancelPipeline(
       @Query("executionId") String executionId,
       @Query("executionType") String executionType,
       @Query("canceledBy") String canceledBy);
