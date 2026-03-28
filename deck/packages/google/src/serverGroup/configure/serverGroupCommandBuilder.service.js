@@ -230,10 +230,24 @@ angular
         }
       }
 
-      function populateShieldedVmConfig(serverGroup, command) {
-        command.enableSecureBoot = serverGroup.enableSecureBoot;
-        command.enableVtpm = serverGroup.enableVtpm;
-        command.enableIntegrityMonitoring = serverGroup.enableIntegrityMonitoring;
+      // Dual-key fallback: try v1 key (shieldedInstanceConfig) first, then legacy beta key
+      // (shieldedVmConfig) for backward compat with server groups created before the v1 migration.
+      // Ref: https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
+      function populateShieldedVmConfig(source, command) {
+        const shieldedVmConfig =
+          _.get(source, 'launchConfig.instanceTemplate.properties.shieldedInstanceConfig') ||
+          _.get(source, 'launchConfig.instanceTemplate.properties.shieldedVmConfig');
+        command.enableSecureBoot = _.get(
+          shieldedVmConfig,
+          'enableSecureBoot',
+          _.get(source, 'enableSecureBoot', false),
+        );
+        command.enableVtpm = _.get(shieldedVmConfig, 'enableVtpm', _.get(source, 'enableVtpm', false));
+        command.enableIntegrityMonitoring = _.get(
+          shieldedVmConfig,
+          'enableIntegrityMonitoring',
+          _.get(source, 'enableIntegrityMonitoring', false),
+        );
       }
 
       function populateCustomMetadata(metadataItems, command) {
@@ -292,12 +306,6 @@ angular
       function populateResourceManagerTags(instanceTemplateResourceManagerTags, command) {
         if (instanceTemplateResourceManagerTags) {
           Object.assign(command.resourceManagerTags, instanceTemplateResourceManagerTags);
-        }
-      }
-
-      function populatePartnerMetadata(instanceTemplatePartnerMetadata, command) {
-        if (instanceTemplatePartnerMetadata) {
-          Object.assign(command.partnerMetadata, instanceTemplatePartnerMetadata);
         }
       }
 
@@ -380,7 +388,6 @@ angular
           tags: [],
           labels: {},
           resourceManagerTags: {},
-          partnerMetadata: {},
           enableSecureBoot: false,
           enableVtpm: false,
           enableIntegrityMonitoring: false,
@@ -460,11 +467,10 @@ angular
           tags: [],
           labels: {},
           resourceManagerTags: {},
-          partnerMetadata: {},
           availabilityZones: [],
-          enableSecureBoot: serverGroup.enableSecureBoot,
-          enableVtpm: serverGroup.enableVtpm,
-          enableIntegrityMonitoring: serverGroup.enableIntegrityMonitoring,
+          enableSecureBoot: false,
+          enableVtpm: false,
+          enableIntegrityMonitoring: false,
           enableTraffic: true,
           cloudProvider: 'gce',
           selectedProvider: 'gce',
@@ -487,6 +493,8 @@ angular
             mode: mode,
           },
         };
+
+        populateShieldedVmConfig(serverGroup, command);
 
         if (!command.regional) {
           command.zone = serverGroup.zones[0];
@@ -525,7 +533,6 @@ angular
               serverGroup.launchConfig.instanceTemplate.properties.resourceManagerTags,
               command,
             );
-            populatePartnerMetadata(serverGroup.launchConfig.instanceTemplate.properties.partnerMetadata, command);
 
             return populateDisksFromExisting(serverGroup.launchConfig.instanceTemplate.properties.disks, command).then(
               function () {
@@ -582,6 +589,9 @@ angular
             pipelineCluster.strategy = pipelineCluster.strategy || '';
 
             const extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+            // partnerMetadata is beta-only and rejected by stable Compute v1 APIs; strip from
+            // pipeline-derived commands for backward compatibility with older saved pipelines.
+            delete extendedCommand.partnerMetadata;
 
             return populateDisksFromPipeline(extendedCommand).then(function () {
               const instanceMetadata = extendedCommand.instanceMetadata;
@@ -601,9 +611,6 @@ angular
 
               const resourceManagerTags = extendedCommand.resourceManagerTags;
               populateResourceManagerTags(resourceManagerTags, extendedCommand);
-
-              const partnerMetadata = extendedCommand.partnerMetadata;
-              populatePartnerMetadata(partnerMetadata, extendedCommand);
 
               return extendedCommand;
             });
