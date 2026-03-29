@@ -35,4 +35,13 @@ public class CDEventsConfigProperties {
 
   /** OTLP exporter timeout in seconds. */
   private long otlpTimeoutSeconds = 10;
+
+  /** Path to PEM file containing trusted CA certificate(s) for verifying the OTLP collector. */
+  private String otlpCaCertPath;
+
+  /** Path to PEM file containing the client certificate for mTLS. */
+  private String otlpClientCertPath;
+
+  /** Path to PEM file containing the client private key for mTLS. Must be PKCS8 format. */
+  private String otlpClientKeyPath;
 }
