@@ -40,6 +40,12 @@ public class GoogleInternalHttpLoadBalancer extends GoogleLoadBalancer {
   String certificate;
 
   /**
+   * Certificate map name. This is populated only if this load balancer is a HTTPS load balancer
+   * using Certificate Manager.
+   */
+  String certificateMap;
+
+  /**
    * The name of the UrlMap this load balancer uses to route traffic. In the Google Cloud Console,
    * the L7 load balancer name is the same as this name.
    */
@@ -72,6 +78,7 @@ public class GoogleInternalHttpLoadBalancer extends GoogleLoadBalancer {
     GoogleBackendService defaultService = GoogleInternalHttpLoadBalancer.this.defaultService;
     List<GoogleHostRule> hostRules = GoogleInternalHttpLoadBalancer.this.hostRules;
     String certificate = GoogleInternalHttpLoadBalancer.this.certificate;
+    String certificateMap = GoogleInternalHttpLoadBalancer.this.certificateMap;
     String urlMapName = GoogleInternalHttpLoadBalancer.this.urlMapName;
     String network = GoogleInternalHttpLoadBalancer.this.network;
     String subnet = GoogleInternalHttpLoadBalancer.this.subnet;
