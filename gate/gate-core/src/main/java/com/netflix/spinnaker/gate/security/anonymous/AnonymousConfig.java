@@ -31,7 +31,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -48,7 +47,7 @@ import org.springframework.util.CollectionUtils;
 @Configuration
 @Log4j2
 @EnableWebSecurity
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order()
 @RequiredArgsConstructor
 public class AnonymousConfig {
   private static final String key = "spinnaker-anonymous";
@@ -59,7 +58,7 @@ public class AnonymousConfig {
   @Getter private final List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>();
 
   @Bean
-  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  public SecurityFilterChain anonymousSecurityFilterChain(HttpSecurity http) throws Exception {
     updateAnonymousAccounts();
     // Not using the ImmutableUser version in order to update allowedAccounts.
     User principal = new User();
