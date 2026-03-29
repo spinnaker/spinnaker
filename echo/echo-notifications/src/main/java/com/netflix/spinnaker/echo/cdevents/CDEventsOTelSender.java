@@ -24,11 +24,15 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporterBuilder;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -46,10 +50,29 @@ public class CDEventsOTelSender {
   // Unbounded cache keyed by endpoint URL. In practice, endpoints are static per-pipeline config,
   // so the number of entries is small and bounded by the number of distinct OTLP endpoints.
   private final Map<String, OpenTelemetrySdk> sdkCache = new ConcurrentHashMap<>();
-  private final long timeoutSeconds;
+  private final CDEventsConfigProperties config;
+  private final byte[] caCertBytes;
+  private final byte[] clientCertBytes;
+  private final byte[] clientKeyBytes;
 
   public CDEventsOTelSender(CDEventsConfigProperties config) {
-    this.timeoutSeconds = config.getOtlpTimeoutSeconds();
+    this.config = config;
+    try {
+      this.caCertBytes =
+          config.getOtlpCaCertPath() != null
+              ? Files.readAllBytes(Path.of(config.getOtlpCaCertPath()))
+              : null;
+      this.clientCertBytes =
+          config.getOtlpClientCertPath() != null
+              ? Files.readAllBytes(Path.of(config.getOtlpClientCertPath()))
+              : null;
+      this.clientKeyBytes =
+          config.getOtlpClientKeyPath() != null
+              ? Files.readAllBytes(Path.of(config.getOtlpClientKeyPath()))
+              : null;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read OTLP TLS certificate files", e);
+    }
   }
 
   public void send(CloudEvent cdEvent, String otlpEndpoint) {
@@ -91,20 +114,30 @@ public class CDEventsOTelSender {
     return sdkCache.computeIfAbsent(
         endpoint,
         ep -> {
-          OtlpGrpcSpanExporter exporter =
+          OtlpGrpcSpanExporterBuilder builder =
               OtlpGrpcSpanExporter.builder()
                   .setEndpoint(ep)
-                  .setTimeout(timeoutSeconds, TimeUnit.SECONDS)
-                  .build();
+                  .setTimeout(config.getOtlpTimeoutSeconds(), TimeUnit.SECONDS);
+
+          configureTls(builder);
 
           SdkTracerProvider tracerProvider =
               SdkTracerProvider.builder()
-                  .addSpanProcessor(BatchSpanProcessor.builder(exporter).build())
+                  .addSpanProcessor(BatchSpanProcessor.builder(builder.build()).build())
                   .setResource(
                       Resource.builder().put("service.name", "spinnaker-echo-cdevents").build())
                   .build();
 
           return OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
         });
+  }
+
+  private void configureTls(OtlpGrpcSpanExporterBuilder builder) {
+    if (caCertBytes != null) {
+      builder.setTrustedCertificates(caCertBytes);
+    }
+    if (clientCertBytes != null && clientKeyBytes != null) {
+      builder.setClientTls(clientKeyBytes, clientCertBytes);
+    }
   }
 }
