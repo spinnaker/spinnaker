@@ -96,8 +96,7 @@ public class OAuth2SsoConfig {
                   // injection of a mock or test implementation
                   // for unit/integration tests, so we don't need to call GitHub (or any real
                   // OAuth2 provider)
-                  .tokenEndpoint()
-                  .accessTokenResponseClient(tokenResponseClient);
+                  .tokenEndpoint(token -> token.accessTokenResponseClient(tokenResponseClient));
             });
     if (registrationId != null) {
       RestTemplate restTemplate = createRestTemplateWithTimeouts();
