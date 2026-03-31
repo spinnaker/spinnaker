@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services;
 
+import com.google.common.base.Preconditions;
 import com.netflix.spinnaker.gate.config.TaskServiceProperties;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
@@ -48,20 +49,20 @@ public class TaskService {
     this.taskServiceProperties = taskServiceProperties;
   }
 
-  public Map create(Map<String, Object> body) {
+  public Map<String, String> create(Map<String, Object> body) {
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString());
     }
     return Retrofit2SyncCall.execute(orcaServiceSelector.select().doOperation(body));
   }
 
-  public Map createAppTask(String app, Map<String, Object> body) {
+  public Map<String, String> createAppTask(String app, Map<String, Object> body) {
     body.put("application", app);
     AuthenticatedRequest.setApplication(app);
     return Retrofit2SyncCall.execute(orcaServiceSelector.select().doOperation(body));
   }
 
-  public Map createAppTask(Map<String, Object> body) {
+  public Map<String, String> createAppTask(Map<String, Object> body) {
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString());
     }
@@ -69,7 +70,7 @@ public class TaskService {
     return Retrofit2SyncCall.execute(orcaServiceSelector.select().doOperation(body));
   }
 
-  public Map getTask(final String id) {
+  public Map<String, Object> getTask(final String id) {
     return Retrofit2SyncCall.execute(getOrcaServiceSelector().select().getTask(id));
   }
 
@@ -93,14 +94,24 @@ public class TaskService {
     Retrofit2SyncCall.execute(getOrcaServiceSelector().select().cancelTasks(taskIds));
   }
 
-  public Map createAndWaitForCompletion(Map body, int maxPolls, int intervalMs) {
+  /**
+   * Create an orca task and poll until it completes or the maximum number of polls is exhausted.
+   *
+   * @param body the task definition to submit to orca
+   * @param maxPolls maximum number of times to poll for task completion (must be positive)
+   * @param intervalMs milliseconds to wait between polls
+   * @return the task result from orca, or the create result if it has no ref field
+   */
+  public Map<String, ?> createAndWaitForCompletion(
+      Map<String, Object> body, int maxPolls, int intervalMs) {
+    Preconditions.checkArgument(maxPolls > 0, "maxPolls must be positive, got %s", maxPolls);
     log.info("Creating and waiting for completion: " + body);
 
     if (body.containsKey("application")) {
       AuthenticatedRequest.setApplication(body.get("application").toString());
     }
 
-    Map createResult = create(body);
+    Map<String, String> createResult = create(body);
     if (createResult.get("ref") == null) {
       log.warn("No ref field found in create result, returning entire result: " + createResult);
       return createResult;
@@ -109,9 +120,7 @@ public class TaskService {
     String taskId = ((String) createResult.get("ref")).split("/")[2];
     log.info("Create succeeded; polling task for completion: " + taskId);
 
-    LinkedHashMap<String, String> map = new LinkedHashMap<>(1);
-    map.put("id", taskId);
-    Map task = map;
+    Map<String, Object> task = null;
     for (int i = 0; i < maxPolls; i++) {
       try {
         Thread.sleep(intervalMs);
@@ -137,11 +146,7 @@ public class TaskService {
     return task;
   }
 
-  public Map createAndWaitForCompletion(Map body, int maxPolls) {
-    return createAndWaitForCompletion(body, maxPolls, 1000);
-  }
-
-  public Map createAndWaitForCompletion(Map body) {
+  public Map<String, ?> createAndWaitForCompletion(Map<String, Object> body) {
     return createAndWaitForCompletion(
         body,
         taskServiceProperties.getMaxNumberOfPolls(),
@@ -164,7 +169,7 @@ public class TaskService {
    */
   public void setApplicationForTask(String id) {
     try {
-      Map task = getTask(id);
+      Map<String, Object> task = getTask(id);
       if (task.containsKey("application")) {
         AuthenticatedRequest.setApplication(task.get("application").toString());
       }

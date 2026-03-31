@@ -19,7 +19,7 @@ package com.netflix.spinnaker.gate.services;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties("fiat.service-accounts.filter")
 public class ServiceAccountFilterConfigProps {
