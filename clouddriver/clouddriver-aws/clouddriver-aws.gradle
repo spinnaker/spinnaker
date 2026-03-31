@@ -54,7 +54,6 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.25'
   implementation 'com.jcraft:jsch.agentproxy.connector-factory:0.0.9'
   implementation 'com.jcraft:jsch.agentproxy.jsch:0.0.9'
   implementation "com.github.wnameless.json:json-flattener:0.11.1"
