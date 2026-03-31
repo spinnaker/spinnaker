@@ -34,6 +34,7 @@ dependencies {
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
+  implementation "commons-io:commons-io"
   implementation "io.spinnaker.fiat:fiat-api"
   implementation "io.spinnaker.fiat:fiat-core"
   implementation "io.spinnaker.kork:kork-cloud-config-server"
