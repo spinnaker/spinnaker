@@ -162,11 +162,13 @@ class PipelineService {
     ]
   }
 
-  Map startPipeline(Map<String, Object> pipelineConfig, String user) {
+  /** Start a pipeline execution via orca's orchestrate endpoint. */
+  Map<String, Object> startPipeline(Map<String, Object> pipelineConfig, String user) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().startPipeline(pipelineConfig, user))
   }
 
-  Map getPipeline(String id) {
+  /** Retrieve a pipeline execution by ID. */
+  Map<String, Object> getPipeline(String id) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipeline(id))
   }
 
@@ -190,25 +192,30 @@ class PipelineService {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().deletePipeline(id))
   }
 
-  Map updatePipelineStage(String executionId, String stageId, Map<String, Object> context) {
+  /** Update a pipeline stage's context. */
+  Map<String, Object> updatePipelineStage(String executionId, String stageId, Map<String, Object> context) {
     setApplicationForExecution(executionId)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().updatePipelineStage(executionId, stageId, context))
   }
 
-  Map restartPipelineStage(String executionId, String stageId, Map<String, Object> context) {
+  /** Restart a pipeline stage. */
+  Map<String, Object> restartPipelineStage(String executionId, String stageId, Map<String, Object> context) {
     setApplicationForExecution(executionId)
     Retrofit2SyncCall.execute(orcaServiceSelector.select().restartPipelineStage(executionId, stageId, context))
   }
 
-  Map evaluateExpressionForExecution(String executionId, String pipelineExpression) {
+  /** Evaluate a SpEL expression against a pipeline execution. */
+  Map<String, Object> evaluateExpressionForExecution(String executionId, String pipelineExpression) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().evaluateExpressionForExecution(executionId, pipelineExpression))
   }
 
-  Map evaluateExpressionForExecutionAtStage(String executionId, String stageId, String pipelineExpression) {
+  /** Evaluate a SpEL expression at a specific stage of a pipeline execution. */
+  Map<String, Object> evaluateExpressionForExecutionAtStage(String executionId, String stageId, String pipelineExpression) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().evaluateExpressionForExecutionAtStage(executionId, stageId, pipelineExpression))
   }
 
-  Map evaluateVariables(String executionId, String requisiteStageRefIds, String spelVersionOverride, List<Map<String, String>> expressions) {
+  /** Evaluate variables (like the Evaluate Variables stage) against a pipeline execution. */
+  Map<String, Object> evaluateVariables(String executionId, String requisiteStageRefIds, String spelVersionOverride, List<Map<String, String>> expressions) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().evaluateVariables(executionId, requisiteStageRefIds, spelVersionOverride, expressions))
   }
 
