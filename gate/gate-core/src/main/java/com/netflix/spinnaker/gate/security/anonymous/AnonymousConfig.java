@@ -66,7 +66,9 @@ public class AnonymousConfig {
     principal.setEmail(defaultEmail);
     principal.setAllowedAccounts(anonymousAllowedAccounts);
 
-    return http.anonymous().key(key).principal(principal).and().csrf().disable().build();
+    return http.anonymous(anonymous -> anonymous.key(key).principal(principal))
+        .csrf(csrf -> csrf.disable())
+        .build();
   }
 
   @Scheduled(fixedDelay = 60000L)

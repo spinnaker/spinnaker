@@ -90,7 +90,7 @@ public class V2PipelineTemplatesController {
   @Operation(summary = "(ALPHA) Create a pipeline template.")
   @RequestMapping(value = "/create", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
-  public Map create(
+  public Map<String, ?> create(
       @RequestParam(value = "tag", required = false) String tag,
       @RequestBody Map<String, Object> pipelineTemplate) {
     validateSchema(pipelineTemplate);
@@ -136,7 +136,7 @@ public class V2PipelineTemplatesController {
   @Operation(summary = "(ALPHA) Update a pipeline template.")
   @RequestMapping(value = "/update/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.OK)
-  public Map update(
+  public Map<String, ?> update(
       @PathVariable String id,
       @RequestParam(value = "tag", required = false) String tag,
       @RequestBody Map<String, Object> pipelineTemplate,
@@ -187,7 +187,7 @@ public class V2PipelineTemplatesController {
   @Operation(summary = "Delete a pipeline template.")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(value = HttpStatus.OK)
-  public Map delete(
+  public Map<String, ?> delete(
       @PathVariable String id,
       @RequestParam(value = "tag", required = false) String tag,
       @RequestParam(value = "digest", required = false) String digest,
