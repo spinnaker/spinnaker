@@ -42,7 +42,8 @@ class JobService {
   @Autowired
   ProviderLookupService providerLookupService
 
-  List getPreconfiguredJobs() {
+  /** Retrieve preconfigured job definitions from orca. */
+  List<Map<String, Object>> getPreconfiguredJobs() {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().getPreconfiguredJobs())
   }
 
