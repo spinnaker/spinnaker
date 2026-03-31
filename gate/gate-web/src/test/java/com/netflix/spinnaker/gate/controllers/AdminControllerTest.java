@@ -87,8 +87,6 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
 
   @Test
   public void killZombieNetworkError() throws Exception {
-    // When Orca causes an IOException (e.g. connection reset), killZombie catches it and wraps it
-    // in a generic SpinnakerException, hiding the actual cause from the caller.
     wmOrca.stubFor(
         WireMock.put(
                 urlEqualTo(
@@ -103,11 +101,6 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     assertThat(response.statusCode()).isEqualTo(500);
     Map<String, Object> responseBody =
         new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
-    // AdminController.killZombie wraps the exception in a SpinnakerException with the message
-    // "Error invoking killing of the zombie pipeline!..." but Spring's
-    // ExceptionHandlerExceptionResolver walks the cause chain and finds
-    // SpinnakerNetworkException, which SpinnakerRetrofitExceptionHandlers handles directly.
-    // The SpinnakerException wrapper and its message are never used.
     assertThat(responseBody.get("exception"))
         .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException");
     assertThat(responseBody.get("message"))
@@ -118,11 +111,6 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
 
   @Test
   public void killZombieOrcaNotFound() throws Exception {
-    // When Orca returns a 404, killZombie catches the resulting exception and wraps it in a
-    // SpinnakerException. But Spring's ExceptionHandlerExceptionResolver walks the cause chain,
-    // finds SpinnakerHttpException, and SpinnakerRetrofitExceptionHandlers handles it directly —
-    // propagating the 404 status and Orca's error message. The SpinnakerException wrapper and its
-    // "Error invoking killing of the zombie pipeline!" message are never used.
     wmOrca.stubFor(
         WireMock.put(
                 urlEqualTo(
