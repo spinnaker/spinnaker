@@ -18,11 +18,11 @@ import retrofit2.http.Query;
 public interface OrcaService {
   @Headers("Content-type: application/context+json")
   @POST("ops")
-  Call<Map> doOperation(@Body Map<String, Object> body);
+  Call<Map<String, String>> doOperation(@Body Map<String, Object> body);
 
   @Headers("Accept: application/json")
   @GET("applications/{application}/tasks")
-  Call<List> getTasks(
+  Call<List<Map<String, Object>>> getTasks(
       @Path("application") String app,
       @Query("page") Integer page,
       @Query("limit") Integer limit,
@@ -30,7 +30,7 @@ public interface OrcaService {
 
   @Headers("Accept: application/json")
   @GET("v2/applications/{application}/pipelines")
-  Call<List> getPipelines(
+  Call<List<Map<String, Object>>> getPipelines(
       @Path("application") String app,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses,
@@ -38,16 +38,17 @@ public interface OrcaService {
       @Query("pipelineNameFilter") String pipelineNameFilter,
       @Query("pipelineLimit") Integer pipelineLimit);
 
+  /** Retrieve pipeline executions for a project. Orca returns a list of PipelineExecution. */
   @Headers("Accept: application/json")
   @GET("projects/{projectId}/pipelines")
-  Call<List<Map>> getPipelinesForProject(
+  Call<List<Map<String, Object>>> getPipelinesForProject(
       @Path("projectId") String projectId,
       @Query("limit") Integer limit,
       @Query("statuses") String statuses);
 
   @Headers("Accept: application/json")
   @GET("tasks/{id}")
-  Call<Map> getTask(@Path("id") String id);
+  Call<Map<String, Object>> getTask(@Path("id") String id);
 
   @Headers("Accept: application/json")
   @DELETE("tasks/{id}")
@@ -61,9 +62,13 @@ public interface OrcaService {
   @PUT("tasks/cancel")
   Call<Void> cancelTasks(@Body List<String> taskIds);
 
+  /**
+   * Retrieve a subset of pipeline executions by config IDs or execution IDs. Orca returns a list of
+   * PipelineExecution.
+   */
   @Headers("Accept: application/json")
   @GET("pipelines")
-  Call<List> getSubsetOfExecutions(
+  Call<List<Map<String, Object>>> getSubsetOfExecutions(
       @Query("pipelineConfigIds") String pipelineConfigIds,
       @Query("executionIds") String executionIds,
       @Query("limit") Integer limit,
@@ -76,9 +81,12 @@ public interface OrcaService {
       @Query("deckOrigin") String deckOrigin,
       @Query("limit") Integer limit);
 
+  /**
+   * Search for pipeline executions by trigger criteria. Orca returns a list of PipelineExecution.
+   */
   @Headers("Accept: application/json")
   @GET("applications/{application}/pipelines/search")
-  Call<List> searchForPipelineExecutionsByTrigger(
+  Call<List<Map<String, Object>>> searchForPipelineExecutionsByTrigger(
       @Path("application") String application,
       @Query("triggerTypes") String triggerTypes,
       @Query("pipelineName") String pipelineName,
@@ -92,9 +100,10 @@ public interface OrcaService {
       @Query("reverse") boolean reverse,
       @Query("expand") boolean expand);
 
+  /** Retrieve a single pipeline execution by ID. Orca returns a PipelineExecution. */
   @Headers("Accept: application/json")
   @GET("pipelines/{id}")
-  Call<Map> getPipeline(@Path("id") String id);
+  Call<Map<String, Object>> getPipeline(@Path("id") String id);
 
   @Headers("Accept: application/json")
   @PUT("pipelines/{id}/cancel")
@@ -111,9 +120,10 @@ public interface OrcaService {
       @Query("executionType") String executionType,
       @Query("canceledBy") String canceledBy);
 
+  /** Rehydrate an execution into the queue. Orca returns a HydrateQueueOutput. */
   @Headers("Accept: application/json")
   @POST("/admin/queue/hydrate")
-  Call<Map> rehydrateExecution(
+  Call<Map<String, Object>> rehydrateExecution(
       @Query("executionId") String executionId, @Query("dryRun") boolean dryRun);
 
   @Headers("Accept: application/json")
@@ -128,59 +138,76 @@ public interface OrcaService {
   @DELETE("pipelines/{id}")
   Call<Void> deletePipeline(@Path("id") String id);
 
+  /** Restart a pipeline stage. Orca returns a PipelineExecution. */
   @Headers("Accept: application/json")
   @PUT("pipelines/{executionId}/stages/{stageId}/restart")
-  Call<Map> restartPipelineStage(
+  Call<Map<String, Object>> restartPipelineStage(
       @Path("executionId") String executionId,
       @Path("stageId") String stageId,
-      @Body Map restartDetails);
+      @Body Map<String, Object> restartDetails);
 
+  /** Start a pipeline execution. Orca returns {@code Map<String, Object>}. */
   @Headers("Accept: application/json")
   @POST("orchestrate")
-  Call<Map> startPipeline(@Body Map pipelineConfig, @Query("user") String user);
+  Call<Map<String, Object>> startPipeline(
+      @Body Map<String, Object> pipelineConfig, @Query("user") String user);
 
+  /** Update a pipeline stage. Orca returns a PipelineExecution. */
   @Headers("Accept: application/json")
   @PATCH("pipelines/{executionId}/stages/{stageId}")
-  Call<Map> updatePipelineStage(
-      @Path("executionId") String executionId, @Path("stageId") String stageId, @Body Map context);
+  Call<Map<String, Object>> updatePipelineStage(
+      @Path("executionId") String executionId,
+      @Path("stageId") String stageId,
+      @Body Map<String, Object> context);
 
+  /** Evaluate a SpEL expression against a pipeline execution. Orca returns a raw Map. */
   @Headers("Accept: application/json")
   @GET("pipelines/{id}/evaluateExpression")
-  Call<Map> evaluateExpressionForExecution(
+  Call<Map<String, Object>> evaluateExpressionForExecution(
       @Path("id") String executionId, @Query("expression") String pipelineExpression);
 
+  /**
+   * Evaluate a SpEL expression at a specific stage of a pipeline execution. Orca returns a raw Map.
+   */
   @Headers("Accept: application/json")
   @GET("pipelines/{id}/{stageId}/evaluateExpression")
-  Call<Map> evaluateExpressionForExecutionAtStage(
+  Call<Map<String, Object>> evaluateExpressionForExecutionAtStage(
       @Path("id") String executionId,
       @Path("stageId") String stageId,
       @Query("expression") String pipelineExpression);
 
+  /**
+   * Evaluate variables (like the Evaluate Variables stage) against a pipeline execution. Orca
+   * returns a raw Map.
+   */
   @Headers("Accept: application/json")
   @POST("pipelines/{id}/evaluateVariables")
-  Call<Map> evaluateVariables(
+  Call<Map<String, Object>> evaluateVariables(
       @Path("id") String id,
       @Query("requisiteStageRefIds") String requisiteStageRefIds,
       @Query("spelVersion") String spelVersionOverride,
       @Body List<Map<String, String>> expressions);
 
+  /** Retrieve preconfigured webhook definitions. Orca returns {@code List<Map<String, Object>>}. */
   @Headers("Accept: application/json")
   @GET("webhooks/preconfigured")
-  Call<List> preconfiguredWebhooks();
+  Call<List<Map<String, Object>>> preconfiguredWebhooks();
 
+  /** Retrieve preconfigured job definitions. Orca returns {@code List<Map<String, Object>>}. */
   @Headers("Accept: application/json")
   @GET("jobs/preconfigured")
-  Call<List> getPreconfiguredJobs();
+  Call<List<Map<String, Object>>> getPreconfiguredJobs();
 
+  /** Resolve a pipeline template. Orca returns a PipelineTemplate. */
   @Headers("Accept: application/json")
   @GET("pipelineTemplate")
-  Call<Map> resolvePipelineTemplate(
+  Call<Map<String, Object>> resolvePipelineTemplate(
       @Query("source") String source,
       @Query("executionId") String executionId,
       @Query("pipelineConfigId") String pipelineConfigId);
 
   @POST("convertPipelineToTemplate")
-  Call<ResponseBody> convertToPipelineTemplate(@Body Map<String, ? extends Object> pipelineConfig);
+  Call<ResponseBody> convertToPipelineTemplate(@Body Map<String, Object> pipelineConfig);
 
   @Headers("Accept: application/json")
   @POST("v2/pipelineTemplates/plan")
@@ -196,8 +223,9 @@ public interface OrcaService {
   @GET("capabilities/deploymentMonitors")
   Call<List<Object>> getDeploymentMonitors();
 
+  /** Retrieve SpEL expression capabilities. Orca returns an ExpressionCapabilityResult. */
   @GET("capabilities/expressions")
-  Call<Map> getExpressionCapabilities();
+  Call<Map<String, Object>> getExpressionCapabilities();
 
   @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
