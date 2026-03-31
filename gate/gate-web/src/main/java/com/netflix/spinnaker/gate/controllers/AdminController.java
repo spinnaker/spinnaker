@@ -105,7 +105,7 @@ public class AdminController {
    */
   @PostMapping("/executions/hydrate")
   @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
-  public Map rehydrate(
+  public Map<String, Object> rehydrate(
       @Parameter(description = "The execution id of the specific pipeline to rehydrate.")
           @RequestParam(value = "executionId")
           String executionId,
