@@ -35,28 +35,54 @@ const (
 	googleOauthScope        = "openid email"
 )
 
-// returns the token get from google for IAP
-func GetIapToken(iapConfig Config) (string, error) {
+// GetIapToken returns the IAP ID token, using cache if valid.
+// Returns: token string, whether config was updated (for caching), error.
+func GetIapToken(iapConfig *Config) (string, bool, error) {
+	// Priority 1: Manually configured token (backwards compatibility)
 	if iapConfig.IapIdToken != "" {
-		return iapConfig.IapIdToken, nil
+		return iapConfig.IapIdToken, false, nil
 	}
+
+	// Priority 2: Check cached token validity
+	if iapConfig.CachedToken != nil && iapConfig.CachedToken.IsValid() {
+		return iapConfig.CachedToken.IDToken, false, nil
+	}
+
+	// Need to fetch a new token
+	var idToken string
+	var err error
 
 	if iapConfig.ServiceAccountKeyPath != "" && iapConfig.IapClientId != "" {
-		return GetIDTokenWithServiceAccount(iapConfig)
+		idToken, err = GetIDTokenWithServiceAccount(*iapConfig)
+	} else if iapConfig.IapClientRefresh == "" {
+		idToken, err = userInteract(iapConfig)
+	} else {
+		idToken, err = RequestIapIDToken(
+			iapConfig.IapClientRefresh,
+			iapConfig.OAuthClientId,
+			iapConfig.OAuthClientSecret,
+			iapConfig.IapClientId,
+		)
 	}
 
-	if iapConfig.IapClientRefresh == "" {
-		return userInteract(iapConfig)
+	if err != nil {
+		return "", false, err
 	}
 
-	return RequestIapIDToken(iapConfig.IapClientRefresh,
-		iapConfig.OAuthClientId,
-		iapConfig.OAuthClientSecret,
-		iapConfig.IapClientId)
+	// Cache the new token
+	cachedToken, cacheErr := NewCachedIDToken(idToken)
+	if cacheErr != nil {
+		// Token works but we couldn't parse expiry - still return it but don't cache
+		return idToken, false, nil
+	}
+
+	iapConfig.CachedToken = cachedToken
+	return idToken, true, nil
 }
 
-// userInteract lets the spin user fetch a token.
-func userInteract(cfg Config) (string, error) {
+// userInteract lets the spin user fetch a token via interactive OAuth flow.
+// It also captures the refresh token for future use.
+func userInteract(cfg *Config) (string, error) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return "", err
@@ -76,6 +102,11 @@ func userInteract(cfg Config) (string, error) {
 		clientState: clientState,
 		doneChan:    make(chan error),
 		callback: func(token *oauth2.Token, config *oauth2.Config, s2 string) (string, error) {
+			// Store the refresh token for future use
+			if token.RefreshToken != "" {
+				cfg.IapClientRefresh = token.RefreshToken
+			}
+
 			iapToken, err := RequestIapIDToken(token.AccessToken,
 				cfg.OAuthClientId,
 				cfg.OAuthClientSecret,
@@ -118,6 +149,7 @@ func oauthURL(clientId string, clientState string, port int) string {
 	q.Add("response_type", googleOauthResponseType)
 	q.Add("scope", googleOauthScope)
 	q.Add("redirect_uri", fmt.Sprintf("http://localhost:%d", port))
+	q.Add("access_type", "offline") // Request refresh token for future use
 	oauthUrl.RawQuery = q.Encode()
 
 	return oauthUrl.String()
