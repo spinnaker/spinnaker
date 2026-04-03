@@ -20,6 +20,7 @@ rootProject.name = "gate"
 
 include "gate-api",
   "gate-api-tck",
+  "gate-auth-apitoken",
   "gate-core",
   "gate-plugins",
   "gate-plugins-test",
