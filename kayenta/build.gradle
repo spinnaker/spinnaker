@@ -27,6 +27,197 @@ allprojects {
 subprojects { project ->
   group = "io.spinnaker.kayenta"
 
+  configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+      // Patch direct: signalfx-java
+      if (details.requested.group == 'com.signalfx.public' &&
+          details.requested.name == 'signalfx-java') {
+        details.useVersion '1.0.49' // latest stable as of now
+      }
+
+      if ((details.requested.group == 'com.amazon.ion' ||
+           details.requested.group == 'software.amazon.ion') &&
+          details.requested.name == 'ion-java') {
+        details.useVersion '1.5.1'
+      }
+
+      // Ion Java
+      if (details.requested.group == 'com.amazon.ion' &&
+          details.requested.name == 'ion-java') {
+        details.useVersion '1.10.5'
+      }
+
+      // Jinjava
+      if (details.requested.group == 'com.hubspot.jinjava' &&
+          details.requested.name == 'jinjava') {
+        details.useVersion '2.7.5'
+      }
+
+      // Json Smart
+      if (details.requested.group == 'net.minidev' &&
+          details.requested.name == 'json-smart') {
+        details.useVersion '2.5.2'
+      }
+
+      if (details.requested.group == 'io.netty' &&
+          details.requested.name == 'netty-codec') {
+        details.useVersion '4.1.125.Final'
+      }
+
+      if (details.requested.group == 'io.netty' &&
+          details.requested.name == 'netty-codec-http') {
+        details.useVersion '4.1.125.Final'
+      }
+
+      if (details.requested.group == 'io.netty' &&
+          details.requested.name == 'netty-codec-http2') {
+        details.useVersion '4.1.124.Final'
+      }
+
+      if (details.requested.group == 'org.apache.commons' &&
+          details.requested.name == 'commons-lang3') {
+        details.useVersion '3.18.0'
+      }
+
+      if (details.requested.group == 'org.eclipse.jetty' &&
+          details.requested.name == 'jetty-http') {
+        details.useVersion '12.0.12'
+      }
+
+      // Bouncy Castle
+      if (details.requested.group == 'org.bouncycastle' &&
+          details.requested.name == 'bcprov-jdk18on') {
+        details.useVersion '1.78'
+      }
+  
+      // Commons IO
+      if (details.requested.group == 'commons-io' &&
+          details.requested.name == 'commons-io') {
+        details.useVersion '2.14.0'
+      }
+  
+      // Jackson Core
+      if (details.requested.group == 'com.fasterxml.jackson.core' &&
+          details.requested.name == 'jackson-core') {
+        details.useVersion '2.15.0'
+      }
+  
+      // Logback Core
+      if (details.requested.group == 'ch.qos.logback' &&
+          details.requested.name == 'logback-core') {
+        details.useVersion '1.3.15'
+      }
+  
+      // Logstash Logback Encoder
+      if (details.requested.group == 'net.logstash.logback' &&
+          details.requested.name == 'logstash-logback-encoder') {
+        details.useVersion '7.4' // Latest as of 2025; adjust if needed
+      }
+
+      // Commons Lang3
+      if (details.requested.group == 'org.apache.commons' &&
+          details.requested.name == 'commons-lang3') {
+        details.useVersion '3.18.0'
+      }
+  
+      // MySQL Connector/J
+      if (details.requested.group == 'com.mysql' &&
+          details.requested.name == 'mysql-connector-j') {
+        details.useVersion '8.2.0'
+      }
+  
+      // Netty modules
+      if (details.requested.group == 'io.netty') {
+        if (details.requested.name == 'netty-common' ||
+            details.requested.name == 'netty-handler') {
+          details.useVersion '4.1.118.Final'
+        }
+        if (details.requested.name == 'netty-codec-http') {
+          details.useVersion '4.1.108.Final'
+        }
+      }
+  
+      // PostgreSQL JDBC
+      if (details.requested.group == 'org.postgresql' &&
+          details.requested.name == 'postgresql') {
+        details.useVersion '42.3.9'
+      }
+  
+      // Protobuf Java
+      if (details.requested.group == 'com.google.protobuf' &&
+          details.requested.name == 'protobuf-java') {
+        details.useVersion '3.25.5'
+      }
+  
+      // Reactor Netty HTTP
+      if (details.requested.group == 'io.projectreactor.netty' &&
+          details.requested.name == 'reactor-netty-http') {
+        details.useVersion '1.2.8'
+      }
+  
+      // Jackson Databind (used by signalfx)
+      if (details.requested.group == 'com.fasterxml.jackson.core' &&
+          details.requested.name == 'jackson-databind') {
+        details.useVersion '2.12.7.1'
+      }
+  
+      // Guava
+      if (details.requested.group == 'com.google.guava' &&
+          details.requested.name == 'guava') {
+        details.useVersion '32.1.3-jre'
+      }
+  
+      // HttpClient
+      if (details.requested.group == 'org.apache.httpcomponents' &&
+          details.requested.name == 'httpclient') {
+        details.useVersion '4.5.13'
+      }
+  
+      // Jetty
+      if (details.requested.group == 'org.eclipse.jetty') {
+        details.useVersion '9.4.52.v20230823'
+      }
+  
+      // SnakeYAML
+      if (details.requested.group == 'org.yaml' &&
+          details.requested.name == 'snakeyaml') {
+        details.useVersion '2.0'
+      }
+  
+      // Spring Framework
+      if (details.requested.group == 'org.springframework') {
+        if ( details.requested.name == 'spring-webmvc') {
+          details.useVersion '5.3.39'
+        }
+        if (details.requested.name == 'spring-web') {
+          details.useVersion '5.3.39'
+        }
+
+        if (details.requested.name == 'spring-expression') {
+          details.useVersion '5.3.39'
+        }
+      }
+  
+      // Spring Security
+      if (details.requested.group == 'org.springframework.security') {
+        if (details.requested.name == 'spring-security-core') {
+          details.useVersion '5.8.16'
+        }
+        if (details.requested.name == 'spring-security-crypto') {
+          details.useVersion '5.8.16'
+        }
+        if (details.requested.name == 'spring-security-web') {
+          details.useVersion '5.8.16'
+        }
+      }
+  
+      // Tomcat
+      if (details.requested.group == 'org.apache.tomcat.embed') {
+        details.useVersion '9.0.108'
+      }
+    }
+  }
+
   if (name != "kayenta-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"
