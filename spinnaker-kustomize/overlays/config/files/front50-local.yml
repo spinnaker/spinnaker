@@ -1,2 +1,10 @@
 # Overrides for front50 default configuration:
 # https://github.com/spinnaker/front50/blob/master/front50-web/config/front50.yml
+
+## IF this is from a PREVIOUS install, and migrating to service accounts, use this to create them
+#migrations:
+#  migrateToManagedServiceAccounts: true
+###   See: https://github.com/spinnaker/spinnaker/blob/main/front50/front50-migrations/src/main/java/com/netflix/spinnaker/front50/migrations/DeleteDanglingServiceAccountsMigration.java
+###   and https://github.com/spinnaker/spinnaker/issues/6319 and https://github.com/spinnaker/orca/pull/4083 for more information.
+#  deleteDanglingManagedServiceAccounts: true
+#  deleteDanglingSharedManagedServiceAccounts: true
