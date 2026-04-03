@@ -54,7 +54,7 @@ dependencies {
   implementation "org.apache.groovy:groovy"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
-  implementation "com.github.wnameless.json:json-flattener:0.11.1"
+  implementation "com.github.wnameless.json:json-flattener:${jsonFlattenerVersion}"
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
