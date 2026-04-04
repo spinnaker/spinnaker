@@ -36,7 +36,7 @@ import java.util.Set;
 
 @Component
 @Slf4j
-@ConditionalOnProperty(value = "k8s.secretEngine.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(value = "spinnaker.secrets.kubernetes.enabled", havingValue = "true", matchIfMissing = false)
 @Setter
 public class KubernetesSecretEngine implements SecretEngine {
   private static final String IDENTIFIER = "k8s";
