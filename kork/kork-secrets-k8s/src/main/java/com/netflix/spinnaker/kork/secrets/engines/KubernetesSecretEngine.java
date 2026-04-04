@@ -25,32 +25,35 @@ import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1Secret;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.Namespaces;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.Set;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Optional;
-import java.util.Set;
-
 @Component
 @Slf4j
-@ConditionalOnProperty(value = "spinnaker.secrets.kubernetes.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+    value = "spinnaker.secrets.kubernetes.enabled",
+    havingValue = "true",
+    matchIfMissing = false)
 @Setter
 public class KubernetesSecretEngine implements SecretEngine {
   private static final String IDENTIFIER = "k8s";
   private static final String SECRET_NAME = "n";
   private static final String SECRET_KEY = "k";
-  private static final String SECRET_NAMESPACE= "ns";
+  private static final String SECRET_NAMESPACE = "ns";
   private CoreV1Api apiClient;
   private String namespace;
 
   KubernetesSecretEngine() {
     try {
       namespace = Namespaces.getPodNamespace();
-    }catch (Exception e) {
-      log.warn("WARNING!  Unable to determine the namespace.  This LIKELY means we're not in a container!  Defaulting to 'default'");
+    } catch (Exception e) {
+      log.warn(
+          "WARNING!  Unable to determine the namespace.  This LIKELY means we're not in a container!  Defaulting to 'default'");
     }
 
     ApiClient apiClient = null;
@@ -62,8 +65,6 @@ public class KubernetesSecretEngine implements SecretEngine {
       throw new RuntimeException(e);
     }
     this.apiClient = new CoreV1Api(apiClient);
-
-
   }
 
   public String identifier() {
@@ -75,13 +76,19 @@ public class KubernetesSecretEngine implements SecretEngine {
     try {
       String namespace = this.namespace;
       if (namespace == null) {
-        namespace = Optional.ofNullable(encryptedSecret.getParams().get(SECRET_NAMESPACE)).orElse("default");
-        log.warn("Loading namespace from %s since it seems NOT running in a container.".formatted(namespace));
+        namespace =
+            Optional.ofNullable(encryptedSecret.getParams().get(SECRET_NAMESPACE))
+                .orElse("default");
+        log.warn(
+            "Loading namespace from %s since it seems NOT running in a container."
+                .formatted(namespace));
       }
-      V1Secret secret = apiClient.readNamespacedSecret(encryptedSecret.getParams().get(SECRET_NAME).toLowerCase(), namespace, null);
+      V1Secret secret =
+          apiClient.readNamespacedSecret(
+              encryptedSecret.getParams().get(SECRET_NAME).toLowerCase(), namespace, null);
       return secret.getData().get(encryptedSecret.getParams().get(SECRET_KEY));
     } catch (ApiException e) {
-      log.error("Unable to load secret for "+ encryptedSecret.getUri(), e);
+      log.error("Unable to load secret for " + encryptedSecret.getUri(), e);
       throw new RuntimeException(e);
     }
   }
@@ -100,8 +107,5 @@ public class KubernetesSecretEngine implements SecretEngine {
   }
 
   @Override
-  public void clearCache() {
-
-  }
-
+  public void clearCache() {}
 }
