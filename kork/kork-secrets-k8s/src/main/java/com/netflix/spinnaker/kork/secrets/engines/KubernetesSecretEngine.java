@@ -48,6 +48,10 @@ public class KubernetesSecretEngine implements SecretEngine {
   private CoreV1Api apiClient;
   private String namespace;
 
+  /*
+  There is NOT a great way to "test" this namespace sane default WITHOUT running in a container in k8s.  As such, do the best we can to capture
+  defaults in the executions via integration tests.
+   */
   KubernetesSecretEngine() {
     try {
       namespace = Namespaces.getPodNamespace();
@@ -74,13 +78,11 @@ public class KubernetesSecretEngine implements SecretEngine {
   @Override
   public byte[] decrypt(EncryptedSecret encryptedSecret) {
     try {
-      String namespace = this.namespace;
+      String namespace = Optional.ofNullable(encryptedSecret.getParams().get(SECRET_NAMESPACE)).orElse(this.namespace);
       if (namespace == null) {
-        namespace =
-            Optional.ofNullable(encryptedSecret.getParams().get(SECRET_NAMESPACE))
-                .orElse("default");
+        namespace = "default";
         log.warn(
-            "Loading namespace from %s since it seems NOT running in a container."
+            "Loading secret from namespace %s since unable to calculate from the pod environment."
                 .formatted(namespace));
       }
       V1Secret secret =
