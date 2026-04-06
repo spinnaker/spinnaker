@@ -9,8 +9,8 @@ window.spinnakerSettings.feature.functions = false;
 window.spinnakerSettings.kubernetesAdHocInfraWritesEnabled = true;
 window.spinnakerSettings.authEnabled = true;
 
-// service accounts are automatically created as needed.
-window.spinnakerSettings.feature.managedServiceAccounts = true;
+// service accounts are automatically created as needed.  Turn this on when enabling real RBAC
+// window.spinnakerSettings.feature.managedServiceAccounts = true;
 
 // Change this to whatever host your ingress is on
 // DO NOT add a trailing slash - this is a prefix and the trailing slash is added by deck's redirect

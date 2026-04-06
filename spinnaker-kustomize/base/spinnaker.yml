@@ -18,7 +18,8 @@ services:
     enabled: true
   fiat:
     baseUrl: http://fiat:7003
-    enabled: true
+    ## CANNOT be enabled with basic auth at this time
+    enabled: false
   front50:
     baseUrl: http://front50:8080
     enabled: true

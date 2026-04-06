@@ -58,7 +58,10 @@ several locations to change this setting.
 * base/deck/files/settings.js - which sets UI paths required for various API calls
 * ingress.yaml - which is what the ingress usees for route rules
 
-You should ALSO adjust the default password set in `overlays/config/files/gate-local.yml` to some other default password.  
+You should ALSO adjust the default password set in `overlays/config/files/gate-local.yml` to some other default password and better yet, a real auth provider.
+
+NOTE:  When setting an auth provider other than basicform, please ALSO turn on various settings like pipeline permissions which are default commented out
+and enable fiat for RBAC.  Docs are available on [the website](https://spinnaker.io) for more installation settings
 
 ## Customizing Spinnaker
 
