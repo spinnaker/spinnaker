@@ -78,7 +78,9 @@ public class KubernetesSecretEngine implements SecretEngine {
   @Override
   public byte[] decrypt(EncryptedSecret encryptedSecret) {
     try {
-      String namespace = Optional.ofNullable(encryptedSecret.getParams().get(SECRET_NAMESPACE)).orElse(this.namespace);
+      String namespace =
+          Optional.ofNullable(encryptedSecret.getParams().get(SECRET_NAMESPACE))
+              .orElse(this.namespace);
       if (namespace == null) {
         namespace = "default";
         log.warn(
