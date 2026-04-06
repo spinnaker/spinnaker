@@ -6,6 +6,10 @@
 spring.config.import: optional:file:/opt/spinnaker/config/*/
 
 services:
+  ## Change to whatever domain you're using.  This enables redirect on logins post auth
+  deck:
+    baseUrl: http://example.com/
+    enabled: true
   clouddriver:
     baseUrl: http://clouddriver:7002
     enabled: true

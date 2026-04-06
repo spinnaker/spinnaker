@@ -11,3 +11,6 @@ window.spinnakerSettings.authEnabled = true;
 
 // service accounts are automatically created as needed.
 window.spinnakerSettings.feature.managedServiceAccounts = true;
+
+// Change this to whatever host your ingress is on
+// DO NOT add a trailing slash - this is a prefix and the trailing slash is added by deck's redirect
