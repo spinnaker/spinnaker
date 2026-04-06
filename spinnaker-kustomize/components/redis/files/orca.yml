@@ -1,5 +1,5 @@
 redis:
-  connection: redis://redis.spinnaker:6379
+  connection: redis://redis:6379
 
 keiko:
   queue:

@@ -2,6 +2,6 @@
 # https://github.com/spinnaker/orca/blob/master/orca-web/config/orca.yml
 
 ## Setup auth using managed service accounts.  This reduces the need to create service accounts
-tasks:
-  useManagedServiceAccounts: true
-  useSharedManagedServiceAccounts: true
+#tasks:
+#  useManagedServiceAccounts: true
+#  useSharedManagedServiceAccounts: true

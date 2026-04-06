@@ -6,30 +6,35 @@
 spring.config.import: optional:file:/opt/spinnaker/config/*/
 
 services:
+  ## Change to whatever domain you're using.  This enables redirect on logins post auth
+  deck:
+    baseUrl: http://example.com/
+    enabled: true
   clouddriver:
-    baseUrl: http://clouddriver.spinnaker:7002
+    baseUrl: http://clouddriver:7002
     enabled: true
   echo:
-    baseUrl: http://echo.spinnaker:8089
+    baseUrl: http://echo:8089
     enabled: true
   fiat:
-    baseUrl: http://fiat.spinnaker:7003
-    enabled: false  # FIXME: Enable basic auth by default
+    baseUrl: http://fiat:7003
+    ## CANNOT be enabled with basic auth at this time
+    enabled: false
   front50:
-    baseUrl: http://front50.spinnaker:8080
+    baseUrl: http://front50:8080
     enabled: true
   igor:
-    baseUrl: http://igor.spinnaker:8088
+    baseUrl: http://igor:8088
     enabled: true
   kayenta:
-    baseUrl: http://kayenta.spinnaker:8090
+    baseUrl: http://kayenta:8090
     enabled: false
   keel:
-    baseUrl: http://keel.spinnaker:7010
+    baseUrl: http://keel:7010
     enabled: false
   orca:
-    baseUrl: http://orca.spinnaker:8083
+    baseUrl: http://orca:8083
     enabled: true
   rosco:
-    baseUrl: http://rosco.spinnaker:8087
+    baseUrl: http://rosco:8087
     enabled: true
