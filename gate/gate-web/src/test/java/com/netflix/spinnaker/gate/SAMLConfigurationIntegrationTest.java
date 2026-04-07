@@ -20,19 +20,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(
-  webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-  properties = {
-    "spring.config.location=classpath:gate-test.yml",
-    "saml.enabled=true",
-    "saml.issuer-id=spinnaker-test", // MUST match client-id in keycloak
-    "saml.sign-requests=true", // Keycloak forces spring to sign requests even if keycloak doesn't
-    // validate the signature.
-    "saml.signing-credentials[0].privateKeyLocation=private_key.pem",
-    "saml.signing-credentials[0].certificateLocation=certificate.pem",
-    "management.endpoints.web.exposure.include=beans" // used as an authenticated endpoint to
-    // validate auth stuff
-  },
-  classes = Main.class)
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    properties = {
+      "spring.config.location=classpath:gate-test.yml",
+      "saml.enabled=true",
+      "saml.issuer-id=spinnaker-test", // MUST match client-id in keycloak
+      "saml.sign-requests=true", // Keycloak forces spring to sign requests even if keycloak doesn't
+      // validate the signature.
+      "saml.signing-credentials[0].privateKeyLocation=private_key.pem",
+      "saml.signing-credentials[0].certificateLocation=certificate.pem",
+      "management.endpoints.web.exposure.include=beans" // used as an authenticated endpoint to
+      // validate auth stuff
+    },
+    classes = Main.class)
 class SAMLConfigurationIntegrationTest extends AbstractSAMLConfigurationIntegrationTest {
 
   @Test
