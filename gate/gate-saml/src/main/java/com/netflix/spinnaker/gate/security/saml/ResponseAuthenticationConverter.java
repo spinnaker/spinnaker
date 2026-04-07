@@ -26,7 +26,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -47,8 +46,6 @@ public class ResponseAuthenticationConverter
   private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
   private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
   private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
-
-  @Autowired private AllowedAccountsSupport allowedAccountsSupport;
 
   @Override
   public PreAuthenticatedAuthenticationToken convert(ResponseToken source) {
