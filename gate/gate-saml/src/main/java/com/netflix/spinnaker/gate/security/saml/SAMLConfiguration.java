@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.security.saml;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,7 @@ public class SAMLConfiguration {
     private final ObjectProvider<UserIdentifierExtractor> userIdentifierExtractorProvider;
     private final ObjectProvider<UserRolesExtractor> userRolesExtractorProvider;
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
+    private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
 
     /** Disables the same-site requirement for cookies as configured in other SSO modules. */
     @Bean
@@ -72,7 +74,8 @@ public class SAMLConfiguration {
           () ->
               userRolesExtractorProvider.getIfAvailable(
                   () -> new DefaultUserRolesExtractor(properties)),
-          authenticationServiceFactory);
+          authenticationServiceFactory,
+          allowedAccountsSupportFactory);
     }
 
     @Bean
