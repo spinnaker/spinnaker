@@ -186,7 +186,7 @@ class ResponseAuthenticationConverterTest {
   static final class TestableResponseAuthenticationConverter
       extends ResponseAuthenticationConverter {
     private final SecuritySamlProperties properties;
-    private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupport;
+    private final AllowedAccountsSupport allowedAccountsSupport;
     private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
     private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
