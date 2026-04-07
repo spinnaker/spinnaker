@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.gate.security.saml;
 
+import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
 import com.netflix.spinnaker.security.User;
 import java.util.Collection;
@@ -25,6 +26,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -44,6 +46,8 @@ public class ResponseAuthenticationConverter
   private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
   private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
   private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
+
+  @Autowired private AllowedAccountsSupport allowedAccountsSupport;
 
   @Override
   public PreAuthenticatedAuthenticationToken convert(ResponseToken source) {
@@ -68,6 +72,8 @@ public class ResponseAuthenticationConverter
 
     Set<String> roles = userRolesExtractor.getRoles(principal);
     user.setRoles(roles);
+
+    user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(userid, roles));
 
     if (!CollectionUtils.isEmpty(properties.getRequiredRoles())) {
       var requiredRoles = Set.copyOf(properties.getRequiredRoles());
