@@ -9,8 +9,6 @@ dependencies {
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
 
-  runtimeOnly "com.h2database:h2"
-
   testRuntimeOnly "com.mysql:mysql-connector-j"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
   testRuntimeOnly "org.postgresql:postgresql"
