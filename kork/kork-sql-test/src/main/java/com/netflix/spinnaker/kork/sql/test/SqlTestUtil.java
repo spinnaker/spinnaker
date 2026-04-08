@@ -63,22 +63,6 @@ public class SqlTestUtil {
 
   public static String tcPgJdbcUrl = "jdbc:tc:postgres:10.13:///test";
 
-  /**
-   * @deprecated Please use the TestContainers db initializers where possible, instead of H2
-   */
-  @Deprecated
-  public static TestDatabase initDatabase() {
-    return initDatabase("jdbc:h2:mem:test;MODE=MYSQL");
-  }
-
-  /**
-   * @deprecated Please use the TestContainers db initializers where possible, instead of H2
-   */
-  @Deprecated
-  public static TestDatabase initPreviousDatabase() {
-    return initDatabase("jdbc:h2:mem:test_previous;MODE=MYSQL");
-  }
-
   public static TestDatabase initTcMysqlDatabase() {
     // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
     // overridden to "test" by the driver.
