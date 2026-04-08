@@ -179,10 +179,6 @@ public class SqlTestUtil {
         previousTDB.liquibase);
   }
 
-  public static TestDatabase initDatabase(String jdbcUrl) {
-    return initDatabase(jdbcUrl, H2);
-  }
-
   public static TestDatabase initDatabase(String jdbcUrl, SQLDialect dialect) {
     return initDatabase(jdbcUrl, dialect, "test");
   }
