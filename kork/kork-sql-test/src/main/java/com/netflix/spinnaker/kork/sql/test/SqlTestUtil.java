@@ -61,7 +61,7 @@ public class SqlTestUtil {
   // automatically start a mysql container.
   public static String tcJdbcUrl = "jdbc:tc:mysql:8.0.40:///somedb";
 
-  public static String tcPgJdbcUrl = "jdbc:tc:postgres:10.13:///test";
+  public static String tcPgJdbcUrl = "jdbc:tc:postgres:16.13:///test";
 
   public static TestDatabase initTcMysqlDatabase() {
     // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
@@ -76,7 +76,7 @@ public class SqlTestUtil {
     // name in the JDBC url
     // when implicitly starting a container from a testcontainers-driver-prefixed JDBC URL
     PostgreSQLContainer container =
-        new PostgreSQLContainer<>("postgres:10.13")
+        new PostgreSQLContainer<>("postgres:16.13")
             .withDatabaseName("test")
             .withUsername("test")
             .withPassword("test");
@@ -113,7 +113,7 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initDualTcPostgresDatabases() {
-    return initDualTcDatabases("postgres:10.13", SQLDialect.POSTGRES);
+    return initDualTcDatabases("postgres:16.13", SQLDialect.POSTGRES);
   }
 
   private static TestDatabase initDualTcDatabases(String imageName, SQLDialect dialect) {
