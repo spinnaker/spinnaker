@@ -104,8 +104,7 @@ public class FiatAuthenticationConfig {
         .addFilterBefore(
             new FiatAuthenticationFilter(authenticationConverter),
             AnonymousAuthenticationFilter.class)
-        .csrf()
-        .disable();
+        .csrf(csrf -> csrf.disable());
 
     return http.build();
   }
