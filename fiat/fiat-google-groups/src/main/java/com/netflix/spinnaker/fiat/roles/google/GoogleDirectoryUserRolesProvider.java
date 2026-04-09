@@ -139,7 +139,8 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     return emailGroupsMap;
   }
 
-  // TODO:  Move the directory stuff to a mock object vs. spying on the code methods. that'd provide better tests
+  // TODO:  Move the directory stuff to a mock object vs. spying on the code methods. that'd provide
+  // better tests
   @VisibleForTesting
   protected Collection<Role> getRolesForEmail(String email) throws IOException {
     // Check if this is a managed service account, we should never check google groups for
@@ -154,9 +155,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
       return new ArrayList<>();
     }
-    return groups.getGroups().stream()
-        .flatMap(toRoleFn())
-        .collect(Collectors.toSet());
+    return groups.getGroups().stream().flatMap(toRoleFn()).collect(Collectors.toSet());
   }
 
   @Override
