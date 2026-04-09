@@ -96,7 +96,8 @@ public class GoogleCloudBuildTest {
   static class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-      http.authorizeHttpRequests().anyRequest().permitAll().and().csrf().disable();
+      http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+          .csrf(csrf -> csrf.disable());
       return http.build();
     }
   }
