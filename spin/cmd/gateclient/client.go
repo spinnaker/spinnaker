@@ -183,6 +183,12 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 			return nil, unwrapErr(ui, err)
 		}
 
+		// Set the access token in the context so it is sent as a Bearer token
+		// on every API request, rather than relying solely on session cookies.
+		if gateClient.Config.Auth.OAuth2.CachedToken != nil {
+			gateClient.Context = context.WithValue(gateClient.Context, gate.ContextAccessToken, gateClient.Config.Auth.OAuth2.CachedToken.AccessToken)
+		}
+
 		updatedMessage = "Caching oauth2 token."
 	}
 
@@ -389,7 +395,7 @@ func ContextWithAuth(ctx context.Context, auth *auth.Config) (context.Context, b
 // AddAuthHeaders will use the context variables to set via ContextWithAuth
 // to add any necessary authentication headers to the request.
 func AddAuthHeaders(ctx context.Context, req *http.Request) error {
-	if ctx != nil {
+	if ctx == nil {
 		return nil
 	}
 
