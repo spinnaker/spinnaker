@@ -90,7 +90,7 @@ runs:
         labels: |
           "org.opencontainers.image.source=https://github.com/spinnaker/spinnaker"
           "org.opencontainers.image.license=Apache-2.0"
-          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/
+          "org.opencontainers.image.documentation=https://spinnaker.io/docs/"
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
@@ -117,7 +117,7 @@ runs:
         labels: |
           "org.opencontainers.image.source=https://github.com/spinnaker/spinnaker"
           "org.opencontainers.image.license=Apache-2.0"
-          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/
+          "org.opencontainers.image.documentation=https://spinnaker.io/docs/"
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
@@ -142,7 +142,7 @@ runs:
         labels: |
           "org.opencontainers.image.source=https://github.com/spinnaker/spinnaker"
           "org.opencontainers.image.license=Apache-2.0"
-          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/
+          "org.opencontainers.image.documentaion=https://spinnaker.io/docs/"
           "org.opencontainers.image.revision=${{ github.sha }}"
           "org.opencontainers.image.version=${{ inputs.version }}"
           "io.spinnaker.ci-build=${{ inputs.build-url }}"
