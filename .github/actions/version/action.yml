@@ -148,7 +148,7 @@ runs:
 
         if [[ '${{ github.event_name }}' != 'pull_request' ]]; then
           cat<<EOF>>"$GITHUB_STEP_SUMMARY"
-          ### Version Info" >>
+          ### Version Info
           | | |
           | --- | --- |
           | __Version__ | $VERSION |
