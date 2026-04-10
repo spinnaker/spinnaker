@@ -38,7 +38,9 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 public class KubernetesSecretsEngineTest {
 
-  private KubernetesSecretEngine secretEngine = new KubernetesSecretEngine();
+  private static final String NAMESPACE = "default";
+
+  private KubernetesSecretEngine secretEngine;
 
   K3sContainer k3s = new K3sContainer(DockerImageName.parse("rancher/k3s:v1.35.3-k3s1"));
   CoreV1Api coreV1Api;
@@ -51,13 +53,14 @@ public class KubernetesSecretsEngineTest {
                 KubeConfig.loadKubeConfig(new StringReader(k3s.getKubeConfigYaml())))
             .build();
     coreV1Api = new CoreV1Api(client);
+    secretEngine = new KubernetesSecretEngine(NAMESPACE);
     secretEngine.setApiClient(coreV1Api);
   }
 
   @Test
   void testThatCanGetBasicScret() throws Exception {
     String expectedSecretValue = RandomStringUtils.randomAlphanumeric(16);
-    createSecretInNamespace(expectedSecretValue, "default", "somesecret", "secret");
+    createSecretInNamespace(expectedSecretValue, NAMESPACE, "somesecret", "secret");
     byte[] secretValue =
         secretEngine.decrypt(EncryptedSecret.parse("encrypted:k8s!n:somesecret!k:secret"));
     assertThat(new String(secretValue)).isEqualTo(expectedSecretValue);

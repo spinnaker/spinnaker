@@ -71,6 +71,11 @@ public class KubernetesSecretEngine implements SecretEngine {
     this.apiClient = new CoreV1Api(apiClient);
   }
 
+  /** Constructor for testing — caller must provide the apiClient via {@link #setApiClient}. */
+  KubernetesSecretEngine(String namespace) {
+    this.namespace = namespace;
+  }
+
   public String identifier() {
     return IDENTIFIER;
   }
