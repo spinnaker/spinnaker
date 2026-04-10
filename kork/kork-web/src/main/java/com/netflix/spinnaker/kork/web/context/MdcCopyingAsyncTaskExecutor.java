@@ -57,6 +57,9 @@ public class MdcCopyingAsyncTaskExecutor implements AsyncTaskExecutor {
     delegate.execute(wrapWithContext(task));
   }
 
+  // AsyncTaskExecutor.execute(Runnable, long) deprecated since 5.3.16 but still
+  // abstract, so suppress warnings.
+  @SuppressWarnings("deprecation")
   @Override
   public void execute(Runnable task, long startTimeout) {
     delegate.execute(wrapWithContext(task), startTimeout);

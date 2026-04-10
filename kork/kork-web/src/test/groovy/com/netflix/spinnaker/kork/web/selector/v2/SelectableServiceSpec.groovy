@@ -37,31 +37,19 @@ class SelectableServiceSpec extends Specification {
         baseUrl: "http://bakery.com",
         priority: 1,
         config: [altApiEbabled: false],
-        parameters: Parameter.toParameters([
-          [
-            name: "cloudProvider",
-            values: ["aws", "titus"]
-          ],
-          [
-            name: "authenticatedUser",
-            values: ["regex:.+@netflix.com\$"]
-          ]
-        ])
+        parameters: [
+          new Parameter("cloudProvider", ["aws", "titus"]),
+          new Parameter("authenticatedUser", ["regex:.+@netflix.com\$"])
+        ]
       ),
       new BaseUrl(
         baseUrl: "http://altBakeryService.com",
         priority: 2,
         config: [altApiEbabled: true],
-        parameters: Parameter.toParameters([
-          [
-            name: "OS",
-            values: ["windows", "centOS"]
-          ],
-          [
-            name: "authenticatedUser",
-            values: ["regex:.+@company.com\$"]
-          ]
-        ])
+        parameters: [
+          new Parameter("OS", ["windows", "centOS"]),
+          new Parameter("authenticatedUser", ["regex:.+@company.com\$"])
+        ]
       )
     ]
 
