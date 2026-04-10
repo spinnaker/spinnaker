@@ -53,8 +53,7 @@ public class KubernetesSecretsEngineTest {
                 KubeConfig.loadKubeConfig(new StringReader(k3s.getKubeConfigYaml())))
             .build();
     coreV1Api = new CoreV1Api(client);
-    secretEngine = new KubernetesSecretEngine(NAMESPACE);
-    secretEngine.setApiClient(coreV1Api);
+    secretEngine = new KubernetesSecretEngine(NAMESPACE, coreV1Api);
   }
 
   @Test
