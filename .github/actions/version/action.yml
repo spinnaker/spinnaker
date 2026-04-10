@@ -147,16 +147,16 @@ runs:
         echo "build-url=$BUILD_URL" >> "$GITHUB_OUTPUT"
 
         if [[ '${{ github.event_name }}' != 'pull_request' ]]; then
-          cat<<EOF>>"$GITHUB_STEP_SUMMARY"
-          ### Version Info
-          | | |
-          | --- | --- |
-          | __Version__ | $VERSION |
-          | __Semver-ish__ | $SEMVER |
-          | __Release__ | $IS_RELEASE |
-          | __Build Number__ | $BUILD_NUMBER |
-          | __Release Train__ | $RELEASE_TRAIN ($CLEAN_REF) |
-          | __Tag__ | $TAG |
-          | __Build URL__ | $BUILD_URL |
-          EOF
+        cat<<EOF>>"$GITHUB_STEP_SUMMARY"
+        ### Version Info
+        | | |
+        | --- | --- |
+        | __Version__ | $VERSION |
+        | __Semver-ish__ | $SEMVER |
+        | __Release__ | $IS_RELEASE |
+        | __Build Number__ | $BUILD_NUMBER |
+        | __Release Train__ | $RELEASE_TRAIN ($CLEAN_REF) |
+        | __Tag__ | $TAG |
+        | __Build URL__ | $BUILD_URL |
+        EOF
         fi
