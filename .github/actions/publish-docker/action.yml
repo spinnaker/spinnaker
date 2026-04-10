@@ -152,21 +152,29 @@ runs:
       if: github.event_name != 'pull_request'
       run: |
         export IMAGE_FOR_REFERENCE="ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.version }}"
-        echo "### Docker Publishing" >> "$GITHUB_STEP_SUMMARY"
-        echo "| Type | Image SHA | Tag |" >> "$GITHUB_STEP_SUMMARY"
-        echo "| --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+        cat<<EOF> "$GITHUB_STEP_SUMMARY"
+        ### Docker Publishing
+        | Type | Image SHA | Tag |
+        | --- | --- | --- |
+        EOF
 
         if [[ '${{ env.has-standard }}' == 'true' ]]; then
-          echo "| __Standard__ | ${{ steps.docker-standard.outputs.imageid }} | $IMAGE_FOR_REFERENCE} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|  |  | "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.release-train }}-latest |" >> "$GITHUB_STEP_SUMMARY"
+        cat<<EOF>> "$GITHUB_STEP_SUMMARY"
+          | __Standard__ | ${{ steps.docker-standard.outputs.imageid }} | $IMAGE_FOR_REFERENCE} |
+          |  |  | "ghcr.io/spinnaker/${{ inputs.project }}:${{ inputs.release-train }}-latest |
+        EOF
         fi
 
         if [[ '${{ env.has-slim }}' == 'true' ]]; then
-          echo "| __Slim__ | ${{ steps.docker-slim.outputs.imageid }} | $IMAGE_FOR_REFERENCE |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|  |  | $IMAGE_FOR_REFERENCE-slim |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|  |  | $IMAGE_FOR_REFERENCE-latest |" >> "$GITHUB_STEP_SUMMARY"
+        cat<<EOF>> "$GITHUB_STEP_SUMMARY"
+          | __Slim__ | ${{ steps.docker-slim.outputs.imageid }} | $IMAGE_FOR_REFERENCE |
+          |  |  | $IMAGE_FOR_REFERENCE-slim |
+          |  |  | $IMAGE_FOR_REFERENCE-latest |
+        EOF
         fi
 
         if [[ '${{ env.has-ubuntu }}' == 'true' ]]; then
-          echo "| __Ubuntu__ | ${{ steps.docker-ubuntu.outputs.imageid }} | $IMAGE_FOR_REFERENCE-ubuntu |" >> "$GITHUB_STEP_SUMMARY"
+        cat<<EOF>> "$GITHUB_STEP_SUMMARY"
+          | __Ubuntu__ | ${{ steps.docker-ubuntu.outputs.imageid }} | $IMAGE_FOR_REFERENCE-ubuntu |
+        EOF
         fi
