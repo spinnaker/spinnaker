@@ -33,6 +33,7 @@ dependencyResolutionManagement {
             plugin('kotlin-allopen', 'org.jetbrains.kotlin.plugin.allopen').versionRef('kotlin')
             plugin('kotlin-jvm', 'org.jetbrains.kotlin.jvm').versionRef('kotlin')
             plugin('kotlin-spring', 'org.jetbrains.kotlin.plugin.spring').versionRef('kotlin')
+            plugin('protobuf', 'com.google.protobuf').version('0.9.6')
 
             // Arguments: library(<alias>, <group>, <artifact>)
             // Libraries are directly accessed from the root "libs" catalog in Gradle scripts
