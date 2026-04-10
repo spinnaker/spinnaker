@@ -203,7 +203,7 @@ class CDEventsNotificationAgentSpec extends Specification {
     otlpAgent.sendNotifications([address: otlpEndpoint, cdEventsType: cdEventsType], application, event, [type: type, link: "link"], status)
 
     then:
-    1 * cdEventsOTelSender.send(_, otlpEndpoint)
+    1 * cdEventsOTelSender.send(_, otlpEndpoint, _, _)
     0 * cdeventsSender.sendCDEvent(*_)
 
     where:
@@ -264,8 +264,38 @@ class CDEventsNotificationAgentSpec extends Specification {
     otlpAgent.sendNotifications([address: "https://secure-collector:4317", cdEventsType: "dev.cdevents.pipelinerun.started"], "myapp", event, [type: "pipeline", link: "link"], "started")
 
     then:
-    1 * cdEventsOTelSender.send(_, "https://secure-collector:4317")
+    1 * cdEventsOTelSender.send(_, "https://secure-collector:4317", _, _)
     0 * cdeventsSender.sendCDEvent(*_)
+
+    where:
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"]
+    ])
+  }
+
+  def "sends CDEvent via OTel with customData for attribute promotion"() {
+    given:
+    def cdevent = new BlockingVariable<CloudEvent>()
+    cdEventsOTelSender.send(*_) >> { args -> cdevent.set(args[0]) }
+    def otlpAgent = new CDEventsNotificationAgent(
+      cdEventsSenderService: cdeventsSender,
+      cdEventsBuilderService: cdEventsBuilder,
+      cdEventsOTelSender: cdEventsOTelSender,
+      cdEventsConfigProperties: otlpConfig,
+      spinnakerUrl: 'http://spinnaker'
+    )
+
+    when:
+    otlpAgent.sendNotifications(
+      [address: "http://collector:4317", cdEventsType: "dev.cdevents.pipelinerun.started",
+       customData: ["commit.sha": "abc123", "helm.chart": "my-service", "helm.version": "1.2.3"]],
+      "myapp", event, [type: "pipeline", link: "link"], "started")
+
+    then:
+    def data = convertToMap(cdevent.get().getData().toBytes())
+    data.customData["commit.sha"] == "abc123"
+    data.customData["helm.chart"] == "my-service"
+    data.customData["helm.version"] == "1.2.3"
 
     where:
     event = new Event(content: [
