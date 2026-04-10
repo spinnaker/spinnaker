@@ -21,7 +21,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.ci.concourse.ConcourseCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.gcb.GoogleCloudBuild;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisCi;
-import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerCi;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Optional;
@@ -33,7 +32,6 @@ import lombok.EqualsAndHashCode;
 public class Cis extends Node implements Cloneable {
   JenkinsCi jenkins = new JenkinsCi();
   TravisCi travis = new TravisCi();
-  WerckerCi wercker = new WerckerCi();
   ConcourseCi concourse = new ConcourseCi();
   GoogleCloudBuild gcb = new GoogleCloudBuild();
   AwsCodeBuild codebuild = new AwsCodeBuild();

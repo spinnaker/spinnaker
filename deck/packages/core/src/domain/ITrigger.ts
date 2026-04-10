@@ -51,13 +51,7 @@ export interface IBuildTrigger extends ITrigger {
   project: string;
   propertyFile?: string;
   master: string;
-  type: 'jenkins' | 'travis' | 'wercker' | 'concourse';
-}
-
-export interface IWerckerTrigger extends IBuildTrigger {
-  app: string;
-  pipeline: string;
-  type: 'wercker';
+  type: 'jenkins' | 'travis' | 'concourse';
 }
 
 export interface IConcourseTrigger extends IBuildTrigger {
@@ -93,10 +87,4 @@ export interface IWebhookTrigger extends ITrigger {
 
 export interface ICDEventsTrigger extends IWebhookTrigger {
   attributeConstraints: { [key: string]: string };
-}
-
-export interface IWerckerTrigger extends IBuildTrigger {
-  app: string;
-  pipeline: string;
-  type: 'wercker';
 }
