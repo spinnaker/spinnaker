@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply from: "../versions.gradle"
+
 rootProject.name="halyard"
 
 include 'halyard-backup'
