@@ -12,12 +12,19 @@ class GceLoadBalancerChoiceCtrl implements IController {
   public choices: string[];
   public choice = 'Network';
 
-  public static $inject = ['$uibModal', '$uibModalInstance', 'application', 'loadBalancerTypeToWizardMap'];
+  public static $inject = [
+    '$uibModal',
+    '$uibModalInstance',
+    'application',
+    'loadBalancerTypeToWizardMap',
+    'forPipelineConfig',
+  ];
   constructor(
     public $uibModal: IModalService,
     public $uibModalInstance: IModalInstanceService,
     private application: Application,
     private loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap,
+    private forPipelineConfig: boolean,
   ) {}
 
   public $onInit(): void {
@@ -26,8 +33,7 @@ class GceLoadBalancerChoiceCtrl implements IController {
 
   public choose(choice: string): void {
     const wizard = find(this.loadBalancerTypeToWizardMap, (wizardConfig) => wizardConfig.label === choice);
-    this.$uibModalInstance.dismiss();
-    this.$uibModal.open({
+    const wizardResult = this.$uibModal.open({
       templateUrl: wizard.createTemplateUrl,
       controller: `${wizard.controller} as ctrl`,
       size: 'lg',
@@ -35,9 +41,10 @@ class GceLoadBalancerChoiceCtrl implements IController {
         application: () => this.application,
         loadBalancer: (): null => null,
         isNew: () => true,
-        forPipelineConfig: () => false,
+        forPipelineConfig: () => this.forPipelineConfig,
       },
-    });
+    }).result;
+    this.$uibModalInstance.close(wizardResult);
   }
 }
 
