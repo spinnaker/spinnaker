@@ -34,8 +34,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,7 +49,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Import(ErrorConfiguration.class)
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity
 @Configuration
 @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
@@ -94,6 +97,22 @@ public class FiatAuthenticationConfig {
     return new AuthenticatedRequestAuthenticationConverter();
   }
 
+  /**
+   * {@code @EnableMethodSecurity} does not auto-detect {@link PermissionEvaluator} beans
+   * (https://github.com/spring-projects/spring-security/issues/11598), so wire it explicitly.
+   *
+   * @see <a
+   *     href="https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#custom-authorization-managers">Spring
+   *     Security docs: Custom Authorization Managers</a>
+   */
+  @Bean
+  static MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+      PermissionEvaluator permissionEvaluator) {
+    DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+    handler.setPermissionEvaluator(permissionEvaluator);
+    return handler;
+  }
+
   @Bean
   public SecurityFilterChain fiatSecurityFilterChain(
       HttpSecurity http, AuthenticationConverter authenticationConverter) throws Exception {
@@ -104,8 +123,7 @@ public class FiatAuthenticationConfig {
         .addFilterBefore(
             new FiatAuthenticationFilter(authenticationConverter),
             AnonymousAuthenticationFilter.class)
-        .csrf()
-        .disable();
+        .csrf(csrf -> csrf.disable());
 
     return http.build();
   }
