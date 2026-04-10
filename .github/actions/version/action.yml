@@ -74,36 +74,36 @@ runs:
       run: |
         REF="${{ github.ref_name }}"
         IS_RELEASE='false'
-        
+
         # If version-override is set, extract the values instead of auto-incrementing
         if [[ -n '${{ inputs.version-override }}' ]]; then
           # Split override string
           IFS=. read -r -a SPLIT_VER <<< '${{ inputs.version-override }}'
           SPLIT_VER_LEN="${#SPLIT_VER[@]}"
-          
+
           # Check override string validity
           if [[ $SPLIT_VER_LEN != 3 ]]; then
             echo "Invalid version override - must be in the form x.y.z"
             exit 1
           fi
-          
+
           RELEASE_TRAIN="${SPLIT_VER[0]}.${SPLIT_VER[1]}"
           echo "release-train-suffixed=$RELEASE_TRAIN.x" >> "$GITHUB_OUTPUT"
           echo "release-train=$RELEASE_TRAIN" >> "$GITHUB_OUTPUT"
-          
+
           BUILD_NUMBER="${SPLIT_VER[2]}"
           echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
-        
+
           # Note that this is dot-joined, unlike the autoincrement build numbers which are hyphen-joined
           VERSION="$RELEASE_TRAIN.$BUILD_NUMBER"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        
+
           SEMVER="$VERSION"
           echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
-          
+
           TAG="${{ inputs.namespace }}-$VERSION"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-        
+
           IS_RELEASE='true'
         else
           if [[ '${{ github.event_name }}' == 'pull_request' ]]; then
@@ -111,50 +111,52 @@ runs:
             REF=pr${{ github.event.number }}
             BUILD_NUMBER=0
           fi
-          
+
           CLEAN_REF="${REF#release-}"
           echo "release-train-suffixed=$CLEAN_REF" >> "$GITHUB_OUTPUT"
-          
+
           RELEASE_TRAIN="${CLEAN_REF%.x}"
           echo "build-number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           echo "release-train=$RELEASE_TRAIN" >> "$GITHUB_OUTPUT"
-          
+
           if [[ '${{ inputs.is-release }}' == 'true' ]]; then
             # Note that this is dot-joined, unlike the autoincrement build numbers which are hyphen-joined
             VERSION="$RELEASE_TRAIN.$BUILD_NUMBER"
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        
+
             SEMVER="$VERSION"
             echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
-        
+
             IS_RELEASE='true'
           else
             # Versions by default do not include any '.x'-es, since so many systems do not like those
             VERSION="$RELEASE_TRAIN-$BUILD_NUMBER"
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        
+
             SEMVER="0.0.0-$VERSION"
             echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
           fi
         fi
-        
+
         TAG="${{ inputs.namespace }}-$VERSION"
         echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-        
+
         echo "is-release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
-        
+
         BUILD_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         echo "build-url=$BUILD_URL" >> "$GITHUB_OUTPUT"
-        
+
         if [[ '${{ github.event_name }}' != 'pull_request' ]]; then
-          echo "### Version Info" >> "$GITHUB_STEP_SUMMARY"
-          echo "| | |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Version__ | $VERSION |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Semver-ish__ | $SEMVER |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Is Release__ | $IS_RELEASE |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Build Number__ | $BUILD_NUMBER |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Release Train__ | $RELEASE_TRAIN ($CLEAN_REF) |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Tag__ | $TAG |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| __Build URL__ | $BUILD_URL |" >> "$GITHUB_STEP_SUMMARY"
+          cat<<EOF>>"$GITHUB_STEP_SUMMARY"
+          ### Version Info" >>
+          | | |
+          | --- | --- |
+          | __Version__ | $VERSION |
+          | __Semver-ish__ | $SEMVER |
+          | __Release__ | $IS_RELEASE |
+          | __Build Number__ | $BUILD_NUMBER |
+          | __Release Train__ | $RELEASE_TRAIN ($CLEAN_REF) |
+          | __Tag__ | $TAG |
+          | __Build URL__ | $BUILD_URL |
+          EOF
         fi
