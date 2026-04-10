@@ -243,4 +243,33 @@ class CDEventsNotificationAgentSpec extends Specification {
     ])
     type = "pipeline"
   }
+
+  def "sends CDEvent via OTel with mTLS config"() {
+    given:
+    def mtlsConfig = new CDEventsConfigProperties(
+      transport: "otlp",
+      otlpCaCertPath: "/etc/otel/certs/ca.crt",
+      otlpClientCertPath: "/etc/otel/certs/client.crt",
+      otlpClientKeyPath: "/etc/otel/certs/client.key"
+    )
+    def otlpAgent = new CDEventsNotificationAgent(
+      cdEventsSenderService: cdeventsSender,
+      cdEventsBuilderService: cdEventsBuilder,
+      cdEventsOTelSender: cdEventsOTelSender,
+      cdEventsConfigProperties: mtlsConfig,
+      spinnakerUrl: 'http://spinnaker'
+    )
+
+    when:
+    otlpAgent.sendNotifications([address: "https://secure-collector:4317", cdEventsType: "dev.cdevents.pipelinerun.started"], "myapp", event, [type: "pipeline", link: "link"], "started")
+
+    then:
+    1 * cdEventsOTelSender.send(_, "https://secure-collector:4317")
+    0 * cdeventsSender.sendCDEvent(*_)
+
+    where:
+    event = new Event(content: [
+      execution: [id: "1", name: "foo-pipeline"]
+    ])
+  }
 }

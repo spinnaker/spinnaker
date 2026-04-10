@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.web.selector.v2;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.*;
@@ -272,11 +271,6 @@ public class SelectableService<T> {
       this.values = new ArrayList<>();
     }
 
-    Parameter(Map<String, Object> source) {
-      this.name = source.get("name").toString();
-      this.values = (List<Object>) source.get("values");
-    }
-
     public Parameter(String name, List<Object> values) {
       this.name = name;
       this.values = values;
@@ -306,10 +300,6 @@ public class SelectableService<T> {
 
     public void setValues(List<Object> values) {
       this.values = values;
-    }
-
-    static List<Parameter> toParameters(List<Map<String, Object>> source) {
-      return source.stream().map(Parameter::new).collect(toList());
     }
 
     @Override
