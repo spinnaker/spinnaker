@@ -205,7 +205,7 @@ class SpinnakerRetrofitExceptionHandlersTest {
           retrofit2.Response.error(
               status,
               ResponseBody.create(
-                  MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+                  "{ \"message\": \"arbitrary message\" }", MediaType.parse("application/json")));
 
       Retrofit retrofit =
           new Retrofit.Builder()
