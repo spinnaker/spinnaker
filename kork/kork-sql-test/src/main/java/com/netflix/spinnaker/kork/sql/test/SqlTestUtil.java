@@ -31,17 +31,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import liquibase.ContextExpression;
-import liquibase.Contexts;
 import liquibase.GlobalConfiguration;
 import liquibase.Labels;
 import liquibase.Liquibase;
+import liquibase.Scope;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.DatabaseChangeLog;
+import liquibase.command.CommandScope;
+import liquibase.command.core.UpdateCommandStep;
+import liquibase.command.core.helpers.DbUrlConnectionCommandStep;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
-import liquibase.exception.LiquibaseException;
 import liquibase.exception.SetupException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.jooq.DSLContext;
@@ -240,9 +243,28 @@ public class SqlTestUtil {
       throw new DatabaseInitializationFailed(e);
     }
 
+    // Liquibase.update() is deprecated; use the CommandScope API instead.
+    // See https://contribute.liquibase.com/code/api/command-commandscope/
+    // The argument wiring and Scope.child call below mirror the deprecated
+    // Liquibase.update(Contexts, LabelExpression, boolean) and
+    // Liquibase.runInScope methods in liquibase-core 4.24.0.
     try {
-      migrate.update(new Contexts(dbName));
-    } catch (LiquibaseException e) {
+      Scope.child(
+          Map.of(
+              Scope.Attr.database.name(), migrate.getDatabase(),
+              Scope.Attr.resourceAccessor.name(), migrate.getResourceAccessor()),
+          () -> {
+            CommandScope updateCommand = new CommandScope(UpdateCommandStep.COMMAND_NAME);
+            updateCommand.addArgumentValue(
+                DbUrlConnectionCommandStep.DATABASE_ARG, migrate.getDatabase());
+            updateCommand.addArgumentValue(
+                UpdateCommandStep.CHANGELOG_ARG, migrate.getDatabaseChangeLog());
+            updateCommand.addArgumentValue(
+                UpdateCommandStep.CHANGELOG_FILE_ARG, migrate.getChangeLogFile());
+            updateCommand.addArgumentValue(UpdateCommandStep.CONTEXTS_ARG, dbName);
+            updateCommand.execute();
+          });
+    } catch (Exception e) {
       throw new DatabaseInitializationFailed(e);
     }
 
