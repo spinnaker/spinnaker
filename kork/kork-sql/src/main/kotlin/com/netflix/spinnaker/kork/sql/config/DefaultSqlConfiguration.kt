@@ -124,7 +124,7 @@ class DefaultSqlConfiguration {
 
     validateDefaultTargetDataSources(targets.values)
 
-    val dataSources = targets.map { it.key.toLowerCase() to it.value.dataSource }.toMap()
+    val dataSources = targets.map { it.key.lowercase() to it.value.dataSource }.toMap()
     val dataSource = NamedDataSourceRouter()
     dataSource.setTargetDataSources(dataSources as Map<Any, Any>)
     dataSource.setDataSourceLookup(StaticDataSourceLookup(dataSources))
