@@ -16,14 +16,14 @@
 package com.netflix.spinnaker.kork.sql
 
 import org.jooq.ExecuteContext
-import org.jooq.impl.DefaultExecuteListener
+import org.jooq.ExecuteListener
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 import org.springframework.jdbc.support.SQLStateSQLExceptionTranslator
 
 /**
  * Converts raw JDBC exceptions exposed by jOOQ into Spring-compatible exceptions.
  */
-class JooqToSpringExceptionTransformer : DefaultExecuteListener() {
+class JooqToSpringExceptionTransformer : ExecuteListener {
 
   override fun exception(ctx: ExecuteContext) {
     if (ctx.sqlException() != null) {
