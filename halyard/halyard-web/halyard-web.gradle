@@ -42,7 +42,7 @@ dependencies {
 
 def cliScript = project.tasks.create('createCliStartScripts', CreateStartScripts) {
   dependsOn(project.tasks.startScripts)
-  mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'
+  mainClass.set('com.netflix.spinnaker.halyard.cli.Main')
   applicationName = 'hal'
   outputDir = project.tasks.startScripts.outputDir
   classpath = project.tasks.startScripts.classpath
