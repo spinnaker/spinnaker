@@ -28,7 +28,6 @@ import io.kubernetes.client.util.Namespaces;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -39,26 +38,29 @@ import org.springframework.stereotype.Component;
     value = "spinnaker.secrets.kubernetes.enabled",
     havingValue = "true",
     matchIfMissing = false)
-@Setter
 public class KubernetesSecretEngine implements SecretEngine {
   private static final String IDENTIFIER = "k8s";
   private static final String SECRET_NAME = "n";
   private static final String SECRET_KEY = "k";
   private static final String SECRET_NAMESPACE = "ns";
-  private CoreV1Api apiClient;
-  private String namespace;
+  private final CoreV1Api apiClient;
+  private final String namespace;
 
   /*
   There is NOT a great way to "test" this namespace sane default WITHOUT running in a container in k8s.  As such, do the best we can to capture
   defaults in the executions via integration tests.
    */
   KubernetesSecretEngine() {
+    String tempNamespace;
     try {
-      namespace = Namespaces.getPodNamespace();
+      tempNamespace = Namespaces.getPodNamespace();
     } catch (Exception e) {
       log.warn(
           "WARNING!  Unable to determine the namespace.  This LIKELY means we're not in a container!  Defaulting to 'default'");
+      tempNamespace = "default";
     }
+
+    this.namespace = tempNamespace;
 
     ApiClient apiClient = null;
     try {
@@ -69,6 +71,12 @@ public class KubernetesSecretEngine implements SecretEngine {
       throw new RuntimeException(e);
     }
     this.apiClient = new CoreV1Api(apiClient);
+  }
+
+  /** Constructor for testing */
+  KubernetesSecretEngine(String namespace, CoreV1Api apiClient) {
+    this.namespace = namespace;
+    this.apiClient = apiClient;
   }
 
   public String identifier() {
