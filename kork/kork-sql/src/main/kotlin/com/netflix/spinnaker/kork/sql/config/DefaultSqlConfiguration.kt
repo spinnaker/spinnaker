@@ -78,7 +78,8 @@ class DefaultSqlConfiguration {
   fun secondaryLiquibase(properties: SqlProperties, @Value("\${sql.read-only:false}") sqlReadOnly: Boolean): SpringLiquibase =
     SpringLiquibaseProxy(properties.secondaryMigration, sqlReadOnly)
 
-  @Suppress("ThrowsCount", "UndocumentedPublicFunction")
+  // Remove DEPRECATION suppression once SqlProperties.connectionPool is removed
+  @Suppress("ThrowsCount", "UndocumentedPublicFunction", "DEPRECATION")
   @DependsOn("liquibase")
   @Bean
   fun dataSource(dataSourceFactory: DataSourceFactory, properties: SqlProperties): DataSource {
