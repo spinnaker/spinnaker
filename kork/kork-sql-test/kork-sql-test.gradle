@@ -7,6 +7,11 @@ dependencies {
   api("org.testcontainers:mysql")
   api("org.testcontainers:postgresql")
 
+  // jOOQ's org.jooq.conf.Settings uses jakarta.xml.bind annotations but
+  // declares jakarta.xml.bind-api as optional.  Without this, javac warns:
+  // unknown enum constant XmlAccessType.FIELD
+  compileOnly("jakarta.xml.bind:jakarta.xml.bind-api")
+
   testImplementation "org.junit.jupiter:junit-jupiter-api"
 
   testRuntimeOnly "com.mysql:mysql-connector-j"
