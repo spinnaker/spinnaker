@@ -125,8 +125,11 @@ class DefaultSqlConfiguration {
 
     validateDefaultTargetDataSources(targets.values)
 
-    val dataSources = targets.map { it.key.lowercase() to it.value.dataSource }.toMap()
+    val dataSources: Map<String, DataSource> = targets.map { it.key.lowercase() to it.value.dataSource }.toMap()
     val dataSource = NamedDataSourceRouter()
+    // Safe: Map<String, DataSource> is a Map<Any, Any> at runtime due to erasure,
+    // but Kotlin's invariant Map key type prevents a direct assignment.
+    @Suppress("UNCHECKED_CAST")
     dataSource.setTargetDataSources(dataSources as Map<Any, Any>)
     dataSource.setDataSourceLookup(StaticDataSourceLookup(dataSources))
     dataSource.setDefaultTargetDataSource(
