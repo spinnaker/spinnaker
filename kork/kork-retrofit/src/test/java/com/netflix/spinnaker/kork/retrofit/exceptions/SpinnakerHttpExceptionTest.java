@@ -35,7 +35,7 @@ class SpinnakerHttpExceptionTest {
     final String validJsonResponseBodyString = "{\"name\":\"test\"}";
     ResponseBody responseBody =
         ResponseBody.create(
-            MediaType.parse("application/json" + "; charset=utf-8"), validJsonResponseBodyString);
+            validJsonResponseBodyString, MediaType.parse("application/json" + "; charset=utf-8"));
     retrofit2.Response response =
         retrofit2.Response.error(HttpStatus.NOT_FOUND.value(), responseBody);
 
