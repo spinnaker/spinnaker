@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.sql
 import org.jooq.ExecuteContext
 import org.jooq.ExecuteListener
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
-import org.springframework.jdbc.support.SQLStateSQLExceptionTranslator
 
 /**
  * Converts raw JDBC exceptions exposed by jOOQ into Spring-compatible exceptions.
@@ -28,11 +27,7 @@ class JooqToSpringExceptionTransformer : ExecuteListener {
   override fun exception(ctx: ExecuteContext) {
     if (ctx.sqlException() != null) {
       val dialect = ctx.configuration().dialect()
-      val translator = if (dialect != null) {
-        SQLErrorCodeSQLExceptionTranslator(dialect.name)
-      } else {
-        SQLStateSQLExceptionTranslator()
-      }
+      val translator = SQLErrorCodeSQLExceptionTranslator(dialect.name)
       ctx.exception(translator.translate("jOOQ", ctx.sql(), ctx.sqlException()))
     }
   }
