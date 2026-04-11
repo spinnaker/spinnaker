@@ -16,7 +16,8 @@
 package com.netflix.spinnaker.kork.sql.test;
 
 import static org.jooq.SQLDialect.H2;
-import static org.jooq.conf.RenderNameStyle.AS_IS;
+import static org.jooq.conf.RenderNameCase.AS_IS;
+import static org.jooq.conf.RenderQuotedNames.NEVER;
 import static org.jooq.impl.DSL.currentSchema;
 import static org.jooq.impl.DSL.query;
 import static org.jooq.impl.DSL.truncateTable;
@@ -31,12 +32,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import liquibase.ContextExpression;
-import liquibase.LabelExpression;
+import liquibase.Contexts;
+import liquibase.GlobalConfiguration;
+import liquibase.Labels;
 import liquibase.Liquibase;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.DatabaseChangeLog;
-import liquibase.configuration.GlobalConfiguration;
-import liquibase.configuration.LiquibaseConfiguration;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
@@ -200,7 +201,7 @@ public class SqlTestUtil {
     config.setSQLDialect(dialect);
 
     if (dialect == H2) {
-      config.settings().withRenderNameStyle(AS_IS);
+      config.settings().withRenderQuotedNames(NEVER).withRenderNameCase(AS_IS);
     }
 
     DSLContext context = new DefaultDSLContext(config);
@@ -223,8 +224,10 @@ public class SqlTestUtil {
           Comparator.comparing(String::toString),
           new ClassLoaderResourceAccessor(),
           new ContextExpression(),
-          new LabelExpression(),
-          false);
+          new Labels(),
+          false,
+          0,
+          Integer.MAX_VALUE);
 
       migrate =
           new Liquibase(
@@ -238,7 +241,7 @@ public class SqlTestUtil {
     }
 
     try {
-      migrate.update(dbName);
+      migrate.update(new Contexts(dbName));
     } catch (LiquibaseException e) {
       throw new DatabaseInitializationFailed(e);
     }
@@ -249,8 +252,9 @@ public class SqlTestUtil {
   public static void cleanupDb(DSLContext context) {
     String schema = context.select(currentSchema()).fetch().getValue(0, 0).toString();
 
-    GlobalConfiguration configuration =
-        LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class);
+    String changeLogTableName = GlobalConfiguration.DATABASECHANGELOG_TABLE_NAME.getCurrentValue();
+    String changeLogLockTableName =
+        GlobalConfiguration.DATABASECHANGELOGLOCK_TABLE_NAME.getCurrentValue();
 
     List<Query> commands = new ArrayList<>();
     if (context.dialect() == SQLDialect.MYSQL) {
@@ -261,8 +265,8 @@ public class SqlTestUtil {
             table ->
                 table.getTableType().isTable()
                     && table.getSchema().getName().equals(schema)
-                    && !table.getName().equals(configuration.getDatabaseChangeLogTableName())
-                    && !table.getName().equals(configuration.getDatabaseChangeLogLockTableName()))
+                    && !table.getName().equals(changeLogTableName)
+                    && !table.getName().equals(changeLogLockTableName))
         .forEach(
             table -> {
               switch (context.dialect()) {
