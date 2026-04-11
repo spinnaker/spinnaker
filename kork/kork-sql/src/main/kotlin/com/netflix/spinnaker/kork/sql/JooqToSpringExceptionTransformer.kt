@@ -25,10 +25,9 @@ import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
 class JooqToSpringExceptionTransformer : ExecuteListener {
 
   override fun exception(ctx: ExecuteContext) {
-    if (ctx.sqlException() != null) {
-      val dialect = ctx.configuration().dialect()
-      val translator = SQLErrorCodeSQLExceptionTranslator(dialect.name)
-      ctx.exception(translator.translate("jOOQ", ctx.sql(), ctx.sqlException()))
-    }
+    val sqlException = ctx.sqlException() ?: return
+    val dialect = ctx.configuration().dialect()
+    val translator = SQLErrorCodeSQLExceptionTranslator(dialect.name)
+    ctx.exception(translator.translate("jOOQ", ctx.sql(), sqlException))
   }
 }
