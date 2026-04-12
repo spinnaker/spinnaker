@@ -120,7 +120,7 @@ internal fun Class<*>.createWithConstructor(
 
 internal fun Class<*>.newInstanceSafely(kind: ClassKind): Any =
   try {
-    newInstance()
+    getDeclaredConstructor().newInstance()
   } catch (ie: InstantiationException) {
     throw IntegrationException("Failed to instantiate $kind '${declaringClass.simpleName}'", ie)
   } catch (iae: IllegalAccessException) {
