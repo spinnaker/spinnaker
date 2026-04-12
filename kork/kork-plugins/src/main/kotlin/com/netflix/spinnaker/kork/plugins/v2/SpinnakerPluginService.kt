@@ -150,7 +150,7 @@ class SpinnakerPluginService(
         beanClass = extensionBeanClass
       }
       registry.registerBeanDefinition(
-        "${pluginId}_${extensionBeanClass.simpleName.decapitalize()}",
+        "${pluginId}_${extensionBeanClass.simpleName.replaceFirstChar { it.lowercase() }}",
         proxyBeanDefinition
       )
 
@@ -165,7 +165,7 @@ class SpinnakerPluginService(
 
   private fun withTiming(task: String, callback: () -> Unit) {
     val start = System.currentTimeMillis()
-    log.debug(task.capitalize())
+    log.debug(task.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
 
     callback.invoke()
 

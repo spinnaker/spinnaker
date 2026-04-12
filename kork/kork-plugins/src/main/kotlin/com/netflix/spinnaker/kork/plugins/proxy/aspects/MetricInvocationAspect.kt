@@ -175,7 +175,7 @@ class MetricInvocationAspect(
     enum class Result {
       SUCCESS, FAILURE;
 
-      override fun toString(): String = name.toLowerCase()
+      override fun toString(): String = name.lowercase()
     }
   }
 }

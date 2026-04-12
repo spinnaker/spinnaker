@@ -87,7 +87,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
       }
 
       val bean = pluginManager.extensionFactory.create(extensionClass)
-      val beanName = "${extensionClass.simpleName.decapitalize()}SystemExtension"
+      val beanName = "${extensionClass.simpleName.replaceFirstChar { it.lowercase() }}SystemExtension"
 
       beanFactory.registerSingleton(beanName, bean)
 
@@ -122,7 +122,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
           extensionClassInstance
         }
 
-        val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.capitalize()}"
+        val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}"
 
         beanFactory.registerSingleton(beanName, bean)
 

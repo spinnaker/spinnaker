@@ -54,7 +54,7 @@ internal enum class ClassKind {
   PLUGIN,
   EXTENSION;
 
-  override fun toString(): String = super.toString().toLowerCase()
+  override fun toString(): String = super.toString().lowercase()
 }
 
 internal fun Class<*>.createWithConstructor(
