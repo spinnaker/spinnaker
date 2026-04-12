@@ -41,7 +41,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val springPluginStatusProvider: SpringPluginStatusProvider,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val invocationAspects: List<InvocationAspect<*>>
+  private val invocationAspects: List<InvocationAspect<InvocationState>>
 ) : BeanDefinitionRegistryPostProcessor {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -115,7 +115,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
         val bean = if (extensionClassInstance is SpinnakerExtensionPoint) {
           ExtensionInvocationProxy.proxy(
             extensionClassInstance,
-            invocationAspects as List<InvocationAspect<InvocationState>>,
+            invocationAspects,
             plugin.descriptor as SpinnakerPluginDescriptor
           )
         } else {

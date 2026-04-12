@@ -51,7 +51,7 @@ class SpinnakerPluginService(
   private val updateManager: SpinnakerUpdateManager,
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val springPluginStatusProvider: SpringPluginStatusProvider,
-  private val invocationAspects: List<InvocationAspect<*>>,
+  private val invocationAspects: List<InvocationAspect<InvocationState>>,
   private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
@@ -121,7 +121,7 @@ class SpinnakerPluginService(
       addIncludeFilter(AssignableTypeFilter(SpinnakerExtensionPoint::class.java))
       resourceLoader = DefaultResourceLoader(container.wrapper.pluginClassLoader)
     }.findCandidateComponents(container.actual.basePackageName).forEach { extensionBeanDefinition ->
-      val extensionBeanClass = container.wrapper.pluginClassLoader.loadClass(extensionBeanDefinition.beanClassName) as Class<out SpinnakerExtensionPoint>
+      val extensionBeanClass = container.wrapper.pluginClassLoader.loadClass(extensionBeanDefinition.beanClassName).asSubclass(SpinnakerExtensionPoint::class.java)
 
       // Find the name that the extension bean will (but hasn't yet) be given inside the plugin application context.
       // We'll use this to look up the extension inside the lazy loader.
@@ -141,7 +141,7 @@ class SpinnakerPluginService(
           return@lazy pluginContext.getBean(pluginContextBeanName) as SpinnakerExtensionPoint
         },
         extensionBeanClass,
-        invocationAspects as List<InvocationAspect<InvocationState>>,
+        invocationAspects,
         container.wrapper.descriptor as SpinnakerPluginDescriptor
       )
 
