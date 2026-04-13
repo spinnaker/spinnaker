@@ -13,6 +13,7 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
 
 @CompileStatic
@@ -35,6 +36,16 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
         sourceJar.from(convention.sourceSets.getByName('main').allSource)
         project.artifacts.add('archives', sourceJar)
       }
+
+      // Disable JVM class data sharing in test workers to avoid this warning on startup
+      //
+      // "Sharing is only supported for boot loader classes because bootstrap classpath has been appended"
+      //
+      // This has a minor startup performance cost (~13ms per JVM invocation), but it seems worth it to clean up the noise.
+      //
+      // See also https://stackoverflow.com/questions/54205486/how-to-avoid-sharing-is-only-supported-for-boot-loader-classes-because-bootstra
+      project.tasks.withType(Test).configureEach { it.jvmArgs('-Xshare:off') }
+
       // Nebula insists on building Javadoc, but we don't do anything with it
       // and it seems to cause lots of errors.
       project.tasks.withType(Javadoc) { (it as Javadoc).setFailOnError(false) }

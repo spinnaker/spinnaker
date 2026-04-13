@@ -57,7 +57,7 @@ public class OkHttpMetricsInterceptorProperties {
 
   @PostConstruct
   private void initEndPointPatternForHeaderCheck() {
-    if (!StringUtils.isEmpty(this.headerCheckPattern)) {
+    if (StringUtils.hasLength(this.headerCheckPattern)) {
       endPointPatternForHeaderCheck = Pattern.compile(this.headerCheckPattern);
     }
   }
