@@ -70,6 +70,24 @@ class SpringPluginInitializerTest : JUnit5Minutests {
           }
       }
     }
+
+    test("wrapper-derived identifiers propagate correctly") {
+      app.run { ctx: AssertableApplicationContext ->
+        val pluginId = generated.plugin.pluginId
+
+        // PluginContainer registers the plugin context using wrapper.pluginId
+        expectThat(ApplicationContextGraph.pluginContext(pluginId)).isNotNull()
+
+        // PluginContainer.registerInitializer names the bean using wrapper.pluginId
+        expectThat(ctx.containsBean("${pluginId}Initializer")).isTrue()
+
+        // SpinnakerPluginService.registerProxies names proxy beans using wrapper.descriptor.pluginId
+        val proxyBeanNames = ctx.sourceApplicationContext.getBeanNamesForType(
+          com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension::class.java
+        )
+        expectThat(proxyBeanNames.any { name -> name.startsWith(pluginId) }).isTrue()
+      }
+    }
   }
 
   private inner class GeneratedPluginFixture {
