@@ -71,7 +71,7 @@ class PluginConfigurationRegisteringCustomizerTest {
     stubConfigFactory(pluginId, config)
 
     val context = GenericApplicationContext().apply { environment = StandardEnvironment() }
-    val customizer = PluginConfigurationRegisteringCustomizer(configFactory)
+    val customizer = PluginConfigurationRegisteringCustomizer(configFactory, pluginWrapper)
     customizer.accept(plugin, context)
 
     assertThat(context.beanFactory.containsBean("samplePluginConfig")).isTrue()
@@ -86,7 +86,7 @@ class PluginConfigurationRegisteringCustomizerTest {
     stubConfigFactory(pluginId, config)
 
     val context = GenericApplicationContext().apply { environment = StandardEnvironment() }
-    val customizer = PluginConfigurationRegisteringCustomizer(configFactory)
+    val customizer = PluginConfigurationRegisteringCustomizer(configFactory, pluginWrapper)
     customizer.accept(plugin, context)
 
     verify(configFactory).createPluginConfig(SamplePluginConfig::class.java, pluginId, "test")
@@ -108,7 +108,7 @@ class PluginConfigurationRegisteringCustomizerTest {
     }
 
     val context = GenericApplicationContext().apply { environment = StandardEnvironment() }
-    val customizer = PluginConfigurationRegisteringCustomizer(configFactory, customResolver)
+    val customizer = PluginConfigurationRegisteringCustomizer(configFactory, pluginWrapper, customResolver)
     customizer.accept(plugin, context)
 
     assertThat(resolvedClass).isEqualTo(SamplePluginConfig::class.java.name)
@@ -125,7 +125,7 @@ class PluginConfigurationRegisteringCustomizerTest {
     // Pre-register a bean with the same name to trigger the duplicate path
     context.beanFactory.registerSingleton("samplePluginConfig", "existingBean")
 
-    val customizer = PluginConfigurationRegisteringCustomizer(configFactory)
+    val customizer = PluginConfigurationRegisteringCustomizer(configFactory, pluginWrapper)
     customizer.accept(plugin, context)
 
     // Original bean is still there

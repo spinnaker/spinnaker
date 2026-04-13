@@ -114,14 +114,14 @@ class SpinnakerPluginService(
    */
   private fun registerProxies(container: PluginContainer, registry: BeanDefinitionRegistry, initializerBeanName: String) {
     val pluginContext = container.pluginContext
-    val pluginId = container.wrapper.descriptor.pluginId
+    val pluginId = container.pluginWrapper.descriptor.pluginId
 
     // Find the plugin's SpinnakerExtensionPoints.
     ClassPathScanningCandidateComponentProvider(false).apply {
       addIncludeFilter(AssignableTypeFilter(SpinnakerExtensionPoint::class.java))
-      resourceLoader = DefaultResourceLoader(container.wrapper.pluginClassLoader)
+      resourceLoader = DefaultResourceLoader(container.pluginWrapper.pluginClassLoader)
     }.findCandidateComponents(container.actual.basePackageName).forEach { extensionBeanDefinition ->
-      val extensionBeanClass = container.wrapper.pluginClassLoader.loadClass(extensionBeanDefinition.beanClassName).asSubclass(SpinnakerExtensionPoint::class.java)
+      val extensionBeanClass = container.pluginWrapper.pluginClassLoader.loadClass(extensionBeanDefinition.beanClassName).asSubclass(SpinnakerExtensionPoint::class.java)
 
       // Find the name that the extension bean will (but hasn't yet) be given inside the plugin application context.
       // We'll use this to look up the extension inside the lazy loader.
@@ -142,7 +142,7 @@ class SpinnakerPluginService(
         },
         extensionBeanClass,
         invocationAspects,
-        container.wrapper.descriptor as SpinnakerPluginDescriptor
+        container.pluginWrapper.descriptor as SpinnakerPluginDescriptor
       )
 
       val proxyBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition().beanDefinition.apply {

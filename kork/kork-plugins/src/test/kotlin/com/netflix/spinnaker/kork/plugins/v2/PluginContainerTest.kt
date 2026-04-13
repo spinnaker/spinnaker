@@ -43,12 +43,10 @@ class PluginContainerTest {
   fun setUp() {
     actual = mock(Plugin::class.java)
     pluginWrapper = mock(PluginWrapper::class.java)
-    @Suppress("DEPRECATION")
-    `when`(actual.wrapper).thenReturn(pluginWrapper)
     `when`(pluginWrapper.pluginId).thenReturn(PLUGIN_ID)
 
     serviceContext = GenericApplicationContext()
-    container = PluginContainer(actual, serviceContext)
+    container = PluginContainer(actual, serviceContext, pluginWrapper)
   }
 
   @AfterEach
@@ -84,8 +82,7 @@ class PluginContainerTest {
     val beanDef = registry.getBeanDefinition("${PLUGIN_ID}Initializer")
     val constructorArgs = beanDef.constructorArgumentValues
     assertThat(constructorArgs.getArgumentValue(0, Plugin::class.java)?.value).isSameAs(actual)
-    @Suppress("DEPRECATION")
-    assertThat(constructorArgs.getArgumentValue(1, PluginWrapper::class.java)?.value).isSameAs(actual.wrapper)
+    assertThat(constructorArgs.getArgumentValue(1, PluginWrapper::class.java)?.value).isSameAs(pluginWrapper)
     assertThat(constructorArgs.getArgumentValue(2, GenericApplicationContext::class.java)?.value)
       .isSameAs(container.pluginContext)
   }

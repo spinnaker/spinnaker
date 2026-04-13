@@ -54,14 +54,12 @@ class PluginSdksRegisteringCustomizerTest {
 
   @Test
   fun `accept registers pluginSdks bean into context`() {
-    @Suppress("DEPRECATION")
-    `when`(plugin.wrapper).thenReturn(pluginWrapper)
     `when`(serviceApplicationContext.getBeansOfType(SdkFactory::class.java))
       .thenReturn(mapOf("sdkFactory" to sdkFactory))
     `when`(sdkFactory.create(plugin.javaClass, pluginWrapper)).thenReturn("sdk")
     `when`(pluginContext.beanFactory).thenReturn(pluginBeanFactory)
 
-    val customizer = PluginSdksRegisteringCustomizer(serviceApplicationContext)
+    val customizer = PluginSdksRegisteringCustomizer(serviceApplicationContext, pluginWrapper)
     customizer.accept(plugin, pluginContext)
 
     val beanCaptor = ArgumentCaptor.forClass(Any::class.java)
@@ -71,14 +69,12 @@ class PluginSdksRegisteringCustomizerTest {
 
   @Test
   fun `accept passes plugin class and wrapper to each SdkFactory`() {
-    @Suppress("DEPRECATION")
-    `when`(plugin.wrapper).thenReturn(pluginWrapper)
     `when`(serviceApplicationContext.getBeansOfType(SdkFactory::class.java))
       .thenReturn(mapOf("sdkFactory" to sdkFactory))
     `when`(sdkFactory.create(plugin.javaClass, pluginWrapper)).thenReturn("sdk")
     `when`(pluginContext.beanFactory).thenReturn(pluginBeanFactory)
 
-    val customizer = PluginSdksRegisteringCustomizer(serviceApplicationContext)
+    val customizer = PluginSdksRegisteringCustomizer(serviceApplicationContext, pluginWrapper)
     customizer.accept(plugin, pluginContext)
 
     verify(sdkFactory).create(plugin.javaClass, pluginWrapper)
@@ -90,7 +86,7 @@ class PluginSdksRegisteringCustomizerTest {
       .thenReturn(emptyMap())
     `when`(pluginContext.beanFactory).thenReturn(pluginBeanFactory)
 
-    val customizer = PluginSdksRegisteringCustomizer(serviceApplicationContext)
+    val customizer = PluginSdksRegisteringCustomizer(serviceApplicationContext, pluginWrapper)
     customizer.accept(plugin, pluginContext)
 
     val beanCaptor = ArgumentCaptor.forClass(Any::class.java)
