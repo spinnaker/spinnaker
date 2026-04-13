@@ -23,7 +23,7 @@ object NamedDatabaseContextHolder {
   private val context: ThreadLocal<String> = ThreadLocal()
 
   fun set(name: String) {
-    context.set(name.toLowerCase())
+    context.set(name.lowercase())
   }
 
   fun get(): String? = context.get()
