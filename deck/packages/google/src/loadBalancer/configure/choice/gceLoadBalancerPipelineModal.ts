@@ -16,7 +16,7 @@ export const openGCEPipelineLoadBalancerModal = ({
   loadBalancer,
   isNew,
   $uibModal,
-}: IGCEPipelineLoadBalancerModalOptions): Promise<any> => {
+}: IGCEPipelineLoadBalancerModalOptions): PromiseLike<any> => {
   return $uibModal
     .open({
       templateUrl: require('./gceLoadBalancerChoice.modal.html'),
