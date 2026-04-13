@@ -89,10 +89,12 @@ public class PubSubUtils {
     String queueUrl;
 
     try {
-      queueUrl = sqsClient.getQueueUrl(r -> r
-          .queueName(queueARN.getName())
-          .queueOwnerAWSAccountId(queueARN.getAccount())
-      ).queueUrl();
+      queueUrl =
+          sqsClient
+              .getQueueUrl(
+                  r ->
+                      r.queueName(queueARN.getName()).queueOwnerAWSAccountId(queueARN.getAccount()))
+              .queueUrl();
       log.debug("Reusing existing queue {}", queueUrl);
     } catch (software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException e) {
       if (!enableQueueCreationFallback) {
@@ -109,8 +111,7 @@ public class PubSubUtils {
 
   public static String ensureQueueExists(
       AmazonSQS amazonSQS, ARN queueARN, ARN topicARN, int sqsMessageRetentionPeriodSeconds) {
-    return ensureQueueExists(
-        amazonSQS, queueARN, topicARN, sqsMessageRetentionPeriodSeconds, true);
+    return ensureQueueExists(amazonSQS, queueARN, topicARN, sqsMessageRetentionPeriodSeconds, true);
   }
 
   public static String ensureQueueExists(
@@ -136,8 +137,7 @@ public class PubSubUtils {
 
   public static String ensureQueueExists(
       SqsClient sqsClient, ARN queueARN, ARN topicARN, int sqsMessageRetentionPeriodSeconds) {
-    return ensureQueueExists(
-        sqsClient, queueARN, topicARN, sqsMessageRetentionPeriodSeconds, true);
+    return ensureQueueExists(sqsClient, queueARN, topicARN, sqsMessageRetentionPeriodSeconds, true);
   }
 
   public static String ensureQueueExists(
