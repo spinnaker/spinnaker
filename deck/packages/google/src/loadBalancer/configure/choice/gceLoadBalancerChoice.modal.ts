@@ -33,6 +33,14 @@ class GceLoadBalancerChoiceCtrl implements IController {
 
   public choose(choice: string): void {
     const wizard = find(this.loadBalancerTypeToWizardMap, (wizardConfig) => wizardConfig.label === choice);
+    if (!wizard) {
+      this.$uibModalInstance.dismiss('No wizard config for choice');
+      return;
+    }
+    if (this.forPipelineConfig) {
+      this.$uibModalInstance.close(wizard);
+      return;
+    }
     const wizardResult = this.$uibModal.open({
       templateUrl: wizard.createTemplateUrl,
       controller: `${wizard.controller} as ctrl`,

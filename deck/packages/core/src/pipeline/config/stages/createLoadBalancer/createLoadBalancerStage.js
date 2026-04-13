@@ -46,22 +46,33 @@ angular
         }
       }
 
+      function openLoadBalancerModal(config, loadBalancer, isNew) {
+        if (config.pipelineCreateLoadBalancerModal) {
+          return config.pipelineCreateLoadBalancerModal({
+            application: $scope.application,
+            loadBalancer,
+            isNew,
+            $uibModal,
+          });
+        }
+        return $uibModal.open({
+          templateUrl: config.createLoadBalancerTemplateUrl,
+          controller: `${config.createLoadBalancerController} as ctrl`,
+          size: 'lg',
+          resolve: {
+            application: () => $scope.application,
+            loadBalancer: () => loadBalancer,
+            isNew: () => isNew,
+            forPipelineConfig: () => true,
+          },
+        }).result;
+      }
+
       this.addLoadBalancer = function () {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
           const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-          $uibModal
-            .open({
-              templateUrl: config.createLoadBalancerTemplateUrl,
-              controller: `${config.createLoadBalancerController} as ctrl`,
-              size: 'lg',
-              resolve: {
-                application: () => $scope.application,
-                loadBalancer: () => null,
-                isNew: () => true,
-                forPipelineConfig: () => true,
-              },
-            })
-            .result.then(function (newLoadBalancer) {
+          openLoadBalancerModal(config, null, true)
+            .then(function (newLoadBalancer) {
               appendLoadBalancers(newLoadBalancer);
             })
             .catch(() => {});
@@ -71,19 +82,9 @@ angular
       this.editLoadBalancer = function (loadBalancer, index) {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
           const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-          $uibModal
-            .open({
-              templateUrl: config.createLoadBalancerTemplateUrl,
-              controller: `${config.createLoadBalancerController} as ctrl`,
-              size: 'lg',
-              resolve: {
-                application: () => $scope.application,
-                loadBalancer: () => angular.copy(loadBalancer),
-                isNew: () => false,
-                forPipelineConfig: () => true,
-              },
-            })
-            .result.then(function (updatedLoadBalancer) {
+          const loadBalancerCopy = angular.copy(loadBalancer);
+          openLoadBalancerModal(config, loadBalancerCopy, false)
+            .then(function (updatedLoadBalancer) {
               updateLoadBalancerAtIndex(updatedLoadBalancer, index);
             })
             .catch(() => {});

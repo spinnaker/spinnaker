@@ -5,37 +5,62 @@ describe('Controller: gceLoadBalancerChoiceCtrl', () => {
     window.module(GCE_LOAD_BALANCER_CHOICE_MODAL);
   });
 
-  beforeEach(
+  const buildController = (overrides = {}) => {
+    let result;
     window.inject(function ($controller, $rootScope, $q) {
-      this.$scope = $rootScope.$new();
-      this.modalInstance = {
+      const $scope = $rootScope.$new();
+      const modalInstance = {
         close: jasmine.createSpy('close'),
         dismiss: jasmine.createSpy('dismiss'),
       };
-      this.wizardResult = $q.when('wizard');
-      this.$uibModal = {
-        open: jasmine.createSpy('open').and.returnValue({ result: this.wizardResult }),
+      const wizardResult = $q.when('wizard');
+      const $uibModal = {
+        open: jasmine.createSpy('open').and.returnValue({ result: wizardResult }),
       };
-
-      this.ctrl = $controller('gceLoadBalancerChoiceCtrl', {
-        $scope: this.$scope,
-        $uibModal: this.$uibModal,
-        $uibModalInstance: this.modalInstance,
+      const ctrl = $controller('gceLoadBalancerChoiceCtrl', {
+        $scope,
+        $uibModal,
+        $uibModalInstance: modalInstance,
         application: { name: 'app' },
         loadBalancerTypeToWizardMap: {
           NETWORK: { label: 'Network', createTemplateUrl: 'template', controller: 'ctrl' },
         },
         forPipelineConfig: true,
+        ...overrides,
       });
-    }),
-  );
 
-  it('closes with wizard result and forwards forPipelineConfig', function () {
-    this.ctrl.choose('Network');
+      result = { ctrl, $uibModal, modalInstance, wizardResult };
+    });
 
-    const modalArgs = this.$uibModal.open.calls.mostRecent().args[0];
-    expect(modalArgs.resolve.forPipelineConfig()).toBe(true);
-    expect(this.modalInstance.close).toHaveBeenCalledWith(this.wizardResult);
-    expect(this.modalInstance.dismiss).not.toHaveBeenCalled();
+    return result;
+  };
+
+  it('closes with wizard config in pipeline mode', function () {
+    const { ctrl, $uibModal, modalInstance } = buildController();
+
+    ctrl.choose('Network');
+
+    expect($uibModal.open).not.toHaveBeenCalled();
+    expect(modalInstance.close).toHaveBeenCalledWith(jasmine.objectContaining({ controller: 'ctrl' }));
+    expect(modalInstance.dismiss).not.toHaveBeenCalled();
+  });
+
+  it('opens wizard in non-pipeline mode', function () {
+    const { ctrl, $uibModal, modalInstance, wizardResult } = buildController({ forPipelineConfig: false });
+
+    ctrl.choose('Network');
+
+    expect($uibModal.open).toHaveBeenCalled();
+    expect(modalInstance.close).toHaveBeenCalledWith(wizardResult);
+  });
+
+  it('dismisses when choice has no wizard config', function () {
+    const { ctrl, $uibModal, modalInstance } = buildController();
+
+    ctrl.choose('Missing');
+
+    expect($uibModal.open).not.toHaveBeenCalled();
+    expect(modalInstance.close).not.toHaveBeenCalled();
+    expect(modalInstance.dismiss).toHaveBeenCalled();
   });
 });
