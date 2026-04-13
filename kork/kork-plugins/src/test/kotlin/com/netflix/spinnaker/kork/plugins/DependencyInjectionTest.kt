@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
-import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader
@@ -221,7 +220,7 @@ class DependencyInjectionTest : JUnit5Minutests {
 
   private class NoConfigSystemExtension : TheExtensionPoint
 
-  @ExtensionConfiguration("extension-point-configuration")
+  @PluginConfiguration("extension-point-configuration")
   class TheConfig
 
   @PluginConfiguration
@@ -239,7 +238,7 @@ class DependencyInjectionTest : JUnit5Minutests {
       private val config: TheConfig
     ) : TheExtensionPoint {
 
-      @ExtensionConfiguration("extension-point-configuration")
+      @PluginConfiguration("extension-point-configuration")
       class TheConfig
     }
 
@@ -253,7 +252,7 @@ class DependencyInjectionTest : JUnit5Minutests {
 
       constructor(bad: String, validConfig: ValidConfig) : this(validConfig)
 
-      @ExtensionConfiguration("valid-config")
+      @PluginConfiguration("valid-config")
       class ValidConfig
     }
 
