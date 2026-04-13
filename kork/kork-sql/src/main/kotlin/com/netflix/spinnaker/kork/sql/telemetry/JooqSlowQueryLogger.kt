@@ -17,7 +17,7 @@ package com.netflix.spinnaker.kork.sql.telemetry
 
 import java.util.concurrent.TimeUnit
 import org.jooq.ExecuteContext
-import org.jooq.impl.DefaultExecuteListener
+import org.jooq.ExecuteListener
 import org.jooq.tools.StopWatch
 import org.slf4j.LoggerFactory
 
@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
  */
 class JooqSlowQueryLogger(
   slowQuerySecondsThreshold: Long = 1
-) : DefaultExecuteListener() {
+) : ExecuteListener {
 
   private lateinit var watch: StopWatch
 
@@ -34,12 +34,10 @@ class JooqSlowQueryLogger(
   private val slowQueryThreshold = TimeUnit.SECONDS.toNanos(slowQuerySecondsThreshold)
 
   override fun executeStart(ctx: ExecuteContext) {
-    super.executeStart(ctx)
     watch = StopWatch()
   }
 
   override fun executeEnd(ctx: ExecuteContext) {
-    super.executeEnd(ctx)
     if (watch.split() > slowQueryThreshold) {
       log.warn("Slow SQL (${watch.splitToMillis()}ms):\n${ctx.query()}")
     }
