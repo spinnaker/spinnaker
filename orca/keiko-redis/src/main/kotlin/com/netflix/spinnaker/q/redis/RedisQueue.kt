@@ -68,7 +68,8 @@ class RedisQueue(
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandlers: List<DeadMessageCallback>,
   override val canPollMany: Boolean = false,
-  override val publisher: EventPublisher
+  override val publisher: EventPublisher,
+  private val retryConfig: RedisRetryConfig = RedisRetryConfig()
 ) : AbstractRedisQueue(
   clock,
   lockTtlSeconds,
@@ -77,7 +78,8 @@ class RedisQueue(
   ackTimeout,
   deadMessageHandlers,
   canPollMany,
-  publisher
+  publisher,
+  retryConfig
 ) {
 
   override val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -135,21 +137,23 @@ class RedisQueue(
   }
 
   override fun push(message: Message, delay: TemporalAmount) {
-    pool.resource.use { redis ->
-      redis.firstFingerprint(queueKey, message.fingerprint()).also { fingerprint ->
-        if (fingerprint != null) {
-          log.info(
-            "Re-prioritizing message as an identical one is already on the queue: " +
-              "$fingerprint, message: $message"
-          )
-          redis.zadd(queueKey, score(delay), fingerprint, zAddParams().xx())
-          fire(MessageDuplicate(message))
-        } else {
-          redis.queueMessage(message, delay)
-          log.info("Successfully pushed message with fingerprint ${message.fingerprint()}, " +
-            "payload $message, acknowledgement timeout ${message.ackTimeoutMs}ms " +
-            "and attributes ${message.attributes}")
-          fire(MessagePushed(message))
+    retry {
+      pool.resource.use { redis ->
+        redis.firstFingerprint(queueKey, message.fingerprint()).also { fingerprint ->
+          if (fingerprint != null) {
+            log.info(
+              "Re-prioritizing message as an identical one is already on the queue: " +
+                "$fingerprint, message: $message"
+            )
+            redis.zadd(queueKey, score(delay), fingerprint, zAddParams().xx())
+            fire(MessageDuplicate(message))
+          } else {
+            redis.queueMessage(message, delay)
+            log.info("Successfully pushed message with fingerprint ${message.fingerprint()}, " +
+              "payload $message, acknowledgement timeout ${message.ackTimeoutMs}ms " +
+              "and attributes ${message.attributes}")
+            fire(MessagePushed(message))
+          }
         }
       }
     }

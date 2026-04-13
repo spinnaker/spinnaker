@@ -17,6 +17,7 @@ import java.util.Optional
 import org.slf4j.Logger
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.Transaction
+import redis.clients.jedis.exceptions.JedisException
 import redis.clients.jedis.commands.JedisCommands
 
 abstract class AbstractRedisQueue(
@@ -27,7 +28,8 @@ abstract class AbstractRedisQueue(
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandlers: List<DeadMessageCallback>,
   override val canPollMany: Boolean = false,
-  override val publisher: EventPublisher
+  override val publisher: EventPublisher,
+  private val retryConfig: RedisRetryConfig = RedisRetryConfig()
 
 ) : MonitorableQueue {
   internal abstract val queueKey: String
@@ -45,6 +47,27 @@ abstract class AbstractRedisQueue(
 
   abstract fun cacheScript()
   abstract var readMessageWithLockScriptSha: String
+
+  protected fun <T> retry(block: () -> T): T {
+    var lastException: JedisException? = null
+    repeat(retryConfig.maxAttempts) { attempt ->
+      try {
+        return block()
+      } catch (e: JedisException) {
+        lastException = e
+        log.warn("Redis operation failed (attempt ${attempt + 1}/${retryConfig.maxAttempts})", e)
+        if (attempt < retryConfig.maxAttempts - 1) {
+          val delay = if (retryConfig.exponentialBackoff) {
+            retryConfig.backoffMs * (1L shl attempt)
+          } else {
+            retryConfig.backoffMs
+          }
+          Thread.sleep(delay)
+        }
+      }
+    }
+    throw lastException!!
+  }
 
   internal fun runSerializationMigration(json: String): String {
     if (serializationMigrator.isPresent) {
