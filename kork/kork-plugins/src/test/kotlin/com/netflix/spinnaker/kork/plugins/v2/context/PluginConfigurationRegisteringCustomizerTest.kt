@@ -34,8 +34,8 @@ import org.springframework.core.env.StandardEnvironment
  * [Plugin.basePackageName][com.netflix.spinnaker.kork.plugins.v2.basePackageName]
  * returns this package name, allowing classpath scanning to find [SamplePluginConfig].
  */
-@Suppress("DEPRECATION")
-internal class ConfigTestPlugin(wrapper: PluginWrapper) : Plugin(wrapper)
+@Suppress("UNUSED_PARAMETER") // wrapper exists for classpath scanning package resolution
+internal class ConfigTestPlugin(wrapper: PluginWrapper) : Plugin()
 
 /** A sample configuration class that classpath scanning can discover. */
 @PluginConfiguration("test")

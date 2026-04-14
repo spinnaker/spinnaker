@@ -230,7 +230,8 @@ class DependencyInjectionTest : JUnit5Minutests {
     private val config: TheConfig
   ) : TheExtensionPoint
 
-  class MyPlugin(wrapper: PluginWrapper) : Plugin(wrapper) {
+  @Suppress("UNUSED_PARAMETER") // wrapper is required for createWithConstructor DI type matching
+  class MyPlugin(wrapper: PluginWrapper) : Plugin() {
 
     class NoConfigExtension : TheExtensionPoint
 
@@ -250,7 +251,7 @@ class DependencyInjectionTest : JUnit5Minutests {
       private val validConfig: ValidConfig
     ) : TheExtensionPoint {
 
-      constructor(bad: String, validConfig: ValidConfig) : this(validConfig)
+      constructor(_bad: String, validConfig: ValidConfig) : this(validConfig)
 
       @PluginConfiguration("valid-config")
       class ValidConfig
@@ -262,10 +263,19 @@ class DependencyInjectionTest : JUnit5Minutests {
   }
 }
 
-internal class PluginWithoutInjection(wrapper: PluginWrapper) : Plugin(wrapper)
-internal class PluginWithSdks(wrapper: PluginWrapper, val sdks: PluginSdks) : Plugin(wrapper)
-internal class PluginWithConfig(wrapper: PluginWrapper, val config: DependencyInjectionTest.PluginConfig) : Plugin(wrapper)
-internal class PluginWithUnsupportedArg(wrapper: PluginWrapper, val bad: String) : Plugin(wrapper)
-internal class PluginWithMultipleConstructors(wrapper: PluginWrapper) : Plugin(wrapper) {
-  constructor(wrapper: PluginWrapper, sdks: PluginSdks) : this(wrapper)
+// These test fixture classes take a PluginWrapper constructor parameter because
+// createWithConstructor in dsl.kt matches on parameter types for DI injection.
+// The parameter is intentionally unused since Plugin() no-arg replaces the
+// deprecated Plugin(PluginWrapper) constructor.
+@Suppress("UNUSED_PARAMETER")
+internal class PluginWithoutInjection(wrapper: PluginWrapper) : Plugin()
+@Suppress("UNUSED_PARAMETER")
+internal class PluginWithSdks(wrapper: PluginWrapper, val sdks: PluginSdks) : Plugin()
+@Suppress("UNUSED_PARAMETER")
+internal class PluginWithConfig(wrapper: PluginWrapper, val config: DependencyInjectionTest.PluginConfig) : Plugin()
+@Suppress("UNUSED_PARAMETER")
+internal class PluginWithUnsupportedArg(wrapper: PluginWrapper, val bad: String) : Plugin()
+@Suppress("UNUSED_PARAMETER")
+internal class PluginWithMultipleConstructors(wrapper: PluginWrapper) : Plugin() {
+  constructor(wrapper: PluginWrapper, _sdks: PluginSdks) : this(wrapper)
 }
