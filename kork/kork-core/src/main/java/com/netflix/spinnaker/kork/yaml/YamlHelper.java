@@ -67,8 +67,8 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       Constructor constructor = new Constructor(opts);
-      Representer representer = new Representer();
       DumperOptions dumperOpts = new DumperOptions();
+      Representer representer = new Representer(dumperOpts);
       Resolver resolver = new Resolver(); // default tag resolver
 
       return new Yaml(constructor, representer, dumperOpts, opts, resolver);
@@ -89,13 +89,13 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       SafeConstructor constructor = new SafeConstructor(opts);
-      Representer representer = new Representer();
       DumperOptions dumperOpts = new DumperOptions();
+      Representer representer = new Representer(dumperOpts);
 
       return new Yaml(constructor, representer, dumperOpts, opts);
     }
 
-    return new Yaml(new SafeConstructor());
+    return new Yaml(new SafeConstructor(new LoaderOptions()));
   }
 
   /**
@@ -110,12 +110,13 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       SafeConstructor constructor = new SafeConstructor(opts);
-      Representer representer = new Representer();
+      Representer representer = new Representer(dumperOptions);
 
       return new Yaml(constructor, representer, dumperOptions, opts);
     }
 
-    return new Yaml(new SafeConstructor(), new Representer(), dumperOptions);
+    return new Yaml(
+        new SafeConstructor(new LoaderOptions()), new Representer(dumperOptions), dumperOptions);
   }
 
   /**
