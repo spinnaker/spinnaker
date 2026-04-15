@@ -85,6 +85,7 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 	if options.tag != "" {
 		getQueryParam.Tag = optional.NewString(options.tag)
 	} else if tag, exists := templateJson["tag"]; exists {
+		// Use comma-ok assertion to avoid panic if tag is non-string (e.g. JSON array).
 		if tagStr, ok := tag.(string); ok && tagStr != "" {
 			getQueryParam.Tag = optional.NewString(tagStr)
 		} else {
