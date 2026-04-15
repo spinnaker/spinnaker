@@ -25,8 +25,7 @@ angular
   .controller('createLoadBalancerStageCtrl', [
     '$scope',
     '$uibModal',
-    '$timeout',
-    function ($scope, $uibModal, $timeout) {
+    function ($scope, $uibModal) {
       function initializeCommand() {
         $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
       }
@@ -69,37 +68,27 @@ angular
         }).result;
       }
 
-      function afterReactModalCloses(selectedProvider) {
-        return $timeout(function () {
-          return selectedProvider;
-        }, 400);
-      }
-
       this.addLoadBalancer = function () {
-        ProviderSelectionService.selectProvider($scope.application, 'loadBalancer')
-          .then(afterReactModalCloses)
-          .then(function (selectedProvider) {
-            const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-            openLoadBalancerModal(config, null, true)
-              .then(function (newLoadBalancer) {
-                appendLoadBalancers(newLoadBalancer);
-              })
-              .catch(() => {});
-          });
+        ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
+          const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
+          openLoadBalancerModal(config, null, true)
+            .then(function (newLoadBalancer) {
+              appendLoadBalancers(newLoadBalancer);
+            })
+            .catch(() => {});
+        });
       };
 
       this.editLoadBalancer = function (loadBalancer, index) {
-        ProviderSelectionService.selectProvider($scope.application, 'loadBalancer')
-          .then(afterReactModalCloses)
-          .then(function (selectedProvider) {
-            const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-            const loadBalancerCopy = angular.copy(loadBalancer);
-            openLoadBalancerModal(config, loadBalancerCopy, false)
-              .then(function (updatedLoadBalancer) {
-                updateLoadBalancerAtIndex(updatedLoadBalancer, index);
-              })
-              .catch(() => {});
-          });
+        ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
+          const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
+          const loadBalancerCopy = angular.copy(loadBalancer);
+          openLoadBalancerModal(config, loadBalancerCopy, false)
+            .then(function (updatedLoadBalancer) {
+              updateLoadBalancerAtIndex(updatedLoadBalancer, index);
+            })
+            .catch(() => {});
+        });
       };
 
       this.copyLoadBalancer = function (index) {
