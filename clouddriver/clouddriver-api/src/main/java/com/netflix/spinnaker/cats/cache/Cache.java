@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /** Cache provides view access to data keyed by type and identifier. */
 @Beta
@@ -55,7 +56,7 @@ public interface Cache {
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
-  default Collection<String> existingIdentifiers(String type, String... identifiers) {
+  default Set<String> existingIdentifiers(String type, String... identifiers) {
     if (identifiers.length == 0) {
       return Collections.emptySet();
     }
@@ -69,7 +70,7 @@ public interface Cache {
    * @param identifiers the identifiers for the items
    * @return the list of identifiers that are present in the cache from the provided identifiers
    */
-  Collection<String> existingIdentifiers(String type, Collection<String> identifiers);
+  Set<String> existingIdentifiers(String type, Collection<String> identifiers);
 
   /**
    * Retrieves all the identifiers for a type
@@ -77,7 +78,7 @@ public interface Cache {
    * @param type the type for which to retrieve identifiers
    * @return the identifiers for the type
    */
-  Collection<String> getIdentifiers(String type);
+  Set<String> getIdentifiers(String type);
 
   /**
    * Returns the identifiers for the specified type that match the provided glob.
@@ -86,7 +87,7 @@ public interface Cache {
    * @param glob The glob to match against the identifiers
    * @return the identifiers for the type that match the glob
    */
-  Collection<String> filterIdentifiers(String type, String glob);
+  Set<String> filterIdentifiers(String type, String glob);
 
   /**
    * Retrieves all the items for the specified type

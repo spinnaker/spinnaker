@@ -104,14 +104,14 @@ public class DefaultProviderCache implements ProviderCache {
   }
 
   @Override
-  public Collection<String> existingIdentifiers(String type, Collection<String> identifiers) {
+  public Set<String> existingIdentifiers(String type, Collection<String> identifiers) {
     Set<String> existing = new HashSet<>(backingStore.existingIdentifiers(type, identifiers));
     existing.remove(ALL_ID);
     return existing;
   }
 
   @Override
-  public Collection<String> getIdentifiers(String type) {
+  public Set<String> getIdentifiers(String type) {
     validateTypes(type);
     Set<String> identifiers = new HashSet<>(backingStore.getIdentifiers(type));
     identifiers.remove(ALL_ID);
@@ -119,7 +119,7 @@ public class DefaultProviderCache implements ProviderCache {
   }
 
   @Override
-  public Collection<String> filterIdentifiers(String type, String glob) {
+  public Set<String> filterIdentifiers(String type, String glob) {
     validateTypes(type);
     Set<String> identifiers = new HashSet<>(backingStore.filterIdentifiers(type, glob));
     identifiers.remove(ALL_ID);

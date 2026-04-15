@@ -60,8 +60,7 @@ abstract class AbstractCacheClient<T> {
    *     namespace.
    */
   public Collection<T> getAll(String account, String region) {
-    Collection<CacheData> data = fetchFromCache(account, region);
-    return convertAll(data);
+    return convertAll(fetchFromCache(account, region));
   }
 
   /**
@@ -93,14 +92,11 @@ abstract class AbstractCacheClient<T> {
   private Collection<CacheData> fetchFromCache(String account, String region) {
     String accountFilter = account != null ? account + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
     String regionFilter = region != null ? region + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
-    Set<String> keys = new HashSet<>();
     String pattern =
         "aws" + Keys.SEPARATOR + keyNamespace + Keys.SEPARATOR + accountFilter + regionFilter + "*";
-    Collection<String> nameMatches = cacheView.filterIdentifiers(keyNamespace, pattern);
+    Set<String> identifiers = cacheView.filterIdentifiers(keyNamespace, pattern);
 
-    keys.addAll(nameMatches);
-
-    Collection<CacheData> allData = cacheView.getAll(keyNamespace, keys);
+    Collection<CacheData> allData = cacheView.getAll(keyNamespace, identifiers);
 
     if (allData == null) {
       return Collections.emptyList();
