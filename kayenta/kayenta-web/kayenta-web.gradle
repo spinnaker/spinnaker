@@ -37,4 +37,5 @@ dependencies {
   implementation "io.spinnaker.kork:kork-plugins"
   runtimeOnly "io.spinnaker.kork:kork-secrets-aws"
   runtimeOnly "io.spinnaker.kork:kork-secrets-gcp"
+  runtimeOnly "io.spinnaker.kork:kork-secrets-k8s"
 }

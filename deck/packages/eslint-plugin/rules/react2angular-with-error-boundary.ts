@@ -1,5 +1,4 @@
 import type { Rule } from 'eslint';
-import type { CallExpression, ImportDeclaration } from 'estree';
 import _ from 'lodash';
 import { isLiteral } from '../utils/utils';
 
@@ -9,12 +8,13 @@ import { isLiteral } from '../utils/utils';
  * @version 0.1.0
  */
 const rule = function (context: Rule.RuleContext) {
-  let coreImport: ImportDeclaration;
+  let coreImport: any;
 
   return {
     // Find an import from @spinnaker/core or core/presentation
     // This will be used to add the import for withErrorBoundary
-    ImportDeclaration: function (node: ImportDeclaration) {
+    ImportDeclaration: function (_node: any) {
+      const node = _node;
       // import { foo, bar } from 'package';
       //                           ^^^^^^^
       const from = node.source.value || '';
@@ -22,7 +22,8 @@ const rule = function (context: Rule.RuleContext) {
         coreImport = node;
       }
     },
-    CallExpression: function (node: CallExpression & Rule.NodeParentExtension) {
+    CallExpression: function (_node: any) {
+      const node = _node;
       // Find:
       // react2angular(SomeComponent, ...)
       const match = {
@@ -69,7 +70,7 @@ const rule = function (context: Rule.RuleContext) {
           },
         },
       };
-      const isComponentCallExpression = (node): node is CallExpression => _.isMatch(node, parentMatch);
+      const isComponentCallExpression = (node): node is any => _.isMatch(node, parentMatch);
 
       let componentName = `'react2angular component'`;
       const parentNode = node.parent;

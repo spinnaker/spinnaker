@@ -21,6 +21,7 @@ import java.util.stream.Collectors
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/plugins/installed")
+@ConditionalOnProperty("spinnaker.extensibility.remote-plugins.enabled", matchIfMissing = true)
 class PluginsInstalledController(
   private val clouddriverService: ClouddriverService,
   private val echoService: ObjectProvider<EchoService>,
@@ -40,7 +42,7 @@ class PluginsInstalledController(
   private val swabbieService: ObjectProvider<SwabbieService>,
   private val spinnakerPluginManager: SpinnakerPluginManager,
   private val spinnakerUpdateManager: SpinnakerUpdateManager,
-  private val deckPluginService: DeckPluginService
+  private val deckPluginService: ObjectProvider<DeckPluginService>
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -50,7 +52,7 @@ class PluginsInstalledController(
   fun getInstalledPlugins(@RequestParam(value = "service", required = false) service: String?): Map<String, List<SpinnakerPluginDescriptor>> {
     return when (service) {
       clouddriver -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(clouddriverService.installedPlugins) }))
-      deck -> mutableMapOf(Pair(service, deckPlugins()))
+      deck -> if (deckPluginService.ifAvailable != null) mutableMapOf(Pair(service, deckPlugins())) else emptyMap()
       echo -> if (echoService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(echoService.ifAvailable!!.installedPlugins) })) else emptyMap()
       fiat -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(fiatService.installedPlugins) }))
       front50 -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(front50Service.installedPlugins) }))
@@ -68,7 +70,7 @@ class PluginsInstalledController(
         val swabbiePair = if (swabbieService.ifAvailable != null) Pair(swabbie, callService { Retrofit2SyncCall.execute(swabbieService.ifAvailable!!.installedPlugins) }) else Pair(swabbie, emptyList())
         mutableMapOf(
           Pair(clouddriver, callService { Retrofit2SyncCall.execute(clouddriverService.installedPlugins) }),
-          Pair(deck, deckPlugins()),
+          Pair(deck, if (deckPluginService.ifAvailable != null) deckPlugins() else emptyList()),
           echoPair,
           Pair(fiat, callService { Retrofit2SyncCall.execute(fiatService.installedPlugins) }),
           Pair(front50, callService { Retrofit2SyncCall.execute(front50Service.installedPlugins) }),
@@ -94,7 +96,7 @@ class PluginsInstalledController(
    * but the properties from the plugin info can be mapped correctly.
    */
   fun deckPlugins(): List<SpinnakerPluginDescriptor> {
-    val deckPlugins = deckPluginService.getPluginsManifests()
+    val deckPlugins = deckPluginService.ifAvailable?.getPluginsManifests() ?: return emptyList()
     val plugins = spinnakerUpdateManager.plugins
     val descriptors: MutableList<SpinnakerPluginDescriptor> = mutableListOf()
 

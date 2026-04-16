@@ -12,14 +12,13 @@ const findParentNodeByType = (node: Rule.Node, type: string) =>
  * @category conventions
  */
 import angularRule from '../utils/angular-rule/angular-rule';
-import { isNewExpression } from '../utils/utils';
 
 const useObjectLiteral = function (context: Rule.RuleContext) {
   return {
     'angular?component': function (callee, thisGuy) {
       const node: Rule.Node = thisGuy.node;
       const scope: Scope.Scope = thisGuy.scope;
-      if (isNewExpression(node)) {
+      if (node.type === 'NewExpression') {
         const calleeName = 'name' in node.callee ? node.callee.name : undefined;
         const fix = (fixer: Rule.RuleFixer) => {
           const variable = scope.variables.find((x) => x.name === calleeName);

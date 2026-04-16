@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
+import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
@@ -164,7 +165,7 @@ class DeserializerHookRegistryTest {
   @MethodSource("testExpansionArgs")
   public void testExpansion(String json, Object expectedResult) throws Exception {
     ArtifactStore store = Mockito.mock(ArtifactStore.class);
-    Mockito.when(store.get(Mockito.any(), Mockito.any()))
+    Mockito.when(store.get(Mockito.any(ArtifactReferenceURI.class)))
         .thenReturn(
             Artifact.builder()
                 .type(ArtifactTypes.EMBEDDED_MAP_BASE64.getMimeType())

@@ -26,7 +26,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
@@ -46,14 +45,14 @@ public class ResponseAuthenticationConverter
   private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
   private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
   private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
-
-  @Autowired private AllowedAccountsSupport allowedAccountsSupport;
+  private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupportFactory;
 
   @Override
   public PreAuthenticatedAuthenticationToken convert(ResponseToken source) {
     UserIdentifierExtractor userIdentifierExtractor = userIdentifierExtractorFactory.getObject();
     UserRolesExtractor userRolesExtractor = userRolesExtractorFactory.getObject();
     AuthenticationService loginService = authenticationServiceFactory.getObject();
+    AllowedAccountsSupport allowedAccountsSupport = allowedAccountsSupportFactory.getObject();
     log.debug("Decoding SAML response: {}", source.getToken());
 
     Saml2Authentication authentication = convertToken(source);

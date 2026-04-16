@@ -81,7 +81,7 @@ class ResponseAuthenticationConverterTest {
     ResponseAuthenticationConverter converter =
         new TestableResponseAuthenticationConverter(
             properties,
-            allowedAccountsSupport,
+            () -> allowedAccountsSupport,
             userIdentifierExtractorFactory,
             userRolesExtractorFactory,
             () -> authenticationService,
@@ -122,7 +122,7 @@ class ResponseAuthenticationConverterTest {
     ResponseAuthenticationConverter converter =
         new TestableResponseAuthenticationConverter(
             properties,
-            Mockito.mock(AllowedAccountsSupport.class),
+            () -> Mockito.mock(AllowedAccountsSupport.class),
             () -> p -> "extractedUserId",
             () -> p -> Set.of(),
             () -> authenticationService,
@@ -150,7 +150,7 @@ class ResponseAuthenticationConverterTest {
     ResponseAuthenticationConverter converter =
         new TestableResponseAuthenticationConverter(
             properties,
-            Mockito.mock(AllowedAccountsSupport.class),
+            () -> Mockito.mock(AllowedAccountsSupport.class),
             () -> p -> "extractedUserId",
             () -> p -> Set.of("other"),
             () -> Mockito.mock(AuthenticationService.class),
@@ -186,7 +186,7 @@ class ResponseAuthenticationConverterTest {
   static final class TestableResponseAuthenticationConverter
       extends ResponseAuthenticationConverter {
     private final SecuritySamlProperties properties;
-    private final AllowedAccountsSupport allowedAccountsSupport;
+    private final ObjectFactory<AllowedAccountsSupport> allowedAccountsSupport;
     private final ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory;
     private final ObjectFactory<UserRolesExtractor> userRolesExtractorFactory;
     private final ObjectFactory<AuthenticationService> authenticationServiceFactory;
@@ -194,7 +194,7 @@ class ResponseAuthenticationConverterTest {
 
     TestableResponseAuthenticationConverter(
         SecuritySamlProperties properties,
-        AllowedAccountsSupport allowedAccountsSupport,
+        ObjectFactory<AllowedAccountsSupport> allowedAccountsSupport,
         ObjectFactory<UserIdentifierExtractor> userIdentifierExtractorFactory,
         ObjectFactory<UserRolesExtractor> userRolesExtractorFactory,
         ObjectFactory<AuthenticationService> authenticationServiceFactory,
@@ -203,7 +203,8 @@ class ResponseAuthenticationConverterTest {
           properties,
           userIdentifierExtractorFactory,
           userRolesExtractorFactory,
-          authenticationServiceFactory);
+          authenticationServiceFactory,
+          allowedAccountsSupport);
       this.properties = properties;
       this.allowedAccountsSupport = allowedAccountsSupport;
       this.userIdentifierExtractorFactory = userIdentifierExtractorFactory;
@@ -237,7 +238,8 @@ class ResponseAuthenticationConverterTest {
       Set<String> roles = userRolesExtractor.getRoles(principal);
       user.setRoles(roles);
 
-      user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(userid, roles));
+      user.setAllowedAccounts(
+          allowedAccountsSupport.getObject().filterAllowedAccounts(userid, roles));
 
       if (!org.springframework.util.CollectionUtils.isEmpty(properties.getRequiredRoles())) {
         var requiredRoles = Set.copyOf(properties.getRequiredRoles());

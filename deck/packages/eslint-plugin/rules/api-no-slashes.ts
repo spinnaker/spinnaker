@@ -1,5 +1,9 @@
 import type { Rule } from 'eslint';
-import type { CallExpression, Identifier, Literal } from 'estree';
+import type * as ESTree from 'estree';
+
+type CallExpression = ESTree.CallExpression;
+type Identifier = ESTree.Identifier;
+type Literal = ESTree.Literal;
 import { get } from 'lodash';
 
 import { getCallingIdentifier, getVariableInScope, isMemberExpression } from '../utils/utils';
@@ -12,7 +16,8 @@ import { getCallingIdentifier, getVariableInScope, isMemberExpression } from '..
  */
 const rule = function (context: Rule.RuleContext) {
   return {
-    CallExpression: function (node: CallExpression) {
+    CallExpression: function (_node: any) {
+      const node = _node as CallExpression;
       const callee = node.callee;
       const args = node.arguments;
 
