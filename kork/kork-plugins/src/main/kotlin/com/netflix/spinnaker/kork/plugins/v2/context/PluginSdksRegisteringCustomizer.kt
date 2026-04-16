@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.plugins.v2.context
 import com.netflix.spinnaker.kork.plugins.sdk.PluginSdksImpl
 import com.netflix.spinnaker.kork.plugins.sdk.SdkFactory
 import org.pf4j.Plugin
+import org.pf4j.PluginWrapper
 import org.springframework.context.ConfigurableApplicationContext
 
 /**
@@ -28,13 +29,14 @@ import org.springframework.context.ConfigurableApplicationContext
  * the SDKs we want to expose, rather than proxying them through [PluginSdksImpl].
  */
 class PluginSdksRegisteringCustomizer(
-  private val serviceApplicationContext: ConfigurableApplicationContext
+  private val serviceApplicationContext: ConfigurableApplicationContext,
+  private val pluginWrapper: PluginWrapper,
 ) : PluginApplicationContextCustomizer {
 
   override fun accept(plugin: Plugin, context: ConfigurableApplicationContext) {
     val sdk = PluginSdksImpl(
       serviceApplicationContext.getBeansOfType(SdkFactory::class.java).values
-        .map { it.create(plugin.javaClass, plugin.wrapper) }
+        .map { it.create(plugin.javaClass, pluginWrapper) }
     )
     context.beanFactory.registerSingleton("pluginSdks", sdk)
   }
