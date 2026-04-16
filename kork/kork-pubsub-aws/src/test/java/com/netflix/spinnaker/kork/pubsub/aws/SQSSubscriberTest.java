@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -140,7 +141,7 @@ public class SQSSubscriberTest {
     doReturn(List.of(msg)).when(receiveMessageResult).getMessages();
 
     AmazonSQS SQS = spy(AmazonSQS.class);
-    doReturn(getQueueUrlResult).when(SQS).getQueueUrl(anyString());
+    doReturn(getQueueUrlResult).when(SQS).getQueueUrl(any(GetQueueUrlRequest.class));
     doReturn(receiveMessageResult).when(SQS).receiveMessage(any(ReceiveMessageRequest.class));
 
     return SQS;
