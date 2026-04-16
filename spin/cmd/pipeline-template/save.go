@@ -84,8 +84,16 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 	getQueryParam := &gate.V2PipelineTemplatesControllerApiGetOpts{}
 	if options.tag != "" {
 		getQueryParam.Tag = optional.NewString(options.tag)
-	} else if tag, exists := templateJson["tag"]; exists && tag.(string) != "" {
-		getQueryParam.Tag = optional.NewString(tag.(string))
+	} else if tag, exists := templateJson["tag"]; exists {
+		// Use comma-ok assertion to avoid panic if tag is non-string (e.g. JSON array).
+		if tagStr, ok := tag.(string); ok && tagStr != "" {
+			getQueryParam.Tag = optional.NewString(tagStr)
+		} else {
+			return fmt.Errorf(
+				"Pipeline template tag must be a string (valid values: latest, stable, unstable, experimental, test, canary), got: %v",
+				tag,
+			)
+		}
 	}
 
 	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.Get(options.GateClient.Context, templateId, getQueryParam)
