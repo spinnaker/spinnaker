@@ -19,21 +19,23 @@ package com.netflix.spinnaker.clouddriver.controllers;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import com.netflix.spinnaker.clouddriver.model.FunctionProvider;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.security.SpinnakerUsers;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Log4j2
 public class FunctionController {
   private final List<FunctionProvider> functionProviders;
-  private HashMap<String, String> functionMap = new HashMap<String, String>();
 
   @Autowired
   public FunctionController(Optional<List<FunctionProvider>> functionProviders) {
@@ -48,19 +50,29 @@ public class FunctionController {
       @RequestParam(value = "region", required = false) String region,
       @RequestParam(value = "account", required = false) String account) {
     if (functionName == null || functionName.isEmpty()) {
-      return functionProviders.stream()
-          .map(FunctionProvider::getAllFunctions)
-          .flatMap(Collection::stream)
-          .collect(Collectors.toList());
+      // Use filtered query when account or region is provided
+      if (account != null || region != null) {
+        return functionProviders.stream()
+            .map(functionProvider -> functionProvider.getAllFunctions(account, region))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+      } else {
+        log.warn(
+            "An unfiltered call to the function list API has been made by "
+                + SpinnakerUsers.getCurrentUserId()
+                + " - this loads ALL functions from ALL accounts THEN filters the auth data.  This is likely to have performance impacts!");
+
+        return functionProviders.stream()
+            .map(FunctionProvider::getAllFunctions)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+      }
     } else {
       try {
-        List<Function> myFunction =
-            functionProviders.stream()
-                .map(
-                    functionProvider -> functionProvider.getFunction(account, region, functionName))
-                .filter(function -> function != null)
-                .collect(Collectors.toList());
-        return myFunction;
+        return functionProviders.stream()
+            .map(functionProvider -> functionProvider.getFunction(account, region, functionName))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
       } catch (NotFoundException e) {
         throw new NotFoundException(functionName + "does not exist");
       }
