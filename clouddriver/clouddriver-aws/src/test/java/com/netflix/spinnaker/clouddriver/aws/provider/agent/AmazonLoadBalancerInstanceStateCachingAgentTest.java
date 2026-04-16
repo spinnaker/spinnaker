@@ -106,7 +106,7 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
             Set.of(
                 Keys.getLoadBalancerKey(loadBalancerOneName, accountId, region, vpcId, "classic"),
                 Keys.getLoadBalancerKey(loadBalancerTwoName, accountId, region, vpcId, "classic")),
-          Set.of()); // nonvpc
+            Set.of()); // nonvpc
 
     when(loadBalancing.describeInstanceHealth(any(DescribeInstanceHealthRequest.class)))
         .thenReturn(new DescribeInstanceHealthResult().withInstanceStates(instanceState));
