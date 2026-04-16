@@ -23,12 +23,13 @@ import com.netflix.awsobjectmapper.AmazonObjectMapperConfigurer;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
+import com.netflix.spinnaker.clouddriver.model.Function;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LambdaCacheClient extends AbstractCacheClient<LambdaFunction> {
+public class LambdaCacheClient extends AbstractCacheClient<Function> {
   private final ObjectMapper objectMapper = AmazonObjectMapperConfigurer.createConfigured();
 
   @Autowired
@@ -47,16 +48,13 @@ public class LambdaCacheClient extends AbstractCacheClient<LambdaFunction> {
       return lambdaFunction;
     }
     Map<String, String> arnUuidMap = new HashMap<>();
-    eventSourceMappings.stream()
-        .forEach(
-            xx -> {
-              arnUuidMap.put((String) xx.get("eventSourceArn"), (String) xx.get("uuid"));
-            });
+    eventSourceMappings.forEach(
+        xx -> arnUuidMap.put((String) xx.get("eventSourceArn"), (String) xx.get("uuid")));
     lambdaFunction
         .getEventSourceMappings()
         .forEach(
             currMapping -> {
-              currMapping.setUUID((String) arnUuidMap.get(currMapping.getEventSourceArn()));
+              currMapping.setUUID(arnUuidMap.get(currMapping.getEventSourceArn()));
             });
     return lambdaFunction;
   }
