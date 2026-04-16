@@ -18,4 +18,7 @@ package com.netflix.spinnaker.kork.plugins.internal
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 
-class TestPlugin(wrapper: PluginWrapper) : Plugin(wrapper)
+// wrapper is required for createWithConstructor DI type matching but intentionally
+// unused since Plugin() no-arg replaces the deprecated Plugin(PluginWrapper) constructor.
+@Suppress("UNUSED_PARAMETER")
+class TestPlugin(wrapper: PluginWrapper) : Plugin()

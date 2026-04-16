@@ -99,7 +99,7 @@ class SpinnakerUpdateManager(
 
     log.debug("Downloading plugin '{}' with version '{}'", pluginId, props.version)
     val tmpPath = downloadPluginRelease(pluginId, props.version)
-    val downloadedPluginPath = pluginManager.pluginsRoot.write(pluginId, tmpPath)
+    val downloadedPluginPath = pluginManager.pluginsRoots.single().write(pluginId, tmpPath)
 
     log.debug("Downloaded plugin '{}'", pluginId)
     applicationEventPublisher.publishEvent(
@@ -160,7 +160,7 @@ class SpinnakerUpdateManager(
    * necessary.
    */
   private fun Path.write(pluginId: String, downloaded: Path): Path {
-    if (pluginManager.pluginsRoot == this) {
+    if (pluginManager.pluginsRoots.single() == this) {
       val file = this.resolve(pluginId + "-" + downloaded.fileName.toString())
       File(this.toString()).mkdirs()
       try {
