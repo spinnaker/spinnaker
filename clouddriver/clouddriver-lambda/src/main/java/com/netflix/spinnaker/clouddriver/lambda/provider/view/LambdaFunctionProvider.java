@@ -26,7 +26,6 @@ import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.cache.client.LambdaCacheClient;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import com.netflix.spinnaker.clouddriver.model.FunctionProvider;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,7 +45,12 @@ public class LambdaFunctionProvider implements FunctionProvider {
 
   @Override
   public Collection<Function> getAllFunctions() {
-    return new ArrayList<>(awsLambdaCacheClient.getAll());
+    return awsLambdaCacheClient.getAll();
+  }
+
+  @Override
+  public Collection<Function> getAllFunctions(String account, String region) {
+    return awsLambdaCacheClient.getAll(account, region);
   }
 
   public Function getFunction(String account, String region, String functionName) {
