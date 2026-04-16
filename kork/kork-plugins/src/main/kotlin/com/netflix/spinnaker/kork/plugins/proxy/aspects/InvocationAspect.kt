@@ -25,7 +25,7 @@ import java.lang.reflect.Method
  * An aspect to use with [ExtensionInvocationProxy], allows for storing state about an invocation
  * and accessing that state on [error] and [after] the invocation.
  */
-interface InvocationAspect<I : InvocationState> {
+interface InvocationAspect<out I : InvocationState> {
 
   /**
    * Determines if the instance supports the specified [InvocationState] type.
@@ -51,7 +51,7 @@ interface InvocationAspect<I : InvocationState> {
    *
    * @param invocationState The state object created via [before]
    */
-  fun after(invocationState: I)
+  fun after(invocationState: @UnsafeVariance I)
 
   /**
    * If the method invocation threw an InvocationTargetException, apply some additional processing if
@@ -60,7 +60,7 @@ interface InvocationAspect<I : InvocationState> {
    * @param e InvocationTargetException which is thrown via
    * @param invocationState The invocationState object created via [before]
    */
-  fun error(e: InvocationTargetException, invocationState: I)
+  fun error(e: InvocationTargetException, invocationState: @UnsafeVariance I)
 
   /**
    * Called last and always called, regardless of invocation success or failure.
@@ -69,5 +69,5 @@ interface InvocationAspect<I : InvocationState> {
    *
    * @param invocationState The invocationState object created via [before]
    */
-  fun finally(invocationState: I) { /* default implementation */ }
+  fun finally(invocationState: @UnsafeVariance I) { /* default implementation */ }
 }
