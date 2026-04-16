@@ -47,7 +47,7 @@ class PluginSdksImpl(
         if (!type.isAssignableFrom(it.javaClass)) {
           throw IntegrationException("Requested unknown serivce SDK type, but '${it.javaClass.simpleName}' is available")
         }
-        it as T
+        type.cast(it)
       }
       ?: throw SystemException("No service SDK is configured for this service")
 
