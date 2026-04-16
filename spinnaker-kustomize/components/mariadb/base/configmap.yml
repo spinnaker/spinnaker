@@ -27,9 +27,9 @@ data:
 
     # subsequent runs will check if $init_file exists and bail out if it does
     # preventing changes to the database.
-    init_file=/var/lib/mysql/init.sql
+    init_file=/tmp/init.sql
 
-    if [ -f "${init_file}" ]; then
+    if [ -f "/var/lib/mysql/init.sql" ]; then
       echo "Database should have already been initialized, exiting"
       exit 0
     fi
@@ -66,6 +66,9 @@ data:
     done
 
     echo -e "FLUSH PRIVILEGES;" >>"${init_file}"
-
+    
     echo "Initializing database from "${init_file}"..."
-    mysql --user=root --password="${MARIADB_ROOT_PASSWORD}" <"${init_file}"
+    mariadb --user=root --password="${MARIADB_ROOT_PASSWORD}" <"${init_file}"
+    ## Successful apply, now keep a copy to make sure we don't re-init
+    mkdir -p /var/lib/mysql
+    cp ${init_file} /var/lib/mysql/init.sql

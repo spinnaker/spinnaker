@@ -8,8 +8,11 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.http.Body;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.GateBootAuthIntegrationTest;
@@ -55,8 +58,13 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   }
 
   @Test
-  public void verifyCanCallOracKillATask() throws Exception {
-    setupOrcaMock();
+  public void verifyCanCallOrcaKillATask() throws Exception {
+    // Orca's PUT /admin/forceCancelExecution returns void, so the response body is empty.
+    wmOrca.stubFor(
+        WireMock.put(
+                urlEqualTo(
+                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
+            .willReturn(aResponse().withStatus(200).withResponseBody(Body.none())));
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
         callGateWithPath(
@@ -78,6 +86,60 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   }
 
   @Test
+  public void killZombieNetworkError() throws Exception {
+    wmOrca.stubFor(
+        WireMock.put(
+                urlEqualTo(
+                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
+            .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    HttpResponse<String> response =
+        callGateWithPath(
+            "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
+            "PUT");
+    assertNotNull(response);
+    assertThat(response.statusCode()).isEqualTo(500);
+    Map<String, Object> responseBody =
+        new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
+    assertThat(responseBody.get("exception"))
+        .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerNetworkException");
+    assertThat(responseBody.get("message"))
+        .isEqualTo(
+            "Error invoking killing of the zombie pipeline!  Check logs - particularly on orca for more information: "
+                + "java.net.SocketException: Connection reset");
+  }
+
+  @Test
+  public void killZombieOrcaNotFound() throws Exception {
+    wmOrca.stubFor(
+        WireMock.put(
+                urlEqualTo(
+                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
+            .willReturn(
+                aResponse()
+                    .withStatus(404)
+                    .withBody(
+                        "{\"error\":\"Not Found\",\"message\":\"Execution not found\",\"status\":404}")));
+    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    HttpResponse<String> response =
+        callGateWithPath(
+            "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
+            "PUT");
+    assertNotNull(response);
+    assertThat(response.statusCode()).isEqualTo(404);
+    Map<String, Object> responseBody =
+        new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
+    assertThat(responseBody.get("exception"))
+        .isEqualTo("com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException");
+    assertThat(responseBody.get("message"))
+        .isEqualTo(
+            "Error invoking killing of the zombie pipeline!  Check logs - particularly on orca for more information: "
+                + "Status: 404, Method: PUT, URL: "
+                + wmOrca.baseUrl()
+                + "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser, Message: Execution not found");
+  }
+
+  @Test
   public void verifyPermissionsDeniedIfNotAdmin() throws Exception {
     when(fiatPermissionEvaluator.isAdmin()).then(invocation -> false);
     HttpResponse<String> response =
@@ -90,16 +152,6 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     ObjectMapper objectMapper = new ObjectMapper();
     wmOrca.stubFor(
         WireMock.post(urlEqualTo("/admin/queue/hydrate?executionId=randomExecutionId&dryRun=false"))
-            .willReturn(
-                aResponse()
-                    .withStatus(200)
-                    .withBody(objectMapper.writeValueAsString(Map.of("foo", "bar")))));
-
-    // simulate Orca response to the delete request
-    wmOrca.stubFor(
-        WireMock.put(
-                urlEqualTo(
-                    "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
             .willReturn(
                 aResponse()
                     .withStatus(200)
