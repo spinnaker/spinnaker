@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.pubsub.aws
 import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest
 import com.amazonaws.services.sqs.model.GetQueueUrlResult
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.kork.aws.ARN
@@ -37,7 +38,9 @@ class PubSubUtilsSpec extends Specification {
 
     then:
     queueId == "my-queue-url"
-    1 * amazonSQS.getQueueUrl(queueARN.name) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
+    1 * amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
+      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
+    }) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
     0 * amazonSQS.createQueue(_)
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
       "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
@@ -46,18 +49,34 @@ class PubSubUtilsSpec extends Specification {
     0 * _
   }
 
-  def "should create queue if it does not exist"() {
+  def "should create queue if it does not exist and fallback enabled"() {
     when:
     def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
 
     then:
     queueId == "my-queue-url"
-    1 * amazonSQS.getQueueUrl(queueARN.name) >> { throw new QueueDoesNotExistException() }
+    1 * amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
+      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
+    }) >> { throw new QueueDoesNotExistException() }
     1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
       "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
       "MessageRetentionPeriod": "1"
     ])
     0 * _
+  }
+
+  def "should throw when queue does not exist and fallback disabled"() {
+    given:
+    amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
+      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
+    }) >> { throw new QueueDoesNotExistException() }
+
+    when:
+    PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1, false)
+
+    then:
+    thrown(QueueDoesNotExistException)
+    0 * amazonSQS.createQueue(_)
   }
 }
