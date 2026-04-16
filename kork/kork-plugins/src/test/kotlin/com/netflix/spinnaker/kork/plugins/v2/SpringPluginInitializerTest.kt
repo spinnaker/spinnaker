@@ -24,11 +24,7 @@ import dev.minutest.rootContext
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
-import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isTrue
+import org.assertj.core.api.Assertions.assertThat
 
 class SpringPluginInitializerTest : JUnit5Minutests {
 
@@ -41,9 +37,9 @@ class SpringPluginInitializerTest : JUnit5Minutests {
       app.run { ctx: AssertableApplicationContext ->
         val pluginContext = ctx.pluginContext(generated.plugin.pluginId)
 
-        expectThat(pluginContext.containsBean("initializerExtension")).isTrue()
-        expectThat(pluginContext.containsBean("initializerPluginConfiguration")).isTrue()
-        expectThat(pluginContext.containsBean("initializerThing")).isTrue()
+        assertThat(pluginContext.containsBean("initializerExtension")).isTrue()
+        assertThat(pluginContext.containsBean("initializerPluginConfiguration")).isTrue()
+        assertThat(pluginContext.containsBean("initializerThing")).isTrue()
       }
     }
 
@@ -51,11 +47,9 @@ class SpringPluginInitializerTest : JUnit5Minutests {
       app.run { ctx: AssertableApplicationContext ->
         val pluginContext = ctx.pluginContext(generated.plugin.pluginId)
 
-        expectThat(pluginContext.getBean("initializerPluginConfiguration"))
-          .isNotNull()
-          .and {
-            get { javaClass.getDeclaredField("foo").get(this) }.isEqualTo("foo")
-          }
+        val configBean = pluginContext.getBean("initializerPluginConfiguration")
+        assertThat(configBean.javaClass.getDeclaredField("foo").get(configBean))
+          .isEqualTo("foo")
       }
     }
 
@@ -63,11 +57,27 @@ class SpringPluginInitializerTest : JUnit5Minutests {
       app.run { ctx: AssertableApplicationContext ->
         val pluginContext = ctx.pluginContext(generated.plugin.pluginId)
 
-        expectThat(pluginContext.getBean("initializerThing"))
-          .isNotNull()
-          .and {
-            get { javaClass.getDeclaredField("sdks").get(this) }.isA<PluginSdks>()
-          }
+        val thingBean = pluginContext.getBean("initializerThing")
+        assertThat(thingBean.javaClass.getDeclaredField("sdks").get(thingBean))
+          .isInstanceOf(PluginSdks::class.java)
+      }
+    }
+
+    test("wrapper-derived identifiers propagate correctly") {
+      app.run { ctx: AssertableApplicationContext ->
+        val pluginId = generated.plugin.pluginId
+
+        // PluginContainer registers the plugin context using wrapper.pluginId
+        assertThat(ApplicationContextGraph.pluginContext(pluginId)).isNotNull()
+
+        // PluginContainer.registerInitializer names the bean using wrapper.pluginId
+        assertThat(ctx.containsBean("${pluginId}Initializer")).isTrue()
+
+        // SpinnakerPluginService.registerProxies names proxy beans using wrapper.descriptor.pluginId
+        val proxyBeanNames = ctx.sourceApplicationContext.getBeanNamesForType(
+          com.netflix.spinnaker.kork.plugins.testplugin.api.TestExtension::class.java
+        )
+        assertThat(proxyBeanNames.any { name -> name.startsWith(pluginId) }).isTrue()
       }
     }
   }
