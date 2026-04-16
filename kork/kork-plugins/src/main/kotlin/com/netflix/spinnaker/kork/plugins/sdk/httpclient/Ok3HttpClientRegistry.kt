@@ -73,7 +73,7 @@ class Ok3HttpClientRegistry(
   }
 
   private fun findInternalServiceBaseUrl(name: String): String {
-    val normalized = name.toLowerCase()
+    val normalized = name.lowercase()
     val paths = baseUrlPaths.map { it.replace(serviceNamePlaceholder, normalized) }
 
     for (path in paths) {
