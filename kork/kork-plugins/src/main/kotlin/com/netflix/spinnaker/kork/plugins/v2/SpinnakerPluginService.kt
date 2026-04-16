@@ -51,7 +51,7 @@ class SpinnakerPluginService(
   private val updateManager: SpinnakerUpdateManager,
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val springPluginStatusProvider: SpringPluginStatusProvider,
-  private val invocationAspects: List<InvocationAspect<*>>,
+  private val invocationAspects: List<InvocationAspect<InvocationState>>,
   private val applicationEventPublisher: ApplicationEventPublisher
 ) {
 
@@ -114,14 +114,14 @@ class SpinnakerPluginService(
    */
   private fun registerProxies(container: PluginContainer, registry: BeanDefinitionRegistry, initializerBeanName: String) {
     val pluginContext = container.pluginContext
-    val pluginId = container.wrapper.descriptor.pluginId
+    val pluginId = container.pluginWrapper.descriptor.pluginId
 
     // Find the plugin's SpinnakerExtensionPoints.
     ClassPathScanningCandidateComponentProvider(false).apply {
       addIncludeFilter(AssignableTypeFilter(SpinnakerExtensionPoint::class.java))
-      resourceLoader = DefaultResourceLoader(container.wrapper.pluginClassLoader)
+      resourceLoader = DefaultResourceLoader(container.pluginWrapper.pluginClassLoader)
     }.findCandidateComponents(container.actual.basePackageName).forEach { extensionBeanDefinition ->
-      val extensionBeanClass = container.wrapper.pluginClassLoader.loadClass(extensionBeanDefinition.beanClassName) as Class<out SpinnakerExtensionPoint>
+      val extensionBeanClass = container.pluginWrapper.pluginClassLoader.loadClass(extensionBeanDefinition.beanClassName).asSubclass(SpinnakerExtensionPoint::class.java)
 
       // Find the name that the extension bean will (but hasn't yet) be given inside the plugin application context.
       // We'll use this to look up the extension inside the lazy loader.
@@ -141,8 +141,8 @@ class SpinnakerPluginService(
           return@lazy pluginContext.getBean(pluginContextBeanName) as SpinnakerExtensionPoint
         },
         extensionBeanClass,
-        invocationAspects as List<InvocationAspect<InvocationState>>,
-        container.wrapper.descriptor as SpinnakerPluginDescriptor
+        invocationAspects,
+        container.pluginWrapper.descriptor as SpinnakerPluginDescriptor
       )
 
       val proxyBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition().beanDefinition.apply {
@@ -150,7 +150,7 @@ class SpinnakerPluginService(
         beanClass = extensionBeanClass
       }
       registry.registerBeanDefinition(
-        "${pluginId}_${extensionBeanClass.simpleName.decapitalize()}",
+        "${pluginId}_${extensionBeanClass.simpleName.replaceFirstChar { it.lowercase() }}",
         proxyBeanDefinition
       )
 
@@ -165,7 +165,7 @@ class SpinnakerPluginService(
 
   private fun withTiming(task: String, callback: () -> Unit) {
     val start = System.currentTimeMillis()
-    log.debug(task.capitalize())
+    log.debug(task.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
 
     callback.invoke()
 

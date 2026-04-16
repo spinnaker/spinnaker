@@ -55,8 +55,8 @@ class SpringPluginInitializer(
       .addBeanPostProcessor(ApplicationEventListenerBeanPostProcessor())
 
     listOf(
-      PluginConfigurationRegisteringCustomizer(applicationContext.getBean(ConfigFactory::class.java)),
-      PluginSdksRegisteringCustomizer(applicationContext),
+      PluginConfigurationRegisteringCustomizer(applicationContext.getBean(ConfigFactory::class.java), pluginWrapper),
+      PluginSdksRegisteringCustomizer(applicationContext, pluginWrapper),
       ComponentScanningCustomizer()
     ).forEach {
       it.accept(plugin, pluginApplicationContext)
