@@ -42,5 +42,6 @@ public class AmazonPubsubProperties {
     int sqsMessageRetentionPeriodSeconds = 120;
     int waitTimeSeconds = 5;
     int maxNumberOfMessages = 1;
+    boolean enableQueueCreationFallback = true;
   }
 }
