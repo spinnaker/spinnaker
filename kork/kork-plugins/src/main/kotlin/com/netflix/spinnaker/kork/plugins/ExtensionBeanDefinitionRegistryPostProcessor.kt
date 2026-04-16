@@ -41,7 +41,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
   private val springPluginStatusProvider: SpringPluginStatusProvider,
   private val applicationEventPublisher: ApplicationEventPublisher,
-  private val invocationAspects: List<InvocationAspect<*>>
+  private val invocationAspects: List<InvocationAspect<InvocationState>>
 ) : BeanDefinitionRegistryPostProcessor {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
@@ -87,7 +87,7 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
       }
 
       val bean = pluginManager.extensionFactory.create(extensionClass)
-      val beanName = "${extensionClass.simpleName.decapitalize()}SystemExtension"
+      val beanName = "${extensionClass.simpleName.replaceFirstChar { it.lowercase() }}SystemExtension"
 
       beanFactory.registerSingleton(beanName, bean)
 
@@ -115,14 +115,14 @@ class ExtensionBeanDefinitionRegistryPostProcessor(
         val bean = if (extensionClassInstance is SpinnakerExtensionPoint) {
           ExtensionInvocationProxy.proxy(
             extensionClassInstance,
-            invocationAspects as List<InvocationAspect<InvocationState>>,
+            invocationAspects,
             plugin.descriptor as SpinnakerPluginDescriptor
           )
         } else {
           extensionClassInstance
         }
 
-        val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.capitalize()}"
+        val beanName = "${plugin.pluginId.replace(".", "")}${extensionClass.simpleName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }}"
 
         beanFactory.registerSingleton(beanName, bean)
 
