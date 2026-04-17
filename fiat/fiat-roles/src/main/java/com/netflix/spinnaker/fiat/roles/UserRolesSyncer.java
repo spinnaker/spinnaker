@@ -364,10 +364,7 @@ public class UserRolesSyncer {
         .collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                e ->
-                    new UserPermission()
-                        .setId(e.getKey())
-                        .setRoles(new HashSet<>(e.getValue()))));
+                e -> new UserPermission().setId(e.getKey()).setRoles(new HashSet<>(e.getValue()))));
   }
 
   public long syncServiceAccount(String serviceAccountId, List<String> roles) {
@@ -407,8 +404,7 @@ public class UserRolesSyncer {
           timeIt(
               "syncUsers",
               () -> {
-                Map<String, UserPermission> resolved =
-                    permissionsResolver.resolve(extUsers);
+                Map<String, UserPermission> resolved = permissionsResolver.resolve(extUsers);
                 permissionsRepository.putAllById(resolved);
                 return resolved.size();
               });
