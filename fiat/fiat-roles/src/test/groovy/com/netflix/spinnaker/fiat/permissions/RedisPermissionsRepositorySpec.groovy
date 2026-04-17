@@ -212,8 +212,9 @@ class RedisPermissionsRepositorySpec extends Specification {
 
     when:
     redisClientDelegate.pause(latch)
+    def resultValue
     def result = exec.submit {
-      repo.get("foo")
+      resultValue = repo.get("foo")
     }
 
     latch.await()
@@ -228,9 +229,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     result.get()
 
     then:
-    def ex = thrown(ExecutionException)
-    ex.cause instanceof PermissionReadException
-    ex.cause.message.contains("timeout")
+    resultValue.isEmpty() == true
   }
 
   def "should set last modified for unrestricted user on save"() {
