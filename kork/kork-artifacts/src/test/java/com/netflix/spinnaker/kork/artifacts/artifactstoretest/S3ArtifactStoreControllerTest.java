@@ -110,6 +110,15 @@ class S3ArtifactStoreControllerTest {
           + "/"
           + Hashing.sha256().hashBytes(STORE_REFERENCE.getBytes(StandardCharsets.UTF_8)).toString();
 
+  // Prefix only because ArtifactReferenceURI lacks a toString() override, so the full message is
+  // e.g. "artifact failed to be retrieved: bucket=my-bucket
+  // ref=com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI@21119757"
+  private static final String S3_GET_ERROR_MESSAGE_PREFIX =
+      "artifact failed to be retrieved: bucket=my-bucket ref=";
+
+  private static final String S3_STORE_ERROR_MESSAGE_PREFIX =
+      "artifact failed to be stored: bucket=my-bucket ref=";
+
   private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE =
       new ParameterizedTypeReference<>() {};
 
@@ -227,13 +236,14 @@ class S3ArtifactStoreControllerTest {
 
     ResponseEntity<Map<String, Object>> response =
         restTemplate.exchange("/get-artifact", HttpMethod.GET, getRequestEntity, MAP_TYPE);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     assertThat(response.getBody())
         .containsKey("timestamp")
-        .containsEntry("status", 500)
-        .containsEntry("error", "Internal Server Error")
-        .containsEntry("exception", "software.amazon.awssdk.services.s3.model.NoSuchKeyException")
-        .containsEntry("message", "The specified key does not exist.");
+        .containsEntry("status", 404)
+        .containsEntry("error", "Not Found")
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
   }
 
   @Test
@@ -243,13 +253,14 @@ class S3ArtifactStoreControllerTest {
 
     ResponseEntity<Map<String, Object>> response =
         restTemplate.exchange("/get-artifact", HttpMethod.GET, getRequestEntity, MAP_TYPE);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     assertThat(response.getBody())
         .containsKey("timestamp")
-        .containsEntry("status", 500)
-        .containsEntry("error", "Internal Server Error")
-        .containsEntry("exception", "software.amazon.awssdk.services.s3.model.S3Exception")
-        .containsEntry("message", "Access Denied");
+        .containsEntry("status", 403)
+        .containsEntry("error", "Forbidden")
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
   }
 
   @Test
@@ -264,8 +275,9 @@ class S3ArtifactStoreControllerTest {
         .containsKey("timestamp")
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
-        .containsEntry("exception", "software.amazon.awssdk.services.s3.model.S3Exception")
-        .containsEntry("message", "Internal Error");
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
   }
 
   @Test
@@ -281,7 +293,8 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "java.lang.RuntimeException")
-        .containsEntry("message", "something unexpected");
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
   }
 
   // ---- S3ArtifactStoreStorer tests ----
@@ -308,13 +321,14 @@ class S3ArtifactStoreControllerTest {
 
     ResponseEntity<Map<String, Object>> response =
         restTemplate.exchange("/store-artifact", HttpMethod.GET, storeRequestEntity, MAP_TYPE);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     assertThat(response.getBody())
         .containsKey("timestamp")
-        .containsEntry("status", 500)
-        .containsEntry("error", "Internal Server Error")
-        .containsEntry("exception", "software.amazon.awssdk.services.s3.model.S3Exception")
-        .containsEntry("message", "Access Denied");
+        .containsEntry("status", 403)
+        .containsEntry("error", "Forbidden")
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_STORE_ERROR_MESSAGE_PREFIX));
   }
 
   @Test
@@ -329,8 +343,9 @@ class S3ArtifactStoreControllerTest {
         .containsKey("timestamp")
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
-        .containsEntry("exception", "software.amazon.awssdk.services.s3.model.S3Exception")
-        .containsEntry("message", "Internal Error");
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_STORE_ERROR_MESSAGE_PREFIX));
   }
 
   @Test
@@ -348,6 +363,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "java.lang.RuntimeException")
-        .containsEntry("message", "something unexpected");
+        .hasEntrySatisfying(
+            "message", msg -> assertThat((String) msg).startsWith(S3_STORE_ERROR_MESSAGE_PREFIX));
   }
 }
