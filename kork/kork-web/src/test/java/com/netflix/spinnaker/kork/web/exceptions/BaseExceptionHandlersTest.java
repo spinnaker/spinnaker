@@ -110,13 +110,13 @@ class BaseExceptionHandlersTest {
             MAP_TYPE);
     assertThat(response.getStatusCode().value()).isEqualTo(status);
     assertThat(response.getBody())
-        .containsEntry("type", "about:blank")
-        .containsEntry("title", HttpStatus.valueOf(status).getReasonPhrase())
+        .containsKey("timestamp")
         .containsEntry("status", status)
-        .containsEntry("detail", REASON)
-        .containsEntry("instance", "/responseStatusException/" + status);
+        .containsEntry("error", HttpStatus.valueOf(status).getReasonPhrase())
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .containsEntry("message", REASON);
 
-    assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isZero();
+    assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isEqualTo(1);
   }
 
   @Test
@@ -126,11 +126,11 @@ class BaseExceptionHandlersTest {
             "/responseStatusException/404?reason=" + REASON, HttpMethod.GET, null, MAP_TYPE);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     assertThat(response.getBody())
-        .containsEntry("type", "about:blank")
-        .containsEntry("title", "Not Found")
+        .containsKey("timestamp")
         .containsEntry("status", 404)
-        .containsEntry("detail", REASON)
-        .containsEntry("instance", "/responseStatusException/404");
+        .containsEntry("error", "Not Found")
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .containsEntry("message", REASON);
 
     assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isZero();
   }
@@ -141,12 +141,12 @@ class BaseExceptionHandlersTest {
         restTemplate.exchange("/responseStatusException/500", HttpMethod.GET, null, MAP_TYPE);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     assertThat(response.getBody())
-        .containsEntry("type", "about:blank")
-        .containsEntry("title", "Internal Server Error")
+        .containsKey("timestamp")
         .containsEntry("status", 500)
-        .doesNotContainKey("detail")
-        .containsEntry("instance", "/responseStatusException/500");
+        .containsEntry("error", "Internal Server Error")
+        .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
+        .containsEntry("message", "500 INTERNAL_SERVER_ERROR");
 
-    assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isZero();
+    assertThat(memoryAppender.countEventsForLevel(Level.ERROR)).isEqualTo(1);
   }
 }
