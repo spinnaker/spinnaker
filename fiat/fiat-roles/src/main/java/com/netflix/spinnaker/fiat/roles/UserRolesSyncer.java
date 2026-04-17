@@ -189,6 +189,7 @@ public class UserRolesSyncer {
         localLatch = globalLatch.get();
       }
 
+      boolean lockAcquired = false;
       if (isSyncAllowed) {
         try {
           // acquire redis lock to sync across fiat pods
@@ -219,17 +220,50 @@ public class UserRolesSyncer {
           log.debug("obtained the following lastSyncTime from redis: {}", redisSyncTime);
           this.lastSyncTime.set(redisSyncTime);
 
-          if (acquireLockResponse != null && acquireLockResponse.isReleased()) {
+          if (acquireLockResponse != null
+              && acquireLockResponse.getLockStatus() == LockManager.LockStatus.ACQUIRED
+              && acquireLockResponse.isReleased()) {
             count = acquireLockResponse.getOnLockAcquiredCallbackResult();
-            break;
+            lockAcquired = true;
           }
         } catch (Exception e) {
           log.warn("syncing user roles failed", e);
         } finally {
+          // If the lock was not acquired (held by another pod or transient error) and the
+          // authoritative lastSyncTime has not advanced past our syncAttemptTime, back off
+          // before releasing the in-process latch. Keeping the latch held during the sleep
+          // parks all other threads in this pod on localLatch.await() so they can't fire
+          // off their own Redis lock attempts in parallel. Waiter threads that subsequently
+          // wake up will re-check lastSyncTime and either return early or take a turn as
+          // the next syncer (and pay their own backoff).
+          if (!lockAcquired) {
+            String currentLastSyncTime = lastSyncTime.get();
+            boolean lastSyncAdvanced =
+                currentLastSyncTime != null
+                    && Long.parseLong(currentLastSyncTime) > syncAttemptTime;
+            if (!lastSyncAdvanced) {
+              long failureDelayMs =
+                  this.configurationProperties.getSynchronizationConfig().getSyncFailureDelayMs();
+              if (failureDelayMs > 0) {
+                try {
+                  Thread.sleep(failureDelayMs);
+                } catch (InterruptedException ignored) {
+                  Thread.currentThread().interrupt();
+                }
+              }
+            }
+          }
           synchronized (this) {
             localLatch.countDown(); // release all other threads waiting on this one
             globalLatch.set(null);
           }
+        }
+
+        if (lockAcquired) {
+          break;
+        }
+        if (Thread.currentThread().isInterrupted()) {
+          break;
         }
       } else {
         try {

@@ -53,6 +53,7 @@ import spock.lang.Unroll
 
 import java.time.Clock
 import java.util.concurrent.Callable
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 
 class UserRolesSyncerSpec extends Specification {
@@ -489,6 +490,70 @@ class UserRolesSyncerSpec extends Specification {
     syncRoles    | synchronizeUserRolesSync
     ["extrolec"] | true
     ["extrolec"] | false
+  }
+
+  def "should back off between retries when the sync lock is held by another pod"() {
+    setup:
+    UserRolesSyncerConfig config = new UserRolesSyncerConfig()
+    config.getSynchronizationConfig().setEnabled(true)
+    config.getSynchronizationConfig().setSyncFailureDelayMs(150)
+    config.setSyncDelayTimeoutMs(10000)
+
+    def unrestrictedUser = new UserPermission()
+            .setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
+            .setAccounts([new Account().setName("unrestrictedAccount")] as Set)
+    repo.put(unrestrictedUser)
+
+    def serviceAccountProvider = Mock(ResourceProvider) {
+      getAll() >> []
+    }
+    def permissionsResolver = Mock(PermissionsResolver) {
+      resolve(_ as List) >> [:]
+      resolveUnrestrictedUser() >> unrestrictedUser
+    }
+
+    // Simulate another pod holding the Redis lock for the first two attempts,
+    // then release it so the third attempt can proceed.
+    def attemptTimes = new CopyOnWriteArrayList<Long>()
+    def mockLockManager = Mock(LockManager)
+
+    @Subject
+    def syncer = new UserRolesSyncer(
+            new DiscoveryStatusListener(true),
+            registry,
+            mockLockManager,
+            repo,
+            permissionsResolver,
+            serviceAccountProvider,
+            new AlwaysUpHealthIndicator(),
+            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+            config
+    )
+
+    when:
+    def result = syncer.syncAndReturn([])
+
+    then:
+    3 * mockLockManager.acquireLock(_ as LockManager.LockOptions, _ as Callable) >> {
+      LockManager.LockOptions opts, Callable cb ->
+        attemptTimes.add(System.currentTimeMillis())
+        if (attemptTimes.size() < 3) {
+          // Lock is held by someone else: the callback is NOT invoked and
+          // the response reports TAKEN + not released.
+          return new LockManager.AcquireLockResponse(null, null, LockManager.LockStatus.TAKEN, null, false)
+        }
+        // Third attempt succeeds: invoke the callback and report ACQUIRED + released.
+        def cbResult = cb.call()
+        return new LockManager.AcquireLockResponse(null, cbResult, LockManager.LockStatus.ACQUIRED, null, true)
+    }
+
+    and: "we waited at least one syncFailureDelayMs between each retry"
+    attemptTimes.size() == 3
+    (attemptTimes[1] - attemptTimes[0]) >= (config.getSynchronizationConfig().getSyncFailureDelayMs() - 20)
+    (attemptTimes[2] - attemptTimes[1]) >= (config.getSynchronizationConfig().getSyncFailureDelayMs() - 20)
+
+    and: "the sync ultimately completed successfully"
+    result != null
   }
 
   @Unroll
