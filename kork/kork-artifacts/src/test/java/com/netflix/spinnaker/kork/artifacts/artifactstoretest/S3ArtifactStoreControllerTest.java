@@ -110,14 +110,11 @@ class S3ArtifactStoreControllerTest {
           + "/"
           + Hashing.sha256().hashBytes(STORE_REFERENCE.getBytes(StandardCharsets.UTF_8)).toString();
 
-  // Prefix only because ArtifactReferenceURI lacks a toString() override, so the full message is
-  // e.g. "artifact failed to be retrieved: bucket=my-bucket
-  // ref=com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactReferenceURI@21119757"
-  private static final String S3_GET_ERROR_MESSAGE_PREFIX =
-      "artifact failed to be retrieved: bucket=my-bucket ref=";
+  private static final String S3_GET_ERROR_MESSAGE =
+      "artifact failed to be retrieved: bucket=my-bucket ref=ref://some-artifact";
 
-  private static final String S3_STORE_ERROR_MESSAGE_PREFIX =
-      "artifact failed to be stored: bucket=my-bucket ref=";
+  private static final String S3_STORE_ERROR_MESSAGE =
+      "artifact failed to be stored: bucket=my-bucket ref=" + STORE_ARTIFACT_REFERENCE;
 
   private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE =
       new ParameterizedTypeReference<>() {};
@@ -242,8 +239,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 404)
         .containsEntry("error", "Not Found")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_GET_ERROR_MESSAGE);
   }
 
   @Test
@@ -259,8 +255,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 403)
         .containsEntry("error", "Forbidden")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_GET_ERROR_MESSAGE);
   }
 
   @Test
@@ -276,8 +271,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_GET_ERROR_MESSAGE);
   }
 
   @Test
@@ -293,8 +287,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "java.lang.RuntimeException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_GET_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_GET_ERROR_MESSAGE);
   }
 
   // ---- S3ArtifactStoreStorer tests ----
@@ -327,8 +320,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 403)
         .containsEntry("error", "Forbidden")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_STORE_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_STORE_ERROR_MESSAGE);
   }
 
   @Test
@@ -344,8 +336,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_STORE_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_STORE_ERROR_MESSAGE);
   }
 
   @Test
@@ -363,7 +354,6 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "java.lang.RuntimeException")
-        .hasEntrySatisfying(
-            "message", msg -> assertThat((String) msg).startsWith(S3_STORE_ERROR_MESSAGE_PREFIX));
+        .containsEntry("message", S3_STORE_ERROR_MESSAGE);
   }
 }
