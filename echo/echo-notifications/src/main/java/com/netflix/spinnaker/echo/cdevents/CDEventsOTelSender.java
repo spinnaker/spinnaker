@@ -22,11 +22,13 @@ import io.cloudevents.CloudEvent;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporterBuilder;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -37,6 +39,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -50,8 +53,9 @@ import org.springframework.stereotype.Component;
  * <p>Unlike the HTTP transport where the receiving broker (e.g. Knative, Keptn) correlates related
  * CloudEvents using the {@code subject.id} field, OTLP/OpenTelemetry backends (e.g. Jaeger, SigNoz,
  * Grafana Tempo) expect trace correlation to be established by the producer via shared trace/span
- * IDs. This class therefore maintains a mapping of Spinnaker execution IDs to root span contexts so
- * that all CDEvents belonging to the same pipeline execution appear as a single trace:
+ * IDs. This class therefore maintains a mapping of Spinnaker execution IDs to W3C {@code
+ * traceparent} strings so that all CDEvents belonging to the same pipeline execution appear as a
+ * single trace:
  *
  * <pre>
  *   pipelinerun.started          (root span)
@@ -84,8 +88,21 @@ public class CDEventsOTelSender {
   // Unbounded cache keyed by endpoint URL. In practice, endpoints are static per-pipeline config,
   // so the number of entries is small and bounded by the number of distinct OTLP endpoints.
   private final Map<String, OpenTelemetrySdk> sdkCache = new ConcurrentHashMap<>();
-  // Tracks the root pipeline span context keyed by execution ID so stage spans become children.
-  private final Map<String, SpanContext> pipelineSpans = new ConcurrentHashMap<>();
+  // Tracks the root pipeline trace context keyed by execution ID so stage spans become children.
+  private static final TextMapPropagator PROPAGATOR = W3CTraceContextPropagator.getInstance();
+  private static final TextMapGetter<Map<String, String>> MAP_GETTER =
+      new TextMapGetter<>() {
+        @Override
+        public Iterable<String> keys(Map<String, String> carrier) {
+          return carrier.keySet();
+        }
+
+        @Override
+        public String get(Map<String, String> carrier, String key) {
+          return carrier.get(key);
+        }
+      };
+  private final Map<String, String> pipelineTraceContext = new ConcurrentHashMap<>();
   private final CDEventsConfigProperties config;
   private final byte[] caCertBytes;
   private final byte[] clientCertBytes;
@@ -190,17 +207,21 @@ public class CDEventsOTelSender {
         type != null && type.contains("pipelinerun") && type.contains("finished");
 
     if (!isPipelineStart && executionId != null) {
-      SpanContext parentCtx = pipelineSpans.get(executionId);
-      if (parentCtx != null) {
-        spanBuilder.setParent(Context.current().with(Span.wrap(parentCtx)));
+      String traceparent = pipelineTraceContext.get(executionId);
+      if (traceparent != null) {
+        Context parentCtx =
+            PROPAGATOR.extract(Context.root(), Map.of("traceparent", traceparent), MAP_GETTER);
+        spanBuilder.setParent(parentCtx);
       }
     }
 
     Span span = spanBuilder.startSpan();
 
-    // Store root span context for pipeline start events
+    // Store root trace context for pipeline start events
     if (isPipelineStart && executionId != null) {
-      pipelineSpans.put(executionId, span.getSpanContext());
+      Map<String, String> carrier = new HashMap<>();
+      PROPAGATOR.inject(Context.root().with(span), carrier, Map::put);
+      pipelineTraceContext.put(executionId, carrier.get("traceparent"));
     }
 
     if (type != null && type.contains("finished")) {
@@ -212,7 +233,7 @@ public class CDEventsOTelSender {
       }
       // Clean up stored context when pipeline finishes
       if (isPipelineEnd && executionId != null) {
-        pipelineSpans.remove(executionId);
+        pipelineTraceContext.remove(executionId);
       }
     }
 
