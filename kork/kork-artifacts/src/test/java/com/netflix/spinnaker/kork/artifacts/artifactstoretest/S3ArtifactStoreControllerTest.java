@@ -111,10 +111,10 @@ class S3ArtifactStoreControllerTest {
           + Hashing.sha256().hashBytes(STORE_REFERENCE.getBytes(StandardCharsets.UTF_8)).toString();
 
   private static final String S3_GET_ERROR_MESSAGE =
-      "artifact failed to be retrieved: bucket=my-bucket ref=ref://some-artifact";
+      "artifact failed to be retrieved: bucket=my-bucket ref=ref://some-artifact: ";
 
   private static final String S3_STORE_ERROR_MESSAGE =
-      "artifact failed to be stored: bucket=my-bucket ref=" + STORE_ARTIFACT_REFERENCE;
+      "artifact failed to be stored: bucket=my-bucket ref=" + STORE_ARTIFACT_REFERENCE + ": ";
 
   private static final ParameterizedTypeReference<Map<String, Object>> MAP_TYPE =
       new ParameterizedTypeReference<>() {};
@@ -239,7 +239,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 404)
         .containsEntry("error", "Not Found")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .containsEntry("message", S3_GET_ERROR_MESSAGE);
+        .containsEntry("message", S3_GET_ERROR_MESSAGE + "The specified key does not exist.");
   }
 
   @Test
@@ -255,7 +255,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 403)
         .containsEntry("error", "Forbidden")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .containsEntry("message", S3_GET_ERROR_MESSAGE);
+        .containsEntry("message", S3_GET_ERROR_MESSAGE + "Access Denied");
   }
 
   @Test
@@ -271,7 +271,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .containsEntry("message", S3_GET_ERROR_MESSAGE);
+        .containsEntry("message", S3_GET_ERROR_MESSAGE + "Internal Error");
   }
 
   @Test
@@ -287,7 +287,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "java.lang.RuntimeException")
-        .containsEntry("message", S3_GET_ERROR_MESSAGE);
+        .containsEntry("message", S3_GET_ERROR_MESSAGE + "something unexpected");
   }
 
   // ---- S3ArtifactStoreStorer tests ----
@@ -320,7 +320,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 403)
         .containsEntry("error", "Forbidden")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .containsEntry("message", S3_STORE_ERROR_MESSAGE);
+        .containsEntry("message", S3_STORE_ERROR_MESSAGE + "Access Denied");
   }
 
   @Test
@@ -336,7 +336,7 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "org.springframework.web.server.ResponseStatusException")
-        .containsEntry("message", S3_STORE_ERROR_MESSAGE);
+        .containsEntry("message", S3_STORE_ERROR_MESSAGE + "Internal Error");
   }
 
   @Test
@@ -354,6 +354,6 @@ class S3ArtifactStoreControllerTest {
         .containsEntry("status", 500)
         .containsEntry("error", "Internal Server Error")
         .containsEntry("exception", "java.lang.RuntimeException")
-        .containsEntry("message", S3_STORE_ERROR_MESSAGE);
+        .containsEntry("message", S3_STORE_ERROR_MESSAGE + "something unexpected");
   }
 }
