@@ -175,7 +175,7 @@ public class UserRolesSyncer {
                         .getSynchronizationConfig()
                         .getSyncFailureDelayMs()));
 
-    long count;
+    long count = 0;
     while (true) {
       boolean isSyncAllowed = false; // flag to control which thread can attempt a sync
       // since countdown latches can't be reset, we keep a pointer to a global latch so that others

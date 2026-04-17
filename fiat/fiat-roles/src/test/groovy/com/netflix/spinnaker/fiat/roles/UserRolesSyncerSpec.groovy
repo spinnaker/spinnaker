@@ -35,6 +35,7 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionRepositoryConfigProps
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
+import com.netflix.spinnaker.fiat.roles.Synchronizer
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager
@@ -103,7 +104,7 @@ class UserRolesSyncerSpec extends Specification {
             Clock.systemDefaultZone(),
             registry,
             objectMapper,
-            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
+            new JedisClientDelegate(jedisPool),
             Optional.empty(),
             Optional.empty())
 
@@ -161,6 +162,15 @@ class UserRolesSyncerSpec extends Specification {
 
     UserRolesSyncerConfig config =  new UserRolesSyncerConfig()
     config.getSynchronizationConfig().setEnabled(synchronizeUserRoleSync)
+    def synchronizer = new Synchronizer(
+        new AlwaysUpHealthIndicator(),
+        permissionsResolver,
+        repo,
+        serviceAccountProvider,
+        registry,
+        10000L,
+        30000L
+    )
     @Subject
     def syncer = new UserRolesSyncer(
         new DiscoveryStatusListener(true),
@@ -170,8 +180,9 @@ class UserRolesSyncerSpec extends Specification {
         permissionsResolver,
         serviceAccountProvider,
         new AlwaysUpHealthIndicator(),
-        new JedisClientDelegate(embeddedRedis.pool as JedisPool),
-        config
+        new JedisClientDelegate(jedisPool),
+        config,
+        synchronizer
     )
 
     expect:
@@ -309,12 +320,12 @@ class UserRolesSyncerSpec extends Specification {
       ]
 
       expectedResult = [
-              "user1"         : user1.merge(unrestrictedUser),
-              "user2"         : newUser2.merge(unrestrictedUser),
-              "user3"         : newUser3.merge(unrestrictedUser),
-              "abc"           : abcServiceAcct.merge(unrestrictedUser),
-              "xyz@domain.com": xyzServiceAcct.merge(unrestrictedUser),
-              (UNRESTRICTED)  : unrestrictedUser
+              "user1"         : user1.getRoles() + unrestrictedUser.getRoles(),
+              "user2"         : newUser2.getRoles() + unrestrictedUser.getRoles(),
+              "user3"         : newUser3.getRoles() + unrestrictedUser.getRoles(),
+              "abc"           : abcServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              "xyz@domain.com": xyzServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              (UNRESTRICTED)  : unrestrictedUser.getRoles()
       ]
     } else {
       extUsers =  [
@@ -331,16 +342,26 @@ class UserRolesSyncerSpec extends Specification {
       ]
 
       expectedResult = [
-              "user1"         : user1.merge(unrestrictedUser),
-              "user2"         : user2.merge(unrestrictedUser),
-              "user3"         : newUser3.merge(unrestrictedUser),
-              "abc"           : abcServiceAcct.merge(unrestrictedUser),
-              (UNRESTRICTED)  : unrestrictedUser
+              "user1"         : user1.getRoles() + unrestrictedUser.getRoles(),
+              "user2"         : user2.getRoles() + unrestrictedUser.getRoles(),
+              "user3"         : newUser3.getRoles() + unrestrictedUser.getRoles(),
+              "abc"           : abcServiceAcct.getRoles() + unrestrictedUser.getRoles(),
+              (UNRESTRICTED)  : unrestrictedUser.getRoles()
       ]
     }
 
     UserRolesSyncerConfig config =  new UserRolesSyncerConfig()
     config.getSynchronizationConfig().setEnabled(synchronizeUserRolesSync)
+
+    def synchronizer = new Synchronizer(
+            new AlwaysUpHealthIndicator(),
+            permissionsResolver,
+            repo,
+            serviceAccountProvider,
+            registry,
+            10000L,
+            30000L
+    )
 
     @Subject
     def syncer = new UserRolesSyncer(
@@ -351,16 +372,17 @@ class UserRolesSyncerSpec extends Specification {
             permissionsResolver,
             serviceAccountProvider,
             new AlwaysUpHealthIndicator(),
-            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
-            config
+            new JedisClientDelegate(jedisPool),
+            config,
+            synchronizer
     )
 
     expect:
     repo.getAllById() == [
-            "user1"       : user1.merge(unrestrictedUser),
-            "user2"       : user2.merge(unrestrictedUser),
-            "user3"       : user3.merge(unrestrictedUser),
-            (UNRESTRICTED): unrestrictedUser
+            "user1"       : user1.getRoles() + unrestrictedUser.getRoles(),
+            "user2"       : user2.getRoles() + unrestrictedUser.getRoles(),
+            "user3"       : user3.getRoles() + unrestrictedUser.getRoles(),
+            (UNRESTRICTED): unrestrictedUser.getRoles()
     ]
 
     when:
@@ -438,6 +460,16 @@ class UserRolesSyncerSpec extends Specification {
     config.getSynchronizationConfig().setEnabled(synchronizeUserRolesSync)
     config.setSyncDelayTimeoutMs(50)
 
+    def synchronizer = new Synchronizer(
+            new AlwaysUpHealthIndicator(),
+            permissionsResolver,
+            repo,
+            serviceAccountProvider,
+            registry,
+            10000L,
+            50L
+    )
+
     @Subject
     def syncer = new UserRolesSyncer(
             new DiscoveryStatusListener(true),
@@ -447,16 +479,17 @@ class UserRolesSyncerSpec extends Specification {
             permissionsResolver,
             serviceAccountProvider,
             new AlwaysUpHealthIndicator(),
-            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
-            config
+            new JedisClientDelegate(jedisPool),
+            config,
+            synchronizer
     )
 
     expect:
     repo.getAllById() == [
-            "user1"       : user1.merge(unrestrictedUser),
-            "user2"       : user2.merge(unrestrictedUser),
-            "user3"       : user3.merge(unrestrictedUser),
-            (UNRESTRICTED): unrestrictedUser
+            "user1"       : user1.getRoles() + unrestrictedUser.getRoles(),
+            "user2"       : user2.getRoles() + unrestrictedUser.getRoles(),
+            "user3"       : user3.getRoles() + unrestrictedUser.getRoles(),
+            (UNRESTRICTED): unrestrictedUser.getRoles()
     ]
 
     when:
@@ -517,6 +550,16 @@ class UserRolesSyncerSpec extends Specification {
     def attemptTimes = new CopyOnWriteArrayList<Long>()
     def mockLockManager = Mock(LockManager)
 
+    def synchronizer = new Synchronizer(
+            new AlwaysUpHealthIndicator(),
+            permissionsResolver,
+            repo,
+            serviceAccountProvider,
+            registry,
+            10000L,
+            10000L
+    )
+
     @Subject
     def syncer = new UserRolesSyncer(
             new DiscoveryStatusListener(true),
@@ -526,8 +569,9 @@ class UserRolesSyncerSpec extends Specification {
             permissionsResolver,
             serviceAccountProvider,
             new AlwaysUpHealthIndicator(),
-            new JedisClientDelegate(embeddedRedis.pool as JedisPool),
-            config
+            new JedisClientDelegate(jedisPool),
+            config,
+            synchronizer
     )
 
     when:
@@ -568,8 +612,9 @@ class UserRolesSyncerSpec extends Specification {
         null,
         null,
         new AlwaysUpHealthIndicator(),
-        new JedisClientDelegate(embeddedRedis.pool as JedisPool),
-        new UserRolesSyncerConfig()
+        new JedisClientDelegate(jedisPool),
+        new UserRolesSyncerConfig(),
+        null
     )
 
     when:
@@ -636,24 +681,28 @@ class UserRolesSyncerSpec extends Specification {
       }
     }
 
+    def synchronizer = new Synchronizer(
+            new AlwaysUpHealthIndicator(),
+            permissionsResolver,
+            repo,
+            serviceAccountProvider,
+            registry,
+            1L,
+            1L
+    )
+
     @Subject
     def syncer = new UserRolesSyncer(
             new DiscoveryStatusListener(false),
             registry,
             lockManager,
-            new UserRolesSyncStrategy.DefaultSynchronizationStrategy(
-                    new Synchronizer(
-                            new AlwaysUpHealthIndicator(),
-                            permissionsResolver,
-                            repo,
-                            serviceAccountProvider,
-                            registry,
-                            1,
-                            1)),
-            1,
-            1,
-            1,
-            ""
+            repo,
+            permissionsResolver,
+            serviceAccountProvider,
+            new AlwaysUpHealthIndicator(),
+            new JedisClientDelegate(jedisPool),
+            new UserRolesSyncerConfig(),
+            synchronizer
     )
 
     expect:
