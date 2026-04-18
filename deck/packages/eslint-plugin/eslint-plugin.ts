@@ -17,30 +17,35 @@ import preferPromiseLike from './rules/prefer-promise-like';
 import react2angularWithErrorBoundary from './rules/react2angular-with-error-boundary';
 import restPreferStaticStringsInInitializer from './rules/rest-prefer-static-strings-in-initializer';
 
+const rules = {
+  'api-deprecation': apiDeprecation,
+  'api-no-slashes': apiNoSlashes,
+  'api-no-unused-chaining': apiNoUnusedChaining,
+  'import-from-alias-not-npm': importFromAliasNotNpm,
+  'import-from-npm-not-alias': importFromNpmNotAlias,
+  'import-from-npm-not-relative': importFromNpmNotRelative,
+  'import-from-presentation-not-core': importFromPresentationNotCore,
+  'import-relative-within-subpackage': importRelativeWithinSubpackage,
+  'import-sort': importSort,
+  'migrate-to-mock-http-client': migrateToMockHttpClient,
+  'ng-no-component-class': ngNoComponentClass,
+  'ng-no-module-export': ngNoModuleExport,
+  'ng-no-require-angularjs': ngNoRequireAngularJS,
+  'ng-no-require-module-deps': ngNoRequireModuleDeps,
+  'ng-strictdi': ngStrictDI,
+  'prefer-promise-like': preferPromiseLike,
+  'react2angular-with-error-boundary': react2angularWithErrorBoundary,
+  'rest-prefer-static-strings-in-initializer': restPreferStaticStringsInInitializer,
+};
+
 const plugin = {
-  configs: {
-    base: require('./base.config.js'),
-    none: require('./none.config.js'),
-  },
-  rules: {
-    'api-deprecation': apiDeprecation,
-    'api-no-slashes': apiNoSlashes,
-    'api-no-unused-chaining': apiNoUnusedChaining,
-    'import-from-alias-not-npm': importFromAliasNotNpm,
-    'import-from-npm-not-alias': importFromNpmNotAlias,
-    'import-from-npm-not-relative': importFromNpmNotRelative,
-    'import-from-presentation-not-core': importFromPresentationNotCore,
-    'import-relative-within-subpackage': importRelativeWithinSubpackage,
-    'import-sort': importSort,
-    'migrate-to-mock-http-client': migrateToMockHttpClient,
-    'ng-no-component-class': ngNoComponentClass,
-    'ng-no-module-export': ngNoModuleExport,
-    'ng-no-require-angularjs': ngNoRequireAngularJS,
-    'ng-no-require-module-deps': ngNoRequireModuleDeps,
-    'ng-strictdi': ngStrictDI,
-    'prefer-promise-like': preferPromiseLike,
-    'react2angular-with-error-boundary': react2angularWithErrorBoundary,
-    'rest-prefer-static-strings-in-initializer': restPreferStaticStringsInInitializer,
+  rules,
+  // Configs are loaded lazily to avoid circular dependency
+  get configs() {
+    return {
+      base: require('./base.config.js'),
+      none: require('./none.config.js'),
+    };
   },
 };
 

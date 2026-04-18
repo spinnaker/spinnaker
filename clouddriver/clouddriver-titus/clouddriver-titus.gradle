@@ -5,6 +5,9 @@ ext {
   grpcVersion = '1.63.0'
 }
 
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
 dependencies {
   protobuf 'com.netflix.titus:titus-api-definitions:0.0.1-rc71'
 
@@ -57,11 +60,13 @@ dependencies {
 sourceSets {
   main {
     java {
-      srcDir "${protobuf.generatedFilesBaseDir}/main/grpc"
-      srcDir "${protobuf.generatedFilesBaseDir}/main/java"
+      srcDir "${buildDir}/generated/sources/proto/main/grpc"
+      srcDir "${buildDir}/generated/sources/proto/main/java"
     }
   }
 }
+
+compileJava.dependsOn generateProto
 
 task cleanGenerated(type: Delete) {
   delete "$projectDir/src/generated"

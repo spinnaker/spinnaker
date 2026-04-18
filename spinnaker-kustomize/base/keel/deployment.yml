@@ -12,7 +12,7 @@ spec:
           value: -XX:MaxRAMPercentage=50.0
         - name: SPRING_PROFILES_ACTIVE
           value: local
-        image: us-docker.pkg.dev/spinnaker-community/docker/keel:0.1.0-20210331200022-slim
+        image: ghcr.io/spinnaker/keel:main-latest
         name: keel
         ports:
         - name: http

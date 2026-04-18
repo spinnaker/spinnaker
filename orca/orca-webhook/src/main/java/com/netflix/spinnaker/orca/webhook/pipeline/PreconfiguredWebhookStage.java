@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class PreconfiguredWebhookStage extends WebhookStage {
 
   private static final Set<String> IGNORE_FIELDS =
-      Set.of("props", "enabled", "label", "description", "type", "parameters");
+      Set.of("props", "enabled", "label", "description", "type", "parameters", "sensitiveHeaders");
   private static List<Field> ALL_FIELDS =
       Arrays.stream(PreconfiguredWebhook.class.getDeclaredFields())
           .filter(f -> !f.isSynthetic())
@@ -65,9 +65,8 @@ public class PreconfiguredWebhookStage extends WebhookStage {
   @Override
   public void taskGraph(@Nonnull StageExecution stage, @Nonnull TaskNode.Builder builder) {
     var preconfiguredWebhook =
-        webhookService.getPreconfiguredWebhooks().stream()
-            .filter(webhook -> Objects.equals(stage.getType(), webhook.getType()))
-            .findFirst()
+        webhookService
+            .findPreconfiguredWebhook(stage.getType())
             .orElseThrow(() -> new PreconfiguredWebhookNotFoundException(stage.getType()));
 
     var permissions = preconfiguredWebhook.getPermissions();

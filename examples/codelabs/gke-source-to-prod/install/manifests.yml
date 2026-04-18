@@ -43,7 +43,7 @@ spec:
       containers:
       - name: halyard-daemon
         # todo - make :stable or digest of :stable
-        image: us-docker.pkg.dev/spinnaker-community/docker/halyard:0.43.0-20180321134158
+        image: ghcr.io/spinnaker/halyard:main-latest
         imagePullPolicy: Always
         readinessProbe:
           exec:
@@ -159,7 +159,7 @@ data:
             configureImagePullSecrets: true
             serviceAccount: true
             namespaces: []
-            omitNamespaces: 
+            omitNamespaces:
             - kube-system
             - spinnaker
             kinds: []
@@ -254,7 +254,7 @@ data:
       artifacts:
         gcs:
           enabled: true
-          accounts: 
+          accounts:
           - name: {%SPIN_GCS_ACCOUNT%}
         github:
           enabled: false
@@ -265,7 +265,7 @@ data:
       pubsub:
         google:
           enabled: true
-          subscriptions: 
+          subscriptions:
           - name: {%SPIN_GCS_PUB_SUB%}
             subscriptionName: {%GCS_SUB%}
             project: {%PROJECT_ID%}
@@ -296,7 +296,7 @@ spec:
       containers:
       - name: hal-deploy-apply
         # todo use a custom image
-        image: us-docker.pkg.dev/spinnaker-community/docker/halyard:0.43.0-20180321134158
+        image: ghcr.io/spinnaker/halyard:main-latest
         command:
         - /bin/sh
         args:

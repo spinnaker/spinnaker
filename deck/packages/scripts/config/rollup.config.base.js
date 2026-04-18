@@ -10,7 +10,7 @@ const autoPrefixer = require('autoprefixer');
 const postCssColorFix = require('postcss-colorfix');
 const postCssUrl = require('postcss-url');
 const esbuild = require('rollup-plugin-esbuild').default;
-const { terser } = require('rollup-plugin-terser');
+const terser = require('@rollup/plugin-terser');
 const { visualizer } = require('rollup-plugin-visualizer');
 
 const ROLLUP_STATS = !!process.env.ROLLUP_STATS;
@@ -19,12 +19,17 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const ENV_MINIFY = process.env.ROLLUP_MINIFY;
 const ROLLUP_MINIFY = ENV_MINIFY === 'true' || (NODE_ENV === 'production' && ENV_MINIFY !== 'false');
 
-// eslint-disable-next-line no-console
 console.log({ ROLLUP_STATS, ROLLUP_WATCH, ROLLUP_MINIFY, NODE_ENV });
 
 const plugins = [
   nodeResolve(),
-  commonjs(),
+  commonjs({
+    // Ensure CommonJS modules that use require() get the full module.exports
+    // rather than trying to find a default export (fixes ngimport interop)
+    defaultIsModuleExports: true,
+    // Treat external ESM dependencies correctly when they're required from CJS
+    esmExternals: true,
+  }),
   json(),
   url({
     include: ['**/*.html', '**/*.svg', '**/*.png', '**/*.jp(e)?g', '**/*.gif', '**/*.webp'],

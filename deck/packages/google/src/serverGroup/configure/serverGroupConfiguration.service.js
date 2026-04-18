@@ -152,7 +152,6 @@ angular
               }
             }
 
-            // eslint-disable-next-line no-console
             if (command.autoScalingPolicy) {
               command.enableAutoScaling = true;
             }

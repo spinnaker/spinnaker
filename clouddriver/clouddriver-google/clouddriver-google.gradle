@@ -1,3 +1,6 @@
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")
@@ -41,7 +44,6 @@ dependencies {
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.mockito:mockito-core"
-  testImplementation "org.mockito:mockito-inline"
   testImplementation "org.mockito:mockito-junit-jupiter"
   testImplementation "org.objenesis:objenesis"
   testImplementation "org.spockframework:spock-core"

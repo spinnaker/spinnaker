@@ -56,10 +56,11 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String AUTHORIZATION_HEADER = "Authorization";
 
-  private final ClientRegistrationRepository clientRegistrationRepository;
+  private final ClientRegistration clientRegistration;
   private final OAuthUserInfoServiceHelper userInfoServiceHelper;
   private final RestTemplate restTemplate;
   private final String registrationId;
+  private final String userInfoUri;
 
   /**
    * Constructs a new ExternalAuthTokenFilter.
@@ -74,10 +75,28 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
       OAuthUserInfoServiceHelper userInfoServiceHelper,
       String registrationId,
       RestTemplate restTemplate) {
-    this.clientRegistrationRepository = clientRegistrationRepository;
     this.userInfoServiceHelper = userInfoServiceHelper;
     this.registrationId = registrationId;
     this.restTemplate = restTemplate;
+
+    // It's safe to resolve the client registration once at construction time because
+    // OAuth2SsoConfig.securityFilterChain only adds this filter when the
+    // ClientRegistrationRepository is an InMemoryClientRegistrationRepository, which is
+    // configured at startup and does not change.
+    ClientRegistration clientRegistration =
+        clientRegistrationRepository.findByRegistrationId(registrationId);
+    if (clientRegistration == null) {
+      throw new IllegalArgumentException(
+          "No client registration found for registrationId: " + registrationId);
+    }
+    this.clientRegistration = clientRegistration;
+
+    String userInfoUri = clientRegistration.getProviderDetails().getUserInfoEndpoint().getUri();
+    if (userInfoUri == null || userInfoUri.isEmpty()) {
+      throw new IllegalArgumentException(
+          "No user-info-uri configured for registrationId: " + registrationId);
+    }
+    this.userInfoUri = userInfoUri;
   }
 
   /**
@@ -111,6 +130,13 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
           if (authentication != null) {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.debug("Successfully authenticated user via external bearer token");
+
+            // /login has no controller on the oauth2Login() stack, so redirect
+            // authenticated users to the base URL instead of continuing into a 404.
+            if ("/login".equals(request.getRequestURI())) {
+              response.sendRedirect("/");
+              return;
+            }
           }
         } catch (Exception e) {
           log.debug("Failed to authenticate with external bearer token", e);
@@ -138,28 +164,14 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
   /**
    * Authenticates a user using the provided OAuth2 access token.
    *
-   * <p>This method retrieves the client registration, fetches user information from the configured
-   * user-info endpoint, and creates an authenticated OAuth2AuthenticationToken.
+   * <p>This method fetches user information from the configured user-info endpoint and creates an
+   * authenticated OAuth2AuthenticationToken.
    *
    * @param accessToken the OAuth2 access token to authenticate with
    * @return an OAuth2AuthenticationToken if authentication succeeds, or {@code null} if
-   *     authentication fails due to missing configuration or invalid token
+   *     authentication fails
    */
   private OAuth2AuthenticationToken authenticateWithToken(String accessToken) {
-    ClientRegistration clientRegistration =
-        clientRegistrationRepository.findByRegistrationId(registrationId);
-
-    if (clientRegistration == null) {
-      log.warn("No client registration found for registrationId: {}", registrationId);
-      return null;
-    }
-
-    String userInfoUri = clientRegistration.getProviderDetails().getUserInfoEndpoint().getUri();
-    if (userInfoUri == null || userInfoUri.isEmpty()) {
-      log.warn("No user-info-uri configured for registrationId: {}", registrationId);
-      return null;
-    }
-
     Map<String, Object> userAttributes = fetchUserInfo(userInfoUri, accessToken);
     if (userAttributes == null || userAttributes.isEmpty()) {
       return null;
@@ -198,7 +210,7 @@ public class ExternalAuthTokenFilter extends OncePerRequestFilter {
 
       return response.getBody();
     } catch (RestClientException e) {
-      log.debug("Failed to fetch user info from {}", userInfoUri, e);
+      log.warn("Failed to fetch user info from {}", userInfoUri, e);
       return null;
     }
   }

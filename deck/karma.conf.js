@@ -1,6 +1,7 @@
 'use strict';
 
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const { ProvidePlugin } = require('webpack');
 const path = require('path');
 
 const prodWebpackConfig = require('./packages/app/webpack.config')();
@@ -21,8 +22,17 @@ const webpackConfig = {
   },
   resolve: {
     ...prodWebpackConfig.resolve,
+    // Webpack 5 no longer auto-polyfills Node.js core modules for browser builds.
+    // Some test dependencies (e.g., parse5, util) require these modules.
+    fallback: {
+      stream: require.resolve('stream-browserify'),
+      buffer: require.resolve('buffer/'),
+      util: require.resolve('util/'),
+    },
     alias: {
       ...prodWebpackConfig.resolve.alias,
+      // ts-invariant imports 'process/browser' without extension, which fails in webpack 5 ESM resolution
+      'process/browser': require.resolve('process/browser.js'),
       coreImports: path.resolve(`${MODULES_ROOT}/core/src/presentation/less/imports/commonImports.less`),
       amazon: path.resolve(`${MODULES_ROOT}/amazon/src`),
       '@spinnaker/amazon': path.resolve(`${MODULES_ROOT}/amazon/src`),
@@ -56,7 +66,22 @@ const webpackConfig = {
       '@spinnaker/titus': path.resolve(`${MODULES_ROOT}/titus/src`),
     },
   },
-  plugins: [new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })],
+  plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        diagnosticOptions: {
+          syntactics: true,
+        },
+      },
+    }),
+    // Webpack 5 no longer auto-polyfills Node.js globals like 'process' and 'Buffer'.
+    // Some dependencies (e.g., util, parse5) expect these to exist in browser context.
+    // Note: setImmediate is polyfilled via import in karma-shim.js
+    new ProvidePlugin({
+      process: 'process/browser.js',
+      Buffer: ['buffer', 'Buffer'],
+    }),
+  ],
 };
 
 module.exports = function (config) {

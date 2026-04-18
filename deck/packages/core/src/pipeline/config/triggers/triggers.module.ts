@@ -10,6 +10,7 @@ module(TRIGGERS, []).component(
   react2angular(withErrorBoundary(TriggersWrapper, 'triggers'), [
     'application',
     'pipeline',
+    'pipelineConfig',
     'fieldUpdated',
     'updatePipelineConfig',
     'revertCount',

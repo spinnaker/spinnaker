@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
       - name: halyard-daemon
-        image: us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
+        image: ghcr.io/spinnaker/halyard:stable
         imagePullPolicy: Always
         command:
         - /bin/sh
@@ -296,7 +296,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: hal-deploy-apply
-        image: us-docker.pkg.dev/spinnaker-community/docker/halyard:stable
+        image: ghcr.io/spinnaker/halyard:main-latest
         command:
         - /bin/bash
         args:

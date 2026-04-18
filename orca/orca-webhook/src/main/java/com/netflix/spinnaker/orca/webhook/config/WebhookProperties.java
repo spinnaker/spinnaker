@@ -45,7 +45,8 @@ public class WebhookProperties {
           "parameters",
           "parameterValues",
           "permissions",
-          "parameterData");
+          "parameterData",
+          "sensitiveHeaders");
   private static final List<Field> ALL_FIELDS =
       Arrays.stream(PreconfiguredWebhook.class.getDeclaredFields())
           .filter(f -> !f.isSynthetic())
@@ -196,6 +197,7 @@ public class WebhookProperties {
     // Stage configuration fields (all optional):
     public String url;
     public Map<String, List<String>> customHeaders;
+    public Map<String, List<String>> sensitiveHeaders;
     public Map<String, String> parameterValues;
     public Map<String, Map<String, String>> parameterData;
     public HttpMethod method;

@@ -60,7 +60,7 @@ class TestPluginBuilderSupport(
   /**
    * The fully resolved plugin ID.
    */
-  val pluginId = "spinnaker.${name.toLowerCase()}testplugin"
+  val pluginId = "spinnaker.${name.lowercase()}testplugin"
 
   /**
    * Compiles the generated sources of a plugin.
@@ -191,7 +191,7 @@ class TestPluginBuilderSupport(
 
     import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration;
 
-    @ExtensionConfiguration("spinnaker.${name.toLowerCase()}-test-extension")
+    @ExtensionConfiguration("spinnaker.${name.lowercase()}-test-extension")
     public class ${name}TestExtensionConfiguration {
       private String foo;
     }

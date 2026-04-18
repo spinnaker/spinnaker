@@ -56,6 +56,8 @@ dependencies {
   testImplementation project(":gate-basic")
   testImplementation project(":gate-header")
   testImplementation project(":gate-oauth2")
+  testImplementation project(":gate-iap")
+  testImplementation project(":gate-saml")
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "com.squareup.okhttp3:mockwebserver"
 
@@ -70,6 +72,10 @@ dependencies {
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "org.springframework.security:spring-security-oauth2-client"
   testImplementation "org.apache.httpcomponents.client5:httpclient5"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:junit-jupiter"
+  testImplementation "org.seleniumhq.selenium:selenium-java"
+  testImplementation "org.seleniumhq.selenium:htmlunit3-driver:4.41.0"
 
   // Add each included authz provider as a runtime dependency
   gradle.includedProviderProjects.each {

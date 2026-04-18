@@ -12,7 +12,7 @@ spec:
           value: -XX:MaxRAMPercentage=80.0
         - name: SPRING_PROFILES_ACTIVE
           value: local
-        image: us-docker.pkg.dev/spinnaker-community/docker/echo:latest
+        image: ghcr.io/spinnaker/echo:main-latest
         name: echo
         ports:
         - name: http

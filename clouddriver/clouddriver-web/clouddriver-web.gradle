@@ -7,6 +7,9 @@ configurations.all {
   exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDirs += ["src/main/java"]
+
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":clouddriver-api")

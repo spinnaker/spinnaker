@@ -16,7 +16,8 @@
 package com.netflix.spinnaker.kork.sql.test;
 
 import static org.jooq.SQLDialect.H2;
-import static org.jooq.conf.RenderNameStyle.AS_IS;
+import static org.jooq.conf.RenderNameCase.AS_IS;
+import static org.jooq.conf.RenderQuotedNames.NEVER;
 import static org.jooq.impl.DSL.currentSchema;
 import static org.jooq.impl.DSL.query;
 import static org.jooq.impl.DSL.truncateTable;
@@ -30,17 +31,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import liquibase.ContextExpression;
-import liquibase.LabelExpression;
+import liquibase.GlobalConfiguration;
+import liquibase.Labels;
 import liquibase.Liquibase;
+import liquibase.Scope;
 import liquibase.changelog.ChangeLogParameters;
 import liquibase.changelog.DatabaseChangeLog;
-import liquibase.configuration.GlobalConfiguration;
-import liquibase.configuration.LiquibaseConfiguration;
+import liquibase.command.CommandScope;
+import liquibase.command.core.UpdateCommandStep;
+import liquibase.command.core.helpers.DbUrlConnectionCommandStep;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.DatabaseException;
-import liquibase.exception.LiquibaseException;
 import liquibase.exception.SetupException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.jooq.DSLContext;
@@ -61,23 +65,7 @@ public class SqlTestUtil {
   // automatically start a mysql container.
   public static String tcJdbcUrl = "jdbc:tc:mysql:8.0.40:///somedb";
 
-  public static String tcPgJdbcUrl = "jdbc:tc:postgres:10.13:///test";
-
-  /**
-   * @deprecated Please use the TestContainers db initializers where possible, instead of H2
-   */
-  @Deprecated
-  public static TestDatabase initDatabase() {
-    return initDatabase("jdbc:h2:mem:test;MODE=MYSQL");
-  }
-
-  /**
-   * @deprecated Please use the TestContainers db initializers where possible, instead of H2
-   */
-  @Deprecated
-  public static TestDatabase initPreviousDatabase() {
-    return initDatabase("jdbc:h2:mem:test_previous;MODE=MYSQL");
-  }
+  public static String tcPgJdbcUrl = "jdbc:tc:postgres:16.13:///test";
 
   public static TestDatabase initTcMysqlDatabase() {
     // host, port, and db name are ignored with the jdbcUrl method of TC initialization and
@@ -92,7 +80,7 @@ public class SqlTestUtil {
     // name in the JDBC url
     // when implicitly starting a container from a testcontainers-driver-prefixed JDBC URL
     PostgreSQLContainer container =
-        new PostgreSQLContainer<>("postgres:10.13")
+        new PostgreSQLContainer<>("postgres:16.13")
             .withDatabaseName("test")
             .withUsername("test")
             .withPassword("test");
@@ -129,7 +117,7 @@ public class SqlTestUtil {
   }
 
   public static TestDatabase initDualTcPostgresDatabases() {
-    return initDualTcDatabases("postgres:10.13", SQLDialect.POSTGRES);
+    return initDualTcDatabases("postgres:16.13", SQLDialect.POSTGRES);
   }
 
   private static TestDatabase initDualTcDatabases(String imageName, SQLDialect dialect) {
@@ -195,10 +183,6 @@ public class SqlTestUtil {
         previousTDB.liquibase);
   }
 
-  public static TestDatabase initDatabase(String jdbcUrl) {
-    return initDatabase(jdbcUrl, H2);
-  }
-
   public static TestDatabase initDatabase(String jdbcUrl, SQLDialect dialect) {
     return initDatabase(jdbcUrl, dialect, "test");
   }
@@ -220,7 +204,7 @@ public class SqlTestUtil {
     config.setSQLDialect(dialect);
 
     if (dialect == H2) {
-      config.settings().withRenderNameStyle(AS_IS);
+      config.settings().withRenderQuotedNames(NEVER).withRenderNameCase(AS_IS);
     }
 
     DSLContext context = new DefaultDSLContext(config);
@@ -243,8 +227,10 @@ public class SqlTestUtil {
           Comparator.comparing(String::toString),
           new ClassLoaderResourceAccessor(),
           new ContextExpression(),
-          new LabelExpression(),
-          false);
+          new Labels(),
+          false,
+          0,
+          Integer.MAX_VALUE);
 
       migrate =
           new Liquibase(
@@ -257,9 +243,28 @@ public class SqlTestUtil {
       throw new DatabaseInitializationFailed(e);
     }
 
+    // Liquibase.update() is deprecated; use the CommandScope API instead.
+    // See https://contribute.liquibase.com/code/api/command-commandscope/
+    // The argument wiring and Scope.child call below mirror the deprecated
+    // Liquibase.update(Contexts, LabelExpression, boolean) and
+    // Liquibase.runInScope methods in liquibase-core 4.24.0.
     try {
-      migrate.update(dbName);
-    } catch (LiquibaseException e) {
+      Scope.child(
+          Map.of(
+              Scope.Attr.database.name(), migrate.getDatabase(),
+              Scope.Attr.resourceAccessor.name(), migrate.getResourceAccessor()),
+          () -> {
+            CommandScope updateCommand = new CommandScope(UpdateCommandStep.COMMAND_NAME);
+            updateCommand.addArgumentValue(
+                DbUrlConnectionCommandStep.DATABASE_ARG, migrate.getDatabase());
+            updateCommand.addArgumentValue(
+                UpdateCommandStep.CHANGELOG_ARG, migrate.getDatabaseChangeLog());
+            updateCommand.addArgumentValue(
+                UpdateCommandStep.CHANGELOG_FILE_ARG, migrate.getChangeLogFile());
+            updateCommand.addArgumentValue(UpdateCommandStep.CONTEXTS_ARG, dbName);
+            updateCommand.execute();
+          });
+    } catch (Exception e) {
       throw new DatabaseInitializationFailed(e);
     }
 
@@ -269,8 +274,9 @@ public class SqlTestUtil {
   public static void cleanupDb(DSLContext context) {
     String schema = context.select(currentSchema()).fetch().getValue(0, 0).toString();
 
-    GlobalConfiguration configuration =
-        LiquibaseConfiguration.getInstance().getConfiguration(GlobalConfiguration.class);
+    String changeLogTableName = GlobalConfiguration.DATABASECHANGELOG_TABLE_NAME.getCurrentValue();
+    String changeLogLockTableName =
+        GlobalConfiguration.DATABASECHANGELOGLOCK_TABLE_NAME.getCurrentValue();
 
     List<Query> commands = new ArrayList<>();
     if (context.dialect() == SQLDialect.MYSQL) {
@@ -281,8 +287,8 @@ public class SqlTestUtil {
             table ->
                 table.getTableType().isTable()
                     && table.getSchema().getName().equals(schema)
-                    && !table.getName().equals(configuration.getDatabaseChangeLogTableName())
-                    && !table.getName().equals(configuration.getDatabaseChangeLogLockTableName()))
+                    && !table.getName().equals(changeLogTableName)
+                    && !table.getName().equals(changeLogLockTableName))
         .forEach(
             table -> {
               switch (context.dialect()) {

@@ -62,7 +62,7 @@ dependencies {
   implementation "com.google.guava:guava"
   implementation 'com.jayway.jsonpath:json-path:2.3.0'
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.github.wnameless.json:json-flattener:0.11.1"
+  implementation "com.github.wnameless.json:json-flattener:${jsonFlattenerVersion}"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-core"
