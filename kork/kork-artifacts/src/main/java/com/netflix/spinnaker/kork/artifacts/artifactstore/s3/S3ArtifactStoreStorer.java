@@ -125,16 +125,15 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
 
       s3Client.putObject(request, RequestBody.fromBytes(referenceBytes));
     } catch (SdkServiceException e) {
-      throw new ResponseStatusException(
-          e.statusCode(),
-          String.format(
-              "artifact storage failed to complete s3 request bucket=%s ref=%s", bucket, ref.uri()),
-          e);
+      throw new ResponseStatusException(e.statusCode(), storeErrorMessage(ref.uri()), e);
     } catch (Exception e) {
-      throw new RuntimeException(
-          String.format("artifact failed to be stored %s/%s", this.bucket, ref.uri()), e);
+      throw new RuntimeException(storeErrorMessage(ref.uri()), e);
     }
     return remoteArtifact;
+  }
+
+  private String storeErrorMessage(String uri) {
+    return String.format("artifact failed to be stored: bucket=%s ref=%s", this.bucket, uri);
   }
 
   private byte[] getReferenceAsBytes(Artifact artifact) {

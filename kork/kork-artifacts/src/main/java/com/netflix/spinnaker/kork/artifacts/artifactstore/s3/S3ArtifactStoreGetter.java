@@ -84,15 +84,14 @@ public class S3ArtifactStoreGetter implements ArtifactStoreGetter {
 
       return builder.build();
     } catch (SdkServiceException e) {
-      throw new ResponseStatusException(
-          e.statusCode(),
-          String.format(
-              "artifact storage failed to complete s3 request bucket=%s ref=%s", bucket, uri),
-          e);
+      throw new ResponseStatusException(e.statusCode(), getErrorMessage(uri), e);
     } catch (Exception e) {
-      throw new RuntimeException(
-          String.format("artifact failed to be retrieved %s/%s", this.bucket, uri), e);
+      throw new RuntimeException(getErrorMessage(uri), e);
     }
+  }
+
+  private String getErrorMessage(ArtifactReferenceURI uri) {
+    return String.format("artifact failed to be retrieved: bucket=%s ref=%s", this.bucket, uri);
   }
 
   /**
