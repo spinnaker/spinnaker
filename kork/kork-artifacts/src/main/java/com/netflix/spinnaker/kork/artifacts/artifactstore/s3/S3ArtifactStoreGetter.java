@@ -28,7 +28,9 @@ import java.util.Base64;
 import java.util.NoSuchElementException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -65,21 +67,32 @@ public class S3ArtifactStoreGetter implements ArtifactStoreGetter {
     log.debug("Attempting to get artifact reference={} s3Key={}", uri.uri(), uri.paths());
     GetObjectRequest request = GetObjectRequest.builder().bucket(bucket).key(uri.paths()).build();
 
-    ResponseBytes<GetObjectResponse> resp = s3Client.getObjectAsBytes(request);
-    Artifact.ArtifactBuilder builder =
-        Artifact.builder()
-            .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
-            .reference(Base64.getEncoder().encodeToString(resp.asByteArray()));
+    try {
+      ResponseBytes<GetObjectResponse> resp = s3Client.getObjectAsBytes(request);
+      Artifact.ArtifactBuilder builder =
+          Artifact.builder()
+              .type(ArtifactTypes.REMOTE_BASE64.getMimeType())
+              .reference(Base64.getEncoder().encodeToString(resp.asByteArray()));
 
-    if (decorators == null) {
+      if (decorators == null) {
+        return builder.build();
+      }
+
+      for (ArtifactDecorator decorator : decorators) {
+        builder = decorator.decorate(builder);
+      }
+
       return builder.build();
+    } catch (SdkServiceException e) {
+      throw new ResponseStatusException(e.statusCode(), getErrorMessage(uri, e), e);
+    } catch (Exception e) {
+      throw new RuntimeException(getErrorMessage(uri, e), e);
     }
+  }
 
-    for (ArtifactDecorator decorator : decorators) {
-      builder = decorator.decorate(builder);
-    }
-
-    return builder.build();
+  private String getErrorMessage(ArtifactReferenceURI uri, Exception e) {
+    return String.format(
+        "artifact failed to be retrieved: bucket=%s ref=%s: %s", this.bucket, uri, e.getMessage());
   }
 
   /**
