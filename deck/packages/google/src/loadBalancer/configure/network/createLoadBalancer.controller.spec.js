@@ -24,6 +24,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
         application: app,
         loadBalancer: null,
         isNew: true,
+        forPipelineConfig: false,
       });
     }),
   );
@@ -78,5 +79,40 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     this.$scope.loadBalancer.listeners[0].healthCheck = true;
     this.ctrl.setVisibilityHealthCheckTab();
     expect(ModalWizard.includePage.calls.count()).toEqual(2);
+  });
+
+  it('closes with a pipeline command instead of submitting', function () {
+    let modalInstance;
+    window.inject(function ($controller, $rootScope) {
+      const $scope = $rootScope.$new();
+      const app = ApplicationModelBuilder.createApplicationForTests('app', {
+        key: 'loadBalancers',
+        lazy: true,
+        defaultData: [],
+      });
+      modalInstance = {
+        close: jasmine.createSpy('close'),
+        dismiss: angular.noop,
+        result: { then: angular.noop },
+      };
+      const ctrl = $controller('gceCreateLoadBalancerCtrl', {
+        $scope,
+        $uibModalInstance: modalInstance,
+        application: app,
+        loadBalancer: null,
+        isNew: true,
+        forPipelineConfig: true,
+      });
+      $scope.taskMonitor = { submit: jasmine.createSpy('submit') };
+      ctrl.updateName();
+      ctrl.submit();
+    });
+
+    expect(modalInstance.close).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        cloudProvider: 'gce',
+        loadBalancerName: 'app',
+      }),
+    );
   });
 });
