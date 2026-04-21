@@ -89,6 +89,7 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     'loadBalancer',
     'gceCommonLoadBalancerCommandBuilder',
     'isNew',
+    'forPipelineConfig',
     'wizardSubFormValidation',
     '$state',
   ];
@@ -99,6 +100,7 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     private loadBalancer: TcpLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
+    private forPipelineConfig: boolean,
     private wizardSubFormValidation: any,
     $state: StateService,
   ) {
@@ -202,6 +204,12 @@ class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.cloudProvider = 'gce';
     delete toSubmitLoadBalancer.instances;
+
+    if (this.forPipelineConfig) {
+      Object.assign(toSubmitLoadBalancer, { healthCheck: {} });
+      this.$uibModalInstance.close(toSubmitLoadBalancer);
+      return;
+    }
 
     this.taskMonitor.submit(() =>
       LoadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {

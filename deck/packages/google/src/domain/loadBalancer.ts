@@ -14,7 +14,8 @@ export interface IGceLoadBalancer extends ILoadBalancer {
 }
 
 export interface IGceHttpLoadBalancer extends IGceLoadBalancer {
-  certificate: string;
+  certificate?: string;
+  certificateMap?: string;
   defaultService: IGceBackendService;
   detail: string;
   hostRules: IGceHostRule;
@@ -42,7 +43,8 @@ export interface IGcePathRule {
 }
 
 export interface IGceListener {
-  certificate: string;
+  certificate?: string | null;
+  certificateMap?: string | null;
   name: string;
   port: string;
   ipAddress: string;
