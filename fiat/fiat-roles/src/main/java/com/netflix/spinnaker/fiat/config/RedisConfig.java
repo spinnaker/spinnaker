@@ -4,7 +4,11 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.telemetry.InstrumentedJedisPool;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,13 +23,27 @@ import redis.clients.jedis.*;
 @Configuration
 @ConditionalOnProperty("redis.connection")
 public class RedisConfig {
+
+  @Getter @Setter private static String clientName = defaultClientName();
+
+  private static String defaultClientName() {
+    try {
+      return InetAddress.getLocalHost().getHostName();
+    } catch (UnknownHostException e) {
+      return null;
+    }
+  }
+
   @Bean
   @ConfigurationProperties("redis")
   public GenericObjectPoolConfig redisPoolConfig() {
     GenericObjectPoolConfig config = new JedisPoolConfig();
-    config.setMaxTotal(20);
-    config.setMaxIdle(20);
-    config.setMinIdle(5);
+    config.setMaxTotal(500);
+    config.setMaxIdle(0);
+    config.setMinIdle(0);
+    config.setTestWhileIdle(true);
+    config.setMinEvictableIdleTimeMillis(1);
+    config.setJmxEnabled(true);
     return config;
   }
 
@@ -35,6 +53,17 @@ public class RedisConfig {
       @Value("${redis.timeout:2000}") int timeout,
       GenericObjectPoolConfig redisPoolConfig,
       Registry registry) {
+
+    log.info(
+        "JedisPool Configuration: maxTotal {}, maxIdle {}, minIdle {}, testWhileIdle {}, minEvictableIdle {}, jmxEnabled {}, clientName {}",
+        redisPoolConfig.getMaxTotal(),
+        redisPoolConfig.getMaxIdle(),
+        redisPoolConfig.getMinIdle(),
+        redisPoolConfig.getTestWhileIdle(),
+        redisPoolConfig.getMinEvictableIdleTimeMillis(),
+        redisPoolConfig.getJmxEnabled(),
+        clientName);
+
     return createPool(redisPoolConfig, connection, timeout, registry);
   }
 
@@ -67,9 +96,19 @@ public class RedisConfig {
       redisPoolConfig = new GenericObjectPoolConfig();
     }
 
+    log.info(
+        "JedisPool Configuration: host {}, port {}, timeout {}, password {}, database {}, isSSL {}, clientName {}",
+        host,
+        port,
+        timeout,
+        password != null && !password.isEmpty(),
+        database,
+        isSSL,
+        clientName);
+
     return new InstrumentedJedisPool(
         registry,
-        new JedisPool(redisPoolConfig, host, port, timeout, password, database, null, isSSL),
+        new JedisPool(redisPoolConfig, host, port, timeout, password, database, clientName, isSSL),
         "fiat");
   }
 }
