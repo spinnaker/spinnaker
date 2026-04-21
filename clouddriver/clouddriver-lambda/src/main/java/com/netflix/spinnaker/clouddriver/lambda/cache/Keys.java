@@ -26,7 +26,8 @@ import java.util.Map;
 public class Keys implements KeyParser {
   public enum Namespace {
     IAM_ROLE,
-    LAMBDA_FUNCTIONS;
+    LAMBDA_FUNCTIONS,
+    LAMBDA_APPLICATIONS;
 
     public final String ns;
 
@@ -88,6 +89,9 @@ public class Keys implements KeyParser {
       case IAM_ROLE:
         result.put("roleName", parts[3]);
         break;
+      case LAMBDA_APPLICATIONS:
+        result.put("application", parts[3]);
+        break;
       default:
         break;
     }
@@ -107,5 +111,9 @@ public class Keys implements KeyParser {
 
   public static String getIamRoleKey(String account, String iamRoleName) {
     return String.format("%s:%s:%s:%s", ID, Namespace.IAM_ROLE, account, iamRoleName);
+  }
+
+  public static String getApplicationKey(String name) {
+    return String.format("%s:%s:%s", ID, Namespace.LAMBDA_APPLICATIONS, name.toLowerCase());
   }
 }

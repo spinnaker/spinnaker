@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE;
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
+import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 import static java.util.stream.Collectors.toSet;
 
@@ -64,7 +63,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       new HashSet<>() {
         {
           add(AUTHORITATIVE.forType(LAMBDA_FUNCTIONS.ns));
-          add(INFORMATIVE.forType(APPLICATIONS.ns));
+          add(AUTHORITATIVE.forType(LAMBDA_APPLICATIONS.ns));
         }
       };
 
@@ -172,7 +171,9 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
             if (onDemandLastModified.isAfter(currentLambdaLastModified)) {
               lambdaCacheData.put(onDemandItem.getId(), onDemandItem);
               String appKey =
-                  onDemandItem.getRelationships().get(APPLICATIONS.ns).stream().findFirst().get();
+                  onDemandItem.getRelationships().get(LAMBDA_APPLICATIONS.ns).stream()
+                      .findFirst()
+                      .get();
               Collection<String> functionkeys =
                   appLambdaRelationships.getOrDefault(appKey, new ArrayList<>());
               functionkeys.add(onDemandItem.getId());
@@ -181,7 +182,9 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
           } else {
             lambdaCacheData.put(onDemandItem.getId(), onDemandItem);
             String appKey =
-                onDemandItem.getRelationships().get(APPLICATIONS.ns).stream().findFirst().get();
+                onDemandItem.getRelationships().get(LAMBDA_APPLICATIONS.ns).stream()
+                    .findFirst()
+                    .get();
             Collection<String> functionkeys =
                 appLambdaRelationships.getOrDefault(appKey, new ArrayList<>());
             functionkeys.add(onDemandItem.getId());
@@ -197,7 +200,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       }
     }
 
-    // Create the INFORMATIVE spinnaker application cache with lambda relationships
+    // Create the AUTHORITATIVE lambda application cache with lambda function relationships
     Collection<CacheData> appCacheData = new LinkedList<>();
     for (String appKey : appLambdaRelationships.keySet()) {
       appCacheData.add(
@@ -210,7 +213,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     Map<String, Collection<CacheData>> cacheResults = new HashMap<>();
 
     cacheResults.put(LAMBDA_FUNCTIONS.ns, lambdaCacheData.values());
-    cacheResults.put(APPLICATIONS.ns, appCacheData);
+    cacheResults.put(LAMBDA_APPLICATIONS.ns, appCacheData);
     cacheResults.put(ON_DEMAND.ns, processedOnDemandCache);
 
     Map<String, Collection<String>> evictions =
@@ -237,9 +240,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
               // Add the spinnaker application relationship and store it
               Names names = Names.parseName(functionName);
               if (names.getApp() != null) {
-                String appKey =
-                    com.netflix.spinnaker.clouddriver.aws.data.Keys.getApplicationKey(
-                        names.getApp());
+                String appKey = Keys.getApplicationKey(names.getApp());
                 appLambdaRelationships.compute(
                     appKey,
                     (k, v) -> {
@@ -256,7 +257,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
                         functionKey,
                         lf,
                         Collections.singletonMap(
-                            APPLICATIONS.ns, Collections.singletonList(appKey))));
+                            LAMBDA_APPLICATIONS.ns, Collections.singletonList(appKey))));
               } else {
                 // TODO: Do we care about non spinnaker deployed lambdas?
                 lambdaCacheData.put(
@@ -285,7 +286,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
         Keys.getLambdaFunctionKey(
             (String) data.get("credentials"), (String) data.get("region"), functionName);
 
-    String appKey = com.netflix.spinnaker.clouddriver.aws.data.Keys.getApplicationKey(appName);
+    String appKey = Keys.getApplicationKey(appName);
 
     Map<String, Object> lambdaAttributes = null;
     try {
@@ -309,7 +310,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
           new DefaultCacheData(
               functionKey,
               lambdaAttributes,
-              Collections.singletonMap(APPLICATIONS.ns, Collections.singletonList(appKey)));
+              Collections.singletonMap(LAMBDA_APPLICATIONS.ns, Collections.singletonList(appKey)));
 
       defaultCacheResult =
           new DefaultCacheResult(
@@ -382,35 +383,25 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
   }
 
   /**
-   * Provides the key namespace that the caching agent is authoritative of. Currently only supports
-   * the caching agent being authoritative over one key namespace. Taken from
-   * AbstractEcsCachingAgent
+   * Provides the key namespaces that the caching agent is authoritative for.
    *
-   * @return Key namespace.
+   * @return Collection of key namespaces.
    */
-  String getAuthoritativeKeyName() {
-    Collection<AgentDataType> authoritativeNamespaces =
-        getProvidedDataTypes().stream()
-            .filter(agentDataType -> agentDataType.getAuthority().equals(AUTHORITATIVE))
-            .collect(Collectors.toSet());
-
-    if (authoritativeNamespaces.size() != 1) {
-      throw new RuntimeException(
-          "LambdaCachingAgent supports only one authoritative key namespace. "
-              + authoritativeNamespaces.size()
-              + " authoritative key namespace were given.");
-    }
-
-    return authoritativeNamespaces.iterator().next().getTypeName();
+  Collection<String> getAuthoritativeKeyNames() {
+    return getProvidedDataTypes().stream()
+        .filter(agentDataType -> agentDataType.getAuthority().equals(AUTHORITATIVE))
+        .map(AgentDataType::getTypeName)
+        .collect(Collectors.toSet());
   }
 
   Map<String, Collection<String>> computeEvictableData(
       Collection<CacheData> newData, ProviderCache providerCache) {
 
-    // Get all old keys from the cache for the region and account
-    String authoritativeKeyName = getAuthoritativeKeyName();
+    // Only compute evictions for LAMBDA_FUNCTIONS namespace
+    // LAMBDA_APPLICATIONS namespace is evicted separately by application cleanup agents
+    String lambdaFunctionsNamespace = LAMBDA_FUNCTIONS.ns;
     Set<String> oldKeys =
-        providerCache.getIdentifiers(authoritativeKeyName).stream()
+        providerCache.getIdentifiers(lambdaFunctionsNamespace).stream()
             .filter(
                 key -> {
                   Map<String, String> keyParts = Keys.parse(key);
@@ -426,9 +417,9 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
         oldKeys.stream().filter(oldKey -> !newKeys.contains(oldKey)).collect(Collectors.toSet());
 
     Map<String, Collection<String>> evictionsByKey = new HashMap<>();
-    evictionsByKey.put(getAuthoritativeKeyName(), evictedKeys);
+    evictionsByKey.put(lambdaFunctionsNamespace, evictedKeys);
     String prettyKeyName =
-        CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, getAuthoritativeKeyName());
+        CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, lambdaFunctionsNamespace);
 
     log.info(
         "Evicting "

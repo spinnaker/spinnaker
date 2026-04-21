@@ -60,8 +60,11 @@ public class LambdaCachingAgentTest {
   }
 
   @Test
-  public void shouldGetAuthoritativeName() {
-    assertThat(lambdaCachingAgent.getAuthoritativeKeyName()).isEqualTo("lambdaFunctions");
+  public void shouldGetAuthoritativeNames() {
+    Collection<String> authoritativeNames = lambdaCachingAgent.getAuthoritativeKeyNames();
+    assertThat(authoritativeNames.size()).isEqualTo(2);
+    assertThat(authoritativeNames.contains("lambdaFunctions")).isTrue();
+    assertThat(authoritativeNames.contains("lambdaApplications")).isTrue();
   }
 
   @Test
@@ -88,8 +91,8 @@ public class LambdaCachingAgentTest {
     Map<String, Collection<String>> evictions =
         lambdaCachingAgent.computeEvictableData(data, cache);
 
-    assertThat(evictions.get(lambdaCachingAgent.getAuthoritativeKeyName()).size()).isEqualTo(2);
-    assertThat(evictions.get(lambdaCachingAgent.getAuthoritativeKeyName())).isEqualTo(oldKeys);
+    assertThat(evictions.get("lambdaFunctions").size()).isEqualTo(2);
+    assertThat(evictions.get("lambdaFunctions")).isEqualTo(oldKeys);
   }
 
   @Test
@@ -115,8 +118,8 @@ public class LambdaCachingAgentTest {
     Map<String, Collection<String>> evictions =
         lambdaCachingAgent.computeEvictableData(data, cache);
 
-    assertThat(evictions.get(lambdaCachingAgent.getAuthoritativeKeyName()).size()).isEqualTo(1);
-    assertThat(evictions.get(lambdaCachingAgent.getAuthoritativeKeyName()).stream().findAny().get())
+    assertThat(evictions.get("lambdaFunctions").size()).isEqualTo(1);
+    assertThat(evictions.get("lambdaFunctions").stream().findAny().get())
         .isNotEqualTo(
             Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"));
   }
