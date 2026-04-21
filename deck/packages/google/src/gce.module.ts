@@ -13,6 +13,7 @@ import { GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE } from './instance/gceInstanceT
 import { GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER } from './instance/gceMultiInstanceTask.transformer';
 import { IAP_INTERCEPTOR } from './interceptors/iap.interceptor';
 import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
+import { openGCEPipelineLoadBalancerModal } from './loadBalancer/configure/choice/gceLoadBalancerPipelineModal';
 import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER } from './loadBalancer/configure/http/createHttpLoadBalancer.controller';
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 import { GOOGLE_LOADBALANCER_CONFIGURE_INTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER } from './loadBalancer/configure/internalhttp/createInternalHttpLoadBalancer.controller';
@@ -133,6 +134,7 @@ module(GOOGLE_MODULE, [
       detailsController: 'gceLoadBalancerDetailsCtrl',
       createLoadBalancerTemplateUrl: require('./loadBalancer/configure/choice/gceLoadBalancerChoice.modal.html'),
       createLoadBalancerController: 'gceLoadBalancerChoiceCtrl',
+      pipelineCreateLoadBalancerModal: openGCEPipelineLoadBalancerModal,
     },
     securityGroup: {
       transformer: 'gceSecurityGroupTransformer',
