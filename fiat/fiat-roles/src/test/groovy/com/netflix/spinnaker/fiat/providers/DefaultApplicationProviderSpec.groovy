@@ -58,7 +58,7 @@ class DefaultApplicationProviderSpec extends Specification {
       getAllApplications() >> [
           new Application().setName("onlyKnownToFront50"),
           new Application().setName("app1")
-                           .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
+                       .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
       ]
     }
     ClouddriverService clouddriverService = Mock(ClouddriverService) {
