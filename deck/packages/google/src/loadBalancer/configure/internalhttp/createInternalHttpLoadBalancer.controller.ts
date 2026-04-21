@@ -54,6 +54,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
     'loadBalancer',
     'gceHttpLoadBalancerCommandBuilder',
     'isNew',
+    'forPipelineConfig',
     'wizardSubFormValidation',
     'gceHttpLoadBalancerTransformer',
     'gceHttpLoadBalancerWriter',
@@ -67,6 +68,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
     private loadBalancer: IGceHttpLoadBalancer,
     private gceHttpLoadBalancerCommandBuilder: any,
     private isNew: boolean,
+    private forPipelineConfig: boolean,
     private wizardSubFormValidation: any,
     private gceHttpLoadBalancerTransformer: any,
     private gceHttpLoadBalancerWriter: any,
@@ -130,6 +132,27 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
   public submit(): void {
     const serializedCommands = this.gceHttpLoadBalancerTransformer.serialize(this.command, this.loadBalancer);
     const descriptor = this.isNew ? 'Create' : 'Update';
+
+    if (this.forPipelineConfig) {
+      const pipelineCommands = serializedCommands.map((command: any) => ({
+        ...command,
+        cloudProvider: 'gce',
+        loadBalancerName: command.name,
+        listeners: [
+          {
+            name: command.name,
+            port: command.portRange,
+            certificate: command.certificate || null,
+            certificateMap: command.certificateMap || null,
+            ipAddress: command.ipAddress,
+            subnet: command.subnet,
+          },
+        ],
+      }));
+      this.$uibModalInstance.close(pipelineCommands);
+      return;
+    }
+
     this.taskMonitor.submit(() =>
       this.gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, this.application, descriptor),
     );
