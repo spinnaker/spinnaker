@@ -43,6 +43,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
   'application',
   'loadBalancer',
   'isNew',
+  'forPipelineConfig',
   'gceHttpLoadBalancerWriter',
   '$state',
   'wizardSubFormValidation',
@@ -55,6 +56,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
     application,
     loadBalancer,
     isNew,
+    forPipelineConfig,
     gceHttpLoadBalancerWriter,
     $state,
     wizardSubFormValidation,
@@ -128,6 +130,26 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
     this.submit = () => {
       const serializedCommands = gceHttpLoadBalancerTransformer.serialize(this.command, loadBalancer);
       const descriptor = this.isNew ? 'Create' : 'Update';
+
+      if (forPipelineConfig) {
+        const pipelineCommands = serializedCommands.map((command) => ({
+          ...command,
+          cloudProvider: 'gce',
+          loadBalancerName: command.name,
+          listeners: [
+            {
+              name: command.name,
+              port: command.portRange,
+              certificate: command.certificate || null,
+              certificateMap: command.certificateMap || null,
+              ipAddress: command.ipAddress,
+              subnet: command.subnet,
+            },
+          ],
+        }));
+        $uibModalInstance.close(pipelineCommands);
+        return;
+      }
 
       this.taskMonitor.submit(() =>
         gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, application, descriptor),

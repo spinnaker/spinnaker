@@ -91,6 +91,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     'loadBalancer',
     'gceCommonLoadBalancerCommandBuilder',
     'isNew',
+    'forPipelineConfig',
     'wizardSubFormValidation',
     'gceXpnNamingService',
     '$state',
@@ -102,6 +103,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     private loadBalancer: InternalLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
+    private forPipelineConfig: boolean,
     private wizardSubFormValidation: any,
     private gceXpnNamingService: any,
     $state: StateService,
@@ -243,6 +245,12 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ICon
     toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
     delete toSubmitLoadBalancer.instances;
+
+    if (this.forPipelineConfig) {
+      Object.assign(toSubmitLoadBalancer, { healthCheck: {} });
+      this.$uibModalInstance.close(toSubmitLoadBalancer);
+      return;
+    }
 
     this.taskMonitor.submit(() =>
       LoadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {
