@@ -47,6 +47,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResourceFunction;
 import com.netflix.spinnaker.clouddriver.lambda.service.LambdaService;
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
@@ -76,7 +77,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
   private final Registry registry;
   private final Clock clock = Clock.systemDefaultZone();
   @Setter @VisibleForTesting private LambdaService lambdaService;
-  private final Namer<LambdaResourceFunction> naming;
+  private final Namer<LambdaResource> naming;
 
   LambdaCachingAgent(
       ObjectMapper objectMapper,
@@ -95,7 +96,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
         NamerRegistry.lookup()
             .withProvider(AmazonCloudProvider.ID)
             .withAccount(account.getName())
-            .withResource(LambdaResourceFunction.class));
+            .withResource(LambdaResource.class));
   }
 
   @VisibleForTesting
@@ -106,7 +107,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       String region,
       LambdaServiceConfig lambdaServiceConfig,
       ServiceLimitConfiguration serviceLimitConfiguration,
-      Namer<LambdaResourceFunction> naming) {
+      Namer<LambdaResource> naming) {
     this.account = account;
     this.region = region;
     this.registry = new DefaultRegistry();

@@ -21,13 +21,17 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.*;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.model.*;
+import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionConfigurationDescription;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.netflix.spinnaker.moniker.Moniker;
 import org.springframework.util.StringUtils;
 
 public class UpdateLambdaConfigurationAtomicOperation
@@ -35,9 +39,13 @@ public class UpdateLambdaConfigurationAtomicOperation
         CreateLambdaFunctionConfigurationDescription, UpdateFunctionConfigurationResult>
     implements AtomicOperation<UpdateFunctionConfigurationResult> {
 
+
+  private boolean autoApplyTags;
+
   public UpdateLambdaConfigurationAtomicOperation(
-      CreateLambdaFunctionConfigurationDescription description) {
+      CreateLambdaFunctionConfigurationDescription description, boolean autoApplyTags) {
     super(description, "UPDATE_LAMBDA_FUNCTION_CONFIGURATION");
+    this.autoApplyTags = autoApplyTags;
   }
 
   @Override
@@ -75,9 +83,12 @@ public class UpdateLambdaConfigurationAtomicOperation
     if (null != description.getEnvVariables()) {
       request.setEnvironment(new Environment().withVariables(description.getEnvVariables()));
     }
+    LambdaTagNamer.applyIfNeeded(description, description.getAppName(), autoApplyTags);
+
 
     UpdateFunctionConfigurationResult result = client.updateFunctionConfiguration(request);
     TagResourceRequest tagResourceRequest = new TagResourceRequest();
+
     Map<String, String> objTag = new HashMap<>();
     if (null != description.getTags()) {
 

@@ -20,13 +20,15 @@ import com.amazonaws.services.lambda.model.DeadLetterConfig;
 import com.amazonaws.services.lambda.model.TracingConfig;
 import java.util.List;
 import java.util.Map;
+
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class CreateLambdaFunctionConfigurationDescription
-    extends AbstractLambdaFunctionDescription {
+    extends AbstractLambdaFunctionDescription implements LambdaResource {
   String functionName;
   String description;
   String handler;
@@ -44,4 +46,19 @@ public class CreateLambdaFunctionConfigurationDescription
   TracingConfig tracingConfig;
   String targetGroups;
   String runTime;
+
+  @Override
+  public String getName() {
+    return functionName;
+  }
+
+  @Override
+  public Map<String, String> getResourceTags() {
+    return tags;
+  }
+
+  @Override
+  public void setResourceTags(Map<String, String> tags) {
+    this.tags = tags;
+  }
 }

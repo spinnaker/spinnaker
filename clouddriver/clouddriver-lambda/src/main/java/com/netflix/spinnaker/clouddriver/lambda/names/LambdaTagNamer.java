@@ -17,15 +17,18 @@
 package com.netflix.spinnaker.clouddriver.lambda.names;
 
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.MonikerHelper;
+
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LambdaTagNamer implements NamingStrategy<LambdaResourceFunction> {
+public class LambdaTagNamer implements NamingStrategy<LambdaResource> {
 
   // Borrow naming convention from KubernetesManifestLabeler
   private static final String SPINNAKER_ANNOTATION = "spinnaker.io";
@@ -36,22 +39,36 @@ public class LambdaTagNamer implements NamingStrategy<LambdaResourceFunction> {
   public static final String DETAIL = MONIKER_ANNOTATION_PREFIX + "/detail";
   public static final String SEQUENCE = MONIKER_ANNOTATION_PREFIX + "/sequence";
 
+  public static void applyIfNeeded(LambdaResource description, String applicationName, boolean autoApplyTags) {
+    if (autoApplyTags) {
+      Moniker moniker = getMoniker(description);
+      if (description.getResourceTags() == null) {
+        description.setResourceTags(new HashMap<>());
+      }
+      // Make sure to set the app name REGARDLESS derived value in the case where an app has not previously been set
+      if (!description.getResourceTags().containsKey(LambdaTagNamer.APPLICATION)) {
+        description.getResourceTags().put(LambdaTagNamer.APPLICATION, applicationName);
+      }
+      applyTags(description, moniker);
+    }
+  }
+
   @Override
   public String getName() {
     return "tags";
   }
 
   @Override
-  public void applyMoniker(LambdaResourceFunction resource, Moniker moniker) {
+  public void applyMoniker(LambdaResource resource, Moniker moniker) {
     applyTags(resource, moniker);
   }
 
   @Override
-  public Moniker deriveMoniker(LambdaResourceFunction resource) {
+  public Moniker deriveMoniker(LambdaResource resource) {
     return getMoniker(resource);
   }
 
-  private static void applyTags(LambdaResourceFunction resource, Moniker moniker) {
+  private static void applyTags(LambdaResource resource, Moniker moniker) {
     Map<String, String> tags = resource.getResourceTags();
 
     setIfPresent(value -> tags.putIfAbsent(APPLICATION, value), moniker.getApp());
@@ -65,7 +82,7 @@ public class LambdaTagNamer implements NamingStrategy<LambdaResourceFunction> {
             : null); // Always overwrite sequence
   }
 
-  private static Moniker getMoniker(LambdaResourceFunction resource) {
+  private static Moniker getMoniker(LambdaResource resource) {
     Map<String, String> tags = resource.getResourceTags();
     Moniker.MonikerBuilder builder = Moniker.builder();
 

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractAmazonCredentialsDescription;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import java.util.Collection;
 import java.util.Collections;

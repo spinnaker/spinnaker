@@ -21,14 +21,21 @@ import com.netflix.spinnaker.clouddriver.lambda.deploy.ops.CreateLambdaAtomicOpe
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
 import java.util.Map;
+
+import com.netflix.spinnaker.config.LambdaConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component("createLambdaFunction")
 public class CreateLambdaFunctionAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired
+  LambdaConfiguration lambdaConfiguration;
+
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new CreateLambdaAtomicOperation(convertDescription(input));
+    return new CreateLambdaAtomicOperation(convertDescription(input), lambdaConfiguration.isSetMonikerTags());
   }
 
   @Override
