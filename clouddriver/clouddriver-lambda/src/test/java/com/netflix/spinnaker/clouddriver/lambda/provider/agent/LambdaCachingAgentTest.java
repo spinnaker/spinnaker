@@ -105,8 +105,8 @@ public class LambdaCachingAgentTest {
             attributes,
             Collections.emptyMap()));
 
-    Collection<String> oldKeys =
-        List.of(
+    Set<String> oldKeys =
+        Set.of(
             Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-1"),
             Keys.getLambdaFunctionKey(netflixAmazonCredentials.getName(), REGION, "function-2"));
 

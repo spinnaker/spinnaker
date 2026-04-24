@@ -84,7 +84,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
     def agent = new AmazonSecurityGroupCachingAgent(
       amazonClientProvider, cred, region, mapper, Spectator.registry(), eddaTimeoutConfig)
     CacheData onDemandResult = new DefaultCacheData(agent.lastModifiedKey, [lastModified: '12346'], [:])
-    def existingIds = ['sg1', 'sg2']
+    def existingIds = Set.of('sg1', 'sg2')
     List<CacheData> existingCacheData = []
 
     when:

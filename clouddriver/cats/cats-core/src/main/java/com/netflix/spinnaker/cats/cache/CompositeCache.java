@@ -67,7 +67,7 @@ public class CompositeCache implements Cache {
   }
 
   @Override
-  public Collection<String> existingIdentifiers(String type, Collection<String> ids) {
+  public Set<String> existingIdentifiers(String type, Collection<String> ids) {
     HashSet<String> identifiers = new HashSet<>(ids.size());
     HashSet<String> remainingIds = new HashSet<>(ids);
     for (Cache cache : caches) {
@@ -85,7 +85,7 @@ public class CompositeCache implements Cache {
   }
 
   @Override
-  public Collection<String> getIdentifiers(String type) {
+  public Set<String> getIdentifiers(String type) {
     HashSet<String> identifiers = new HashSet<>();
     for (Cache cache : caches) {
       identifiers.addAll(cache.getIdentifiers(type));
@@ -94,7 +94,7 @@ public class CompositeCache implements Cache {
   }
 
   @Override
-  public Collection<String> filterIdentifiers(String type, String glob) {
+  public Set<String> filterIdentifiers(String type, String glob) {
     HashSet<String> identifiers = new HashSet<>();
     for (Cache cache : caches) {
       identifiers.addAll(cache.filterIdentifiers(type, glob));
