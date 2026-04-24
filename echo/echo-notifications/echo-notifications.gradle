@@ -47,6 +47,7 @@ dependencies {
   testImplementation "com.squareup.retrofit2:retrofit-mock"
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "org.assertj:assertj-core"
+  testImplementation "io.opentelemetry:opentelemetry-sdk-testing"
   annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 }
 

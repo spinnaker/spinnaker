@@ -6,3 +6,7 @@ build/
 *.idea
 .DS_Store
 SUBTREE_MERGE_MSG
+
+# Local integration test artifacts
+echo/integration-test/
+.kiro/
