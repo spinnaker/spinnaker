@@ -63,7 +63,8 @@ public class LambdaApplicationProviderTest {
     assertThat(applications.stream().map(Application::getName))
         .containsExactlyInAnyOrder("app1", "app2");
 
-    verify(cache).filterIdentifiers(Keys.Namespace.LAMBDA_APPLICATIONS.ns, "aws:lambdaApplications:*");
+    verify(cache)
+        .filterIdentifiers(Keys.Namespace.LAMBDA_APPLICATIONS.ns, "aws:lambdaApplications:*");
     verify(cache).getAll(Keys.Namespace.LAMBDA_APPLICATIONS.ns, List.of(appKey1, appKey2));
   }
 
@@ -83,7 +84,8 @@ public class LambdaApplicationProviderTest {
 
     assertThat(applications).isEmpty();
 
-    verify(cache).filterIdentifiers(Keys.Namespace.LAMBDA_APPLICATIONS.ns, "aws:lambdaApplications:*");
+    verify(cache)
+        .filterIdentifiers(Keys.Namespace.LAMBDA_APPLICATIONS.ns, "aws:lambdaApplications:*");
   }
 
   @Test
@@ -144,7 +146,8 @@ public class LambdaApplicationProviderTest {
   @Test
   public void shouldHandleEmptyAttributesInCacheData() {
     String appKey = Keys.getApplicationKey("emptyapp");
-    CacheData cacheData = new DefaultCacheData(appKey, Collections.emptyMap(), Collections.emptyMap());
+    CacheData cacheData =
+        new DefaultCacheData(appKey, Collections.emptyMap(), Collections.emptyMap());
 
     LambdaApplication app = LambdaApplicationProvider.mapCacheDataToLambdaApplication(cacheData);
 
@@ -157,10 +160,7 @@ public class LambdaApplicationProviderTest {
     String appKey = Keys.getApplicationKey("typetest");
     Map<String, Object> attributes =
         ImmutableMap.of(
-            "stringValue", "text",
-            "intValue", 100,
-            "boolValue", true,
-            "doubleValue", 3.14);
+            "stringValue", "text", "intValue", 100, "boolValue", true, "doubleValue", 3.14);
 
     CacheData cacheData = new DefaultCacheData(appKey, attributes, Collections.emptyMap());
 

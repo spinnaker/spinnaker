@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.clouddriver.lambda.names;
 
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.MonikerHelper;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -39,13 +37,15 @@ public class LambdaTagNamer implements NamingStrategy<LambdaResource> {
   public static final String DETAIL = MONIKER_ANNOTATION_PREFIX + "/detail";
   public static final String SEQUENCE = MONIKER_ANNOTATION_PREFIX + "/sequence";
 
-  public static void applyIfNeeded(LambdaResource description, String applicationName, boolean autoApplyTags) {
+  public static void applyIfNeeded(
+      LambdaResource description, String applicationName, boolean autoApplyTags) {
     if (autoApplyTags) {
       Moniker moniker = getMoniker(description);
       if (description.getResourceTags() == null) {
         description.setResourceTags(new HashMap<>());
       }
-      // Make sure to set the app name REGARDLESS derived value in the case where an app has not previously been set
+      // Make sure to set the app name REGARDLESS derived value in the case where an app has not
+      // previously been set
       if (!description.getResourceTags().containsKey(LambdaTagNamer.APPLICATION)) {
         description.getResourceTags().put(LambdaTagNamer.APPLICATION, applicationName);
       }

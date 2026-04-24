@@ -74,8 +74,7 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation =
-        spy(new CreateLambdaAtomicOperation(description, true));
+    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -151,8 +150,7 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation =
-        spy(new CreateLambdaAtomicOperation(description, true));
+    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -192,8 +190,7 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation =
-        spy(new CreateLambdaAtomicOperation(description, true));
+    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -230,8 +227,7 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation =
-        spy(new CreateLambdaAtomicOperation(description, true));
+    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();

@@ -62,12 +62,12 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
     doReturn(mockLambdaClient).when(operation).getLambdaClient();
     operation.lambdaFunctionProvider = mockLambdaFunctionProvider;
 
-    when(mockLambdaFunctionProvider.getFunction(account, region, fName))
-        .thenReturn(cachedFunction);
+    when(mockLambdaFunctionProvider.getFunction(account, region, fName)).thenReturn(cachedFunction);
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     when(mockLambdaClient.listTags(any(ListTagsRequest.class)))
@@ -79,7 +79,8 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
     // then
     assertThat(output).isNotNull();
     assertThat(output.getFunctionArn()).isEqualTo(functionArn);
-    verify(mockLambdaClient).updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class));
+    verify(mockLambdaClient)
+        .updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class));
   }
 
   @Test
@@ -109,7 +110,8 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     when(mockLambdaClient.listTags(any(ListTagsRequest.class)))
@@ -157,7 +159,8 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     when(mockLambdaClient.listTags(any(ListTagsRequest.class)))
@@ -202,7 +205,8 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     // Mock existing tags on the function
@@ -252,12 +256,12 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
     doReturn(mockLambdaClient).when(operation).getLambdaClient();
     operation.lambdaFunctionProvider = mockLambdaFunctionProvider;
 
-    when(mockLambdaFunctionProvider.getFunction(account, region, fName))
-        .thenReturn(cachedFunction);
+    when(mockLambdaFunctionProvider.getFunction(account, region, fName)).thenReturn(cachedFunction);
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     // Mock existing tags that should be removed
@@ -318,7 +322,8 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     when(mockLambdaClient.listTags(any(ListTagsRequest.class)))
@@ -367,7 +372,8 @@ public class UpdateLambdaConfigurationAtomicOperationTest implements LambdaTesti
 
     UpdateFunctionConfigurationResult result = new UpdateFunctionConfigurationResult();
     result.setFunctionArn(functionArn);
-    when(mockLambdaClient.updateFunctionConfiguration(any(UpdateFunctionConfigurationRequest.class)))
+    when(mockLambdaClient.updateFunctionConfiguration(
+            any(UpdateFunctionConfigurationRequest.class)))
         .thenReturn(result);
 
     when(mockLambdaClient.listTags(any(ListTagsRequest.class)))

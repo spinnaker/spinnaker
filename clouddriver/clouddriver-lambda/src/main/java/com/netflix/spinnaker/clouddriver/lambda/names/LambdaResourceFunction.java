@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.lambda.names;
 
 import java.util.Collections;
 import java.util.Map;
-
 import lombok.NonNull;
 
 public class LambdaResourceFunction implements LambdaResource {
@@ -48,6 +47,6 @@ public class LambdaResourceFunction implements LambdaResource {
 
   @Override
   public void setResourceTags(Map<String, String> tags) {
-      lambdaFunction.put("tags", tags);
+    lambdaFunction.put("tags", tags);
   }
 }

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
 import com.netflix.spinnaker.cats.cache.Cache;

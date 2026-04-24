@@ -18,16 +18,16 @@ package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
 import com.amazonaws.services.lambda.model.DeadLetterConfig;
 import com.amazonaws.services.lambda.model.TracingConfig;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import java.util.List;
 import java.util.Map;
-
-import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescription implements LambdaResource {
+public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescription
+    implements LambdaResource {
   String functionName;
   String description;
   String s3bucket;

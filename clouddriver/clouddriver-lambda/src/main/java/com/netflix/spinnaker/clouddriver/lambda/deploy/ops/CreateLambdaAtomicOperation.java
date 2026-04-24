@@ -34,8 +34,6 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
-import com.netflix.spinnaker.moniker.Moniker;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +46,8 @@ public class CreateLambdaAtomicOperation
 
   private boolean autoApplyTags;
 
-  public CreateLambdaAtomicOperation(CreateLambdaFunctionDescription description, boolean autoApplyTags) {
+  public CreateLambdaAtomicOperation(
+      CreateLambdaFunctionDescription description, boolean autoApplyTags) {
     super(description, "CREATE_LAMBDA_FUNCTION");
     this.autoApplyTags = autoApplyTags;
   }
@@ -66,7 +65,6 @@ public class CreateLambdaAtomicOperation
             .withS3Key(description.getProperty("s3key").toString());
 
     LambdaTagNamer.applyIfNeeded(description, description.getAppName(), autoApplyTags);
-
 
     Map<String, String> objTag = new HashMap<>();
     if (null != description.getTags()) {

@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.clouddriver.lambda.provider.view;
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 import static java.util.Collections.emptyMap;

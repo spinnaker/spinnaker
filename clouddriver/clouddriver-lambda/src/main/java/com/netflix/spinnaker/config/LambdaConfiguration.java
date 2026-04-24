@@ -26,7 +26,8 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnExpression(
     "${aws.enabled:false} and (${aws.lambda.enabled:false} or ${aws.features.lambda.enabled:false})")
 public class LambdaConfiguration {
-  @Value("${aws.lambda.setMonikerTags:true}") boolean setMonikerTags;
+  @Value("${aws.lambda.setMonikerTags:true}")
+  boolean setMonikerTags;
 
   public boolean isSetMonikerTags() {
     return setMonikerTags;
