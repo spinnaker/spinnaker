@@ -21,7 +21,9 @@ import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class Keys implements KeyParser {
   // Since we share the same namespace as aws, being an "extension" of AWS,
   // we MUST make sure the namespaced results are unique on the cats system.
@@ -86,6 +88,11 @@ public class Keys implements KeyParser {
 
     switch (namespace) {
       case LAMBDA_FUNCTIONS:
+        if (parts.length < 4) {
+          log.warn(
+              "Lambda key is found, but has no lambda name for " + key + " returning empty map!");
+          return Collections.emptyMap();
+        }
         result.put("account", parts[2]); // application name for app, account name for most.
         result.put("region", parts[3]);
         result.put("AwsLambdaName", parts[4]);
