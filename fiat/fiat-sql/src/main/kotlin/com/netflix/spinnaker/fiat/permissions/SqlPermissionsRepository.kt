@@ -94,6 +94,14 @@ class SqlPermissionsRepository(
 
         putResources(allResources)
 
+        // Bulk fetch existing permissions for all users to avoid N+1 queries
+        val existingPermissionsByUser = getUserPermissionsRecordsForUsers(permissions.keys)
+
+        val processUserPermission: (UserPermission) -> Unit = { permission ->
+            val existingPermissions = existingPermissionsByUser[permission.id] ?: emptySet()
+            putUserPermission(permission, existingPermissions)
+        }
+
         if (coroutineContext.useAsync(permissions.size, this::useAsync)) {
             permissions.values.chunked(
                 dynamicConfigService.getConfig(Int::class.java, "permissions-repository.sql.max-query-concurrency", 4)
@@ -101,7 +109,7 @@ class SqlPermissionsRepository(
                 val scope = SqlCoroutineScope(coroutineContext)
 
                 val deferred = chunk.map {
-                    scope.async { putUserPermission(it) }
+                    scope.async { processUserPermission(it) }
                 }
 
                 runBlocking {
@@ -109,7 +117,7 @@ class SqlPermissionsRepository(
                 }
             }
         } else {
-            permissions.values.forEach { putUserPermission(it) }
+            permissions.values.forEach { processUserPermission(it) }
         }
     }
 
@@ -217,7 +225,7 @@ class SqlPermissionsRepository(
             .mapValues { record -> record.value.mapNotNull { allRoles[it] }.toSet() }
     }
 
-    private fun putUserPermission(permission: UserPermission) {
+    private fun putUserPermission(permission: UserPermission, existingPermissions: Set<ResourceId> = emptySet()) {
         val insert = jooq.insertInto(USER, USER.ID, USER.ADMIN, USER.ACCOUNT_MANAGER, USER.UPDATED_AT)
 
         insert.apply {
@@ -242,13 +250,11 @@ class SqlPermissionsRepository(
             insert.execute()
         }
 
-        putUserPermissions(permission.id, permission.allResources)
+        putUserPermissions(permission.id, permission.allResources, existingPermissions)
     }
 
-    private fun putUserPermissions(id: String, resources: Set<Resource>) {
+    private fun putUserPermissions(id: String, resources: Set<Resource>, existingPermissions: Set<ResourceId>) {
         val writeBatchSize = dynamicConfigService.getConfig(Int::class.java, "permissions-repository.sql.write-batch-size", 100)
-
-        val existingPermissions = getUserPermissionsRecords(id)
 
         val currentPermissions = mutableSetOf<ResourceId>() // current permissions from request
         val toStore = mutableListOf<ResourceId>() // ids that are new or changed
@@ -330,28 +336,32 @@ class SqlPermissionsRepository(
     }
 
     private fun getUserPermissionsRecords(id: String) =
+        getUserPermissionsRecordsForUsers(listOf(id))[id] ?: emptySet()
+
+    private fun getUserPermissionsRecordsForUsers(userIds: Collection<String>) =
         withRetry(RetryCategory.READ) {
             jooq
-                .select(PERMISSION.RESOURCE_TYPE, PERMISSION.RESOURCE_NAME)
+                .select(PERMISSION.USER_ID, PERMISSION.RESOURCE_TYPE, PERMISSION.RESOURCE_NAME)
                 .from(PERMISSION)
-                .where(PERMISSION.USER_ID.eq(id))
-                .fetchSet { ResourceId(it.get(PERMISSION.RESOURCE_TYPE), it.get(PERMISSION.RESOURCE_NAME)) }
+                .where(PERMISSION.USER_ID.`in`(userIds))
+                .fetchGroups(PERMISSION.USER_ID) {
+                    ResourceId(it.get(PERMISSION.RESOURCE_TYPE), it.get(PERMISSION.RESOURCE_NAME))
+                }.mapValues { it.value.toSet() }
         }
 
     private fun putResources(resources: Set<Resource>, cleanup: Boolean = false) {
-        val existingHashIds = getResourceHashes()
+        val currentIds = resources.map { ResourceId(it.resourceType, it.name.toLowerCase()) }.toSet()
+        val existingHashIds = getResourceHashes(currentIds)
 
         val existingHashes = existingHashIds.values.toSet()
         val existingIds = existingHashIds.keys
 
-        val currentIds = mutableSetOf<ResourceId>() // current resources from the request
         val toStore = mutableListOf<ResourceId>() // ids that are new or changed
         val bodies = mutableMapOf<ResourceId, String>() // id to body
         val hashes = mutableMapOf<ResourceId, String>() // id to sha256(body)
 
         resources.forEach {
             val id = ResourceId(it.resourceType, it.name.toLowerCase())
-            currentIds.add(id)
 
             val body: String? = objectMapper.writeValueAsString(it)
             val bodyHash = getHash(body)
@@ -417,15 +427,27 @@ class SqlPermissionsRepository(
         }
     }
 
-    private fun getResourceHashes() =
+    private fun getResourceHashes(ids: Collection<ResourceId> = emptyList()) =
         withRetry(RetryCategory.READ) {
-            jooq
+            val query = jooq
                 .select(RESOURCE.RESOURCE_TYPE, RESOURCE.RESOURCE_NAME, RESOURCE.BODY_HASH)
                 .from(RESOURCE)
-                .fetchMap(
-                    { ResourceId(it.get(RESOURCE.RESOURCE_TYPE), it.get(RESOURCE.RESOURCE_NAME)) },
-                    { it.get(RESOURCE.BODY_HASH) }
-                )
+
+            if (ids.isNotEmpty()) {
+                // To avoid massive IN clauses, we can filter by type then name,
+                // but for simplicity and performance on most DBs, we use a composite filter if supported
+                // or just a large IN clause. Since ResourceId is a custom object, we'll build a predicate.
+
+                val predicates = ids.map {
+                    RESOURCE.RESOURCE_TYPE.eq(it.type).and(RESOURCE.RESOURCE_NAME.eq(it.name))
+                }
+                query.where(predicates.reduce { acc, predicate -> acc.or(predicate) })
+            }
+
+            query.fetchMap(
+                { ResourceId(it.get(RESOURCE.RESOURCE_TYPE), it.get(RESOURCE.RESOURCE_NAME)) },
+                { it.get(RESOURCE.BODY_HASH) }
+            )
         }
 
     data class ResourceId(
