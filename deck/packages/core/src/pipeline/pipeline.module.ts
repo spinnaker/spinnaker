@@ -56,7 +56,6 @@ import './config/stages/wait/waitStage';
 import './config/stages/waitForCondition/waitForConditionStage';
 import { CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS } from './config/stages/waitForParentTasks/waitForParentTasks';
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
-import { WERCKER_STAGE_MODULE } from './config/stages/wercker/werckerStage.module';
 import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
 import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSectionNav.component';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
@@ -87,7 +86,6 @@ module(PIPELINE_MODULE, [
   CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE,
   GROUP_STAGE_MODULE,
   TRAVIS_STAGE_MODULE,
-  WERCKER_STAGE_MODULE,
   PRECONFIGUREDJOB_STAGE_MODULE,
   WEBHOOK_STAGE_MODULE,
   UNMATCHED_STAGE_TYPE_STAGE,

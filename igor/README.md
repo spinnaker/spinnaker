@@ -103,7 +103,6 @@ The following CI services are supported:
 - Google Cloud Build (GCB)
 - Jenkins
 - Travis
-- Wercker
 
 For each of these services, a poller can be enabled (e.g. with `jenkins.enabled`) that will start monitoring new builds/pipelines/artifacts, caching them and submitting events to echo, thus supporting pipeline triggers. GCB is a bit different in that it doesn't poll and requires setting up [pubsub subscriptions](https://www.spinnaker.io/setup/ci/gcb/).
 

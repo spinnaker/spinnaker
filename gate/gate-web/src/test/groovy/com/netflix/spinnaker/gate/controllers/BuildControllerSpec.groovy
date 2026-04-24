@@ -77,7 +77,6 @@ class BuildControllerSpec extends Specification {
 
     given:
     1 * igorService.getBuildMasters(masterType) >> Calls.response(jenkinsMasters)
-    0 * igorService.getBuildMasters('wercker') >> _
     0 * igorService.getBuildMasters() >> _
 
     when:
@@ -91,26 +90,6 @@ class BuildControllerSpec extends Specification {
     endpoint << ["/v2/builds", "/v3/builds"]
   }
 
-  @Unroll
-  void 'should get a list of wercker masters'() {
-    def masterType = 'wercker'
-    def werckerMasters = ['wercker-prod', 'wercker-staging']
-
-    given:
-    1 * igorService.getBuildMasters(masterType) >> Calls.response(werckerMasters)
-    0 * igorService.getBuildMasters('jenkins') >> _
-    0 * igorService.getBuildMasters() >> _
-
-    when:
-    MockHttpServletResponse response = mockMvc.perform(get(endpoint).param('type', masterType)
-      .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-    then:
-    new JsonSlurper().parseText(response.contentAsString) == werckerMasters
-
-    where:
-    endpoint << ["/v2/builds", "/v3/builds"]
-  }
 
   @Unroll
   void 'should get a list of jobs for a master'() {
