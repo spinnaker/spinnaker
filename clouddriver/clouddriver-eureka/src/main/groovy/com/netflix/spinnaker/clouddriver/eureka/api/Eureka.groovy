@@ -28,18 +28,18 @@ import retrofit2.http.Query
 
 interface Eureka {
   @Headers('Accept: application/json')
-  @GET('/instances/{instanceId}')
+  @GET('instances/{instanceId}')
   Call<Map> getInstanceInfo(@Path('instanceId') String instanceId)
 
   @Headers('Accept: application/json')
-  @PUT('/apps/{application}/{instanceId}/status')
+  @PUT('apps/{application}/{instanceId}/status')
   Call<ResponseBody> updateInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
 
   @Headers('Accept: application/json')
-  @DELETE('/apps/{application}/{instanceId}/status')
+  @DELETE('apps/{application}/{instanceId}/status')
   Call<ResponseBody> resetInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
 
   @Headers('Accept: application/json')
-  @GET('/apps/{application}')
+  @GET('apps/{application}')
   Call<EurekaApplication> getApplication(@Path('application') String application)
 }
