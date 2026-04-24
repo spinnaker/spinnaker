@@ -16,21 +16,32 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.provider.agent;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.mem.InMemoryCache;
+import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
+import com.netflix.spinnaker.clouddriver.lambda.service.LambdaService;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +60,8 @@ public class LambdaCachingAgentTest {
   @BeforeEach
   public void setup() {
     when(serviceLimitConfiguration.getLimit(any(), any(), any(), any(), any())).thenReturn(1.0);
+    // Create a simple default namer for testing that uses Frigga name parsing
+
     lambdaCachingAgent =
         new LambdaCachingAgent(
             objectMapper,
@@ -56,7 +69,8 @@ public class LambdaCachingAgentTest {
             netflixAmazonCredentials,
             REGION,
             config,
-            serviceLimitConfiguration);
+            serviceLimitConfiguration,
+            new LambdaTagNamer());
   }
 
   @Test
@@ -138,5 +152,47 @@ public class LambdaCachingAgentTest {
 
     assertThat(lambdaCacheData.size()).isEqualTo(2);
     assertThat(appLambdaRelationships.size()).isEqualTo(2);
+  }
+
+  @Test
+  void makeSureApplicationInfoIsInCacheData() {
+    ConcurrentHashMap<String, Collection<String>> appLambdaRelationships =
+        new ConcurrentHashMap<>();
+
+    List<Map<String, Object>> allLambdas =
+        List.of(
+            Map.of(
+                "functionName",
+                "appName-functionName-something",
+                "tags",
+                Map.of(
+                    "moniker.spinnaker.io/application", "my-custom-application",
+                    "moniker.spinnaker.io/stack", "develop",
+                    "moniker.spinnaker.io/detail", "bob-lambda")),
+            Map.of("functionName", "appName2-functionName2-something2"));
+    LambdaService lambdaService = mock(LambdaService.class);
+    when(lambdaService.getAllFunctions()).thenReturn(allLambdas);
+    when(netflixAmazonCredentials.getName()).thenReturn("account-bob");
+    lambdaCachingAgent.setLambdaService(lambdaService);
+    CacheResult cacheResults =
+        lambdaCachingAgent.loadData(new DefaultProviderCache(new InMemoryCache()));
+
+    assertThat(cacheResults).isNotNull();
+    assertThat(cacheResults.getCacheResults().get(Keys.Namespace.LAMBDA_APPLICATIONS.ns))
+        .hasSize(2);
+    assertThat(cacheResults.getCacheResults().get(Keys.Namespace.LAMBDA_FUNCTIONS.ns)).hasSize(2);
+    List<CacheData> applicationsToCache =
+        cacheResults.getCacheResults().get(Keys.Namespace.LAMBDA_APPLICATIONS.ns).stream()
+            .sorted(Comparator.comparing(CacheData::getId))
+            .toList();
+    assertThat(applicationsToCache.get(0).getId()).isEqualTo("aws:lambdaApplications:appname2");
+    assertThat(applicationsToCache.get(1).getId())
+        .isEqualTo("aws:lambdaApplications:my-custom-application");
+    assertThat(applicationsToCache.get(1).getAttributes())
+        // NOTE:  Careful if this changes - there's a LambdaApplicationProvider that reads these
+        // attributes
+        .containsEntry("application", "my-custom-application")
+        .containsEntry("account", "account-bob")
+        .containsEntry("region", REGION);
   }
 }

@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.toSet;
 
 import com.amazonaws.services.lambda.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 import com.netflix.frigga.Names;
 import com.netflix.spectator.api.DefaultRegistry;
@@ -46,33 +47,36 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport;
 import com.netflix.spinnaker.clouddriver.cache.OnDemandType;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResourceFunction;
 import com.netflix.spinnaker.clouddriver.lambda.service.LambdaService;
+import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.Namer;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandAgent {
   private static final Set<AgentDataType> types =
-      new HashSet<>() {
-        {
-          add(AUTHORITATIVE.forType(LAMBDA_FUNCTIONS.ns));
-          add(AUTHORITATIVE.forType(LAMBDA_APPLICATIONS.ns));
-        }
-      };
+      Set.of(
+          AUTHORITATIVE.forType(LAMBDA_FUNCTIONS.ns),
+          AUTHORITATIVE.forType(LAMBDA_APPLICATIONS.ns));
 
   private final NetflixAmazonCredentials account;
   private final String region;
   private OnDemandMetricsSupport metricsSupport;
   private final Registry registry;
   private final Clock clock = Clock.systemDefaultZone();
-  private LambdaService lambdaService;
+  @Setter @VisibleForTesting private LambdaService lambdaService;
+  private final Namer<LambdaResourceFunction> naming;
 
   LambdaCachingAgent(
       ObjectMapper objectMapper,
@@ -81,6 +85,28 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       String region,
       LambdaServiceConfig lambdaServiceConfig,
       ServiceLimitConfiguration serviceLimitConfiguration) {
+    this(
+        objectMapper,
+        amazonClientProvider,
+        account,
+        region,
+        lambdaServiceConfig,
+        serviceLimitConfiguration,
+        NamerRegistry.lookup()
+            .withProvider(AmazonCloudProvider.ID)
+            .withAccount(account.getName())
+            .withResource(LambdaResourceFunction.class));
+  }
+
+  @VisibleForTesting
+  LambdaCachingAgent(
+      ObjectMapper objectMapper,
+      AmazonClientProvider amazonClientProvider,
+      NetflixAmazonCredentials account,
+      String region,
+      LambdaServiceConfig lambdaServiceConfig,
+      ServiceLimitConfiguration serviceLimitConfiguration,
+      Namer<LambdaResourceFunction> naming) {
     this.account = account;
     this.region = region;
     this.registry = new DefaultRegistry();
@@ -91,6 +117,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
             AmazonCloudProvider.ID + ":" + AmazonCloudProvider.ID + ":" + OnDemandType.Function);
     this.lambdaService =
         new LambdaService(amazonClientProvider, account, region, objectMapper, lambdaServiceConfig);
+    this.naming = naming;
   }
 
   @Override
@@ -121,7 +148,9 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
   public CacheResult loadData(ProviderCache providerCache) {
     long loadDataStart = clock.instant().toEpochMilli();
     log.info("Describing items in {}", getAgentType());
-
+    // This is a map to allow easy lookup by function id for onDemand handling.  The values list is
+    // the only thing
+    // that's actually passed upwards.
     Map<String, CacheData> lambdaCacheData = new ConcurrentHashMap<>();
     Map<String, Collection<String>> appLambdaRelationships = new ConcurrentHashMap<>();
 
@@ -153,7 +182,7 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
                     Keys.getLambdaFunctionKey(getAccountName(), getRegion(), "*")))
             .stream()
             .filter(d -> (int) d.getAttributes().get("processedCount") == 0)
-            .collect(Collectors.toList());
+            .toList();
 
     for (CacheData onDemandItem : onDemandCacheData) {
       try {
@@ -206,7 +235,10 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       appCacheData.add(
           new DefaultCacheData(
               appKey,
-              Collections.emptyMap(),
+              Map.of(
+                  "application", Keys.parse(appKey).get("application"),
+                  "account", account.getName(),
+                  "region", region),
               Collections.singletonMap(LAMBDA_FUNCTIONS.ns, appLambdaRelationships.get(appKey))));
     }
 
@@ -227,43 +259,39 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
       Map<String, CacheData> lambdaCacheData,
       Map<String, Collection<String>> appLambdaRelationships,
       List<Map<String, Object>> allLambdas) {
-    allLambdas.stream()
-        .forEach(
-            lf -> {
-              String functionName = (String) lf.get("functionName");
-              String functionKey =
-                  Keys.getLambdaFunctionKey(getAccountName(), getRegion(), functionName);
-
-              /* TODO: If the functionName follows frigga by chance (i.e. somename-someothername), it will try to store the
-                 lambda as a relationship with the app name (somename), even if it wasn't deployed by spinnaker!
-              */
-              // Add the spinnaker application relationship and store it
-              Names names = Names.parseName(functionName);
-              if (names.getApp() != null) {
-                String appKey = Keys.getApplicationKey(names.getApp());
-                appLambdaRelationships.compute(
-                    appKey,
-                    (k, v) -> {
-                      Collection<String> fKeys = v;
-                      if (fKeys == null) fKeys = new ArrayList<>();
-                      fKeys.add(functionKey);
-                      return fKeys;
-                    });
-                // No other thread should be putting the same function in this map. Its safe to use
-                // put
-                lambdaCacheData.put(
+    allLambdas.forEach(
+        lf -> {
+          String functionName = (String) lf.get("functionName");
+          String functionKey =
+              Keys.getLambdaFunctionKey(getAccountName(), getRegion(), functionName);
+          // Use the naming strategy to derive the moniker from the function name and tags
+          Moniker moniker = naming.deriveMoniker(new LambdaResourceFunction(lf));
+          // Technically this should NEVER be null, as functionName is implicit & required in the
+          // API call.
+          // App is derived then from the text before the dash... aka... it's ALWAYS set.
+          if (moniker.getApp() != null) {
+            String appKey = Keys.getApplicationKey(moniker.getApp());
+            appLambdaRelationships.compute(
+                appKey,
+                (k, v) -> {
+                  Collection<String> fKeys = v;
+                  if (fKeys == null) fKeys = new ArrayList<>();
+                  fKeys.add(functionKey);
+                  return fKeys;
+                });
+            lambdaCacheData.put(
+                functionKey,
+                new DefaultCacheData(
                     functionKey,
-                    new DefaultCacheData(
-                        functionKey,
-                        lf,
-                        Collections.singletonMap(
-                            LAMBDA_APPLICATIONS.ns, Collections.singletonList(appKey))));
-              } else {
-                // TODO: Do we care about non spinnaker deployed lambdas?
-                lambdaCacheData.put(
-                    functionKey, new DefaultCacheData(functionKey, lf, Collections.emptyMap()));
-              }
-            });
+                    lf,
+                    Collections.singletonMap(
+                        LAMBDA_FUNCTIONS.ns, Collections.singletonList(functionKey))));
+          } else {
+            // TODO: Do we care about non spinnaker deployed lambdas?
+            lambdaCacheData.put(
+                functionKey, new DefaultCacheData(functionKey, lf, Collections.emptyMap()));
+          }
+        });
   }
 
   @Override
