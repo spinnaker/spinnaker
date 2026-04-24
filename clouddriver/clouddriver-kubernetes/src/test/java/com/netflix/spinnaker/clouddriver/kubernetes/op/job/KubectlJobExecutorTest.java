@@ -214,6 +214,42 @@ final class KubectlJobExecutorTest {
   }
 
   @DisplayName(
+      "test to verify kubectl get throws exception when output is empty (e.g., empty/corrupt kubectl binary)")
+  @Test
+  void kubectlGetThrowsExceptionOnEmptyOutput() {
+    // Simulate kubectl binary that executes successfully but returns empty output
+    // This can happen with corrupt/empty kubectl binary that returns exit code 0
+    when(jobExecutor.runJob(any(JobRequest.class)))
+        .thenReturn(
+            JobResult.<String>builder()
+                .result(Result.SUCCESS)
+                .output("") // Empty output
+                .error("")
+                .build());
+
+    KubectlJobExecutor kubectlJobExecutor =
+        new KubectlJobExecutor(
+            jobExecutor,
+            kubernetesConfigurationProperties,
+            new SimpleMeterRegistry(),
+            artifactDownloader);
+
+    // Should throw KubectlException, not return null (which would become 404)
+    KubectlJobExecutor.KubectlException thrown =
+        assertThrows(
+            KubectlJobExecutor.KubectlException.class,
+            () ->
+                kubectlJobExecutor.get(
+                    mockKubernetesCredentials(),
+                    KubernetesKind.DEPLOYMENT,
+                    NAMESPACE,
+                    "test-deployment"));
+
+    assertTrue(thrown.getMessage().contains("output is null or empty"));
+    assertTrue(thrown.getMessage().contains("test-deployment"));
+  }
+
+  @DisplayName(
       "parameterized test to verify retry behavior for configured retryable errors that fail even after all "
           + "attempts are exhausted")
   @ParameterizedTest(
