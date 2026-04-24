@@ -64,10 +64,92 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
         };
 
         this.isHttps = (port) => port === 443 || port === '443';
+        // certificateMap writes are only supported on global external/classic HTTPS proxies (HTTP
+        // type). INTERNAL_MANAGED regional proxies do not support certificateMap per GCP docs.
+        this.supportsCertificateMap = () => this.command.loadBalancer.loadBalancerType === 'HTTP';
+        this.certificateMapPattern = /^[a-z]([-a-z0-9]*[a-z0-9])?$/;
+        // Extracts the short resource name from a certificateMap value. Users may paste a full
+        // Certificate Manager URL (e.g. //certificatemanager.googleapis.com/projects/p/locations/
+        // global/certificateMaps/my-map); only the last path segment (the map name) is stored.
+        // The server reconstructs the full URL using GCEUtil.buildCertificateMapUrl.
+        this.getCertificateMapName = (certificateMap) => {
+          if (!_.isString(certificateMap)) {
+            return certificateMap;
+          }
+          const normalized = certificateMap.trim();
+          return normalized ? _.last(normalized.split('/')) : normalized;
+        };
+
+        // Reconcile the XOR between certificate and certificateMap on a listener. Ensures only
+        // one is active at a time. Also infers certificateSource for existing listeners that were
+        // created before the certificateSource field existed (backward compat).
+        this.syncCertificateState = (listener) => {
+          if (!this.supportsCertificateMap()) {
+            listener.certificateSource = 'certificate';
+            listener.certificateMap = null;
+            return;
+          }
+
+          if (!listener.certificateSource) {
+            listener.certificateSource = listener.certificateMap ? 'certificateMap' : 'certificate';
+          }
+
+          if (listener.certificateSource === 'certificateMap') {
+            listener.certificate = null;
+            if (_.isString(listener.certificateMap)) {
+              listener.certificateMap = this.getCertificateMapName(listener.certificateMap);
+            }
+          } else {
+            listener.certificateMap = null;
+          }
+        };
+
+        this.onCertificateSourceChanged = (listener) => {
+          if (!this.supportsCertificateMap()) {
+            listener.certificateSource = 'certificate';
+            listener.certificateMap = null;
+            return;
+          }
+
+          if (listener.certificateSource === 'certificateMap') {
+            listener.certificate = null;
+          } else {
+            listener.certificateMap = null;
+          }
+        };
+
+        this.onCertificateSelected = (listener) => {
+          if (listener.certificate) {
+            listener.certificateSource = 'certificate';
+            listener.certificateMap = null;
+          }
+        };
+
+        this.onCertificateMapChanged = (listener) => {
+          if (_.isString(listener.certificateMap)) {
+            listener.certificateMap = this.getCertificateMapName(listener.certificateMap);
+          }
+          if (listener.certificateMap) {
+            listener.certificateSource = 'certificateMap';
+            listener.certificate = null;
+          }
+        };
+
+        this.onPortChanged = (listener) => {
+          if (!this.isHttps(listener.port)) {
+            listener.certificate = null;
+            listener.certificateMap = null;
+            listener.certificateSource = 'certificate';
+          } else {
+            this.syncCertificateState(listener);
+          }
+        };
 
         if (!this.listener.name) {
           this.updateName(this.listener, this.application.name);
         }
+
+        this.onPortChanged(this.listener);
 
         this.onAddressSelect = (address) => {
           if (address) {

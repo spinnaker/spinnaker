@@ -26,6 +26,6 @@
     "@actions/exec": "^1.1.1",
     "@actions/github": "^6.0.0",
     "@actions/io": "^1.1.3",
-    "yaml": "^2.3.4"
+    "yaml": "^2.8.3"
   }
 }
