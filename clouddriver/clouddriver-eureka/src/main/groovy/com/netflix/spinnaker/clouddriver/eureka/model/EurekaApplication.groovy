@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.clouddriver.eureka.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonRootName
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode
+@JsonRootName('application')
 class EurekaApplication {
   String name
 
