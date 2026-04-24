@@ -37,7 +37,6 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCo
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
-import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
@@ -103,7 +102,8 @@ public class OAuth2SsoConfig {
       ExternalAuthTokenFilter externalAuthTokenFilter =
           new ExternalAuthTokenFilter(
               clientRegistrationRepository, userInfoServiceHelper, registrationId, restTemplate);
-      httpSecurity.addFilterBefore(externalAuthTokenFilter, OAuth2LoginAuthenticationFilter.class);
+      httpSecurity.addFilterBefore(
+          externalAuthTokenFilter, OAuth2AuthorizationRequestRedirectFilter.class);
     }
 
     return httpSecurity.build();
