@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
 import com.amazonaws.services.lambda.model.DeadLetterConfig;
 import com.amazonaws.services.lambda.model.TracingConfig;
+import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -25,7 +26,8 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescription {
+public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescription
+    implements LambdaResource {
   String functionName;
   String description;
   String s3bucket;
@@ -51,4 +53,19 @@ public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescr
   DeadLetterConfig deadLetterConfig;
   TracingConfig tracingConfig;
   String kmskeyArn;
+
+  @Override
+  public String getName() {
+    return functionName;
+  }
+
+  @Override
+  public Map<String, String> getResourceTags() {
+    return tags;
+  }
+
+  @Override
+  public void setResourceTags(Map<String, String> tags) {
+    this.tags = tags;
+  }
 }

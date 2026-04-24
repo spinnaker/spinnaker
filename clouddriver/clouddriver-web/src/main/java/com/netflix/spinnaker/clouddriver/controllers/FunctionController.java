@@ -83,11 +83,9 @@ public class FunctionController {
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(value = "/applications/{application}/functions", method = RequestMethod.GET)
   List<Function> list(@PathVariable String application) {
-    List<Function> appFunctions =
-        functionProviders.stream()
-            .map(functionProvider -> functionProvider.getApplicationFunctions(application))
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
-    return appFunctions;
+    return functionProviders.stream()
+        .map(functionProvider -> functionProvider.getApplicationFunctions(application))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 }
