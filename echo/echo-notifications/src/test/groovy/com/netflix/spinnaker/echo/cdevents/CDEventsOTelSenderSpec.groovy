@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.cdevents
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.api.events.Event
 import io.cloudevents.CloudEvent
 import io.cloudevents.core.builder.CloudEventBuilder
@@ -39,7 +40,8 @@ class CDEventsOTelSenderSpec extends Specification {
 
   def setup() {
     def config = new CDEventsConfigProperties()
-    sender = new CDEventsOTelSender(config)
+    def objectMapper = new ObjectMapper()
+    sender = new CDEventsOTelSender(config, objectMapper)
 
     // Inject a test SDK with in-memory exporter into the sdkCache
     def testSdk = OpenTelemetrySdk.builder()
@@ -54,50 +56,82 @@ class CDEventsOTelSenderSpec extends Specification {
     ((Map) sdkCache.get(sender)).put(ENDPOINT, testSdk)
   }
 
-  def "pipeline start span is created and traceparent is stored"() {
+  def "pipeline start span has deterministic trace ID from execution ID"() {
     when:
     sender.send(buildCloudEvent("dev.cdevents.pipelinerun.started.0.1.1", "exec-1"), ENDPOINT)
 
     then:
     def spans = spanExporter.finishedSpanItems
     spans.size() == 1
-    spans[0].name == "dev.cdevents.pipelinerun.started.0.1.1"
-    !spans[0].parentSpanContext.isValid()
-
-    and: "traceparent is stored for the execution"
-    def traceCtx = getTraceContextMap()
-    traceCtx.containsKey("exec-1")
-    traceCtx.get("exec-1") =~ /00-[0-9a-f]{32}-[0-9a-f]{16}-01/
+    spans[0].name == "dev.cdevents.pipelinerun.started"
+    spans[0].traceId == CDEventsOTelSender.traceIdFromExecutionId("exec-1")
+    spans[0].parentSpanId == CDEventsOTelSender.rootSpanIdFromExecutionId("exec-1")
   }
 
-  def "stage span becomes child of pipeline root span"() {
+  def "stage span becomes child of deterministic root span"() {
     given:
-    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.started.0.1.1", "exec-2"), ENDPOINT)
-    def rootTraceId = spanExporter.finishedSpanItems[0].traceId
+    def expectedTraceId = CDEventsOTelSender.traceIdFromExecutionId("exec-2")
+    def expectedParentSpanId = CDEventsOTelSender.rootSpanIdFromExecutionId("exec-2")
 
     when:
     sender.send(buildCloudEvent("dev.cdevents.taskrun.started.0.1.1", "exec-2"), ENDPOINT)
 
     then:
     def spans = spanExporter.finishedSpanItems
-    spans.size() == 2
-    def stageSpan = spans[1]
-    stageSpan.traceId == rootTraceId
+    spans.size() == 1
+    def stageSpan = spans[0]
+    stageSpan.traceId == expectedTraceId
+    stageSpan.parentSpanId == expectedParentSpanId
     stageSpan.parentSpanContext.isValid()
   }
 
-  def "pipeline finish cleans up stored trace context"() {
-    given:
-    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.started.0.1.1", "exec-3"), ENDPOINT)
+  def "multiple pods produce same trace hierarchy without shared state"() {
+    given: "two independent sender instances (simulating two pods)"
+    def config = new CDEventsConfigProperties()
+    def objectMapper = new ObjectMapper()
+    def sender2 = new CDEventsOTelSender(config, objectMapper)
+    def exporter2 = InMemorySpanExporter.create()
+    def testSdk2 = OpenTelemetrySdk.builder()
+      .setTracerProvider(
+        SdkTracerProvider.builder()
+          .addSpanProcessor(SimpleSpanProcessor.create(exporter2))
+          .build()
+      ).build()
+    def sdkCache = CDEventsOTelSender.getDeclaredField("sdkCache")
+    sdkCache.setAccessible(true)
+    ((Map) sdkCache.get(sender2)).put(ENDPOINT, testSdk2)
 
-    when:
-    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.finished.0.1.1", "exec-3"), ENDPOINT)
+    def expectedTraceId = CDEventsOTelSender.traceIdFromExecutionId("exec-mp")
+    def expectedParentSpanId = CDEventsOTelSender.rootSpanIdFromExecutionId("exec-mp")
 
-    then:
-    !getTraceContextMap().containsKey("exec-3")
+    when: "pod 1 handles pipeline start"
+    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.started.0.1.1", "exec-mp"), ENDPOINT)
+
+    and: "pod 2 handles a stage event"
+    sender2.send(buildCloudEvent("dev.cdevents.taskrun.started.0.1.1", "exec-mp"), ENDPOINT)
+
+    then: "both produce spans in the same trace with same parent"
+    def rootSpan = spanExporter.finishedSpanItems[0]
+    def childSpan = exporter2.finishedSpanItems[0]
+    rootSpan.traceId == expectedTraceId
+    childSpan.traceId == expectedTraceId
+    rootSpan.parentSpanId == expectedParentSpanId
+    childSpan.parentSpanId == expectedParentSpanId
   }
 
-  def "stage name is appended to span name"() {
+  def "pipelinerun.queued is treated as a root span with deterministic trace ID"() {
+    when:
+    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.queued.0.1.1", "exec-q"), ENDPOINT)
+
+    then:
+    def spans = spanExporter.finishedSpanItems
+    spans.size() == 1
+    spans[0].name == "dev.cdevents.pipelinerun.queued"
+    spans[0].traceId == CDEventsOTelSender.traceIdFromExecutionId("exec-q")
+    spans[0].parentSpanId == CDEventsOTelSender.rootSpanIdFromExecutionId("exec-q")
+  }
+
+  def "stage name is shown in brackets in span name"() {
     given:
     def event = new Event(content: [
       context: [stageDetails: [name: "Build"]]
@@ -110,8 +144,17 @@ class CDEventsOTelSenderSpec extends Specification {
 
     then:
     def spans = spanExporter.finishedSpanItems
-    spans[0].name == "dev.cdevents.taskrun.started.Build"
+    spans[0].name == "dev.cdevents.taskrun.started [Build]"
     spans[0].attributes.get(AttributeKey.stringKey("cdevents.stage.name")) == "Build"
+  }
+
+  def "cdevents.type attribute uses short type name"() {
+    when:
+    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.started.0.1.1", "exec-t"), ENDPOINT)
+
+    then:
+    def attrs = spanExporter.finishedSpanItems[0].attributes
+    attrs.get(AttributeKey.stringKey("cdevents.type")) == "dev.cdevents.pipelinerun.started"
   }
 
   def "customData entries are promoted to span attributes"() {
@@ -141,22 +184,17 @@ class CDEventsOTelSenderSpec extends Specification {
     spanExporter.finishedSpanItems[0].status.statusCode != StatusCode.ERROR
   }
 
-  def "span without execution ID does not store trace context"() {
+  def "span without execution ID has no parent"() {
     when:
-    sender.send(buildCloudEvent("dev.cdevents.pipelinerun.started.0.1.1", null), ENDPOINT)
+    sender.send(buildCloudEvent("dev.cdevents.taskrun.started.0.1.1", null), ENDPOINT)
 
     then:
-    spanExporter.finishedSpanItems.size() == 1
-    getTraceContextMap().isEmpty()
+    def spans = spanExporter.finishedSpanItems
+    spans.size() == 1
+    !spans[0].parentSpanContext.isValid()
   }
 
   // --- helpers ---
-
-  private Map<String, String> getTraceContextMap() {
-    def field = CDEventsOTelSender.getDeclaredField("pipelineTraceContext")
-    field.setAccessible(true)
-    return (Map<String, String>) field.get(sender)
-  }
 
   private static CloudEvent buildCloudEvent(String type, String executionId) {
     def data = executionId != null
