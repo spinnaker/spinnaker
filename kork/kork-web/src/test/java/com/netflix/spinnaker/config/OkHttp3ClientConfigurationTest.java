@@ -27,7 +27,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ public class OkHttp3ClientConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
           .withBean(ObjectMapper.class)
-          .withBean(TaskExecutorBuilder.class)
+          .withBean(ThreadPoolTaskExecutorBuilder.class)
           .withUserConfiguration(OkHttp3ClientConfigurationTestConfig.class);
 
   @BeforeEach

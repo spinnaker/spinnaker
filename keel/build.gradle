@@ -5,8 +5,9 @@ plugins {
   alias(libs.plugins.kotlin.allopen) apply false
   id("com.adarshr.test-logger") version "2.1.0" apply false
   id("com.github.ben-manes.versions") version "0.28.0" apply false
-  id("com.netflix.dgs.codegen") version "4.3.4" apply false
-  id "com.diffplug.spotless" version "5.10.2" apply false
+  // DGS 8.x+ supports graphql-java 24.x (required for Spring Boot 3.5.x) and Kotlin 2.x
+  id("com.netflix.dgs.codegen") version "7.0.1" apply false
+//  id "com.diffplug.spotless" version "8.4.0" apply false
   id 'io.spinnaker.project' apply false
 }
 
@@ -55,9 +56,8 @@ allprojects {
         "com.squareup.okhttp3:mockwebserver:$okHttpVersion",
         "com.squareup.okhttp3:logging-interceptor:$okHttpVersion",
         "de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0",
-        "io.github.microutils:kotlin-logging:1.4.4",
+        "io.github.microutils:kotlin-logging:1.8.3",
         // needed due to incompatibility with dgs libs
-        "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1"
       )
     }
   }

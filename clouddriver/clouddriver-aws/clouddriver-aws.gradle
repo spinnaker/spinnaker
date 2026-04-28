@@ -58,7 +58,6 @@ dependencies {
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
-  testImplementation "com.natpryce:hamkrest"
   testImplementation "com.google.guava:guava"
   testImplementation "uk.org.webcompere:system-stubs-core:2.1.6"
   testImplementation "uk.org.webcompere:system-stubs-jupiter:2.1.6"

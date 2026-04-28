@@ -47,11 +47,12 @@ dependencies {
   implementation("org.apache.maven:maven-artifact:3.6.3")
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("com.slack.api:bolt-jakarta-servlet:1.45.3")
-  implementation("com.graphql-java:graphql-java-extended-scalars:16.0.1")
+  implementation("com.graphql-java:graphql-java-extended-scalars:22.0")
 
-  // DGS dependencies
-  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:4.9.0'))
-  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
+  // DGS dependencies - aligned with Spring Boot 3.5.x and graphql-java 24.x
+  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:10.2.4'))
+  // no longer there in later versions so removing this now
+//  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
@@ -69,7 +70,7 @@ dependencies {
   testImplementation("org.testcontainers:mysql")
   testImplementation("com.networknt:json-schema-validator:1.0.43")
   testImplementation("io.spinnaker.kork:kork-plugins")
-  testImplementation("com.graphql-java:graphql-java-extended-scalars:16.0.0")
+  testImplementation("com.graphql-java:graphql-java-extended-scalars:22.0")
   testRuntimeOnly(project(":keel-ec2-plugin"))
 }
 

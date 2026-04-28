@@ -5,11 +5,11 @@ import org.redline_rpm.header.Flags
 
 plugins {
   id "io.spinnaker.artifactregistry-publish"
-  id "nebula.node" version "1.3.1"
+  id "com.netflix.nebula.node" version "5.0.1"
 }
 
 group = "com.netflix.spinnaker.deck"
-apply plugin: "nebula.ospackage"
+apply plugin: "com.netflix.nebula.ospackage"
 
 node {
     // Pulls node and npm versions from package.json.

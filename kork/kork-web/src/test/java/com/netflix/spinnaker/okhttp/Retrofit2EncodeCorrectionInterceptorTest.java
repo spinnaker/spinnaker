@@ -44,7 +44,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -61,7 +61,7 @@ import retrofit2.http.Query;
       OkHttpClientProvider.class,
       DefaultOkHttpClientBuilderProvider.class,
       Retrofit2EncodeCorrectionInterceptor.class,
-      TaskExecutorBuilder.class,
+      ThreadPoolTaskExecutorBuilder.class,
       NoopRegistry.class
     })
 public class Retrofit2EncodeCorrectionInterceptorTest {

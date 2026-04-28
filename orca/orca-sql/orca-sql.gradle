@@ -52,7 +52,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("dev.minutest:minutest")
-  testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation("org.mockito.kotlin:mockito-kotlin")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.testcontainers:postgresql")

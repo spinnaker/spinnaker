@@ -10,5 +10,4 @@ dependencies {
   // TODO(duftler): Move these to spinnaker-dependencies.
   testImplementation "io.spinnaker.orca:orca-test"
 
-  testImplementation "com.natpryce:hamkrest"
 }

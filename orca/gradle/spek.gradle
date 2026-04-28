@@ -18,7 +18,7 @@ dependencies {
   testImplementation("org.junit.platform:junit-platform-runner")
   testImplementation("org.jetbrains.spek:spek-api")
   testImplementation("org.jetbrains.spek:spek-subject-extension")
-  testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation "org.mockito.kotlin:mockito-kotlin"
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
 
