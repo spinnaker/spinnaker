@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BuildEventHandler extends BaseTriggerEventHandler<BuildEvent> {
   private static final String[] BUILD_TRIGGER_TYPES = {
-    "jenkins", "travis", "wercker", "concourse", "gitlab-ci"
+    "jenkins", "travis", "concourse", "gitlab-ci"
   };
   private static final List<String> supportedTriggerTypes =
       Collections.unmodifiableList(Arrays.asList(BUILD_TRIGGER_TYPES));

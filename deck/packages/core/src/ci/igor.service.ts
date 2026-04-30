@@ -6,7 +6,6 @@ import type { IBuild, IGcbTrigger, IJobConfig } from '../domain';
 export enum BuildServiceType {
   Jenkins = 'jenkins',
   Travis = 'travis',
-  Wercker = 'wercker',
   Concourse = 'concourse',
 }
 

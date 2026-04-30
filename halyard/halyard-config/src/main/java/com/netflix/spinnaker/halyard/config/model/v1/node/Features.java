@@ -87,13 +87,6 @@ public class Features extends Node {
   private Boolean travis;
 
   @ValidForSpinnakerVersion(
-      lowerBound = "1.9.0",
-      upperBound = "1.20.0",
-      tooLowMessage = "Wercker stage is not available prior to this release.",
-      tooHighMessage = "Wercker stage is now enabled by default.")
-  private Boolean wercker;
-
-  @ValidForSpinnakerVersion(
       lowerBound = "1.13.0",
       tooLowMessage = "Managed Pipeline Templates v2 UI is not available prior to this release.")
   private Boolean managedPipelineTemplatesV2UI;
