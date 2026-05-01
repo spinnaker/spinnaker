@@ -38,7 +38,7 @@ dependencies {
   // Kotlin JUnit integration.
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
-  testImplementation("org.assertj:assertj-core:3.24.2")
+  testImplementation("org.assertj:assertj-core:3.27.7")
 
   testImplementation("org.junit.jupiter:junit-jupiter-params:5.0.0")
 
