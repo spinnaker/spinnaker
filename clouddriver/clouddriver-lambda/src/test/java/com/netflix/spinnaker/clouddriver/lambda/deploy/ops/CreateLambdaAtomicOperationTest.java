@@ -26,12 +26,22 @@ import com.amazonaws.services.lambda.model.DeadLetterConfig;
 import com.amazonaws.services.lambda.model.FunctionCode;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
+import com.netflix.spinnaker.config.LambdaConfiguration;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-public class CreateLambdaAtomicOperationTest {
+class CreateLambdaAtomicOperationTest {
+
+  LambdaConfiguration config;
+
+  @BeforeEach
+  void setUp() {
+    config = new LambdaConfiguration();
+  }
+
   @Test
   void testPublishLambda() {
     // given
@@ -42,7 +52,8 @@ public class CreateLambdaAtomicOperationTest {
             .setFunctionName("funcName")
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     b.setAppName("appName");
-    CreateLambdaAtomicOperation clao = spy(new CreateLambdaAtomicOperation(b, false));
+    config.setSetMonikerTags(false);
+    CreateLambdaAtomicOperation clao = spy(new CreateLambdaAtomicOperation(b, config));
     doNothing().when(clao).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(clao).getLambdaClient();
@@ -63,6 +74,49 @@ public class CreateLambdaAtomicOperationTest {
   }
 
   @Test
+  void testDisableAutoAppPrefix() {
+    // given
+    CreateLambdaFunctionDescription description =
+        new CreateLambdaFunctionDescription()
+            .setS3bucket("s3://bucket")
+            .setS3key("key/path")
+            .setFunctionName("function-stack-detail-v001")
+            .setTags(new HashMap<>()) // Initialize empty tags map
+            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+    description.setAppName("myapp");
+    config.setSetMonikerTags(true);
+    config.setPrefixApplicationNameToFunction(false);
+    CreateLambdaAtomicOperation operation =
+        spy(new CreateLambdaAtomicOperation(description, config));
+    doNothing().when(operation).updateTaskStatus(anyString());
+    AWSLambda lambdaClient = mock(AWSLambda.class);
+    doReturn(lambdaClient).when(operation).getLambdaClient();
+
+    CreateFunctionResult result =
+        new CreateFunctionResult()
+            .withFunctionName("function-stack-detail-v001")
+            .withCodeSha256("sha256");
+    doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
+
+    // when
+    operation.operate(null);
+
+    // then
+    ArgumentCaptor<CreateFunctionRequest> requestCaptor =
+        ArgumentCaptor.forClass(CreateFunctionRequest.class);
+    verify(lambdaClient).createFunction(requestCaptor.capture());
+
+    Map<String, String> tags = requestCaptor.getValue().getTags();
+    assertThat(requestCaptor.getValue().getFunctionName()).isEqualTo("function-stack-detail-v001");
+    assertThat(tags)
+        .containsEntry(LambdaTagNamer.APPLICATION, "myapp")
+        .containsEntry(LambdaTagNamer.CLUSTER, "function-stack-detail")
+        .containsEntry(LambdaTagNamer.STACK, "stack")
+        .containsEntry(LambdaTagNamer.DETAIL, "detail")
+        .containsEntry(LambdaTagNamer.SEQUENCE, "1");
+  }
+
+  @Test
   void testAutoApplyTagsWhenEnabled() {
     // given
     CreateLambdaFunctionDescription description =
@@ -74,7 +128,8 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
+    CreateLambdaAtomicOperation operation =
+        spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -94,11 +149,12 @@ public class CreateLambdaAtomicOperationTest {
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
     Map<String, String> tags = requestCaptor.getValue().getTags();
-    assertThat(tags).containsEntry(LambdaTagNamer.APPLICATION, "myapp");
-    assertThat(tags).containsEntry(LambdaTagNamer.CLUSTER, "myapp-stack-detail");
-    assertThat(tags).containsEntry(LambdaTagNamer.STACK, "stack");
-    assertThat(tags).containsEntry(LambdaTagNamer.DETAIL, "detail");
-    assertThat(tags).containsEntry(LambdaTagNamer.SEQUENCE, "1");
+    assertThat(tags)
+        .containsEntry(LambdaTagNamer.APPLICATION, "myapp")
+        .containsEntry(LambdaTagNamer.CLUSTER, "myapp-stack-detail")
+        .containsEntry(LambdaTagNamer.STACK, "stack")
+        .containsEntry(LambdaTagNamer.DETAIL, "detail")
+        .containsEntry(LambdaTagNamer.SEQUENCE, "1");
   }
 
   @Test
@@ -112,8 +168,9 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
+    config.setSetMonikerTags(false);
     CreateLambdaAtomicOperation operation =
-        spy(new CreateLambdaAtomicOperation(description, false));
+        spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -135,7 +192,7 @@ public class CreateLambdaAtomicOperationTest {
   }
 
   @Test
-  void testAutoApplyTagsPreservesExistingTags() {
+  void testNoAutoPrefixAppName() {
     // given
     Map<String, String> existingTags = new HashMap<>();
     existingTags.put("Environment", "production");
@@ -150,7 +207,9 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
+    config.setSetMonikerTags(true);
+    CreateLambdaAtomicOperation operation =
+        spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -167,11 +226,55 @@ public class CreateLambdaAtomicOperationTest {
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
     Map<String, String> tags = requestCaptor.getValue().getTags();
-    assertThat(tags).containsEntry("Environment", "production");
-    assertThat(tags).containsEntry("Team", "platform");
-    assertThat(tags).containsEntry(LambdaTagNamer.APPLICATION, "myapp");
-    assertThat(tags).containsEntry(LambdaTagNamer.CLUSTER, "myapp-stack");
-    assertThat(tags).containsEntry(LambdaTagNamer.STACK, "stack");
+    assertThat(tags)
+        .containsEntry("Environment", "production")
+        .containsEntry("Team", "platform")
+        .containsEntry(LambdaTagNamer.APPLICATION, "myapp")
+        .containsEntry(LambdaTagNamer.CLUSTER, "myapp-stack")
+        .containsEntry(LambdaTagNamer.STACK, "stack");
+  }
+
+  @Test
+  void testAutoApplyTagsPreservesExistingTags() {
+    // given
+    Map<String, String> existingTags = new HashMap<>();
+    existingTags.put("Environment", "production");
+    existingTags.put("Team", "platform");
+
+    CreateLambdaFunctionDescription description =
+        new CreateLambdaFunctionDescription()
+            .setS3bucket("s3://bucket")
+            .setS3key("key/path")
+            .setFunctionName("myapp-stack-v001")
+            .setTags(existingTags)
+            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+    description.setAppName("myapp");
+
+    config.setSetMonikerTags(true);
+    CreateLambdaAtomicOperation operation =
+        spy(new CreateLambdaAtomicOperation(description, config));
+    doNothing().when(operation).updateTaskStatus(anyString());
+    AWSLambda lambdaClient = mock(AWSLambda.class);
+    doReturn(lambdaClient).when(operation).getLambdaClient();
+
+    CreateFunctionResult result = new CreateFunctionResult().withFunctionName("myapp-stack-v001");
+    doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
+
+    // when
+    operation.operate(null);
+
+    // then
+    ArgumentCaptor<CreateFunctionRequest> requestCaptor =
+        ArgumentCaptor.forClass(CreateFunctionRequest.class);
+    verify(lambdaClient).createFunction(requestCaptor.capture());
+
+    Map<String, String> tags = requestCaptor.getValue().getTags();
+    assertThat(tags)
+        .containsEntry("Environment", "production")
+        .containsEntry("Team", "platform")
+        .containsEntry(LambdaTagNamer.APPLICATION, "myapp")
+        .containsEntry(LambdaTagNamer.CLUSTER, "myapp-stack")
+        .containsEntry(LambdaTagNamer.STACK, "stack");
   }
 
   @Test
@@ -189,8 +292,9 @@ public class CreateLambdaAtomicOperationTest {
             .setTags(existingTags)
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
-
-    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
+    config.setSetMonikerTags(true);
+    CreateLambdaAtomicOperation operation =
+        spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
@@ -227,7 +331,8 @@ public class CreateLambdaAtomicOperationTest {
             .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
     description.setAppName("myapp");
 
-    CreateLambdaAtomicOperation operation = spy(new CreateLambdaAtomicOperation(description, true));
+    CreateLambdaAtomicOperation operation =
+        spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
     AWSLambda lambdaClient = mock(AWSLambda.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();

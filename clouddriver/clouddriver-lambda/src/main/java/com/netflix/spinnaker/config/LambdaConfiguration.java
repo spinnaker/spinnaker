@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.ComponentScan;
@@ -25,11 +27,12 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan("com.netflix.spinnaker.clouddriver.lambda")
 @ConditionalOnExpression(
     "${aws.enabled:false} and (${aws.lambda.enabled:false} or ${aws.features.lambda.enabled:false})")
+@Getter
+@Setter
 public class LambdaConfiguration {
   @Value("${aws.lambda.setMonikerTags:true}")
-  boolean setMonikerTags;
+  boolean setMonikerTags = true;
 
-  public boolean isSetMonikerTags() {
-    return setMonikerTags;
-  }
+  @Value("${aws.lambda.prefixApplicationNameToFunction:true}")
+  private boolean prefixApplicationNameToFunction = true;
 }

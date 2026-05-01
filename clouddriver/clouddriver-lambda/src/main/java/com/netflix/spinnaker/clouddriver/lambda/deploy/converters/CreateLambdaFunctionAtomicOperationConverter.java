@@ -32,8 +32,7 @@ public class CreateLambdaFunctionAtomicOperationConverter
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    return new CreateLambdaAtomicOperation(
-        convertDescription(input), lambdaConfiguration.isSetMonikerTags());
+    return new CreateLambdaAtomicOperation(convertDescription(input), lambdaConfiguration);
   }
 
   @Override
