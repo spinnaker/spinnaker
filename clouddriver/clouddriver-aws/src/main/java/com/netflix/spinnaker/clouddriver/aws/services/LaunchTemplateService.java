@@ -385,13 +385,16 @@ public class LaunchTemplateService {
             .withInstanceType(asgConfig.getInstanceType())
             .withRamDiskId(asgConfig.getRamdiskId())
             .withEbsOptimized(asgConfig.getEbsOptimized())
-            .withKeyName(asgConfig.getKeyPair())
             .withIamInstanceProfile(
                 new LaunchTemplateIamInstanceProfileSpecificationRequest()
                     .withName(asgConfig.getIamRole()))
             .withMonitoring(
                 new LaunchTemplatesMonitoringRequest()
                     .withEnabled(asgConfig.getInstanceMonitoring()));
+
+    if (StringUtils.isNotBlank(asgConfig.getKeyPair())) {
+      request.withKeyName(asgConfig.getKeyPair());
+    }
 
     Optional<LaunchTemplateTagSpecificationRequest> tagSpecification =
         tagSpecification(amazonResourceTaggers, asgConfig.getBlockDeviceTags(), asgName);
