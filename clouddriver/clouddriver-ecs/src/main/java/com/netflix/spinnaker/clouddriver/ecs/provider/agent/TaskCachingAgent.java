@@ -113,9 +113,9 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
       if (parsedKey != null
           && parsedKey.get("type") != null
           && (parsedKey.get("type").equals(SERVICES.toString())
-              || parsedKey.get("type").equals(TASKS.toString())
+            || parsedKey.get("type").equals(TASKS.toString()))
                   && parsedKey.get("account").equals(accountName)
-                  && parsedKey.get("region").equals(region))) {
+                  && parsedKey.get("region").equals(region)) {
 
         parsedKey.put("type", "serverGroup");
         parsedKey.put("serverGroup", parsedKey.get("serviceName"));
