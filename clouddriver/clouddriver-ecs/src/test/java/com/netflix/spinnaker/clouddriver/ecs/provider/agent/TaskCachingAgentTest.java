@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
-import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -35,10 +35,7 @@ import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
 import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
-import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -48,14 +45,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import spock.lang.Subject;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskCachingAgentTest extends CommonCachingAgent {
   @Subject
@@ -171,17 +165,24 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
   }
 
   /**
-   * This demonstrates an issue with the current (soon to be previous) implementation.  It loads ALL
-   * the cache data for ALL accounts THEN filters it.  What's WORSE... is it has a mis-placed paranethesis on the check
-   * loading services for ALL REGIONS for ALL ACCOUNTS and only tasks for the specific region/account.  This leads
-   * to a nasty situation of memroy usage which is much bigger than loading all the data even.
+   * This demonstrates an issue with the current (soon to be previous) implementation. It loads ALL
+   * the cache data for ALL accounts THEN filters it. What's WORSE... is it has a mis-placed
+   * paranethesis on the check loading services for ALL REGIONS for ALL ACCOUNTS and only tasks for
+   * the specific region/account. This leads to a nasty situation of memroy usage which is much
+   * bigger than loading all the data even.
    *
-   * What's worse this ALSO puts load on the ServerGroupCacheForceRefreshTask class which does a "model match"
-   * on this account/region match.  SO it's loading massive data, that's then later filtered by orca, for every account
-   * on every load.
+   * <p>What's worse this ALSO puts load on the ServerGroupCacheForceRefreshTask class which does a
+   * "model match" on this account/region match. SO it's loading massive data, that's then later
+   * filtered by orca, for every account on every load.
+   *
+   * <p>NOTE: Memory is worse than even performance. We'd see cases of multilple GB of data load due
+   * to this incorrectly bursting and processing in bad situations.
    */
   @Test
-  @DisplayName("pendingOnDemandRequests should demonstrate performance issues when loading all ON_DEMAND cache entries")
+  @DisplayName(
+      "pendingOnDemandRequests should demonstrate performance issues when loading all ON_DEMAND cache entries")
+  @Disabled(
+      "Used to show some of the performance issues with large data in the account, but not needed now")
   void shouldDemonstratePerformanceIssueWithUnfilteredLoad() {
     // Given: A cache with many unrelated on-demand entries
     DefaultProviderCache testProviderCache = new DefaultProviderCache(new InMemoryCache());
@@ -195,7 +196,8 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
       String key = Keys.getServiceKey(otherAccount, otherRegion, "service-" + randomId);
       Map<String, Object> attrs = new HashMap<>();
       attrs.put("cacheTime", new Date());
-      testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(key, attrs, Collections.emptyMap()));
+      testProviderCache.putCacheData(
+          ON_DEMAND.toString(), new DefaultCacheData(key, attrs, Collections.emptyMap()));
     }
 
     // Add only 10 relevant entries for our account/region
@@ -203,7 +205,8 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
       String key = Keys.getServiceKey(ACCOUNT, REGION, "service-" + i);
       Map<String, Object> attrs = new HashMap<>();
       attrs.put("cacheTime", new Date());
-      testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(key, attrs, Collections.emptyMap()));
+      testProviderCache.putCacheData(
+          ON_DEMAND.toString(), new DefaultCacheData(key, attrs, Collections.emptyMap()));
     }
 
     // When: Call pendingOnDemandRequests (current implementation loads ALL entries via getAll())
@@ -214,15 +217,23 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
     // Then: Performance issue demonstrated - we loaded all 10,010 entries and parsed them all
     Collection<CacheData> allLoaded = testProviderCache.getAll(ON_DEMAND.toString());
     assertThat(allLoaded)
-      .withFailMessage( "Performance issue: getAll() loaded all " + allLoaded.size() + " entries when only " + results.size() + " were relevant")
-      .hasSize(10010);
+        .withFailMessage(
+            "Performance issue: getAll() loaded all "
+                + allLoaded.size()
+                + " entries when only "
+                + results.size()
+                + " were relevant")
+        .hasSize(10010);
     assertThat(results)
-      .withFailMessage( "Results should have been 10 but were " + results.size())
-      .hasSize(10);
+        .withFailMessage("Results should have been 10 but were " + results.size())
+        .hasSize(10);
 
-
-    System.out.println("Performance test: results loaded " + results.size() + " entries in " + duration + "ms");
-    System.out.println("  - Wasted effort: parsed and filtered " + (allLoaded.size() - results.size()) + " irrelevant entries");
+    System.out.println(
+        "Performance test: results loaded " + results.size() + " entries in " + duration + "ms");
+    System.out.println(
+        "  - Wasted effort: parsed and filtered "
+            + (allLoaded.size() - results.size())
+            + " irrelevant entries");
   }
 
   @Test
@@ -232,21 +243,54 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
     DefaultProviderCache testProviderCache = new DefaultProviderCache(new InMemoryCache());
 
     Map<String, Object> exampleAttrs = Map.of("cacheTime", new Date());
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getServiceKey(ACCOUNT, REGION, "service-1"), exampleAttrs, Collections.emptyMap()));
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getServiceKey(ACCOUNT, "eu-west-1", "service-2"), exampleAttrs, Collections.emptyMap()));
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getServiceKey("other-account", REGION, "service-3"), exampleAttrs, Collections.emptyMap()));
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getTaskKey(ACCOUNT, REGION, "task-1"),exampleAttrs, Collections.emptyMap()));
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getTaskKey(ACCOUNT, "eu-west-1", "task-2"), exampleAttrs, Collections.emptyMap()));
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getTaskKey("other-account", REGION, "task-3"), exampleAttrs, Collections.emptyMap()));
-    testProviderCache.putCacheData(ON_DEMAND.toString(), new DefaultCacheData(Keys.getClusterKey(ACCOUNT, REGION, "cluster-1"), exampleAttrs, Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getServiceKey(ACCOUNT, REGION, "service-1"),
+            exampleAttrs,
+            Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getServiceKey(ACCOUNT, "eu-west-1", "service-2"),
+            exampleAttrs,
+            Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getServiceKey("other-account", REGION, "service-3"),
+            exampleAttrs,
+            Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getTaskKey(ACCOUNT, REGION, "task-1"), exampleAttrs, Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getTaskKey(ACCOUNT, "eu-west-1", "task-2"), exampleAttrs, Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getTaskKey("other-account", REGION, "task-3"),
+            exampleAttrs,
+            Collections.emptyMap()));
+    testProviderCache.putCacheData(
+        ON_DEMAND.toString(),
+        new DefaultCacheData(
+            Keys.getClusterKey(ACCOUNT, REGION, "cluster-1"),
+            exampleAttrs,
+            Collections.emptyMap()));
 
     // When: We want the pending on demand requests for this particular account/region...
     Collection<Map<String, Object>> results = agent.pendingOnDemandRequests(testProviderCache);
 
     // Then: Should only match the selected on demand entires for this account/region
     assertThat(results)
-      .withFailMessage("Incorrect number of results of " + results.size() + " returned fo the account/region of the provider.  ")
-      .hasSize(2);
+        .withFailMessage(
+            "Incorrect number of results of "
+                + results.size()
+                + " returned fo the account/region of the provider.  ")
+        .hasSize(2);
   }
-
 }

@@ -21,10 +21,9 @@ import static com.netflix.spinnaker.clouddriver.ecs.EcsCloudProvider.ID;
 
 import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class Keys implements KeyParser {
   public enum Namespace {
@@ -177,7 +176,6 @@ public class Keys implements KeyParser {
     return buildKey(Namespace.ECS_CLUSTERS.ns, account, region, clusterName);
   }
 
-
   public static String getApplicationKey(String name) {
     return ID + SEPARATOR + Namespace.ECS_APPLICATIONS + SEPARATOR + name.toLowerCase();
   }
@@ -238,11 +236,12 @@ public class Keys implements KeyParser {
         + identifier;
   }
 
-  public static String buildGlob(String namespace, String account, String region, String identifier) {
+  public static String buildGlob(
+      String namespace, String account, String region, String identifier) {
     return buildKey(
-      StringUtils.defaultIfBlank(namespace, "*"),
-      StringUtils.defaultIfBlank(account, "*"),
-      StringUtils.defaultIfBlank(region, "*"),
-      StringUtils.defaultIfBlank(identifier, "*"));
+        StringUtils.defaultIfBlank(namespace, "*"),
+        StringUtils.defaultIfBlank(account, "*"),
+        StringUtils.defaultIfBlank(region, "*"),
+        StringUtils.defaultIfBlank(identifier, "*"));
   }
 }

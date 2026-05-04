@@ -37,6 +37,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,39 +107,43 @@ public class TaskCachingAgent extends AbstractEcsOnDemandAgent<Task> {
 
   @Override
   public Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
-    Collection<CacheData> allOnDemand = providerCache.getAll(ON_DEMAND.toString());
+
     List<Map<String, Object>> returnResults = new LinkedList<>();
-    for (CacheData onDemand : allOnDemand) {
+
+    Collection<String> serviceIds =
+        providerCache.filterIdentifiers(
+            ON_DEMAND.getNs(), Keys.buildGlob(SERVICES.toString(), accountName, region, null));
+    Collection<String> taskIds =
+        providerCache.filterIdentifiers(
+            ON_DEMAND.getNs(), Keys.buildGlob(TASKS.toString(), accountName, region, null));
+    List<String> combined = new ArrayList<>(serviceIds.size() + taskIds.size());
+    combined.addAll(serviceIds);
+    combined.addAll(taskIds);
+
+    Collection<CacheData> matchingTheCache = providerCache.getAll(ON_DEMAND.toString(), combined);
+    for (CacheData onDemand : matchingTheCache) {
       Map<String, String> parsedKey = Keys.parse(onDemand.getId());
-      if (parsedKey != null
-          && parsedKey.get("type") != null
-          && (parsedKey.get("type").equals(SERVICES.toString())
-            || parsedKey.get("type").equals(TASKS.toString()))
-                  && parsedKey.get("account").equals(accountName)
-                  && parsedKey.get("region").equals(region)) {
+      parsedKey.put("type", "serverGroup");
+      parsedKey.put("serverGroup", parsedKey.get("serviceName"));
 
-        parsedKey.put("type", "serverGroup");
-        parsedKey.put("serverGroup", parsedKey.get("serviceName"));
+      HashMap<String, Object> result = new HashMap<>();
+      result.put("id", onDemand.getId());
+      result.put("details", parsedKey);
 
-        HashMap<String, Object> result = new HashMap<>();
-        result.put("id", onDemand.getId());
-        result.put("details", parsedKey);
+      result.put("cacheTime", onDemand.getAttributes().get("cacheTime"));
+      result.put("cacheExpiry", onDemand.getAttributes().get("cacheExpiry"));
+      result.put(
+          "processedCount",
+          (onDemand.getAttributes().get("processedCount") != null
+              ? onDemand.getAttributes().get("processedCount")
+              : 1));
+      result.put(
+          "processedTime",
+          onDemand.getAttributes().get("processedTime") != null
+              ? onDemand.getAttributes().get("processedTime")
+              : new Date());
 
-        result.put("cacheTime", onDemand.getAttributes().get("cacheTime"));
-        result.put("cacheExpiry", onDemand.getAttributes().get("cacheExpiry"));
-        result.put(
-            "processedCount",
-            (onDemand.getAttributes().get("processedCount") != null
-                ? onDemand.getAttributes().get("processedCount")
-                : 1));
-        result.put(
-            "processedTime",
-            onDemand.getAttributes().get("processedTime") != null
-                ? onDemand.getAttributes().get("processedTime")
-                : new Date());
-
-        returnResults.add(result);
-      }
+      returnResults.add(result);
     }
     return returnResults;
   }
