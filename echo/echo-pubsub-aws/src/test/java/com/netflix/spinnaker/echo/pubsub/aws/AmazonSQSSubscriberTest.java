@@ -18,6 +18,11 @@ package com.netflix.spinnaker.echo.pubsub.aws;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,7 +41,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.SetQueueAttributesResponse;
 
 @ExtendWith(MockitoExtension.class)
 public class AmazonSQSSubscriberTest {
@@ -125,5 +135,60 @@ public class AmazonSQSSubscriberTest {
             "Unable unmarshal NotificationMessageWrapper. Unknown message type", Level.ERROR);
     assertThat(logMsgs).hasSize(0);
     assertEquals(payload, result);
+  }
+
+  @Test
+  void initializeQueueResolvesUrlOnlyWhenSkipQueueBootstrapTrue() {
+    // given
+    subscription.setSkipQueueBootstrap(true);
+    when(sqsClient.getQueueUrl(any(java.util.function.Consumer.class)))
+        .thenReturn(GetQueueUrlResponse.builder().queueUrl("https://queue").build());
+
+    SQSSubscriber localSubject =
+        new SQSSubscriber(
+            objectMapper,
+            subscription,
+            pubsubMessageHandler,
+            snsClient,
+            sqsClient,
+            () -> true,
+            registry);
+
+    // when
+    localSubject.initializeQueue();
+
+    // then
+    verify(sqsClient, times(1)).getQueueUrl(any(java.util.function.Consumer.class));
+    verify(sqsClient, never()).setQueueAttributes(any(SetQueueAttributesRequest.class));
+    verify(snsClient, never()).subscribe(any(SubscribeRequest.class));
+  }
+
+  @Test
+  void initializeQueueBootstrapsWhenSkipQueueBootstrapFalse() {
+    // given — default subscription has skipQueueBootstrap=false
+    when(sqsClient.getQueueUrl(any(java.util.function.Consumer.class)))
+        .thenReturn(GetQueueUrlResponse.builder().queueUrl("https://queue").build());
+    when(sqsClient.setQueueAttributes(any(SetQueueAttributesRequest.class)))
+        .thenReturn(SetQueueAttributesResponse.builder().build());
+    when(snsClient.subscribe(any(SubscribeRequest.class)))
+        .thenReturn(SubscribeResponse.builder().subscriptionArn("arn:sub").build());
+
+    SQSSubscriber localSubject =
+        new SQSSubscriber(
+            objectMapper,
+            subscription,
+            pubsubMessageHandler,
+            snsClient,
+            sqsClient,
+            () -> true,
+            registry);
+
+    // when
+    localSubject.initializeQueue();
+
+    // then
+    verify(sqsClient, times(1)).getQueueUrl(any(java.util.function.Consumer.class));
+    verify(sqsClient, times(1)).setQueueAttributes(any(SetQueueAttributesRequest.class));
+    verify(snsClient, times(1)).subscribe(any(SubscribeRequest.class));
   }
 }
