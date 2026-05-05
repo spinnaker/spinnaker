@@ -62,70 +62,49 @@ public class PubSubUtils {
   private static final Duration RETRY_BACKOFF = Duration.ofSeconds(1);
   private static final boolean EXPONENTIAL = true;
 
-  private static String getQueueUrl(
-      AmazonSQS amazonSQS, ARN queueARN, boolean enableQueueCreationFallback) {
-    String queueUrl;
-
-    try {
-      GetQueueUrlRequest getQueueUrlRequest =
-          new GetQueueUrlRequest()
-              .withQueueName(queueARN.getName())
-              .withQueueOwnerAWSAccountId(queueARN.getAccount());
-      queueUrl = amazonSQS.getQueueUrl(getQueueUrlRequest).getQueueUrl();
-      log.debug("Reusing existing queue {}", queueUrl);
-    } catch (QueueDoesNotExistException e) {
-      if (!enableQueueCreationFallback) {
-        throw e;
-      }
-      queueUrl = amazonSQS.createQueue(queueARN.getName()).getQueueUrl();
-      log.debug("Created queue {}", queueUrl);
-    }
-
-    return queueUrl;
+  public static String getQueueUrl(AmazonSQS amazonSQS, ARN queueARN) {
+    return retrySupport.retry(
+        () -> {
+          GetQueueUrlRequest request =
+              new GetQueueUrlRequest()
+                  .withQueueName(queueARN.getName())
+                  .withQueueOwnerAWSAccountId(queueARN.getAccount());
+          String queueUrl = amazonSQS.getQueueUrl(request).getQueueUrl();
+          log.debug("Reusing existing queue {}", queueUrl);
+          return queueUrl;
+        },
+        MAX_RETRIES,
+        RETRY_BACKOFF,
+        EXPONENTIAL);
   }
 
-  private static String getQueueUrl(
-      SqsClient sqsClient, ARN queueARN, boolean enableQueueCreationFallback) {
-    String queueUrl;
-
-    try {
-      queueUrl =
-          sqsClient
-              .getQueueUrl(
-                  r ->
-                      r.queueName(queueARN.getName()).queueOwnerAWSAccountId(queueARN.getAccount()))
-              .queueUrl();
-      log.debug("Reusing existing queue {}", queueUrl);
-    } catch (software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException e) {
-      if (!enableQueueCreationFallback) {
-        throw e;
-      }
-      CreateQueueRequest createQueueRequest =
-          CreateQueueRequest.builder().queueName(queueARN.getName()).build();
-      queueUrl = sqsClient.createQueue(createQueueRequest).queueUrl();
-      log.debug("Created queue {}", queueUrl);
-    }
-
-    return queueUrl;
+  public static String getQueueUrl(SqsClient sqsClient, ARN queueARN) {
+    return retrySupport.retry(
+        () -> {
+          String queueUrl =
+              sqsClient
+                  .getQueueUrl(
+                      r ->
+                          r.queueName(queueARN.getName())
+                              .queueOwnerAWSAccountId(queueARN.getAccount()))
+                  .queueUrl();
+          log.debug("Reusing existing queue {}", queueUrl);
+          return queueUrl;
+        },
+        MAX_RETRIES,
+        RETRY_BACKOFF,
+        EXPONENTIAL);
   }
 
   public static String ensureQueueExists(
       AmazonSQS amazonSQS, ARN queueARN, ARN topicARN, int sqsMessageRetentionPeriodSeconds) {
-    return ensureQueueExists(amazonSQS, queueARN, topicARN, sqsMessageRetentionPeriodSeconds, true);
-  }
-
-  public static String ensureQueueExists(
-      AmazonSQS amazonSQS,
-      ARN queueARN,
-      ARN topicARN,
-      int sqsMessageRetentionPeriodSeconds,
-      boolean enableQueueCreationFallback) {
-    String queueUrl =
-        retrySupport.retry(
-            () -> getQueueUrl(amazonSQS, queueARN, enableQueueCreationFallback),
-            MAX_RETRIES,
-            RETRY_BACKOFF,
-            EXPONENTIAL);
+    String queueUrl;
+    try {
+      queueUrl = getQueueUrl(amazonSQS, queueARN);
+    } catch (QueueDoesNotExistException e) {
+      queueUrl = amazonSQS.createQueue(queueARN.getName()).getQueueUrl();
+      log.debug("Created queue {}", queueUrl);
+    }
 
     HashMap<String, String> attributes = new HashMap<>();
     attributes.put("Policy", buildSQSPolicy(queueARN, topicARN).toJson());
@@ -137,21 +116,15 @@ public class PubSubUtils {
 
   public static String ensureQueueExists(
       SqsClient sqsClient, ARN queueARN, ARN topicARN, int sqsMessageRetentionPeriodSeconds) {
-    return ensureQueueExists(sqsClient, queueARN, topicARN, sqsMessageRetentionPeriodSeconds, true);
-  }
-
-  public static String ensureQueueExists(
-      SqsClient sqsClient,
-      ARN queueARN,
-      ARN topicARN,
-      int sqsMessageRetentionPeriodSeconds,
-      boolean enableQueueCreationFallback) {
-    String queueUrl =
-        retrySupport.retry(
-            () -> getQueueUrl(sqsClient, queueARN, enableQueueCreationFallback),
-            MAX_RETRIES,
-            RETRY_BACKOFF,
-            EXPONENTIAL);
+    String queueUrl;
+    try {
+      queueUrl = getQueueUrl(sqsClient, queueARN);
+    } catch (software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException e) {
+      CreateQueueRequest createQueueRequest =
+          CreateQueueRequest.builder().queueName(queueARN.getName()).build();
+      queueUrl = sqsClient.createQueue(createQueueRequest).queueUrl();
+      log.debug("Created queue {}", queueUrl);
+    }
 
     Map<QueueAttributeName, String> attributes = new HashMap<>();
     attributes.put(QueueAttributeName.POLICY, buildSQSPolicy(queueARN, topicARN).toJson());
