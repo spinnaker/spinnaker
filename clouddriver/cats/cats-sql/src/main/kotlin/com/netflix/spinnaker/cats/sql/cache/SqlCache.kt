@@ -1062,6 +1062,37 @@ class SqlCache(
     }
   }
 
+  override fun getAllByGlob(
+    type: String,
+    glob: String
+  ): Collection<CacheData> {
+    var selectQueries = 0
+    try {
+        return withRetry(RetryCategory.READ) {
+          jooq.select(field("body"))
+            .from(table(sqlNames.resourceTableName(type)))
+            .where(field("ID").like(glob))
+            .fetch()
+            .getValues(0)
+            .map { mapper.readValue(it as String, DefaultJsonCacheData::class.java) }
+            .toList()
+        }
+    } catch (e: Exception) {
+      suppressedLog("Failed selecting ids for type $type", e)
+
+      cacheMetrics.get(
+        prefix = name,
+        type = type,
+        itemCount = 0,
+        requestedSize = -1,
+        relationshipsRequested = -1,
+        selectOperations = selectQueries
+      )
+
+      return mutableListOf()
+    }
+  }
+
   private fun getDataWithoutRelationshipsByApp(type: String, application: String): DataWithRelationshipPointersResult {
     val cacheData = mutableListOf<CacheData>()
     val relPointers = mutableSetOf<RelPointer>()

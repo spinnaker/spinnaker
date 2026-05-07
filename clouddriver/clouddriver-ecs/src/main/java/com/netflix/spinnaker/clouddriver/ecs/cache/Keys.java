@@ -23,8 +23,10 @@ import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class Keys implements KeyParser {
+
   public enum Namespace {
     ECS_APPLICATIONS,
     IAM_ROLE,
@@ -48,6 +50,29 @@ public class Keys implements KeyParser {
     public String toString() {
       return ns;
     }
+  }
+
+  public static String buildGlob(Namespace type, String accountName, String region) {
+    return buildGlob(type, accountName, region, "*");
+  }
+
+  public static String buildGlob(
+      Namespace ns, String accountName, String region, String identifier) {
+    String accountGlob = StringUtils.defaultIfEmpty(accountName, "*");
+    String regionGlob = StringUtils.defaultIfEmpty(region, "*");
+    if (ns == Namespace.IAM_ROLE) {
+      return ID
+          + SEPARATOR
+          + Namespace.IAM_ROLE.ns
+          + SEPARATOR
+          + accountGlob
+          + SEPARATOR
+          + identifier;
+    }
+    if (ns == Namespace.ECS_APPLICATIONS) {
+      return ID + SEPARATOR + Namespace.ECS_APPLICATIONS.ns + SEPARATOR + identifier;
+    }
+    return buildKey(ns.ns, accountGlob, regionGlob, identifier);
   }
 
   public static final String SEPARATOR = ";";
