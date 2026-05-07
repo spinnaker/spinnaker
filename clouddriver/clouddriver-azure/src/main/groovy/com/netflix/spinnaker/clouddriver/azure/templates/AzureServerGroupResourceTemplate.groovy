@@ -503,8 +503,17 @@ class AzureServerGroupResourceTemplate {
 
   // ***Scale Set User assigned and optionaly system assigned Identity
   static class UserAndOptionalSystemAssignedIdentity extends ManagedIdentity {
-    // user assigned identities needs to be added in the following format
-    // "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/','<identityname>')]" : { }
+    // user assigned identities are added in one of two forms:
+    //   - bare name `<identityname>` → wrapped as
+    //     "[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/','<identityname>')]" : { }
+    //     (resolves in the deployment's resource group; the historical default).
+    //   - full ARM resource ID
+    //     `/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.ManagedIdentity/userAssignedIdentities/<name>`
+    //     → emitted verbatim. ARM's `resourceID()` only resolves same-RG
+    //     references, so a UAMI in a different RG than the VMSS deployment
+    //     (e.g. shared per-tenant identity in `<tenant>` while the VMSS lands
+    //     in `<app>-<region>`) requires the full ID. Detected by the
+    //     `/subscriptions/` prefix.
     Map<String, Map<String, String>> userAssignedIdentities = [:]
 
     /**
@@ -515,7 +524,10 @@ class AzureServerGroupResourceTemplate {
       type = enableSystemAssigned ? ResourceIdentityType.SYSTEM_ASSIGNED_USER_ASSIGNED.toString() : ResourceIdentityType.USER_ASSIGNED
       if (userAssignedIdentities.length() > 0) {
         for (String identity : userAssignedIdentities.split(",")) {
-          this.userAssignedIdentities.put(String.format("[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/','%s')]", identity), [:])
+          String key = identity.startsWith("/subscriptions/")
+              ? identity
+              : String.format("[resourceID('Microsoft.ManagedIdentity/userAssignedIdentities/','%s')]", identity)
+          this.userAssignedIdentities.put(key, [:])
         }
       }
     }
