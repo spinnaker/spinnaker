@@ -23,6 +23,7 @@ import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class Keys implements KeyParser {
   public enum Namespace {
@@ -233,5 +234,14 @@ public class Keys implements KeyParser {
         + region
         + SEPARATOR
         + identifier;
+  }
+
+  public static String buildGlob(
+      String namespace, String account, String region, String identifier) {
+    return buildKey(
+        StringUtils.defaultIfBlank(namespace, "*"),
+        StringUtils.defaultIfBlank(account, "*"),
+        StringUtils.defaultIfBlank(region, "*"),
+        StringUtils.defaultIfBlank(identifier, "*"));
   }
 }
