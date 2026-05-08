@@ -29,4 +29,4 @@ inline fun <reified T> YAMLMapper.readValueInliningAliases(yaml: String): T {
  * Converts a YAML stream into JSON with any anchors and aliases resolved.
  */
 fun ObjectMapper.writeYamlAsJsonString(stream: InputStream): String =
-  writeValueAsString(YamlHelper.newYaml().load<Map<String, Any?>>(stream))
+  writeValueAsString(YamlHelper.newYamlSafeConstructor().load<Map<String, Any?>>(stream))
