@@ -68,7 +68,7 @@ public class CloudFoundryBakeManifestService
   public Artifact bake(CloudFoundryBakeManifestRequest bakeManifestRequest) throws IOException {
     String pattern = "\\(\\((!?[-/\\.\\w\\pL\\]\\[]+)\\)\\)";
 
-    Yaml yaml = YamlHelper.newYaml();
+    Yaml yaml = YamlHelper.newYamlSafeConstructor();
 
     String manifestTemplate =
         CharStreams.toString(
