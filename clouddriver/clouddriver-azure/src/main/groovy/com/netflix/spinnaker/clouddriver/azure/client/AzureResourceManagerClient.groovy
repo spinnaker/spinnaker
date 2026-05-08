@@ -26,6 +26,8 @@ import com.azure.resourcemanager.resources.models.DeploymentOperation
 import com.azure.resourcemanager.resources.models.Provider
 import com.azure.resourcemanager.resources.models.ResourceGroup
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
+import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation
+import com.netflix.spinnaker.clouddriver.azure.resources.common.model.AzureDeploymentOperation.FailedResourceDetail
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -222,12 +224,87 @@ class AzureResourceManagerClient extends AzureBaseClient {
           .withMode(deploymentMode)
           .create()
       })
-    } catch (Throwable e) {
-      log.error("Exception occured during deployment ${e.message}")
-      throw e
+    } catch (Exception e) {
+      String original = e.message ?: "${e.class.simpleName} (no message)".toString()
+      String enriched = enrichWithDeploymentOperationErrors(
+        original,
+        lookupDeploymentOperationsForErrorEnrichment(resourceGroupName, deploymentName))
+      log.error("Exception occured during deployment ${deploymentName}: ${enriched}", e)
+      throw wrapAsRichException(enriched, e)
     } finally {
       logDeploymentTemplate(deploymentName, template, templateParameters)
     }
+  }
+
+  /**
+   * Wrap an exception with an enriched message while preserving the original exception type
+   * when it is a {@link ManagementException}, so downstream {@code catch (ManagementException)}
+   * blocks continue to match.
+   */
+  static RuntimeException wrapAsRichException(String enrichedMessage, Exception original) {
+    if (original instanceof ManagementException) {
+      ManagementException me = (ManagementException) original
+      ManagementException enriched = new ManagementException(enrichedMessage, me.response, me.value)
+      enriched.initCause(original)
+      return enriched
+    }
+    new RuntimeException(enrichedMessage, original)
+  }
+
+  /**
+   * Best-effort lookup of deployment operations so that the original LRO failure can be enriched
+   * with the underlying ARM error details. Performs a small bounded retry to ride out the
+   * race window between LRO terminal-failure and ARM materializing the per-op failure rows.
+   * Returns an empty list (rather than propagating) if every attempt fails or 404s, since at
+   * this point we already have an exception to surface.
+   */
+  private static final int LOOKUP_RETRY_ATTEMPTS = 3
+  private static final long LOOKUP_RETRY_BACKOFF_MS = 1000
+
+  private Collection<DeploymentOperation> lookupDeploymentOperationsForErrorEnrichment(
+    String resourceGroupName, String deploymentName) {
+    Exception lastEx = null
+    for (int attempt = 0; attempt < LOOKUP_RETRY_ATTEMPTS; attempt++) {
+      if (attempt > 0) {
+        try {
+          Thread.sleep(LOOKUP_RETRY_BACKOFF_MS)
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt()
+          break
+        }
+      }
+      try {
+        Collection<DeploymentOperation> ops = getDeploymentOperations(resourceGroupName, deploymentName)
+        if (ops) {
+          return ops
+        }
+      } catch (Exception lookupEx) {
+        lastEx = lookupEx
+      }
+    }
+    if (lastEx != null) {
+      log.warn("Failed to fetch deployment operations for ${deploymentName} while enriching error", lastEx)
+    }
+    Collections.<DeploymentOperation> emptyList()
+  }
+
+  /**
+   * Build a richer error message by appending each FAILED deployment operation's statusMessage to
+   * the original exception message. Azure's LRO poller throws a generic
+   * "Long running operation failed." with no details — the actual ARM error lives in each
+   * operation's statusMessage. Stale failures from prior retries (deployment names are
+   * deterministic) are filtered out via timestamp windowing.
+   */
+  static String enrichWithDeploymentOperationErrors(
+    String originalMessage,
+    Collection<DeploymentOperation> operations) {
+    List<FailedResourceDetail> failures = AzureDeploymentOperation.extractFailedResources(operations)
+    failures = AzureDeploymentOperation.filterToRecentFailures(failures)
+    if (!failures) {
+      return originalMessage
+    }
+    String joined = failures.collect { "[${it.label()}] ${it.statusMessageRendered}".toString() }.join(' | ')
+    "${originalMessage} :: ${joined}".toString()
   }
 
   static void logDeploymentTemplate(String deploymentName, String template, Map<String, Object> parameters) {

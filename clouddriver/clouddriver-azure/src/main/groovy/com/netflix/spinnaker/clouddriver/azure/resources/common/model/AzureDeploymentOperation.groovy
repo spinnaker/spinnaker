@@ -16,15 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.common.model
 
+import com.azure.core.management.exception.ManagementError
 import com.azure.resourcemanager.resources.fluent.models.DeploymentOperationInner
 import com.azure.resourcemanager.resources.models.DeploymentOperation
+import com.azure.resourcemanager.resources.models.DeploymentOperationProperties
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.azure.common.AzureUtilities
 import com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import groovy.transform.CompileStatic
+import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
+
+import java.time.Duration
+import java.time.OffsetDateTime
 
 @CompileStatic
 @Slf4j
@@ -75,9 +81,7 @@ class AzureDeploymentOperation {
           } else if (inner.properties().provisioningState() == AzureUtilities.ProvisioningState.FAILED) {
             if (!resourceCompletedState[inner.id()]) {
 
-              //String statusMessage = updatedDeploymentOperation?.value?.first()?.properties?.statusMessage?.error?.message
-              String err = "Failed to create resource ${inner.properties().targetResource().resourceName()}: "
-              err += inner.properties().statusMessage() ? inner.properties().statusMessage() : "See Azure Portal for more information."
+              String err = "Failed to create resource ${inner.properties().targetResource().resourceName()}: ${renderStatusMessage(inner.properties().statusMessage())}"
               task.updateStatus opsName, err
               resourceCompletedState[inner.id()] = true
               errList.add(err)
@@ -111,6 +115,94 @@ class AzureDeploymentOperation {
       deploymentState != AzureUtilities.ProvisioningState.DELETED &&
       deploymentState != AzureUtilities.ProvisioningState.FAILED &&
       deploymentState != AzureUtilities.ProvisioningState.SUCCEEDED
+  }
+
+  /**
+   * Extract structured failure details from a list of deployment operations. Skips operations
+   * whose targetResource is null (a known SDK quirk where an extra "wrapper" operation is
+   * returned that doesn't correspond to any real ARM resource).
+   */
+  static List<FailedResourceDetail> extractFailedResources(Collection<DeploymentOperation> operations) {
+    if (!operations) {
+      return []
+    }
+    List<FailedResourceDetail> failures = []
+    for (DeploymentOperation op : operations) {
+      DeploymentOperationInner inner = op?.innerModel()
+      DeploymentOperationProperties props = inner?.properties()
+      if (props == null) continue
+      if (props.provisioningState() != AzureUtilities.ProvisioningState.FAILED) continue
+      if (props.targetResource() == null) continue
+      failures << new FailedResourceDetail(
+        operationId: inner.id(),
+        resourceName: props.targetResource().resourceName(),
+        resourceType: props.targetResource().resourceType() ?: "",
+        timestamp: props.timestamp(),
+        statusMessageRendered: renderStatusMessage(props.statusMessage())
+      )
+    }
+    failures
+  }
+
+  /**
+   * Filter to failures whose timestamp is within {@code window} of the most recent failure.
+   * Used by the LRO failure-enrichment path to avoid attaching stale failures from previous
+   * retries of a deterministically-named deployment.
+   *
+   * Failures with a null timestamp are kept (defensive: we can't decide without data).
+   */
+  static List<FailedResourceDetail> filterToRecentFailures(
+    List<FailedResourceDetail> failures, Duration window = Duration.ofMinutes(5)) {
+    if (!failures) return []
+    OffsetDateTime latest = null
+    for (FailedResourceDetail f : failures) {
+      if (f.timestamp != null && (latest == null || f.timestamp.isAfter(latest))) {
+        latest = f.timestamp
+      }
+    }
+    if (latest == null) return failures
+    OffsetDateTime cutoff = latest.minus(window)
+    failures.findAll { it.timestamp == null || !it.timestamp.isBefore(cutoff) }
+  }
+
+  /**
+   * Render the {@link com.azure.resourcemanager.resources.models.StatusMessage StatusMessage}
+   * of a deployment operation as a human-readable string. Prefers the structured ManagementError
+   * (code + message) when present.
+   */
+  static String renderStatusMessage(Object statusMessage) {
+    if (statusMessage == null) {
+      return "(no Azure error details)"
+    }
+    // Defensive: the typed property returns StatusMessage but the interface returns Object.
+    if (statusMessage instanceof com.azure.resourcemanager.resources.models.StatusMessage) {
+      def sm = (com.azure.resourcemanager.resources.models.StatusMessage) statusMessage
+      ManagementError error = sm.error()
+      if (error != null) {
+        List<String> parts = []
+        if (error.code) parts << error.code
+        if (error.message) parts << error.message
+        if (parts) {
+          return parts.join(': ')
+        }
+        return error.toString()
+      }
+      return sm.status() ?: sm.toString()
+    }
+    statusMessage.toString()
+  }
+
+  @TupleConstructor
+  static class FailedResourceDetail {
+    String operationId
+    String resourceName
+    String resourceType
+    OffsetDateTime timestamp
+    String statusMessageRendered
+
+    String label() {
+      resourceType ? "${resourceType}/${resourceName}" : resourceName
+    }
   }
 
   List<OpsValue> value
