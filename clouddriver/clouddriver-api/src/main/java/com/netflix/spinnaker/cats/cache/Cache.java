@@ -90,11 +90,14 @@ public interface Cache {
   Set<String> filterIdentifiers(String type, String glob);
 
   /**
-   * Retrieves all the items for the specified type
+   * Retrieves all the items for the specified type.
+   *
+   * <p>"DO NOT USE THIS. It does really really really bad things to the cache"
    *
    * @param type the type for which to retrieve items
    * @return all the items for the type
    */
+  @Deprecated()
   Collection<CacheData> getAll(String type);
 
   Collection<CacheData> getAll(String type, CacheFilter cacheFilter);
