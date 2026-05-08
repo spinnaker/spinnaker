@@ -25,7 +25,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.ListClustersRequest;
 import com.amazonaws.services.ecs.model.ListClustersResult;
-import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -109,17 +108,12 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
    * @return A set of ECS cluster ARNs.
    */
   Set<String> getClusters(AmazonECS ecs, ProviderCache providerCache) {
-    Set<String> clusters =
-        providerCache.getAll(ECS_CLUSTERS.toString()).stream()
-            .filter(
-                cacheData ->
-                    cacheData.getAttributes().get("region").equals(region)
-                        && cacheData.getAttributes().get("account").equals(accountName))
-            .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
-            .collect(Collectors.toSet());
-
-    if (clusters == null || clusters.isEmpty()) {
-      clusters = new HashSet<>();
+    Set<String> identifiers =
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                ECS_CLUSTERS.toString(), Keys.getClusterKey(accountName, region, "*")));
+    if (identifiers.isEmpty()) {
+      identifiers = new HashSet<>();
       String nextToken = null;
       do {
         ListClustersRequest listClustersRequest = new ListClustersRequest();
@@ -127,13 +121,16 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
           listClustersRequest.setNextToken(nextToken);
         }
         ListClustersResult listClustersResult = ecs.listClusters(listClustersRequest);
-        clusters.addAll(listClustersResult.getClusterArns());
+        identifiers.addAll(listClustersResult.getClusterArns());
 
         nextToken = listClustersResult.getNextToken();
-      } while (nextToken != null && nextToken.length() != 0);
+      } while (nextToken != null && !nextToken.isEmpty());
+      return identifiers;
+    } else {
+      return providerCache.getAll(ECS_CLUSTERS.toString(), identifiers).stream()
+          .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
+          .collect(Collectors.toSet());
     }
-
-    return clusters;
   }
 
   /**
@@ -160,29 +157,22 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
 
   CacheResult buildCacheResult(
       String authoritativeKeyName, List<T> items, ProviderCache providerCache) {
-    String prettyKeyName =
-        CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, authoritativeKeyName);
 
     Map<String, Collection<CacheData>> dataMap = generateFreshData(items);
-
     // Old keys can come from different account/region, filter them to the current account/region.
     Set<String> oldKeys =
-        providerCache.getAll(authoritativeKeyName).stream()
-            .map(CacheData::getId)
-            .filter(key -> keyAccountRegionFilter(authoritativeKeyName, key))
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                authoritativeKeyName,
+                Keys.buildGlob(Keys.Namespace.valueOf(authoritativeKeyName), accountName, region)));
 
     Map<String, Collection<String>> evictions =
         computeEvictableData(dataMap.get(authoritativeKeyName), oldKeys);
     evictions = addExtraEvictions(evictions);
-    log.info(
-        "Evicting "
-            + evictions.size()
-            + " "
-            + prettyKeyName
-            + (evictions.size() > 1 ? "s" : "")
-            + " in "
-            + getAgentType());
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Evicting {} for key {} in {}", evictions.size(), authoritativeKeyName, getAgentType());
+    }
 
     return new DefaultCacheResult(dataMap, evictions);
   }

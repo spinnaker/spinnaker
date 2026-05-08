@@ -89,14 +89,21 @@ public interface Cache {
   Collection<String> filterIdentifiers(String type, String glob);
 
   /**
-   * Retrieves all the items for the specified type
+   * Retrieves all the items for the specified type. This is a HUGE operation when lots of accounts
+   * are available for a given type. Better to use a GLOB pattern to filter by identifers THEN load
+   * this.
    *
    * @param type the type for which to retrieve items
    * @return all the items for the type
    */
+  @Deprecated
   Collection<CacheData> getAll(String type);
 
   Collection<CacheData> getAll(String type, CacheFilter cacheFilter);
+
+  default Collection<CacheData> getAllByGlob(String type, String glob) {
+    return getAll(type, filterIdentifiers(type, glob));
+  }
 
   /**
    * Retrieves the items for the specified type matching the provided identifiers
