@@ -30,6 +30,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -111,9 +112,8 @@ public class OAuth2IntegrationWithWireMockTest {
   }
 
   @BeforeEach
-  public void setUp() {
-    // Now appPort (@LocalServerPort) is available — set the supplier so transformer can use it
-    RedirectWithStateTransformer.setAppPortSupplier(() -> appPort);
+  public void setUp(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
   }
 
   @Test
@@ -196,5 +196,73 @@ public class OAuth2IntegrationWithWireMockTest {
     assertThat(response.getStatusCodeValue()).isEqualTo(200);
     assertThat(response.getBody()).isNotNull();
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies that a Bearer token sent to /login authenticates the user via the user-info endpoint
+   * and redirects to the base URL.
+   */
+  @Test
+  void loginWithBearerTokenAuthenticatesAndRedirectsToBaseUrl() {
+    githubMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{"
+                            + "\"email\": \"test@example.com\","
+                            + "\"login\": \"testuser\","
+                            + "\"name\": \"Test User\","
+                            + "\"type\": \"User\","
+                            + "\"id\": 12345"
+                            + "}")));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.AUTHORIZATION, "Bearer my-personal-access-token");
+
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+
+    // Use Apache HttpClient with redirect handling disabled so we can observe
+    // the actual response from gate rather than following the redirect chain.
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login", HttpMethod.GET, request, String.class);
+
+    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getHeaders().getLocation().toString())
+        .isEqualTo("http://localhost:" + appPort + "/");
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies that GET /login without a Bearer token redirects to the OAuth2 provider's
+   * authorization endpoint, matching the legacy {@code @EnableOAuth2Sso} behavior.
+   */
+  @Test
+  void loginWithoutBearerTokenRedirectsToOAuthProvider() {
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login",
+            HttpMethod.GET,
+            HttpEntity.EMPTY,
+            String.class);
+
+    // On the legacy @EnableOAuth2Sso stack, /login redirected directly to the provider's
+    // authorization endpoint (/login/oauth/authorize with client_id and response_type params).
+    // On the oauth2Login() stack, /login redirects to Spring's intermediate authorization
+    // request endpoint (/oauth2/authorization/github), which then redirects to the provider.
+    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getHeaders().getLocation().toString())
+        .contains("/oauth2/authorization/github");
+    githubMockServer.verify(0, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 }

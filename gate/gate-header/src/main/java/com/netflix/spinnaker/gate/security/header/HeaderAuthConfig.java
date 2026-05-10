@@ -18,8 +18,10 @@ package com.netflix.spinnaker.gate.security.header;
 
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.common.Header;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +38,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
  */
 @ConditionalOnProperty("header.enabled")
 @Configuration
+@EnableConfigurationProperties(HeaderAuthProperties.class)
 public class HeaderAuthConfig {
 
   @Bean
@@ -100,7 +103,10 @@ public class HeaderAuthConfig {
 
   @Bean
   public AuthenticationProvider authenticationProvider(
-      PermissionService permissionService, AllowedAccountsSupport allowedAccountsSupport) {
+      PermissionService permissionService,
+      AllowedAccountsSupport allowedAccountsSupport,
+      Front50Service front50Service,
+      HeaderAuthProperties headerAuthProperties) {
     // PreAuthenticatedAuthenticationProvider provides tokens of type
     // PreAuthenticatedAuthenticationToken.  Because our
     // RequestHeaderAuthenticationFilter sets an authenticationDetailsSource to
@@ -126,7 +132,8 @@ public class HeaderAuthConfig {
     // To try to rock the boat as little as possible, generate kork-security
     // User objects via gate's own user details service
     provider.setPreAuthenticatedUserDetailsService(
-        new HeaderAuthenticationUserDetailsService(permissionService, allowedAccountsSupport));
+        new HeaderAuthenticationUserDetailsService(
+            permissionService, allowedAccountsSupport, front50Service, headerAuthProperties));
     return provider;
   }
 

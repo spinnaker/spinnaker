@@ -11,10 +11,6 @@ configMapGenerator:
   files:
   - files/clouddriver-local.yml
 - behavior: merge
-  name: deck-env
-  envs:
-  - files/deck.env
-- behavior: merge
   name: deck
   files:
   - files/settings-local.js

@@ -76,7 +76,7 @@ data class PluginRef(
      * Returns whether or not the provided [path] is a valid [PluginRef].
      */
     fun isPluginRef(path: Path?): Boolean =
-      path != null && Files.isRegularFile(path) && path.toString().toLowerCase().endsWith(EXTENSION)
+      path != null && Files.isRegularFile(path) && path.toString().lowercase().endsWith(EXTENSION)
 
     /**
      * Loads the given [path] as a [PluginRef].

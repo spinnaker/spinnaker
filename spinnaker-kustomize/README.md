@@ -12,8 +12,9 @@ Or, for testing you can create a development cluster with `Kind` using the
 commands below.
 
 WARNING: The default configuration grants Spinnaker `cluster-admin` privileges
-and does not enable any authentication or authorization to prevent malicious
-use. Please only install into a private development cluster.
+and adds a default username/password in the gate configuration file.  It's suggested
+to use keycloak or okta or some other auth provider and setup auth fully vs. the 
+simple local username and password. Please only install into a private development cluster.
 
 ## Quick start
 
@@ -48,6 +49,19 @@ make apply
 ```
 
 Pods will crash loop until MariaDB and Redis are available.
+
+## Initial config
+This exposes a minimal ingress for routing with gate on a /api/v1 prefix and deck on /.  The default
+hostname is set to example.com - replace with your own name and entries.  Note there are unfortunately
+several locations to change this setting.  
+* base/spinnaker.yml - which gate uses for validation of redirects for logins
+* base/deck/files/settings.js - which sets UI paths required for various API calls
+* ingress.yaml - which is what the ingress usees for route rules
+
+You should ALSO adjust the default password set in `overlays/config/files/gate-local.yml` to some other default password and better yet, a real auth provider.
+
+NOTE:  When setting an auth provider other than basicform, please ALSO turn on various settings like pipeline permissions which are default commented out
+and enable fiat for RBAC.  Docs are available on [the website](https://spinnaker.io) for more installation settings
 
 ## Customizing Spinnaker
 

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kork.plugins.v2
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor
 import com.netflix.spinnaker.kork.plugins.proxy.aspects.InvocationAspect
 import org.pf4j.Plugin
+import org.pf4j.PluginWrapper
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
 import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.beans.factory.support.BeanDefinitionBuilder
@@ -33,14 +34,16 @@ import org.springframework.context.support.GenericApplicationContext
  * `$plugin.actual::java.class` to get access to the actual plugin Java class.
  *
  * @param actual The actual plugin-provided [Plugin] class.
+ * @param pluginWrapper The [PluginWrapper] for the actual plugin.
  */
 class PluginContainer(
   val actual: Plugin,
   private val serviceApplicationContext: GenericApplicationContext,
-) : Plugin(actual.wrapper) {
+  val pluginWrapper: PluginWrapper,
+) : Plugin() {
 
   internal val pluginContext = GenericApplicationContext(serviceApplicationContext).also {
-    ApplicationContextGraph.pluginContexts[wrapper.pluginId] = it
+    ApplicationContextGraph.pluginContexts[pluginWrapper.pluginId] = it
   }
 
   /**
@@ -48,13 +51,13 @@ class PluginContainer(
    * initialized at the correct time in the service's startup process.
    */
   fun registerInitializer(registry: BeanDefinitionRegistry): String {
-    val initializerBeanName = "${wrapper.pluginId}Initializer"
+    val initializerBeanName = "${pluginWrapper.pluginId}Initializer"
 
     val initializerBeanDefinition = BeanDefinitionBuilder.genericBeanDefinition(SpringPluginInitializer::class.java)
       .setScope(BeanDefinition.SCOPE_SINGLETON)
       .setAutowireMode(AutowireCapableBeanFactory.AUTOWIRE_NO)
       .addConstructorArgValue(actual)
-      .addConstructorArgValue(actual.wrapper)
+      .addConstructorArgValue(pluginWrapper)
       .addConstructorArgValue(pluginContext)
       .beanDefinition
 

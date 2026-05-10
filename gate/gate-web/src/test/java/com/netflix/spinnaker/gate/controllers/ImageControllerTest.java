@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.ImageService;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,13 @@ class ImageControllerTest {
   private MockMvc webAppMockMvc;
 
   @Autowired private WebApplicationContext webApplicationContext;
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockBean ApplicationService applicationService;
 
   @MockBean ImageService imageService;
 

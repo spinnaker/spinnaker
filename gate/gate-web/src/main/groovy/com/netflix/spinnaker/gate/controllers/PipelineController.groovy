@@ -184,7 +184,7 @@ class PipelineController {
 
   @Operation(summary = "Retrieve a pipeline execution")
   @GetMapping("{id}")
-  Map getPipeline(@PathVariable("id") String id) {
+  Map<String, Object> getPipeline(@PathVariable("id") String id) {
     try {
       pipelineService.getPipeline(id)
     } catch (SpinnakerHttpException e) {
@@ -247,13 +247,13 @@ class PipelineController {
 
   @Operation(summary = "Update a stage execution")
   @PatchMapping("/{id}/stages/{stageId}")
-  Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+  Map<String, Object> updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map<String, Object> context) {
     pipelineService.updatePipelineStage(id, stageId, context)
   }
 
   @Operation(summary = "Restart a stage execution")
   @PutMapping("/{id}/stages/{stageId}/restart")
-  Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+  Map<String, Object> restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map<String, Object> context) {
     Map pipelineMap = getPipeline(id)
 
     String pipelineName = pipelineMap.get("name");
@@ -281,7 +281,7 @@ class PipelineController {
 
   @Operation(summary = "Initiate a pipeline execution")
   @PostMapping('/start')
-  ResponseEntity start(@RequestBody Map map) {
+  ResponseEntity start(@RequestBody Map<String, Object> map) {
     if (map.containsKey("application")) {
       AuthenticatedRequest.setApplication(map.get("application").toString())
     }
@@ -335,7 +335,7 @@ class PipelineController {
 
   @Operation(summary = "Evaluate a pipeline expression using the provided execution as context")
   @GetMapping("{id}/evaluateExpression")
-  Map evaluateExpressionForExecution(@PathVariable("id") String id,
+  Map<String, Object> evaluateExpressionForExecution(@PathVariable("id") String id,
                                      @RequestParam("expression") String pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
@@ -348,7 +348,7 @@ class PipelineController {
 
   @Operation(summary = "Evaluate a pipeline expression using the provided execution as context")
   @PostMapping(value = "{id}/evaluateExpression", consumes = "text/plain")
-  Map evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
+  Map<String, Object> evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
                                             @RequestBody String pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
@@ -361,7 +361,7 @@ class PipelineController {
 
   @Operation(summary = "Evaluate a pipeline expression at a specific stage using the provided execution as context")
   @GetMapping("{id}/{stageId}/evaluateExpression")
-  Map evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
+  Map<String, Object> evaluateExpressionForExecutionAtStage(@PathVariable("id") String id,
                                             @PathVariable("stageId") String stageId,
                                             @RequestParam("expression") String pipelineExpression) {
     try {
@@ -375,7 +375,7 @@ class PipelineController {
 
   @Operation(summary = "Evaluate a pipeline expression using the provided execution as context")
   @PostMapping(value = "{id}/evaluateExpression", consumes = "application/json")
-  Map evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
+  Map<String, Object> evaluateExpressionForExecutionViaPOST(@PathVariable("id") String id,
                                             @RequestBody Map pipelineExpression) {
     try {
       pipelineService.evaluateExpressionForExecution(id, (String) pipelineExpression.expression)
@@ -388,7 +388,7 @@ class PipelineController {
 
   @Operation(summary = "Evaluate variables same as Evaluate Variables stage using the provided execution as context")
   @PostMapping(value = "{id}/evaluateVariables", consumes = "application/json")
-  Map evaluateVariables(@Parameter(description = "Execution id to run against", required = true)
+  Map<String, Object> evaluateVariables(@Parameter(description = "Execution id to run against", required = true)
                         @RequestParam("executionId") String executionId,
                         @Parameter(description = "Comma separated list of requisite stage IDs for the evaluation stage", required = false)
                         @RequestParam(value = "requisiteStageRefIds", defaultValue = "") String requisiteStageRefIds,

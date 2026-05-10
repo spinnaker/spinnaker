@@ -22,7 +22,6 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildService
 import com.netflix.spinnaker.igor.service.BuildServices
-import com.netflix.spinnaker.igor.wercker.WerckerService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -105,9 +104,6 @@ class InfoController {
             recursiveGetJobs(jenkinsService.jobs.list)
 
             return jobList
-        } else if (buildService instanceof WerckerService) {
-            WerckerService werckerService = (WerckerService) buildService
-            return werckerService.getJobs()
         } else {
             return buildCache.getJobNames(master)
         }

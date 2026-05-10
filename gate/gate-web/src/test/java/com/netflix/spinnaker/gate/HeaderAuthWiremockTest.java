@@ -107,13 +107,19 @@ public class HeaderAuthWiremockTest {
   static WireMockExtension wmFiat =
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
+  @RegisterExtension
+  static WireMockExtension wmFront50 =
+      WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
+
   @Autowired FiatPermissionEvaluator fiatPermissionEvaluator;
 
   @DynamicPropertySource
   static void registerUrls(DynamicPropertyRegistry registry) {
     // Configure wiremock's random ports into gate
     System.out.println("wiremock fiat url: " + wmFiat.baseUrl());
+    System.out.println("wiremock front50 url: " + wmFront50.baseUrl());
     registry.add("services.fiat.base-url", wmFiat::baseUrl);
+    registry.add("services.front50.base-url", wmFront50::baseUrl);
   }
 
   @BeforeEach
@@ -205,5 +211,55 @@ public class HeaderAuthWiremockTest {
         .containsExactly(TEST_REQUEST_ID);
 
     return response.body();
+  }
+
+  @Test
+  void testHeaderAuthHandlesFront50Exception() throws Exception {
+    // Test that when Front50 returns an error for /serviceAccounts, header auth
+    // handles it gracefully and still allows the user to authenticate
+    String serviceAccountEmail = "pipegensvc@salesforce.com";
+    URI uri = new URI("http://localhost:" + port + "/auth/rawUser");
+
+    HttpRequest request =
+        HttpRequest.newBuilder(uri)
+            .GET()
+            .header(USER.getHeader(), serviceAccountEmail)
+            .header(REQUEST_ID.getHeader(), TEST_REQUEST_ID)
+            .build();
+
+    // Configure Front50 to return a 500 error for /serviceAccounts
+    wmFront50.stubFor(
+        WireMock.get(urlPathEqualTo("/serviceAccounts"))
+            .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
+
+    // Configure Fiat for the login call (which should still happen even if Front50 fails)
+    String encodedUserId = URLEncoder.encode(serviceAccountEmail, StandardCharsets.UTF_8);
+    wmFiat.stubFor(
+        WireMock.post(urlMatching("/roles/" + encodedUserId))
+            .willReturn(aResponse().withStatus(HttpStatus.OK.value())));
+
+    // Configure Fiat for permissions call
+    UserPermission.View userPermissionView =
+        new UserPermission.View()
+            .setName(serviceAccountEmail)
+            .setAdmin(false)
+            .setAccounts(Set.of())
+            .setRoles(Set.of());
+
+    String userPermissionViewJson = objectMapper.writeValueAsString(userPermissionView);
+
+    wmFiat.stubFor(
+        WireMock.get(urlMatching("/authorize/" + encodedUserId))
+            .willReturn(
+                aResponse().withStatus(HttpStatus.OK.value()).withBody(userPermissionViewJson)));
+
+    // The request should succeed even though Front50 returned an error
+    callGate(request, 200);
+
+    // Verify Front50 was called
+    wmFront50.verify(getRequestedFor(urlPathEqualTo("/serviceAccounts")));
+
+    // Verify Fiat was still called (user was logged in)
+    wmFiat.verify(postRequestedFor(urlPathEqualTo("/roles/" + encodedUserId)));
   }
 }

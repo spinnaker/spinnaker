@@ -51,7 +51,8 @@ class PipelineTemplateService {
     Retrofit2SyncCall.execute(front50Service.getPipelineTemplates((String[]) scopes?.toArray()))
   }
 
-  Map resolve(String source, String executionId, String pipelineConfigId) {
+  /** Resolve a pipeline template via orca. */
+  Map<String, Object> resolve(String source, String executionId, String pipelineConfigId) {
     Retrofit2SyncCall.execute(orcaServiceSelector.select().resolvePipelineTemplate(source, executionId, pipelineConfigId))
   }
 

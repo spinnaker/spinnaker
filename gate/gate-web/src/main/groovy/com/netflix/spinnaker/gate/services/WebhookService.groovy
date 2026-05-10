@@ -63,7 +63,8 @@ class WebhookService {
     })
   }
 
-  List preconfiguredWebhooks() {
+  /** Retrieve preconfigured webhook definitions from orca. */
+  List<Map<String, Object>> preconfiguredWebhooks() {
     return AuthenticatedRequest.allowAnonymous({
       Retrofit2SyncCall.execute(orcaServiceSelector.select().preconfiguredWebhooks())
     })

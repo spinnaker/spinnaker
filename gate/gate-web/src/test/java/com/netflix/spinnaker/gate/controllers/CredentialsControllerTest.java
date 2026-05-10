@@ -35,6 +35,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +75,13 @@ public class CredentialsControllerTest {
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired ObjectMapper objectMapper;
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockBean ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
   @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;

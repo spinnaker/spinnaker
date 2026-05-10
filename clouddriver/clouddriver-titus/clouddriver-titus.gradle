@@ -60,11 +60,13 @@ dependencies {
 sourceSets {
   main {
     java {
-      srcDir "${protobuf.generatedFilesBaseDir}/main/grpc"
-      srcDir "${protobuf.generatedFilesBaseDir}/main/java"
+      srcDir "${buildDir}/generated/sources/proto/main/grpc"
+      srcDir "${buildDir}/generated/sources/proto/main/java"
     }
   }
 }
+
+compileJava.dependsOn generateProto
 
 task cleanGenerated(type: Delete) {
   delete "$projectDir/src/generated"

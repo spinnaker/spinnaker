@@ -15,7 +15,9 @@ module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT, 
     this.$onInit = () => {
       this.type = (function (lb) {
         if (lb.loadBalancerType === 'HTTP') {
-          if (_.isString(lb.certificate)) {
+          const hasCertificate = _.isString(lb.certificate) && !_.isEmpty(lb.certificate);
+          const hasCertificateMap = _.isString(lb.certificateMap) && !_.isEmpty(lb.certificateMap);
+          if (hasCertificate || hasCertificateMap) {
             return 'HTTPS';
           } else {
             return 'HTTP';

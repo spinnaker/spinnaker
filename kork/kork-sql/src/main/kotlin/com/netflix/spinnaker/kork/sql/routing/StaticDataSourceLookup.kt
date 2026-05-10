@@ -17,6 +17,7 @@ package com.netflix.spinnaker.kork.sql.routing
 
 import javax.sql.DataSource
 import org.springframework.jdbc.datasource.lookup.DataSourceLookup
+import org.springframework.jdbc.datasource.lookup.DataSourceLookupFailureException
 
 /**
  * Lookup a [DataSource] by name from a static set.
@@ -28,6 +29,9 @@ class StaticDataSourceLookup(
   private val dataSources: Map<String, DataSource>
 ) : DataSourceLookup {
 
-  override fun getDataSource(dataSourceName: String): DataSource? =
+  override fun getDataSource(dataSourceName: String): DataSource =
     dataSources[dataSourceName]
+      ?: throw DataSourceLookupFailureException(
+        "No DataSource with name '$dataSourceName' registered"
+      )
 }

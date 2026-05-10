@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -58,11 +59,11 @@ public class BasicAuthConfig {
   @Order(2)
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     defaultCookieSerializer.setSameSite(null);
-    http.formLogin()
-        .and()
+    http.formLogin(Customizer.withDefaults())
         .authenticationProvider(authProvider)
-        .httpBasic()
-        .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"));
+        .httpBasic(
+            basic ->
+                basic.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login")));
     authConfig.configure(http);
     return http.build();
   }

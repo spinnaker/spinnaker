@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kork.pubsub.aws
 import com.amazonaws.services.sns.AmazonSNS
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.CreateQueueResult
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest
 import com.amazonaws.services.sqs.model.GetQueueUrlResult
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException
 import com.netflix.spinnaker.kork.aws.ARN
@@ -31,13 +32,38 @@ class PubSubUtilsSpec extends Specification {
   ARN queueARN = new ARN("arn:aws:sqs:us-west-2:100:queueName")
   ARN topicARN = new ARN("arn:aws:sns:us-west-2:100:topicName")
 
-  def "should not create queue if it exists"() {
+  def "getQueueUrl returns URL and passes QueueOwnerAWSAccountId"() {
+    when:
+    def url = PubSubUtils.getQueueUrl(amazonSQS, queueARN)
+
+    then:
+    url == "my-queue-url"
+    1 * amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
+      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
+    }) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
+    0 * _
+  }
+
+  def "getQueueUrl propagates QueueDoesNotExistException (no createQueue fallback)"() {
+    when:
+    PubSubUtils.getQueueUrl(amazonSQS, queueARN)
+
+    then:
+    // retrySupport retries MAX_RETRIES (=5) times before giving up
+    (1.._) * amazonSQS.getQueueUrl(_ as GetQueueUrlRequest) >> { throw new QueueDoesNotExistException("nope") }
+    0 * amazonSQS.createQueue(_)
+    thrown(QueueDoesNotExistException)
+  }
+
+  def "ensureQueueExists does not create queue if it exists"() {
     when:
     def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
 
     then:
     queueId == "my-queue-url"
-    1 * amazonSQS.getQueueUrl(queueARN.name) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
+    1 * amazonSQS.getQueueUrl({ GetQueueUrlRequest req ->
+      req.queueName == queueARN.name && req.queueOwnerAWSAccountId == queueARN.account
+    }) >> { new GetQueueUrlResult().withQueueUrl("my-queue-url") }
     0 * amazonSQS.createQueue(_)
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
       "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),
@@ -46,13 +72,14 @@ class PubSubUtilsSpec extends Specification {
     0 * _
   }
 
-  def "should create queue if it does not exist"() {
+  def "ensureQueueExists falls back to createQueue when queue is missing"() {
     when:
     def queueId = PubSubUtils.ensureQueueExists(amazonSQS, queueARN, topicARN, 1)
 
     then:
     queueId == "my-queue-url"
-    1 * amazonSQS.getQueueUrl(queueARN.name) >> { throw new QueueDoesNotExistException() }
+    // retry may re-invoke getQueueUrl before giving up and returning to ensureQueueExists
+    (1.._) * amazonSQS.getQueueUrl(_ as GetQueueUrlRequest) >> { throw new QueueDoesNotExistException("nope") }
     1 * amazonSQS.createQueue(queueARN.name) >> { new CreateQueueResult().withQueueUrl("my-queue-url") }
     1 * amazonSQS.setQueueAttributes("my-queue-url", [
       "Policy": PubSubUtils.buildSQSPolicy(queueARN, topicARN).toJson(),

@@ -6,5 +6,8 @@ resources:
 commonLabels:
   app.kubernetes.io/name: deck
 configMapGenerator:
-- name: deck
-- name: deck-env
+- behavior: create
+  name: deck
+  files:
+  - files/settings.js
+

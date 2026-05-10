@@ -67,6 +67,12 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
     this.description = description;
   }
 
+  static String getFirstSslCertificateName(List<String> sslCertificates) {
+    return sslCertificates != null && !sslCertificates.isEmpty()
+        ? GCEUtil.getLocalName(sslCertificates.get(0))
+        : null;
+  }
+
   /**
    * minimal command: curl -v -X POST -H "Content-Type: application/json" -d '[{
    * "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType":
@@ -271,13 +277,15 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                       + " is an Https load balancer, but the upsert description does not contain a certificate.");
             }
 
+            List<String> existingSslCertificates =
+                ((TargetHttpsProxy) existingProxy).getSslCertificates();
+            String existingCertificateName = getFirstSslCertificateName(existingSslCertificates);
+            String desiredCertificateName =
+                GCEUtil.getLocalName(
+                    GCEUtil.buildRegionalCertificateUrl(
+                        project, region, internalHttpLoadBalancer.getCertificate()));
             targetProxyNeedsUpdated =
-                !GCEUtil.getLocalName(
-                        ((TargetHttpsProxy) existingProxy).getSslCertificates().get(0))
-                    .equals(
-                        GCEUtil.getLocalName(
-                            GCEUtil.buildCertificateUrl(
-                                project, internalHttpLoadBalancer.getCertificate())));
+                !Objects.equals(existingCertificateName, desiredCertificateName);
             break;
           default:
             log.warn("Unexpected target proxy type for " + targetProxyName + ".");
@@ -681,7 +689,8 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
           TargetHttpsProxy proxy = new TargetHttpsProxy();
           proxy.setSslCertificates(
               Arrays.asList(
-                  GCEUtil.buildCertificateUrl(project, internalHttpLoadBalancer.getCertificate())));
+                  GCEUtil.buildRegionalCertificateUrl(
+                      project, region, internalHttpLoadBalancer.getCertificate())));
           proxy.setUrlMap(urlMapUrl);
           proxy.setName(targetProxyName);
           targetProxy = proxy;

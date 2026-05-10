@@ -13,6 +13,7 @@ import { ReactInjector } from '../../../reactShims/react.injector';
 export interface ITriggersProps {
   application: Application;
   pipeline: IPipeline;
+  pipelineConfig?: IPipeline;
   fieldUpdated: () => void;
   updatePipelineConfig: (changes: Partial<IPipeline>) => void;
   revertCount: number;
@@ -54,7 +55,11 @@ export function Triggers(props: ITriggersProps) {
         <NotificationsPageContent {...props} />
       </PageSection>
       <PageSection pageKey="description" label="Metadata" noWrapper={true}>
-        <MetadataPageContent {...props} key={revertCountKLUDGE} />
+        <MetadataPageContent
+          pipeline={props.pipelineConfig || props.pipeline}
+          updatePipelineConfig={props.updatePipelineConfig}
+          key={revertCountKLUDGE}
+        />
       </PageSection>
     </PageNavigator>
   );

@@ -1,2 +1,39 @@
 # Overrides for gate default configuration:
 # https://github.com/spinnaker/gate/blob/master/gate-web/config/gate.yml
+
+
+## Useful for MTLS situations
+#default:
+#  apiPort: 8085
+
+## Samle example configuration
+#saml:
+#  enabled: true
+#  issuerId: spinnaker
+#  metadataUrl: https://integrator-3395767.okta.com/app/exku1rxeyhJeP16iJ697/sso/saml/metadata
+#  sign-requests: true
+#  signing-credentials:
+#    - certificate-location: encryptedFile:secret-engine!n:saml-signing-secret!k:certificate.pem
+#      private-key-location: encryptedFile:secret-engine!n:saml-signing-secret!k:private_key.pem
+
+## Set at least a DEFAULT simple username/password to get started
+security:
+  basicform:
+    enabled: true
+spring:
+  security:
+    user:
+      name: admin
+      password: spinnakerSaysYouShouldChangeYourPassword
+      roles: admin
+
+## This starts gate under a PREFIX /api/v1 vs. at the root with a different port.  The ingress
+## then routes API traffic to this endpoint.  This bypasses all the CORS headaches AND simplifies deployments
+server:
+  servlet:
+    context-path: /api/v1
+  tomcat:
+    httpsServerPort: X-Forwarded-Port
+    internalProxies: .*
+    protocolHeader: X-Forwarded-Proto
+    remoteIpHeader: X-Forwarded-For

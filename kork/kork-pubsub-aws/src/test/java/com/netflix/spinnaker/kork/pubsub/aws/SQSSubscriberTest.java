@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.pubsub.aws;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.SubscribeResult;
 import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -38,6 +39,7 @@ import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -121,6 +123,60 @@ public class SQSSubscriberTest {
     verify(amazonSQS, never()).receiveMessage(any(ReceiveMessageRequest.class));
   }
 
+  @Test
+  @DisplayName("initializeQueue resolves URL only when skipQueueBootstrap=true")
+  void testInitializeQueueSkipsBootstrapWhenFlagTrue() {
+    // given
+    AmazonPubsubProperties.AmazonPubsubSubscription sub = subscription();
+    sub.setSkipQueueBootstrap(true);
+
+    AmazonSQS sqs = amazonSQS();
+    AmazonSNS sns = amazonSNS();
+    subscriber =
+        new SQSSubscriber(
+            sub,
+            mock(AmazonPubsubMessageHandler.class),
+            mock(AmazonMessageAcknowledger.class),
+            sns,
+            sqs,
+            enableOnce(),
+            new DefaultRegistry());
+
+    // when
+    subscriber.initializeQueue();
+
+    // then
+    verify(sqs, times(1)).getQueueUrl(any(GetQueueUrlRequest.class));
+    verify(sqs, never()).createQueue(anyString());
+    verify(sqs, never()).setQueueAttributes(anyString(), any(Map.class));
+    verify(sns, never()).subscribe(anyString(), anyString(), anyString());
+  }
+
+  @Test
+  @DisplayName("initializeQueue bootstraps queue when skipQueueBootstrap=false (default)")
+  void testInitializeQueueBootstrapsWhenFlagFalse() {
+    // given — default subscription has skipQueueBootstrap=false
+    AmazonSQS sqs = amazonSQS();
+    AmazonSNS sns = amazonSNS();
+    subscriber =
+        new SQSSubscriber(
+            subscription(),
+            mock(AmazonPubsubMessageHandler.class),
+            mock(AmazonMessageAcknowledger.class),
+            sns,
+            sqs,
+            enableOnce(),
+            new DefaultRegistry());
+
+    // when
+    subscriber.initializeQueue();
+
+    // then
+    verify(sqs, times(1)).getQueueUrl(any(GetQueueUrlRequest.class));
+    verify(sqs, times(1)).setQueueAttributes(anyString(), any(Map.class));
+    verify(sns, times(1)).subscribe(anyString(), anyString(), anyString());
+  }
+
   AmazonPubsubProperties.AmazonPubsubSubscription subscription() {
     AmazonPubsubProperties.AmazonPubsubSubscription subscription =
         new AmazonPubsubProperties.AmazonPubsubSubscription();
@@ -140,7 +196,7 @@ public class SQSSubscriberTest {
     doReturn(List.of(msg)).when(receiveMessageResult).getMessages();
 
     AmazonSQS SQS = spy(AmazonSQS.class);
-    doReturn(getQueueUrlResult).when(SQS).getQueueUrl(anyString());
+    doReturn(getQueueUrlResult).when(SQS).getQueueUrl(any(GetQueueUrlRequest.class));
     doReturn(receiveMessageResult).when(SQS).receiveMessage(any(ReceiveMessageRequest.class));
 
     return SQS;

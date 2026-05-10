@@ -77,8 +77,8 @@ class FakePluginStatusProvider : PluginStatusProvider {
 }
 
 class FakeConfigResolver : ConfigResolver {
-  override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>) = expectedType.newInstance()
+  override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T = expectedType.getDeclaredConstructor().newInstance()
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: TypeReference<T>): T =
     @Suppress("UNCHECKED_CAST")
-    ((expectedType.type as ParameterizedType).rawType as Class<T>).newInstance()
+    ((expectedType.type as ParameterizedType).rawType as Class<T>).getDeclaredConstructor().newInstance()
 }

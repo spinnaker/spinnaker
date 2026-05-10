@@ -78,7 +78,8 @@ class DefaultSqlConfiguration {
   fun secondaryLiquibase(properties: SqlProperties, @Value("\${sql.read-only:false}") sqlReadOnly: Boolean): SpringLiquibase =
     SpringLiquibaseProxy(properties.secondaryMigration, sqlReadOnly)
 
-  @Suppress("ThrowsCount", "UndocumentedPublicFunction")
+  // Remove DEPRECATION suppression once SqlProperties.connectionPool is removed
+  @Suppress("ThrowsCount", "UndocumentedPublicFunction", "DEPRECATION")
   @DependsOn("liquibase")
   @Bean
   fun dataSource(dataSourceFactory: DataSourceFactory, properties: SqlProperties): DataSource {
@@ -124,8 +125,11 @@ class DefaultSqlConfiguration {
 
     validateDefaultTargetDataSources(targets.values)
 
-    val dataSources = targets.map { it.key.toLowerCase() to it.value.dataSource }.toMap()
+    val dataSources: Map<String, DataSource> = targets.map { it.key.lowercase() to it.value.dataSource }.toMap()
     val dataSource = NamedDataSourceRouter()
+    // Safe: Map<String, DataSource> is a Map<Any, Any> at runtime due to erasure,
+    // but Kotlin's invariant Map key type prevents a direct assignment.
+    @Suppress("UNCHECKED_CAST")
     dataSource.setTargetDataSources(dataSources as Map<Any, Any>)
     dataSource.setDataSourceLookup(StaticDataSourceLookup(dataSources))
     dataSource.setDefaultTargetDataSource(

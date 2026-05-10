@@ -19,7 +19,7 @@ plugins {
   id 'io.spinnaker.project' apply false
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.spring)
-  id "com.google.protobuf" version "0.8.12" apply false
+  alias(libs.plugins.protobuf) apply false
 }
 
 allprojects {

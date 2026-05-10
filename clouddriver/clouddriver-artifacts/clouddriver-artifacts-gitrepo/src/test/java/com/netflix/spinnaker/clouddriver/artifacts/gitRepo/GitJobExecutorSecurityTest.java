@@ -58,7 +58,12 @@ class GitJobExecutorSecurityTest {
 
     GitRepoArtifactAccount account = GitRepoArtifactAccount.builder().name("test-account").build();
 
-    gitJobExecutor = new GitJobExecutor(account, mockJobExecutor, "git");
+    gitJobExecutor =
+        new GitJobExecutor(
+            account,
+            mockJobExecutor,
+            "git",
+            GitRepoArtifactProviderProperties.DEFAULT_GIT_URL_REGEX_PATTERN);
   }
 
   // Tests for valid git references
@@ -97,6 +102,14 @@ class GitJobExecutorSecurityTest {
       "https://github.com/repo.git",
       "https://gitlab.com/repo.git",
       "https://bitbucket.org/repo.git",
+      "https://github.com/example/customer-example.git",
+      "https://github.com/example/customer_example.git",
+      "https://github.com/example/customer_example.git",
+      "git@github.com:jasonmcintosh/aex-with_underscore-and_dashes.git", // a more... complicated
+      // example
+      "git@github.com:org/example-helm-chart.git",
+      "git@gitlab.com:project/with/folder/example-helm-chart.git",
+      "https://gitlab.com/project/with/folder/example-agent.git",
       "https://internal.company.com/repo.git",
       "https://janedoe:password@example.com/project/repo.git",
       "https://localhost:3000/project/repo" // gitea where a .git extension is NOT needed

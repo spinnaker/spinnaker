@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.kork.yaml;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
@@ -41,6 +42,7 @@ import org.yaml.snakeyaml.resolver.Resolver;
  * automatically applied to all created {@link Yaml} instances.
  */
 @Component
+@Log4j2
 public class YamlHelper {
 
   private static YamlParserProperties yamlParserProperties;
@@ -62,13 +64,17 @@ public class YamlHelper {
    *
    * @return a new {@link Yaml} instance
    */
+  @Deprecated
   public static Yaml newYaml() {
+    log.warn(
+        "WARNING:  Invoked newYaml!  THIS DOES NOT load yaml safely and should ONLY be used in initialization or by processes that are trusted!",
+        new Exception());
     if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
 
       Constructor constructor = new Constructor(opts);
-      Representer representer = new Representer();
       DumperOptions dumperOpts = new DumperOptions();
+      Representer representer = new Representer(dumperOpts);
       Resolver resolver = new Resolver(); // default tag resolver
 
       return new Yaml(constructor, representer, dumperOpts, opts, resolver);
@@ -89,13 +95,13 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       SafeConstructor constructor = new SafeConstructor(opts);
-      Representer representer = new Representer();
       DumperOptions dumperOpts = new DumperOptions();
+      Representer representer = new Representer(dumperOpts);
 
       return new Yaml(constructor, representer, dumperOpts, opts);
     }
 
-    return new Yaml(new SafeConstructor());
+    return new Yaml(new SafeConstructor(new LoaderOptions()));
   }
 
   /**
@@ -110,12 +116,13 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       SafeConstructor constructor = new SafeConstructor(opts);
-      Representer representer = new Representer();
+      Representer representer = new Representer(dumperOptions);
 
       return new Yaml(constructor, representer, dumperOptions, opts);
     }
 
-    return new Yaml(new SafeConstructor(), new Representer(), dumperOptions);
+    return new Yaml(
+        new SafeConstructor(new LoaderOptions()), new Representer(dumperOptions), dumperOptions);
   }
 
   /**

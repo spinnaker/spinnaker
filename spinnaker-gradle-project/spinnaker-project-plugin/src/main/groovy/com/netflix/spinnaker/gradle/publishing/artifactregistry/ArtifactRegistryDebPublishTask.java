@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.gradle.publishing.artifactregistry;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.artifactregistry.v1beta2.ArtifactRegistryScopes;
 import com.google.api.services.artifactregistry.v1beta2.model.ImportAptArtifactsGcsSource;
 import com.google.api.services.artifactregistry.v1beta2.model.ImportAptArtifactsRequest;
@@ -148,7 +148,7 @@ class ArtifactRegistryDebPublishTask extends DefaultTask {
     InterruptedException {
 
     ArtifactRegistry artifactRegistryClient = new ArtifactRegistry(
-      GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), new HttpCredentialsAdapter(
+      GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), new HttpCredentialsAdapter(
         resolveCredentials()
       )
     );

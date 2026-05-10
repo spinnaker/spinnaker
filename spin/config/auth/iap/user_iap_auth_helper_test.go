@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	expectedOauthUrl = "https://accounts.google.com/o/oauth2/v2/auth?client_id=testClientId&redirect_uri=http%3A%2F%2Flocalhost%3A80&response_type=code&scope=openid+email&state=testClientState"
+	expectedOauthUrl = "https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&client_id=testClientId&redirect_uri=http%3A%2F%2Flocalhost%3A80&response_type=code&scope=openid+email&state=testClientState"
 )
 
 func TestGetCorrectOauthUrlSuccessful(t *testing.T) {

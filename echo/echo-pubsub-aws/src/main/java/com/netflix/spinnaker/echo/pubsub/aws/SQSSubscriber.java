@@ -132,11 +132,19 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
     }
   }
 
-  private void initializeQueue() {
-    this.queueId =
-        PubSubUtils.ensureQueueExists(
-            sqsClient, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
-    PubSubUtils.subscribeToTopic(snsClient, topicARN, queueARN);
+  @VisibleForTesting
+  void initializeQueue() {
+    if (subscription.isSkipQueueBootstrap()) {
+      this.queueId = PubSubUtils.getQueueUrl(sqsClient, queueARN);
+      log.info(
+          "skipQueueBootstrap=true for {}; resolving queue URL only, not calling setQueueAttributes/subscribe",
+          queueARN);
+    } else {
+      this.queueId =
+          PubSubUtils.ensureQueueExists(
+              sqsClient, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
+      PubSubUtils.subscribeToTopic(snsClient, topicARN, queueARN);
+    }
   }
 
   private void listenForMessages() {

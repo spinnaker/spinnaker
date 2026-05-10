@@ -35,14 +35,17 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class MetricsEndpointConfiguration {
 
   @Bean
-  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  public SecurityFilterChain metricsEndpointSecurityFilterChain(HttpSecurity http)
+      throws Exception {
     // Allow anyone to access the spectator metrics endpoint using Ant-style matcher
     http.securityMatcher(new AntPathRequestMatcher("/spectator/metrics"));
-    http.authorizeHttpRequests()
-        .requestMatchers(new AntPathRequestMatcher("/spectator/metrics"))
-        .permitAll()
-        .anyRequest()
-        .authenticated();
+    http.authorizeHttpRequests(
+        authorize ->
+            authorize
+                .requestMatchers(new AntPathRequestMatcher("/spectator/metrics"))
+                .permitAll()
+                .anyRequest()
+                .authenticated());
     return http.build();
   }
 }

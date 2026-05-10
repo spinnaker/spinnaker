@@ -27,6 +27,8 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.Base64;
 import java.util.regex.Pattern;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
@@ -104,24 +106,35 @@ public class S3ArtifactStoreStorer implements ArtifactStoreStorer {
     }
 
     Artifact remoteArtifact = builder.build();
-    if (objectExists(ref)) {
-      log.debug("Artifact exists. No need to store. reference={}", ref.uri());
-      return remoteArtifact;
+    try {
+      if (objectExists(ref)) {
+        log.debug("Artifact exists. No need to store. reference={}", ref.uri());
+        return remoteArtifact;
+      }
+
+      // purpose of tagging is to ensure some sort of identity is persisted to
+      // enforce permissions when retrieving the artifact
+      Tag accountTag = Tag.builder().key(ENFORCE_PERMS_KEY).value(application).build();
+
+      PutObjectRequest request =
+          PutObjectRequest.builder()
+              .bucket(bucket)
+              .key(ref.paths())
+              .tagging(Tagging.builder().tagSet(accountTag).build())
+              .build();
+
+      s3Client.putObject(request, RequestBody.fromBytes(referenceBytes));
+    } catch (SdkServiceException e) {
+      throw new ResponseStatusException(e.statusCode(), storeErrorMessage(ref.uri(), e), e);
+    } catch (Exception e) {
+      throw new RuntimeException(storeErrorMessage(ref.uri(), e), e);
     }
-
-    // purpose of tagging is to ensure some sort of identity is persisted to
-    // enforce permissions when retrieving the artifact
-    Tag accountTag = Tag.builder().key(ENFORCE_PERMS_KEY).value(application).build();
-
-    PutObjectRequest request =
-        PutObjectRequest.builder()
-            .bucket(bucket)
-            .key(ref.paths())
-            .tagging(Tagging.builder().tagSet(accountTag).build())
-            .build();
-
-    s3Client.putObject(request, RequestBody.fromBytes(referenceBytes));
     return remoteArtifact;
+  }
+
+  private String storeErrorMessage(String uri, Exception e) {
+    return String.format(
+        "artifact failed to be stored: bucket=%s ref=%s: %s", this.bucket, uri, e.getMessage());
   }
 
   private byte[] getReferenceAsBytes(Artifact artifact) {

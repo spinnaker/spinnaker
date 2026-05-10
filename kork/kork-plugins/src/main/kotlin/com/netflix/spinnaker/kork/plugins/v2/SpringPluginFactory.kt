@@ -59,7 +59,7 @@ class SpringPluginFactory(
     // PluginContainer attempts to offer some of the convenience that PrivilegedSpringPlugin does, but without using
     // Spring itself as an API contract.
     return if (actualPlugin !is PrivilegedSpringPlugin) {
-      PluginContainer(actualPlugin, serviceApplicationContext)
+      PluginContainer(actualPlugin, serviceApplicationContext, pluginWrapper)
     } else {
       actualPlugin
     }

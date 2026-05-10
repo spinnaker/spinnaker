@@ -56,6 +56,8 @@ data class SqlProperties(
    * Convenience method for accessing all connection pool properties, backwards-compatible with deprecated
    * [connectionPool] configuration.
    */
+  // Remove DEPRECATION suppression once SqlProperties.connectionPool is removed
+  @Suppress("DEPRECATION")
   fun getDefaultConnectionPoolProperties(): ConnectionPoolProperties {
     if (connectionPools.isEmpty()) {
       if (connectionPool == null) {

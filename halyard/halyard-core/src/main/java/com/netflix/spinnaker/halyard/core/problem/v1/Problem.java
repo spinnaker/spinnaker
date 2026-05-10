@@ -64,7 +64,7 @@ public class Problem {
   /** Indicates if this will cause the deployment to fail or not. */
   @Getter private final Severity severity;
 
-  /** Where this problem occured. */
+  /** Where this problem occurred. */
   @Getter private final String location;
 
   @JsonCreator

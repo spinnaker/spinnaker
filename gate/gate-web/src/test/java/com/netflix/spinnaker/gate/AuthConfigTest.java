@@ -42,6 +42,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.web.http.DefaultCookieSerializer;
@@ -181,7 +182,7 @@ class AuthConfigTest {
       //
       // Leaving that out makes it easier to test some behavior of AuthConfig.
       defaultCookieSerializer.setSameSite(null);
-      http.formLogin().and().httpBasic();
+      http.formLogin(Customizer.withDefaults()).httpBasic(Customizer.withDefaults());
       authConfig.configure(http);
       return http.build();
     }

@@ -655,6 +655,87 @@ const testPipelineTemplateWithTagJsonStr = `
 }
 `
 
+const testPipelineTemplateWithArrayTagJsonStr = `
+{
+ "id": "testSpelTemplate",
+ "lastModifiedBy": "anonymous",
+ "metadata": {
+  "description": "A generic application bake and tag pipeline.",
+  "name": "Default Bake and Tag",
+  "owner": "example@example.com",
+  "scopes": [
+   "global"
+  ]
+ },
+ "pipeline": {
+  "description": "",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "notifications": [],
+  "parameterConfig": [],
+  "stages": [
+   {
+    "name": "My Wait Stage",
+    "refId": "wait1",
+    "requisiteStageRefIds": [],
+    "type": "wait",
+    "waitTime": "${ templateVariables.waitTime }"
+   }
+  ],
+  "triggers": [
+   {
+    "attributeConstraints": {},
+    "enabled": true,
+    "payloadConstraints": {},
+    "pubsubSystem": "google",
+    "source": "jake",
+    "subscription": "super-why",
+    "subscriptionName": "super-why",
+    "type": "pubsub"
+   }
+  ],
+  "updateTs": "1543509523663"
+ },
+ "protect": false,
+ "schema": "v2",
+ "tag": ["stable", "latest"],
+ "updateTs": "1544475186050",
+ "variables": [
+  {
+   "defaultValue": 42,
+   "description": "The time a wait stage shall pauseth",
+   "name": "waitTime",
+   "type": "int"
+  }
+ ]
+}
+`
+
+func TestPipelineTemplateSave_tagAsArray(t *testing.T) {
+	ts := testGatePipelineTemplateCreateSuccess(new(bytes.Buffer))
+	defer ts.Close()
+
+	tempFile := tempPipelineTemplateFile(testPipelineTemplateWithArrayTagJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp pipeline template file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Expected error when tag is an array, but command succeeded")
+	}
+	if !strings.Contains(err.Error(), "tag must be a string") {
+		t.Fatalf("Expected error about tag type, got: %s", err.Error())
+	}
+}
+
 const testPipelineTemplateYamlStr = `
 id: testSpelTemplate
 lastModifiedBy: anonymous

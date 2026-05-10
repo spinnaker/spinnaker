@@ -16,13 +16,23 @@
 
 package com.netflix.spinnaker.gate.security.header;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.netflix.spinnaker.gate.model.front50.ServiceAccountPojo;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.User;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,17 +48,34 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedG
 public class HeaderAuthenticationUserDetailsService
     extends PreAuthenticatedGrantedAuthoritiesUserDetailsService {
 
+  private static final Logger log =
+      LoggerFactory.getLogger(HeaderAuthenticationUserDetailsService.class);
+  private static final String SERVICE_ACCOUNTS_CACHE_KEY = "serviceAccounts";
+
   private final PermissionService permissionService;
 
   private final AllowedAccountsSupport allowedAccountsSupport;
 
+  private final Front50Service front50Service;
+
+  private final Cache<String, List<ServiceAccountPojo>> serviceAccountCache;
+
   private final RetrySupport retrySupport = new RetrySupport();
 
   public HeaderAuthenticationUserDetailsService(
-      PermissionService permissionService, AllowedAccountsSupport allowedAccountsSupport) {
+      PermissionService permissionService,
+      AllowedAccountsSupport allowedAccountsSupport,
+      Front50Service front50Service,
+      HeaderAuthProperties headerAuthProperties) {
     super();
     this.permissionService = permissionService;
     this.allowedAccountsSupport = allowedAccountsSupport;
+    this.front50Service = front50Service;
+    this.serviceAccountCache =
+        Caffeine.newBuilder()
+            .expireAfterWrite(
+                headerAuthProperties.getServiceAccountCacheTimeoutMinutes(), TimeUnit.MINUTES)
+            .build();
   }
 
   /**
@@ -68,27 +95,32 @@ public class HeaderAuthenticationUserDetailsService
   protected UserDetails createUserDetails(
       Authentication token, Collection<? extends GrantedAuthority> authorities) {
 
-    // Log the user in.  This invalidates the cache in gate, and logs the user
-    // in to fiat.  What this actually means is:
-    // - load roles for this user from fiat's provider
-    // - persist the permissions for this user
-    //
-    // This way, subsequent calls to fiat to retrieve permissions for the user
-    // are guaranteed to get them.  Without this, there are potentially races
-    // with role syncing in fiat.
-    retrySupport.retry(
-        () -> {
-          permissionService.login(token.getName());
-          return null;
-        },
-        5,
-        Duration.ofMillis(2000),
-        false);
+    String email = token.getName();
+
+    // Service accounts are already logged in, skip permissionService.login()
+    if (!isServiceAccount(email)) {
+      // Log the user in.  This invalidates the cache in gate, and logs the user
+      // in to fiat.  What this actually means is:
+      // - load roles for this user from fiat's provider
+      // - persist the permissions for this user
+      //
+      // This way, subsequent calls to fiat to retrieve permissions for the user
+      // are guaranteed to get them.  Without this, there are potentially races
+      // with role syncing in fiat.
+      retrySupport.retry(
+          () -> {
+            permissionService.login(email);
+            return null;
+          },
+          5,
+          Duration.ofMillis(2000),
+          false);
+    }
 
     User user = new User();
 
     // Part of UserDetails
-    user.setEmail(token.getName());
+    user.setEmail(email);
 
     // Neither firstName nor lastName are available in header auth (i.e. via
     // X-SPINNAKER-USER).
@@ -101,8 +133,40 @@ public class HeaderAuthenticationUserDetailsService
     // roles aren't available in header auth, so don't bother setting them, and
     // pass an empty collection to filterAllowedAccounts
     user.setAllowedAccounts(
-        allowedAccountsSupport.filterAllowedAccounts(token.getName(), Set.of() /* roles */));
+        allowedAccountsSupport.filterAllowedAccounts(email, Set.of() /* roles */));
 
     return user;
+  }
+
+  /**
+   * Determines if the given email belongs to a service account by checking against Front50's
+   * service accounts list. Uses a Caffeine cache to avoid repeated Front50 calls.
+   *
+   * @param email the user's email address
+   * @return true if the email matches a service account, false otherwise
+   */
+  @VisibleForTesting
+  boolean isServiceAccount(String email) {
+    if (email == null) {
+      return false;
+    }
+    try {
+      List<ServiceAccountPojo> serviceAccounts =
+          serviceAccountCache.get(
+              SERVICE_ACCOUNTS_CACHE_KEY, key -> front50Service.getServiceAccountsPojo());
+      // Caffeine's get() with a loading function should never return null - it will either return
+      // a value or throw an exception. This null check is defensive programming.
+      if (serviceAccounts == null) {
+        log.warn(
+            "Unexpected null result from service account cache - this should never happen. "
+                + "Returning false for email: {}",
+            email);
+        return false;
+      }
+      return serviceAccounts.stream().anyMatch(sa -> email.equalsIgnoreCase(sa.getName()));
+    } catch (SpinnakerServerException e) {
+      log.warn("Could not get list of service accounts.", e);
+      return false;
+    }
   }
 }

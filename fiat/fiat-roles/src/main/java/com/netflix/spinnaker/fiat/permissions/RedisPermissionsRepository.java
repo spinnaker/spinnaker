@@ -34,6 +34,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicReference;
@@ -302,8 +303,15 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return;
     }
 
-    for (UserPermission permission : permissions.values()) {
-      put(permission);
+    try {
+      syncThreadPool.submit(() -> permissions.values().parallelStream().forEach(this::put)).get();
+    } catch (ExecutionException e) {
+      log.error("Failed to put permissions in parallel", e.getCause());
+      throw new IntegrationException("Failed to put permissions", e.getCause());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Interrupted while putting permissions", e);
+      throw new IntegrationException("Interrupted while putting permissions", e);
     }
   }
 
@@ -471,23 +479,44 @@ public class RedisPermissionsRepository implements PermissionsRepository {
       return new HashMap<>(0);
     }
 
-    Map<String, Set<Role>> usersToRoles = new HashMap<>(userIds.size());
+    Map<String, Set<Role>> usersToRoles = new ConcurrentHashMap<>(userIds.size());
 
-    for (String userId : userIds) {
-      try {
-        Set<Role> roles =
-            getUserResourceMapFromRedis(userId, ResourceType.ROLE).values().stream()
-                .map(it -> (Role) it)
-                .collect(Collectors.toSet());
-        usersToRoles.put(userId, roles);
-      } catch (Throwable t) {
-        String message = String.format("Storage exception reading %s entry.", userId);
-        log.error(message, t);
-        if (t instanceof SpinnakerException) {
-          throw (SpinnakerException) t;
-        }
-        throw new PermissionReadException(message, t);
+    try {
+      syncThreadPool
+          .submit(
+              () ->
+                  userIds.parallelStream()
+                      .forEach(
+                          userId -> {
+                            try {
+                              Set<Role> roles =
+                                  getUserResourceMapFromRedis(userId, ResourceType.ROLE)
+                                      .values()
+                                      .stream()
+                                      .map(it -> (Role) it)
+                                      .collect(Collectors.toSet());
+                              usersToRoles.put(userId, roles);
+                            } catch (Throwable t) {
+                              String message =
+                                  String.format("Storage exception reading %s entry.", userId);
+                              log.error(message, t);
+                              if (t instanceof SpinnakerException) {
+                                throw (SpinnakerException) t;
+                              }
+                              throw new PermissionReadException(message, t);
+                            }
+                          }))
+          .get();
+    } catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof RuntimeException) {
+        throw (RuntimeException) cause;
       }
+      throw new PermissionReadException(
+          "Failed to get roles from Redis", cause != null ? cause : e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new PermissionReadException("Interrupted while getting roles from Redis", e);
     }
 
     return usersToRoles;

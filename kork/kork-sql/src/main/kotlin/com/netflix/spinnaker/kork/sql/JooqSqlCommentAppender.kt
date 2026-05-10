@@ -17,14 +17,14 @@ package com.netflix.spinnaker.kork.sql
 
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.jooq.ExecuteContext
-import org.jooq.impl.DefaultExecuteListener
+import org.jooq.ExecuteListener
 import org.slf4j.MDC
 
 /**
  * Appends contextual information about the source of a SQL query for
  * debugging purposes.
  */
-class JooqSqlCommentAppender : DefaultExecuteListener() {
+class JooqSqlCommentAppender : ExecuteListener {
 
   override fun renderEnd(ctx: ExecuteContext) {
     val comments: ArrayList<String> = ArrayList()

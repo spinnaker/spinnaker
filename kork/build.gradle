@@ -48,8 +48,19 @@ subprojects {
 
   if (it.name != "kork-bom" && it.name != "spinnaker-dependencies") {
     apply plugin: 'java-library'
+    apply plugin: 'jacoco'
     test {
       useJUnitPlatform()
+      jacoco {
+        enabled = project.hasProperty('testCoverage')
+      }
+    }
+    jacocoTestReport {
+      dependsOn test
+      reports {
+        xml.required = true
+        html.required = true
+      }
     }
     dependencies {
       annotationProcessor(platform(project(":spinnaker-dependencies")))

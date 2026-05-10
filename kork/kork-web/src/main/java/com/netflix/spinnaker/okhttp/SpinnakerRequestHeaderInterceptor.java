@@ -18,7 +18,6 @@ package com.netflix.spinnaker.okhttp;
 
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
-import io.micrometer.core.instrument.util.StringUtils;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +27,7 @@ import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.MDC;
+import org.springframework.util.StringUtils;
 
 /**
  * As {@link retrofit.RequestInterceptor} no longer present in retrofit2, we have to use {@link
@@ -85,7 +85,7 @@ public class SpinnakerRequestHeaderInterceptor implements Interceptor {
     additionalHeaders.forEach(
         additionalHeader -> {
           String value = MDC.get(additionalHeader);
-          if (StringUtils.isNotBlank(value)) {
+          if (StringUtils.hasText(value)) {
             log.debug("adding {}={} to request", additionalHeader, value);
             builder.addHeader(additionalHeader, value);
           }

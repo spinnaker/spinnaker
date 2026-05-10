@@ -201,7 +201,7 @@ class ApplicationController {
   @Deprecated
   @Operation(summary = "Cancel task")
   @RequestMapping(value = "/{application}/tasks/{id}/cancel", method = RequestMethod.PUT)
-  Map cancelTask(@PathVariable("id") String id) {
+  void cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
   }
 

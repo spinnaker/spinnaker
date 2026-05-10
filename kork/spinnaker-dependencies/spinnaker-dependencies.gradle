@@ -66,6 +66,7 @@ dependencies {
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("org.testcontainers:testcontainers-bom:1.21.4"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
+  api(platform("io.opentelemetry:opentelemetry-bom:1.40.0"))
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")

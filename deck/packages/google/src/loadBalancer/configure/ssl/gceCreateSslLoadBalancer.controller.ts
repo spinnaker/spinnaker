@@ -91,6 +91,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     'loadBalancer',
     'gceCommonLoadBalancerCommandBuilder',
     'isNew',
+    'forPipelineConfig',
     'wizardSubFormValidation',
     '$state',
   ];
@@ -101,6 +102,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     private loadBalancer: SslLoadBalancer,
     private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
     private isNew: boolean,
+    private forPipelineConfig: boolean,
     private wizardSubFormValidation: any,
     $state: StateService,
   ) {
@@ -211,6 +213,12 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.cloudProvider = 'gce';
     delete toSubmitLoadBalancer.instances;
+
+    if (this.forPipelineConfig) {
+      Object.assign(toSubmitLoadBalancer, { healthCheck: {} });
+      this.$uibModalInstance.close(toSubmitLoadBalancer);
+      return;
+    }
 
     this.taskMonitor.submit(() =>
       LoadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer, this.application, descriptor, {

@@ -23,6 +23,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   testRuntimeOnly project(":kork-web")
+  testRuntimeOnly "com.h2database:h2"
   testRuntimeOnly "com.mysql:mysql-connector-j"
 }
 

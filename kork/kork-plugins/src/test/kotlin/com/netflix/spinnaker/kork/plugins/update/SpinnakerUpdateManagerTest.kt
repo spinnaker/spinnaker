@@ -22,7 +22,7 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerServiceVersionManager
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
 import com.netflix.spinnaker.kork.plugins.events.PluginDownloaded
 import com.netflix.spinnaker.kork.plugins.internal.PluginZip
-import com.netflix.spinnaker.kork.plugins.testplugin.TestPluginBuilderSupport
+import com.netflix.spinnaker.kork.plugins.testplugin.basicGeneratedPlugin
 import com.netflix.spinnaker.kork.plugins.update.internal.SpinnakerPluginInfo
 import com.netflix.spinnaker.kork.plugins.update.release.PluginInfoRelease
 import com.netflix.spinnaker.kork.version.ServiceVersion
@@ -221,30 +221,29 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
       pluginVersion: String = "0.0.1",
       className: String = "Generated"
     ): SpinnakerPluginInfo {
-      val generatedPluginPath = Files.createTempDirectory("generated-plugin")
-      val pluginBuilder = TestPluginBuilderSupport(
-        pluginPath = generatedPluginPath,
-        name = className,
-        version = pluginVersion
-      )
-      pluginBuilder.build()
+      val plugin = basicGeneratedPlugin(className, pluginVersion).apply {
+        pluginId = "spinnaker.${className.lowercase()}testplugin"
+      }
+      val result = plugin.generate()
+      val generatedPluginPath = result.pluginPath
+      val canonicalExtensionClass = plugin.canonicalClass("${className}Extension")
 
-      val releasePath = File(repository.resolve("${pluginBuilder.pluginId}/$pluginVersion").toUri())
+      val releasePath = File(repository.resolve("${plugin.pluginId}/$pluginVersion").toUri())
         .also { it.mkdirs() }
         .let { pluginRepositoryPath ->
-          val pluginPath = pluginRepositoryPath.resolve("${pluginBuilder.pluginId}-$pluginVersion.zip").toPath()
+          val pluginPath = pluginRepositoryPath.resolve("${plugin.pluginId}-$pluginVersion.zip").toPath()
 
-          val zip = PluginZip.Builder(pluginPath, pluginBuilder.pluginId)
-            .pluginClass(pluginBuilder.canonicalPluginClass)
-            .pluginVersion(pluginBuilder.version)
+          val zip = PluginZip.Builder(pluginPath, plugin.pluginId)
+            .pluginClass(plugin.canonicalPluginClass())
+            .pluginVersion(plugin.version)
 
-          "classes/${pluginBuilder.canonicalPluginClass.replace(".", "/")}.class".let {
+          "classes/${plugin.canonicalPluginClass().replace(".", "/")}.class".let {
             zip.addFile(Paths.get(it), generatedPluginPath.resolve(it).toFile().readBytes())
           }
-          "classes/${pluginBuilder.canonicalExtensionClass.replace(".", "/")}.class".let {
+          "classes/${canonicalExtensionClass.replace(".", "/")}.class".let {
             zip.addFile(Paths.get(it), generatedPluginPath.resolve(it).toFile().readBytes())
           }
-          zip.addFile(Paths.get("META-INF/extensions.idx"), pluginBuilder.canonicalExtensionClass)
+          zip.addFile(Paths.get("META-INF/extensions.idx"), canonicalExtensionClass)
 
           zip.build()
 
@@ -252,14 +251,14 @@ class SpinnakerUpdateManagerTest : JUnit5Minutests {
         }
 
       return SpinnakerPluginInfo().apply {
-        id = pluginBuilder.pluginId
-        name = pluginBuilder.name
+        id = plugin.pluginId
+        name = plugin.name
         description = "A generated TestPlugin named $name"
         provider = "Spinnaker"
         releases = listOf(
           SpinnakerPluginInfo.SpinnakerPluginRelease(false).apply {
             requires = "orca>=0.0.0"
-            version = pluginBuilder.version
+            version = plugin.version
             date = Date.from(Instant.now())
             url = releasePath.toUri().toURL().toString()
           }

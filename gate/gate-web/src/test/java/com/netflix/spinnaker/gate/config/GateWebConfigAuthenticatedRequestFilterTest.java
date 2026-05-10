@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import ch.qos.logback.classic.Level;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.test.log.MemoryAppender;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -83,6 +85,13 @@ public class GateWebConfigAuthenticatedRequestFilterTest {
       };
     }
   }
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockBean ApplicationService applicationService;
 
   @Autowired
   @Qualifier("authenticatedRequestFilter")
