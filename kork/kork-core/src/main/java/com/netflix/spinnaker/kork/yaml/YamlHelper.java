@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.kork.yaml;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
@@ -8,7 +9,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
 
 /**
  * Utility component for creating preconfigured {@link Yaml} instances with optional
@@ -41,6 +41,7 @@ import org.yaml.snakeyaml.resolver.Resolver;
  * automatically applied to all created {@link Yaml} instances.
  */
 @Component
+@Log4j2
 public class YamlHelper {
 
   private static YamlParserProperties yamlParserProperties;
@@ -54,27 +55,6 @@ public class YamlHelper {
     return yamlParserProperties != null
         && (yamlParserProperties.getMaxAliasesForCollections() != null
             || yamlParserProperties.getCodePointLimit() != null);
-  }
-
-  /**
-   * Creates a new {@link Yaml} instance using either default or secure {@link LoaderOptions},
-   * depending on whether {@link YamlParserProperties} are configured.
-   *
-   * @return a new {@link Yaml} instance
-   */
-  public static Yaml newYaml() {
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
-
-      Constructor constructor = new Constructor(opts);
-      DumperOptions dumperOpts = new DumperOptions();
-      Representer representer = new Representer(dumperOpts);
-      Resolver resolver = new Resolver(); // default tag resolver
-
-      return new Yaml(constructor, representer, dumperOpts, opts, resolver);
-    }
-
-    return new Yaml();
   }
 
   /**

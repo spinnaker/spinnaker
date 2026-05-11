@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.ops.LambdaClientProvider;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -74,8 +73,7 @@ public class LambdaService extends LambdaClientProvider {
         .collect(Collectors.toList());
   }
 
-  public Map<String, Object> getFunctionByName(String functionName) throws InterruptedException {
-    List<Callable<Void>> functionTasks = Collections.synchronizedList(new ArrayList<>());
+  public Map<String, Object> getFunctionByName(String functionName) {
     Map<String, Object> functionAttributes = new ConcurrentHashMap<>();
     addBaseAttributes(functionAttributes, functionName);
     if (functionAttributes.isEmpty()) {
@@ -128,13 +126,9 @@ public class LambdaService extends LambdaClientProvider {
     return null;
   }
 
-  private Void addRevisionsAttributes(Map<String, Object> functionAttributes, String functionName) {
-    Map<String, String> revisions = listFunctionRevisions(functionName);
-    functionAttributes.put("revisions", revisions);
-    return null;
-  }
-
-  private Map<String, String> listFunctionRevisions(String functionName) {
+  private void addRevisionsAttributes(Map<String, Object> functionAttributes, String functionName) {
+    Map<String, String> revisions = null;
+    boolean finished = false;
     AWSLambda lambda = getLambdaClient();
     String nextMarker = null;
     Map<String, String> listRevionIds = new HashMap<>();
@@ -149,7 +143,9 @@ public class LambdaService extends LambdaClientProvider {
       ListVersionsByFunctionResult listVersionsByFunctionResult =
           lambda.listVersionsByFunction(listVersionsByFunctionRequest);
       if (listVersionsByFunctionResult == null) {
-        return listRevionIds;
+        revisions = listRevionIds;
+        finished = true;
+        break;
       }
       for (FunctionConfiguration x : listVersionsByFunctionResult.getVersions()) {
         listRevionIds.put(x.getRevisionId(), x.getVersion());
@@ -157,7 +153,10 @@ public class LambdaService extends LambdaClientProvider {
       nextMarker = listVersionsByFunctionResult.getNextMarker();
 
     } while (nextMarker != null && nextMarker.length() != 0);
-    return listRevionIds;
+    if (!finished) {
+      revisions = listRevionIds;
+    }
+    functionAttributes.put("revisions", revisions);
   }
 
   private Void addAliasAndEventSourceMappingConfigurationAttributes(

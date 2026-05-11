@@ -17,6 +17,7 @@ apply plugin:"groovy"
 
 dependencies {
   api(platform(project(":spinnaker-dependencies")))
+  implementation "org.apache.commons:commons-lang3"
 
   compileOnly "org.projectlombok:lombok"
   annotationProcessor "org.projectlombok:lombok"

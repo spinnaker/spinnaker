@@ -168,12 +168,25 @@ class MetricInvocationAspect(
 
   private data class MetricIds(val timingId: Id)
 
+  /**
+   * Helper object for result handling
+   */
   companion object {
     private const val TIMING = "timing"
     private const val MAX_CACHE_SIZE = 1000L
 
+    /**
+     * Simple success/failure status on metric handling
+     */
     enum class Result {
-      SUCCESS, FAILURE;
+      /**
+       * Succeeded
+       */
+      SUCCESS,
+      /**
+       * Failed
+       */
+      FAILURE;
 
       override fun toString(): String = name.lowercase()
     }

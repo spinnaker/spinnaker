@@ -3,14 +3,19 @@ apply plugin: 'groovy'
 dependencies {
   implementation 'com.github.jk1:gradle-license-report:1.8'
   implementation 'org.owasp:dependency-check-gradle:12.2.1'
-  implementation "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:7.2.1"
+  implementation "com.diffplug.spotless:spotless-plugin-gradle:7.2.1"
   implementation 'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:12.2.1'
 
+
+  implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.2.1'
+  implementation platform('com.google.cloud:libraries-bom:26.1.4')
+
   implementation 'com.google.cloud:google-cloud-storage'
   implementation 'com.google.cloud:google-cloud-artifact-registry'
-//  implementation 'com.google.cloud.artifactregistry:artifact-registry-maven-wagon:2.2.5'
+  implementation 'com.google.api-client:google-api-client:2.0.0'
   implementation 'com.google.cloud.artifactregistry.gradle-plugin:com.google.cloud.artifactregistry.gradle-plugin.gradle.plugin:2.2.5'
+
   implementation 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
   implementation 'io.github.gradle-nexus:publish-plugin:2.0.0'
 }
