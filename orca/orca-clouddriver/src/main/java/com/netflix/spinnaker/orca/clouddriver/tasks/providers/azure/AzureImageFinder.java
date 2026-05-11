@@ -106,10 +106,13 @@ public class AzureImageFinder implements ImageFinder {
     @JsonProperty String region;
     @JsonProperty String osType;
     @JsonProperty String uri;
-    // Set only for Shared Image Gallery results, where all versions of an
-    // image definition share the same `imageName` (= imageDefinitionName) and
-    // the version is what actually distinguishes them. Managed-image results
-    // leave this null and rely on the timestamp embedded in `imageName`.
+    // Carries a real semver only for Shared Image Gallery results, where all
+    // versions of an image definition share the same `imageName` (=
+    // imageDefinitionName) and the version is what distinguishes them.
+    // Managed-image results carry the literal "na" sentinel that the
+    // controller stamps on (AzureVMImageLookupController#buildAzureNamedImage
+    // for managed VM images). Discriminate via `isGalleryVersion`, not raw
+    // null/empty checks.
     @JsonProperty String version;
     @JsonProperty Map<String, Object> attributes;
     @JsonProperty Map<String, String> tags;
@@ -125,7 +128,8 @@ public class AzureImageFinder implements ImageFinder {
               .orElse(null);
 
       return new AzureImageDetails(
-          imageName, region, resourceGroup, osType, uri, version, jenkinsDetails);
+          imageName, region, resourceGroup, osType, uri,
+          isGalleryVersion(version) ? version : null, jenkinsDetails);
     }
 
     @Override
@@ -136,10 +140,10 @@ public class AzureImageFinder implements ImageFinder {
       // would otherwise be unsafe -- a stable gallery imageDefinitionName like
       // "moderne-arm64-noble" can sort either side of a timestamped managed
       // name like "moderne-1746961200000-noble-arm64". Gallery rows expose a
-      // non-null `version`; managed rows don't, which is what we discriminate
-      // on here.
-      boolean thisIsGallery = this.version != null && !this.version.isEmpty();
-      boolean otherIsGallery = other.version != null && !other.version.isEmpty();
+      // real semver in `version`; managed rows carry the controller's "na"
+      // sentinel, which is what we discriminate on here.
+      boolean thisIsGallery = isGalleryVersion(this.version);
+      boolean otherIsGallery = isGalleryVersion(other.version);
       if (thisIsGallery != otherIsGallery) {
         return thisIsGallery ? -1 : 1;
       }
@@ -155,6 +159,13 @@ public class AzureImageFinder implements ImageFinder {
       // by `version` (descending) so the highest version wins.
       return compareVersions(other.version, this.version);
     }
+  }
+
+  // True iff `version` is a real Shared Image Gallery semver. Excludes the
+  // "na" sentinel that AzureVMImageLookupController#buildAzureNamedImage
+  // stamps on managed-image rows, alongside null/empty.
+  static boolean isGalleryVersion(String version) {
+    return version != null && !version.isEmpty() && !"na".equals(version);
   }
 
   // Numeric-aware comparison for Shared Image Gallery versions, which Azure

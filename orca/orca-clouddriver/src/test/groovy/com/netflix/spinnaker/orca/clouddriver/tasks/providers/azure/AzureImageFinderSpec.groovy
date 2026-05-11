@@ -49,13 +49,15 @@ class AzureImageFinderSpec extends Specification {
     ]
   }
 
-  // Wire shape for a managed image: timestamped imageName, no `version` field
-  // (Jackson drops keys absent from AzureManagedImage, so omitting `version`
-  // here matches what production responses look like for managed entries).
+  // Wire shape for a managed image: timestamped imageName plus the literal
+  // "na" sentinel that AzureVMImageLookupController#buildAzureNamedImage
+  // stamps on the `version` field for managed entries (it also stamps "na"
+  // on publisher/offer/sku but the finder only inspects version).
   private static Map managedImageWireShape(
       String region, String name, Map<String, String> tags) {
     [
         imageName: name,
+        version  : "na",
         region   : region,
         uri      : "/subscriptions/sub/resourceGroups/rg/providers/" +
                    "Microsoft.Compute/images/${name}".toString(),
@@ -83,17 +85,39 @@ class AzureImageFinderSpec extends Specification {
   }
 
   def "AzureManagedImage compareTo prefers gallery over managed when both candidate in the same region"() {
-    given: "a gallery image (has version) and a managed image (no version), names that would lex either way"
+    given: "a gallery image (has version) and a managed image (version='na' per the controller's wire shape)"
     def gallery = new AzureImageFinder.AzureManagedImage(
         imageName: "moderne-arm64-noble",  // 'a' > '1' on the next char
         version: "2026.5.1",  // intentionally OLDER than the managed bake
         region: "canadacentral")
     def managed = new AzureImageFinder.AzureManagedImage(
         imageName: "moderne-1746961200000-noble-arm64",
-        version: null,
+        version: "na",
         region: "canadacentral")
 
     expect: "gallery sorts first regardless of name lex or relative age"
+    gallery.compareTo(managed) < 0
+    managed.compareTo(gallery) > 0
+  }
+
+  def "AzureManagedImage compareTo prefers gallery even when managed lex-beats gallery on imageName"() {
+    // Source preference must not rely on the imageName lex tiebreak. The
+    // controller stamps version="na" on managed rows, so a naive "is version
+    // non-empty?" discriminator misclassifies managed as gallery, falling
+    // through to a reverse-alpha imageName compare. We pick names here where
+    // that lex compare would pick the WRONG image -- the test then proves
+    // source preference is doing the work, not luck.
+    given: "names where managed sorts AFTER gallery alphabetically (lex would pick managed under reverse-alpha)"
+    def gallery = new AzureImageFinder.AzureManagedImage(
+        imageName: "bake-noble-arm64",  // 'b' < 'z' so gallery lex < managed lex
+        version: "2026.5.1",
+        region: "canadacentral")
+    def managed = new AzureImageFinder.AzureManagedImage(
+        imageName: "zone-1746961200000-noble-arm64",
+        version: "na",  // production sentinel from AzureVMImageLookupController:496
+        region: "canadacentral")
+
+    expect: "gallery still wins on source preference"
     gallery.compareTo(managed) < 0
     managed.compareTo(gallery) > 0
   }
@@ -295,5 +319,35 @@ class AzureImageFinderSpec extends Specification {
     imageDetails.first().imageName == "moderne-arm64-noble"
     imageDetails.first().get("version") == "2026.5.1"
     imageDetails.first().imageId.contains("/galleries/")
+  }
+
+  def "byTags omits version key for managed-only region (controller's 'na' sentinel is sanitized)"() {
+    // Bake regions return only a managed image (the gallery replication hasn't
+    // run yet). The controller stamps version='na' on managed entries; the
+    // finder must not propagate that sentinel into the deploy stage's image
+    // details, where downstream consumers expect either a real semver or no
+    // version key at all (same convention used for uri/imageId on line 200).
+    given:
+    def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", [
+        account: "moderne-azure",
+        regions: ["canadacentral"],
+    ])
+    def baseTags = [moderne_base: "true", moderne_base_os: "ubuntu-arm64-24.04"]
+
+    when:
+    def imageDetails = azureImageFinder.byTags(stage, "moderne",
+        [moderne_base: "true", moderne_base_os: "ubuntu-arm64-24.04"], [])
+
+    then: "clouddriver returns a managed-only result (bake region, pre-replication)"
+    1 * oortService.findImage("azure", "moderne", "moderne-azure", null, _) >> Calls.response([
+        managedImageWireShape("canadacentral",
+            "moderne-1746961200000-noble-arm64", baseTags),
+    ])
+    0 * _
+
+    and: "managed image is selected, but the 'na' sentinel is not exposed as a version"
+    imageDetails.size() == 1
+    imageDetails.first().imageName == "moderne-1746961200000-noble-arm64"
+    imageDetails.first().get("version") == null
   }
 }
