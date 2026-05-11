@@ -599,6 +599,10 @@ class AzureVMImageLookupControllerTest {
     lookupOptions.setManagedImages(managedImage);
     lookupOptions.setCustomOnly(customOnly);
     lookupOptions.setConfigOnly(configOnly);
+    // These pre-gallery tests assert against a fixed set of namespaces; pin
+    // galleryImages=false so the now-true LookupOptions default doesn't add
+    // an extra gallery-cache lookup that they aren't expecting.
+    lookupOptions.setGalleryImages(false);
     return lookupOptions;
   }
 
@@ -766,5 +770,142 @@ class AzureVMImageLookupControllerTest {
     assertThat(result.getImageName()).isEqualTo(IMAGE_DEF_NAME);
     assertThat(result.getIsCustom()).isTrue();
     assertThat(result.getUri()).contains("/galleries/" + GALLERY_NAME);
+  }
+
+  @Test
+  @DisplayName(
+      "findImagesByTags with managedImages=true and galleryImages=false searches only managed")
+  void findImagesByTagsRespectsManagedOnly() {
+    // prepare
+    LookupOptions lookupOptions = new LookupOptions();
+    lookupOptions.setAccount(AZURE_ACCOUNT);
+    lookupOptions.setRegion(REGION);
+    lookupOptions.setManagedImages(true);
+    // galleryImages defaults to true, so callers wanting managed-only must
+    // override it explicitly.
+    lookupOptions.setGalleryImages(false);
+    lookupOptions.setTags(Map.of("appversion", "1.0.0"));
+
+    String managedKey =
+        Keys.getManagedVMImageKey(
+            azureCloudProvider, AZURE_ACCOUNT, REGION, RESOURCE_GROUP, VM_IMAGE_NAME, OS_TYPE);
+    var managedImage = new AzureManagedVMImage();
+    managedImage.setName(VM_IMAGE_NAME);
+    managedImage.setRegion(REGION);
+    managedImage.setOsType(OS_TYPE);
+    managedImage.setResourceGroup(RESOURCE_GROUP);
+    managedImage.setTags(Map.of("appversion", "1.0.0"));
+    Map<String, Object> managedImageMap =
+        objectMapper.convertValue(managedImage, new TypeReference<>() {});
+    CacheData managedCacheData =
+        new DefaultCacheData(managedKey, Map.of("vmimage", managedImageMap), Map.of());
+
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
+        .willReturn(List.of(managedKey));
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of(managedCacheData));
+
+    // credentials needed for buildAzureNamedImage
+    var mockCreds =
+        mock(com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials.class);
+    var mockAzureCreds =
+        mock(com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials.class);
+    given(mockCreds.getCredentials()).willReturn(mockAzureCreds);
+    given(mockAzureCreds.getSubscriptionId()).willReturn(SUBSCRIPTION_ID);
+    doReturn(mockCreds).when(accountCredentialsProvider).getCredentials(AZURE_ACCOUNT);
+
+    // act
+    List<AzureNamedImage> results =
+        lookupController.list(lookupOptions, Map.of("tag:appversion", "1.0.0"));
+
+    // assert: managed found, gallery cache never touched
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getImageName()).isEqualTo(VM_IMAGE_NAME);
+    verify(cache, never())
+        .filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString());
+    verify(cache, never())
+        .getAll(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class));
+  }
+
+  @Test
+  @DisplayName(
+      "findImagesByTags with galleryImages=true alone skips the managed cache (devaz path)")
+  void findImagesByTagsRespectsGalleryOnly() {
+    // prepare
+    LookupOptions lookupOptions = new LookupOptions();
+    lookupOptions.setAccount(AZURE_ACCOUNT);
+    lookupOptions.setRegion(REGION);
+    lookupOptions.setGalleryImages(true);
+    // managedImages stays false
+    lookupOptions.setTags(Map.of("appversion", "1.0.0"));
+
+    String galleryKey =
+        Keys.getGalleryImageKey(
+            azureCloudProvider,
+            AZURE_ACCOUNT,
+            REGION,
+            RESOURCE_GROUP,
+            GALLERY_NAME,
+            IMAGE_DEF_NAME,
+            GALLERY_VERSION,
+            OS_TYPE);
+    Map<String, Object> galleryImageMap = getGalleryImageAsJsonMap();
+    CacheData galleryCacheData =
+        new DefaultCacheData(galleryKey, Map.of("vmimage", galleryImageMap), Map.of());
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString()))
+        .willReturn(List.of(galleryKey));
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of(galleryCacheData));
+
+    var mockCreds =
+        mock(com.netflix.spinnaker.clouddriver.azure.security.AzureNamedAccountCredentials.class);
+    var mockAzureCreds =
+        mock(com.netflix.spinnaker.clouddriver.azure.security.AzureCredentials.class);
+    given(mockCreds.getCredentials()).willReturn(mockAzureCreds);
+    given(mockAzureCreds.getSubscriptionId()).willReturn(SUBSCRIPTION_ID);
+    doReturn(mockCreds).when(accountCredentialsProvider).getCredentials(AZURE_ACCOUNT);
+
+    // act
+    List<AzureNamedImage> results =
+        lookupController.list(lookupOptions, Map.of("tag:appversion", "1.0.0"));
+
+    // assert: gallery found, managed cache never touched
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getImageName()).isEqualTo(IMAGE_DEF_NAME);
+    verify(cache, never())
+        .filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString());
+    verify(cache, never())
+        .getAll(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyList(), any(CacheFilter.class));
+  }
+
+  @Test
+  @DisplayName(
+      "findImagesByTags with neither flag set inherits LookupOptions defaults (gallery-only)")
+  void findImagesByTagsDefaultsToGalleryOnly() {
+    // prepare -- caller sets neither flag; defaults apply (managed=false, gallery=true)
+    LookupOptions lookupOptions = new LookupOptions();
+    lookupOptions.setAccount(AZURE_ACCOUNT);
+    lookupOptions.setRegion(REGION);
+    lookupOptions.setTags(Map.of("appversion", "1.0.0"));
+
+    given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString()))
+        .willReturn(List.of());
+    given(
+            cache.getAll(
+                eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyList(), any(CacheFilter.class)))
+        .willReturn(List.of());
+
+    // act
+    lookupController.list(lookupOptions, Map.of("tag:appversion", "1.0.0"));
+
+    // assert: gallery cache consulted, managed cache untouched
+    verify(cache, times(1))
+        .filterIdentifiers(eq(Keys.Namespace.AZURE_GALLERYIMAGES.getNs()), anyString());
+    verify(cache, never())
+        .filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString());
   }
 }

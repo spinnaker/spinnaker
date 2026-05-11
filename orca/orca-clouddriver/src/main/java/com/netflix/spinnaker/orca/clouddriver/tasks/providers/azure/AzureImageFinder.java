@@ -46,6 +46,10 @@ public class AzureImageFinder implements ImageFinder {
         regions,
         account);
 
+    // Ask the controller for both managed and gallery image candidates --
+    // managedImages=true here, galleryImages=true inherits from LookupOptions'
+    // default. Source preference between the two (gallery wins on tie) is the
+    // comparator's job (see AzureManagedImage#compareTo).
     Map<String, String> searchParams = new HashMap<>(prefixTags(tags));
     searchParams.put("managedImages", "true");
 
@@ -102,6 +106,11 @@ public class AzureImageFinder implements ImageFinder {
     @JsonProperty String region;
     @JsonProperty String osType;
     @JsonProperty String uri;
+    // Set only for Shared Image Gallery results, where all versions of an
+    // image definition share the same `imageName` (= imageDefinitionName) and
+    // the version is what actually distinguishes them. Managed-image results
+    // leave this null and rely on the timestamp embedded in `imageName`.
+    @JsonProperty String version;
     @JsonProperty Map<String, Object> attributes;
     @JsonProperty Map<String, String> tags;
 
@@ -115,14 +124,67 @@ public class AzureImageFinder implements ImageFinder {
                           tags.get("build_host"), av.getBuildJobName(), av.getBuildNumber()))
               .orElse(null);
 
-      return new AzureImageDetails(imageName, region, resourceGroup, osType, uri, jenkinsDetails);
+      return new AzureImageDetails(
+          imageName, region, resourceGroup, osType, uri, version, jenkinsDetails);
     }
 
     @Override
     public int compareTo(AzureManagedImage other) {
-      // Sort by name (reverse alphabetical to get latest versions)
-      return other.imageName.compareTo(this.imageName);
+      // Source preference: when both a gallery image and a managed image are
+      // candidates in the same region, gallery wins. Gallery is the canonical
+      // replicated/deploy-time form on Azure, and a lex compare on imageName
+      // would otherwise be unsafe -- a stable gallery imageDefinitionName like
+      // "moderne-arm64-noble" can sort either side of a timestamped managed
+      // name like "moderne-1746961200000-noble-arm64". Gallery rows expose a
+      // non-null `version`; managed rows don't, which is what we discriminate
+      // on here.
+      boolean thisIsGallery = this.version != null && !this.version.isEmpty();
+      boolean otherIsGallery = other.version != null && !other.version.isEmpty();
+      if (thisIsGallery != otherIsGallery) {
+        return thisIsGallery ? -1 : 1;
+      }
+
+      // Same source. Sort by name first (reverse alphabetical to get latest versions).
+      int byName = other.imageName.compareTo(this.imageName);
+      if (byName != 0) {
+        return byName;
+      }
+      // Names tie -- this is the gallery-image case, where every version of
+      // an image definition reports the same imageName. Without a tiebreaker
+      // the dedup-per-region loop downstream picks a random version. Compare
+      // by `version` (descending) so the highest version wins.
+      return compareVersions(other.version, this.version);
     }
+  }
+
+  // Numeric-aware comparison for Shared Image Gallery versions, which Azure
+  // requires to be `MAJOR.MINOR.PATCH` integers. Falls back to lexicographic
+  // comparison for any non-numeric component so an unexpected format degrades
+  // gracefully instead of throwing.
+  static int compareVersions(String a, String b) {
+    if (a == null || a.isEmpty()) {
+      return (b == null || b.isEmpty()) ? 0 : -1;
+    }
+    if (b == null || b.isEmpty()) {
+      return 1;
+    }
+    String[] aParts = a.split("\\.");
+    String[] bParts = b.split("\\.");
+    int n = Math.max(aParts.length, bParts.length);
+    for (int i = 0; i < n; i++) {
+      String aPart = i < aParts.length ? aParts[i] : "0";
+      String bPart = i < bParts.length ? bParts[i] : "0";
+      int cmp;
+      try {
+        cmp = Long.compare(Long.parseLong(aPart), Long.parseLong(bPart));
+      } catch (NumberFormatException e) {
+        cmp = aPart.compareTo(bPart);
+      }
+      if (cmp != 0) {
+        return cmp;
+      }
+    }
+    return 0;
   }
 
   static class AzureImageDetails extends HashMap<String, Object> implements ImageDetails {
@@ -132,6 +194,7 @@ public class AzureImageFinder implements ImageFinder {
         String resourceGroup,
         String osType,
         String uri,
+        String version,
         JenkinsDetails jenkinsDetails) {
       put("imageName", imageName);
       String imageId = (uri != null && !uri.isEmpty() && !uri.equals("na")) ? uri : "na";
@@ -139,6 +202,10 @@ public class AzureImageFinder implements ImageFinder {
       put("region", region);
       put("resourceGroup", resourceGroup);
       put("osType", osType);
+
+      if (version != null && !version.isEmpty()) {
+        put("version", version);
+      }
 
       if (jenkinsDetails != null) {
         put("jenkins", jenkinsDetails);

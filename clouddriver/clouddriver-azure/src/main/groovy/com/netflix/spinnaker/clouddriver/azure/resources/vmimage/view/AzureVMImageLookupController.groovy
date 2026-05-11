@@ -359,34 +359,36 @@ class AzureVMImageLookupController {
   List<AzureNamedImage> findImagesByTags(LookupOptions lookupOptions) {
     def results = [] as List<AzureNamedImage>
 
-    // Search managed images
-    def pattern = Keys.getManagedVMImageKey(azureCloudProvider,
-      lookupOptions.account ?: '*',
-      lookupOptions.region ?: '*',
-      "*", "*", "*")
+    // Honor the LookupOptions flags directly. Defaults are managedImages=false
+    // and galleryImages=true, so a caller that sets neither gets gallery-only.
+    if (lookupOptions.managedImages) {
+      def pattern = Keys.getManagedVMImageKey(azureCloudProvider,
+        lookupOptions.account ?: '*',
+        lookupOptions.region ?: '*',
+        "*", "*", "*")
 
-    def identifiers = cacheView.filterIdentifiers(Keys.Namespace.AZURE_MANAGEDIMAGES.ns, pattern)
-    def data = cacheView.getAll(Keys.Namespace.AZURE_MANAGEDIMAGES.ns, identifiers, RelationshipCacheFilter.none())
+      def identifiers = cacheView.filterIdentifiers(Keys.Namespace.AZURE_MANAGEDIMAGES.ns, pattern)
+      def data = cacheView.getAll(Keys.Namespace.AZURE_MANAGEDIMAGES.ns, identifiers, RelationshipCacheFilter.none())
 
-    for (cacheData in data) {
-      try {
-        AzureManagedVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureManagedVMImage)
-        def parts = Keys.parse(azureCloudProvider, cacheData.id)
+      for (cacheData in data) {
+        try {
+          AzureManagedVMImage vmImage = objectMapper.convertValue(cacheData.attributes['vmimage'], AzureManagedVMImage)
+          def parts = Keys.parse(azureCloudProvider, cacheData.id)
 
-        if (matchesFilters(vmImage, lookupOptions)) {
-          results += buildAzureNamedImage(vmImage, parts)
+          if (matchesFilters(vmImage, lookupOptions)) {
+            results += buildAzureNamedImage(vmImage, parts)
 
-          if (results.size() >= MAX_SEARCH_RESULTS) {
-            break
+            if (results.size() >= MAX_SEARCH_RESULTS) {
+              break
+            }
           }
+        } catch (Exception e) {
+          log.error("findImagesByTags -> Unexpected exception", e)
         }
-      } catch (Exception e) {
-        log.error("findImagesByTags -> Unexpected exception", e)
       }
     }
 
-    // Also search gallery images
-    if (results.size() < MAX_SEARCH_RESULTS) {
+    if (lookupOptions.galleryImages && results.size() < MAX_SEARCH_RESULTS) {
       def galleryPattern = Keys.getGalleryImageKey(azureCloudProvider,
         lookupOptions.account ?: '*',
         lookupOptions.region ?: '*',
@@ -520,7 +522,12 @@ class AzureVMImageLookupController {
     Boolean configOnly = true
     Boolean customOnly = false
     Boolean managedImages = false
-    Boolean galleryImages = false
+    // Default to true: Shared Image Gallery is the canonical deploy-time image
+    // form on Azure (bake produces a managed image in the bake region, then a
+    // replication step publishes gallery image versions everywhere else).
+    // Callers that only want managed/custom/marketplace results can set this
+    // to false explicitly.
+    Boolean galleryImages = true
     Map<String, String> tags
   }
 }
