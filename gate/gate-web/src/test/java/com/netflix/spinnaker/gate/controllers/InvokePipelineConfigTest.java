@@ -57,13 +57,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
@@ -115,12 +115,12 @@ class InvokePipelineConfigTest {
   @Qualifier("authenticatedRequestFilter")
   private FilterRegistrationBean filterRegistrationBean;
 
-  @MockBean ClouddriverServiceSelector clouddriverServiceSelector;
+  @MockitoBean ClouddriverServiceSelector clouddriverServiceSelector;
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockitoBean ClouddriverService clouddriverService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   private static final String APPLICATION = "my-application";
   private static final String PIPELINE_ID = "my-pipeline-id";

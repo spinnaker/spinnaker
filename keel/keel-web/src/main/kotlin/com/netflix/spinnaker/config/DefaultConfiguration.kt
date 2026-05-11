@@ -20,7 +20,7 @@ import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.jackson.JsonComponentModule
-import org.springframework.boot.task.TaskSchedulerCustomizer
+import org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -114,8 +114,8 @@ class DefaultConfiguration(
       .apply { order = HIGHEST_PRECEDENCE }
 
   @Bean
-  fun taskSchedulerCustomizer(@Value("\${keel.scheduler.pool-size:10}") poolSize: Int): TaskSchedulerCustomizer =
-    TaskSchedulerCustomizer { scheduler ->
+  fun taskSchedulerCustomizer(@Value("\${keel.scheduler.pool-size:10}") poolSize: Int): ThreadPoolTaskSchedulerCustomizer =
+    ThreadPoolTaskSchedulerCustomizer { scheduler ->
       scheduler.poolSize = poolSize
       scheduler.threadNamePrefix = "scheduler-"
     }

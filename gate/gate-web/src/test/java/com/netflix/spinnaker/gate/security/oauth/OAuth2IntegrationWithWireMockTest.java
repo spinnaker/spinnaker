@@ -34,7 +34,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
@@ -45,6 +44,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -88,13 +88,13 @@ public class OAuth2IntegrationWithWireMockTest {
           .build();
 
   /** To prevent attempts to connect to clouddriver */
-  @MockBean private DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean private DefaultProviderLookupService defaultProviderLookupService;
 
   /** To prevent attempts to connect to front50 */
-  @MockBean private ApplicationService applicationService;
+  @MockitoBean private ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   // Provide WireMock URLs into Spring properties before context initialization uses them
   @DynamicPropertySource

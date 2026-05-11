@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.keel.orca
 
 import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
@@ -10,6 +11,7 @@ import com.netflix.spinnaker.keel.api.TaskExecution
 import com.netflix.spinnaker.keel.api.TaskStatus
 import com.netflix.spinnaker.keel.serialization.mapper
 import java.time.Instant
+import java.util.LinkedHashMap
 
 data class TaskRefResponse(
   val ref: String
@@ -64,6 +66,7 @@ data class OrcaStageTask(
   val stageEnd: Boolean
 )
 
+@JsonDeserialize(using = OrcaExecutionStagesDeserializer::class)
 data class OrcaExecutionStages(
   val stages: List<OrcaExecutionStage>?
 )
@@ -101,9 +104,58 @@ data class OrcaContext(
  * done correctly since Orca's response serializes these as longs representing epoch type with milliseconds,
  * whereas our object mappers are configured to interpret them as seconds.
  */
+class OrcaExecutionStagesDeserializer : StdNodeBasedDeserializer<OrcaExecutionStages>(OrcaExecutionStages::class.java) {
+  private val stageListType = object : TypeReference<ArrayList<LinkedHashMap<String, Any>>>() {}
+
+  override fun convert(root: JsonNode, ctxt: DeserializationContext): OrcaExecutionStages {
+    val stagesNode = root.path("stages")
+    @Suppress("UNCHECKED_CAST")
+    val stages: List<OrcaExecutionStage>? = if (stagesNode.isMissingNode || stagesNode.isNull) {
+      emptyList()
+    } else {
+      ctxt.mapper.readValue(ctxt.mapper.treeAsTokens(stagesNode), stageListType) as? List<OrcaExecutionStage>
+    }
+
+    return OrcaExecutionStages(stages)
+  }
+}
+
 class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDetailResponse>(ExecutionDetailResponse::class.java) {
-  override fun convert(root: JsonNode, ctxt: DeserializationContext) =
-    ExecutionDetailResponse(
+  private val stageListType = object : TypeReference<ArrayList<LinkedHashMap<String, Any>>>() {}
+  private val keyValueListType = object : TypeReference<List<KeyValuePair>>() {}
+
+  override fun convert(root: JsonNode, ctxt: DeserializationContext): ExecutionDetailResponse {
+    val executionNode = root.path("execution")
+    val execution = if (executionNode.isMissingNode || executionNode.isNull) {
+      OrcaExecutionStages(emptyList())
+    } else {
+      ctxt.mapper.treeToValue(executionNode, OrcaExecutionStages::class.java)
+    }
+
+    val stagesNode = root.path("stages")
+    @Suppress("UNCHECKED_CAST")
+    val stages: List<OrcaExecutionStage> = if (stagesNode.isMissingNode || stagesNode.isNull) {
+      emptyList()
+    } else {
+      try {
+        ctxt.mapper.readValue(ctxt.mapper.treeAsTokens(stagesNode), stageListType) as? List<OrcaExecutionStage> ?: emptyList()
+      } catch (e: Exception) {
+        emptyList()
+      }
+    }
+
+    val variablesNode = root.path("variables")
+    val variables = if (variablesNode.isMissingNode || variablesNode.isNull) {
+      null
+    } else {
+      try {
+        ctxt.mapper.readValue(ctxt.mapper.treeAsTokens(variablesNode), keyValueListType)
+      } catch (e: Exception) {
+        null
+      }
+    }
+
+    return ExecutionDetailResponse(
       id = root.path("id").textValue(),
       name = root.path("name").textValue(),
       application = root.path("application").textValue(),
@@ -111,8 +163,9 @@ class ExecutionDetailResponseDeserializer : StdNodeBasedDeserializer<ExecutionDe
       startTime = root.path("startTime")?.longValue()?.let { Instant.ofEpochMilli(it) },
       endTime = root.path("endTime")?.longValue()?.let { Instant.ofEpochMilli(it) },
       status = ctxt.mapper.convertValue(root.path("status")),
-      execution = root.path("execution")?.let { ctxt.mapper.convertValue<OrcaExecutionStages>(it) },
-      stages =  root.path("stages")?.let { ctxt.mapper.convertValue<List<OrcaExecutionStage>>(it) },
-      variables = root.path("variables")?.let { ctxt.mapper.convertValue<List<KeyValuePair>>(it) }
+      execution = execution,
+      stages = stages,
+      variables = variables
     )
+  }
 }

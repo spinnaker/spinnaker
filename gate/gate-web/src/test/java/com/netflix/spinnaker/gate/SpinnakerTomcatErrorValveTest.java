@@ -38,10 +38,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * Use SpringBootTest.WebEnvironment so tomcat is involved in the test, since the whole point is to
@@ -60,16 +60,16 @@ class SpinnakerTomcatErrorValveTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @MockBean private PipelineService pipelineService;
+  @MockitoBean private PipelineService pipelineService;
 
   /** Mock the application service to disable the background thread that caches applications */
-  @MockBean private ApplicationService applicationService;
+  @MockitoBean private ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   /** To prevent periodic calls to clouddriver to query for accounts */
-  @MockBean private DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean private DefaultProviderLookupService defaultProviderLookupService;
 
   private static final String APPLICATION = "my-application";
 

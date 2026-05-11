@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
-import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.netflix.spinnaker.fiat.model.resources.ResourceType.SERVICE_ACCOUNT
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator.AuthorizationFailure
@@ -109,8 +108,8 @@ class ExceptionHandler(
     val authFailure: AuthorizationFailure? = FiatPermissionEvaluator.getAuthorizationFailure().orElse(null)
     val message = if (authFailure != null) {
       val user = "User ${AuthenticatedRequest.getSpinnakerUser().orElse("")}"
-      val permission = authFailure.authorization.let { if (it == null) "access" else "${it.name.toLowerCase()} permission" }
-      val resourceType = authFailure.resourceType.toString().toLowerCase().replace('_', ' ')
+      val permission = authFailure.authorization.let { if (it == null) "access" else "${it.name.lowercase()} permission" }
+      val resourceType = authFailure.resourceType.toString().lowercase().replace('_', ' ')
       "Access denied. $user does not have $permission to the ${authFailure.resourceName} $resourceType specified in the request. " +
         if (authFailure.resourceType == SERVICE_ACCOUNT) {
           "Please make sure you have access to the service account specified in your delivery config."
@@ -134,20 +133,24 @@ class ExceptionHandler(
     val (rootCause, problemPath) = findRootCause()
 
     return ParsingErrorDetails(
-      error = when (this) {
-        // caters to missing properties at the root-level (e.g. serviceAccount)
-        is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
-        else -> when (rootCause) {
-          is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
-          is NullPointerException -> ParsingError.INVALID_VALUE
-          is IllegalStateException -> ParsingError.INVALID_VALUE
-          is IllegalArgumentException -> ParsingError.INVALID_VALUE
-          is MismatchedInputException -> ParsingError.INVALID_TYPE
-          is InvalidTypeIdException -> ParsingError.INVALID_TYPE
-          is InvalidFormatException -> ParsingError.INVALID_FORMAT
-          is DateTimeParseException -> ParsingError.INVALID_FORMAT
-          else -> ParsingError.OTHER
+      error = when (rootCause) {
+        // In Jackson 2.18+, missing Kotlin parameters are indicated by MismatchedInputException
+        // Check the message to see if it's about missing parameters
+        is InvalidTypeIdException -> ParsingError.INVALID_TYPE
+        is InvalidFormatException -> ParsingError.INVALID_FORMAT
+        is MismatchedInputException -> {
+          if (rootCause.message?.contains("missing", ignoreCase = true) == true ||
+              rootCause.message?.contains("required", ignoreCase = true) == true) {
+            ParsingError.MISSING_PROPERTY
+          } else {
+            ParsingError.INVALID_TYPE
+          }
         }
+        is NullPointerException -> ParsingError.INVALID_VALUE
+        is IllegalStateException -> ParsingError.INVALID_VALUE
+        is IllegalArgumentException -> ParsingError.INVALID_VALUE
+        is DateTimeParseException -> ParsingError.INVALID_FORMAT
+        else -> ParsingError.OTHER
       },
       message = rootCause.message,
       location = mapOf(
@@ -229,7 +232,7 @@ enum class ParsingError : ApiErrorType {
   OTHER;
 
   @JsonValue
-  fun toLowerCase() = name.toLowerCase()
+  fun toLowerCase() = name.lowercase()
 }
 
 interface ApiErrorDetails {

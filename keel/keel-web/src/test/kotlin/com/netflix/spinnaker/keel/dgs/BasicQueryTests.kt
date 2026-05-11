@@ -2,7 +2,6 @@ package com.netflix.spinnaker.keel.dgs
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.graphql.dgs.DgsQueryExecutor
-import com.netflix.graphql.dgs.autoconfig.DgsAutoConfiguration
 import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -43,7 +42,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 
 @SpringBootTest(
-  classes = [DgsAutoConfiguration::class, DgsTestConfig::class],
+  classes = [DgsTestConfig::class],
 )
 class BasicQueryTests {
 

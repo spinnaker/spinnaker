@@ -52,10 +52,10 @@ import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -72,11 +72,11 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   protected static final String TEST_PASSWORD = "testpassword";
   protected static final String TEST_EMAIL = "testuser@example.com";
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockitoBean ClouddriverService clouddriverService;
 
-  @MockBean FiatService fiatService;
+  @MockitoBean FiatService fiatService;
 
-  @MockBean Front50Service front50Service;
+  @MockitoBean Front50Service front50Service;
 
   @Autowired protected SecuritySamlProperties properties;
 

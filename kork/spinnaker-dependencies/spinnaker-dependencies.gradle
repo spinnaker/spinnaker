@@ -17,11 +17,11 @@ ext {
     log4j            : "2.25.1",
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.2",
-    openapi          : "2.8.17",
     retrofit2        : "2.12.0",
     spectator        : "1.9.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
+    springdocs          : "2.8.17",
     springBoot       : "3.5.14",
     springCloud      : "2025.0.2",
     swagger          : "2.2.22",
@@ -131,15 +131,10 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.liquibase:liquibase-core"){
-       version {
-         strictly "4.24.0"
-       }
-    }
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.10.0")
     api("org.pf4j:pf4j-update:2.3.0")
-    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.openapi}")
+    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.springdocs}")
     api("org.threeten:threeten-extra:1.0")
   }
 }

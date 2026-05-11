@@ -51,9 +51,10 @@ dependencies {
 
   // DGS dependencies - aligned with Spring Boot 3.5.x and graphql-java 24.x
   implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:10.2.4'))
-  // no longer there in later versions so removing this now
-//  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-boot-starter")
+  implementation("com.netflix.graphql.dgs:graphql-dgs-spring-graphql-starter")
+  implementation("com.netflix.graphql.dgs:graphql-dgs-extended-scalars")
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")
 
