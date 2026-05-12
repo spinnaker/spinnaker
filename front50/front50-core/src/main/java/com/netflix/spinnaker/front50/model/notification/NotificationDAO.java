@@ -9,13 +9,7 @@ public interface NotificationDAO {
   Collection<String> NOTIFICATION_FORMATS =
       Collections.unmodifiableList(
           Arrays.asList(
-              "email",
-              "googlechat",
-              "hipchat",
-              "microsoftteams",
-              "pubsub",
-              "slack",
-              "sms"));
+              "email", "googlechat", "hipchat", "microsoftteams", "pubsub", "slack", "sms"));
 
   Collection<Notification> all();
 

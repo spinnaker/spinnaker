@@ -15,7 +15,6 @@ import { slackNotification } from './selector/types/slack/slack.notification';
 import { smsNotification } from './selector/types/sms/sms.notification';
 
 [
-  bearyChatNotification,
   emailNotification,
   githubstatusNotification,
   googlechatNotification,

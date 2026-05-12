@@ -56,7 +56,6 @@ interface EchoService {
     }
 
     static enum Type {
-      BEARYCHAT,
       EMAIL,
       GOOGLECHAT,
       HIPCHAT,
