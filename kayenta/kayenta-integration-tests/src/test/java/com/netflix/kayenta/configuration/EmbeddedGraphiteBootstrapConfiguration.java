@@ -15,8 +15,6 @@
  */
 package com.netflix.kayenta.configuration;
 
-import static com.playtika.test.common.utils.ContainerUtils.containerLogsConsumer;
-
 import com.netflix.kayenta.utils.EnvironmentUtils;
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -28,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
@@ -48,7 +47,7 @@ public class EmbeddedGraphiteBootstrapConfiguration {
 
     GenericContainer container =
         new GenericContainer("graphiteapp/graphite-statsd:1.1.5-12")
-            .withLogConsumer(containerLogsConsumer(log))
+            .withLogConsumer(new Slf4jLogConsumer(log))
             .withExposedPorts(PICKLE_RECEIVER_PORT, HTTP_PORT)
             .waitingFor(graphiteWaitStrategy)
             .withClasspathResourceMapping(
