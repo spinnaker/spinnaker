@@ -24,7 +24,10 @@ ext {
     springdocs          : "2.8.17",
     springBoot       : "3.5.14",
     springCloud      : "2025.0.2",
-    swagger          : "2.2.22",
+    // bring in latest, though it's ahead of deps.  This is due to springdocs
+    // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
+    // referencing a field that didn't come in... until 2.2.30
+    swagger          : "2.2.49",
   ]
 }
 

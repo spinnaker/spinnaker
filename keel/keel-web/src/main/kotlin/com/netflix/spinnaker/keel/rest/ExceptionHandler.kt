@@ -136,10 +136,8 @@ class ExceptionHandler(
       error = when (rootCause) {
         // In Jackson 2.18+, missing Kotlin parameters are indicated by MismatchedInputException
         // Check the message to see if it's about missing parameters
-        is InvalidTypeIdException -> ParsingError.INVALID_TYPE
-        is InvalidFormatException -> ParsingError.INVALID_FORMAT
         is MismatchedInputException -> {
-          if (rootCause.message?.contains("missing", ignoreCase = true) == true ||
+          if (rootCause.message?.contains("value failed for", ignoreCase = true) == true ||
               rootCause.message?.contains("required", ignoreCase = true) == true) {
             ParsingError.MISSING_PROPERTY
           } else {

@@ -2,6 +2,7 @@ package com.netflix.spinnaker.keel.dgs
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.graphql.dgs.DgsQueryExecutor
+import com.netflix.graphql.dgs.springgraphql.autoconfig.DgsSpringGraphQLAutoConfiguration
 import com.netflix.spinnaker.keel.actuation.ExecutionSummaryService
 import com.netflix.spinnaker.keel.api.Moniker
 import com.netflix.spinnaker.keel.api.SubnetAwareLocations
@@ -36,13 +37,14 @@ import io.mockk.every
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import strikt.api.expectCatching
 import strikt.assertions.isEqualTo
 import strikt.assertions.isSuccess
 
 @SpringBootTest(
-  classes = [DgsTestConfig::class],
+  classes = [DgsTestConfig::class, DgsSpringGraphQLAutoConfiguration::class, GraphQlAutoConfiguration::class]
 )
 class BasicQueryTests {
 

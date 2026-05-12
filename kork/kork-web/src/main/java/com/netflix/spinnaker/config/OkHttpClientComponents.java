@@ -56,7 +56,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -130,7 +130,7 @@ public class OkHttpClientComponents {
    * @see org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
    */
   @Bean
-  public Dispatcher okhttpDispatcher(ThreadPoolTaskExecutorBuilder taskExecutorBuilder) {
+  public Dispatcher okhttpDispatcher(SimpleAsyncTaskExecutorBuilder taskExecutorBuilder) {
     var dispatcher = new Dispatcher(new ExecutorServiceAdapter(taskExecutorBuilder.build()));
     dispatcher.setMaxRequests(clientProperties.getMaxRequests());
     dispatcher.setMaxRequestsPerHost(clientProperties.getMaxRequestsPerHost());

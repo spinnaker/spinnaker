@@ -50,9 +50,11 @@ dependencies {
   implementation("com.graphql-java:graphql-java-extended-scalars:22.0")
 
   // DGS dependencies - aligned with Spring Boot 3.5.x and graphql-java 24.x
-  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:10.2.4'))
+  implementation(platform('com.netflix.graphql.dgs:graphql-dgs-platform-dependencies:10.6.0'))
   implementation("com.netflix.graphql.dgs:graphql-dgs-spring-graphql-starter")
+  implementation("com.netflix.graphql.dgs:dgs-starter")
   implementation("com.netflix.graphql.dgs:graphql-dgs-extended-scalars")
+  implementation("org.springframework.boot:spring-boot-starter-graphql")
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda'
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
@@ -71,7 +73,8 @@ dependencies {
   testImplementation("org.testcontainers:mysql")
   testImplementation("com.networknt:json-schema-validator:1.0.43")
   testImplementation("io.spinnaker.kork:kork-plugins")
-  testImplementation("com.graphql-java:graphql-java-extended-scalars:22.0")
+  testImplementation("com.graphql-java:graphql-java-extended-scalars")
+  testImplementation 'com.netflix.graphql.dgs:dgs-starter-test'
   testRuntimeOnly(project(":keel-ec2-plugin"))
 }
 

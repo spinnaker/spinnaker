@@ -25,14 +25,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.boot.context.annotation.UserConfigurations;
-import org.springframework.boot.task.ThreadPoolTaskExecutorBuilder;
+import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class OkHttpClientComponentsTest {
 
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
-          .withBean(ThreadPoolTaskExecutorBuilder.class)
+          .withBean(SimpleAsyncTaskExecutorBuilder.class)
           .withConfiguration(UserConfigurations.of(OkHttpClientComponents.class));
 
   @BeforeEach
