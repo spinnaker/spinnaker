@@ -13,7 +13,6 @@ export interface IProviderSettings {
 }
 
 export interface INotificationSettings {
-  bearychat: { enabled: boolean };
   email: { enabled: boolean };
   githubStatus: { enabled: boolean };
   googlechat: { enabled: boolean };
