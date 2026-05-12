@@ -36,6 +36,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
@@ -66,7 +67,7 @@ public class OrcaObjectMapper {
     instance.disable(WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     instance.disable(FAIL_ON_UNKNOWN_PROPERTIES);
     instance.enable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
-    instance.setSerializationInclusion(NON_NULL);
+    instance.setDefaultPropertyInclusion(NON_NULL);
 
     // Jackson cannot deserialize an interface. For interfaces defined by orca-api, we need to tell
     // Jackson the singular class that implement these interfaces.
@@ -188,7 +189,7 @@ public class OrcaObjectMapper {
         }
       }
 
-      throw ctxt.mappingException("Cannot deserialize HttpStatusCode from " + node);
+      throw new SpinnakerException("Cannot deserialize HttpStatusCode from " + node);
     }
   }
 }

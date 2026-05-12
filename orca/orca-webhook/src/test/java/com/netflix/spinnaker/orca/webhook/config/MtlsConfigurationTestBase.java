@@ -50,9 +50,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 class MtlsConfigurationTestBase {
 
@@ -90,9 +90,9 @@ class MtlsConfigurationTestBase {
       return mapper;
     }
 
-    @MockBean FiatService fiatService;
+    @MockitoBean FiatService fiatService;
 
-    @MockBean OortService oortService;
+    @MockitoBean OortService oortService;
   }
 
   @SneakyThrows

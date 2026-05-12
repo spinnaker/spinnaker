@@ -21,8 +21,8 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
 class GateFixtureTest : JUnit5Minutests {
 
@@ -49,20 +49,20 @@ class GateFixtureTest : JUnit5Minutests {
     //   ERROR [TaskScheduler-4] DownstreamServicesHealthIndicator : Exception received during
     //     health check of service: clouddriver, java.net.ConnectException: Failed to connect
     //     to localhost/[0:0:0:0:0:0:0:1]:7002 (url: http://localhost:7002/health)
-    @MockBean
+    @MockitoBean
     lateinit var downstreamServicesHealthIndicator: DownstreamServicesHealthIndicator
 
     //   ERROR [pool-2-thread-2] ApplicationService : Falling back to application cache
     //     SpinnakerNetworkException: java.net.ConnectException: Failed to connect to
     //     localhost/[0:0:0:0:0:0:0:1]:7002
-    @MockBean
+    @MockitoBean
     lateinit var applicationService: ApplicationService
 
     //   ERROR [TaskScheduler-2] DefaultProviderLookupService : Unable to refresh account
     //     details cache
     //     SpinnakerNetworkException: java.net.ConnectException: Failed to connect to
     //     localhost/[0:0:0:0:0:0:0:1]:7002
-    @MockBean
+    @MockitoBean
     lateinit var defaultProviderLookupService: DefaultProviderLookupService
   }
 }
