@@ -313,7 +313,6 @@ window.spinnakerSettings = {
     'pubsub',
     'travis',
     'webhook',
-    'wercker',
     'helm/oci',
   ],
   useClassicFirewallLabels: useClassicFirewallLabels,
