@@ -5,7 +5,6 @@ import { SETTINGS } from '../config';
 import type { INotificationTypeConfig } from '../domain';
 import { Registry } from '../registry';
 
-import { bearyChatNotification } from './selector/types/bearychat/beary.notification';
 import { cdEventsNotification } from './selector/types/cdevents/cdevents.notification';
 import { emailNotification } from './selector/types/email/email.notification';
 import { githubstatusNotification } from './selector/types/githubstatus/githubstatus.notification';
@@ -16,7 +15,6 @@ import { slackNotification } from './selector/types/slack/slack.notification';
 import { smsNotification } from './selector/types/sms/sms.notification';
 
 [
-  bearyChatNotification,
   emailNotification,
   githubstatusNotification,
   googlechatNotification,
