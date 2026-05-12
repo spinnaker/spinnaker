@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.config;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.Module;
 import com.netflix.spinnaker.front50.jackson.Front50ApiModule;
 import com.netflix.spinnaker.moniker.Namer;
@@ -44,10 +45,11 @@ public class Front50CoreConfiguration {
   }
 
   @Bean
-  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
+  public Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
     return jacksonObjectMapperBuilder -> {
       modules.addAll(List.of(new Front50ApiModule()));
       jacksonObjectMapperBuilder.modules(modules);
+      jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL);
     };
   }
 }

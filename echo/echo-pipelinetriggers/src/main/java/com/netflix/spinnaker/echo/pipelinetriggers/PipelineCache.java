@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers;
 
 import static java.time.Instant.now;
+import static java.util.stream.Collectors.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
@@ -36,7 +37,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -136,7 +136,7 @@ public class PipelineCache implements MonitoredPoller {
         Stream.concat(triggerTypesStream, Stream.of(Trigger.Type.CRON.toString()))
             .sorted()
             .distinct()
-            .collect(Collectors.joining(","));
+            .collect(joining(","));
 
     log.info("supportedTriggerTypes: {}", supportedTriggerTypes);
   }
@@ -257,7 +257,7 @@ public class PipelineCache implements MonitoredPoller {
                       .map(this::process)
                       .filter(Optional::isPresent)
                       .map(Optional::get)
-                      .collect(Collectors.toList()))
+                      .collect(toList()))
           .get();
     } catch (InterruptedException | ExecutionException e) {
       log.error("Error hydrating pipelines", e);
@@ -283,7 +283,7 @@ public class PipelineCache implements MonitoredPoller {
         .flatMap(p -> Optional.ofNullable(p.getTriggers()).orElse(Collections.emptyList()).stream())
         .filter(Trigger::isEnabled)
         .filter(t -> t.getType() != null)
-        .collect(Collectors.groupingBy(Trigger::getType));
+        .collect(groupingBy(Trigger::getType));
   }
 
   /**
@@ -455,7 +455,7 @@ public class PipelineCache implements MonitoredPoller {
 
   // visible for testing
   public static List<Pipeline> decorateTriggers(final List<Pipeline> pipelines) {
-    return pipelines.stream().map(PipelineCache::decorateTriggers).collect(Collectors.toList());
+    return pipelines.stream().map(PipelineCache::decorateTriggers).toList();
   }
 
   @Override

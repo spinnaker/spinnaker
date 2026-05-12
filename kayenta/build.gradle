@@ -95,6 +95,7 @@ subprojects { project ->
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.objenesis:objenesis"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
       testRuntimeOnly "org.junit.vintage:junit-vintage-engine" //Required for spock tests to execute along with junit5 tests
     }
   }

@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.mock.Calls;
@@ -80,10 +79,5 @@ public class BearychatNotificationServiceTest {
   @Configuration
   public static class TestConfig {
     @MockitoBean BearychatService bearychatService;
-
-    @Bean
-    public BearychatService bearychatService() {
-      return bearychatService;
-    }
   }
 }

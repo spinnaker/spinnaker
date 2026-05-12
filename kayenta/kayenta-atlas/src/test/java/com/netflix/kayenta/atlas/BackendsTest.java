@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -40,7 +40,11 @@ class BackendsConfig {
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(
-    classes = {BackendsConfig.class, TaskExecutorBuilder.class, AuthenticationConfiguration.class})
+    classes = {
+      BackendsConfig.class,
+      SimpleAsyncTaskExecutorBuilder.class,
+      AuthenticationConfiguration.class
+    })
 public class BackendsTest {
   @Autowired private ResourceLoader resourceLoader;
 

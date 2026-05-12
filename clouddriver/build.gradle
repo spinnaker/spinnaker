@@ -54,6 +54,7 @@ subprojects {
 
       testRuntimeOnly enforcedPlatform("io.spinnaker.kork:kork-bom")
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     test {
