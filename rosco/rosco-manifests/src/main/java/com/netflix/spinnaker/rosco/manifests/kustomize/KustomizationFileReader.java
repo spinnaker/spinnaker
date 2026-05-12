@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -89,9 +90,10 @@ public class KustomizationFileReader {
   }
 
   private Kustomization convert(Artifact artifact) throws IOException {
-    Representer representer = new Representer();
+    Representer representer = new Representer(new DumperOptions());
     representer.getPropertyUtils().setSkipMissingProperties(true);
-    return YamlHelper.newYamlRepresenter(new Constructor(Kustomization.class), representer)
+    return YamlHelper.newYamlRepresenter(
+            new Constructor(Kustomization.class, YamlHelper.getLoaderOptions()), representer)
         .load(downloadFile(artifact));
   }
 
