@@ -130,14 +130,16 @@ public class YamlHelper {
     return new Yaml(constructor, representer);
   }
 
-  private static LoaderOptions getLoaderOptions() {
+  public static LoaderOptions getLoaderOptions() {
     LoaderOptions opts = new LoaderOptions();
-    if (yamlParserProperties.getMaxAliasesForCollections() != null) {
-      opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
-    }
+    if (yamlParserProperties != null) {
+      if (yamlParserProperties.getMaxAliasesForCollections() != null) {
+        opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
+      }
 
-    if (yamlParserProperties.getCodePointLimit() != null) {
-      opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
+      if (yamlParserProperties.getCodePointLimit() != null) {
+        opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
+      }
     }
     return opts;
   }

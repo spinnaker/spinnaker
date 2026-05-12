@@ -52,21 +52,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@ComponentScan({"com.netflix.spinnaker.config", "com.netflix.spinnaker.igor"})
+@ComponentScan(
+    value = {"com.netflix.spinnaker.config", "com.netflix.spinnaker.igor"},
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = org.springframework.context.annotation.FilterType.REGEX,
+            pattern = "com\\.netflix\\.spinnaker\\.fiat\\..*"))
 @SpringBootTest(
     classes = {
       GoogleCloudBuildConfig.class,
@@ -89,18 +88,6 @@ public class GoogleCloudBuildTest {
   private WireMockServer stubCloudBuildService;
 
   private ObjectMapper objectMapper = new ObjectMapper();
-
-  @TestConfiguration
-  @EnableWebSecurity
-  @Order(1)
-  static class WebSecurityConfig {
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-      http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-          .csrf(csrf -> csrf.disable());
-      return http.build();
-    }
-  }
 
   @Test
   public void missingAccountTest() throws Exception {

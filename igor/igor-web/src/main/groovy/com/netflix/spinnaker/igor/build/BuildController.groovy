@@ -98,9 +98,9 @@ class BuildController {
     return build
   }
 
-  @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
+  @RequestMapping(value = '/builds/status/{buildNumber}/{master}/**')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-  GenericBuild getJobStatus(@PathVariable String master, @PathVariable
+  GenericBuild getJobStatus(@PathVariable("master") String master, @PathVariable("buildNumber")
     Long buildNumber, HttpServletRequest request) {
     def job = ((String) request.getAttribute(
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(5).join('/')
@@ -111,16 +111,16 @@ class BuildController {
   @RequestMapping(value = '/builds/status/{buildNumber}/{master}')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   GenericBuild getJobStatus(
-    @PathVariable String master,
-    @PathVariable Long buildNumber,
+    @PathVariable("master") String master,
+    @PathVariable("buildNumber") Long buildNumber,
     @RequestParam("job") String job) {
     def buildService = getBuildService(master)
     return jobStatus(buildService, master, job, buildNumber)
   }
 
-  @RequestMapping(value = '/builds/artifacts/{buildNumber}/{master:.+}/**')
+  @RequestMapping(value = '/builds/artifacts/{buildNumber}/{master}/**')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-  List<Artifact> getBuildResults(@PathVariable String master, @PathVariable
+  List<Artifact> getBuildResults(@PathVariable("master") String master, @PathVariable("buildNumber")
     Long buildNumber, @Query("propertyFile") String propertyFile, HttpServletRequest request) {
     def job = ((String) request.getAttribute(
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(5).join('/')
@@ -136,7 +136,7 @@ class BuildController {
 
   @RequestMapping(value = '/builds/artifacts/{buildNumber}/{master}')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-  List<Artifact> getBuildResults(@PathVariable String master, @PathVariable
+  List<Artifact> getBuildResults(@PathVariable("master") String master, @PathVariable("buildNumber")
     Long buildNumber, @RequestParam("job") String job ,@Query("propertyFile") String propertyFile) {
     def buildService = getBuildService(master)
     GenericBuild build = jobStatus(buildService, master, job, buildNumber)
@@ -149,14 +149,14 @@ class BuildController {
 
   @RequestMapping(value = '/builds/queue/{master}/{item}')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-  Object getQueueLocation(@PathVariable String master, @PathVariable long item) {
+  Object getQueueLocation(@PathVariable("master") String master, @PathVariable("item") long item) {
     def buildService = getBuildService(master)
     return buildService.queuedBuild(master, item)
   }
 
-  @RequestMapping(value = '/builds/all/{master:.+}/**')
+  @RequestMapping(value = ['/builds/all/{master}/**', '/builds/all/{master}'])
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-  List<Object> getBuilds(@PathVariable String master, HttpServletRequest request) {
+  List<Object> getBuilds(@PathVariable("master") String master, HttpServletRequest request) {
     def job = ((String) request.getAttribute(
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(4).join('/')
     def buildService = getBuildService(master)
@@ -167,9 +167,9 @@ class BuildController {
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
   String stop(
     @PathVariable("name") String master,
-    @PathVariable String jobName,
-    @PathVariable String queuedBuild,
-    @PathVariable Long buildNumber) {
+    @PathVariable("jobName") String jobName,
+    @PathVariable("queuedBuild") String queuedBuild,
+    @PathVariable("buildNumber") Long buildNumber) {
     stopJob(master, buildNumber, jobName, queuedBuild)
     "true"
   }
@@ -177,10 +177,10 @@ class BuildController {
   @RequestMapping(value = "/masters/{master}/jobs/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
   String stopWithQueryParam(
-    @PathVariable String master,
-    @RequestParam String jobName,
-    @PathVariable String queuedBuild,
-    @PathVariable Long buildNumber) {
+    @PathVariable("master") String master,
+    @RequestParam("jobName") String jobName,
+    @PathVariable("queuedBuild") String queuedBuild,
+    @PathVariable("buildNumber") Long buildNumber) {
 
     stopJob(master, buildNumber, jobName, queuedBuild)
     "true"
@@ -332,11 +332,11 @@ class BuildController {
     return key
   }
 
-  @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master:.+}/**')
+  @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master}/**')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   Map<String, Object> getProperties(
-    @PathVariable String master,
-    @PathVariable Long buildNumber, @PathVariable
+    @PathVariable("master") String master,
+    @PathVariable("buildNumber") Long buildNumber, @PathVariable("fileName")
       String fileName, HttpServletRequest request) {
     def job = ((String) request.getAttribute(
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(6).join('/')
@@ -353,8 +353,8 @@ class BuildController {
   @RequestMapping(value = '/builds/properties/{buildNumber}/{fileName}/{master}')
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   Map<String, Object> getProperties(
-    @PathVariable String master,
-    @PathVariable Long buildNumber, @PathVariable
+    @PathVariable("master") String master,
+    @PathVariable("buildNumber") Long buildNumber, @PathVariable("fileName")
       String fileName, @RequestParam("job") String job) {
     def buildService = getBuildService(master)
     if (buildService instanceof BuildProperties) {
