@@ -129,9 +129,6 @@ window.spinnakerSettings = {
   },
   gateUrl: gateHost,
   notifications: {
-    bearychat: {
-      enabled: true,
-    },
     email: {
       enabled: true,
     },
