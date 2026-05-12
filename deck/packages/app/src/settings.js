@@ -154,9 +154,6 @@ window.spinnakerSettings = {
     chaosMonkey: false,
   },
   notifications: {
-    bearychat: {
-      enabled: true,
-    },
     email: {
       enabled: true,
     },
