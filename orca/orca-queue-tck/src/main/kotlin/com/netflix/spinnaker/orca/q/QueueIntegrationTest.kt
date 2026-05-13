@@ -73,7 +73,6 @@ import java.time.Instant.now
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit.HOURS
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -92,8 +91,6 @@ import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.util.concurrent.TimeUnit
-import java.util.function.Predicate
 
 @SpringBootTest(
   classes = [TestConfig::class],

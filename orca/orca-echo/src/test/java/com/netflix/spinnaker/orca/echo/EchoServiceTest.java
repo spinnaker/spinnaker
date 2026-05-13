@@ -73,6 +73,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
       ContextParameterProcessor.class
     })
 public class EchoServiceTest {
+  @MockitoBean Front50Service front50Service;
 
   @RegisterExtension
   static WireMockExtension wmEcho50 =
@@ -98,8 +99,6 @@ public class EchoServiceTest {
 
   @Configuration
   static class TestConfig {
-
-    @MockitoBean Front50Service front50Service;
 
     @Bean
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {

@@ -32,14 +32,12 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
         it.setTargetCompatibility(JavaVersion.VERSION_17)
       }
     }
-    // with out these two compile blocks, bean discoveyr fails BADLY on multiple conflicting objects.  See
+    // with out these two compile blocks, bean discovery fails BADLY on multiple conflicting objects.  See
     // https://github.com/spring-projects/spring-boot/pull/9839/changes#diff-75fcbf238dc6bf69b7a28dd69c5c0c96a9464684bdb1379f15a92589e7534f7fR129-R130 for an example
-    
+    // Changes here should be made in kotlin.gradle as well 
     project.getTasks().withType(GroovyCompile, compile -> {
-      final List<String> compilerArgs = ((GroovyCompile)compile).getOptions().getCompilerArgs();
-      if (!compilerArgs.contains(PARAMETERS_COMPILER_ARG)) {
-        compilerArgs.add(PARAMETERS_COMPILER_ARG);
-      } 
+      groovyOptions.parameters = true
+      options.compilerArgs.add(PARAMETERS_COMPILER_ARG)
     })
     // This is needed for serialization handling in later releases
     project.getTasks().withType(JavaCompile.class, compile -> {

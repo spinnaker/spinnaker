@@ -186,43 +186,36 @@ public class CloudDriverConfiguration {
     }
 
     @Bean
-    public MortService mortDeployService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
-      return new DelegatingMortService(
-          clouddriverRetrofitBuilder.buildReadOnlyService(MortService.class));
+    public MortService mortDeployService() {
+      return new DelegatingMortService(buildReadOnlyService(MortService.class));
     }
 
     @Bean
-    public CloudDriverCacheService clouddriverCacheService(
-        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+    public CloudDriverCacheService clouddriverCacheService() {
       return new DelegatingClouddriverCacheService(
-          clouddriverRetrofitBuilder.buildWriteableService(CloudDriverCacheService.class));
+          buildWriteableService(CloudDriverCacheService.class));
     }
 
     @Bean
-    public CloudDriverCacheStatusService cloudDriverCacheStatusService(
-        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+    public CloudDriverCacheStatusService cloudDriverCacheStatusService() {
       return new DelegatingCloudDriverCacheStatusService(
-          clouddriverRetrofitBuilder.buildReadOnlyService(CloudDriverCacheStatusService.class));
+          buildReadOnlyService(CloudDriverCacheStatusService.class));
     }
 
     @Bean
-    public OortService oortDeployService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
-      return new DelegatingOortService(
-          clouddriverRetrofitBuilder.buildReadOnlyService(OortService.class));
+    public OortService oortDeployService() {
+      return new DelegatingOortService(buildReadOnlyService(OortService.class));
     }
 
     @Bean
-    public CloudDriverTaskStatusService cloudDriverTaskStatusService(
-        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
+    public CloudDriverTaskStatusService cloudDriverTaskStatusService() {
       return new DelegatingCloudDriverTaskStatusService(
-          clouddriverRetrofitBuilder.buildReadOnlyService(CloudDriverTaskStatusService.class));
+          buildReadOnlyService(CloudDriverTaskStatusService.class));
     }
 
     @Bean
-    public KatoRestService katoDeployService(
-        ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
-      return new DelegatingKatoRestService(
-          clouddriverRetrofitBuilder.buildWriteableService(KatoRestService.class));
+    public KatoRestService katoDeployService() {
+      return new DelegatingKatoRestService(buildWriteableService(KatoRestService.class));
     }
 
     @Bean
@@ -242,9 +235,8 @@ public class CloudDriverConfiguration {
     }
 
     @Bean
-    FeaturesRestService featuresRestService(ClouddriverRetrofitBuilder clouddriverRetrofitBuilder) {
-      return new DelegatingFeaturesRestService(
-          clouddriverRetrofitBuilder.buildWriteableService(FeaturesRestService.class));
+    FeaturesRestService featuresRestService() {
+      return new DelegatingFeaturesRestService(buildWriteableService(FeaturesRestService.class));
     }
   }
 }
