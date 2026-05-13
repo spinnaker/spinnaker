@@ -57,15 +57,20 @@ compileKotlin {
   kotlinOptions {
     languageVersion = "1.9"
     jvmTarget = "17"
+// Changes made also in SpinnakerBaseProjectConventionPlugin
+    freeCompilerArgs += "-java-parameters"
+    javaParameters = true
     // see https://kotlinlang.org/docs/java-to-kotlin-interop.html#compatibility-mode-for-default-methods
     freeCompilerArgs += "-Xjvm-default=all-compatibility"
   }
 }
-
 compileTestKotlin {
   kotlinOptions {
     languageVersion = "1.9"
     jvmTarget = "17"
+// Changes made also in SpinnakerBaseProjectConventionPlugin
+    freeCompilerArgs += "-java-parameters"
+    javaParameters = true
     freeCompilerArgs += "-Xjvm-default=all-compatibility"
   }
 }
