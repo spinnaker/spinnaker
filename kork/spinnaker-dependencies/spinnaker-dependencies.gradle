@@ -78,6 +78,11 @@ dependencies {
     api("com.jcraft:jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
+
+    // Used in appengine.  Make sure to match the gradle plugin version.
+    api('org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r')
+    api("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:7.3.0.202506031305-r")
+
     api("com.netflix.archaius:archaius-core:0.7.7")
     api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")
     api("com.netflix.dyno:dyno-jedis:1.7.2")

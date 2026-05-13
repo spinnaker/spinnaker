@@ -5,6 +5,7 @@ dependencies {
   implementation 'org.owasp:dependency-check-gradle:12.2.1'
   implementation "com.diffplug.spotless:spotless-plugin-gradle:7.2.1"
   implementation 'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
+  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:7.3.0.202506031305-r") 
   implementation 'com.netflix.nebula:gradle-ospackage-plugin:12.2.1'
 
 

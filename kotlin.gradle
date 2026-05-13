@@ -55,6 +55,8 @@ test {
 
 compileKotlin {
   kotlinOptions {
+    // LIKELY hitting https://youtrack.jetbrains.com/projects/KT/issues/KT-78909/K2-Missing-diagnostics-CYCLICINHERITANCEHIERARCHY-for-recursive-class-inheritance-leads-to-StackOverflowError?_gl=1*1jq5htm*_gcl_au*NTY4NTA4OTk2LjE3NzczMDU5MjA.*_ga*MTk0Njk1MDEzNS4xNzc3MzA1OTIx*_ga_9J976DJZ68*czE3Nzg3MDg4NDIkbzQkZzEkdDE3Nzg3MDkwOTQkajU5JGwwJGgw
+    // on version 2.0 of the language.  Can test with 2.3 and fix later
     languageVersion = "1.9"
     jvmTarget = "17"
 // Changes made also in SpinnakerBaseProjectConventionPlugin
@@ -66,6 +68,8 @@ compileKotlin {
 }
 compileTestKotlin {
   kotlinOptions {
+    // LIKELY hitting https://youtrack.jetbrains.com/projects/KT/issues/KT-78909/K2-Missing-diagnostics-CYCLICINHERITANCEHIERARCHY-for-recursive-class-inheritance-leads-to-StackOverflowError?_gl=1*1jq5htm*_gcl_au*NTY4NTA4OTk2LjE3NzczMDU5MjA.*_ga*MTk0Njk1MDEzNS4xNzc3MzA1OTIx*_ga_9J976DJZ68*czE3Nzg3MDg4NDIkbzQkZzEkdDE3Nzg3MDkwOTQkajU5JGwwJGgw
+    // on version 2.0 of the language.  Can test with 2.3 and fix later
     languageVersion = "1.9"
     jvmTarget = "17"
 // Changes made also in SpinnakerBaseProjectConventionPlugin
