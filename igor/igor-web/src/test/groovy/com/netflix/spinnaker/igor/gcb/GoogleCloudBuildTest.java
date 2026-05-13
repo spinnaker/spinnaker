@@ -60,12 +60,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@ComponentScan(
-    value = {"com.netflix.spinnaker.config", "com.netflix.spinnaker.igor"},
-    excludeFilters =
-        @ComponentScan.Filter(
-            type = org.springframework.context.annotation.FilterType.REGEX,
-            pattern = "com\\.netflix\\.spinnaker\\.fiat\\..*"))
+@ComponentScan(value = {"com.netflix.spinnaker.config", "com.netflix.spinnaker.igor"})
 @SpringBootTest(
     classes = {
       GoogleCloudBuildConfig.class,

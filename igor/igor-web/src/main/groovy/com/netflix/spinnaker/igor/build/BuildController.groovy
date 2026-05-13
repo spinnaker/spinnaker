@@ -336,7 +336,7 @@ class BuildController {
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   Map<String, Object> getProperties(
     @PathVariable String master,
-    @PathVariable Long buildNumber, @PathVariable("fileName")
+    @PathVariable Long buildNumber, @PathVariable
       String fileName, HttpServletRequest request) {
     def job = ((String) request.getAttribute(
       HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE)).split('/').drop(6).join('/')
@@ -354,7 +354,7 @@ class BuildController {
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   Map<String, Object> getProperties(
     @PathVariable String master,
-    @PathVariable Long buildNumber, @PathVariable("fileName")
+    @PathVariable Long buildNumber, @PathVariable
       String fileName, @RequestParam("job") String job) {
     def buildService = getBuildService(master)
     if (buildService instanceof BuildProperties) {

@@ -76,9 +76,9 @@ class InfoController {
       return allBuildServices
     }
 
-    @RequestMapping(value = ['/jobs/{master}', '/jobs/{master}/'], method = RequestMethod.GET)
+    @RequestMapping(value = ['/jobs/{master:.+}', '/jobs/{master:.+}/'], method = RequestMethod.GET)
     @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-    List<String> getJobs(@PathVariable(name="master") String master) {
+    List<String> getJobs(@PathVariable String master) {
         def buildService = buildServices.getService(master)
         if (buildService == null) {
             throw new NotFoundException("Master '${master}' does not exist")
