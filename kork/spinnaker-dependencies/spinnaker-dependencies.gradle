@@ -18,7 +18,7 @@ ext {
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.2",
     retrofit2        : "2.12.0",
-    spectator        : "1.9.6",
+    spectator        : "1.0.6",
     spek             : "1.1.5",
     spek2            : "2.0.9",
     springdocs          : "2.8.17",
