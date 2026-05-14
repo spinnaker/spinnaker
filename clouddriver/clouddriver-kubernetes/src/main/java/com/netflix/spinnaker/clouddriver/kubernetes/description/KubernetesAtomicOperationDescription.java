@@ -24,14 +24,20 @@ import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class KubernetesAtomicOperationDescription
     implements DeployDescription, CredentialsNameable {
+  @Setter private String account;
+
   @JsonProperty("account")
-  String account;
+  @Override
+  public String getAccount() {
+    return account;
+  }
 
   KubernetesNamedAccountCredentials credentials;
 
