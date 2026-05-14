@@ -113,6 +113,8 @@ dependencies {
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation "io.rest-assured:rest-assured"
   integrationImplementation "org.yaml:snakeyaml"
+  integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
+  integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
 }
 
 testlogger {

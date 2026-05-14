@@ -75,6 +75,8 @@ dependencies {
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output
   integrationImplementation "io.rest-assured:rest-assured"
+  integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
+  integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
 }
 
 task integrationTest(type: Test) {

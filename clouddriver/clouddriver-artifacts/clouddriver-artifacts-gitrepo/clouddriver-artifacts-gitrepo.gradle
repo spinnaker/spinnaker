@@ -11,4 +11,6 @@ dependencies {
   integrationImplementation "org.testcontainers:junit-jupiter"
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation "io.rest-assured:rest-assured"
+  integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
+  integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
 }
