@@ -109,6 +109,11 @@ public class OAuth2IntegrationWithWireMockTest {
     registry.add(
         "spring.security.oauth2.client.provider.github.user-info-uri",
         () -> base + "/login/oauth/user");
+    // Github default username is "id".  WHICH can't be null and gets validated in latest releases.
+    // Force it
+    // to what the test uses of "login".
+    registry.add(
+        "spring.security.oauth2.client.provider.github.user-name-attribute", () -> "login");
   }
 
   @BeforeEach
@@ -118,6 +123,9 @@ public class OAuth2IntegrationWithWireMockTest {
 
   @Test
   void whenOAuth2UserInfoHasNullsThenAuthenticationSucceeds() {
+    // NOTE:  Changed per above.  The user-name-attribute CANNOT be a null.  WIth github as the
+    // "type"
+    // this means "id" is the default and will fail, but we can allow OTHER attributes to be null.
     githubMockServer.stubFor(
         WireMock.get(urlPathEqualTo("/login/oauth/authorize"))
             .willReturn(WireMock.aResponse().withTransformers("redirect-with-state")));
@@ -139,9 +147,7 @@ public class OAuth2IntegrationWithWireMockTest {
                 """)));
     HttpHeaders headers = new HttpHeaders();
     headers.set(
-        HttpHeaders.ACCEPT,
-        "text/html"); // simulate browser otherwise request will not be cached to replay after
-    // Authentication
+        HttpHeaders.ACCEPT, "text/html"); // Spring Boot 3.x requires explicit content type matching
 
     HttpEntity<Void> request = new HttpEntity<>(headers);
 

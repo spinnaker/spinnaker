@@ -39,15 +39,10 @@ public class MetricsEndpointConfiguration {
   public SecurityFilterChain metricsEndpointSecurityFilterChain(HttpSecurity http)
       throws Exception {
     // Allow anyone to access the spectator metrics endpoint using Ant-style matcher
-    http.securityMatcher(PathPatternRequestMatcher.withDefaults().matcher("/spectator/metrics"));
-    http.authorizeHttpRequests(
-        authorize ->
-            authorize
-                .requestMatchers(
-                    PathPatternRequestMatcher.withDefaults().matcher("/spectator/metrics"))
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+    http.securityMatcher(PathPatternRequestMatcher.withDefaults().matcher("/spectator/metrics"))
+        .authorizeHttpRequests(
+            authorizeRequests ->
+                authorizeRequests.requestMatchers("/spectator/metrics").permitAll());
     return http.build();
   }
 }

@@ -41,6 +41,7 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SecuritySamlProperties.class)
@@ -103,9 +104,13 @@ public class SAMLConfiguration {
 
     @Bean
     // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       authConfig.configure(http);
+      HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+      requestCache.setMatchingRequestParameterName("continue");
+      // Configure request cache to save original requests
+
       var authenticationProvider = new OpenSaml4AuthenticationProvider();
       authenticationProvider.setResponseAuthenticationConverter(responseAuthenticationConverter());
       return http.saml2Login(
@@ -113,6 +118,7 @@ public class SAMLConfiguration {
                   saml.authenticationManager(new ProviderManager(authenticationProvider))
                       .loginProcessingUrl(properties.getLoginProcessingUrl())
                       .relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()))
+          .requestCache(cache -> cache.requestCache(requestCache))
           .build();
     }
   }

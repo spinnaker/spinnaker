@@ -118,12 +118,18 @@ class SpinnakerTomcatErrorValveTest {
 
     // Note: the response in this case comes from spring boot's
     // DefaultErrorAttributes, NOT SpinnakerTomcatErrorValve.
+    // in current spring this is {"type":"about:blank","title":"Not Found","status":404,"detail":"No
+    // static resource
+    // pipelines/my-application/pipeline-name/has-a-slash.","instance":"/pipelines/my-application/pipeline-name/has-a-slash"}
     Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
     assertThat(jsonResponse.get("status")).isEqualTo(404);
-    assertThat(jsonResponse.get("error")).isEqualTo("Not Found");
+    assertThat(jsonResponse.get("title")).isEqualTo("Not Found");
     assertThat(jsonResponse.containsKey("exception")).isFalse();
-    assertThat(jsonResponse.get("message")).isEqualTo("No message available");
-    assertThat(jsonResponse.get("timestamp")).isNotNull();
+    assertThat(jsonResponse.get("detail"))
+        .asString()
+        .contains("No static resource "); // .isEqualTo("No message available");
+    //    assertThat(jsonResponse.get("timestamp")).isNotNull(); no longer included in the default
+    // error attributes as spring boot 3.5
 
     verify(pipelineService, never()).trigger(anyString(), anyString(), anyMap());
   }
