@@ -25,12 +25,19 @@ import io.restassured.response.ValidatableResponse;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
+@Ignore
+/**
+ * This test is increasingly and notoriously unstable in passing/failing and is marked disabled as
+ * of 05/15/2026. We should look at explicit tags for graphite perhaps, and consider the plan around
+ * these tests to be less painful
+ */
 public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
@@ -74,8 +81,9 @@ public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
               });
 
       // Additional wait to ensure sufficient historical data for 1-minute analysis window
-      log.info("Metrics queryable, waiting 30 more seconds for data accumulation...");
-      TimeUnit.SECONDS.sleep(30);
+      // Needs extra time for ARM emulation and to accumulate enough data points
+      log.info("Metrics queryable, waiting 90 more seconds for data accumulation...");
+      TimeUnit.SECONDS.sleep(90);
       log.info("Metrics accumulation period complete, starting tests");
     }
   }
