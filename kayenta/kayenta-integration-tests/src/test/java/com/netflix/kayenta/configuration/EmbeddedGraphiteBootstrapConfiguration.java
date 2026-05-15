@@ -27,7 +27,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 @Slf4j
@@ -38,7 +38,12 @@ public class EmbeddedGraphiteBootstrapConfiguration {
 
   @Bean(name = "graphiteWaitStrategy")
   public WaitStrategy graphiteWaitStrategy() {
-    return new HostPortWaitStrategy();
+    // Wait for Graphite web UI to be ready and able to respond to metric queries
+    return new HttpWaitStrategy()
+        .forPath("/")
+        .forPort(HTTP_PORT)
+        .forStatusCode(200)
+        .withStartupTimeout(Duration.ofSeconds(60));
   }
 
   @Bean(name = "graphite", destroyMethod = "stop")

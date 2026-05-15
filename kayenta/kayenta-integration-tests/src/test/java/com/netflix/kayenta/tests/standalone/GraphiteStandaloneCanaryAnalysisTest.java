@@ -20,7 +20,9 @@ import static org.hamcrest.CoreMatchers.is;
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
 import com.netflix.kayenta.tests.BaseIntegrationTest;
 import io.restassured.response.ValidatableResponse;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -29,27 +31,30 @@ public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
 
-  @Test
-  public void canaryAnalysisIsSuccessful() throws InterruptedException {
-    int retries = 4;
-    ValidatableResponse response = null;
-    while (retries > 0) {
-      String canaryAnalysisExecutionId =
-          steps.createCanaryAnalysis(
-              "cpu-successful-analysis-case",
-              "graphite-account",
-              "in-memory-store-account",
-              "canary-configs/graphite/integration-test-cpu.json");
+  @BeforeAll
+  public static void waitForMetricsAccumulation() throws InterruptedException {
+    // Wait for metrics to accumulate in Graphite before running tests.
+    // The test uses a 1-minute analysis window, so we need at least 90 seconds of metrics:
+    // - Time for metrics to be generated and exported (1s interval)
+    // - Time for Graphite to receive, process, and index the metrics
+    // - Buffer to ensure sufficient data points are available for analysis
+    log.info("Waiting 90 seconds for Graphite to accumulate sufficient metrics...");
+    TimeUnit.SECONDS.sleep(90);
+    log.info("Metrics accumulation period complete, starting tests");
+  }
 
-      response = steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
-      if (!"SUCCEEDED".equals(response.extract().path("executionStatus"))) {
-        log.warn("Validation failed so retrying . . ");
-        Thread.sleep(30000);
-        retries--;
-        continue;
-      }
-      break;
-    }
+  @Test
+  public void canaryAnalysisIsSuccessful() {
+    String canaryAnalysisExecutionId =
+        steps.createCanaryAnalysis(
+            "cpu-successful-analysis-case",
+            "graphite-account",
+            "in-memory-store-account",
+            "canary-configs/graphite/integration-test-cpu.json");
+
+    ValidatableResponse response =
+        steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
+
     response
         .body("executionStatus", is("SUCCEEDED"))
         .body("canaryAnalysisExecutionResult.hasWarnings", is(false))
