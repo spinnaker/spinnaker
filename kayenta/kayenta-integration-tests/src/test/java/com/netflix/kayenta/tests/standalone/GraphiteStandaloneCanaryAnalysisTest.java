@@ -38,15 +38,15 @@ public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
   public void waitForMetricsAccumulation() throws InterruptedException {
     // Wait for metrics to accumulate in Graphite before running tests.
     // This only happens once per test class execution (after Spring context is initialized).
-    // The test uses a 1-minute analysis window, so we need at least 120 seconds:
+    // The test uses a 1-minute analysis window, so we need at least 150 seconds:
     // - Time for metrics to be generated and exported (1s interval)
     // - Time for Graphite to receive, write to disk, and index the metrics
     // - Buffer to ensure sufficient data points are queryable for analysis
-    // - Graphite container may run under emulation, adding variable latency
+    // - Extra buffer for ARM64 emulation overhead (container is amd64, may run slowly)
     if (metricsAccumulated.compareAndSet(false, true)) {
       log.info(
-          "Waiting 120 seconds for Graphite to accumulate and index sufficient metrics (container now running)...");
-      TimeUnit.SECONDS.sleep(120);
+          "Waiting 150 seconds for Graphite to accumulate and index sufficient metrics (container now running)...");
+      TimeUnit.SECONDS.sleep(150);
       log.info("Metrics accumulation period complete, starting tests");
     }
   }
