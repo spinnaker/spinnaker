@@ -21,8 +21,9 @@ import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
 import com.netflix.kayenta.tests.BaseIntegrationTest;
 import io.restassured.response.ValidatableResponse;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,16 +32,22 @@ public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
 
-  @BeforeAll
-  public static void waitForMetricsAccumulation() throws InterruptedException {
+  private static final AtomicBoolean metricsAccumulated = new AtomicBoolean(false);
+
+  @BeforeEach
+  public void waitForMetricsAccumulation() throws InterruptedException {
     // Wait for metrics to accumulate in Graphite before running tests.
+    // This only happens once per test class execution (after Spring context is initialized).
     // The test uses a 1-minute analysis window, so we need at least 90 seconds of metrics:
     // - Time for metrics to be generated and exported (1s interval)
     // - Time for Graphite to receive, process, and index the metrics
     // - Buffer to ensure sufficient data points are available for analysis
-    log.info("Waiting 90 seconds for Graphite to accumulate sufficient metrics...");
-    TimeUnit.SECONDS.sleep(90);
-    log.info("Metrics accumulation period complete, starting tests");
+    if (metricsAccumulated.compareAndSet(false, true)) {
+      log.info(
+          "Waiting 90 seconds for Graphite to accumulate sufficient metrics (container now running)...");
+      TimeUnit.SECONDS.sleep(90);
+      log.info("Metrics accumulation period complete, starting tests");
+    }
   }
 
   @Test
