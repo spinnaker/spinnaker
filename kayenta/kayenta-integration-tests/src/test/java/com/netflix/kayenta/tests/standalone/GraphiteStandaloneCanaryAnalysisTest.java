@@ -15,6 +15,8 @@
  */
 package com.netflix.kayenta.tests.standalone;
 
+import static io.restassured.RestAssured.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
@@ -26,11 +28,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
 public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
+
+  @Value("${embedded.graphite.httpPort}")
+  private int graphiteHttpPort;
 
   private static final AtomicBoolean metricsAccumulated = new AtomicBoolean(false);
 
@@ -38,15 +44,38 @@ public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
   public void waitForMetricsAccumulation() throws InterruptedException {
     // Wait for metrics to accumulate in Graphite before running tests.
     // This only happens once per test class execution (after Spring context is initialized).
-    // The test uses a 1-minute analysis window, so we need at least 150 seconds:
-    // - Time for metrics to be generated and exported (1s interval)
-    // - Time for Graphite to receive, write to disk, and index the metrics
-    // - Buffer to ensure sufficient data points are queryable for analysis
-    // - Extra buffer for ARM64 emulation overhead (container is amd64, may run slowly)
+    // Uses active polling to handle variable timing from ARM64 emulation overhead.
     if (metricsAccumulated.compareAndSet(false, true)) {
       log.info(
-          "Waiting 150 seconds for Graphite to accumulate and index sufficient metrics (container now running)...");
-      TimeUnit.SECONDS.sleep(150);
+          "Waiting for Graphite to accumulate and index sufficient metrics (container now running)...");
+
+      // Initial wait for metrics to start flowing
+      TimeUnit.SECONDS.sleep(90);
+
+      // Poll for metric availability with generous timeout for ARM emulation
+      log.info("Polling Graphite for metric availability...");
+      await()
+          .pollDelay(5, TimeUnit.SECONDS)
+          .pollInterval(10, TimeUnit.SECONDS)
+          .atMost(5, TimeUnit.MINUTES)
+          .ignoreExceptions()
+          .untilAsserted(
+              () -> {
+                // Verify Graphite can respond to metric queries
+                given()
+                    .port(graphiteHttpPort)
+                    .queryParam("query", "integration.test.cpu")
+                    .queryParam("format", "json")
+                    .when()
+                    .get("/metrics/find")
+                    .then()
+                    .statusCode(200);
+                log.info("Graphite metrics are queryable");
+              });
+
+      // Additional wait to ensure sufficient historical data for 1-minute analysis window
+      log.info("Metrics queryable, waiting 30 more seconds for data accumulation...");
+      TimeUnit.SECONDS.sleep(30);
       log.info("Metrics accumulation period complete, starting tests");
     }
   }
