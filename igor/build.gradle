@@ -58,7 +58,6 @@ subprojects {
       testImplementation "org.assertj:assertj-core"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.objenesis:objenesis"
-      testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
       testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }

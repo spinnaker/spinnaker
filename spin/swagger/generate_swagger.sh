@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-SWAGGER_CODEGEN_VERSION='3.0.68'
+SWAGGER_CODEGEN_VERSION='3.0.80'
 
 rm -rf ./gateapi
 echo $PWD
