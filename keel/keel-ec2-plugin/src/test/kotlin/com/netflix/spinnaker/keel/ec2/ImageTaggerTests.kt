@@ -30,6 +30,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.springframework.core.env.StandardEnvironment
+import org.springframework.mock.env.MockEnvironment
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
@@ -52,9 +54,8 @@ class ImageTaggerTests : JUnit5Minutests {
         )
       } returns Task("123", "blah")
     }
-    private val springEnv: SpringEnv = mockk {
-      every { getProperty("keel.image.tagging.enabled", Boolean::class.java, any()) } returns true
-    }
+    val springEnv: MockEnvironment = MockEnvironment()
+
     val artifact = DebianArtifact(
       reference = "waffle",
       name = "waffle",
@@ -117,6 +118,9 @@ class ImageTaggerTests : JUnit5Minutests {
       )
     )
     val malformedImagesEvent = eventWithImages.copy(metadata = mapOf("images" to "pictures"))
+    init {
+      springEnv.setProperty("keel.image.tagging.enabled", "true")
+    }
   }
 
   fun tests() = rootContext<Fixture> {
