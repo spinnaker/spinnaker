@@ -18,9 +18,12 @@ package com.netflix.spinnaker.orca.clouddriver;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.orca.pipeline.util.DockerLatestResolver;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +39,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EcrDockerLatestResolver implements DockerLatestResolver {
+  private static final Logger log = LoggerFactory.getLogger(EcrDockerLatestResolver.class);
   // Full ECR URI: 123456789012.dkr.ecr.us-west-2.amazonaws.com/moderne/repo:tag
   private static final Pattern ECR_FULL_REFERENCE =
       Pattern.compile("^(?:https?://)?\\d{12}\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+:.+$");
@@ -69,7 +73,17 @@ public class EcrDockerLatestResolver implements DockerLatestResolver {
       int colon = reference.lastIndexOf(':');
       String repository = reference.substring(0, colon);
       String tag = reference.substring(colon + 1);
-      response = Retrofit2SyncCall.execute(oortService.resolveDockerTagByName(repository, tag));
+      try {
+        response = Retrofit2SyncCall.execute(oortService.resolveDockerTagByName(repository, tag));
+      } catch (SpinnakerHttpException e) {
+        if (e.getResponseCode() == 404) {
+          log.debug(
+              "clouddriver resolveDockerTagByName endpoint not available (404); passing artifact through unresolved: {}",
+              reference);
+          return artifact;
+        }
+        throw e;
+      }
     } else {
       response = Retrofit2SyncCall.execute(oortService.resolveDockerTag(reference));
     }

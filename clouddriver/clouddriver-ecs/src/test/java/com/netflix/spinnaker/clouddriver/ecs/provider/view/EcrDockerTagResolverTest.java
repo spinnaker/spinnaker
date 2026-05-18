@@ -25,6 +25,7 @@ import com.amazonaws.services.ecr.model.DescribeImagesResult;
 import com.amazonaws.services.ecr.model.ImageDetail;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
@@ -37,7 +38,7 @@ import org.mockito.ArgumentMatchers;
 final class EcrDockerTagResolverTest {
 
   private AmazonClientProvider amazonClientProvider;
-  private CredentialsRepository<NetflixECSCredentials> credentialsRepository;
+  private CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
   private AmazonECR ecr;
   private EcrDockerTagResolver target;
 

@@ -24,7 +24,6 @@ import com.amazonaws.services.ecr.model.ImageIdentifier;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.ArrayList;
@@ -50,12 +49,12 @@ public class EcrDockerTagResolver {
   private static final Pattern STABLE_SEMVER = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
 
   private final AmazonClientProvider amazonClientProvider;
-  private final CredentialsRepository<NetflixECSCredentials> credentialsRepository;
+  private final CredentialsRepository<NetflixAmazonCredentials> credentialsRepository;
 
   @Autowired
   public EcrDockerTagResolver(
       AmazonClientProvider amazonClientProvider,
-      CredentialsRepository<NetflixECSCredentials> credentialsRepository) {
+      CredentialsRepository<NetflixAmazonCredentials> credentialsRepository) {
     this.amazonClientProvider = amazonClientProvider;
     this.credentialsRepository = credentialsRepository;
   }
@@ -86,7 +85,7 @@ public class EcrDockerTagResolver {
    */
   public ResolveResult resolveByName(String repository, String tag) {
     List<String> tried = new ArrayList<>();
-    for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
+    for (NetflixAmazonCredentials credentials : credentialsRepository.getAll()) {
       for (AmazonCredentials.AWSRegion awsRegion : credentials.getRegions()) {
         String region = awsRegion.getName();
         try {
@@ -147,7 +146,7 @@ public class EcrDockerTagResolver {
   }
 
   private NetflixAmazonCredentials lookupCredentials(String accountId, String region) {
-    for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
+    for (NetflixAmazonCredentials credentials : credentialsRepository.getAll()) {
       if (credentials.getAccountId().equals(accountId)
           && (credentials.getRegions().isEmpty()
               || credentials.getRegions().stream().anyMatch(r -> r.getName().equals(region)))) {
