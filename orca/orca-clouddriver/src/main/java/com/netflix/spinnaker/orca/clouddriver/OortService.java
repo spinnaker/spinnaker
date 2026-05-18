@@ -175,6 +175,10 @@ public interface OortService {
   @GET("ecs/images/resolveDockerTag")
   Call<Map<String, String>> resolveDockerTag(@Query("reference") String reference);
 
+  @GET("ecs/images/resolveDockerTagByName")
+  Call<Map<String, String>> resolveDockerTagByName(
+      @Query("repository") String repository, @Query("tag") String tag);
+
   @GET("tags")
   Call<List<Map<String, Object>>> getEntityTags(
       @Query("cloudProvider") String cloudProvider,

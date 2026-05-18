@@ -27,6 +27,8 @@ import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -40,8 +42,8 @@ import org.springframework.stereotype.Component;
  * digest. "Stable semver" here matches {@code N.N.N} (no pre-release suffix), which lines up with
  * the format that jib publishes for non-SNAPSHOT releases.
  *
- * <p>Throws on no peer match (caller must not silently fall through; that reintroduces the bug
- * this class exists to fix).
+ * <p>Throws on no peer match (caller must not silently fall through; that reintroduces the bug this
+ * class exists to fix).
  */
 @Component
 public class EcrDockerTagResolver {
@@ -71,39 +73,73 @@ public class EcrDockerTagResolver {
     }
 
     AmazonECR ecr = amazonClientProvider.getAmazonEcr(credentials, parsed.region, false);
+    ImageDetail detail = describeImage(ecr, parsed.accountId, parsed.repository, parsed.tag);
+    return resolveFromDetail(detail, reference, parsed.tag);
+  }
 
-    DescribeImagesResult byTag =
-        ecr.describeImages(
-            new DescribeImagesRequest()
-                .withRegistryId(parsed.accountId)
-                .withRepositoryName(parsed.repository)
-                .withImageIds(new ImageIdentifier().withImageTag(parsed.tag)));
-
-    if (byTag.getImageDetails() == null || byTag.getImageDetails().isEmpty()) {
-      throw new NotFoundException(
-          "No ECR image found for tag " + parsed.tag + " in repository " + parsed.repository);
+  /**
+   * Resolves a short-form {@code repository:tag} reference (e.g. {@code
+   * moderne/recipe-worker-arm64:latest}) by scanning all registered ECR credentials until one that
+   * holds the repository is found. The returned {@link ResolveResult#resolvedReference} uses the
+   * same short form so downstream pipeline stages store a pinned short reference rather than a full
+   * URI.
+   */
+  public ResolveResult resolveByName(String repository, String tag) {
+    List<String> tried = new ArrayList<>();
+    for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
+      for (AmazonCredentials.AWSRegion awsRegion : credentials.getRegions()) {
+        String region = awsRegion.getName();
+        try {
+          AmazonECR ecr = amazonClientProvider.getAmazonEcr(credentials, region, false);
+          ImageDetail detail = describeImage(ecr, null, repository, tag);
+          return resolveFromDetail(detail, repository + ":" + tag, tag);
+        } catch (com.amazonaws.services.ecr.model.RepositoryNotFoundException ignored) {
+          tried.add(credentials.getAccountId() + "/" + region);
+        }
+      }
     }
+    throw new NotFoundException(
+        "Repository " + repository + " not found in any registered ECR account; tried: " + tried);
+  }
 
-    ImageDetail detail = byTag.getImageDetails().get(0);
-    String digest = detail.getImageDigest();
+  private static ImageDetail describeImage(
+      AmazonECR ecr, String registryId, String repository, String tag) {
+    DescribeImagesRequest request =
+        new DescribeImagesRequest()
+            .withRepositoryName(repository)
+            .withImageIds(new ImageIdentifier().withImageTag(tag));
+    if (registryId != null) {
+      request.withRegistryId(registryId);
+    }
+    DescribeImagesResult result = ecr.describeImages(request);
+    if (result.getImageDetails() == null || result.getImageDetails().isEmpty()) {
+      throw new NotFoundException(
+          "No ECR image found for tag " + tag + " in repository " + repository);
+    }
+    return result.getImageDetails().get(0);
+  }
+
+  private static ResolveResult resolveFromDetail(
+      ImageDetail detail, String originalReference, String originalTag) {
     List<String> peerTags =
-        Optional.ofNullable(detail.getImageTags()).orElseGet(java.util.Collections::emptyList);
+        Optional.ofNullable(detail.getImageTags()).orElseGet(Collections::emptyList);
 
     Optional<String> resolved =
         peerTags.stream()
-            .filter(t -> !parsed.tag.equals(t))
+            .filter(t -> !originalTag.equals(t))
             .filter(t -> STABLE_SEMVER.matcher(t).matches())
             .max(EcrDockerTagResolver::compareSemver);
 
     if (resolved.isPresent()) {
-      return new ResolveResult(resolved.get(), rewriteReference(reference, parsed.tag, resolved.get()));
+      return new ResolveResult(
+          resolved.get(), rewriteReference(originalReference, originalTag, resolved.get()));
     }
 
     throw new NotFoundException(
         "ECR image "
-            + reference
+            + originalReference
             + " (digest "
-            + digest
+            + detail.getImageDigest()
             + ") has no peer tag matching stable semver "
             + STABLE_SEMVER.pattern()
             + "; peer tags were "
@@ -114,8 +150,7 @@ public class EcrDockerTagResolver {
     for (NetflixECSCredentials credentials : credentialsRepository.getAll()) {
       if (credentials.getAccountId().equals(accountId)
           && (credentials.getRegions().isEmpty()
-              || credentials.getRegions().stream()
-                  .anyMatch(r -> r.getName().equals(region)))) {
+              || credentials.getRegions().stream().anyMatch(r -> r.getName().equals(region)))) {
         return credentials;
       }
     }
@@ -180,8 +215,7 @@ public class EcrDockerTagResolver {
     static EcrReference parse(String reference) {
       Matcher m = PATTERN.matcher(reference);
       if (!m.matches()) {
-        throw new IllegalArgumentException(
-            "Reference is not a valid tagged ECR URI: " + reference);
+        throw new IllegalArgumentException("Reference is not a valid tagged ECR URI: " + reference);
       }
       return new EcrReference(m.group(1), m.group(2), m.group(3), m.group(4));
     }

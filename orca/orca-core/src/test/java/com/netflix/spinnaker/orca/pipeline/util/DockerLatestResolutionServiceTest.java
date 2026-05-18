@@ -28,9 +28,9 @@ import org.junit.jupiter.api.Test;
 final class DockerLatestResolutionServiceTest {
 
   private static final String LATEST_REF =
-      "297794628946.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:latest";
+      "123456789012.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:latest";
   private static final String RESOLVED_REF =
-      "297794628946.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:0.147.3";
+      "123456789012.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:0.147.3";
 
   private static Artifact dockerLatest() {
     return Artifact.builder()

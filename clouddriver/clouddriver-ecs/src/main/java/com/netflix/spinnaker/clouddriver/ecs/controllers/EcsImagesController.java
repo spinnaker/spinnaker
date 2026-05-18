@@ -65,4 +65,11 @@ public class EcsImagesController {
     EcrDockerTagResolver.ResolveResult result = ecrDockerTagResolver.resolve(reference);
     return Map.of("resolvedTag", result.resolvedTag, "reference", result.resolvedReference);
   }
+
+  @RequestMapping(value = "/resolveDockerTagByName", method = RequestMethod.GET)
+  public Map<String, String> resolveDockerTagByName(
+      @RequestParam("repository") String repository, @RequestParam("tag") String tag) {
+    EcrDockerTagResolver.ResolveResult result = ecrDockerTagResolver.resolveByName(repository, tag);
+    return Map.of("resolvedTag", result.resolvedTag, "reference", result.resolvedReference);
+  }
 }

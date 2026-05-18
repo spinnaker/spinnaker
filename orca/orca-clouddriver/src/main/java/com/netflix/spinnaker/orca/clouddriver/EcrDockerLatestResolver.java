@@ -26,14 +26,22 @@ import org.springframework.stereotype.Component;
 
 /**
  * Resolves docker/image artifacts whose reference points at an ECR registry by delegating to
- * clouddriver's {@code /ecs/images/resolveDockerTag} endpoint, which performs the digest→tag
- * lookup using the existing AWS credentials repository.
+ * clouddriver's {@code /ecs/images/resolveDockerTag} (full URI) or {@code
+ * /ecs/images/resolveDockerTagByName} (short {@code org/repo:tag} form) endpoints, which perform
+ * the digest→semver-tag lookup using the existing AWS credentials repository.
+ *
+ * <p>Pipeline artifacts in moderne-saas use short-form references ({@code
+ * moderne/recipe-worker-arm64:latest}) without the ECR registry hostname. Both forms are accepted
+ * so that the resolver fires regardless of which form the pipeline stores.
  */
 @Component
 public class EcrDockerLatestResolver implements DockerLatestResolver {
-  private static final Pattern ECR_REFERENCE =
-      Pattern.compile(
-          "^(?:https?://)?\\d{12}\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+:.+$");
+  // Full ECR URI: 123456789012.dkr.ecr.us-west-2.amazonaws.com/moderne/repo:tag
+  private static final Pattern ECR_FULL_REFERENCE =
+      Pattern.compile("^(?:https?://)?\\d{12}\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.+:.+$");
+
+  // Short ECR org reference as stored by moderne-saas pipelines: moderne/repo:tag
+  private static final Pattern ECR_SHORT_REFERENCE = Pattern.compile("^moderne/[^:]+:.+$");
 
   private final OortService oortService;
 
@@ -45,13 +53,26 @@ public class EcrDockerLatestResolver implements DockerLatestResolver {
   @Override
   public boolean handles(Artifact artifact) {
     String reference = artifact.getReference();
-    return reference != null && ECR_REFERENCE.matcher(reference).matches();
+    if (reference == null) {
+      return false;
+    }
+    return ECR_FULL_REFERENCE.matcher(reference).matches()
+        || ECR_SHORT_REFERENCE.matcher(reference).matches();
   }
 
   @Override
   public Artifact canonicalize(Artifact artifact) {
-    Map<String, String> response =
-        Retrofit2SyncCall.execute(oortService.resolveDockerTag(artifact.getReference()));
+    String reference = artifact.getReference();
+    Map<String, String> response;
+    if (ECR_SHORT_REFERENCE.matcher(reference).matches()) {
+      // Split "moderne/repo:tag" into repository and tag for the by-name endpoint.
+      int colon = reference.lastIndexOf(':');
+      String repository = reference.substring(0, colon);
+      String tag = reference.substring(colon + 1);
+      response = Retrofit2SyncCall.execute(oortService.resolveDockerTagByName(repository, tag));
+    } else {
+      response = Retrofit2SyncCall.execute(oortService.resolveDockerTag(reference));
+    }
     String resolvedTag = response.get("resolvedTag");
     String resolvedReference = response.get("reference");
     if (resolvedTag == null || resolvedReference == null) {

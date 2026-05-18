@@ -171,6 +171,11 @@ public class DelegatingOortService extends DelegatingClouddriverService<OortServ
   }
 
   @Override
+  public Call<Map<String, String>> resolveDockerTagByName(String repository, String tag) {
+    return getService().resolveDockerTagByName(repository, tag);
+  }
+
+  @Override
   public Call<List<Map<String, Object>>> getEntityTags(
       String cloudProvider, String entityType, String entityId, String account, String region) {
     return getService().getEntityTags(cloudProvider, entityType, entityId, account, region);

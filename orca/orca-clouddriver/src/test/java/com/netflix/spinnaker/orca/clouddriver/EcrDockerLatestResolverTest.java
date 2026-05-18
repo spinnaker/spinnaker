@@ -34,10 +34,18 @@ import retrofit2.mock.Calls;
 
 final class EcrDockerLatestResolverTest {
 
-  private static final String LATEST_REF =
-      "297794628946.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:latest";
-  private static final String RESOLVED_REF =
-      "297794628946.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:0.147.3";
+  // Full ECR URI form
+  private static final String LATEST_REF_FULL =
+      "123456789012.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:latest";
+  private static final String RESOLVED_REF_FULL =
+      "123456789012.dkr.ecr.us-west-2.amazonaws.com/moderne/recipe-worker-arm64:0.147.3";
+
+  // Short form as stored by metapipelines.libsonnet defaultArtifact — what actually flows
+  // through the repave-allstate execution (confirmed from live Spinnaker execution data).
+  // Artifact shape: {type:"docker/image", name:"moderne/audit-reader-arm64",
+  //                  reference:"moderne/audit-reader-arm64:latest", version:"latest"}
+  private static final String LATEST_REF_SHORT = "moderne/audit-reader-arm64:latest";
+  private static final String RESOLVED_REF_SHORT = "moderne/audit-reader-arm64:0.147.3";
 
   private OortService oortService;
   private EcrDockerLatestResolver target;
@@ -48,10 +56,25 @@ final class EcrDockerLatestResolverTest {
     target = new EcrDockerLatestResolver(oortService);
   }
 
+  // --- handles() ---
+
   @Test
-  void handles_ecrReference() {
+  void handles_fullEcrReference() {
+    Artifact ecr = Artifact.builder().type("docker/image").reference(LATEST_REF_FULL).build();
+    assertThat(target.handles(ecr)).isTrue();
+  }
+
+  @Test
+  void handles_shortEcrReference_asStoredByMetapipelines() {
+    // This is the exact artifact shape from repave-allstate execution that was
+    // passing through unresolved before the fix.
     Artifact ecr =
-        Artifact.builder().type("docker/image").reference(LATEST_REF).build();
+        Artifact.builder()
+            .type("docker/image")
+            .name("moderne/audit-reader-arm64")
+            .version("latest")
+            .reference(LATEST_REF_SHORT)
+            .build();
     assertThat(target.handles(ecr)).isTrue();
   }
 
@@ -68,31 +91,58 @@ final class EcrDockerLatestResolverTest {
     assertThat(target.handles(noRef)).isFalse();
   }
 
+  // --- canonicalize() with full ECR URI ---
+
   @Test
-  void canonicalize_callsOortServiceAndRewritesArtifact() {
+  void canonicalize_fullUri_callsResolveDockerTag() {
     Call<Map<String, String>> call =
-        Calls.response(Map.of("resolvedTag", "0.147.3", "reference", RESOLVED_REF));
-    when(oortService.resolveDockerTag(eq(LATEST_REF))).thenReturn(call);
+        Calls.response(Map.of("resolvedTag", "0.147.3", "reference", RESOLVED_REF_FULL));
+    when(oortService.resolveDockerTag(eq(LATEST_REF_FULL))).thenReturn(call);
 
     Artifact input =
         Artifact.builder()
             .type("docker/image")
             .name("moderne/recipe-worker-arm64")
             .version("latest")
-            .reference(LATEST_REF)
+            .reference(LATEST_REF_FULL)
             .build();
     Artifact result = target.canonicalize(input);
     assertThat(result.getVersion()).isEqualTo("0.147.3");
-    assertThat(result.getReference()).isEqualTo(RESOLVED_REF);
+    assertThat(result.getReference()).isEqualTo(RESOLVED_REF_FULL);
     assertThat(result.getName()).isEqualTo("moderne/recipe-worker-arm64");
+  }
+
+  // --- canonicalize() with short reference (the actual bug scenario) ---
+
+  @Test
+  void canonicalize_shortRef_callsResolveDockerTagByName_andPinsVersion() {
+    // Reproduces the exact failure: artifact from repave-allstate find stage with
+    // reference="moderne/audit-reader-arm64:latest", version="latest".
+    // After fix, canonicalize() must call resolveDockerTagByName and rewrite the artifact.
+    Call<Map<String, String>> call =
+        Calls.response(Map.of("resolvedTag", "0.147.3", "reference", RESOLVED_REF_SHORT));
+    when(oortService.resolveDockerTagByName(eq("moderne/audit-reader-arm64"), eq("latest")))
+        .thenReturn(call);
+
+    Artifact input =
+        Artifact.builder()
+            .type("docker/image")
+            .name("moderne/audit-reader-arm64")
+            .version("latest")
+            .reference(LATEST_REF_SHORT)
+            .build();
+    Artifact result = target.canonicalize(input);
+    assertThat(result.getVersion()).isEqualTo("0.147.3");
+    assertThat(result.getReference()).isEqualTo(RESOLVED_REF_SHORT);
+    assertThat(result.getName()).isEqualTo("moderne/audit-reader-arm64");
   }
 
   @Test
   void canonicalize_oortReturnsIncompleteResponse_throws() {
     Call<Map<String, String>> call = Calls.response(Map.of("resolvedTag", "0.147.3"));
-    when(oortService.resolveDockerTag(eq(LATEST_REF))).thenReturn(call);
+    when(oortService.resolveDockerTag(eq(LATEST_REF_FULL))).thenReturn(call);
 
-    Artifact input = Artifact.builder().type("docker/image").reference(LATEST_REF).build();
+    Artifact input = Artifact.builder().type("docker/image").reference(LATEST_REF_FULL).build();
     assertThatThrownBy(() -> target.canonicalize(input))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("incomplete response");
@@ -102,12 +152,10 @@ final class EcrDockerLatestResolverTest {
   void canonicalize_oortPropagatesErrorAsRuntime() {
     Call<Map<String, String>> call =
         Calls.response(
-            Response.error(
-                404,
-                ResponseBody.create("not found", MediaType.parse("text/plain"))));
-    when(oortService.resolveDockerTag(eq(LATEST_REF))).thenReturn(call);
+            Response.error(404, ResponseBody.create("not found", MediaType.parse("text/plain"))));
+    when(oortService.resolveDockerTag(eq(LATEST_REF_FULL))).thenReturn(call);
 
-    Artifact input = Artifact.builder().type("docker/image").reference(LATEST_REF).build();
+    Artifact input = Artifact.builder().type("docker/image").reference(LATEST_REF_FULL).build();
     assertThatThrownBy(() -> target.canonicalize(input)).isInstanceOf(RuntimeException.class);
   }
 }
