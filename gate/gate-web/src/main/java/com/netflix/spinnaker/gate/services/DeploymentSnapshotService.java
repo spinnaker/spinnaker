@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  *   <li>Clouddriver: one multi-app {@code /serverGroups?applications=…} call (in-memory cache).
  *   <li>Front50: one {@code /pipelines} call (in-memory cache); we filter to the requested apps
  *       here.
- *   <li>Orca: one {@code /v2/applications:deploymentExecutions} call (one SQL query).
+ *   <li>Orca: one {@code /deploymentSnapshots} call (one SQL query).
  * </ul>
  *
  * <p>Each shape is projected to the minimal fields a deploy-overview dashboard needs before
@@ -115,9 +115,9 @@ public class DeploymentSnapshotService {
                 Retrofit2SyncCall.execute(
                     orcaServiceSelector
                         .select()
-                        .getDeploymentExecutions(
+                        .getDeploymentSnapshots(
                             applicationsForOrca, pipelineNameFilter, null, pipelineLimit)),
-            "orca deploymentExecutions batch");
+            "orca deploymentSnapshots batch");
 
     CompletableFuture.allOf(sgFuture, pipelinesFuture, execsFuture).join();
     List<Map<String, Object>> rawServerGroups = sgFuture.join();

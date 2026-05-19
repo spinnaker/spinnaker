@@ -42,7 +42,7 @@ import org.springframework.http.HttpStatus;
  * accepts one application per request — fine for Deck's single-app pages but a 60×-round-trip
  * pattern for dashboards that need to summarize the deploy state of every service at once.
  *
- * <p>Projection: returns {@link DeploymentExecutionView}, a slim summary of each execution
+ * <p>Projection: returns {@link PipelineExecutionSummary}, a slim summary of each execution
  * (ids, status, timestamps, trigger summary, stage list). Drops outputs/context/tasks/
  * notifications, which typically account for 90%+ of an execution's serialized weight but
  * aren't needed for top-level dashboards.
@@ -51,12 +51,12 @@ import org.springframework.http.HttpStatus;
  * READ permission on, matching the per-app guard on {@code getPipelinesForApplication}.
  */
 @RestController
-public class DeploymentExecutionsController {
+public class DeploymentSnapshotsController {
 
   private final ExecutionRepository executionRepository;
   @Nullable private final Front50Service front50Service;
 
-  public DeploymentExecutionsController(
+  public DeploymentSnapshotsController(
       ExecutionRepository executionRepository, @Nullable Front50Service front50Service) {
     this.executionRepository = executionRepository;
     this.front50Service = front50Service;
@@ -77,8 +77,8 @@ public class DeploymentExecutionsController {
       value = "hasPermission(filterObject, 'APPLICATION', 'READ')",
       filterTarget = "applications")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
-  @GetMapping(value = "/v2/applications:deploymentExecutions", produces = APPLICATION_JSON_VALUE)
-  public List<DeploymentExecutionView> getDeploymentExecutions(
+  @GetMapping(value = "/deploymentSnapshots", produces = APPLICATION_JSON_VALUE)
+  public List<PipelineExecutionSummary> getDeploymentSnapshots(
       @RequestParam("applications") List<String> applications,
       @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
       @RequestParam(value = "statuses", required = false) String statuses,
@@ -139,8 +139,8 @@ public class DeploymentExecutionsController {
         executionRepository.retrievePipelineExecutionsForApplications(
             applications, configIds, criteria, queryTimeoutSeconds);
 
-    List<DeploymentExecutionView> out = new ArrayList<>(executions.size());
-    for (PipelineExecution e : executions) out.add(DeploymentExecutionView.from(e));
+    List<PipelineExecutionSummary> out = new ArrayList<>(executions.size());
+    for (PipelineExecution e : executions) out.add(PipelineExecutionSummary.from(e));
     // Sort newest first by startTime then id, matching getPipelinesForApplication.
     out.sort(
         (a, b) -> {

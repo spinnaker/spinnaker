@@ -34,7 +34,7 @@ import java.util.Optional;
  * point where browser JSON parsing becomes the bottleneck.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DeploymentExecutionView {
+public class PipelineExecutionSummary {
 
   public String id;
   public String name;
@@ -87,8 +87,8 @@ public class DeploymentExecutionView {
     public String failureMessage;
   }
 
-  public static DeploymentExecutionView from(PipelineExecution exec) {
-    DeploymentExecutionView v = new DeploymentExecutionView();
+  public static PipelineExecutionSummary from(PipelineExecution exec) {
+    PipelineExecutionSummary v = new PipelineExecutionSummary();
     v.id = exec.getId();
     v.name = exec.getName();
     v.application = exec.getApplication();

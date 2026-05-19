@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>Response: projected to the minimal fields a deploy-overview dashboard consumes.
  */
-@RequestMapping("/applications")
 @RestController
 public class DeploymentSnapshotController {
 
@@ -43,8 +41,8 @@ public class DeploymentSnapshotController {
 
   @Operation(
       summary =
-          "Retrieve a projected deploy-overview snapshot (server groups + pipeline configs + recent executions) for many applications in one request")
-  @GetMapping(value = ":deploymentSnapshot")
+          "Retrieve a deploy-overview status snapshot (server groups + pipeline configs + recent executions) for many applications in one request")
+  @GetMapping(value = "/deploymentSnapshot")
   public Snapshot getDeploymentSnapshot(
       @Parameter(
               name = "applications",

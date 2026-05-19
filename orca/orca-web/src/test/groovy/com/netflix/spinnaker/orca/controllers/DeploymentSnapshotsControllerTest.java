@@ -42,11 +42,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = {DeploymentExecutionsController.class}, webEnvironment = MOCK)
+@SpringBootTest(classes = {DeploymentSnapshotsController.class}, webEnvironment = MOCK)
 @AutoConfigureMockMvc
 @EnableWebMvc
 @WithMockUser("dashboard")
-class DeploymentExecutionsControllerTest {
+class DeploymentSnapshotsControllerTest {
 
   @MockBean ExecutionRepository executionRepository;
   @MockBean com.netflix.spinnaker.orca.front50.Front50Service front50Service;
@@ -58,7 +58,7 @@ class DeploymentExecutionsControllerTest {
     when(executionRepository.retrievePipelineExecutionsForApplications(any(), any(), any(), anyInt()))
         .thenReturn(List.of(buildExecution("svc-a", "exec-1"), buildExecution("svc-b", "exec-2")));
 
-    mvc.perform(get("/v2/applications:deploymentExecutions").param("applications", "svc-a,svc-b"))
+    mvc.perform(get("/deploymentSnapshots").param("applications", "svc-a,svc-b"))
         .andExpect(status().is2xxSuccessful())
         // Both apps are represented in the response.
         .andExpect(jsonPath("$[*].application").value(
@@ -70,7 +70,7 @@ class DeploymentExecutionsControllerTest {
 
   @Test
   void emptyApplicationsListShortCircuits() throws Exception {
-    mvc.perform(get("/v2/applications:deploymentExecutions").param("applications", ""))
+    mvc.perform(get("/deploymentSnapshots").param("applications", ""))
         .andExpect(status().is2xxSuccessful())
         .andExpect(content().json("[]"));
 
@@ -93,7 +93,7 @@ class DeploymentExecutionsControllerTest {
     when(executionRepository.retrievePipelineExecutionsForApplications(any(), any(), any(), anyInt()))
         .thenReturn(List.of(exec));
 
-    mvc.perform(get("/v2/applications:deploymentExecutions").param("applications", "svc-a"))
+    mvc.perform(get("/deploymentSnapshots").param("applications", "svc-a"))
         .andExpect(status().is2xxSuccessful())
         .andExpect(jsonPath("$[0].stages[0].failureMessage")
             .value("ASG never reached desired capacity"));

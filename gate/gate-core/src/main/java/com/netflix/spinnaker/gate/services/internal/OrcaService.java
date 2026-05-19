@@ -41,7 +41,7 @@ public interface OrcaService {
   /**
    * Batch counterpart to {@link #getPipelines}: returns recent pipeline executions across
    * every application in {@code applications} in a single round trip, projected to the
-   * minimal fields a deploy-overview dashboard needs (see Orca's DeploymentExecutionView).
+   * minimal fields a deploy-overview dashboard needs (Orca's PipelineExecutionSummary).
    *
    * <p>Retrofit serializes the List as {@code ?applications=a&applications=b&applications=c};
    * Spring's default conversion service binds either repeated or comma-joined params to
@@ -49,8 +49,8 @@ public interface OrcaService {
    * {@code ClouddriverService.getServerGroups(applications, …)} pattern.
    */
   @Headers("Accept: application/json")
-  @GET("v2/applications:deploymentExecutions")
-  Call<List<Map<String, Object>>> getDeploymentExecutions(
+  @GET("deploymentSnapshots")
+  Call<List<Map<String, Object>>> getDeploymentSnapshots(
       @Query("applications") List<String> applications,
       @Query("pipelineNameFilter") String pipelineNameFilter,
       @Query("statuses") String statuses,
