@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.controllers;
 
 import com.netflix.spinnaker.clouddriver.ecs.model.EcsDockerImage;
-import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcrDockerTagResolver;
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.ImageRepositoryProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,14 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/ecs/images")
 public class EcsImagesController {
   private final List<ImageRepositoryProvider> imageRepositoryProviders;
-  private final EcrDockerTagResolver ecrDockerTagResolver;
 
   @Autowired
-  public EcsImagesController(
-      List<ImageRepositoryProvider> imageRepositoryProviders,
-      EcrDockerTagResolver ecrDockerTagResolver) {
+  public EcsImagesController(List<ImageRepositoryProvider> imageRepositoryProviders) {
     this.imageRepositoryProviders = imageRepositoryProviders;
-    this.ecrDockerTagResolver = ecrDockerTagResolver;
   }
 
   @RequestMapping(value = "/find", method = RequestMethod.GET)
@@ -58,18 +52,5 @@ public class EcsImagesController {
                 .map(ImageRepositoryProvider::getRepositoryName)
                 .collect(Collectors.joining(", "))
             + ".");
-  }
-
-  @RequestMapping(value = "/resolveDockerTag", method = RequestMethod.GET)
-  public Map<String, String> resolveDockerTag(@RequestParam("reference") String reference) {
-    EcrDockerTagResolver.ResolveResult result = ecrDockerTagResolver.resolve(reference);
-    return Map.of("resolvedTag", result.resolvedTag, "reference", result.resolvedReference);
-  }
-
-  @RequestMapping(value = "/resolveDockerTagByName", method = RequestMethod.GET)
-  public Map<String, String> resolveDockerTagByName(
-      @RequestParam("repository") String repository, @RequestParam("tag") String tag) {
-    EcrDockerTagResolver.ResolveResult result = ecrDockerTagResolver.resolveByName(repository, tag);
-    return Map.of("resolvedTag", result.resolvedTag, "reference", result.resolvedReference);
   }
 }

@@ -29,8 +29,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Resolves docker/image artifacts whose reference points at an ECR registry by delegating to
- * clouddriver's {@code /ecs/images/resolveDockerTag} (full URI) or {@code
- * /ecs/images/resolveDockerTagByName} (short {@code org/repo:tag} form) endpoints, which perform
+ * clouddriver's {@code /ecr/images/resolveDockerTag} (full URI) or {@code
+ * /ecr/images/resolveDockerTagByName} (short {@code org/repo:tag} form) endpoints, which perform
  * the digest→semver-tag lookup using the existing AWS credentials repository.
  *
  * <p>Pipeline artifacts in moderne-saas use short-form references ({@code

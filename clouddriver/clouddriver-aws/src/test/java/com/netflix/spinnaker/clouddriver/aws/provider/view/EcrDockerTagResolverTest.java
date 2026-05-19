@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.ecs.provider.view;
+package com.netflix.spinnaker.clouddriver.aws.provider.view;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,7 +26,6 @@ import com.amazonaws.services.ecr.model.ImageDetail;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
-import com.netflix.spinnaker.clouddriver.ecs.security.NetflixECSCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.List;
@@ -49,7 +48,7 @@ final class EcrDockerTagResolverTest {
     credentialsRepository = org.mockito.Mockito.mock(CredentialsRepository.class);
     ecr = org.mockito.Mockito.mock(AmazonECR.class);
 
-    NetflixECSCredentials creds = stubCredentials("123456789012", "us-west-2");
+    NetflixAmazonCredentials creds = stubCredentials("123456789012", "us-west-2");
     org.mockito.Mockito.when(credentialsRepository.getAll()).thenReturn(Set.of(creds));
     org.mockito.Mockito.when(
             amazonClientProvider.getAmazonEcr(
@@ -173,13 +172,13 @@ final class EcrDockerTagResolverTest {
         .thenReturn(describe);
   }
 
-  private static NetflixECSCredentials stubCredentials(String accountId, String region) {
-    NetflixECSCredentials credentials = org.mockito.Mockito.mock(NetflixECSCredentials.class);
+  private static NetflixAmazonCredentials stubCredentials(String accountId, String region) {
+    NetflixAmazonCredentials credentials = org.mockito.Mockito.mock(NetflixAmazonCredentials.class);
     org.mockito.Mockito.when(credentials.getAccountId()).thenReturn(accountId);
     AmazonCredentials.AWSRegion awsRegion =
         org.mockito.Mockito.mock(AmazonCredentials.AWSRegion.class);
     org.mockito.Mockito.when(awsRegion.getName()).thenReturn(region);
     org.mockito.Mockito.when(credentials.getRegions()).thenReturn(List.of(awsRegion));
-    return (NetflixECSCredentials) credentials;
+    return credentials;
   }
 }

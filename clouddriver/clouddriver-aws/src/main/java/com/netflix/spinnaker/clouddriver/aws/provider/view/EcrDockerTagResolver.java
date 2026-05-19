@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.ecs.provider.view;
+package com.netflix.spinnaker.clouddriver.aws.provider.view;
 
 import com.amazonaws.services.ecr.AmazonECR;
 import com.amazonaws.services.ecr.model.DescribeImagesRequest;

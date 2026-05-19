@@ -172,10 +172,10 @@ public interface OortService {
    * including the registry, repository, and current tag. The response carries the resolved tag and
    * a fully-qualified reference with that tag substituted in.
    */
-  @GET("ecs/images/resolveDockerTag")
+  @GET("ecr/images/resolveDockerTag")
   Call<Map<String, String>> resolveDockerTag(@Query("reference") String reference);
 
-  @GET("ecs/images/resolveDockerTagByName")
+  @GET("ecr/images/resolveDockerTagByName")
   Call<Map<String, String>> resolveDockerTagByName(
       @Query("repository") String repository, @Query("tag") String tag);
 
