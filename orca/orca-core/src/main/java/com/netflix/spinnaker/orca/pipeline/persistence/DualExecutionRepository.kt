@@ -234,6 +234,18 @@ class DualExecutionRepository(
       ).distinctBy { it.id }
   }
 
+  override fun retrievePipelineExecutionsForApplications(
+    @Nonnull applications: List<String>,
+    @Nonnull pipelineConfigIds: List<String>,
+    @Nonnull criteria: ExecutionCriteria,
+    queryTimeoutSeconds: Int
+  ): Collection<PipelineExecution> {
+    return (
+      primary.retrievePipelineExecutionsForApplications(applications, pipelineConfigIds, criteria, queryTimeoutSeconds) +
+      previous.retrievePipelineExecutionsForApplications(applications, pipelineConfigIds, criteria, queryTimeoutSeconds)
+      ).distinctBy { it.id }
+  }
+
   override fun retrievePipelineConfigIdsForApplicationWithCriteria(
     @Nonnull application: String,
     @Nonnull criteria: ExecutionCriteria

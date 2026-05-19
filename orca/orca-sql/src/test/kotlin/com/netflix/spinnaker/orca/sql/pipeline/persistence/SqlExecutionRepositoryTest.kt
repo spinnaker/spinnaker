@@ -32,6 +32,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineTrigger
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.support.TriggerDeserializer
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.sql.PipelineRefTriggerDeserializerSupplier
 import com.nhaarman.mockito_kotlin.atLeastOnce
 import com.nhaarman.mockito_kotlin.doReturn
@@ -314,6 +315,86 @@ class SqlExecutionRepositoryTest : JUnit5Minutests {
         val observable = sqlExecutionRepository.retrievePipelinesForApplication("application-2")
         val executions = observable.toList().blockingGet()
         assertThat(executions.map(PipelineExecution::getApplication).single()).isEqualTo("application-2")
+      }
+    }
+
+    context("retrievePipelineExecutionsForApplications (multi-app batch path)") {
+      fun makeExec(app: String, configId: String): PipelineExecutionImpl {
+        return PipelineExecutionImpl(ExecutionType.PIPELINE, app).also {
+          it.pipelineConfigId = configId
+        }
+      }
+
+      test("returns nothing when applications list is empty") {
+        val out = sqlExecutionRepository.retrievePipelineExecutionsForApplications(
+          emptyList(), emptyList(), ExecutionCriteria(), 10
+        )
+        assertThat(out).isEmpty()
+      }
+
+      test("returns executions across multiple applications in one call") {
+        val a = makeExec("app-a", "config-a")
+        val b = makeExec("app-b", "config-b")
+        val c = makeExec("app-c", "config-c")
+        sqlExecutionRepository.store(a)
+        sqlExecutionRepository.store(b)
+        sqlExecutionRepository.store(c)
+
+        val out = sqlExecutionRepository.retrievePipelineExecutionsForApplications(
+          listOf("app-a", "app-b"), emptyList(), ExecutionCriteria().setPageSize(10), 10
+        )
+        assertThat(out.map { it.application }.toSet()).isEqualTo(setOf("app-a", "app-b"))
+        assertThat(out.map { it.id }.toSet()).isEqualTo(setOf(a.id, b.id))
+      }
+
+      test("filters by pipelineConfigIds when supplied") {
+        val a1 = makeExec("app-a", "config-a-1")
+        val a2 = makeExec("app-a", "config-a-2")
+        val b1 = makeExec("app-b", "config-b-1")
+        sqlExecutionRepository.store(a1)
+        sqlExecutionRepository.store(a2)
+        sqlExecutionRepository.store(b1)
+
+        val out = sqlExecutionRepository.retrievePipelineExecutionsForApplications(
+          listOf("app-a", "app-b"), listOf("config-a-1", "config-b-1"),
+          ExecutionCriteria().setPageSize(10), 10
+        )
+        assertThat(out.map { it.id }.toSet()).isEqualTo(setOf(a1.id, b1.id))
+      }
+
+      test("keeps newest pageSize executions per (application, configId) group") {
+        // Two configs per app, three executions per config — pageSize=2 should
+        // keep the two newest IDs per (app, config) bucket and drop the oldest.
+        val app1 = listOf(
+          makeExec("app-a", "config-a-1"),
+          makeExec("app-a", "config-a-1"),
+          makeExec("app-a", "config-a-1"),
+          makeExec("app-a", "config-a-2"),
+          makeExec("app-a", "config-a-2"),
+          makeExec("app-a", "config-a-2")
+        )
+        val app2 = listOf(
+          makeExec("app-b", "config-b-1"),
+          makeExec("app-b", "config-b-1"),
+          makeExec("app-b", "config-b-1")
+        )
+        (app1 + app2).forEach { sqlExecutionRepository.store(it) }
+
+        val out = sqlExecutionRepository.retrievePipelineExecutionsForApplications(
+          listOf("app-a", "app-b"), emptyList(),
+          ExecutionCriteria().setPageSize(2), 10
+        )
+        // 2 newest per group × 3 groups = 6 results.
+        assertThat(out).hasSize(6)
+        // Oldest exec per group should not appear; newest two per group should.
+        val sortedA1 = app1.subList(0, 3).sortedBy { it.id }
+        val sortedA2 = app1.subList(3, 6).sortedBy { it.id }
+        val sortedB1 = app2.sortedBy { it.id }
+        val ids = out.map { it.id }.toSet()
+        assertThat(ids).contains(sortedA1[1].id, sortedA1[2].id)
+        assertThat(ids).contains(sortedA2[1].id, sortedA2[2].id)
+        assertThat(ids).contains(sortedB1[1].id, sortedB1[2].id)
+        assertThat(ids).doesNotContain(sortedA1[0].id, sortedA2[0].id, sortedB1[0].id)
       }
     }
 

@@ -621,6 +621,92 @@ class SqlExecutionRepository(
     }
   }
 
+  /**
+   * Multi-application variant of the optimized retrieval path used by the single-app
+   * `getPipelinesForApplication` controller. Two SQL round trips total:
+   *
+   *  1. `SELECT application, config_id, id FROM pipelines WHERE application IN (?, ...)`
+   *     (optionally filtered to `config_id IN (?, ...)` and a subset of statuses).
+   *     Groups results in code by (application, config_id) and keeps the newest
+   *     `criteria.pageSize` ids per group.
+   *
+   *  2. A standard `retrievePipelineExecutionDetailsForApplication`-shaped body fetch
+   *     for the resulting id set, then stage hydration via ExecutionMapper.
+   *
+   * Replaces N parallel `getPipelinesForApplication` calls (3 queries each) with two.
+   */
+  override fun retrievePipelineExecutionsForApplications(
+    applications: List<String>,
+    pipelineConfigIds: List<String>,
+    criteria: ExecutionCriteria,
+    queryTimeoutSeconds: Int
+  ): Collection<PipelineExecution> {
+    if (applications.isEmpty()) return emptyList()
+
+    var baseQueryPredicate = field("application").`in`(*applications.toTypedArray())
+    if (pipelineConfigIds.isNotEmpty()) {
+      baseQueryPredicate = baseQueryPredicate
+        .and(field("config_id").`in`(*pipelineConfigIds.toTypedArray()))
+    }
+    if (criteria.startTimeCutoff != null) {
+      baseQueryPredicate = baseQueryPredicate
+        .and(field("start_time").greaterThan(criteria.startTimeCutoff!!.toEpochMilli()))
+    }
+
+    // Choose the same indexes the single-app variant prefers; MySQL otherwise tends
+    // to pick `pipeline_config_id_idx` and scan more rows than necessary.
+    var table = if (jooq.dialect() == SQLDialect.MYSQL) PIPELINE.tableName.forceIndex("pipeline_application_idx")
+    else PIPELINE.tableName
+    if (criteria.statuses.isNotEmpty() && criteria.statuses.size != ExecutionStatus.values().size) {
+      val statusStrings = criteria.statuses.map { it.toString() }
+      baseQueryPredicate = baseQueryPredicate
+        .and(field("status").`in`(*statusStrings.toTypedArray()))
+      table = if (jooq.dialect() == SQLDialect.MYSQL) PIPELINE.tableName.forceIndex("pipeline_application_status_starttime_idx")
+      else PIPELINE.tableName
+    }
+
+    // Negative pageSize would throw on the subList trim below; coerce to 0.
+    val pageSize = maxOf(0, criteria.pageSize)
+    val grouped: MutableMap<Pair<String, String>, MutableList<String>> = mutableMapOf()
+    withPool(readPoolName) {
+      // ULIDs sort lexicographically by time, so ORDER BY application, config_id, id
+      // produces newest-last per group. We then keep the tail `pageSize` ids per group
+      // in code (matches retrieveAndFilterPipelineExecutionIdsForApplication, where the
+      // same in-code trim avoids per-group LIMIT-in-SQL load issues).
+      jooq.select(field("application"), field("config_id"), field("id"))
+        .from(table)
+        .where(baseQueryPredicate)
+        .orderBy(field("application"), field("config_id"), field("id"))
+        .queryTimeout(queryTimeoutSeconds)
+        .fetch()
+        .forEach { r ->
+          val key = (r.get("application", String::class.java) ?: "") to
+            (r.get("config_id", String::class.java) ?: "")
+          val id = r.get("id", String::class.java) ?: return@forEach
+          grouped.getOrPut(key) { mutableListOf() }.add(id)
+        }
+    }
+    val keptIds: MutableList<String> = mutableListOf()
+    grouped.values.forEach { ids ->
+      if (pageSize < ids.size) keptIds.addAll(ids.subList(ids.size - pageSize, ids.size))
+      else keptIds.addAll(ids)
+    }
+    if (keptIds.isEmpty()) return emptyList()
+
+    return withPool(readPoolName) {
+      val selectFrom = jooq.select(selectExecutionFields(compressionProperties)).from(PIPELINE.tableName)
+      if (compressionProperties.enabled) {
+        selectFrom.leftOuterJoin(PIPELINE.tableName.compressedExecTable).using(field("id"))
+      }
+      val bodies = selectFrom
+        .where(field("id").`in`(*keptIds.toTypedArray()))
+        .queryTimeout(queryTimeoutSeconds)
+        .fetch()
+      ExecutionMapper(mapper, stageReadSize, compressionProperties, pipelineRefEnabled)
+        .map(bodies.intoResultSet(), jooq)
+    }
+  }
+
   override fun retrievePipelinesForPipelineConfigId(
     pipelineConfigId: String,
     criteria: ExecutionCriteria

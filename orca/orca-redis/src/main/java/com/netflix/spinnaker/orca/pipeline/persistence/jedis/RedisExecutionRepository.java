@@ -550,6 +550,17 @@ public class RedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  public @Nonnull List<PipelineExecution> retrievePipelineExecutionsForApplications(
+      @Nonnull List<String> applications,
+      @Nonnull List<String> pipelineConfigIds,
+      @Nonnull ExecutionCriteria criteria,
+      int queryTimeoutSeconds) {
+    // Not implemented for Redis; this batch path is SQL-only (mirrors the other
+    // *ForApplication helpers above).
+    return List.of();
+  }
+
+  @Override
   public @Nonnull List<String> retrievePipelineConfigIdsForApplicationWithCriteria(
       @Nonnull String application, @Nonnull ExecutionCriteria criteria) {
     // TODO: not implemented yet - this method, at present, is primarily meant for the

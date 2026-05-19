@@ -311,6 +311,23 @@ class InMemoryExecutionRepository : ExecutionRepository {
       .distinctBy { it.id }
   }
 
+  override fun retrievePipelineExecutionsForApplications(
+    applications: List<String>,
+    pipelineConfigIds: List<String>,
+    criteria: ExecutionCriteria,
+    queryTimeoutSeconds: Int
+  ): Collection<PipelineExecution> {
+    val configFilter: (PipelineExecution) -> Boolean =
+      if (pipelineConfigIds.isEmpty()) { _ -> true }
+      else { e -> pipelineConfigIds.contains(e.pipelineConfigId) }
+    return pipelines.values
+      .filter { applications.contains(it.application) && configFilter(it) }
+      .groupBy { it.application to it.pipelineConfigId }
+      .values
+      .flatMap { group -> group.applyCriteria(criteria) }
+      .distinctBy { it.id }
+  }
+
   override fun retrievePipelineConfigIdsForApplicationWithCriteria(
     @Nonnull application: String,
     @Nonnull criteria: ExecutionCriteria
