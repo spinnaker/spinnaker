@@ -133,8 +133,8 @@ public interface ClouddriverService {
   @Headers("Accept: application/json")
   @GET("serverGroups")
   Call<List> getServerGroups(
-      @Query("applications") List applications,
-      @Query("ids") List ids,
+      @Query("applications") List<String> applications,
+      @Query("ids") List<String> ids,
       @Query("cloudProvider") String cloudProvider);
 
   @Headers("Accept: application/json")
