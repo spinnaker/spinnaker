@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.azure.client
 
 import com.azure.core.credential.TokenCredential
+import com.azure.core.management.exception.ManagementError
 import com.azure.core.management.exception.ManagementException
 import com.azure.core.management.profile.AzureProfile
 import com.azure.resourcemanager.network.models.Network
@@ -223,7 +224,7 @@ class AzureResourceManagerClient extends AzureBaseClient {
           .create()
       })
     } catch (Throwable e) {
-      log.error("Exception occured during deployment ${e.message}")
+      logDeploymentFailure(resourceGroupName, deploymentName, e)
       throw e
     } finally {
       logDeploymentTemplate(deploymentName, template, templateParameters)
@@ -232,6 +233,49 @@ class AzureResourceManagerClient extends AzureBaseClient {
 
   static void logDeploymentTemplate(String deploymentName, String template, Map<String, Object> parameters) {
     log.info("Template for deployment {}: {}\nTemplate Parameters: {}", deploymentName, template, parameters.toMapString())
+  }
+
+  /**
+   * {@code ManagementException.getValue()} carries the parsed ARM error model
+   * (code/message/target/details) that {@code e.message} drops on LRO
+   * terminations — there the message is just "Long running operation is Failed
+   * or Cancelled." After logging, fetch the deployment's per-resource
+   * operations so the failing sub-operation's {@code statusMessage} is also
+   * captured. Fetch failures are demoted to debug; the original exception
+   * still propagates.
+   */
+  private void logDeploymentFailure(String resourceGroupName, String deploymentName, Throwable e) {
+    if (e instanceof ManagementException) {
+      ManagementError err = ((ManagementException) e).value
+      log.error(
+        "Deployment {} in resource group {} failed: code={}, message={}, target={}, details={}",
+        deploymentName,
+        resourceGroupName,
+        err?.code,
+        err?.message,
+        err?.target,
+        err?.details?.collect { ManagementError d -> "${d.code}: ${d.message}" }
+      )
+    } else {
+      log.error("Deployment ${deploymentName} in resource group ${resourceGroupName} failed", e)
+    }
+
+    try {
+      Deployment deployment = azure.deployments().getByResourceGroup(resourceGroupName, deploymentName)
+      deployment?.deploymentOperations()?.list()?.each { DeploymentOperation op ->
+        if (op.provisioningState() != AzureUtilities.ProvisioningState.SUCCEEDED) {
+          log.error(
+            "  failed operation: target={} state={} statusCode={} statusMessage={}",
+            op.targetResource()?.id() ?: "<none>",
+            op.provisioningState(),
+            op.statusCode(),
+            op.statusMessage()
+          )
+        }
+      }
+    } catch (Throwable fetchErr) {
+      log.debug("Could not fetch deployment operations for {} in {}: {}", deploymentName, resourceGroupName, fetchErr.message)
+    }
   }
 
   /**
