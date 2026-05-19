@@ -242,6 +242,15 @@ public class CDEventsOTelSender {
     return (String) stageDetails.get("name");
   }
 
+  /**
+   * Extracts the execution ID from the CDEvent's {@code subject.id} field.
+   *
+   * <p>Per the CDEvents specification, {@code subject.id} uniquely identifies the subject (e.g. a
+   * pipeline run or task run) and remains stable across all events emitted for the same execution.
+   * Orca sets this to the Spinnaker execution ID, so all CDEvents for a given pipeline execution
+   * share the same {@code subject.id} — making it a reliable correlation key for deriving
+   * deterministic trace and span IDs.
+   */
   private String extractExecutionId(CloudEvent cdEvent) {
     if (cdEvent.getData() == null) return null;
     try {
