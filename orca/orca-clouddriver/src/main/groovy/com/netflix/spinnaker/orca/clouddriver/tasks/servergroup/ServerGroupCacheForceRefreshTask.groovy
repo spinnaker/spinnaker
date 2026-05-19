@@ -217,8 +217,8 @@ class ServerGroupCacheForceRefreshTask implements CloudProviderAware, RetryableT
               model,
               executionId
             )
-            def response = cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
-            if (response.status == HttpURLConnection.HTTP_OK) {
+            def response = Retrofit2SyncCall.executeCall(cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model))
+            if (response.code() == HttpURLConnection.HTTP_OK) {
               // cache update was applied immediately, no need to poll for completion
               log.debug(
                 "Processed force cache refresh request immediately (model: {}, executionId: {})",

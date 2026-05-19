@@ -190,6 +190,32 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   }
 
   @Unroll
+  void "should re-force cache refresh via HTTP when no pending update is found"() {
+    given:
+    def stageData = new ServerGroupCacheForceRefreshTask.StageData(
+      deployServerGroups: [
+        "us-west-1": ["s-v001"] as Set<String>
+      ]
+    )
+
+    when:
+    def processingComplete = task.processPendingForceCacheUpdates("executionId", "test", "aws", stageData, 0)
+
+    then:
+    1 * task.cacheStatusService.pendingForceCacheUpdates("aws", "ServerGroup") >> { Calls.response([]) }
+    1 * task.cacheService.forceCacheUpdate("aws", "ServerGroup", _) >> {
+      Calls.response(Response.success(retryResponseCode, ResponseBody.create(MediaType.parse("application/json"), "")))
+    }
+    stageData.errors.isEmpty()
+    processingComplete == expectedProcessingComplete
+
+    where:
+    retryResponseCode || expectedProcessingComplete
+    HTTP_OK           || true
+    HTTP_ACCEPTED     || false
+  }
+
+  @Unroll
   void "should correctly extract `zone` from `zones` in StageData"() {
     given:
     def objectMapper = new ObjectMapper()
