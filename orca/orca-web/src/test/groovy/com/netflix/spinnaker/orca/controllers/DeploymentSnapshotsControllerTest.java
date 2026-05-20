@@ -63,8 +63,9 @@ class DeploymentSnapshotsControllerTest {
         // Both apps are represented in the response.
         .andExpect(jsonPath("$[*].application").value(
             org.hamcrest.Matchers.containsInAnyOrder("svc-a", "svc-b")))
-        // The projection drops outputs/context but keeps stages + trigger.
-        .andExpect(jsonPath("$[0].stages").isArray())
+        // The projection keeps trigger + status + timestamps and drops the stage list
+        // entirely (clients fetch /pipelines/{id} for stage detail on click).
+        .andExpect(jsonPath("$[0].stages").doesNotExist())
         .andExpect(jsonPath("$[0].trigger.type").value("manual"));
   }
 
@@ -95,7 +96,7 @@ class DeploymentSnapshotsControllerTest {
 
     mvc.perform(get("/deploymentSnapshots").param("applications", "svc-a"))
         .andExpect(status().is2xxSuccessful())
-        .andExpect(jsonPath("$[0].stages[0].failureMessage")
+        .andExpect(jsonPath("$[0].failureMessage")
             .value("ASG never reached desired capacity"));
   }
 

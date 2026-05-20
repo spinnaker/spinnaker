@@ -80,7 +80,7 @@ public class DeploymentSnapshotsController {
   @GetMapping(value = "/deploymentSnapshots", produces = APPLICATION_JSON_VALUE)
   public List<PipelineExecutionSummary> getDeploymentSnapshots(
       @RequestParam("applications") List<String> applications,
-      @RequestParam(value = "pipelineNameFilter", required = false) String pipelineNameFilter,
+      @RequestParam(value = "pipelineNames", required = false) List<String> pipelineNames,
       @RequestParam(value = "statuses", required = false) String statuses,
       @RequestParam(value = "limit", defaultValue = "5") int limit,
       @RequestParam(value = "queryTimeoutSeconds", defaultValue = "10") int queryTimeoutSeconds) {
@@ -105,6 +105,15 @@ public class DeploymentSnapshotsController {
             .collect(Collectors.toList());
     if (applications.isEmpty()) return List.of();
 
+    Set<String> pipelineNameAllowlist =
+        pipelineNames == null
+            ? Set.of()
+            : pipelineNames.stream()
+                .filter(a -> a != null)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
     ExecutionCriteria criteria = new ExecutionCriteria();
     criteria.setPageSize(limit);
     if (statuses != null && !statuses.isBlank()) {
@@ -118,19 +127,20 @@ public class DeploymentSnapshotsController {
           Arrays.stream(ExecutionStatus.values()).map(Enum::name).collect(Collectors.toList()));
     }
 
-    // Resolve pipelineNameFilter via front50's getAllPipelines once (in-memory at front50),
-    // then filter to the requested apps + name prefix. The resulting config_ids are the
-    // restriction we pass to the SQL repo; passing an empty list means "no config_id filter".
+    // Resolve pipelineNames via front50's getAllPipelines once (in-memory at front50),
+    // then filter to the requested apps + exact-name matches. The resulting config_ids are
+    // the restriction we pass to the SQL repo; passing an empty list means "no config_id
+    // filter".
     //
     // If front50 isn't wired up (e.g. test contexts), we simply skip the filter and let the
     // repo return everything for the apps — matches getPipelinesForApplication's behavior.
     // If front50 IS wired up but fails, we let the exception propagate: a 503 is honest, and
     // silently returning empty results would make front50 outages look like "no deploys."
     List<String> configIds = List.of();
-    if (front50Service != null && pipelineNameFilter != null && !pipelineNameFilter.isBlank()) {
-      configIds = resolveConfigIds(applications, pipelineNameFilter);
+    if (front50Service != null && !pipelineNameAllowlist.isEmpty()) {
+      configIds = resolveConfigIds(applications, pipelineNameAllowlist);
       if (configIds.isEmpty()) {
-        // Filter matches zero pipelines — short-circuit before hitting SQL.
+        // Allowlist matches zero pipelines — short-circuit before hitting SQL.
         return List.of();
       }
     }
@@ -152,11 +162,12 @@ public class DeploymentSnapshotsController {
     return out;
   }
 
-  private List<String> resolveConfigIds(List<String> applications, String pipelineNameFilter) {
+  private List<String> resolveConfigIds(
+      List<String> applications, Set<String> pipelineNameAllowlist) {
     // Don't swallow front50 failures: a 503 here is honest. The Gate aggregator's
     // catch-and-degrade still lets the dashboard render with empty execution data,
     // but the underlying error gets logged at the right layer instead of being
-    // misread as "no deploys match this filter."
+    // misread as "no deploys match the allowlist."
     List<Map<String, Object>> allPipelines =
         Retrofit2SyncCall.execute(front50Service.getAllPipelines());
     Set<String> wantedApps = new HashSet<>(applications);
@@ -167,7 +178,7 @@ public class DeploymentSnapshotsController {
       Object id = p.get("id");
       if (!(app instanceof String) || !(name instanceof String) || !(id instanceof String)) continue;
       if (!wantedApps.contains(app)) continue;
-      if (!((String) name).contains(pipelineNameFilter)) continue;
+      if (!pipelineNameAllowlist.contains(name)) continue;
       ids.add((String) id);
     }
     return new ArrayList<>(ids);

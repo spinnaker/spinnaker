@@ -17,7 +17,6 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.orca.pipeline.model.DockerTrigger;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +24,16 @@ import java.util.Optional;
 
 /**
  * Minimal projection of a {@link PipelineExecution} for dashboards that fan out across many
- * applications and only need surface-level status. Drops outputs/context/tasks/notifications and
- * keeps just the fields needed to render a deploy-pipeline overview: ids, status, timestamps,
- * trigger summary, and a stage-summary list.
+ * applications and only need surface-level status. Drops outputs/context/tasks/notifications/
+ * stages and keeps just the fields needed to render a deploy-pipeline overview: ids, status,
+ * timestamps, trigger summary, and a top-level failure message lifted from the first failed
+ * stage so failure reasons stay legible without the stage list.
+ *
+ * <p>Stage detail is deliberately excluded: dashboards render a stage strip only when the user
+ * focuses a single execution, and at that point can fetch the full execution body via Gate's
+ * existing {@code GET /pipelines/{id}} endpoint. Inlining stages into every snapshot would
+ * dominate the payload (5-10 stages per execution × 100s of executions per snapshot) for data
+ * that's only consumed on click.
  *
  * <p>Serializing the projection rather than the full {@code PipelineExecution} cuts each
  * snapshot's wire size by ~20-50x in practice and keeps the dashboard's payload below the
@@ -44,7 +50,12 @@ public class PipelineExecutionSummary {
   public Long startTime;
   public Long endTime;
   public TriggerView trigger;
-  public List<StageView> stages;
+  /**
+   * First non-empty failure string lifted from the failed stages, so a dashboard can render
+   * the actual reason ("Wait for cluster healthy timed out") next to a red execution without
+   * having to fetch the full stage list.
+   */
+  public String failureMessage;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public static class TriggerView {
@@ -71,22 +82,6 @@ public class PipelineExecutionSummary {
     public ArtifactView boundArtifact;
   }
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  public static class StageView {
-    public String id;
-    public String name;
-    public String type;
-    public ExecutionStatus status;
-    public Long startTime;
-    public Long endTime;
-    public String refId;
-    public Collection<String> requisiteStageRefIds;
-    public String parentStageId;
-    public String syntheticStageOwner;
-    /** Failure message, lifted from `context.exception.details.errors[0]` when not set directly. */
-    public String failureMessage;
-  }
-
   public static PipelineExecutionSummary from(PipelineExecution exec) {
     PipelineExecutionSummary v = new PipelineExecutionSummary();
     v.id = exec.getId();
@@ -97,7 +92,7 @@ public class PipelineExecutionSummary {
     v.startTime = exec.getStartTime();
     v.endTime = exec.getEndTime();
     v.trigger = projectTrigger(exec.getTrigger());
-    v.stages = projectStages(exec.getStages());
+    v.failureMessage = pickFailureMessage(exec.getStages());
     return v;
   }
 
@@ -149,27 +144,19 @@ public class PipelineExecutionSummary {
     return tv;
   }
 
-  private static List<StageView> projectStages(List<StageExecution> stages) {
+  /**
+   * Find the first non-empty failure string across the failed stages. Walks stages in
+   * declaration order — good enough for a one-line dashboard summary; the click-through
+   * detail view (Gate's {@code /pipelines/{id}}) can reconstruct the full stage graph.
+   */
+  private static String pickFailureMessage(List<StageExecution> stages) {
     if (stages == null || stages.isEmpty()) return null;
-    List<StageView> out = new ArrayList<>(stages.size());
     for (StageExecution s : stages) {
-      StageView sv = new StageView();
-      sv.id = s.getId();
-      sv.name = s.getName();
-      sv.type = s.getType();
-      sv.status = s.getStatus();
-      sv.startTime = s.getStartTime();
-      sv.endTime = s.getEndTime();
-      sv.refId = s.getRefId();
-      sv.requisiteStageRefIds = s.getRequisiteStageRefIds();
-      sv.parentStageId = s.getParentStageId();
-      if (s.getSyntheticStageOwner() != null) {
-        sv.syntheticStageOwner = s.getSyntheticStageOwner().toString();
-      }
-      sv.failureMessage = extractFailureMessage(s);
-      out.add(sv);
+      if (s.getStatus() == null || !s.getStatus().isFailure()) continue;
+      String msg = extractFailureMessage(s);
+      if (msg != null && !msg.isEmpty()) return msg;
     }
-    return out;
+    return null;
   }
 
   /**

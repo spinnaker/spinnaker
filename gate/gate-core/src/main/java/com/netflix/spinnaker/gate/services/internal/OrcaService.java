@@ -52,7 +52,7 @@ public interface OrcaService {
   @GET("deploymentSnapshots")
   Call<List<Map<String, Object>>> getDeploymentSnapshots(
       @Query("applications") List<String> applications,
-      @Query("pipelineNameFilter") String pipelineNameFilter,
+      @Query("pipelineNames") List<String> pipelineNames,
       @Query("statuses") String statuses,
       @Query("limit") Integer limit);
 

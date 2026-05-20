@@ -51,11 +51,11 @@ public class DeploymentSnapshotController {
           @RequestParam("applications")
           String applicationsCsv,
       @Parameter(
-              name = "pipelineNameFilter",
+              name = "pipelineNames",
               description =
-                  "Optional substring match on pipeline name (e.g. `deploy-`) — only matching executions and configs are returned")
-          @RequestParam(value = "pipelineNameFilter", required = false)
-          String pipelineNameFilter,
+                  "Optional comma-separated allowlist of exact pipeline names (e.g. `deploy-dev,deploy-devaz`). When set, only executions and configs whose name matches exactly are returned; when omitted, no name filter is applied.")
+          @RequestParam(value = "pipelineNames", required = false)
+          String pipelineNamesCsv,
       @Parameter(
               name = "pipelineLimit",
               description =
@@ -67,6 +67,13 @@ public class DeploymentSnapshotController {
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .collect(Collectors.toList());
-    return snapshotService.getSnapshot(applications, pipelineNameFilter, pipelineLimit);
+    List<String> pipelineNames =
+        pipelineNamesCsv == null || pipelineNamesCsv.isBlank()
+            ? List.of()
+            : Arrays.stream(pipelineNamesCsv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+    return snapshotService.getSnapshot(applications, pipelineNames, pipelineLimit);
   }
 }
