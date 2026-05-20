@@ -43,6 +43,7 @@ import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import com.netflix.spinnaker.clouddriver.azure.client.AzureBaseClient
 
 @Slf4j
 class AzureServerGroupCachingAgent extends AzureCachingAgent {
@@ -243,9 +244,13 @@ class AzureServerGroupCachingAgent extends AzureCachingAgent {
         def sg = creds.computeClient.getServerGroup(resourceGroupName, serverGroupName)
         return sg ?: null
       }
-    } catch (Exception e ) {
-      log.error("handle->Unexpected exception: ${e.message}")
-      return null
+    } catch (Exception e) {
+      if (!AzureBaseClient.resourceNotFound(e)) {
+        log.error("handle->Unexpected exception: ${e.message}")
+        return null
+      }
+      // 404: VMSS is gone. Fall through with serverGroup=null so the deleted-VMSS branch below writes an eviction tombstone.
+      log.warn("handle->ServerGroup not found, treating as deleted (resourceGroup: ${resourceGroupName}, serverGroup: ${serverGroupName})")
     }
 
     def cacheResult = metricsSupport.transformData {
