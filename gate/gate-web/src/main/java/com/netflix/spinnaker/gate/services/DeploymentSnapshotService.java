@@ -260,6 +260,34 @@ public class DeploymentSnapshotService {
         p.put("launchConfig", minimalLaunchConfig);
       }
     }
+
+    // ASG tags carry the docker image version that the deploy stage stamped onto
+    // the cluster (Moderne's deploy template writes `Version=<docker-tag>` at
+    // createServerGroup time). The bare AWS server-group response carries no
+    // docker metadata - the AMI is a generic Ubuntu base, the tag lives only on
+    // the ASG itself - so without this projection the dashboard has to backfill
+    // imageVersion from the deploy execution, which means pulling executions
+    // for every customer tenant just to learn one tag per cell. Projecting
+    // tags here exposes the data Clouddriver already cached
+    // (`describeAutoScalingGroups` returns tags inline) so callers can read
+    // the version off the SG directly. We strip the propagation/resource-type
+    // metadata each tag carries - only key/value are useful at this layer.
+    Object tags = sg.get("tags");
+    if (tags instanceof List) {
+      List<Map<String, Object>> outTags = new ArrayList<>();
+      for (Object o : (List<?>) tags) {
+        if (!(o instanceof Map)) continue;
+        Map<?, ?> t = (Map<?, ?>) o;
+        Object key = t.get("key");
+        Object value = t.get("value");
+        if (key == null || value == null) continue;
+        Map<String, Object> pt = new LinkedHashMap<>();
+        pt.put("key", key);
+        pt.put("value", value);
+        outTags.add(pt);
+      }
+      if (!outTags.isEmpty()) p.put("tags", outTags);
+    }
     return p;
   }
 
