@@ -92,6 +92,40 @@ class AmazonServerGroup implements ServerGroup, Serializable {
     return false
   }
 
+  /**
+   * Flatten the AWS ASG tag list into a {key -> value} map for serialization.
+   *
+   * <p>AWS returns ASG tags as a {@code List<TagDescription>} where each entry
+   * has {@code key}, {@code value}, {@code resourceId}, {@code resourceType},
+   * and {@code propagateAtLaunch}. The cache stores those entries as
+   * {@code List<Map>} on {@code asg.tags}. The {@code ServerGroup} interface
+   * exposes a single {@code Map<String, Object> getTags()} contract that
+   * {@code ServerGroupViewModel} reads on the multi-app
+   * {@code /serverGroups?applications=…} endpoint, so without this override
+   * AWS server groups never surface their tags through the batch API.
+   *
+   * <p>Tags carry deploy-time metadata that's useful to dashboards (Moderne's
+   * deploy template writes a {@code Version=<docker-tag>} tag, for example) —
+   * this is the cheapest path to making it readable, since the data is
+   * already cached as part of the standard ClusterCachingAgent flow.
+   */
+  @Override
+  Map<String, Object> getTags() {
+    if (asg == null) return null
+    Object rawTags = asg.get('tags')
+    if (!(rawTags instanceof Collection)) return null
+    Map<String, Object> out = new LinkedHashMap<>()
+    for (Object t : (Collection) rawTags) {
+      if (!(t instanceof Map)) continue
+      Object key = ((Map) t).get('key')
+      Object value = ((Map) t).get('value')
+      if (key != null && value != null) {
+        out.put(key.toString(), value)
+      }
+    }
+    return out.isEmpty() ? null : out
+  }
+
   @Override
   Long getCreatedTime() {
     if (!asg) {
