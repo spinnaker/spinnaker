@@ -91,4 +91,39 @@ class PropertyParserSpec extends Specification {
       then:
       properties.size() == 0
     }
+
+    def "Preserves trailing '=' padding in base64 values"() {
+        // Base64 of a 13-byte string has 1 '=' padding char.
+        String buildLog = "SPINNAKER_PROPERTY_payload=SGVsbG8gV29ybGQ=\n"
+
+        when:
+        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        properties.size() == 1
+        properties.payload == "SGVsbG8gV29ybGQ="
+    }
+
+    def "Preserves trailing '==' padding in base64 values"() {
+        // Base64 of a 14-byte string has 2 '=' padding chars.
+        String buildLog = "SPINNAKER_PROPERTY_payload=SGVsbG8gV29ybGQhIQ==\n"
+
+        when:
+        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        properties.size() == 1
+        properties.payload == "SGVsbG8gV29ybGQhIQ=="
+    }
+
+    def "Preserves '=' characters within the value"() {
+        String buildLog = "SPINNAKER_PROPERTY_kv=foo=bar\n"
+
+        when:
+        Map<String, Object> properties = PropertyParser.extractPropertiesFromLog(buildLog)
+
+        then:
+        properties.size() == 1
+        properties.kv == "foo=bar"
+    }
 }
