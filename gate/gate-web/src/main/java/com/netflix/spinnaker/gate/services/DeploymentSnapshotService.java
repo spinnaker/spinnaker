@@ -81,7 +81,10 @@ public class DeploymentSnapshotService {
   }
 
   public Snapshot getSnapshot(
-      List<String> applications, List<String> pipelineNames, Integer pipelineLimit) {
+      List<String> applications,
+      List<String> pipelineNames,
+      Integer pipelineLimit,
+      String statuses) {
     Snapshot snapshot = new Snapshot();
     snapshot.apps = new ArrayList<>();
     if (applications == null || applications.isEmpty()) return snapshot;
@@ -123,7 +126,7 @@ public class DeploymentSnapshotService {
                     orcaServiceSelector
                         .select()
                         .getDeploymentSnapshots(
-                            applicationsForOrca, pipelineNamesOrEmpty, null, pipelineLimit)),
+                            applicationsForOrca, pipelineNamesOrEmpty, statuses, pipelineLimit)),
             "orca deploymentSnapshots batch");
 
     CompletableFuture.allOf(sgFuture, pipelinesFuture, execsFuture).join();

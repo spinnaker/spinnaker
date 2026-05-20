@@ -61,7 +61,13 @@ public class DeploymentSnapshotController {
               description =
                   "Per-pipeline-config execution limit (default 10) — caps how many recent executions per pipeline are returned")
           @RequestParam(value = "pipelineLimit", required = false, defaultValue = "10")
-          Integer pipelineLimit) {
+          Integer pipelineLimit,
+      @Parameter(
+              name = "statuses",
+              description =
+                  "Optional comma-separated allowlist of ExecutionStatus values to include (e.g. `RUNNING,TERMINAL,FAILED_CONTINUE,STOPPED`). When set, executions in non-listed statuses are filtered out at the Orca query layer; when omitted, executions in every status are returned. Useful for dashboards that only need to render inflight / failed deploys.")
+          @RequestParam(value = "statuses", required = false)
+          String statusesCsv) {
     List<String> applications =
         Arrays.stream(applicationsCsv.split(","))
             .map(String::trim)
@@ -74,6 +80,8 @@ public class DeploymentSnapshotController {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
-    return snapshotService.getSnapshot(applications, pipelineNames, pipelineLimit);
+    String statuses =
+        statusesCsv == null || statusesCsv.isBlank() ? null : statusesCsv;
+    return snapshotService.getSnapshot(applications, pipelineNames, pipelineLimit, statuses);
   }
 }
