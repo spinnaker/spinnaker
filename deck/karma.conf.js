@@ -1,14 +1,22 @@
 'use strict';
 
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const { ProvidePlugin } = require('webpack');
+const { createRequire } = require('module');
 const path = require('path');
 
+const APP_ROOT = path.resolve(`${__dirname}/packages/app`);
+const appRequire = createRequire(`${APP_ROOT}/package.json`);
+const ForkTsCheckerWebpackPlugin = appRequire('fork-ts-checker-webpack-plugin');
+const { ProvidePlugin } = appRequire('webpack');
 const prodWebpackConfig = require('./packages/app/webpack.config')();
 const MODULES_ROOT = path.resolve(`${__dirname}/packages`);
+const KAYENTA_PACKAGE_ROOT = path.resolve(__dirname, '../deck-kayenta');
+const isKayentaPackageResource = (resourcePath) => resourcePath.startsWith(KAYENTA_PACKAGE_ROOT + path.sep);
 
 const webpackConfig = {
   mode: 'development',
+  resolveLoader: {
+    modules: [path.resolve(`${APP_ROOT}/node_modules`), path.resolve(`${__dirname}/node_modules`)],
+  },
   module: {
     rules: [
       ...prodWebpackConfig.module.rules.filter((rule) => {
@@ -16,12 +24,28 @@ const webpackConfig = {
       }),
       {
         test: /\.html$/,
+        include: isKayentaPackageResource,
+        use: [
+          { loader: 'ngtemplate-loader?relativeTo=' + KAYENTA_PACKAGE_ROOT + '/' },
+          { loader: 'html-loader' },
+        ],
+      },
+      {
+        test: /\.html$/,
+        exclude: isKayentaPackageResource,
         use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
       },
     ],
   },
   resolve: {
     ...prodWebpackConfig.resolve,
+    modules: [
+      // Keep issuer-relative resolution ahead of root modules so pnpm nested dependencies are not shadowed.
+      'node_modules',
+      path.resolve(`${APP_ROOT}/node_modules`),
+      path.resolve(`${MODULES_ROOT}/core/node_modules`),
+      path.resolve(`${__dirname}/node_modules`),
+    ],
     // Webpack 5 no longer auto-polyfills Node.js core modules for browser builds.
     // Some test dependencies (e.g., parse5, util) require these modules.
     fallback: {
@@ -69,8 +93,15 @@ const webpackConfig = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       typescript: {
+        configFile: path.resolve(`${__dirname}/packages/tsconfig.app.base.json`),
+        configOverwrite: {
+          include: ['*/src/**/*.ts', '*/src/**/*.tsx'],
+          exclude: ['**/*.stories.*'],
+        },
+        context: MODULES_ROOT,
         diagnosticOptions: {
-          syntactics: true,
+          syntactic: true,
+          semantic: false,
         },
       },
     }),

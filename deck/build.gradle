@@ -5,47 +5,42 @@ import org.redline_rpm.header.Flags
 
 plugins {
   id "io.spinnaker.artifactregistry-publish"
-  id "nebula.node" version "1.3.1"
+  id "com.github.node-gradle.node" version "7.0.1"
   id "com.netflix.nebula.ospackage"  version "12.3.0"
-
 }
 
 group = "com.netflix.spinnaker.deck"
 
 node {
-    // Pulls node and npm versions from package.json.
-    def packageSlurper = new JsonSlurper()
-    def packageJson = packageSlurper.parse file('package.json')
+  // Pulls node version from package.json.
+  def packageSlurper = new JsonSlurper()
+  def packageJson = packageSlurper.parse file('package.json')
 
-    version = packageJson.engines.node.replaceAll(/[^\d\.]/, '')
-    npmVersion = packageJson.engines.npm.replaceAll(/[^\d\.]/, '')
-    yarnVersion = packageJson.engines.yarn.replaceAll(/[^\d\.]/, '')
-
-    // Enabled the automatic download. False is the default (for now).
-    download = true
+  version = packageJson.engines.node.replaceAll(/[^\d\.]/, '')
+  pnpmVersion = "11.1.1"
 }
 
-task modules(type: YarnTask) {
-  dependsOn "yarn"
+task modules(type: PnpmTask) {
+  dependsOn "pnpmInstall"
 
-  yarnCommand = ["modules"]
+  pnpmCommand = ["modules"]
   environment = [
     "NODE_ENV": "production",
   ]
 }
 
-task eslintPluginCompile(type: YarnTask) {
+task eslintPluginCompile(type: PnpmTask) {
   dependsOn "modules"
 
   workingDir = file(Paths.get("packages", "eslint-plugin"))
-  yarnCommand = ["tsc"]
+  pnpmCommand = ["tsc"]
 }
 
-task eslintPluginTest(type: YarnTask) {
+task eslintPluginTest(type: PnpmTask) {
   dependsOn "eslintPluginCompile"
 
   workingDir = file(Paths.get("packages", "eslint-plugin"))
-  yarnCommand = ["test"]
+  pnpmCommand = ["test"]
 }
 
 project.tasks.register('eslintPlugin') {
@@ -53,17 +48,17 @@ project.tasks.register('eslintPlugin') {
   dependsOn 'eslintPluginTest'
 }
 
-task lint(type: YarnTask) {
+task lint(type: PnpmTask) {
   dependsOn "eslintPlugin"
 
-  yarnCommand = ["lint"]
+  pnpmCommand = ["lint"]
 }
 
-task prettier(type: YarnTask) {
+task prettier(type: PnpmTask) {
   dependsOn "eslintPlugin"
   dependsOn "lint"
 
-  yarnCommand = ["prettier:check"]
+  pnpmCommand = ["prettier:check"]
 }
 
 project.tasks.register('runLinters') {
@@ -71,10 +66,10 @@ project.tasks.register('runLinters') {
   dependsOn "prettier"
 }
 
-task karma(type: YarnTask) {
+task karma(type: PnpmTask) {
   dependsOn "modules"
 
-  yarnCommand = ["test"]
+  pnpmCommand = ["test"]
   args = ["--single-run", "--reporters", "dots"]
 
   if (project.hasProperty('skipTests')) {
@@ -82,11 +77,11 @@ task karma(type: YarnTask) {
   }
 }
 
-task functionalTests(type: YarnTask) {
+task functionalTests(type: PnpmTask) {
   dependsOn "modules"
   dependsOn "karma"
 
-  yarnCommand = ["functional"]
+  pnpmCommand = ["functional"]
 
   if (project.hasProperty('skipTests')) {
     functionalTests.enabled = false
@@ -98,11 +93,11 @@ project.tasks.register('test') {
   dependsOn 'functionalTests'
 }
 
-task webpack(type: YarnTask) {
-  dependsOn "yarn"
+task webpack(type: PnpmTask) {
+  dependsOn "pnpmInstall"
   dependsOn "modules"
 
-  yarnCommand = ["build"]
+  pnpmCommand = ["build"]
   environment = [
     "NODE_ENV": "production",
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
@@ -132,7 +127,7 @@ task generateVersionFile {
     file("version.json").write(buildJson)
   }
 }
-yarn.dependsOn 'generateVersionFile'
+pnpmInstall.dependsOn 'generateVersionFile'
 
 buildDeb.dependsOn 'copyFavicon'
 buildRpm.dependsOn 'webpack'

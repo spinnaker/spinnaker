@@ -1,27 +1,25 @@
 # Spinnaker UI
 
-![Branch Build](https://github.com/spinnaker/deck/workflows/Branch%20Build/badge.svg)
-
 ## Prerequisites
 
-Make sure that [node](http://nodejs.org/download/) and [yarn](https://yarnpkg.com/en/docs/install) are installed on your system.
-The minimum versions for each are listed in package.json.
+Make sure that [node](http://nodejs.org/download/) and [pnpm](https://pnpm.io/installation) are installed on your system.
+The minimum versions for each are listed in package.json. If it fails to build or run, try downgrading the version of node; it currently fails with node@16 and node@20 but works with node@12.
 
 ## Quick Start
 
 Run the following commands (in the deck directory) to get all dependencies installed in deck and to start the server:
 
-- `yarn`
-- `yarn modules`
-- `yarn start`
+- `pnpm`
+- `pnpm modules`
+- `pnpm start`
 
 The app will start up on localhost:9000.
 
 When editing `core` or any other cloud provider package, please run the following in that folder
 
-- `yarn dev`
+- `pnpm dev`
 
-If your local dev setup ends up in a corrupt state with missing npm modules, please run `yarn fixup` from deck and that
+If your local dev setup ends up in a corrupt state with missing npm modules, please run `pnpm fixup` from deck and that
 should reset your state.
 
 ## Environment variables
@@ -36,8 +34,11 @@ The following external resources can be specified with environment variables:
 
 - `API_HOST` overrides the default Spinnaker API host.
 - `AUTH_ENABLED` determines whether Deck will attempt to authenticate users via Gate.
+- `GATE_TARGET` overrides the Gate origin used by the local webpack proxy. Do not include `/api/v1`.
+- `GATE_AUTH_TOKEN` sets a bearer token for proxied Gate requests.
+- `SESSION_COOKIE` sets the fallback Gate `SESSION` cookie for proxied requests.
 
-For example, `API_HOST=http://spinnaker.prod.netflix.net yarn start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
+For example, `API_HOST=http://spinnaker.prod.netflix.net pnpm start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
 
 ## Development
 
@@ -45,25 +46,25 @@ Deck has a combination of Angular and React, but is moving to React only. New ch
 
 ## Testing
 
-To run the tests within the application, run `yarn test`.
+To run the tests within the application, run `pnpm test`.
 
 Developing things locally? You may want to run [gate](https://github.com/spinnaker/gate) locally (which runs on port 8084) as well.
 Gate is the service that hosts the spinnaker REST API.
 Then run deck like this:
 
 ```
-API_HOST=http://localhost:8084 yarn start
+API_HOST=http://localhost:8084 pnpm start
 ```
 
 ## Building &amp; Deploying
 
-To build the application, run `yarn modules && yarn build`.
+To build the application, run `pnpm modules && pnpm build`.
 The built application lives in `build/`.
 
 ## Graphql
 
 the `core` package is using graphql queries and mutation to interact with the backend (currently, only the `managed` components).
-To generate the TS types and the Apollo hooks, run `yarn graphql:generate` from `core`.
+To generate the TS types and the Apollo hooks, run `pnpm graphql:generate` from `core`.
 
 ## Conventions
 

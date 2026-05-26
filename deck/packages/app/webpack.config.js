@@ -9,8 +9,32 @@ const TerserPlugin = require('terser-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
-const DECK_ROOT = path.resolve(`${__dirname}/../..`);
-const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
+const APP_PACKAGE_ROOT = path.resolve(__dirname);
+const DECK_ROOT = path.resolve(`${APP_PACKAGE_ROOT}/../..`);
+const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
+const KAYENTA_PACKAGE_ROOT = path.resolve(DECK_ROOT, '../deck-kayenta');
+const isKayentaPackageResource = (resourcePath) => resourcePath.startsWith(KAYENTA_PACKAGE_ROOT + path.sep);
+const STYLEGUIDE_PACKAGE_ROOT = path.dirname(
+  require.resolve('@spinnaker/styleguide/package.json', { paths: [__dirname] }),
+);
+const REACT_VIRTUALIZED_COMMONJS = require.resolve('react-virtualized/dist/commonjs/index.js', {
+  paths: [CORE_PACKAGE_ROOT],
+});
+const SHARED_PACKAGE_ALIASES = [
+  '@uirouter/angularjs',
+  '@uirouter/core',
+  '@uirouter/react',
+  '@uirouter/react-hybrid',
+  'angular',
+  'react',
+  'react-dom',
+];
+const SHARED_PACKAGE_ALIAS_RESOLUTIONS = Object.fromEntries(
+  SHARED_PACKAGE_ALIASES.map((packageName) => [
+    packageName,
+    path.dirname(require.resolve(`${packageName}/package.json`, { paths: [CORE_PACKAGE_ROOT] })),
+  ]),
+);
 const CACHE_INVALIDATE = getCacheInvalidateString();
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './src/settings.js';
 const THREADS = getThreadLoaderThreads();
@@ -40,7 +64,7 @@ function configure(env, webpackOpts) {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`,
+          from: `${STYLEGUIDE_PACKAGE_ROOT}/public/styleguide.html`,
           to: `./styleguide.html`,
         },
         {
@@ -113,20 +137,15 @@ function configure(env, webpackOpts) {
     resolve: {
       extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
       alias: {
-        coreImports: path.resolve(
-          NODE_MODULE_PATH,
-          '@spinnaker',
-          'core',
-          'src',
-          'presentation',
-          'less',
-          'imports',
-          'commonImports.less',
-        ),
+        ...SHARED_PACKAGE_ALIAS_RESOLUTIONS,
+        '@spinnaker/core': CORE_PACKAGE_ROOT,
+        '@spinnaker/kayenta': path.resolve(KAYENTA_PACKAGE_ROOT, 'src'),
+        coreImports: path.resolve(CORE_PACKAGE_ROOT, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
+        kayenta: path.resolve(KAYENTA_PACKAGE_ROOT, 'src', 'kayenta'),
         root: DECK_ROOT,
         // Fix react-virtualized circular dependency issue with webpack 5
         // https://github.com/bvaughn/react-virtualized/issues/1632
-        'react-virtualized$': path.resolve(NODE_MODULE_PATH, 'react-virtualized/dist/commonjs/index.js'),
+        'react-virtualized$': REACT_VIRTUALIZED_COMMONJS,
       },
     },
     module: {
@@ -169,7 +188,16 @@ function configure(env, webpackOpts) {
         },
         {
           test: /\.html$/,
-          use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
+          include: isKayentaPackageResource,
+          use: [
+            { loader: 'ngtemplate-loader?relativeTo=' + KAYENTA_PACKAGE_ROOT + '/' },
+            { loader: 'html-loader' },
+          ],
+        },
+        {
+          test: /\.html$/,
+          exclude: isKayentaPackageResource,
+          use: [{ loader: 'ngtemplate-loader?relativeTo=' + APP_PACKAGE_ROOT + '/' }, { loader: 'html-loader' }],
         },
         {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
@@ -245,7 +273,7 @@ function configure(env, webpackOpts) {
 // invalidate cache-loader cache when these change
 function getCacheInvalidateString() {
   return JSON.stringify({
-    YARN_LOCK: md5(fs.readFileSync(`${DECK_ROOT}/yarn.lock`)),
+    PNPM_LOCK: md5(fs.readFileSync(`${DECK_ROOT}/pnpm-lock.yaml`)),
     WEBPACK_CONFIG: md5(fs.readFileSync(__filename)),
   });
 }

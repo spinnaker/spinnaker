@@ -29,7 +29,7 @@ function checkPackageJson(report) {
     installedSdkVersion === latestSdkVersion,
     {
       description: `Install ${PLUGIN_SDK}@${latestSdkVersion}`,
-      command: `yarn add ${PLUGIN_SDK}@${latestSdkVersion}`,
+      command: `pnpm add ${PLUGIN_SDK}@${latestSdkVersion}`,
     },
   );
 
@@ -43,7 +43,7 @@ function checkPackageJson(report) {
     installedPeerDepsVersion === latestPeerDepsVersion,
     {
       description: `Install ${PEER_DEPS}@${latestPeerDepsVersion}`,
-      command: `yarn add ${PEER_DEPS}@${latestPeerDepsVersion}`,
+      command: `pnpm add ${PEER_DEPS}@${latestPeerDepsVersion}`,
     },
   );
 

@@ -20,7 +20,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.29.1",
+    "@spinnaker/core": "workspace:^0.29.1",
     "@uirouter/angularjs": "1.0.26",
     "@uirouter/core": "6.0.8",
     "@uirouter/react": "1.0.7",
@@ -38,7 +38,7 @@
     "ngimport": "0.6.1",
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
-    "react-ga": "2.4.1",
+    "react-ga4": "^2.1.0",
     "react-select": "1.2.1",
     "react-sortable-hoc": "0.6.8",
     "react-virtualized-select": "3.1.3",
@@ -46,13 +46,14 @@
     "rxjs": "6.6.7"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^3.0.2",
-    "@spinnaker/mocks": "1.0.7",
-    "@spinnaker/scripts": "^0.4.0",
+    "@spinnaker/eslint-plugin": "workspace:^3.0.2",
+    "@spinnaker/mocks": "workspace:1.0.7",
+    "@spinnaker/scripts": "workspace:^0.4.0",
     "@types/angular": "1.6.26",
     "@types/angular-ui-bootstrap": "0.13.41",
     "@types/classnames": "2.2.0",
     "@types/enzyme": "3.10.3",
+    "@types/jquery": "2.0.43",
     "@types/lodash": "4.14.64",
     "@types/react": "16.14.10",
     "@types/react-bootstrap": "0.32.5",
