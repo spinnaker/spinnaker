@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.yaml.snakeyaml.Yaml;
@@ -67,7 +68,7 @@ public class CloudFoundryBakeManifestService
   public Artifact bake(CloudFoundryBakeManifestRequest bakeManifestRequest) throws IOException {
     String pattern = "\\(\\((!?[-/\\.\\w\\pL\\]\\[]+)\\)\\)";
 
-    Yaml yaml = new Yaml();
+    Yaml yaml = YamlHelper.newYamlSafeConstructor();
 
     String manifestTemplate =
         CharStreams.toString(

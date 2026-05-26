@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -115,12 +116,14 @@ public class DeployCloudFormationTask implements CloudProviderAware, Task {
     Object templateBody = task.get("templateBody");
 
     if (templateBody instanceof Map && !((Map) templateBody).isEmpty()) {
-      templateBody = new Yaml().dump(templateBody);
+      templateBody = YamlHelper.newYamlSafeConstructor().dump(templateBody);
       task.put("templateBody", templateBody);
     } else if (templateBody instanceof List && !((List) templateBody).isEmpty()) {
       templateBody =
           ((List<?>) templateBody)
-              .stream().map(part -> new Yaml().dump(part)).collect(Collectors.joining("\n---\n"));
+              .stream()
+                  .map(part -> YamlHelper.newYamlSafeConstructor().dump(part))
+                  .collect(Collectors.joining("\n---\n"));
       task.put("templateBody", templateBody);
     }
 
