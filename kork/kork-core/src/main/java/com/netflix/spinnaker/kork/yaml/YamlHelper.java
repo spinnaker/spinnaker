@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.kork.yaml;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
@@ -41,6 +42,7 @@ import org.yaml.snakeyaml.resolver.Resolver;
  * automatically applied to all created {@link Yaml} instances.
  */
 @Component
+@Log4j2
 public class YamlHelper {
 
   private static YamlParserProperties yamlParserProperties;
@@ -62,7 +64,11 @@ public class YamlHelper {
    *
    * @return a new {@link Yaml} instance
    */
+  @Deprecated
   public static Yaml newYaml() {
+    log.warn(
+        "WARNING:  Invoked newYaml!  THIS DOES NOT load yaml safely and should ONLY be used in initialization or by processes that are trusted!",
+        new Exception());
     if (hasYamlSecurityPropertiesConfigured()) {
       LoaderOptions opts = getLoaderOptions();
 
