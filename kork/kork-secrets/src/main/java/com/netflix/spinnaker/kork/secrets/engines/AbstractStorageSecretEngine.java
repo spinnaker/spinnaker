@@ -112,7 +112,7 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
   }
 
   protected void parseAsYaml(String fileURI, InputStream inputStream) {
-    Map<String, Object> parsed = YamlHelper.newYaml().load(inputStream);
+    Map<String, Object> parsed = YamlHelper.newYamlSafeConstructor().load(inputStream);
     cache.put(fileURI, parsed);
   }
 
