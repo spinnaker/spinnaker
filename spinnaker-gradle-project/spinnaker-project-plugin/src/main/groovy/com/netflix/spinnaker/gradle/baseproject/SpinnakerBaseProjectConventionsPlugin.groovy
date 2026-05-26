@@ -54,7 +54,8 @@ class SpinnakerBaseProjectConventionsPlugin implements Plugin<Project> {
       sourceJar.archiveClassifier.set('sources')
       sourceJar.from(extension.sourceSets.getByName('main').allSource)
       project.artifacts.add('archives', sourceJar)
-      extension    }
+      extension    
+    }
     // Disable JVM class data sharing in test workers to avoid this warning on startup
     //
     // "Sharing is only supported for boot loader classes because bootstrap classpath has been appended"
