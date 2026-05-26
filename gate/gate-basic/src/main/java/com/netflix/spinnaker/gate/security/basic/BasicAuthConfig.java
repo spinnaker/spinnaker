@@ -65,7 +65,7 @@ public class BasicAuthConfig {
     // session lookup
     // See: https://stackoverflow.com/a/75228661
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-    requestCache.setMatchingRequestParameterName("continue");
+    requestCache.setMatchingRequestParameterName(null);
     http.formLogin(Customizer.withDefaults())
         .requestCache(cache -> cache.requestCache(requestCache))
         .authenticationProvider(authProvider)

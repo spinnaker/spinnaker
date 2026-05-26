@@ -97,7 +97,7 @@ class LdapSsoConfig {
     def authenticationManager = authConfiguration.getAuthenticationManager()
     defaultCookieSerializer.setSameSite(null)
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-    requestCache.setMatchingRequestParameterName("continue");
+    requestCache.setMatchingRequestParameterName(null);
     // Configure request cache to save original requests
     http.formLogin(Customizer.withDefaults())
       .requestCache(cache -> cache

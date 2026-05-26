@@ -73,7 +73,7 @@ public class OAuth2SsoConfig {
     authConfig.configure(httpSecurity);
     String registrationId = getFirstRegistrationId();
     HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-    requestCache.setMatchingRequestParameterName("continue");
+    requestCache.setMatchingRequestParameterName(null);
 
     httpSecurity
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())

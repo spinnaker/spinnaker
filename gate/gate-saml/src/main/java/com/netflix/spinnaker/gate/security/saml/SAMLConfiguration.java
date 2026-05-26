@@ -108,7 +108,7 @@ public class SAMLConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       authConfig.configure(http);
       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
-      requestCache.setMatchingRequestParameterName("continue");
+      requestCache.setMatchingRequestParameterName(null);
       // Configure request cache to save original requests
 
       var authenticationProvider = new OpenSaml4AuthenticationProvider();
