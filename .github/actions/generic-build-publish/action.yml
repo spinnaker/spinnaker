@@ -120,7 +120,7 @@ runs:
         FULL_DOCKER_IMAGE_NAME: "${{ inputs.project }}-${{ steps.version.outputs.version }}-integration-test"
         GRADLE_OPTS: ${{ inputs.gradle-opts }}
       shell: bash
-      run:
+      run: |
         ## GHA Blocks rebinding attack based which causes some tests to fail.  This changes this
         sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
         ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false :${{ inputs.project }}:${{ inputs.project }}-integration:test
