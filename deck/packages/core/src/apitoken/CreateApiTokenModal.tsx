@@ -15,7 +15,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { IApiTokenServiceAccount, IApiToken, ICreateApiTokenRequest } from './ApiTokenService';
+import type { IApiToken, IApiTokenServiceAccount, ICreateApiTokenRequest } from './ApiTokenService';
 import { ApiTokenService } from './ApiTokenService';
 
 export type TokenContext = 'user' | 'serviceAccount';

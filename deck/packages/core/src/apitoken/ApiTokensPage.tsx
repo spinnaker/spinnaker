@@ -15,7 +15,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { IApiTokenServiceAccount, IApiToken } from './ApiTokenService';
+import type { IApiToken, IApiTokenServiceAccount } from './ApiTokenService';
 import { ApiTokenService } from './ApiTokenService';
 import { CreateApiTokenModal } from './CreateApiTokenModal';
 import { RevokeApiTokenButton } from './RevokeApiTokenButton';

@@ -439,10 +439,11 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
             }
 
             test("isEmpty should return true after the only stored user is removed") {
-                sqlPermissionsRepository.put(UserPermission().setId("testUser"))
+                val user = UserPermission().setId("testUser")
+                sqlPermissionsRepository.put(user)
                 expectThat(sqlPermissionsRepository.isEmpty()).isFalse()
 
-                sqlPermissionsRepository.remove("testUser")
+                sqlPermissionsRepository.remove(user.id)
 
                 expectThat(sqlPermissionsRepository.isEmpty()).isTrue()
             }

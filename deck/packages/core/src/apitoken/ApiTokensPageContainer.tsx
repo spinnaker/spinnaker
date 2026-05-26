@@ -14,8 +14,8 @@
 
 import React, { useEffect, useState } from 'react';
 
-import { REST } from '../api/ApiService';
 import { ApiTokensPage } from './ApiTokensPage';
+import { REST } from '../api/ApiService';
 
 interface IAuthUserResponse {
   isAdmin?: boolean;

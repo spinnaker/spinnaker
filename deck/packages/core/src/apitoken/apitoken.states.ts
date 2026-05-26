@@ -14,9 +14,9 @@
 
 import { module } from 'angular';
 
+import { ApiTokensPageContainer } from './ApiTokensPageContainer';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
-import { ApiTokensPageContainer } from './ApiTokensPageContainer';
 
 export const APITOKEN_STATES = 'spinnaker.core.apitoken.states';
 module(APITOKEN_STATES, [STATE_CONFIG_PROVIDER]).config([

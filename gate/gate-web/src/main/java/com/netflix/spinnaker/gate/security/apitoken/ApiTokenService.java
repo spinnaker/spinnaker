@@ -20,6 +20,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import jakarta.annotation.PreDestroy;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +29,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 /**

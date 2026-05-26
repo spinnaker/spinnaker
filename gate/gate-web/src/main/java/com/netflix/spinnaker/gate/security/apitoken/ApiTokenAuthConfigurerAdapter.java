@@ -18,46 +18,57 @@ package com.netflix.spinnaker.gate.security.apitoken;
 
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /**
- * Dedicated {@link WebSecurityConfigurerAdapter} for API-token requests: builds a {@link
- * SessionCreationPolicy#STATELESS STATELESS} chain whose request matcher only matches Spinnaker
+ * Dedicated Spring Security chain for API-token requests: builds a {@link
+ * SessionCreationPolicy#STATELESS STATELESS} chain whose security matcher only matches Spinnaker
  * token-bearing requests, so token auth never writes to {@code HttpSession} and non-token requests
- * fall through to the default chain. Ordered before {@code OAuth2SsoConfig} and friends.
+ * fall through to whichever SSO chain is configured.
+ *
+ * <p>Ordered ahead of the SSO/header/x509 chains so a token-bearing request is always handled by
+ * this chain, even in mixed-mode deployments.
  */
 @ConditionalOnProperty("api-tokens.enabled")
 @SpinnakerAuthConfig
 @EnableWebSecurity
-@Order(50)
-public class ApiTokenAuthConfigurerAdapter extends WebSecurityConfigurerAdapter {
+@Configuration
+public class ApiTokenAuthConfigurerAdapter {
 
   @Autowired AuthConfig authConfig;
   @Autowired ApiTokenAuthenticationFilter apiTokenAuthenticationFilter;
   @Autowired ApiTokenProperties properties;
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    // AuthConfig.configure() sets AnyRequestMatcher; call it first and then narrow.
+  @Bean
+  // Run before HeaderAuthConfigurerAdapter (@Order(2)) and X509Config (@Order(3)) so
+  // token-bearing requests are claimed by this chain in mixed-mode deployments.
+  @Order(0)
+  SecurityFilterChain apiTokenSecurityFilterChain(HttpSecurity http) throws Exception {
+    // AuthConfig.configure() installs the default permit/authenticated rules and the
+    // requestMatcherProvider's matcher (AnyRequestMatcher by default). Narrow that matcher to
+    // only token-bearing requests so non-token traffic falls through to the next chain.
     authConfig.configure(http);
 
-    http.requestMatcher(new ApiTokenRequestMatcher(properties.getTokenPrefix()))
+    return http.securityMatcher(new ApiTokenRequestMatcher(properties.getTokenPrefix()))
         .addFilterBefore(apiTokenAuthenticationFilter, BasicAuthenticationFilter.class)
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // API clients want a clean 401, not a 302 to /login from the inherited browser entrypoint.
         .exceptionHandling(
-            eh -> eh.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+            eh -> eh.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+        .build();
   }
 
   /**

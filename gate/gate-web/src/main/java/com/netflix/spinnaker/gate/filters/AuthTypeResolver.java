@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.gate.filters;
 
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenAuthenticationFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
