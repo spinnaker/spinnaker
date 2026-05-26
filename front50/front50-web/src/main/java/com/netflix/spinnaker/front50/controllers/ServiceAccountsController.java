@@ -16,10 +16,12 @@
 package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.ServiceAccountsService;
+import com.netflix.spinnaker.front50.config.ServiceAccountsProperties;
 import com.netflix.spinnaker.front50.config.annotations.ConditionalOnAnyProviderExceptRedisIsEnabled;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,14 +34,34 @@ import org.springframework.web.bind.annotation.RestController;
 public class ServiceAccountsController {
 
   private final ServiceAccountsService serviceAccountService;
+  private final ServiceAccountsProperties apiServiceAccountsProperties;
 
-  public ServiceAccountsController(ServiceAccountsService serviceAccountService) {
+  public ServiceAccountsController(
+      ServiceAccountsService serviceAccountService,
+      ServiceAccountsProperties apiServiceAccountsProperties) {
     this.serviceAccountService = serviceAccountService;
+    this.apiServiceAccountsProperties = apiServiceAccountsProperties;
   }
 
   @RequestMapping(method = RequestMethod.GET)
   public Set<ServiceAccount> getAllServiceAccounts() {
     return new HashSet<>(serviceAccountService.getAllServiceAccounts());
+  }
+
+  /**
+   * Returns the subset of service accounts that are declared under {@code service-accounts} in
+   * configuration and are therefore eligible for API token minting.
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/tokenEligible")
+  public Set<ServiceAccount> getTokenEligibleServiceAccounts() {
+    Set<String> configuredNames =
+        apiServiceAccountsProperties.getServiceAccounts().stream()
+            .map(ServiceAccountsProperties.ServiceAccountDefinition::getName)
+            .collect(Collectors.toSet());
+
+    return serviceAccountService.getAllServiceAccounts().stream()
+        .filter(sa -> configuredNames.contains(sa.getName()))
+        .collect(Collectors.toSet());
   }
 
   @RequestMapping(method = RequestMethod.POST)

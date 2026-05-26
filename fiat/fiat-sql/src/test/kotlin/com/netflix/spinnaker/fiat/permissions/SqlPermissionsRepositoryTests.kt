@@ -426,6 +426,27 @@ internal object SqlPermissionsRepositoryTests : JUnit5Minutests {
                 )
             }
 
+            test("isEmpty should return true when no users are stored") {
+                expectThat(jooq.selectCount().from(USER).fetchOne(count())).isEqualTo(0)
+
+                expectThat(sqlPermissionsRepository.isEmpty()).isTrue()
+            }
+
+            test("isEmpty should return false when at least one user is stored") {
+                sqlPermissionsRepository.put(UserPermission().setId("testUser"))
+
+                expectThat(sqlPermissionsRepository.isEmpty()).isFalse()
+            }
+
+            test("isEmpty should return true after the only stored user is removed") {
+                sqlPermissionsRepository.put(UserPermission().setId("testUser"))
+                expectThat(sqlPermissionsRepository.isEmpty()).isFalse()
+
+                sqlPermissionsRepository.remove("testUser")
+
+                expectThat(sqlPermissionsRepository.isEmpty()).isTrue()
+            }
+
             test("should delete the specified user") {
                 expectThat(jooq.selectCount().from(USER).fetchOne(count())).isEqualTo(0)
                 expectThat(jooq.selectCount().from(RESOURCE).fetchOne(count())).isEqualTo(0)
