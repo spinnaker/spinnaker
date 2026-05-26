@@ -32,7 +32,9 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.resps.ScanResult;
 
 /**
  * Manages all Redis I/O for API tokens.
@@ -185,7 +187,9 @@ public class RedisApiTokenRepository {
     try (Jedis jedis = jedisPool.getResource()) {
       jedis.zremrangeByScore(principalKey, 0, nowEpoch);
 
-      Set<String> members = jedis.zrange(principalKey, 0, -1);
+      // Jedis 5.x: ZRANGE returns List<String> in score order; members are already unique by ZSET
+      // semantics.
+      List<String> members = jedis.zrange(principalKey, 0, -1);
       if (members == null || members.isEmpty()) {
         return List.of();
       }
@@ -317,20 +321,19 @@ public class RedisApiTokenRepository {
     List<String> allUuids = new ArrayList<>();
 
     try (Jedis jedis = jedisPool.getResource()) {
-      String cursor = "0";
+      String cursor = ScanParams.SCAN_POINTER_START;
       do {
-        redis.clients.jedis.ScanResult<String> scan =
-            jedis.scan(cursor, new redis.clients.jedis.ScanParams().match(pattern).count(200));
+        ScanResult<String> scan = jedis.scan(cursor, new ScanParams().match(pattern).count(200));
         cursor = scan.getCursor();
         for (String principalKey : scan.getResult()) {
           if (!seenPrincipalKeys.add(principalKey)) continue;
           jedis.zremrangeByScore(principalKey, 0, nowEpoch);
-          Set<String> members = jedis.zrange(principalKey, 0, -1);
+          List<String> members = jedis.zrange(principalKey, 0, -1);
           if (members != null) {
             allUuids.addAll(members);
           }
         }
-      } while (!"0".equals(cursor));
+      } while (!ScanParams.SCAN_POINTER_START.equals(cursor));
 
       if (allUuids.isEmpty()) {
         return List.of();
