@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.security.SpinnakerUser
+import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties
+import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.SessionService
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -61,6 +63,12 @@ class AuthController {
 
   SessionService sessionService
 
+  @Autowired(required = false)
+  ApiTokenProperties apiTokenProperties
+
+  @Autowired(required = false)
+  ApiTokenService apiTokenService
+
   @Autowired
   AuthController(@Value('${services.deck.base-url:}') URL deckBaseUrl,
                  @Value('${services.deck.redirect-host-pattern:#{null}}') String redirectHostPattern,
@@ -75,16 +83,28 @@ class AuthController {
 
   @Operation(summary = "Get user")
   @RequestMapping(value = "/user", method = RequestMethod.GET)
-  User user(@Parameter(hidden = true) @SpinnakerUser User user) {
+  AuthUserResponse user(@Parameter(hidden = true) @SpinnakerUser User user) {
     if (!user) {
-      return user
+      return null
     }
 
     def fiatRoles = permissionService.getRoles(user.username)?.collect{ it.name }
     if (fiatRoles) {
       user.roles = fiatRoles
     }
-    return user
+
+    boolean isAdmin = permissionService.isAdmin(user.username)
+    boolean canMintApiTokens = apiTokenService?.canMintApiTokens(user.username) ?: false
+
+    Integer maxUserTokenLifetimeDays = apiTokenProperties?.enabled ? apiTokenProperties.maxUserTokenLifetimeDays : null
+    Integer maxServiceAccountTokenLifetimeDays = apiTokenProperties?.enabled ? apiTokenProperties.maxServiceAccountTokenLifetimeDays : null
+
+    return AuthUserResponse.from(
+        user,
+        isAdmin,
+        canMintApiTokens,
+        maxUserTokenLifetimeDays,
+        maxServiceAccountTokenLifetimeDays)
   }
 
   @Operation(summary = "Get raw user")
