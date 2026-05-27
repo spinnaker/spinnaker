@@ -194,16 +194,3 @@ security:
       firstName:
       lastName: name
       username: login
-
-# API token configuration (disabled by default)
-# Tokens are sent via X-Spinnaker-Token header (IAP-safe) or Authorization: Bearer spk_...
-# api-tokens:
-#   enabled: false
-#   token-prefix: spk_
-#   redis-key-prefix: api-token
-#   reject-check-interval-seconds: 60
-#   max-user-token-lifetime-days: 90
-#   max-service-account-token-lifetime-days: 365
-#   reject-if-no-principal-permissions: false
-#   allowed-minting-roles:
-#     - spinnaker-api-users
