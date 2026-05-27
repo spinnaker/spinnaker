@@ -1,13 +1,11 @@
 allowBuilds:
   bufferutil: true
   core-js: true
-  cypress: true
   esbuild: true
   utf-8-validate: true
 onlyBuiltDependencies:
   - bufferutil
   - core-js
-  - cypress
   - esbuild
   - fsevents
   - utf-8-validate

@@ -38,7 +38,7 @@
     "ngimport": "0.6.1",
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
-    "react-ga4": "^2.1.0",
+    "react-ga": "2.4.1",
     "react-select": "1.2.1",
     "react-sortable-hoc": "0.6.8",
     "react-virtualized-select": "3.1.3",

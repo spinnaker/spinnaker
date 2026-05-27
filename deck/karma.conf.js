@@ -9,8 +9,6 @@ const ForkTsCheckerWebpackPlugin = appRequire('fork-ts-checker-webpack-plugin');
 const { ProvidePlugin } = appRequire('webpack');
 const prodWebpackConfig = require('./packages/app/webpack.config')();
 const MODULES_ROOT = path.resolve(`${__dirname}/packages`);
-const KAYENTA_PACKAGE_ROOT = path.resolve(__dirname, '../deck-kayenta');
-const isKayentaPackageResource = (resourcePath) => resourcePath.startsWith(KAYENTA_PACKAGE_ROOT + path.sep);
 
 const webpackConfig = {
   mode: 'development',
@@ -24,15 +22,6 @@ const webpackConfig = {
       }),
       {
         test: /\.html$/,
-        include: isKayentaPackageResource,
-        use: [
-          { loader: 'ngtemplate-loader?relativeTo=' + KAYENTA_PACKAGE_ROOT + '/' },
-          { loader: 'html-loader' },
-        ],
-      },
-      {
-        test: /\.html$/,
-        exclude: isKayentaPackageResource,
         use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
       },
     ],

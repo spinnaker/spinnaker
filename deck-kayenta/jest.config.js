@@ -90,7 +90,7 @@ module.exports = {
     'root/version.json': '<rootDir>/__mocks__/version.json',
     '\\.(css|less)$': '<rootDir>/__mocks__/styleMock.js',
     '@spinnaker/presentation': '<rootDir>/node_modules/@spinnaker/presentation/dist',
-    '@spinnaker/core': '<rootDir>/node_modules/@spinnaker/core/dist',
+    '@spinnaker/core': '<rootDir>/../deck/packages/core/src',
     '\\.html$': '<rootDir>/__mocks__/htmlMock.js',
   },
 

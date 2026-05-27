@@ -9,11 +9,9 @@ const TerserPlugin = require('terser-webpack-plugin');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
-const APP_PACKAGE_ROOT = path.resolve(__dirname);
-const DECK_ROOT = path.resolve(`${APP_PACKAGE_ROOT}/../..`);
+const DECK_ROOT = path.resolve(`${__dirname}/../..`);
 const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
 const KAYENTA_PACKAGE_ROOT = path.resolve(DECK_ROOT, '../deck-kayenta');
-const isKayentaPackageResource = (resourcePath) => resourcePath.startsWith(KAYENTA_PACKAGE_ROOT + path.sep);
 const STYLEGUIDE_PACKAGE_ROOT = path.dirname(
   require.resolve('@spinnaker/styleguide/package.json', { paths: [__dirname] }),
 );
@@ -188,16 +186,7 @@ function configure(env, webpackOpts) {
         },
         {
           test: /\.html$/,
-          include: isKayentaPackageResource,
-          use: [
-            { loader: 'ngtemplate-loader?relativeTo=' + KAYENTA_PACKAGE_ROOT + '/' },
-            { loader: 'html-loader' },
-          ],
-        },
-        {
-          test: /\.html$/,
-          exclude: isKayentaPackageResource,
-          use: [{ loader: 'ngtemplate-loader?relativeTo=' + APP_PACKAGE_ROOT + '/' }, { loader: 'html-loader' }],
+          use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
         },
         {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,

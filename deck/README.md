@@ -3,7 +3,7 @@
 ## Prerequisites
 
 Make sure that [node](http://nodejs.org/download/) and [pnpm](https://pnpm.io/installation) are installed on your system.
-The minimum versions for each are listed in package.json. If it fails to build or run, try downgrading the version of node; it currently fails with node@16 and node@20 but works with node@12.
+The minimum versions for each are listed in package.json.
 
 ## Quick Start
 
@@ -34,9 +34,6 @@ The following external resources can be specified with environment variables:
 
 - `API_HOST` overrides the default Spinnaker API host.
 - `AUTH_ENABLED` determines whether Deck will attempt to authenticate users via Gate.
-- `GATE_TARGET` overrides the Gate origin used by the local webpack proxy. Do not include `/api/v1`.
-- `GATE_AUTH_TOKEN` sets a bearer token for proxied Gate requests.
-- `SESSION_COOKIE` sets the fallback Gate `SESSION` cookie for proxied requests.
 
 For example, `API_HOST=http://spinnaker.prod.netflix.net pnpm start` will run Deck with `http://spinnaker.prod.netflix.net` as the API host.
 

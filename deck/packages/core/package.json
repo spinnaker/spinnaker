@@ -72,7 +72,7 @@
     "react-content-loader": "6.0.3",
     "react-day-picker": "7.3.2",
     "react-dom": "16.14.0",
-    "react-ga4": "^2.1.0",
+    "react-ga": "2.4.1",
     "react-redux": "^5.1.2",
     "react-select": "1.2.1",
     "react-sortable-hoc": "0.6.8",
