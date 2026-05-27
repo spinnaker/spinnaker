@@ -183,10 +183,13 @@ class AzureNetworkClient extends AzureBaseClient {
         return agItem
       }
     } catch (Exception e) {
-      log.warn("getAppGateway(${resourceGroupName},${appGatewayName}) -> Exception ", e)
+      if (AzureBaseClient.resourceNotFound(e)) {
+        log.warn("getAppGateway(${resourceGroupName},${appGatewayName}) -> not found", e)
+        return null
+      }
+      log.error("getAppGateway(${resourceGroupName},${appGatewayName}) failed", e)
+      throw new RuntimeException("getAppGateway(${resourceGroupName},${appGatewayName}) failed: ${e.message}", e)
     }
-
-    null
   }
 
   /**

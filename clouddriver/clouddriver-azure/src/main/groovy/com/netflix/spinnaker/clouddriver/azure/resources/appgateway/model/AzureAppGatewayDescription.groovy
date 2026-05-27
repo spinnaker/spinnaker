@@ -108,7 +108,7 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     description.vnetResourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(description.subnetResourceId)
     description.hasNewSubnet = appGateway.tags()?.hasNewSubnet
 
-    description.publicIpName = AzureUtilities.getNameFromResourceId(appGateway?.frontendIpConfigurations().first().publicIpAddress().id())
+    description.publicIpName = AzureUtilities.getNameFromResourceId(appGateway?.frontendIpConfigurations()?.find { it.publicIpAddress() != null }?.publicIpAddress()?.id())
     description.createdTime = appGateway.tags()?.createdTime?.toLong()
     description.tags = appGateway.tags() ?: [:]
     description.region = appGateway.location()
