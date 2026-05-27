@@ -76,6 +76,15 @@ public class RedisApiTokenRepository {
   /** Bounded retry for optimistic-locking timestamp updates; these fields are best-effort. */
   private static final int MAX_TIMESTAMP_UPDATE_ATTEMPTS = 3;
 
+  /**
+   * Backstop TTL applied to the name index key by {@code SET NX EX} in {@link #save} before the
+   * MULTI commits. If the JVM dies or the connection drops between SETNX and the explicit cleanup
+   * (or the cleanup itself fails) the orphan reservation is auto-evicted after this window and the
+   * principal can retry the same name. After a successful commit this TTL is replaced (EXPIREAT for
+   * expiring tokens, PERSIST for non-expiring tokens).
+   */
+  static final int NAME_RESERVATION_TTL_SECONDS = 60;
+
   private final JedisPool jedisPool;
   private final ObjectMapper objectMapper;
   private final String keyPrefix;
@@ -124,9 +133,13 @@ public class RedisApiTokenRepository {
             : Long.MAX_VALUE;
 
     try (Jedis jedis = jedisPool.getResource()) {
-      // SETNX without a TTL; the matching EXPIREAT is folded into the MULTI/EXEC below.
-      // (`SET NX EXAT` would require Redis 6.2; we support older versions.)
-      String reservation = jedis.set(nameKey, record.getId(), SetParams.setParams().nx());
+      // SET NX EX 60: short reservation TTL acts as a self-healing fallback if we crash or lose
+      // the connection before either the MULTI/EXEC below or the explicit cleanup runs. After a
+      // successful commit we either EXPIREAT (expiring tokens) or PERSIST (non-expiring tokens)
+      // the name key to its real lifetime.
+      String reservation =
+          jedis.set(
+              nameKey, record.getId(), SetParams.setParams().nx().ex(NAME_RESERVATION_TTL_SECONDS));
       if (reservation == null) {
         throw new DuplicateTokenNameException(
             "A token named '"
@@ -147,13 +160,22 @@ public class RedisApiTokenRepository {
         if (zsetScore != Long.MAX_VALUE) {
           tx.expireAt(hashKey, zsetScore);
           tx.expireAt(idKey, zsetScore);
-          tx.expireAt(nameKey, zsetScore);
         }
         List<Object> results = tx.exec();
         if (results == null || results.isEmpty()) {
           throw new RuntimeException("Token save failed: EXEC returned null");
         }
         committed = true;
+
+        // Replace the short reservation TTL with the token's true lifetime now that the rest of
+        // the save has committed. EXPIREAT for expiring tokens, PERSIST (remove TTL) otherwise —
+        // a non-expiring token whose name key kept the 60s TTL would let the same (principal,
+        // name) be re-saved a minute later.
+        if (zsetScore != Long.MAX_VALUE) {
+          jedis.expireAt(nameKey, zsetScore);
+        } else {
+          jedis.persist(nameKey);
+        }
       } finally {
         if (!committed) {
           try {
