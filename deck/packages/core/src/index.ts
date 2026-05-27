@@ -4,6 +4,7 @@ import './utils/failedToInstantiateModule';
 
 export * from './account';
 export * from './api';
+export * from './apitoken';
 export * from './application';
 export * from './artifact';
 export * from './authentication';
