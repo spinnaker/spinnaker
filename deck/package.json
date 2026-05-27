@@ -27,8 +27,8 @@
     "modules": "./scripts/buildModules.js",
     "prettier": "prettier --write 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
     "prettier:check": "prettier --check 'packages/**/*.{js,jsx,ts,tsx,html,css,less}'",
-    "functional": "pnpm build && pnpm --dir test/functional install && pnpm --dir test/functional test",
-    "functional:debug": "pnpm build && pnpm --dir test/functional install && pnpm --dir test/functional open",
+    "functional": "pnpm --dir test/functional install && pnpm --dir test/functional build && pnpm --dir test/functional test",
+    "functional:debug": "pnpm --dir test/functional install && pnpm --dir test/functional build && pnpm --dir test/functional open",
     "storybook": "start-storybook -p 9001"
   },
   "devDependencies": {
