@@ -91,9 +91,15 @@ public class RedisApiTokenRepository {
    * expiresAt} epoch seconds, or {@link Long#MAX_VALUE} for non-expiring tokens). When {@code
    * expiresAt} is set, {@code EXPIREAT} is applied to the string keys and the name index.
    *
-   * <p>Name uniqueness is enforced atomically by {@code SET NX} on the name index key before the
-   * rest of the save; if the name is taken this throws and writes nothing else. The name
-   * reservation is released best-effort if the subsequent pipeline fails.
+   * <p>Name uniqueness is enforced atomically by {@code SET NX EX 60} on the name index key before
+   * the rest of the save; if the name is taken this throws and writes nothing else. The remaining
+   * writes (hash key, id key, principal ZSET, and EXPIREATs) commit together inside MULTI/EXEC so
+   * an aborted EXEC can't leave a readable hash key without its id record. The name reservation is
+   * released best-effort if the transaction fails; the 60s SETNX TTL is the backstop that
+   * auto-evicts the reservation if even the explicit release can't run (e.g., JVM crash, connection
+   * loss). Once the MULTI commits, the reservation's TTL is replaced with the token's actual
+   * lifetime — {@code EXPIREAT} for tokens with an explicit expiry, {@code PERSIST} (TTL removed)
+   * for non-expiring tokens.
    *
    * <p>Sets {@code record.hashRef} so {@link #delete} can find the hash key during revocation.
    *
@@ -118,7 +124,7 @@ public class RedisApiTokenRepository {
             : Long.MAX_VALUE;
 
     try (Jedis jedis = jedisPool.getResource()) {
-      // SETNX without a TTL; the matching EXPIREAT is folded into the pipeline below.
+      // SETNX without a TTL; the matching EXPIREAT is folded into the MULTI/EXEC below.
       // (`SET NX EXAT` would require Redis 6.2; we support older versions.)
       String reservation = jedis.set(nameKey, record.getId(), SetParams.setParams().nx());
       if (reservation == null) {
@@ -133,17 +139,20 @@ public class RedisApiTokenRepository {
 
       boolean committed = false;
       try {
-        Pipeline pipe = jedis.pipelined();
-        pipe.set(hashKey, json);
-        pipe.set(idKey, json);
-        pipe.zadd(principalKey, (double) zsetScore, record.getId());
+        Transaction tx = jedis.multi();
+        tx.set(hashKey, json);
+        tx.set(idKey, json);
+        tx.zadd(principalKey, (double) zsetScore, record.getId());
 
         if (zsetScore != Long.MAX_VALUE) {
-          pipe.expireAt(hashKey, zsetScore);
-          pipe.expireAt(idKey, zsetScore);
-          pipe.expireAt(nameKey, zsetScore);
+          tx.expireAt(hashKey, zsetScore);
+          tx.expireAt(idKey, zsetScore);
+          tx.expireAt(nameKey, zsetScore);
         }
-        pipe.sync();
+        List<Object> results = tx.exec();
+        if (results == null || results.isEmpty()) {
+          throw new RuntimeException("Token save failed: EXEC returned null");
+        }
         committed = true;
       } finally {
         if (!committed) {

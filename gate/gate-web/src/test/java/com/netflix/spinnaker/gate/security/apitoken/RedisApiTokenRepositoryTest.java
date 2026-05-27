@@ -18,6 +18,11 @@ package com.netflix.spinnaker.gate.security.apitoken;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -42,6 +47,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 
 class RedisApiTokenRepositoryTest {
 
@@ -477,6 +483,51 @@ class RedisApiTokenRepositoryTest {
           .hasSize(1);
     } finally {
       exec.shutdownNow();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // save — MULTI/EXEC atomicity
+  // ---------------------------------------------------------------------------
+
+  /**
+   * If EXEC returns null mid-save, no partial state (notably a readable hash key without its id
+   * record) may survive — that would be an authenticatable but unrevokable token.
+   */
+  @Test
+  void save_throwsAndWritesNothing_whenExecReturnsNull() {
+    // Real Jedis (so SET NX really reserves the name), but multi() returns a Transaction whose
+    // exec() returns null.
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    TokenRecord record = buildRecord("aborted-tok", "USER", "ursula", null);
+    record.setName("aborted-name");
+
+    assertThatThrownBy(() -> failingRepo.save(record, "h-aborted"))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("EXEC returned null");
+
+    assertThat(repo.findByHash("h-aborted")).isEmpty();
+    assertThat(repo.findById("aborted-tok")).isEmpty();
+    assertThat(repo.findByPrincipal("USER", "ursula")).isEmpty();
+    try (Jedis jedis = jedisPool.getResource()) {
+      assertThat(jedis.exists(repo.nameKey("USER", "ursula", "aborted-name"))).isFalse();
     }
   }
 
