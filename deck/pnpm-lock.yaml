@@ -350,14 +350,14 @@ importers:
         specifier: ^2026.1.0
         version: 2026.1.0(@types/angular@1.6.26)(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(graphql@15.10.2)(subscriptions-transport-ws@0.9.19(bufferutil@4.0.9)(graphql@15.10.2)(utf-8-validate@5.0.10))
       '@spinnaker/eslint-plugin':
-        specifier: ^2026.1.0
-        version: 2026.1.0(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(typescript@5.0.4)
+        specifier: 3.0.2
+        version: 3.0.2(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(typescript@5.0.4)
       '@spinnaker/pluginsdk':
         specifier: ^2026.1.0
         version: 2026.1.0(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(bufferutil@4.0.9)(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(tslib@2.2.0)(typescript@5.0.4)(utf-8-validate@5.0.10)
       '@spinnaker/pluginsdk-peerdeps':
         specifier: ^2026.1.0
-        version: 2026.1.0(2589785393e434d9370051ad5a90688c)
+        version: 2026.1.0(b5fb08c969ce1de1a5108f1533a4d597)
       '@spinnaker/presentation':
         specifier: ^2026.1.0
         version: 2026.1.0(lodash@4.17.23)(react@16.14.0)
@@ -4771,15 +4771,6 @@ packages:
 
   '@spinnaker/core@2026.1.0':
     resolution: {integrity: sha512-uvF85XQ/hs/5v5TC5TLvLlFjwwrm33RRHf6ncVW1sEwWiT8o6yRL+5BnbZr53XyJRUCA9gsf2dVgDMWRFmckYQ==}
-
-  '@spinnaker/eslint-plugin@2026.1.0':
-    resolution: {integrity: sha512-MWiETL8kF1S1SohpdFLCI9mDwQMLZ+PtDC9wAPdMoVkK/sI1tvDTnDuhxD6qoDYDoeI+BdyVNAjSWDKmfJiJEg==}
-    peerDependencies:
-      '@typescript-eslint/eslint-plugin': ^8.0.0
-      '@typescript-eslint/parser': ^8.0.0
-      eslint: ^9.0.0
-      eslint-config-prettier: ^10.0.0
-      eslint-plugin-react-hooks: ^5.0.0 || ^7.0.0
 
   '@spinnaker/eslint-plugin@3.0.1':
     resolution: {integrity: sha512-Iz9aUJxrNXkHYNzYJZ3QdDXblPpyHOEyCMCx7krTi/llGuFN+KM5YBMqRHXiSl8P0XJVUoE6S4OKfPQndoXCmg==}
@@ -17660,21 +17651,6 @@ snapshots:
       - react-native
       - subscriptions-transport-ws
 
-  '@spinnaker/eslint-plugin@2026.1.0(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(typescript@5.0.4)':
-    dependencies:
-      '@typescript-eslint/eslint-plugin': 4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4)
-      '@typescript-eslint/parser': 4.4.0(eslint@7.32.0)(typescript@5.0.4)
-      eslint: 7.32.0
-      eslint-config-prettier: 6.12.0(eslint@7.32.0)
-      eslint-plugin-react-hooks: 4.1.2(eslint@7.32.0)
-      lodash: 4.18.1
-      ts-node: 10.9.2(@types/node@7.0.5)(typescript@5.0.4)
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - typescript
-
   '@spinnaker/eslint-plugin@3.0.1(@types/node@16.18.126)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)':
     dependencies:
       '@typescript-eslint/eslint-plugin': 4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)
@@ -17728,7 +17704,7 @@ snapshots:
     dependencies:
       '@spinnaker/core': 2026.1.0(@types/angular@1.6.26)(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(graphql@15.10.2)(subscriptions-transport-ws@0.9.19(bufferutil@4.0.9)(graphql@15.10.2)(utf-8-validate@5.0.10))
 
-  '@spinnaker/pluginsdk-peerdeps@2026.1.0(2589785393e434d9370051ad5a90688c)':
+  '@spinnaker/pluginsdk-peerdeps@2026.1.0(b5fb08c969ce1de1a5108f1533a4d597)':
     dependencies:
       '@rollup/plugin-commonjs': 28.0.9(rollup@4.60.4)
       '@rollup/plugin-json': 6.1.0(rollup@4.60.4)
@@ -17737,7 +17713,7 @@ snapshots:
       '@rollup/plugin-typescript': 12.3.0(rollup@4.60.4)(tslib@2.2.0)(typescript@5.0.4)
       '@rollup/plugin-url': 8.0.2(rollup@4.60.4)
       '@spinnaker/core': 2026.1.0(@types/angular@1.6.26)(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(graphql@15.10.2)(subscriptions-transport-ws@0.9.19(bufferutil@4.0.9)(graphql@15.10.2)(utf-8-validate@5.0.10))
-      '@spinnaker/eslint-plugin': 2026.1.0(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(typescript@5.0.4)
+      '@spinnaker/eslint-plugin': 3.0.2(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(typescript@5.0.4)
       '@spinnaker/pluginsdk': 2026.1.0(@types/node@7.0.5)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(bufferutil@4.0.9)(eslint-config-prettier@6.12.0(eslint@7.32.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.32.0))(eslint@7.32.0)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(tslib@2.2.0)(typescript@5.0.4)(utf-8-validate@5.0.10)
       '@spinnaker/presentation': 2026.1.0(lodash@4.17.23)(react@16.14.0)
       '@types/react': 16.14.10

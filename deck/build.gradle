@@ -20,6 +20,10 @@ node {
   pnpmVersion = "11.1.1"
 }
 
+pnpmInstall {
+  doNotTrackState("pnpm manages node_modules as a large symlink graph that Gradle cannot snapshot reliably")
+}
+
 task modules(type: PnpmTask) {
   dependsOn "pnpmInstall"
 
