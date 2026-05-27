@@ -138,6 +138,27 @@ public class PermissionService {
     }
   }
 
+  /**
+   * Fetches roles by calling Fiat directly (bypassing the local cache) and propagates HTTP errors
+   * so callers can distinguish a legitimate empty-roles response from a transient failure (e.g.
+   * Fiat returns 503 when its permissions repository is empty). Used by API token authentication.
+   */
+  public Set<Role.View> getRolesForTokenAuth(String userId) {
+    if (!fiatStatus.isEnabled()) {
+      return Set.of();
+    }
+    // allowAnonymous: the token filter calls this before the SecurityContext is populated, so any
+    // X-SPINNAKER-USER lingering in MDC would otherwise be forwarded to Fiat.
+    UserPermission.View permission =
+        AuthenticatedRequest.allowAnonymous(
+            () -> Retrofit2SyncCall.execute(fiatService.getUserPermission(userId)));
+    if (permission == null) {
+      return Set.of();
+    }
+    var roles = permission.getRoles();
+    return roles != null ? roles : Set.of();
+  }
+
   List<UserPermission.View> lookupServiceAccounts(String userId) {
     try {
       return Retrofit2SyncCall.execute(extendedFiatService.getUserServiceAccounts(userId));
