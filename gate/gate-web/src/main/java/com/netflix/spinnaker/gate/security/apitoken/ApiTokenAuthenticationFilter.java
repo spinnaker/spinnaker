@@ -95,7 +95,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
     // re-emits MDC entries as outbound headers on every downstream call, which would leak the
     // plaintext token to Fiat logs. Clear it from MDC and wrap the request so it can't be re-read.
     if (request.getHeader(HEADER_X_SPINNAKER_TOKEN) != null) {
-      MDC.remove(HEADER_X_SPINNAKER_TOKEN.toUpperCase());
+      MDC.remove(HEADER_X_SPINNAKER_TOKEN.toUpperCase(Locale.ROOT));
       request = new TokenHeaderStrippingRequestWrapper(request);
     }
 
