@@ -100,7 +100,7 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/plugin-url": "^8.0.2",
     "@spinnaker/core": "^2026.1.0",
-    "@spinnaker/eslint-plugin": "^2026.1.0",
+    "@spinnaker/eslint-plugin": "3.0.2",
     "@spinnaker/pluginsdk": "^2026.1.0",
     "@spinnaker/pluginsdk-peerdeps": "^2026.1.0",
     "@spinnaker/presentation": "^2026.1.0",
