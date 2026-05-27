@@ -8,3 +8,22 @@
 ###   and https://github.com/spinnaker/spinnaker/issues/6319 and https://github.com/spinnaker/orca/pull/4083 for more information.
 #  deleteDanglingManagedServiceAccounts: true
 #  deleteDanglingSharedManagedServiceAccounts: true
+
+## ---------------------------------------------------------------------------
+## Service accounts eligible for API token minting
+## ---------------------------------------------------------------------------
+## Operator-declared service accounts that may have API tokens minted on their
+## behalf via Gate's POST /api-tokens endpoint (see gate-local.yml's api-tokens
+## block). Config here is authoritative — entries are upserted into the front50
+## store on every startup and their memberOf roles overwrite whatever is in the
+## store. Only accounts listed here are returned by
+## GET /serviceAccounts/tokenEligible.
+##
+## Each name MUST match the Fiat identity used to authorize pipelines.
+#service-accounts:
+#  - name: deploy-bot
+#    memberOf:
+#      - deploy-team
+#  - name: ci-pipeline-bot
+#    memberOf:
+#      - ci-pipeline-team
