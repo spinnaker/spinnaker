@@ -98,7 +98,7 @@ public class ApiTokenService {
       }
     }
 
-    return Optional.of(record);
+    return opt;
   }
 
   /**

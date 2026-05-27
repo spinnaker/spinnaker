@@ -49,18 +49,22 @@ public class ServiceAccountsController {
   }
 
   /**
-   * Returns the subset of service accounts that are declared under {@code service-accounts} in
-   * configuration and are therefore eligible for API token minting.
+   * Returns the service accounts declared under {@code service-accounts} in configuration — the
+   * only identities eligible for API token minting. Synthesized from config (kept in sync with the
+   * store by {@link com.netflix.spinnaker.front50.config.ServiceAccountsInitializer} on startup) to
+   * keep this O(K) instead of O(N).
    */
   @RequestMapping(method = RequestMethod.GET, value = "/tokenEligible")
   public Set<ServiceAccount> getTokenEligibleServiceAccounts() {
-    Set<String> configuredNames =
-        apiServiceAccountsProperties.getServiceAccounts().stream()
-            .map(ServiceAccountsProperties.ServiceAccountDefinition::getName)
-            .collect(Collectors.toSet());
-
-    return serviceAccountService.getAllServiceAccounts().stream()
-        .filter(sa -> configuredNames.contains(sa.getName()))
+    return apiServiceAccountsProperties.getServiceAccounts().stream()
+        .filter(def -> def.getName() != null && !def.getName().isBlank())
+        .map(
+            def -> {
+              ServiceAccount sa = new ServiceAccount();
+              sa.setName(def.getName());
+              sa.setMemberOf(def.getMemberOf());
+              return sa;
+            })
         .collect(Collectors.toSet());
   }
 
