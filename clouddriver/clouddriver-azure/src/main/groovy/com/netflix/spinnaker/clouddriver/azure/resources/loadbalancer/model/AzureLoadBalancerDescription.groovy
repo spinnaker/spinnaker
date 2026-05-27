@@ -117,7 +117,7 @@ class AzureLoadBalancerDescription extends AzureResourceOpsDescription {
       r.probeName = AzureUtilities.getNameFromResourceId(rule?.probe()?.id()) ?: "not-assigned"
       r.persistence = rule.loadDistribution()
       r.idleTimeout = rule.idleTimeoutInMinutes()
-      description.trafficEnabledSG = AzureUtilities.getNameFromResourceId(rule.backendAddressPool().id())
+      description.trafficEnabledSG = AzureUtilities.getNameFromResourceId(rule.backendAddressPool()?.id())
 
       if (rule.protocol() == TransportProtocol.UDP) {
         r.protocol = AzureLoadBalancingRule.AzureLoadBalancingRulesType.UDP

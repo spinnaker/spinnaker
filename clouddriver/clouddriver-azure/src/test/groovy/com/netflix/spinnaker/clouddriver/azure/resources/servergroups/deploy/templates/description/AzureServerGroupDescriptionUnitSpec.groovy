@@ -139,6 +139,21 @@ class AzureServerGroupDescriptionUnitSpec extends Specification {
     description.disabled == false
   }
 
+  def 'should tolerate a null upgradePolicy'() {
+    given: 'a scale set with no upgradePolicy'
+    def scaleSet = createBaseScaleSet(["stack": "testStack", "detail": "testDetail",
+                                        "appName": "testScaleSet",
+                                        "cluster": "testScaleSet-testStack-testDetail"], 1)
+    scaleSet.withUpgradePolicy(null)
+
+    when:
+    def description = AzureServerGroupDescription.build(scaleSet)
+
+    then: 'no exception is thrown and upgradePolicy defaults to Manual'
+    noExceptionThrown()
+    description.upgradePolicy == AzureServerGroupDescription.UpgradePolicy.Manual
+  }
+
 
   private static VirtualMachineScaleSetInner createScaleSet() {
     Map<String, String> tags = [ "stack": "testStack",

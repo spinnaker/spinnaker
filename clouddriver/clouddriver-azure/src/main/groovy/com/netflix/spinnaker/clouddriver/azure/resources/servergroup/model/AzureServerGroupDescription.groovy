@@ -238,7 +238,9 @@ class AzureServerGroupDescription extends AzureResourceOpsDescription implements
 
 
     azureSG.region = scaleSet.location()
-    azureSG.upgradePolicy = getPolicyFromMode(scaleSet.upgradePolicy().mode().name())
+    // upgradePolicy is optional in the Azure API; default to Manual when absent.
+    def upgradeMode = scaleSet.upgradePolicy()?.mode()?.name()
+    azureSG.upgradePolicy = upgradeMode ? getPolicyFromMode(upgradeMode) : UpgradePolicy.Manual
 
     def termProfile = scaleSet.virtualMachineProfile()?.scheduledEventsProfile()?.terminateNotificationProfile()
     if (termProfile)

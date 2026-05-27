@@ -101,8 +101,8 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
       if (bap.name() != AzureAppGatewayResourceTemplate.defaultAppGatewayBeAddrPoolName) description.serverGroups << bap.name()
     }
 
-    // We only support one subnet so we can just retrieve the first one
-    description.subnetResourceId = appGateway?.gatewayIpConfigurations()?.first()?.subnet()?.id()
+    // We only support one subnet so we can just retrieve the first one.
+    description.subnetResourceId = appGateway?.gatewayIpConfigurations()?.find { it != null }?.subnet()?.id()
     description.subnet = AzureUtilities.getNameFromResourceId(description.subnetResourceId)
     description.vnet = AzureUtilities.getResourceNameFromId(description.subnetResourceId)
     description.vnetResourceGroup = AzureUtilities.getResourceGroupNameFromResourceId(description.subnetResourceId)
@@ -113,13 +113,17 @@ class AzureAppGatewayDescription extends AzureResourceOpsDescription {
     description.tags = appGateway.tags() ?: [:]
     description.region = appGateway.location()
 
-    appGateway.requestRoutingRules().each { rule ->
-      def httpListener = appGateway.httpListeners().find { it.id() == rule.httpListener().id() }
+    // Use ?.each so a null requestRoutingRules() is treated as an empty collection.
+    appGateway.requestRoutingRules()?.each { rule ->
+      def listenerRef = rule.httpListener()
+      def httpListener = listenerRef != null ? appGateway.httpListeners()?.find { it.id() == listenerRef.id() } : null
       // Only HTTP protocol types are supported for now; ignore any other probes
       // TODO: add support for other protocols (if needed)
       if (httpListener && httpListener.protocol() == ApplicationGatewayProtocol.HTTP) {
-        def frontendPort = appGateway.frontendPorts()?.find { it.id() == httpListener.frontendPort().id() }
-        def backendHttpSettingsCollection = appGateway.backendHttpSettingsCollection()?.find { it.id() == rule.backendHttpSettings().id()}
+        def frontendPortRef = httpListener.frontendPort()
+        def frontendPort = frontendPortRef != null ? appGateway.frontendPorts()?.find { it.id() == frontendPortRef.id() } : null
+        def backendSettingsRef = rule.backendHttpSettings()
+        def backendHttpSettingsCollection = backendSettingsRef != null ? appGateway.backendHttpSettingsCollection()?.find { it.id() == backendSettingsRef.id() } : null
         if (frontendPort && backendHttpSettingsCollection) {
           description.loadBalancingRules.add(
             new AzureAppGatewayRule(
