@@ -202,8 +202,13 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
       return xToken;
     }
     String authHeader = request.getHeader("Authorization");
-    if (authHeader != null && authHeader.startsWith("Bearer " + properties.getTokenPrefix())) {
-      return authHeader.substring("Bearer ".length());
+    // RFC 7235 §2.1: the auth-scheme token is case-insensitive ("Bearer"/"bearer"/"BEARER" are all
+    // valid). The opaque token (spk_…) itself is case-sensitive and stays so.
+    if (authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+      String candidate = authHeader.substring("Bearer ".length());
+      if (candidate.startsWith(properties.getTokenPrefix())) {
+        return candidate;
+      }
     }
     return null;
   }

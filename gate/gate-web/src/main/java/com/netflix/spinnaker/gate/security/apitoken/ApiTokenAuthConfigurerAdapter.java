@@ -76,11 +76,9 @@ public class ApiTokenAuthConfigurerAdapter {
    */
   static final class ApiTokenRequestMatcher implements RequestMatcher {
     private final String tokenPrefix;
-    private final String bearerPrefix;
 
     ApiTokenRequestMatcher(String tokenPrefix) {
       this.tokenPrefix = tokenPrefix;
-      this.bearerPrefix = "Bearer " + tokenPrefix;
     }
 
     @Override
@@ -90,7 +88,11 @@ public class ApiTokenAuthConfigurerAdapter {
         return true;
       }
       String auth = request.getHeader("Authorization");
-      return auth != null && auth.startsWith(bearerPrefix);
+      // Match the auth-scheme case-insensitively (RFC 7235 §2.1) so "bearer …" / "BEARER …" also
+      // route to the API-token chain; keep the spk_ prefix check case-sensitive.
+      return auth != null
+          && auth.regionMatches(true, 0, "Bearer ", 0, 7)
+          && auth.startsWith(tokenPrefix, "Bearer ".length());
     }
   }
 }
