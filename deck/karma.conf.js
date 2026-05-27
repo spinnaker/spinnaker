@@ -5,6 +5,9 @@ const path = require('path');
 
 const APP_ROOT = path.resolve(`${__dirname}/packages/app`);
 const appRequire = createRequire(`${APP_ROOT}/package.json`);
+const cheerioRequire = createRequire(require.resolve('cheerio/package.json'));
+const cssSelectRequire = createRequire(cheerioRequire.resolve('css-select/package.json'));
+const domhandlerRequire = createRequire(require.resolve('domhandler/package.json'));
 const ForkTsCheckerWebpackPlugin = appRequire('fork-ts-checker-webpack-plugin');
 const { ProvidePlugin } = appRequire('webpack');
 const prodWebpackConfig = require('./packages/app/webpack.config')();
@@ -45,9 +48,9 @@ const webpackConfig = {
       ...prodWebpackConfig.resolve.alias,
       // ts-invariant imports 'process/browser' without extension, which fails in webpack 5 ESM resolution
       'process/browser': require.resolve('process/browser.js'),
-      'css-select': require.resolve('cheerio/node_modules/css-select'),
-      'css-what': require.resolve('cheerio/node_modules/css-what'),
-      domelementtype: require.resolve('domhandler/node_modules/domelementtype'),
+      'css-select': cheerioRequire.resolve('css-select'),
+      'css-what': cssSelectRequire.resolve('css-what'),
+      domelementtype: domhandlerRequire.resolve('domelementtype'),
       coreImports: path.resolve(`${MODULES_ROOT}/core/src/presentation/less/imports/commonImports.less`),
       amazon: path.resolve(`${MODULES_ROOT}/amazon/src`),
       '@spinnaker/amazon': path.resolve(`${MODULES_ROOT}/amazon/src`),
