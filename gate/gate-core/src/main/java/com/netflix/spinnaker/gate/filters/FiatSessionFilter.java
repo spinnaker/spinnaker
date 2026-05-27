@@ -47,6 +47,10 @@ public class FiatSessionFilter extends OncePerRequestFilter {
   /**
    * This filter checks if the user has an entry in Fiat, and if not, forces them to re-login. This
    * is handy for (re)populating the Fiat user repo for a deployment with existing users & sessions.
+   *
+   * <p>API token requests are stateless and do not use a session-backed security context, so this
+   * filter skips the invalidation logic for them, keyed off the {@link
+   * AuthRequestAttributes#IS_API_TOKEN} attribute set by the API token auth filter.
    */
   @Override
   protected void doFilterInternal(
@@ -54,7 +58,8 @@ public class FiatSessionFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     UserPermission.View fiatPermission = null;
 
-    if (fiatStatus.isEnabled()) {
+    if (fiatStatus.isEnabled()
+        && !Boolean.TRUE.equals(request.getAttribute(AuthRequestAttributes.IS_API_TOKEN))) {
       final String user = AuthenticatedRequest.getSpinnakerUser().orElse(null);
       log.debug("Fiat session filter - found user: {}", user);
 
