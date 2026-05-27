@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
+import com.netflix.spinnaker.orca.pipeline.ExpressionAwareStageDefinitionBuilder
 import groovy.util.logging.Slf4j
 
 import javax.annotation.Nonnull
 
 @Slf4j
-abstract class AbstractCloudProviderAwareStage implements StageDefinitionBuilder, CloudProviderAware {
+abstract class AbstractCloudProviderAwareStage extends ExpressionAwareStageDefinitionBuilder implements CloudProviderAware {
   private final String type
 
   AbstractCloudProviderAwareStage(String type) {

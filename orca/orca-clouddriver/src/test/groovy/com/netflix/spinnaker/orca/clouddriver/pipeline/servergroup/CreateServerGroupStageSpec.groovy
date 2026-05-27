@@ -17,12 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.DeployStagePreProcessor
 import com.netflix.spinnaker.orca.clouddriver.utils.TrafficGuard
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.mock.env.MockEnvironment
 
 import java.util.concurrent.TimeUnit
@@ -157,5 +159,41 @@ class CreateServerGroupStageSpec extends Specification {
       serverGroupName  : "myapplication-stack-v001",
       stageTimeoutMs   : TimeUnit.MINUTES.toMillis(5)
     ]
+  }
+
+  def "processExpressions preserves osConfig.customData verbatim when skipExpressionEvaluation is true"() {
+    given:
+    def summary = new ExpressionEvaluationSummary()
+    def processor = new ContextParameterProcessor()
+    def stage = stage {
+      context = [
+        skipExpressionEvaluation: true,
+        account                 : "moderne-azure",
+        osConfig                : [customData: 'license:\n  private-key: ${cli-license-private-key}\n'],
+      ]
+    }
+
+    when:
+    def shouldContinue = createServerGroupStage.processExpressions(stage, processor, summary)
+
+    then:
+    shouldContinue == false
+    stage.context.osConfig.customData == 'license:\n  private-key: ${cli-license-private-key}\n'
+    summary.failureCount == 0
+  }
+
+  def "processExpressions delegates to generic processing when skipExpressionEvaluation is unset"() {
+    given:
+    def summary = new ExpressionEvaluationSummary()
+    def processor = new ContextParameterProcessor()
+    def stage = stage {
+      context = [account: "aws-prod"]
+    }
+
+    when:
+    def shouldContinue = createServerGroupStage.processExpressions(stage, processor, summary)
+
+    then:
+    shouldContinue == true
   }
 }

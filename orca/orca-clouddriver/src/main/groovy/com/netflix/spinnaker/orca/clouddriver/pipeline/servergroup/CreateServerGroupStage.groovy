@@ -17,12 +17,14 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
+import com.netflix.spinnaker.kork.expressions.ExpressionEvaluationSummary
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.graph.StageGraphBuilder
 import com.netflix.spinnaker.orca.clouddriver.ForceCacheRefreshAware
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CheckIfApplicationExistsForServerGroupTask
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.Strategy
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 
 import javax.annotation.Nonnull
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -63,6 +65,18 @@ class CreateServerGroupStage extends AbstractDeployStrategyStage implements Forc
     this.rollbackClusterStage = rollbackClusterStage
     this.destroyServerGroupStage = destroyServerGroupStage
     this.dynamicConfigService = dynamicConfigService
+  }
+
+  @Override
+  boolean processExpressions(
+      @Nonnull StageExecution stage,
+      @Nonnull ContextParameterProcessor contextParameterProcessor,
+      @Nonnull ExpressionEvaluationSummary summary) {
+    if (Boolean.TRUE.equals(stage.context.get("skipExpressionEvaluation"))) {
+      processDefaultEntries(stage, contextParameterProcessor, summary, ["osConfig"])
+      return false
+    }
+    return true
   }
 
   @Override

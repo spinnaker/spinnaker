@@ -33,14 +33,21 @@ import javax.annotation.Nonnull;
 public abstract class ExpressionAwareStageDefinitionBuilder implements StageDefinitionBuilder {
 
   /**
-   * Allows the stage to process SpEL expression in its own context in a custom way
+   * Allows the stage to process SpEL expression in its own context in a custom way.
+   *
+   * <p>Default implementation returns {@code true}, signaling the caller to apply generic
+   * expression processing to the stage's entire context. Subclasses override to take custom action
+   * — for example, calling {@link #processDefaultEntries} with an excluded-key list to keep certain
+   * fields (cloud-init payloads, raw manifests) verbatim.
    *
    * @return true to continue processing, false to stop generic processing of expressions
    */
-  public abstract boolean processExpressions(
+  public boolean processExpressions(
       @Nonnull StageExecution stage,
       @Nonnull ContextParameterProcessor contextParameterProcessor,
-      @Nonnull ExpressionEvaluationSummary summary);
+      @Nonnull ExpressionEvaluationSummary summary) {
+    return true;
+  }
 
   /**
    * Processes all entries in the stage context that aren't handled in a special way by the stage
