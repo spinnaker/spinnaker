@@ -29,11 +29,10 @@ const webpackConfig = {
   resolve: {
     ...prodWebpackConfig.resolve,
     modules: [
-      // Keep issuer-relative resolution ahead of root modules so pnpm nested dependencies are not shadowed.
-      'node_modules',
       path.resolve(`${APP_ROOT}/node_modules`),
       path.resolve(`${MODULES_ROOT}/core/node_modules`),
       path.resolve(`${__dirname}/node_modules`),
+      'node_modules',
     ],
     // Webpack 5 no longer auto-polyfills Node.js core modules for browser builds.
     // Some test dependencies (e.g., parse5, util) require these modules.
@@ -46,6 +45,9 @@ const webpackConfig = {
       ...prodWebpackConfig.resolve.alias,
       // ts-invariant imports 'process/browser' without extension, which fails in webpack 5 ESM resolution
       'process/browser': require.resolve('process/browser.js'),
+      'css-select': require.resolve('cheerio/node_modules/css-select'),
+      'css-what': require.resolve('cheerio/node_modules/css-what'),
+      domelementtype: require.resolve('domhandler/node_modules/domelementtype'),
       coreImports: path.resolve(`${MODULES_ROOT}/core/src/presentation/less/imports/commonImports.less`),
       amazon: path.resolve(`${MODULES_ROOT}/amazon/src`),
       '@spinnaker/amazon': path.resolve(`${MODULES_ROOT}/amazon/src`),
@@ -71,6 +73,8 @@ const webpackConfig = {
       '@spinnaker/huaweicloud': path.resolve(`${MODULES_ROOT}/huaweicloud/src`),
       kubernetes: path.resolve(`${MODULES_ROOT}/kubernetes/src`),
       '@spinnaker/kubernetes': path.resolve(`${MODULES_ROOT}/kubernetes/src`),
+      mocks: path.resolve(`${MODULES_ROOT}/mocks/src`),
+      '@spinnaker/mocks': path.resolve(`${MODULES_ROOT}/mocks/src`),
       oracle: path.resolve(`${MODULES_ROOT}/oracle/src`),
       '@spinnaker/oracle': path.resolve(`${MODULES_ROOT}/oracle/src`),
       tencentcloud: path.resolve(`${MODULES_ROOT}/tencentcloud/src`),

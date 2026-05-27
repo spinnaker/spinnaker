@@ -39,7 +39,6 @@ project.tasks.register('runLinters') {
 
 task test(type: PnpmTask) {
   dependsOn "pnpmInstall"
-  dependsOn ":deck:pnpmInstall"
 
   pnpmCommand = ["test"]
 

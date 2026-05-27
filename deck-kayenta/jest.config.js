@@ -89,8 +89,11 @@ module.exports = {
     'kayenta/(.*)': '<rootDir>/src/kayenta/$1',
     'root/version.json': '<rootDir>/__mocks__/version.json',
     '\\.(css|less)$': '<rootDir>/__mocks__/styleMock.js',
+    '^angular$': '<rootDir>/node_modules/.pnpm/angular@1.8.0/node_modules/angular/index.js',
+    '@spinnaker/core': '<rootDir>/node_modules/@spinnaker/core/dist',
     '@spinnaker/presentation': '<rootDir>/node_modules/@spinnaker/presentation/dist',
-    '@spinnaker/core': '<rootDir>/../deck/packages/core/src',
+    '^react$': '<rootDir>/node_modules/react',
+    '^react-dom$': '<rootDir>/node_modules/react-dom',
     '\\.html$': '<rootDir>/__mocks__/htmlMock.js',
   },
 
