@@ -1,4 +1,4 @@
-import ReactGA from 'react-ga';
+import ReactGA from 'react-ga4';
 
 import { SETTINGS } from '../config/settings';
 import { logger } from '../utils';
