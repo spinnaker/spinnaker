@@ -165,4 +165,7 @@ public interface Front50Service {
 
   @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
+
+  @GET("serviceAccounts/tokenEligible")
+  Call<List<Map>> getTokenEligibleServiceAccounts();
 }
