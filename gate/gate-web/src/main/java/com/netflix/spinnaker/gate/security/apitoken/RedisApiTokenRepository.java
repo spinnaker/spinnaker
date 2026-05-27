@@ -248,6 +248,11 @@ public class RedisApiTokenRepository {
    * can observe a partial state. The hash key — the only one read on the auth hot path — is first
    * in the transaction. {@code name} may be {@code null} for legacy records (the name DEL is then
    * skipped).
+   *
+   * <p>A {@code null}/empty EXEC result means the transaction was aborted (e.g. WATCH conflict,
+   * connection drop). Surfacing it as an exception lets the controller return 5xx so the caller
+   * retries — silently succeeding would leave the token authenticatable until its next natural
+   * expiry, which for non-expiring tokens is never.
    */
   public void delete(
       String id, String sha256Hex, String name, String principalType, String principalId) {
@@ -259,7 +264,13 @@ public class RedisApiTokenRepository {
       if (name != null && !name.isBlank()) {
         tx.del(nameKey(principalType, principalId, name));
       }
-      tx.exec();
+      List<Object> results = tx.exec();
+      if (results == null || results.isEmpty()) {
+        log.error(
+            "Token delete EXEC returned null for token id {}; transaction may have been aborted",
+            id);
+        throw new RuntimeException("Token revocation failed: Redis EXEC returned null");
+      }
     }
   }
 

@@ -250,6 +250,40 @@ class RedisApiTokenRepositoryTest {
     assertThat(repo.findByPrincipal("USER", "frank")).isEmpty();
   }
 
+  /**
+   * A null EXEC result on delete means the revocation transaction was aborted (WATCH conflict,
+   * connection drop, etc.). Silently swallowing it would leave the token authenticatable —
+   * permanently, for non-expiring tokens. delete() must throw so the controller returns 5xx and the
+   * caller retries.
+   */
+  @Test
+  void delete_throws_whenExecReturnsNull() {
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    assertThatThrownBy(
+            () ->
+                failingRepo.delete(
+                    "aborted-del-tok", "h-aborted-del", "aborted-del-name", "USER", "yara"))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("EXEC returned null");
+  }
+
   // ---------------------------------------------------------------------------
   // updateLastUsed
   // ---------------------------------------------------------------------------
