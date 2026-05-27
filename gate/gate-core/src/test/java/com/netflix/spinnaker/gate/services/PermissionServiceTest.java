@@ -18,11 +18,13 @@ package com.netflix.spinnaker.gate.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -32,8 +34,10 @@ import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
+import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -44,6 +48,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -51,6 +56,7 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.slf4j.MDC;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -70,6 +76,57 @@ public class PermissionServiceTest {
 
     assertNotNull(result);
     assertTrue(result.isEmpty());
+  }
+
+  @Test
+  public void getRolesForTokenAuthRunsUnderAllowAnonymous() {
+    // Token auth calls Fiat before SecurityContext is populated; without allowAnonymous a stale
+    // X-SPINNAKER-USER in MDC would leak to Fiat.
+    FiatService fiatService = mock(FiatService.class);
+    FiatStatus fiatStatus = mock(FiatStatus.class);
+    when(fiatStatus.isEnabled()).thenReturn(true);
+
+    String userId = "alice@example.com";
+    AtomicReference<String> anonHeaderDuringCall = new AtomicReference<>();
+
+    UserPermission perm = new UserPermission().setId(userId);
+    perm.setRoles(Collections.singleton(new Role("ops")));
+
+    when(fiatService.getUserPermission(userId))
+        .thenAnswer(
+            invocation -> {
+              anonHeaderDuringCall.set(MDC.get(Header.XSpinnakerAnonymous));
+              return Calls.response(perm.getView());
+            });
+
+    MDC.remove(Header.XSpinnakerAnonymous);
+    PermissionService subject = new PermissionService(fiatService, null, null, null, fiatStatus);
+
+    try {
+      subject.getRolesForTokenAuth(userId);
+
+      assertEquals(
+          "anonymous",
+          anonHeaderDuringCall.get(),
+          "Fiat call must run with X-SPINNAKER-ANONYMOUS=anonymous in MDC");
+      assertNull(
+          MDC.get(Header.XSpinnakerAnonymous),
+          "MDC anonymous header must be cleared after the call returns");
+    } finally {
+      MDC.remove(Header.XSpinnakerAnonymous);
+    }
+  }
+
+  @Test
+  public void getRolesForTokenAuthShortCircuitsWhenFiatDisabled() {
+    FiatService fiatService = mock(FiatService.class);
+    FiatStatus fiatStatus = mock(FiatStatus.class);
+    when(fiatStatus.isEnabled()).thenReturn(false);
+
+    PermissionService subject = new PermissionService(fiatService, null, null, null, fiatStatus);
+
+    assertTrue(subject.getRolesForTokenAuth("alice@example.com").isEmpty());
+    verifyNoInteractions(fiatService);
   }
 
   private static Stream<TestCase> testCasesForRetryable() {
