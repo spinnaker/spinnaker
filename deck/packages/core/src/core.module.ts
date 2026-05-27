@@ -26,6 +26,7 @@ import { RECENT_HISTORY_SERVICE } from './history/recentHistory.service';
 import './analytics/GoogleAnalyticsInitializer';
 import { UI_ROUTER_REACT_ERROR_BOUNDARY } from './presentation/SpinErrorBoundary';
 import { ANALYTICS_MODULE } from './analytics/angulartics.module';
+import { APITOKEN_MODULE } from './apitoken/apitoken.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
 import { ARTIFACT_MODULE } from './artifact/artifact.module';
@@ -107,6 +108,7 @@ module(CORE_MODULE, [
   angularSpinner.name,
 
   ANALYTICS_MODULE,
+  APITOKEN_MODULE,
   APPLICATION_MODULE,
   APPLICATION_BOOTSTRAP_MODULE,
   ARTIFACT_MODULE,
