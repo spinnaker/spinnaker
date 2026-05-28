@@ -1,0 +1,67 @@
+name: Build and Upload
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-upload:
+    name: Build and Upload ${{ matrix.project }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [clouddriver, echo, front50, gate, igor, orca, rosco]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Build Distribution
+        uses: ./.github/actions/moderne/build-distribution
+        with:
+          project: ${{ matrix.project }}
+
+      - name: Tar Distribution
+        uses: ./.github/actions/moderne/tar-distribution
+        with:
+          project: ${{ matrix.project }}
+
+      - name: Publish Tarball to S3
+        uses: ./.github/actions/moderne/publish-s3-bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          project: ${{ matrix.project }}
+
+  build-and-upload-deck:
+    name: Build and Upload Deck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Build Deck Distribution
+        uses: ./.github/actions/moderne/build-deck-distribution
+
+      - name: Tar Distribution
+        uses: ./.github/actions/moderne/tar-distribution
+        with:
+          project: deck
+          distribution-path: deck/build/webpack
+
+      - name: Publish Tarball to S3
+        uses: ./.github/actions/moderne/publish-s3-bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        with:
+          project: deck
