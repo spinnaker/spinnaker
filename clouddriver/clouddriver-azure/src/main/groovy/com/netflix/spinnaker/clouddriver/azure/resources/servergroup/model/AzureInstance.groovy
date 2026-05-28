@@ -47,23 +47,23 @@ class AzureInstance implements Instance, Serializable {
     instance.vhd = vm.storageProfile()?.osDisk()?.vhd()?.uri()
 
     vm.instanceView()?.statuses()?.each { status ->
-      def codes = status.code().split('/')
+      def codes = status.code()?.split('/')
+      if (!codes || codes.length < 2) return
       switch (codes[0]) {
         case "ProvisioningState":
-          if (codes[1].toLowerCase() == AzureUtilities.ProvisioningState.SUCCEEDED.toLowerCase()) {
-            instance.launchTime = status.time()?.toEpochSecond()
+          if (codes[1].equalsIgnoreCase(AzureUtilities.ProvisioningState.SUCCEEDED)) {
+            instance.launchTime = status.time()?.toEpochMilli()
           } else {
             instance.healthState = HealthState.Failed
           }
           break
         case "PowerState":
           instance.healthState =
-            codes[1].toLowerCase() == "Running".toLowerCase() ? HealthState.Up : HealthState.Down
+            codes[1].equalsIgnoreCase("Running") ? HealthState.Up : HealthState.Down
           break
         default:
           break
       }
-
     }
 
     // if health extension exists, read its status and update health state
@@ -71,7 +71,7 @@ class AzureInstance implements Instance, Serializable {
       if (extension.type() == APP_HEALTH_EXT_LINUX ||
         extension.type() == APP_HEALTH_EXT_WINDOWS) {
         def substatuses = extension.substatuses()
-        if (substatuses != null) {
+        if (substatuses) {
           def statusLevel = substatuses[0]?.level()
           if (statusLevel == StatusLevelTypes.ERROR) {
             instance.healthState = HealthState.Down
