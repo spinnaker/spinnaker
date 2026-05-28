@@ -52,7 +52,7 @@ class AzureInstance implements Instance, Serializable {
       switch (codes[0]) {
         case "ProvisioningState":
           if (codes[1].equalsIgnoreCase(AzureUtilities.ProvisioningState.SUCCEEDED)) {
-            instance.launchTime = status.time()?.toEpochMilli()
+            instance.launchTime = status.time()?.toInstant()?.toEpochMilli()
           } else {
             instance.healthState = HealthState.Failed
           }
