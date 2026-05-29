@@ -83,7 +83,7 @@ public class CDEventsNotificationAgent extends AbstractEventNotificationAgent {
           cdEventsType,
           address,
           executionId);
-      cdEventsOTelSender.send(cdEvent, address);
+      cdEventsOTelSender.send(cdEvent, address, config, event);
     } else {
       log.info("Sending CDEvent {} notification to events broker url {}", cdEventsType, address);
       Response<ResponseBody> response = cdEventsSenderService.sendCDEvent(cdEvent, address);
