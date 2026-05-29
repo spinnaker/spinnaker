@@ -6,7 +6,7 @@ import './strictDi';
 import { CORE_MODULE } from '@spinnaker/core';
 import '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
-import { APPENGINE_MODULE } from '@spinnaker/appengine';
+import '@spinnaker/appengine';
 import { AZURE_MODULE } from '@spinnaker/azure';
 import { GOOGLE_MODULE } from '@spinnaker/google';
 import { CANARY_MODULE } from './canary/canary.module';
@@ -25,7 +25,6 @@ module('netflix.spinnaker', [
   GOOGLE_MODULE,
   ECS_MODULE,
   ORACLE_MODULE,
-  APPENGINE_MODULE,
   CANARY_MODULE,
   TITUS_MODULE,
 ]);
