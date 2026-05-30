@@ -237,7 +237,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
    * <p>- each agent has a max timeout interval associated with it. If it is present in the {@link
    * #activeAgents} map for longer than this timeout value, then it is removed from this map.
    *
-   * <p>NOTE: This same timeout interval is used when {@link #acquireRunKey(String, long)} is
+   * <p>Note: This same timeout interval is used when {@link #acquireRunKey(String, long)} is
    * invoked from {@link #acquire()}.
    *
    * <p>The motivation for actively cleaning such entries from the map is to ensure that no agent is
@@ -377,7 +377,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
    * <pre>
    * Removes an agent from redis, {@link #agents} and {@link #activeAgents} maps.
    *
-   * NOTE: we are explicitly removing the agent from the {@link #activeAgents} map. Normally, the agent is
+   * Note: We are explicitly removing the agent from the {@link #activeAgents} map. Normally, the agent is
    * removed from it when {@link #agentCompleted(String, long)} is called after it executes via
    * {@link AgentJob#run()}. But if for some reason that thread is killed before
    * {@link #agentCompleted(String, long)} is executed, then this agent is not removed from the

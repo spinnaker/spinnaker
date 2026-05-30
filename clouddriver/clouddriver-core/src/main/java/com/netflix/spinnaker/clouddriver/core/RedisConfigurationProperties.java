@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -34,19 +36,28 @@ public class RedisConfigurationProperties {
   @Data
   public static class AgentConfiguration {
     private String enabledPattern = ".*";
+    private String disabledPattern = "";
     private Integer maxConcurrentAgents;
     private Integer agentLockAcquisitionIntervalSeconds;
+    private List<String> disabledAgents = new ArrayList<>();
+  }
+
+  @Data
+  public static class SchedulerProperties {
+    private String type = "default";
+    private boolean enabled = true;
+    private int parallelism = -1;
   }
 
   @NestedConfigurationProperty private final PollConfiguration poll = new PollConfiguration();
 
   @NestedConfigurationProperty private final AgentConfiguration agent = new AgentConfiguration();
 
+  @NestedConfigurationProperty
+  private final SchedulerProperties scheduler = new SchedulerProperties();
+
   private String connection = "redis://localhost:6379";
   private String connectionPrevious;
 
   private int timeout = 2000;
-
-  private String scheduler = "default";
-  private int parallelism = -1;
 }
