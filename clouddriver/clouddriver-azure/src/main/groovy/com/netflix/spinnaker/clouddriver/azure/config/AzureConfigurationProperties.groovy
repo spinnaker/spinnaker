@@ -43,6 +43,7 @@ class AzureConfigurationProperties {
     List<String> regions
     List<AzureVMImage> vmImages
     List<AzureCustomImageStorage> customImages
+    List<String> vmImagePublishers
     String defaultResourceGroup
     String defaultKeyVault
     Boolean useSshPublicKey

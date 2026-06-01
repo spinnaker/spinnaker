@@ -46,8 +46,11 @@ public class AzureComputeClient extends AzureBaseClient {
 
   public static final long DEFAULT_SERVER_WAIT_TIMEOUT_MILLIS = 2 * 60 * 60 * 1000
 
-  AzureComputeClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile) {
+  final List<String> allowedPublishers
+
+  AzureComputeClient(String subscriptionId, TokenCredential credentials, AzureProfile azureProfile, List<String> allowedPublishers = []) {
     super(subscriptionId, azureProfile, credentials)
+    this.allowedPublishers = allowedPublishers ?: []
   }
 
 
@@ -166,6 +169,10 @@ public class AzureComputeClient extends AzureBaseClient {
           .asList()
       })
 
+      if (allowedPublishers) {
+        def allowedLower = allowedPublishers*.toLowerCase() as Set
+        publishers = publishers.findAll { allowedLower.contains(it.name().toLowerCase()) }
+      }
 
       log.info("getVMImagesAll-> Found ${publishers.size()} publisher items in azure/${location}")
 

@@ -103,6 +103,7 @@ public class AzureCredentialsParser
         managedAccount.getUseSshPublicKey(),
         "clouddriver",
         permissions,
-        null);
+        null,
+        managedAccount.getVmImagePublishers());
   }
 }

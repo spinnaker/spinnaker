@@ -39,6 +39,7 @@ public class AzureNamedAccountCredentials extends AbstractAccountCredentials<Azu
   final List<AzureRegion> regions
   final List<AzureVMImage> vmImages
   final List<AzureCustomImageStorage> vmCustomImages
+  final List<String> vmImagePublishers
   final String applicationName
   final List<String> requiredGroupMembership
   final AzureCredentials credentials
@@ -65,7 +66,8 @@ public class AzureNamedAccountCredentials extends AbstractAccountCredentials<Azu
                                Boolean useSshPublicKey,
                                String applicationName,
                                Permissions permissions = null,
-                               List<String> requiredGroupMembership = null) {
+                               List<String> requiredGroupMembership = null,
+                               List<String> vmImagePublishers = null) {
     this.accountName = accountName
     this.environment = environment
     this.accountType = accountType
@@ -76,6 +78,7 @@ public class AzureNamedAccountCredentials extends AbstractAccountCredentials<Azu
     this.regions = buildRegions(regions)
     this.vmImages = buildPreferredVMImageList(vmImages)
     this.vmCustomImages = buildCustomImageStorages(vmCustomImages)
+    this.vmImagePublishers = vmImagePublishers ?: [] as List<String>
     this.applicationName = applicationName
     this.defaultKeyVault = defaultKeyVault
     this.defaultResourceGroup = defaultResourceGroup
@@ -100,7 +103,7 @@ public class AzureNamedAccountCredentials extends AbstractAccountCredentials<Azu
   }
 
   private AzureCredentials buildCredentials() {
-    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId, this.defaultKeyVault, this.defaultResourceGroup, this.applicationName, this.environment, this.useSshPublicKey)
+    new AzureCredentials(this.tenantId, this.clientId, this.appKey, this.subscriptionId, this.defaultKeyVault, this.defaultResourceGroup, this.applicationName, this.environment, this.useSshPublicKey, this.vmImagePublishers)
   }
 
   private static List<AzureVMImage> buildPreferredVMImageList(List<AzureVMImage> vmImages) {

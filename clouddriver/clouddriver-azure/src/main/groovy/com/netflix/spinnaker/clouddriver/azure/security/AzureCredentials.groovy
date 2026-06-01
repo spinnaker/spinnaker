@@ -36,13 +36,15 @@ class AzureCredentials {
   final String userAgentApplicationName
   final String configuredAzureEnvironment
   final Boolean useSshPublicKey
+  final List<String> vmImagePublishers
 
   final AzureResourceManagerClient resourceManagerClient
   final AzureNetworkClient networkClient
   final AzureComputeClient computeClient
   final AzureStorageClient storageClient
 
-  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId, String defaultKeyVault, String defaultResourceGroup, String userAgentApplicationName, String configuredAzureEnvironment, Boolean useSshPublicKey) {
+  AzureCredentials(String tenantId, String clientId, String appKey, String subscriptionId, String defaultKeyVault, String defaultResourceGroup, String userAgentApplicationName, String configuredAzureEnvironment, Boolean useSshPublicKey, List<String> vmImagePublishers = []) {
+    this.vmImagePublishers = vmImagePublishers ?: []
     this.tenantId = tenantId
     this.clientId = clientId
     this.appKey = appKey
@@ -69,7 +71,7 @@ class AzureCredentials {
 
     networkClient = token ? new AzureNetworkClient(this.subscriptionId, token, azureProfile) : null
 
-    computeClient = token ? new AzureComputeClient(this.subscriptionId, token, azureProfile) : null
+    computeClient = token ? new AzureComputeClient(this.subscriptionId, token, azureProfile, this.vmImagePublishers) : null
 
     storageClient = token ? new AzureStorageClient(this.subscriptionId, token, azureProfile) : null
 
