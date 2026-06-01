@@ -1,9 +1,7 @@
-import { module } from 'angular';
 import { isEqual, uniqWith } from 'lodash';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
 import type { IAccountDetails } from '@spinnaker/core';
 import { AccountService, HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
@@ -205,7 +203,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     });
 
     const dirtyTargetGroupList = dirtyTagetGroups
-      ? dirtyTagetGroups.map(function (targetGroup, index) {
+      ? dirtyTagetGroups.map(function (targetGroup: string, index: number) {
           return <li key={index}>{targetGroup}</li>;
         })
       : '';
@@ -378,9 +376,3 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     );
   }
 }
-
-export const CONTAINER_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.container.react';
-module(CONTAINER_REACT, []).component(
-  'containerReact',
-  react2angular(withErrorBoundary(Container, 'containerReact'), ['command', 'notifyAngular', 'configureCommand']),
-);

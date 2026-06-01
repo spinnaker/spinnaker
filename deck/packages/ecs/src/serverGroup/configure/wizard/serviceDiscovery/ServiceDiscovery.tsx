@@ -1,10 +1,8 @@
-import { module } from 'angular';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { HelpField, TetheredSelect } from '@spinnaker/core';
 
 import type {
   IEcsServerGroupCommand,
@@ -238,13 +236,3 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     );
   }
 }
-
-export const SERVICE_DISCOVERY_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.serviceDiscovery.react';
-module(SERVICE_DISCOVERY_REACT, []).component(
-  'serviceDiscoveryReact',
-  react2angular(withErrorBoundary(ServiceDiscovery, 'serviceDiscoveryReact'), [
-    'command',
-    'notifyAngular',
-    'configureCommand',
-  ]),
-);

@@ -1,9 +1,7 @@
-import { module } from 'angular';
 import { isEqual, uniqWith } from 'lodash';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
 import type { IAccountDetails, IArtifact, IExpectedArtifact } from '@spinnaker/core';
 import {
@@ -14,7 +12,6 @@ import {
   StageArtifactSelectorDelegate,
   StageConfigField,
   TetheredSelect,
-  withErrorBoundary,
 } from '@spinnaker/core';
 import { DockerImageReader } from '@spinnaker/docker';
 
@@ -488,13 +485,3 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     );
   }
 }
-
-export const TASK_DEFINITION_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.taskDefinition.react';
-module(TASK_DEFINITION_REACT, []).component(
-  'taskDefinitionReact',
-  react2angular(withErrorBoundary(TaskDefinition, 'taskDefinitionReact'), [
-    'command',
-    'notifyAngular',
-    'configureCommand',
-  ]),
-);

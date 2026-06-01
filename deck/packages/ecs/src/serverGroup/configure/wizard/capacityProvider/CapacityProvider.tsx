@@ -1,10 +1,8 @@
-import { module } from 'angular';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { HelpField, TetheredSelect } from '@spinnaker/core';
 
 import type { IEcsCapacityProviderStrategyItem, IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -23,7 +21,7 @@ interface IEcsCapacityProviderState {
   capacityProviderLoadedFlag: boolean;
 }
 
-class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEcsCapacityProviderState> {
+export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEcsCapacityProviderState> {
   constructor(props: IEcsCapacityProviderProps) {
     super(props);
     const cmd = this.props.command;
@@ -170,7 +168,7 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
       );
 
     const dirtyCapacityProviderList = customDirtyCapacityProviders
-      ? customDirtyCapacityProviders.map(function (capacityProvider, index) {
+      ? customDirtyCapacityProviders.map(function (capacityProvider: string, index: number) {
           return <li key={index}>{capacityProvider}</li>;
         })
       : '';
@@ -369,13 +367,3 @@ class EcsCapacityProvider extends React.Component<IEcsCapacityProviderProps, IEc
     );
   }
 }
-
-export const ECS_CAPACITY_PROVIDER_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.capacityProvider.react';
-module(ECS_CAPACITY_PROVIDER_REACT, []).component(
-  'ecsCapacityProviderReact',
-  react2angular(withErrorBoundary(EcsCapacityProvider, 'ecsCapacityProviderReact'), [
-    'command',
-    'notifyAngular',
-    'configureCommand',
-  ]),
-);

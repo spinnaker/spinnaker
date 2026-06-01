@@ -1,12 +1,10 @@
-import { module } from 'angular';
 import { isEqual, uniqWith } from 'lodash';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
 import type { ISubnet } from '@spinnaker/core';
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { HelpField, TetheredSelect } from '@spinnaker/core';
 
 import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -249,13 +247,3 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     );
   }
 }
-
-export const ECS_NETWORKING_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.networking.react';
-module(ECS_NETWORKING_REACT, []).component(
-  'ecsNetworkingReact',
-  react2angular(withErrorBoundary(EcsNetworking, 'ecsNetworkingReact'), [
-    'command',
-    'notifyAngular',
-    'configureCommand',
-  ]),
-);
