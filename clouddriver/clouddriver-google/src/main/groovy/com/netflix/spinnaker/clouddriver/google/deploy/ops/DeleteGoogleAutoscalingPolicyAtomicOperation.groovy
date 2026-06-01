@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.InstanceGroupManagersSetAutoHealingRequest
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.compute.model.RegionInstanceGroupManagersSetAutoHealingRequest
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.GoogleExecutor
@@ -84,20 +83,23 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
 
     if (description.deleteAutoHealingPolicy) {
       task.updateStatus BASE_PHASE, "Initializing deletion of autoHealing policy for $description.serverGroupName..."
+      // setAutoHealingPolicies was removed in the stable Compute v1 API. Auto-healing policies
+      // are now managed via the InstanceGroupManager resource itself using patch (JSON merge patch).
+      // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
       if (isRegional) {
-        def request = new RegionInstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
+        def content = new InstanceGroupManager().setAutoHealingPolicies([])
         def deleteOp = timeExecute(
-          compute.regionInstanceGroupManagers().setAutoHealingPolicies(project, region, serverGroupName, request),
-          "compute.regionInstanceGroupManagers.setAutoHealingPolicies",
+          compute.regionInstanceGroupManagers().patch(project, region, serverGroupName, content),
+          "compute.regionInstanceGroupManagers.patch",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_REGIONAL, GoogleExecutor.TAG_REGION, region)
         googleOperationPoller.waitForRegionalOperation(compute, project, region,
           deleteOp.getName(), null, task, "autoHealing policy for $serverGroupName", BASE_PHASE)
         deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
       } else {
-        def request = new InstanceGroupManagersSetAutoHealingRequest().setAutoHealingPolicies([])
+        def content = new InstanceGroupManager().setAutoHealingPolicies([])
         def deleteOp = timeExecute(
-          compute.instanceGroupManagers().setAutoHealingPolicies(project, zone, serverGroupName, request),
-          "compute.instanceGroupManagers.setAutoHealingPolicies",
+          compute.instanceGroupManagers().patch(project, zone, serverGroupName, content),
+          "compute.instanceGroupManagers.patch",
           GoogleExecutor.TAG_SCOPE, GoogleExecutor.SCOPE_ZONAL, GoogleExecutor.TAG_ZONE, zone)
         googleOperationPoller.waitForZonalOperation(compute, project, zone,
           deleteOp.getName(), null, task, "autoHealing policy for $serverGroupName", BASE_PHASE)
