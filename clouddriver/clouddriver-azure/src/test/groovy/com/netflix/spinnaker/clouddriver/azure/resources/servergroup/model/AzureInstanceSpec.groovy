@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model
 
+import com.azure.resourcemanager.compute.fluent.models.VirtualMachineScaleSetVMInner
 import com.azure.resourcemanager.compute.models.InstanceViewStatus
 import com.azure.resourcemanager.compute.models.Sku
 import com.azure.resourcemanager.compute.models.VirtualMachineInstanceView
@@ -50,5 +51,31 @@ class AzureInstanceSpec extends Specification {
     expect:
       instance.zone == 'N/A'
       instance.healthState == HealthState.Up
+  }
+
+  def 'should populate zone from the VMSS VM availability zone, falling back to N/A'(){
+    def vm = Mock(VirtualMachineScaleSetVM)
+    def sku = new Sku()
+
+    vm.innerModel() >> innerWithZones(zones)
+    vm.sku() >> sku
+    sku.name() >> "test"
+
+    expect:
+      AzureInstance.build(vm).zone == expectedZone
+
+    where:
+      zones || expectedZone
+      ['1'] || '1'
+      null  || 'N/A'
+      []    || 'N/A'
+  }
+
+  private static VirtualMachineScaleSetVMInner innerWithZones(List<String> zones) {
+    def inner = new VirtualMachineScaleSetVMInner()
+    def field = VirtualMachineScaleSetVMInner.getDeclaredField('zones')
+    field.accessible = true
+    field.set(inner, zones)
+    inner
   }
 }

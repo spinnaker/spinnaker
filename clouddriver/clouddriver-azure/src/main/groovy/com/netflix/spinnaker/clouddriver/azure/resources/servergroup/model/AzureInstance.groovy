@@ -33,7 +33,7 @@ class AzureInstance implements Instance, Serializable {
   String vhd
   HealthState healthState
   Long launchTime
-  final String zone = 'N/A'
+  String zone = 'N/A'
   String instanceType
   List<Map<String, Object>> health
   final String providerType = AzureCloudProvider.ID
@@ -45,6 +45,11 @@ class AzureInstance implements Instance, Serializable {
     instance.instanceType = vm.sku().name()
     instance.resourceId = vm.instanceId()
     instance.vhd = vm.storageProfile()?.osDisk()?.vhd()?.uri()
+
+    // A scale set VM lives in at most one availability zone; surface it so Deck can
+    // display zone placement the way it does for other providers. Regions without
+    // zone support (or VMs not pinned to a zone) report no zones, so keep 'N/A'.
+    instance.zone = vm.innerModel()?.zones()?.getAt(0) ?: 'N/A'
 
     vm.instanceView()?.statuses()?.each { status ->
       def codes = status.code()?.split('/')
