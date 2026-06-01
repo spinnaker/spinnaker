@@ -124,7 +124,7 @@ class WaitForClusterDisableTaskSpec extends Specification {
   }
 
   @Unroll
-  def "fails with '#expectedMessage' when clusterData=#clusterData"() {
+  def "returns #expectedStatus when clouddriver returns #clusterDescription"() {
     given:
     def stage = new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "test", [
         cluster: clusterName,
@@ -133,21 +133,21 @@ class WaitForClusterDisableTaskSpec extends Specification {
             (region): ["$clusterName-v42".toString()]
         ]
     ])
+    stage.startTime = 0L
 
     cloudDriverService.maybeCluster(*_) >> clusterData
     task.cloudDriverService = cloudDriverService
 
     when:
-    task.execute(stage)
+    def result = task.execute(stage)
 
     then:
-    IllegalStateException e = thrown()
-    e.message.startsWith(expectedMessage)
+    result.status == expectedStatus
 
     where:
-    clusterData                                                   || expectedMessage
-    Optional.empty()                                              || 'no cluster details found'
-    Optional.of(new Cluster(name: clusterName, serverGroups: [])) || 'no server groups found'
+    clusterData                                                    | expectedStatus | clusterDescription
+    Optional.empty()                                               | RUNNING        | 'cluster missing (transient cache miss during restart)'
+    Optional.of(new Cluster(name: clusterName, serverGroups: [])) | SUCCEEDED      | 'cluster found with no server groups (already cleaned up by red/black strategy)'
   }
 
   private static Map instance(name, platformHealthState = 'Unknown', extraHealths = []) {

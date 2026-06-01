@@ -19,7 +19,9 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.model.Cluster
 import com.netflix.spinnaker.orca.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.orca.clouddriver.pipeline.cluster.AbstractClusterWideClouddriverOperationStage.ClusterSelection
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCreator
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.WaitForRequiredInstancesDownTask
@@ -54,6 +56,20 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
     }.collectEntries { serverGroupCreator ->
       return [(serverGroupCreator.cloudProvider): serverGroupCreator.healthProviderName.orElse(null)]
     }
+  }
+
+  @Override
+  protected TaskResult missingClusterResult(StageExecution stage, ClusterSelection clusterSelection) {
+    // Clouddriver cache may transiently show no cluster during a service restart (e.g. Spinnaker
+    // self-deploy). Retry rather than fail; the OverridableTimeoutRetryableTask timeout bounds the loop.
+    return TaskResult.builder(ExecutionStatus.RUNNING).build()
+  }
+
+  @Override
+  protected TaskResult emptyClusterResult(StageExecution stage, ClusterSelection clusterSelection, Cluster cluster) {
+    // No server groups to check means the old cluster was already cleaned up — most commonly by the
+    // red/black strategy's own disable+scaleDown pass that runs before this explicit stage. Treat as done.
+    return TaskResult.SUCCEEDED
   }
 
   @Override
