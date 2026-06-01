@@ -21,8 +21,10 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.READ_DATE_TI
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -41,6 +43,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.TaskExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
+import com.netflix.spinnaker.orca.config.JacksonParserProperties;
 import com.netflix.spinnaker.orca.jackson.mixin.PipelineExecutionMixin;
 import com.netflix.spinnaker.orca.jackson.mixin.StageExecutionMixin;
 import com.netflix.spinnaker.orca.jackson.mixin.TriggerMixin;
@@ -58,7 +61,21 @@ public class OrcaObjectMapper {
   private static final ObjectMapper INSTANCE = newInstance();
 
   public static ObjectMapper newInstance() {
-    ObjectMapper instance = new ObjectMapper();
+    return newInstance(new JacksonParserProperties());
+  }
+
+  public static ObjectMapper newInstance(JacksonParserProperties parserProperties) {
+    StreamReadConstraints constraints =
+        StreamReadConstraints.builder()
+            .maxNameLength(parserProperties.getMaxNameLength())
+            .maxStringLength(parserProperties.getMaxStringLength())
+            .maxNestingDepth(parserProperties.getMaxNestingDepth())
+            .maxNumberLength(parserProperties.getMaxNumberLength())
+            .maxDocumentLength(parserProperties.getMaxDocumentLength())
+            .build();
+
+    ObjectMapper instance =
+        new ObjectMapper(JsonFactory.builder().streamReadConstraints(constraints).build());
     instance.registerModule(new Jdk8Module());
     instance.registerModule(new GuavaModule());
     instance.registerModule(new JavaTimeModule());
