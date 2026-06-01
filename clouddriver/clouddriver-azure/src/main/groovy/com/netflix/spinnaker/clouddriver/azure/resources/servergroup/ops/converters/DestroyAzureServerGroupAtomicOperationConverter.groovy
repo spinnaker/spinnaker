@@ -20,23 +20,28 @@ import com.netflix.spinnaker.clouddriver.azure.AzureOperation
 import com.netflix.spinnaker.clouddriver.azure.common.AzureAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.model.EnableDisableDestroyAzureServerGroupDescription
 import com.netflix.spinnaker.clouddriver.azure.resources.servergroup.ops.DestroyAzureServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @AzureOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component("destroyAzureServerGroupDescription")
 class DestroyAzureServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+  @Autowired(required = false)
+  List<OnDemandCacheUpdater> onDemandCacheUpdaters = []
+
   DestroyAzureServerGroupAtomicOperationConverter() {
     log.trace("Constructor....DestroyAzureServerGroupAtomicOperationConverter")
   }
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DestroyAzureServerGroupAtomicOperation(convertDescription(input))
+    new DestroyAzureServerGroupAtomicOperation(convertDescription(input), onDemandCacheUpdaters)
   }
 
   @Override
