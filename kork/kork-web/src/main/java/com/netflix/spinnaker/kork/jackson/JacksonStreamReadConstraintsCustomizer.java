@@ -25,7 +25,8 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
  * Customizes every Spring Boot {@code ObjectMapper} with relaxed {@link StreamReadConstraints} to
  * avoid deserialization failures on large JSON payloads that exceed Jackson 2.15+ defaults.
  */
-public class JacksonStreamReadConstraintsCustomizer implements Jackson2ObjectMapperBuilderCustomizer {
+public class JacksonStreamReadConstraintsCustomizer
+    implements Jackson2ObjectMapperBuilderCustomizer {
 
   private static final int DEFAULT_MAX_NAME_LENGTH = 200_000;
   private static final int DEFAULT_MAX_STRING_LENGTH = 50_000_000;
