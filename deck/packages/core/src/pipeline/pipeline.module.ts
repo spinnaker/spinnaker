@@ -1,5 +1,4 @@
 import { module } from 'angular';
-import 'angular-ui-sortable';
 
 import { CORE_PIPELINE_CONFIG_PIPELINECONFIG_MODULE } from './config/pipelineConfig.module';
 import { CORE_PIPELINE_CONFIG_PRECONDITIONS_PRECONDITIONS_MODULE } from './config/preconditions/preconditions.module';
@@ -15,7 +14,9 @@ import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/clone
 import { STAGE_COMMON_MODULE } from './config/stages/common/stage.common.module';
 import './config/stages/concourse/concourseStage';
 import { CREATE_LOAD_BALANCER_STAGE } from './config/stages/createLoadBalancer/createLoadBalancerStage.module';
-import { CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_MODULE } from './config/stages/deploy/deployStage.module';
+import './config/stages/databaseMigration/databaseMigrationCancellationStage';
+import './config/stages/databaseMigration/databaseMigrationStage';
+import './config/stages/deploy/deployStage';
 import './config/stages/deployService/deployServiceStage';
 import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage';
 import './config/stages/destroyService/destroyServiceStage';
@@ -71,7 +72,6 @@ import './pipeline.less';
 export const PIPELINE_MODULE = 'spinnaker.core.pipeline';
 
 module(PIPELINE_MODULE, [
-  'ui.sortable',
   EXECUTION_DETAILS_SECTION_NAV,
 
   BUILD_DISPLAY_NAME_FILTER,
@@ -93,7 +93,6 @@ module(PIPELINE_MODULE, [
   CHECK_PRECONDITIONS_STAGE_MODULE,
   CLONE_SERVER_GROUP_STAGE,
   STAGE_COMMON_MODULE,
-  CORE_PIPELINE_CONFIG_STAGES_DEPLOY_DEPLOYSTAGE_MODULE,
   DESTROY_ASG_STAGE,
   DISABLE_ASG_STAGE_MODULE,
   DISABLE_CLUSTER_STAGE,
