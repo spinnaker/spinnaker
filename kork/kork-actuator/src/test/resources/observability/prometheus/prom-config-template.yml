@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 1s
+
+scrape_configs:
+  - job_name: prometheus-scrape-controller-functional-test
+    metrics_path: /prometheus
+    static_configs:
+      - targets: ['host.testcontainers.internal:@@_PORT_@@']
