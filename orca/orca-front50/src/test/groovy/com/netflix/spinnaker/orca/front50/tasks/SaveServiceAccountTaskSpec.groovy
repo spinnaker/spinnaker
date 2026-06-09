@@ -46,7 +46,7 @@ class SaveServiceAccountTaskSpec extends Specification {
 
   @Subject
   SaveServiceAccountTask task = new SaveServiceAccountTask(Optional.of(fiatStatus), Optional.of(front50Service),
-  Optional.of(fiatPermissionEvaluator), useSharedManagedServiceAccounts)
+  Optional.of(fiatPermissionEvaluator), objectMapper, useSharedManagedServiceAccounts)
 
   def "should do nothing if no pipeline roles present"() {
     given:
@@ -261,7 +261,7 @@ class SaveServiceAccountTaskSpec extends Specification {
     def expectedServiceAccount = new ServiceAccount(name: expectedServiceAccountName, memberOf: ['foo'])
 
     task = new SaveServiceAccountTask(Optional.of(fiatStatus), Optional.of(front50Service),
-        Optional.of(fiatPermissionEvaluator), useSharedManagedServiceAccountsEnabled)
+        Optional.of(fiatPermissionEvaluator), objectMapper, useSharedManagedServiceAccountsEnabled)
 
     when:
     stage.getExecution().setTrigger(new DefaultTrigger('manual', null, 'abc@somedomain.io'))
@@ -293,5 +293,103 @@ class SaveServiceAccountTaskSpec extends Specification {
 
   private String generateSha256StringFromRolesString(String rolesString) {
     Hashing.sha256().hashBytes(rolesString.getBytes()).toString() + "@shared-managed-service-account"
+  }
+
+  private bulkStage(List pipelines, String user = 'abc@somedomain.io') {
+    def s = stage {
+      context = [
+          isBulkSavingPipelines: true,
+          pipelines            : Base64.encoder.encodeToString(
+              objectMapper.writeValueAsString(pipelines).bytes)
+      ]
+    }
+    s.getExecution().setTrigger(new DefaultTrigger('manual', null, user))
+    s
+  }
+
+  private List decodePipelines(result) {
+    objectMapper.readValue(Base64.decoder.decode(result.context.pipelines as String), List)
+  }
+
+  def "bulk save: provisions a service account per pipeline and rewrites runAsUser triggers"() {
+    given:
+    def pipelineWithRoles = [
+        application: 'app1',
+        id         : 'pipeline-1',
+        name       : 'p1',
+        roles      : ['foo'],
+        triggers   : [[type: 'cron', runAsUser: null]]
+    ]
+    def pipelineWithoutRoles = [
+        application: 'app2',
+        name       : 'p2',
+        triggers   : [[type: 'manual']]
+    ]
+
+    when:
+    def result = task.execute(bulkStage([pipelineWithRoles, pipelineWithoutRoles]))
+    def reDecoded = decodePipelines(result)
+
+    then:
+    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
+      new UserPermission().addResources([new Role('foo')]).view
+    }
+    1 * front50Service.saveServiceAccount(
+        new ServiceAccount(name: 'pipeline-1@managed-service-account', memberOf: ['foo'])) >> {
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
+    }
+    0 * front50Service.saveServiceAccount({ it.name != 'pipeline-1@managed-service-account' })
+
+    result.status == ExecutionStatus.SUCCEEDED
+    reDecoded[0].triggers[0].runAsUser == 'pipeline-1@managed-service-account'
+    reDecoded[1].triggers[0].runAsUser == null
+    reDecoded[1].id != null
+    reDecoded[1].regenerateCronTriggerIds == true
+  }
+
+  def "bulk save: assigns id and regenerateCronTriggerIds when pipeline has no id"() {
+    given:
+    def pipeline = [
+        application: 'app1',
+        name       : 'p1',
+        roles      : ['foo'],
+        triggers   : []
+    ]
+
+    when:
+    def result = task.execute(bulkStage([pipeline]))
+    def reDecoded = decodePipelines(result)
+
+    then:
+    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
+      new UserPermission().addResources([new Role('foo')]).view
+    }
+    1 * front50Service.saveServiceAccount(_) >> {
+      Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
+    }
+
+    result.status == ExecutionStatus.SUCCEEDED
+    reDecoded[0].id != null
+    reDecoded[0].regenerateCronTriggerIds == true
+  }
+
+  def "bulk save: rejects when user lacks roles for any pipeline"() {
+    given:
+    def pipeline = [
+        application: 'app1',
+        id         : 'pipeline-1',
+        name       : 'p1',
+        roles      : ['restricted-role']
+    ]
+
+    when:
+    task.execute(bulkStage([pipeline]))
+
+    then:
+    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
+      new UserPermission().addResources([new Role('foo')]).view
+    }
+    0 * front50Service.saveServiceAccount(_)
+    thrown(com.netflix.spinnaker.kork.exceptions.UserException)
   }
 }

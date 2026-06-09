@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.front50.tasks;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -34,6 +36,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,6 +66,7 @@ public class SaveServiceAccountTask implements RetryableTask {
   private final FiatStatus fiatStatus;
   private final Front50Service front50Service;
   private final FiatPermissionEvaluator fiatPermissionEvaluator;
+  private final ObjectMapper objectMapper;
   private final boolean useSharedManagedServiceAccounts;
 
   @Autowired
@@ -70,11 +74,13 @@ public class SaveServiceAccountTask implements RetryableTask {
       Optional<FiatStatus> fiatStatus,
       Optional<Front50Service> front50Service,
       Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+      ObjectMapper objectMapper,
       @Value("${tasks.use-shared-managed-service-accounts:false}")
           boolean useSharedManagedServiceAccounts) {
     this.fiatStatus = fiatStatus.get();
     this.front50Service = front50Service.get();
     this.fiatPermissionEvaluator = fiatPermissionEvaluator.get();
+    this.objectMapper = objectMapper;
     this.useSharedManagedServiceAccounts = useSharedManagedServiceAccounts;
   }
 
@@ -99,6 +105,12 @@ public class SaveServiceAccountTask implements RetryableTask {
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
+    }
+
+    boolean isBulkSavingPipelines =
+        (boolean) stage.getContext().getOrDefault("isBulkSavingPipelines", false);
+    if (isBulkSavingPipelines) {
+      return executeBulk(stage);
     }
 
     if (!stage.getContext().containsKey("pipeline")) {
@@ -144,6 +156,79 @@ public class SaveServiceAccountTask implements RetryableTask {
           .build();
     }
 
+    if (!validateAndSaveServiceAccount(user, serviceAccountName, roles)) {
+      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
+    }
+
+    outputs.put("pipeline.serviceAccount", serviceAccountName);
+
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
+  }
+
+  /**
+   * Bulk variant: iterates over the {@code pipelines} list, applying per-pipeline service-account
+   * provisioning (id assignment, SA save, trigger {@code runAsUser} rewrite). The mutated list is
+   * re-encoded back into the stage context so {@link SavePipelineTask} sees the updated triggers.
+   */
+  @SuppressWarnings("unchecked")
+  private TaskResult executeBulk(StageExecution stage) {
+    if (!stage.getContext().containsKey("pipelines")) {
+      throw new IllegalArgumentException(
+          "pipelines context must be provided when bulk saving pipelines");
+    }
+
+    List<Map<String, Object>> pipelines;
+    try {
+      pipelines = (List<Map<String, Object>>) stage.decodeBase64("/pipelines", List.class);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("pipelines must be encoded as base64", e);
+    }
+
+    String user = stage.getExecution().getTrigger().getUser();
+
+    for (Map<String, Object> pipeline : pipelines) {
+      if (pipeline.get("id") == null) {
+        pipeline.put("id", UUID.randomUUID().toString());
+        pipeline.put("regenerateCronTriggerIds", true); // used by front50
+      }
+
+      if (!pipeline.containsKey("roles")) {
+        continue;
+      }
+      List<String> roles = (List<String>) pipeline.get("roles");
+
+      String serviceAccountName = generateSvcAcctName(pipeline, roles);
+      if (pipelineRolesChanged(serviceAccountName, roles)
+          && !validateAndSaveServiceAccount(user, serviceAccountName, roles)) {
+        return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
+      }
+      SavePipelineTask.updateServiceAccount(pipeline, serviceAccountName);
+    }
+
+    String reEncoded;
+    try {
+      reEncoded =
+          Base64.getEncoder()
+              .encodeToString(
+                  objectMapper.writeValueAsString(pipelines).getBytes(StandardCharsets.UTF_8));
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(
+          "Failed to re-encode pipelines after applying service accounts", e);
+    }
+
+    return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+        .context(ImmutableMap.of("pipelines", reEncoded))
+        .build();
+  }
+
+  /**
+   * Checks the user is authorized for the given roles, then saves (or updates) a service account
+   * with those roles in Front50. Throws {@link UserException} if the user is not authorized;
+   * returns {@code false} when Front50 returns a non-OK status (caller translates to {@link
+   * ExecutionStatus#TERMINAL}).
+   */
+  private boolean validateAndSaveServiceAccount(
+      String user, String serviceAccountName, List<String> roles) {
     if (!isUserAuthorized(user, roles)) {
       log.warn("User {} is not authorized with all roles for pipeline", user);
       throw new UserException(
@@ -160,12 +245,10 @@ public class SaveServiceAccountTask implements RetryableTask {
         Retrofit2SyncCall.executeCall(front50Service.saveServiceAccount(svcAcct));
 
     if (response.code() != HttpStatus.OK.value()) {
-      return TaskResult.ofStatus(ExecutionStatus.TERMINAL);
+      log.warn("Failed to save service account, got response code {}", response.code());
+      return false;
     }
-
-    outputs.put("pipeline.serviceAccount", svcAcct.getName());
-
-    return TaskResult.builder(ExecutionStatus.SUCCEEDED).context(outputs).build();
+    return true;
   }
 
   private String generateSvcAcctName(Map<String, Object> pipeline, List<String> roles) {
