@@ -176,7 +176,7 @@ public class SavePipelineTask implements RetryableTask {
     return TimeUnit.SECONDS.toMillis(30);
   }
 
-  private void updateServiceAccount(Map<String, Object> pipeline, String serviceAccount) {
+  static void updateServiceAccount(Map<String, Object> pipeline, String serviceAccount) {
     if (StringUtils.isEmpty(serviceAccount) || !pipeline.containsKey("triggers")) {
       return;
     }
@@ -210,7 +210,7 @@ public class SavePipelineTask implements RetryableTask {
     return null;
   }
 
-  private boolean runAsUserIsNullOrManagedServiceAccount(String runAsUser) {
+  private static boolean runAsUserIsNullOrManagedServiceAccount(String runAsUser) {
     return runAsUser == null
         || runAsUser.endsWith(SavePipelineStage.SERVICE_ACCOUNT_SUFFIX)
         || runAsUser.endsWith(SavePipelineStage.SHARED_SERVICE_ACCOUNT_SUFFIX);
