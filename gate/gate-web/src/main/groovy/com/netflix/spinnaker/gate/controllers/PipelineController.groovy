@@ -144,6 +144,9 @@ class PipelineController {
     @Parameter(description = "Application in which to run the bulk save task",
       example = "bulk_save_placeholder_app",
       required = false) String application,
+    @io.swagger.v3.oas.annotations.parameters.RequestBody( // qualified due to name collision
+      required = true,
+      description = "JSON array of pipeline definitions to upsert")
     @RequestBody List<Map> pipelines) {
     def operation = [
       description: "Bulk save pipelines",
