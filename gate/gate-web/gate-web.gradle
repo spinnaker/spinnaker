@@ -22,6 +22,7 @@ dependencies {
   implementation "io.spinnaker.fiat:fiat-api"
 
   implementation "io.spinnaker.kork:kork-artifacts"
+  implementation "io.spinnaker.kork:kork-atlas"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
