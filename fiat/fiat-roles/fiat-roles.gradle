@@ -34,6 +34,6 @@ dependencies {
   implementation "redis.clients:jedis"
   implementation "com.google.api-client:google-api-client"
 
-  testImplementation "org.apache.commons:commons-collections4:4.1"
+  testImplementation "org.apache.commons:commons-collections4"
   testImplementation "org.testcontainers:testcontainers"
 }

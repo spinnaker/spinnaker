@@ -195,6 +195,9 @@ class SpinnakerUpdateManager(
     throw UnsupportedOperationException("UpdateManager updatePlugin is not supported")
   }
 
+  /**
+   * Companion object holding shared Jackson ObjectMapper instance.
+   */
   companion object {
     private val objectMapper = jacksonObjectMapper()
   }

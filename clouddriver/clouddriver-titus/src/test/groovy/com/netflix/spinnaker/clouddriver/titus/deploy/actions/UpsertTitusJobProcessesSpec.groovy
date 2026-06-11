@@ -50,6 +50,7 @@ class UpsertTitusJobProcessesSpec extends Specification {
     then:
     1 * accountCredentialsProvider.getCredentials(_) >> { return testCredentials }
     1 * titusClientProvider.getTitusClient(testCredentials, "us-east-1") >> { return titusClient }
+    3 * testCredentials.getName() >> "test-account"  // Called by getAccount() in saga logs
 
     1 * titusClient.updateScalingProcesses(request)
     0 * _

@@ -18,4 +18,5 @@ dependencies {
   testImplementation("org.mockito:mockito-core:2.25.0")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

@@ -161,7 +161,9 @@ public class PipelineController {
    */
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
-  @RequestMapping(value = "triggeredBy/{id:.+}/{status}", method = RequestMethod.GET)
+  @RequestMapping(
+      value = {"triggeredBy/{id:.+}/{status}", "triggeredBy/{id:.+}/{status}/"},
+      method = RequestMethod.GET)
   public Collection<Pipeline> getTriggeredPipelines(
       @PathVariable String id,
       @PathVariable String status,
@@ -285,7 +287,9 @@ public class PipelineController {
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
-  @RequestMapping(value = "{application:.+}/name/{name:.+}", method = RequestMethod.GET)
+  @RequestMapping(
+      value = {"{application:.+}/name/{name:.+}", "{application:.+}/name/{name:.+}/"},
+      method = RequestMethod.GET)
   public Pipeline getByApplicationAndName(
       @PathVariable String application,
       @PathVariable String name,

@@ -1,5 +1,5 @@
 plugins {
-  id 'com.adarshr.test-logger' version '2.1.0' apply false
+  id 'com.adarshr.test-logger' version '4.0.0' apply false
 }
 allprojects {
   apply plugin: 'com.adarshr.test-logger'
