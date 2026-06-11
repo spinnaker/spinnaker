@@ -46,7 +46,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
    * @param taskPaths paths of tasks to
    */
   fun assertTaskOrder(buildResult: BuildResult, vararg taskPath: String ) {
-    val taskOrder = buildResult.tasks.mapIndexed { index: Int, buildTask: BuildTask? -> buildTask?.path  }
+    val taskOrder = buildResult.tasks.mapIndexed { _: Int, buildTask: BuildTask? -> buildTask?.path  }
     assert(taskPath.size > 1)
     var i = 0
     while(i < taskPath.size) {
@@ -59,7 +59,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
 
   companion object{
     @JvmStatic
-    fun gradleVersion() = listOf<String>("7.6.1")
+    fun gradleVersion() = listOf<String>("8.14.4")
   }
 
   @BeforeTest
@@ -135,7 +135,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
         compileOnly("org.pf4j:pf4j:3.2.0")
 
         testImplementation("org.jetbrains.kotlin:kotlin-test")
-        testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+        testImplementation("org.jetbrains.kotlin:kotlin-stdlib")
         testImplementation("org.jetbrains.kotlin:kotlin-test")
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
       }
@@ -153,7 +153,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
 
     // Verify the result
     assert(result.task(":releaseBundle")!!.outcome == TaskOutcome.SUCCESS)
-    assert(!result.tasks.contains(":compatibilityTest"))
+    assert(!result.tasks.contains<Any>(":compatibilityTest"))
     assertTrue(projectDir.resolve("build/distributions").resolve("functionaltest.zip").exists())
   }
 
@@ -232,7 +232,7 @@ class SpinnakerExtensionGradlePluginFunctionalTest {
       .buildAndFail()
 
     assert(build.task(":compatibilityTest")!!.outcome == TaskOutcome.FAILED)
-    assert(!build.tasks.contains(":releaseBundle"))
+    assert(!build.tasks.contains<Any>(":releaseBundle"))
   }
 
   @ParameterizedTest(name = "compatibility test task succeeds if failing test is not required: gradle version {0}")

@@ -32,7 +32,7 @@ class SqlLifecycleMonitorRepository(
         select(LIFECYCLE_MONITOR.UID, LIFECYCLE_MONITOR.TYPE, LIFECYCLE_MONITOR.LINK, LIFECYCLE_MONITOR.NUM_FAILURES, LIFECYCLE_MONITOR.TRIGGERING_EVENT_UID)
           .from(LIFECYCLE_MONITOR)
           .where(LIFECYCLE_MONITOR.LAST_CHECKED.lessOrEqual(cutoff))
-          .and(LIFECYCLE_MONITOR.IGNORE.notEqual(true))
+          .and(LIFECYCLE_MONITOR.IGNORE.notEqual(1.toByte()))
           .orderBy(LIFECYCLE_MONITOR.LAST_CHECKED)
           .limit(limit)
           .forUpdate()
@@ -56,7 +56,7 @@ class SqlLifecycleMonitorRepository(
           } catch (e: Exception) {
             // if we can't serialize the event, ignore it so it doesn't block future things
             jooq.update(LIFECYCLE_MONITOR)
-              .set(LIFECYCLE_MONITOR.IGNORE, true)
+              .set(LIFECYCLE_MONITOR.IGNORE, 1.toByte())
               .where(LIFECYCLE_MONITOR.UID.eq(uid))
               .execute()
             throw e

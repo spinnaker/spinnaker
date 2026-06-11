@@ -23,9 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(
     classes = {Main.class, AdminController.class},
@@ -42,7 +42,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     registry.add("services.orca.base-url", wmOrca::baseUrl);
   }
 
-  @MockBean FiatPermissionEvaluator fiatPermissionEvaluator;
+  @MockitoBean FiatPermissionEvaluator fiatPermissionEvaluator;
 
   @BeforeEach
   void setUp() {}

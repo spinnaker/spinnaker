@@ -21,7 +21,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -66,8 +65,8 @@ func getCanaryConfig(cmd *cobra.Command, options *getOptions, args []string) err
 		}
 	}
 
-	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfig(
-		options.GateClient.Context, id, &gate.V2CanaryConfigControllerApiGetCanaryConfigOpts{})
+	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerAPI.GetCanaryConfig(
+		options.GateClient.Context, id).Execute()
 	if err != nil {
 		return err
 	}

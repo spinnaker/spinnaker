@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.mock.Calls;
@@ -55,7 +55,7 @@ class PipelineExpressionFunctionProviderTest {
 
   private static final List<Map<String, Object>> PIPELINES = List.of(PIPELINE);
 
-  @MockBean Front50Service front50Service;
+  @MockitoBean Front50Service front50Service;
 
   @Autowired PipelineExpressionFunctionProvider pipelineExpressionFunctionProvider;
 

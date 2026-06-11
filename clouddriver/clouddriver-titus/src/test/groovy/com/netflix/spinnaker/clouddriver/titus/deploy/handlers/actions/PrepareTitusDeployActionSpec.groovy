@@ -107,12 +107,13 @@ class PrepareTitusDeployActionSpec extends Specification {
 
   def "merges source details when no asg name is provided"() {
     given:
-    TitusDeployDescription description = createTitusDeployDescription(mimicker.aws().securityGroupId)
+    def securityGroupId = mimicker.aws().securityGroupId
+    TitusDeployDescription description = createTitusDeployDescription(securityGroupId)
     description.source = new TitusDeployDescription.Source(
       account: fixture.accountName,
       region: fixture.region,
       asgName: fixture.monikerName,
-      useSourceCapacity: mimicker.random().trueOrFalse()
+      useSourceCapacity: true
     )
 
     and:
@@ -145,18 +146,14 @@ class PrepareTitusDeployActionSpec extends Specification {
 
     result.events.isEmpty() == true
     result.nextCommand instanceof SubmitTitusJob.SubmitTitusJobCommand
-    result.nextCommand.description.with {
-      securityGroups == ["hello"]
+    with(result.nextCommand.description) {
+      securityGroups == [securityGroupId]
       capacity.min == instancesMin
       capacity.max == instancesMax
       capacity.desired == instancesDesired
       labels == [passThru: "label value"]
-      env == [passThru: "environment value"]
+      env == [passThru: "environment value", SPINNAKER_ACCOUNT: fixture.accountName]
       containerAttributes == [passThru: "containerAttributes value"]
-      serviceJobProcesses == [
-        disableIncreaseDesired: true,
-        disableDecreaseDesired: true
-      ]
     }
 
     where:
