@@ -171,6 +171,9 @@ class PluginJar private constructor(builder: Builder) {
     }
   }
 
+  /**
+   * Companion object for PluginJar utility methods.
+   */
   companion object {
     /**
      * Create a PF4J plugin JAR manifest.

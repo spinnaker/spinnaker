@@ -50,7 +50,7 @@ func NewListCmd(prjOptions *projectOptions) *cobra.Command {
 }
 
 func listProject(cmd *cobra.Command, options *listOptions, args []string) error {
-	projectList, resp, err := options.GateClient.ProjectControllerApi.All4(options.GateClient.Context)
+	projectList, resp, err := options.GateClient.ProjectControllerAPI.All4(options.GateClient.Context).Execute()
 	if err != nil {
 		return err
 	}

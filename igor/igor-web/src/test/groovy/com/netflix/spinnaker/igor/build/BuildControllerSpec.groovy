@@ -49,6 +49,12 @@ import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import spock.lang.Specification
 
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import org.springframework.web.util.pattern.PathPatternParser
+
 import static com.netflix.spinnaker.igor.build.BuildController.InvalidJobParameterException
 import static com.netflix.spinnaker.igor.build.BuildController.validateJobParameters
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get

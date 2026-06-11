@@ -57,7 +57,7 @@ func listPipeline(cmd *cobra.Command, options *listOptions) error {
 		return errors.New("required parameter 'application' not set")
 	}
 
-	successPayload, resp, err := options.GateClient.ApplicationControllerApi.GetPipelineConfigsForApplication(options.GateClient.Context, options.application, nil)
+	successPayload, resp, err := options.GateClient.ApplicationControllerAPI.GetPipelineConfigsForApplication(options.GateClient.Context, options.application).Execute()
 	if err != nil {
 		return err
 	}

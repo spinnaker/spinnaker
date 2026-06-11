@@ -100,6 +100,9 @@ class ExtensionInvocationProxy(
     }
   }
 
+  /**
+   * Factory method for wrapping a [SpinnakerExtensionPoint] in an [ExtensionInvocationProxy].
+   */
   companion object {
     /**
      * Factory method for wrapping a [SpinnakerExtensionPoint] in an [ExtensionInvocationProxy].

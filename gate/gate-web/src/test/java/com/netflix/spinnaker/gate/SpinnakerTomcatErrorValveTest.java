@@ -38,10 +38,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * Use SpringBootTest.WebEnvironment so tomcat is involved in the test, since the whole point is to
@@ -60,16 +60,16 @@ class SpinnakerTomcatErrorValveTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @MockBean private PipelineService pipelineService;
+  @MockitoBean private PipelineService pipelineService;
 
   /** Mock the application service to disable the background thread that caches applications */
-  @MockBean private ApplicationService applicationService;
+  @MockitoBean private ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   /** To prevent periodic calls to clouddriver to query for accounts */
-  @MockBean private DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean private DefaultProviderLookupService defaultProviderLookupService;
 
   private static final String APPLICATION = "my-application";
 
@@ -118,12 +118,18 @@ class SpinnakerTomcatErrorValveTest {
 
     // Note: the response in this case comes from spring boot's
     // DefaultErrorAttributes, NOT SpinnakerTomcatErrorValve.
+    // in current spring this is {"type":"about:blank","title":"Not Found","status":404,"detail":"No
+    // static resource
+    // pipelines/my-application/pipeline-name/has-a-slash.","instance":"/pipelines/my-application/pipeline-name/has-a-slash"}
     Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
     assertThat(jsonResponse.get("status")).isEqualTo(404);
-    assertThat(jsonResponse.get("error")).isEqualTo("Not Found");
+    assertThat(jsonResponse.get("title")).isEqualTo("Not Found");
     assertThat(jsonResponse.containsKey("exception")).isFalse();
-    assertThat(jsonResponse.get("message")).isEqualTo("No message available");
-    assertThat(jsonResponse.get("timestamp")).isNotNull();
+    assertThat(jsonResponse.get("detail"))
+        .asString()
+        .contains("No static resource "); // .isEqualTo("No message available");
+    //    assertThat(jsonResponse.get("timestamp")).isNotNull(); no longer included in the default
+    // error attributes as spring boot 3.5
 
     verify(pipelineService, never()).trigger(anyString(), anyString(), anyMap());
   }

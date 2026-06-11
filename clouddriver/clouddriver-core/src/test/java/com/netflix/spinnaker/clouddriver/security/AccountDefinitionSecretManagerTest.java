@@ -41,18 +41,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 
 @SpringBootTest(classes = AccountDefinitionConfiguration.class)
 @ImportAutoConfiguration(JacksonAutoConfiguration.class)
 class AccountDefinitionSecretManagerTest {
 
-  @MockBean UserSecretManager userSecretManager;
+  @MockitoBean UserSecretManager userSecretManager;
 
-  @MockBean SecretManager secretManager;
+  @MockitoBean SecretManager secretManager;
 
-  @MockBean AccountSecurityPolicy policy;
+  @MockitoBean AccountSecurityPolicy policy;
 
   @Autowired AccountDefinitionSecretManager accountDefinitionSecretManager;
 
