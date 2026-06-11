@@ -155,8 +155,22 @@ public class HttpUrlRestrictions {
   }
 
   boolean isValidIpAddress(String host) {
+    // If the host is not an IP address, we need to resolve it first
+    // Spring Security 6.x IpAddressMatcher.matches() now validates that the input is an IP address
+    String ipToMatch = host;
+    if (!InetAddresses.isInetAddress(host)) {
+      // Host is a hostname, need to resolve it to an IP address
+      try {
+        ipToMatch = InetAddress.getByName(host).getHostAddress();
+      } catch (Exception e) {
+        // If we can't resolve it, reject this as a bad host as it won't work
+        return false;
+      }
+    }
+
+    final String finalIpToMatch = ipToMatch;
     return rejectedIps.stream()
-        .noneMatch(restriction -> new IpAddressMatcher(restriction).matches(host));
+        .noneMatch(restriction -> new IpAddressMatcher(restriction).matches(finalIpToMatch));
   }
 
   public URI validateURI(HttpUrl url) throws IllegalArgumentException {
@@ -186,8 +200,22 @@ public class HttpUrlRestrictions {
       if (InetAddresses.isInetAddress(host) && rejectVerbatimIps) {
         throw new IllegalArgumentException("Verbatim IP addresses are not allowed");
       }
+      String ipToMatch = host;
+      if (!InetAddresses.isInetAddress(host)) {
+        // Host is a hostname, need to resolve it to an IP address
+        try {
+          ipToMatch = InetAddress.getByName(host).getHostAddress();
+        } catch (Exception e) {
+          // If we can't resolve it, we can't validate the IP, so allow it
+          // The hostname validation will catch invalid hosts
+        }
+      }
+      if (!isValidIpAddress(host)) {
+        throw new IllegalArgumentException("Address not allowed: " + host);
+      }
 
-      var addr = InetAddress.getByName(host);
+      var addr = InetAddress.getByName(ipToMatch);
+
       var isLocalhost = isLocalhost(addr);
 
       if ((isLocalhost && rejectLocalhost) || (addr.isLinkLocalAddress() && rejectLinkLocal)) {
@@ -206,11 +234,6 @@ public class HttpUrlRestrictions {
       if (!allowedDomains.isEmpty() && allowedDomains.stream().noneMatch(host::matches)) {
         throw new IllegalArgumentException("Host not allowed: " + host);
       }
-
-      if (!isValidIpAddress(host)) {
-        throw new IllegalArgumentException("Address not allowed: " + host);
-      }
-
       return u;
     } catch (IllegalArgumentException iae) {
       throw iae;

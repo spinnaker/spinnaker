@@ -34,7 +34,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
@@ -45,6 +44,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -88,13 +88,13 @@ public class OAuth2IntegrationWithWireMockTest {
           .build();
 
   /** To prevent attempts to connect to clouddriver */
-  @MockBean private DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean private DefaultProviderLookupService defaultProviderLookupService;
 
   /** To prevent attempts to connect to front50 */
-  @MockBean private ApplicationService applicationService;
+  @MockitoBean private ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   // Provide WireMock URLs into Spring properties before context initialization uses them
   @DynamicPropertySource
@@ -109,6 +109,11 @@ public class OAuth2IntegrationWithWireMockTest {
     registry.add(
         "spring.security.oauth2.client.provider.github.user-info-uri",
         () -> base + "/login/oauth/user");
+    // Github default username is "id".  WHICH can't be null and gets validated in latest releases.
+    // Force it
+    // to what the test uses of "login".
+    registry.add(
+        "spring.security.oauth2.client.provider.github.user-name-attribute", () -> "login");
   }
 
   @BeforeEach
@@ -118,6 +123,9 @@ public class OAuth2IntegrationWithWireMockTest {
 
   @Test
   void whenOAuth2UserInfoHasNullsThenAuthenticationSucceeds() {
+    // NOTE:  Changed per above.  The user-name-attribute CANNOT be a null.  WIth github as the
+    // "type"
+    // this means "id" is the default and will fail, but we can allow OTHER attributes to be null.
     githubMockServer.stubFor(
         WireMock.get(urlPathEqualTo("/login/oauth/authorize"))
             .willReturn(WireMock.aResponse().withTransformers("redirect-with-state")));
@@ -139,9 +147,7 @@ public class OAuth2IntegrationWithWireMockTest {
                 """)));
     HttpHeaders headers = new HttpHeaders();
     headers.set(
-        HttpHeaders.ACCEPT,
-        "text/html"); // simulate browser otherwise request will not be cached to replay after
-    // Authentication
+        HttpHeaders.ACCEPT, "text/html"); // Spring Boot 3.x requires explicit content type matching
 
     HttpEntity<Void> request = new HttpEntity<>(headers);
 

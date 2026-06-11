@@ -1,5 +1,5 @@
 plugins {
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '4.0.0'
 }
 
 sourceSets {
@@ -58,7 +58,6 @@ dependencies {
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
-  testImplementation "com.natpryce:hamkrest"
   testImplementation "com.google.guava:guava"
   testImplementation "uk.org.webcompere:system-stubs-core:2.1.6"
   testImplementation "uk.org.webcompere:system-stubs-jupiter:2.1.6"
@@ -76,6 +75,8 @@ dependencies {
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output
   integrationImplementation "io.rest-assured:rest-assured"
+  integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
+  integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
 }
 
 task integrationTest(type: Test) {

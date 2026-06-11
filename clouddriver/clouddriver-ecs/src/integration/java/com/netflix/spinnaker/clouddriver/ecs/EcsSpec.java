@@ -37,10 +37,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @Import(EcsTestConfiguration.class)
 @SpringBootTest(
@@ -74,7 +74,7 @@ public class EcsSpec {
 
   @LocalServerPort private int port;
 
-  @MockBean protected AmazonClientProvider mockAwsProvider;
+  @MockitoBean protected AmazonClientProvider mockAwsProvider;
 
   @DisplayName(".\n===\n" + "Assert AWS and ECS providers are enabled" + "\n===")
   @Test

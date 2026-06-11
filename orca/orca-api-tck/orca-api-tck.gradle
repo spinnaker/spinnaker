@@ -37,10 +37,9 @@ dependencies {
   api("com.ninja-squad:springmockk")
 
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 test {
-  useJUnitPlatform {
-    includeEngines "junit-jupiter"
-  }
+  useJUnitPlatform()
 }

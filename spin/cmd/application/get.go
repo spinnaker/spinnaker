@@ -18,10 +18,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -65,7 +63,11 @@ func getApplication(cmd *cobra.Command, options *getOptions, args []string) erro
 		return err
 	}
 
-	app, resp, err := options.GateClient.ApplicationControllerApi.GetApplication(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationOpts{Expand: optional.NewBool(options.expand)})
+	req := options.GateClient.ApplicationControllerAPI.GetApplication(options.GateClient.Context, applicationName)
+	if options.expand {
+		req = req.Expand(options.expand)
+	}
+	app, resp, err := req.Execute()
 	if resp != nil {
 		switch resp.StatusCode {
 		case http.StatusOK:
