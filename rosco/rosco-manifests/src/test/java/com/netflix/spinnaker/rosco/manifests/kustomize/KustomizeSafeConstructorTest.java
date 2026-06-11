@@ -25,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization;
 import com.netflix.spinnaker.rosco.services.ClouddriverService;
 import com.sun.net.httpserver.HttpServer;
@@ -34,8 +33,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.ConstructorException;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -43,9 +44,8 @@ import retrofit2.Response;
  * Proof tests that the safe YAML constructor used by {@link KustomizationFileReader} blocks known
  * CVE-2022-1471 / CWE-502 attack vectors.
  *
- * <p>{@link KustomizationFileReader#convert} parses untrusted kustomization YAML with {@link
- * YamlHelper#newYamlSafeConstructor()} (SnakeYAML {@link
- * org.yaml.snakeyaml.constructor.SafeConstructor}), which only produces standard types (Map, List,
+ * <p>{@link KustomizationFileReader#convert} parses untrusted kustomization YAML with
+ * SnakeYAML {@link SafeConstructor}, which only produces standard types (Map, List,
  * String, etc.). The resulting map is then mapped to {@link
  * com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization} via Jackson's {@link
  * com.fasterxml.jackson.databind.ObjectMapper#convertValue}. This two-step process prevents
@@ -59,7 +59,7 @@ class KustomizeSafeConstructorTest {
    */
   @Test
   void safeConstructorPreventsScriptEngineManagerInstantiationInStringField() {
-    Yaml yaml = YamlHelper.newYamlSafeConstructor();
+    Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
     String maliciousYaml =
         "namePrefix: !!javax.script.ScriptEngineManager []\n"
@@ -95,7 +95,7 @@ class KustomizeSafeConstructorTest {
     server.start();
 
     try {
-      Yaml yaml = YamlHelper.newYamlSafeConstructor();
+      Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
       String maliciousYaml =
           "namePrefix: !!java.net.URL [\"http://127.0.0.1:"
@@ -125,7 +125,7 @@ class KustomizeSafeConstructorTest {
    */
   @Test
   void safeConstructorPreventsArbitraryInstantiationInMapFields() {
-    Yaml yaml = YamlHelper.newYamlSafeConstructor();
+    Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
     String maliciousYaml =
         "resources:\n"
@@ -144,7 +144,7 @@ class KustomizeSafeConstructorTest {
   /** Verifies that a root-level malicious tag override is rejected. */
   @Test
   void safeConstructorPreventsRootTagOverride() {
-    Yaml yaml = YamlHelper.newYamlSafeConstructor();
+    Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
 
     String maliciousYaml = "!!javax.script.ScriptEngineManager []";
 

@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 @Component
 @Slf4j
@@ -94,7 +97,8 @@ public class KustomizationFileReader {
     // Use SafeConstructor to parse untrusted YAML into safe standard types (Map/List/String) only,
     // then map to the Kustomization POJO via Jackson. This prevents arbitrary object instantiation
     // via YAML tags.
-    Map<String, Object> rawMap = YamlHelper.newYamlSafeConstructor().load(downloadFile(artifact));
+    Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+    Map<String, Object> rawMap = yaml.load(downloadFile(artifact));
     return objectMapper.convertValue(rawMap, Kustomization.class);
   }
 
