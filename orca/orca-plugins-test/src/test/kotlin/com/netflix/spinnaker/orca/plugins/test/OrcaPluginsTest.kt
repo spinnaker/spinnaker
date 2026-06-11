@@ -19,15 +19,24 @@ package com.netflix.spinnaker.orca.plugins.test
 import com.netflix.spinnaker.kork.plugins.tck.PluginsTck
 import com.netflix.spinnaker.kork.plugins.tck.serviceFixture
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
+import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.plugins.StageDefinitionBuilderExtension
 import com.netflix.spinnaker.orca.plugins.TaskExtension1
 import com.netflix.spinnaker.orca.plugins.TaskExtension2
 import dev.minutest.rootContext
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import strikt.api.expect
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 
 class OrcaPluginsTest : PluginsTck<OrcaPluginsFixture>() {
+  @MockitoBean
+  var executionRepository: ExecutionRepository? = null
+
+  @MockitoBean
+  var notificationClusterLock: NotificationClusterLock? = null
+
 
   fun tests() = rootContext<OrcaPluginsFixture> {
     context("an orca integration test environment and an orca plugin") {

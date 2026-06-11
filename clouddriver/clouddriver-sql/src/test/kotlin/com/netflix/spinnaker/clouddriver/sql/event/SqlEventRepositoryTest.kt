@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.clouddriver.event.AbstractSpinnakerEvent
 import com.netflix.spinnaker.clouddriver.event.exceptions.AggregateChangeRejectedException
@@ -209,8 +210,8 @@ class SqlEventRepositoryTest : JUnit5Minutests {
     val subject = SqlEventRepository(
       jooq = database.context,
       serviceVersion = serviceVersion,
-      objectMapper = ObjectMapper().apply {
-        registerModules(KotlinModule(), JavaTimeModule())
+      objectMapper = ObjectMapper().registerKotlinModule().apply {
+        registerModules(JavaTimeModule())
         registerSubtypes(MyEvent::class.java)
       },
       applicationEventPublisher = applicationEventPublisher,

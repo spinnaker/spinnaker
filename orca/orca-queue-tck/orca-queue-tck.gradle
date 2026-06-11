@@ -25,7 +25,7 @@ dependencies {
   implementation(project(":orca-core"))
   implementation(project(":orca-kotlin"))
   implementation(project(":orca-test"))
-  implementation("com.nhaarman:mockito-kotlin:1.5.0")
+  implementation "org.mockito.kotlin:mockito-kotlin"
   implementation("org.assertj:assertj-core")
   implementation("org.springframework.boot:spring-boot-test")
   implementation(project(":keiko-mem"))

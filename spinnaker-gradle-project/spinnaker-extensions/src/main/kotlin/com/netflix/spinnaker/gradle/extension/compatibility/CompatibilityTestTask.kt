@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.gradle.extension.compatibility
 
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.testing.Test
 
-open class CompatibilityTestTask : Test() {
+abstract class CompatibilityTestTask : Test() {
 
-  @OutputFile
-  val result: RegularFileProperty = project.objects.fileProperty()
+  @get:OutputFile
+  abstract val result: RegularFileProperty
 }

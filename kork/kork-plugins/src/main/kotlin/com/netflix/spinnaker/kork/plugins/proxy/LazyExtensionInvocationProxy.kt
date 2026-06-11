@@ -48,6 +48,9 @@ class LazyExtensionInvocationProxy(
 
   override fun invoke(proxy: Any, method: Method, args: Array<out Any>?) = delegate.invoke(proxy, method, args)
 
+  /**
+   * Factory object for wrapping a [SpinnakerExtensionPoint] in a [LazyExtensionInvocationProxy].
+   */
   companion object {
     /**
      * Factory method for wrapping a [SpinnakerExtensionPoint] in a [LazyExtensionInvocationProxy].
