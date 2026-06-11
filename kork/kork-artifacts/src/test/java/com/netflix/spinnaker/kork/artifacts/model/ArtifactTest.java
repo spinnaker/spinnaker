@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
@@ -53,7 +53,7 @@ final class ArtifactTest {
     // This avoids needing to write out all null values in our expected JSON and is how the
     // objectMapper in orca/clouddriver are configured.
     snakeObjectMapper.setSerializationInclusion(Include.NON_NULL);
-    snakeObjectMapper.setPropertyNamingStrategy(new PropertyNamingStrategy.SnakeCaseStrategy());
+    snakeObjectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
   }
 
   private static final JsonNodeFactory jsonFactory = JsonNodeFactory.instance;

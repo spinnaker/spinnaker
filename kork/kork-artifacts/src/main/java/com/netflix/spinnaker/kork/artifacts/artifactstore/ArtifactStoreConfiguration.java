@@ -40,7 +40,7 @@ public class ArtifactStoreConfiguration {
    * Unfortunately, @JsonDeserializer will construct its own deserializer utilizing beans and thus
    * not using the object mapper we want to use
    */
-  @Bean
+  @Bean(name = "artifactObjectMapper")
   public ObjectMapper artifactObjectMapper() {
     return new ObjectMapper();
   }

@@ -64,6 +64,9 @@ data class PluginRef(
    */
   val libsDirs: List<String>
 ) {
+  /**
+   * Companion object providing utilities for loading and validating PluginRef files.
+   */
   companion object {
     /**
      * The PluginRef file extension name.

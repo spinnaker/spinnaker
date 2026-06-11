@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
@@ -39,7 +39,7 @@ public final class CloudFoundryClientUtils {
 
   private static final ObjectMapper mapper =
       new ObjectMapper()
-          .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
+          .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   public static <T> Optional<T> safelyCall(Supplier<Call<T>> r) {

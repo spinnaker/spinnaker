@@ -41,10 +41,10 @@ import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.context.WebApplicationContext;
@@ -65,7 +65,7 @@ class PipelineControllerTest {
 
   @Autowired ObjectMapper objectMapper;
 
-  @MockBean PipelineService pipelineService;
+  @MockitoBean PipelineService pipelineService;
 
   /**
    * This takes X-SPINNAKER-* headers from requests to gate and puts them in the MDC. This is
@@ -77,13 +77,13 @@ class PipelineControllerTest {
   private FilterRegistrationBean filterRegistrationBean;
 
   /** Mock the application service to disable the background thread that caches applications */
-  @MockBean ApplicationService applicationService;
+  @MockitoBean ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   /** To prevent periodic calls to clouddriver to query for accounts */
-  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
   private static final String APPLICATION = "my-application";
   private static final String PIPELINE_ID = "my-pipeline-id";

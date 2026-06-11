@@ -5,7 +5,7 @@ import com.netflix.spinnaker.keel.core.api.SubmittedDeliveryConfig
 import com.netflix.spinnaker.keel.jackson.readValueInliningAliases
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 
-inline fun <reified T> DynamicConfigService.getConfig(configName: String, defaultValue: T): T =
+inline fun <reified T : Any> DynamicConfigService.getConfig(configName: String, defaultValue: T): T =
   getConfig(T::class.java, configName, defaultValue)
 
 fun YAMLMapper.parseDeliveryConfig(rawDeliveryConfig: String): SubmittedDeliveryConfig {
