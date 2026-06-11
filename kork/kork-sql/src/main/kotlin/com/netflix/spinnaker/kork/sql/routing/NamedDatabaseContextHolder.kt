@@ -22,12 +22,21 @@ object NamedDatabaseContextHolder {
 
   private val context: ThreadLocal<String> = ThreadLocal()
 
+  /**
+   * Sets the named database context for the current thread.
+   */
   fun set(name: String) {
     context.set(name.lowercase())
   }
 
+  /**
+   * Gets the named database context for the current thread.
+   */
   fun get(): String? = context.get()
 
+  /**
+   * Clears the named database context for the current thread.
+   */
   fun clear() {
     context.remove()
   }

@@ -16,14 +16,14 @@
 
 plugins {
   // Apply the Kotlin JVM plugin to add support for Kotlin.
-  id("org.jetbrains.kotlin.jvm").version("1.3.72")
+  id("org.jetbrains.kotlin.jvm").version("1.9.25")
   `kotlin-dsl`
 }
 
 dependencies {
   implementation("org.gradle.crypto.checksum:org.gradle.crypto.checksum.gradle.plugin:1.4.0")
 
-  implementation(platform("com.fasterxml.jackson:jackson-bom:2.11.1"))
+  implementation(platform("com.fasterxml.jackson:jackson-bom:2.21.2"))
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api")
@@ -40,9 +40,9 @@ dependencies {
 
   testImplementation("org.assertj:assertj-core:3.27.7")
 
-  testImplementation("org.junit.jupiter:junit-jupiter-params:5.0.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.4")
 
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.0.0")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.4")
 }
 
 tasks.test {
@@ -98,7 +98,7 @@ configurations.getByName("functionaltestImplementation").extendsFrom(configurati
 configurations.getByName("functionaltestRuntimeOnly").extendsFrom(configurations.getByName("testRuntimeOnly"))
 
 // Add a task to run the functional tests
-val functionalTest by tasks.creating(Test::class) {
+val functionalTest by tasks.registering(Test::class) {
   testClassesDirs = functionalTestSourceSet.output.classesDirs
   classpath = functionalTestSourceSet.runtimeClasspath
   useJUnitPlatform()

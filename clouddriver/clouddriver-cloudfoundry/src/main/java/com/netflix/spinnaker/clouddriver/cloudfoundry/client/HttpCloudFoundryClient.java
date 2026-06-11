@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.*;
@@ -89,7 +89,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     this.password = password;
 
     ObjectMapper mapper = new ObjectMapper();
-    mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+    mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE);
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
     mapper.registerModule(new JavaTimeModule());

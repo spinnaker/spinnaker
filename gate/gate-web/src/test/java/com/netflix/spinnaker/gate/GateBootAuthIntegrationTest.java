@@ -12,9 +12,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @TestPropertySource(
     properties = {
@@ -32,16 +32,16 @@ public abstract class GateBootAuthIntegrationTest {
 
   @Autowired ObjectMapper objectMapper;
 
-  @MockBean PipelineService pipelineService;
+  @MockitoBean PipelineService pipelineService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   /** to prevent period application loading */
-  @MockBean ApplicationService applicationService;
+  @MockitoBean ApplicationService applicationService;
 
   /** To prevent attempts to load accounts */
-  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
   /** Generate a request to a gate endpoint that uses authorization and fails. */
   protected HttpResponse<String> callGateWithPath(String urlPath, String methodType)

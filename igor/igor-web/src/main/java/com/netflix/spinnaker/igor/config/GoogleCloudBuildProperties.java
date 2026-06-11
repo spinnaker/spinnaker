@@ -30,7 +30,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @ConfigurationProperties(prefix = "gcb")
 @Data
@@ -53,7 +52,6 @@ public class GoogleCloudBuildProperties {
     private final Permissions permissions;
 
     @Builder
-    @ConstructorBinding
     @ParametersAreNullableByDefault
     public Account(
         String name,

@@ -30,7 +30,7 @@ apply plugin: "kotlin"
 apply plugin: "kotlin-spring"
 
 dependencies {
-  testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  testImplementation "org.jetbrains.kotlin:kotlin-stdlib"
 
   testImplementation "org.junit.jupiter:junit-jupiter-api"
   testImplementation "org.junit.platform:junit-platform-runner"
@@ -38,7 +38,7 @@ dependencies {
   testImplementation "io.strikt:strikt-core"
   testImplementation "dev.minutest:minutest"
   testImplementation "io.mockk:mockk"
-  testImplementation "com.nhaarman:mockito-kotlin"
+  testImplementation "org.mockito.kotlin:mockito-kotlin"
   testImplementation "org.spekframework.spek2:spek-dsl-jvm"
 
   testRuntimeOnly "org.junit.platform:junit-platform-launcher"
@@ -48,24 +48,31 @@ dependencies {
 }
 
 test {
-  useJUnitPlatform {
-    includeEngines "junit-vintage", "junit-jupiter"
-  }
+  useJUnitPlatform()
 }
 
 compileKotlin {
   kotlinOptions {
-    languageVersion = "1.8"
+    // LIKELY hitting https://youtrack.jetbrains.com/projects/KT/issues/KT-78909/K2-Missing-diagnostics-CYCLICINHERITANCEHIERARCHY-for-recursive-class-inheritance-leads-to-StackOverflowError?_gl=1*1jq5htm*_gcl_au*NTY4NTA4OTk2LjE3NzczMDU5MjA.*_ga*MTk0Njk1MDEzNS4xNzc3MzA1OTIx*_ga_9J976DJZ68*czE3Nzg3MDg4NDIkbzQkZzEkdDE3Nzg3MDkwOTQkajU5JGwwJGgw
+    // on version 2.0 of the language.  Can test with 2.3 and fix later
+    languageVersion = "1.9"
     jvmTarget = "17"
+// Changes made also in SpinnakerBaseProjectConventionPlugin
+    freeCompilerArgs += "-java-parameters"
+    javaParameters = true
     // see https://kotlinlang.org/docs/java-to-kotlin-interop.html#compatibility-mode-for-default-methods
     freeCompilerArgs += "-Xjvm-default=all-compatibility"
   }
 }
-
 compileTestKotlin {
   kotlinOptions {
-    languageVersion = "1.8"
+    // LIKELY hitting https://youtrack.jetbrains.com/projects/KT/issues/KT-78909/K2-Missing-diagnostics-CYCLICINHERITANCEHIERARCHY-for-recursive-class-inheritance-leads-to-StackOverflowError?_gl=1*1jq5htm*_gcl_au*NTY4NTA4OTk2LjE3NzczMDU5MjA.*_ga*MTk0Njk1MDEzNS4xNzc3MzA1OTIx*_ga_9J976DJZ68*czE3Nzg3MDg4NDIkbzQkZzEkdDE3Nzg3MDkwOTQkajU5JGwwJGgw
+    // on version 2.0 of the language.  Can test with 2.3 and fix later
+    languageVersion = "1.9"
     jvmTarget = "17"
+// Changes made also in SpinnakerBaseProjectConventionPlugin
+    freeCompilerArgs += "-java-parameters"
+    javaParameters = true
     freeCompilerArgs += "-Xjvm-default=all-compatibility"
   }
 }

@@ -41,11 +41,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(
     classes = {
@@ -61,8 +61,8 @@ import org.springframework.test.context.TestPropertySource;
 public class SqlExecutionRepositoryReadReplicaTest {
   @Autowired ExecutionRepository executionRepository;
 
-  @MockBean OkHttpClientProvider okHttpClientProvider;
-  @MockBean Clock clock;
+  @MockitoBean OkHttpClientProvider okHttpClientProvider;
+  @MockitoBean Clock clock;
   @Autowired DataSourceConnectionProvider dataSourceConnectionProvider;
   @Autowired ObjectMapper mapper;
   private static final String primaryInstanceUrl = SqlTestUtil.tcJdbcUrl;

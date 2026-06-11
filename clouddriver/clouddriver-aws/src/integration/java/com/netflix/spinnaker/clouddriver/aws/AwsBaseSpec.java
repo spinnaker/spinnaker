@@ -38,10 +38,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /** Base class with common config and helper methods for test classes */
 @Import(AwsTestConfiguration.class)
@@ -57,9 +57,9 @@ public abstract class AwsBaseSpec {
   @Value("${aws.enabled}")
   protected Boolean AWS_ENABLED;
 
-  @MockBean protected AmazonClientProvider mockAwsClientProvider;
-  @MockBean protected RegionScopedProviderFactory.RegionScopedProvider mockRegionScopedProvider;
-  @MockBean protected Front50Service mockFront50Service;
+  @MockitoBean protected AmazonClientProvider mockAwsClientProvider;
+  @MockitoBean protected RegionScopedProviderFactory.RegionScopedProvider mockRegionScopedProvider;
+  @MockitoBean protected Front50Service mockFront50Service;
 
   @LocalServerPort int port;
 
