@@ -57,10 +57,10 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import retrofit2.mock.Calls;
 
@@ -103,8 +103,8 @@ class DockerRegistryImageLookupControllerTest {
   @Autowired MockMvc mockMvc;
   @Autowired WriteableCache cache;
   @Autowired AccountCredentialsRepository accountCredentialsRepository;
-  @MockBean FiatStatus fiatStatus;
-  @MockBean FiatService fiatService;
+  @MockitoBean FiatStatus fiatStatus;
+  @MockitoBean FiatService fiatService;
 
   @BeforeEach
   void setUp() {

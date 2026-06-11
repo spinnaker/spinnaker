@@ -18,10 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type listOptions struct {
@@ -55,8 +52,11 @@ func NewListCmd(canaryConfigOptions *canaryConfigOptions) *cobra.Command {
 }
 
 func listCanaryConfig(cmd *cobra.Command, options *listOptions) error {
-	successPayload, resp, err := options.GateClient.V2CanaryConfigControllerApi.GetCanaryConfigs(
-		options.GateClient.Context, &gate.V2CanaryConfigControllerApiGetCanaryConfigsOpts{Application: optional.NewString(options.application)})
+	req := options.GateClient.V2CanaryConfigControllerAPI.GetCanaryConfigs(options.GateClient.Context)
+	if options.application != "" {
+		req = req.Application(options.application)
+	}
+	successPayload, resp, err := req.Execute()
 	if err != nil {
 		return err
 	}

@@ -46,7 +46,7 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
-import com.nhaarman.mockito_kotlin.*
+import org.mockito.kotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given

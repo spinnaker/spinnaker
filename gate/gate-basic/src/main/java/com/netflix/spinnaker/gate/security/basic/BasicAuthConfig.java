@@ -30,6 +30,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @ConditionalOnExpression("${security.basicform.enabled:false}")
@@ -56,10 +57,17 @@ public class BasicAuthConfig {
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(2)
+  @Order(3)
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     defaultCookieSerializer.setSameSite(null);
+
+    // Configure request cache to save original requests.  This enables the "continue" by doing a
+    // session lookup
+    // See: https://stackoverflow.com/a/75228661
+    HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+    requestCache.setMatchingRequestParameterName(null);
     http.formLogin(Customizer.withDefaults())
+        .requestCache(cache -> cache.requestCache(requestCache))
         .authenticationProvider(authProvider)
         .httpBasic(
             basic ->

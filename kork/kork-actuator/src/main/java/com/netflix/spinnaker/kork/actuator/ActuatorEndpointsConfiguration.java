@@ -33,6 +33,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class ActuatorEndpointsConfiguration {
 
   @Bean
+  @Order(1)
   public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
     // The health endpoint should always be exposed without auth.
     http.securityMatcher(EndpointRequest.to(HealthEndpoint.class));

@@ -55,7 +55,7 @@ class TestPluginGenerator(
       val message = compilerSetup.diagnostics.diagnostics.joinToString(separator = System.lineSeparator()) {
         "${it.kind} in ${it.source} on line ${it.lineNumber} at ${it.columnNumber}: ${it.getMessage(null)}"
       }
-      throw IllegalStateException("generation failed: ${System.lineSeparator()}$message")
+      error("generation failed: ${System.lineSeparator()}$message")
     }
   }
 
