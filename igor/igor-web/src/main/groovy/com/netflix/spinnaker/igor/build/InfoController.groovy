@@ -52,7 +52,7 @@ class InfoController {
     @Autowired(required = false)
     GoogleCloudBuildProperties gcbProperties
 
-    @RequestMapping(value = '/masters', method = RequestMethod.GET)
+    @RequestMapping(value = ['/masters', '/masters/'], method = RequestMethod.GET)
     @PostFilter("hasPermission(filterObject, 'BUILD_SERVICE', 'READ')")
     List<String> listMasters(@RequestParam(value = "type", defaultValue = "") String type) {
 
@@ -65,7 +65,7 @@ class InfoController {
         }
     }
 
-    @RequestMapping(value = '/buildServices', method = RequestMethod.GET)
+    @RequestMapping(value = ['/buildServices', 'buildServices/'], method = RequestMethod.GET)
     List<BuildService> getAllBuildServices() {
       List<BuildService> allBuildServices = new ArrayList<>(buildServices.allBuildServices)
       // GCB accounts are not part of com.netflix.spinnaker.igor.service.BuildServices class.
@@ -76,7 +76,7 @@ class InfoController {
       return allBuildServices
     }
 
-    @RequestMapping(value = '/jobs/{master:.+}', method = RequestMethod.GET)
+    @RequestMapping(value = ['/jobs/{master:.+}', '/jobs/{master:.+}/'], method = RequestMethod.GET)
     @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
     List<String> getJobs(@PathVariable String master) {
         def buildService = buildServices.getService(master)
@@ -109,9 +109,9 @@ class InfoController {
         }
     }
 
-    @RequestMapping(value = '/jobs/{master:.+}/**')
+    @RequestMapping(value = ['/jobs/{master}/**'])
     @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
-    Object getJobConfig(@PathVariable String master, HttpServletRequest request) {
+    Object getJobConfig(@PathVariable(name="master") String master, HttpServletRequest request) {
         def job = (String) request.getAttribute(
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(3).join('/')
         def service = buildServices.getService(master)

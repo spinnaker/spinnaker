@@ -23,13 +23,14 @@ import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
+import java.time.Duration;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
@@ -37,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import redis.clients.jedis.JedisPool;
@@ -65,15 +67,15 @@ class BasicAuthWithApiTokenIntegrationTest {
 
   @Autowired TestRestTemplate restTemplate;
 
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
-  @MockBean ApplicationService applicationService;
-  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean ApplicationService applicationService;
+  @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
   /** Prevents real Redis connections required by {@link RedisApiTokenRepository}. */
-  @MockBean JedisPool jedisPool;
+  @MockitoBean JedisPool jedisPool;
 
   /** Mocked so tests control which tokens resolve, without a real Redis store. */
-  @MockBean ApiTokenService apiTokenService;
+  @MockitoBean ApiTokenService apiTokenService;
 
   @BeforeEach
   void setup() {
@@ -91,7 +93,15 @@ class BasicAuthWithApiTokenIntegrationTest {
       "negative control — without a token header, unauthenticated request still redirects to"
           + " /login (so the 200 in validTokenRequestSucceeds is attributable to the token filter)")
   void unauthenticatedRequestRedirects() {
-    var response = restTemplate.exchange("/hello", HttpMethod.GET, null, String.class);
+    var response =
+        restTemplate
+            .withRequestFactorySettings(
+                new ClientHttpRequestFactorySettings(
+                    ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW,
+                    Duration.ofMillis(500),
+                    Duration.ofMillis(500),
+                    null))
+            .exchange("/hello", HttpMethod.GET, null, String.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
     assertThat(response.getHeaders().getLocation().getPath()).isEqualTo("/login");

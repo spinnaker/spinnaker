@@ -74,6 +74,7 @@ runs:
       with:
         project: ${{ inputs.project }}
 
+
     # Only run a full build and test cycle for pull_request events
     # Publishing actions run their own build tasks, as needed
     - name: Tests
@@ -83,6 +84,8 @@ runs:
       env:
         GRADLE_OPTS: ${{ inputs.gradle-opts }}
       run: |
+        ## GHA Blocks rebinding attack based which causes some tests to fail.  This changes this
+        sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
         ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false --stacktrace ':${{ inputs.project }}:build'
 
     # If configured, build a container, publish it locally, and run its tests
@@ -117,7 +120,10 @@ runs:
         FULL_DOCKER_IMAGE_NAME: "${{ inputs.project }}-${{ steps.version.outputs.version }}-integration-test"
         GRADLE_OPTS: ${{ inputs.gradle-opts }}
       shell: bash
-      run: ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false :${{ inputs.project }}:${{ inputs.project }}-integration:test
+      run: |
+        ## GHA Blocks rebinding attack based which causes some tests to fail.  This changes this
+        sudo sh -c 'echo "nameserver 1.1.1.1" > /etc/resolv.conf'
+        ./gradlew ${{ inputs.gradle-cmd-opts }} -Dorg.gradle.daemon=false :${{ inputs.project }}:${{ inputs.project }}-integration:test
 
     # Containers should generally be built in PRs to ensure that Dockerfiles are functioning properly
     - name: Build/Publish Docker containers

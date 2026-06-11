@@ -52,7 +52,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("dev.minutest:minutest")
-  testImplementation("com.nhaarman:mockito-kotlin")
+  testImplementation("org.mockito.kotlin:mockito-kotlin")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("org.testcontainers:mysql")
   testImplementation("org.testcontainers:postgresql")
@@ -61,6 +61,7 @@ dependencies {
   testRuntimeOnly("com.mysql:mysql-connector-j")
   testRuntimeOnly("org.postgresql:postgresql")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly(project(":keiko-sql")) // so SpringLiquibaseProxy has changelog-keiko.yml
 }
 

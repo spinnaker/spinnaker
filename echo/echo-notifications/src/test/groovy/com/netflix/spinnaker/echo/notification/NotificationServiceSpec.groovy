@@ -15,30 +15,26 @@
  */
 
 package com.netflix.spinnaker.echo.notification
-
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
 import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.twilio.TwilioNotificationService
 import com.netflix.spinnaker.echo.twilio.TwilioService
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerNonWebConfiguration
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties
+import org.spockframework.spring.EnableSharedInjection
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import retrofit2.mock.Calls
 import spock.lang.Shared
 import spock.lang.Specification
-
+@SpringBootTest(classes = [FreeMarkerAutoConfiguration.class, NotificationTemplateEngine.class], properties = [
+    "spring.freemarker.prefer-file-system-access = true",
+    "spinnaker.base-url=SPINNAKER_URL"
+  ])
+@EnableSharedInjection
 class NotificationServiceSpec extends Specification {
-  @Shared
-  def notificationTemplateEngine
 
-  void setup() {
-    def properties = new FreeMarkerProperties()
-    def autoconfig = new FreeMarkerNonWebConfiguration(properties)
-    def config = autoconfig.freeMarkerConfiguration()
-    config.afterPropertiesSet()
-    notificationTemplateEngine = new NotificationTemplateEngine(
-        configuration: config.object,
-        spinnakerUrl: "SPINNAKER_URL"
-    )
-  }
+   @Autowired
+   @Shared
+    NotificationTemplateEngine notificationTemplateEngine
 
   void "should send generic twilio message"() {
     given:

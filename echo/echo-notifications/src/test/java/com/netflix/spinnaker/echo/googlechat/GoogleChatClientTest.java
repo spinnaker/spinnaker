@@ -36,7 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -47,7 +47,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
       OkHttp3ClientConfiguration.class,
       OkHttpClientComponents.class,
       RetrofitConfiguration.class,
-      TaskExecutorBuilder.class,
+      SimpleAsyncTaskExecutorBuilder.class,
       NoopRegistry.class
     })
 public class GoogleChatClientTest {

@@ -21,7 +21,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -56,9 +55,8 @@ func cancelExecution(cmd *cobra.Command, options *cancelOptions, args []string) 
 		return errors.New("no execution id supplied, exiting")
 	}
 
-	resp, err := options.GateClient.PipelineControllerApi.CancelPipeline(options.GateClient.Context,
-		executionId,
-		&gate.PipelineControllerApiCancelPipelineOpts{})
+	resp, err := options.GateClient.PipelineControllerAPI.CancelPipeline(options.GateClient.Context,
+		executionId).Execute()
 	if err != nil {
 		return err
 	}

@@ -42,8 +42,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -69,19 +69,19 @@ class ApplicationControllerTest {
 
   MockMvc mockMvc;
 
-  @MockBean Front50Service front50Service;
+  @MockitoBean Front50Service front50Service;
 
-  @MockBean ClouddriverServiceSelector clouddriverSelector;
+  @MockitoBean ClouddriverServiceSelector clouddriverSelector;
 
-  @MockBean ClouddriverService clouddriver;
+  @MockitoBean ClouddriverService clouddriver;
 
-  @MockBean ApplicationConfigurationProperties applicationConfigurationProperties;
+  @MockitoBean ApplicationConfigurationProperties applicationConfigurationProperties;
 
-  @MockBean ExecutionHistoryService executionHistoryService;
+  @MockitoBean ExecutionHistoryService executionHistoryService;
 
-  @MockBean TaskService taskService;
+  @MockitoBean TaskService taskService;
 
-  @MockBean PipelineController pipelineController;
+  @MockitoBean PipelineController pipelineController;
 
   @BeforeEach
   void setup() {

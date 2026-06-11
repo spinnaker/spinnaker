@@ -41,8 +41,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,19 +60,19 @@ public class ResponseHeaderInterceptorTest {
   private static final String TEST_EXECUTION_TYPE = "Test-Execution-Type";
   private static final String TEST_APPLICATION = "Test-Application";
 
-  @MockBean private ClouddriverService mockClouddriverService;
+  @MockitoBean private ClouddriverService mockClouddriverService;
 
-  @MockBean private ServiceClientProvider mockServiceClientProvider;
+  @MockitoBean private ServiceClientProvider mockServiceClientProvider;
 
-  @MockBean private ApplicationService mockApplicationService;
+  @MockitoBean private ApplicationService mockApplicationService;
 
-  @MockBean private PermissionService mockPermissionService;
+  @MockitoBean private PermissionService mockPermissionService;
 
-  @MockBean private FiatService mockFiatService;
+  @MockitoBean private FiatService mockFiatService;
 
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
+  @MockitoBean private ExtendedFiatService mockExtendedFiatService;
 
-  @MockBean private Front50Service mockFront50Service;
+  @MockitoBean private Front50Service mockFront50Service;
 
   @RestController
   @RequestMapping(value = API_BASE)

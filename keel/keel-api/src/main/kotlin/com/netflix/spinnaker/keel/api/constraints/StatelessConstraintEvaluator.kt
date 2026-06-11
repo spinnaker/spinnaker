@@ -31,7 +31,6 @@ interface StatelessConstraintEvaluator<T: Constraint, A : ConstraintStateAttribu
    * If a summary of the constraint will not be shown to the user (like with an implicit constraint)
    * this function does not need to be implemented.
    */
-  @JvmDefault
   fun generateConstraintStateSnapshot(
     artifact: DeliveryArtifact,
     version: String,

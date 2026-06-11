@@ -39,10 +39,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(classes = {Main.class})
 @TestPropertySource("/application-echo.properties")
@@ -53,10 +53,10 @@ class EchoServiceTest {
   /**
    * To prevent refreshing the applications cache, which involves calls to clouddriver and front50.
    */
-  @MockBean ApplicationService applicationService;
+  @MockitoBean ApplicationService applicationService;
 
   /** To prevent calls to clouddriver */
-  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
   /** See https://wiremock.org/docs/junit-jupiter/#advanced-usage---programmatic */
   @RegisterExtension
