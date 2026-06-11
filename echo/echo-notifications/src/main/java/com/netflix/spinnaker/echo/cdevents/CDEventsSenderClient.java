@@ -18,13 +18,12 @@ package com.netflix.spinnaker.echo.cdevents;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 public interface CDEventsSenderClient {
   @POST("{brokerUrl}")
-  Call<Response<ResponseBody>> sendCDEvent(
+  Call<ResponseBody> sendCDEvent(
       @Body String cdEvent, @Path(value = "brokerUrl", encoded = true) String brokerUrl);
 }
