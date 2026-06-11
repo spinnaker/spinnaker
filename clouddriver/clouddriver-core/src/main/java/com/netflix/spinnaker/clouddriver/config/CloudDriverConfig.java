@@ -161,7 +161,7 @@ class CloudDriverConfig {
               new Jdk8Module(),
               new JavaTimeModule(),
               new JodaModule(),
-              new KotlinModule(),
+              new KotlinModule.Builder().build(),
               new ClouddriverApiModule()));
       jacksonObjectMapperBuilder.serializationInclusion(JsonInclude.Include.NON_NULL);
       jacksonObjectMapperBuilder.failOnEmptyBeans(false);

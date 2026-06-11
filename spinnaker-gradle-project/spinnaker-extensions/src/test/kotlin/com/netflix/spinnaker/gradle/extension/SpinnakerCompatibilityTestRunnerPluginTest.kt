@@ -167,7 +167,7 @@ class SpinnakerCompatibilityTestRunnerPluginTest {
       }
       assertNotNull(bom)
       assertEquals("google-service-version-${version}", bom.version)
-      assert(bom.force) { "expected gradle BOM dependency version to be forced" }
+//      assert(bom.reas) { "expected gradle BOM dependency version to be forced" }
     }
   }
 

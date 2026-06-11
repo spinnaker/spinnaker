@@ -57,23 +57,22 @@ import com.netflix.spinnaker.q.DeadMessageCallback
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.q.memory.InMemoryQueue
 import com.netflix.spinnaker.q.metrics.EventPublisher
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argThat
-import com.nhaarman.mockito_kotlin.check
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.whenever
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.check
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant.now
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit.HOURS
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -92,8 +91,6 @@ import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import java.util.concurrent.TimeUnit
-import java.util.function.Predicate
 
 @SpringBootTest(
   classes = [TestConfig::class],

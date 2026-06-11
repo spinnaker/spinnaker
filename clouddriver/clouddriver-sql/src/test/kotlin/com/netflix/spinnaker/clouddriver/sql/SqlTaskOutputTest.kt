@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.sql
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import dev.minutest.junit.JUnit5Minutests
@@ -98,8 +99,8 @@ class SqlTaskOutputTest : JUnit5Minutests {
 
     val subject = SqlTaskRepository(
       jooq = database.context,
-      mapper = ObjectMapper().apply {
-        registerModules(KotlinModule(), JavaTimeModule())
+      mapper = ObjectMapper().registerKotlinModule().apply {
+        registerModules(JavaTimeModule())
       },
       clock = Clock.systemDefaultZone(),
       poolName = ConnectionPools.TASKS.value
