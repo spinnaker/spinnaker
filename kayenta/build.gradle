@@ -67,8 +67,8 @@ subprojects { project ->
         api "org.apache.commons:commons-math3:3.6.1"
         api 'org.scala-lang:scala-library-all:2.12.12'
         api 'org.scala-lang:scala-reflect:2.12.12'
-        api 'com.typesafe.scala-logging:scala-logging_2.12:3.9.2'
-        testImplementation 'org.scalatest:scalatest_2.12:3.0.9'
+        api 'com.typesafe.scala-logging:scala-logging_2.12:3.9.6'
+        testImplementation 'org.scalatest:scalatest_2.12:3.2.20'
         testRuntimeOnly 'org.scalatestplus:junit-5-9_2.12:3.2.16.0'
       }
       implementation enforcedPlatform("io.spinnaker.orca:orca-bom")
@@ -95,7 +95,7 @@ subprojects { project ->
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.objenesis:objenesis"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-      testRuntimeOnly "org.junit.vintage:junit-vintage-engine" //Required for spock tests to execute along with junit5 tests
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
   }
 

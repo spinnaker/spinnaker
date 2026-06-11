@@ -5,7 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.jvm.tasks.Jar
 
@@ -36,7 +36,7 @@ class SpinnakerApplicationPlugin implements Plugin<Project> {
             }
         }
         project.plugins.withType(JavaBasePlugin) {
-            def java = project.convention.getPlugin(JavaPluginConvention)
+            def java = project.extensions.getByType(JavaPluginExtension)
             def mainSrc = java.sourceSets.getByName('main')
             mainSrc.resources.srcDir('src/main/resources')
             mainSrc.resources.srcDir('config')

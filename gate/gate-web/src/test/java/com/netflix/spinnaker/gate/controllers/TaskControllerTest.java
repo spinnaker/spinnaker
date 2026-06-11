@@ -42,13 +42,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -68,15 +68,15 @@ class TaskControllerTest {
   @Qualifier("authenticatedRequestFilter")
   private FilterRegistrationBean filterRegistrationBean;
 
-  @MockBean ClouddriverServiceSelector clouddriverServiceSelector;
+  @MockitoBean ClouddriverServiceSelector clouddriverServiceSelector;
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockitoBean ClouddriverService clouddriverService;
 
   /** Prevents the background application cache refresh from running during tests. */
-  @MockBean ApplicationService applicationService;
+  @MockitoBean ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   private static final String USERNAME = "some-user";
   private static final String TASK_ID = "test-task-id";

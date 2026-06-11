@@ -39,7 +39,6 @@ interface StatefulConstraintEvaluator<CONSTRAINT : Constraint, ATTRIBUTES : Cons
 
   val repository: ConstraintRepository
 
-  @JvmDefault
   override fun canPromote(
     artifact: DeliveryArtifact,
     version: String,
@@ -111,7 +110,6 @@ interface StatefulConstraintEvaluator<CONSTRAINT : Constraint, ATTRIBUTES : Cons
    * Don't implement both [onConstraintStateChanged] and [onConstraintStateChangedWithNotification], because both
    * will be called.
    */
-  @JvmDefault
   @Deprecated(
     message = "Implement the new method with notifications",
     replaceWith = ReplaceWith("onConstraintStateChangedWithNotification")
@@ -127,7 +125,6 @@ interface StatefulConstraintEvaluator<CONSTRAINT : Constraint, ATTRIBUTES : Cons
    * Don't implement both [onConstraintStateChanged] and [onConstraintStateChangedWithNotification], because both
    * will be called.
    */
-  @JvmDefault
   fun onConstraintStateChangedWithNotification(event: ConstraintStateChanged): PluginNotificationConfig? {
     // default implementation is a no-op
     return null
@@ -140,6 +137,5 @@ interface StatefulConstraintEvaluator<CONSTRAINT : Constraint, ATTRIBUTES : Cons
    * Return true to allow this constraint to be able to flip from pass to fail.
    * Otherwise, once the constraint enters a pass/fail state, it stays there forever.
    */
-  @JvmDefault
   fun shouldAlwaysReevaluate(): Boolean = false
 }

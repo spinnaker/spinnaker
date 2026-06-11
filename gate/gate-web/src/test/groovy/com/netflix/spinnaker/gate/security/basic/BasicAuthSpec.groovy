@@ -36,7 +36,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
-import org.springframework.util.Base64Utils
 import spock.lang.Specification
 
 import jakarta.servlet.http.Cookie
@@ -84,7 +83,7 @@ class BasicAuthSpec extends Specification {
       .cookie(sessionCookie))
       .andDo(print())
       .andExpect(status().is(302))
-      .andExpect(redirectedUrl("http://localhost/credentials?continue"))
+      .andExpect(redirectedUrl("http://localhost/credentials"))
       .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
@@ -99,7 +98,7 @@ class BasicAuthSpec extends Specification {
   def "should return user object on correct credentials"() {
     when:
     def result = mockMvc.perform(get("/auth/user")
-      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64Utils.encodeToString("basic-user:basic-password".getBytes())))
+      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString("basic-user:basic-password".getBytes())))
       .andDo(print())
       .andExpect(status().isOk())
       .andReturn()
@@ -111,7 +110,7 @@ class BasicAuthSpec extends Specification {
   def "should redirect to login on bad credentials"() {
     when:
     def result = mockMvc.perform(get("/auth/user")
-      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64Utils.encodeToString("basic-user:badbad".getBytes())))
+      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString("basic-user:badbad".getBytes())))
       .andDo(print())
       .andExpect(status().is3xxRedirection())
       .andExpect(header().string("Location", "http://localhost/login"))
