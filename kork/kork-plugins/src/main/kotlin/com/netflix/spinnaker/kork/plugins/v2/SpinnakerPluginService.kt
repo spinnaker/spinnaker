@@ -135,7 +135,7 @@ class SpinnakerPluginService(
         lazy {
           // Force the plugin's initializer to run if it hasn't already.
           pluginContext.parent?.also { it.getBean(initializerBeanName) }
-            ?: throw IllegalStateException("Plugin context for \"${pluginId}\" was not configured with a parent context")
+            ?: error("Plugin context for \"${pluginId}\" was not configured with a parent context")
 
           // Fetch the extension from the plugin context.
           return@lazy pluginContext.getBean(pluginContextBeanName) as SpinnakerExtensionPoint

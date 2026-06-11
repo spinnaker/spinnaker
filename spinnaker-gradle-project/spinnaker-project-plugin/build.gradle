@@ -2,16 +2,21 @@ apply plugin: 'groovy'
 
 dependencies {
   implementation 'com.github.jk1:gradle-license-report:1.8'
-  implementation 'org.owasp:dependency-check-gradle:5.1.0'
+  implementation 'org.owasp:dependency-check-gradle:12.2.1'
   implementation "com.diffplug.spotless:spotless-plugin-gradle:7.2.1"
-  implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.0.201906121030-r'
-  implementation 'com.netflix.nebula:gradle-ospackage-plugin:12.1.1'
+  implementation 'org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r'
+  implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:7.3.0.202506031305-r") 
+  implementation 'com.netflix.nebula:gradle-ospackage-plugin:12.2.1'
+
+
   implementation 'gradle.plugin.com.google.cloud.artifactregistry:artifactregistry-gradle-plugin:2.2.1'
   implementation platform('com.google.cloud:libraries-bom:26.1.4')
 
   implementation 'com.google.cloud:google-cloud-storage'
-  implementation 'com.google.apis:google-api-services-artifactregistry:v1beta2-rev20221022-2.0.0'
+  implementation 'com.google.cloud:google-cloud-artifact-registry'
   implementation 'com.google.api-client:google-api-client:2.0.0'
+  implementation 'com.google.cloud.artifactregistry.gradle-plugin:com.google.cloud.artifactregistry.gradle-plugin.gradle.plugin:2.2.5'
+
   implementation 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
   implementation 'io.github.gradle-nexus:publish-plugin:2.0.0'
 }

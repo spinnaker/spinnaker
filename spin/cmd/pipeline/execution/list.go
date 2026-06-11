@@ -20,10 +20,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type listOptions struct {
@@ -71,9 +68,8 @@ func listExecution(cmd *cobra.Command, options *listOptions) error {
 		return errors.New("required parameter 'pipeline-id' not set")
 	}
 
-	query := &gate.ExecutionsControllerApiGetLatestExecutionsByConfigIdsOpts{
-		PipelineConfigIds: optional.NewString(options.pipelineConfigId),
-	}
+	req := options.GateClient.ExecutionsControllerAPI.GetLatestExecutionsByConfigIds(options.GateClient.Context)
+	req = req.PipelineConfigIds(options.pipelineConfigId)
 
 	var statuses []string
 	if options.running {
@@ -89,15 +85,14 @@ func listExecution(cmd *cobra.Command, options *listOptions) error {
 		statuses = append(statuses, "CANCELED")
 	}
 	if len(statuses) > 0 {
-		query.Statuses = optional.NewString(strings.Join(statuses, ","))
+		req = req.Statuses(strings.Join(statuses, ","))
 	}
 
 	if options.limit > 0 {
-		query.Limit = optional.NewInt32(options.limit)
+		req = req.Limit(options.limit)
 	}
 
-	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIds(
-		options.GateClient.Context, query)
+	successPayload, resp, err := req.Execute()
 	if err != nil {
 		return err
 	}
