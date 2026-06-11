@@ -35,8 +35,8 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -45,7 +45,7 @@ class SubnetControllerTest {
 
   @Autowired SubnetController subnetController;
 
-  @MockBean private ClouddriverServiceSelector clouddriverServiceSelector;
+  @MockitoBean private ClouddriverServiceSelector clouddriverServiceSelector;
 
   private ClouddriverService clouddriverService;
 

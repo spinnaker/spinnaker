@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.gitClient
 
-import com.jcraft.jsch.JSch
-import com.jcraft.jsch.JSchException
-import com.jcraft.jsch.Session
 import groovy.util.logging.Slf4j
 import org.eclipse.jgit.api.TransportConfigCallback
-import org.eclipse.jgit.transport.JschConfigSessionFactory
-import org.eclipse.jgit.transport.OpenSshConfig
 import org.eclipse.jgit.transport.SshSessionFactory
 import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.Transport
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
+import org.eclipse.jgit.transport.sshd.SshdSessionFactory
+import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder
 import org.eclipse.jgit.util.FS
+import org.apache.sshd.client.config.hosts.HostConfigEntry
+import org.apache.sshd.common.session.SessionContext
+import java.io.File
+import java.nio.file.Path
 
 // Taken from http://www.codeaffine.com/2014/12/09/jgit-authentication/
 @Slf4j
@@ -91,29 +92,36 @@ class AppengineGitCredentials {
                                                String sshKnownHostsFilePath,
                                                boolean sshTrustUnknownHosts) {
     if (sshPrivateKeyFilePath && sshPrivateKeyPassphrase) {
-      SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-        @Override
-        protected void configure(OpenSshConfig.Host hc, Session session) {
-          if (sshKnownHostsFilePath == null && sshTrustUnknownHosts) {
-            session.setConfig("StrictHostKeyChecking", "no")
-          }
-        }
+      def builder = new SshdSessionFactoryBuilder()
 
-        @Override
-        protected JSch createDefaultJSch(FS fs) throws JSchException {
-          JSch defaultJSch = super.createDefaultJSch(fs)
-          defaultJSch.addIdentity(sshPrivateKeyFilePath, sshPrivateKeyPassphrase)
-
-          if (sshKnownHostsFilePath != null && sshTrustUnknownHosts) {
-            log.warn("SSH known_hosts file path supplied, ignoring 'sshTrustUnknownHosts' option")
-          }
-          if (sshKnownHostsFilePath != null) {
-            defaultJSch.setKnownHosts(sshKnownHostsFilePath)
-          }
-
-          return defaultJSch
-        }
+      // Configure the home directory and SSH directory
+      File sshDir = FS.DETECTED.userHome() != null ? new File(FS.DETECTED.userHome(), ".ssh") : null
+      if (sshDir != null) {
+        builder.setHomeDirectory(FS.DETECTED.userHome())
+        builder.setSshDirectory(sshDir)
       }
+
+      // Set the private key file
+      File privateKeyFile = new File(sshPrivateKeyFilePath)
+      builder.setDefaultKeysProvider(file -> {
+        return [privateKeyFile.toPath()]
+      })
+
+      // Configure known hosts
+      if (sshKnownHostsFilePath != null) {
+        if (sshTrustUnknownHosts) {
+          log.warn("SSH known_hosts file path supplied, ignoring 'sshTrustUnknownHosts' option")
+        }
+        File knownHostsFile = new File(sshKnownHostsFilePath)
+        builder.setServerKeyDatabase((home, session) -> {
+          return knownHostsFile
+        })
+      } else if (sshTrustUnknownHosts) {
+        // Accept all host keys without verification
+        builder.setServerKeyDatabase((home, session) -> null)
+      }
+
+      SshSessionFactory sshSessionFactory = builder.build(null)
 
       sshTransportConfigCallback = new TransportConfigCallback() {
         @Override

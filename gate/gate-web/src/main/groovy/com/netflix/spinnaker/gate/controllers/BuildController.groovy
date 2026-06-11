@@ -55,7 +55,7 @@ class BuildController {
 
   @Operation(summary = "Get jobs for build master", description = "Deprecated, use the v3 endpoint instead")
   @RequestMapping(value = "/v2/builds/{buildMaster}/jobs", method = RequestMethod.GET)
-  List<String> getJobsForBuildMaster(@PathVariable("buildMaster") String buildMaster) {
+  List<String> getJobsForBuildMaster(@PathVariable String buildMaster) {
     log.debug(DEPRECATION_NOTICE_MESSAGE)
     buildService.getJobsForBuildMaster(buildMaster)
   }
