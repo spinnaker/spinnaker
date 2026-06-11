@@ -12,4 +12,5 @@ dependencies {
   implementation(project(":kork-crypto"))
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.apache.httpcomponents.client5:httpclient5"
 }

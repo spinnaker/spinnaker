@@ -28,7 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.credentials.CredentialsRepository
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import org.springframework.scheduling.support.CronSequenceGenerator
+import org.springframework.scheduling.support.CronExpression
 
 /**
  * Common validation routines for standard description attributes.
@@ -565,9 +565,12 @@ class StandardGceAttributeValidator {
   }
 
   def validateCronExpression(String expression, String attribute) {
-    def result = CronSequenceGenerator.isValidExpression("* " + expression)
-    if(!result){
+    def result = true
+    try {
+      CronExpression.parse("* " + expression)
+    } catch (IllegalArgumentException e) {
       errors.rejectValue attribute, "${context}.${attribute} must be a valid CRON expression."
+      result = false
     }
     return result
   }

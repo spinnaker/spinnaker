@@ -10,10 +10,10 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.config.TaskOverrideConfigurationProperties
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.whenever
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
@@ -74,8 +74,8 @@ object DynamicTaskImplementationResolverTest : SubjectSpek<DynamicTaskImplementa
       }
 
       it("returns task node t2 as result impl but name remains same") {
-        assertThat(resultNode?.implementingClassName?.toLowerCase()).isEqualTo("com.netflix.spinnaker.orca.task2")
-        assertThat(resultNode?.name?.toLowerCase()).isEqualTo("t1")
+        assertThat(resultNode?.implementingClassName?.lowercase()).isEqualTo("com.netflix.spinnaker.orca.task2")
+        assertThat(resultNode?.name?.lowercase()).isEqualTo("t1")
       }
     }
 
@@ -94,8 +94,8 @@ object DynamicTaskImplementationResolverTest : SubjectSpek<DynamicTaskImplementa
       }
 
       it("returns task node t2 as result with no replacement") {
-        assertThat(resultNode?.implementingClassName?.toLowerCase()).isEqualTo("com.netflix.spinnaker.orca.task2")
-        assertThat(resultNode?.name?.toLowerCase()).isEqualTo("t2")
+        assertThat(resultNode?.implementingClassName?.lowercase()).isEqualTo("com.netflix.spinnaker.orca.task2")
+        assertThat(resultNode?.name?.lowercase()).isEqualTo("t2")
       }
     }
 
@@ -114,8 +114,8 @@ object DynamicTaskImplementationResolverTest : SubjectSpek<DynamicTaskImplementa
       }
 
       it("returns task node t3 as result with no replacement") {
-        assertThat(resultNode?.implementingClassName?.toLowerCase()).isEqualTo("com.netflix.spinnaker.orca.task3")
-        assertThat(resultNode?.name?.toLowerCase()).isEqualTo("t3")
+        assertThat(resultNode?.implementingClassName?.lowercase()).isEqualTo("com.netflix.spinnaker.orca.task3")
+        assertThat(resultNode?.name?.lowercase()).isEqualTo("t3")
       }
     }
   }

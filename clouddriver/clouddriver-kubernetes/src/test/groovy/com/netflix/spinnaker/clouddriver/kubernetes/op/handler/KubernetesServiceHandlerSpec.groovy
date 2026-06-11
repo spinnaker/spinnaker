@@ -19,14 +19,15 @@ package com.netflix.spinnaker.clouddriver.kubernetes.op.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest
-import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch.Op;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.JsonPatch.Op
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
 
 class KubernetesServiceHandlerSpec extends Specification {
   def objectMapper = new ObjectMapper()
-  def yaml = new Yaml(new SafeConstructor())
+  def yaml = new Yaml(new SafeConstructor(new LoaderOptions()))
   def handler = new KubernetesServiceHandler()
 
   def BASIC_SERVICE = """

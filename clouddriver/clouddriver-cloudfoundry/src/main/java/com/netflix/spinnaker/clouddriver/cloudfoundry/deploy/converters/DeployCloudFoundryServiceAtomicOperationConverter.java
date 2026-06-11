@@ -50,7 +50,7 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
     extends AbstractCloudFoundryAtomicOperationConverter {
   private static final ObjectMapper objectMapper =
       new ObjectMapper()
-          .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE)
+          .setPropertyNamingStrategy(PropertyNamingStrategies.KebabCaseStrategy.INSTANCE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   private final Pattern r = Pattern.compile(".*?-v(\\d+)");
