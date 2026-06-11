@@ -15,8 +15,6 @@
  */
 package com.netflix.kayenta.configuration;
 
-import static com.playtika.test.common.utils.ContainerUtils.containerLogsConsumer;
-
 import com.netflix.kayenta.utils.EnvironmentUtils;
 import java.time.Duration;
 import java.util.LinkedHashMap;
@@ -27,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.utility.MountableFile;
@@ -56,7 +55,7 @@ public class EmbeddedPrometheusBootstrapConfiguration {
 
     GenericContainer container =
         new GenericContainer("prom/prometheus:v2.10.0")
-            .withLogConsumer(containerLogsConsumer(log))
+            .withLogConsumer(new Slf4jLogConsumer(log))
             .withExposedPorts(PORT)
             .withCopyFileToContainer(
                 MountableFile.forClasspathResource("/external/prometheus/prometheus.yml"),

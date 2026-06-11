@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"net/http"
 
-	gate "github.com/spinnaker/spin/gateapi"
-
 	"github.com/spf13/cobra"
 
 	"github.com/spinnaker/spin/util"
@@ -59,7 +57,7 @@ func getAccount(cmd *cobra.Command, options *getOptions, args []string) error {
 		return err
 	}
 
-	account, resp, err := options.GateClient.CredentialsControllerApi.GetAccount(options.GateClient.Context, accountName, &gate.CredentialsControllerApiGetAccountOpts{})
+	account, resp, err := options.GateClient.CredentialsControllerAPI.GetAccount(options.GateClient.Context, accountName).Execute()
 	if resp != nil {
 		switch resp.StatusCode {
 		case http.StatusOK:

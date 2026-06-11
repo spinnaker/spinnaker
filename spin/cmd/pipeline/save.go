@@ -21,7 +21,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -86,7 +85,7 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 	application := pipelineJson["application"].(string)
 	pipelineName := pipelineJson["name"].(string)
 
-	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfig(options.GateClient.Context, application, pipelineName)
+	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerAPI.GetPipelineConfig(options.GateClient.Context, application, pipelineName).Execute()
 	switch queryResp.StatusCode {
 	case http.StatusOK:
 		// pipeline found, let's use Spinnaker's known Pipeline ID, otherwise we'll get one created for us
@@ -100,9 +99,7 @@ func savePipeline(cmd *cobra.Command, options *saveOptions) error {
 		return fmt.Errorf("unhandled response %d: %s", queryResp.StatusCode, b)
 	}
 
-	// TODO: support option passing in and remove nil in below call
-	opt := &gate.PipelineControllerApiSavePipelineOpts{}
-	saveResp, err := options.GateClient.PipelineControllerApi.SavePipeline(options.GateClient.Context, pipelineJson, opt)
+	saveResp, err := options.GateClient.PipelineControllerAPI.SavePipeline(options.GateClient.Context).RequestBody(pipelineJson).Execute()
 	if err != nil {
 		return err
 	}
