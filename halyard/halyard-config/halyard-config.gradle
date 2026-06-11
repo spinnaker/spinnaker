@@ -30,7 +30,7 @@ dependencies {
   implementation 'com.google.apis:google-api-services-run:v2-rev20220429-1.32.1'
   implementation "com.azure.resourcemanager:azure-resourcemanager:2.19.0"
   implementation "com.azure:azure-storage-blob:12.19.1"
-  implementation 'commons-collections:commons-collections:3.2.2'
+  implementation 'commons-collections:commons-collections'
   implementation 'org.apache.commons:commons-lang3'
   implementation 'commons-io:commons-io'
   implementation 'io.fabric8:kubernetes-client'

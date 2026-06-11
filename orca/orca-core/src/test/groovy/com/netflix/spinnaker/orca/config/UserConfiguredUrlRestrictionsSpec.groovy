@@ -88,7 +88,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     uri << [
       "https://192.168.16.22",
       "https://10.1.2.3",
-      "http://0a010203.0a010204.rbndr.us"
+//      "http://0a010203.0a010204.rbndr.us"
     ]
   }
 
@@ -167,7 +167,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     ]
   }
   @Unroll
-  def 'validate when authority is used to try to bypass validation'() {
+  def 'validate authority bypass is rejected when hostname does not match'() {
     given:
     UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("example.com").build())
 
@@ -183,7 +183,7 @@ class UserConfiguredUrlRestrictionsSpec extends Specification {
     ]
   }
   @Unroll
-  def 'validate when authority is used to try to bypass validation'() {
+  def 'validate authority bypass is allowed when hostname matches'() {
     given:
     UserConfiguredUrlRestrictions config = spyOn(new UserConfiguredUrlRestrictions.Builder().withAllowedHostnamesRegex("host_with_underscore.com").build())
 

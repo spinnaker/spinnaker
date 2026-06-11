@@ -74,7 +74,7 @@ internal class TestPlugin {
       compileOnly("org.pf4j:pf4j:3.2.0")
 
       testImplementation("org.jetbrains.kotlin:kotlin-test")
-      testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+      testImplementation("org.jetbrains.kotlin:kotlin-stdlib")
       testImplementation("org.jetbrains.kotlin:kotlin-test")
       testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     }

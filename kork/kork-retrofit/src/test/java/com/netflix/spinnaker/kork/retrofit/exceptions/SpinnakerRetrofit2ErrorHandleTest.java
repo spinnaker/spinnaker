@@ -203,7 +203,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
     assertThat(spinnakerConversionException)
         .hasMessage(
             "Failed to process response body: Cannot deserialize value of type `java.lang.String` from Object value (token `JsonToken.START_OBJECT`)\n"
-                + " at [Source: (okhttp3.ResponseBody$BomAwareReader); line: 1, column: 1]");
+                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1]");
     assertThat(spinnakerConversionException.getUrl())
         .isEqualTo(mockWebServer.url("/retrofit2").toString());
   }

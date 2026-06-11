@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.*
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
@@ -37,7 +37,7 @@ import groovy.transform.Immutable
 )
 @CompileStatic
 class BakeRequest {
-  private static final PropertyNamingStrategyBase namingStrategy = new SnakeCaseStrategy()
+  private static final PropertyNamingStrategies.NamingBase namingStrategy = new PropertyNamingStrategies.SnakeCaseStrategy()
 
   static final Default = new BakeRequest(user: System.getProperty("user.name"),
                                          cloudProviderType: CloudProviderType.aws,

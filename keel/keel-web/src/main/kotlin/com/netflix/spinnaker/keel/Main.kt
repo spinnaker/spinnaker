@@ -15,9 +15,11 @@
  */
 package com.netflix.spinnaker.keel
 
+import com.netflix.graphql.dgs.springgraphql.autoconfig.DgsSpringGraphQLAutoConfiguration
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.kork.PlatformComponents
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.graphql.GraphQlAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.web.servlet.ServletComponentScan
 import org.springframework.context.annotation.Import
@@ -44,7 +46,9 @@ private val DEFAULT_PROPS = mapOf(
 )
 @Import(
   PlatformComponents::class,
-  PluginsAutoConfiguration::class
+  PluginsAutoConfiguration::class,
+  DgsSpringGraphQLAutoConfiguration::class,
+  GraphQlAutoConfiguration::class
 )
 @EnableAsync
 @ServletComponentScan

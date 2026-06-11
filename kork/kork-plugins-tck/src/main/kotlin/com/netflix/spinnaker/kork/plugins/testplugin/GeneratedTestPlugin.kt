@@ -113,9 +113,7 @@ class GeneratedTestPlugin {
    * Generates the plugin into the given [rootPath].
    */
   fun generate(rootPath: Path? = null): GenerateResult {
-    if (generated) {
-      throw IllegalStateException("A test plugin instance cannot be generated more than once")
-    }
+    check(!generated) { "A test plugin instance cannot be generated more than once" }
 
     return TestPluginGenerator(this, rootPath ?: Files.createTempDirectory("generatedplugin")).let {
       it.generate()
