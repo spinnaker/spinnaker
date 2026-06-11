@@ -1,10 +1,4 @@
 dependencies {
-  constraints {
-    implementation 'org.opensaml:opensaml-core:4.1.0'
-    implementation 'org.opensaml:opensaml-saml-api:4.1.0'
-    implementation 'org.opensaml:opensaml-saml-impl:4.1.0'
-  }
-
   implementation project(':gate-core')
   implementation 'io.spinnaker.kork:kork-core'
   implementation 'io.spinnaker.kork:kork-crypto'

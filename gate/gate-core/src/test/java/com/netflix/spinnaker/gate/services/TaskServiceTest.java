@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.gate.services;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.gate.config.TaskServiceProperties;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
@@ -27,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import retrofit2.mock.Calls;
 
@@ -35,9 +37,9 @@ import retrofit2.mock.Calls;
 @SpringBootTest(classes = {TaskService.class, TaskServiceProperties.class})
 public class TaskServiceTest {
 
-  @MockBean private OrcaServiceSelector selector;
-  @MockBean private ClouddriverServiceSelector clouddriverServiceSelector;
-  @MockBean private OrcaService orcaService;
+  @MockitoBean private OrcaServiceSelector selector;
+  @MockitoBean private ClouddriverServiceSelector clouddriverServiceSelector;
+  @MockitoBean private OrcaService orcaService;
 
   @Autowired TaskService taskService;
 

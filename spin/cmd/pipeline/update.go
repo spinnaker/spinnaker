@@ -19,8 +19,6 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type updateOptions struct {
@@ -65,7 +63,7 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 	application := options.application
 	pipelineName := options.name
 
-	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerApi.GetPipelineConfig(options.GateClient.Context, application, pipelineName)
+	foundPipeline, queryResp, _ := options.GateClient.ApplicationControllerAPI.GetPipelineConfig(options.GateClient.Context, application, pipelineName).Execute()
 	if queryResp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Pipeline %s not found under application %s", pipelineName, application)
 	}
@@ -84,9 +82,7 @@ func updatePipeline(cmd *cobra.Command, options *updateOptions) error {
 		foundPipeline["disabled"] = !options.enabled
 	}
 
-	// TODO: support option passing in and remove nil in below call
-	opt := &gate.PipelineControllerApiSavePipelineOpts{}
-	saveResp, err := options.GateClient.PipelineControllerApi.SavePipeline(options.GateClient.Context, foundPipeline, opt)
+	saveResp, err := options.GateClient.PipelineControllerAPI.SavePipeline(options.GateClient.Context).RequestBody(foundPipeline).Execute()
 	if err != nil {
 		return err
 	}

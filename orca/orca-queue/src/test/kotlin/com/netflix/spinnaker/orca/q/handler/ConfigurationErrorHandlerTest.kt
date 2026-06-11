@@ -27,10 +27,10 @@ import com.netflix.spinnaker.orca.q.InvalidTaskId
 import com.netflix.spinnaker.orca.q.InvalidTaskType
 import com.netflix.spinnaker.orca.q.NoDownstreamTasks
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on

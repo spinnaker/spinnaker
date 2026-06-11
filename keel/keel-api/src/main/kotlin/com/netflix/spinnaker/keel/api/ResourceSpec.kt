@@ -36,7 +36,6 @@ interface ResourceSpec {
    *
    * @return a copy of the original [ResourceSpec] with the modified identifiers.
    */
-  @JvmDefault
   fun deepRename(suffix: String): ResourceSpec =
     throw TODO("Not implemented")
 }

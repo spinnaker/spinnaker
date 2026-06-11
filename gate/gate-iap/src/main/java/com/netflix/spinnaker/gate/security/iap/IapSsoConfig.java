@@ -83,7 +83,7 @@ public class IapSsoConfig {
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(2)
+  @Order(3)
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     log.info("IAP JWT token verification is enabled.");
 

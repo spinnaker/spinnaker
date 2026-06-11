@@ -20,7 +20,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spin/util"
 )
 
@@ -56,8 +55,8 @@ func deleteCanaryConfig(cmd *cobra.Command, options *deleteOptions, args []strin
 		return err
 	}
 
-	resp, err := options.GateClient.V2CanaryConfigControllerApi.DeleteCanaryConfig(
-		options.GateClient.Context, id, &gate.V2CanaryConfigControllerApiDeleteCanaryConfigOpts{})
+	resp, err := options.GateClient.V2CanaryConfigControllerAPI.DeleteCanaryConfig(
+		options.GateClient.Context, id).Execute()
 	if err != nil {
 		return err
 	}

@@ -37,6 +37,9 @@ data class CanonicalPluginId(
   val id: String
 ) {
 
+  /**
+   * Companion object providing validation and parsing utilities for canonical plugin IDs.
+   */
   companion object {
     private val pattern = Pattern.compile("^(?<namespace>[\\w\\-.])+\\.(?<id>[\\w\\-]+)$")
 

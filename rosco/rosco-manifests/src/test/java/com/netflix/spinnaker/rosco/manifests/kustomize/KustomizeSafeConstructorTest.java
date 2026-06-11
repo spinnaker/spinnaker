@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.ConstructorException;
+import org.yaml.snakeyaml.composer.ComposerException;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -66,10 +66,9 @@ class KustomizeSafeConstructorTest {
             + "resources:\n"
             + "  - deployment.yml\n";
 
-    ConstructorException ex =
-        assertThrows(ConstructorException.class, () -> yaml.load(maliciousYaml));
+    ComposerException ex = assertThrows(ComposerException.class, () -> yaml.load(maliciousYaml));
     assertTrue(
-        ex.getMessage().contains("could not determine a constructor for the tag"),
+        ex.getMessage().contains("Global tag is not allowed"),
         "Expected SafeConstructor to reject ScriptEngineManager tag, but got: " + ex.getMessage());
   }
 
@@ -104,10 +103,9 @@ class KustomizeSafeConstructorTest {
               + "resources:\n"
               + "  - deployment.yml\n";
 
-      ConstructorException ex =
-          assertThrows(ConstructorException.class, () -> yaml.load(maliciousYaml));
+      ComposerException ex = assertThrows(ComposerException.class, () -> yaml.load(maliciousYaml));
       assertTrue(
-          ex.getMessage().contains("could not determine a constructor for the tag"),
+          ex.getMessage().contains("Global tag is not allowed"),
           "Expected SafeConstructor to reject URL tag, but got: " + ex.getMessage());
 
       Thread.sleep(500);
@@ -133,10 +131,9 @@ class KustomizeSafeConstructorTest {
             + "additionalProperties:\n"
             + "  evil: !!javax.script.ScriptEngineManager []\n";
 
-    ConstructorException ex =
-        assertThrows(ConstructorException.class, () -> yaml.load(maliciousYaml));
+    ComposerException ex = assertThrows(ComposerException.class, () -> yaml.load(maliciousYaml));
     assertTrue(
-        ex.getMessage().contains("could not determine a constructor for the tag"),
+        ex.getMessage().contains("Global tag is not allowed"),
         "Expected SafeConstructor to reject ScriptEngineManager tag in nested map, but got: "
             + ex.getMessage());
   }
@@ -148,10 +145,9 @@ class KustomizeSafeConstructorTest {
 
     String maliciousYaml = "!!javax.script.ScriptEngineManager []";
 
-    ConstructorException ex =
-        assertThrows(ConstructorException.class, () -> yaml.load(maliciousYaml));
+    ComposerException ex = assertThrows(ComposerException.class, () -> yaml.load(maliciousYaml));
     assertTrue(
-        ex.getMessage().contains("could not determine a constructor for the tag"),
+        ex.getMessage().contains("Global tag is not allowed"),
         "Expected SafeConstructor to reject root tag override, but got: " + ex.getMessage());
   }
 
