@@ -38,9 +38,9 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
@@ -62,11 +62,11 @@ public class ArtifactControllerTest {
    * clouddriver and front50 that fail and pollute the logs because those services are not
    * available.
    */
-  @MockBean private ApplicationService applicationService;
+  @MockitoBean private ApplicationService applicationService;
 
-  @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
+  @MockitoBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
 
-  @MockBean private ClouddriverService mockClouddriverService;
+  @MockitoBean private ClouddriverService mockClouddriverService;
 
   @Autowired private ObjectMapper objectMapper;
 

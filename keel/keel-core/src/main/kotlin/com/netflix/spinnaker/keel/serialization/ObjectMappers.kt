@@ -13,7 +13,8 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.USE_NATIVE_TYPE_ID
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.fasterxml.jackson.module.kotlin.KotlinFeature
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.keel.jackson.registerKeelApiModule
 import de.huxhorn.sulky.ulid.ULID
 import java.text.SimpleDateFormat
@@ -32,9 +33,16 @@ fun configuredYamlMapper(): YAMLMapper = YAMLMapper().configureForKeel().disable
 fun <T : ObjectMapper> T.configureForKeel(): T {
   val javaTimeModule = JavaTimeModule()
   javaTimeModule.addSerializer(Instant::class.java,PrecisionSqlSerializer())
+  val kotlinModule = KotlinModule.Builder()
+    .configure(KotlinFeature.NullToEmptyCollection, false)
+    .configure(KotlinFeature.NullToEmptyMap, false)
+    .configure(KotlinFeature.NullIsSameAsDefault, false)
+    .configure(KotlinFeature.SingletonSupport, true)
+    .configure(KotlinFeature.StrictNullChecks, false)
+    .build()
   return apply {
     registerKeelApiModule()
-      .registerKotlinModule()
+      .registerModule(kotlinModule)
       .registerULIDModule()
       .registerModule(javaTimeModule)
       .configureSaneDateTimeRepresentation()

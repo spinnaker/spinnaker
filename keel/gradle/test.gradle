@@ -11,9 +11,7 @@ test {
   minHeapSize = "1g"
   maxHeapSize = "3g"
 
-  useJUnitPlatform {
-    includeEngines("junit-jupiter")
-  }
+  useJUnitPlatform()
   testLogging {
     exceptionFormat = "full"
   }

@@ -360,13 +360,16 @@ open class SqlResourceRepository(
           .from(ACTIVE_RESOURCE, RESOURCE_LAST_CHECKED)
           .where(ACTIVE_RESOURCE.UID.eq(RESOURCE_LAST_CHECKED.RESOURCE_UID))
           .and(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
-          .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(true))
+          .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(1.toByte()))
           .orderBy(RESOURCE_LAST_CHECKED.AT)
           .limit(limit)
           .forUpdate()
           .fetch()
-          .also {
-            it.forEach { (uid, _, _, _, application, lastCheckedAt) ->
+          .also { records ->
+            records.forEach { record ->
+              val uid = record.value1()
+              val application = record.value5()
+              val lastCheckedAt = record.value6()
               insertInto(RESOURCE_LAST_CHECKED)
                 .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
                 .set(RESOURCE_LAST_CHECKED.AT, now)
@@ -389,11 +392,11 @@ open class SqlResourceRepository(
               .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
               .set(RESOURCE_LAST_CHECKED.AT, now)
               .set(RESOURCE_LAST_CHECKED.STATUS, ResourceState.Error)
-              .set(RESOURCE_LAST_CHECKED.IGNORE, true)
+              .set(RESOURCE_LAST_CHECKED.IGNORE, 1.toByte())
               .onDuplicateKeyUpdate()
               .set(RESOURCE_LAST_CHECKED.AT, now)
               .set(RESOURCE_LAST_CHECKED.STATUS, ResourceState.Error)
-              .set(RESOURCE_LAST_CHECKED.IGNORE, true)
+              .set(RESOURCE_LAST_CHECKED.IGNORE, 1.toByte())
               .execute()
             throw e
           }
@@ -423,12 +426,12 @@ open class SqlResourceRepository(
         select(RESOURCE_LAST_CHECKED.RESOURCE_UID, RESOURCE_LAST_CHECKED.AT)
           .from(RESOURCE_LAST_CHECKED)
           .where(RESOURCE_LAST_CHECKED.AT.lessOrEqual(cutoff))
-          .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(true))
+          .and(RESOURCE_LAST_CHECKED.IGNORE.notEqual(1.toByte()))
           .orderBy(RESOURCE_LAST_CHECKED.AT)
           .limit(limit)
           .forUpdate()
           .fetch()
-          .map {(uid, at) -> uid to at }
+          .map { record -> record.value1() to record.value2() }
           .toMap()
           .also { m ->
             update(RESOURCE_LAST_CHECKED)
@@ -448,7 +451,12 @@ open class SqlResourceRepository(
         .from(ACTIVE_RESOURCE)
         .where(ACTIVE_RESOURCE.UID.`in`(resourcesToCheck.keys))
         .fetch()
-        .map { (uid, kind, metadata, spec, application) ->
+        .map { record ->
+          val uid = record.value1()
+          val kind = record.value2()
+          val metadata = record.value3()
+          val spec = record.value4()
+          val application = record.value5()
           try {
             publisher.publishEvent(
               AboutToBeChecked(
@@ -465,11 +473,11 @@ open class SqlResourceRepository(
               .set(RESOURCE_LAST_CHECKED.RESOURCE_UID, uid)
               .set(RESOURCE_LAST_CHECKED.AT, now)
               .set(RESOURCE_LAST_CHECKED.STATUS, ResourceState.Error)
-              .set(RESOURCE_LAST_CHECKED.IGNORE, true)
+              .set(RESOURCE_LAST_CHECKED.IGNORE, 1.toByte())
               .onDuplicateKeyUpdate()
               .set(RESOURCE_LAST_CHECKED.AT, now)
               .set(RESOURCE_LAST_CHECKED.STATUS, ResourceState.Error)
-              .set(RESOURCE_LAST_CHECKED.IGNORE, true)
+              .set(RESOURCE_LAST_CHECKED.IGNORE, 1.toByte())
               .execute()
             throw e
           }

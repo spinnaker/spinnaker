@@ -17,60 +17,57 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.api.Notification
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerNonWebConfiguration
-import org.springframework.boot.autoconfigure.freemarker.FreeMarkerProperties
+import org.spockframework.spring.EnableSharedInjection
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
+import org.springframework.boot.test.context.SpringBootTest
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
+
+@SpringBootTest(classes = [FreeMarkerAutoConfiguration.class, NotificationTemplateEngine.class], properties = [
+  "spring.freemarker.prefer-file-system-access = true",
+  "spinnaker.base-url=SPINNAKER_URL"
+])
+@EnableSharedInjection
 class ManualJudgmentTemplateTest extends Specification {
-    @Shared
-    def notificationTemplateEngine
+  @Autowired
+  @Shared
+  NotificationTemplateEngine notificationTemplateEngine
 
-    void setup() {
-        def properties = new FreeMarkerProperties(preferFileSystemAccess: false)
-        def autoconfig = new FreeMarkerNonWebConfiguration(properties)
-        def config = autoconfig.freeMarkerConfiguration()
-        config.afterPropertiesSet()
-        notificationTemplateEngine = new NotificationTemplateEngine(
-                configuration: config.object,
-                spinnakerUrl: "SPINNAKER_URL"
-        )
-    }
+  void "should handle fully formed notification"() {
+    given:
+    Notification not = buildFullNotification()
 
+    when:
+    def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
 
-    void "should handle fully formed notification"() {
-        given:
-        Notification not = buildFullNotification()
+    then:
+    rendered == expected
 
-        when:
-        def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
-
-        then:
-        rendered == expected
-
-        where:
-        expected = """\
+    where:
+    expected = """\
 Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline build #*12345* is awaiting manual judgment.
 
 *Instructions:*
 Do the thing <http://foo>
 """
-    }
+  }
 
-    void "should handle fully formed email notification"() {
-        given:
-        Notification not = buildFullNotification()
-        not.notificationType = "email"
+  void "should handle fully formed email notification"() {
+    given:
+    Notification not = buildFullNotification()
+    not.notificationType = "email"
 
-        when:
-        def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
+    when:
+    def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
 
-        then:
-        rendered == expected
+    then:
+    rendered == expected
 
-        where:
-        expected = """\
+    where:
+    expected = """\
 <html>
 Stage <a href="SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1">stage-name</a> for <b>testapp</b>'s <b>exe-name</b> pipeline build #<b>12345</b> is awaiting manual judgment.
 
@@ -80,22 +77,22 @@ Stage <a href="SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?r
 
 </html>
 """
-    }
+  }
 
-    @Unroll
-    void "should handle #description in notification"() {
-        given:
-        Notification not = buildFullNotification()
-        not.additionalContext.execution.trigger = trigger
+  @Unroll
+  void "should handle #description in notification"() {
+    given:
+    Notification not = buildFullNotification()
+    not.additionalContext.execution.trigger = trigger
 
-        when:
-        def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
+    when:
+    def rendered = notificationTemplateEngine.build(not, NotificationTemplateEngine.Type.BODY)
 
-        then:
-        rendered == expected
+    then:
+    rendered == expected
 
-        where:
-        expected = """\
+    where:
+    expected = """\
 Stage <SPINNAKER_URL/#/applications/testapp/executions/details/exec-id?refId=stage-id&step=1|stage-name> for *testapp*'s *exe-name* pipeline is awaiting manual judgment.
 
 *Instructions:*
@@ -103,47 +100,47 @@ Do the thing <http://foo>
 """
 
 
-        trigger           | description
-        null              | "null trigger"
-        [:]               | "empty trigger"
-        [buildInfo: null] | "null buildInfo"
-        [buildInfo: [:]]  | "empty buildInfo"
-    }
+    trigger | description
+    null | "null trigger"
+    [:] | "empty trigger"
+    [buildInfo: null] | "null buildInfo"
+    [buildInfo: [:]] | "empty buildInfo"
+  }
 
-    Notification buildFullNotification() {
-        Notification notification = new Notification()
-        notification.templateGroup = "manualJudgment"
-        notification.notificationType = "SLACK"
-        notification.source = new Notification.Source()
-        notification.source.application = "testapp"
-        notification.source.executionId = "exec-id"
-        notification.source.executionType = "pipeline"
-        notification.source.user = "testuser"
-        notification.severity = Notification.Severity.NORMAL
-        notification.to = ["#channelname"]
-        notification.cc = []
-        notification.additionalContext = [
-                execution: [
-                        name: "exe-name",
-                        trigger: [
-                                buildInfo: [
-                                        number: 12345
-                                ]
-                        ]
-                ],
-                "stageId": "stage-id",
-                "stageName": "stage-name",
-                "instructions": 'Do the <a href="http://foo">thing</a>',
-                "restrictExecutionDuringTimeWindow": true
+  Notification buildFullNotification() {
+    Notification notification = new Notification()
+    notification.templateGroup = "manualJudgment"
+    notification.notificationType = "SLACK"
+    notification.source = new Notification.Source()
+    notification.source.application = "testapp"
+    notification.source.executionId = "exec-id"
+    notification.source.executionType = "pipeline"
+    notification.source.user = "testuser"
+    notification.severity = Notification.Severity.NORMAL
+    notification.to = ["#channelname"]
+    notification.cc = []
+    notification.additionalContext = [
+      execution                          : [
+        name   : "exe-name",
+        trigger: [
+          buildInfo: [
+            number: 12345
+          ]
         ]
+      ],
+      "stageId"                          : "stage-id",
+      "stageName"                        : "stage-name",
+      "instructions"                     : 'Do the <a href="http://foo">thing</a>',
+      "restrictExecutionDuringTimeWindow": true
+    ]
 
-        return notification
-    }
+    return notification
+  }
 
   void "should not word wrap (used for slack)"() {
     given:
     Notification notif = buildFullNotification()
-    notif.additionalContext["instructions"]= '''\
+    notif.additionalContext["instructions"] = '''\
       This is an example message from spinnaker that's more than 80 characters to make sure that we won't wrap it. Note the extra whitespace at the end here:
       <p />
       ```

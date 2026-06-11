@@ -34,5 +34,4 @@ dependencies {
   implementation "software.amazon.awssdk:sqs"
 
   testImplementation project(":front50-test")
-  testImplementation("org.assertj:assertj-core")
 }

@@ -1,13 +1,18 @@
 plugins {
-  id "com.diffplug.spotless" version "6.23.2" apply false
-  id "com.gradle.plugin-publish" version "1.2.0" apply false
+  id "com.diffplug.spotless" version "7.2.1" apply false
+  id "com.gradle.plugin-publish" version "2.1.1" apply false
 }
 
 subprojects {
   repositories {
+    mavenCentral()
     gradlePluginPortal()
+    maven {
+      url "https://maven.google.com"
+    }
   }
 
+  apply plugin: 'java'
   apply plugin: 'com.diffplug.spotless'
   apply plugin: 'idea'
   apply plugin: 'java-gradle-plugin'
@@ -16,13 +21,20 @@ subprojects {
 
   spotless {
     java {
+      googleJavaFormat("1.17.0")
+      removeUnusedImports()
+      trimTrailingWhitespace()
+      endWithNewline()
       eclipse().configFile(rootProject.file('codestyle.xml'))
     }
   }
 
   group = 'io.spinnaker.gradle'
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
 
   dependencies {
+    implementation platform('com.google.cloud:libraries-bom:26.78.0')
     implementation gradleApi()
     implementation localGroovy()
   }
