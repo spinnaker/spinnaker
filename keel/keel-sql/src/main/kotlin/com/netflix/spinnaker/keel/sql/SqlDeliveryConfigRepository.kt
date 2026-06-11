@@ -351,7 +351,7 @@ class SqlDeliveryConfigRepository(
       .set(ENVIRONMENT.UID, environmentUid)
       .set(ENVIRONMENT.DELIVERY_CONFIG_UID, deliveryConfig.uid)
       .set(ENVIRONMENT.NAME, environment.name)
-      .set(ENVIRONMENT.IS_PREVIEW, environment.isPreview)
+      .set(ENVIRONMENT.IS_PREVIEW, if (environment.isPreview) 1.toByte() else 0.toByte())
       .set(ENVIRONMENT.CONSTRAINTS, environment.constraints.toJson())
       .set(ENVIRONMENT.NOTIFICATIONS, environment.notifications.toJson())
       .set(ENVIRONMENT.VERIFICATIONS, environment.verifyWith.toJson())

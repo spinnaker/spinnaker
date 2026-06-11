@@ -7,7 +7,8 @@ dependencies {
   api(platform(project(":spinnaker-dependencies")))
 
   // hub4j/github-api for GitHub interactions
-  api "org.kohsuke:github-api:1.321"
+  // Version 1.330 adds support for Jackson 2.20+
+  api "org.kohsuke:github-api:1.330"
 
   // JWT for GitHub App authentication
   implementation "io.jsonwebtoken:jjwt-api:0.11.5"

@@ -52,6 +52,7 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
   public void customize(Connector connector) {
     this.applySSLSettings(connector);
     this.applyRelaxedURIProperties(connector);
+    this.applyRejectIllegalHeaderSetting(connector);
   }
 
   Ssl copySslConfigurationWithClientAuth(TomcatServletWebServerFactory tomcat) {
@@ -107,6 +108,23 @@ class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomizer {
     } else {
       log.warn(
           "Can't apply relaxedPath/Query config to connector of type $connector.protocolHandlerClassName");
+    }
+  }
+
+  void applyRejectIllegalHeaderSetting(Connector connector) {
+    Boolean rejectIllegalHeader = tomcatConfigurationProperties.getRejectIllegalHeader();
+    if (rejectIllegalHeader == null) {
+      return;
+    }
+
+    ProtocolHandler protocolHandler = connector.getProtocolHandler();
+    if (protocolHandler instanceof AbstractHttp11Protocol) {
+      ((AbstractHttp11Protocol<?>) protocolHandler).setRejectIllegalHeader(rejectIllegalHeader);
+      log.debug("Set rejectIllegalHeader to {} for connector", rejectIllegalHeader);
+    } else {
+      log.warn(
+          "Can't apply rejectIllegalHeader config to connector of type {}",
+          connector.getProtocolHandlerClassName());
     }
   }
 }

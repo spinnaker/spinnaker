@@ -18,10 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type listOptions struct {
@@ -55,15 +52,12 @@ func NewListCmd(pipelineTemplateOptions *pipelineTemplateOptions) *cobra.Command
 }
 
 func listPipelineTemplate(cmd *cobra.Command, options *listOptions) error {
-	var opts *gate.V2PipelineTemplatesControllerApiListOpts
-
+	req := options.GateClient.V2PipelineTemplatesControllerAPI.List2(options.GateClient.Context)
 	// Only pass scopes if they were explicitly provided (non-empty)
 	if len(*options.scopes) > 0 {
-		opts = &gate.V2PipelineTemplatesControllerApiListOpts{Scopes: optional.NewInterface(*options.scopes)}
-	} else {
-		opts = nil
+		req = req.Scopes(*options.scopes)
 	}
-	successPayload, resp, err := options.GateClient.V2PipelineTemplatesControllerApi.List(options.GateClient.Context, opts)
+	successPayload, resp, err := req.Execute()
 	if err != nil {
 		return err
 	}
