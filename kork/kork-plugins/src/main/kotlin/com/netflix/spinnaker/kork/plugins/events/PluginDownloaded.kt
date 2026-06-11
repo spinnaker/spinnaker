@@ -36,7 +36,9 @@ class PluginDownloaded(
    * The down status of the plugin.
    */
   enum class Status {
+    /** Plugin download completed successfully. */
     SUCCEEDED,
+    /** Plugin download failed. */
     FAILED
   }
 }

@@ -53,8 +53,11 @@ dependencies {
     runtimeOnly project(it)
   }
 }
-
+tasks.withType(JavaCompile) {
+  options.compilerArgs << "-parameters"
+}
 test {
   environment "AWS_ACCESS_KEY_ID", "null"
   environment "AWS_SECRET_KEY", "null"
+//  jvmArgs("")
 }

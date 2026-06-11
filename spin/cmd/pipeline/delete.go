@@ -58,7 +58,7 @@ func deletePipeline(cmd *cobra.Command, options *deleteOptions) error {
 	if options.application == "" || options.name == "" {
 		return errors.New("one of required parameters 'application' or 'name' not set")
 	}
-	resp, err := options.GateClient.PipelineControllerApi.DeletePipeline1(options.GateClient.Context, options.application, options.name)
+	resp, err := options.GateClient.PipelineControllerAPI.DeletePipeline2(options.GateClient.Context, options.application, options.name).Execute()
 	if err != nil {
 		return err
 	}

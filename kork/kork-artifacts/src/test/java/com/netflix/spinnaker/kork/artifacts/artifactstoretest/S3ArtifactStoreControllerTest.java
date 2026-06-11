@@ -50,7 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -64,6 +63,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -178,8 +178,8 @@ class S3ArtifactStoreControllerTest {
 
   @Autowired private TestRestTemplate restTemplate;
 
-  @MockBean private S3Client s3Client;
-  @MockBean private UserPermissionEvaluator userPermissionEvaluator;
+  @MockitoBean private S3Client s3Client;
+  @MockitoBean private UserPermissionEvaluator userPermissionEvaluator;
 
   private HttpEntity<Void> getRequestEntity;
   private HttpEntity<Void> storeRequestEntity;
