@@ -32,7 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -57,7 +57,7 @@ public class DockerBearerTokenServiceTest {
   private static final String SCOPE2 = "repository:library/ubuntu:push";
   private static final String REPOSITORY1 = "library/ubuntu";
 
-  @MockBean DefaultServiceClientProvider serviceClientProvider;
+  @MockitoBean DefaultServiceClientProvider serviceClientProvider;
 
   DockerBearerTokenService tokenService;
 

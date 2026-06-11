@@ -16,7 +16,7 @@ import com.netflix.spinnaker.q.metrics.EventPublisher
 import com.netflix.spinnaker.q.metrics.MonitorableQueueTest
 import com.netflix.spinnaker.q.metrics.QueueEvent
 import com.netflix.spinnaker.time.MutableClock
-import com.nhaarman.mockito_kotlin.mock
+import org.mockito.kotlin.mock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test

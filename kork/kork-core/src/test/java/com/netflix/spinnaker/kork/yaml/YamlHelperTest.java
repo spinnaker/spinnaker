@@ -38,7 +38,7 @@ class YamlHelperTest {
   @Test
   public void aliasLimitIsEnforced() {
     String doc = yamlWithNAliases(56);
-    assertThatThrownBy(() -> YamlHelper.newYaml().load(doc))
+    assertThatThrownBy(() -> YamlHelper.newYamlSafeConstructor().load(doc))
         .isInstanceOf(YAMLException.class)
         .hasMessage("Number of aliases for non-scalar nodes exceeds the specified max=55");
   }
@@ -46,7 +46,7 @@ class YamlHelperTest {
   @Test
   public void aliasLimitIsNotExceeded() {
     String okString = yamlWithNAliases(50);
-    Object result = YamlHelper.newYaml().load(okString);
+    Object result = YamlHelper.newYamlSafeConstructor().load(okString);
     assertThat(result).isNotNull();
   }
 
@@ -54,7 +54,7 @@ class YamlHelperTest {
   public void codePointLimitIsEnforced() {
     // This string has more than 1024 characters
     String bigString = yamlWithNCodePoints(1025);
-    assertThatThrownBy(() -> YamlHelper.newYaml().load(bigString))
+    assertThatThrownBy(() -> YamlHelper.newYamlSafeConstructor().load(bigString))
         .isInstanceOf(YAMLException.class)
         .hasMessage("The incoming YAML document exceeds the limit: 1024 code points.");
   }
@@ -62,7 +62,7 @@ class YamlHelperTest {
   @Test
   public void codePointLimitIsNotExceeded() {
     String okString = yamlWithNCodePoints(1000);
-    Object result = YamlHelper.newYaml().load(okString);
+    Object result = YamlHelper.newYamlSafeConstructor().load(okString);
     assertThat(result).isNotNull();
   }
 
@@ -165,7 +165,8 @@ class YamlHelperTest {
     assertThatThrownBy(
             () ->
                 YamlHelper.newYamlRepresenter(
-                        new Constructor(Object.class), new Representer(new DumperOptions()))
+                        new Constructor(Object.class, new LoaderOptions()),
+                        new Representer(new DumperOptions()))
                     .load(doc))
         .isInstanceOf(YAMLException.class)
         .hasMessage("Number of aliases for non-scalar nodes exceeds the specified max=55");
@@ -176,7 +177,8 @@ class YamlHelperTest {
     String okString = yamlWithNAliases(50);
     Object result =
         YamlHelper.newYamlRepresenter(
-                new Constructor(Object.class), new Representer(new DumperOptions()))
+                new Constructor(Object.class, new LoaderOptions()),
+                new Representer(new DumperOptions()))
             .load(okString);
     assertThat(result).isNotNull();
   }
@@ -188,7 +190,8 @@ class YamlHelperTest {
     assertThatThrownBy(
             () ->
                 YamlHelper.newYamlRepresenter(
-                        new Constructor(Object.class), new Representer(new DumperOptions()))
+                        new Constructor(Object.class, new LoaderOptions()),
+                        new Representer(new DumperOptions()))
                     .load(bigString))
         .isInstanceOf(YAMLException.class)
         .hasMessage("The incoming YAML document exceeds the limit: 1024 code points.");
@@ -199,7 +202,8 @@ class YamlHelperTest {
     String okString = yamlWithNCodePoints(1000);
     Object result =
         YamlHelper.newYamlRepresenter(
-                new Constructor(Object.class), new Representer(new DumperOptions()))
+                new Constructor(Object.class, new LoaderOptions()),
+                new Representer(new DumperOptions()))
             .load(okString);
     assertThat(result).isNotNull();
   }

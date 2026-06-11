@@ -31,7 +31,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CON
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.STOPPED
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
-import com.nhaarman.mockito_kotlin.mock
+import org.mockito.kotlin.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
