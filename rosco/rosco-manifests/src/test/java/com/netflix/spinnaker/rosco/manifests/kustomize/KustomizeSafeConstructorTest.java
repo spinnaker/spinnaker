@@ -44,9 +44,9 @@ import retrofit2.Response;
  * Proof tests that the safe YAML constructor used by {@link KustomizationFileReader} blocks known
  * CVE-2022-1471 / CWE-502 attack vectors.
  *
- * <p>{@link KustomizationFileReader#convert} parses untrusted kustomization YAML with
- * SnakeYAML {@link SafeConstructor}, which only produces standard types (Map, List,
- * String, etc.). The resulting map is then mapped to {@link
+ * <p>{@link KustomizationFileReader#convert} parses untrusted kustomization YAML with SnakeYAML
+ * {@link SafeConstructor}, which only produces standard types (Map, List, String, etc.). The
+ * resulting map is then mapped to {@link
  * com.netflix.spinnaker.rosco.manifests.kustomize.mapping.Kustomization} via Jackson's {@link
  * com.fasterxml.jackson.databind.ObjectMapper#convertValue}. This two-step process prevents
  * arbitrary object instantiation via YAML tags.
