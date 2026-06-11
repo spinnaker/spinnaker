@@ -59,7 +59,7 @@ public class OAuth2TestConfiguration {
 
   @RestController
   public static class TestController {
-    @GetMapping("/testOAuth2Api")
+    @GetMapping(value = "/testOAuth2Api")
     public String testOAuth2Api() throws IOException {
       return "authenticated";
     }

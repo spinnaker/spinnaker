@@ -25,14 +25,15 @@ import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.http.client.ClientHttpRequestFactorySettings;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,6 +48,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -81,13 +83,13 @@ class AuthConfigTest {
   @Autowired ObjectMapper objectMapper;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   /** to prevent period application loading */
-  @MockBean ApplicationService applicationService;
+  @MockitoBean ApplicationService applicationService;
 
   /** To prevent attempts to load accounts */
-  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
   @BeforeEach
   void init(TestInfo testInfo) {
@@ -96,6 +98,7 @@ class AuthConfigTest {
 
   @Test
   void forwardNoCredsRequiresAuth() {
+
     final ResponseEntity<Map<String, String>> response =
         restTemplate.exchange("/forward", HttpMethod.GET, null, mapType);
 
@@ -135,8 +138,15 @@ class AuthConfigTest {
 
   @Test
   void forwardWithCorrectCreds() {
+    // Verify the redirect behavior
     final ResponseEntity<Object> response =
         restTemplate
+            .withRequestFactorySettings(
+                new ClientHttpRequestFactorySettings(
+                    ClientHttpRequestFactorySettings.Redirects.DONT_FOLLOW,
+                    Duration.ofMillis(500),
+                    Duration.ofMillis(500),
+                    null))
             .withBasicAuth(TEST_USER, TEST_PASSWORD)
             .exchange("/forward", HttpMethod.GET, null, Object.class);
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);

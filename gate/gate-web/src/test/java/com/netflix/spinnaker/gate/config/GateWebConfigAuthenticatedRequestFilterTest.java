@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -91,7 +91,7 @@ public class GateWebConfigAuthenticatedRequestFilterTest {
    * clouddriver and front50 that fail and pollute the logs because those services are not
    * available.
    */
-  @MockBean ApplicationService applicationService;
+  @MockitoBean ApplicationService applicationService;
 
   @Autowired
   @Qualifier("authenticatedRequestFilter")

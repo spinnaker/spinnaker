@@ -9,7 +9,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
 
 /**
  * Utility component for creating preconfigured {@link Yaml} instances with optional
@@ -56,31 +55,6 @@ public class YamlHelper {
     return yamlParserProperties != null
         && (yamlParserProperties.getMaxAliasesForCollections() != null
             || yamlParserProperties.getCodePointLimit() != null);
-  }
-
-  /**
-   * Creates a new {@link Yaml} instance using either default or secure {@link LoaderOptions},
-   * depending on whether {@link YamlParserProperties} are configured.
-   *
-   * @return a new {@link Yaml} instance
-   */
-  @Deprecated
-  public static Yaml newYaml() {
-    log.warn(
-        "WARNING:  Invoked newYaml!  THIS DOES NOT load yaml safely and should ONLY be used in initialization or by processes that are trusted!",
-        new Exception());
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
-
-      Constructor constructor = new Constructor(opts);
-      DumperOptions dumperOpts = new DumperOptions();
-      Representer representer = new Representer(dumperOpts);
-      Resolver resolver = new Resolver(); // default tag resolver
-
-      return new Yaml(constructor, representer, dumperOpts, opts, resolver);
-    }
-
-    return new Yaml();
   }
 
   /**
@@ -156,14 +130,16 @@ public class YamlHelper {
     return new Yaml(constructor, representer);
   }
 
-  private static LoaderOptions getLoaderOptions() {
+  public static LoaderOptions getLoaderOptions() {
     LoaderOptions opts = new LoaderOptions();
-    if (yamlParserProperties.getMaxAliasesForCollections() != null) {
-      opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
-    }
+    if (yamlParserProperties != null) {
+      if (yamlParserProperties.getMaxAliasesForCollections() != null) {
+        opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
+      }
 
-    if (yamlParserProperties.getCodePointLimit() != null) {
-      opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
+      if (yamlParserProperties.getCodePointLimit() != null) {
+        opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
+      }
     }
     return opts;
   }

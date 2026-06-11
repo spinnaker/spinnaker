@@ -21,12 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.lang.IllegalArgumentException
 import java.net.URL
 
 class DefaultSpinnakerVersionsClient(private val baseURL: String) : SpinnakerVersionsClient {
 
-  private val mapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule()).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+  private val mapper = ObjectMapper(YAMLFactory()).registerKotlinModule().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
   override fun getSpinnakerBOM(version: String): SpinnakerBOM =
     URL("$baseURL/bom/$version.yml").openStream().use {

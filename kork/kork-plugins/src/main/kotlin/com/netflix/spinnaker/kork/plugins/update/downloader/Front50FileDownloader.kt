@@ -53,6 +53,9 @@ class Front50FileDownloader(
     }
   }
 
+  /**
+   * Plugin download handling support object
+   */
   companion object {
     private val downloadDir = Files.createTempDirectory("plugin-downloads")
     private val retry = Retry.ofDefaults("plugin-front50-downloader")
