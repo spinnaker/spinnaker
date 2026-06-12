@@ -41,6 +41,7 @@ import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,10 +103,10 @@ class AmazonLoadBalancerInstanceStateCachingAgentTest {
     when(ctx.getBean(Cache.class)).thenReturn(cache);
     when(cache.filterIdentifiers(eq(LOAD_BALANCERS.ns), anyString()))
         .thenReturn(
-            List.of(
+            Set.of(
                 Keys.getLoadBalancerKey(loadBalancerOneName, accountId, region, vpcId, "classic"),
                 Keys.getLoadBalancerKey(loadBalancerTwoName, accountId, region, vpcId, "classic")),
-            List.of()); // nonvpc
+            Set.of()); // nonvpc
 
     when(loadBalancing.describeInstanceHealth(any(DescribeInstanceHealthRequest.class)))
         .thenReturn(new DescribeInstanceHealthResult().withInstanceStates(instanceState));
