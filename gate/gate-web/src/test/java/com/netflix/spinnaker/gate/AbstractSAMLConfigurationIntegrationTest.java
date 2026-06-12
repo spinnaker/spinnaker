@@ -350,10 +350,16 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   }
 
   private static @NotNull String extractFieldFromBody(String fieldName, String body) {
-    int samlRequestIndex = body.indexOf(fieldName + "\" value=\"");
-    assertThat(samlRequestIndex).isGreaterThan(0);
-    String startOfBody = body.substring(samlRequestIndex + (fieldName + "\" value=\"").length());
-    int endOfBody = startOfBody.indexOf("\"/");
+    String stringInTheBody = fieldName + "\" type=\"hidden\" value=\"";
+    int samlRequestIndex = body.indexOf(stringInTheBody);
+    assertThat(samlRequestIndex)
+        .withFailMessage(
+            "Expected the body to contain the request with a specific format {}, but actually got {} ",
+            stringInTheBody,
+            body)
+        .isGreaterThan(0);
+    String startOfBody = body.substring(samlRequestIndex + (stringInTheBody).length());
+    int endOfBody = startOfBody.indexOf("\" /");
     return startOfBody.substring(0, endOfBody);
   }
 
