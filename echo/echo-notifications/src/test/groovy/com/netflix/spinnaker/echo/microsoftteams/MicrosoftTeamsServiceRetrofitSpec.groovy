@@ -16,11 +16,18 @@
 
 package com.netflix.spinnaker.echo.microsoftteams
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
-import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory
+import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties
+import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor
+import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
+import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
+import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.logging.HttpLoggingInterceptor
+import org.springframework.beans.factory.ObjectFactory
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import spock.lang.Specification
@@ -43,7 +50,15 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
     server = new MockWebServer()
     server.start()
 
-    def okHttpClientConfig = new OkHttp3ClientConfiguration()
+    def okHttpClientConfig = new OkHttp3ClientConfiguration(
+      new OkHttpClientConfigurationProperties(),
+      new OkHttp3MetricsInterceptor({ -> new NoopRegistry() }, new OkHttpMetricsInterceptorProperties()),
+      HttpLoggingInterceptor.Level.NONE,
+      new SpinnakerRequestHeaderInterceptor(false, []),
+      new Retrofit2EncodeCorrectionInterceptor(),
+      ({ -> new OkHttpClient.Builder() } as ObjectFactory<OkHttpClient.Builder>)
+    )
+
     microsoftTeamsService = new MicrosoftTeamsService(okHttpClientConfig)
   }
 
@@ -55,14 +70,13 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
     given: "Microsoft Teams webhook mock server with a path"
     def webhookPath = "/webhook/path/segments"
     def webhookUrl = server.url(webhookPath).toString().replaceAll('/$', '')
-    
+
     server.enqueue(new MockResponse()
       .setResponseCode(200)
       .setHeader("Content-Type", "application/json")
       .setBody('{"status": "success"}'))
 
-    def message = new MicrosoftTeamsMessage()
-    message.text = "Test message"
+    def message = new MicrosoftTeamsMessage("Test message", "complete")
 
     when: "sending message via MicrosoftTeamsService"
     def response = microsoftTeamsService.sendMessage(webhookUrl, message)
@@ -73,7 +87,6 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
     and: "the request path should not be duplicated"
     def recordedRequest = server.takeRequest()
     recordedRequest.path == webhookPath
-    // Verify it's not doubled (i.e., /webhook/path/segments/webhook/path/segments)
     !recordedRequest.path.contains(webhookPath + webhookPath)
 
     and: "request was made exactly once"
@@ -89,8 +102,7 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
       .setBody(responseJson))
 
     def webhookUrl = server.url("/teams/webhook123").toString().replaceAll('/$', '')
-    def message = new MicrosoftTeamsMessage()
-    message.text = "Important notification"
+    def message = new MicrosoftTeamsMessage("Important notification", "starting")
 
     when: "sending message"
     def response = microsoftTeamsService.sendMessage(webhookUrl, message)
@@ -110,8 +122,7 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
       .setResponseCode(200)
       .setBody('{"ok": true}'))
 
-    def message = new MicrosoftTeamsMessage()
-    message.text = "Message with deep path test"
+    def message = new MicrosoftTeamsMessage("Message with deep path test", "complete")
 
     when: "sending message"
     microsoftTeamsService.sendMessage(webhookUrl, message)
@@ -119,30 +130,25 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
 
     then: "the request is sent to the exact path without duplication"
     recordedRequest.path == deepPath
-    recordedRequest.path.count("/") >= 6 // Deep path has many segments
-    // Ensure the path appears exactly once, not repeated
     recordedRequest.path.indexOf(deepPath) == recordedRequest.path.lastIndexOf(deepPath)
   }
 
   def "sendMessage should handle URL with query parameters in webhook"() {
     given: "Teams webhook URL with query parameters"
-    def basePath = "/webhook/abc123"
-    // MockWebServer records the full path including query params
-    def webhookUrl = server.url(basePath).toString().replaceAll('/$', '')
+    def webhookUrl = server.url("/webhook/abc123?tenant=demo").toString()
 
     server.enqueue(new MockResponse()
       .setResponseCode(200)
       .setBody('{}'))
 
-    def message = new MicrosoftTeamsMessage()
-    message.text = "Test"
+    def message = new MicrosoftTeamsMessage("Test", "starting")
 
     when: "sending message"
     microsoftTeamsService.sendMessage(webhookUrl, message)
     def recordedRequest = server.takeRequest()
 
-    then: "the webhook path is correctly preserved"
-    recordedRequest.path == basePath
+    then: "the webhook path and query are correctly preserved"
+    recordedRequest.path == "/webhook/abc123?tenant=demo"
   }
 
   def "sendMessage should properly serialize MicrosoftTeamsMessage body"() {
@@ -152,16 +158,14 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
       .setBody('{"accepted": true}'))
 
     def webhookUrl = server.url("/webhook").toString().replaceAll('/$', '')
-    def message = new MicrosoftTeamsMessage()
-    message.text = "Test serialization"
-    message.summary = "Summary for teams"
+    def message = new MicrosoftTeamsMessage("Summary for teams", "failed")
 
     when: "sending message"
     microsoftTeamsService.sendMessage(webhookUrl, message)
     def recordedRequest = server.takeRequest()
 
-    then: "request body contains the message text"
+    then: "request body contains the message summary"
     def body = recordedRequest.body.readUtf8()
-    body.contains("Test serialization") || body.contains("Summary for teams")
+    body.contains("Summary for teams")
   }
 }
