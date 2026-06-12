@@ -19,13 +19,9 @@ package com.netflix.spinnaker.echo.microsoftteams;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
 import okhttp3.ResponseBody;
-import org.apache.commons.lang3.StringUtils;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -38,41 +34,22 @@ public class MicrosoftTeamsService {
   }
 
   public ResponseBody sendMessage(String webhookUrl, MicrosoftTeamsMessage message) {
-    // The RestAdapter instantiation needs to occur for each message to be sent as
-    // the incoming webhook base URL and path may be different for each Teams channel
+    // The Retrofit instance needs to be created for each message to be sent as
+    // the incoming webhook base URL and path may be different for each Teams channel.
+    // The full webhook URL is passed via @Url, which overrides the base URL entirely,
+    // so the base URL here only needs to be a valid scheme://host[:port]/ placeholder.
+    // Deriving it via resolve("/") strips any path and query string (e.g. Teams
+    // Workflow URLs carrying ?api-version=...&sig=...) and always ends in "/", which
+    // Retrofit's builder requires.
     MicrosoftTeamsClient microsoftTeamsClient =
         new Retrofit.Builder()
-            .baseUrl(RetrofitUtils.getBaseUrl(webhookUrl))
+            .baseUrl(HttpUrl.get(webhookUrl).resolve("/").toString())
             .client(okHttp3ClientConfiguration.createForRetrofit2().build())
             .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
             .addConverterFactory(JacksonConverterFactory.create())
             .build()
             .create(MicrosoftTeamsClient.class);
 
-    return Retrofit2SyncCall.execute(
-        microsoftTeamsClient.sendMessage(getRelativePath(webhookUrl), message));
-  }
-
-  private String getRelativePath(String webhookUrl) {
-    String relativePath = "";
-
-    try {
-      URL url = new URL(webhookUrl);
-      relativePath = url.getPath();
-
-      if (StringUtils.isEmpty(relativePath)) {
-        throw new MalformedURLException();
-      }
-    } catch (MalformedURLException e) {
-      throw new InvalidRequestException(
-          "Unable to determine relative path from Microsoft Teams webhook URL.", e);
-    }
-
-    // Remove slash from beginning of path as the client will prefix the string with a slash
-    if (relativePath.charAt(0) == '/') {
-      relativePath = relativePath.substring(1);
-    }
-
-    return relativePath;
+    return Retrofit2SyncCall.execute(microsoftTeamsClient.sendMessage(webhookUrl, message));
   }
 }
