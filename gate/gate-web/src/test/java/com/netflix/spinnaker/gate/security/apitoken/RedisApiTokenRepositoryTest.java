@@ -18,6 +18,13 @@ package com.netflix.spinnaker.gate.security.apitoken;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -42,6 +49,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 
 class RedisApiTokenRepositoryTest {
 
@@ -240,6 +248,40 @@ class RedisApiTokenRepositoryTest {
     assertThat(repo.findByHash("h-legacy")).isEmpty();
     assertThat(repo.findById("legacy-tok")).isEmpty();
     assertThat(repo.findByPrincipal("USER", "frank")).isEmpty();
+  }
+
+  /**
+   * A null EXEC result on delete means the revocation transaction was aborted (WATCH conflict,
+   * connection drop, etc.). Silently swallowing it would leave the token authenticatable —
+   * permanently, for non-expiring tokens. delete() must throw so the controller returns 5xx and the
+   * caller retries.
+   */
+  @Test
+  void delete_throws_whenExecReturnsNull() {
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    assertThatThrownBy(
+            () ->
+                failingRepo.delete(
+                    "aborted-del-tok", "h-aborted-del", "aborted-del-name", "USER", "yara"))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("EXEC returned null");
   }
 
   // ---------------------------------------------------------------------------
@@ -477,6 +519,153 @@ class RedisApiTokenRepositoryTest {
           .hasSize(1);
     } finally {
       exec.shutdownNow();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // save — MULTI/EXEC atomicity
+  // ---------------------------------------------------------------------------
+
+  /**
+   * If EXEC returns null mid-save, no partial state (notably a readable hash key without its id
+   * record) may survive — that would be an authenticatable but unrevokable token.
+   */
+  @Test
+  void save_throwsAndWritesNothing_whenExecReturnsNull() {
+    // Real Jedis (so SET NX really reserves the name), but multi() returns a Transaction whose
+    // exec() returns null.
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    TokenRecord record = buildRecord("aborted-tok", "USER", "ursula", null);
+    record.setName("aborted-name");
+
+    assertThatThrownBy(() -> failingRepo.save(record, "h-aborted"))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("EXEC returned null");
+
+    assertThat(repo.findByHash("h-aborted")).isEmpty();
+    assertThat(repo.findById("aborted-tok")).isEmpty();
+    assertThat(repo.findByPrincipal("USER", "ursula")).isEmpty();
+    try (Jedis jedis = jedisPool.getResource()) {
+      assertThat(jedis.exists(repo.nameKey("USER", "ursula", "aborted-name"))).isFalse();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // save — name reservation TTL (orphan cleanup)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * If save() crashes between SETNX and the explicit release in the finally block — or even if the
+   * release itself fails (network blip, dead pool, etc.) — the orphan name reservation must clean
+   * itself up via the short TTL baked into {@code SET NX EX}. Otherwise the principal could never
+   * reuse that name, and a 409 would be the only response forever.
+   */
+  @Test
+  void save_orphanNameKeyAutoExpires_whenBothExecAndCleanupFail() {
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    // The explicit release also blows up — the TTL is the only thing standing between us and a
+    // permanently orphaned name reservation.
+    doThrow(new RuntimeException("connection reset by peer")).when(spyJedis).del(anyString());
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    TokenRecord record = buildRecord("orphan-tok", "USER", "victor", null);
+    record.setName("orphan-name");
+
+    assertThatThrownBy(() -> failingRepo.save(record, "h-orphan"))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("EXEC returned null");
+
+    String nameKey = repo.nameKey("USER", "victor", "orphan-name");
+    try (Jedis jedis = jedisPool.getResource()) {
+      assertThat(jedis.exists(nameKey))
+          .as("cleanup was suppressed, so the orphan should still be present right now")
+          .isTrue();
+      long ttl = jedis.ttl(nameKey);
+      assertThat(ttl)
+          .as("orphan must carry a positive TTL ≤ the reservation window so it auto-cleans")
+          .isGreaterThan(0L)
+          .isLessThanOrEqualTo(RedisApiTokenRepository.NAME_RESERVATION_TTL_SECONDS);
+    }
+
+    // None of the other keys should have leaked either.
+    assertThat(repo.findByHash("h-orphan")).isEmpty();
+    assertThat(repo.findById("orphan-tok")).isEmpty();
+    assertThat(repo.findByPrincipal("USER", "victor")).isEmpty();
+  }
+
+  /**
+   * After a successful save of a non-expiring token, the short reservation TTL must be removed via
+   * PERSIST. If we forgot to do that, the name key would silently disappear after 60s and a
+   * different caller could grab the same (principal, name) while the original token is still very
+   * much alive.
+   */
+  @Test
+  void save_persistsNameKey_whenTokenIsNonExpiring() {
+    TokenRecord record = buildRecord("persist-tok", "USER", "wendy", null);
+    record.setName("persist-name");
+    repo.save(record, "h-persist");
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      String nameKey = repo.nameKey("USER", "wendy", "persist-name");
+      assertThat(jedis.exists(nameKey)).isTrue();
+      // -1 == "key exists, no TTL set" in Redis.
+      assertThat(jedis.ttl(nameKey))
+          .as("non-expiring token's name key must lose the reservation TTL on commit")
+          .isEqualTo(-1L);
+    }
+  }
+
+  /**
+   * After commit for an expiring token, the name key TTL must be lifted from the 60s reservation up
+   * to the token's real expiry. Otherwise the name would free up an hour before the token itself
+   * does.
+   */
+  @Test
+  void save_extendsNameKeyTtl_toTokenExpiry_whenTokenIsExpiring() {
+    long expirySeconds = Instant.now().getEpochSecond() + 3600;
+    String expiresAt = Instant.ofEpochSecond(expirySeconds).toString();
+    TokenRecord record = buildRecord("expiring-tok", "USER", "xena", expiresAt);
+    record.setName("expiring-name");
+    repo.save(record, "h-expiring");
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      String nameKey = repo.nameKey("USER", "xena", "expiring-name");
+      long ttl = jedis.ttl(nameKey);
+      assertThat(ttl)
+          .as("name key TTL must be lifted from the 60s reservation to the token's real expiry")
+          .isGreaterThan(RedisApiTokenRepository.NAME_RESERVATION_TTL_SECONDS);
     }
   }
 
