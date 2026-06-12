@@ -82,6 +82,7 @@ subprojects {
       testImplementation "org.spockframework:spock-spring"
       testImplementation "org.springframework:spring-test"
       testImplementation "org.hamcrest:hamcrest-core"
+      testImplementation "com.squareup.okhttp3:mockwebserver"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
       testRuntimeOnly("org.junit.platform:junit-platform-launcher")
