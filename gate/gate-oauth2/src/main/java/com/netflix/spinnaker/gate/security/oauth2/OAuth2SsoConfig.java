@@ -38,6 +38,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -65,14 +66,17 @@ public class OAuth2SsoConfig {
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(2)
+  @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
     defaultCookieSerializer.setSameSite(null);
     authConfig.configure(httpSecurity);
     String registrationId = getFirstRegistrationId();
+    HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+    requestCache.setMatchingRequestParameterName(null);
 
     httpSecurity
         .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        .requestCache(cache -> cache.requestCache(requestCache))
         .oauth2Login(
             oauth2 -> {
               // Redirect /login directly to the OAuth2 provider instead of showing the

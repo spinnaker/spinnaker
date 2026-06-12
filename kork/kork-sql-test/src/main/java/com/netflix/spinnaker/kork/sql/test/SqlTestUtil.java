@@ -229,6 +229,7 @@ public class SqlTestUtil {
           new ContextExpression(),
           new Labels(),
           false,
+          null,
           0,
           Integer.MAX_VALUE);
 

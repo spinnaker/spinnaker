@@ -43,9 +43,10 @@ import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.webhook.tasks.CreateWebhookTask
 import com.netflix.spinnaker.q.Queue
 import com.netflix.spinnaker.spek.and
-import com.nhaarman.mockito_kotlin.*
+import org.mockito.kotlin.*
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
@@ -79,10 +80,14 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     on { extensionClass } doReturn DummyTimeoutOverrideTask::class.java
     on { aliases() } doReturn emptyList<String>()
   }
+  val createWebhookTask: CreateWebhookTask = mock {
+    on { extensionClass } doReturn CreateWebhookTask::class.java
+    on { aliases() } doReturn emptyList<String>()
+  }
   val logMessageTask = LogMessageTask()
 
   // tasks can only contain mocks
-  val tasks = mutableListOf(task, cloudProviderAwareTask, timeoutOverrideTask)
+  val tasks = mutableListOf(task, cloudProviderAwareTask, timeoutOverrideTask, createWebhookTask)
 
   val exceptionHandler: ExceptionHandler = mock()
   // Stages store times as ms-since-epoch, and we do a lot of tests to make sure things run at the
@@ -104,7 +109,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
       stageNavigator,
       DefaultStageDefinitionBuilderFactory(stageResolver),
       contextParameterProcessor,
-      TaskResolver(TasksProvider(mutableListOf(task, timeoutOverrideTask, cloudProviderAwareTask, logMessageTask) as Collection<Task>)),
+      TaskResolver(TasksProvider(mutableListOf(task, timeoutOverrideTask, cloudProviderAwareTask, createWebhookTask, logMessageTask) as Collection<Task>)),
       clock,
       listOf(exceptionHandler),
       taskExecutionInterceptors,
@@ -114,7 +119,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     )
   }
 
-  fun resetMocks() = reset(queue, repository, task, timeoutOverrideTask, cloudProviderAwareTask, exceptionHandler, retriableLock)
+  fun resetMocks() = reset(queue, repository, task, timeoutOverrideTask, cloudProviderAwareTask, createWebhookTask, exceptionHandler, retriableLock)
 
   describe("running a task") {
 
@@ -1466,7 +1471,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
                 startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli() // started 5.1 minutes ago
                 task {
                   id = "1"
-                  implementingClass = DummyTimeoutOverrideTask::class.jvmName
+                  implementingClass = CreateWebhookTask::class.jvmName
                   status = RUNNING
                   startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli() // started 5.1 minutes ago
                 }
@@ -1474,14 +1479,14 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             }
             val stage = pipeline.stages.first()
             val taskResult = TaskResult.RUNNING
-            val message = RunTask(pipeline.type, pipeline.id, "foo", stage.id, "1", DummyTimeoutOverrideTask::class.java)
+            val message = RunTask(pipeline.type, pipeline.id, "foo", stage.id, "1", CreateWebhookTask::class.java)
 
             beforeGroup {
               tasks.forEach { whenever(it.extensionClass) doReturn it::class.java }
-              taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(timeoutOverrideTask, stage)) doReturn stage }
-              taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(timeoutOverrideTask, stage, taskResult)) doReturn taskResult }
+              taskExecutionInterceptors.forEach { whenever(it.beforeTaskExecution(createWebhookTask, stage)) doReturn stage }
+              taskExecutionInterceptors.forEach { whenever(it.afterTaskExecution(createWebhookTask, stage, taskResult)) doReturn taskResult }
               whenever(repository.retrieve(PIPELINE, message.executionId)) doReturn pipeline
-              whenever(timeoutOverrideTask.timeout) doReturn timeout.toMillis()
+              whenever(createWebhookTask.timeout) doReturn timeout.toMillis()
               setupRetriableLock(true, retriableLock)
             }
 
@@ -1492,7 +1497,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
             }
 
             it("executes the task") {
-              verify(timeoutOverrideTask).execute(any())
+              verify(createWebhookTask).execute(any())
             }
           }
         }

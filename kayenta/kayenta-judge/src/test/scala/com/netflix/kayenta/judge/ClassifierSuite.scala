@@ -17,11 +17,11 @@
 package com.netflix.kayenta.judge
 
 import com.netflix.kayenta.judge.classifiers.metric._
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 
-class ClassifierSuite extends FunSuite{
+class ClassifierSuite extends AnyFunSuite{
 
   test("Mann-Whitney Classifier Test: Pass Metric"){
 

@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.clouddriver.ecs.view
 
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.UnvalidatedDockerImageProvider
-import org.junit.jupiter.api.Test
 import spock.lang.Specification
 
 class UnvalidatedDockerImageProviderSpec extends Specification {
 
-  @Test
-  void shouldNotHandleEcrRepositoryUrl() {
+  def shouldNotHandleEcrRepositoryUrl() {
     given:
     UnvalidatedDockerImageProvider unvalidatedDockerImageProvider = new UnvalidatedDockerImageProvider()
     String ecrRepositoryUrl = "123456789012.dkr.ecr.us-west-2.amazonaws.com/continuous-delivery:latest"
@@ -19,8 +17,7 @@ class UnvalidatedDockerImageProviderSpec extends Specification {
     !canHandle
   }
 
-  @Test
-  void shouldHandleNonEcrRepositoryUrl() {
+  def shouldHandleNonEcrRepositoryUrl() {
     given:
     UnvalidatedDockerImageProvider unvalidatedDockerImageProvider = new UnvalidatedDockerImageProvider()
     String ecrRepositoryUrl = "mydockerregistry.com/continuous-delivery:latest"
