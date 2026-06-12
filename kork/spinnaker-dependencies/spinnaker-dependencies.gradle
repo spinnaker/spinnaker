@@ -22,7 +22,7 @@ ext {
     spek             : "1.1.5",
     spek2            : "2.0.9",
     springdocs          : "2.8.17",
-    springBoot       : "3.5.14",
+    springBoot       : "3.5.15",
     springCloud      : "2025.0.2",
     // bring in latest, though it's ahead of deps.  This is due to springdocs
     // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
