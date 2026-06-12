@@ -5,6 +5,11 @@
 - Provides multi-cloud deployment support (AWS, GCP, Kubernetes, Azure, CloudFoundry, etc.) with automated canary analysis.
 - This monorepo consolidates all Spinnaker microservices and UI components for unified development.
 
+## Rules
+- Groovy is deprecated.  Write all backend in java or kotlin.  If modifying a groovy class, rewrite it to java first.
+- always run ./gradlew from the root of the repository
+
+
 ## Architecture
 - **Type:** Monorepo with Gradle composite builds
 - **Backend:** Java/Kotlin (Spring Boot microservices)
@@ -65,7 +70,6 @@ yarn build
 ./gradlew build          # Build all services
 ./gradlew test           # Run all tests
 ./gradlew :orca:test     # Test single service
-./gradlew spotlessCheck  # Check code formatting
 ./gradlew spotlessApply  # Apply formatting
 ```
 
@@ -92,7 +96,7 @@ npm run lint
 - Backend uses JUnit 5 (via `useJUnitPlatform()`)
 - Frontend uses Karma (deck) and Jest (deck-kayenta)
 - Fix all test/type errors before committing
-- Run `spotlessCheck` / `yarn lint` before commits
+- Run `./gradlew spotlessApply` / `yarn lint` before commits
 
 ## Repository Map
 ```
@@ -122,7 +126,7 @@ npm run lint
 ## Git & PR Policy
 - **Commits:** Ask permission before pushing
 - **PRs:** Create as drafts (`gh pr create --draft`)
-- Run `./gradlew spotlessCheck` and `yarn lint` before committing
+- Run `./gradlew spotlessApply` and `yarn lint` before committing
 - Ensure tests pass locally before pushing
 
 ## Security Considerations
