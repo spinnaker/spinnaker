@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -108,7 +109,7 @@ public abstract class AbstractStorageSecretEngine implements SecretEngine {
   }
 
   protected void parseAsYaml(String fileURI, InputStream inputStream) {
-    Map<String, Object> parsed = new Yaml().load(inputStream);
+    Map<String, Object> parsed = YamlHelper.newYamlSafeConstructor().load(inputStream);
     cache.put(fileURI, parsed);
   }
 
