@@ -119,14 +119,15 @@ import retrofit2.mock.Calls;
       "x509.enabled=true",
       "x509.subject-principal-regex=CN=(.*?)(?:,|$)",
       // Configure MTLS on a separate apiPort via kork's TomcatConfiguration
-      // The apiPort (8444) will have SSL with client cert requirement (MTLS)
-      // The main port will remain HTTP for OAuth2
-      "server.ssl.enabled=false", // Disable SSL on main port
+      // Main port: HTTPS without client cert requirement (for OAuth2)
+      // API port (8444): HTTPS with client cert requirement (MTLS via kork)
+      "server.ssl.enabled=true",
       "server.ssl.key-store-type=JKS",
       "server.ssl.key-store-password=changeit",
       "server.ssl.trust-store-type=JKS",
       "server.ssl.trust-store-password=changeit",
-      "default.apiPort=8444", // This port will have SSL + MTLS via kork
+      "server.ssl.client-auth=none", // No client cert on main port
+      "default.apiPort=8444", // API port will have client-auth=need via kork
       "management.endpoints.web.exposure.include=beans"
     },
     classes = Main.class)
@@ -219,6 +220,69 @@ class OAuth2AndX509ConfigurationIntegrationTest {
   }
 
   @Test
+  void fullX509AuthenticationFlowWithClientCertificateWorks() throws Exception {
+    // Mock Fiat responses for user authorization
+    // The X509 filter extracts username from the certificate CN (testclient)
+    when(fiatService.loginUser("testclient")).thenReturn(Calls.response((Void) null));
+    when(fiatService.getUserPermission("testclient"))
+        .thenReturn(
+            Calls.response(
+                new UserPermission.View()
+                    .setName("testclient")
+                    .setAdmin(false)
+                    .setAccounts(
+                        Set.of(
+                            new Account.View()
+                                .setName("test-account")
+                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
+                    .setRoles(
+                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
+
+    // Create SSL context with client certificate for MTLS
+    SSLContext sslContext = createClientSSLContext();
+
+    // Create HTTP client with client certificate
+    HttpClient client =
+        HttpClient.newBuilder()
+            .sslContext(sslContext)
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
+
+    // Access the MTLS port with client certificate - should authenticate via X509
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://localhost:" + mtlsPort + "/beans"))
+            .GET()
+            .build();
+
+//    System.out.println("Making MTLS request to: https://localhost:" + mtlsPort + "/beans");
+
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+//    System.out.println("MTLS response status: " + response.statusCode());
+//    System.out.println("MTLS response body length: " + response.body().length());
+
+    // Should successfully authenticate with X509 certificate
+    assertThat(response.statusCode()).isEqualTo(200);
+    assertThat(response.body()).contains("beans");
+
+    // Verify the authenticated user by accessing /auth/user endpoint
+    HttpRequest userRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://localhost:" + mtlsPort + "/auth/user"))
+            .GET()
+            .build();
+
+    HttpResponse<String> userResponse =
+        client.send(userRequest, HttpResponse.BodyHandlers.ofString());
+
+//    System.out.println("User info response: " + userResponse.body());
+
+    assertThat(userResponse.statusCode()).isEqualTo(200);
+    assertThat(userResponse.body()).contains("username\":\"testclient\"");
+  }
+
+  @Test
   void fullOAuth2AuthenticationFlowUsingBrowserWorks() throws Exception {
     // Configure OAuth2 client in Keycloak
     createOAuth2ClientInKeycloak(mainPort);
@@ -242,12 +306,14 @@ class OAuth2AndX509ConfigurationIntegrationTest {
     // Use HtmlUnit to simulate a browser navigating through the OAuth2 flow
     // HtmlUnitDriver with JavaScript enabled (true parameter)
     HtmlUnitDriver driver = new HtmlUnitDriver(true);
+    // Accept self-signed SSL certificates
+    driver.getWebClient().getOptions().setUseInsecureSSL(true);
     // Increase redirect limit and enable better logging
     driver.getWebClient().getOptions().setMaxInMemory(0);
     driver.getWebClient().getOptions().setPrintContentOnFailingStatusCode(false);
 
-    // Try to access a protected endpoint via HTTP (main port is HTTP-only, apiPort is HTTPS+MTLS)
-    String targetUrl = "http://localhost:" + mainPort + "/beans";
+    // Try to access a protected endpoint via HTTPS (main port is HTTPS without client certs)
+    String targetUrl = "https://localhost:" + mainPort + "/beans";
     driver.get(targetUrl);
 
     // Debug: print current URL and page source
@@ -292,7 +358,7 @@ class OAuth2AndX509ConfigurationIntegrationTest {
     assertThat(driver.getPageSource()).contains("beans");
 
     // Verify the user is authenticated by accessing the /auth/user endpoint
-    driver.navigate().to("http://localhost:" + mainPort + "/auth/user");
+    driver.navigate().to("https://localhost:" + mainPort + "/auth/user");
     assertThat(driver.getPageSource()).contains("email\":\"" + TEST_EMAIL + "\"");
   }
 
@@ -529,7 +595,7 @@ class OAuth2AndX509ConfigurationIntegrationTest {
          "protocol":"openid-connect",
          "publicClient":false,
          "secret":"%s",
-         "redirectUris":["https://localhost:%s/login/oauth2/code/keycloak", "http://localhost:%s/login/oauth2/code/keycloak"],
+         "redirectUris":["https://localhost:%s/login/oauth2/code/keycloak"],
          "webOrigins":["+"],
          "standardFlowEnabled":true,
          "directAccessGrantsEnabled":true,
@@ -537,7 +603,7 @@ class OAuth2AndX509ConfigurationIntegrationTest {
          "optionalClientScopes":[]
         }
         """
-            .formatted(CLIENT_ID, CLIENT_SECRET, port, port);
+            .formatted(CLIENT_ID, CLIENT_SECRET, port);
 
     HttpRequest createClientRequest =
         HttpRequest.newBuilder()
