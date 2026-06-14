@@ -255,12 +255,12 @@ class OAuth2AndX509ConfigurationIntegrationTest {
             .GET()
             .build();
 
-//    System.out.println("Making MTLS request to: https://localhost:" + mtlsPort + "/beans");
+    //    System.out.println("Making MTLS request to: https://localhost:" + mtlsPort + "/beans");
 
     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-//    System.out.println("MTLS response status: " + response.statusCode());
-//    System.out.println("MTLS response body length: " + response.body().length());
+    //    System.out.println("MTLS response status: " + response.statusCode());
+    //    System.out.println("MTLS response body length: " + response.body().length());
 
     // Should successfully authenticate with X509 certificate
     assertThat(response.statusCode()).isEqualTo(200);
@@ -276,7 +276,7 @@ class OAuth2AndX509ConfigurationIntegrationTest {
     HttpResponse<String> userResponse =
         client.send(userRequest, HttpResponse.BodyHandlers.ofString());
 
-//    System.out.println("User info response: " + userResponse.body());
+    //    System.out.println("User info response: " + userResponse.body());
 
     assertThat(userResponse.statusCode()).isEqualTo(200);
     assertThat(userResponse.body()).contains("username\":\"testclient\"");
