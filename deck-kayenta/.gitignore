@@ -15,7 +15,7 @@ Thumbs.db
 npm-debug.log
 node_modules/
 test/google/node_modules/
-yarn-error.log
+pnpm-debug.log
 
 # Build Files
 .cache-loader/
@@ -36,3 +36,5 @@ coverage/
 #gradle wrapper symlinks
 /gradle
 /gradlew
+
+.pnpm-store
