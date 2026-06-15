@@ -319,7 +319,7 @@ public class AmazonClientProvider {
             rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
     software.amazon.awssdk.core.retry.RetryPolicy v2RetryPolicy = buildV2RetryPolicy(retryPolicy);
     this.awsSdkV2ClientSupplier =
-        new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, v2RetryPolicy);
+        new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, v2RetryPolicy, proxy);
     this.proxyHandlerBuilder =
         new ProxyHandlerBuilder(
             awsSdkClientSupplier,

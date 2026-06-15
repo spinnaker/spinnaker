@@ -39,6 +39,7 @@ dependencies {
   api "software.amazon.awssdk:secretsmanager"
   api "software.amazon.awssdk:servicediscovery"
   implementation "software.amazon.awssdk:sts"
+  implementation "software.amazon.awssdk:apache-client"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"

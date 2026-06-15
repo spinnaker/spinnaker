@@ -18,11 +18,15 @@ package com.netflix.spinnaker.clouddriver.aws.security.sdkclient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
 
@@ -42,7 +46,11 @@ class AwsSdkV2ClientSupplierTest {
 
   @BeforeEach
   void setUp() {
-    supplier = new AwsSdkV2ClientSupplier();
+    Registry registry = new NoopRegistry();
+    RateLimiterSupplier rateLimiterSupplier =
+        new RateLimiterSupplier(new ServiceLimitConfigurationBuilder().build(), registry);
+    RetryPolicy retryPolicy = RetryPolicy.defaultRetryPolicy();
+    supplier = new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, retryPolicy, null);
   }
 
   @Test

@@ -24,6 +24,8 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.RateLimiter;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy;
+import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +37,8 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -62,12 +66,17 @@ public class AwsSdkV2ClientSupplier {
   private final RateLimiterSupplier rateLimiterSupplier;
   private final Registry registry;
   private final RetryPolicy retryPolicy;
+  private final AWSProxy proxy;
 
   public AwsSdkV2ClientSupplier(
-      RateLimiterSupplier rateLimiterSupplier, Registry registry, RetryPolicy retryPolicy) {
+      RateLimiterSupplier rateLimiterSupplier,
+      Registry registry,
+      RetryPolicy retryPolicy,
+      AWSProxy proxy) {
     this.rateLimiterSupplier = requireNonNull(rateLimiterSupplier, "rateLimiterSupplier");
     this.registry = requireNonNull(registry, "registry");
     this.retryPolicy = requireNonNull(retryPolicy, "retryPolicy");
+    this.proxy = proxy;
     this.clientCache =
         CacheBuilder.newBuilder()
             .recordStats()
@@ -148,6 +157,28 @@ public class AwsSdkV2ClientSupplier {
               .addMetricPublisher(new SpectatorMetricPublisher(registry));
 
       builder.overrideConfiguration(overrideConfig.build());
+
+      // Proxy configuration
+      if (proxy != null && proxy.isProxyConfigMode()) {
+        String scheme = "HTTPS".equalsIgnoreCase(proxy.getProtocol()) ? "https" : "http";
+        ProxyConfiguration.Builder proxyConfig =
+            ProxyConfiguration.builder()
+                .endpoint(
+                    URI.create(scheme + "://" + proxy.getProxyHost() + ":" + proxy.getProxyPort()));
+        if (proxy.getProxyUsername() != null) {
+          proxyConfig.username(proxy.getProxyUsername());
+        }
+        if (proxy.getProxyPassword() != null) {
+          proxyConfig.password(proxy.getProxyPassword());
+        }
+        if (builder
+            instanceof
+            software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder<?, ?>
+            syncBuilder) {
+          syncBuilder.httpClient(
+              ApacheHttpClient.builder().proxyConfiguration(proxyConfig.build()).build());
+        }
+      }
 
       key.getRegion()
           .ifPresent(
