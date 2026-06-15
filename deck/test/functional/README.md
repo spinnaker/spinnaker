@@ -5,10 +5,10 @@ to be running.
 
 ## Running Tests
 
-From deck project root, run `yarn functional`.
+From deck project root, run `pnpm functional`.
 
-This will build deck into `/build/webpack` (using `yarn build`).
-Then it installs and launches cypress from `/test/functional` (using `yarn test`).
+This will build deck into `/build/webpack` (using `pnpm build`).
+Then it installs and launches cypress from `/test/functional` (using `pnpm test`).
 
 ## Writing Tests
 
@@ -40,7 +40,7 @@ _Warning_: Be careful not to include any sensitive information in any saved fixt
 
 ### Debugging
 
-After building deck (using `yarn build`), run `yarn start` to launch the interactive test runner.
+After building deck (using `pnpm build`), run `pnpm start` to launch the interactive test runner.
 Click the "Run all specs" button.
 Your tests are run one at a time, and the browser output is shown in an iframe.
 

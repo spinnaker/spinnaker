@@ -20,15 +20,15 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.29.1",
-    "angular": "1.6.10",
+    "@spinnaker/core": "workspace:^0.29.1",
+    "angular": "1.8.3",
     "lodash": "^4.17.19",
     "ngimport": "^0.6.0",
     "react": "~16.14.0"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^3.0.2",
-    "@spinnaker/scripts": "^0.4.0",
+    "@spinnaker/eslint-plugin": "workspace:^3.0.2",
+    "@spinnaker/scripts": "workspace:^0.4.0",
     "@types/angular": "1.6.26",
     "@types/lodash": "4.14.64",
     "@types/node": "7.0.5",
