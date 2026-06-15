@@ -160,23 +160,13 @@ public class AwsSdkV2ClientSupplier {
 
       // Proxy configuration
       if (proxy != null && proxy.isProxyConfigMode()) {
-        String scheme = "HTTPS".equalsIgnoreCase(proxy.getProtocol()) ? "https" : "http";
-        ProxyConfiguration.Builder proxyConfig =
-            ProxyConfiguration.builder()
-                .endpoint(
-                    URI.create(scheme + "://" + proxy.getProxyHost() + ":" + proxy.getProxyPort()));
-        if (proxy.getProxyUsername() != null) {
-          proxyConfig.username(proxy.getProxyUsername());
-        }
-        if (proxy.getProxyPassword() != null) {
-          proxyConfig.password(proxy.getProxyPassword());
-        }
+        ProxyConfiguration proxyConfiguration = buildProxyConfiguration(proxy);
         if (builder
             instanceof
             software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder<?, ?>
             syncBuilder) {
           syncBuilder.httpClient(
-              ApacheHttpClient.builder().proxyConfiguration(proxyConfig.build()).build());
+              ApacheHttpClient.builder().proxyConfiguration(proxyConfiguration).build());
         }
       }
 
@@ -204,6 +194,25 @@ public class AwsSdkV2ClientSupplier {
             "region",
             region == null ? "UNSPECIFIED" : region);
     return new RateLimitingExecutionInterceptor(rateLimitCounter, limiter);
+  }
+
+  /**
+   * Builds a v2 {@link ProxyConfiguration} from the v1 {@link AWSProxy} settings. Package-private
+   * for testability.
+   */
+  static ProxyConfiguration buildProxyConfiguration(AWSProxy proxy) {
+    String scheme = "HTTPS".equalsIgnoreCase(proxy.getProtocol()) ? "https" : "http";
+    ProxyConfiguration.Builder proxyConfig =
+        ProxyConfiguration.builder()
+            .endpoint(
+                URI.create(scheme + "://" + proxy.getProxyHost() + ":" + proxy.getProxyPort()));
+    if (proxy.getProxyUsername() != null) {
+      proxyConfig.username(proxy.getProxyUsername());
+    }
+    if (proxy.getProxyPassword() != null) {
+      proxyConfig.password(proxy.getProxyPassword());
+    }
+    return proxyConfig.build();
   }
 
   // -------------------------------------------------------------------------
