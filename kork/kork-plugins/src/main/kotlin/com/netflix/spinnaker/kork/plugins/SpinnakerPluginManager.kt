@@ -127,7 +127,7 @@ open class SpinnakerPluginManager(
   }
 
   override fun createPluginRepository(): PluginRepository = CompoundPluginRepository()
-    .add(PluginRefPluginRepository(getPluginsRoot()), this::isDevelopment)
+    .add(PluginRefPluginRepository(pluginsRoots.single()), this::isDevelopment)
     .add(super.createPluginRepository())
 
   override fun getPluginFactory(): PluginFactory = spinnakerPluginFactory

@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.webhook.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
+import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.webhook.config.WebhookProperties;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class CreateWebhookTask implements RetryableTask {
+public class CreateWebhookTask implements OverridableTimeoutRetryableTask {
   private final WebhookService webhookService;
   private final WebhookProperties webhookProperties;
   private final ObjectMapper objectMapper;

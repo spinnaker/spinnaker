@@ -29,7 +29,7 @@ fun testPlugin(init: GeneratedTestPlugin.() -> Unit): GeneratedTestPlugin =
 fun basicGeneratedPlugin(pluginName: String? = null, version: String? = null): GeneratedTestPlugin =
   testPlugin {
     if (pluginName != null) {
-      name = pluginName.capitalize()
+      name = pluginName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 
     if (version != null) {

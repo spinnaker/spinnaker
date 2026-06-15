@@ -49,18 +49,19 @@ public class ReorderPipelinesController {
 
   @Operation(summary = "Re-order pipelines")
   @RequestMapping(value = "/pipelines/reorder", method = RequestMethod.POST)
-  public Map reorderPipelines(@RequestBody ReorderPipelinesCommand reorderPipelinesCommand) {
+  public Map<String, ?> reorderPipelines(
+      @RequestBody ReorderPipelinesCommand reorderPipelinesCommand) {
     return handlePipelineReorder(reorderPipelinesCommand, false);
   }
 
   @Operation(summary = "Re-order pipeline strategies")
   @RequestMapping(value = "/strategies/reorder", method = RequestMethod.POST)
-  public Map reorderPipelineStrategies(
+  public Map<String, ?> reorderPipelineStrategies(
       @RequestBody ReorderPipelinesCommand reorderPipelinesCommand) {
     return handlePipelineReorder(reorderPipelinesCommand, true);
   }
 
-  private Map handlePipelineReorder(
+  private Map<String, ?> handlePipelineReorder(
       ReorderPipelinesCommand reorderPipelinesCommand, Boolean isStrategy) {
     Map<String, Integer> idsToIndices = reorderPipelinesCommand.getIdsToIndices();
     var application = reorderPipelinesCommand.getApplication();

@@ -29,7 +29,10 @@ spec:
           protocol: TCP
         readinessProbe:
           exec:
-            command: ["sh", "-c", "exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD"]
+            command:
+            - healthcheck.sh
+            - --connect
+            - --innodb_initialized
           initialDelaySeconds: 20
         resources:
           requests:
@@ -69,7 +72,6 @@ spec:
       name: mariadb
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      storageClassName: "standard"
       resources:
         requests:
           storage: 1Gi

@@ -20,10 +20,10 @@ import java.util.Collections
 
 import com.netflix.kayenta.judge.utils.{MapUtils, RandomUtils}
 import org.apache.commons.math3.stat.StatUtils
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
-class UtilsSuite extends FunSuite {
+class UtilsSuite extends AnyFunSuite {
 
   test("RandomUtils List of Random Samples (Zero Mean)"){
     val seed = 123456789

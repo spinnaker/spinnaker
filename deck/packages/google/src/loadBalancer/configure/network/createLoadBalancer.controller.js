@@ -23,7 +23,17 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
   'application',
   'loadBalancer',
   'isNew',
-  function ($scope, $uibModalInstance, $state, gceLoadBalancerTransformer, application, loadBalancer, isNew) {
+  'forPipelineConfig',
+  function (
+    $scope,
+    $uibModalInstance,
+    $state,
+    gceLoadBalancerTransformer,
+    application,
+    loadBalancer,
+    isNew,
+    forPipelineConfig,
+  ) {
     const ctrl = this;
 
     $scope.isNew = isNew;
@@ -180,39 +190,45 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER, [
     this.submit = function () {
       const descriptor = isNew ? 'Create' : 'Update';
 
-      $scope.taskMonitor.submit(function () {
-        const params = {
-          cloudProvider: 'gce',
-          loadBalancerName: $scope.loadBalancer.name,
-        };
+      const params = {
+        cloudProvider: 'gce',
+        loadBalancerName: $scope.loadBalancer.name,
+      };
 
-        if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
-          const listener = $scope.loadBalancer.listeners[0];
+      if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
+        const listener = $scope.loadBalancer.listeners[0];
 
-          if (listener.protocol) {
-            params.ipProtocol = listener.protocol;
-          }
-
-          if (listener.portRange) {
-            params.portRange = listener.portRange;
-          }
-
-          if (listener.healthCheck) {
-            params.healthCheck = {
-              port: $scope.loadBalancer.healthCheckPort,
-              requestPath: $scope.loadBalancer.healthCheckPath,
-              timeoutSec: $scope.loadBalancer.healthTimeout,
-              checkIntervalSec: $scope.loadBalancer.healthInterval,
-              healthyThreshold: $scope.loadBalancer.healthyThreshold,
-              unhealthyThreshold: $scope.loadBalancer.unhealthyThreshold,
-            };
-          } else {
-            params.healthCheck = null;
-          }
-
-          params.sessionAffinity = $scope.loadBalancer.sessionAffinity;
+        if (listener.protocol) {
+          params.ipProtocol = listener.protocol;
         }
 
+        if (listener.portRange) {
+          params.portRange = listener.portRange;
+        }
+
+        if (listener.healthCheck) {
+          params.healthCheck = {
+            port: $scope.loadBalancer.healthCheckPort,
+            requestPath: $scope.loadBalancer.healthCheckPath,
+            timeoutSec: $scope.loadBalancer.healthTimeout,
+            checkIntervalSec: $scope.loadBalancer.healthInterval,
+            healthyThreshold: $scope.loadBalancer.healthyThreshold,
+            unhealthyThreshold: $scope.loadBalancer.unhealthyThreshold,
+          };
+        } else {
+          params.healthCheck = null;
+        }
+
+        params.sessionAffinity = $scope.loadBalancer.sessionAffinity;
+      }
+
+      if (forPipelineConfig) {
+        const command = Object.assign({}, $scope.loadBalancer, params);
+        $uibModalInstance.close(command);
+        return;
+      }
+
+      $scope.taskMonitor.submit(function () {
         return LoadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
       });
     };

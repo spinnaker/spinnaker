@@ -19,7 +19,7 @@ plugins {
   id 'io.spinnaker.project' apply false
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.spring)
-  id "com.google.protobuf" version "0.8.12" apply false
+  alias(libs.plugins.protobuf) apply false
 }
 
 allprojects {
@@ -53,7 +53,8 @@ subprojects {
       testCompileOnly "org.projectlombok:lombok"
 
       testRuntimeOnly enforcedPlatform("io.spinnaker.kork:kork-bom")
-      testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     test {
@@ -95,15 +96,5 @@ subprojects {
     }
   }
 
-  // Avoid warnings like
-  //
-  // Using deprecated '-debug' fallback for parameter name resolution. Compile
-  // the affected code with '-parameters' instead or avoid its introspection:
-  // com.netflix.spinnaker.clouddriver.cache.JedisCacheConfig
-  //
-  // FWIW, the spring boot gradle plugin enables this since 2.0 via
-  // https://github.com/spring-projects/spring-boot/pull/9839.
-  tasks.withType(JavaCompile) {
-    options.compilerArgs << "-parameters"
-  }
+
 }

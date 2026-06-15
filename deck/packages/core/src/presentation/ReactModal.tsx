@@ -35,10 +35,17 @@ export class ReactModal {
     const modalPromise = new Promise<T>((resolve, reject) => {
       let mountNode = document.createElement('div');
       let show = true;
+      let pendingResult: { handler: (result: any) => void; value: any } | null = null;
 
       function onExited() {
         if (!mountNode) {
           return;
+        }
+
+        if (pendingResult) {
+          const { handler, value } = pendingResult;
+          pendingResult = null;
+          handler(value);
         }
 
         ReactDOM.unmountComponentAtNode(mountNode);
@@ -50,8 +57,11 @@ export class ReactModal {
           return;
         }
 
-        resultHandler(result);
-        // Use react-bootstrap modal lifecycle, i.e. show=false, which triggers onExited
+        if (pendingResult) {
+          return;
+        }
+
+        pendingResult = { handler: resultHandler, value: result };
         show = false;
         render();
       };

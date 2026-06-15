@@ -1,7 +1,5 @@
-import { IComponentOptions, module } from 'angular';
+import { module } from 'angular';
 import { cloneDeep } from 'lodash';
-
-import { TaskMonitor } from '@spinnaker/core';
 
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_BASICSETTINGS_BASICSETTINGS_COMPONENT } from '../../../../autoscalingPolicy/components/basicSettings/basicSettings.component';
 import { GOOGLE_AUTOSCALINGPOLICY_COMPONENTS_METRICSETTINGS_METRICSETTINGS_COMPONENT } from '../../../../autoscalingPolicy/components/metricSettings/metricSettings.component';

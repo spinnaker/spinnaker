@@ -20,7 +20,7 @@ spec:
           protocol: TCP
         readinessProbe:
           httpGet:
-            path: /health
+            path: /api/v1/health
             port: http
             # scheme: HTTPS
         resources:

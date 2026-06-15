@@ -69,6 +69,37 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     this.description = description
   }
 
+  protected static String getFirstSslCertificateName(List<String> sslCertificates) {
+    return sslCertificates ? GCEUtil.getLocalName(sslCertificates[0]) : null
+  }
+
+  // Normalizes a certificateMap value to its short resource name. Callers may pass either a bare
+  // name or a full Certificate Manager URL (e.g. //certificatemanager.googleapis.com/projects/…/
+  // certificateMaps/my-map); GCEUtil.getLocalName extracts the last path segment in either case.
+  // Whitespace-only input is treated as absent (returns null) so that API/pipeline callers
+  // sending padded or empty strings do not produce malformed Certificate Manager URLs.
+  protected static String getCertificateMapName(String certificateMap) {
+    if (!certificateMap) return null
+    def trimmed = certificateMap.trim()
+    if (!trimmed) return null
+    return GCEUtil.getLocalName(trimmed)
+  }
+
+  protected static boolean shouldUpdateHttpsTargetProxy(
+      String existingCertificateName,
+      String existingCertificateMap,
+      String desiredCertificateName,
+      String desiredCertificateMap) {
+    return existingCertificateName != desiredCertificateName || existingCertificateMap != desiredCertificateMap
+  }
+
+  // When a proxy has a certificateMap set, GCP ignores sslCertificates entirely (certificateMap
+  // takes precedence per API docs). To make sslCertificates authoritative again during a
+  // map-to-cert migration, the stale certificateMap must be explicitly cleared.
+  protected static boolean shouldClearCertificateMap(String existingCertificateMap, String desiredCertificateMap) {
+    return existingCertificateMap && !desiredCertificateMap
+  }
+
   /**
    * minimal command:
    * curl -v -X POST -H "Content-Type: application/json" -d '[{ "upsertLoadBalancer": {"credentials": "my-google-account", "loadBalancerType": "HTTP", "loadBalancerName": "http-create", "portRange": "80", "backendServiceDiff": [], "defaultService": {"name": "default-backend-service", "backends": [], "enableCDN": false, "healthCheck": {"name": "basic-check", "requestPath": "/", "port": 80, "checkIntervalSec": 1, "timeoutSec": 1, "healthyThreshold": 1, "unhealthyThreshold": 1}}, "certificate": "", "hostRules": [] }}]' localhost:7002/gce/ops
@@ -88,6 +119,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         defaultService: description.defaultService,
         hostRules: description.hostRules,
         certificate: description.certificate,
+        certificateMap: getCertificateMapName(description.certificateMap),
         ipAddress: description.ipAddress,
         ipProtocol: description.ipProtocol,
         portRange: description.portRange
@@ -113,6 +145,9 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     Boolean targetProxyExists = false
     Boolean targetProxyNeedsUpdated = false
     Boolean forwardingRuleExists
+    // Captured during the HTTPS target proxy check (below) so we can detect map-to-cert
+    // migrations later in the update path and clear the stale certificateMap.
+    String existingCertificateMapOnProxy = null
 
     // The following are unique on object equality, not just name. This lets us check if a service/hc exists or
     // needs updated by _name_ later.
@@ -189,10 +224,21 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
               compute.targetHttpsProxies().get(project, targetProxyName),
               "compute.targetHttpsProxies.get",
               TAG_SCOPE, SCOPE_GLOBAL)
-          if (!httpLoadBalancer.certificate) {
-            throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate.")
+          if (!httpLoadBalancer.certificate && !httpLoadBalancer.certificateMap) {
+            throw new IllegalArgumentException("${httpLoadBalancerName} is an Https load balancer, but the upsert description does not contain a certificate or certificateMap.")
           }
-          targetProxyNeedsUpdated = GCEUtil.getLocalName(existingProxy?.getSslCertificates()[0]) != GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate))
+          def desiredCertificateName = httpLoadBalancer.certificate ?
+            GCEUtil.getLocalName(GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)) : null
+          def desiredCertificateMap = getCertificateMapName(httpLoadBalancer.certificateMap)
+          def existingCertificateName = getFirstSslCertificateName(existingProxy?.getSslCertificates())
+          def existingCertificateMap = getCertificateMapName(existingProxy?.getCertificateMap())
+          existingCertificateMapOnProxy = existingCertificateMap
+          targetProxyNeedsUpdated = shouldUpdateHttpsTargetProxy(
+            existingCertificateName,
+            existingCertificateMap,
+            desiredCertificateName,
+            desiredCertificateMap
+          )
           break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")
@@ -402,14 +448,17 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
     def insertTargetProxyOperation
     String targetProxyUrl
     if (!targetProxyExists) {
-      if (httpLoadBalancer.certificate) {
+      if (httpLoadBalancer.certificate || httpLoadBalancer.certificateMap) {
         targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
         task.updateStatus BASE_PHASE, "Creating target proxy $targetProxyName..."
-        targetProxy = new TargetHttpsProxy(
-          name: targetProxyName,
-          sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
-          urlMap: urlMapUrl,
-        )
+        targetProxy = new TargetHttpsProxy(name: targetProxyName, urlMap: urlMapUrl)
+        if (httpLoadBalancer.certificateMap) {
+          def certificateMapName = getCertificateMapName(httpLoadBalancer.certificateMap)
+          // Build the canonical global Certificate Manager URL from the map name.
+          targetProxy.certificateMap = GCEUtil.buildCertificateMapUrl(project, certificateMapName)
+        } else {
+          targetProxy.sslCertificates = [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)]
+        }
         insertTargetProxyOperation = timeExecute(
             compute.targetHttpsProxies().insert(project, targetProxy),
             "compute.targetHttpsProxies.insert",
@@ -436,15 +485,49 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         case GoogleTargetProxyType.HTTPS:
           targetProxyName = "$httpLoadBalancerName-$TARGET_HTTPS_PROXY_NAME_PREFIX"
           task.updateStatus BASE_PHASE, "Updating target proxy $targetProxyName..."
-          TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
-            sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
-          )
-          def sslCertOp = timeExecute(
-              compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq),
-              "compute.targetHttpsProxies.setSslCertificates",
-              TAG_SCOPE, SCOPE_GLOBAL)
-          googleOperationPoller.waitForGlobalOperation(compute, project, sslCertOp.getName(), null, task,
-            "set ssl cert ${httpLoadBalancer.certificate}", BASE_PHASE)
+          if (httpLoadBalancer.certificateMap) {
+            def certificateMapName = getCertificateMapName(httpLoadBalancer.certificateMap)
+            // Setting certificateMap makes sslCertificates inert — certificateMap takes precedence
+            // per GCP API docs, so there is no need to clear sslCertificates on cert-to-map migration.
+            // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies
+            TargetHttpsProxiesSetCertificateMapRequest setCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest(
+              certificateMap: GCEUtil.buildCertificateMapUrl(project, certificateMapName),
+            )
+            def certificateMapOp = timeExecute(
+                compute.targetHttpsProxies().setCertificateMap(project, targetProxyName, setCertificateMapReq),
+                "compute.targetHttpsProxies.setCertificateMap",
+                TAG_SCOPE, SCOPE_GLOBAL)
+            googleOperationPoller.waitForGlobalOperation(compute, project, certificateMapOp.getName(), null, task,
+              "set certificateMap ${certificateMapName}", BASE_PHASE)
+          } else {
+            TargetHttpsProxiesSetSslCertificatesRequest setSslReq = new TargetHttpsProxiesSetSslCertificatesRequest(
+              sslCertificates: [GCEUtil.buildCertificateUrl(project, httpLoadBalancer.certificate)],
+            )
+            def sslCertOp = timeExecute(
+                compute.targetHttpsProxies().setSslCertificates(project, targetProxyName, setSslReq),
+                "compute.targetHttpsProxies.setSslCertificates",
+                TAG_SCOPE, SCOPE_GLOBAL)
+            googleOperationPoller.waitForGlobalOperation(compute, project, sslCertOp.getName(), null, task,
+              "set ssl cert ${httpLoadBalancer.certificate}", BASE_PHASE)
+            // desiredCertificateMap is null here because we're in the cert-only branch;
+            // shouldClearCertificateMap checks if the existing proxy had a map that now needs removal.
+            if (shouldClearCertificateMap(existingCertificateMapOnProxy, null)) {
+              // Clear stale certificateMap so direct sslCertificates become authoritative again.
+              // GenericJson serialization skips null @Key fields, so an empty string is required
+              // to produce {"certificateMap":""} in the request body; a null field would serialize
+              // to {} and the GCP endpoint would not clear the association.
+              // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies/setCertificateMap
+              TargetHttpsProxiesSetCertificateMapRequest clearCertificateMapReq = new TargetHttpsProxiesSetCertificateMapRequest(
+                certificateMap: "",
+              )
+              def clearCertificateMapOp = timeExecute(
+                compute.targetHttpsProxies().setCertificateMap(project, targetProxyName, clearCertificateMapReq),
+                "compute.targetHttpsProxies.setCertificateMap",
+                TAG_SCOPE, SCOPE_GLOBAL)
+              googleOperationPoller.waitForGlobalOperation(compute, project, clearCertificateMapOp.getName(), null, task,
+                "clear certificateMap for $targetProxyName", BASE_PHASE)
+            }
+          }
           UrlMapReference urlMapRef = new UrlMapReference(urlMap: urlMapUrl)
           def setUrlMapOp = timeExecute(
                   compute.targetHttpsProxies().setUrlMap(project, targetProxyName, urlMapRef),
@@ -470,7 +553,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         name: httpLoadBalancerName,
         IPAddress: httpLoadBalancer.ipAddress,
         IPProtocol: httpLoadBalancer.ipProtocol,
-        portRange: httpLoadBalancer.certificate ? "443" : httpLoadBalancer.portRange,
+        portRange: (httpLoadBalancer.certificate || httpLoadBalancer.certificateMap) ? "443" : httpLoadBalancer.portRange,
         target: targetProxyUrl,
       )
       Operation forwardingRuleOp = safeRetry.doRetry(

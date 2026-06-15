@@ -61,7 +61,7 @@ class FileDownloaderProvider(
         ?: throw IntegrationException("Could not find matching constructor on file downloader for injecting config")
       ctor.newInstance(config)
     } else {
-      downloaderClass.newInstance()
+      downloaderClass.getDeclaredConstructor().newInstance()
     } as FileDownloader
   }
 }

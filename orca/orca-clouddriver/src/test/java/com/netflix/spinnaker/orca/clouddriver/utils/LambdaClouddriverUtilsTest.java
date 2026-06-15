@@ -459,7 +459,7 @@ public class LambdaClouddriverUtilsTest {
   }
 
   @Test
-  public void retrieveLambdaFromCache_ShouldNotBeNull() {
+  public void retrieveLambdaFromCache_ShouldNotBeNull_PrefixAppName() {
     ResponseDefinitionBuilder mockFunctionResponse =
         new ResponseDefinitionBuilder()
             .withStatus(200)
@@ -480,6 +480,38 @@ public class LambdaClouddriverUtilsTest {
     PipelineExecution pipelineExecutionMock = Mockito.mock(PipelineExecution.class);
     Mockito.when(pipelineExecutionMock.getApplication()).thenReturn("lambdaApp");
     Mockito.when(stageExecutionMock.getExecution()).thenReturn(pipelineExecutionMock);
+    LambdaDefinition lambdaDefinition =
+        lambdaCloudDriverUtils.retrieveLambdaFromCache(stageExecutionMock, false);
+    assertNotNull(lambdaDefinition);
+    assertEquals("account1", lambdaDefinition.getAccount());
+  }
+
+  /*
+  This is needed in case you want to allow the function name to NOT prefix, and still work.  REALLY relevant
+  when using the setMonikerTags is true where tags are added AND discovered as part of the process.
+   */
+  @Test
+  public void retrieveLambdaFromCache_ShouldNotBeNull_noPrefixAppName() {
+    ResponseDefinitionBuilder mockFunctionResponse =
+        new ResponseDefinitionBuilder()
+            .withStatus(200)
+            .withBody(
+                "[{\"account\":\"account1\",\"aliasConfigurations\":[],\"code\":{\"location\":\"https:\\/\\/awslambda-us-west-2-tasks.s3.us-west-2.amazonaws.com\\/snapshots\\/569630529054\\/hello-world-9d719f9e\",\"repositoryType\":\"S3\"},\"codeSha256\":\"gEfN8j47XTW9VAGo6+dTbppFm3HZRnsOFI3\\/C6v05Xs=\",\"codeSize\":343,\"description\":\"A starter AWS Lambda function.\",\"eventSourceMappings\":[],\"fileSystemConfigs\":[],\"functionArn\":\"arn:aws:lambda:us-west-2:569630529054:function:hello-world\",\"functionName\":\"function-test\",\"handler\":\"lambda_function.lambda_handler\",\"lastModified\":\"2021-04-19T22:58:03.358+0000\",\"layers\":[],\"memorySize\":128,\"packageType\":\"Zip\",\"region\":\"us-west-2\",\"revisionId\":\"dc635189-fb73-4bd7-93d5-3b955568101e\",\"revisions\":{\"dc635189-fb73-4bd7-93d5-3b955568101e\":\"$LATEST\"},\"role\":\"arn:aws:iam::569630529054:role\\/service-role\\/hello-world-role-ff9v8sy0\",\"runtime\":\"python3.7\",\"state\":\"Active\",\"tags\":{\"lambda-console:blueprint\":\"hello-world-python\"},\"targetGroups\":[],\"timeout\":3,\"tracingConfig\":{\"mode\":\"PassThrough\"},\"version\":\"$LATEST\"}]");
+
+    this.wireMockServer.stubFor(
+        WireMock.get("/functions?region=us-west-2&account=account1&functionName=function-test")
+            .willReturn(mockFunctionResponse));
+    StageExecution stageExecutionMock = Mockito.mock(StageExecution.class);
+    Map<String, Object> lambdaGetInput =
+        ImmutableMap.of(
+            "region", "us-west-2",
+            "account", "account1",
+            "functionName", "function-test");
+    Mockito.when(stageExecutionMock.getContext()).thenReturn(lambdaGetInput);
+    PipelineExecution pipelineExecutionMock = Mockito.mock(PipelineExecution.class);
+    Mockito.when(pipelineExecutionMock.getApplication()).thenReturn("lambdaApp");
+    Mockito.when(stageExecutionMock.getExecution()).thenReturn(pipelineExecutionMock);
+    config.setPrefixApplicationNameToFunction(false);
     LambdaDefinition lambdaDefinition =
         lambdaCloudDriverUtils.retrieveLambdaFromCache(stageExecutionMock, false);
     assertNotNull(lambdaDefinition);

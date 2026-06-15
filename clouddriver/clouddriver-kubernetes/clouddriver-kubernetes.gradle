@@ -1,6 +1,6 @@
 plugins {
   id("net.ltgt.errorprone") version "4.0.0"
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '4.0.0'
 }
 
 tasks.compileGroovy.enabled = false
@@ -62,7 +62,7 @@ dependencies {
   implementation "com.google.guava:guava"
   implementation 'com.jayway.jsonpath:json-path:2.3.0'
   implementation "com.github.ben-manes.caffeine:guava"
-  implementation "com.github.wnameless.json:json-flattener:0.11.1"
+  implementation "com.github.wnameless.json:json-flattener:${jsonFlattenerVersion}"
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
   implementation "io.spinnaker.fiat:fiat-core"
@@ -113,6 +113,8 @@ dependencies {
   integrationImplementation "com.mysql:mysql-connector-j"
   integrationImplementation "io.rest-assured:rest-assured"
   integrationImplementation "org.yaml:snakeyaml"
+  integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
+  integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
 }
 
 testlogger {

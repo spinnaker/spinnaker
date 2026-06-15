@@ -47,7 +47,8 @@ class ProjectService {
     Retrofit2SyncCall.execute(front50Service.getProject(id))
   }
 
-  List<Map> getAllPipelines(String projectId, int limit, String statuses) {
+  /** Retrieve all pipeline executions for a project. */
+  List<Map<String, Object>> getAllPipelines(String projectId, int limit, String statuses) {
     return Retrofit2SyncCall.execute(orcaServiceSelector.select().getPipelinesForProject(projectId, limit, statuses))
   }
 

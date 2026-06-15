@@ -1,10 +1,13 @@
 module github.com/spinnaker/spin
 
-go 1.17
+go 1.23.0
+
+toolchain go1.23.12
 
 require (
 	github.com/andreyvit/diff v0.0.0-20170406064948-c7f18ee00883
 	github.com/antihax/optional v1.0.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/mitchellh/cli v1.1.4
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce

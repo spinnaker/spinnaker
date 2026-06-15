@@ -10,6 +10,7 @@ dependencies {
   testRuntimeOnly "ch.qos.logback:logback-classic"
   testRuntimeOnly "com.mysql:mysql-connector-j"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly "org.postgresql:postgresql"
 
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.validators
 import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidator
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
@@ -39,6 +40,11 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
 
   private static final List<Integer> SUPPORTED_SSL_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
   private static final List<Integer> SUPPORTED_TCP_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
+
+  // GCP Certificate Manager map resource names must start with a lowercase letter, contain only
+  // lowercase letters, digits, and hyphens, and end with a letter or digit.
+  // See: https://cloud.google.com/certificate-manager/docs/reference/rest/v1/projects.locations.certificateMaps
+  private static final CERTIFICATE_MAP_NAME_PATTERN = /^[a-z]([-a-z0-9]*[a-z0-9])?$/
 
   @Autowired
   CredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository
@@ -61,6 +67,25 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.HTTP:
+        // A TargetHttpsProxy can use either sslCertificates or certificateMap but not both;
+        // certificateMap takes precedence per GCP API docs.
+        // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies
+        if (description.certificate && description.certificateMap) {
+          errors.rejectValue("certificate OR certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+        }
+
+        // Validate that the certificateMap value, after normalization, is a legal GCP resource name.
+        // Callers may pass a bare name ("my-map") or a full Certificate Manager URL; the local name
+        // is extracted via getLocalName before matching against the GCP naming contract.
+        if (description.certificateMap) {
+          def rawMap = description.certificateMap.toString().trim()
+          def mapName = rawMap ? GCEUtil.getLocalName(rawMap) : null
+          if (!mapName || !(mapName ==~ CERTIFICATE_MAP_NAME_PATTERN)) {
+            errors.rejectValue("certificateMap",
+              "upsertGoogleLoadBalancerDescription.certificateMap.invalidName")
+          }
+        }
 
         // portRange must be a single port.
         try {
@@ -76,6 +101,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             defaultService: description.defaultService,
             hostRules: description.hostRules,
             certificate: description.certificate,
+            certificateMap: description.certificateMap,
             ipAddress: description.ipAddress,
             ipProtocol: description.ipProtocol,
             portRange: description.portRange
@@ -89,6 +115,18 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
+        if (description.certificate && description.certificateMap) {
+          errors.rejectValue("certificate OR certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+        }
+        // Per official GCP Compute docs, setCertificateMap is only available on global
+        // external/classic TargetHttpsProxy resources. Regional (INTERNAL_MANAGED) target HTTPS
+        // proxies do not support setting certificateMap even though the field may appear on
+        // read payloads. Allowing writes here would cause API-level rejections.
+        if (description.certificateMap) {
+          errors.rejectValue("certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
+        }
 
         // portRange must be a single port.
         try {
@@ -104,6 +142,7 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
             defaultService: description.defaultService,
             hostRules: description.hostRules,
             certificate: description.certificate,
+            certificateMap: description.certificateMap,
             ipAddress: description.ipAddress,
             ipProtocol: description.ipProtocol,
             portRange: description.portRange
@@ -143,6 +182,12 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         }
         break
       case GoogleLoadBalancerType.SSL:
+        // TargetSslProxy does not expose a certificateMap field; only TargetHttpsProxy does.
+        // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetSslProxies
+        if (description.certificateMap) {
+          errors.rejectValue("certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")
+        }
         def bs = description.backendService
         if (!bs) {
           errors.rejectValue("backendService",

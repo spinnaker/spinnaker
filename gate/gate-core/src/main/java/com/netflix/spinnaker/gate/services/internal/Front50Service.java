@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.services.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.gate.model.front50.ServiceAccountPojo;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,9 @@ public interface Front50Service {
   @GET("serviceAccounts")
   Call<List<ServiceAccount>> getServiceAccounts();
 
+  @GET("serviceAccounts")
+  List<ServiceAccountPojo> getServiceAccountsPojo();
+
   @GET("deliveries")
   Call<List<Map>> getDeliveries();
 
@@ -161,4 +165,7 @@ public interface Front50Service {
 
   @GET("installedPlugins")
   Call<List<SpinnakerPluginDescriptor>> getInstalledPlugins();
+
+  @GET("serviceAccounts/tokenEligible")
+  Call<List<Map>> getTokenEligibleServiceAccounts();
 }

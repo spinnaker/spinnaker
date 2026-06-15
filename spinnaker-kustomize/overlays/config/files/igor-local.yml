@@ -1,2 +1,9 @@
 # Overrides for igor default configuration:
 # https://github.com/spinnaker/igor/blob/master/igor-web/config/igor.yml
+
+## some decent defaults
+locking:
+  enabled: true
+spinnaker:
+  pollingSafeguard:
+    itemUpperThreshold: 5000

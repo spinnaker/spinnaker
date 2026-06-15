@@ -27,11 +27,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -48,18 +48,18 @@ public abstract class BaseControllerTest {
   protected static final String METRICS_STORE = "metrics-store";
   protected static final String OBJECT_STORE = "object-store";
 
-  @MockBean StorageService storageService;
-  @MockBean MetricSetPairListService metricSetPairListService;
-  @MockBean ExecutionRepository executionRepository;
-  @MockBean ExecutionLauncher executionLauncher;
+  @MockitoBean StorageService storageService;
+  @MockitoBean MetricSetPairListService metricSetPairListService;
+  @MockitoBean ExecutionRepository executionRepository;
+  @MockitoBean ExecutionLauncher executionLauncher;
   @Autowired ExecutionMapper executionMapper;
 
-  @MockBean MetricsServiceRepository metricsServiceRepository;
+  @MockitoBean MetricsServiceRepository metricsServiceRepository;
 
-  @MockBean(answer = Answers.RETURNS_MOCKS)
+  @MockitoBean(answers = Answers.RETURNS_MOCKS)
   Registry registry;
 
-  @MockBean CanaryJudge canaryJudge;
+  @MockitoBean CanaryJudge canaryJudge;
 
   @Autowired private WebApplicationContext webApplicationContext;
 

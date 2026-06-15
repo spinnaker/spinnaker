@@ -33,7 +33,7 @@ class Retrofit2SyncCallTest {
 
   @Test
   void testExecuteSuccess() throws IOException {
-    Call<String> mockCall = mock(Call.class);
+    Call<String> mockCall = mock();
     String responseBody = "testing";
     when(mockCall.execute()).thenReturn(Response.success(responseBody));
     String execute = Retrofit2SyncCall.execute(mockCall);
@@ -42,12 +42,12 @@ class Retrofit2SyncCallTest {
 
   @Test
   void testExecuteThrowException() throws IOException {
-    Call<String> mockCall = mock(Call.class);
+    Call<String> mockCall = mock();
     IOException ioException = new IOException("exception test");
     when(mockCall.execute()).thenThrow(ioException);
 
     HttpUrl url = HttpUrl.parse("http://arbitrary-url");
-    Request mockRequest = mock(Request.class);
+    Request mockRequest = mock();
     when(mockCall.request()).thenReturn(mockRequest);
     when(mockRequest.url()).thenReturn(url);
 

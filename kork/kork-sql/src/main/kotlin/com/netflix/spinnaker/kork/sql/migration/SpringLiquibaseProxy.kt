@@ -72,10 +72,14 @@ class SpringLiquibaseProxy(
 
   private fun createDataSource(): DataSource =
     sqlMigrationProperties.run {
+      // SingleConnectionDataSource's constructor params are marked non-null by
+      // the @NonNullApi package annotation
+      // (https://github.com/spring-projects/spring-framework/blob/v6.0.21/spring-jdbc/src/main/java/org/springframework/jdbc/datasource/package-info.java),
+      // but the constructor delegates to @Nullable setters and null is valid at
+      // runtime (e.g. for databases that don't require auth).
+      @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
       val ds = SingleConnectionDataSource(jdbcUrl, user, password, true)
-      if (driver != null) {
-        ds.setDriverClassName(driver)
-      }
+      driver?.let { ds.setDriverClassName(it) }
       ds
     }
 }

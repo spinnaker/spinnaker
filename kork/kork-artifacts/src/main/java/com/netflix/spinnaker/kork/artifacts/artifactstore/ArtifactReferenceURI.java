@@ -51,6 +51,11 @@ public class ArtifactReferenceURI {
     return reference.startsWith(uriScheme);
   }
 
+  @Override
+  public String toString() {
+    return uri();
+  }
+
   public static ArtifactReferenceURI parse(String reference) {
     String noSchemeURI = StringUtils.removeStart(reference, uriScheme);
     String[] paths = StringUtils.split(noSchemeURI, '/');

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.kork.yaml;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.DumperOptions;
@@ -8,7 +9,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
 
 /**
  * Utility component for creating preconfigured {@link Yaml} instances with optional
@@ -41,6 +41,7 @@ import org.yaml.snakeyaml.resolver.Resolver;
  * automatically applied to all created {@link Yaml} instances.
  */
 @Component
+@Log4j2
 public class YamlHelper {
 
   private static YamlParserProperties yamlParserProperties;
@@ -57,27 +58,6 @@ public class YamlHelper {
   }
 
   /**
-   * Creates a new {@link Yaml} instance using either default or secure {@link LoaderOptions},
-   * depending on whether {@link YamlParserProperties} are configured.
-   *
-   * @return a new {@link Yaml} instance
-   */
-  public static Yaml newYaml() {
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
-
-      Constructor constructor = new Constructor(opts);
-      Representer representer = new Representer();
-      DumperOptions dumperOpts = new DumperOptions();
-      Resolver resolver = new Resolver(); // default tag resolver
-
-      return new Yaml(constructor, representer, dumperOpts, opts, resolver);
-    }
-
-    return new Yaml();
-  }
-
-  /**
    * Creates a new {@link Yaml} instance with a {@link SafeConstructor}, ensuring that only standard
    * types are loaded (no arbitrary object instantiation). If security properties are set, they are
    * applied via {@link LoaderOptions}.
@@ -89,13 +69,13 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       SafeConstructor constructor = new SafeConstructor(opts);
-      Representer representer = new Representer();
       DumperOptions dumperOpts = new DumperOptions();
+      Representer representer = new Representer(dumperOpts);
 
       return new Yaml(constructor, representer, dumperOpts, opts);
     }
 
-    return new Yaml(new SafeConstructor());
+    return new Yaml(new SafeConstructor(new LoaderOptions()));
   }
 
   /**
@@ -110,12 +90,13 @@ public class YamlHelper {
       LoaderOptions opts = getLoaderOptions();
 
       SafeConstructor constructor = new SafeConstructor(opts);
-      Representer representer = new Representer();
+      Representer representer = new Representer(dumperOptions);
 
       return new Yaml(constructor, representer, dumperOptions, opts);
     }
 
-    return new Yaml(new SafeConstructor(), new Representer(), dumperOptions);
+    return new Yaml(
+        new SafeConstructor(new LoaderOptions()), new Representer(dumperOptions), dumperOptions);
   }
 
   /**
@@ -149,14 +130,16 @@ public class YamlHelper {
     return new Yaml(constructor, representer);
   }
 
-  private static LoaderOptions getLoaderOptions() {
+  public static LoaderOptions getLoaderOptions() {
     LoaderOptions opts = new LoaderOptions();
-    if (yamlParserProperties.getMaxAliasesForCollections() != null) {
-      opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
-    }
+    if (yamlParserProperties != null) {
+      if (yamlParserProperties.getMaxAliasesForCollections() != null) {
+        opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
+      }
 
-    if (yamlParserProperties.getCodePointLimit() != null) {
-      opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
+      if (yamlParserProperties.getCodePointLimit() != null) {
+        opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
+      }
     }
     return opts;
   }

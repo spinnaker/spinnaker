@@ -26,6 +26,11 @@ public class EmbeddedRedis implements AutoCloseable {
   }
 
   public void destroy() {
+    // Close the JedisPool before stopping the container so that QUIT commands reach the
+    // still-running Redis server.
+    if (jedis != null) {
+      jedis.close();
+    }
     redisContainer.stop();
   }
 

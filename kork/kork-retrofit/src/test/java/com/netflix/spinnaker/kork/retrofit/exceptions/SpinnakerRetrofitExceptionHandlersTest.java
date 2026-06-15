@@ -153,8 +153,8 @@ class SpinnakerRetrofitExceptionHandlersTest {
     class WebSecurityConfig implements WebMvcConfigurer {
       @Bean
       protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().headers().disable();
-        http.authorizeRequests().anyRequest().permitAll();
+        http.csrf(csrf -> csrf.disable()).headers(headers -> headers.disable());
+        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
       }
     }
@@ -205,7 +205,7 @@ class SpinnakerRetrofitExceptionHandlersTest {
           retrofit2.Response.error(
               status,
               ResponseBody.create(
-                  MediaType.parse("application/json"), "{ \"message\": \"arbitrary message\" }"));
+                  "{ \"message\": \"arbitrary message\" }", MediaType.parse("application/json")));
 
       Retrofit retrofit =
           new Retrofit.Builder()

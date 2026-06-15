@@ -10,7 +10,6 @@ ext {
     aws              : "1.12.261",
     awsv2            : "2.23.7",
     bouncycastle     : "1.81", // fixes CVE-2024-34447
-    brave            : "5.12.3",
     gcp              : "26.34.0",
     groovy           : "4.0.15",
     jsch             : "0.1.54",
@@ -18,22 +17,17 @@ ext {
     log4j            : "2.25.1",
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.2",
-    openapi          : "2.2.0",
-    retrofit2        : "2.8.1",
-    spectator        : "1.0.6",
+    retrofit2        : "2.12.0",
+    spectator        : "1.7.3", // watch to match what is coming from eureka which defines this, but not ALL the versions
     spek             : "1.1.5",
     spek2            : "2.0.9",
-    springBoot       : "3.1.12",
-    springCloud      : "2022.0.5",
-    swagger          : "2.2.22",
-    // 3.1.12 brings in 10.1.24, whichs introduce CVEs. Continue to pin till
-    // >=3.1.11 which brings in 10.1.52 and currently (20-feb-26) has no
-    // reported vulnerabilities.
-    //
-    // See https://tomcat.apache.org/security-10.html for latest security fixes
-    // and https://tomcat.apache.org/tomcat-10.1-doc/changelog.html for release
-    // notes.
-    tomcat           : "10.1.52"
+    springdocs          : "2.8.17",
+    springBoot       : "3.5.15",
+    springCloud      : "2025.0.2",
+    // bring in latest, though it's ahead of deps.  This is due to springdocs
+    // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
+    // referencing a field that didn't come in... until 2.2.30
+    swagger          : "2.2.49",
   ]
 }
 
@@ -50,11 +44,9 @@ dependencies {
   // Without pinning jackson-bom to the version that spring boot 3.1.12 brings
   // in (2.15.4), we get a newer one from version 2.2.22 of swagger: 2.16.2.
   // Let's keep more of the code running with the version it expects.
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.4"))
   //kotlinVersion comes from gradle.properties since we have kotlin code in
   // this project and need to configure gradle plugins etc.
   api(platform(libs.kotlin.bom))
-  api(platform("io.zipkin.brave:brave-bom:${versions.brave}"))
   api(platform("org.springframework.boot:spring-boot-dependencies:${versions.springBoot}"))
   api(platform("com.amazonaws:aws-java-sdk-bom:${versions.aws}"))
   api(platform("com.google.protobuf:protobuf-bom:${versions.protobuf}"))
@@ -62,9 +54,8 @@ dependencies {
   api(platform("software.amazon.awssdk:bom:${versions.awsv2}"))
   api(platform("org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"))
   api(platform("io.strikt:strikt-bom:0.31.0"))
-  api(platform("org.spockframework:spock-bom:2.4-M1-groovy-4.0"))
+  api(platform("org.spockframework:spock-bom:2.4-groovy-4.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
-  api(platform("org.testcontainers:testcontainers-bom:1.21.4"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
 
   constraints {
@@ -82,17 +73,21 @@ dependencies {
     api("com.google.cloud:google-cloud-secretmanager:2.37.0")
     api("com.google.code.findbugs:jsr305:3.0.2")
     api("com.google.guava:guava:33.0.0-jre")
-    api("com.hubspot.jinjava:jinjava:2.7.6") // fixes CVE-2026-25526
-    api("com.jayway.jsonpath:json-path:2.9.0") // until spring boot >= 3.1.9 or 3.2.3
+    api("com.hubspot.jinjava:jinjava:2.8.3") // fixes CVE-2026-25526
+    //TODO:  jsch moved to com.github.mwiede/jsch
     api("com.jcraft:jsch:${versions.jsch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
-    api("com.natpryce:hamkrest:1.4.2.2")
+
+    // Used in appengine.  Make sure to match the gradle plugin version.
+    api('org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r')
+    api("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:7.3.0.202506031305-r")
+
     api("com.netflix.archaius:archaius-core:0.7.7")
     api("com.netflix.awsobjectmapper:awsobjectmapper:${versions.aws}")
     api("com.netflix.dyno:dyno-jedis:1.7.2")
     api("com.netflix.eureka:eureka-client")
-    api("com.netflix.frigga:frigga:0.24.0")
+    api("com.netflix.frigga:frigga:0.28.0")
     api("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
     api("com.netflix.spectator:spectator-api:${versions.spectator}")
     api("com.netflix.spectator:spectator-ext-aws:${versions.spectator}")
@@ -104,9 +99,7 @@ dependencies {
     api("com.netflix.spectator:spectator-reg-atlas:${versions.spectator}")
     api("com.netflix.spectator:spectator-web-spring:${versions.spectator}")
     api("com.netflix.spectator:spectator-reg-micrometer:${versions.spectator}")
-    api("com.nimbusds:nimbus-jose-jwt:9.37.2")
-    api("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-    api("com.nhaarman:mockito-kotlin:1.6.0")
+    api("com.nimbusds:nimbus-jose-jwt:10.9")
     api("com.ninja-squad:springmockk:4.0.2")  //Compatible with Spring boot 3.x and Java 17+ https://github.com/Ninja-Squad/springmockk?tab=readme-ov-file#versions-compatibility
     api("com.squareup.retrofit2:converter-jackson:${versions.retrofit2}")
     api("com.squareup.retrofit2:retrofit-mock:${versions.retrofit2}")
@@ -115,9 +108,10 @@ dependencies {
     api("com.sun.xml.bind:jaxb-impl:2.3.2")
     api("com.vdurmont:semver4j:3.1.0")
     api("commons-configuration:commons-configuration:1.8")
-    api("commons-io:commons-io:2.11.0")
+    api("commons-io:commons-io:2.22.0")
     // CVE's in 3.2.1
     api("commons-collections:commons-collections:[3.2.2,3.3)")
+    api("org.apache.commons:commons-collections4:4.5.0")
     api("de.danielbechler:java-object-diff:0.95")
     api("de.huxhorn.sulky:de.huxhorn.sulky.ulid:8.2.0")
     api("dev.minutest:minutest:1.13.0")
@@ -135,6 +129,7 @@ dependencies {
     // the following dependencies are upgraded: oci-java-sdk-bom, google-cloud-secretmanager
     // and in some cases *-jdk15on libraries are excluded so as to use the available *-jdk18on or *-jdk15to18
     // some of the modules would still use <1.70 as they can't be upgraded without upgrading spring boot
+    api('org.mockito.kotlin:mockito-kotlin:5.4.0')
     api("org.bouncycastle:bcpkix-jdk18on:${versions.bouncycastle}")
     api("org.bouncycastle:bcprov-jdk18on:${versions.bouncycastle}")
     api("org.jetbrains:annotations:19.0.0")
@@ -144,27 +139,10 @@ dependencies {
     api("org.jetbrains.spek:spek-junit-platform-engine:${versions.spek}")
     api("org.jetbrains.spek:spek-junit-platform-runner:${versions.spek}")
     api("org.jetbrains.spek:spek-subject-extension:${versions.spek}")
-    api("org.liquibase:liquibase-core"){
-       version {
-         strictly "4.24.0"
-       }
-    }
     api("org.objenesis:objenesis:2.5.1")
     api("org.pf4j:pf4j:3.10.0")
     api("org.pf4j:pf4j-update:2.3.0")
-    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.openapi}")
-    api("org.springframework.boot:spring-boot-configuration-processor:${versions.springBoot}")
-    api("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.3.12.RELEASE")
-    api("org.springframework.security.extensions:spring-security-saml-dsl-core:1.0.5.RELEASE")
-    api("org.springframework.security.extensions:spring-security-saml2-core:1.0.9.RELEASE")
+    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.springdocs}")
     api("org.threeten:threeten-extra:1.0")
-    api("org.apache.tomcat.embed:tomcat-embed-core:${versions.tomcat}")
-    api("org.apache.tomcat.embed:tomcat-embed-el:${versions.tomcat}")
-    api("org.apache.tomcat.embed:tomcat-embed-websocket:${versions.tomcat}")
-    // Springdoc and liquibase bring in a version of snakeyaml (2.0 and 2.2
-    // respectively) that is incompatible with the Snakeyaml bundled with Spring
-    // Boot 3.1.12.  To resolve the conflict, pin to the one provided by Spring
-    // Boot 3.1.12.
-    api("org.yaml:snakeyaml:1.33")
   }
 }
