@@ -1,10 +1,8 @@
-import { module } from 'angular';
 import { get } from 'lodash';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { IStage } from '../../../../../domain';
-import { FormField, ReactSelectInput, withErrorBoundary } from '../../../../../presentation';
+import { FormField, ReactSelectInput } from '../../../../../presentation';
 import { STATUS_OPTIONS } from './stageStatusOptions';
 
 interface IStageStatusPreconditionConfigProps {
@@ -63,13 +61,3 @@ export function StageStatusPreconditionConfig({
     </div>
   );
 }
-
-export const STAGE_STATUS_PRECONDITION_CONFIG = 'spinnaker.core.stageStatusPreconditionSelector';
-module(STAGE_STATUS_PRECONDITION_CONFIG, []).component(
-  'stageStatusPreconditionConfig',
-  react2angular(withErrorBoundary(StageStatusPreconditionConfig, 'stageStatusPreconditionConfig'), [
-    'preconditionContext',
-    'upstreamStages',
-    'updatePreconditionContext',
-  ]),
-);

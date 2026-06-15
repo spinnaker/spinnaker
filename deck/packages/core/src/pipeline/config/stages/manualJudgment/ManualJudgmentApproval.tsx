@@ -6,9 +6,10 @@ import type { Application } from '../../../../application/application.model';
 import { ApplicationReader } from '../../../../application/service/ApplicationReader';
 import { AuthenticationService } from '../../../../authentication';
 import type { IExecution, IExecutionStage } from '../../../../domain';
+import { manualJudgmentService } from './manualJudgment.service';
 import { Markdown } from '../../../../presentation/Markdown';
-import { ReactInjector } from '../../../../reactShims';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
+import { ErrorModalService } from '../../../../wiseModal';
 
 export interface IManualJudgmentApprovalProps {
   execution: IExecution;
@@ -59,7 +60,19 @@ export class ManualJudgmentApproval extends React.Component<
     const { application, execution, stage } = this.props;
     const judgmentInput: string = this.state.judgmentInput ? this.state.judgmentInput.value : null;
     this.setState({ submitting: true, error: false, judgmentDecision });
-    ReactInjector.manualJudgmentService.provideJudgment(application, execution, stage, judgmentDecision, judgmentInput);
+    manualJudgmentService
+      .provideJudgment(application, execution, stage, judgmentDecision, judgmentInput)
+      .catch((err) => {
+        this.setState({ submitting: false, error: true });
+        const message = err.data?.message.split('Message:')[1] ?? 'An unknown error occurred';
+        ErrorModalService.error({
+          body: (
+            <Markdown
+              message={`<p>Sorry, there was a problem submitting your judgment.</p><br /><pre style="white-space: pre-wrap">HTTP status: ${err.data?.status} - ${message}</pre>`}
+            />
+          ),
+        });
+      });
   }
 
   private isManualJudgmentStageNotAuthorized(): boolean {
@@ -71,6 +84,16 @@ export class ManualJudgmentApproval extends React.Component<
       isStageNotAuthorized = false;
       return isStageNotAuthorized;
     }
+
+    const preventSelfApproval = this.props.stage?.context?.preventSelfApproval || false;
+    const triggeredBy = this.props.execution?.user || this.props.execution?.authentication?.user;
+    const currentUser = AuthenticationService.getAuthenticatedUser().name;
+    if (preventSelfApproval) {
+      if (!triggeredBy || !currentUser || triggeredBy === currentUser) {
+        return isStageNotAuthorized;
+      }
+    }
+
     const { CREATE, EXECUTE, WRITE } = applicationRoles;
     userRoles.forEach((userRole) => {
       if (returnOnceFalse) {
@@ -176,9 +199,7 @@ export class ManualJudgmentApproval extends React.Component<
             </div>
           </div>
         )}
-        {this.state.error && (
-          <div className="error-message">There was an error recording your decision. Please try again.</div>
-        )}
+        {this.state.error && <div className="error-message">There was an error recording your decision</div>}
       </div>
     );
   }

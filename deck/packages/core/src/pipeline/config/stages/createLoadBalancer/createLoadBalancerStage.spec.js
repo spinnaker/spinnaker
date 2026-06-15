@@ -1,5 +1,23 @@
-import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
-import { name as moduleName, openLoadBalancerModal } from './createLoadBalancerStage';
+import { openLoadBalancerModal, upsertLoadBalancersStage } from './createLoadBalancerStage';
+
+describe('createLoadBalancerStage registration', () => {
+  it('registers create load balancers with direct React config and execution details', () => {
+    expect(upsertLoadBalancersStage.key).toBe('upsertLoadBalancers');
+    expect(upsertLoadBalancersStage.label).toBe('Create Load Balancers');
+    expect(upsertLoadBalancersStage.description).toBe(
+      'Creates one or more load balancers. If a load balancer exists with the same name, then that will be updated.',
+    );
+    expect(upsertLoadBalancersStage.component).toBeDefined();
+    expect(upsertLoadBalancersStage.templateUrl).toBeUndefined();
+    expect(upsertLoadBalancersStage.executionDetailsUrl).toBeUndefined();
+    expect(upsertLoadBalancersStage.executionDetailsSections.map((section) => section.title)).toEqual([
+      'loadBalancerConfig',
+      'taskStatus',
+    ]);
+    expect(upsertLoadBalancersStage.supportsCustomTimeout).toBe(true);
+    expect(upsertLoadBalancersStage.validators).toEqual([]);
+  });
+});
 
 describe('createLoadBalancerStage modal opener', () => {
   it('opens a React load balancer modal when the provider has one', async () => {
@@ -96,53 +114,5 @@ describe('createLoadBalancerStage modal opener', () => {
     expect(modalOptions.resolve.loadBalancer()).toBe(loadBalancer);
     expect(modalOptions.resolve.isNew()).toBe(false);
     expect(modalOptions.resolve.forPipelineConfig()).toBe(true);
-  });
-});
-
-describe('createLoadBalancerStageCtrl', function () {
-  beforeEach(() => {
-    window.module(moduleName);
-  });
-
-  beforeEach(
-    window.inject(function ($controller, $rootScope, $q) {
-      this.$scope = $rootScope.$new();
-      this.$scope.stage = {};
-      this.$scope.application = {};
-      this.modalResult = $q.when([{ name: 'lb1' }, { name: 'lb2' }]);
-      this.cloudProviderConfig = {
-        CreateLoadBalancerModal: {
-          supportsPipelineConfig: true,
-          show: jasmine.createSpy('show').and.callFake(() => this.modalResult),
-        },
-      };
-
-      spyOn(ProviderSelectionService, 'selectProvider').and.returnValue($q.when('gce'));
-      spyOn(CloudProviderRegistry, 'getValue').and.returnValue(this.cloudProviderConfig);
-
-      this.ctrl = $controller('createLoadBalancerStageCtrl', {
-        $scope: this.$scope,
-        $uibModal: { open: jasmine.createSpy('open') },
-      });
-      this.$rootScope = $rootScope;
-      this.$q = $q;
-    }),
-  );
-
-  it('flattens array results when adding load balancers', function () {
-    this.ctrl.addLoadBalancer();
-    this.$rootScope.$digest();
-
-    expect(this.$scope.stage.loadBalancers).toEqual([{ name: 'lb1' }, { name: 'lb2' }]);
-  });
-
-  it('splices array results when editing a load balancer', function () {
-    this.$scope.stage.loadBalancers = [{ name: 'old' }];
-    this.modalResult = this.$q.when([{ name: 'new1' }, { name: 'new2' }]);
-
-    this.ctrl.editLoadBalancer(this.$scope.stage.loadBalancers[0], 0);
-    this.$rootScope.$digest();
-
-    expect(this.$scope.stage.loadBalancers).toEqual([{ name: 'new1' }, { name: 'new2' }]);
   });
 });
