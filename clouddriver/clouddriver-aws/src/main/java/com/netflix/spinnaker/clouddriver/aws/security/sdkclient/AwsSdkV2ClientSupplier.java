@@ -27,7 +27,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy;
 import java.net.URI;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -111,11 +110,13 @@ public class AwsSdkV2ClientSupplier {
       String region,
       String account) {
     requireNonNull(builderSupplier, "builderSupplier");
+    requireNonNull(clientType, "clientType");
     requireNonNull(credentialsProvider, "credentialsProvider");
     requireNonNull(region, "region");
     requireNonNull(account, "account");
 
-    V2ClientKey key = new V2ClientKey(builderSupplier, credentialsProvider, region, account);
+    V2ClientKey key =
+        new V2ClientKey(clientType, builderSupplier, credentialsProvider, region, account);
 
     try {
       return clientType.cast(clientCache.get(key));
@@ -152,7 +153,7 @@ public class AwsSdkV2ClientSupplier {
 
       // Rate limiting interceptor
       RateLimitingExecutionInterceptor rateLimitInterceptor =
-          createRateLimitInterceptor(key.builderClass, key.account, key.region);
+          createRateLimitInterceptor(key.clientType, key.account, key.region);
 
       ClientOverrideConfiguration.Builder overrideConfig =
           ClientOverrideConfiguration.builder()
@@ -179,29 +180,25 @@ public class AwsSdkV2ClientSupplier {
         }
       }
 
-      key.getRegion()
-          .ifPresent(
-              r -> {
-                log.debug("V2ClientCacheLoader.load: key '{}', region '{}'", key, r);
-                builder.region(Region.of(r));
-              });
+      log.debug("V2ClientCacheLoader.load: key '{}', region '{}'", key, key.region);
+      builder.region(Region.of(key.region));
 
       return (SdkClient) builder.build();
     }
   }
 
   private RateLimitingExecutionInterceptor createRateLimitInterceptor(
-      Class<?> builderClass, String account, String region) {
-    RateLimiter limiter = rateLimiterSupplier.getRateLimiter(builderClass, account, region);
+      Class<?> clientType, String account, String region) {
+    RateLimiter limiter = rateLimiterSupplier.getRateLimiter(clientType, account, region);
     Counter rateLimitCounter =
         registry.counter(
             "amazonClientProvider.v2.rateLimitDelayMillis",
             "clientType",
-            builderClass.getSimpleName(),
+            clientType.getSimpleName(),
             "account",
             account,
             "region",
-            region == null ? "UNSPECIFIED" : region);
+            region);
     return new RateLimitingExecutionInterceptor(rateLimitCounter, limiter);
   }
 
@@ -231,23 +228,13 @@ public class AwsSdkV2ClientSupplier {
   /**
    * Identifies a unique v2 client in the cache.
    *
-   * <p>Identity is based on: - The builder supplier instance (same reference == same service type)
-   * - The credentials provider identity (same reference == same account/role) - The region string -
-   * The account name (affects rate limiter selection)
+   * <p>Identity is based on: - The client type class (e.g. {@code EcsClient.class}) - The
+   * credentials provider identity (same reference == same account/role) - The region string - The
+   * account name (affects rate limiter selection)
    */
   static final class V2ClientKey {
-    /**
-     * We use reference identity of the supplier to distinguish service types. Callers are expected
-     * to pass a stable method-reference (e.g. {@code EcsClient::builder}) — those are recreated per
-     * call so we capture the class-level method handle target via its class.
-     *
-     * <p>In practice two callers passing {@code EcsClient::builder} will produce supplier instances
-     * whose functional-interface implementations share the same {@code getClass()} because the JVM
-     * generates one lambda class per call site. To make caching correct we capture {@code
-     * builderSupplier.get().getClass()} (the builder's concrete class) as the service discriminator
-     * rather than the supplier itself.
-     */
-    private final Class<?> builderClass;
+    /** The v2 client interface class, used as the service type discriminator. */
+    private final Class<?> clientType;
 
     private final Supplier<? extends AwsClientBuilder<?, ?>> builderSupplier;
     private final AwsCredentialsProvider credentialsProvider;
@@ -255,20 +242,16 @@ public class AwsSdkV2ClientSupplier {
     private final String account;
 
     V2ClientKey(
+        Class<?> clientType,
         Supplier<? extends AwsClientBuilder<?, ?>> builderSupplier,
         AwsCredentialsProvider credentialsProvider,
         String region,
         String account) {
+      this.clientType = requireNonNull(clientType);
       this.builderSupplier = requireNonNull(builderSupplier);
       this.credentialsProvider = requireNonNull(credentialsProvider);
-      this.region = region;
+      this.region = requireNonNull(region);
       this.account = requireNonNull(account);
-      // Resolve builder class eagerly so equals/hashCode don't need to call get() repeatedly.
-      this.builderClass = builderSupplier.get().getClass();
-    }
-
-    Optional<String> getRegion() {
-      return Optional.ofNullable(region);
     }
 
     @Override
@@ -276,23 +259,26 @@ public class AwsSdkV2ClientSupplier {
       if (this == o) return true;
       if (!(o instanceof V2ClientKey)) return false;
       V2ClientKey that = (V2ClientKey) o;
-      return builderClass.equals(that.builderClass)
+      return clientType.equals(that.clientType)
+          // Identity comparison: same provider reference == same account/role credentials.
           && credentialsProvider == that.credentialsProvider
-          && Objects.equals(region, that.region)
-          && Objects.equals(account, that.account);
+          && region.equals(that.region)
+          && account.equals(that.account);
     }
 
     @Override
     public int hashCode() {
+      // identityHashCode matches the identity (==) comparison used in equals() for
+      // credentialsProvider.
       return Objects.hash(
-          builderClass, System.identityHashCode(credentialsProvider), region, account);
+          clientType, System.identityHashCode(credentialsProvider), region, account);
     }
 
     @Override
     public String toString() {
       return "V2ClientKey{"
-          + "builderClass="
-          + builderClass.getSimpleName()
+          + "clientType="
+          + clientType.getSimpleName()
           + ", credentialsProvider="
           + credentialsProvider.getClass().getSimpleName()
           + ", region="
