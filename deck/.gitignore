@@ -25,11 +25,9 @@ npm-debug.log
 # Build Files
 .gradle/
 .cache-loader
-**/.yalc
-**/yalc.lock
 **/build/
 **/dist/
-**/yarn-error.log
+pnpm-debug.log
 
 # Test Results
 test-results.xml
@@ -41,3 +39,5 @@ test/functional/cypress/screenshots/**/*
 
 # vite local files
 **/.env.local
+
+.pnpm-store
