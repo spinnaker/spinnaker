@@ -317,7 +317,9 @@ public class AmazonClientProvider {
     this.awsSdkClientSupplier =
         new AwsSdkClientSupplier(
             rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
-    this.awsSdkV2ClientSupplier = new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry);
+    software.amazon.awssdk.core.retry.RetryPolicy v2RetryPolicy = buildV2RetryPolicy(retryPolicy);
+    this.awsSdkV2ClientSupplier =
+        new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, v2RetryPolicy);
     this.proxyHandlerBuilder =
         new ProxyHandlerBuilder(
             awsSdkClientSupplier,
@@ -326,6 +328,18 @@ public class AmazonClientProvider {
             eddaTemplater,
             eddaTimeoutConfig,
             registry);
+  }
+
+  /**
+   * Translates v1 retry settings into a v2 {@link software.amazon.awssdk.core.retry.RetryPolicy}.
+   * The v2 SDK provides sensible defaults for backoff and retry conditions; we only override the
+   * max number of retries to match the v1 configuration.
+   */
+  private static software.amazon.awssdk.core.retry.RetryPolicy buildV2RetryPolicy(
+      RetryPolicy v1RetryPolicy) {
+    return software.amazon.awssdk.core.retry.RetryPolicy.builder()
+        .numRetries(v1RetryPolicy.getMaxErrorRetry())
+        .build();
   }
 
   /**

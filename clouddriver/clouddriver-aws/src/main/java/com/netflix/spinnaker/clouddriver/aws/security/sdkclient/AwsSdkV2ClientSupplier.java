@@ -34,6 +34,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.regions.Region;
 
 /**
@@ -60,10 +61,13 @@ public class AwsSdkV2ClientSupplier {
   private final LoadingCache<V2ClientKey, SdkClient> clientCache;
   private final RateLimiterSupplier rateLimiterSupplier;
   private final Registry registry;
+  private final RetryPolicy retryPolicy;
 
-  public AwsSdkV2ClientSupplier(RateLimiterSupplier rateLimiterSupplier, Registry registry) {
+  public AwsSdkV2ClientSupplier(
+      RateLimiterSupplier rateLimiterSupplier, Registry registry, RetryPolicy retryPolicy) {
     this.rateLimiterSupplier = requireNonNull(rateLimiterSupplier, "rateLimiterSupplier");
     this.registry = requireNonNull(registry, "registry");
+    this.retryPolicy = requireNonNull(retryPolicy, "retryPolicy");
     this.clientCache =
         CacheBuilder.newBuilder()
             .recordStats()
@@ -138,7 +142,9 @@ public class AwsSdkV2ClientSupplier {
           createRateLimitInterceptor(key.builderClass, key.account, key.region);
 
       ClientOverrideConfiguration.Builder overrideConfig =
-          ClientOverrideConfiguration.builder().addExecutionInterceptor(rateLimitInterceptor);
+          ClientOverrideConfiguration.builder()
+              .addExecutionInterceptor(rateLimitInterceptor)
+              .retryPolicy(retryPolicy);
 
       builder.overrideConfiguration(overrideConfig.build());
 
