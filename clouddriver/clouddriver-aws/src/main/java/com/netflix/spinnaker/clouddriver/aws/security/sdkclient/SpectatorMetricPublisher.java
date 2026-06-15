@@ -20,10 +20,11 @@ import static java.util.Objects.requireNonNull;
 
 import com.netflix.spectator.api.Registry;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
-import software.amazon.awssdk.metrics.MetricRecord;
 
 /**
  * A {@link MetricPublisher} that bridges AWS SDK v2 metric events to the Spectator {@link
@@ -48,34 +49,33 @@ public class SpectatorMetricPublisher implements MetricPublisher {
 
   @Override
   public void publish(MetricCollection metricCollection) {
-    String serviceName = extractStringMetric(metricCollection, "ServiceId", "unknown");
-    String operationName = extractStringMetric(metricCollection, "OperationName", "unknown");
+    List<String> serviceIds = metricCollection.metricValues(CoreMetric.SERVICE_ID);
+    String serviceName = serviceIds.isEmpty() ? "unknown" : serviceIds.get(0);
+
+    List<String> operationNames = metricCollection.metricValues(CoreMetric.OPERATION_NAME);
+    String operationName = operationNames.isEmpty() ? "unknown" : operationNames.get(0);
 
     // Record API call duration if available
-    for (MetricRecord<?> record : metricCollection) {
-      if ("ApiCallDuration".equals(record.metric().name()) && record.value() instanceof Duration) {
-        Duration duration = (Duration) record.value();
+    List<Duration> durations = metricCollection.metricValues(CoreMetric.API_CALL_DURATION);
+    for (Duration duration : durations) {
+      registry
+          .timer(
+              "aws.sdk.v2.apiCallDuration",
+              "serviceName",
+              serviceName,
+              "operationName",
+              operationName)
+          .record(duration.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    // Record retry count if > 0
+    List<Integer> retryCounts = metricCollection.metricValues(CoreMetric.RETRY_COUNT);
+    for (Integer retries : retryCounts) {
+      if (retries > 0) {
         registry
-            .timer(
-                "aws.sdk.v2.apiCallDuration",
-                "serviceName",
-                serviceName,
-                "operationName",
-                operationName)
-            .record(duration.toMillis(), TimeUnit.MILLISECONDS);
-      }
-      if ("RetryCount".equals(record.metric().name()) && record.value() instanceof Number) {
-        int retries = ((Number) record.value()).intValue();
-        if (retries > 0) {
-          registry
-              .counter(
-                  "aws.sdk.v2.retryCount",
-                  "serviceName",
-                  serviceName,
-                  "operationName",
-                  operationName)
-              .increment(retries);
-        }
+            .counter(
+                "aws.sdk.v2.retryCount", "serviceName", serviceName, "operationName", operationName)
+            .increment(retries);
       }
     }
 
@@ -88,15 +88,5 @@ public class SpectatorMetricPublisher implements MetricPublisher {
   @Override
   public void close() {
     // Nothing to clean up.
-  }
-
-  private String extractStringMetric(
-      MetricCollection collection, String metricName, String defaultValue) {
-    for (MetricRecord<?> record : collection) {
-      if (metricName.equals(record.metric().name()) && record.value() instanceof String) {
-        return (String) record.value();
-      }
-    }
-    return defaultValue;
   }
 }
