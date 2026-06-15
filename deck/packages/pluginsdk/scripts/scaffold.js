@@ -69,11 +69,11 @@ recursiveCopy(path.resolve(__dirname, '..', 'scaffold'), scaffoldTargetDir);
 updatePackageJson(path.resolve(scaffoldTargetDir, 'package.json'), basename);
 
 console.log(`Deck plugin scaffolded into ${scaffoldTargetDir}`);
-console.log(`Installing dependencies using 'yarn' and 'npx check-peer-dependencies --install' ...`);
+console.log(`Installing dependencies using 'pnpm' and 'npx check-peer-dependencies --install' ...`);
 
 process.chdir(scaffoldTargetDir);
-console.log(`yarn`);
-execSync(`yarn`, { stdio: 'inherit' });
+console.log(`pnpm`);
+execSync(`pnpm install`, { stdio: 'inherit' });
 
 console.log(`npx check-peer-dependencies --install`);
 execSync(`npx check-peer-dependencies --install`, { stdio: 'inherit' });

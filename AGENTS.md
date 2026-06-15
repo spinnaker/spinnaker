@@ -39,9 +39,9 @@
 ### Setup (Frontend - deck)
 ```bash
 cd deck
-yarn
-yarn modules
-yarn build
+pnpm install
+pnpm modules
+pnpm build
 ```
 
 ### Navigation
@@ -72,11 +72,11 @@ yarn build
 ### Frontend (deck)
 ```bash
 cd deck
-yarn build               # Production build
-yarn test                # Run unit tests
-yarn lint                # ESLint check
-yarn prettier:check      # Check formatting
-yarn prettier            # Apply formatting
+pnpm build               # Production build
+pnpm test                # Run unit tests
+pnpm lint                # ESLint check
+pnpm prettier:check      # Check formatting
+pnpm prettier            # Apply formatting
 ```
 
 ### Frontend (deck-kayenta)
@@ -92,7 +92,7 @@ npm run lint
 - Backend uses JUnit 5 (via `useJUnitPlatform()`)
 - Frontend uses Karma (deck) and Jest (deck-kayenta)
 - Fix all test/type errors before committing
-- Run `spotlessCheck` / `yarn lint` before commits
+- Run `spotlessCheck` / `pnpm lint` before commits
 
 ## Repository Map
 ```
@@ -122,7 +122,7 @@ npm run lint
 ## Git & PR Policy
 - **Commits:** Ask permission before pushing
 - **PRs:** Create as drafts (`gh pr create --draft`)
-- Run `./gradlew spotlessCheck` and `yarn lint` before committing
+- Run `./gradlew spotlessCheck` and `pnpm lint` before committing
 - Ensure tests pass locally before pushing
 
 ## Security Considerations
