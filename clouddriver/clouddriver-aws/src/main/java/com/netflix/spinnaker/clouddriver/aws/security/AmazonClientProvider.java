@@ -317,7 +317,7 @@ public class AmazonClientProvider {
     this.awsSdkClientSupplier =
         new AwsSdkClientSupplier(
             rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
-    this.awsSdkV2ClientSupplier = new AwsSdkV2ClientSupplier();
+    this.awsSdkV2ClientSupplier = new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry);
     this.proxyHandlerBuilder =
         new ProxyHandlerBuilder(
             awsSdkClientSupplier,
@@ -727,7 +727,11 @@ public class AmazonClientProvider {
    */
   public EcsClient getAmazonEcsV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
-        EcsClient::builder, EcsClient.class, amazonCredentials.getV2CredentialsProvider(), region);
+        EcsClient::builder,
+        EcsClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
   }
 
   /**
@@ -737,7 +741,11 @@ public class AmazonClientProvider {
    */
   public EcrClient getAmazonEcrV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
-        EcrClient::builder, EcrClient.class, amazonCredentials.getV2CredentialsProvider(), region);
+        EcrClient::builder,
+        EcrClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
   }
 
   /**
@@ -747,7 +755,11 @@ public class AmazonClientProvider {
    */
   public IamClient getIamV2(NetflixAmazonCredentials amazonCredentials, String region) {
     return awsSdkV2ClientSupplier.getClient(
-        IamClient::builder, IamClient.class, amazonCredentials.getV2CredentialsProvider(), region);
+        IamClient::builder,
+        IamClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
   }
 
   /**
@@ -761,7 +773,8 @@ public class AmazonClientProvider {
         CloudWatchClient::builder,
         CloudWatchClient.class,
         amazonCredentials.getV2CredentialsProvider(),
-        region);
+        region,
+        amazonCredentials.getName());
   }
 
   /**
@@ -775,7 +788,8 @@ public class AmazonClientProvider {
         SecretsManagerClient::builder,
         SecretsManagerClient.class,
         amazonCredentials.getV2CredentialsProvider(),
-        region);
+        region,
+        amazonCredentials.getName());
   }
 
   /**
@@ -789,7 +803,8 @@ public class AmazonClientProvider {
         ServiceDiscoveryClient::builder,
         ServiceDiscoveryClient.class,
         amazonCredentials.getV2CredentialsProvider(),
-        region);
+        region,
+        amazonCredentials.getName());
   }
 
   /**
@@ -803,6 +818,7 @@ public class AmazonClientProvider {
         ApplicationAutoScalingClient::builder,
         ApplicationAutoScalingClient.class,
         amazonCredentials.getV2CredentialsProvider(),
-        region);
+        region,
+        amazonCredentials.getName());
   }
 }

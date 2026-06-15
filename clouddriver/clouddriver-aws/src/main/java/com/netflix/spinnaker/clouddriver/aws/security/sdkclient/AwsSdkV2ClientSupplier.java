@@ -21,6 +21,9 @@ import static java.util.Objects.requireNonNull;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.RateLimiter;
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Registry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -30,16 +33,17 @@ import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 
 /**
  * Factory for shared instances of AWS SDK v2 clients. Mirrors the caching semantics of {@link
  * AwsSdkClientSupplier} but targets the {@code software.amazon.awssdk} API.
  *
- * <p>Clients are keyed by (service builder supplier, credentials provider identity, region) and
- * evicted after 10 minutes of inactivity. A {@link Supplier} of the service builder is used instead
- * of a builder class reference because v2 builders are not reflectively instantiatable via a single
- * static {@code standard()} convention.
+ * <p>Clients are keyed by (service builder supplier, credentials provider identity, region,
+ * account) and evicted after 10 minutes of inactivity. A {@link Supplier} of the service builder is
+ * used instead of a builder class reference because v2 builders are not reflectively instantiatable
+ * via a single static {@code standard()} convention.
  *
  * <p>Edda note: v2 clients returned by this class do not have Edda read-through support. Edda
  * interception works by wrapping v1 service interfaces (e.g. {@code AmazonECS}) in a JDK dynamic
@@ -54,15 +58,18 @@ import software.amazon.awssdk.regions.Region;
 public class AwsSdkV2ClientSupplier {
 
   private final LoadingCache<V2ClientKey, SdkClient> clientCache;
+  private final RateLimiterSupplier rateLimiterSupplier;
+  private final Registry registry;
 
-  public AwsSdkV2ClientSupplier() {
+  public AwsSdkV2ClientSupplier(RateLimiterSupplier rateLimiterSupplier, Registry registry) {
+    this.rateLimiterSupplier = requireNonNull(rateLimiterSupplier, "rateLimiterSupplier");
+    this.registry = requireNonNull(registry, "registry");
     this.clientCache =
         CacheBuilder.newBuilder()
             .recordStats()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build(new V2ClientCacheLoader());
-    // Metrics are wired from the outside so registry is optional here; callers that want
-    // Spectator cache stats can call LoadingCacheMetrics.instrument(...) after construction.
+    LoadingCacheMetrics.instrument("awsSdkV2ClientSupplier", registry, clientCache);
   }
 
   /**
@@ -76,6 +83,7 @@ public class AwsSdkV2ClientSupplier {
    * @param credentialsProvider v2 credentials for this account
    * @param region AWS region string; must not be {@code null} — AWS SDK v2 resolves region eagerly
    *     at client build time, so a missing region will throw at construction, not request time.
+   * @param account the Spinnaker account name, used for rate-limiter resolution
    * @return a shared, cached client instance
    */
   @SuppressWarnings("unchecked")
@@ -83,12 +91,14 @@ public class AwsSdkV2ClientSupplier {
       Supplier<? extends AwsClientBuilder<?, C>> builderSupplier,
       Class<C> clientType,
       AwsCredentialsProvider credentialsProvider,
-      String region) {
+      String region,
+      String account) {
     requireNonNull(builderSupplier, "builderSupplier");
     requireNonNull(credentialsProvider, "credentialsProvider");
     requireNonNull(region, "region");
+    requireNonNull(account, "account");
 
-    V2ClientKey key = new V2ClientKey(builderSupplier, credentialsProvider, region);
+    V2ClientKey key = new V2ClientKey(builderSupplier, credentialsProvider, region, account);
 
     try {
       return clientType.cast(clientCache.get(key));
@@ -100,15 +110,37 @@ public class AwsSdkV2ClientSupplier {
     }
   }
 
+  /**
+   * Overload without account — delegates with a default "unknown" account. Prefer the overload with
+   * explicit account for proper rate-limit resolution.
+   */
+  @SuppressWarnings("unchecked")
+  public <C extends SdkClient> C getClient(
+      Supplier<? extends AwsClientBuilder<?, C>> builderSupplier,
+      Class<C> clientType,
+      AwsCredentialsProvider credentialsProvider,
+      String region) {
+    return getClient(builderSupplier, clientType, credentialsProvider, region, "unknown");
+  }
+
   // -------------------------------------------------------------------------
   // Cache loader
   // -------------------------------------------------------------------------
 
-  private static class V2ClientCacheLoader extends CacheLoader<V2ClientKey, SdkClient> {
+  private class V2ClientCacheLoader extends CacheLoader<V2ClientKey, SdkClient> {
     @Override
     public SdkClient load(V2ClientKey key) {
       AwsClientBuilder<?, ?> builder = key.builderSupplier.get();
       builder.credentialsProvider(key.credentialsProvider);
+
+      // Rate limiting interceptor
+      RateLimitingExecutionInterceptor rateLimitInterceptor =
+          createRateLimitInterceptor(key.builderClass, key.account, key.region);
+
+      ClientOverrideConfiguration.Builder overrideConfig =
+          ClientOverrideConfiguration.builder().addExecutionInterceptor(rateLimitInterceptor);
+
+      builder.overrideConfiguration(overrideConfig.build());
 
       key.getRegion()
           .ifPresent(
@@ -121,6 +153,21 @@ public class AwsSdkV2ClientSupplier {
     }
   }
 
+  private RateLimitingExecutionInterceptor createRateLimitInterceptor(
+      Class<?> builderClass, String account, String region) {
+    RateLimiter limiter = rateLimiterSupplier.getRateLimiter(builderClass, account, region);
+    Counter rateLimitCounter =
+        registry.counter(
+            "amazonClientProvider.v2.rateLimitDelayMillis",
+            "clientType",
+            builderClass.getSimpleName(),
+            "account",
+            account,
+            "region",
+            region == null ? "UNSPECIFIED" : region);
+    return new RateLimitingExecutionInterceptor(rateLimitCounter, limiter);
+  }
+
   // -------------------------------------------------------------------------
   // Cache key
   // -------------------------------------------------------------------------
@@ -129,7 +176,8 @@ public class AwsSdkV2ClientSupplier {
    * Identifies a unique v2 client in the cache.
    *
    * <p>Identity is based on: - The builder supplier instance (same reference == same service type)
-   * - The credentials provider identity (same reference == same account/role) - The region string
+   * - The credentials provider identity (same reference == same account/role) - The region string -
+   * The account name (affects rate limiter selection)
    */
   static final class V2ClientKey {
     /**
@@ -148,14 +196,17 @@ public class AwsSdkV2ClientSupplier {
     private final Supplier<? extends AwsClientBuilder<?, ?>> builderSupplier;
     private final AwsCredentialsProvider credentialsProvider;
     private final String region;
+    private final String account;
 
     V2ClientKey(
         Supplier<? extends AwsClientBuilder<?, ?>> builderSupplier,
         AwsCredentialsProvider credentialsProvider,
-        String region) {
+        String region,
+        String account) {
       this.builderSupplier = requireNonNull(builderSupplier);
       this.credentialsProvider = requireNonNull(credentialsProvider);
       this.region = region;
+      this.account = requireNonNull(account);
       // Resolve builder class eagerly so equals/hashCode don't need to call get() repeatedly.
       this.builderClass = builderSupplier.get().getClass();
     }
@@ -171,12 +222,14 @@ public class AwsSdkV2ClientSupplier {
       V2ClientKey that = (V2ClientKey) o;
       return builderClass.equals(that.builderClass)
           && credentialsProvider == that.credentialsProvider
-          && Objects.equals(region, that.region);
+          && Objects.equals(region, that.region)
+          && Objects.equals(account, that.account);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(builderClass, System.identityHashCode(credentialsProvider), region);
+      return Objects.hash(
+          builderClass, System.identityHashCode(credentialsProvider), region, account);
     }
 
     @Override
@@ -188,6 +241,8 @@ public class AwsSdkV2ClientSupplier {
           + credentialsProvider.getClass().getSimpleName()
           + ", region="
           + region
+          + ", account="
+          + account
           + '}';
     }
   }
