@@ -1,0 +1,25 @@
+packages:
+  - "../deck-kayenta"
+  - "packages/*"
+overrides:
+  '@types/angular': 1.6.26
+  '@types/react': 16.14.10
+  '@uirouter/angularjs': 1.0.26
+  '@uirouter/core': 6.0.8
+  '@uirouter/react': 1.0.7
+  '@uirouter/react-hybrid': 1.0.2
+  angular: 1.8.3
+  cheerio: 1.0.0-rc.3
+  nth-check: 2.0.1
+  react: ^16.14.0
+  react-dom: ^16.14.0
+  rxjs: 6.6.7
+  typescript: 5.0.4
+allowBuilds:
+  '@spinnaker/kayenta': true
+  bufferutil: true
+  core-js: true
+  cypress: true
+  esbuild: true
+  nx: true
+  utf-8-validate: true

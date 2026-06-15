@@ -18,23 +18,35 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    - name: Find yarn cache directory
-      if: hashFiles(format('{0}/package.json', inputs.project)) != '' && !env.ACT
-      id: yarn-cache
-      shell: bash
-      run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+    - name: Install pnpm
+      if: hashFiles(format('{0}/package.json', inputs.project)) != ''
+      uses: pnpm/action-setup@v4
+      with:
+        version: 11.1.1
+        run_install: false
 
-    - name: Restore Yarn cache
+    - name: Get pnpm store directory
+      if: hashFiles(format('{0}/package.json', inputs.project)) != '' && !env.ACT
+      id: pnpm-cache
+      shell: bash
+      run: echo "dir=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+    - name: Restore pnpm store cache
       uses: actions/cache@v4
       if: hashFiles(format('{0}/package.json', inputs.project)) != '' && !env.ACT
       with:
-        path: ${{ steps.yarn-cache.outputs.dir }}
-        key: ${{ runner.os }}-yarn-${{ hashFiles(format('{0}/yarn.lock', inputs.project)) }}
+        path: ${{ steps.pnpm-cache.outputs.dir }}
+        key: ${{ runner.os }}-pnpm-store-${{ inputs.cache-version }}-${{ hashFiles(format('{0}/pnpm-lock.yaml', inputs.project)) }}
         restore-keys: |
-          ${{ runner.os }}-yarn-
-#
-#    - name: Install Yarn dependencies
-#      if: hashFiles(inputs.project + '/package.json') != ''
-#      shell: bash
-#      working-directory: ${{ inputs.project }}
-#      run: yarn install --frozen-lockfile
+          ${{ runner.os }}-pnpm-store-${{ inputs.cache-version }}-
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Restore pnpm node_modules cache
+      uses: actions/cache@v4
+      if: hashFiles(format('{0}/package.json', inputs.project)) != '' && !env.ACT
+      with:
+        path: ${{ inputs.project }}/node_modules
+        key: ${{ runner.os }}-pnpm-modules-${{ inputs.cache-version }}-${{ hashFiles(format('{0}/pnpm-lock.yaml', inputs.project)) }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-modules-${{ inputs.cache-version }}-
+          ${{ runner.os }}-pnpm-modules-
