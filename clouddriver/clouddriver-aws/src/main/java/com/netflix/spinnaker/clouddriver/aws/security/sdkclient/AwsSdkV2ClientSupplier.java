@@ -36,6 +36,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
@@ -67,16 +68,19 @@ public class AwsSdkV2ClientSupplier {
   private final Registry registry;
   private final RetryPolicy retryPolicy;
   private final AWSProxy proxy;
+  private final boolean addSpinnakerUserToUserAgent;
 
   public AwsSdkV2ClientSupplier(
       RateLimiterSupplier rateLimiterSupplier,
       Registry registry,
       RetryPolicy retryPolicy,
-      AWSProxy proxy) {
+      AWSProxy proxy,
+      boolean addSpinnakerUserToUserAgent) {
     this.rateLimiterSupplier = requireNonNull(rateLimiterSupplier, "rateLimiterSupplier");
     this.registry = requireNonNull(registry, "registry");
     this.retryPolicy = requireNonNull(retryPolicy, "retryPolicy");
     this.proxy = proxy;
+    this.addSpinnakerUserToUserAgent = addSpinnakerUserToUserAgent;
     this.clientCache =
         CacheBuilder.newBuilder()
             .recordStats()
@@ -154,7 +158,12 @@ public class AwsSdkV2ClientSupplier {
           ClientOverrideConfiguration.builder()
               .addExecutionInterceptor(rateLimitInterceptor)
               .retryPolicy(retryPolicy)
-              .addMetricPublisher(new SpectatorMetricPublisher(registry));
+              .addMetricPublisher(new SpectatorMetricPublisher(registry))
+              .putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "spinnaker");
+
+      if (addSpinnakerUserToUserAgent) {
+        overrideConfig.addExecutionInterceptor(new SpinnakerUserAgentExecutionInterceptor());
+      }
 
       builder.overrideConfiguration(overrideConfig.build());
 

@@ -318,8 +318,12 @@ public class AmazonClientProvider {
         new AwsSdkClientSupplier(
             rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
     software.amazon.awssdk.core.retry.RetryPolicy v2RetryPolicy = buildV2RetryPolicy(retryPolicy);
+    boolean v2AddUserAgent =
+        requestHandlers.stream()
+            .anyMatch(h -> h instanceof AddSpinnakerUserToUserAgentRequestHandler);
     this.awsSdkV2ClientSupplier =
-        new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, v2RetryPolicy, proxy);
+        new AwsSdkV2ClientSupplier(
+            rateLimiterSupplier, registry, v2RetryPolicy, proxy, v2AddUserAgent);
     this.proxyHandlerBuilder =
         new ProxyHandlerBuilder(
             awsSdkClientSupplier,

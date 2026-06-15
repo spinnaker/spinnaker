@@ -50,7 +50,7 @@ class AwsSdkV2ClientSupplierTest {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(new ServiceLimitConfigurationBuilder().build(), registry);
     RetryPolicy retryPolicy = RetryPolicy.defaultRetryPolicy();
-    supplier = new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, retryPolicy, null);
+    supplier = new AwsSdkV2ClientSupplier(rateLimiterSupplier, registry, retryPolicy, null, false);
   }
 
   @Test
