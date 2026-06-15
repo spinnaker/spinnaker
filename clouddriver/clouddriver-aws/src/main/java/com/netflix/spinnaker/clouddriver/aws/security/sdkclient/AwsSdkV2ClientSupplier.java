@@ -144,7 +144,8 @@ public class AwsSdkV2ClientSupplier {
       ClientOverrideConfiguration.Builder overrideConfig =
           ClientOverrideConfiguration.builder()
               .addExecutionInterceptor(rateLimitInterceptor)
-              .retryPolicy(retryPolicy);
+              .retryPolicy(retryPolicy)
+              .addMetricPublisher(new SpectatorMetricPublisher(registry));
 
       builder.overrideConfiguration(overrideConfig.build());
 
