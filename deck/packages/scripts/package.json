@@ -31,7 +31,7 @@
     "autoprefixer": "^10.4.8",
     "chalk": "^4.1.1",
     "comment-json": "^4.1.1",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "ora": "^5.4.0",
     "postcss": "^8.4.14",
     "postcss-colorfix": "0.0.5",
