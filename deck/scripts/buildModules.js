@@ -7,16 +7,16 @@ const exec = util.promisify(require('child_process').exec);
 const DECK_ROOT = path.resolve(__dirname, '..');
 const PACKAGES_ROOT = path.resolve(`${DECK_ROOT}/packages`);
 
-const runYarnBuild = (pathToPackage) => {
-  const cmd = `yarn --cwd ${pathToPackage} build`;
+const runPnpmBuild = (pathToPackage) => {
+  const cmd = `pnpm --dir ${pathToPackage} build`;
   console.log(cmd);
   return exec(cmd);
 };
 
 async function buildModules() {
   try {
-    await runYarnBuild(`${PACKAGES_ROOT}/presentation`);
-    await runYarnBuild(`${PACKAGES_ROOT}/core`);
+    await runPnpmBuild(`${PACKAGES_ROOT}/presentation`);
+    await runPnpmBuild(`${PACKAGES_ROOT}/core`);
     await Promise.all(
       [
         'amazon',
@@ -30,10 +30,10 @@ async function buildModules() {
         'kubernetes',
         'oracle',
         'tencentcloud',
-      ].map((module) => runYarnBuild(`${PACKAGES_ROOT}/${module}`)),
+      ].map((module) => runPnpmBuild(`${PACKAGES_ROOT}/${module}`)),
     );
 
-    await Promise.all(['ecs', 'titus'].map((module) => runYarnBuild(`${PACKAGES_ROOT}/${module}`)));
+    await Promise.all(['ecs', 'titus'].map((module) => runPnpmBuild(`${PACKAGES_ROOT}/${module}`)));
   } catch (err) {
     console.log(err.stdout);
     console.error(err.stderr);
