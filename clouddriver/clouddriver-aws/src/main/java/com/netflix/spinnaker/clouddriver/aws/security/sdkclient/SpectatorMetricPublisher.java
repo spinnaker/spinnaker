@@ -38,8 +38,13 @@ import software.amazon.awssdk.metrics.MetricPublisher;
  * </ul>
  *
  * <p>Metrics are tagged with {@code serviceName} and {@code operationName} when available.
+ *
+ * <p>TODO: Consider migrating to Micrometer's MeterRegistry when Spectator is phased out in favour
+ * of OTEL-aligned instrumentation.
  */
 public class SpectatorMetricPublisher implements MetricPublisher {
+
+  private static final int MAX_DEPTH = 5;
 
   private final Registry registry;
 
@@ -49,6 +54,14 @@ public class SpectatorMetricPublisher implements MetricPublisher {
 
   @Override
   public void publish(MetricCollection metricCollection) {
+    publish(metricCollection, 0);
+  }
+
+  private void publish(MetricCollection metricCollection, int depth) {
+    if (depth > MAX_DEPTH) {
+      return;
+    }
+
     List<String> serviceIds = metricCollection.metricValues(CoreMetric.SERVICE_ID);
     String serviceName = serviceIds.isEmpty() ? "unknown" : serviceIds.get(0);
 
@@ -79,9 +92,8 @@ public class SpectatorMetricPublisher implements MetricPublisher {
       }
     }
 
-    // Recurse into child collections (e.g. per-attempt metrics)
     for (MetricCollection child : metricCollection.children()) {
-      publish(child);
+      publish(child, depth + 1);
     }
   }
 
