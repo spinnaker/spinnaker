@@ -50,4 +50,23 @@ public class EcsMetricAlarm {
   public Collection<String> getOKActions() {
     return okActions;
   }
+
+  public EcsMetricAlarm withAlarmName(String alarmName) {
+    setAlarmName(alarmName);
+    return this;
+  }
+
+  public EcsMetricAlarm withAlarmArn(String alarmArn) {
+    setAlarmArn(alarmArn);
+    return this;
+  }
+
+  // Kept setOKActions name for backward compat with cache client code
+  public void setOKActions(Collection<String> okActions) {
+    this.okActions = okActions;
+  }
+
+  public Collection<String> getOKActions() {
+    return okActions;
+  }
 }
