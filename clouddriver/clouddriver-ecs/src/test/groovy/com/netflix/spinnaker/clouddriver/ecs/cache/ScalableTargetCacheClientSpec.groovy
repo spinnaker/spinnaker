@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ScalableTargetCacheClient
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget
+import software.amazon.awssdk.services.applicationautoscaling.model.ServiceNamespace
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -41,19 +41,16 @@ class ScalableTargetCacheClientSpec extends Specification {
     def resourceId = 'service/test-cluster/test-service'
     def scalableTargetKey = Keys.getScalableTargetKey('test-account', 'us-west-1', resourceId)
 
-    def givenScalableTarget = new ScalableTarget(
-      serviceNamespace: ServiceNamespace.Ecs,
-      resourceId: resourceId,
-      scalableDimension: 'scalable-dimension',
-      minCapacity: 0,
-      maxCapacity: 9001,
-      roleARN: 'role-arn',
-      creationTime: new Date()
-    )
+    def givenScalableTarget = ScalableTarget.builder()
+      .serviceNamespace(ServiceNamespace.ECS)
+      .resourceId(resourceId)
+      .scalableDimension("ecs:service:DesiredCount")
+      .minCapacity(0)
+      .maxCapacity(9001)
+      .roleARN("role-arn")
+      .build()
 
-    objectMapper
-
-    def attributes = objectMapper.convertValue(givenScalableTarget, Map)
+    def attributes = objectMapper.convertValue(givenScalableTarget.toBuilder(), Map)
     cacheView.get(SCALABLE_TARGETS.ns, scalableTargetKey) >> new DefaultCacheData(scalableTargetKey, attributes, [:])
 
     when:

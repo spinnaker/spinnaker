@@ -19,11 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SCALABLE_TARGETS;
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScaling;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult;
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget;
-import com.amazonaws.services.applicationautoscaling.model.ServiceNamespace;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -47,6 +42,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse;
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
+import software.amazon.awssdk.services.applicationautoscaling.model.ServiceNamespace;
 
 public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
   static final Collection<AgentDataType> types =
@@ -72,9 +72,10 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
     this.objectMapper = objectMapper;
   }
 
-  public static Map<String, Object> convertMetricAlarmToAttributes(
+  @SuppressWarnings("unchecked")
+  public static Map<String, Object> convertScalableTargetToAttributes(
       ScalableTarget scalableTarget, ObjectMapper objectMapper) {
-    return objectMapper.convertValue(scalableTarget, Map.class);
+    return objectMapper.convertValue(scalableTarget.toBuilder(), Map.class);
   }
 
   @Override
@@ -84,8 +85,8 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AWSApplicationAutoScaling autoScalingClient =
-        amazonClientProvider.getAmazonApplicationAutoScaling(account, region, false);
+    ApplicationAutoScalingClient autoScalingClient =
+        amazonClientProvider.getAmazonApplicationAutoScalingV2(account, region);
 
     Set<ScalableTarget> scalableTargets = fetchScalableTargets(autoScalingClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(scalableTargets);
@@ -121,8 +122,9 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
     Map<String, Collection<CacheData>> newDataMap = new HashMap<>();
 
     for (ScalableTarget scalableTarget : scalableTargets) {
-      String key = Keys.getScalableTargetKey(accountName, region, scalableTarget.getResourceId());
-      Map<String, Object> attributes = convertMetricAlarmToAttributes(scalableTarget, objectMapper);
+      String key = Keys.getScalableTargetKey(accountName, region, scalableTarget.resourceId());
+      Map<String, Object> attributes =
+          convertScalableTargetToAttributes(scalableTarget, objectMapper);
 
       CacheData data = new DefaultCacheData(key, attributes, Collections.emptyMap());
       dataPoints.add(data);
@@ -133,20 +135,21 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
     return newDataMap;
   }
 
-  Set<ScalableTarget> fetchScalableTargets(AWSApplicationAutoScaling autoScalingClient) {
+  Set<ScalableTarget> fetchScalableTargets(ApplicationAutoScalingClient autoScalingClient) {
     Set<ScalableTarget> scalableTargets = new HashSet<>();
     String nextToken = null;
     do {
-      DescribeScalableTargetsRequest request =
-          new DescribeScalableTargetsRequest().withServiceNamespace(ServiceNamespace.Ecs);
+      DescribeScalableTargetsRequest.Builder requestBuilder =
+          DescribeScalableTargetsRequest.builder().serviceNamespace(ServiceNamespace.ECS);
       if (nextToken != null) {
-        request.setNextToken(nextToken);
+        requestBuilder.nextToken(nextToken);
       }
 
-      DescribeScalableTargetsResult result = autoScalingClient.describeScalableTargets(request);
-      scalableTargets.addAll(result.getScalableTargets());
+      DescribeScalableTargetsResponse result =
+          autoScalingClient.describeScalableTargets(requestBuilder.build());
+      scalableTargets.addAll(result.scalableTargets());
 
-      nextToken = result.getNextToken();
+      nextToken = result.nextToken();
     } while (nextToken != null && nextToken.length() != 0);
 
     return scalableTargets;
