@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.ListRolesResponse;
@@ -156,7 +157,7 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
   @Test
   public void shouldGetDefaultRegion() {
     // given
-    String defaultRegionName = "us-east-1";
+    String defaultRegionName = Region.US_EAST_1.id();
     when(netflixAmazonCredentials.getRegions())
         .thenReturn(Collections.singletonList(new AmazonCredentials.AWSRegion("us-east-1", null)));
 

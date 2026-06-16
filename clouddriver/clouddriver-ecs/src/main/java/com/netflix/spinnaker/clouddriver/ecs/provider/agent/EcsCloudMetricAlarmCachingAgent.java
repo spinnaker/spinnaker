@@ -19,10 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ALARMS;
 
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
-import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -45,6 +41,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest;
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse;
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm;
 
 public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAware {
   static final Collection<AgentDataType> types =
@@ -67,11 +67,11 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
   public static Map<String, Object> convertMetricAlarmToAttributes(
       MetricAlarm metricAlarm, String accountName, String region) {
     Map<String, Object> attributes = new HashMap<>();
-    attributes.put("alarmArn", metricAlarm.getAlarmArn());
-    attributes.put("alarmName", metricAlarm.getAlarmName());
-    attributes.put("alarmActions", metricAlarm.getAlarmActions());
-    attributes.put("okActions", metricAlarm.getOKActions());
-    attributes.put("insufficientDataActions", metricAlarm.getInsufficientDataActions());
+    attributes.put("alarmArn", metricAlarm.alarmArn());
+    attributes.put("alarmName", metricAlarm.alarmName());
+    attributes.put("alarmActions", metricAlarm.alarmActions());
+    attributes.put("okActions", metricAlarm.okActions());
+    attributes.put("insufficientDataActions", metricAlarm.insufficientDataActions());
     attributes.put("accountName", accountName);
     attributes.put("region", region);
     return attributes;
@@ -84,7 +84,7 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonCloudWatch cloudWatch = amazonClientProvider.getAmazonCloudWatch(account, region, false);
+    CloudWatchClient cloudWatch = amazonClientProvider.getAmazonCloudWatchV2(account, region);
 
     Set<MetricAlarm> cacheableMetricAlarm = fetchMetricAlarms(cloudWatch);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableMetricAlarm);
@@ -119,12 +119,12 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
 
     for (MetricAlarm metricAlarm : cacheableMetricAlarm) {
       String cluster =
-          metricAlarm.getDimensions().stream()
-              .filter(t -> t.getName().equalsIgnoreCase("ClusterName"))
-              .map(t -> t.getValue())
+          metricAlarm.dimensions().stream()
+              .filter(t -> t.name().equalsIgnoreCase("ClusterName"))
+              .map(t -> t.value())
               .collect(Collectors.joining());
 
-      String key = Keys.getAlarmKey(accountName, region, metricAlarm.getAlarmArn(), cluster);
+      String key = Keys.getAlarmKey(accountName, region, metricAlarm.alarmArn(), cluster);
       Map<String, Object> attributes =
           convertMetricAlarmToAttributes(metricAlarm, accountName, region);
 
@@ -137,19 +137,20 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
     return newDataMap;
   }
 
-  Set<MetricAlarm> fetchMetricAlarms(AmazonCloudWatch cloudWatch) {
+  Set<MetricAlarm> fetchMetricAlarms(CloudWatchClient cloudWatch) {
     Set<MetricAlarm> cacheableMetricAlarm = new HashSet<>();
     String nextToken = null;
     do {
-      DescribeAlarmsRequest request = new DescribeAlarmsRequest();
+      DescribeAlarmsRequest.Builder requestBuilder = DescribeAlarmsRequest.builder();
       if (nextToken != null) {
-        request.setNextToken(nextToken);
+        requestBuilder.nextToken(nextToken);
       }
 
-      DescribeAlarmsResult describeAlarmsResult = cloudWatch.describeAlarms(request);
-      cacheableMetricAlarm.addAll(describeAlarmsResult.getMetricAlarms());
+      DescribeAlarmsResponse describeAlarmsResult =
+          cloudWatch.describeAlarms(requestBuilder.build());
+      cacheableMetricAlarm.addAll(describeAlarmsResult.metricAlarms());
 
-      nextToken = describeAlarmsResult.getNextToken();
+      nextToken = describeAlarmsResult.nextToken();
     } while (nextToken != null && nextToken.length() != 0);
 
     return cacheableMetricAlarm;

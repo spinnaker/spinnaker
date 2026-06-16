@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.ListRolesRequest;
 import software.amazon.awssdk.services.iam.model.ListRolesResponse;
@@ -143,9 +144,11 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
       return testRegion;
     }
 
-    // ponytail: hardcoded default matches v1 Regions.DEFAULT_REGION (us-east-1)
-    log.debug("retrieving IAM Roles from default region: us-east-1");
-    return "us-east-1";
+    // IAM is a global service; us-east-1 is the default endpoint for standard partitions
+    // (equivalent to v1 Regions.DEFAULT_REGION).
+    String defaultRegion = Region.US_EAST_1.id();
+    log.debug("retrieving IAM Roles from default region: {}", defaultRegion);
+    return defaultRegion;
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<IamRole> cacheableRoles) {
