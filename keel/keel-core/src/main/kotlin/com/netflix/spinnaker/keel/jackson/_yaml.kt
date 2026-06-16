@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import com.netflix.spinnaker.keel.exceptions.YamlParsingException
+import com.netflix.spinnaker.kork.yaml.YamlHelper
 import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
 import java.io.InputStream
@@ -28,4 +29,4 @@ inline fun <reified T> YAMLMapper.readValueInliningAliases(yaml: String): T {
  * Converts a YAML stream into JSON with any anchors and aliases resolved.
  */
 fun ObjectMapper.writeYamlAsJsonString(stream: InputStream): String =
-  writeValueAsString(Yaml().load<Map<String, Any?>>(stream))
+  writeValueAsString(YamlHelper.newYamlSafeConstructor().load<Map<String, Any?>>(stream))
