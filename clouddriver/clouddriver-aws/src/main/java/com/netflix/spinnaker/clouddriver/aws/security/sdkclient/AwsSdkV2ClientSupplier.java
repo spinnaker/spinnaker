@@ -26,6 +26,8 @@ import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.aws.security.AWSProxy;
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
@@ -68,6 +71,7 @@ public class AwsSdkV2ClientSupplier {
   private final RetryPolicy retryPolicy;
   private final AWSProxy proxy;
   private final boolean addSpinnakerUserToUserAgent;
+  private final List<ExecutionInterceptor> additionalInterceptors;
 
   public AwsSdkV2ClientSupplier(
       RateLimiterSupplier rateLimiterSupplier,
@@ -75,11 +79,34 @@ public class AwsSdkV2ClientSupplier {
       RetryPolicy retryPolicy,
       AWSProxy proxy,
       boolean addSpinnakerUserToUserAgent) {
+    this(
+        rateLimiterSupplier,
+        registry,
+        retryPolicy,
+        proxy,
+        addSpinnakerUserToUserAgent,
+        Collections.emptyList());
+  }
+
+  /**
+   * @param additionalInterceptors extra {@link ExecutionInterceptor}s to attach to every v2 client.
+   *     This is the v2 equivalent of the v1 {@code List<RequestHandler2>} extension point — plugins
+   *     or configuration can inject interceptors here.
+   */
+  public AwsSdkV2ClientSupplier(
+      RateLimiterSupplier rateLimiterSupplier,
+      Registry registry,
+      RetryPolicy retryPolicy,
+      AWSProxy proxy,
+      boolean addSpinnakerUserToUserAgent,
+      List<ExecutionInterceptor> additionalInterceptors) {
     this.rateLimiterSupplier = requireNonNull(rateLimiterSupplier, "rateLimiterSupplier");
     this.registry = requireNonNull(registry, "registry");
     this.retryPolicy = requireNonNull(retryPolicy, "retryPolicy");
     this.proxy = proxy;
     this.addSpinnakerUserToUserAgent = addSpinnakerUserToUserAgent;
+    this.additionalInterceptors =
+        List.copyOf(requireNonNull(additionalInterceptors, "additionalInterceptors"));
     this.clientCache =
         CacheBuilder.newBuilder()
             .recordStats()
@@ -164,6 +191,10 @@ public class AwsSdkV2ClientSupplier {
 
       if (addSpinnakerUserToUserAgent) {
         overrideConfig.addExecutionInterceptor(new SpinnakerUserAgentExecutionInterceptor());
+      }
+
+      for (ExecutionInterceptor interceptor : additionalInterceptors) {
+        overrideConfig.addExecutionInterceptor(interceptor);
       }
 
       builder.overrideConfiguration(overrideConfig.build());

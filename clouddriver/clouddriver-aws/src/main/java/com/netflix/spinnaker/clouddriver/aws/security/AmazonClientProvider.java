@@ -72,6 +72,7 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.ecr.EcrClient;
@@ -115,6 +116,7 @@ public class AmazonClientProvider {
     private ServiceLimitConfiguration serviceLimitConfiguration =
         new ServiceLimitConfigurationBuilder().build();
     private Registry registry = new NoopRegistry();
+    private List<ExecutionInterceptor> v2ExecutionInterceptors = new ArrayList<>();
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -196,6 +198,15 @@ public class AmazonClientProvider {
       return this;
     }
 
+    /**
+     * Adds an AWS SDK v2 {@link ExecutionInterceptor} that will be attached to every v2 client
+     * built by the provider. This is the v2 equivalent of {@link #requestHandler(RequestHandler2)}.
+     */
+    public Builder v2ExecutionInterceptor(ExecutionInterceptor interceptor) {
+      this.v2ExecutionInterceptors.add(interceptor);
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient;
       if (client == null) {
@@ -245,7 +256,8 @@ public class AmazonClientProvider {
           eddaTimeoutConfig,
           uzeGzip,
           serviceLimitConfiguration,
-          registry);
+          registry,
+          v2ExecutionInterceptors);
     }
 
     private RetryPolicy buildPolicy() {
@@ -312,6 +324,32 @@ public class AmazonClientProvider {
       boolean useGzip,
       ServiceLimitConfiguration serviceLimitConfiguration,
       Registry registry) {
+    this(
+        httpClient,
+        objectMapper,
+        eddaTemplater,
+        retryPolicy,
+        requestHandlers,
+        proxy,
+        eddaTimeoutConfig,
+        useGzip,
+        serviceLimitConfiguration,
+        registry,
+        Collections.emptyList());
+  }
+
+  public AmazonClientProvider(
+      HttpClient httpClient,
+      ObjectMapper objectMapper,
+      EddaTemplater eddaTemplater,
+      RetryPolicy retryPolicy,
+      List<RequestHandler2> requestHandlers,
+      AWSProxy proxy,
+      EddaTimeoutConfig eddaTimeoutConfig,
+      boolean useGzip,
+      ServiceLimitConfiguration serviceLimitConfiguration,
+      Registry registry,
+      List<ExecutionInterceptor> v2ExecutionInterceptors) {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(serviceLimitConfiguration, registry);
     this.awsSdkClientSupplier =
@@ -323,7 +361,12 @@ public class AmazonClientProvider {
             .anyMatch(h -> h instanceof AddSpinnakerUserToUserAgentRequestHandler);
     this.awsSdkV2ClientSupplier =
         new AwsSdkV2ClientSupplier(
-            rateLimiterSupplier, registry, v2RetryPolicy, proxy, v2AddUserAgent);
+            rateLimiterSupplier,
+            registry,
+            v2RetryPolicy,
+            proxy,
+            v2AddUserAgent,
+            v2ExecutionInterceptors);
     this.proxyHandlerBuilder =
         new ProxyHandlerBuilder(
             awsSdkClientSupplier,
