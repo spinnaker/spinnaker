@@ -72,7 +72,7 @@ class NexusPublishPlugin implements Plugin<Project> {
       }
     }
 
-    project.afterEvaluate {
+    project.gradle.projectsEvaluated {
       // For some reason, the nexus plugin seems to only create one of these named tasks ever
       // As soon as the top-level task in Clouddriver is made, it won't ever define any more on other root projects
       // However, it will happily define all the subproject versions of publishToNexus, which we can collect here
