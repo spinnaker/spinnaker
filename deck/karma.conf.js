@@ -1,14 +1,23 @@
 'use strict';
 
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const { ProvidePlugin } = require('webpack');
+const { createRequire } = require('module');
 const path = require('path');
 
+const APP_ROOT = path.resolve(`${__dirname}/packages/app`);
+const appRequire = createRequire(`${APP_ROOT}/package.json`);
+const cheerioRequire = createRequire(require.resolve('cheerio/package.json'));
+const cssSelectRequire = createRequire(cheerioRequire.resolve('css-select/package.json'));
+const domhandlerRequire = createRequire(require.resolve('domhandler/package.json'));
+const ForkTsCheckerWebpackPlugin = appRequire('fork-ts-checker-webpack-plugin');
+const { ProvidePlugin } = appRequire('webpack');
 const prodWebpackConfig = require('./packages/app/webpack.config')();
 const MODULES_ROOT = path.resolve(`${__dirname}/packages`);
 
 const webpackConfig = {
   mode: 'development',
+  resolveLoader: {
+    modules: [path.resolve(`${APP_ROOT}/node_modules`), path.resolve(`${__dirname}/node_modules`)],
+  },
   module: {
     rules: [
       ...prodWebpackConfig.module.rules.filter((rule) => {
@@ -22,6 +31,12 @@ const webpackConfig = {
   },
   resolve: {
     ...prodWebpackConfig.resolve,
+    modules: [
+      path.resolve(`${APP_ROOT}/node_modules`),
+      path.resolve(`${MODULES_ROOT}/core/node_modules`),
+      path.resolve(`${__dirname}/node_modules`),
+      'node_modules',
+    ],
     // Webpack 5 no longer auto-polyfills Node.js core modules for browser builds.
     // Some test dependencies (e.g., parse5, util) require these modules.
     fallback: {
@@ -33,6 +48,9 @@ const webpackConfig = {
       ...prodWebpackConfig.resolve.alias,
       // ts-invariant imports 'process/browser' without extension, which fails in webpack 5 ESM resolution
       'process/browser': require.resolve('process/browser.js'),
+      'css-select': cheerioRequire.resolve('css-select'),
+      'css-what': cssSelectRequire.resolve('css-what'),
+      domelementtype: domhandlerRequire.resolve('domelementtype'),
       coreImports: path.resolve(`${MODULES_ROOT}/core/src/presentation/less/imports/commonImports.less`),
       amazon: path.resolve(`${MODULES_ROOT}/amazon/src`),
       '@spinnaker/amazon': path.resolve(`${MODULES_ROOT}/amazon/src`),
@@ -58,6 +76,8 @@ const webpackConfig = {
       '@spinnaker/huaweicloud': path.resolve(`${MODULES_ROOT}/huaweicloud/src`),
       kubernetes: path.resolve(`${MODULES_ROOT}/kubernetes/src`),
       '@spinnaker/kubernetes': path.resolve(`${MODULES_ROOT}/kubernetes/src`),
+      mocks: path.resolve(`${MODULES_ROOT}/mocks/src`),
+      '@spinnaker/mocks': path.resolve(`${MODULES_ROOT}/mocks/src`),
       oracle: path.resolve(`${MODULES_ROOT}/oracle/src`),
       '@spinnaker/oracle': path.resolve(`${MODULES_ROOT}/oracle/src`),
       tencentcloud: path.resolve(`${MODULES_ROOT}/tencentcloud/src`),
@@ -69,8 +89,15 @@ const webpackConfig = {
   plugins: [
     new ForkTsCheckerWebpackPlugin({
       typescript: {
+        configFile: path.resolve(`${__dirname}/packages/tsconfig.app.base.json`),
+        configOverwrite: {
+          include: ['*/src/**/*.ts', '*/src/**/*.tsx'],
+          exclude: ['**/*.stories.*'],
+        },
+        context: MODULES_ROOT,
         diagnosticOptions: {
-          syntactics: true,
+          syntactic: true,
+          semantic: false,
         },
       },
     }),

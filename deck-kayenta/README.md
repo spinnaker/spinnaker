@@ -1,67 +1,29 @@
 # Spinnaker Canary UI
 
-![Branch Build](https://github.com/spinnaker/deck-kayenta/workflows/Branch%20Build/badge.svg)
-
 ## PR Process
 
 In order to commit to this repo, please fork the repository and submit Pull Requests from a fork rather than a branch. It requires additional permissions to push branches.
 
 ## Development
 
-Make sure that [node](http://nodejs.org/download/) and [yarn](https://yarnpkg.com/en/docs/install)
+Make sure that [node](http://nodejs.org/download/) and [pnpm](https://pnpm.io/installation)
 are installed on your machine. The minimum versions for each are listed in `package.json`.
 
 To develop this module, run it as a [Deck](https://github.com/spinnaker/deck) dependency using either `yalc` (recommended) or `npm link`.
 
-### yarn
+### pnpm
 
 In the root of this repository and the main Deck repository, run
 
 ```bash
-yarn
+pnpm install
 ```
 
-### yalc
-
-Globally install [yalc](https://github.com/whitecolor/yalc).
-
-From the root of this repository, run
+For watch mode during development, run in the deck-kayenta directory:
 
 ```bash
-yalc publish
+pnpm watch
 ```
-
-From the root of the main Deck repository, run
-
-```bash
-yalc add @spinnaker/kayenta
-yarn start
-```
-
-As you make additional changes in this repository, run
-
-```bash
-yalc publish --push
-```
-
-### npm link
-
-From the root of this repository, run
-
-```bash
-npm link
-```
-
-From the root of the main Deck repository, run
-
-```bash
-npm link @spinnaker/kayenta
-```
-
-You should only have to run these commands once.
-
-Next, run `yarn build --watch` at the root of this repository. In a separate terminal,
-run `yarn start` at the root of the main Deck repository.
 
 ## Publishing @spinnaker/kayenta
 
@@ -76,6 +38,6 @@ for a [PR](https://github.com/spinnaker/deck/pulls/app%2Fdependabot-preview) aga
 
 ## Testing
 
-To run `deck-kayenta`'s tests, run `yarn test`.
+To run `deck-kayenta`'s tests, run `pnpm test`.
 
-To debug `deck-kayenta`'s tests using https://jestjs.io/, run `yarn test:debug`. Add a `debugger` statement to the test you want to debug.
+To debug `deck-kayenta`' tests using https://jestjs.io/, run `pnpm test:debug`. Add a `debugger` statement to the test you want to debug.

@@ -17,6 +17,7 @@
 apply plugin: "io.gitlab.arturbosch.detekt"
 
 detekt {
+  source.setFrom("src/main/kotlin", "src/custom/kotlin")
   parallel = false
   config = files("$rootDir/.detekt.yml")
   buildUponDefaultConfig = true

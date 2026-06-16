@@ -259,4 +259,13 @@ public class Keys implements KeyParser {
         + SEPARATOR
         + identifier;
   }
+
+  public static String buildGlob(
+      String namespace, String account, String region, String identifier) {
+    return buildKey(
+        StringUtils.defaultIfBlank(namespace, "*"),
+        StringUtils.defaultIfBlank(account, "*"),
+        StringUtils.defaultIfBlank(region, "*"),
+        StringUtils.defaultIfBlank(identifier, "*"));
+  }
 }

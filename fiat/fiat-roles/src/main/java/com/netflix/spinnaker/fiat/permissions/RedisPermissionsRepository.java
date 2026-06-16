@@ -414,6 +414,16 @@ public class RedisPermissionsRepository implements PermissionsRepository {
   }
 
   @Override
+  public boolean isEmpty() {
+    Long count =
+        redisClientDelegate.withBinaryClient(
+            jedis -> {
+              return jedis.scard(allUsersKey);
+            });
+    return count == null || count == 0L;
+  }
+
+  @Override
   public Map<String, Set<Role>> getAllById() {
     Set<String> allUsers =
         scanSet(allUsersKey).stream().map(String::toLowerCase).collect(Collectors.toSet());

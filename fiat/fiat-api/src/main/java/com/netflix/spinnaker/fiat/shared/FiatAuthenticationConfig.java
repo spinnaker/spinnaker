@@ -41,6 +41,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
@@ -53,6 +54,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 @Configuration
 @EnableConfigurationProperties(FiatClientConfigurationProperties.class)
 @ComponentScan("com.netflix.spinnaker.fiat.shared")
+@Order(org.springframework.core.Ordered.LOWEST_PRECEDENCE)
 public class FiatAuthenticationConfig {
 
   @Bean
@@ -114,6 +116,7 @@ public class FiatAuthenticationConfig {
   }
 
   @Bean
+  @Order(100)
   public SecurityFilterChain fiatSecurityFilterChain(
       HttpSecurity http, AuthenticationConverter authenticationConverter) throws Exception {
 
@@ -123,7 +126,7 @@ public class FiatAuthenticationConfig {
         .addFilterBefore(
             new FiatAuthenticationFilter(authenticationConverter),
             AnonymousAuthenticationFilter.class)
-        .csrf(csrf -> csrf.disable());
+        .csrf(AbstractHttpConfigurer::disable);
 
     return http.build();
   }
