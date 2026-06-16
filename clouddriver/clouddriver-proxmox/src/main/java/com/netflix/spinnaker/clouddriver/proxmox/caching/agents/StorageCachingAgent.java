@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.clouddriver.proxmox.caching.agents;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
+import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
-import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxVm;
+import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxStorage;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
@@ -31,45 +31,45 @@ import org.springframework.stereotype.Component;
 import retrofit2.Response;
 
 @Component
-public class VMCachingAgent extends AbstractProxmoxCachingAgent {
-  public VMCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
+public class StorageCachingAgent extends AbstractProxmoxCachingAgent {
+  public StorageCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
     super(credentials, registry);
   }
 
   @Override
   public Collection<AgentDataType> getProvidedDataTypes() {
-    return List.of(AgentDataType.Authority.AUTHORITATIVE.forType(ProxmoxResourceType.VM.name()));
+    return List.of(
+        AgentDataType.Authority.AUTHORITATIVE.forType(ProxmoxResourceType.STORAGE.name()));
   }
 
   @Override
-  Map<String, ProxmoxVm> getItems() {
+  Map<String, ProxmoxStorage> getItems() {
     try {
       List<ProxmoxNode> nodes = fetchNodes();
-      Map<String, ProxmoxVm> result = new HashMap<>();
+      Map<String, ProxmoxStorage> result = new HashMap<>();
       for (ProxmoxNode node : nodes) {
         try {
-          Response<
-                  com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse<List<ProxmoxVm>>>
-              response = credentials.getCredentials().getVms(node.getNode()).execute();
+          Response<ProxmoxResponse<List<ProxmoxStorage>>> response =
+              credentials.getCredentials().getStorage(node.getNode()).execute();
           if (!response.isSuccessful()
               || response.body() == null
               || response.body().getData() == null) {
             log.warn(
-                "Failed to fetch VMs on node {} for account {}: HTTP {}",
+                "Failed to fetch storage on node {} for account {}: HTTP {}",
                 node.getNode(),
                 credentials.getName(),
                 response.code());
             continue;
           }
-          for (ProxmoxVm vm : response.body().getData()) {
-            if (vm.getVmId() != null) {
-              vm.setNode(node.getNode());
-              result.put("vm/" + vm.getVmId(), vm);
+          for (ProxmoxStorage storage : response.body().getData()) {
+            if (storage.getStorage() != null) {
+              storage.setNode(node.getNode());
+              result.put("storage/" + node.getNode() + "/" + storage.getStorage(), storage);
             }
           }
         } catch (IOException e) {
           log.error(
-              "Failed to fetch VMs on node {} for account {}",
+              "Failed to fetch storage on node {} for account {}",
               node.getNode(),
               credentials.getName(),
               e);

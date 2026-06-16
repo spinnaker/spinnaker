@@ -21,7 +21,8 @@ public enum ProxmoxResourceType {
   NODE("node"),
   VM("vm"),
   DISK("disk"),
-  CONTAINER("container");
+  CONTAINER("container"),
+  STORAGE("storage");
 
   private final String name;
 

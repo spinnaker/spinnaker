@@ -16,17 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.proxmox.caching.agents;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
+import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
+import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
-import it.corsinvest.proxmoxve.api.PveClient;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import retrofit2.Response;
 
+@Component
 public class NodeCachingAgent extends AbstractProxmoxCachingAgent {
+  private static final Logger log = LoggerFactory.getLogger(NodeCachingAgent.class);
+
   public NodeCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
     super(credentials, registry);
   }
@@ -37,23 +46,25 @@ public class NodeCachingAgent extends AbstractProxmoxCachingAgent {
   }
 
   @Override
-  Map<String, ?> getItems() {
-    var client = new PveClient("pve.example.com", 8006);
-
-    // Get all VMs in cluster
-    client.getNodes().get(0).getQemu().createVm(100);
-    var resources = client.getCluster().getResources().resources().getData();
-    for (JsonNode resource : resources) {
-      if ("qemu".equals(resource.get("type").asText())) {
-        System.out.printf(
-            "VM %d: %s on %s - %s%n",
-            resource.get("vmid").asInt(),
-            resource.get("name").asText(),
-            resource.get("node").asText(),
-            resource.get("status").asText());
+  Map<String, ProxmoxNode> getItems() {
+    try {
+      Response<ProxmoxResponse<List<ProxmoxNode>>> response =
+          credentials.getCredentials().getNodes().execute();
+      if (!response.isSuccessful()
+          || response.body() == null
+          || response.body().getData() == null) {
+        log.warn(
+            "Failed to fetch nodes for account {}: HTTP {}",
+            credentials.getName(),
+            response.code());
+        return Map.of();
       }
+      return response.body().getData().stream()
+          .filter(node -> node.getNode() != null)
+          .collect(Collectors.toMap(node -> "node/" + node.getNode(), node -> node));
+    } catch (IOException e) {
+      log.error("Failed to fetch Proxmox nodes for account {}", credentials.getName(), e);
+      return Map.of();
     }
-
-    return Map.of();
   }
 }

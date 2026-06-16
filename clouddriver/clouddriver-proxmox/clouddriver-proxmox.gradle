@@ -3,7 +3,9 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-api")
 
-  implementation "it.corsinvest.proxmoxve:cv4pve-api-java:9.2.0"
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.okhttp3:okhttp"
 
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "io.spinnaker.kork:kork-web"

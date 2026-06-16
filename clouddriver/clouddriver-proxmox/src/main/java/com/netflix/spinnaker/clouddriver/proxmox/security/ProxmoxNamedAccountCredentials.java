@@ -17,22 +17,37 @@ package com.netflix.spinnaker.clouddriver.proxmox.security;
 
 import static lombok.EqualsAndHashCode.Include;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.config.ProxmoxConfigurationProperties;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import it.corsinvest.proxmoxve.api.PveClient;
-import it.corsinvest.proxmoxve.api.PveExceptionAuthentication;
-import java.util.*;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import org.springframework.util.ObjectUtils;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ParametersAreNonnullByDefault
-public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<PveClient> {
+public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<ProxmoxApiService> {
   private final String cloudProvider = "proxmox";
 
   @Nonnull @Include private final String name;
@@ -40,8 +55,8 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
   private final String environment;
   private final String accountType;
   private final ProxmoxConfigurationProperties.ProxmoxManagedAccount managedAccount;
-
   private final Permissions permissions;
+  private final ProxmoxApiService apiService;
 
   public ProxmoxNamedAccountCredentials(
       ProxmoxConfigurationProperties.ProxmoxManagedAccount managedAccount) {
@@ -50,6 +65,7 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
     this.accountType = "main";
     this.managedAccount = managedAccount;
     this.permissions = new Permissions.Builder().set(managedAccount.getPermissions()).build();
+    this.apiService = buildApiService(managedAccount);
   }
 
   /**
@@ -67,20 +83,101 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
   }
 
   @Override
-  public PveClient getCredentials() {
-    PveClient client = new PveClient(managedAccount.getServer(), managedAccount.getPort());
-    if (managedAccount.isInsecure()) {
-      client.setValidateCertificate(false);
-    }
-    if (!ObjectUtils.isEmpty(managedAccount.getApiToken())) {
-      client.setApiToken(managedAccount.getApiToken());
-    } else {
+  public ProxmoxApiService getCredentials() {
+    return apiService;
+  }
+
+  private static ProxmoxApiService buildApiService(
+      ProxmoxConfigurationProperties.ProxmoxManagedAccount account) {
+    OkHttpClient httpClient = buildHttpClient(account);
+    String baseUrl =
+        String.format("https://%s:%d/api2/json/", account.getServer(), account.getPort());
+    return new Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .client(httpClient)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build()
+        .create(ProxmoxApiService.class);
+  }
+
+  private static OkHttpClient buildHttpClient(
+      ProxmoxConfigurationProperties.ProxmoxManagedAccount account) {
+    OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+    if (account.isInsecure()) {
+      X509TrustManager trustAll =
+          new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+              return new X509Certificate[0];
+            }
+          };
       try {
-        client.login(managedAccount.getUserName(), managedAccount.getPassword());
-      } catch (PveExceptionAuthentication e) {
-        throw new RuntimeException(e);
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[] {trustAll}, null);
+        builder.sslSocketFactory(sslContext.getSocketFactory(), trustAll);
+        builder.hostnameVerifier((hostname, session) -> true);
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        throw new RuntimeException("Failed to configure insecure SSL context", e);
       }
     }
-    return client;
+
+    if (!ObjectUtils.isEmpty(account.getApiToken())) {
+      String authHeader = "PVEAPIToken=" + account.getApiToken();
+      builder.addInterceptor(
+          chain -> {
+            Request request =
+                chain.request().newBuilder().header("Authorization", authHeader).build();
+            return chain.proceed(request);
+          });
+    } else if (!ObjectUtils.isEmpty(account.getUserName())
+        && !ObjectUtils.isEmpty(account.getPassword())) {
+      TicketAuth ticket = fetchTicket(builder.build(), account);
+      builder.addInterceptor(
+          chain -> {
+            Request request =
+                chain
+                    .request()
+                    .newBuilder()
+                    .header("Cookie", "PVEAuthCookie=" + ticket.ticket())
+                    .header("CSRFPreventionToken", ticket.csrf())
+                    .build();
+            return chain.proceed(request);
+          });
+    }
+
+    return builder.build();
   }
+
+  private static TicketAuth fetchTicket(
+      OkHttpClient client, ProxmoxConfigurationProperties.ProxmoxManagedAccount account) {
+    String url =
+        String.format(
+            "https://%s:%d/api2/json/access/ticket", account.getServer(), account.getPort());
+    okhttp3.RequestBody body =
+        new FormBody.Builder()
+            .add("username", account.getUserName())
+            .add("password", account.getPassword())
+            .build();
+    Request request = new Request.Builder().url(url).post(body).build();
+    try (okhttp3.Response response = client.newCall(request).execute()) {
+      if (!response.isSuccessful()) {
+        throw new RuntimeException("Proxmox authentication failed: HTTP " + response.code());
+      }
+      JsonNode data = new ObjectMapper().readTree(response.body().string()).path("data");
+      return new TicketAuth(
+          data.path("ticket").asText(), data.path("CSRFPreventionToken").asText());
+    } catch (IOException e) {
+      throw new RuntimeException(
+          "Failed to authenticate with Proxmox at " + account.getServer(), e);
+    }
+  }
+
+  private record TicketAuth(String ticket, String csrf) {}
 }
