@@ -20,8 +20,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_APPLICATIONS;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -33,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.model.Application;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ecs.EcsClient;
 
 public class ApplicationCachingAgent extends AbstractEcsOnDemandAgent<Application> {
   private static final Collection<AgentDataType> types =
@@ -46,10 +45,9 @@ public class ApplicationCachingAgent extends AbstractEcsOnDemandAgent<Applicatio
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       Registry registry,
       ObjectMapper objectMapper) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
+    super(account, region, amazonClientProvider, registry);
     this.objectMapper = objectMapper;
   }
 
@@ -70,7 +68,7 @@ public class ApplicationCachingAgent extends AbstractEcsOnDemandAgent<Applicatio
   }
 
   @Override
-  protected List<Application> getItems(AmazonECS ecs, ProviderCache providerCache) {
+  protected List<Application> getItems(EcsClient ecs, ProviderCache providerCache) {
     List<Application> applications = new ArrayList<>();
     return applications;
   }

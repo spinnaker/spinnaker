@@ -21,9 +21,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICES;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
@@ -50,6 +47,12 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
+import software.amazon.awssdk.services.ecs.model.ListServicesRequest;
+import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.Service;
 
 public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
   private static final Collection<AgentDataType> types =
@@ -65,13 +68,11 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       Registry registry) {
     this(
         account,
         region,
         amazonClientProvider,
-        awsCredentialsProvider,
         registry,
         NamerRegistry.lookup()
             .withProvider(EcsCloudProvider.ID)
@@ -84,10 +85,9 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       Registry registry,
       Namer naming) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider, registry);
+    super(account, region, amazonClientProvider, registry);
     this.naming = naming;
   }
 
@@ -97,33 +97,31 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
     Moniker moniker = naming.deriveMoniker(new EcsResourceService(service));
 
     String applicationName = moniker.getApp();
-    String clusterName = StringUtils.substringAfterLast(service.getClusterArn(), "/");
+    String clusterName = StringUtils.substringAfterLast(service.clusterArn(), "/");
 
     attributes.put("account", accountName);
     attributes.put("region", region);
     attributes.put("applicationName", applicationName);
-    attributes.put("serviceName", service.getServiceName());
-    attributes.put("serviceArn", service.getServiceArn());
+    attributes.put("serviceName", service.serviceName());
+    attributes.put("serviceArn", service.serviceArn());
     attributes.put("clusterName", clusterName);
-    attributes.put("clusterArn", service.getClusterArn());
-    attributes.put("roleArn", service.getRoleArn());
-    attributes.put("taskDefinition", service.getTaskDefinition());
-    attributes.put("desiredCount", service.getDesiredCount());
-    attributes.put("maximumPercent", service.getDeploymentConfiguration().getMaximumPercent());
+    attributes.put("clusterArn", service.clusterArn());
+    attributes.put("roleArn", service.roleArn());
+    attributes.put("taskDefinition", service.taskDefinition());
+    attributes.put("desiredCount", service.desiredCount());
+    attributes.put("maximumPercent", service.deploymentConfiguration().maximumPercent());
     attributes.put(
-        "minimumHealthyPercent", service.getDeploymentConfiguration().getMinimumHealthyPercent());
-    attributes.put("loadBalancers", service.getLoadBalancers());
+        "minimumHealthyPercent", service.deploymentConfiguration().minimumHealthyPercent());
+    attributes.put("loadBalancers", service.loadBalancers());
 
-    if (service.getNetworkConfiguration() != null
-        && service.getNetworkConfiguration().getAwsvpcConfiguration() != null) {
+    if (service.networkConfiguration() != null
+        && service.networkConfiguration().awsvpcConfiguration() != null) {
+      attributes.put("subnets", service.networkConfiguration().awsvpcConfiguration().subnets());
       attributes.put(
-          "subnets", service.getNetworkConfiguration().getAwsvpcConfiguration().getSubnets());
-      attributes.put(
-          "securityGroups",
-          service.getNetworkConfiguration().getAwsvpcConfiguration().getSecurityGroups());
+          "securityGroups", service.networkConfiguration().awsvpcConfiguration().securityGroups());
     }
 
-    attributes.put("createdAt", service.getCreatedAt().getTime());
+    attributes.put("createdAt", service.createdAt().toEpochMilli());
     attributes.put("moniker", moniker);
 
     return attributes;
@@ -140,33 +138,33 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
   }
 
   @Override
-  protected List<Service> getItems(AmazonECS ecs, ProviderCache providerCache) {
+  protected List<Service> getItems(EcsClient ecs, ProviderCache providerCache) {
     List<Service> serviceList = new LinkedList<>();
     Set<String> clusters = getClusters(ecs, providerCache);
 
     for (String cluster : clusters) {
       String nextToken = null;
       do {
-        ListServicesRequest listServicesRequest = new ListServicesRequest().withCluster(cluster);
+        ListServicesRequest.Builder requestBuilder = ListServicesRequest.builder().cluster(cluster);
         if (nextToken != null) {
-          listServicesRequest.setNextToken(nextToken);
+          requestBuilder.nextToken(nextToken);
         }
-        ListServicesResult listServicesResult = ecs.listServices(listServicesRequest);
-        List<String> serviceArns = listServicesResult.getServiceArns();
+        ListServicesResponse listServicesResult = ecs.listServices(requestBuilder.build());
+        List<String> serviceArns = listServicesResult.serviceArns();
         if (serviceArns.size() == 0) {
           continue;
         }
 
-        List<Service> services =
+        DescribeServicesResponse describeServicesResult =
             ecs.describeServices(
-                    new DescribeServicesRequest()
-                        .withCluster(cluster)
-                        .withServices(serviceArns)
-                        .withInclude("TAGS"))
-                .getServices();
-        serviceList.addAll(services);
+                DescribeServicesRequest.builder()
+                    .cluster(cluster)
+                    .services(serviceArns)
+                    .includeWithStrings("TAGS")
+                    .build());
+        serviceList.addAll(describeServicesResult.services());
 
-        nextToken = listServicesResult.getNextToken();
+        nextToken = listServicesResult.nextToken();
       } while (nextToken != null && nextToken.length() != 0);
     }
     return serviceList;
@@ -180,13 +178,13 @@ public class ServiceCachingAgent extends AbstractEcsOnDemandAgent<Service> {
     for (Service service : services) {
       Map<String, Object> attributes = convertServiceToAttributes(service);
 
-      String key = Keys.getServiceKey(accountName, region, service.getServiceName());
+      String key = Keys.getServiceKey(accountName, region, service.serviceName());
       dataPoints.add(new DefaultCacheData(key, attributes, Collections.emptyMap()));
 
       Map<String, Object> clusterAttributes =
           EcsClusterCachingAgent.convertClusterArnToAttributes(
-              accountName, region, service.getClusterArn());
-      String clusterName = StringUtils.substringAfterLast(service.getClusterArn(), "/");
+              accountName, region, service.clusterArn());
+      String clusterName = StringUtils.substringAfterLast(service.clusterArn(), "/");
       key = Keys.getClusterKey(accountName, region, clusterName);
       clusterDataPoints.put(
           key, new DefaultCacheData(key, clusterAttributes, Collections.emptyMap()));
