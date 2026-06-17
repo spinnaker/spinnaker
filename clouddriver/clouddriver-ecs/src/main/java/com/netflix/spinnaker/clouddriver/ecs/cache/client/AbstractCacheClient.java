@@ -48,8 +48,9 @@ abstract class AbstractCacheClient<T> {
   protected abstract T convert(CacheData cacheData);
 
   /**
-   * WARNING: This method loads ALL data across ALL accounts and regions into memory.
-   * It should be replaced with scoped methods that require account/region parameters.
+   * WARNING: This method loads ALL data across ALL accounts and regions into memory. It should be
+   * replaced with scoped methods that require account/region parameters.
+   *
    * @deprecated Use {@link #getAll(String, String)} with explicit account and region instead
    * @return A list of all generic type objects across all accounts/regions (MEMORY INTENSIVE)
    */

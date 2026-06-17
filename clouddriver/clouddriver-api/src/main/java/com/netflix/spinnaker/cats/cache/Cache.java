@@ -88,7 +88,6 @@ public interface Cache {
    */
   Collection<String> filterIdentifiers(String type, String glob);
 
-
   /**
    * Retrieves all the items for the specified type.
    *

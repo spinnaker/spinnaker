@@ -22,8 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -202,16 +200,17 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
     // given
     ProviderCache providerCache = mock(ProviderCache.class);
     String expectedGlob = Keys.buildGlob(IAM_ROLE, ACCOUNT, null);
-    Set<String> oldKeys = new HashSet<>(Arrays.asList(
-        Keys.getIamRoleKey(ACCOUNT, "role-1"),
-        Keys.getIamRoleKey(ACCOUNT, "role-2")
-    ));
+    Set<String> oldKeys =
+        new HashSet<>(
+            Arrays.asList(
+                Keys.getIamRoleKey(ACCOUNT, "role-1"), Keys.getIamRoleKey(ACCOUNT, "role-2")));
 
     IamTrustRelationship trustRelationship = new IamTrustRelationship();
     trustRelationship.setType("Service");
     trustRelationship.setValue("ecs-tasks.amazonaws.com");
 
-    Role role = new Role().withArn("arn:aws:iam::123456789012:role/test-role").withRoleName("test-role");
+    Role role =
+        new Role().withArn("arn:aws:iam::123456789012:role/test-role").withRoleName("test-role");
 
     when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
         .thenReturn(iam);
@@ -230,9 +229,12 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
     verify(providerCache, times(1)).filterIdentifiers(IAM_ROLE.toString(), expectedGlob);
 
     // Verify the evictions contain only the filtered old keys
-    assertTrue(result.getEvictions().containsKey(IAM_ROLE.toString()),
+    assertTrue(
+        result.getEvictions().containsKey(IAM_ROLE.toString()),
         "Expected evictions to contain IAM_ROLE namespace");
-    assertEquals(oldKeys.size(), result.getEvictions().get(IAM_ROLE.toString()).size(),
+    assertEquals(
+        oldKeys.size(),
+        result.getEvictions().get(IAM_ROLE.toString()).size(),
         "Expected evictions to contain the filtered old keys");
   }
 }
