@@ -102,10 +102,6 @@ public interface Cache {
 
   Collection<CacheData> getAll(String type, CacheFilter cacheFilter);
 
-  default Collection<CacheData> getAllByGlob(String type, String glob) {
-    return getAll(type, filterIdentifiers(type, glob));
-  }
-
   /**
    * Retrieves the items for the specified type matching the provided identifiers
    *

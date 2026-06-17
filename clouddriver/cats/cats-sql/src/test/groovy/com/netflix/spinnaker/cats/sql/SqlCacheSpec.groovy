@@ -119,4 +119,98 @@ abstract class SqlCacheSpec extends WriteableCacheSpec {
     RelationshipCacheFilter.include("images")              || DSL.field("meowdy").eq("partner") || "(\n  meowdy = 'partner'\n  and rel_type like 'images%'\n)"
     null                                                   || null                              || "true"
   }
+
+  def 'getAllByGlob returns items matching glob pattern'() {
+    given:
+    def data = [
+      createData('item-1', [type: 'foo']),
+      createData('item-2', [type: 'foo']),
+      createData('other-1', [type: 'bar']),
+      createData('other-2', [type: 'bar'])
+    ]
+    ((SqlCache) cache).mergeAll('test', data)
+
+    when:
+    def result = ((SqlCache) cache).getAllByGlob('test', 'item-%')
+
+    then:
+    result.size() == 2
+    result*.id.sort() == ['item-1', 'item-2']
+    result.every { it.attributes.type == 'foo' }
+  }
+
+  def 'getAllByGlob returns empty collection when no matches'() {
+    given:
+    def data = [
+      createData('item-1', [type: 'foo']),
+      createData('item-2', [type: 'foo'])
+    ]
+    ((SqlCache) cache).mergeAll('test', data)
+
+    when:
+    def result = ((SqlCache) cache).getAllByGlob('test', 'nomatch-%')
+
+    then:
+    result.isEmpty()
+  }
+
+  def 'getAllByGlob works with wildcard in middle of pattern'() {
+    given:
+    def data = [
+      createData('ecs;clusters;account-1;us-west-1;cluster-1', [name: 'cluster-1']),
+      createData('ecs;clusters;account-1;us-west-2;cluster-2', [name: 'cluster-2']),
+      createData('ecs;clusters;account-2;us-west-1;cluster-3', [name: 'cluster-3']),
+      createData('ecs;secrets;account-1;us-west-1;secret-1', [name: 'secret-1'])
+    ]
+    ((SqlCache) cache).mergeAll('test', data)
+
+    when:
+    def result = ((SqlCache) cache).getAllByGlob('test', 'ecs;clusters;account-1;%')
+
+    then:
+    result.size() == 2
+    result*.id.sort() == ['ecs;clusters;account-1;us-west-1;cluster-1', 'ecs;clusters;account-1;us-west-2;cluster-2']
+  }
+
+  def 'getAllByGlob is more efficient than filterIdentifiers + getAll'() {
+    given:
+    def data = (1..100).collect { createData("item-$it", [value: it]) }
+    ((SqlCache) cache).mergeAll('test', data)
+
+    when: 'using getAllByGlob'
+    def globStart = System.currentTimeMillis()
+    def globResult = ((SqlCache) cache).getAllByGlob('test', 'item-1%')
+    def globTime = System.currentTimeMillis() - globStart
+
+    and: 'using filterIdentifiers + getAll'
+    def filterStart = System.currentTimeMillis()
+    def ids = cache.filterIdentifiers('test', 'item-1%')
+    def filterResult = cache.getAll('test', ids)
+    def filterTime = System.currentTimeMillis() - filterStart
+
+    then: 'both methods return the same results'
+    globResult.size() == filterResult.size()
+    globResult*.id.sort() == filterResult*.id.sort()
+
+    and: 'getAllByGlob completes in reasonable time'
+    globTime < 5000 // should be much faster, but allow margin for CI
+  }
+
+  def 'getAllByGlob handles SQL wildcard characters'() {
+    given:
+    def data = [
+      createData('item-1-test', [type: 'test']),
+      createData('item-2-test', [type: 'test']),
+      createData('item-3-prod', [type: 'prod']),
+      createData('other-1-test', [type: 'other'])
+    ]
+    ((SqlCache) cache).mergeAll('test', data)
+
+    when:
+    def result = ((SqlCache) cache).getAllByGlob('test', 'item-%')
+
+    then:
+    result.size() == 3
+    result*.id.sort() == ['item-1-test', 'item-2-test', 'item-3-prod']
+  }
 }

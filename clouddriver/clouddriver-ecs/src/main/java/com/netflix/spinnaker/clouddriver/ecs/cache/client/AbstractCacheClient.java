@@ -55,7 +55,11 @@ abstract class AbstractCacheClient<T> {
    */
   @Deprecated
   public Collection<T> getAll() {
-    return getAll(null, null);
+    Collection<CacheData> allData = cacheView.getAll(keyNamespace);
+    if (allData == null) {
+      return Collections.emptyList();
+    }
+    return convertAll(allData);
   }
 
   /**
