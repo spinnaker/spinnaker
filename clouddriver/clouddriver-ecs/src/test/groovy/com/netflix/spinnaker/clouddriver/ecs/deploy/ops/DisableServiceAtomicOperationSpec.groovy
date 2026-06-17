@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops
 
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult
-import com.amazonaws.services.applicationautoscaling.model.ScalableDimension
-import com.amazonaws.services.applicationautoscaling.model.ScalableTarget
-import com.amazonaws.services.applicationautoscaling.model.SuspendedState
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableDimension
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget
+import software.amazon.awssdk.services.applicationautoscaling.model.SuspendedState
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription
 
@@ -35,8 +35,8 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
-    amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
-    amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
+    amazonClientProvider.getAmazonEcsV2(_, _) >> ecs
+    amazonClientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     credentialsRepository.getOne(_) >> TestCredential.named("test")
 
@@ -44,13 +44,16 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.operate([])
 
     then:
-    1 * autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult()
-      .withScalableTargets(new ScalableTarget()
-        .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-        .withSuspendedState(new SuspendedState()
-          .withScheduledScalingSuspended(false)
-          .withDynamicScalingInSuspended(false)
-          .withDynamicScalingOutSuspended(false)))
+    1 * autoscaling.describeScalableTargets(_) >> DescribeScalableTargetsResponse.builder()
+      .scalableTargets(ScalableTarget.builder()
+        .scalableDimension(ScalableDimension.ECS_SERVICE_DESIRED_COUNT)
+        .suspendedState(SuspendedState.builder()
+          .scheduledScalingSuspended(false)
+          .dynamicScalingInSuspended(false)
+          .dynamicScalingOutSuspended(false)
+          .build())
+        .build())
+      .build()
     1 * autoscaling.registerScalableTarget(_)
     1 * ecs.updateService(_)
   }
@@ -66,8 +69,8 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
-    amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
-    amazonClientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
+    amazonClientProvider.getAmazonEcsV2(_, _) >> ecs
+    amazonClientProvider.getAmazonApplicationAutoScalingV2(_, _) >> autoscaling
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     credentialsRepository.getOne(_) >> TestCredential.named("test")
 
@@ -75,13 +78,16 @@ class DisableServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.operate([])
 
     then:
-    1 * autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult()
-      .withScalableTargets(new ScalableTarget()
-        .withScalableDimension(ScalableDimension.EcsServiceDesiredCount)
-        .withSuspendedState(new SuspendedState()
-          .withScheduledScalingSuspended(true)
-          .withDynamicScalingInSuspended(true)
-          .withDynamicScalingOutSuspended(true)))
+    1 * autoscaling.describeScalableTargets(_) >> DescribeScalableTargetsResponse.builder()
+      .scalableTargets(ScalableTarget.builder()
+        .scalableDimension(ScalableDimension.ECS_SERVICE_DESIRED_COUNT)
+        .suspendedState(SuspendedState.builder()
+          .scheduledScalingSuspended(true)
+          .dynamicScalingInSuspended(true)
+          .dynamicScalingOutSuspended(true)
+          .build())
+        .build())
+      .build()
     0 * autoscaling.registerScalableTarget(_)
     1 * ecs.updateService(_)
   }
