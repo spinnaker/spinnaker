@@ -1,0 +1,11 @@
+allowBuilds:
+  bufferutil: true
+  core-js: true
+  esbuild: true
+  utf-8-validate: true
+onlyBuiltDependencies:
+  - bufferutil
+  - core-js
+  - esbuild
+  - fsevents
+  - utf-8-validate
