@@ -16,12 +16,12 @@
 package com.netflix.spinnaker.config;
 
 import com.netflix.spinnaker.clouddriver.proxmox.ProxmoxProvider;
+import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxCredentialsLifecycleHandler;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxCredentialsParser;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSource;
 import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
-import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
@@ -52,6 +52,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ProxmoxConfiguration {
 
   @Bean
+  public ProxmoxProvider proxmoxProvider() {
+    return new ProxmoxProvider();
+  }
+
+  @Bean
   public ProxmoxConfigurationProperties proxmoxConfigurationProperties() {
     return new ProxmoxConfigurationProperties();
   }
@@ -64,8 +69,9 @@ public class ProxmoxConfiguration {
   }
 
   @Bean
+  @ConditionalOnProperty({"account.storage.enabled"})
   CredentialsDefinitionSource<ProxmoxConfigurationProperties.ProxmoxManagedAccount>
-      ecsAccountSource(
+      proxmoxAccountSource(
           AccountDefinitionRepository repository,
           Optional<
                   List<
@@ -105,7 +111,7 @@ public class ProxmoxConfiguration {
       value = ProxmoxNamedAccountCredentials.class,
       parameterizedContainer = CredentialsRepository.class)
   public CredentialsRepository<ProxmoxNamedAccountCredentials> proxmoxCredentialsRepository(
-      CredentialsLifecycleHandler<ProxmoxNamedAccountCredentials> eventHandler) {
+      ProxmoxCredentialsLifecycleHandler eventHandler) {
     return new MapBackedCredentialsRepository<>(ProxmoxProvider.ID, eventHandler);
   }
 

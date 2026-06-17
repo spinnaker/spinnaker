@@ -18,7 +18,9 @@ package com.netflix.spinnaker.config;
 import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import java.util.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /** Account properties for Proxmox cloud provider. */
@@ -31,6 +33,8 @@ public class ProxmoxConfigurationProperties {
 
   /** Managed account definition for Proxmox. */
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class ProxmoxManagedAccount implements AccessControlledAccountDefinition {
 
     private String name;

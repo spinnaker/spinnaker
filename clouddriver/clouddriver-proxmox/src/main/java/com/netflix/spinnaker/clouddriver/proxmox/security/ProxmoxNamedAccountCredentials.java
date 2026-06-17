@@ -60,7 +60,7 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
 
   public ProxmoxNamedAccountCredentials(
       ProxmoxConfigurationProperties.ProxmoxManagedAccount managedAccount) {
-    this.name = Objects.requireNonNull(managedAccount.getName());
+    this.name = Objects.requireNonNull(managedAccount).getName();
     this.environment = "prod";
     this.accountType = "main";
     this.managedAccount = managedAccount;

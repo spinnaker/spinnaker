@@ -3,6 +3,9 @@ dependencies {
   implementation project(":clouddriver-security")
   implementation project(":clouddriver-api")
 
+  implementation "com.netflix.frigga:frigga"
+  implementation "io.spinnaker.kork:kork-moniker"
+
   implementation "com.squareup.retrofit2:retrofit"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "com.squareup.okhttp3:okhttp"

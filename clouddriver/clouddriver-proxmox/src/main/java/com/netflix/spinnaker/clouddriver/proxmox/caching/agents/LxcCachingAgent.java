@@ -17,6 +17,7 @@ package com.netflix.spinnaker.clouddriver.proxmox.caching.agents;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxLxc;
@@ -27,10 +28,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Component;
 import retrofit2.Response;
 
-@Component
 public class LxcCachingAgent extends AbstractProxmoxCachingAgent {
   public LxcCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
     super(credentials, registry);
@@ -64,7 +63,8 @@ public class LxcCachingAgent extends AbstractProxmoxCachingAgent {
           for (ProxmoxLxc lxc : response.body().getData()) {
             if (lxc.getVmId() != null) {
               lxc.setNode(node.getNode());
-              result.put("lxc/" + lxc.getVmId(), lxc);
+              result.put(
+                  ProxmoxCacheKeys.lxc(credentials.getName(), node.getNode(), lxc.getVmId()), lxc);
             }
           }
         } catch (IOException e) {

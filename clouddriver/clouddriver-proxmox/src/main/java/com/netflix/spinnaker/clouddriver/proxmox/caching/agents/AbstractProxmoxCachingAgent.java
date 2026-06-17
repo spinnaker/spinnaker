@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 public abstract class AbstractProxmoxCachingAgent
     implements CachingAgent, OnDemandAgent, AccountAware {
@@ -34,8 +35,9 @@ public abstract class AbstractProxmoxCachingAgent
 
   public AbstractProxmoxCachingAgent(
       ProxmoxNamedAccountCredentials credentials, Registry registry) {
-    this.metricsSupport = new OnDemandMetricsSupport(registry, this, ON_DEMAND_TYPE);
+    Assert.notNull(credentials, "credentials cannot be null");
     this.credentials = credentials;
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, ON_DEMAND_TYPE);
   }
 
   @Override

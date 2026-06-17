@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.proxmox.caching.agents;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
@@ -29,10 +30,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import retrofit2.Response;
 
-@Component
 public class NodeCachingAgent extends AbstractProxmoxCachingAgent {
   private static final Logger log = LoggerFactory.getLogger(NodeCachingAgent.class);
 
@@ -61,7 +60,10 @@ public class NodeCachingAgent extends AbstractProxmoxCachingAgent {
       }
       return response.body().getData().stream()
           .filter(node -> node.getNode() != null)
-          .collect(Collectors.toMap(node -> "node/" + node.getNode(), node -> node));
+          .collect(
+              Collectors.toMap(
+                  node -> ProxmoxCacheKeys.node(credentials.getName(), node.getNode()),
+                  node -> node));
     } catch (IOException e) {
       log.error("Failed to fetch Proxmox nodes for account {}", credentials.getName(), e);
       return Map.of();

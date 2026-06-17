@@ -19,6 +19,7 @@ import com.netflix.spinnaker.config.ProxmoxConfigurationProperties;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.util.Assert;
 
 /**
  * Custom CredentialsParser for Proxmox credentials to handle configuration errors when parsing
@@ -35,10 +36,11 @@ public class ProxmoxCredentialsParser
   public ProxmoxNamedAccountCredentials parse(
       ProxmoxConfigurationProperties.ProxmoxManagedAccount managedAccount) {
     try {
+      Assert.notNull(managedAccount, "managedAccount cannot be null");
       return new ProxmoxNamedAccountCredentials(managedAccount);
     } catch (Exception e) {
       log.warn("Skipping invalid account definition account={}", managedAccount.getName(), e);
-      return null;
+      throw e;
     }
   }
 }
