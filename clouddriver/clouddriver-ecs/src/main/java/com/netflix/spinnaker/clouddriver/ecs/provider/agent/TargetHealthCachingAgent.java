@@ -19,11 +19,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TARGET_HEALTHS;
 
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.cache.*;
@@ -41,6 +36,11 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetHealthResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroupNotFoundException;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
 
 public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<EcsTargetHealth>
     implements HealthProvidingCachingAgent {
@@ -72,24 +72,22 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
     Set<String> targetGroups = fetchTargetGroups(targetGroupCacheClient);
     log.debug("Fetched {} target groups for which to get target healths", targetGroups.size());
 
-    AmazonElasticLoadBalancing amazonLoadBalancing =
-        amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, false);
+    ElasticLoadBalancingV2Client amazonLoadBalancing =
+        amazonClientProvider.getAmazonElasticLoadBalancingV2V2(account, region);
 
     List<EcsTargetHealth> targetHealthList = new LinkedList<>();
 
     if (targetGroups != null) {
       for (String tgArn : targetGroups) {
 
-        DescribeTargetHealthResult describeTargetHealthResult = new DescribeTargetHealthResult();
+        List<TargetHealthDescription> healthDescriptions = Collections.emptyList();
         try {
-          describeTargetHealthResult =
+          DescribeTargetHealthResponse response =
               amazonLoadBalancing.describeTargetHealth(
-                  new DescribeTargetHealthRequest().withTargetGroupArn(tgArn));
+                  DescribeTargetHealthRequest.builder().targetGroupArn(tgArn).build());
+          healthDescriptions = response.targetHealthDescriptions();
         } catch (TargetGroupNotFoundException ignore) {
         }
-
-        List<TargetHealthDescription> healthDescriptions =
-            describeTargetHealthResult.getTargetHealthDescriptions();
 
         if (healthDescriptions != null && healthDescriptions.size() > 0) {
           targetHealthList.add(makeEcsTargetHealth(tgArn, healthDescriptions));
