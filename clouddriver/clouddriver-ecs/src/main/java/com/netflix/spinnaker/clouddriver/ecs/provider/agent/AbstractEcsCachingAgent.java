@@ -160,11 +160,12 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
 
     Map<String, Collection<CacheData>> dataMap = generateFreshData(items);
     // Old keys can come from different account/region, filter them to the current account/region.
+    // Use the String version of buildGlob to support both ECS and core namespaces
     Set<String> oldKeys =
         new HashSet<>(
             providerCache.filterIdentifiers(
                 authoritativeKeyName,
-                Keys.buildGlob(Keys.Namespace.valueOf(authoritativeKeyName), accountName, region)));
+                Keys.buildGlob(authoritativeKeyName, accountName, region, "*")));
 
     Map<String, Collection<String>> evictions =
         computeEvictableData(dataMap.get(authoritativeKeyName), oldKeys);

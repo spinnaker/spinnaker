@@ -93,8 +93,8 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
 
     def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.getAlarmArn())
     def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.getAlarmArn())
-    def oldData = [new DefaultCacheData(oldKey1, attributes1, [:]), new DefaultCacheData(oldKey2, attributes2, [:])]
-    providerCache.getAll(Keys.Namespace.ALARMS.ns) >> oldData
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> [oldKey1, oldKey2]
 
     def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.getAlarmArn(), "my-cluster")
     def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.getAlarmArn(), "my-cluster")
