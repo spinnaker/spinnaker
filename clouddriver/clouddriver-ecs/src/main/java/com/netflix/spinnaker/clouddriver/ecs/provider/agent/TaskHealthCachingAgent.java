@@ -24,7 +24,6 @@ import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.LoadBalancer;
 import com.amazonaws.services.ecs.model.PortMapping;
 import com.amazonaws.services.ecs.model.TaskDefinition;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -51,6 +50,7 @@ import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.ecs.model.Container;
 import software.amazon.awssdk.services.ecs.model.NetworkBinding;
 import software.amazon.awssdk.services.ecs.model.NetworkInterface;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetHealthDescription;
 
 public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     implements HealthProvidingCachingAgent {
@@ -223,9 +223,9 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       Task task, String serviceName, TargetHealthDescription healthDescription) {
     String targetHealth = STATUS_UNKNOWN;
     if (healthDescription != null) {
-      log.debug("Task target health is: {}", healthDescription.getTargetHealth());
+      log.debug("Task target health is: {}", healthDescription.targetHealth());
       targetHealth =
-          healthDescription.getTargetHealth().getState().equals("healthy")
+          healthDescription.targetHealth().stateAsString().equals("healthy")
               ? STATUS_UP
               : STATUS_UNKNOWN;
     }
@@ -289,10 +289,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       List<TargetHealthDescription> targetHealths, String targetId, Integer targetPort) {
 
     return targetHealths.stream()
-        .filter(
-            h ->
-                h.getTarget().getId().equals(targetId)
-                    && h.getTarget().getPort().equals(targetPort))
+        .filter(h -> h.target().id().equals(targetId) && h.target().port().equals(targetPort))
         .findFirst()
         .orElse(null);
   }
