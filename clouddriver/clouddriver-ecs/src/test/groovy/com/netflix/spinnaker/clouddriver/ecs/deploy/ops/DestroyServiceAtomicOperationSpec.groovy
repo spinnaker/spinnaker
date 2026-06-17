@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.deploy.ops
 
-import com.amazonaws.services.ecs.model.DeleteServiceResult
-import com.amazonaws.services.ecs.model.Service
+import software.amazon.awssdk.services.ecs.model.DeleteServiceResponse
+import software.amazon.awssdk.services.ecs.model.Service
 import com.netflix.spinnaker.clouddriver.ecs.TestCredential
 import com.netflix.spinnaker.clouddriver.ecs.deploy.description.ModifyServiceDescription
 import com.netflix.spinnaker.clouddriver.ecs.services.EcsCloudMetricService
@@ -36,7 +36,7 @@ class DestroyServiceAtomicOperationSpec extends CommonAtomicOperation {
     operation.credentialsRepository = credentialsRepository
     operation.containerInformationService = containerInformationService
 
-    amazonClientProvider.getAmazonEcs(_, _, _) >> ecs
+    amazonClientProvider.getAmazonEcsV2(_, _) >> ecs
     containerInformationService.getClusterName(_, _, _) >> 'cluster-name'
     credentialsRepository.getOne(_) >> TestCredential.named("test")
 
@@ -45,7 +45,9 @@ class DestroyServiceAtomicOperationSpec extends CommonAtomicOperation {
 
     then:
     1 * ecs.updateService(_)
-    1 * ecs.deleteService(_) >> new DeleteServiceResult().withService(new Service().withTaskDefinition("test"))
+    1 * ecs.deleteService(_) >> DeleteServiceResponse.builder()
+      .service(Service.builder().taskDefinition("test").build())
+      .build()
     1 * ecs.deregisterTaskDefinition(_)
   }
 }

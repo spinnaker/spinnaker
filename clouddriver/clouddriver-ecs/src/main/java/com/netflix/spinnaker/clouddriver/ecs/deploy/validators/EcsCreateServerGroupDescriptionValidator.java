@@ -85,10 +85,9 @@ public class EcsCreateServerGroupDescriptionValidator extends CommonValidator {
     if (createServerGroupDescription.getPlacementStrategySequence() != null) {
       for (PlacementStrategy placementStrategy :
           createServerGroupDescription.getPlacementStrategySequence()) {
-        PlacementStrategyType type;
-        try {
-          type = PlacementStrategyType.fromValue(placementStrategy.typeAsString());
-        } catch (IllegalArgumentException e) {
+        PlacementStrategyType type =
+            PlacementStrategyType.fromValue(placementStrategy.typeAsString());
+        if (type == PlacementStrategyType.UNKNOWN_TO_SDK_VERSION) {
           rejectValue(errors, "placementStrategySequence.type", "invalid");
           continue;
         }
