@@ -18,19 +18,14 @@
 package com.netflix.spinnaker.clouddriver.deploy;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.validation.Errors;
 
 @Beta
-public interface ValidationErrors {
+public interface ValidationErrors extends Errors {
 
-  void reject(String errorCode);
+  void reject(@NotNull String errorCode, Object[] errorArgs, String defaultMessage);
 
-  void reject(String errorCode, String defaultMessage);
-
-  void reject(String errorCode, Object[] errorArgs, String defaultMessage);
-
-  void rejectValue(String field, String errorCode);
-
-  void rejectValue(String field, String errorCode, String defaultMessage);
-
-  void rejectValue(String field, String errorCode, Object[] errorArgs, String defaultMessage);
+  void rejectValue(
+      String field, @NotNull String errorCode, Object[] errorArgs, String defaultMessage);
 }

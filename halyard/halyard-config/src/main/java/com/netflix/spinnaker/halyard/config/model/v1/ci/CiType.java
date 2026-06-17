@@ -26,15 +26,12 @@ import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisCi;
 import com.netflix.spinnaker.halyard.config.model.v1.ci.travis.TravisMaster;
-import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerCi;
-import com.netflix.spinnaker.halyard.config.model.v1.ci.wercker.WerckerMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.CIAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
 
 public enum CiType {
   jenkins(JenkinsCi.class, JenkinsMaster.class),
   travis(TravisCi.class, TravisMaster.class),
-  wercker(WerckerCi.class, WerckerMaster.class),
   concourse(ConcourseCi.class, ConcourseMaster.class),
   gcb(GoogleCloudBuild.class, GoogleCloudBuildAccount.class),
   codebuild(AwsCodeBuild.class, AwsCodeBuildAccount.class);

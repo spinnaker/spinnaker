@@ -3,7 +3,8 @@
  * https://jestjs.io/docs/en/configuration.html
  */
 
-const esModules = ['@spinnaker/presentation'];
+const esModules = ['@spinnaker/presentation', '@spinnaker/core'];
+const pnpmEsModules = esModules.map((moduleName) => moduleName.replace('/', '\\+'));
 
 module.exports = {
   // All imported modules in your tests should be mocked automatically
@@ -88,7 +89,12 @@ module.exports = {
     'kayenta/(.*)': '<rootDir>/src/kayenta/$1',
     'root/version.json': '<rootDir>/__mocks__/version.json',
     '\\.(css|less)$': '<rootDir>/__mocks__/styleMock.js',
+    '^angular$': '<rootDir>/node_modules/.pnpm/angular@1.8.0/node_modules/angular/index.js',
+    '@spinnaker/core': '<rootDir>/node_modules/@spinnaker/core/dist',
     '@spinnaker/presentation': '<rootDir>/node_modules/@spinnaker/presentation/dist',
+    '^react$': '<rootDir>/node_modules/react',
+    '^react-dom$': '<rootDir>/node_modules/react-dom',
+    '\\.html$': '<rootDir>/__mocks__/htmlMock.js',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -134,10 +140,10 @@ module.exports = {
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   // setupFiles: [],
-  setupFiles: ['<rootDir>/jest.setup.js'],
+  // setupFiles: ['<rootDir>/jest.setup.js'],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  // setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,
@@ -184,7 +190,10 @@ module.exports = {
   // transform: undefined,
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  transformIgnorePatterns: [`/node_modules/(?!${esModules.join('|')})`],
+  transformIgnorePatterns: [
+    `/node_modules/(?!\\.pnpm|${esModules.join('|')})`,
+    `/node_modules/.pnpm/(?!(${pnpmEsModules.join('|')})@)`,
+  ],
   // transformIgnorePatterns: [
   //   "/node_modules/",
   //   "\\.pnp\\.[^\\/]+$"

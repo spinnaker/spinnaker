@@ -42,13 +42,36 @@ import java.time.Duration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 
-class OrcaPluginsFixture : PluginsTckFixture, OrcaTestService() {
+@SpringBootTest(classes = [Main::class])
+@ContextConfiguration(classes = [OrcaPluginsFixture.PluginTestConfiguration::class])
+@TestPropertySource(properties = ["spring.config.location=classpath:orca-plugins-test.yml"])
+class OrcaPluginsFixture : PluginsTckFixture {
+
+  @MockitoBean
+  var executionRepository: ExecutionRepository? = null
+
+  @MockitoBean
+  var notificationClusterLock: NotificationClusterLock? = null
+  @TestConfiguration
+  internal class PluginTestConfiguration {
+
+    @Bean
+    @Primary
+    fun queue(clock: Clock?, publisher: EventPublisher?): MonitorableQueue {
+      return InMemoryQueue(
+        clock!!, Duration.ofMinutes(1), emptyList(), false, publisher!!
+      )
+    }
+  }
+
+
+
   val objectMapper: ObjectMapper = ObjectMapper(YAMLFactory())
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 
@@ -86,12 +109,6 @@ class OrcaPluginsFixture : PluginsTckFixture, OrcaTestService() {
   @Autowired
   lateinit var jobService: JobService
 
-  @MockBean
-  var executionRepository: ExecutionRepository? = null
-
-  @MockBean
-  var notificationClusterLock: NotificationClusterLock? = null
-
   init {
     plugins.delete()
     plugins.mkdir()
@@ -99,22 +116,5 @@ class OrcaPluginsFixture : PluginsTckFixture, OrcaTestService() {
     disabledPlugin = buildPlugin("com.netflix.orca.disabled.plugin", ">=1.0.0")
     // Make it very unlikely that the version of orca satisfies this requirement
     versionNotSupportedPlugin = buildPlugin("com.netflix.orca.version.not.supported.plugin", "=0.0.9")
-  }
-}
-
-@SpringBootTest(classes = [Main::class])
-@ContextConfiguration(classes = [PluginTestConfiguration::class])
-@TestPropertySource(properties = ["spring.config.location=classpath:orca-plugins-test.yml"])
-abstract class OrcaTestService
-
-@TestConfiguration
-internal class PluginTestConfiguration {
-
-  @Bean
-  @Primary
-  fun queue(clock: Clock?, publisher: EventPublisher?): MonitorableQueue {
-    return InMemoryQueue(
-      clock!!, Duration.ofMinutes(1), emptyList(), false, publisher!!
-    )
   }
 }

@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
  * Basic set of Amazon credentials that use a provided {@link
@@ -185,6 +187,21 @@ public class AmazonCredentials extends AbstractAccountCredentials<AWSCredentials
   @JsonIgnore
   public AWSCredentialsProvider getCredentialsProvider() {
     return credentialsProvider;
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link AwsCredentialsProvider} for this account. The base implementation
+   * returns the v2 {@link DefaultCredentialsProvider}; subclasses that use IAM role assumption
+   * (e.g. {@link AssumeRoleAmazonCredentials}) override this to return a v2 {@link
+   * SpinnakerStsAssumeRoleCredentialsProviderV2} backed by the account's configured role ARN.
+   *
+   * <p>v2 clients constructed via {@link
+   * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AwsSdkV2ClientSupplier} use this
+   * method to obtain credentials.
+   */
+  @JsonIgnore
+  public AwsCredentialsProvider getV2CredentialsProvider() {
+    return DefaultCredentialsProvider.create();
   }
 
   @Override

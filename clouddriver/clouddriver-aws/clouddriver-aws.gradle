@@ -1,5 +1,5 @@
 plugins {
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '4.0.0'
 }
 
 sourceSets {
@@ -31,6 +31,15 @@ dependencies {
 
   implementation "jakarta.inject:jakarta.inject-api:2.0.1"
   implementation "com.amazonaws:aws-java-sdk"
+  api "software.amazon.awssdk:applicationautoscaling"
+  api "software.amazon.awssdk:cloudwatch"
+  api "software.amazon.awssdk:ecr"
+  api "software.amazon.awssdk:ecs"
+  api "software.amazon.awssdk:iam"
+  api "software.amazon.awssdk:secretsmanager"
+  api "software.amazon.awssdk:servicediscovery"
+  implementation "software.amazon.awssdk:sts"
+  implementation "software.amazon.awssdk:apache-client"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "com.netflix.awsobjectmapper:awsobjectmapper"
   implementation "com.netflix.frigga:frigga"
@@ -58,7 +67,6 @@ dependencies {
 
   testImplementation "io.spinnaker.kork:kork-exceptions"
   testImplementation "cglib:cglib-nodep"
-  testImplementation "com.natpryce:hamkrest"
   testImplementation "com.google.guava:guava"
   testImplementation "uk.org.webcompere:system-stubs-core:2.1.6"
   testImplementation "uk.org.webcompere:system-stubs-jupiter:2.1.6"
@@ -76,6 +84,8 @@ dependencies {
   integrationImplementation sourceSets.test.output
   integrationImplementation sourceSets.main.output
   integrationImplementation "io.rest-assured:rest-assured"
+  integrationRuntimeOnly     "org.junit.jupiter:junit-jupiter-engine"
+  integrationRuntimeOnly    "org.junit.platform:junit-platform-launcher"
 }
 
 task integrationTest(type: Test) {
