@@ -20,7 +20,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DE
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -45,22 +44,30 @@ public class TaskDefinitionCacheClientTest extends CommonCacheClient {
         "arn:aws:ecs:" + REGION + ":012345678910:task-definition/hello_world:10";
     String key = Keys.getTaskDefinitionKey(ACCOUNT, REGION, taskDefinitionArn);
 
-    ContainerDefinition containerDefinition = new ContainerDefinition();
-    containerDefinition.setCpu(256);
-    containerDefinition.setMemory(512);
-    containerDefinition.setName("container-definition-name");
+    software.amazon.awssdk.services.ecs.model.ContainerDefinition containerDefinition =
+        software.amazon.awssdk.services.ecs.model.ContainerDefinition.builder()
+            .cpu(256)
+            .memory(512)
+            .name("container-definition-name")
+            .build();
 
-    TaskDefinition taskDefinition = new TaskDefinition();
-    taskDefinition.setTaskDefinitionArn(taskDefinitionArn);
-    taskDefinition.setMemory("1");
-    taskDefinition.setCpu("2");
-    taskDefinition.setContainerDefinitions(Collections.singleton(containerDefinition));
+    software.amazon.awssdk.services.ecs.model.TaskDefinition v2TaskDefinition =
+        software.amazon.awssdk.services.ecs.model.TaskDefinition.builder()
+            .taskDefinitionArn(taskDefinitionArn)
+            .memory("1")
+            .cpu("2")
+            .containerDefinitions(containerDefinition)
+            .build();
 
     Map<String, Object> attributes =
-        TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(taskDefinition);
-    attributes.put(
-        "containerDefinitions",
-        Collections.singletonList(mapper.convertValue(containerDefinition, Map.class)));
+        TaskDefinitionCachingAgent.convertTaskDefinitionToAttributes(v2TaskDefinition);
+
+    // Manually build the containerDefinitions map since v2 SDK objects aren't JavaBean-serializable
+    Map<String, Object> containerDefMap = new java.util.HashMap<>();
+    containerDefMap.put("cpu", 256);
+    containerDefMap.put("memory", 512);
+    containerDefMap.put("name", "container-definition-name");
+    attributes.put("containerDefinitions", Collections.singletonList(containerDefMap));
     when(cacheView.get(TASK_DEFINITIONS.toString(), key))
         .thenReturn(new DefaultCacheData(key, attributes, Collections.emptyMap()));
 
@@ -69,10 +76,16 @@ public class TaskDefinitionCacheClientTest extends CommonCacheClient {
 
     // Then
     assertTrue(
-        taskDefinition.equals(retrievedTaskDefinition),
-        "Expected the task definition to be "
-            + taskDefinition
+        taskDefinitionArn.equals(retrievedTaskDefinition.getTaskDefinitionArn()),
+        "Expected the task definition ARN to be "
+            + taskDefinitionArn
             + " but got "
-            + retrievedTaskDefinition);
+            + retrievedTaskDefinition.getTaskDefinitionArn());
+    assertTrue(
+        "1".equals(retrievedTaskDefinition.getMemory()),
+        "Expected memory to be 1 but got " + retrievedTaskDefinition.getMemory());
+    assertTrue(
+        "2".equals(retrievedTaskDefinition.getCpu()),
+        "Expected cpu to be 2 but got " + retrievedTaskDefinition.getCpu());
   }
 }

@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.services.ecs.AmazonECS
+import software.amazon.awssdk.services.ecs.EcsClient
 import com.amazonaws.services.ecs.model.Container
 import com.amazonaws.services.ecs.model.ContainerDefinition
 import com.amazonaws.services.ecs.model.LoadBalancer
@@ -44,14 +43,13 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASK_DEFINITIONS
 
 class TaskHealthCacheSpec extends Specification {
-  def ecs = Mock(AmazonECS)
+  def ecs = Mock(EcsClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
-  def credentialsProvider = Mock(AWSCredentialsProvider)
   ObjectMapper mapper = new ObjectMapper()
 
   @Subject
-  TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, credentialsProvider, mapper)
+  TaskHealthCachingAgent agent = new TaskHealthCachingAgent(CommonCachingAgent.netflixAmazonCredentials, CommonCachingAgent.REGION, clientProvider, mapper)
   TaskHealthCacheClient client = new TaskHealthCacheClient(providerCache)
 
 

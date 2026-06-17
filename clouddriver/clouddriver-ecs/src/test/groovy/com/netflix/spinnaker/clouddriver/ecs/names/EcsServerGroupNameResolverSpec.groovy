@@ -19,16 +19,18 @@
 package com.netflix.spinnaker.clouddriver.ecs.names
 
 
-import com.amazonaws.services.ecs.AmazonECS
-import com.amazonaws.services.ecs.model.*
+import software.amazon.awssdk.services.ecs.EcsClient
+import software.amazon.awssdk.services.ecs.model.*
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import spock.lang.Specification
 
+import java.time.Instant
+
 class EcsServerGroupNameResolverSpec extends Specification {
-  def ecsClient = Mock(AmazonECS)
+  def ecsClient = Mock(EcsClient)
 
   def ecsClusterName = 'default'
   def region = 'us-west-1'
@@ -41,35 +43,35 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should handle only tagged services"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsTagNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("another-tagged-service", "tagged-service")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("another-tagged-service", "tagged-service").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["another-tagged-service", "tagged-service"]
-      request.include == ["TAGS"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "another-tagged-service", createdAt: new Date(1), status: "ACTIVE",
-        tags: [
-          new Tag(key: EcsTagNamer.CLUSTER, value: "application-stack-details"),
-          new Tag(key: EcsTagNamer.APPLICATION, value: "application"),
-          new Tag(key: EcsTagNamer.STACK, value: "stack"),
-          new Tag(key: EcsTagNamer.DETAIL, value: "details"),
-          new Tag(key: EcsTagNamer.SEQUENCE, value: 1)
-        ]),
-      new Service(serviceName: "tagged-service", createdAt: new Date(1), status: "ACTIVE",
-        tags: [
-          new Tag(key: EcsTagNamer.CLUSTER, value: "application-stack-details"),
-          new Tag(key: EcsTagNamer.APPLICATION, value: "application"),
-          new Tag(key: EcsTagNamer.STACK, value: "stack"),
-          new Tag(key: EcsTagNamer.DETAIL, value: "details"),
-          new Tag(key: EcsTagNamer.SEQUENCE, value: 2)
-        ])
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["another-tagged-service", "tagged-service"]
+      request.includeAsStrings() == ["TAGS"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("another-tagged-service").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE")
+        .tags(
+          Tag.builder().key(EcsTagNamer.CLUSTER).value("application-stack-details").build(),
+          Tag.builder().key(EcsTagNamer.APPLICATION).value("application").build(),
+          Tag.builder().key(EcsTagNamer.STACK).value("stack").build(),
+          Tag.builder().key(EcsTagNamer.DETAIL).value("details").build(),
+          Tag.builder().key(EcsTagNamer.SEQUENCE).value("1").build()
+        ).build(),
+      Service.builder().serviceName("tagged-service").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE")
+        .tags(
+          Tag.builder().key(EcsTagNamer.CLUSTER).value("application-stack-details").build(),
+          Tag.builder().key(EcsTagNamer.APPLICATION).value("application").build(),
+          Tag.builder().key(EcsTagNamer.STACK).value("stack").build(),
+          Tag.builder().key(EcsTagNamer.DETAIL).value("details").build(),
+          Tag.builder().key(EcsTagNamer.SEQUENCE).value("2").build()
+        ).build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v003"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v003", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v003"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v003").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -82,28 +84,28 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should handle mix of tagged services"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsTagNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "tagged-service")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v001", "tagged-service").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v001", "tagged-service"]
-      request.include == ["TAGS"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "tagged-service", createdAt: new Date(1), status: "ACTIVE",
-        tags: [
-          new Tag(key: EcsTagNamer.CLUSTER, value: "application-stack-details"),
-          new Tag(key: EcsTagNamer.APPLICATION, value: "application"),
-          new Tag(key: EcsTagNamer.STACK, value: "stack"),
-          new Tag(key: EcsTagNamer.DETAIL, value: "details"),
-          new Tag(key: EcsTagNamer.SEQUENCE, value: 2)
-        ])
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v001", "tagged-service"]
+      request.includeAsStrings() == ["TAGS"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("tagged-service").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE")
+        .tags(
+          Tag.builder().key(EcsTagNamer.CLUSTER).value("application-stack-details").build(),
+          Tag.builder().key(EcsTagNamer.APPLICATION).value("application").build(),
+          Tag.builder().key(EcsTagNamer.STACK).value("stack").build(),
+          Tag.builder().key(EcsTagNamer.DETAIL).value("details").build(),
+          Tag.builder().key(EcsTagNamer.SEQUENCE).value("2").build()
+        ).build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v003"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v003", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v003"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v003").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -116,11 +118,11 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should generate new name from first sequence"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns([])
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns([]).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v000"]
-    }) >> new DescribeServicesResult().withServices([])
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v000"]
+    }) >> DescribeServicesResponse.builder().services([]).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -133,18 +135,19 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should handle sequence roll over"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v999")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v999").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v999"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v999", createdAt: new Date(1), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v999"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v999").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v000"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v000", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v000"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v000").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -157,18 +160,19 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should resolve task definition family name from service group name"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v001").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v001"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v001"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v002"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v002", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v002"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v002").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -181,19 +185,20 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should resolve task definition container name from service group name"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v001", "application-stack-details-v002").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v001", "application-stack-details-v002"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v002").createdAt(Instant.ofEpochMilli(2)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v003"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v003", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v003"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v003").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -206,30 +211,33 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should skip names that already exist as ECS services in active and draining state"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v001", "application-stack-details-v002").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
-      request.include == ["TAGS"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v001", "application-stack-details-v002"]
+      request.includeAsStrings() == ["TAGS"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v002").createdAt(Instant.ofEpochMilli(2)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v003"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v003", createdAt: new Date(3), status: "DRAINING"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v003"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v003").createdAt(Instant.ofEpochMilli(3)).status("DRAINING").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v004"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v004", createdAt: new Date(3), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v004"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v004").createdAt(Instant.ofEpochMilli(3)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v005"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v005", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v005"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v005").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -242,19 +250,21 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should not skip names for inactive ECS services"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v001", "application-stack-details-v002").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
-      request.include == ["TAGS"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v001", "application-stack-details-v002"]
+      request.includeAsStrings() == ["TAGS"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v002").createdAt(Instant.ofEpochMilli(2)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v003"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v003", createdAt: new Date(3), status: "INACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v003"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v003").createdAt(Instant.ofEpochMilli(3)).status("INACTIVE").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -267,16 +277,18 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should give up trying to find a name if all services are draining"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details-v001", "application-stack-details-v002")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details-v001", "application-stack-details-v002").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v001", "application-stack-details-v002"]
-      request.include == ["TAGS"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v002", createdAt: new Date(2), status: "ACTIVE"))
-    ecsClient.describeServices(_) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "blah-blah", createdAt: new Date(1), status: "DRAINING"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v001", "application-stack-details-v002"]
+      request.includeAsStrings() == ["TAGS"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v002").createdAt(Instant.ofEpochMilli(2)).status("ACTIVE").build()
+    ).build()
+    ecsClient.describeServices(_) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("blah-blah").createdAt(Instant.ofEpochMilli(1)).status("DRAINING").build()
+    ).build()
 
     when:
     resolver.resolveNextName('application', 'stack', 'details')
@@ -288,11 +300,11 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should generate name with null details"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns([])
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns([]).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-v000"]
-    }) >> new DescribeServicesResult().withServices([])
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-v000"]
+    }) >> DescribeServicesResponse.builder().services([]).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', null)
@@ -305,11 +317,11 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should generate name with null stack"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns([])
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns([]).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application--details-v000"]
-    }) >> new DescribeServicesResult().withServices([])
+      request.cluster() == ecsClusterName
+      request.services() == ["application--details-v000"]
+    }) >> DescribeServicesResponse.builder().services([]).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', null, 'details')
@@ -322,27 +334,27 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should skip name if stack name is null and the existing one is empty"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns(
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns(
       "application--details-v001",
       "application--details-v002"
-    )
+    ).build()
 
     and: 'two existing and active services'
     ecsClient.describeServices({ DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application--details-v001", "application--details-v002"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application--details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application--details-v002", createdAt: new Date(2), status: "ACTIVE")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application--details-v001", "application--details-v002"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application--details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application--details-v002").createdAt(Instant.ofEpochMilli(2)).status("ACTIVE").build()
+    ).build()
 
     and: 'one missing service'
     ecsClient.describeServices({ DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application--details-v003"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application--details-v003", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application--details-v003"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application--details-v003").reason("MISSING").build()
+    ).build()
 
 
     when: 'stack has an empty value on resolving name'
@@ -354,19 +366,19 @@ class EcsServerGroupNameResolverSpec extends Specification {
 
     // If this is called it means `resolveNextName` failed to add the taken sequences (1 and 2)
     0 * ecsClient.describeServices({ DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application--details-v000"]
+      request.cluster() == ecsClusterName
+      request.services() == ["application--details-v000"]
     })
   }
 
   void "should generate name with null details and stack"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns([])
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns([]).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-v000"]
-    }) >> new DescribeServicesResult().withServices([])
+      request.cluster() == ecsClusterName
+      request.services() == ["application-v000"]
+    }) >> DescribeServicesResponse.builder().services([]).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', null, null)
@@ -382,23 +394,23 @@ class EcsServerGroupNameResolverSpec extends Specification {
                        "application-stack-details-v004", "application-stack-details-v005",
                        "application-stack-details-v006"]
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns(serviceArns)
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns(serviceArns).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == serviceArns
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details-v001", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v003", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v004", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v005", createdAt: new Date(1), status: "ACTIVE"),
-      new Service(serviceName: "application-stack-details-v006", createdAt: new Date(1), status: "ACTIVE")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == serviceArns
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details-v001").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v003").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v004").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v005").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build(),
+      Service.builder().serviceName("application-stack-details-v006").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v007"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v007", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v007"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v007").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
@@ -411,18 +423,19 @@ class EcsServerGroupNameResolverSpec extends Specification {
   void "should resolve task definition family name from service group name with no sequence"() {
     given:
     def resolver = new EcsServerGroupNameResolver(ecsClusterName, ecsClient, region, new EcsDefaultNamer())
-    ecsClient.listServices(_) >> new ListServicesResult().withServiceArns("application-stack-details")
+    ecsClient.listServices(_) >> ListServicesResponse.builder().serviceArns("application-stack-details").build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details"]
-    }) >> new DescribeServicesResult().withServices(
-      new Service(serviceName: "application-stack-details", createdAt: new Date(1), status: "ACTIVE"))
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details"]
+    }) >> DescribeServicesResponse.builder().services(
+      Service.builder().serviceName("application-stack-details").createdAt(Instant.ofEpochMilli(1)).status("ACTIVE").build()
+    ).build()
     ecsClient.describeServices({DescribeServicesRequest request ->
-      request.cluster == ecsClusterName
-      request.services == ["application-stack-details-v000"]
-    }) >> new DescribeServicesResult().withFailures(
-      new Failure(arn: "application-stack-details-v000", reason: "MISSING")
-    )
+      request.cluster() == ecsClusterName
+      request.services() == ["application-stack-details-v000"]
+    }) >> DescribeServicesResponse.builder().failures(
+      Failure.builder().arn("application-stack-details-v000").reason("MISSING").build()
+    ).build()
 
     when:
     def nextServerGroupName = resolver.resolveNextName('application', 'stack', 'details')
