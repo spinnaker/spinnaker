@@ -80,12 +80,20 @@ class NexusPublishPlugin implements Plugin<Project> {
         project.tasks.register("publishToNexus")
       }
 
+      if(project.tasks.findByName("findNexusStagingRepository") == null) {
+        project.tasks.register("findNexusStagingRepository")
+      }
+
       if(project.tasks.findByName("closeAndReleaseNexusStagingRepository") == null) {
         project.tasks.register("closeAndReleaseNexusStagingRepository")
       }
 
       project.tasks.named("publishToNexus") {
         it.dependsOn project.subprojects*.tasks*.findByName('publishToNexus').minus(null)
+      }
+
+      project.tasks.named("findNexusStagingRepository") {
+        it.dependsOn project.subprojects*.tasks*.findByName('findNexusStagingRepository').minus(null)
       }
 
       project.tasks.named("closeAndReleaseNexusStagingRepository") {
