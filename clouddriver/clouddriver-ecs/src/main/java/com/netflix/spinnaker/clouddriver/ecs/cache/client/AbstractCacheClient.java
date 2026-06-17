@@ -48,6 +48,17 @@ abstract class AbstractCacheClient<T> {
   protected abstract T convert(CacheData cacheData);
 
   /**
+   * WARNING: This method loads ALL data across ALL accounts and regions into memory.
+   * It should be replaced with scoped methods that require account/region parameters.
+   * @deprecated Use {@link #getAll(String, String)} with explicit account and region instead
+   * @return A list of all generic type objects across all accounts/regions (MEMORY INTENSIVE)
+   */
+  @Deprecated
+  public Collection<T> getAll() {
+    return getAll(null, null);
+  }
+
+  /**
    * @param account name of the AWS account, as defined in clouddriver.yml
    * @param region region of the AWS account, as defined in clouddriver.yml
    * @return A list of all generic type objects belonging to the account and region in the key
