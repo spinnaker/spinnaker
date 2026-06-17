@@ -54,16 +54,13 @@ public class Keys implements KeyParser {
   }
 
   public static String buildGlob(Namespace type, String accountName, String region) {
-    return buildGlob(type, accountName, region, "*");
-  }
-
-  public static String buildGlob(
-      Namespace ns, String accountName, String region, String identifier) {
-    return buildGlob(ns.ns, accountName, region, identifier);
+    return buildGlob(type.ns, accountName, region, "*");
   }
 
   /**
-   * Build a glob pattern for the given namespace string (works with any namespace, including core namespaces).
+   * Build a glob pattern for the given namespace string (works with any namespace, including core
+   * namespaces).
+   *
    * @param namespace the namespace string (e.g., "ecsClusters", "health")
    * @param accountName the account name (or null for wildcard)
    * @param region the region (or null for wildcard)
@@ -78,13 +75,7 @@ public class Keys implements KeyParser {
 
     // Special cases for ECS namespaces
     if (Namespace.IAM_ROLE.ns.equals(namespace)) {
-      return ID
-          + SEPARATOR
-          + namespace
-          + SEPARATOR
-          + accountGlob
-          + SEPARATOR
-          + identifierGlob;
+      return ID + SEPARATOR + namespace + SEPARATOR + accountGlob + SEPARATOR + identifierGlob;
     }
     if (Namespace.ECS_APPLICATIONS.ns.equals(namespace)) {
       return ID + SEPARATOR + namespace + SEPARATOR + identifierGlob;
