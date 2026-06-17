@@ -21,7 +21,7 @@ public interface ProxmoxResource {
 
   String getNode();
 
-  /** Raw Proxmox tag string — semicolon-separated {@code category:value} pairs. */
+  /** Raw Proxmox tag string — semicolon-separated {@code category+value} pairs. */
   String getTags();
 
   Integer getVmId();

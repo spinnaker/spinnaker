@@ -27,8 +27,8 @@ import org.springframework.stereotype.Component;
 /**
  * Derives Spinnaker {@link Moniker} values from Proxmox 8-style resource tags.
  *
- * <p>Proxmox tags use the {@code category:value} format, separated by semicolons. This namer looks
- * for tags prefixed with {@code spinnaker-} (e.g. {@code spinnaker-app:myapp}) and falls back to
+ * <p>Proxmox tags use the {@code category+value} format, separated by semicolons. This namer looks
+ * for tags prefixed with {@code spinnaker-} (e.g. {@code spinnaker-app+myapp}) and falls back to
  * Frigga name parsing when tags are absent.
  */
 @Component
@@ -96,8 +96,8 @@ public class ProxmoxTagNamer implements NamingStrategy<ProxmoxResource> {
       return Map.of();
     }
     return Arrays.stream(rawTags.split(";"))
-        .filter(t -> t.contains(":"))
-        .map(t -> t.split(":", 2))
+        .filter(t -> t.contains("+"))
+        .map(t -> t.split("\\+", 2))
         .filter(parts -> parts.length == 2 && !parts[0].isBlank())
         .collect(Collectors.toMap(parts -> parts[0].trim(), parts -> parts[1].trim(), (a, b) -> a));
   }
