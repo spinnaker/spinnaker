@@ -43,6 +43,12 @@ tasks.register('publishToNexus') { task ->
   }
 }
 
+tasks.register('findNexusStagingRepository') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':findNexusStagingRepository')
+  }
+}
+
 tasks.register('closeAndReleaseNexusStagingRepository') { task ->
   mainProjects.each { build ->
     task.dependsOn build.task(':closeAndReleaseNexusStagingRepository')
