@@ -57,7 +57,7 @@ class PublishingPlugin implements Plugin<Project> {
           // Use enforcedPlatform versions
           pub.versionMapping {
             it.usage("java-api") {
-              it.fromResolutionOf("runtimeClasspath")
+              it.fromResolutionResult()
             }
             it.usage("java-runtime") {
               it.fromResolutionResult()

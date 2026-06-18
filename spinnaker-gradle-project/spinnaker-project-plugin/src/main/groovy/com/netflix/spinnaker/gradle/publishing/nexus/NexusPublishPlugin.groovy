@@ -72,12 +72,16 @@ class NexusPublishPlugin implements Plugin<Project> {
       }
     }
 
-    project.afterEvaluate {
+    project.gradle.projectsEvaluated {
       // For some reason, the nexus plugin seems to only create one of these named tasks ever
       // As soon as the top-level task in Clouddriver is made, it won't ever define any more on other root projects
       // However, it will happily define all the subproject versions of publishToNexus, which we can collect here
       if(project.tasks.findByName("publishToNexus") == null) {
         project.tasks.register("publishToNexus")
+      }
+
+      if(project.tasks.findByName("findNexusStagingRepository") == null) {
+        project.tasks.register("findNexusStagingRepository")
       }
 
       if(project.tasks.findByName("closeAndReleaseNexusStagingRepository") == null) {
@@ -86,6 +90,10 @@ class NexusPublishPlugin implements Plugin<Project> {
 
       project.tasks.named("publishToNexus") {
         it.dependsOn project.subprojects*.tasks*.findByName('publishToNexus').minus(null)
+      }
+
+      project.tasks.named("findNexusStagingRepository") {
+        it.dependsOn project.subprojects*.tasks*.findByName('findNexusStagingRepository').minus(null)
       }
 
       project.tasks.named("closeAndReleaseNexusStagingRepository") {
