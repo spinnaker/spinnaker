@@ -64,7 +64,7 @@ class EcsCloudWatchAlarmCacheClientSpec extends Specification {
   def 'should convert cache data into object'() {
     given:
     def ecsClusterName = 'my-cluster'
-    def metricAlarm = new EcsMetricAlarm().withAlarmName("alarm-name").withAlarmArn("alarmArn").withRegion(REGION).withAccountName(ACCOUNT)
+    def metricAlarm = EcsMetricAlarm.builder().alarmName("alarm-name").alarmArn("alarmArn").region(REGION).accountName(ACCOUNT).build()
     def key = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm.getAlarmArn(), ecsClusterName)
     def v2Alarm = MetricAlarm.builder().alarmName("alarm-name").alarmArn("alarmArn").build()
     def attributes = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(v2Alarm, ACCOUNT, REGION)
