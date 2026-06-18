@@ -49,6 +49,12 @@ public interface ProxmoxApiService {
   @GET("nodes/{node}/storage")
   Call<ProxmoxResponse<List<ProxmoxStorage>>> getStorage(@Path("node") String node);
 
+  // ── Cluster-wide helpers ───────────────────────────────────────────────────
+
+  /** Returns the next free VM ID across the cluster. */
+  @GET("cluster/nextid")
+  Call<ProxmoxResponse<Integer>> getNextVmId();
+
   // ── Task polling ───────────────────────────────────────────────────────────
 
   /** Returns the status of a Proxmox background task identified by its UPID. */
@@ -59,15 +65,15 @@ public interface ProxmoxApiService {
   // ── QEMU (KVM) lifecycle ───────────────────────────────────────────────────
 
   /**
-   * Create a new QEMU VM. Returns a UPID to poll for completion.
+   * Clone a QEMU VM or template. Returns a UPID.
    *
-   * <p>Required params: {@code vmid}, {@code name}. Optional: {@code memory}, {@code cores}, {@code
-   * net0}, {@code scsi0}, {@code cdrom}, {@code tags}, etc.
+   * <p>Required params: {@code newid}. Optional: {@code name}, {@code full} (1=full clone), {@code
+   * storage}, {@code target} (destination node).
    */
   @FormUrlEncoded
-  @POST("nodes/{node}/qemu")
-  Call<ProxmoxResponse<String>> createVm(
-      @Path("node") String node, @FieldMap Map<String, String> params);
+  @POST("nodes/{node}/qemu/{vmid}/clone")
+  Call<ProxmoxResponse<String>> cloneVm(
+      @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
 
   /** Stop a running QEMU VM. Returns a UPID. */
   @FormUrlEncoded
@@ -97,15 +103,15 @@ public interface ProxmoxApiService {
   // ── LXC (container) lifecycle ──────────────────────────────────────────────
 
   /**
-   * Create a new LXC container. Returns a UPID.
+   * Clone an LXC container or template. Returns a UPID.
    *
-   * <p>Required params: {@code vmid}, {@code ostemplate}, {@code rootfs}. Optional: {@code
-   * hostname}, {@code memory}, {@code cores}, {@code net0}, {@code tags}, etc.
+   * <p>Required params: {@code newid}. Optional: {@code hostname}, {@code full} (1=full clone),
+   * {@code storage}, {@code target} (destination node).
    */
   @FormUrlEncoded
-  @POST("nodes/{node}/lxc")
-  Call<ProxmoxResponse<String>> createLxc(
-      @Path("node") String node, @FieldMap Map<String, String> params);
+  @POST("nodes/{node}/lxc/{vmid}/clone")
+  Call<ProxmoxResponse<String>> cloneLxc(
+      @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
 
   /** Stop a running LXC container. Returns a UPID. */
   @FormUrlEncoded

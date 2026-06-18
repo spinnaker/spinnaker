@@ -21,7 +21,7 @@ import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-/** Description for creating a new Proxmox VM or LXC container. */
+/** Description for cloning a Proxmox VM or LXC template into a new server group. */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ProxmoxDeployDescription extends ProxmoxBaseDescription {
@@ -30,7 +30,19 @@ public class ProxmoxDeployDescription extends ProxmoxBaseDescription {
   /** {@code "qemu"} for KVM VMs, {@code "lxc"} for containers. */
   private String vmType = "qemu";
 
-  /** Proxmox VM ID. When null, Proxmox assigns the next available ID. */
+  /** VMID of the source template to clone. Required. */
+  private int templateVmid;
+
+  /**
+   * Node where the template resides. Defaults to {@link #node} when null, allowing cross-node
+   * clones when the template lives on a different host.
+   */
+  private String templateNode;
+
+  /** When {@code true} (default), perform a full independent clone; otherwise a linked clone. */
+  private boolean fullClone = true;
+
+  /** Proxmox VM ID for the new instance. When null, Proxmox assigns the next available ID. */
   private Integer vmid;
 
   /** VM/container hostname or display name. */
@@ -39,45 +51,30 @@ public class ProxmoxDeployDescription extends ProxmoxBaseDescription {
   /** Spinnaker moniker — app/cluster/stack/detail/sequence. Tags are derived from this. */
   private Moniker moniker;
 
-  private int memory = 512;
-  private int cores = 1;
-
-  /** Number of CPU sockets (QEMU only). */
-  private int sockets = 1;
-
-  /** Storage pool for the boot disk (e.g. {@code "local-lvm"}). */
+  /** Storage pool for the cloned disk (e.g. {@code "local-lvm"}). Required for full clones. */
   private String storage = "local-lvm";
 
-  /** Boot disk size in GB. */
-  private int diskSize = 8;
+  /** Memory override in MB applied after clone. */
+  private int memory = 512;
 
-  /** Boot disk format for QEMU (e.g. {@code "raw"}, {@code "qcow2"}). */
-  private String diskFormat = "raw";
+  /** CPU core count override applied after clone. */
+  private int cores = 1;
 
-  /** SCSI controller model for QEMU (e.g. {@code "virtio-scsi-pci"}, {@code "lsi"}). */
-  private String scsiHw = "virtio-scsi-pci";
+  /** CPU socket count override applied after clone (QEMU only). */
+  private int sockets = 1;
 
-  /** Network config string (e.g. {@code "virtio,bridge=vmbr0"}). */
+  /** Network config override applied after clone (e.g. {@code "virtio,bridge=vmbr0"}). */
   private String net0 = "virtio,bridge=vmbr0";
 
   /**
-   * LXC only — CT template path (e.g. {@code
-   * "local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst"}).
-   */
-  private String osTemplate;
-
-  /** QEMU only — ISO to mount as CD-ROM (e.g. {@code "local:iso/ubuntu-22.04.iso"}). */
-  private String cdrom;
-
-  /**
-   * Extra Proxmox tags to include alongside the moniker-derived tags (semicolon-separated {@code
-   * category+value} pairs). Moniker tags take precedence over any conflicting entries here.
+   * Extra Proxmox tags merged with moniker-derived tags. Moniker tags take precedence over any
+   * conflicting entries here (semicolon-separated {@code category+value} pairs).
    */
   private String tags;
 
   /**
-   * Additional raw Proxmox API parameters passed verbatim to the create call (e.g. {@code
-   * "balloon": "0", "onboot": "1"}). These take precedence over all named fields above.
+   * Additional raw Proxmox API parameters passed verbatim to the config-update call after clone.
+   * These take precedence over all named fields above.
    */
   private Map<String, String> additionalOptions = new HashMap<>();
 }

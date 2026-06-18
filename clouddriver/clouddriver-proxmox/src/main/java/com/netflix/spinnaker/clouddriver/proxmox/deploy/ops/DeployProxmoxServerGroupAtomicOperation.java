@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** Creates a new QEMU VM or LXC container on a Proxmox node. */
+/** Clones a Proxmox template into a new QEMU VM or LXC container. */
 public class DeployProxmoxServerGroupAtomicOperation
     extends AbstractProxmoxAtomicOperation<DeploymentResult> {
 
@@ -41,60 +41,88 @@ public class DeployProxmoxServerGroupAtomicOperation
   @Override
   public DeploymentResult operate(List priorOutputs) {
     ProxmoxApiService api = description.getApiService();
-    String node = description.getNode();
+    String targetNode = description.getNode();
+    String templateNode =
+        description.getTemplateNode() != null ? description.getTemplateNode() : targetNode;
+    int templateVmid = description.getTemplateVmid();
     String vmType = description.getVmType();
 
-    updateStatus("Creating Proxmox " + vmType + " '" + description.getName() + "' on node " + node);
+    int newVmid =
+        description.getVmid() != null ? description.getVmid() : executeCall(api.getNextVmId());
 
-    Map<String, String> params = buildParams();
+    updateStatus(
+        "Cloning "
+            + vmType
+            + " template "
+            + templateVmid
+            + " from "
+            + templateNode
+            + " to "
+            + targetNode
+            + " as vmid "
+            + newVmid);
+
+    Map<String, String> cloneParams = buildCloneParams(newVmid, targetNode, templateNode);
     String upid;
     if ("lxc".equals(vmType)) {
-      upid = executeCall(api.createLxc(node, params));
+      upid = executeCall(api.cloneLxc(templateNode, templateVmid, cloneParams));
     } else {
-      upid = executeCall(api.createVm(node, params));
+      upid = executeCall(api.cloneVm(templateNode, templateVmid, cloneParams));
     }
-    pollTaskUntilDone(api, node, upid);
+    pollTaskUntilDone(api, templateNode, upid);
+
+    updateStatus("Applying config overrides to '" + description.getName() + "' on " + targetNode);
+
+    Map<String, String> configParams = buildConfigParams();
+    String configUpid;
+    if ("lxc".equals(vmType)) {
+      configUpid = executeCall(api.updateLxcConfig(targetNode, newVmid, configParams));
+    } else {
+      configUpid = executeCall(api.updateVmConfig(targetNode, newVmid, configParams));
+    }
+    if (configUpid != null && configUpid.startsWith("UPID:")) {
+      pollTaskUntilDone(api, targetNode, configUpid);
+    }
 
     String name = description.getName();
-    updateStatus("Created " + vmType + " '" + name + "' on " + node);
+    updateStatus("Deployed " + vmType + " '" + name + "' (vmid " + newVmid + ") on " + targetNode);
 
     DeploymentResult result = new DeploymentResult();
-    result.getServerGroupNames().add(node + ":" + name);
-    result.getServerGroupNameByRegion().put(node, name);
+    result.getServerGroupNames().add(targetNode + ":" + name);
+    result.getServerGroupNameByRegion().put(targetNode, name);
     return result;
   }
 
-  private Map<String, String> buildParams() {
+  private Map<String, String> buildCloneParams(
+      int newVmid, String targetNode, String templateNode) {
     Map<String, String> params = new LinkedHashMap<>();
-
-    if (description.getVmid() != null) {
-      params.put("vmid", String.valueOf(description.getVmid()));
-    }
-
-    if ("lxc".equals(description.getVmType())) {
-      params.put("hostname", description.getName());
-      params.put("ostemplate", description.getOsTemplate());
-      params.put("rootfs", description.getStorage() + ":" + description.getDiskSize());
-      params.put("memory", String.valueOf(description.getMemory()));
-      params.put("cores", String.valueOf(description.getCores()));
-      params.put("net0", description.getNet0());
-    } else {
-      params.put("name", description.getName());
-      params.put("memory", String.valueOf(description.getMemory()));
-      params.put("cores", String.valueOf(description.getCores()));
-      params.put("sockets", String.valueOf(description.getSockets()));
-      params.put(
-          "scsi0",
-          description.getStorage()
-              + ":"
-              + description.getDiskSize()
-              + ",format="
-              + description.getDiskFormat());
-      params.put("net0", description.getNet0());
-      params.put("scsihw", description.getScsiHw());
-      if (description.getCdrom() != null) {
-        params.put("cdrom", description.getCdrom());
+    params.put("newid", String.valueOf(newVmid));
+    if (description.getName() != null) {
+      if ("lxc".equals(description.getVmType())) {
+        params.put("hostname", description.getName());
+      } else {
+        params.put("name", description.getName());
       }
+    }
+    params.put("full", description.isFullClone() ? "1" : "0");
+    if (description.getStorage() != null) {
+      params.put("storage", description.getStorage());
+    }
+    if (!targetNode.equals(templateNode)) {
+      params.put("target", targetNode);
+    }
+    return params;
+  }
+
+  private Map<String, String> buildConfigParams() {
+    Map<String, String> params = new LinkedHashMap<>();
+    params.put("memory", String.valueOf(description.getMemory()));
+    params.put("cores", String.valueOf(description.getCores()));
+    if (!"lxc".equals(description.getVmType())) {
+      params.put("sockets", String.valueOf(description.getSockets()));
+    }
+    if (description.getNet0() != null) {
+      params.put("net0", description.getNet0());
     }
 
     String tagString = buildTagString(description.getMoniker(), description.getTags());
