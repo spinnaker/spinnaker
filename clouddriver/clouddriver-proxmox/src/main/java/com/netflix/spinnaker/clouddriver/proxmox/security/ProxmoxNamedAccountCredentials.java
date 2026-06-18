@@ -30,6 +30,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.net.ssl.SSLContext;
@@ -37,6 +38,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -44,6 +46,7 @@ import org.springframework.util.ObjectUtils;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+@Slf4j
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ParametersAreNonnullByDefault
@@ -91,7 +94,8 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
       ProxmoxConfigurationProperties.ProxmoxManagedAccount account) {
     OkHttpClient httpClient = buildHttpClient(account);
     String baseUrl =
-        String.format("https://%s:%d/api2/json/", account.getServer(), account.getPort());
+        String.format(
+            "%s://%s:%d/api2/json/", account.getScheme(), account.getServer(), account.getPort());
     return new Retrofit.Builder()
         .baseUrl(baseUrl)
         .client(httpClient)
@@ -138,28 +142,63 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
           });
     } else if (!ObjectUtils.isEmpty(account.getUserName())
         && !ObjectUtils.isEmpty(account.getPassword())) {
-      TicketAuth ticket = fetchTicket(builder.build(), account);
+      // Build a bare client (SSL config only, no auth) reused for ticket refresh.
+      OkHttpClient bareClient = builder.build();
+      AtomicReference<TicketAuth> ticketRef =
+          new AtomicReference<>(fetchTicket(bareClient, account));
+
+      // Attach the current ticket to every outgoing request.
       builder.addInterceptor(
           chain -> {
+            TicketAuth current = ticketRef.get();
             Request request =
                 chain
                     .request()
                     .newBuilder()
-                    .header("Cookie", "PVEAuthCookie=" + ticket.ticket())
-                    .header("CSRFPreventionToken", ticket.csrf())
+                    .header("Cookie", "PVEAuthCookie=" + current.ticket())
+                    .header("CSRFPreventionToken", current.csrf())
                     .build();
             return chain.proceed(request);
+          });
+
+      // On 401, re-fetch the ticket and retry the request once.
+      builder.authenticator(
+          (route, response) -> {
+            if (responseCount(response) >= 2) {
+              log.warn(
+                  "Proxmox ticket re-auth failed for account '{}' — giving up", account.getName());
+              return null;
+            }
+            log.info(
+                "Proxmox ticket expired for account '{}', re-authenticating", account.getName());
+            TicketAuth newTicket = fetchTicket(bareClient, account);
+            ticketRef.set(newTicket);
+            return response
+                .request()
+                .newBuilder()
+                .header("Cookie", "PVEAuthCookie=" + newTicket.ticket())
+                .header("CSRFPreventionToken", newTicket.csrf())
+                .build();
           });
     }
 
     return builder.build();
   }
 
+  private static int responseCount(okhttp3.Response response) {
+    int count = 1;
+    while ((response = response.priorResponse()) != null) {
+      count++;
+    }
+    return count;
+  }
+
   private static TicketAuth fetchTicket(
       OkHttpClient client, ProxmoxConfigurationProperties.ProxmoxManagedAccount account) {
     String url =
         String.format(
-            "https://%s:%d/api2/json/access/ticket", account.getServer(), account.getPort());
+            "%s://%s:%d/api2/json/access/ticket",
+            account.getScheme(), account.getServer(), account.getPort());
     okhttp3.RequestBody body =
         new FormBody.Builder()
             .add("username", account.getUserName())

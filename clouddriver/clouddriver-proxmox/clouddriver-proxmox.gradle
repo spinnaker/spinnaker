@@ -25,6 +25,7 @@ dependencies {
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.spockframework:spock-spring"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
   implementation project(":cats:cats-core")
 
   testCompileOnly "org.projectlombok:lombok"

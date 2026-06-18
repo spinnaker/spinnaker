@@ -40,6 +40,7 @@ public class ProxmoxConfigurationProperties {
     private String name;
     private String server;
     private int port = 8006;
+    private String scheme = "https";
     // OPTIONAL
     private String userName;
     private String password;

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.proxmox;
+package com.netflix.spinnaker.clouddriver.proxmox.deploy.description;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
+import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
+import com.netflix.spinnaker.orchestration.OperationDescription;
+import lombok.Data;
 
-/**
- * Annotation to mark Proxmox-specific operations. This enables operation lookup based on provider
- * type. The {@code value} must match an {@link
- * com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations} constant.
- */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ProxmoxOperation {
-  String value();
+@Data
+public abstract class ProxmoxBaseDescription implements OperationDescription {
+  private ProxmoxNamedAccountCredentials credentials;
+  private String account;
+
+  public ProxmoxApiService getApiService() {
+    return credentials.getApiService();
+  }
 }

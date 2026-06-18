@@ -91,7 +91,7 @@ public class ProxmoxTagNamer implements NamingStrategy<ProxmoxResource> {
     // Read-only provider; tag mutation not supported
   }
 
-  static Map<String, String> parseTags(String rawTags) {
+  public static Map<String, String> parseTags(String rawTags) {
     if (rawTags == null || rawTags.isBlank()) {
       return Map.of();
     }
