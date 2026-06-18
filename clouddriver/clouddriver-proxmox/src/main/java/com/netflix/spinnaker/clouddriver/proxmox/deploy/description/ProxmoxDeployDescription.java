@@ -40,7 +40,7 @@ public class ProxmoxDeployDescription extends ProxmoxBaseDescription {
   private String templateNode;
 
   /** When {@code true} (default), perform a full independent clone; otherwise a linked clone. */
-  private boolean fullClone = true;
+  private boolean fullClone = false;
 
   /** Proxmox VM ID for the new instance. When null, Proxmox assigns the next available ID. */
   private Integer vmid;
@@ -71,6 +71,43 @@ public class ProxmoxDeployDescription extends ProxmoxBaseDescription {
    * conflicting entries here (semicolon-separated {@code category+value} pairs).
    */
   private String tags;
+
+  /**
+   * Target disk size applied after clone (e.g. {@code "20G"} absolute or {@code "+10G"} relative).
+   * Null skips resize. Must be larger than the template disk size.
+   */
+  private String diskSize;
+
+  /**
+   * Disk device identifier to resize (default {@code "scsi0"}). Only used when {@link #diskSize} is
+   * set.
+   */
+  private String diskDevice = "scsi0";
+
+  /**
+   * VM BIOS type: {@code "seabios"} or {@code "ovmf"}. Null inherits the template setting. When set
+   * to {@code "ovmf"} an EFI disk is automatically provisioned on {@link #efiStorage}.
+   */
+  private String bios;
+
+  /**
+   * Storage pool for the EFI disk when {@link #bios} is {@code "ovmf"}. Defaults to {@link
+   * #storage} when null.
+   */
+  private String efiStorage;
+
+  /**
+   * Cloud-init IP configuration for the first network interface (default {@code "ip=dhcp"}). Use
+   * Proxmox ipconfig format for static assignment, e.g. {@code
+   * "ip=192.168.1.100/24,gw=192.168.1.1"}.
+   */
+  private String ipconfig0 = "ip=dhcp";
+
+  /**
+   * When {@code true} (default), regenerate the cloud-init ISO after configuration is applied so
+   * that network and user-data changes are picked up on first boot.
+   */
+  private boolean regenerateCloudInit = true;
 
   /**
    * Additional raw Proxmox API parameters passed verbatim to the config-update call after clone.
