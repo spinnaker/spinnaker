@@ -1,0 +1,83 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "Container",
+            "style": "{% if themeColor == 'EB1A1A' %}attention{% elif themeColor == '73DB69' %}good{% else %}emphasis{% endif %}",
+            "items": [
+              {
+                "type": "TextBlock",
+                "text": "{{ cardTitle }}",
+                "weight": "Bolder",
+                "size": "Large",
+                "wrap": true
+              }
+            ]
+          },
+          {
+            "type": "TextBlock",
+            "text": "{{ summary }}",
+            "wrap": true,
+            "spacing": "Medium"
+          },
+          {
+            "type": "FactSet",
+            "spacing": "Medium",
+            "facts": [
+              {% if applicationName %}
+              {
+                "title": "Application",
+                "value": "{{ applicationName }}"
+              },
+              {% endif %}
+              {% if executionName %}
+              {
+                "title": "Execution",
+                "value": "{{ executionName }}"
+              },
+              {% endif %}
+              {% if eventName %}
+              {
+                "title": "{{ eventNameLabel }}",
+                "value": "{{ eventName }}"
+              },
+              {% endif %}
+              {% if description %}
+              {
+                "title": "Description",
+                "value": "{{ description }}"
+              },
+              {% endif %}
+              {% if customMessage %}
+              {
+                "title": "Message",
+                "value": "{{ customMessage }}"
+              },
+              {% endif %}
+              {% if status %}
+              {
+                "title": "Status",
+                "value": "{{ status }}"
+              }
+              {% endif %}
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.OpenUrl",
+            "title": "View in Spinnaker",
+            "url": "{{ executionUrl }}"
+          }
+        ]
+      }
+    }
+  ]
+}

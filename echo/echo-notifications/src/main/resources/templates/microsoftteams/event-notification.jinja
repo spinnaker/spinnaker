@@ -1,0 +1,68 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "Container",
+            "style": "{% if themeColor == 'EB1A1A' %}attention{% elif themeColor == '73DB69' %}good{% else %}emphasis{% endif %}",
+            "items": [
+              {
+                "type": "TextBlock",
+                "text": "Spinnaker Notification",
+                "weight": "Bolder",
+                "size": "Large",
+                "wrap": true
+              }
+            ]
+          },
+          {
+            "type": "Container",
+            "spacing": "Medium",
+            "items": [
+              {% if message %}
+              {
+                "type": "TextBlock",
+                "text": "**Message:** {{ message }}",
+                "wrap": true
+              }{% if summary %},{% endif %}
+              {% endif %}
+              {% if summary %}
+              {
+                "type": "TextBlock",
+                "text": "**Summary:** {{ summary }}",
+                "wrap": true,
+                "spacing": "Small"
+              }
+              {% endif %}
+            ]
+          }
+        ],
+        "actions": [
+          {% if interactiveActions %}
+          {% for action in interactiveActions.actions %}
+          {
+            "type": "Action.Http",
+            "title": "{{ action.label }}",
+            "method": "POST",
+            "url": "{{ interactiveActions.callbackServiceId }}",
+            "body": "{\"action\": \"{{ action.value }}\"}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+          {% else %}
+          {
+            "type": "Action.OpenUrl",
+            "title": "View in Spinnaker",
+            "url": "{{ executionUrl }}"
+          }
+          {% endif %}
+        ]
+      }
+    }
+  ]
+}
