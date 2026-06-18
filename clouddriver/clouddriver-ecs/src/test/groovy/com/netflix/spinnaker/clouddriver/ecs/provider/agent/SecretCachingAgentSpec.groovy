@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager
-import com.amazonaws.services.secretsmanager.model.ListSecretsResult
-import com.amazonaws.services.secretsmanager.model.SecretListEntry
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
+import software.amazon.awssdk.services.secretsmanager.model.ListSecretsResponse
+import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.Secret
@@ -28,7 +28,7 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SECRETS
 
 class SecretCachingAgentSpec extends Specification {
-  def secretsManager = Mock(AWSSecretsManager)
+  def secretsManager = Mock(SecretsManagerClient)
   def clientProvider = Mock(AmazonClientProvider)
   def providerCache = Mock(ProviderCache)
 
@@ -43,12 +43,12 @@ class SecretCachingAgentSpec extends Specification {
     def secretsEntries = []
     0.upto(4, {
       def secretName = "test-secret-${it}"
-      givenSecrets << new SecretListEntry(
-        name: secretName,
-        aRN: "arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}"
-      )
+      givenSecrets << SecretListEntry.builder()
+        .name(secretName)
+        .arn("arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}")
+        .build()
     })
-    secretsManager.listSecrets(_) >> new ListSecretsResult().withSecretList(givenSecrets)
+    secretsManager.listSecrets(_) >> ListSecretsResponse.builder().secretList(givenSecrets).build()
 
     when:
     def retrievedSecrets = agent.fetchSecrets(secretsManager)
@@ -70,10 +70,10 @@ class SecretCachingAgentSpec extends Specification {
         name: secretName,
         arn: "arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}"
       )
-      secretsEntries << new SecretListEntry(
-        name: secretName,
-        aRN: "arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}"
-      )
+      secretsEntries << SecretListEntry.builder()
+        .name(secretName)
+        .arn("arn:aws:secretsmanager:us-west-1:0123456789012:secret:${secretName}")
+        .build()
     })
 
     when:
