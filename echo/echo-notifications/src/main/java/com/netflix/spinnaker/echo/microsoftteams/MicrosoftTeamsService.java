@@ -55,7 +55,9 @@ public class MicrosoftTeamsService {
             .build()
             .create(MicrosoftTeamsClient.class);
 
-    return Retrofit2SyncCall.execute(microsoftTeamsClient.sendMessage(webhookUrl, RequestBody.create(jsonMessage, MediaType.parse("application/json"))));
+    return Retrofit2SyncCall.execute(
+        microsoftTeamsClient.sendMessage(
+            webhookUrl, RequestBody.create(jsonMessage, MediaType.parse("application/json"))));
   }
 
   /**
