@@ -68,6 +68,41 @@ class ScaleDownClusterTaskSpec extends Specification {
     expected = expectedIdx.collect { serverGroups[it] }
   }
 
+  def 'uses sequence number, not createdTime, to identify the newest server group'() {
+    // Regression test: when a disabled VMSS shell is reused by a new deploy the
+    // createdTime tag on the resource can be stale (from the original creation),
+    // making the new server group appear older than the previous one.  Ordering
+    // must be driven by sequence number (derived from the name) which is always
+    // monotonically increasing and cannot be stale.
+    given:
+    def location = new Location(Location.Type.REGION, 'us-east-1')
+    // v035 is the *newly deployed* group but has an older createdTime because
+    // its VMSS shell was created during a previous (failed) pipeline run.
+    def newGroup = new TargetServerGroup(
+      name: 'app-stack-v035', region: 'us-east-1',
+      createdTime: 1000L,   // stale — yesterday's timestamp
+      disabled: true,
+      instances: [[id: 'i1', healthState: 'Up']]
+    )
+    // v034 is the previous group and has a more recent createdTime (set today).
+    def oldGroup = new TargetServerGroup(
+      name: 'app-stack-v034', region: 'us-east-1',
+      createdTime: 9999L,   // newer timestamp, but lower sequence
+      disabled: true,
+      instances: [[id: 'i2', healthState: 'Up']]
+    )
+    def stage = new StageExecutionImpl(
+      PipelineExecutionImpl.newPipeline("orca"), "scaleDownCluster",
+      [remainingFullSizeServerGroups: 1, allowScaleDownActive: true]
+    )
+
+    when:
+    def result = task.filterServerGroups(stage, 'test', location, [newGroup, oldGroup])
+
+    then: 'the lower-sequence (older) group is selected for scale-down, not the higher-sequence new one'
+    result == [oldGroup]
+  }
+
   static final AtomicInteger inc = new AtomicInteger()
 
   TargetServerGroup sg(boolean disabled = false, int instances = 10) {

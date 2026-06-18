@@ -57,7 +57,7 @@ class DisableClusterTask extends AbstractClusterWideClouddriverTask {
 
     Comparator<TargetServerGroup> comparator = disableClusterConfig.preferLargerOverNewer ?
       new InstanceCount() :
-      new CreatedTime()
+      new Sequence()
 
     return filtered.sort(true, comparator).drop(dropCount)
   }

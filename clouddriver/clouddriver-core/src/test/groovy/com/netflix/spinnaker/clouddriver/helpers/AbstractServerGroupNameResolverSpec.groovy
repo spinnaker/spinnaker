@@ -126,7 +126,12 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     999      || false
   }
 
-  void "resolveNextServerGroupName should yield v001 when most recent server group does not define sequence number"() {
+  void "resolveNextServerGroupName anchors on the highest-sequence slot even when a no-sequence slot exists"() {
+    // A non-versioned server group (e.g. app-dev, no vNNN suffix) has sequence=null.
+    // The resolver must still anchor on the highest real sequence so the next
+    // deploy gets a strictly increasing name rather than resetting to v001.
+    // Deploying v001 alongside an existing v997 would be confusing and could
+    // interfere with cluster-wide ordering in DisableCluster/ScaleDownCluster.
     setup:
     def takenSlots = [
       buildTakenSlot('app-dev-v997', 997),
@@ -138,7 +143,48 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName('app', 'dev', null, false)
 
     then:
+    nextServerGroupName == 'app-dev-v998'
+  }
+
+  void "resolveNextServerGroupName should yield v001 when all slots have no sequence number"() {
+    setup:
+    def takenSlots = [
+      buildTakenSlot('app-dev', 998),
+    ]
+    def serverGroupNameResolver = new TestServerGroupNameResolver(takenSlots)
+
+    when:
+    def nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName('app', 'dev', null, false)
+
+    then:
     nextServerGroupName == 'app-dev-v001'
+  }
+
+  void "resolveNextServerGroupName anchors on max sequence when all slots share the same lastReadTime"() {
+    // Regression: AzureComputeClient.getServerGroupsAll() stamps every slot with
+    // the same lastReadTime (captured once before the loop). When all TakenSlot
+    // createdTimes tie, Groovy's max() used to return the first element in
+    // iteration order — typically the alphabetically-lowest name — instead of
+    // the most recently deployed one. This caused the resolver to anchor on an
+    // old low-sequence shell (e.g. v031) and reuse deleted slots, producing new
+    // server groups with sequence numbers lower than existing ones (e.g. creating
+    // v034 when v035 already exists). The fix uses sequence number to find the
+    // true latest, guaranteeing strictly-increasing sequences.
+    setup:
+    def sharedLastReadTime = 1_000_000L  // all slots identical, as in a real batch fetch
+    def takenSlots = [
+      new TakenSlot(serverGroupName: 'app-stack-v031', sequence: 31, createdTime: new Date(sharedLastReadTime)),
+      new TakenSlot(serverGroupName: 'app-stack-v032', sequence: 32, createdTime: new Date(sharedLastReadTime)),
+      new TakenSlot(serverGroupName: 'app-stack-v033', sequence: 33, createdTime: new Date(sharedLastReadTime)),
+      new TakenSlot(serverGroupName: 'app-stack-v035', sequence: 35, createdTime: new Date(sharedLastReadTime)),
+    ]
+    def serverGroupNameResolver = new TestServerGroupNameResolver(takenSlots)
+
+    when:
+    def nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName('app', 'stack', null, false)
+
+    then: 'anchors on v035 (max sequence), skips the free v034 slot, and returns v036'
+    nextServerGroupName == 'app-stack-v036'
   }
 
   private buildTakenSlot(String serverGroupName, long createdTime = 0) {

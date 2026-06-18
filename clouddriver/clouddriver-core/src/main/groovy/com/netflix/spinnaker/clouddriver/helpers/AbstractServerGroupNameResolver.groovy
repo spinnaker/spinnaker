@@ -52,9 +52,24 @@ abstract class AbstractServerGroupNameResolver extends NameBuilder {
   String resolveLatestServerGroupName(String clusterName, List<TakenSlot> takenSlots = []) {
     takenSlots = takenSlots ?: getTakenSlots(clusterName)
 
-    // Attempt to find the server group created most recently.
+    // Find the server group with the highest Frigga sequence number.
+    //
+    // Previously this sorted by TakenSlot.createdTime, but all slots populated
+    // from a single getServerGroupsAll() call share the same lastReadTime value
+    // (set once at the top of that method). Every comparison ties, so Groovy's
+    // max() returns whichever slot happens to be first in the Azure/AWS API
+    // response — typically the alphabetically-lowest name — rather than the
+    // most recently deployed one. This causes resolveNextServerGroupName to
+    // anchor on an old low-sequence shell and reuse deleted sequence slots,
+    // producing new server groups with sequence numbers lower than existing
+    // ones. That breaks the invariant relied on by DisableClusterTask and
+    // ScaleDownClusterTask when ordering server groups.
+    //
+    // Sequence numbers are assigned by Spinnaker at naming time and are always
+    // strictly monotonically increasing within a cluster, so max(sequence) is
+    // the correct anchor regardless of creation timestamps.
     def latestServerGroup = takenSlots?.max { a, b ->
-      a.createdTime <=> b.createdTime
+      (a.sequence ?: 0) <=> (b.sequence ?: 0)
     }
 
     return latestServerGroup ? latestServerGroup.serverGroupName : null

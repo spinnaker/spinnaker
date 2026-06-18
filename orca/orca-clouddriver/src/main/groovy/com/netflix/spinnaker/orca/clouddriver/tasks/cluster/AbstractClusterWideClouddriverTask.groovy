@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
@@ -284,6 +285,20 @@ abstract class AbstractClusterWideClouddriverTask implements RetryableTask, Clou
     @Override
     int compare(TargetServerGroup o1, TargetServerGroup o2) {
       o2.createdTime <=> o1.createdTime
+    }
+  }
+
+  // Sorts by Frigga sequence number descending (higher sequence = newer deployment).
+  // Preferred over CreatedTime for ordering because createdTime is read from a
+  // provider-specific tag (e.g. the Azure VMSS `createdTime` tag) that can be stale
+  // when a disabled server group shell is reused by a later deploy — causing
+  // DisableCluster/ScaleDownCluster to treat the newly-deployed group as older and
+  // disable it instead of the previous one. Sequence is derived from the server
+  // group name itself and is always monotonically increasing.
+  static class Sequence implements Comparator<TargetServerGroup> {
+    @Override
+    int compare(TargetServerGroup o1, TargetServerGroup o2) {
+      (Names.parseName(o2.name).sequence ?: 0) <=> (Names.parseName(o1.name).sequence ?: 0)
     }
   }
 

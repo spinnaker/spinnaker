@@ -82,7 +82,7 @@ class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
     if (config.preferLargerOverNewer) {
       comparators << new InstanceCount()
     }
-    comparators << new CreatedTime()
+    comparators << new Sequence()
 
     //result will be sorted in priority order to retain
     def prioritized = filteredGroups.sort(false, new CompositeComparator(comparators))
