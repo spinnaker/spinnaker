@@ -30,6 +30,12 @@ const loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap = {
     editTemplateUrl: require('../http/editHttpLoadBalancer.html'),
     controller: 'gceCreateInternalHttpLoadBalancerCtrl',
   },
+  EXTERNAL_MANAGED: {
+    label: 'Regional External HTTP(S)',
+    createTemplateUrl: require('../http/createHttpLoadBalancer.html'),
+    editTemplateUrl: require('../http/editHttpLoadBalancer.html'),
+    controller: 'gceCreateExternalHttpLoadBalancerCtrl',
+  },
   INTERNAL: {
     label: 'Internal',
     createTemplateUrl: require('../common/commonCreateLoadBalancer.html'),

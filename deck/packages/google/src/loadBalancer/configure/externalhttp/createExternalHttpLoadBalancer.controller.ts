@@ -22,11 +22,13 @@ import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE } from '../http/
 
 import '../http/httpLoadBalancerWizard.component.less';
 
-export const GOOGLE_LOADBALANCER_CONFIGURE_INTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER =
-  'spinnaker.deck.gce.loadBalancer.createInternalHttp.controller';
-export const name = GOOGLE_LOADBALANCER_CONFIGURE_INTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER; // for backwards compatibility
+export const GOOGLE_LOADBALANCER_CONFIGURE_EXTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER =
+  'spinnaker.deck.gce.loadBalancer.createExternalHttp.controller';
+export const name = GOOGLE_LOADBALANCER_CONFIGURE_EXTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER;
 
-class CreateInternalHttpLoadBalancerController implements ng.IComponentController {
+// Regional external HTTP(S) uses the shared HTTP wizard pages, but pipeline mode needs listener
+// fields flattened back onto each generated operation and normal mode routes details by raw URL map.
+class CreateExternalHttpLoadBalancerController implements ng.IComponentController {
   public taskMonitor: any;
   public command: any;
   public modalDescriptor: string;
@@ -75,7 +77,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
     private $state: StateService,
   ) {
     this.modalDescriptor = this.isNew
-      ? 'Create Internal HTTP(S) load balancer'
+      ? 'Create Regional External HTTP(S) load balancer'
       : `Edit ${this.loadBalancer.name}:${this.loadBalancer.region}:${this.loadBalancer.account}`;
 
     const onTaskComplete = () => {
@@ -87,13 +89,13 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
       application: this.application,
       title: (this.isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: this.$uibModalInstance,
-      onTaskComplete: onTaskComplete,
+      onTaskComplete,
     });
   }
 
   public $onInit(): void {
     this.gceHttpLoadBalancerCommandBuilder
-      .buildCommand({ isNew: this.isNew, originalLoadBalancer: this.loadBalancer, isInternal: true })
+      .buildCommand({ isNew: this.isNew, originalLoadBalancer: this.loadBalancer, isExternalManaged: true })
       .then((command: any) => {
         this.command = command;
         this.wizardSubFormValidation
@@ -160,7 +162,6 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
   }
 
   private onApplicationRefresh(): void {
-    // If the user has already closed the modal, do not navigate to the new details view
     if (this.$scope.$$destroyed) {
       return;
     }
@@ -181,7 +182,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
   }
 }
 
-module(GOOGLE_LOADBALANCER_CONFIGURE_INTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
+module(GOOGLE_LOADBALANCER_CONFIGURE_EXTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
   'ui.bootstrap',
   UIROUTER_ANGULARJS,
   GOOGLE_LOADBALANCER_CONFIGURE_HTTP_BACKENDSERVICE_BACKENDSERVICE_COMPONENT,
@@ -194,4 +195,4 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_INTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTRO
   GOOGLE_LOADBALANCER_CONFIGURE_HTTP_HTTPLOADBALANCER_WRITE_SERVICE,
   GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT,
   GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE,
-]).controller('gceCreateInternalHttpLoadBalancerCtrl', CreateInternalHttpLoadBalancerController);
+]).controller('gceCreateExternalHttpLoadBalancerCtrl', CreateExternalHttpLoadBalancerController);

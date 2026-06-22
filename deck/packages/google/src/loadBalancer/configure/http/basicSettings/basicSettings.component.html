@@ -43,7 +43,7 @@
         </div>
       </div>
       <gce-region-select-field
-        ng-if="$ctrl.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED'"
+        ng-if="$ctrl.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' || $ctrl.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'"
         label-columns="2"
         field-columns="8"
         component="$ctrl.loadBalancer"
@@ -61,6 +61,16 @@
         helpKey="gce.internalHttpLoadBalancer.network"
         account="$ctrl.loadBalancer.credentials"
         networks="$ctrl.command.backingData.internalHttpLbNetworks"
+      ></gce-network-select-field>
+      <gce-network-select-field
+        ng-if="$ctrl.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'"
+        label-columns="2"
+        field-columns="8"
+        component="$ctrl.loadBalancer"
+        field="network"
+        helpKey="gce.externalManagedHttpLoadBalancer.network"
+        account="$ctrl.loadBalancer.credentials"
+        networks="$ctrl.command.backingData.externalHttpLbNetworks"
       ></gce-network-select-field>
 
       <div class="form-group">

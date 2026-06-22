@@ -43,6 +43,7 @@ describe('Service: gceHttpLoadBalancerTransformer', () => {
       certificateMap: 'cm',
       certificateSource: 'certificateMap',
       ipAddress: '10.0.0.1',
+        networkTier: 'STANDARD',
       subnet: null,
     });
 
@@ -51,6 +52,29 @@ describe('Service: gceHttpLoadBalancerTransformer', () => {
     expect(commands.length).toBe(1);
     expect(commands[0].certificate).toBeNull();
     expect(commands[0].certificateMap).toBe('cm');
+    expect(commands[0].networkTier).toBe('STANDARD');
+  });
+
+  it('serializes external managed listeners as certificate-only commands with network tier', () => {
+    const certificate = '//certificatemanager.googleapis.com/projects/p/locations/us-central1/certificates/cert-1';
+    const command = buildBaseCommand({
+      name: 'app-main',
+      port: 443,
+      certificate,
+      certificateMap: 'cm',
+      certificateSource: 'certificateMap',
+      ipAddress: '34.0.0.1',
+      networkTier: 'STANDARD',
+      subnet: null,
+    });
+    command.loadBalancer.loadBalancerType = 'EXTERNAL_MANAGED';
+
+    const commands = gceHttpLoadBalancerTransformer.serialize(command, null);
+
+    expect(commands.length).toBe(1);
+    expect(commands[0].certificate).toBe(certificate);
+    expect(commands[0].certificateMap).toBeNull();
+    expect(commands[0].networkTier).toBe('STANDARD');
   });
 
   it('serializes legacy certificate listeners without certificateMap', () => {
@@ -84,6 +108,7 @@ describe('Service: gceHttpLoadBalancerTransformer', () => {
           name: 'app-main',
           certificate: null,
           certificateMap: '//certificatemanager.googleapis.com/projects/p/locations/global/certificateMaps/cm',
+          networkTier: 'STANDARD',
         },
       ],
       network: 'default',
@@ -98,6 +123,7 @@ describe('Service: gceHttpLoadBalancerTransformer', () => {
     expect(commandLoadBalancer.listeners[0].certificateSource).toBe('certificateMap');
     expect(commandLoadBalancer.listeners[0].certificate).toBeNull();
     expect(commandLoadBalancer.listeners[0].certificateMap).toBe('cm');
+    expect(commandLoadBalancer.listeners[0].networkTier).toBe('STANDARD');
   });
 
   // The serialize fallback path: when certificateSource is absent, the
