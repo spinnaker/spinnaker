@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleExternalHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
@@ -170,5 +171,27 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
 
     then:
       operation instanceof UpsertGoogleHttpLoadBalancerAtomicOperation
+  }
+
+  void "external managed type returns UpsertGoogleExternalHttpLoadBalancerAtomicOperation"() {
+    setup:
+      def input = [
+        loadBalancerType: "EXTERNAL_MANAGED",
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region          : REGION,
+        accountName     : ACCOUNT_NAME,
+        network         : "default",
+        networkTier     : "PREMIUM",
+        portRange       : "443"
+      ]
+
+    when:
+      def description = converter.convertDescription(input)
+      def operation = converter.convertOperation(input)
+
+    then:
+      description instanceof UpsertGoogleLoadBalancerDescription
+      description.networkTier == "PREMIUM"
+      operation instanceof UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   }
 }

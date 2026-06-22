@@ -83,6 +83,30 @@ package com.netflix.spinnaker.clouddriver.google.deploy
     }
   }
 
+  void "buildRegionalCertificateUrl builds regional Compute SSL certificate URL for bare names"() {
+    expect:
+      GCEUtil.buildRegionalCertificateUrl(PROJECT_NAME, REGION, "my-cert") ==
+        "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/regions/${REGION}/sslCertificates/my-cert"
+  }
+
+  void "buildRegionalCertificateUrl preserves full regional Certificate Manager certificate URL"() {
+    given:
+      def certificateUrl = "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/${REGION}/certificates/my-cert"
+
+    expect:
+      GCEUtil.buildRegionalCertificateUrl(PROJECT_NAME, REGION, certificateUrl) == certificateUrl
+      GCEUtil.buildRegionalCertificateUrl(
+        PROJECT_NAME,
+        REGION,
+        "https://certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/${REGION}/certificates/my-cert") == certificateUrl
+  }
+
+  void "buildRegionalCertificateManagerCertificateUrl builds regional Certificate Manager certificate URL"() {
+    expect:
+      GCEUtil.buildRegionalCertificateManagerCertificateUrl(PROJECT_NAME, REGION, "my-cert") ==
+        "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/${REGION}/certificates/my-cert"
+  }
+
   void "query source images should succeed"() {
     setup:
       def executorMock = Mock(GoogleExecutorTraits)
