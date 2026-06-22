@@ -69,4 +69,51 @@ class GoogleLoadBalancerProviderSpec extends Specification {
       details[0].sessionAffinity == "CLIENT_IP_PORT_PROTO"
   }
 
+  void "should deserialize external managed HTTP load balancer details"() {
+    setup:
+      def cacheView = Mock(Cache)
+      def serverGroup = Mock(CacheData)
+      def serverGroupRelationships = [:]
+      serverGroupRelationships.put(LOAD_BALANCERS.ns, ["external_lb_identifier"])
+
+      def loadBalancerRelations = [:]
+      loadBalancerRelations.put(SERVER_GROUPS.ns, [])
+
+      def googleLoadBalancerView = Mock(CacheData)
+      def attributes = [
+        type               : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        loadBalancingScheme: GoogleLoadBalancingScheme.EXTERNAL_MANAGED,
+        name               : LOAD_BALANCER_NAME,
+        account            : ACCOUNT_NAME,
+        region             : REGION_EUROPE,
+        ipAddress          : "1.2.3.4",
+        ipProtocol         : "TCP",
+        portRange          : "443",
+        urlMapName         : "external-url-map",
+        defaultService     : [name: "external-backend-service", healthCheck: [name: "hc"]],
+        hostRules          : [],
+        healths            : []
+      ]
+      googleLoadBalancerView.getAttributes() >> attributes
+      googleLoadBalancerView.getRelationships() >> loadBalancerRelations
+
+      @Subject def provider = new GoogleLoadBalancerProvider()
+      provider.cacheView = cacheView
+      provider.objectMapper = new ObjectMapper()
+
+    when:
+      def details = provider.byAccountAndRegionAndName(ACCOUNT_NAME, REGION_EUROPE, LOAD_BALANCER_NAME)
+
+    then:
+      _ * cacheView.filterIdentifiers(LOAD_BALANCERS.ns, _) >> ["external_lb_identifier"]
+      1 * cacheView.getAll(LOAD_BALANCERS.ns, _, _) >> [googleLoadBalancerView]
+      1 * cacheView.filterIdentifiers(SERVER_GROUPS.ns, _) >> SERVER_GROUP_IDS
+      1 * cacheView.getAll(SERVER_GROUPS.ns, SERVER_GROUP_IDS) >> [serverGroup]
+      1 * serverGroup.getRelationships() >> serverGroupRelationships
+      details.size() == 1
+      details[0].loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED
+      details[0].dnsname == "1.2.3.4"
+      details[0].backendServiceHealthChecks.keySet() == ["external-backend-service"] as Set
+  }
+
 }
