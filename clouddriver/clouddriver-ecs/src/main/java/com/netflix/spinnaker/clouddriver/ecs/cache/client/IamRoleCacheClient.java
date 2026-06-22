@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,12 +36,6 @@ public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
   @Autowired
   public IamRoleCacheClient(Cache cacheView) {
     super(cacheView, IAM_ROLE.toString());
-  }
-
-  @Override
-  public Collection<IamRole> getAll() {
-    Collection<CacheData> allData = cacheView.getAll(IAM_ROLE.toString());
-    return filterResultsForEcsTrustRelationship(allData);
   }
 
   @Override
@@ -62,7 +55,6 @@ public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
             && trustRelationship.get("value").equals("ecs-tasks.amazonaws.com")) {
 
           result.add(convert(cacheData));
-          continue;
         }
       }
     }
@@ -100,10 +92,8 @@ public class IamRoleCacheClient extends AbstractCacheClient<IamRole> {
    * @return
    */
   private Collection<CacheData> fetchFromCache(String account, String region) {
-    Set<String> keys =
-        cacheView.filterIdentifiers(IAM_ROLE.ns, "*:" + account + ":*").stream()
-            .distinct()
-            .collect(Collectors.toSet());
-    return cacheView.getAll(IAM_ROLE.ns, keys);
+    return cacheView.getAll(
+        IAM_ROLE.ns,
+        new HashSet<>(cacheView.filterIdentifiers(IAM_ROLE.ns, "*:" + account + ":*")));
   }
 }

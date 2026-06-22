@@ -87,4 +87,27 @@ class SecretCachingAgentSpec extends Specification {
     givenSecrets*.name.containsAll(cacheData.get(SECRETS.ns)*.getAttributes().secretName)
     givenSecrets*.arn.containsAll(cacheData.get(SECRETS.ns)*.getAttributes().secretArn)
   }
+
+  def 'should use filterIdentifiers with account and region glob for evictions'() {
+    given:
+    def givenSecret = new SecretListEntry(
+      name: "test-secret",
+      aRN: "arn:aws:secretsmanager:us-west-1:0123456789012:secret:test-secret"
+    )
+    clientProvider.getAmazonSecretsManager(_, _, _) >> secretsManager
+    secretsManager.listSecrets(_) >> new com.amazonaws.services.secretsmanager.model.ListSecretsResult().withSecretList([givenSecret])
+
+    def account = 'test-account'
+    def region = 'us-west-1'
+    def expectedGlob = com.netflix.spinnaker.clouddriver.ecs.cache.Keys.buildGlob(SECRETS, account, region)
+    def oldIdentifiers = ['ecs;secrets;test-account;us-west-1;old-secret']
+    providerCache.filterIdentifiers(SECRETS.ns, expectedGlob) >> oldIdentifiers
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.evictions[SECRETS.ns] != null
+    result.evictions[SECRETS.ns].containsAll(oldIdentifiers)
+  }
 }

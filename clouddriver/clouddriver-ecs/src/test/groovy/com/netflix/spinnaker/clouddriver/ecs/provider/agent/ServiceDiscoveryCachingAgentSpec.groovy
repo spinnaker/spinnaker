@@ -96,4 +96,28 @@ class ServiceDiscoveryCachingAgentSpec extends Specification {
     givenServices*.arn.containsAll(cacheData.get(SERVICE_DISCOVERY_REGISTRIES.ns)*.getAttributes().serviceArn)
     givenServices*.id.containsAll(cacheData.get(SERVICE_DISCOVERY_REGISTRIES.ns)*.getAttributes().serviceId)
   }
+
+  def 'should use filterIdentifiers with account and region glob for evictions'() {
+    given:
+    def givenService = new ServiceSummary(
+      name: "test-service",
+      id: "srv-123",
+      arn: "arn:aws:servicediscovery:us-west-1:0123456789012:service/srv-123"
+    )
+    clientProvider.getAmazonServiceDiscovery(_, _, _) >> serviceDiscovery
+    serviceDiscovery.listServices(_) >> new ListServicesResult().withServices([givenService])
+
+    def account = 'test-account'
+    def region = 'us-west-1'
+    def expectedGlob = com.netflix.spinnaker.clouddriver.ecs.cache.Keys.buildGlob(SERVICE_DISCOVERY_REGISTRIES, account, region)
+    def oldIdentifiers = ['ecs;service-discovery-registries;test-account;us-west-1;old-service']
+    providerCache.filterIdentifiers(SERVICE_DISCOVERY_REGISTRIES.ns, expectedGlob) >> oldIdentifiers
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.evictions[SERVICE_DISCOVERY_REGISTRIES.ns] != null
+    result.evictions[SERVICE_DISCOVERY_REGISTRIES.ns].containsAll(oldIdentifiers)
+  }
 }
