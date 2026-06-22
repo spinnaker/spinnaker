@@ -62,6 +62,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet;
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer;
@@ -1152,7 +1153,8 @@ public class BasicGoogleDeployHandlerTest {
 
     Map<String, String> instanceMetadata = new HashMap<>();
     instanceMetadata.put("load-balancer-names", "load-balancer-1,load-balancer-2");
-    instanceMetadata.put("region-backend-service-names", "us-central1-backend");
+    instanceMetadata.put(
+        "region-backend-service-names", "us-central1-backend,google-backend-service");
     mockDescription.setInstanceMetadata(instanceMetadata);
     mockDescription.setCredentials(mockCredentials);
     mockDescription.setZone("us-central1-a");
@@ -1165,6 +1167,9 @@ public class BasicGoogleDeployHandlerTest {
     mockedGCEUtil
         .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
         .thenReturn("zonal-server-group-url");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
     GoogleBackendService googleBackendService = new GoogleBackendService();
     googleBackendService.setName("google-backend-service");
     mockedUtils
@@ -1175,10 +1180,102 @@ public class BasicGoogleDeployHandlerTest {
         basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
             mockDescription, "server-group-name", lbInfoMock, policyMock, region);
     assertNotNull(result);
-    assertEquals(2, result.size());
+    assertEquals(3, result.size());
     assertEquals(
         "load-balancer-1,load-balancer-2,internal-load-balancer,internal-http-load-balancer",
         instanceMetadata.get("load-balancer-names"));
+    assertEquals(
+        "backend-service-internal,us-central1-backend,google-backend-service",
+        instanceMetadata.get("region-backend-service-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithInternalHttpLoadBalancerWithoutExistingMetadata()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+
+    List<GoogleLoadBalancerView> internalHttpLB = new ArrayList<>();
+    GoogleInternalHttpLoadBalancer googleInternalHttpLB = new GoogleInternalHttpLoadBalancer();
+    googleInternalHttpLB.setName("internal-http-load-balancer");
+    internalHttpLB.add(googleInternalHttpLB.getView());
+    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(internalHttpLB);
+
+    Map<String, String> instanceMetadata = new HashMap<>();
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    doReturn(mock(BackendService.class))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
+        .thenReturn("zonal-server-group-url");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+    GoogleBackendService googleBackendService = new GoogleBackendService();
+    googleBackendService.setName("google-backend-service");
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromInternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(googleBackendService));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfoMock, policyMock, "us-central1");
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals("internal-http-load-balancer", instanceMetadata.get("load-balancer-names"));
+    assertEquals("google-backend-service", instanceMetadata.get("region-backend-service-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithExternalHttpLoadBalancerWithoutExistingMetadata()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+
+    List<GoogleLoadBalancerView> externalHttpLB = new ArrayList<>();
+    GoogleExternalHttpLoadBalancer googleExternalHttpLB = new GoogleExternalHttpLoadBalancer();
+    googleExternalHttpLB.setName("external-http-load-balancer");
+    externalHttpLB.add(googleExternalHttpLB.getView());
+    when(lbInfoMock.getExternalHttpLoadBalancers()).thenReturn(externalHttpLB);
+
+    Map<String, String> instanceMetadata = new HashMap<>();
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    doReturn(mock(BackendService.class))
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
+        .thenReturn("zonal-server-group-url");
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+    GoogleBackendService googleBackendService = new GoogleBackendService();
+    googleBackendService.setName("external-backend-service");
+    mockedUtils
+        .when(() -> Utils.getBackendServicesFromExternalHttpLoadBalancerView(any()))
+        .thenReturn(List.of(googleBackendService));
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfoMock, policyMock, "us-central1");
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals("external-http-load-balancer", instanceMetadata.get("load-balancer-names"));
+    assertEquals("external-backend-service", instanceMetadata.get("region-backend-service-names"));
   }
 
   @Test
