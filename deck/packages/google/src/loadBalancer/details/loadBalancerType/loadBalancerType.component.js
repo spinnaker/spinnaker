@@ -14,13 +14,21 @@ module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT, 
   controller: function () {
     this.$onInit = () => {
       this.type = (function (lb) {
-        if (lb.loadBalancerType === 'HTTP') {
-          const hasCertificate = _.isString(lb.certificate) && !_.isEmpty(lb.certificate);
-          const hasCertificateMap = _.isString(lb.certificateMap) && !_.isEmpty(lb.certificateMap);
+        if (lb.loadBalancerType === 'HTTP' || lb.loadBalancerType === 'EXTERNAL_MANAGED') {
+          const hasCertificate =
+            (_.isString(lb.certificate) && !_.isEmpty(lb.certificate)) ||
+            _.some(lb.listeners, (listener) => _.isString(listener.certificate) && !_.isEmpty(listener.certificate));
+          const hasCertificateMap =
+            (_.isString(lb.certificateMap) && !_.isEmpty(lb.certificateMap)) ||
+            _.some(
+              lb.listeners,
+              (listener) => _.isString(listener.certificateMap) && !_.isEmpty(listener.certificateMap),
+            );
+          const prefix = lb.loadBalancerType === 'EXTERNAL_MANAGED' ? 'Regional External ' : '';
           if (hasCertificate || hasCertificateMap) {
-            return 'HTTPS';
+            return `${prefix}HTTPS`;
           } else {
-            return 'HTTP';
+            return `${prefix}HTTP`;
           }
         } else {
           return lb.loadBalancerType;

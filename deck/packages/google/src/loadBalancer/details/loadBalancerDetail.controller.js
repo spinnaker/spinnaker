@@ -63,10 +63,19 @@ angular
       };
 
       function extractLoadBalancer() {
+        function isMatchingLoadBalancer(test) {
+          // Regional HTTP(S) routes use the raw URL map name, while application data stores the
+          // normalized display name that includes account/region for disambiguation.
+          const nameMatches =
+            test.name === loadBalancer.name ||
+            (gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(test) && test.urlMapName === loadBalancer.name);
+          return nameMatches;
+        }
+
         $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {
           const testVpc = test.vpcId || null;
           return (
-            test.name === loadBalancer.name &&
+            isMatchingLoadBalancer(test) &&
             (test.region === loadBalancer.region || test.region === 'global') &&
             test.account === loadBalancer.accountId &&
             testVpc === loadBalancer.vpcId
@@ -104,7 +113,10 @@ angular
                 resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
               } else if ($scope.loadBalancer.loadBalancerType === 'TCP') {
                 resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
-              } else if ($scope.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED') {
+              } else if (
+                $scope.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' ||
+                $scope.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'
+              ) {
                 resourceTypes = ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];
               } else {
                 // $scope.loadBalancer.loadBalancerType === 'HTTP'
@@ -230,6 +242,9 @@ angular
             isNew: function () {
               return false;
             },
+            forPipelineConfig: function () {
+              return false;
+            },
           },
         });
       };
@@ -248,6 +263,7 @@ angular
       };
 
       this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
+      this.isExternalHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isExternalHttpLoadBalancer(lb);
 
       this.getNetworkId = function getNetworkId(loadBalancer) {
         return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.network);
