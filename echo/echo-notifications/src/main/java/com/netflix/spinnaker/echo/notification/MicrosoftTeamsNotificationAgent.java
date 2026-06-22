@@ -17,12 +17,13 @@
 package com.netflix.spinnaker.echo.notification;
 
 import com.netflix.spinnaker.echo.api.events.Event;
-import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsMessage;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
-import com.netflix.spinnaker.echo.microsoftteams.api.MicrosoftTeamsSection;
+import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsTemplateEngine;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.text.WordUtils;
@@ -36,10 +37,13 @@ import org.springframework.stereotype.Service;
 public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAgent {
 
   private final MicrosoftTeamsService teamsService;
+  private final MicrosoftTeamsTemplateEngine teamsTemplateEngine;
 
   @Autowired
-  public MicrosoftTeamsNotificationAgent(MicrosoftTeamsService teamsService) {
+  public MicrosoftTeamsNotificationAgent(
+      MicrosoftTeamsService teamsService, MicrosoftTeamsTemplateEngine teamsTemplateEngine) {
     this.teamsService = teamsService;
+    this.teamsTemplateEngine = teamsTemplateEngine;
   }
 
   @Override
@@ -91,7 +95,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             .map(e -> (String) e.get("name"))
             .orElse(null);
 
-    String message =
+    String customMessage =
         Optional.ofNullable(preference)
             .map(p -> (Map) p.get("message"))
             .map(p -> (Map) p.get(configType + "." + status))
@@ -99,6 +103,7 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             .orElse(null);
 
     String summary;
+    String eventNameLabel = "Event Name";
 
     if (configType == "stage") {
       eventName = Optional.ofNullable(event.content).map(e -> (String) e.get("name")).orElse(null);
@@ -110,9 +115,11 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
               .orElse(null);
 
       eventName = eventName != null ? eventName : stageName;
+      eventNameLabel = "Stage Name";
       summary =
           String.format("Stage %s for %s's %s pipeline ", eventName, application, executionName);
     } else if (configType == "pipeline") {
+      eventNameLabel = "Pipeline Name";
       summary = String.format("%s's %s pipeline ", application, executionName);
     } else {
       summary = String.format("%s's %s task ", application, executionId);
@@ -123,35 +130,60 @@ public class MicrosoftTeamsNotificationAgent extends AbstractEventNotificationAg
             + " "
             + (status.equalsIgnoreCase("complete") ? "completed successfully" : status);
 
-    MicrosoftTeamsMessage teamsMessage = new MicrosoftTeamsMessage(summary, status);
-    MicrosoftTeamsSection section = teamsMessage.createSection(configType, cardTitle);
+    // Determine theme color based on status
+    String themeColor = "0076D7"; // Default blue
+    if (status != null) {
+      String statusLower = status.toLowerCase();
+      if (statusLower.contains("failed")) {
+        themeColor = "EB1A1A"; // Red
+      } else if (statusLower.contains("complete")) {
+        themeColor = "73DB69"; // Green
+      }
+    }
 
-    section.setApplicationName(application);
-    section.setDescription(executionDescription);
-    section.setExecutionName(executionName);
-    section.setEventName(eventName);
-    section.setMessage(message);
-    section.setStatus(status);
-    section.setSummary(summary);
-    section.setPotentialAction(executionUrl, null);
+    // Capitalize status for display
+    String displayStatus =
+        status != null ? status.substring(0, 1).toUpperCase() + status.substring(1) : null;
 
-    teamsMessage.addSection(section);
+    // Build template context
+    Map<String, Object> templateContext = new HashMap<>();
+    templateContext.put("correlationId", UUID.randomUUID().toString());
+    templateContext.put("summary", summary);
+    templateContext.put("cardTitle", cardTitle);
+    templateContext.put("themeColor", themeColor);
+    templateContext.put("applicationName", application);
+    templateContext.put("executionName", executionName);
+    templateContext.put("executionUrl", executionUrl);
+    templateContext.put("eventName", eventName);
+    templateContext.put("eventNameLabel", eventNameLabel);
+    templateContext.put("description", executionDescription);
+    templateContext.put("customMessage", customMessage);
+    templateContext.put("status", displayStatus);
+    templateContext.put("spinnakerUrl", getSpinnakerUrl());
+    templateContext.put("event", event);
+    templateContext.put("configType", configType);
 
     log.info("Sending Microsoft Teams notification");
     String webhookUrl =
         Optional.ofNullable(preference).map(p -> (String) p.get("address")).orElse(null);
 
-    ResponseBody response = teamsService.sendMessage(webhookUrl, teamsMessage);
-
     try {
-      log.info(
-          "Received response from Microsoft Teams Webhook for execution id {}. {}",
-          executionId,
-          response.string());
-    } catch (IOException e) {
-      log.info(
-          "Received response from Microsoft Teams Webhook for execution id {} but failed to deserialize",
-          executionId);
+      String renderedMessage = teamsTemplateEngine.render("pipeline-notification", templateContext);
+      ResponseBody response = teamsService.sendMessage(webhookUrl, renderedMessage);
+
+      try {
+        log.info(
+            "Received response from Microsoft Teams Webhook for execution id {}. {}",
+            executionId,
+            response.string());
+      } catch (IOException e) {
+        log.info(
+            "Received response from Microsoft Teams Webhook for execution id {} but failed to deserialize",
+            executionId);
+      }
+    } catch (MicrosoftTeamsTemplateEngine.TemplateRenderException e) {
+      log.error("Failed to render Microsoft Teams notification template", e);
+      throw new RuntimeException("Failed to send Microsoft Teams notification", e);
     }
   }
 }
