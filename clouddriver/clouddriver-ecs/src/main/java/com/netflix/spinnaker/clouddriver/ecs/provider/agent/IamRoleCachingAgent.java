@@ -88,10 +88,9 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
     Collection<CacheData> newData = newDataMap.get(IAM_ROLE.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(IAM_ROLE.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                IAM_ROLE.toString(), Keys.buildGlob(IAM_ROLE, accountName, null)));
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
     logUpcomingActions(newDataMap, evictionsByKey);
