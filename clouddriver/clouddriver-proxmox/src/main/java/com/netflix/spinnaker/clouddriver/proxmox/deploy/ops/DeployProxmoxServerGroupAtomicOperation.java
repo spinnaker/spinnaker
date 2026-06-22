@@ -84,6 +84,23 @@ public class DeployProxmoxServerGroupAtomicOperation
       pollTaskUntilDone(api, targetNode, configUpid);
     }
 
+    if (!"lxc".equals(vmType) && description.getDiskSize() != null) {
+      updateStatus(
+          "Resizing disk " + description.getDiskDevice() + " to " + description.getDiskSize());
+      Map<String, String> resizeParams = new LinkedHashMap<>();
+      resizeParams.put("disk", description.getDiskDevice());
+      resizeParams.put("size", description.getDiskSize());
+      String resizeUpid = executeCall(api.resizeVmDisk(targetNode, newVmid, resizeParams));
+      if (resizeUpid != null && resizeUpid.startsWith("UPID:")) {
+        pollTaskUntilDone(api, targetNode, resizeUpid);
+      }
+    }
+
+    if (!"lxc".equals(vmType) && description.isRegenerateCloudInit()) {
+      updateStatus("Regenerating cloud-init drive");
+      executeCall(api.regenerateCloudInit(targetNode, newVmid, Map.of()));
+    }
+
     String name = description.getName();
     updateStatus("Deployed " + vmType + " '" + name + "' (vmid " + newVmid + ") on " + targetNode);
 
@@ -123,6 +140,19 @@ public class DeployProxmoxServerGroupAtomicOperation
     }
     if (description.getNet0() != null) {
       params.put("net0", description.getNet0());
+    }
+    if (!"lxc".equals(description.getVmType()) && description.getIpconfig0() != null) {
+      params.put("ipconfig0", description.getIpconfig0());
+    }
+    if (!"lxc".equals(description.getVmType()) && description.getBios() != null) {
+      params.put("bios", description.getBios());
+      if ("ovmf".equals(description.getBios())) {
+        String efiPool =
+            description.getEfiStorage() != null
+                ? description.getEfiStorage()
+                : description.getStorage();
+        params.put("efidisk0", efiPool + ":1,efitype=4m,pre-enrolled-keys=0");
+      }
     }
 
     String tagString = buildTagString(description.getMoniker(), description.getTags());

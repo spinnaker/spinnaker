@@ -100,6 +100,23 @@ public interface ProxmoxApiService {
   Call<ProxmoxResponse<String>> updateVmConfig(
       @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
 
+  /**
+   * Resize a QEMU VM disk. Returns a UPID.
+   *
+   * <p>Required params: {@code disk} (e.g. {@code "scsi0"}), {@code size} (e.g. {@code "20G"} or
+   * {@code "+10G"} for relative growth).
+   */
+  @FormUrlEncoded
+  @PUT("nodes/{node}/qemu/{vmid}/resize")
+  Call<ProxmoxResponse<String>> resizeVmDisk(
+      @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
+
+  /** Regenerate the cloud-init ISO attached to a QEMU VM. Synchronous; returns null. */
+  @FormUrlEncoded
+  @PUT("nodes/{node}/qemu/{vmid}/cloudinit")
+  Call<ProxmoxResponse<String>> regenerateCloudInit(
+      @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
+
   // ── LXC (container) lifecycle ──────────────────────────────────────────────
 
   /**
