@@ -84,10 +84,10 @@ public class ServiceDiscoveryCachingAgent implements CachingAgent, AccountAware 
     Collection<CacheData> newData = newDataMap.get(SERVICE_DISCOVERY_REGISTRIES.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(SERVICE_DISCOVERY_REGISTRIES.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountRegionFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                SERVICE_DISCOVERY_REGISTRIES.toString(),
+                Keys.buildGlob(SERVICE_DISCOVERY_REGISTRIES, accountName, region)));
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
