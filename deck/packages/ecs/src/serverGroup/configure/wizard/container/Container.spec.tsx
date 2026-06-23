@@ -18,7 +18,12 @@ describe('Container', () => {
   const notifyAngular = (_key: string, _value: any) => {};
 
   const dockerAccounts: IAccountDetails[] = [
-    { name: 'my-docker-account', accountId: '1', requiredGroupMembership: [], type: 'dockerRegistry' } as IAccountDetails,
+    {
+      name: 'my-docker-account',
+      accountId: '1',
+      requiredGroupMembership: [],
+      type: 'dockerRegistry',
+    } as IAccountDetails,
   ];
 
   const dockerImages: IDockerImage[] = [
