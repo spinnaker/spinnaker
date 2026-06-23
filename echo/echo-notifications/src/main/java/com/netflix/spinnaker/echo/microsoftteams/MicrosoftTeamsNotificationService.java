@@ -18,9 +18,11 @@ package com.netflix.spinnaker.echo.microsoftteams;
 
 import com.netflix.spinnaker.echo.api.Notification;
 import com.netflix.spinnaker.echo.controller.EchoResponse;
-import com.netflix.spinnaker.echo.microsoftteams.api.MicrosoftTeamsSection;
 import com.netflix.spinnaker.echo.notification.NotificationService;
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,15 +36,19 @@ class MicrosoftTeamsNotificationService implements NotificationService {
 
   private final MicrosoftTeamsService teamsService;
   private final NotificationTemplateEngine notificationTemplateEngine;
+  private final MicrosoftTeamsTemplateEngine teamsTemplateEngine;
 
   @Value("${spinnaker.base-url}")
   private String spinnakerUrl;
 
   @Autowired
   public MicrosoftTeamsNotificationService(
-      MicrosoftTeamsService service, NotificationTemplateEngine engine) {
+      MicrosoftTeamsService service,
+      NotificationTemplateEngine engine,
+      MicrosoftTeamsTemplateEngine teamsTemplateEngine) {
     this.teamsService = service;
     this.notificationTemplateEngine = engine;
+    this.teamsTemplateEngine = teamsTemplateEngine;
   }
 
   @Override
@@ -61,17 +67,6 @@ class MicrosoftTeamsNotificationService implements NotificationService {
             + "/executions/details/"
             + notification.getSource().getExecutionId();
 
-    String message =
-        notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT);
-    String summary =
-        notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY);
-
-    MicrosoftTeamsMessage teamsMessage = new MicrosoftTeamsMessage(summary, null);
-    MicrosoftTeamsSection section = teamsMessage.createSection(null, "Event Notification");
-
-    section.setMessage(message);
-    section.setSummary(summary);
-
     if (notification.getAdditionalContext().get("stageId") != null) {
       link += "?refId=" + notification.getAdditionalContext().get("stageId");
 
@@ -80,20 +75,38 @@ class MicrosoftTeamsNotificationService implements NotificationService {
       }
     }
 
+    String message =
+        notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.SUBJECT);
+    String summary =
+        notificationTemplateEngine.build(notification, NotificationTemplateEngine.Type.BODY);
+
+    // Build template context
+    Map<String, Object> context = new HashMap<>();
+    context.put("correlationId", UUID.randomUUID().toString());
+    context.put("summary", summary);
+    context.put("message", message);
+    context.put("executionUrl", link);
+    context.put("themeColor", "0076D7"); // Default blue color
+    context.put("spinnakerUrl", spinnakerUrl);
+    context.put("notification", notification);
+
     if (notification.isInteractive()) {
       log.info("Notification is interactive");
-      section.setPotentialAction(null, notification.getInteractiveActions());
-    } else {
-      section.setPotentialAction(link, null);
+      context.put("interactiveActions", notification.getInteractiveActions());
     }
 
-    teamsMessage.addSection(section);
+    try {
+      String renderedMessage = teamsTemplateEngine.render("event-notification", context);
 
-    for (String webhookUrl : notification.getTo()) {
-      log.info("Sending Microsoft Teams event notification");
-      log.debug("Teams Webhook URL: {}", webhookUrl);
+      for (String webhookUrl : notification.getTo()) {
+        log.info("Sending Microsoft Teams event notification");
+        log.debug("Teams Webhook URL: {}", webhookUrl);
 
-      teamsService.sendMessage(webhookUrl, teamsMessage);
+        teamsService.sendMessage(webhookUrl, renderedMessage);
+      }
+    } catch (MicrosoftTeamsTemplateEngine.TemplateRenderException e) {
+      log.error("Failed to render Microsoft Teams notification template", e);
+      throw new RuntimeException("Failed to send Microsoft Teams notification", e);
     }
 
     return new EchoResponse.Void();

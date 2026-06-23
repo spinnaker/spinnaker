@@ -93,8 +93,8 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
 
     def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.getAlarmArn())
     def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.getAlarmArn())
-    def oldData = [new DefaultCacheData(oldKey1, attributes1, [:]), new DefaultCacheData(oldKey2, attributes2, [:])]
-    providerCache.getAll(Keys.Namespace.ALARMS.ns) >> oldData
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> [oldKey1, oldKey2]
 
     def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.getAlarmArn(), "my-cluster")
     def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.getAlarmArn(), "my-cluster")
@@ -108,6 +108,26 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns].size() == 2
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.id.containsAll([newKey1, newKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.attributes.containsAll([attributes1, attributes2])
+  }
+
+  def 'should use filterIdentifiers with account and region glob for evictions'() {
+    given:
+    def metricAlarm = new MetricAlarm().withAlarmName("alarm-name").withAlarmArn("alarmArn")
+    def describeAlarmsResult = new DescribeAlarmsResult().withMetricAlarms([metricAlarm])
+    clientProvider.getAmazonCloudWatch(_, _, _) >> cloudWatch
+    cloudWatch.describeAlarms(_) >> describeAlarmsResult
+
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    def oldKey = Keys.getAlarmKey(ACCOUNT, REGION, "old-alarm", "")
+    def oldIdentifiers = [oldKey]
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> oldIdentifiers
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.evictions[Keys.Namespace.ALARMS.ns] != null
+    result.evictions[Keys.Namespace.ALARMS.ns].containsAll(oldIdentifiers)
   }
 
 }
