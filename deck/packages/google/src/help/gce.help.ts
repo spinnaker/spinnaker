@@ -222,6 +222,8 @@ const helpContents: { [key: string]: string } = {
     '<p>Google Cloud Regional External HTTP(S) Load Balancing provides regional Application Load Balancing using EXTERNAL_MANAGED forwarding rules, regional URL maps, regional backend services, regional external addresses, and a proxy-only subnet in the selected VPC and region.</p>',
   'gce.loadBalancerType.Internal':
     '<p>Internal TCP/UDP Load Balancing is a regional load balancer that enables you to run and scale your services behind a private load balancing IP address that is accessible only to your internal virtual machine instances.</p>',
+  'gce.loadBalancerType.Regional External TCP/UDP':
+    '<p>Regional External TCP/UDP Load Balancing is a regional passthrough load balancer backed by an external forwarding rule, regional backend service, and regional health check.</p>',
   'gce.loadBalancerType.SSL':
     '<p>Google Cloud SSL Proxy Load Balancing terminates user SSL (TLS) connections at the load balancing layer, then balances the connections across your instances using the SSL or TCP protocols. This supports both IPv4 and IPv6 addresses for client traffic.</p>',
   'gce.loadBalancerType.TCP':

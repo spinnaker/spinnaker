@@ -19,6 +19,7 @@ import { GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER } 
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 import { GOOGLE_LOADBALANCER_CONFIGURE_INTERNAL_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER } from './loadBalancer/configure/internalhttp/createInternalHttpLoadBalancer.controller';
 import { GOOGLE_LOADBALANCER_CONFIGURE_NETWORK_CREATELOADBALANCER_CONTROLLER } from './loadBalancer/configure/network/createLoadBalancer.controller';
+import { GCE_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER_CTRL } from './loadBalancer/configure/regionalexternalnetwork/gceCreateRegionalExternalNetworkLoadBalancer.controller';
 import { GCE_SSL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
 import { GCE_TCP_LOAD_BALANCER_CTRL } from './loadBalancer/configure/tcp/gceCreateTcpLoadBalancer.controller';
 import { GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERDETAIL_CONTROLLER } from './loadBalancer/details/loadBalancerDetail.controller';
@@ -58,6 +59,7 @@ export const GOOGLE_MODULE = 'spinnaker.gce';
 module(GOOGLE_MODULE, [
   LOAD_BALANCER_SET_TRANSFORMER,
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
+  GCE_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER_CTRL,
   GCE_LOAD_BALANCER_CHOICE_MODAL,
   GCE_SSL_LOAD_BALANCER_CTRL,
   GCE_TCP_LOAD_BALANCER_CTRL,

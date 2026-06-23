@@ -42,6 +42,12 @@ const loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap = {
     editTemplateUrl: require('../common/commonEditLoadBalancer.html'),
     controller: 'gceInternalLoadBalancerCtrl',
   },
+  REGIONAL_EXTERNAL_NETWORK: {
+    label: 'Regional External TCP/UDP',
+    createTemplateUrl: require('../common/commonCreateLoadBalancer.html'),
+    editTemplateUrl: require('../common/commonEditLoadBalancer.html'),
+    controller: 'gceRegionalExternalNetworkLoadBalancerCtrl',
+  },
   SSL: {
     label: 'SSL',
     createTemplateUrl: require('../common/commonCreateLoadBalancer.html'),
