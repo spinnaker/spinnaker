@@ -148,9 +148,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
     3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
-    1 * computeMock.forwardingRules() >> forwardingRules
-    1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
-    1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+    2 * computeMock.forwardingRules() >> forwardingRules
+    2 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+    2 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
   }
 
   @Unroll
@@ -246,9 +246,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     1 * targetTcpProxies.list(PROJECT_NAME) >> targetTcpProxiesList
     1 * targetTcpProxiesList.execute() >> new TargetTcpProxyList(items: [])
 
-    1 * computeMock.forwardingRules() >> forwardingRules
-    1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
-    1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+    2 * computeMock.forwardingRules() >> forwardingRules
+    2 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
+    2 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
     if (isRegional) {
       1 * computeMock.regionAutoscalers() >> regionAutoscalersMock
@@ -347,10 +347,10 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
     def task = Mock(Task)
     def bs = isRegional ?
-      new BackendService(backends: lbNames.collect {
+      new BackendService(loadBalancingScheme: 'INTERNAL', backends: lbNames.collect {
         new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name))
       }) :
-      new BackendService(backends: lbNames.collect {
+      new BackendService(loadBalancingScheme: 'INTERNAL', backends: lbNames.collect {
         new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name))
       })
 
@@ -440,10 +440,10 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     googleLoadBalancerProviderMock.getApplicationLoadBalancers("") >> loadBalancerList
     def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
     def bs = isRegional ?
-      new BackendService(backends: lbNames.collect {
+      new BackendService(loadBalancingScheme: 'INTERNAL', backends: lbNames.collect {
         new Backend(group: GCEUtil.buildZonalServerGroupUrl(PROJECT_NAME, ZONE, serverGroup.name))
       }) :
-      new BackendService(backends: lbNames.collect {
+      new BackendService(loadBalancingScheme: 'INTERNAL', backends: lbNames.collect {
         new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, serverGroup.name))
       })
 

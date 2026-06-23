@@ -73,6 +73,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
@@ -420,6 +421,11 @@ public class BasicGoogleDeployHandler
         foundLB.stream()
             .filter(lb -> lb.getLoadBalancerType() == GoogleLoadBalancerType.EXTERNAL_MANAGED)
             .collect(Collectors.toList());
+    info.regionalExternalNetworkLoadBalancers =
+        foundLB.stream()
+            .filter(
+                lb -> lb.getLoadBalancerType() == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK)
+            .collect(Collectors.toList());
     // Queue SSL LBs to update.
     info.sslLoadBalancers =
         foundLB.stream()
@@ -492,6 +498,7 @@ public class BasicGoogleDeployHandler
         || !loadBalancerInfo.getTcpLoadBalancers().isEmpty()
         || !loadBalancerInfo.getInternalLoadBalancers().isEmpty()
         || !loadBalancerInfo.getInternalHttpLoadBalancers().isEmpty()
+        || !CollectionUtils.isEmpty(loadBalancerInfo.getRegionalExternalNetworkLoadBalancers())
         || !CollectionUtils.isEmpty(loadBalancerInfo.getExternalHttpLoadBalancers());
   }
 
@@ -608,7 +615,8 @@ public class BasicGoogleDeployHandler
       String region) {
     if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())
-        || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())) {
+        || !CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
+        || !CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
       Map<String, String> instanceMetadata = description.getInstanceMetadata();
       List<String> existingRegionalLbs =
@@ -638,6 +646,12 @@ public class BasicGoogleDeployHandler
           CollectionUtils.isEmpty(lbInfo.getExternalHttpLoadBalancers())
               ? Collections.emptyList()
               : lbInfo.getExternalHttpLoadBalancers().stream()
+                  .map(GoogleLoadBalancerView::getName)
+                  .collect(Collectors.toList()));
+      ilbNames.addAll(
+          CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())
+              ? Collections.emptyList()
+              : lbInfo.getRegionalExternalNetworkLoadBalancers().stream()
                   .map(GoogleLoadBalancerView::getName)
                   .collect(Collectors.toList()));
 
@@ -673,12 +687,21 @@ public class BasicGoogleDeployHandler
           externalHttpLbBackendServicesFromLoadBalancers.stream()
               .distinct()
               .collect(Collectors.toList());
+      List<String> regionalExternalNetworkLbBackendServices =
+          CollectionUtils.isEmpty(lbInfo.getRegionalExternalNetworkLoadBalancers())
+              ? Collections.emptyList()
+              : lbInfo.getRegionalExternalNetworkLoadBalancers().stream()
+                  .map(lb -> (GoogleRegionalExternalNetworkLoadBalancer.View) lb)
+                  .map(it -> it.getBackendService().getName())
+                  .distinct()
+                  .collect(Collectors.toList());
       // Regional HTTP-family LBs attach server groups through regional backend services, not
       // forwarding rules. Include services from the selected LB views so first deploys can attach
       // without requiring backend-service metadata to already exist on the instance template.
       ilbServices.addAll(regionBackendServices);
       ilbServices.addAll(internalHttpLbBackendServices);
       ilbServices.addAll(externalHttpLbBackendServices);
+      ilbServices.addAll(regionalExternalNetworkLbBackendServices);
       ilbServices = ilbServices.stream().distinct().collect(Collectors.toList());
       if (!ilbServices.isEmpty()) {
         // Regional HTTP(S) load balancers use the same server-group metadata keys for internal
@@ -701,6 +724,9 @@ public class BasicGoogleDeployHandler
                 backendToAdd = GCEUtil.backendFromLoadBalancingPolicy(policy);
               } else {
                 backendToAdd = new Backend();
+                if (regionalExternalNetworkLbBackendServices.contains(backendServiceName)) {
+                  backendToAdd.setBalancingMode("CONNECTION");
+                }
               }
               if (Boolean.TRUE.equals(description.getRegional())) {
                 backendToAdd.setGroup(
@@ -1220,6 +1246,7 @@ public class BasicGoogleDeployHandler
     if (!Boolean.TRUE.equals(description.getDisableTraffic())
         && (!lbInfo.internalLoadBalancers.isEmpty()
             || !lbInfo.internalHttpLoadBalancers.isEmpty()
+            || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
             || !lbInfo.externalHttpLoadBalancers.isEmpty())) {
       regionBackendServicesToUpdate.forEach(
           backendService -> {
@@ -1355,6 +1382,7 @@ public class BasicGoogleDeployHandler
         || (!description.getDisableTraffic()
             && (!lbInfo.internalLoadBalancers.isEmpty()
                 || !lbInfo.internalHttpLoadBalancers.isEmpty()
+                || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
                 || !lbInfo.externalHttpLoadBalancers.isEmpty()))) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
@@ -1443,6 +1471,7 @@ public class BasicGoogleDeployHandler
         || (!description.getDisableTraffic()
             && (!lbInfo.internalLoadBalancers.isEmpty()
                 || !lbInfo.internalHttpLoadBalancers.isEmpty()
+                || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
                 || !lbInfo.externalHttpLoadBalancers.isEmpty()))) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
@@ -1677,6 +1706,7 @@ public class BasicGoogleDeployHandler
     List<GoogleLoadBalancerView> internalLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> internalHttpLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> externalHttpLoadBalancers = new ArrayList<>();
+    List<GoogleLoadBalancerView> regionalExternalNetworkLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> sslLoadBalancers = new ArrayList<>();
     List<GoogleLoadBalancerView> tcpLoadBalancers = new ArrayList<>();
   }

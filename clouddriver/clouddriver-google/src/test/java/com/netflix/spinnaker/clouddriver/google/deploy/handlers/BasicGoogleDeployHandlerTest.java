@@ -70,6 +70,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider;
@@ -1276,6 +1277,52 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(1, result.size());
     assertEquals("external-http-load-balancer", instanceMetadata.get("load-balancer-names"));
     assertEquals("external-backend-service", instanceMetadata.get("region-backend-service-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithRegionalExternalNetworkLoadBalancer()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policyMock = mock(GoogleHttpLoadBalancingPolicy.class);
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfoMock =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    when(lbInfoMock.getInternalLoadBalancers()).thenReturn(new ArrayList<>());
+    when(lbInfoMock.getInternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+    when(lbInfoMock.getExternalHttpLoadBalancers()).thenReturn(new ArrayList<>());
+
+    GoogleBackendService googleBackendService = new GoogleBackendService();
+    googleBackendService.setName("regional-external-backend");
+    List<GoogleLoadBalancerView> regionalExternalNetworkLB = new ArrayList<>();
+    GoogleRegionalExternalNetworkLoadBalancer googleRegionalExternalNetworkLB =
+        new GoogleRegionalExternalNetworkLoadBalancer();
+    googleRegionalExternalNetworkLB.setName("regional-external-network-load-balancer");
+    googleRegionalExternalNetworkLB.setBackendService(googleBackendService);
+    regionalExternalNetworkLB.add(googleRegionalExternalNetworkLB.getView());
+    when(lbInfoMock.getRegionalExternalNetworkLoadBalancers())
+        .thenReturn(regionalExternalNetworkLB);
+
+    Map<String, String> instanceMetadata = new HashMap<>();
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+
+    BackendService backendService = new BackendService();
+    doReturn(backendService)
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildZonalServerGroupUrl(any(), any(), any()))
+        .thenReturn("zonal-server-group-url");
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfoMock, policyMock, "us-central1");
+
+    assertNotNull(result);
+    assertEquals(1, result.size());
+    assertEquals(
+        "regional-external-network-load-balancer", instanceMetadata.get("load-balancer-names"));
+    assertEquals("regional-external-backend", instanceMetadata.get("region-backend-service-names"));
+    assertEquals("CONNECTION", result.get(0).getBackends().get(0).getBalancingMode());
   }
 
   @Test

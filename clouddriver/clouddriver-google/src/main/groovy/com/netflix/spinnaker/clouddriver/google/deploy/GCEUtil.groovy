@@ -424,6 +424,17 @@ class GCEUtil {
     }
   }
 
+  static boolean isInternalPassthroughForwardingRule(ForwardingRule forwardingRule) {
+    forwardingRule?.backendService && !forwardingRule?.target && forwardingRule?.loadBalancingScheme == "INTERNAL"
+  }
+
+  static boolean isRegionalExternalNetworkPassthroughForwardingRule(ForwardingRule forwardingRule) {
+    forwardingRule?.backendService &&
+      !forwardingRule?.target &&
+      forwardingRule?.loadBalancingScheme == "EXTERNAL" &&
+      forwardingRule?.IPProtocol in ["TCP", "UDP"]
+  }
+
   static List<String> queryInstanceUrls(String projectName,
                                         String region,
                                         List<String> instanceLocalNames,
@@ -1066,29 +1077,34 @@ class GCEUtil {
     Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
     Map metadataMap = buildMapFromMetadata(instanceMetadata)
     def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
-    def internalLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, regionalLoadBalancersInMetadata, task, phase)
+    def internalBackendServiceNames = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in regionalLoadBalancersInMetadata
+    }
       .findAll { it.loadBalancerType == GoogleLoadBalancerType.INTERNAL }
-    if (!internalLoadBalancersToAddTo) {
+      .collect { GoogleInternalLoadBalancer.View view -> view.backendService.name }
+    if (!internalBackendServiceNames) {
       log.warn("Cache call missed for internal load balancer, making a call to GCP")
       List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
       ).getItems()
-      internalLoadBalancersToAddTo = projectRegionalForwardingRules.findAll {
-        // TODO(jacobkiefer): Update this check if any other types of loadbalancers support backend services from regional forwarding rules.
-        it.backendService && it.name in serverGroup.loadBalancers
+      internalBackendServiceNames = projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
+        isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
+      }.collect { ForwardingRule forwardingRule ->
+        getLocalName(forwardingRule.backendService)
       }
     }
 
-    if (internalLoadBalancersToAddTo) {
-      internalLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
-        def ilbView = loadBalancerView as GoogleInternalLoadBalancer.View
-        def backendServiceName = ilbView.backendService.name
+    if (internalBackendServiceNames) {
+      internalBackendServiceNames.each { String backendServiceName ->
         BackendService backendService = executor.timeExecute(
           compute.regionBackendServices().get(project, region, backendServiceName),
           "compute.regionBackendServices",
           executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+        if (backendService.loadBalancingScheme != "INTERNAL") {
+          return
+        }
         Backend backendToAdd = new Backend(balancingMode: 'CONNECTION')
         if (serverGroup.regional) {
           backendToAdd.setGroup(buildRegionalServerGroupUrl(project, region, serverGroupName))
@@ -1107,6 +1123,66 @@ class GCEUtil {
           null, task, "compute.${region}.backendServices.update", phase)
         task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in Internal load balancer backend service ${backendServiceName}."
       }
+    }
+  }
+
+  static void addRegionalExternalNetworkLoadBalancerBackends(Compute compute,
+                                                             String project,
+                                                             GoogleServerGroup.View serverGroup,
+                                                             GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                                             Task task,
+                                                             String phase,
+                                                             GoogleOperationPoller googleOperationPoller,
+                                                             GoogleExecutorTraits executor) {
+    String serverGroupName = serverGroup.name
+    String region = serverGroup.region
+    Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+    Map metadataMap = buildMapFromMetadata(instanceMetadata)
+    def regionalLoadBalancersInMetadata = metadataMap?.get(REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def backendServiceNames = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in regionalLoadBalancersInMetadata
+    }
+      .findAll { it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK }
+      .collect { GoogleRegionalExternalNetworkLoadBalancer.View view -> view.backendService.name }
+    if (!backendServiceNames) {
+      log.warn("Cache call missed for regional external network load balancer, making a call to GCP")
+      List<ForwardingRule> projectRegionalForwardingRules = executor.timeExecute(
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+      ).getItems()
+      backendServiceNames = projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
+        isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
+      }.collect { ForwardingRule forwardingRule ->
+        getLocalName(forwardingRule.backendService)
+      }
+    }
+
+    backendServiceNames?.each { String backendServiceName ->
+      BackendService backendService = executor.timeExecute(
+        compute.regionBackendServices().get(project, region, backendServiceName),
+        "compute.regionBackendServices",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      if (backendService.loadBalancingScheme != "EXTERNAL") {
+        return
+      }
+      Backend backendToAdd = new Backend(balancingMode: 'CONNECTION')
+      if (serverGroup.regional) {
+        backendToAdd.setGroup(buildRegionalServerGroupUrl(project, region, serverGroupName))
+      } else {
+        backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
+      }
+      if (backendService.backends == null) {
+        backendService.backends = []
+      }
+      backendService.backends << backendToAdd
+      def updateOp = executor.timeExecute(
+        compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+        "compute.regionBackendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, updateOp.getName(),
+        null, task, "compute.${region}.backendServices.update", phase)
+      task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in regional external network load balancer backend service ${backendServiceName}."
     }
   }
 
@@ -1664,8 +1740,10 @@ class GCEUtil {
                                                   GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
+    def internalLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
+      (serverGroup.loadBalancers ?: [])
     def foundInternalLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL
+      it.name in internalLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.INTERNAL
     }
 
     List<String> backendServicesToDeleteFrom = []
@@ -1680,8 +1758,7 @@ class GCEUtil {
       ).getItems()
 
       def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
-        // TODO(jacobkiefer): Update this check if any other types of loadbalancers support backend services from regional forwarding rules.
-        forwardingRule.backendService && forwardingRule.name in serverGroup.loadBalancers
+        isInternalPassthroughForwardingRule(forwardingRule) && forwardingRule.name in internalLoadBalancersInMetadata
       }
       backendServicesToDeleteFrom = matchingForwardingRules.collect { ForwardingRule forwardingRule ->
         getLocalName(forwardingRule.getBackendService())
@@ -1694,17 +1771,78 @@ class GCEUtil {
         compute.regionBackendServices().get(project, region, backendServiceName),
         "compute.regionBackendServices.get",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      if (backendService.loadBalancingScheme != "INTERNAL") {
+        return
+      }
       backendService?.backends?.removeAll { Backend backend ->
         (getLocalName(backend.group) == serverGroupName) &&
           (Utils.getRegionFromGroupUrl(backend.group) == region)
       }
       def updateOp = executor.timeExecute(
         compute.regionBackendServices().update(project, region, backendServiceName, backendService),
-        "compute.backendServices.update",
-        executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        "compute.regionBackendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
       googleOperationPoller.waitForRegionalOperation(compute, project, region, updateOp.getName(), null,
         task, "compute.${region}.backendServices.update", phase)
       task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from internal load balancer backend service ${backendServiceName}."
+    }
+  }
+
+  static void destroyRegionalExternalNetworkLoadBalancerBackends(Compute compute,
+                                                                 String project,
+                                                                 GoogleServerGroup.View serverGroup,
+                                                                 GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                                                 Task task,
+                                                                 String phase,
+                                                                 GoogleOperationPoller googleOperationPoller,
+                                                                 GoogleExecutorTraits executor) {
+    def serverGroupName = serverGroup.name
+    def region = serverGroup.region
+    def loadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
+      (serverGroup.loadBalancers ?: [])
+    def foundLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in loadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK
+    }
+
+    List<String> backendServicesToDeleteFrom = []
+    if (foundLoadBalancers) {
+      backendServicesToDeleteFrom = foundLoadBalancers.collect { lb -> lb.backendService.name }
+    } else {
+      log.warn("Cache call missed for regional external network load balancer, making a call to GCP")
+      List<ForwardingRule> projectForwardingRules = executor.timeExecute(
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
+      ).getItems()
+
+      def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
+        isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in loadBalancersInMetadata
+      }
+      backendServicesToDeleteFrom = matchingForwardingRules.collect { ForwardingRule forwardingRule ->
+        getLocalName(forwardingRule.backendService)
+      }
+    }
+
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following regional external network backend services: ${backendServicesToDeleteFrom}")
+    backendServicesToDeleteFrom?.each { String backendServiceName ->
+      BackendService backendService = executor.timeExecute(
+        compute.regionBackendServices().get(project, region, backendServiceName),
+        "compute.regionBackendServices.get",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      if (backendService.loadBalancingScheme != "EXTERNAL") {
+        return
+      }
+      backendService?.backends?.removeAll { Backend backend ->
+        (getLocalName(backend.group) == serverGroupName) &&
+          (Utils.getRegionFromGroupUrl(backend.group) == region)
+      }
+      def updateOp = executor.timeExecute(
+        compute.regionBackendServices().update(project, region, backendServiceName, backendService),
+        "compute.regionBackendServices.update",
+        executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, updateOp.getName(), null,
+        task, "compute.${region}.backendServices.update", phase)
+      task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from regional external network load balancer backend service ${backendServiceName}."
     }
   }
 
