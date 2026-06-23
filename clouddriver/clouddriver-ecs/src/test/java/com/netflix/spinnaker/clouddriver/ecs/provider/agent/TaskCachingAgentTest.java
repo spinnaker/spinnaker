@@ -285,7 +285,7 @@ public class TaskCachingAgentTest extends CommonCachingAgent {
     // When: We want the pending on demand requests for this particular account/region...
     Collection<Map<String, Object>> results = agent.pendingOnDemandRequests(testProviderCache);
 
-    // Then: Should only match the selected on demand entires for this account/region
+    // Then: Should only match the selected on demand entries for this account/region
     assertThat(results)
         .withFailMessage(
             "Incorrect number of results of "
