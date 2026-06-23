@@ -30,6 +30,8 @@ module(GOOGLE_LOADBALANCER_DETAILS_LOADBALANCERTYPE_LOADBALANCERTYPE_COMPONENT, 
           } else {
             return `${prefix}HTTP`;
           }
+        } else if (lb.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK') {
+          return 'Regional External TCP/UDP';
         } else {
           return lb.loadBalancerType;
         }

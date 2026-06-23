@@ -71,7 +71,7 @@ class DeleteLoadBalancerModalController implements IController {
     if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return true;
     } else {
-      return !!this.loadBalancer.healthCheck;
+      return !!(this.loadBalancer.healthCheck || this.loadBalancer.backendService?.healthCheck);
     }
   }
 

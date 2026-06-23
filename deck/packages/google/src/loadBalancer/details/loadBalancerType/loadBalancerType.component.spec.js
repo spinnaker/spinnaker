@@ -83,6 +83,16 @@ describe('Component: gceLoadBalancerType', () => {
     expect(ctrl.type).toBe('Regional External HTTP');
   });
 
+  it('renders regional external TCP/UDP for regional external network load balancers', () => {
+    const ctrl = buildController({
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+    });
+
+    ctrl.$onInit();
+
+    expect(ctrl.type).toBe('Regional External TCP/UDP');
+  });
+
   // Both fields populated simultaneously — the || means either triggers HTTPS.
   it('detects HTTPS when both certificate and certificateMap are present', () => {
     const ctrl = buildController({

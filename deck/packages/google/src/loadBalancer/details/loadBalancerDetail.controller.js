@@ -105,7 +105,10 @@ angular
             AccountService.getAccountDetails(loadBalancer.accountId).then(function (accountDetails) {
               let resourceTypes;
 
-              if ($scope.loadBalancer.loadBalancerType === 'INTERNAL') {
+              if (
+                $scope.loadBalancer.loadBalancerType === 'INTERNAL' ||
+                $scope.loadBalancer.loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK'
+              ) {
                 resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
               } else if ($scope.loadBalancer.loadBalancerType === 'NETWORK') {
                 resourceTypes = ['gce_forwarding_rule', 'gce_target_pool', 'gce_health_check'];
