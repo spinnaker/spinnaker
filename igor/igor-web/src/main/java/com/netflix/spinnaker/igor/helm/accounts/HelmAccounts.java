@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.igor.helm.model.HelmIndex;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
 public class HelmAccounts {
-  private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+  private final ObjectMapper mapper;
 
   @Autowired HelmAccountsService service;
 
@@ -39,6 +40,9 @@ public class HelmAccounts {
 
   public HelmAccounts() {
     this.accounts = new ArrayList<>();
+    this.mapper =
+        new ObjectMapper(
+            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
   }
 
   public HelmIndex getIndex(String account) {

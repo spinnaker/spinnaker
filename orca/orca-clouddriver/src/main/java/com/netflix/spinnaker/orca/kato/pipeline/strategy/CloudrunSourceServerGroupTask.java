@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
@@ -54,7 +55,9 @@ public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTas
 
   private void setRegionInContextFromPayload(StageExecution stage) {
 
-    ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
+    ObjectMapper yamlReader =
+        new ObjectMapper(
+            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
     if (stage.getContext() != null
         && stage.getContext().get("configFiles") != null
         && (!((List) stage.getContext().get("configFiles")).isEmpty())) {
