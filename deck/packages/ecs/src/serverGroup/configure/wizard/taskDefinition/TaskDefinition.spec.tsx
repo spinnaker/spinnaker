@@ -31,7 +31,7 @@ describe('TaskDefinition', () => {
   ];
 
   beforeEach(() => {
-    command = {
+    command = ({
       computeUnits: 256,
       reservedMemory: 512,
       imageDescription: null as any,
@@ -45,7 +45,7 @@ describe('TaskDefinition', () => {
       useTaskDefinitionArtifact: false,
       viewState: { dirty: { targetGroups: [] }, pipeline: null as any, currentStage: null as any } as any,
       backingData: { filtered: { images: [], targetGroups: [] } } as any,
-    } as any as IEcsServerGroupCommand;
+    } as any) as IEcsServerGroupCommand;
 
     spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve(dockerAccounts));
     spyOn(DockerImageReader, 'findImages').and.returnValue(Promise.resolve(dockerImages));
