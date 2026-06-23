@@ -82,9 +82,11 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         "compute.forwardingRules.list",
         TAG_SCOPE, SCOPE_GLOBAL).getItems()
 
-    ForwardingRule forwardingRule = projectForwardingRules.find { it.name == forwardingRuleName }
+    ForwardingRule forwardingRule = projectForwardingRules.find {
+      it.name == forwardingRuleName && GCEUtil.isInternalPassthroughForwardingRule(it)
+    }
     if (forwardingRule == null) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Internal forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
     }
 
@@ -94,7 +96,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     List<String> listenersToDelete = []
     projectForwardingRules.each { ForwardingRule rule ->
       try {
-        if (GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
+        if (GCEUtil.isInternalPassthroughForwardingRule(rule) &&
+          GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
           listenersToDelete << rule.getName()
         }
       } catch (GoogleJsonResponseException e) {
@@ -124,6 +127,10 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     ) as BackendService
     if (backendService == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
+        task, BASE_PHASE)
+    }
+    if (backendService.loadBalancingScheme != "INTERNAL") {
+      GCEUtil.updateStatusAndThrowNotFoundException("Internal backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
     }
 
@@ -178,18 +185,20 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         break
     }
 
-    def healthCheck = safeRetry.doRetry(
-      healthCheckGet,
-      "Health check $healthCheckName",
-      task,
-      [400, 403, 412],
-      [],
-      [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
-      registry
-    )
-    if (healthCheck == null) {
-      GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
-        task, BASE_PHASE)
+    if (description.deleteHealthChecks) {
+      def healthCheck = safeRetry.doRetry(
+        healthCheckGet,
+        "Health check $healthCheckName",
+        task,
+        [400, 403, 412],
+        [],
+        [action: "get", phase: BASE_PHASE, operation: operationName, (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+      )
+      if (healthCheck == null) {
+        GCEUtil.updateStatusAndThrowNotFoundException("Health check $healthCheckName not found for $project",
+          task, BASE_PHASE)
+      }
     }
 
     // Now delete all the components, waiting for each delete operation to finish.
@@ -276,18 +285,20 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         log.warn("Unknown health check type for health check named: ${healthCheckName}.")
         break
     }
-    Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
-      deleteHealthCheckClosure,
-      "Health check $healthCheckName",
-      project,
-      task,
-      [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
-      safeRetry,
-      this
-    )
-    if (deleteHealthCheckOp) {
-      googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
-        timeoutSeconds, task, "Health check $healthCheckName", BASE_PHASE)
+    if (description.deleteHealthChecks) {
+      Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
+        deleteHealthCheckClosure,
+        "Health check $healthCheckName",
+        project,
+        task,
+        [action: 'delete', operation: 'compute.' + healthCheckType + '.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL],
+        safeRetry,
+        this
+      )
+      if (deleteHealthCheckOp) {
+        googleOperationPoller.waitForGlobalOperation(compute, project, deleteHealthCheckOp.getName(),
+          timeoutSeconds, task, "Health check $healthCheckName", BASE_PHASE)
+      }
     }
 
     task.updateStatus BASE_PHASE, "Done deleting internal load balancer $description.loadBalancerName in $region."

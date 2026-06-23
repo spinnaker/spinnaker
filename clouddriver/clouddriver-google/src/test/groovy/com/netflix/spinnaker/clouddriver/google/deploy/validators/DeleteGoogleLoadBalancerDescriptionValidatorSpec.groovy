@@ -130,6 +130,40 @@ class DeleteGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("region", _)
   }
 
+  void "pass validation with regional external network description input"() {
+    setup:
+      def description = new DeleteGoogleLoadBalancerDescription(
+          deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+          loadBalancerName: LOAD_BALANCER_NAME,
+          region: REGION,
+          loadBalancerType: GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK,
+          accountName: ACCOUNT_NAME)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "fail validation with regional external network missing region"() {
+    setup:
+      def description = new DeleteGoogleLoadBalancerDescription(
+          deleteOperationTimeoutSeconds: TIMEOUT_SECONDS,
+          loadBalancerName: LOAD_BALANCER_NAME,
+          region: null,
+          loadBalancerType: GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK,
+          accountName: ACCOUNT_NAME)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("region", _)
+  }
+
   void "null input fails validation"() {
     setup:
       def description = new DeleteGoogleLoadBalancerDescription()

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleExternalHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
@@ -193,5 +194,30 @@ class UpsertGoogleLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
       description instanceof UpsertGoogleLoadBalancerDescription
       description.networkTier == "PREMIUM"
       operation instanceof UpsertGoogleExternalHttpLoadBalancerAtomicOperation
+  }
+
+  void "regional external network type returns UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation"() {
+    setup:
+      def input = [
+        loadBalancerType: "REGIONAL_EXTERNAL_NETWORK",
+        loadBalancerName: LOAD_BALANCER_NAME,
+        region          : REGION,
+        accountName     : ACCOUNT_NAME,
+        ipProtocol      : "UDP",
+        ports           : ["53", "5353"],
+        backendService  : [
+          name       : LOAD_BALANCER_NAME,
+          healthCheck: [name: "udp-hc", healthCheckType: "UDP", port: 53]
+        ]
+      ]
+
+    when:
+      def description = converter.convertDescription(input)
+      def operation = converter.convertOperation(input)
+
+    then:
+      description instanceof UpsertGoogleLoadBalancerDescription
+      description.ports == ["53", "5353"]
+      operation instanceof UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation
   }
 }

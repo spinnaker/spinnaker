@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGo
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleInternalHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleInternalLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleSslLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleTcpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
@@ -52,6 +53,9 @@ class UpsertGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
         break
       case GoogleLoadBalancerType.INTERNAL:
         return new UpsertGoogleInternalLoadBalancerAtomicOperation(description)
+        break
+      case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+        return new UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation(description)
         break
       case GoogleLoadBalancerType.SSL:
         return new UpsertGoogleSslLoadBalancerAtomicOperation(description)

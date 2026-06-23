@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGo
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleInternalHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleInternalLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleSslLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.DeleteGoogleTcpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
@@ -53,6 +54,9 @@ class DeleteGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
         break
       case GoogleLoadBalancerType.INTERNAL:
         return new DeleteGoogleInternalLoadBalancerAtomicOperation(description)
+        break
+      case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+        return new DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation(description)
         break
       case GoogleLoadBalancerType.SSL:
         return new DeleteGoogleSslLoadBalancerAtomicOperation(description)

@@ -22,7 +22,9 @@ import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -915,5 +917,63 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('portRange', _)
+  }
+
+  void "pass validation with regional external network description inputs"() {
+    setup:
+      def description = regionalExternalNetworkDescription()
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  @Unroll
+  void "fail regional external network validation for #field"() {
+    setup:
+      def description = regionalExternalNetworkDescription()
+      mutation(description)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, code)
+
+    where:
+      field                            | code                                                                              | mutation
+      "ipProtocol"                     | "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported"                     | { it.ipProtocol = "ESP" }
+      "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["1", "2", "3", "4", "5", "6"] }
+      "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["abc"] }
+      "portRange"                      | "upsertGoogleLoadBalancerDescription.portRange.notSupported"                      | { it.portRange = "80-90" }
+      "networkTier"                    | "upsertGoogleLoadBalancerDescription.networkTier.notSupported"                    | { it.networkTier = "FIXED" }
+      "backendService.sessionAffinity" | "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported" | { it.backendService.sessionAffinity = GoogleSessionAffinity.GENERATED_COOKIE }
+      "ipAddress"                      | "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported"                  | { it.ipAddress = "2001:db8::1" }
+  }
+
+  private static UpsertGoogleLoadBalancerDescription regionalExternalNetworkDescription() {
+    new UpsertGoogleLoadBalancerDescription(
+      loadBalancerType: GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK,
+      loadBalancerName: LOAD_BALANCER_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      ipProtocol: "TCP",
+      ipAddress: "35.1.2.3",
+      networkTier: "PREMIUM",
+      ports: ["80"],
+      backendService: new GoogleBackendService(
+        name: "regional-external-network-lb",
+        sessionAffinity: GoogleSessionAffinity.CLIENT_IP,
+        healthCheck: new GoogleHealthCheck(
+          name: "tcp-hc",
+          healthCheckType: GoogleHealthCheck.HealthCheckType.TCP,
+          port: 80
+        )
+      )
+    )
   }
 }
