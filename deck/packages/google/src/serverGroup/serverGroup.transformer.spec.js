@@ -46,6 +46,13 @@ describe('gceServerGroupTransformer', () => {
                 loadBalancerType: 'EXTERNAL_MANAGED',
                 listeners: [{ name: 'regional-http-listener' }],
               },
+              {
+                name: 'regional-external-network-lb',
+                provider: 'gce',
+                account: 'my-google-account',
+                region: 'us-central1',
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              },
             ],
           };
         },
@@ -83,6 +90,19 @@ describe('gceServerGroupTransformer', () => {
       transformer.normalizeServerGroup(serverGroup, app).then((normalized) => (normalizedServerGroup = normalized));
       $scope.$digest();
       expect(normalizedServerGroup.loadBalancers).toEqual(['regional-url-map-name (my-google-account/us-central1)']);
+    });
+
+    it('should keep regional external network load balancers on the default name path', function () {
+      const serverGroup = {
+        account: 'my-google-account',
+        region: 'us-central1',
+        loadBalancers: ['regional-external-network-lb'],
+      };
+
+      let normalizedServerGroup;
+      transformer.normalizeServerGroup(serverGroup, app).then((normalized) => (normalizedServerGroup = normalized));
+      $scope.$digest();
+      expect(normalizedServerGroup.loadBalancers).toEqual(['regional-external-network-lb']);
     });
   });
 });

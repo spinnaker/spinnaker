@@ -84,4 +84,21 @@ describe('gceLoadBalancerSetTransformer', () => {
       }),
     ]);
   });
+
+  it('leaves regional external network load balancers ungrouped', () => {
+    const loadBalancers = [
+      {
+        name: 'regional-external-network-lb',
+        account: 'test',
+        provider: 'gce',
+        region: 'us-central1',
+        loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+        ports: ['80', '443'],
+      },
+    ];
+
+    const normalized = transformer.normalizeLoadBalancerSet(loadBalancers);
+
+    expect(normalized).toEqual(loadBalancers);
+  });
 });
