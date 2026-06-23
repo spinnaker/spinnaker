@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2026 Harness, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
@@ -32,28 +33,21 @@ import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthR
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
 @Slf4j
-class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
+class GoogleRegionalExternalNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
 
-  /**
-   * Local cache of BackendServiceGroupHealth keyed by BackendService name.
-   *
-   * It turns out that the types in the GCE Batch callbacks aren't the actual Compute
-   * types for some reason, which is why this map is String -> Object.
-   */
   Map<String, Object> bsNameToGroupHealthsMap = [:]
   Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
   Set<LoadBalancerHealthResolution> resolutions = new HashSet<>()
 
-  GoogleInternalLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
-                                         GoogleNamedAccountCredentials credentials,
-                                         ObjectMapper objectMapper,
-                                         Registry registry,
-                                         String region) {
+  GoogleRegionalExternalNetworkLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
+                                                        GoogleNamedAccountCredentials credentials,
+                                                        ObjectMapper objectMapper,
+                                                        Registry registry,
+                                                        String region) {
     super(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper,
@@ -63,36 +57,31 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
   @Override
   Collection<Map<String, Object>> pendingOnDemandRequests(ProviderCache providerCache) {
-    // Just let GoogleNetworkLoadBalancerCachingAgent return the pending regional on demand requests.
+    // Keep regional forwarding-rule on-demand reporting owned by the existing regional network agent.
     []
   }
 
   @Override
   List<GoogleLoadBalancer> constructLoadBalancers(String onDemandLoadBalancerName = null) {
-    List<GoogleInternalLoadBalancer> loadBalancers = []
+    List<GoogleRegionalExternalNetworkLoadBalancer> loadBalancers = []
     List<String> failedLoadBalancers = []
 
     GoogleBatchRequest forwardingRulesRequest = buildGoogleBatchRequest()
     GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest()
 
-    // Reset the local getHealth caches/queues each caching agent cycle.
     bsNameToGroupHealthsMap = [:]
     queuedBsGroupHealthRequests = new HashSet<>()
     resolutions = new HashSet<>()
 
     List<BackendService> projectRegionBackendServices = GCEUtil.fetchRegionBackendServices(this, compute, project, region)
-    List<HttpHealthCheck> projectHttpHealthChecks = GCEUtil.fetchHttpHealthChecks(this, compute, project)
-    List<HttpsHealthCheck> projectHttpsHealthChecks = GCEUtil.fetchHttpsHealthChecks(this, compute, project)
-    List<HealthCheck> projectHealthChecks = GCEUtil.fetchHealthChecks(this, compute, project)
+    List<HealthCheck> projectRegionalHealthChecks = GCEUtil.fetchRegionalHealthChecks(this, compute, project, region)
 
     ForwardingRuleCallbacks forwardingRuleCallbacks = new ForwardingRuleCallbacks(
       loadBalancers: loadBalancers,
       failedLoadBalancers: failedLoadBalancers,
       groupHealthRequest: groupHealthRequest,
       projectRegionBackendServices: projectRegionBackendServices,
-      projectHttpHealthChecks: projectHttpHealthChecks,
-      projectHttpsHealthChecks: projectHttpsHealthChecks,
-      projectHealthChecks: projectHealthChecks
+      projectRegionalHealthChecks: projectRegionalHealthChecks
     )
 
     if (onDemandLoadBalancerName) {
@@ -110,35 +99,35 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
         String getNextPageToken(ForwardingRuleList forwardingRuleList) {
           return forwardingRuleList.getNextPageToken()
         }
-      }.queue(forwardingRulesRequest, frlCallback, "InternalLoadBalancerCaching.forwardingRules")
+      }.queue(forwardingRulesRequest, frlCallback, "RegionalExternalNetworkLoadBalancerCaching.forwardingRules")
     }
 
-    executeIfRequestsAreQueued(forwardingRulesRequest, "InternalLoadBalancerCaching.forwardingRules")
-    executeIfRequestsAreQueued(groupHealthRequest, "InternalLoadBalancerCaching.groupHealth")
+    executeIfRequestsAreQueued(forwardingRulesRequest, "RegionalExternalNetworkLoadBalancerCaching.forwardingRules")
+    executeIfRequestsAreQueued(groupHealthRequest, "RegionalExternalNetworkLoadBalancerCaching.groupHealth")
 
     resolutions.each { LoadBalancerHealthResolution resolution ->
-      bsNameToGroupHealthsMap.get(resolution.getTarget()).each { groupHealth ->
+      (bsNameToGroupHealthsMap.get(resolution.getTarget()) ?: []).each { groupHealth ->
         GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), groupHealth)
       }
     }
 
-    return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
+    return loadBalancers.findAll { !(it.name in failedLoadBalancers) }
   }
 
-  static boolean isInternalPassthroughRule(ForwardingRule forwardingRule) {
-    forwardingRule?.backendService && !forwardingRule?.target && forwardingRule?.loadBalancingScheme == "INTERNAL"
+  static boolean isRegionalExternalNetworkPassthroughRule(ForwardingRule forwardingRule) {
+    forwardingRule?.backendService &&
+      !forwardingRule?.target &&
+      forwardingRule?.loadBalancingScheme == "EXTERNAL" &&
+      forwardingRule?.IPProtocol in ["TCP", "UDP"]
   }
 
   class ForwardingRuleCallbacks {
-    List<GoogleInternalLoadBalancer> loadBalancers
+    List<GoogleRegionalExternalNetworkLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
 
-    // Pass through objects
     GoogleBatchRequest groupHealthRequest
     List<BackendService> projectRegionBackendServices
-    List<HttpHealthCheck> projectHttpHealthChecks
-    List<HttpsHealthCheck> projectHttpsHealthChecks
-    List<HealthCheck> projectHealthChecks
+    List<HealthCheck> projectRegionalHealthChecks
 
     ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
       return new ForwardingRuleSingletonCallback<ForwardingRule>()
@@ -152,7 +141,6 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
         if (e.code != 404) {
           def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
           log.error errorJson
@@ -161,10 +149,10 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
       @Override
       void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        if (isInternalPassthroughRule(forwardingRule)) {
+        if (isRegionalExternalNetworkPassthroughRule(forwardingRule)) {
           cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
         } else {
-          throw new IllegalArgumentException("Not responsible for on demand caching of non-INTERNAL passthrough load balancers.")
+          throw new IllegalArgumentException("Not responsible for on demand caching of non-EXTERNAL regional passthrough load balancers.")
         }
       }
     }
@@ -174,7 +162,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       @Override
       void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
         forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          if (isInternalPassthroughRule(forwardingRule)) {
+          if (isRegionalExternalNetworkPassthroughRule(forwardingRule)) {
             cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
           }
         }
@@ -184,11 +172,10 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         LoggerFactory.getLogger(this.class).error e.getMessage()
       }
-
     }
 
     void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {
-      def newLoadBalancer = new GoogleInternalLoadBalancer(
+      def newLoadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
         name: forwardingRule.name,
         account: accountName,
         region: Utils.getLocalName(forwardingRule.getRegion()),
@@ -198,7 +185,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
         ports: forwardingRule.ports,
         loadBalancingScheme: GoogleLoadBalancingScheme.valueOf(forwardingRule.getLoadBalancingScheme()),
         network: forwardingRule.getNetwork(),
-        subnet: forwardingRule.getSubnetwork(),
+        networkTier: forwardingRule.getNetworkTier(),
         healths: [],
       )
       loadBalancers << newLoadBalancer
@@ -210,15 +197,13 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
           + "Reporting it as 'Failed' to the caching agent.")
         failedLoadBalancers << newLoadBalancer.name
       } else {
-        handleBackendService(backendService, newLoadBalancer, projectHttpHealthChecks, projectHttpsHealthChecks, projectHealthChecks, groupHealthRequest)
+        handleBackendService(backendService, newLoadBalancer, projectRegionalHealthChecks, groupHealthRequest)
       }
     }
   }
 
   private void handleBackendService(BackendService backendService,
-                                    GoogleInternalLoadBalancer googleLoadBalancer,
-                                    List<HttpHealthCheck> httpHealthChecks,
-                                    List<HttpsHealthCheck> httpsHealthChecks,
+                                    GoogleRegionalExternalNetworkLoadBalancer googleLoadBalancer,
                                     List<HealthCheck> healthChecks,
                                     GoogleBatchRequest groupHealthRequest) {
     def groupHealthCallback = new GroupHealthCallback(backendServiceName: backendService.name)
@@ -240,16 +225,13 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       def resourceGroup = new ResourceGroupReference()
       resourceGroup.setGroup(backend.group as String)
 
-
-      // Make only the group health request calls we need to.
       GroupHealthRequest ghr = new GroupHealthRequest(project, backendService.name as String, resourceGroup.getGroup())
       if (!queuedBsGroupHealthRequests.contains(ghr)) {
-        // The groupHealthCallback updates the local cache.
         log.debug("Queueing a batch call for getHealth(): {}", ghr)
         queuedBsGroupHealthRequests.add(ghr)
         groupHealthRequest
           .queue(compute.regionBackendServices().getHealth(project, region, backendService.name as String, resourceGroup),
-          groupHealthCallback)
+            groupHealthCallback)
       } else {
         log.debug("Passing, batch call result cached for getHealth(): {}", ghr)
       }
@@ -258,63 +240,16 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
     backendService.healthChecks?.each { String healthCheckURL ->
       def healthCheckName = Utils.getLocalName(healthCheckURL)
-      def healthCheckType = Utils.getHealthCheckType(healthCheckURL)
-      switch (healthCheckType) {
-        case "httpHealthChecks":
-          HttpHealthCheck httpHealthCheck = httpHealthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHttpHealthCheck(httpHealthCheck, googleLoadBalancer.backendService)
-          break
-        case "httpsHealthChecks":
-          HttpsHealthCheck httpsHealthCheck = httpsHealthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHttpsHealthCheck(httpsHealthCheck, googleLoadBalancer.backendService)
-          break
-        case "healthChecks":
-          HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
-          break
-        default:
-          log.warn("Unknown health check type for health check named: ${healthCheckName}. Not queueing any batch requests.")
-          break
-      }
+      HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
+      handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
     }
-  }
-
-  private static void handleHttpHealthCheck(HttpHealthCheck httpHealthCheck, GoogleBackendService service) {
-    if (!httpHealthCheck) {
-      return
-    }
-    service.healthCheck = new GoogleHealthCheck(
-      name: httpHealthCheck.name,
-      healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
-      requestPath: httpHealthCheck.requestPath,
-      port: httpHealthCheck.port,
-      checkIntervalSec: httpHealthCheck.checkIntervalSec,
-      timeoutSec: httpHealthCheck.timeoutSec,
-      unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
-      healthyThreshold: httpHealthCheck.healthyThreshold,
-    )
-  }
-
-  private static void handleHttpsHealthCheck(HttpsHealthCheck httpsHealthCheck, GoogleBackendService service) {
-    if (!httpsHealthCheck) {
-      return
-    }
-    service.healthCheck = new GoogleHealthCheck(
-      name: httpsHealthCheck.name,
-      healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
-      requestPath: httpsHealthCheck.requestPath,
-      port: httpsHealthCheck.port,
-      checkIntervalSec: httpsHealthCheck.checkIntervalSec,
-      timeoutSec: httpsHealthCheck.timeoutSec,
-      unhealthyThreshold: httpsHealthCheck.unhealthyThreshold,
-      healthyThreshold: httpsHealthCheck.healthyThreshold,
-    )
   }
 
   private static void handleHealthCheck(HealthCheck healthCheck, GoogleBackendService service) {
     if (!healthCheck) {
       return
     }
+
     def port = null
     def hcType = null
     def requestPath = null
@@ -355,11 +290,10 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     String backendServiceName
 
     /**
-     * Tolerate of the group health calls failing. Spinnaker reports empty load balancer healths as 'unknown'.
-     * If healthStatus is null in the onSuccess() function, the same state is reported, so this shouldn't cause issues.
+     * Tolerate the group health calls failing. Spinnaker reports empty load balancer healths as 'unknown'.
      */
     void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-      log.debug("Failed backend service group health call for backend service ${backendServiceName} for Internal load balancer." +
+      log.debug("Failed backend service group health call for backend service ${backendServiceName} for regional external network load balancer." +
         " The platform error message was:\n ${e.getMessage()}.")
     }
 

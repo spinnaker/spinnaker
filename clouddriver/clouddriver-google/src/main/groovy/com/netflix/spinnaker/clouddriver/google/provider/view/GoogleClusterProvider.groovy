@@ -34,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleIntern
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -246,6 +247,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
         case GoogleLoadBalancerType.EXTERNAL_MANAGED:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleExternalHttpLoadBalancer)
           break
+        case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleRegionalExternalNetworkLoadBalancer)
+          break
         case GoogleLoadBalancerType.NETWORK:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleNetworkLoadBalancer)
           break
@@ -319,6 +323,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       Utils.determineExternalHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
     }
 
+    def regionalExternalNetworkLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK }
+    def regionalExternalNetworkDisabledStates = regionalExternalNetworkLoadBalancers.collect { loadBalancer ->
+      Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
+    }
+
     def sslLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.SSL }
     def sslDisabledStates = sslLoadBalancers.collect { loadBalancer ->
       Utils.determineSslLoadBalancerDisabledState(loadBalancer, serverGroup)
@@ -339,8 +348,8 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
 
     def isDisabled = true
     // TODO: Extend this for future load balancers that calculate disabled state after caching.
-    def anyDisabledStates = internalDisabledStates || httpDisabledStates || internalHttpDisabledStates || externalHttpDisabledStates || sslDisabledStates || tcpDisabledStates
-    def disabledStatesSizeMatch = internalDisabledStates.size() + httpDisabledStates.size() + internalHttpDisabledStates.size() + externalHttpDisabledStates.size() + sslDisabledStates.size() + tcpDisabledStates.size() == loadBalancers.size()
+    def anyDisabledStates = internalDisabledStates || httpDisabledStates || internalHttpDisabledStates || externalHttpDisabledStates || regionalExternalNetworkDisabledStates || sslDisabledStates || tcpDisabledStates
+    def disabledStatesSizeMatch = internalDisabledStates.size() + httpDisabledStates.size() + internalHttpDisabledStates.size() + externalHttpDisabledStates.size() + regionalExternalNetworkDisabledStates.size() + sslDisabledStates.size() + tcpDisabledStates.size() == loadBalancers.size()
     def excludesNetwork = anyDisabledStates && disabledStatesSizeMatch
 
     if (httpDisabledStates) {
@@ -354,6 +363,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
     if (externalHttpDisabledStates) {
       isDisabled &= externalHttpDisabledStates.every { it }
+    }
+    if (regionalExternalNetworkDisabledStates) {
+      isDisabled &= regionalExternalNetworkDisabledStates.every { it }
     }
     if (sslDisabledStates) {
       isDisabled &= sslDisabledStates.every { it }

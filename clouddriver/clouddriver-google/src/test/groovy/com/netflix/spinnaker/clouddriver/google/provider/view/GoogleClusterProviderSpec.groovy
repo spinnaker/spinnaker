@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -42,6 +43,40 @@ class GoogleClusterProviderSpec extends Specification {
         region: REGION,
         defaultService: new GoogleBackendService(name: BACKEND_SERVICE, backends: []),
         hostRules: [])
+      def loadBalancerKey = Keys.getLoadBalancerKey(REGION, ACCOUNT, LOAD_BALANCER)
+      def serverGroupCacheData = Mock(CacheData)
+      serverGroupCacheData.getAttributes() >> [
+        name    : SERVER_GROUP,
+        region  : REGION,
+        zone    : REGION + "-a",
+        disabled: false,
+        asg     : [
+          (GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCER,
+          (GCEUtil.REGION_BACKEND_SERVICE_NAMES): BACKEND_SERVICE,
+        ]
+      ]
+      serverGroupCacheData.getRelationships() >> [(LOAD_BALANCERS.ns): [loadBalancerKey]]
+      @Subject def provider = new GoogleClusterProvider(objectMapper: new ObjectMapper())
+
+    when:
+      def serverGroup = provider.serverGroupFromCacheData(
+        serverGroupCacheData,
+        ACCOUNT,
+        [],
+        [] as Set,
+        [loadBalancer] as Set)
+
+    then:
+      serverGroup.disabled
+  }
+
+  void "regional external network load balancer participates in disabled-state aggregation"() {
+    setup:
+      def loadBalancer = new GoogleRegionalExternalNetworkLoadBalancer(
+        name: LOAD_BALANCER,
+        account: ACCOUNT,
+        region: REGION,
+        backendService: new GoogleBackendService(name: BACKEND_SERVICE, backends: []))
       def loadBalancerKey = Keys.getLoadBalancerKey(REGION, ACCOUNT, LOAD_BALANCER)
       def serverGroupCacheData = Mock(CacheData)
       serverGroupCacheData.getAttributes() >> [

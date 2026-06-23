@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleIntern
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
@@ -373,6 +374,21 @@ class Utils {
 
     if (loadBalancer.backendService == null) {
       log.warn("Malformed internal load balancer encountered: ${loadBalancer}")
+    }
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
+    List<String> backendGroupNames = serviceBackends
+      .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+      .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+    return loadBalancer.name in regionalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
+
+  static boolean determineRegionalExternalNetworkLoadBalancerDisabledState(GoogleRegionalExternalNetworkLoadBalancer loadBalancer,
+                                                                           GoogleServerGroup serverGroup) {
+    def regionalLoadBalancersFromMetadata = serverGroup.asg.get(REGIONAL_LOAD_BALANCER_NAMES)
+
+    if (loadBalancer.backendService == null) {
+      log.warn("Malformed regional external network load balancer encountered: ${loadBalancer}")
+      return false
     }
     List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
     List<String> backendGroupNames = serviceBackends
