@@ -59,7 +59,7 @@ class WebhookService {
 
   ResponseEntity<Void> webhooks(String source, CloudEvent cdEvent, String ceDataJsonString) {
     return AuthenticatedRequest.allowAnonymous( {
-      Retrofit2SyncCall.execute(echoService.webhooks(source, cdEvent, ceDataJsonString, cdEvent.getId(), cdEvent.getSpecVersion().V1.toString(), cdEvent.getType(), cdEvent.getSource().toString()))
+      try { Retrofit2SyncCall.execute(echoService.webhooks(source, cdEvent, ceDataJsonString, cdEvent.getId(), cdEvent.getSpecVersion().V1.toString(), cdEvent.getType(), cdEvent.getSource().toString())) } catch (Exception e) { return ResponseEntity.status(500).build() }
     })
   }
 
