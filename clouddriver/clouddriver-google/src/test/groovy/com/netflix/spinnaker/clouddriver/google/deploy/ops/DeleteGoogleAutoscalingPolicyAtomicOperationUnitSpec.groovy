@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceTemplate
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -120,7 +121,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional).view
 
     // zonal setup
-    def zonalContent = new InstanceGroupManager().setAutoHealingPolicies([])
+    def zonalContent = new InstanceGroupManager().setAutoHealingPolicies([new InstanceGroupManagerAutoHealingPolicy()])
     def zonalManagerMock = Mock(Compute.InstanceGroupManagers)
     def zonalPatchMock = Mock(Compute.InstanceGroupManagers.Patch)
     def zonalTimerId = GoogleApiTestUtils.makeOkId(
@@ -129,7 +130,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
           [scope: "zonal", zone: ZONE])
 
     // regional setup
-    def regionalContent = new InstanceGroupManager().setAutoHealingPolicies([])
+    def regionalContent = new InstanceGroupManager().setAutoHealingPolicies([new InstanceGroupManagerAutoHealingPolicy()])
     def regionalManagerMock = Mock(Compute.RegionInstanceGroupManagers)
     def regionalPatchMock = Mock(Compute.RegionInstanceGroupManagers.Patch)
     def regionalTimerId = GoogleApiTestUtils.makeOkId(

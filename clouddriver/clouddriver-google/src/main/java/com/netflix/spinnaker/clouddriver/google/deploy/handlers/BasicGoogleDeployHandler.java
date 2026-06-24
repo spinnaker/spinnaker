@@ -27,7 +27,6 @@ import com.google.api.services.compute.model.Backend;
 import com.google.api.services.compute.model.BackendService;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.DistributionPolicyZoneConfiguration;
-import com.google.api.services.compute.model.FixedOrPercent;
 import com.google.api.services.compute.model.Image;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
@@ -969,16 +968,9 @@ public class BasicGoogleDeployHandler
       autoHealingPolicy = List.of(policy);
     }
 
-    if (autoHealingPolicy != null
-        && description.getAutoHealingPolicy() != null
-        && description.getAutoHealingPolicy().getMaxUnavailable() != null) {
-      FixedOrPercent maxUnavailable = new FixedOrPercent();
-      maxUnavailable.setFixed(
-          description.getAutoHealingPolicy().getMaxUnavailable().getFixed().intValue());
-      maxUnavailable.setPercent(
-          description.getAutoHealingPolicy().getMaxUnavailable().getPercent().intValue());
-      autoHealingPolicy.get(0).set("maxUnavailable", maxUnavailable);
-    }
+    // maxUnavailable is retained on the Spinnaker description for API compatibility, but
+    // stable Compute v1 autoHealingPolicies only supports healthCheck/initialDelaySec.
+    // maxUnavailable belongs to updatePolicy and must not be sent in this patch body.
     return autoHealingPolicy;
   }
 

@@ -353,7 +353,8 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       serverGroupName: SERVER_GROUP_NAME,
       autoHealingPolicy: new GoogleAutoHealingPolicy(
         healthCheck: 'hc',
-        initialDelaySec: 30),
+        initialDelaySec: 30,
+        maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(fixed: 3)),
       writeMetadata: false,
       credentials: credentials)
 
@@ -387,11 +388,21 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
 
     if (isRegional) {
       1 * computeMock.regionInstanceGroupManagers() >> regionalManagerMock
-      1 * regionalManagerMock.patch(PROJECT_NAME, REGION, SERVER_GROUP_NAME, _) >> regionalPatchMock
+      1 * regionalManagerMock.patch(PROJECT_NAME, REGION, SERVER_GROUP_NAME, { InstanceGroupManager content ->
+        content.autoHealingPolicies.size() == 1 &&
+          content.autoHealingPolicies[0].healthCheck == 'hc-link' &&
+          content.autoHealingPolicies[0].initialDelaySec == 30 &&
+          content.autoHealingPolicies[0].get("maxUnavailable") == null
+      }) >> regionalPatchMock
       1 * regionalPatchMock.execute() >> [name: 'autoHealingOp']
     } else {
       1 * computeMock.instanceGroupManagers() >> zonalManagerMock
-      1 * zonalManagerMock.patch(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> zonalPatchMock
+      1 * zonalManagerMock.patch(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, { InstanceGroupManager content ->
+        content.autoHealingPolicies.size() == 1 &&
+          content.autoHealingPolicies[0].healthCheck == 'hc-link' &&
+          content.autoHealingPolicies[0].initialDelaySec == 30 &&
+          content.autoHealingPolicies[0].get("maxUnavailable") == null
+      }) >> zonalPatchMock
       1 * zonalPatchMock.execute() >> [name: 'autoHealingOp']
     }
     registry.timer(regionalTimerId).count() == (isRegional ? 1 : 0)

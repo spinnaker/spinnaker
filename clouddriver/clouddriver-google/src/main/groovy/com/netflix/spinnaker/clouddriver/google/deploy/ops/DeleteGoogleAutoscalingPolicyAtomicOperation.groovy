@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceTemplate
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -87,7 +88,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       // are now managed via the InstanceGroupManager resource itself using patch (JSON merge patch).
       // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
       if (isRegional) {
-        def content = new InstanceGroupManager().setAutoHealingPolicies([])
+        def content = new InstanceGroupManager().setAutoHealingPolicies([new InstanceGroupManagerAutoHealingPolicy()])
         def deleteOp = timeExecute(
           compute.regionInstanceGroupManagers().patch(project, region, serverGroupName, content),
           "compute.regionInstanceGroupManagers.patch",
@@ -96,7 +97,7 @@ class DeleteGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
           deleteOp.getName(), null, task, "autoHealing policy for $serverGroupName", BASE_PHASE)
         deletePolicyMetadata(compute, credentials, project, GCEUtil.buildRegionalServerGroupUrl(project, region, serverGroupName))
       } else {
-        def content = new InstanceGroupManager().setAutoHealingPolicies([])
+        def content = new InstanceGroupManager().setAutoHealingPolicies([new InstanceGroupManagerAutoHealingPolicy()])
         def deleteOp = timeExecute(
           compute.instanceGroupManagers().patch(project, zone, serverGroupName, content),
           "compute.instanceGroupManagers.patch",

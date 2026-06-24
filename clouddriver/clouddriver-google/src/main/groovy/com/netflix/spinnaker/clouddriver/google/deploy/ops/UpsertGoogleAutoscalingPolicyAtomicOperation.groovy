@@ -308,12 +308,9 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       initialDelaySec: autoHealingPolicyDescription.initialDelaySec)]
       : null
 
-    if (autoHealingPolicy && autoHealingPolicyDescription.maxUnavailable) {
-      def maxUnavailable = new FixedOrPercent(fixed: autoHealingPolicyDescription.maxUnavailable.fixed as Integer,
-        percent: autoHealingPolicyDescription.maxUnavailable.percent as Integer)
-
-      autoHealingPolicy[0].setMaxUnavailable(maxUnavailable)
-    }
+    // maxUnavailable is retained on the Spinnaker description for API compatibility, but
+    // stable Compute v1 autoHealingPolicies only supports healthCheck/initialDelaySec.
+    // maxUnavailable belongs to updatePolicy and must not be sent in this patch body.
 
     return autoHealingPolicy
   }

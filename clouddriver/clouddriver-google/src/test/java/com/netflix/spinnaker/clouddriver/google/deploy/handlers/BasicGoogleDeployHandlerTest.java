@@ -1911,7 +1911,7 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void buildAutoHealingPolicyFromInput_whenMaxUnavailableIsSet_updatesPolicy() {
+  void buildAutoHealingPolicyFromInput_whenMaxUnavailableIsSet_doesNotPropagateUnsupportedField() {
     GoogleAutoHealingPolicy mockAutoHealingPolicy = new GoogleAutoHealingPolicy();
     mockAutoHealingPolicy.setHealthCheck("valid-health-check");
     mockAutoHealingPolicy.setHealthCheckKind(GoogleHealthCheck.HealthCheckKind.healthCheck);
@@ -1940,8 +1940,7 @@ public class BasicGoogleDeployHandlerTest {
 
     assertNotNull(result);
     assertEquals(1, result.size());
-    assertEquals(5, ((FixedOrPercent) result.get(0).get("maxUnavailable")).getFixed());
-    assertEquals(10, ((FixedOrPercent) result.get(0).get("maxUnavailable")).getPercent());
+    assertNull(result.get(0).get("maxUnavailable"));
   }
 
   @Test
