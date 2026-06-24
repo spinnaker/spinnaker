@@ -82,6 +82,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         "compute.forwardingRules.list",
         TAG_SCOPE, SCOPE_GLOBAL).getItems()
 
+    // Same-name regional forwarding rules can now also be EXTERNAL passthrough LBs. Only the
+    // INTERNAL passthrough shape is owned by this delete operation.
     ForwardingRule forwardingRule = projectForwardingRules.find {
       it.name == forwardingRuleName && GCEUtil.isInternalPassthroughForwardingRule(it)
     }
@@ -129,6 +131,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       GCEUtil.updateStatusAndThrowNotFoundException("Backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
     }
+    // Recheck the backend service before deleting the graph so a malformed or colliding forwarding
+    // rule cannot cause this INTERNAL path to remove EXTERNAL passthrough resources.
     if (backendService.loadBalancingScheme != "INTERNAL") {
       GCEUtil.updateStatusAndThrowNotFoundException("Internal backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
@@ -185,6 +189,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         break
     }
 
+    // Only read and validate the health check when the request allows health-check cleanup.
     if (description.deleteHealthChecks) {
       def healthCheck = safeRetry.doRetry(
         healthCheckGet,
@@ -285,6 +290,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         log.warn("Unknown health check type for health check named: ${healthCheckName}.")
         break
     }
+    // Health checks can be shared, and the delete modal exposes this as an explicit cleanup flag.
     if (description.deleteHealthChecks) {
       Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
         deleteHealthCheckClosure,

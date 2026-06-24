@@ -36,6 +36,12 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
+/**
+ * Caches regional external passthrough Network Load Balancers from GCP regional resources.
+ *
+ * <p>The resource graph starts at a regional forwarding rule with no target proxy, follows its
+ * regional backend service, then attaches regional health checks and backend group health.
+ */
 @Slf4j
 class GoogleRegionalExternalNetworkLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
 
@@ -115,6 +121,8 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgent extends AbstractGoog
   }
 
   static boolean isRegionalExternalNetworkPassthroughRule(ForwardingRule forwardingRule) {
+    // Regional external proxy LBs also use EXTERNAL forwarding rules, but they point at targets.
+    // This agent only owns passthrough rules that point directly at a regional backend service.
     forwardingRule?.backendService &&
       !forwardingRule?.target &&
       forwardingRule?.loadBalancingScheme == "EXTERNAL" &&

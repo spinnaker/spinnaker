@@ -32,6 +32,12 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import org.springframework.beans.factory.annotation.Autowired
 
+/**
+ * Creates or updates a regional external passthrough Network Load Balancer.
+ *
+ * <p>GCP models this as a regional forwarding rule with {@code loadBalancingScheme=EXTERNAL}, no
+ * target proxy, and a direct regional backend service for TCP/UDP traffic.
+ */
 class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER"
 
@@ -83,9 +89,13 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
         "$description.loadBalancerName (in region ${GCEUtil.getLocalName(existingForwardingRule.region)}). " +
         "Please specify a different name.")
     } else if (existingForwardingRule && (description.region == GCEUtil.getLocalName(existingForwardingRule.region))) {
+      // Same-name regional forwarding rules can belong to other LB families. Only mutate the
+      // EXTERNAL passthrough shape owned by this operation.
       if (!GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(existingForwardingRule)) {
         throw new GoogleOperationException("There is already a non-regional-external-network load balancer named $description.loadBalancerName in $description.region.")
       }
+      // Treat omitted IP/tier as "preserve current value" so edits do not churn static/ephemeral
+      // address assignment or network tier unless the caller explicitly changes them.
       needToUpdateForwardingRule = description.ports != existingForwardingRule.getPorts() ||
         (description.ipAddress && description.ipAddress != existingForwardingRule.getIPAddress()) ||
         (description.networkTier && description.networkTier != existingForwardingRule.getNetworkTier())
@@ -108,6 +118,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
         throw new GoogleOperationException("Backend service $backendServiceName is not an EXTERNAL regional backend service.")
       }
       Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
+      // GCP may omit sessionAffinity for the default; normalize null to NONE before comparing.
       GoogleSessionAffinity existingSessionAffinity = existingBackendService.getSessionAffinity() ?
         GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) : null
       GoogleSessionAffinity desiredSessionAffinity = description.backendService.sessionAffinity ?: GoogleSessionAffinity.NONE
@@ -206,7 +217,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
         task,
         [400, 403, 412],
         [],
-        [action: "Update", phase: BASE_PHASE, operation: "compute.regionBackendServices.update", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+        [action: "update", phase: BASE_PHASE, operation: "compute.regionBackendServices.update", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
         registry
       )
     }
@@ -231,6 +242,8 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
   }
 
   private ForwardingRule buildForwardingRule(String project, String region, ForwardingRule existingForwardingRule) {
+    // Updating ports requires forwarding-rule recreation. Preserve IP/tier from the deleted rule
+    // when the request omits them; ephemeral IP preservation remains best-effort on GCP's side.
     new ForwardingRule(
       name: description.loadBalancerName,
       loadBalancingScheme: 'EXTERNAL',

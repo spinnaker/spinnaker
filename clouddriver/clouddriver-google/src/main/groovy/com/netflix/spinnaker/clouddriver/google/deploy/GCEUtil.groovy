@@ -425,10 +425,14 @@ class GCEUtil {
   }
 
   static boolean isInternalPassthroughForwardingRule(ForwardingRule forwardingRule) {
+    // INTERNAL passthrough forwarding rules point directly at a regional backend service. This
+    // excludes same-named external passthrough or proxy forwarding rules from INTERNAL paths.
     forwardingRule?.backendService && !forwardingRule?.target && forwardingRule?.loadBalancingScheme == "INTERNAL"
   }
 
   static boolean isRegionalExternalNetworkPassthroughForwardingRule(ForwardingRule forwardingRule) {
+    // Regional external proxy LBs also use EXTERNAL forwarding rules; passthrough NLBs have no
+    // target proxy and point directly at the regional backend service.
     forwardingRule?.backendService &&
       !forwardingRule?.target &&
       forwardingRule?.loadBalancingScheme == "EXTERNAL" &&
@@ -1102,6 +1106,7 @@ class GCEUtil {
           compute.regionBackendServices().get(project, region, backendServiceName),
           "compute.regionBackendServices",
           executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+        // Guard fallback lookups against same-named regional external passthrough backend services.
         if (backendService.loadBalancingScheme != "INTERNAL") {
           return
         }
@@ -1163,6 +1168,7 @@ class GCEUtil {
         compute.regionBackendServices().get(project, region, backendServiceName),
         "compute.regionBackendServices",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      // Guard fallback lookups against same-named INTERNAL passthrough backend services.
       if (backendService.loadBalancingScheme != "EXTERNAL") {
         return
       }
@@ -1771,6 +1777,7 @@ class GCEUtil {
         compute.regionBackendServices().get(project, region, backendServiceName),
         "compute.regionBackendServices.get",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      // Guard fallback lookups against same-named regional external passthrough backend services.
       if (backendService.loadBalancingScheme != "INTERNAL") {
         return
       }
@@ -1829,6 +1836,7 @@ class GCEUtil {
         compute.regionBackendServices().get(project, region, backendServiceName),
         "compute.regionBackendServices.get",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region)
+      // Guard fallback lookups against same-named INTERNAL passthrough backend services.
       if (backendService.loadBalancingScheme != "EXTERNAL") {
         return
       }

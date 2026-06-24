@@ -30,6 +30,12 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+/**
+ * Deletes the resource graph for a regional external passthrough Network Load Balancer.
+ *
+ * <p>Only the EXTERNAL passthrough shape is owned here: regional forwarding rule, regional backend
+ * service, and optionally the regional health check when the request allows health-check cleanup.
+ */
 @Slf4j
 class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER"
@@ -73,6 +79,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       "compute.forwardingRules.list",
       TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region).getItems() ?: []
 
+    // Same-name regional forwarding rules can represent other LB families. Require the exact
+    // EXTERNAL passthrough shape before deleting any listener or shared backend-service graph.
     ForwardingRule forwardingRule = projectForwardingRules.find {
       it.name == forwardingRuleName && GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(it)
     }
@@ -99,6 +107,8 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       [action: "get", phase: BASE_PHASE, operation: "compute.regionBackendServices.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
       registry
     ) as BackendService
+    // Recheck the backend service scheme before deleting to avoid mutating a same-named INTERNAL
+    // passthrough backend service if the forwarding-rule graph was malformed.
     if (backendService == null || backendService.loadBalancingScheme != "EXTERNAL") {
       GCEUtil.updateStatusAndThrowNotFoundException("External regional backend service $backendServiceName not found in $region for $project",
         task, BASE_PHASE)
