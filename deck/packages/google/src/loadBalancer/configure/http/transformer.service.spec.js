@@ -43,7 +43,7 @@ describe('Service: gceHttpLoadBalancerTransformer', () => {
       certificateMap: 'cm',
       certificateSource: 'certificateMap',
       ipAddress: '10.0.0.1',
-        networkTier: 'STANDARD',
+      networkTier: 'STANDARD',
       subnet: null,
     });
 

@@ -119,6 +119,85 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       0 * healthChecks.update(_, _, _, _)
   }
 
+  void "ports-only update preserves existing forwarding rule address and network tier"() {
+    setup:
+      def compute = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksGet = Mock(Compute.RegionHealthChecks.Get)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
+      def existingForwardingRule = new ForwardingRule(
+        name: LOAD_BALANCER,
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}",
+        IPProtocol: "TCP",
+        IPAddress: "35.1.2.3",
+        networkTier: "PREMIUM",
+        ports: ["80"]
+      )
+      def description = description(compute)
+      description.ports = ["80", "443"]
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * compute.regions() >> regions
+      1 * regions.list(PROJECT) >> regionsList
+      1 * regionsList.execute() >> new RegionList(items: [new Region(name: REGION)])
+
+      3 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> existingForwardingRule
+      1 * forwardingRules.delete(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> new Operation(name: "delete-forwarding-rule", status: "DONE")
+      1 * forwardingRules.insert(PROJECT, REGION, { ForwardingRule replacement ->
+        replacement.IPAddress == "35.1.2.3" &&
+          replacement.networkTier == "PREMIUM" &&
+          replacement.ports == ["80", "443"]
+      }) >> forwardingRulesInsert
+      1 * forwardingRulesInsert.execute() >> new Operation(name: "insert-forwarding-rule", status: "DONE")
+
+      1 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: BACKEND_SERVICE,
+        loadBalancingScheme: "EXTERNAL",
+        protocol: "TCP",
+        sessionAffinity: "NONE",
+        healthChecks: [HEALTH_CHECK_URL]
+      )
+
+      1 * compute.regionHealthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT, REGION, HEALTH_CHECK) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(
+        name: HEALTH_CHECK,
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2,
+        tcpHealthCheck: new TCPHealthCheck(port: 80)
+      )
+
+      2 * compute.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT, REGION, "delete-forwarding-rule") >> regionOperationsGet
+      1 * regionOperations.get(PROJECT, REGION, "insert-forwarding-rule") >> regionOperationsGet
+      2 * regionOperationsGet.execute() >>> [
+        new Operation(name: "delete-forwarding-rule", status: "DONE"),
+        new Operation(name: "insert-forwarding-rule", status: "DONE")
+      ]
+  }
+
   void "throws when an existing forwarding rule with the same name is not regional external network passthrough"() {
     setup:
       def compute = Mock(Compute)

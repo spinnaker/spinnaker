@@ -216,10 +216,10 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
 
     if (!existingForwardingRule) {
-      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region))
+      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region, null))
     } else if (needToUpdateForwardingRule) {
       deleteRegionalForwardingRule(compute, project, region, existingForwardingRule.getName())
-      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region))
+      insertRegionalForwardingRule(compute, project, region, buildForwardingRule(project, region, existingForwardingRule))
     }
 
     description.listenersToDelete?.each { String forwardingRuleName ->
@@ -230,15 +230,15 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     return [loadBalancers: [(region): [name: description.loadBalancerName]]]
   }
 
-  private ForwardingRule buildForwardingRule(String project, String region) {
+  private ForwardingRule buildForwardingRule(String project, String region, ForwardingRule existingForwardingRule) {
     new ForwardingRule(
       name: description.loadBalancerName,
       loadBalancingScheme: 'EXTERNAL',
       backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
       IPProtocol: description.ipProtocol,
-      IPAddress: description.ipAddress,
+      IPAddress: description.ipAddress ?: existingForwardingRule?.IPAddress,
       ports: description.ports,
-      networkTier: description.networkTier
+      networkTier: description.networkTier ?: existingForwardingRule?.networkTier
     )
   }
 

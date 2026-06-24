@@ -49,7 +49,9 @@ angular
       return TaskExecutor.executeTask({
         job: [job],
         application: application,
-        description: `Delete load balancer: ${loadBalancer.urlMapName} in ${loadBalancer.account}:${loadBalancer.region || 'global'}`,
+        description: `Delete load balancer: ${loadBalancer.urlMapName} in ${loadBalancer.account}:${
+          loadBalancer.region || 'global'
+        }`,
       });
     }
 

@@ -13,10 +13,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
   public backendServices: IGceBackendService[];
 
   public static $inject = ['gceBackendServiceReader', '$q'];
-  constructor(
-    private gceBackendServiceReader: any,
-    private $q: any,
-  ) {}
+  constructor(private gceBackendServiceReader: any, private $q: any) {}
 
   public setModel(propertyName: string, viewValue: number): void {
     set(this, propertyName, viewValue / 100);
@@ -81,12 +78,14 @@ class GceLoadBalancingPolicySelectorController implements IController {
   }
 
   public $onInit(): void {
-    this.$q.all([
-      this.gceBackendServiceReader.listBackendServices('globalBackendService'),
-      this.gceBackendServiceReader.listBackendServices('regionBackendService'),
-    ]).then(([globalServices, regionalServices]: IGceBackendService[][]) => {
-      this.backendServices = globalServices.concat(regionalServices);
-    });
+    this.$q
+      .all([
+        this.gceBackendServiceReader.listBackendServices('globalBackendService'),
+        this.gceBackendServiceReader.listBackendServices('regionBackendService'),
+      ])
+      .then(([globalServices, regionalServices]: IGceBackendService[][]) => {
+        this.backendServices = globalServices.concat(regionalServices);
+      });
   }
 
   public $onDestroy(): void {

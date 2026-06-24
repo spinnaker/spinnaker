@@ -13,7 +13,9 @@ describe('Controller: gceRegionalExternalNetworkLoadBalancerCtrl', function () {
       this.commandBuilder = {
         getBackingData: jasmine.createSpy('getBackingData'),
         groupHealthChecksByAccountAndType: jasmine.createSpy('groupHealthChecksByAccountAndType').and.returnValue({}),
-        groupHealthCheckNamesByAccount: jasmine.createSpy('groupHealthCheckNamesByAccount').and.returnValue({ 'test-account': [] }),
+        groupHealthCheckNamesByAccount: jasmine
+          .createSpy('groupHealthCheckNamesByAccount')
+          .and.returnValue({ 'test-account': [] }),
       };
       this.addressReader = {
         listAddresses: jasmine.createSpy('listAddresses'),
@@ -92,6 +94,13 @@ describe('Controller: gceRegionalExternalNetworkLoadBalancerCtrl', function () {
 
     expect(ctrl.loadBalancer.ipAddress).toBe('35.1.2.3');
     expect(ctrl.loadBalancer.networkTier).toBe('PREMIUM');
+  });
+
+  it('uses a location template without internal network fields', function () {
+    const ctrl = createController(this);
+
+    expect(ctrl.pages.location).not.toBe(require('../internal/createLoadBalancerProperties.html'));
+    expect(ctrl.networkUpdated).toBeUndefined();
   });
 
   it('closes with a regional external network pipeline command instead of submitting', function () {

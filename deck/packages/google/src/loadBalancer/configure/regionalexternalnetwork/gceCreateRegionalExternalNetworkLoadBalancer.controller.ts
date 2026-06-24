@@ -9,13 +9,13 @@ import { AccountService, LoadBalancerWriter, TaskMonitor } from '@spinnaker/core
 
 import { GCE_ADDRESS_READER } from '../../../address/address.reader';
 import type { IGceAddress } from '../../../address/address.reader';
-import type { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from '../../../domain/index';
-import { GCEProviderSettings } from '../../../gce.settings';
 import { GCE_ADDRESS_SELECTOR } from '../common/addressSelector.component';
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import type { GceCommonLoadBalancerCommandBuilder } from '../common/commonLoadBalancerCommandBuilder.service';
 import { GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER } from '../common/commonLoadBalancerCommandBuilder.service';
 import { GCE_HEALTH_CHECK_SELECTOR_COMPONENT } from '../common/healthCheck.component';
+import type { IGceBackendService, IGceHealthCheck, IGceLoadBalancer } from '../../../domain/index';
+import { GCEProviderSettings } from '../../../gce.settings';
 
 class ViewState {
   constructor(public sessionAffinity: string) {}
@@ -50,7 +50,7 @@ class RegionalExternalNetworkLoadBalancer implements IGceLoadBalancer {
 
 class RegionalExternalNetworkLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IController {
   public pages: any = {
-    location: require('../internal/createLoadBalancerProperties.html'),
+    location: require('./createLoadBalancerProperties.html'),
     listener: require('./listener.html'),
     healthCheck: require('../common/commonHealthCheckPage.html'),
     advancedSettings: require('./advancedSettings.html'),

@@ -290,7 +290,9 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function usesRegionalResources(loadBalancer) {
-      return loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' || loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED';
+      return (
+        loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' || loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'
+      );
     }
 
     function getRegionalResourceRegion(loadBalancer) {

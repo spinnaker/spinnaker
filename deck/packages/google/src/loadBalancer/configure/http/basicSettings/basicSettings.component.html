@@ -43,7 +43,10 @@
         </div>
       </div>
       <gce-region-select-field
-        ng-if="$ctrl.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' || $ctrl.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'"
+        ng-if="
+          $ctrl.loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' ||
+          $ctrl.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'
+        "
         label-columns="2"
         field-columns="8"
         component="$ctrl.loadBalancer"

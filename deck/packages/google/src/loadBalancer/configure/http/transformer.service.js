@@ -85,8 +85,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_TRANSFORMER_SERVICE, []).factory(
         // present, but listeners deserialized from LBs created before this field existed may only
         // have certificate/certificateMap values without a source. The fallback condition handles
         // that: no certificate + truthy certificateMap implies certificateMap mode.
-        const supportsCertificateMap =
-          !loadBalancer.loadBalancerType || loadBalancer.loadBalancerType === 'HTTP';
+        const supportsCertificateMap = !loadBalancer.loadBalancerType || loadBalancer.loadBalancerType === 'HTTP';
         const useCertificateMap =
           supportsCertificateMap &&
           (listener.certificateSource === 'certificateMap' || (!listener.certificate && !!listener.certificateMap));
