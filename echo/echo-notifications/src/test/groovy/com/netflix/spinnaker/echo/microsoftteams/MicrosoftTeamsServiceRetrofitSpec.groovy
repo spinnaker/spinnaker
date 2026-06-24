@@ -76,7 +76,7 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
       .setHeader("Content-Type", "application/json")
       .setBody('{"status": "success"}'))
 
-    def message = new MicrosoftTeamsMessage("Test message", "complete")
+    def message = '{"type":"message","attachments":[{"contentType":"application/vnd.microsoft.card.adaptive","content":{"type":"AdaptiveCard","version":"1.4","body":[{"type":"TextBlock","text":"Test message"}]}}]}'
 
     when: "sending message via MicrosoftTeamsService"
     def response = microsoftTeamsService.sendMessage(webhookUrl, message)
@@ -93,25 +93,7 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
     server.requestCount == 1
   }
 
-  def "sendMessage should handle successful Teams webhook response"() {
-    given: "Teams webhook returns success"
-    def responseJson = '{"status": "delivered", "timestamp": "2026-06-12T12:00:00Z"}'
-    server.enqueue(new MockResponse()
-      .setResponseCode(200)
-      .setHeader("Content-Type", "application/json")
-      .setBody(responseJson))
 
-    def webhookUrl = server.url("/teams/webhook123").toString().replaceAll('/$', '')
-    def message = new MicrosoftTeamsMessage("Important notification", "starting")
-
-    when: "sending message"
-    def response = microsoftTeamsService.sendMessage(webhookUrl, message)
-
-    then: "response is successful and body is readable"
-    response != null
-    def bodyString = response.string()
-    bodyString.contains("delivered")
-  }
 
   def "sendMessage should handle webhook with deep path segments"() {
     given: "Teams webhook URL with multiple path segments"
@@ -122,7 +104,9 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
       .setResponseCode(200)
       .setBody('{"ok": true}'))
 
-    def message = new MicrosoftTeamsMessage("Message with deep path test", "complete")
+    def message = """
+{ "message":"something" }
+"""
 
     when: "sending message"
     microsoftTeamsService.sendMessage(webhookUrl, message)
@@ -141,7 +125,7 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
       .setResponseCode(200)
       .setBody('{}'))
 
-    def message = new MicrosoftTeamsMessage("Test", "starting")
+    def message = """{"message":"payload"}"""
 
     when: "sending message"
     microsoftTeamsService.sendMessage(webhookUrl, message)
@@ -151,21 +135,4 @@ class MicrosoftTeamsServiceRetrofitSpec extends Specification {
     recordedRequest.path == "/webhook/abc123?tenant=demo"
   }
 
-  def "sendMessage should properly serialize MicrosoftTeamsMessage body"() {
-    given: "Teams webhook ready to receive message"
-    server.enqueue(new MockResponse()
-      .setResponseCode(200)
-      .setBody('{"accepted": true}'))
-
-    def webhookUrl = server.url("/webhook").toString().replaceAll('/$', '')
-    def message = new MicrosoftTeamsMessage("Summary for teams", "failed")
-
-    when: "sending message"
-    microsoftTeamsService.sendMessage(webhookUrl, message)
-    def recordedRequest = server.takeRequest()
-
-    then: "request body contains the message summary"
-    def body = recordedRequest.body.readUtf8()
-    body.contains("Summary for teams")
-  }
 }

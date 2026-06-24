@@ -92,4 +92,31 @@ class ScalableTargetCachingAgentSpec extends Specification {
     givenScalableTargets*.maxCapacity.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().maxCapacity)
     givenScalableTargets*.roleARN.containsAll(cacheData.get(SCALABLE_TARGETS.ns)*.getAttributes().roleARN)
   }
+
+  def 'should use filterIdentifiers with account and region glob for evictions'() {
+    given:
+    def givenScalableTarget = new ScalableTarget(
+      serviceNamespace: ServiceNamespace.Ecs,
+      resourceId: "service:/test-cluster/test-service-v001",
+      scalableDimension: 'scalable-dimension',
+      minCapacity: 0,
+      maxCapacity: 9001,
+      roleARN: 'role-arn'
+    )
+    clientProvider.getAmazonApplicationAutoScaling(_, _, _) >> autoscaling
+    autoscaling.describeScalableTargets(_) >> new DescribeScalableTargetsResult().withScalableTargets([givenScalableTarget])
+
+    def account = 'test-account'
+    def region = 'us-west-1'
+    def expectedGlob = com.netflix.spinnaker.clouddriver.ecs.cache.Keys.buildGlob(SCALABLE_TARGETS, account, region)
+    def oldIdentifiers = ['ecs;scalable-targets;test-account;us-west-1;old-target']
+    providerCache.filterIdentifiers(SCALABLE_TARGETS.ns, expectedGlob) >> oldIdentifiers
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.evictions[SCALABLE_TARGETS.ns] != null
+    result.evictions[SCALABLE_TARGETS.ns].containsAll(oldIdentifiers)
+  }
 }
