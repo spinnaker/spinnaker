@@ -5,7 +5,9 @@ import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import type { IAccountDetails } from '@spinnaker/core';
+import { AccountService, HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { DockerImageReader } from '@spinnaker/docker';
 
 import type {
   IEcsDockerImage,
@@ -24,6 +26,8 @@ interface IContainerState {
   computeUnits: number;
   reservedMemory: number;
   dockerImages: IEcsDockerImage[];
+  dockerRegistryAccounts: IAccountDetails[];
+  selectedDockerAccount: string;
   targetGroupsAvailable: string[];
   targetGroupMappings: IEcsTargetGroupMapping[];
 }
@@ -60,6 +64,8 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       computeUnits: cmd.computeUnits,
       reservedMemory: cmd.reservedMemory,
       dockerImages: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.images : [],
+      dockerRegistryAccounts: [],
+      selectedDockerAccount: cmd.imageDescription?.account ?? '',
       targetGroupMappings: cmd.targetGroupMappings,
       targetGroupsAvailable: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.targetGroups : [],
     };
@@ -70,6 +76,10 @@ export class Container extends React.Component<IContainerProps, IContainerState>
   }
 
   public componentDidMount() {
+    AccountService.listAccounts('dockerRegistry').then((accounts: IAccountDetails[]) => {
+      this.setState({ dockerRegistryAccounts: accounts });
+    });
+
     this.props.configureCommand('1').then(() => {
       this.setState({
         dockerImages: this.props.command.backingData.filtered.images,
@@ -102,6 +112,16 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       repository: '',
       tag: '',
     };
+  };
+
+  private updateDockerRegistryAccount = (newAccount: Option<string>) => {
+    const account = newAccount.value;
+    this.setState({ selectedDockerAccount: account, dockerImages: [] });
+    DockerImageReader.findImages({ provider: 'dockerRegistry', account, count: 50 }).then((images) => {
+      const ecsImages = images as IEcsDockerImage[];
+      this.props.command.backingData.filtered.images = ecsImages;
+      this.setState({ dockerImages: ecsImages });
+    });
   };
 
   private pushTargetGroupMapping = () => {
@@ -170,6 +190,11 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       this.props.command.viewState.dirty && this.props.command.viewState.dirty.targetGroups
         ? this.props.command.viewState.dirty.targetGroups
         : [];
+
+    const dockerRegistryAccountOptions = this.state.dockerRegistryAccounts.map((account) => ({
+      label: account.name,
+      value: account.name,
+    }));
 
     const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
@@ -257,6 +282,20 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     return (
       <div className="container-fluid form-horizontal">
         {dirtyTagetGroups.length > 0 ? <div>{dirtyTargetGroupSection}</div> : ''}
+        <div className="form-group">
+          <div className="col-md-3 sm-label-right">
+            <b>Docker Registry Account</b>
+          </div>
+          <div className="col-md-9" data-test-id="ContainerInputs.dockerRegistryAccount">
+            <TetheredSelect
+              placeholder="Select a Docker registry account..."
+              options={dockerRegistryAccountOptions}
+              value={this.state.selectedDockerAccount}
+              onChange={(e: Option) => this.updateDockerRegistryAccount(e as Option<string>)}
+              clearable={false}
+            />
+          </div>
+        </div>
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
             <b>Container Image</b>
