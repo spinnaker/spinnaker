@@ -87,11 +87,11 @@ class AzureVMImageLookupControllerTest {
 
     // prepare
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
     given(
             cache.getAll(
@@ -127,7 +127,7 @@ class AzureVMImageLookupControllerTest {
     CacheData c = new DefaultCacheData(key, Map.of("vmimage", azureImageAsJson), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of(key));
+        .willReturn(Set.of(key));
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
@@ -170,7 +170,7 @@ class AzureVMImageLookupControllerTest {
     CacheData c = new DefaultCacheData(key, Map.of("vmimage", azureImageAsJson), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of(key));
+        .willReturn(Set.of(key));
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
@@ -216,7 +216,7 @@ class AzureVMImageLookupControllerTest {
     CacheData c = new DefaultCacheData(key, Map.of("vmimage", azureImageAsJson), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of(key));
+        .willReturn(Set.of(key));
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
@@ -277,9 +277,9 @@ class AzureVMImageLookupControllerTest {
         new DefaultCacheData(vmImageKey, Map.of("vmimage", azureVmImageAsJson), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of(key));
+        .willReturn(Set.of(key));
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyString()))
-        .willReturn(List.of(vmImageKey));
+        .willReturn(Set.of(vmImageKey));
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
@@ -354,11 +354,11 @@ class AzureVMImageLookupControllerTest {
         new DefaultCacheData(vmImageKey, Map.of("vmimage", azureVmImageAsJson), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_VMIMAGES.getNs()), anyString()))
-        .willReturn(List.of(vmImageKey));
+        .willReturn(Set.of(vmImageKey));
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
     given(
             cache.getAll(
@@ -425,9 +425,9 @@ class AzureVMImageLookupControllerTest {
     CacheData c = new DefaultCacheData(key, Map.of("vmimage", objectAsMap), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
-        .willReturn(List.of(key));
+        .willReturn(Set.of(key));
     given(
             cache.getAll(
                 eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyList(), any(CacheFilter.class)))
@@ -480,9 +480,9 @@ class AzureVMImageLookupControllerTest {
     CacheData c = new DefaultCacheData(key, Map.of("vmimage", objectAsMap), Map.of());
 
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_CUSTOMVMIMAGES.getNs()), anyString()))
-        .willReturn(List.of());
+        .willReturn(Set.of());
     given(cache.filterIdentifiers(eq(Keys.Namespace.AZURE_MANAGEDIMAGES.getNs()), anyString()))
-        .willReturn(List.of(key));
+        .willReturn(Set.of(key));
     given(accountCredentialsProvider.getAll()).willReturn(Set.of());
     given(
             cache.getAll(
