@@ -72,6 +72,14 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+import software.amazon.awssdk.services.ecr.EcrClient;
+import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 
 /** Provider of Amazon SDK Clients that can read through Edda. */
 public class AmazonClientProvider {
@@ -87,6 +95,7 @@ public class AmazonClientProvider {
   public static final String DEFAULT_REGION = null;
 
   private final AwsSdkClientSupplier awsSdkClientSupplier;
+  private final AwsSdkV2ClientSupplier awsSdkV2ClientSupplier;
   private final ProxyHandlerBuilder proxyHandlerBuilder;
 
   public static class Builder {
@@ -107,6 +116,7 @@ public class AmazonClientProvider {
     private ServiceLimitConfiguration serviceLimitConfiguration =
         new ServiceLimitConfigurationBuilder().build();
     private Registry registry = new NoopRegistry();
+    private List<ExecutionInterceptor> v2ExecutionInterceptors = new ArrayList<>();
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -188,6 +198,15 @@ public class AmazonClientProvider {
       return this;
     }
 
+    /**
+     * Adds an AWS SDK v2 {@link ExecutionInterceptor} that will be attached to every v2 client
+     * built by the provider. This is the v2 equivalent of {@link #requestHandler(RequestHandler2)}.
+     */
+    public Builder v2ExecutionInterceptor(ExecutionInterceptor interceptor) {
+      this.v2ExecutionInterceptors.add(interceptor);
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient;
       if (client == null) {
@@ -237,7 +256,8 @@ public class AmazonClientProvider {
           eddaTimeoutConfig,
           uzeGzip,
           serviceLimitConfiguration,
-          registry);
+          registry,
+          v2ExecutionInterceptors);
     }
 
     private RetryPolicy buildPolicy() {
@@ -304,11 +324,49 @@ public class AmazonClientProvider {
       boolean useGzip,
       ServiceLimitConfiguration serviceLimitConfiguration,
       Registry registry) {
+    this(
+        httpClient,
+        objectMapper,
+        eddaTemplater,
+        retryPolicy,
+        requestHandlers,
+        proxy,
+        eddaTimeoutConfig,
+        useGzip,
+        serviceLimitConfiguration,
+        registry,
+        Collections.emptyList());
+  }
+
+  public AmazonClientProvider(
+      HttpClient httpClient,
+      ObjectMapper objectMapper,
+      EddaTemplater eddaTemplater,
+      RetryPolicy retryPolicy,
+      List<RequestHandler2> requestHandlers,
+      AWSProxy proxy,
+      EddaTimeoutConfig eddaTimeoutConfig,
+      boolean useGzip,
+      ServiceLimitConfiguration serviceLimitConfiguration,
+      Registry registry,
+      List<ExecutionInterceptor> v2ExecutionInterceptors) {
     RateLimiterSupplier rateLimiterSupplier =
         new RateLimiterSupplier(serviceLimitConfiguration, registry);
     this.awsSdkClientSupplier =
         new AwsSdkClientSupplier(
             rateLimiterSupplier, registry, retryPolicy, requestHandlers, proxy, useGzip);
+    software.amazon.awssdk.core.retry.RetryPolicy v2RetryPolicy = buildV2RetryPolicy(retryPolicy);
+    boolean v2AddUserAgent =
+        requestHandlers.stream()
+            .anyMatch(h -> h instanceof AddSpinnakerUserToUserAgentRequestHandler);
+    this.awsSdkV2ClientSupplier =
+        new AwsSdkV2ClientSupplier(
+            rateLimiterSupplier,
+            registry,
+            v2RetryPolicy,
+            proxy,
+            v2AddUserAgent,
+            v2ExecutionInterceptors);
     this.proxyHandlerBuilder =
         new ProxyHandlerBuilder(
             awsSdkClientSupplier,
@@ -317,6 +375,18 @@ public class AmazonClientProvider {
             eddaTemplater,
             eddaTimeoutConfig,
             registry);
+  }
+
+  /**
+   * Translates v1 retry settings into a v2 {@link software.amazon.awssdk.core.retry.RetryPolicy}.
+   * The v2 SDK provides sensible defaults for backoff and retry conditions; we only override the
+   * max number of retries to match the v1 configuration.
+   */
+  private static software.amazon.awssdk.core.retry.RetryPolicy buildV2RetryPolicy(
+      RetryPolicy v1RetryPolicy) {
+    return software.amazon.awssdk.core.retry.RetryPolicy.builder()
+        .numRetries(v1RetryPolicy.getMaxErrorRetry())
+        .build();
   }
 
   /**
@@ -696,5 +766,120 @@ public class AmazonClientProvider {
   public AWSSupport getAmazonSupport(NetflixAmazonCredentials amazonCredentials, String region) {
     return proxyHandlerBuilder.getProxyHandler(
         AWSSupport.class, AWSSupportClientBuilder.class, amazonCredentials, region, true);
+  }
+
+  // ---------------------------------------------------------------------------
+  // AWS SDK v2 client methods
+  //
+  // These methods return software.amazon.awssdk (v2) clients and do NOT
+  // provide Edda read-through support (Edda interception is v1-only).
+  // They are the building blocks for the clouddriver-ecs → v2 migration.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Returns an AWS SDK v2 {@link EcsClient} for the given account and region.
+   *
+   * <p>Unlike its v1 counterpart this method has no {@code skipEdda} parameter. Edda read-through
+   * cannot be supported for v2 clients: the interception mechanism wraps v1 service interfaces in a
+   * JDK dynamic proxy (see {@link
+   * com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AmazonClientInvocationHandler}), but
+   * the v2 client types are unrelated classes that the proxy cannot implement. v2 calls go directly
+   * to AWS.
+   */
+  public EcsClient getAmazonEcsV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        EcsClient::builder,
+        EcsClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link EcrClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public EcrClient getAmazonEcrV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        EcrClient::builder,
+        EcrClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link IamClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public IamClient getIamV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        IamClient::builder,
+        IamClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link CloudWatchClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public CloudWatchClient getAmazonCloudWatchV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        CloudWatchClient::builder,
+        CloudWatchClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link SecretsManagerClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public SecretsManagerClient getAmazonSecretsManagerV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        SecretsManagerClient::builder,
+        SecretsManagerClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link ServiceDiscoveryClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public ServiceDiscoveryClient getAmazonServiceDiscoveryV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        ServiceDiscoveryClient::builder,
+        ServiceDiscoveryClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link ApplicationAutoScalingClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public ApplicationAutoScalingClient getAmazonApplicationAutoScalingV2(
+      NetflixAmazonCredentials amazonCredentials, String region) {
+    return awsSdkV2ClientSupplier.getClient(
+        ApplicationAutoScalingClient::builder,
+        ApplicationAutoScalingClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName());
   }
 }
