@@ -144,6 +144,15 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
         : null;
   }
 
+  static boolean isInternalManagedHttpForwardingRule(ForwardingRule forwardingRule) {
+    GoogleTargetProxyType type =
+        forwardingRule.getTarget() != null
+            ? Utils.getTargetProxyType(forwardingRule.getTarget())
+            : null;
+    return "INTERNAL_MANAGED".equals(forwardingRule.getLoadBalancingScheme())
+        && (type == HTTP || type == HTTPS);
+  }
+
   /**
    * Local cache of BackendServiceGroupHealth keyed by BackendService name.
    *
@@ -278,16 +287,12 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
       @Override
       public void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders)
           throws IOException {
-        GoogleTargetProxyType type =
-            forwardingRule.getTarget() != null
-                ? Utils.getTargetProxyType(forwardingRule.getTarget())
-                : null;
-        if (type == HTTP || type == HTTPS) {
+        if (isInternalManagedHttpForwardingRule(forwardingRule)) {
           cacheRemainderOfLoadBalancerResourceGraph(forwardingRule);
         } else {
           throw new IllegalArgumentException(
-              "Not responsible for on demand caching of load balancers without target "
-                  + "proxy or with SSL proxy type.");
+              "Not responsible for on demand caching of load balancers without "
+                  + "INTERNAL_MANAGED HTTP(S) target proxy.");
         }
       }
     }
@@ -298,23 +303,10 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
       public void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) {
         if (forwardingRuleList.getItems() == null) return;
         forwardingRuleList.getItems().stream()
-            .filter(
-                f ->
-                    f.getLoadBalancingScheme() != null
-                        && f.getLoadBalancingScheme().equals("INTERNAL_MANAGED"))
+            .filter(GoogleInternalHttpLoadBalancerCachingAgent::isInternalManagedHttpForwardingRule)
             .forEach(
                 forwardingRule -> {
-                  GoogleTargetProxyType type =
-                      forwardingRule.getTarget() != null
-                          ? Utils.getTargetProxyType(forwardingRule.getTarget())
-                          : null;
-                  if (type == HTTP || type == HTTPS) {
-                    cacheRemainderOfLoadBalancerResourceGraph(forwardingRule);
-                  } else {
-                    throw new IllegalArgumentException(
-                        "Not responsible for on demand caching of load balancers without target "
-                            + "proxy or with SSL proxy type.");
-                  }
+                  cacheRemainderOfLoadBalancerResourceGraph(forwardingRule);
                 });
       }
 
@@ -678,7 +670,7 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
     }
   }
 
-  private static void handleHealthCheck(
+  static void handleHealthCheck(
       final HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
     if (healthCheck == null) return;
 

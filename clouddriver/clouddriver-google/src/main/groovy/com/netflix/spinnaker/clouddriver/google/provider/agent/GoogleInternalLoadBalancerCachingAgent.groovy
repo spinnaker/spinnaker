@@ -125,6 +125,10 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
+  static boolean isInternalPassthroughRule(ForwardingRule forwardingRule) {
+    forwardingRule?.backendService && !forwardingRule?.target && forwardingRule?.loadBalancingScheme == "INTERNAL"
+  }
+
   class ForwardingRuleCallbacks {
     List<GoogleInternalLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
@@ -157,10 +161,10 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
 
       @Override
       void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        if (forwardingRule.backendService) {
+        if (isInternalPassthroughRule(forwardingRule)) {
           cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
         } else {
-          throw new IllegalArgumentException("Not responsible for on demand caching of load balancers without backend services.")
+          throw new IllegalArgumentException("Not responsible for on demand caching of non-INTERNAL passthrough load balancers.")
         }
       }
     }
@@ -170,7 +174,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
       @Override
       void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
         forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          if (forwardingRule.backendService) {
+          if (isInternalPassthroughRule(forwardingRule)) {
             cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
           }
         }

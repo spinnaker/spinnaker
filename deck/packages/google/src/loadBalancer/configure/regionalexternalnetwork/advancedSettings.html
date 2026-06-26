@@ -1,0 +1,15 @@
+<ng-form name="advancedSettingsForm">
+  <div class="container-fluid form-horizontal">
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">Session Affinity</div>
+      <div class="col-md-4">
+        <select
+          class="form-control input-sm"
+          ng-model="ctrl.viewState.sessionAffinity"
+          ng-change="ctrl.setSessionAffinity(ctrl.viewState)"
+          ng-options="view for (model, view) in ctrl.sessionAffinityModelToViewMap"
+        ></select>
+      </div>
+    </div>
+  </div>
+</ng-form>

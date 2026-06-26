@@ -23,9 +23,11 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.credentials.CredentialsRepository
@@ -37,6 +39,13 @@ import org.springframework.stereotype.Component
 class UpsertGoogleLoadBalancerDescriptionValidator extends
     DescriptionValidator<UpsertGoogleLoadBalancerDescription> {
   private static final List<String> SUPPORTED_IP_PROTOCOLS = ["TCP", "UDP"]
+  private static final List<String> SUPPORTED_NETWORK_TIERS = ["PREMIUM", "STANDARD"]
+  private static final List<GoogleSessionAffinity> SUPPORTED_PASSTHROUGH_SESSION_AFFINITY = [
+    GoogleSessionAffinity.NONE,
+    GoogleSessionAffinity.CLIENT_IP,
+    GoogleSessionAffinity.CLIENT_IP_PROTO,
+    GoogleSessionAffinity.CLIENT_IP_PORT_PROTO
+  ]
 
   private static final List<Integer> SUPPORTED_SSL_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
   private static final List<Integer> SUPPORTED_TCP_PROXY_PORTS = [25, 43, 110, 143, 195, 443, 465, 587, 700, 993, 995]
@@ -155,6 +164,57 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
           }
         }
         break
+      case GoogleLoadBalancerType.EXTERNAL_MANAGED:
+        helper.validateRegion(description.region, description.credentials)
+
+        if (description.certificate && description.certificateMap) {
+          errors.rejectValue("certificate OR certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+        }
+        if (description.certificateMap) {
+          errors.rejectValue("certificateMap",
+            "upsertGoogleLoadBalancerDescription.certificateMap.regionalManagedNotSupported")
+        }
+        if (!description.network) {
+          errors.rejectValue("network",
+            "upsertGoogleLoadBalancerDescription.network.required")
+        }
+        if (description.networkTier && !SUPPORTED_NETWORK_TIERS.contains(description.networkTier)) {
+          errors.rejectValue("networkTier",
+            "upsertGoogleLoadBalancerDescription.networkTier.notSupported")
+        }
+        if (description.ipProtocol && description.ipProtocol != "TCP") {
+          errors.rejectValue("ipProtocol",
+            "upsertGoogleLoadBalancerDescription.ipProtocol.tcpRequired")
+        }
+
+        // portRange must be a single port.
+        try {
+          Integer.parseInt(description.portRange)
+        } catch (NumberFormatException _) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.requireSinglePort")
+        }
+
+        // Each backend service must have a health check.
+        def googleExternalHttpLoadBalancer = new GoogleExternalHttpLoadBalancer(
+            name: description.loadBalancerName,
+            defaultService: description.defaultService,
+            hostRules: description.hostRules,
+            certificate: description.certificate,
+            ipAddress: description.ipAddress,
+            ipProtocol: description.ipProtocol,
+            portRange: description.portRange,
+            network: description.network
+        )
+        List<GoogleBackendService> externalServices = Utils.getBackendServicesFromExternalHttpLoadBalancerView(googleExternalHttpLoadBalancer.view)
+        externalServices?.each { GoogleBackendService service ->
+          if (!service.healthCheck) {
+            errors.rejectValue("defaultService OR hostRules.pathMatcher.defaultService OR hostRules.pathMatcher.pathRules.backendService",
+              "upsertGoogleLoadBalancerDescription.backendServices.healthCheckRequired")
+          }
+        }
+        break
       case GoogleLoadBalancerType.INTERNAL:
         helper.validateRegion(description.region, description.credentials)
 
@@ -179,6 +239,52 @@ class UpsertGoogleLoadBalancerDescriptionValidator extends
         if (!description.network || !description.subnet) {
           errors.rejectValue("network OR subnet",
             "upsertGoogleLoadBalancerDescription.networkOrSubnet.networkAndSubnetRequired")
+        }
+        break
+      case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+        helper.validateRegion(description.region, description.credentials)
+
+        if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
+          errors.rejectValue("ipProtocol",
+            "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported")
+        }
+
+        def bs = description.backendService
+        if (!bs) {
+          errors.rejectValue("backendService",
+            "upsertGoogleLoadBalancerDescription.backendServiceRequired")
+        } else if (!bs.healthCheck) {
+          errors.rejectValue("backendService.healthCheck",
+            "upsertGoogleLoadBalancerDescription.backendService.healthCheckRequired")
+        }
+
+        if (!description.ports) {
+          errors.rejectValue("ports",
+            "upsertGoogleLoadBalancerDescription.ports.required")
+        } else if (description.ports.size() > 5 || description.ports.any { !(it ==~ /\d+/) }) {
+          errors.rejectValue("ports",
+            "upsertGoogleLoadBalancerDescription.ports.invalid")
+        }
+
+        if (description.portRange) {
+          errors.rejectValue("portRange",
+            "upsertGoogleLoadBalancerDescription.portRange.notSupported")
+        }
+
+        if (description.networkTier && !SUPPORTED_NETWORK_TIERS.contains(description.networkTier)) {
+          errors.rejectValue("networkTier",
+            "upsertGoogleLoadBalancerDescription.networkTier.notSupported")
+        }
+
+        if (description.ipAddress?.contains(":")) {
+          errors.rejectValue("ipAddress",
+            "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported")
+        }
+
+        if (description.backendService?.sessionAffinity &&
+          !SUPPORTED_PASSTHROUGH_SESSION_AFFINITY.contains(description.backendService.sessionAffinity)) {
+          errors.rejectValue("backendService.sessionAffinity",
+            "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported")
         }
         break
       case GoogleLoadBalancerType.SSL:

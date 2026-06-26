@@ -37,16 +37,29 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
     AUTHORITATIVE.forType(SSL_CERTIFICATES.ns)
   ] as Set
 
-  String agentType = "$accountName/$GoogleSslCertificateCachingAgent.simpleName"
+  final String region
+  String agentType
 
   GoogleSslCertificateCachingAgent(String clouddriverUserAgentApplicationName,
                                    GoogleNamedAccountCredentials credentials,
                                    ObjectMapper objectMapper,
                                    Registry registry) {
+    this(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, null)
+  }
+
+  GoogleSslCertificateCachingAgent(String clouddriverUserAgentApplicationName,
+                                   GoogleNamedAccountCredentials credentials,
+                                   ObjectMapper objectMapper,
+                                   Registry registry,
+                                   String region) {
     super(clouddriverUserAgentApplicationName,
       credentials,
       objectMapper,
       registry)
+    this.region = region
+    this.agentType = region ?
+      "$accountName/$region/$GoogleSslCertificateCachingAgent.simpleName" :
+      "$accountName/$GoogleSslCertificateCachingAgent.simpleName"
   }
 
   @Override
@@ -56,8 +69,13 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
   }
 
   List<SslCertificate> loadSslCertificates() {
-    timeExecute(compute.sslCertificates().list(project),
-                "compute.sslCertificates.list", TAG_SCOPE, SCOPE_GLOBAL
+    if (region) {
+      return timeExecute(compute.regionSslCertificates().list(project, region),
+        "compute.regionSslCertificates.list", TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
+      ).items as List
+    }
+    return timeExecute(compute.sslCertificates().list(project),
+      "compute.sslCertificates.list", TAG_SCOPE, SCOPE_GLOBAL
     ).items as List
   }
 
@@ -67,10 +85,18 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
     def cacheResultBuilder = new CacheResultBuilder()
 
     sslCertificateList.each { SslCertificate sslCertificate ->
-      def sslCertificateKey = Keys.getSslCertificateKey(accountName, sslCertificate.getName())
+      // Global and regional Compute SSL certificates share the cache namespace, but regional
+      // certificates include region in the key so Deck can offer only certs valid for a regional
+      // target HTTPS proxy.
+      def sslCertificateKey = region ?
+        Keys.getSslCertificateKey(accountName, region, sslCertificate.getName()) :
+        Keys.getSslCertificateKey(accountName, sslCertificate.getName())
 
       cacheResultBuilder.namespace(SSL_CERTIFICATES.ns).keep(sslCertificateKey).with {
         attributes.name = sslCertificate.name
+        if (region) {
+          attributes.region = region
+        }
       }
     }
 

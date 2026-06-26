@@ -163,7 +163,10 @@
             class="help-field-absolute"
           ></help-field>
         </div>
-        <div class="col-md-3" ng-if="$ctrl.listener.certificateSource !== 'certificateMap'">
+        <div
+          class="col-md-3"
+          ng-if="$ctrl.listener.certificateSource !== 'certificateMap' && !$ctrl.supportsTypedCertificate()"
+        >
           <ui-select
             ng-model="$ctrl.listener.certificate"
             ng-change="$ctrl.onCertificateSelected($ctrl.listener)"
@@ -171,6 +174,26 @@
             class="form-control input-sm"
           >
             <ui-select-match allow-clear placeholder="Select...">{{ $select.selected }}</ui-select-match>
+            <ui-select-choices repeat="certificate in $ctrl.getCertificates() | filter: $select.search">
+              <span ng-bind-html="certificate | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+        <div
+          class="col-md-3"
+          ng-if="$ctrl.listener.certificateSource !== 'certificateMap' && $ctrl.supportsTypedCertificate()"
+        >
+          <ui-select
+            ng-model="$ctrl.listener.certificate"
+            ng-change="$ctrl.onCertificateSelected($ctrl.listener)"
+            ng-required="$ctrl.isHttps($ctrl.listener.port)"
+            tagging="$ctrl.normalizeCertificate"
+            tagging-label="(use typed certificate)"
+            class="form-control input-sm"
+          >
+            <ui-select-match allow-clear placeholder="Select or paste regional certificate...">
+              {{ $select.selected }}
+            </ui-select-match>
             <ui-select-choices repeat="certificate in $ctrl.getCertificates() | filter: $select.search">
               <span ng-bind-html="certificate | highlight: $select.search"></span>
             </ui-select-choices>
@@ -201,7 +224,7 @@
         </div>
       </div>
 
-      <div class="form-group" ng-if="$ctrl.command.loadBalancer.loadBalancerType === 'HTTP'">
+      <div class="form-group" ng-if="$ctrl.showExternalIpSelector()">
         <div class="col-md-2 sm-label-right">
           External IP
           <help-field key="gce.httpLoadBalancer.externalIP" class="help-field-absolute"></help-field>

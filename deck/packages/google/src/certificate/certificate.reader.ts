@@ -7,6 +7,8 @@ export interface IGceCertificate {
   account: string;
   name: string;
   provider: string;
+  region?: string;
+  selfLink?: string;
   type: string;
 }
 
