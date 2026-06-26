@@ -3,12 +3,14 @@ export interface IUser {
   authenticated: boolean;
   roles?: string[];
   lastAuthenticated?: number;
+  canMintApiTokens?: boolean;
 }
 
 const defaultUser: IUser = {
   name: '[anonymous]',
   roles: [],
   authenticated: false,
+  canMintApiTokens: false,
 };
 
 export class AuthenticationService {
@@ -26,6 +28,7 @@ export class AuthenticationService {
       this.user.authenticated = true;
       this.user.lastAuthenticated = new Date().getTime();
       this.user.roles = authenticatedUser.roles;
+      this.user.canMintApiTokens = authenticatedUser.canMintApiTokens ?? false;
     }
 
     this.authEvents.forEach((event: Function) => event());

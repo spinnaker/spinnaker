@@ -46,6 +46,22 @@ describe('authenticationProvider: application startup', function () {
       expect(AuthenticationService.getAuthenticatedUser().authenticated).toBe(true);
     });
 
+    it('threads canMintApiTokens from the auth response onto the authenticated user', function () {
+      $httpBackend.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!', canMintApiTokens: true });
+      $timeout.flush();
+      $httpBackend.flush();
+
+      expect(AuthenticationService.getAuthenticatedUser().canMintApiTokens).toBe(true);
+    });
+
+    it('defaults canMintApiTokens to false when the auth response omits it', function () {
+      $httpBackend.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
+      $timeout.flush();
+      $httpBackend.flush();
+
+      expect(AuthenticationService.getAuthenticatedUser().canMintApiTokens).toBe(false);
+    });
+
     it('requests authentication from gate, then opens modal and redirects on 401', function () {
       $httpBackend.whenGET(SETTINGS.authEndpoint).respond(401, null, { 'X-AUTH-REDIRECT-URL': '/authUp' });
       $rootScope.$digest();

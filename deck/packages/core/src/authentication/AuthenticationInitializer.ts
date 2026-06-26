@@ -11,6 +11,7 @@ import { ModalInjector } from '../reactShims/modal.injector';
 interface IAuthResponse {
   username: string;
   roles?: string[];
+  canMintApiTokens?: boolean;
 }
 
 export class AuthenticationInitializer {
@@ -26,6 +27,7 @@ export class AuthenticationInitializer {
             name: response.data.username,
             authenticated: false,
             roles: response.data.roles,
+            canMintApiTokens: response.data.canMintApiTokens,
           });
           ModalInjector.modalStackService.dismissAll();
           this.visibilityWatch.unsubscribe();
@@ -65,6 +67,7 @@ export class AuthenticationInitializer {
             name: response.data.username,
             authenticated: false,
             roles: response.data.roles,
+            canMintApiTokens: response.data.canMintApiTokens,
           });
           $rootScope.authenticating = false;
         } else {
@@ -85,6 +88,7 @@ export class AuthenticationInitializer {
               name: response.data.username,
               authenticated: false,
               roles: response.data.roles,
+              canMintApiTokens: response.data.canMintApiTokens,
             });
             $rootScope.authenticating = false;
             this.userLoggedOut = false;
