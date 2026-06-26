@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService;
 import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository;
 import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository.DuplicateTokenNameException;
+import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository.TokenOperationFailedException;
 import com.netflix.spinnaker.gate.security.apitoken.TokenRecord;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
@@ -44,8 +45,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -221,6 +224,15 @@ public class ApiTokenController {
         record.getName(),
         record.getPrincipalType(),
         record.getPrincipalId());
+  }
+
+  /** Maps repository EXEC-null / exhausted-retry failures to a retriable {@code 503}. */
+  @ExceptionHandler(TokenOperationFailedException.class)
+  public ResponseEntity<Map<String, Object>> handleTokenOperationFailed(
+      TokenOperationFailedException e) {
+    log.warn("API token operation failed: {}", e.getMessage());
+    return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        .body(Map.of("error", e.getMessage()));
   }
 
   // ---------------------------------------------------------------------------
