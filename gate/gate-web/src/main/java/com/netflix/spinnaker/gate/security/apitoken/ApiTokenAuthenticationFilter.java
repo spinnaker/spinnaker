@@ -84,6 +84,19 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
 
   public static final String HEADER_X_SPINNAKER_TOKEN = "X-Spinnaker-Token";
 
+  /** RFC 7235 §2.1 auth-scheme prefix (including trailing space) for {@code Authorization}. */
+  static final String BEARER_SCHEME = "Bearer ";
+
+  /**
+   * Case-insensitive RFC 7235 §2.1 match of the {@code Bearer } auth-scheme prefix. Shared with
+   * {@code ApiTokenAuthConfigurerAdapter.ApiTokenRequestMatcher} so the routing layer and the
+   * filter can't drift on what counts as a Bearer header.
+   */
+  static boolean hasBearerScheme(String authHeader) {
+    return authHeader != null
+        && authHeader.regionMatches(true, 0, BEARER_SCHEME, 0, BEARER_SCHEME.length());
+  }
+
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -204,8 +217,8 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
     String authHeader = request.getHeader("Authorization");
     // RFC 7235 §2.1: the auth-scheme token is case-insensitive ("Bearer"/"bearer"/"BEARER" are all
     // valid). The opaque token (spk_…) itself is case-sensitive and stays so.
-    if (authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
-      String candidate = authHeader.substring("Bearer ".length());
+    if (hasBearerScheme(authHeader)) {
+      String candidate = authHeader.substring(BEARER_SCHEME.length());
       if (candidate.startsWith(properties.getTokenPrefix())) {
         return candidate;
       }

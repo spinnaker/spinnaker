@@ -87,12 +87,11 @@ public class ApiTokenAuthConfigurerAdapter {
       if (xToken != null && xToken.startsWith(tokenPrefix)) {
         return true;
       }
-      String auth = request.getHeader("Authorization");
       // Match the auth-scheme case-insensitively (RFC 7235 §2.1) so "bearer …" / "BEARER …" also
       // route to the API-token chain; keep the spk_ prefix check case-sensitive.
-      return auth != null
-          && auth.regionMatches(true, 0, "Bearer ", 0, 7)
-          && auth.startsWith(tokenPrefix, "Bearer ".length());
+      String auth = request.getHeader("Authorization");
+      return ApiTokenAuthenticationFilter.hasBearerScheme(auth)
+          && auth.startsWith(tokenPrefix, ApiTokenAuthenticationFilter.BEARER_SCHEME.length());
     }
   }
 }

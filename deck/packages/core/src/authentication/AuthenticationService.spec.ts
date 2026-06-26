@@ -16,6 +16,24 @@ describe('AuthenticationService', function () {
       expect(user.authenticated).toBe(true);
     });
 
+    it('defaults canMintApiTokens to false', function () {
+      let user: IUser = AuthenticationService.getAuthenticatedUser();
+      expect(user.canMintApiTokens).toBe(false);
+
+      AuthenticationService.setAuthenticatedUser({ name: 'kato@example.com', authenticated: false });
+      user = AuthenticationService.getAuthenticatedUser();
+      expect(user.canMintApiTokens).toBe(false);
+    });
+
+    it('stores canMintApiTokens when provided', function () {
+      AuthenticationService.setAuthenticatedUser({
+        name: 'kato@example.com',
+        authenticated: false,
+        canMintApiTokens: true,
+      });
+      expect(AuthenticationService.getAuthenticatedUser().canMintApiTokens).toBe(true);
+    });
+
     it('disregards falsy values', function () {
       const user: IUser = AuthenticationService.getAuthenticatedUser();
 
