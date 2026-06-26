@@ -29,8 +29,6 @@ public class InstanceTemplates {
   private final Compute.InstanceTemplates computeApi;
   private final GoogleNamedAccountCredentials credentials;
   private final GlobalGoogleComputeRequestFactory requestFactory;
-  private static final String defaultView =
-      "FULL"; // https://cloud.google.com/sdk/gcloud/reference/beta/compute/instance-templates/list
 
   InstanceTemplates(
       GoogleNamedAccountCredentials credentials,
@@ -63,15 +61,19 @@ public class InstanceTemplates {
     return requestFactory.wrapOperationRequest(request, "insert");
   }
 
+  /**
+   * Lists instance templates. In the beta API a {@code setView("FULL")} parameter was required to
+   * return complete template properties; the stable v1 API always returns full properties by
+   * default, so the view parameter is omitted.
+   *
+   * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates/list">
+   *     instanceTemplates.list (v1)</a>
+   */
   public PaginatedComputeRequest<Compute.InstanceTemplates.List, InstanceTemplate> list() {
     return new PaginatedComputeRequestImpl<>(
         pageToken ->
             requestFactory.wrapRequest(
-                computeApi
-                    .list(credentials.getProject())
-                    .setPageToken(pageToken)
-                    .setView(defaultView),
-                "list"),
+                computeApi.list(credentials.getProject()).setPageToken(pageToken), "list"),
         InstanceTemplateList::getNextPageToken,
         InstanceTemplateList::getItems);
   }

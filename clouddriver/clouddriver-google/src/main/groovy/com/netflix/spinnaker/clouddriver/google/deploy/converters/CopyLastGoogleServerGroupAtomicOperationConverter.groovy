@@ -23,10 +23,12 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsConverter
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.CLONE_SERVER_GROUP)
 @Component("copyLastGoogleServerGroupDescription")
+@Slf4j
 class CopyLastGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsConverter<GoogleNamedAccountCredentials> {
 
   AtomicOperation convertOperation(Map input) {
@@ -34,6 +36,14 @@ class CopyLastGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOp
   }
 
   BasicGoogleDeployDescription convertDescription(Map input) {
+    // Pipelines saved before the v1 migration may still contain partnerMetadata (a beta-only
+    // feature removed in the stable API).  Strip it here so existing pipelines deploy without
+    // errors — the field is not propagated to GCE regardless.
+    if (input.containsKey('partnerMetadata')) {
+      log.warn("Stripping partnerMetadata from clone description — not supported under the stable v1 compute API.")
+      input.remove('partnerMetadata')
+    }
+
     GoogleAtomicOperationConverterHelper.convertDescription(input, this, BasicGoogleDeployDescription)
   }
 }
