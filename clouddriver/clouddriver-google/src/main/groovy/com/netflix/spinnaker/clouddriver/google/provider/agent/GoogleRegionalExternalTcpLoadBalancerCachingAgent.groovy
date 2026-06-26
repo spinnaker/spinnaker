@@ -28,6 +28,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.ForwardingRuleCallbackHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.HealthCheckHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
@@ -106,10 +107,10 @@ class GoogleRegionalExternalTcpLoadBalancerCachingAgent extends AbstractGoogleLo
     )
 
     if (onDemandLoadBalancerName) {
-      ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
+      def frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
       forwardingRulesRequest.queue(compute.forwardingRules().get(project, region, onDemandLoadBalancerName), frCallback)
     } else {
-      ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
+      def frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
       new PaginatedRequest<ForwardingRuleList>(this) {
         @Override
         ComputeRequest<ForwardingRuleList> request(String pageToken) {
@@ -135,7 +136,7 @@ class GoogleRegionalExternalTcpLoadBalancerCachingAgent extends AbstractGoogleLo
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
-  class ForwardingRuleCallbacks {
+  class ForwardingRuleCallbacks extends ForwardingRuleCallbackHelper {
     List<GoogleTcpLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
 
@@ -146,65 +147,24 @@ class GoogleRegionalExternalTcpLoadBalancerCachingAgent extends AbstractGoogleLo
     List<HttpsHealthCheck> projectHttpsHealthChecks
     List<HealthCheck> projectHealthChecks
 
-    ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
-      return new ForwardingRuleSingletonCallback<ForwardingRule>()
+    @Override
+    protected boolean shouldProcessForwardingRule(ForwardingRule forwardingRule) {
+      // Filter for regional external TCP/UDP load balancers:
+      // - Must have backendService (not target proxy)
+      // - Must have EXTERNAL load balancing scheme
+      // - No target field (distinguishes from global TCP LBs with target proxies)
+      return forwardingRule.backendService &&
+             forwardingRule.getLoadBalancingScheme() == "EXTERNAL" &&
+             !forwardingRule.target
     }
 
-    ForwardingRuleListCallback<ForwardingRuleList> newForwardingRuleListCallback() {
-      return new ForwardingRuleListCallback<ForwardingRuleList>()
+    @Override
+    protected String getFilterErrorMessage() {
+      return "Not responsible for on demand caching of load balancers that are not regional external TCP/UDP with backend services."
     }
 
-    class ForwardingRuleSingletonCallback<ForwardingRule> extends JsonBatchCallback<ForwardingRule> {
-
-      @Override
-      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
-        if (e.code != 404) {
-          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
-          log.error errorJson
-        }
-      }
-
-      @Override
-      void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        // Filter for regional external TCP/UDP load balancers:
-        // - Must have backendService (not target proxy)
-        // - Must have EXTERNAL load balancing scheme
-        // - No target field (distinguishes from global TCP LBs with target proxies)
-        if (forwardingRule.backendService &&
-            forwardingRule.getLoadBalancingScheme() == "EXTERNAL" &&
-            !forwardingRule.target) {
-          cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
-        } else {
-          throw new IllegalArgumentException("Not responsible for on demand caching of load balancers that are not regional external TCP/UDP with backend services.")
-        }
-      }
-    }
-
-    class ForwardingRuleListCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {
-
-      @Override
-      void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
-        forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          // Filter for regional external TCP/UDP load balancers:
-          // - Must have backendService (not target proxy)
-          // - Must have EXTERNAL load balancing scheme
-          // - No target field (distinguishes from global TCP LBs with target proxies)
-          if (forwardingRule.backendService &&
-              forwardingRule.getLoadBalancingScheme() == "EXTERNAL" &&
-              !forwardingRule.target) {
-            cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
-          }
-        }
-      }
-
-      @Override
-      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        LoggerFactory.getLogger(this.class).error e.getMessage()
-      }
-    }
-
-    void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {
+    @Override
+    protected void processForwardingRule(ForwardingRule forwardingRule) {
       def newLoadBalancer = new GoogleTcpLoadBalancer(
         name: forwardingRule.name,
         account: accountName,

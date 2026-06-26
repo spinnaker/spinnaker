@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.ForwardingRuleCallbackHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.HealthCheckHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
@@ -88,10 +89,10 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     )
 
     if (onDemandLoadBalancerName) {
-      ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
+      def frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
       forwardingRulesRequest.queue(compute.globalForwardingRules().get(project, onDemandLoadBalancerName), frCallback)
     } else {
-      ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
+      def frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
       new PaginatedRequest<ForwardingRuleList>(this) {
         @Override
         ComputeRequest<ForwardingRuleList> request(String pageToken) {
@@ -129,7 +130,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     return sslCertificates ? Utils.getLocalName(sslCertificates[0]) : null
   }
 
-  class ForwardingRuleCallbacks {
+  class ForwardingRuleCallbacks extends ForwardingRuleCallbackHelper {
 
     List<GoogleHttpLoadBalancer> loadBalancers
     List<String> failedLoadBalancers = []
@@ -143,54 +144,18 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     List<HttpsHealthCheck> projectHttpsHealthChecks
     List<HealthCheck> projectHealthChecks
 
-    ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
-      return new ForwardingRuleSingletonCallback<ForwardingRule>()
+    @Override
+    protected boolean shouldProcessForwardingRule(ForwardingRule forwardingRule) {
+      return forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]
     }
 
-    ForwardingRuleListCallback<ForwardingRuleList> newForwardingRuleListCallback() {
-      return new ForwardingRuleListCallback<ForwardingRuleList>()
+    @Override
+    protected String getFilterErrorMessage() {
+      return "Not responsible for on demand caching of load balancers without target proxy or with SSL proxy type."
     }
 
-    class ForwardingRuleSingletonCallback<ForwardingRule> extends JsonBatchCallback<ForwardingRule> {
-
-      @Override
-      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
-        if (e.code != 404) {
-          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
-          log.error errorJson
-        }
-      }
-
-      @Override
-      void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]) {
-          cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
-        } else {
-          throw new IllegalArgumentException("Not responsible for on demand caching of load balancers without target " +
-            "proxy or with SSL proxy type.")
-        }
-      }
-    }
-
-    class ForwardingRuleListCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {
-
-      @Override
-      void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
-        forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]) {
-            cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
-          }
-        }
-      }
-
-      @Override
-      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        LoggerFactory.getLogger(this.class).error e.getMessage()
-      }
-    }
-
-    void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {
+    @Override
+    protected void processForwardingRule(ForwardingRule forwardingRule) {
       def newLoadBalancer = new GoogleHttpLoadBalancer(
         name: forwardingRule.name,
         account: accountName,
