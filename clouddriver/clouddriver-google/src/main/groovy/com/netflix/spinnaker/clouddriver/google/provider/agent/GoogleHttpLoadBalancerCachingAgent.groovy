@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.GroupHealthRequest
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.HealthCheckHelper
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.LoadBalancerHealthResolution
 import com.netflix.spinnaker.clouddriver.google.provider.agent.util.PaginatedRequest
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
@@ -38,28 +39,20 @@ import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
 @Slf4j
-class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
+class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgentWithHealthChecks {
 
   /**
    * Local cache of BackendServiceGroupHealth keyed by BackendService name.
-   *
-   * It turns out that the types in the GCE Batch callbacks aren't the actual Compute
-   * types for some reason, which is why this map is String -> Object.
    */
   Map<String, List<Object>> bsNameToGroupHealthsMap = [:]
   Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
   Set<LoadBalancerHealthResolution> resolutions = new HashSet<>()
 
-
   GoogleHttpLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                      GoogleNamedAccountCredentials credentials,
                                      ObjectMapper objectMapper,
                                      Registry registry) {
-    super(clouddriverUserAgentApplicationName,
-          credentials,
-          objectMapper,
-          registry,
-          "global")
+    super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry, "global")
   }
 
   @Override
@@ -129,14 +122,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
-  @Override
-  String determineInstanceKey(GoogleLoadBalancer loadBalancer, GoogleLoadBalancerHealth health) {
-    // Http load balancers' region is "global", so we have to determine the instance region from its zone.
-    def instanceZone = health.instanceZone
-    def instanceRegion = credentials.regionFromZone(instanceZone)
-
-    return Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
-  }
+  // determineInstanceKey is inherited from AbstractGoogleLoadBalancerCachingAgentWithHealthChecks
 
   protected static String getFirstSslCertificateName(TargetHttpsProxy targetHttpsProxy) {
     def sslCertificates = targetHttpsProxy?.getSslCertificates()
@@ -476,97 +462,19 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       switch (healthCheckType) {
         case "httpHealthChecks":
           HttpHealthCheck httpHealthCheck = httpHealthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHttpHealthCheck(httpHealthCheck, backendServicesToUpdate)
+          HealthCheckHelper.handleHttpHealthCheck(httpHealthCheck, backendServicesToUpdate)
           break
         case "httpsHealthChecks":
           HttpsHealthCheck httpsHealthCheck = httpsHealthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHttpsHealthCheck(httpsHealthCheck, backendServicesToUpdate)
+          HealthCheckHelper.handleHttpsHealthCheck(httpsHealthCheck, backendServicesToUpdate)
           break
         case "healthChecks":
           HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHealthCheck(healthCheck, backendServicesToUpdate)
+          HealthCheckHelper.handleHealthCheck(healthCheck, backendServicesToUpdate)
           break
         default:
           log.warn("Unknown health check type for health check named: ${healthCheckName}. Not queueing any batch requests.")
           break
-      }
-    }
-  }
-
-  private static void handleHttpHealthCheck(HttpHealthCheck httpHealthCheck, List<GoogleBackendService> googleBackendServices) {
-    if (!httpHealthCheck) {
-      return
-    }
-    googleBackendServices.each { GoogleBackendService service ->
-      service.healthCheck = new GoogleHealthCheck(
-        name: httpHealthCheck.name,
-        healthCheckType: GoogleHealthCheck.HealthCheckType.HTTP,
-        requestPath: httpHealthCheck.requestPath,
-        port: httpHealthCheck.port,
-        checkIntervalSec: httpHealthCheck.checkIntervalSec,
-        timeoutSec: httpHealthCheck.timeoutSec,
-        unhealthyThreshold: httpHealthCheck.unhealthyThreshold,
-        healthyThreshold: httpHealthCheck.healthyThreshold,
-      )
-    }
-  }
-
-  private static void handleHttpsHealthCheck(HttpsHealthCheck httpsHealthCheck, List<GoogleBackendService> googleBackendServices) {
-    if (!httpsHealthCheck) {
-      return
-    }
-    googleBackendServices.each { GoogleBackendService service ->
-      service.healthCheck = new GoogleHealthCheck(
-        name: httpsHealthCheck.name,
-        healthCheckType: GoogleHealthCheck.HealthCheckType.HTTPS,
-        requestPath: httpsHealthCheck.requestPath,
-        port: httpsHealthCheck.port,
-        checkIntervalSec: httpsHealthCheck.checkIntervalSec,
-        timeoutSec: httpsHealthCheck.timeoutSec,
-        unhealthyThreshold: httpsHealthCheck.unhealthyThreshold,
-        healthyThreshold: httpsHealthCheck.healthyThreshold,
-      )
-    }
-  }
-
-  private static void handleHealthCheck(HealthCheck healthCheck, List<GoogleBackendService> googleBackendServices) {
-    if (!healthCheck) {
-      return
-    }
-    def port = null
-    def hcType = null
-    def requestPath = null
-    if (healthCheck.tcpHealthCheck) {
-      port = healthCheck.tcpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.TCP
-    } else if (healthCheck.sslHealthCheck) {
-      port = healthCheck.sslHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.SSL
-    } else if (healthCheck.httpHealthCheck) {
-      port = healthCheck.httpHealthCheck.port
-      requestPath = healthCheck.httpHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTP
-    } else if (healthCheck.httpsHealthCheck) {
-      port = healthCheck.httpsHealthCheck.port
-      requestPath = healthCheck.httpsHealthCheck.requestPath
-      hcType = GoogleHealthCheck.HealthCheckType.HTTPS
-    } else if (healthCheck.udpHealthCheck) {
-      port = healthCheck.udpHealthCheck.port
-      hcType = GoogleHealthCheck.HealthCheckType.UDP
-    }
-
-    if (port && hcType) {
-      googleBackendServices?.each { googleBackendService ->
-        googleBackendService.healthCheck = new GoogleHealthCheck(
-          name: healthCheck.name,
-          healthCheckType: hcType,
-          port: port,
-          requestPath: requestPath ?: "",
-          checkIntervalSec: healthCheck.checkIntervalSec,
-          timeoutSec: healthCheck.timeoutSec,
-          unhealthyThreshold: healthCheck.unhealthyThreshold,
-          healthyThreshold: healthCheck.healthyThreshold,
-        )
       }
     }
   }

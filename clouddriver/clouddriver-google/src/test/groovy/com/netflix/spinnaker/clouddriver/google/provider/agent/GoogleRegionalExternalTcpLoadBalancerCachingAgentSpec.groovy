@@ -26,6 +26,7 @@ import com.google.api.services.compute.model.TCPHealthCheck
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingScheme
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.provider.agent.util.HealthCheckHelper
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Specification
 
@@ -84,14 +85,7 @@ class GoogleRegionalExternalTcpLoadBalancerCachingAgentSpec extends Specificatio
     def backendService = new com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService()
 
     when:
-    agent.class.getDeclaredMethod(
-      "handleHttpHealthCheck",
-      com.google.api.services.compute.model.HttpHealthCheck,
-      com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
-    ).with { method ->
-      method.setAccessible(true)
-      method.invoke(null, healthCheck, backendService)
-    }
+    HealthCheckHelper.handleHttpHealthCheck(healthCheck, backendService)
 
     then:
     backendService.healthCheck != null
@@ -118,14 +112,7 @@ class GoogleRegionalExternalTcpLoadBalancerCachingAgentSpec extends Specificatio
     def backendService = new com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService()
 
     when:
-    agent.class.getDeclaredMethod(
-      "handleHealthCheck",
-      HealthCheck,
-      com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
-    ).with { method ->
-      method.setAccessible(true)
-      method.invoke(null, healthCheck, backendService)
-    }
+    HealthCheckHelper.handleHealthCheck(healthCheck, backendService)
 
     then:
     backendService.healthCheck != null
@@ -147,14 +134,7 @@ class GoogleRegionalExternalTcpLoadBalancerCachingAgentSpec extends Specificatio
     def backendService = new com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService()
 
     when:
-    agent.class.getDeclaredMethod(
-      "handleHealthCheck",
-      HealthCheck,
-      com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
-    ).with { method ->
-      method.setAccessible(true)
-      method.invoke(null, healthCheck, backendService)
-    }
+    HealthCheckHelper.handleHealthCheck(healthCheck, backendService)
 
     then:
     backendService.healthCheck != null
