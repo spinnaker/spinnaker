@@ -38,9 +38,9 @@ import kotlinx.coroutines.*
 import org.jooq.*
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
+import org.jooq.impl.DSL
 import org.jooq.impl.DSL.field
 import org.jooq.impl.SQLDataType
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
@@ -238,9 +238,9 @@ class SqlPermissionsRepository(
                         .set(USER.UPDATED_AT, SqlUtil.excluded(field("updated_at", SQLDataType.BIGINT)))
                 else ->
                     onDuplicateKeyUpdate()
-                        .set(USER.ADMIN, MySQLDSL.values(field("admin", SQLDataType.BOOLEAN)))
-                        .set(USER.ACCOUNT_MANAGER, MySQLDSL.values(field("account_manager", SQLDataType.BOOLEAN)))
-                        .set(USER.UPDATED_AT, MySQLDSL.values(field("updated_at", SQLDataType.BIGINT)))
+                        .set(USER.ADMIN, DSL.excluded(field("admin", SQLDataType.BOOLEAN)))
+                        .set(USER.ACCOUNT_MANAGER, DSL.excluded(field("account_manager", SQLDataType.BOOLEAN)))
+                        .set(USER.UPDATED_AT, DSL.excluded(field("updated_at", SQLDataType.BIGINT)))
             }
         }
 
@@ -401,9 +401,9 @@ class SqlPermissionsRepository(
                                     .set(RESOURCE.UPDATED_AT, SqlUtil.excluded(field("updated_at", SQLDataType.BIGINT)))
                             else ->
                                 onDuplicateKeyUpdate()
-                                    .set(RESOURCE.BODY, MySQLDSL.values(field("body", SQLDataType.LONGVARCHAR)))
-                                    .set(RESOURCE.BODY_HASH, MySQLDSL.values(field("body_hash", SQLDataType.VARCHAR)))
-                                    .set(RESOURCE.UPDATED_AT, MySQLDSL.values(field("updated_at", SQLDataType.BIGINT)))
+                                    .set(RESOURCE.BODY, DSL.excluded(field("body", SQLDataType.LONGVARCHAR)))
+                                    .set(RESOURCE.BODY_HASH, DSL.excluded(field("body_hash", SQLDataType.VARCHAR)))
+                                    .set(RESOURCE.UPDATED_AT, DSL.excluded(field("updated_at", SQLDataType.BIGINT)))
                         }
                     }
                 }

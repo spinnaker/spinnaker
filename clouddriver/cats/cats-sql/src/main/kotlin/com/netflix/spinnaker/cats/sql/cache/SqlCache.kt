@@ -44,7 +44,7 @@ import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.noCondition
 import org.jooq.impl.DSL.sql
 import org.jooq.impl.DSL.table
-import org.jooq.util.mysql.MySQLDSL
+import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.BadSqlGrammarException
 
@@ -623,10 +623,10 @@ class SqlCache(
                   .set(field("last_updated"), SqlUtil.excluded(field("last_updated")) as Any)
               else ->
                 onDuplicateKeyUpdate()
-                  .set(field("application"), MySQLDSL.values(field("application")) as Any)
-                  .set(field("body_hash"), MySQLDSL.values(field("body_hash")) as Any)
-                  .set(field("body"), MySQLDSL.values(field("body")) as Any)
-                  .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
+                  .set(field("application"), DSL.excluded(field("application")) as Any)
+                  .set(field("body_hash"), DSL.excluded(field("body_hash")) as Any)
+                  .set(field("body"), DSL.excluded(field("body")) as Any)
+                  .set(field("last_updated"), DSL.excluded(field("last_updated")) as Any)
             }
           }
         }

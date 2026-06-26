@@ -69,7 +69,6 @@ import org.jooq.impl.DSL.max
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
 import org.jooq.impl.DSL.value
-import org.jooq.util.mysql.MySQLDSL.values
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import java.net.InetAddress
@@ -622,23 +621,23 @@ class SqlDeliveryConfigRepository(
               .onDuplicateKeyUpdate()
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS,
-                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS)
+                DSL.excluded(ENVIRONMENT_ARTIFACT_CONSTRAINT.STATUS)
               )
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY,
-                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY)
+                DSL.excluded(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_BY)
               )
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT,
-                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT)
+                DSL.excluded(ENVIRONMENT_ARTIFACT_CONSTRAINT.JUDGED_AT)
               )
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT,
-                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT)
+                DSL.excluded(ENVIRONMENT_ARTIFACT_CONSTRAINT.COMMENT)
               )
               .set(
                 ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES,
-                values(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES)
+                DSL.excluded(ENVIRONMENT_ARTIFACT_CONSTRAINT.ATTRIBUTES)
               )
               .set(ENVIRONMENT_ARTIFACT_CONSTRAINT.ARTIFACT_REFERENCE, state.artifactReference)
               .execute()
@@ -652,7 +651,7 @@ class SqlDeliveryConfigRepository(
               .onDuplicateKeyUpdate()
               .set(
                 CURRENT_CONSTRAINT.CONSTRAINT_UID,
-                values(CURRENT_CONSTRAINT.CONSTRAINT_UID)
+                DSL.excluded(CURRENT_CONSTRAINT.CONSTRAINT_UID)
               )
               .execute()
 

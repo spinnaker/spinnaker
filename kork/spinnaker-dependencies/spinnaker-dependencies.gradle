@@ -59,6 +59,8 @@ dependencies {
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
 
   constraints {
+    // Pin jOOQ 3.19.36 to use new MySQL 8.0.19+ row alias syntax
+    api("org.jooq:jooq:3.19.36")
     api("cglib:cglib-nodep:3.3.0")
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:2.4.1")

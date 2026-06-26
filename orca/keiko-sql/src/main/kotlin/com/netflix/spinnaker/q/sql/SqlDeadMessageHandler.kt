@@ -21,7 +21,6 @@ import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 
 class SqlDeadMessageHandler(
@@ -84,8 +83,8 @@ class SqlDeadMessageHandler(
                   .execute()
               else ->
                 onDuplicateKeyUpdate()
-                  .set(updatedAtField, MySQLDSL.values(updatedAtField) as Any)
-                  .set(bodyField, MySQLDSL.values(bodyField) as Any)
+                  .set(updatedAtField, DSL.excluded(updatedAtField) as Any)
+                  .set(bodyField, DSL.excluded(bodyField) as Any)
                   .execute()
             }
           }

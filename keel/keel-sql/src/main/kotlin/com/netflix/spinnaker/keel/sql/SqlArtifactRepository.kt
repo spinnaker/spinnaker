@@ -62,7 +62,6 @@ import org.jooq.SelectJoinStep
 import org.jooq.impl.DSL
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.selectOne
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import java.security.MessageDigest
@@ -1537,7 +1536,7 @@ class SqlArtifactRepository(
           .set(ENVIRONMENT_ARTIFACT_PIN.ARTIFACT_VERSION, version)
           .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_AT, now)
           .set(ENVIRONMENT_ARTIFACT_PIN.PINNED_BY, pinnedBy ?: "anonymous")
-          .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, MySQLDSL.values(ENVIRONMENT_ARTIFACT_PIN.COMMENT))
+          .set(ENVIRONMENT_ARTIFACT_PIN.COMMENT, DSL.excluded(ENVIRONMENT_ARTIFACT_PIN.COMMENT))
           .execute()
       }
     }

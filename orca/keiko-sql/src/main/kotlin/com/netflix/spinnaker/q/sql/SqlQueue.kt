@@ -59,7 +59,6 @@ import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.select
 import org.jooq.impl.DSL.sql
 import org.jooq.impl.DSL.table
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 
@@ -483,8 +482,8 @@ class SqlQueue(
                   .execute()
               else ->
                 onDuplicateKeyUpdate()
-                  .set(idField, MySQLDSL.values(idField) as Any)
-                  .set(bodyField, MySQLDSL.values(bodyField) as Any)
+                  .set(idField, DSL.excluded(idField) as Any)
+                  .set(bodyField, DSL.excluded(bodyField) as Any)
                   .execute()
             }
           }
@@ -503,7 +502,7 @@ class SqlQueue(
                   .execute()
               else ->
                 onDuplicateKeyUpdate()
-                  .set(deliveryField, MySQLDSL.values(deliveryField) as Any)
+                  .set(deliveryField, DSL.excluded(deliveryField) as Any)
                   .execute()
             }
           }
@@ -740,7 +739,7 @@ class SqlQueue(
                       .execute()
                   else ->
                     onDuplicateKeyUpdate()
-                      .set(deliveryField, MySQLDSL.values(deliveryField) as Any)
+                      .set(deliveryField, DSL.excluded(deliveryField) as Any)
                       .execute()
                 }
               }
