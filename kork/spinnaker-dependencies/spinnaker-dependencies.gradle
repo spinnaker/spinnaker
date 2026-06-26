@@ -59,6 +59,10 @@ dependencies {
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
 
   constraints {
+    // Pin jOOQ 3.19.29: Spring Boot 3.5.x pulls 3.19.35 which introduces a MySQL
+    // ON DUPLICATE KEY UPDATE regression (generates invalid 'as excluded' syntax).
+    // 3.19.29 is the last known good version for SQLDialect.MYSQL upserts.
+    api("org.jooq:jooq:3.19.29")
     api("cglib:cglib-nodep:3.3.0")
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
     api("com.google.api-client:google-api-client:2.4.1")
