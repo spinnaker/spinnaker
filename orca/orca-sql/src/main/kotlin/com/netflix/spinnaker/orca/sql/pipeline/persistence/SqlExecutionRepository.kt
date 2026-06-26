@@ -1263,23 +1263,35 @@ class SqlExecutionRepository(
     // to fallback to the simpler behavior.
     withPool(poolName) {
       try {
-        ctx.insertInto(table, *insertPairs.keys.toTypedArray())
-          .values(insertPairs.values)
-          .run {
-            when (jooq.dialect()) {
-              SQLDialect.POSTGRES -> {
-                onConflict(DSL.field("id"))
-                  .doUpdate()
-                  .set(updatePairs)
-                  .execute()
-              }
-              else -> {
-                onDuplicateKeyUpdate()
-                  .set(updatePairs)
-                  .execute()
-              }
-            }
+        when (jooq.dialect()) {
+          SQLDialect.POSTGRES -> {
+            ctx.insertInto(table, *insertPairs.keys.toTypedArray())
+              .values(insertPairs.values)
+              .onConflict(DSL.field("id"))
+              .doUpdate()
+              .set(updatePairs)
+              .execute()
           }
+          else -> {
+            // jOOQ 3.19.x renders invalid MySQL syntax for SQLDialect.MYSQL when
+            // onDuplicateKeyUpdate() is chained after values(): it emits the
+            // PostgreSQL-style "as excluded" row alias together with the deprecated
+            // values(col) function, which MySQL rejects. Use raw SQL instead.
+            val tableName = ctx.render(table)
+            val columns = insertPairs.keys.joinToString(", ") { ctx.render(it) }
+            val placeholders = "(${insertPairs.keys.joinToString(", ") { "?" }})"
+            val updateClause = updatePairs.keys.joinToString(", ") {
+              "${ctx.render(it)} = VALUES(${ctx.render(it)})"
+            }
+            val sql = """
+              |INSERT INTO $tableName ($columns)
+              |VALUES $placeholders
+              |ON DUPLICATE KEY UPDATE
+              |$updateClause
+            """.trimMargin()
+            ctx.execute(sql, *insertPairs.values.toTypedArray())
+          }
+        }
       } catch (e: SQLDialectNotSupportedException) {
         log.debug("Falling back to primitive upsert logic: ${e.message}")
         val exists = ctx.fetchExists(ctx.select().from(table).where(field("id").eq(updateId)).forUpdate())

@@ -161,20 +161,17 @@ open class MySqlRawAccess(
     }
 
     val allFields = records[0].fields().toList()
+    val columns = allFields.joinToString(", ") { jooq.render(it) }
+    val rowPlaceholder = "(${allFields.joinToString(", ") { "?" }})"
+    val updateClause = allFields.joinToString(", ") { "${jooq.render(it)} = VALUES(${jooq.render(it)})" }
     var persisted = 0
 
     withPool(poolName) {
-      val updateSet = allFields.map {
-        it to field("VALUES({0})", it.dataType, it)
-      }.toMap()
-
       var cumulativeSize = 0
-      var batchQuery = jooq
-        .insertInto(table(tableName))
-        .columns(allFields)
+      val currentBatch = mutableListOf<List<Any?>>()
 
-      records.forEach { it ->
-        val values = it.intoList()
+      records.forEach { record ->
+        val values = record.intoList()
         val totalRecordSize = (3 * values.size) + values.sumBy { value -> (value?.toString()?.length ?: 4) }
 
         if (cumulativeSize + totalRecordSize > maxPacketSize) {
@@ -182,31 +179,36 @@ open class MySqlRawAccess(
             throw SystemException("Can't persist a single row for table $tableName due to maxPacketSize restriction. Row size = $totalRecordSize")
           }
 
-          // Dump it to the DB
-          persisted += batchQuery
-            .onDuplicateKeyUpdate()
-            .set(updateSet)
-            .execute()
+          // Dump current batch
+          val placeholders = currentBatch.joinToString(", ") { rowPlaceholder }
+          val sql = """
+            |INSERT INTO $tableName ($columns)
+            |VALUES $placeholders
+            |ON DUPLICATE KEY UPDATE
+            |$updateClause
+          """.trimMargin()
+          val params = currentBatch.flatten().toTypedArray()
+          persisted += jooq.execute(sql, *params)
 
-          batchQuery = jooq
-            .insertInto(table(tableName))
-            .columns(allFields)
-            .values(values)
+          currentBatch.clear()
           cumulativeSize = 0
-        } else {
-          batchQuery = batchQuery
-            .values(values)
         }
 
+        currentBatch.add(values)
         cumulativeSize += totalRecordSize
       }
 
-      if (cumulativeSize > 0) {
+      if (currentBatch.isNotEmpty()) {
         // Dump the last bit to the DB
-        persisted += batchQuery
-          .onDuplicateKeyUpdate()
-          .set(updateSet)
-          .execute()
+        val placeholders = currentBatch.joinToString(", ") { rowPlaceholder }
+        val sql = """
+          |INSERT INTO $tableName ($columns)
+          |VALUES $placeholders
+          |ON DUPLICATE KEY UPDATE
+          |$updateClause
+        """.trimMargin()
+        val params = currentBatch.flatten().toTypedArray()
+        persisted += jooq.execute(sql, *params)
       }
     }
 

@@ -40,7 +40,6 @@ import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
 import org.jooq.impl.DSL.field
 import org.jooq.impl.SQLDataType
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.Duration
@@ -224,28 +223,38 @@ class SqlPermissionsRepository(
     }
 
     private fun putUserPermission(permission: UserPermission) {
-        val insert = jooq.insertInto(USER, USER.ID, USER.ADMIN, USER.ACCOUNT_MANAGER, USER.UPDATED_AT)
-
-        insert.apply {
-            values(permission.id, permission.isAdmin, permission.isAccountManager, clock.millis())
-            // https://github.com/jOOQ/jOOQ/issues/5975 means we have to duplicate field names here
-            when (jooq.dialect()) {
-                SQLDialect.POSTGRES ->
-                    onConflict(USER.ID)
-                        .doUpdate()
-                        .set(USER.ADMIN, SqlUtil.excluded(field("admin", SQLDataType.BOOLEAN)))
-                        .set(USER.ACCOUNT_MANAGER, SqlUtil.excluded(field("account_manager", SQLDataType.BOOLEAN)))
-                        .set(USER.UPDATED_AT, SqlUtil.excluded(field("updated_at", SQLDataType.BIGINT)))
-                else ->
-                    onDuplicateKeyUpdate()
-                        .set(USER.ADMIN, MySQLDSL.values(field("admin", SQLDataType.BOOLEAN)))
-                        .set(USER.ACCOUNT_MANAGER, MySQLDSL.values(field("account_manager", SQLDataType.BOOLEAN)))
-                        .set(USER.UPDATED_AT, MySQLDSL.values(field("updated_at", SQLDataType.BIGINT)))
+        when (jooq.dialect()) {
+            SQLDialect.POSTGRES -> {
+                val insert = jooq.insertInto(USER, USER.ID, USER.ADMIN, USER.ACCOUNT_MANAGER, USER.UPDATED_AT)
+                insert.values(permission.id, permission.isAdmin, permission.isAccountManager, clock.millis())
+                insert.onConflict(USER.ID)
+                    .doUpdate()
+                    .set(USER.ADMIN, SqlUtil.excluded(field("admin", SQLDataType.BOOLEAN)))
+                    .set(USER.ACCOUNT_MANAGER, SqlUtil.excluded(field("account_manager", SQLDataType.BOOLEAN)))
+                    .set(USER.UPDATED_AT, SqlUtil.excluded(field("updated_at", SQLDataType.BIGINT)))
+                withRetry(RetryCategory.WRITE) {
+                    insert.execute()
+                }
             }
-        }
-
-        withRetry(RetryCategory.WRITE) {
-            insert.execute()
+            else -> {
+                // jOOQ 3.19.x renders invalid MySQL syntax for SQLDialect.MYSQL when
+                // onDuplicateKeyUpdate() is chained after values(): it emits the
+                // PostgreSQL-style "as excluded" row alias together with the deprecated
+                // values(col) function, which MySQL rejects. Use raw SQL instead.
+                jooq.execute(
+                    """INSERT INTO ${jooq.render(USER)} (${jooq.render(USER.ID)}, ${jooq.render(USER.ADMIN)}, ${jooq.render(USER.ACCOUNT_MANAGER)}, ${jooq.render(USER.UPDATED_AT)})
+                        |VALUES (?, ?, ?, ?)
+                        |ON DUPLICATE KEY UPDATE
+                        |${jooq.render(USER.ADMIN)} = VALUES(${jooq.render(USER.ADMIN)}),
+                        |${jooq.render(USER.ACCOUNT_MANAGER)} = VALUES(${jooq.render(USER.ACCOUNT_MANAGER)}),
+                        |${jooq.render(USER.UPDATED_AT)} = VALUES(${jooq.render(USER.UPDATED_AT)})
+                    """.trimMargin(),
+                    permission.id,
+                    permission.isAdmin,
+                    permission.isAccountManager,
+                    clock.millis()
+                )
+            }
         }
 
         putUserPermissions(permission.id, permission.allResources)
@@ -379,37 +388,50 @@ class SqlPermissionsRepository(
             )
         ) { chunk ->
             try {
-                val insert = jooq.insertInto(
-                    RESOURCE,
-                    RESOURCE.RESOURCE_TYPE,
-                    RESOURCE.RESOURCE_NAME,
-                    RESOURCE.BODY,
-                    RESOURCE.BODY_HASH,
-                    RESOURCE.UPDATED_AT
-                )
-
-                insert.apply {
-                    chunk.forEach {
-                        values(it.type, it.name.toLowerCase(), bodies[it], hashes[it], now)
-                        when (jooq.dialect()) {
-                            // https://github.com/jOOQ/jOOQ/issues/5975 means we have to duplicate field names here
-                            SQLDialect.POSTGRES ->
-                                onConflict(RESOURCE.RESOURCE_TYPE, RESOURCE.RESOURCE_NAME)
-                                    .doUpdate()
-                                    .set(RESOURCE.BODY, SqlUtil.excluded(field("body", SQLDataType.LONGVARCHAR)))
-                                    .set(RESOURCE.BODY_HASH, SqlUtil.excluded(field("body_hash", SQLDataType.VARCHAR)))
-                                    .set(RESOURCE.UPDATED_AT, SqlUtil.excluded(field("updated_at", SQLDataType.BIGINT)))
-                            else ->
-                                onDuplicateKeyUpdate()
-                                    .set(RESOURCE.BODY, MySQLDSL.values(field("body", SQLDataType.LONGVARCHAR)))
-                                    .set(RESOURCE.BODY_HASH, MySQLDSL.values(field("body_hash", SQLDataType.VARCHAR)))
-                                    .set(RESOURCE.UPDATED_AT, MySQLDSL.values(field("updated_at", SQLDataType.BIGINT)))
+                when (jooq.dialect()) {
+                    SQLDialect.POSTGRES -> {
+                        val insert = jooq.insertInto(
+                            RESOURCE,
+                            RESOURCE.RESOURCE_TYPE,
+                            RESOURCE.RESOURCE_NAME,
+                            RESOURCE.BODY,
+                            RESOURCE.BODY_HASH,
+                            RESOURCE.UPDATED_AT
+                        )
+                        insert.apply {
+                            chunk.forEach {
+                                values(it.type, it.name.toLowerCase(), bodies[it], hashes[it], now)
+                            }
+                            onConflict(RESOURCE.RESOURCE_TYPE, RESOURCE.RESOURCE_NAME)
+                                .doUpdate()
+                                .set(RESOURCE.BODY, SqlUtil.excluded(field("body", SQLDataType.LONGVARCHAR)))
+                                .set(RESOURCE.BODY_HASH, SqlUtil.excluded(field("body_hash", SQLDataType.VARCHAR)))
+                                .set(RESOURCE.UPDATED_AT, SqlUtil.excluded(field("updated_at", SQLDataType.BIGINT)))
+                        }
+                        withRetry(RetryCategory.WRITE) {
+                            insert.execute()
                         }
                     }
-                }
-
-                withRetry(RetryCategory.WRITE) {
-                    insert.execute()
+                    else -> {
+                        // jOOQ 3.19.x renders invalid MySQL syntax for SQLDialect.MYSQL when
+                        // onDuplicateKeyUpdate() is chained after values(): it emits the
+                        // PostgreSQL-style "as excluded" row alias together with the deprecated
+                        // values(col) function, which MySQL rejects. Use raw SQL instead.
+                        val placeholders = chunk.joinToString(", ") { "(?, ?, ?, ?, ?)" }
+                        val params = chunk.flatMap {
+                            listOf(it.type, it.name.toLowerCase(), bodies[it], hashes[it], now)
+                        }.toTypedArray()
+                        jooq.execute(
+                            """INSERT INTO ${jooq.render(RESOURCE)} (${jooq.render(RESOURCE.RESOURCE_TYPE)}, ${jooq.render(RESOURCE.RESOURCE_NAME)}, ${jooq.render(RESOURCE.BODY)}, ${jooq.render(RESOURCE.BODY_HASH)}, ${jooq.render(RESOURCE.UPDATED_AT)})
+                                |VALUES $placeholders
+                                |ON DUPLICATE KEY UPDATE
+                                |${jooq.render(RESOURCE.BODY)} = VALUES(${jooq.render(RESOURCE.BODY)}),
+                                |${jooq.render(RESOURCE.BODY_HASH)} = VALUES(${jooq.render(RESOURCE.BODY_HASH)}),
+                                |${jooq.render(RESOURCE.UPDATED_AT)} = VALUES(${jooq.render(RESOURCE.UPDATED_AT)})
+                            """.trimMargin(),
+                            *params
+                        )
+                    }
                 }
             } catch (e: DataAccessException) {
                 log.error("Error inserting ids: $chunk", e)

@@ -44,7 +44,6 @@ import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.noCondition
 import org.jooq.impl.DSL.sql
 import org.jooq.impl.DSL.table
-import org.jooq.util.mysql.MySQLDSL
 import org.slf4j.LoggerFactory
 import org.springframework.jdbc.BadSqlGrammarException
 
@@ -610,29 +609,49 @@ class SqlCache(
           field("last_updated")
         )
 
-        insert.apply {
-          chunk.forEach {
-            values(it, sqlNames.checkAgentName(agent), apps[it], hashes[it], bodies[it], now)
-            when (jooq.dialect()) {
-              SQLDialect.POSTGRES ->
-                onConflict(field("id"), field("agent"))
-                  .doUpdate()
-                  .set(field("application"), SqlUtil.excluded(field("application")) as Any)
-                  .set(field("body_hash"), SqlUtil.excluded(field("body_hash")) as Any)
-                  .set(field("body"), SqlUtil.excluded(field("body")) as Any)
-                  .set(field("last_updated"), SqlUtil.excluded(field("last_updated")) as Any)
-              else ->
-                onDuplicateKeyUpdate()
-                  .set(field("application"), MySQLDSL.values(field("application")) as Any)
-                  .set(field("body_hash"), MySQLDSL.values(field("body_hash")) as Any)
-                  .set(field("body"), MySQLDSL.values(field("body")) as Any)
-                  .set(field("last_updated"), MySQLDSL.values(field("last_updated")) as Any)
+        when (jooq.dialect()) {
+          SQLDialect.POSTGRES -> {
+            insert.apply {
+              chunk.forEach {
+                values(it, sqlNames.checkAgentName(agent), apps[it], hashes[it], bodies[it], now)
+              }
+              onConflict(field("id"), field("agent"))
+                .doUpdate()
+                .set(field("application"), SqlUtil.excluded(field("application")) as Any)
+                .set(field("body_hash"), SqlUtil.excluded(field("body_hash")) as Any)
+                .set(field("body"), SqlUtil.excluded(field("body")) as Any)
+                .set(field("last_updated"), SqlUtil.excluded(field("last_updated")) as Any)
+            }
+            withRetry(RetryCategory.WRITE) {
+              insert.execute()
             }
           }
-        }
-
-        withRetry(RetryCategory.WRITE) {
-          insert.execute()
+          else -> {
+            // jOOQ 3.19.x renders invalid MySQL syntax for SQLDialect.MYSQL when
+            // onDuplicateKeyUpdate() is chained after values(). It emits the
+            // PostgreSQL-style "as excluded" row alias together with the deprecated
+            // values(col) function, which MySQL rejects, e.g.:
+            //   insert into t (...) values (...) as excluded
+            //   on duplicate key update col = values(col)
+            // Use raw SQL for the MySQL path instead.
+            val tableName = sqlNames.resourceTableName(type)
+            val valuesPlaceholders = chunk.joinToString(", ") { "(?, ?, ?, ?, ?, ?)" }
+            val params = chunk.flatMap {
+              listOf(it, sqlNames.checkAgentName(agent), apps[it], hashes[it], bodies[it], now)
+            }.toTypedArray()
+            val sql = """
+              |INSERT INTO $tableName (id, agent, application, body_hash, body, last_updated)
+              |VALUES $valuesPlaceholders
+              |ON DUPLICATE KEY UPDATE
+              |application = VALUES(application),
+              |body_hash = VALUES(body_hash),
+              |body = VALUES(body),
+              |last_updated = VALUES(last_updated)
+            """.trimMargin()
+            withRetry(RetryCategory.WRITE) {
+              jooq.execute(sql, *params)
+            }
+          }
         }
         result.itemsStored.addAndGet(chunk.size)
         result.writeQueries.incrementAndGet()
