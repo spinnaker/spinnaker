@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.loader;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,7 +39,7 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
     this.yamlObjectMapper =
-        new ObjectMapper(new YAMLFactory())
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
             .setConfig(jsonObjectMapper.getSerializationConfig())
             .setConfig(jsonObjectMapper.getDeserializationConfig());
   }
