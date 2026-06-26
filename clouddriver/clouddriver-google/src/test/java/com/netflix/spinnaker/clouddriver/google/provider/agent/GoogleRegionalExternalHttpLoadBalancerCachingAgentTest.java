@@ -158,7 +158,7 @@ public class GoogleRegionalExternalHttpLoadBalancerCachingAgentTest {
     proxy.setSslCertificates(certs);
 
     String result =
-        GoogleRegionalExternalHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy);
+        AbstractGoogleRegionalHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy);
 
     assertThat(result).isEqualTo("my-cert");
   }
@@ -168,7 +168,7 @@ public class GoogleRegionalExternalHttpLoadBalancerCachingAgentTest {
     TargetHttpsProxy proxy = new TargetHttpsProxy();
 
     String result =
-        GoogleRegionalExternalHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy);
+        AbstractGoogleRegionalHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy);
 
     assertThat(result).isNull();
   }
@@ -179,7 +179,7 @@ public class GoogleRegionalExternalHttpLoadBalancerCachingAgentTest {
     proxy.setSslCertificates(new ArrayList<>());
 
     String result =
-        GoogleRegionalExternalHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy);
+        AbstractGoogleRegionalHttpLoadBalancerCachingAgent.getFirstSslCertificateName(proxy);
 
     assertThat(result).isNull();
   }
@@ -203,7 +203,7 @@ public class GoogleRegionalExternalHttpLoadBalancerCachingAgentTest {
   private void invokeHandleHealthCheck(
       HealthCheck healthCheck, List<GoogleBackendService> backendServices) throws Exception {
     Method method =
-        GoogleRegionalExternalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
+        AbstractGoogleRegionalHttpLoadBalancerCachingAgent.class.getDeclaredMethod(
             "handleHealthCheck", HealthCheck.class, List.class);
     method.setAccessible(true);
     method.invoke(null, healthCheck, backendServices);

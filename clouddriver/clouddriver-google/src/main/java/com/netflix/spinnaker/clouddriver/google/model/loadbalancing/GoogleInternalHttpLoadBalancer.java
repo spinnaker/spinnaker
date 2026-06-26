@@ -26,33 +26,9 @@ import lombok.Value;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class GoogleInternalHttpLoadBalancer extends GoogleLoadBalancer {
+public class GoogleInternalHttpLoadBalancer extends GoogleRegionalHttpLoadBalancerBase {
   final GoogleLoadBalancerType type = GoogleLoadBalancerType.INTERNAL_MANAGED;
   final GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.INTERNAL_MANAGED;
-
-  /** Default backend service a request is sent to if no host rules are matched. */
-  GoogleBackendService defaultService;
-
-  /** List of host rules that map incoming requests to GooglePathMatchers based on host header. */
-  List<GoogleHostRule> hostRules;
-
-  /** SSL certificate. This is populated only if this load balancer is a HTTPS load balancer. */
-  String certificate;
-
-  /**
-   * Certificate map name. This is populated only if this load balancer is a HTTPS load balancer
-   * using Certificate Manager.
-   */
-  String certificateMap;
-
-  /**
-   * The name of the UrlMap this load balancer uses to route traffic. In the Google Cloud Console,
-   * the L7 load balancer name is the same as this name.
-   */
-  String urlMapName;
-
-  String network;
-  String subnet;
 
   @JsonIgnore
   public InternalHttpLbView getView() {
