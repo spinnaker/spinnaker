@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService;
 import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository;
 import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository.DuplicateTokenNameException;
+import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository.TokenOperationFailedException;
 import com.netflix.spinnaker.gate.security.apitoken.TokenRecord;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
@@ -548,6 +550,28 @@ class ApiTokenControllerTest {
       when(redisRepo.findById("gone")).thenReturn(Optional.empty());
 
       mockMvc.perform(delete("/auth/apiTokens/gone")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("repository TokenOperationFailedException is mapped to 503 with error body")
+    void deleteFailureMapsToServiceUnavailable() throws Exception {
+      setCurrentUser(USER_EMAIL);
+      when(permissionService.isAdmin(USER_EMAIL)).thenReturn(false);
+      TokenRecord record = makeRecord(TOKEN_ID, USER_EMAIL, "USER", FUTURE_EXPIRY);
+      when(redisRepo.findById(TOKEN_ID)).thenReturn(Optional.of(record));
+      doThrow(
+              new TokenOperationFailedException(
+                  "Token deletion failed for id "
+                      + TOKEN_ID
+                      + "; Redis EXEC returned no results. Retry the revocation."))
+          .when(redisRepo)
+          .delete(any(), any(), any(), any(), any());
+
+      mockMvc
+          .perform(delete("/auth/apiTokens/" + TOKEN_ID))
+          .andExpect(status().isServiceUnavailable())
+          .andExpect(jsonPath("$.error").value(containsString(TOKEN_ID)))
+          .andExpect(jsonPath("$.error").value(containsString("Retry the revocation")));
     }
   }
 
