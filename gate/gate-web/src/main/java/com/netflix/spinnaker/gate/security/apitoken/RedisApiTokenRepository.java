@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -50,14 +51,17 @@ import redis.clients.jedis.resps.ScanResult;
  * </pre>
  *
  * <ul>
- *   <li>The principal ZSET is self-cleaning: {@link #findByPrincipal} prunes expired members via
- *       {@code ZREMRANGEBYSCORE} before reading.
- *   <li>The name index key (sha256 of the name, to avoid {@code ':'} collisions) enforces
- *       per-principal name uniqueness atomically via {@code SET NX} in {@link #save}.
- *   <li>Revocation issues all four DELs inside MULTI/EXEC so it's atomic across Gate replicas.
- *   <li>Timestamp updates use WATCH/MULTI/EXEC with bounded retry so concurrent writers don't
- *       clobber each other's sibling fields via stale GET → mutate → SET round-trips.
+ *   <li>{@link #save} writes the hash, id, and principal ZSET entries inside {@code MULTI/EXEC}.
+ *       The name reservation ({@code SET NX EX 60}) is taken before the transaction; the real
+ *       lifetime ({@code EXPIREAT} or {@code PERSIST}) is set inside the same {@code EXEC}.
+ *   <li>{@link #delete} commits four DELs in a single {@code MULTI/EXEC}.
+ *   <li>{@link #updateTokenWithOptimisticLock} uses {@code WATCH + MULTI/EXEC} with bounded retry.
  * </ul>
+ *
+ * <p>Any {@code null}/empty {@code EXEC} (or exhausted optimistic-lock retries) throws {@link
+ * TokenOperationFailedException} so the caller can surface a retriable error. The repository never
+ * throws HTTP-shaped exceptions — mapping to {@code SERVICE_UNAVAILABLE} is the web layer's job, so
+ * this class stays testable without Spring MVC.
  */
 @Slf4j
 public class RedisApiTokenRepository {
@@ -73,8 +77,27 @@ public class RedisApiTokenRepository {
     }
   }
 
+  /**
+   * Signals an aborted Redis token write (EXEC-null or exhausted optimistic-lock retries). The web
+   * layer maps this to {@code 503}; the repository stays free of HTTP types.
+   */
+  public static class TokenOperationFailedException extends RuntimeException {
+    public TokenOperationFailedException(String message) {
+      super(message);
+    }
+  }
+
   /** Bounded retry for optimistic-locking timestamp updates; these fields are best-effort. */
   private static final int MAX_TIMESTAMP_UPDATE_ATTEMPTS = 3;
+
+  /**
+   * Backstop TTL applied to the name index key by {@code SET NX EX} in {@link #save} before the
+   * MULTI commits. If the JVM dies or the connection drops between SETNX and the explicit cleanup
+   * (or the cleanup itself fails) the orphan reservation is auto-evicted after this window and the
+   * principal can retry the same name. After a successful commit this TTL is replaced (EXPIREAT for
+   * expiring tokens, PERSIST for non-expiring tokens).
+   */
+  static final int NAME_RESERVATION_TTL_SECONDS = 60;
 
   private final JedisPool jedisPool;
   private final ObjectMapper objectMapper;
@@ -91,9 +114,16 @@ public class RedisApiTokenRepository {
    * expiresAt} epoch seconds, or {@link Long#MAX_VALUE} for non-expiring tokens). When {@code
    * expiresAt} is set, {@code EXPIREAT} is applied to the string keys and the name index.
    *
-   * <p>Name uniqueness is enforced atomically by {@code SET NX} on the name index key before the
-   * rest of the save; if the name is taken this throws and writes nothing else. The name
-   * reservation is released best-effort if the subsequent pipeline fails.
+   * <p>Name uniqueness is enforced atomically by {@code SET NX EX 60} on the name index key before
+   * the rest of the save; if the name is taken this throws and writes nothing else. The remaining
+   * writes (hash key, id key, principal ZSET, EXPIREATs, and the name key's TTL adjustment) commit
+   * together inside MULTI/EXEC so an aborted EXEC can't leave a readable hash key without its id
+   * record, nor a freshly committed token with a 60s name reservation TTL still in place. The name
+   * reservation is released best-effort if the transaction fails; the 60s SETNX TTL is the backstop
+   * that auto-evicts the reservation if even the explicit release can't run (e.g., JVM crash,
+   * connection loss). Inside the MULTI the reservation's TTL is replaced with the token's actual
+   * lifetime — {@code EXPIREAT} for tokens with an explicit expiry, {@code PERSIST} (TTL removed)
+   * for non-expiring tokens.
    *
    * <p>Sets {@code record.hashRef} so {@link #delete} can find the hash key during revocation.
    *
@@ -118,9 +148,14 @@ public class RedisApiTokenRepository {
             : Long.MAX_VALUE;
 
     try (Jedis jedis = jedisPool.getResource()) {
-      // SETNX without a TTL; the matching EXPIREAT is folded into the pipeline below.
-      // (`SET NX EXAT` would require Redis 6.2; we support older versions.)
-      String reservation = jedis.set(nameKey, record.getId(), SetParams.setParams().nx());
+      // SET NX EX 60: short reservation TTL acts as a self-healing fallback if we crash or lose
+      // the connection before either the MULTI/EXEC below or the explicit cleanup runs. Inside
+      // the MULTI we either EXPIREAT (expiring tokens) or PERSIST (non-expiring tokens) the name
+      // key to its real lifetime, so the reservation TTL is replaced atomically with the rest of
+      // the commit.
+      String reservation =
+          jedis.set(
+              nameKey, record.getId(), SetParams.setParams().nx().ex(NAME_RESERVATION_TTL_SECONDS));
       if (reservation == null) {
         throw new DuplicateTokenNameException(
             "A token named '"
@@ -133,17 +168,28 @@ public class RedisApiTokenRepository {
 
       boolean committed = false;
       try {
-        Pipeline pipe = jedis.pipelined();
-        pipe.set(hashKey, json);
-        pipe.set(idKey, json);
-        pipe.zadd(principalKey, (double) zsetScore, record.getId());
+        Transaction tx = jedis.multi();
+        tx.set(hashKey, json);
+        tx.set(idKey, json);
+        tx.zadd(principalKey, (double) zsetScore, record.getId());
 
+        // Replace the short reservation TTL with the token's true lifetime in the same MULTI as
+        // the rest of the save. EXPIREAT for expiring tokens, PERSIST (remove TTL) otherwise —
+        // a non-expiring token whose name key kept the 60s TTL would let the same (principal,
+        // name) be re-saved a minute later. Queueing this inside the transaction means there's
+        // no window where the commit has landed but the name key still carries the reservation
+        // TTL.
         if (zsetScore != Long.MAX_VALUE) {
-          pipe.expireAt(hashKey, zsetScore);
-          pipe.expireAt(idKey, zsetScore);
-          pipe.expireAt(nameKey, zsetScore);
+          tx.expireAt(hashKey, zsetScore);
+          tx.expireAt(idKey, zsetScore);
+          tx.expireAt(nameKey, zsetScore);
+        } else {
+          tx.persist(nameKey);
         }
-        pipe.sync();
+        List<Object> results = tx.exec();
+        if (results == null || results.isEmpty()) {
+          throw new TokenOperationFailedException("Token save failed: EXEC returned null");
+        }
         committed = true;
       } finally {
         if (!committed) {
@@ -217,6 +263,15 @@ public class RedisApiTokenRepository {
    * can observe a partial state. The hash key — the only one read on the auth hot path — is first
    * in the transaction. {@code name} may be {@code null} for legacy records (the name DEL is then
    * skipped).
+   *
+   * <p>A {@code null}/empty EXEC throws {@link TokenOperationFailedException} so the caller retries
+   * — silently succeeding would leave a non-expiring token authenticatable forever. Unlike {@link
+   * #save}, there's no pre-transaction reservation to clean up: a failed EXEC simply means none of
+   * the DELs landed.
+   *
+   * @throws TokenOperationFailedException if {@code tx.exec()} returns {@code null} or an empty
+   *     list (WATCH conflict or connection loss); the caller should surface this as a retriable
+   *     error.
    */
   public void delete(
       String id, String sha256Hex, String name, String principalType, String principalId) {
@@ -228,7 +283,16 @@ public class RedisApiTokenRepository {
       if (name != null && !name.isBlank()) {
         tx.del(nameKey(principalType, principalId, name));
       }
-      tx.exec();
+      List<Object> results = tx.exec();
+      if (results == null || results.isEmpty()) {
+        log.error(
+            "Token delete EXEC returned null for token id {}; transaction may have been aborted",
+            id);
+        throw new TokenOperationFailedException(
+            "Token deletion failed for id "
+                + id
+                + "; Redis EXEC returned no results. Retry the revocation.");
+      }
     }
   }
 
@@ -257,8 +321,10 @@ public class RedisApiTokenRepository {
 
   /**
    * WATCH/MULTI/EXEC read-modify-write of the JSON record on both id and hash keys, preserving
-   * TTLs. On WATCH conflict we retry up to {@link #MAX_TIMESTAMP_UPDATE_ATTEMPTS} times against a
-   * fresh snapshot, then give up — these fields are best-effort metadata.
+   * TTLs. Retries up to {@link #MAX_TIMESTAMP_UPDATE_ATTEMPTS} times on WATCH conflict; if every
+   * attempt loses the race, throws {@link TokenOperationFailedException} rather than silently
+   * dropping the update — a quietly-lost {@code lastFiatCheckAt} write would let a revoked
+   * principal keep passing the Fiat-check throttle.
    */
   private void updateTokenWithOptimisticLock(
       String id, String sha256Hex, String fieldName, Consumer<TokenRecord> mutator) {
@@ -295,16 +361,18 @@ public class RedisApiTokenRepository {
           tx.expire(hashKey, hashTtl);
         }
         List<Object> results = tx.exec();
-        if (results != null) {
+        if (results != null && !results.isEmpty()) {
           return;
         }
       }
       log.warn(
           "Gave up updating {} for token id={} after {} WATCH conflicts; another writer kept "
-              + "winning the race. The field is best-effort metadata.",
+              + "winning the race.",
           fieldName,
           id,
           MAX_TIMESTAMP_UPDATE_ATTEMPTS);
+      throw new TokenOperationFailedException(
+          "Token update aborted due to concurrent modification; retry.");
     }
   }
 
@@ -314,7 +382,7 @@ public class RedisApiTokenRepository {
    * small in practice.
    */
   public List<TokenRecord> findAllByPrincipalType(String principalType) {
-    String pattern = keyPrefix + ":principal:" + principalType.toUpperCase() + ":*";
+    String pattern = keyPrefix + ":principal:" + principalType.toUpperCase(Locale.ROOT) + ":*";
     long nowEpoch = Instant.now().getEpochSecond();
     // SCAN can return duplicates across iterations, so dedupe principal keys (and thus UUIDs).
     Set<String> seenPrincipalKeys = new LinkedHashSet<>();
@@ -371,7 +439,7 @@ public class RedisApiTokenRepository {
   }
 
   public String principalKey(String principalType, String principalId) {
-    return keyPrefix + ":principal:" + principalType.toUpperCase() + ":" + principalId;
+    return keyPrefix + ":principal:" + principalType.toUpperCase(Locale.ROOT) + ":" + principalId;
   }
 
   /**
@@ -381,7 +449,7 @@ public class RedisApiTokenRepository {
   public String nameKey(String principalType, String principalId, String name) {
     return keyPrefix
         + ":name:"
-        + principalType.toUpperCase()
+        + principalType.toUpperCase(Locale.ROOT)
         + ":"
         + principalId
         + ":"
