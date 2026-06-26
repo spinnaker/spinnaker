@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
+import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerConversionException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
@@ -59,7 +60,15 @@ class WebhookService {
 
   ResponseEntity<Void> webhooks(String source, CloudEvent cdEvent, String ceDataJsonString) {
     return AuthenticatedRequest.allowAnonymous( {
-      Retrofit2SyncCall.execute(echoService.webhooks(source, cdEvent, ceDataJsonString, cdEvent.getId(), cdEvent.getSpecVersion().V1.toString(), cdEvent.getType(), cdEvent.getSource().toString()))
+      try {
+        Retrofit2SyncCall.execute(echoService.webhooks(source, cdEvent, ceDataJsonString, cdEvent.getId(), cdEvent.getSpecVersion().V1.toString(), cdEvent.getType(), cdEvent.getSource().toString()))
+        return ResponseEntity.ok().build()
+      } catch (SpinnakerConversionException e) {
+        if (e.message?.contains('No content to map due to end-of-input')) {
+          return ResponseEntity.ok().build()
+        }
+        throw e
+      }
     })
   }
 
