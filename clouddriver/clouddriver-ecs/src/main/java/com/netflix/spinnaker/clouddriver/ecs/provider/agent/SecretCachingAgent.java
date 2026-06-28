@@ -82,10 +82,9 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
     Collection<CacheData> newData = newDataMap.get(SECRETS.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(SECRETS.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountRegionFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                SECRETS.toString(), Keys.buildGlob(SECRETS, accountName, region)));
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 

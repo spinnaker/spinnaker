@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
@@ -90,8 +89,8 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
 
     def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.alarmArn())
     def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.alarmArn())
-    def oldData = [new DefaultCacheData(oldKey1, attributes1, [:]), new DefaultCacheData(oldKey2, attributes2, [:])]
-    providerCache.getAll(Keys.Namespace.ALARMS.ns) >> oldData
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> [oldKey1, oldKey2]
 
     def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.alarmArn(), "my-cluster")
     def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.alarmArn(), "my-cluster")
@@ -105,6 +104,25 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns].size() == 2
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.id.containsAll([newKey1, newKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.attributes.containsAll([attributes1, attributes2])
+  }
+
+  def 'should use filterIdentifiers with account and region glob for evictions'() {
+    given:
+    def metricAlarm = MetricAlarm.builder().alarmName("alarm-name").alarmArn("alarmArn").build()
+    clientProvider.getAmazonCloudWatchV2(_, _) >> cloudWatch
+    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms([metricAlarm]).build()
+
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    def oldKey = Keys.getAlarmKey(ACCOUNT, REGION, "old-alarm", "")
+    def oldIdentifiers = [oldKey]
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> oldIdentifiers
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.evictions[Keys.Namespace.ALARMS.ns] != null
+    result.evictions[Keys.Namespace.ALARMS.ns].containsAll(oldIdentifiers)
   }
 
 }

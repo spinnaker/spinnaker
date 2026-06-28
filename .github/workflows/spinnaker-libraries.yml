@@ -72,4 +72,4 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew closeAndReleaseNexusStagingRepository
+          ./gradlew findNexusStagingRepository closeAndReleaseNexusStagingRepository

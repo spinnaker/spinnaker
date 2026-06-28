@@ -91,10 +91,9 @@ public class EcsCloudMetricAlarmCachingAgent implements CachingAgent, AccountAwa
     Collection<CacheData> newData = newDataMap.get(ALARMS.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(ALARMS.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountRegionFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                ALARMS.toString(), Keys.buildGlob(ALARMS, accountName, region)));
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
