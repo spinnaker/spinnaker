@@ -203,7 +203,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
   private ProxmoxInstance buildInstance(ProxmoxResource resource, String account, String node) {
     String status = statusOf(resource);
     HealthState healthState = ProxmoxInstance.healthStateFrom(status);
-    String instanceName = String.join("/", account, node, String.valueOf(resource.getVmId()));
+    String instanceName = resource.getName();
 
     Map<String, Object> healthEntry = new HashMap<>();
     healthEntry.put("type", "Proxmox");
@@ -239,6 +239,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
 
     ProxmoxServerGroup sg = new ProxmoxServerGroup();
     sg.setName(resource.getName());
+    sg.setApplication(moniker.getApp());
     sg.setRegion(node);
     sg.setDisabled(!running);
     sg.setZones(Set.of(node));

@@ -226,7 +226,66 @@ class ProxmoxServerClusterProviderTest {
     assertThat(provider.getCloudProviderId()).isEqualTo("proxmox");
   }
 
+  // ── serverGroup.application ───────────────────────────────────────────────
+
+  @Test
+  void serverGroupApplicationIsAppNameNotVmName() {
+    putVm(101, "myapp-prod-v001", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
+
+    ProxmoxServerGroup sg = firstServerGroup("myapp");
+
+    assertThat(sg.getApplication()).isEqualTo("myapp");
+    assertThat(sg.getApplication()).isNotEqualTo(sg.getName());
+  }
+
+  @Test
+  void serverGroupApplicationIsSetWhenDerivedFromFriggaNameParsing() {
+    putVm(101, "myapp-prod-v001", null, "running");
+
+    ProxmoxServerGroup sg = firstServerGroup("myapp");
+
+    assertThat(sg.getApplication()).isEqualTo("myapp");
+  }
+
+  @Test
+  void lxcServerGroupApplicationIsAppNameNotVmName() {
+    putLxc(200, "myapp-prod-v001", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
+
+    ProxmoxServerGroup sg = firstServerGroup("myapp");
+
+    assertThat(sg.getApplication()).isEqualTo("myapp");
+    assertThat(sg.getApplication()).isNotEqualTo(sg.getName());
+  }
+
+  // ── instance name ─────────────────────────────────────────────────────────
+
+  @Test
+  void instanceNameIsVmNameNotCompositeId() {
+    putVm(101, "myapp-prod-v001", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
+
+    ProxmoxServerGroup sg = firstServerGroup("myapp");
+    var instance = sg.getInstances().iterator().next();
+
+    assertThat(instance.getName()).isEqualTo("myapp-prod-v001");
+    assertThat(instance.getName()).doesNotContain("/");
+  }
+
+  @Test
+  void lxcInstanceNameIsVmNameNotCompositeId() {
+    putLxc(200, "myapp-prod-v001", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
+
+    ProxmoxServerGroup sg = firstServerGroup("myapp");
+    var instance = sg.getInstances().iterator().next();
+
+    assertThat(instance.getName()).isEqualTo("myapp-prod-v001");
+    assertThat(instance.getName()).doesNotContain("/");
+  }
+
   // ── helpers ───────────────────────────────────────────────────────────────
+
+  private ProxmoxServerGroup firstServerGroup(String app) {
+    return provider.getClusters().get(app).iterator().next().getServerGroups().iterator().next();
+  }
 
   private void putVm(int vmId, String name, String tags, String status) {
     ProxmoxVm vm =

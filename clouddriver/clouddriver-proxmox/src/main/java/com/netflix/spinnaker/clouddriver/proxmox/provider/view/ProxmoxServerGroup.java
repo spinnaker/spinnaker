@@ -28,6 +28,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ProxmoxServerGroup implements ServerGroup {
   private String name;
+  private String application;
   private String cloudProvider = ProxmoxProvider.ID;
   private String region;
   private Boolean disabled;
