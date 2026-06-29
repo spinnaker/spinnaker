@@ -213,8 +213,7 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
             .roleName("test-role")
             .build();
 
-    when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString()))
-        .thenReturn(iam);
+    when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString())).thenReturn(iam);
     when(iam.listRoles(any(ListRolesRequest.class)))
         .thenReturn(ListRolesResponse.builder().roles(role).isTruncated(false).build());
     when(iamPolicyReader.getTrustedEntities(any()))
