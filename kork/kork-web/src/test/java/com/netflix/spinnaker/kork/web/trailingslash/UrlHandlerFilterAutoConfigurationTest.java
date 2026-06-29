@@ -63,4 +63,40 @@ class UrlHandlerFilterAutoConfigurationTest {
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isEqualTo("fetched:payload");
   }
+
+  @Test
+  void trailingSlashIsNormalizedToNonSlashHandlerWhenEnabled() {
+    // The filter trims the trailing slash before dispatch, so /fetch/ is served by the
+    // @PutMapping("/fetch") handler. This proves normalization happens at the filter layer.
+    ResponseEntity<String> response =
+        restTemplate.exchange("/fetch/", HttpMethod.PUT, request(), String.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isEqualTo("fetched:payload");
+  }
+
+  @Test
+  void explicitTrailingSlashOnlyMappingBecomesUnreachableWhenEnabled() {
+    // Caveat: the filter trims the trailing slash before dispatch, so a request to
+    // /fetchWithSlash/ is dispatched as /fetchWithSlash. Because the controller only maps
+    // /fetchWithSlash/ (with the slash) and nothing maps /fetchWithSlash, the request 404s.
+    // In other words, endpoints that are intentionally mapped WITH a trailing slash become
+    // unreachable while the filter is enabled.
+    ResponseEntity<String> response =
+        restTemplate.exchange("/fetchWithSlash/", HttpMethod.PUT, request(), String.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void rootMappingIsNotBrokenWhenEnabled() {
+    // Controllers like echo's HistoryController and gate's RootController map "/". Verify the
+    // filter
+    // does not trim the root path to an empty string and break it.
+    ResponseEntity<String> response =
+        restTemplate.exchange("/", HttpMethod.POST, request(), String.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isEqualTo("root:payload");
+  }
 }
