@@ -18,6 +18,18 @@ package com.netflix.spinnaker.gate.security.apitoken;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -40,8 +52,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.InOrder;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Transaction;
 
 class RedisApiTokenRepositoryTest {
 
@@ -242,6 +256,39 @@ class RedisApiTokenRepositoryTest {
     assertThat(repo.findByPrincipal("USER", "frank")).isEmpty();
   }
 
+  /**
+   * Null EXEC means the revocation aborted; silent swallowing would leave a non-expiring token
+   * authenticatable forever. Must throw the domain exception so the web layer maps it to 5xx.
+   */
+  @Test
+  void delete_throws_whenExecReturnsNull() {
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    assertThatThrownBy(
+            () ->
+                failingRepo.delete(
+                    "aborted-del-tok", "h-aborted-del", "aborted-del-name", "USER", "yara"))
+        .isInstanceOf(RedisApiTokenRepository.TokenOperationFailedException.class)
+        .hasMessageContaining("aborted-del-tok")
+        .hasMessageContaining("Redis EXEC returned no results");
+  }
+
   // ---------------------------------------------------------------------------
   // updateLastUsed
   // ---------------------------------------------------------------------------
@@ -285,9 +332,11 @@ class RedisApiTokenRepositoryTest {
   }
 
   /**
-   * Regression: a naive read-modify-write of the JSON would let concurrent updateLastUsed and
+   * Regression: a naive read-modify-write would let concurrent updateLastUsed and
    * updateLastFiatCheck clobber each other's sibling field. With WATCH/MULTI/EXEC + retry, both
-   * threads' final values must be observable on both keys.
+   * threads' final values must be observable on both keys. Each iteration retries on {@link
+   * RedisApiTokenRepository.TokenOperationFailedException} to model the production caller's retry
+   * contract.
    */
   @Test
   void concurrentUpdates_doNotClobberSiblingFields() throws Exception {
@@ -304,7 +353,9 @@ class RedisApiTokenRepositoryTest {
           () -> {
             start.await();
             for (int i = 0; i < iterations; i++) {
-              repo.updateLastUsed("race-tok", "h-race", base.plusSeconds(i));
+              final int iter = i;
+              retryUntilDone(
+                  () -> repo.updateLastUsed("race-tok", "h-race", base.plusSeconds(iter)));
             }
             return null;
           });
@@ -312,7 +363,9 @@ class RedisApiTokenRepositoryTest {
           () -> {
             start.await();
             for (int i = 0; i < iterations; i++) {
-              repo.updateLastFiatCheck("race-tok", "h-race", base.plusSeconds(i));
+              final int iter = i;
+              retryUntilDone(
+                  () -> repo.updateLastFiatCheck("race-tok", "h-race", base.plusSeconds(iter)));
             }
             return null;
           });
@@ -339,6 +392,93 @@ class RedisApiTokenRepositoryTest {
     TokenRecord fromHash = repo.findByHash("h-race").orElseThrow();
     assertThat(fromHash.getLastUsedAt()).isEqualTo(lastValueWritten.toString());
     assertThat(fromHash.getLastFiatCheckAt()).isEqualTo(lastValueWritten.toString());
+  }
+
+  /** Caller-side retry loop modelling production behavior on optimistic-lock contention. */
+  private static void retryUntilDone(Runnable action) {
+    while (true) {
+      try {
+        action.run();
+        return;
+      } catch (RedisApiTokenRepository.TokenOperationFailedException retry) {
+        // loop again from a fresh snapshot
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // updateTokenWithOptimisticLock — exhausted retries surface as an exception
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Persistent WATCH conflict (every EXEC returns null): after MAX_TIMESTAMP_UPDATE_ATTEMPTS the
+   * method must throw rather than silently drop the update.
+   */
+  @Test
+  void updateTokenWithOptimisticLock_throwsAfterRetriesExhausted_onPersistentWatchConflict() {
+    repo.save(buildRecord("opt-lock-tok", "USER", "tara", null), "h-opt-lock");
+
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    assertThatThrownBy(
+            () ->
+                failingRepo.updateLastUsed(
+                    "opt-lock-tok", "h-opt-lock", Instant.parse("2026-06-01T00:00:00Z")))
+        .isInstanceOf(RedisApiTokenRepository.TokenOperationFailedException.class)
+        .hasMessageContaining("concurrent modification")
+        .hasMessageContaining("retry");
+
+    // Exactly MAX_TIMESTAMP_UPDATE_ATTEMPTS — neither short-circuited nor hammered past the cap.
+    verify(fakeTx, times(3)).exec();
+  }
+
+  /** Empty (vs. null) EXEC result must trigger the same failure path. */
+  @Test
+  void updateTokenWithOptimisticLock_throwsAfterRetriesExhausted_onEmptyExecResult() {
+    repo.save(buildRecord("empty-exec-tok", "USER", "ulysses", null), "h-empty-exec");
+
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(List.of());
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    assertThatThrownBy(
+            () ->
+                failingRepo.updateLastFiatCheck(
+                    "empty-exec-tok", "h-empty-exec", Instant.parse("2026-06-01T00:00:00Z")))
+        .isInstanceOf(RedisApiTokenRepository.TokenOperationFailedException.class)
+        .hasMessageContaining("concurrent modification");
+
+    verify(fakeTx, times(3)).exec();
   }
 
   // ---------------------------------------------------------------------------
@@ -478,6 +618,234 @@ class RedisApiTokenRepositoryTest {
     } finally {
       exec.shutdownNow();
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // save — MULTI/EXEC atomicity
+  // ---------------------------------------------------------------------------
+
+  /**
+   * If EXEC returns null mid-save, no partial state (notably a readable hash key without its id
+   * record) may survive — that would be an authenticatable but unrevokable token.
+   */
+  @Test
+  void save_throwsAndWritesNothing_whenExecReturnsNull() {
+    // Real Jedis (so SET NX really reserves the name), but multi() returns a Transaction whose
+    // exec() returns null.
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    TokenRecord record = buildRecord("aborted-tok", "USER", "ursula", null);
+    record.setName("aborted-name");
+
+    assertThatThrownBy(() -> failingRepo.save(record, "h-aborted"))
+        .isInstanceOf(RedisApiTokenRepository.TokenOperationFailedException.class)
+        .hasMessageContaining("EXEC returned null");
+
+    assertThat(repo.findByHash("h-aborted")).isEmpty();
+    assertThat(repo.findById("aborted-tok")).isEmpty();
+    assertThat(repo.findByPrincipal("USER", "ursula")).isEmpty();
+    try (Jedis jedis = jedisPool.getResource()) {
+      assertThat(jedis.exists(repo.nameKey("USER", "ursula", "aborted-name"))).isFalse();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // save — name reservation TTL (orphan cleanup)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * If save() crashes between SETNX and the explicit release in the finally block — or even if the
+   * release itself fails (network blip, dead pool, etc.) — the orphan name reservation must clean
+   * itself up via the short TTL baked into {@code SET NX EX}. Otherwise the principal could never
+   * reuse that name, and a 409 would be the only response forever.
+   */
+  @Test
+  void save_orphanNameKeyAutoExpires_whenBothExecAndCleanupFail() {
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction fakeTx = mock(Transaction.class);
+    when(fakeTx.exec()).thenReturn(null);
+    doReturn(fakeTx).when(spyJedis).multi();
+    // The explicit release also blows up — the TTL is the only thing standing between us and a
+    // permanently orphaned name reservation.
+    doThrow(new RuntimeException("connection reset by peer")).when(spyJedis).del(anyString());
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository failingRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+
+    TokenRecord record = buildRecord("orphan-tok", "USER", "victor", null);
+    record.setName("orphan-name");
+
+    assertThatThrownBy(() -> failingRepo.save(record, "h-orphan"))
+        .isInstanceOf(RedisApiTokenRepository.TokenOperationFailedException.class)
+        .hasMessageContaining("EXEC returned null");
+
+    String nameKey = repo.nameKey("USER", "victor", "orphan-name");
+    try (Jedis jedis = jedisPool.getResource()) {
+      assertThat(jedis.exists(nameKey))
+          .as("cleanup was suppressed, so the orphan should still be present right now")
+          .isTrue();
+      long ttl = jedis.ttl(nameKey);
+      assertThat(ttl)
+          .as("orphan must carry a positive TTL ≤ the reservation window so it auto-cleans")
+          .isGreaterThan(0L)
+          .isLessThanOrEqualTo(RedisApiTokenRepository.NAME_RESERVATION_TTL_SECONDS);
+    }
+
+    // None of the other keys should have leaked either.
+    assertThat(repo.findByHash("h-orphan")).isEmpty();
+    assertThat(repo.findById("orphan-tok")).isEmpty();
+    assertThat(repo.findByPrincipal("USER", "victor")).isEmpty();
+  }
+
+  /**
+   * After a successful save of a non-expiring token, the short reservation TTL must be removed via
+   * PERSIST. If we forgot to do that, the name key would silently disappear after 60s and a
+   * different caller could grab the same (principal, name) while the original token is still very
+   * much alive.
+   */
+  @Test
+  void save_persistsNameKey_whenTokenIsNonExpiring() {
+    TokenRecord record = buildRecord("persist-tok", "USER", "wendy", null);
+    record.setName("persist-name");
+    repo.save(record, "h-persist");
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      String nameKey = repo.nameKey("USER", "wendy", "persist-name");
+      assertThat(jedis.exists(nameKey)).isTrue();
+      // -1 == "key exists, no TTL set" in Redis.
+      assertThat(jedis.ttl(nameKey))
+          .as("non-expiring token's name key must lose the reservation TTL on commit")
+          .isEqualTo(-1L);
+    }
+  }
+
+  /**
+   * After commit for an expiring token, the name key TTL must be lifted from the 60s reservation up
+   * to the token's real expiry. Otherwise the name would free up an hour before the token itself
+   * does.
+   */
+  @Test
+  void save_extendsNameKeyTtl_toTokenExpiry_whenTokenIsExpiring() {
+    long expirySeconds = Instant.now().getEpochSecond() + 3600;
+    String expiresAt = Instant.ofEpochSecond(expirySeconds).toString();
+    TokenRecord record = buildRecord("expiring-tok", "USER", "xena", expiresAt);
+    record.setName("expiring-name");
+    repo.save(record, "h-expiring");
+
+    try (Jedis jedis = jedisPool.getResource()) {
+      String nameKey = repo.nameKey("USER", "xena", "expiring-name");
+      long ttl = jedis.ttl(nameKey);
+      assertThat(ttl)
+          .as("name key TTL must be lifted from the 60s reservation to the token's real expiry")
+          .isGreaterThan(RedisApiTokenRepository.NAME_RESERVATION_TTL_SECONDS);
+    }
+  }
+
+  /**
+   * Behavioral tests above prove the name key ends up with the right TTL, but they can't tell
+   * whether the TTL adjustment landed inside the MULTI or in a separate post-commit round trip. If
+   * it lived outside the transaction, an EXEC that succeeded immediately followed by a JVM death or
+   * connection drop would leave a fully committed token with the 60s reservation TTL still in place
+   * — the name would silently free up a minute later while the token is still very much alive. Pin
+   * down the atomic ordering with a mocked transaction.
+   */
+  @Test
+  void save_queuesPersistOnNameKeyInsideMultiExec_forNonExpiringToken() {
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction txMock = mock(Transaction.class);
+    when(txMock.exec()).thenReturn(List.<Object>of("OK", "OK", 1L, 1L));
+    doReturn(txMock).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository spiedRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+    TokenRecord record = buildRecord("persist-tx-tok", "USER", "amber", null);
+    record.setName("persist-tx-name");
+    String nameKey = repo.nameKey("USER", "amber", "persist-tx-name");
+
+    spiedRepo.save(record, "h-persist-tx");
+
+    // PERSIST must be queued on the Transaction (so it commits atomically with the rest of the
+    // save), and the queue order must be: tx.persist(nameKey) → tx.exec(). Anything queued after
+    // exec() would silently never run.
+    InOrder order = inOrder(txMock);
+    order.verify(txMock).persist(nameKey);
+    order.verify(txMock).exec();
+    // And the post-commit Jedis-level fallbacks must be gone — if they came back we'd be racing
+    // ourselves on every save.
+    verify(spyJedis, never()).persist(anyString());
+    verify(spyJedis, never()).expireAt(anyString(), anyLong());
+  }
+
+  /** Same atomicity guarantee as above, but for the EXPIREAT branch (expiring token). */
+  @Test
+  void save_queuesExpireAtOnNameKeyInsideMultiExec_forExpiringToken() {
+    long expirySeconds = Instant.now().getEpochSecond() + 3600;
+    String expiresAt = Instant.ofEpochSecond(expirySeconds).toString();
+
+    ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    JedisPool spyPool = mock(JedisPool.class);
+    Jedis realJedis = jedisPool.getResource();
+    Jedis spyJedis = spy(realJedis);
+    Transaction txMock = mock(Transaction.class);
+    when(txMock.exec()).thenReturn(List.<Object>of("OK", "OK", 1L, 1L, 1L, 1L));
+    doReturn(txMock).when(spyJedis).multi();
+    doAnswer(
+            inv -> {
+              realJedis.close();
+              return null;
+            })
+        .when(spyJedis)
+        .close();
+    when(spyPool.getResource()).thenReturn(spyJedis);
+
+    RedisApiTokenRepository spiedRepo = new RedisApiTokenRepository(spyPool, mapper, "api-token");
+    TokenRecord record = buildRecord("expire-tx-tok", "USER", "zoe", expiresAt);
+    record.setName("expire-tx-name");
+    String nameKey = repo.nameKey("USER", "zoe", "expire-tx-name");
+
+    spiedRepo.save(record, "h-expire-tx");
+
+    InOrder order = inOrder(txMock);
+    order.verify(txMock).expireAt(nameKey, expirySeconds);
+    order.verify(txMock).exec();
+    verify(spyJedis, never()).persist(anyString());
+    verify(spyJedis, never()).expireAt(anyString(), anyLong());
   }
 
   // ---------------------------------------------------------------------------
