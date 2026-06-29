@@ -53,9 +53,9 @@ public interface IgorService {
   @PUT("masters/{name}/jobs/stop/{queuedBuild}/{buildNumber}")
   Call<String> stopWithJobNameAsQueryParameter(
       @Path("name") String master,
-      @Query(value = "jobName") String jobName,
       @Path(encoded = true, value = "queuedBuild") String queuedBuild,
       @Path(encoded = true, value = "buildNumber") Long buildNumber,
+      @Query(value = "jobName") String jobName,
       @Body String ignored);
 
   @PATCH("masters/{name}/jobs/{jobName}/update/{buildNumber}")
