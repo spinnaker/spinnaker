@@ -46,6 +46,11 @@ class GoogleInternalLoadBalancerCachingAgentSpec extends Specification {
   private static final String PROJECT = "my-project"
   private static final String REGION = "us-central1"
 
+  void "internal passthrough agent does not report pending on-demand requests"() {
+    expect:
+    createBatchExecutingAgent(Mock(Compute)).pendingOnDemandRequests(null) == []
+  }
+
   void "internal passthrough ownership rejects regional external backend-service forwarding rules"() {
     expect:
     !GoogleInternalLoadBalancerCachingAgent.isInternalPassthroughRule(
