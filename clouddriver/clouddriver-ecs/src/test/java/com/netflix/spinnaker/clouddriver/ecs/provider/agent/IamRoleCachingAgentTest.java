@@ -161,9 +161,9 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
   @Test
   public void shouldGetDefaultRegion() {
     // given
-    String defaultRegionName = Region.US_EAST_1.id();
+    String defaultRegionName = Region.US_WEST_2.id();
     when(netflixAmazonCredentials.getRegions())
-        .thenReturn(Collections.singletonList(new AmazonCredentials.AWSRegion("us-east-1", null)));
+        .thenReturn(Collections.singletonList(new AmazonCredentials.AWSRegion("us-west-2", null)));
 
     // when
     String actualRegionName = agent.getIamRegion();

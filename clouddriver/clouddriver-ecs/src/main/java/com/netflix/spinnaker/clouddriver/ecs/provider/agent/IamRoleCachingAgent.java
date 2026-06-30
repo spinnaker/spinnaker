@@ -143,9 +143,9 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
       return testRegion;
     }
 
-    // IAM is a global service; us-east-1 is the default endpoint for standard partitions
+    // IAM is a global service; us-west-2 is the default endpoint for standard partitions
     // (equivalent to v1 Regions.DEFAULT_REGION).
-    String defaultRegion = Region.US_EAST_1.id();
+    String defaultRegion = Region.US_WEST_2.id();
     log.debug("retrieving IAM Roles from default region: {}", defaultRegion);
     return defaultRegion;
   }
