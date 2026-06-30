@@ -24,12 +24,14 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.ComputeRequest
 import com.google.api.services.compute.model.Backend
+import com.google.api.services.compute.model.BackendServiceGroupHealth
 import com.google.api.services.compute.model.BackendServiceList
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.HealthCheck
 import com.google.api.services.compute.model.HealthCheckList
+import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.ResourceGroupReference
 import com.google.api.services.compute.model.TCPHealthCheck
 import com.netflix.spectator.api.DefaultRegistry
@@ -88,21 +90,24 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
     def forwardingRulesList = Mock(Compute.ForwardingRules.List)
     def regionBackendServices = Mock(Compute.RegionBackendServices)
     def backendServicesList = Mock(Compute.RegionBackendServices.List)
+    def getHealth = Mock(Compute.RegionBackendServices.GetHealth)
     def regionHealthChecks = Mock(Compute.RegionHealthChecks)
     def healthChecksList = Mock(Compute.RegionHealthChecks.List)
+    def groupUrl = "projects/${PROJECT}/zones/${REGION}-a/instanceGroups/server-group"
     def agent = createBatchExecutingAgent(compute)
 
     when:
     def loadBalancers = agent.constructLoadBalancers()
 
     then:
-    1 * compute.regionBackendServices() >> regionBackendServices
+    (1.._) * compute.regionBackendServices() >> regionBackendServices
     1 * regionBackendServices.list(PROJECT, REGION) >> backendServicesList
     1 * backendServicesList.execute() >> new BackendServiceList(items: [
       new BackendService(
         name: "backend-service",
         loadBalancingScheme: "EXTERNAL",
         sessionAffinity: "NONE",
+        backends: [new Backend(group: groupUrl, balancingMode: "UTILIZATION")],
         healthChecks: ["projects/${PROJECT}/regions/${REGION}/healthChecks/tcp-hc"]
       )
     ])
@@ -137,11 +142,23 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
         IPProtocol: "TCP"
       )
     ])
+    1 * regionBackendServices.getHealth(PROJECT, REGION, "backend-service", {
+      it.group == groupUrl
+    }) >> getHealth
+    1 * getHealth.execute() >> new BackendServiceGroupHealth(healthStatus: [
+      new HealthStatus(
+        instance: "projects/${PROJECT}/zones/${REGION}-a/instances/server-group-v000",
+        healthState: "HEALTHY"
+      )
+    ])
 
     loadBalancers.size() == 1
     loadBalancers[0].name == "lb-name"
     loadBalancers[0].backendService.name == "backend-service"
     loadBalancers[0].backendService.healthCheck.name == "tcp-hc"
+    loadBalancers[0].healths.size() == 1
+    loadBalancers[0].healths[0].instanceName == "server-group-v000"
+    loadBalancers[0].healths[0].status.name() == "HEALTHY"
   }
 
   void "on-demand singleton callback ignores not found and rejects wrong load balancer type"() {
