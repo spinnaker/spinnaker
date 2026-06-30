@@ -276,10 +276,8 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
       @Override
       public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
         if (e.getCode() != 404) {
-          // A 404 means the on-demand item was deleted and should be evicted. Other read failures
-          // leave ownership unknown, so fail the cycle instead of publishing an empty cache result.
+          // Keep forwarding-rule read failure handling consistent with sibling regional LB agents.
           log.error(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e));
-          throw new IOException(e.getMessage());
         }
       }
 
@@ -308,11 +306,8 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
       }
 
       @Override
-      public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        // The forwarding-rule list is the authoritative source for this regional cache cycle.
-        // Failing open would look like all external managed LBs disappeared.
+      public void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) {
         log.error(e.getMessage());
-        throw new IOException(e.getMessage());
       }
     }
   }

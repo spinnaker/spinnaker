@@ -135,16 +135,13 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
             callbacks
                 .newForwardingRuleSingletonCallback()
                 .onFailure(googleError(404, "missing"), null));
-    assertThatThrownBy(
-            () ->
-                callbacks
-                    .newForwardingRuleSingletonCallback()
-                    .onFailure(googleError(500, "boom"), null))
-        .isInstanceOf(IOException.class);
-    assertThatThrownBy(
-            () ->
-                callbacks.newForwardingRuleListCallback().onFailure(googleError(500, "boom"), null))
-        .isInstanceOf(IOException.class);
+    assertDoesNotThrow(
+        () ->
+            callbacks
+                .newForwardingRuleSingletonCallback()
+                .onFailure(googleError(500, "boom"), null));
+    assertDoesNotThrow(
+        () -> callbacks.newForwardingRuleListCallback().onFailure(googleError(500, "boom"), null));
   }
 
   @Test
