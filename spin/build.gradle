@@ -26,7 +26,7 @@ tasks.register('gateapi') {
 
     doLast {
         exec {
-            workingDir project.rootDir
+            workingDir "${project.rootDir}/spin"
             commandLine 'bash', '-c', 'swagger/generate_swagger.sh'
         }
     }
