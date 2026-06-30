@@ -4,9 +4,12 @@ OPENAPI_GENERATOR_VERSION='v7.10.0'
 
 rm -rf ./gateapi
 echo $PWD
+
+## RUN THIS with the same user/gropu as the current user or the files it generates MAY not work properly
 docker run --rm \
     -v "$PWD/../gate/swagger/:/tmp/gate" \
     -v "$PWD/gateapi/:/tmp/go/" \
+    -u $(id -u):$(id -g) \
     "openapitools/openapi-generator-cli:${OPENAPI_GENERATOR_VERSION}" generate \
     -i /tmp/gate/swagger.json \
     -g go \
