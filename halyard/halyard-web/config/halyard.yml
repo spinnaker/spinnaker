@@ -32,3 +32,11 @@ management:
 backup:
   google:
     enabled: false
+
+# Spring Framework 6 (Spring Boot 3) removed lenient trailing-slash route matching. Halyard maps many
+# endpoints with an explicit trailing slash (e.g. .../haServices/, .../generate/, .../deploy/), and
+# the hal CLI calls them that way. Disable the kork-web UrlHandlerFilter, which would otherwise trim
+# the trailing slash before dispatch and make those routes return 404.
+url-handler:
+  trailing-slash:
+    enabled: false
