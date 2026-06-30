@@ -80,4 +80,34 @@ describe('gceLoadBalancingPolicySelector', () => {
 
     expect(ctrl.getPortNames()).toEqual(['external-http']);
   });
+
+  it('uses regional backend service port suggestions for internal managed load balancers', () => {
+    const ctrl = buildController({
+      loadBalancers: ['internal-url-map'],
+      loadBalancingPolicy: { namedPorts: [] },
+      backingData: {
+        filtered: {
+          loadBalancerIndex: {
+            'internal-url-map': {
+              loadBalancerType: 'INTERNAL_MANAGED',
+              account: 'prod',
+              region: 'us-central1',
+              backendServices: ['internal-backend'],
+            },
+          },
+        },
+      },
+    });
+    ctrl.backendServices = [
+      {
+        name: 'internal-backend',
+        account: 'prod',
+        region: 'us-central1',
+        kind: 'regionBackendService',
+        portName: 'internal-http',
+      },
+    ];
+
+    expect(ctrl.getPortNames()).toEqual(['internal-http']);
+  });
 });

@@ -68,6 +68,7 @@ describe('gceLoadBalancerSetTransformer', () => {
     const [normalized] = transformer.normalizeLoadBalancerSet(loadBalancers);
 
     expect(normalized.name).toBe('app (test/us-central1)');
+    expect(normalized.urlMapName).toBe('app');
     expect(normalized.listeners).toEqual([
       jasmine.objectContaining({
         name: 'listener-http',
@@ -83,6 +84,26 @@ describe('gceLoadBalancerSetTransformer', () => {
         networkTier: 'PREMIUM',
       }),
     ]);
+  });
+
+  it('preserves raw URL map identity for regional internal HTTP load balancers', () => {
+    const loadBalancers = [
+      {
+        name: 'internal-listener',
+        account: 'test',
+        provider: 'gce',
+        region: 'us-central1',
+        loadBalancerType: 'INTERNAL_MANAGED',
+        urlMapName: 'internal-app',
+        portRange: '80',
+      },
+    ];
+
+    const [normalized] = transformer.normalizeLoadBalancerSet(loadBalancers);
+
+    expect(normalized.name).toBe('internal-app (test/us-central1)');
+    expect(normalized.urlMapName).toBe('internal-app');
+    expect(normalized.listeners[0].name).toBe('internal-listener');
   });
 
   it('leaves regional external network load balancers ungrouped', () => {

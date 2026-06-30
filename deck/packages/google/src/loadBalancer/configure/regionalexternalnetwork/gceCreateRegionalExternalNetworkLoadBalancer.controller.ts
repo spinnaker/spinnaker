@@ -156,6 +156,13 @@ class RegionalExternalNetworkLoadBalancerCtrl extends CommonGceLoadBalancerCtrl 
       this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder.groupHealthChecksByAccountAndType(
         data.healthChecks as IGceHealthCheck[],
       );
+      const healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
+      this.existingHealthCheckNamesByAccount = this.gceCommonLoadBalancerCommandBuilder.groupHealthCheckNamesByAccount(
+        data.healthChecks as IGceHealthCheck[],
+        healthCheckNamesToOmit,
+      );
+      this.existingHealthCheckNames =
+        _.get<any, string[]>(this, ['existingHealthCheckNamesByAccount', this.loadBalancer.credentials]) || [];
     });
   }
 

@@ -126,7 +126,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
   }
 
   static boolean isInternalPassthroughRule(ForwardingRule forwardingRule) {
-    forwardingRule?.backendService && !forwardingRule?.target && forwardingRule?.loadBalancingScheme == "INTERNAL"
+    GoogleLoadBalancerCacheSupport.isRegionalPassthroughForwardingRule(forwardingRule, "INTERNAL", null)
   }
 
   class ForwardingRuleCallbacks {

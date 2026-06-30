@@ -1,7 +1,5 @@
 package com.netflix.spinnaker.clouddriver.google.provider.agent;
 
-import static com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType.HTTP;
-import static com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTargetProxyType.HTTPS;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -145,12 +143,8 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
   }
 
   static boolean isInternalManagedHttpForwardingRule(ForwardingRule forwardingRule) {
-    GoogleTargetProxyType type =
-        forwardingRule.getTarget() != null
-            ? Utils.getTargetProxyType(forwardingRule.getTarget())
-            : null;
-    return "INTERNAL_MANAGED".equals(forwardingRule.getLoadBalancingScheme())
-        && (type == HTTP || type == HTTPS);
+    return GoogleLoadBalancerCacheSupport.isRegionalManagedHttpForwardingRule(
+        forwardingRule, "INTERNAL_MANAGED");
   }
 
   /**

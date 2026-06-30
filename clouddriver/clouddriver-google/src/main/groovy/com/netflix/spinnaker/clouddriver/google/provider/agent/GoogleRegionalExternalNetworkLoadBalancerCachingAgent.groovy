@@ -123,10 +123,8 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgent extends AbstractGoog
   static boolean isRegionalExternalNetworkPassthroughRule(ForwardingRule forwardingRule) {
     // Regional external proxy LBs also use EXTERNAL forwarding rules, but they point at targets.
     // This agent only owns passthrough rules that point directly at a regional backend service.
-    forwardingRule?.backendService &&
-      !forwardingRule?.target &&
-      forwardingRule?.loadBalancingScheme == "EXTERNAL" &&
-      forwardingRule?.IPProtocol in ["TCP", "UDP"]
+    GoogleLoadBalancerCacheSupport.isRegionalPassthroughForwardingRule(
+      forwardingRule, "EXTERNAL", ["TCP", "UDP"] as Set<String>)
   }
 
   class ForwardingRuleCallbacks {
@@ -249,7 +247,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgent extends AbstractGoog
     backendService.healthChecks?.each { String healthCheckURL ->
       def healthCheckName = Utils.getLocalName(healthCheckURL)
       HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-      handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
+      GoogleRegionalExternalNetworkLoadBalancerCachingAgent.handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
     }
   }
 

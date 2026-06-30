@@ -135,7 +135,7 @@ angular
                 '/logs?advancedFilter=resource.type=(' +
                 resourceTypes +
                 ')%0A"' +
-                $scope.loadBalancer.name +
+                getLogSearchName($scope.loadBalancer) +
                 '"';
             });
           }, autoClose);
@@ -144,6 +144,12 @@ angular
           autoClose();
         }
         return $q.when(null);
+      }
+
+      function getLogSearchName(loadBalancer) {
+        return gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(loadBalancer)
+          ? loadBalancer.urlMapName || loadBalancer.name
+          : loadBalancer.name;
       }
 
       function createDetailsLoader() {

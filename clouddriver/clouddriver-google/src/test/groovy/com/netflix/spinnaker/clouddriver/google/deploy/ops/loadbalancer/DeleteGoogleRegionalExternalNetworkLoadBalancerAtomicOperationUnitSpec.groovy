@@ -28,11 +28,13 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final String PROJECT = "my-project"
@@ -100,12 +102,91 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       0 * compute.regionHealthChecks()
   }
 
-  private static ForwardingRule forwardingRule(String name, String protocol, String backendService, String scheme) {
+  void "deletes regional health check when requested"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
+      def regionHealthChecks = Mock(Compute.RegionHealthChecks)
+      def regionHealthChecksDelete = Mock(Compute.RegionHealthChecks.Delete)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
+      def deleteForwardingRuleOp = new Operation(name: "delete-forwarding-rule", status: "DONE")
+      def deleteBackendServiceOp = new Operation(name: "delete-backend-service", status: "DONE")
+      def deleteHealthCheckOp = new Operation(name: "delete-health-check", status: "DONE")
+      def description = description(compute, true)
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      2 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "EXTERNAL")
+      ])
+      1 * forwardingRules.delete(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> deleteForwardingRuleOp
+
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: BACKEND_SERVICE,
+        loadBalancingScheme: "EXTERNAL",
+        healthChecks: [HEALTH_CHECK_URL]
+      )
+      1 * backendServices.delete(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> deleteBackendServiceOp
+
+      1 * compute.regionHealthChecks() >> regionHealthChecks
+      1 * regionHealthChecks.delete(PROJECT, REGION, "tcp-hc") >> regionHealthChecksDelete
+      1 * regionHealthChecksDelete.execute() >> deleteHealthCheckOp
+
+      3 * compute.regionOperations() >> regionOperations
+      3 * regionOperations.get(PROJECT, REGION, _) >> regionOperationsGet
+      3 * regionOperationsGet.execute() >>> [deleteForwardingRuleOp, deleteBackendServiceOp, deleteHealthCheckOp]
+  }
+
+  @Unroll
+  void "does not delete wrong-shape forwarding rule: #reason"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def description = description(compute, true)
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [forwardingRule])
+      thrown GoogleResourceNotFoundException
+      0 * compute.regionBackendServices()
+      0 * compute.regionHealthChecks()
+
+    where:
+      reason                 | forwardingRule
+      "internal scheme"      | forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "INTERNAL")
+      "target proxy"         | forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "EXTERNAL", "targetHttpProxies/proxy")
+      "unsupported protocol" | forwardingRule(LOAD_BALANCER, "ESP", BACKEND_SERVICE_URL, "EXTERNAL")
+  }
+
+  private static ForwardingRule forwardingRule(
+    String name, String protocol, String backendService, String scheme, String target = null) {
     new ForwardingRule(
       name: name,
       loadBalancingScheme: scheme,
       backendService: backendService,
-      IPProtocol: protocol
+      IPProtocol: protocol,
+      target: target
     )
   }
 

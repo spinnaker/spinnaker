@@ -96,6 +96,20 @@ describe('Controller: gceRegionalExternalNetworkLoadBalancerCtrl', function () {
     expect(ctrl.loadBalancer.networkTier).toBe('PREMIUM');
   });
 
+  it('refreshes duplicate health check names when health checks are refreshed', function () {
+    const ctrl = createController(this);
+    this.commandBuilder.getBackingData.and.returnValue(
+      this.$q.when({ healthChecks: [{ name: 'fresh-hc', account: 'test-account' }] }),
+    );
+    this.commandBuilder.groupHealthCheckNamesByAccount.and.returnValue({ 'test-account': ['fresh-hc'] });
+
+    ctrl.onHealthCheckRefresh();
+    this.$scope.$digest();
+
+    expect(ctrl.existingHealthCheckNamesByAccount).toEqual({ 'test-account': ['fresh-hc'] });
+    expect(ctrl.existingHealthCheckNames).toEqual(['fresh-hc']);
+  });
+
   it('uses a location template without internal network fields', function () {
     const ctrl = createController(this);
 

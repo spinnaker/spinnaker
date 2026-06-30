@@ -160,6 +160,7 @@ module(GOOGLE_INSTANCE_DETAILS_INSTANCE_DETAILS_CONTROLLER, [
               loadBalancers,
               account,
               app.getDataSource('loadBalancers').data,
+              region,
             );
           }
 

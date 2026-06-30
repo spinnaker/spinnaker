@@ -98,6 +98,8 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
       expect(detailsController).toBeDefined();
       expect(scope.loadBalancer).toBe(normalizedLoadBalancer);
+      expect(scope.loadBalancer.logsLink).toContain('"regional-url-map"');
+      expect(scope.loadBalancer.logsLink).not.toContain('"regional-url-map (test/us-central1)"');
     });
   });
 

@@ -3,6 +3,7 @@ import { module } from 'angular';
 import { chain, get, has, intersection, set, without } from 'lodash';
 
 import type { IGceBackendService, INamedPort } from '../../../../domain';
+import { GceHttpLoadBalancerUtils } from '../../../../loadBalancer/httpLoadBalancerUtils.service';
 
 import './loadBalancingPolicySelector.component.less';
 
@@ -57,11 +58,9 @@ class GceLoadBalancingPolicySelectorController implements IController {
 
       const hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
       const hasTcp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'TCP');
-      const hasHttp =
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP') ||
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'EXTERNAL_MANAGED') ||
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP2') ||
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'GRPC');
+      const hasHttp = selected.find((loadBalancer: any) =>
+        this.isHttpFamilyLoadBalancerType(get(index[loadBalancer], 'loadBalancerType')),
+      );
       if ((hasSsl || hasTcp) && hasHttp) {
         balancingModes = ['UTILIZATION'];
       } else if (hasSsl || hasTcp) {
@@ -138,6 +137,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
         case 'TCP':
         case 'GRPC':
         case 'HTTP2':
+        case 'INTERNAL_MANAGED':
         case 'EXTERNAL_MANAGED':
         case 'HTTP': {
           const lbBackendServices: string[] = get(index[loadBalancer], 'backendServices');
@@ -164,6 +164,14 @@ class GceLoadBalancingPolicySelectorController implements IController {
       return 0;
     }
     return value ? Math.round(value * 100) : undefined;
+  }
+
+  private isHttpFamilyLoadBalancerType(loadBalancerType: string): boolean {
+    return (
+      GceHttpLoadBalancerUtils.HTTP_LOAD_BALANCER_TYPES.includes(loadBalancerType) ||
+      loadBalancerType === 'HTTP2' ||
+      loadBalancerType === 'GRPC'
+    );
   }
 }
 
