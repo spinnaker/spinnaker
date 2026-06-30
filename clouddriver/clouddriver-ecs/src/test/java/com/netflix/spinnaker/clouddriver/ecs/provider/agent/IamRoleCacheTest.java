@@ -19,15 +19,10 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
-import com.amazonaws.services.identitymanagement.model.ListRolesResult;
-import com.amazonaws.services.identitymanagement.model.Role;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -39,11 +34,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.model.ListRolesRequest;
+import software.amazon.awssdk.services.iam.model.ListRolesResponse;
+import software.amazon.awssdk.services.iam.model.Role;
 import spock.lang.Subject;
 
 public class IamRoleCacheTest extends CommonCachingAgent {
   @Subject private final IamRoleCacheClient client = new IamRoleCacheClient(providerCache);
-  private final AmazonIdentityManagement iam = mock(AmazonIdentityManagement.class);
+  private final IamClient iam = mock(IamClient.class);
   private final IamPolicyReader iamPolicyReader = mock(IamPolicyReader.class);
 
   @Subject
@@ -53,8 +52,7 @@ public class IamRoleCacheTest extends CommonCachingAgent {
   @Test
   public void shouldRetrieveFromWrittenCache() {
     // Given
-    when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(iam);
+    when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString())).thenReturn(iam);
     ObjectMapper mapper = new ObjectMapper();
     String name = "iam-role-name";
     String roleArn = "iam-role-arn";
@@ -69,11 +67,9 @@ public class IamRoleCacheTest extends CommonCachingAgent {
     iamTrustRelationship.setValue("ecs-tasks.amazonaws.com");
     iamRole.setTrustRelationships(Collections.singleton(iamTrustRelationship));
 
-    Role role = new Role();
-    role.setArn(roleArn);
-    role.setRoleName(name);
+    Role role = Role.builder().arn(roleArn).roleName(name).build();
     when(iam.listRoles(any(ListRolesRequest.class)))
-        .thenReturn(new ListRolesResult().withRoles(role).withIsTruncated(false));
+        .thenReturn(ListRolesResponse.builder().roles(role).isTruncated(false).build());
     when(iamPolicyReader.getTrustedEntities(anyString()))
         .thenReturn(Collections.singleton(iamTrustRelationship));
 
