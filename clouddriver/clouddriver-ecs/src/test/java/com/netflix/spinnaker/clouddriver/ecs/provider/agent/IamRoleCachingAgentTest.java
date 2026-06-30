@@ -20,18 +20,12 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROL
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
-import com.amazonaws.services.identitymanagement.model.ListRolesResult;
-import com.amazonaws.services.identitymanagement.model.Role;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -41,10 +35,15 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import com.netflix.spinnaker.clouddriver.ecs.cache.model.IamRole;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.model.ListRolesRequest;
+import software.amazon.awssdk.services.iam.model.ListRolesResponse;
+import software.amazon.awssdk.services.iam.model.Role;
 import spock.lang.Subject;
 
 public class IamRoleCachingAgentTest extends CommonCachingAgent {
-  private final AmazonIdentityManagement iam = mock(AmazonIdentityManagement.class);
+  private final IamClient iam = mock(IamClient.class);
   private final IamPolicyReader iamPolicyReader = mock(IamPolicyReader.class);
 
   @Subject
@@ -59,13 +58,13 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
     iamTrustRelationship.setType("Service");
     iamTrustRelationship.setValue("ecs-tasks.amazonaws.com");
 
-    Set<Role> roles = new HashSet<>();
+    List<Role> roles = new ArrayList<>();
     Set<IamRole> iamRoles = new HashSet<>();
     for (int x = 0; x < numberOfRoles; x++) {
       String arn = "iam-role-arn-" + x;
       String name = "iam-role-name-" + x;
 
-      roles.add(new Role().withArn(arn).withRoleName(name));
+      roles.add(Role.builder().arn(arn).roleName(name).build());
 
       IamRole iamRole = new IamRole();
       iamRole.setAccountName(ACCOUNT);
@@ -75,10 +74,9 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
       iamRoles.add(iamRole);
     }
 
-    when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(iam);
+    when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString())).thenReturn(iam);
     when(iam.listRoles(any(ListRolesRequest.class)))
-        .thenReturn(new ListRolesResult().withRoles(roles).withIsTruncated(false));
+        .thenReturn(ListRolesResponse.builder().roles(roles).isTruncated(false).build());
     when(iamPolicyReader.getTrustedEntities(any()))
         .thenReturn(Collections.singleton(iamTrustRelationship));
 
@@ -163,9 +161,9 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
   @Test
   public void shouldGetDefaultRegion() {
     // given
-    String defaultRegionName = Regions.DEFAULT_REGION.getName();
+    String defaultRegionName = Region.US_WEST_2.id();
     when(netflixAmazonCredentials.getRegions())
-        .thenReturn(Collections.singletonList(new AmazonCredentials.AWSRegion("us-east-1", null)));
+        .thenReturn(Collections.singletonList(new AmazonCredentials.AWSRegion("us-west-2", null)));
 
     // when
     String actualRegionName = agent.getIamRegion();
@@ -210,12 +208,14 @@ public class IamRoleCachingAgentTest extends CommonCachingAgent {
     trustRelationship.setValue("ecs-tasks.amazonaws.com");
 
     Role role =
-        new Role().withArn("arn:aws:iam::123456789012:role/test-role").withRoleName("test-role");
+        Role.builder()
+            .arn("arn:aws:iam::123456789012:role/test-role")
+            .roleName("test-role")
+            .build();
 
-    when(clientProvider.getIam(any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(iam);
+    when(clientProvider.getIamV2(any(NetflixAmazonCredentials.class), anyString())).thenReturn(iam);
     when(iam.listRoles(any(ListRolesRequest.class)))
-        .thenReturn(new ListRolesResult().withRoles(role).withIsTruncated(false));
+        .thenReturn(ListRolesResponse.builder().roles(role).isTruncated(false).build());
     when(iamPolicyReader.getTrustedEntities(any()))
         .thenReturn(Collections.singleton(trustRelationship));
     when(providerCache.filterIdentifiers(IAM_ROLE.toString(), expectedGlob))
