@@ -49,21 +49,22 @@ class GceLoadBalancingPolicySelectorController implements IController {
     /*
      * Three cases:
      *   - If we have only HTTP(S) load balancers, our balancing mode can be RATE or UTILIZATION.
-     *   - If we have only SSL/TCP load balancers, our balancing mode can be CONNECTION or UTILIZATION.
+     *   - If we have only passthrough load balancers, our balancing mode can be CONNECTION or UTILIZATION.
      *   - If we have both, only UTILIZATION.
      * */
     if (has(this, 'command.backingData.filtered.loadBalancerIndex')) {
       const index = this.command.backingData.filtered.loadBalancerIndex;
       const selected = this.command.loadBalancers;
 
-      const hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
-      const hasTcp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'TCP');
+      const hasPassthrough = selected.find((loadBalancer: any) =>
+        this.isPassthroughLoadBalancerType(get(index[loadBalancer], 'loadBalancerType')),
+      );
       const hasHttp = selected.find((loadBalancer: any) =>
         this.isHttpFamilyLoadBalancerType(get(index[loadBalancer], 'loadBalancerType')),
       );
-      if ((hasSsl || hasTcp) && hasHttp) {
+      if (hasPassthrough && hasHttp) {
         balancingModes = ['UTILIZATION'];
-      } else if (hasSsl || hasTcp) {
+      } else if (hasPassthrough) {
         balancingModes = ['CONNECTION', 'UTILIZATION'];
       } else {
         balancingModes = ['RATE', 'UTILIZATION'];
@@ -172,6 +173,10 @@ class GceLoadBalancingPolicySelectorController implements IController {
       loadBalancerType === 'HTTP2' ||
       loadBalancerType === 'GRPC'
     );
+  }
+
+  private isPassthroughLoadBalancerType(loadBalancerType: string): boolean {
+    return loadBalancerType === 'SSL' || loadBalancerType === 'TCP' || loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK';
   }
 }
 

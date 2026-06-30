@@ -114,8 +114,6 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
         task, BASE_PHASE)
     }
 
-    def healthCheckUrl = backendService.healthChecks[0]
-    def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
     listenersToDelete.each { String ruleName ->
@@ -157,6 +155,12 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
 
     if (description.deleteHealthChecks) {
+      def healthCheckUrl = backendService.healthChecks?.getAt(0)
+      if (!healthCheckUrl) {
+        GCEUtil.updateStatusAndThrowNotFoundException("External regional backend service $backendServiceName has no health check to delete in $region for $project",
+          task, BASE_PHASE)
+      }
+      def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
       Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
         { timeExecute(
           compute.regionHealthChecks().delete(project, region, healthCheckName),

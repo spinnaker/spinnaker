@@ -29,9 +29,9 @@ export class GceLoadBalancerSetTransformer {
     normalized.name =
       normalized.loadBalancerType === 'HTTP'
         ? normalized.urlMapName
-        : // Regional URL map names can repeat across accounts and regions; include both in the
-          // display identity while details routing can still use the raw urlMapName plus scope.
-          `${normalized.urlMapName} (${normalized.account}/${normalized.region})`;
+        : // Regional URL map names can repeat across accounts, regions, and managed schemes; include
+          // all three while details routing can still use the raw urlMapName plus scope.
+          `${normalized.urlMapName} (${normalized.account}/${normalized.region}/${normalized.loadBalancerType})`;
     delete normalized.subnet;
     return normalized;
   }
@@ -49,7 +49,7 @@ export class GceLoadBalancerSetTransformer {
     );
 
     const groupedByUrlMap = groupBy(httpLoadBalancers, (loadBalancer) =>
-      [loadBalancer.account, loadBalancer.region, loadBalancer.urlMapName].join(':'),
+      [loadBalancer.account, loadBalancer.region, loadBalancer.loadBalancerType, loadBalancer.urlMapName].join(':'),
     );
     const normalizedElSevenLoadBalancers = map(
       groupedByUrlMap,

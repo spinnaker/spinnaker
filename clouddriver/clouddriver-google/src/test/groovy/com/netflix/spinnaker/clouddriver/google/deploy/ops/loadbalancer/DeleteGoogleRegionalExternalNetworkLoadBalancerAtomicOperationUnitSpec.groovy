@@ -102,6 +102,51 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       0 * compute.regionHealthChecks()
   }
 
+  void "deletes listeners and backend service without reading missing health checks when not requested"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesDelete = Mock(Compute.RegionBackendServices.Delete)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
+      def deleteForwardingRuleOp = new Operation(name: "delete-forwarding-rule", status: "DONE")
+      def deleteBackendServiceOp = new Operation(name: "delete-backend-service", status: "DONE")
+      def description = description(compute, false)
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      2 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        forwardingRule(LOAD_BALANCER, "TCP", BACKEND_SERVICE_URL, "EXTERNAL")
+      ])
+      1 * forwardingRules.delete(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesDelete
+      1 * forwardingRulesDelete.execute() >> deleteForwardingRuleOp
+
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: BACKEND_SERVICE,
+        loadBalancingScheme: "EXTERNAL",
+        healthChecks: null
+      )
+      1 * backendServices.delete(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesDelete
+      1 * backendServicesDelete.execute() >> deleteBackendServiceOp
+
+      2 * compute.regionOperations() >> regionOperations
+      2 * regionOperations.get(PROJECT, REGION, _) >> regionOperationsGet
+      2 * regionOperationsGet.execute() >>> [deleteForwardingRuleOp, deleteBackendServiceOp]
+
+      0 * compute.regionHealthChecks()
+  }
+
   void "deletes regional health check when requested"() {
     setup:
       def compute = Mock(Compute)

@@ -42,7 +42,8 @@ import org.slf4j.LoggerFactory;
  */
 public class GoogleExternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleRegionalHttpLoadBalancerCachingAgent<GoogleExternalHttpLoadBalancer> {
-  private static final Logger log = LoggerFactory.getLogger(GoogleExternalHttpLoadBalancer.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(GoogleExternalHttpLoadBalancerCachingAgent.class);
 
   public GoogleExternalHttpLoadBalancerCachingAgent(
       String clouddriverUserAgentApplicationName,

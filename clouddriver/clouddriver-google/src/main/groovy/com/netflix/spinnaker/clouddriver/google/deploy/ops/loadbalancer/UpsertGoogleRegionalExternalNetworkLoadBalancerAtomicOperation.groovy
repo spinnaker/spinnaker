@@ -117,7 +117,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       if (existingBackendService.loadBalancingScheme != "EXTERNAL") {
         throw new GoogleOperationException("Backend service $backendServiceName is not an EXTERNAL regional backend service.")
       }
-      Boolean differentHealthChecks = existingBackendService.getHealthChecks().collect { GCEUtil.getLocalName(it) } != [healthCheckName]
+      Boolean differentHealthChecks = (existingBackendService.getHealthChecks() ?: []).collect { GCEUtil.getLocalName(it) } != [healthCheckName]
       // GCP may omit sessionAffinity for the default; normalize null to NONE before comparing.
       GoogleSessionAffinity existingSessionAffinity = existingBackendService.getSessionAffinity() ?
         GoogleSessionAffinity.valueOf(existingBackendService.getSessionAffinity()) : null

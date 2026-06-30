@@ -33,6 +33,16 @@ public class DeleteGoogleExternalHttpLoadBalancerAtomicOperation
   }
 
   @Override
+  protected String getBasePhase() {
+    return "DELETE_EXTERNAL_HTTP_LOAD_BALANCER";
+  }
+
+  @Override
+  protected String getLoadBalancerDescriptionLabel() {
+    return "Regional External HTTP(S) load balancer";
+  }
+
+  @Override
   protected String getLoadBalancingScheme() {
     return "EXTERNAL_MANAGED";
   }

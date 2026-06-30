@@ -67,6 +67,16 @@ class DeleteGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.loadBalancingScheme == "EXTERNAL_MANAGED"
   }
 
+  void "uses external managed task identity"() {
+    setup:
+      @Subject def operation = new DeleteGoogleExternalHttpLoadBalancerAtomicOperation(
+        new DeleteGoogleLoadBalancerDescription())
+
+    expect:
+      operation.basePhase == "DELETE_EXTERNAL_HTTP_LOAD_BALANCER"
+      operation.loadBalancerDescriptionLabel == "Regional External HTTP(S) load balancer"
+  }
+
   void "deletes only external managed listeners for a shared regional url map"() {
     setup:
       def compute = Mock(Compute)

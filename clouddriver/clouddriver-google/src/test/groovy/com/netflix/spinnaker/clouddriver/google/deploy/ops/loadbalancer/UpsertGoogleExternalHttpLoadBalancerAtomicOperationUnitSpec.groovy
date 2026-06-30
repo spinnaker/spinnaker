@@ -139,6 +139,16 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       rule.target == "target-proxy-url"
   }
 
+  void "uses external managed task identity"() {
+    setup:
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+
+    expect:
+      operation.basePhase == "UPSERT_EXTERNAL_HTTP_LOAD_BALANCER"
+      operation.loadBalancerDescriptionLabel == "Regional External HTTP(S) load balancer"
+  }
+
   void "buildCertificateUrl preserves certificate manager regional resource URLs"() {
     setup:
       @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(

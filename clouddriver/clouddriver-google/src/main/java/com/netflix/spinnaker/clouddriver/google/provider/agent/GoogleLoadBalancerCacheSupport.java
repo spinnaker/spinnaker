@@ -27,6 +27,10 @@ import java.util.Set;
 final class GoogleLoadBalancerCacheSupport {
   private GoogleLoadBalancerCacheSupport() {}
 
+  /**
+   * Regional managed HTTP(S) load balancers are proxy LBs: forwarding rules own a target HTTP(S)
+   * proxy and use a managed load-balancing scheme.
+   */
   static boolean isRegionalManagedHttpForwardingRule(
       ForwardingRule forwardingRule, String loadBalancingScheme) {
     GoogleTargetProxyType type =
@@ -37,6 +41,11 @@ final class GoogleLoadBalancerCacheSupport {
         && (type == HTTP || type == HTTPS);
   }
 
+  /**
+   * Regional passthrough load balancers point directly at a backend service and never at a target
+   * proxy. The optional protocol allow-list separates external TCP/UDP NLBs from broader internal
+   * passthrough support.
+   */
   static boolean isRegionalPassthroughForwardingRule(
       ForwardingRule forwardingRule, String loadBalancingScheme, Set<String> allowedProtocols) {
     if (forwardingRule == null

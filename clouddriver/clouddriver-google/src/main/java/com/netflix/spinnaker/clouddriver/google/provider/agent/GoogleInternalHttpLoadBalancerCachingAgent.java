@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 
 public class GoogleInternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleRegionalHttpLoadBalancerCachingAgent<GoogleInternalHttpLoadBalancer> {
-  private static final Logger log = LoggerFactory.getLogger(GoogleInternalHttpLoadBalancer.class);
+  private static final Logger log =
+      LoggerFactory.getLogger(GoogleInternalHttpLoadBalancerCachingAgent.class);
 
   public GoogleInternalHttpLoadBalancerCachingAgent(
       String clouddriverUserAgentApplicationName,
@@ -123,7 +124,9 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
       ForwardingRule forwardingRule,
       GoogleInternalHttpLoadBalancer loadBalancer,
       List<String> failedLoadBalancers) {
-    log.debug("Non-Http target type found for global forwarding rule {}", forwardingRule.getName());
+    log.debug(
+        "Unsupported regional target proxy for internal HTTP load balancer {}",
+        forwardingRule.getName());
   }
 
   @Override

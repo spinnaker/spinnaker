@@ -1259,7 +1259,7 @@ public class BasicGoogleDeployHandler
                             backendService.getName(),
                             backendService,
                             region),
-                        "Internal load balancer backend service",
+                        "Regional load balancer backend service",
                         task,
                         List.of(400, 412),
                         Collections.emptyList(),
@@ -1608,9 +1608,10 @@ public class BasicGoogleDeployHandler
   /**
    * Creates a closure to update regional backend services with new instance groups.
    *
-   * <p>Regional backend services are used for Internal Load Balancers and Internal HTTP(S) Load
-   * Balancers. The returned Operation object must be polled until completion to ensure the backend
-   * service update has been fully applied before proceeding with subsequent deployment steps.
+   * <p>Regional backend services are used by internal passthrough, internal/external managed
+   * HTTP(S), and regional external passthrough load balancers. The returned Operation object must
+   * be polled until completion to ensure the backend service update has been fully applied before
+   * proceeding with subsequent deployment steps.
    *
    * @param compute GCP Compute API client
    * @param project GCP project ID

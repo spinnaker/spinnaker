@@ -50,6 +50,16 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   }
 
   @Override
+  protected String getBasePhase() {
+    return "UPSERT_EXTERNAL_HTTP_LOAD_BALANCER";
+  }
+
+  @Override
+  protected String getLoadBalancerDescriptionLabel() {
+    return "Regional External HTTP(S) load balancer";
+  }
+
+  @Override
   public Map operate(List priorOutputs) {
     if (description.getCertificateMap() != null) {
       throw new IllegalArgumentException("certificateMap is not supported for EXTERNAL_MANAGED.");

@@ -2006,19 +2006,16 @@ class GCEUtil {
                                                       GoogleExecutorTraits executor) {
     def serverGroupName = serverGroup.name
     def region = serverGroup.region
-    if (!serverGroup.loadBalancers) {
-      return
-    }
     def httpLoadBalancersInMetadata = serverGroup?.asg?.get(REGIONAL_LOAD_BALANCER_NAMES) ?:
       (serverGroup.loadBalancers ?: [])
     log.debug("Attempting to delete backends for ${serverGroup.name} from the following External Http load balancers: ${httpLoadBalancersInMetadata}")
 
     log.debug("Looking up the following External Http load balancers in the cache: ${httpLoadBalancersInMetadata}")
     def queriedLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
-      it.name in serverGroup.loadBalancers
+      it.name in httpLoadBalancersInMetadata
     }
     def foundExternalHttpLoadBalancers = queriedLoadBalancers.findAll {
-      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED
+      it.name in httpLoadBalancersInMetadata && it.loadBalancerType == GoogleLoadBalancerType.EXTERNAL_MANAGED
     }
     def cachedExternalNames = foundExternalHttpLoadBalancers.collect { it.name }
     def fallbackExternalNames = httpLoadBalancersInMetadata.findAll {

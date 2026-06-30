@@ -37,6 +37,39 @@ describe('gceLoadBalancingPolicySelector', () => {
     expect(ctrl.getBalancingModes()).toEqual(['RATE', 'UTILIZATION']);
   });
 
+  it('treats regional external network load balancers as passthrough for balancing modes', () => {
+    const ctrl = buildController({
+      loadBalancers: ['regional-external-network-lb'],
+      loadBalancingPolicy: { namedPorts: [] },
+      backingData: {
+        filtered: {
+          loadBalancerIndex: {
+            'regional-external-network-lb': { loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK' },
+          },
+        },
+      },
+    });
+
+    expect(ctrl.getBalancingModes()).toEqual(['CONNECTION', 'UTILIZATION']);
+  });
+
+  it('limits balancing modes to utilization when HTTP and passthrough load balancers are mixed', () => {
+    const ctrl = buildController({
+      loadBalancers: ['external-url-map', 'regional-external-network-lb'],
+      loadBalancingPolicy: { namedPorts: [] },
+      backingData: {
+        filtered: {
+          loadBalancerIndex: {
+            'external-url-map': { loadBalancerType: 'EXTERNAL_MANAGED' },
+            'regional-external-network-lb': { loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK' },
+          },
+        },
+      },
+    });
+
+    expect(ctrl.getBalancingModes()).toEqual(['UTILIZATION']);
+  });
+
   it('scopes regional backend service port suggestions by account and region', () => {
     const ctrl = buildController({
       loadBalancers: ['external-url-map'],

@@ -119,6 +119,78 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       0 * healthChecks.update(_, _, _, _)
   }
 
+  void "updates existing backend service when health check list is missing"() {
+    setup:
+      def compute = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksGet = Mock(Compute.RegionHealthChecks.Get)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
+      def description = description(compute)
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * compute.regions() >> regions
+      1 * regions.list(PROJECT) >> regionsList
+      1 * regionsList.execute() >> new RegionList(items: [new Region(name: REGION)])
+
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: LOAD_BALANCER,
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}",
+        IPProtocol: "TCP",
+        IPAddress: "35.1.2.3",
+        networkTier: "PREMIUM",
+        ports: ["80"]
+      )
+
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: BACKEND_SERVICE,
+        loadBalancingScheme: "EXTERNAL",
+        protocol: "TCP",
+        sessionAffinity: "NONE",
+        healthChecks: null
+      )
+      1 * backendServices.update(PROJECT, REGION, BACKEND_SERVICE, { BackendService updated ->
+        updated.healthChecks.collect { it.endsWith("/healthChecks/${HEALTH_CHECK}") } == [true]
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> new Operation(name: "update-backend-service", status: "DONE")
+
+      1 * compute.regionHealthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT, REGION, HEALTH_CHECK) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(
+        name: HEALTH_CHECK,
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2,
+        tcpHealthCheck: new TCPHealthCheck(port: 80)
+      )
+
+      1 * compute.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT, REGION, "update-backend-service") >> regionOperationsGet
+      1 * regionOperationsGet.execute() >> new Operation(name: "update-backend-service", status: "DONE")
+
+      0 * forwardingRules.delete(_, _, _)
+      0 * forwardingRules.insert(_, _, _)
+      0 * healthChecks.update(_, _, _, _)
+  }
+
   void "ports-only update preserves existing forwarding rule address and network tier"() {
     setup:
       def compute = Mock(Compute)

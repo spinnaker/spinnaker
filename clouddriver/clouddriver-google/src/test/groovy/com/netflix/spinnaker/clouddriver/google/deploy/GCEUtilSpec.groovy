@@ -855,6 +855,70 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       "INTERNAL"    | 0
   }
 
+  void "destroy external http backend uses metadata fallback when server group load balancers are empty"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxyGet = Mock(Compute.RegionTargetHttpProxies.Get)
+      def urlMaps = Mock(Compute.RegionUrlMaps)
+      def urlMapGet = Mock(Compute.RegionUrlMaps.Get)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def backendServicesUpdate = Mock(Compute.RegionBackendServices.Update)
+      def googleOperationPoller = Mock(GoogleOperationPoller)
+      def googleLoadBalancerProvider = Mock(GoogleLoadBalancerProvider)
+      def serverGroup = serverGroupView("server-group-v001", "external-http-listener")
+      def backendService = new BackendService(
+        name: "backend-service",
+        loadBalancingScheme: "EXTERNAL_MANAGED",
+        backends: [
+          new Backend(group: GCEUtil.buildRegionalServerGroupUrl(PROJECT_NAME, REGION, "server-group-v001"))
+        ])
+      def updateOp = new Operation(name: "update-backend-service")
+
+    when:
+      GCEUtil.destroyExternalHttpLoadBalancerBackends(
+        compute,
+        PROJECT_NAME,
+        serverGroup,
+        googleLoadBalancerProvider,
+        taskMock,
+        PHASE,
+        googleOperationPoller,
+        executor)
+
+    then:
+      1 * googleLoadBalancerProvider.getApplicationLoadBalancers("") >> []
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> new ForwardingRuleList(items: [
+        new ForwardingRule(
+          name: "external-http-listener",
+          loadBalancingScheme: "EXTERNAL_MANAGED",
+          target: "projects/${PROJECT_NAME}/regions/${REGION}/targetHttpProxies/external-proxy"
+        )
+      ])
+      1 * compute.regionTargetHttpProxies() >> targetHttpProxies
+      1 * targetHttpProxies.get(PROJECT_NAME, REGION, "external-proxy") >> targetHttpProxyGet
+      1 * targetHttpProxyGet.execute() >> new TargetHttpProxy(
+        urlMap: "projects/${PROJECT_NAME}/regions/${REGION}/urlMaps/external-map")
+      1 * compute.regionUrlMaps() >> urlMaps
+      1 * urlMaps.get(PROJECT_NAME, REGION, "external-map") >> urlMapGet
+      1 * urlMapGet.execute() >> new UrlMap(
+        name: "external-map",
+        defaultService: "projects/${PROJECT_NAME}/regions/${REGION}/backendServices/backend-service")
+      2 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT_NAME, REGION, "backend-service") >> backendServicesGet
+      1 * backendServicesGet.execute() >> backendService
+      1 * backendServices.update(PROJECT_NAME, REGION, "backend-service", { BackendService updated ->
+        updated.backends.isEmpty()
+      }) >> backendServicesUpdate
+      1 * backendServicesUpdate.execute() >> updateOp
+      1 * googleOperationPoller.waitForRegionalOperation(compute, PROJECT_NAME, REGION, "update-backend-service", null, taskMock, "compute.regionBackendService.update", PHASE)
+  }
+
   void "internal add fallback ignores regional external passthrough forwarding rules"() {
     setup:
       def compute = Mock(Compute)

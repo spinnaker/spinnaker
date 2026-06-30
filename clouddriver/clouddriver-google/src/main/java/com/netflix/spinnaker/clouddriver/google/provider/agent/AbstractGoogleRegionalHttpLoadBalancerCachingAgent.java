@@ -73,7 +73,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Both families start at a regional forwarding rule and walk through a regional target proxy,
  * regional URL map, regional backend services, health checks, and backend group health. Subclasses
- * only own the GCP scheme/model differences.
+ * own the GCP scheme/model differences and the policy for missing optional graph components.
  */
 abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends GoogleLoadBalancer>
     extends AbstractGoogleLoadBalancerCachingAgent {
@@ -103,6 +103,7 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     GoogleBatchRequest urlMapRequest = buildGoogleBatchRequest();
     GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest();
 
+    // These callbacks run across staged batches; reset all callback-owned state for each refresh.
     bsNameToGroupHealthsMap = new HashMap<>();
     queuedBsGroupHealthRequests = new HashSet<>();
     resolutions = new HashSet<>();
@@ -157,6 +158,7 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
       executeIfRequestsAreQueued(urlMapRequest, getInstrumentationPrefix() + ".urlMapRequest");
       executeIfRequestsAreQueued(groupHealthRequest, getInstrumentationPrefix() + ".groupHealth");
 
+      // Group health is returned by backend service, then applied after every batch has completed.
       for (LoadBalancerHealthResolution resolution : resolutions) {
         for (Object groupHealth :
             bsNameToGroupHealthsMap.getOrDefault(resolution.getTarget(), Collections.emptyList())) {
@@ -212,10 +214,16 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
 
   protected abstract List<GoogleBackendService> getBackendServicesFromView(T loadBalancer);
 
+  /** Applies the subclass policy when a URL map references a backend service not in the region. */
   protected abstract void handleMissingBackendService(String backendServiceName, T loadBalancer);
 
+  /** Applies the subclass policy when a backend service references an unresolved health check. */
   protected abstract void handleMissingHealthCheck(String healthCheckName, T loadBalancer);
 
+  /**
+   * Applies the subclass policy for forwarding rules whose scheme matches but target proxy does
+   * not.
+   */
   protected abstract void handleUnsupportedTargetProxy(
       ForwardingRule forwardingRule, T loadBalancer, List<String> failedLoadBalancers);
 
@@ -616,6 +624,7 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     try {
       GroupHealthRequest groupHealthRequestKey =
           new GroupHealthRequest(getProject(), backendService.getName(), resourceGroup.getGroup());
+      // A URL map can reference the same backend service/group through several rules; queue once.
       if (!queuedBsGroupHealthRequests.contains(groupHealthRequestKey)) {
         queuedBsGroupHealthRequests.add(groupHealthRequestKey);
         groupHealthRequest.queue(

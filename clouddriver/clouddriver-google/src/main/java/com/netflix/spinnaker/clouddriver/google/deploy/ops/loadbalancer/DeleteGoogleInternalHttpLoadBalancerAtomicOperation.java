@@ -51,6 +51,14 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
     this.description = description;
   }
 
+  protected String getBasePhase() {
+    return BASE_PHASE;
+  }
+
+  protected String getLoadBalancerDescriptionLabel() {
+    return "Internal HTTP load balancer";
+  }
+
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials":
    * "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": false,
@@ -60,10 +68,10 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
   public Void operate(List priorOutputs) {
     getTask()
         .updateStatus(
-            BASE_PHASE,
+            getBasePhase(),
             format(
-                "Initializing deletion of Internal HTTP load balancer %s...",
-                description.getLoadBalancerName()));
+                "Initializing deletion of %s %s...",
+                getLoadBalancerDescriptionLabel(), description.getLoadBalancerName()));
 
     if (description.getCredentials() == null) {
       throw new IllegalArgumentException(
@@ -82,7 +90,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
     // Start with the forwarding rule.
     getTask()
         .updateStatus(
-            BASE_PHASE,
+            getBasePhase(),
             "Retrieving forwarding rule " + forwardingRuleName + " in " + region + "...");
 
     List<ForwardingRule> projectForwardingRules = null;
@@ -109,23 +117,23 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
         GCEUtil.updateStatusAndThrowNotFoundException(
             "Forwarding rule " + forwardingRuleName + " not found in " + region + " for " + project,
             getTask(),
-            BASE_PHASE);
+            getBasePhase());
       }
 
       String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget());
       // Target HTTP(S) proxy.
-      getTask().updateStatus(BASE_PHASE, "Retrieving target proxy " + targetProxyName + "...");
+      getTask().updateStatus(getBasePhase(), "Retrieving target proxy " + targetProxyName + "...");
 
       GenericJson retrievedTargetProxy =
           (GenericJson)
               GCEUtil.getRegionTargetProxyFromRule(
-                  compute, project, region, forwardingRule, BASE_PHASE, safeRetry, this);
+                  compute, project, region, forwardingRule, getBasePhase(), safeRetry, this);
 
       if (retrievedTargetProxy == null) {
         GCEUtil.updateStatusAndThrowNotFoundException(
             "Target proxy " + targetProxyName + " not found for " + project + " in " + region,
             getTask(),
-            BASE_PHASE);
+            getBasePhase());
       }
 
       final String urlMapName = GCEUtil.getLocalName((String) retrievedTargetProxy.get("urlMap"));
@@ -142,7 +150,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                       project,
                       region,
                       rule,
-                      BASE_PHASE,
+                      getBasePhase(),
                       getSafeRetry(),
                       DeleteGoogleInternalHttpLoadBalancerAtomicOperation.this);
           if (GCEUtil.getLocalName((proxy == null ? null : (String) proxy.get("urlMap")))
@@ -178,7 +186,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                       project,
                       region,
                       rule,
-                      BASE_PHASE,
+                      getBasePhase(),
                       getSafeRetry(),
                       DeleteGoogleInternalHttpLoadBalancerAtomicOperation.this);
           if (urlMapName.equals(
@@ -199,7 +207,8 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
         // listeners/proxies owned by this scheme. The URL map, backend services, and health checks
         // remain available to the other regional HTTP-family scheme.
         getTask()
-            .updateStatus(BASE_PHASE, "Retrieving URL map " + urlMapName + " in " + region + "...");
+            .updateStatus(
+                getBasePhase(), "Retrieving URL map " + urlMapName + " in " + region + "...");
         UrlMapList mapList =
             timeExecute(
                 compute.regionUrlMaps().list(project, region),
@@ -245,7 +254,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                       "action",
                       "get",
                       "phase",
-                      BASE_PHASE,
+                      getBasePhase(),
                       "operation",
                       "compute.backendServices.get",
                       TAG_SCOPE,
@@ -258,12 +267,16 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
               && backendService.getBackends().size() > 0) {
             getTask()
                 .updateStatus(
-                    BASE_PHASE,
-                    "Server groups still associated with Internal Http(s) load balancer "
+                    getBasePhase(),
+                    "Server groups still associated with "
+                        + getLoadBalancerDescriptionLabel()
+                        + " "
                         + description.getLoadBalancerName()
                         + ". Failing...");
             throw new IllegalStateException(
-                "Server groups still associated with Internal Http(s) load balancer: "
+                "Server groups still associated with "
+                    + getLoadBalancerDescriptionLabel()
+                    + ": "
                     + description.getLoadBalancerName()
                     + ".");
           }
@@ -272,7 +285,8 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
         final Long timeoutSeconds = description.getDeleteOperationTimeoutSeconds();
         for (String ruleName : listenersToDelete) {
           getTask()
-              .updateStatus(BASE_PHASE, "Deleting listener " + ruleName + " in " + region + "...");
+              .updateStatus(
+                  getBasePhase(), "Deleting listener " + ruleName + " in " + region + "...");
 
           Operation operation =
               GCEUtil.deleteRegionalListener(
@@ -280,7 +294,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                   project,
                   region,
                   ruleName,
-                  BASE_PHASE,
+                  getBasePhase(),
                   getSafeRetry(),
                   DeleteGoogleInternalHttpLoadBalancerAtomicOperation.this);
 
@@ -292,11 +306,11 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
               timeoutSeconds,
               getTask(),
               "listener " + ruleName,
-              BASE_PHASE);
+              getBasePhase());
         }
         getTask()
             .updateStatus(
-                BASE_PHASE,
+                getBasePhase(),
                 "Skipping deletion of shared URL map "
                     + urlMapName
                     + " because it is still used by another regional HTTP(S) scheme.");
@@ -304,7 +318,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
       }
 
       // URL map.
-      getTask().updateStatus(BASE_PHASE, "Retrieving URL map " + urlMapName + "...");
+      getTask().updateStatus(getBasePhase(), "Retrieving URL map " + urlMapName + "...");
 
       // NOTE: This call is necessary because we cross-check backend services later.
       UrlMapList mapList =
@@ -333,7 +347,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
         final String backendServiceName = GCEUtil.getLocalName(backendServiceUrl);
         getTask()
             .updateStatus(
-                BASE_PHASE,
+                getBasePhase(),
                 "Retrieving backend service " + backendServiceName + " in " + region + "...");
 
         BackendService backendService =
@@ -360,7 +374,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                     "action",
                     "get",
                     "phase",
-                    BASE_PHASE,
+                    getBasePhase(),
                     "operation",
                     "compute.backendServices.get",
                     TAG_SCOPE,
@@ -374,12 +388,16 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
         if (backendService.getBackends() != null && backendService.getBackends().size() > 0) {
           getTask()
               .updateStatus(
-                  BASE_PHASE,
-                  "Server groups still associated with Internal Http(s) load balancer "
+                  getBasePhase(),
+                  "Server groups still associated with "
+                      + getLoadBalancerDescriptionLabel()
+                      + " "
                       + description.getLoadBalancerName()
                       + ". Failing...");
           throw new IllegalStateException(
-              "Server groups still associated with Internal Http(s) load balancer: "
+              "Server groups still associated with "
+                  + getLoadBalancerDescriptionLabel()
+                  + ": "
                   + description.getLoadBalancerName()
                   + ".");
         }
@@ -391,7 +409,8 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
 
       for (String ruleName : listenersToDelete) {
         getTask()
-            .updateStatus(BASE_PHASE, "Deleting listener " + ruleName + " in " + region + "...");
+            .updateStatus(
+                getBasePhase(), "Deleting listener " + ruleName + " in " + region + "...");
 
         Operation operation =
             GCEUtil.deleteRegionalListener(
@@ -399,7 +418,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                 project,
                 region,
                 ruleName,
-                BASE_PHASE,
+                getBasePhase(),
                 getSafeRetry(),
                 DeleteGoogleInternalHttpLoadBalancerAtomicOperation.this);
 
@@ -411,11 +430,11 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
             timeoutSeconds,
             getTask(),
             "listener " + ruleName,
-            BASE_PHASE);
+            getBasePhase());
       }
 
       getTask()
-          .updateStatus(BASE_PHASE, "Deleting URL map " + urlMapName + " in " + region + "...");
+          .updateStatus(getBasePhase(), "Deleting URL map " + urlMapName + " in " + region + "...");
       Operation deleteUrlMapOperation =
           safeRetry.doRetry(
               new Closure<Operation>(this, this) {
@@ -442,7 +461,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                   "action",
                   "delete",
                   "phase",
-                  BASE_PHASE,
+                  getBasePhase(),
                   "operation",
                   "compute.regionUrlMaps.delete",
                   TAG_SCOPE,
@@ -459,7 +478,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
           timeoutSeconds,
           getTask(),
           "Regional url map " + urlMapName,
-          BASE_PHASE);
+          getBasePhase());
 
       // We make a list of the delete operations for backend services.
       List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
@@ -495,7 +514,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                     "operation",
                     "compute.regionBackendServices.delete",
                     "phase",
-                    BASE_PHASE,
+                    getBasePhase(),
                     TAG_SCOPE,
                     SCOPE_REGIONAL,
                     TAG_REGION,
@@ -520,7 +539,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
             timeoutSeconds,
             getTask(),
             "Region backend service " + asyncOperation.getBackendServiceName(),
-            BASE_PHASE);
+            getBasePhase());
       }
 
       // Now make a list of the delete operations for health checks if description says to do so.
@@ -555,7 +574,7 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
                       "operation",
                       "compute.regionHealthChecks.delete",
                       "phase",
-                      BASE_PHASE,
+                      getBasePhase(),
                       TAG_SCOPE,
                       SCOPE_REGIONAL,
                       TAG_REGION,
@@ -579,14 +598,16 @@ public class DeleteGoogleInternalHttpLoadBalancerAtomicOperation
               timeoutSeconds,
               getTask(),
               "region health check " + asyncOperation.getHealthCheckName(),
-              BASE_PHASE);
+              getBasePhase());
         }
       }
 
       getTask()
           .updateStatus(
-              BASE_PHASE,
-              "Done deleting internal http load balancer "
+              getBasePhase(),
+              "Done deleting "
+                  + getLoadBalancerDescriptionLabel()
+                  + " "
                   + description.getLoadBalancerName()
                   + " in "
                   + region

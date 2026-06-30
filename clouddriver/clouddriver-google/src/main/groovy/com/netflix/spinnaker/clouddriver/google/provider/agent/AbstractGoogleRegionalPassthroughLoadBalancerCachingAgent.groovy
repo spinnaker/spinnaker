@@ -44,11 +44,18 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 
+/**
+ * Shared regional passthrough cache graph walk for internal and external Network Load Balancers.
+ *
+ * <p>Both families start at a regional forwarding rule that points directly at a regional backend
+ * service, then enrich that backend service with health checks and backend group health. Subclasses
+ * own the scheme/protocol predicate and health-check source.
+ */
 @Slf4j
 abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T extends GoogleLoadBalancer>
   extends AbstractGoogleLoadBalancerCachingAgent {
 
-  Map<String, Object> bsNameToGroupHealthsMap = [:]
+  Map<String, List<BackendServiceGroupHealth>> bsNameToGroupHealthsMap = [:]
   Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
   Set<LoadBalancerHealthResolution> resolutions = new HashSet<>()
 
@@ -73,6 +80,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     GoogleBatchRequest forwardingRulesRequest = buildGoogleBatchRequest()
     GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest()
 
+    // These callbacks run across staged batches; reset all callback-owned state for each refresh.
     bsNameToGroupHealthsMap = [:]
     queuedBsGroupHealthRequests = new HashSet<>()
     resolutions = new HashSet<>()
@@ -109,6 +117,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     executeIfRequestsAreQueued(forwardingRulesRequest, "${instrumentationPrefix()}.forwardingRules")
     executeIfRequestsAreQueued(groupHealthRequest, "${instrumentationPrefix()}.groupHealth")
 
+    // Group health is returned by backend service, then applied after every batch has completed.
     resolutions.each { LoadBalancerHealthResolution resolution ->
       (bsNameToGroupHealthsMap.get(resolution.getTarget()) ?: []).each { groupHealth ->
         GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), groupHealth)
@@ -223,6 +232,7 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
       resourceGroup.setGroup(backend.group as String)
 
       GroupHealthRequest groupHealthRequestKey = new GroupHealthRequest(project, backendService.name as String, resourceGroup.getGroup())
+      // A regional forwarding rule can share backend service/group data across listeners.
       if (!queuedBsGroupHealthRequests.contains(groupHealthRequestKey)) {
         log.debug("Queueing a batch call for getHealth(): {}", groupHealthRequestKey)
         queuedBsGroupHealthRequests.add(groupHealthRequestKey)

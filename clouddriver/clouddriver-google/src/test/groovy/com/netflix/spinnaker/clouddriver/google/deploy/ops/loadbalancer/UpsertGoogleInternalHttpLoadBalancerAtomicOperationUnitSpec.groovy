@@ -200,7 +200,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       operation.safeRetry = safeRetry
 
     when:
-     operation.operate([])
+      def result = operation.operate([])
 
     then:
 
@@ -246,6 +246,7 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * targetHttpProxyOperationGet.execute() >> healthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+      result.loadBalancers[REGION].name == LOAD_BALANCER_NAME
   }
 
   void "should create an Internal HTTP Load Balancer with minimal description"() {
