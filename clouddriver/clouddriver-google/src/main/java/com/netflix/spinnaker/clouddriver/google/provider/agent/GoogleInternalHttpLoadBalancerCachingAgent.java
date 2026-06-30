@@ -17,6 +17,11 @@ import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Caches regional internal HTTP(S) ({@code INTERNAL_MANAGED}) Application Load Balancers. A thin
+ * subclass over {@link AbstractGoogleRegionalHttpLoadBalancerCachingAgent} that supplies the
+ * internal-managed scheme predicate, model factory, and fail-fast missing-resource policy.
+ */
 public class GoogleInternalHttpLoadBalancerCachingAgent
     extends AbstractGoogleRegionalHttpLoadBalancerCachingAgent<GoogleInternalHttpLoadBalancer> {
   private static final Logger log =

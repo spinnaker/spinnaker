@@ -32,6 +32,11 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancingScheme
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 
+/**
+ * Caches regional internal passthrough (L4 {@code INTERNAL}) Network Load Balancers. A thin subclass
+ * over {@link AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent} that supplies the internal
+ * scheme predicate, model factory, and legacy HTTP/HTTPS/generic health-check sources.
+ */
 class GoogleInternalLoadBalancerCachingAgent
   extends AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<GoogleInternalLoadBalancer> {
 

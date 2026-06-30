@@ -117,7 +117,9 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     executeIfRequestsAreQueued(forwardingRulesRequest, "${instrumentationPrefix()}.forwardingRules")
     executeIfRequestsAreQueued(groupHealthRequest, "${instrumentationPrefix()}.groupHealth")
 
-    // Group health is returned by backend service, then applied after every batch has completed.
+    // Two-phase health resolution: the graph walk above only queued getHealth() batches and recorded
+    // a resolution per backend service; the GroupHealthCallback fills bsNameToGroupHealthsMap as
+    // those batches execute, so health can only be applied here, once every batch has completed.
     resolutions.each { LoadBalancerHealthResolution resolution ->
       (bsNameToGroupHealthsMap.get(resolution.getTarget()) ?: []).each { groupHealth ->
         GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), groupHealth)
@@ -127,16 +129,34 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     return loadBalancers.findAll { !(it.name in failedLoadBalancers) }
   }
 
+  /** Metric/instrumentation prefix used to tag this agent's batched Compute calls. */
   abstract String instrumentationPrefix()
 
+  /**
+   * Returns true when this scheme owns the forwarding rule. The base only walks owned rules, so this
+   * guard keeps the INTERNAL and EXTERNAL passthrough graphs (which can share a backend-service name)
+   * from caching each other.
+   */
   abstract boolean ownsForwardingRule(ForwardingRule forwardingRule)
 
+  /** Creates the scheme-specific model and seeds its common forwarding-rule fields. */
   abstract T newLoadBalancer(ForwardingRule forwardingRule)
 
+  /**
+   * Fetches the opaque health-check lookup that {@link #attachHealthChecks} consumes, read once per
+   * refresh. The shape is subclass-private and the base never inspects it: internal passthrough
+   * returns a map of legacy HTTP/HTTPS/generic health checks, while regional external network
+   * returns a flat list of regional health checks.
+   */
   abstract Object fetchHealthCheckContext()
 
+  /**
+   * Resolves the backend service's health checks against {@code healthCheckContext} (the value
+   * returned by {@link #fetchHealthCheckContext}) and attaches them to the model's backend service.
+   */
   abstract void attachHealthChecks(BackendService backendService, T googleLoadBalancer, Object healthCheckContext)
 
+  /** Message thrown when an on-demand refresh is asked to cache a rule this scheme does not own. */
   abstract String wrongSchemeMessage()
 
   class ForwardingRuleCallbacks {

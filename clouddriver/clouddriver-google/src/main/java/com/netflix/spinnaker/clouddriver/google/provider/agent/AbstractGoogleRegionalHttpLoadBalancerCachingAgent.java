@@ -158,7 +158,10 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
       executeIfRequestsAreQueued(urlMapRequest, getInstrumentationPrefix() + ".urlMapRequest");
       executeIfRequestsAreQueued(groupHealthRequest, getInstrumentationPrefix() + ".groupHealth");
 
-      // Group health is returned by backend service, then applied after every batch has completed.
+      // Two-phase health resolution: the graph walk above only queued getHealth() batches and
+      // recorded a resolution per backend service; the GroupHealthCallback fills
+      // bsNameToGroupHealthsMap as those batches execute, so health can only be applied here, once
+      // every batch has completed.
       for (LoadBalancerHealthResolution resolution : resolutions) {
         for (Object groupHealth :
             bsNameToGroupHealthsMap.getOrDefault(resolution.getTarget(), Collections.emptyList())) {
@@ -198,35 +201,59 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     loadBalancer.setHealths(new ArrayList<>());
   }
 
+  /** Metric/instrumentation prefix used to tag this agent's batched Compute calls. */
   protected abstract String getInstrumentationPrefix();
 
+  /**
+   * Returns true when this scheme owns the forwarding rule (its load balancing scheme and HTTP(S)
+   * target proxy belong to this subclass). The base only walks owned rules, so this guard keeps the
+   * internal-managed and external-managed graphs from caching each other.
+   */
   protected abstract boolean isOwnedForwardingRule(ForwardingRule forwardingRule);
 
+  /** Creates the scheme-specific model and seeds its common forwarding-rule fields. */
   protected abstract T newLoadBalancer(ForwardingRule forwardingRule);
 
+  /**
+   * Copies HTTPS-proxy-derived fields onto the model. Schemes differ in which certificate sources
+   * GCP allows (e.g. internal managed also reads certificateMap).
+   */
   protected abstract void applyHttpsProxyFields(T loadBalancer, TargetHttpsProxy targetHttpsProxy);
 
+  /** Stores the resolved regional URL map name on the model. */
   protected abstract void setUrlMapName(T loadBalancer, String urlMapName);
 
+  /** Stores the URL map's default backend service on the model. */
   protected abstract void setDefaultService(T loadBalancer, GoogleBackendService defaultService);
 
+  /** Returns the model's mutable host-rule list so the base can populate path matchers. */
   protected abstract List<GoogleHostRule> getHostRules(T loadBalancer);
 
+  /** Returns every backend service referenced by the model's view, used for health resolution. */
   protected abstract List<GoogleBackendService> getBackendServicesFromView(T loadBalancer);
 
-  /** Applies the subclass policy when a URL map references a backend service not in the region. */
+  /**
+   * Applies the subclass policy when a URL map references a backend service not present in the
+   * region. Internal managed fails the load balancer (throws) so a partial graph is never cached;
+   * external managed logs and keeps a best-effort cache entry for the next refresh.
+   */
   protected abstract void handleMissingBackendService(String backendServiceName, T loadBalancer);
 
-  /** Applies the subclass policy when a backend service references an unresolved health check. */
+  /**
+   * Applies the subclass policy when a backend service references an unresolved health check. Same
+   * internal-fails / external-best-effort split as {@link #handleMissingBackendService}.
+   */
   protected abstract void handleMissingHealthCheck(String healthCheckName, T loadBalancer);
 
   /**
-   * Applies the subclass policy for forwarding rules whose scheme matches but target proxy does
-   * not.
+   * Applies the subclass policy for forwarding rules whose scheme matches but whose target proxy is
+   * not HTTP(S). Internal managed logs and keeps the load balancer; external managed adds it to
+   * {@code failedLoadBalancers} so it is dropped from the cache result.
    */
   protected abstract void handleUnsupportedTargetProxy(
       ForwardingRule forwardingRule, T loadBalancer, List<String> failedLoadBalancers);
 
+  /** Message thrown when an on-demand refresh is asked to cache a rule this scheme does not own. */
   protected abstract String getWrongSchemeMessage();
 
   public class ForwardingRuleCallbacks {
@@ -626,12 +653,15 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
           new GroupHealthRequest(getProject(), backendService.getName(), resourceGroup.getGroup());
       // A URL map can reference the same backend service/group through several rules; queue once.
       if (!queuedBsGroupHealthRequests.contains(groupHealthRequestKey)) {
+        log.debug("Queueing a batch call for getHealth(): {}", groupHealthRequestKey);
         queuedBsGroupHealthRequests.add(groupHealthRequestKey);
         groupHealthRequest.queue(
             getCompute()
                 .regionBackendServices()
                 .getHealth(getProject(), getRegion(), backendService.getName(), resourceGroup),
             new GroupHealthCallback(backendService.getName()));
+      } else {
+        log.debug("Passing, batch call result cached for getHealth(): {}", groupHealthRequestKey);
       }
       resolutions.add(new LoadBalancerHealthResolution(loadBalancer, backendService.getName()));
     } catch (IOException e) {
