@@ -270,7 +270,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerC
           break
         case "healthChecks":
           HealthCheck healthCheck = healthChecks.find { hc -> Utils.getLocalName(hc.getName()) == healthCheckName }
-          handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
+          GoogleInternalLoadBalancerCachingAgent.handleHealthCheck(healthCheck, googleLoadBalancer.backendService)
           break
         default:
           log.warn("Unknown health check type for health check named: ${healthCheckName}. Not queueing any batch requests.")

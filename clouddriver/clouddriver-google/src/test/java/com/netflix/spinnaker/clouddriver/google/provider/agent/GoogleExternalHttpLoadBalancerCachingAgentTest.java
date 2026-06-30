@@ -38,6 +38,7 @@ import com.google.api.services.compute.model.BackendServiceList;
 import com.google.api.services.compute.model.ForwardingRule;
 import com.google.api.services.compute.model.ForwardingRuleList;
 import com.google.api.services.compute.model.HealthCheckList;
+import com.google.api.services.compute.model.HealthStatus;
 import com.google.api.services.compute.model.HostRule;
 import com.google.api.services.compute.model.PathMatcher;
 import com.google.api.services.compute.model.PathRule;
@@ -332,7 +333,17 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
             org.mockito.ArgumentMatchers.eq("backend-service"),
             org.mockito.ArgumentMatchers.any(ResourceGroupReference.class)))
         .thenReturn(getHealth);
-    when(getHealth.execute()).thenReturn(new BackendServiceGroupHealth());
+    when(getHealth.execute())
+        .thenReturn(
+            new BackendServiceGroupHealth()
+                .setHealthStatus(
+                    List.of(
+                        new HealthStatus()
+                            .setInstance(
+                                "https://compute.googleapis.com/compute/v1/projects/"
+                                    + PROJECT
+                                    + "/zones/us-central1-a/instances/server-group-v000")
+                            .setHealthState("HEALTHY"))));
     Compute.RegionHealthChecks regionHealthChecks = mock(Compute.RegionHealthChecks.class);
     Compute.RegionHealthChecks.List listHealthChecks = mock(Compute.RegionHealthChecks.List.class);
     when(compute.regionHealthChecks()).thenReturn(regionHealthChecks);
@@ -362,7 +373,13 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
 
     GoogleExternalHttpLoadBalancerCachingAgent agent = createAgent(compute);
 
-    assertThat(agent.constructLoadBalancers("good-lb")).hasSize(1);
+    List<GoogleLoadBalancer> loadBalancers = agent.constructLoadBalancers("good-lb");
+
+    assertThat(loadBalancers).hasSize(1);
+    assertThat(loadBalancers.get(0).getHealths()).isNotEmpty();
+    assertThat(loadBalancers.get(0).getHealths().get(0).getInstanceName())
+        .isEqualTo("server-group-v000");
+    assertThat(loadBalancers.get(0).getHealths().get(0).getStatus().name()).isEqualTo("HEALTHY");
     verify(regionBackendServices)
         .getHealth(
             org.mockito.ArgumentMatchers.eq(PROJECT),
