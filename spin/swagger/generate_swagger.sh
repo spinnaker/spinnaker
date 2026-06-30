@@ -5,7 +5,10 @@ OPENAPI_GENERATOR_VERSION='v7.10.0'
 rm -rf ./gateapi
 echo $PWD
 
-## RUN THIS with the same user/gropu as the current user or the files it generates MAY not work properly
+## RUN THIS with the same user/group as the current user or the files it generates MAY not work properly
+mkdir -p gateapi
+chown $(id -u):$(id -g)  $PWD/gateapi
+
 docker run --rm \
     -v "$PWD/../gate/swagger/:/tmp/gate" \
     -v "$PWD/gateapi/:/tmp/go/" \
