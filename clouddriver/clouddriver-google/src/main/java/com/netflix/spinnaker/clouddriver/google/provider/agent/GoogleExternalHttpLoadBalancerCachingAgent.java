@@ -130,6 +130,15 @@ public class GoogleExternalHttpLoadBalancerCachingAgent
   }
 
   @Override
+  protected void handleMissingHealthCheck(
+      String healthCheckName, GoogleExternalHttpLoadBalancer loadBalancer) {
+    log.warn(
+        "Could not enrich regional external HTTP load balancer {} because health check {} was missing.",
+        loadBalancer.getName(),
+        healthCheckName);
+  }
+
+  @Override
   protected void handleUnsupportedTargetProxy(
       ForwardingRule forwardingRule,
       GoogleExternalHttpLoadBalancer loadBalancer,

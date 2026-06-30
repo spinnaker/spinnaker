@@ -109,6 +109,16 @@ public class GoogleInternalHttpLoadBalancerCachingAgent
   }
 
   @Override
+  protected void handleMissingHealthCheck(
+      String healthCheckName, GoogleInternalHttpLoadBalancer loadBalancer) {
+    throw new NoSuchElementException(
+        "Could not find regional health check "
+            + healthCheckName
+            + " for "
+            + loadBalancer.getName());
+  }
+
+  @Override
   protected void handleUnsupportedTargetProxy(
       ForwardingRule forwardingRule,
       GoogleInternalHttpLoadBalancer loadBalancer,

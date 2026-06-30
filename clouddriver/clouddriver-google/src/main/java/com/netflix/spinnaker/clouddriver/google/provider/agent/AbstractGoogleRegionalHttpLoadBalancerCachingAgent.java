@@ -214,6 +214,8 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
 
   protected abstract void handleMissingBackendService(String backendServiceName, T loadBalancer);
 
+  protected abstract void handleMissingHealthCheck(String healthCheckName, T loadBalancer);
+
   protected abstract void handleUnsupportedTargetProxy(
       ForwardingRule forwardingRule, T loadBalancer, List<String> failedLoadBalancers);
 
@@ -597,7 +599,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
         healthChecks.stream()
             .filter(hc -> Utils.getLocalName(hc.getName()).equals(healthCheckName))
             .findFirst()
-            .ifPresent(healthCheck -> handleHealthCheck(healthCheck, backendServicesToUpdate));
+            .ifPresentOrElse(
+                healthCheck -> handleHealthCheck(healthCheck, backendServicesToUpdate),
+                () -> handleMissingHealthCheck(healthCheckName, loadBalancer));
       }
     }
   }
