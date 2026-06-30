@@ -183,7 +183,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
           healthChecks: ["projects/${PROJECT}/regions/${REGION}/healthChecks/tcp-hc"]
         )
       ]
-    callback.projectRegionalHealthChecks = [
+    callback.healthCheckContext = [
         new HealthCheck(
           name: "tcp-hc",
           checkIntervalSec: 10,
@@ -238,7 +238,7 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
           backends: [new Backend(group: groupUrl)]
         )
       ]
-    callback.projectRegionalHealthChecks = []
+    callback.healthCheckContext = []
 
     when:
     callback.cacheRemainderOfLoadBalancerResourceGraph(
@@ -291,8 +291,8 @@ class GoogleRegionalExternalNetworkLoadBalancerCachingAgentSpec extends Specific
   }
 
   private static Object createForwardingRuleCallbacks(GoogleRegionalExternalNetworkLoadBalancerCachingAgent agent) {
-    def callbacksClass = Class.forName("${GoogleRegionalExternalNetworkLoadBalancerCachingAgent.name}\$ForwardingRuleCallbacks")
-    def constructor = callbacksClass.getDeclaredConstructor(GoogleRegionalExternalNetworkLoadBalancerCachingAgent)
+    def callbacksClass = Class.forName("${AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent.name}\$ForwardingRuleCallbacks")
+    def constructor = callbacksClass.getDeclaredConstructor(AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent)
     constructor.accessible = true
     constructor.newInstance(agent)
   }
