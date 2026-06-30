@@ -19,11 +19,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
-import com.amazonaws.services.identitymanagement.model.ListRolesRequest;
-import com.amazonaws.services.identitymanagement.model.ListRolesResult;
-import com.amazonaws.services.identitymanagement.model.Role;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -49,6 +44,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.model.ListRolesRequest;
+import software.amazon.awssdk.services.iam.model.ListRolesResponse;
+import software.amazon.awssdk.services.iam.model.Role;
 
 public class IamRoleCachingAgent implements CachingAgent, AccountAware {
 
@@ -81,7 +81,7 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AmazonIdentityManagement iam = amazonClientProvider.getIam(account, getIamRegion(), false);
+    IamClient iam = amazonClientProvider.getIamV2(account, getIamRegion());
 
     Set<IamRole> cacheableRoles = fetchIamRoles(iam, accountName);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(cacheableRoles);
@@ -143,8 +143,11 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
       return testRegion;
     }
 
-    log.debug("retrieving IAM Roles from default region: {}", Regions.DEFAULT_REGION.getName());
-    return Regions.DEFAULT_REGION.getName();
+    // IAM is a global service; us-west-2 is the default endpoint for standard partitions
+    // (equivalent to v1 Regions.DEFAULT_REGION).
+    String defaultRegion = Region.US_WEST_2.id();
+    log.debug("retrieving IAM Roles from default region: {}", defaultRegion);
+    return defaultRegion;
   }
 
   Map<String, Collection<CacheData>> generateFreshData(Set<IamRole> cacheableRoles) {
@@ -163,28 +166,28 @@ public class IamRoleCachingAgent implements CachingAgent, AccountAware {
     return newDataMap;
   }
 
-  Set<IamRole> fetchIamRoles(AmazonIdentityManagement iam, String accountName) {
+  Set<IamRole> fetchIamRoles(IamClient iam, String accountName) {
     Set<IamRole> cacheableRoles = new HashSet<>();
     String marker = null;
     do {
-      ListRolesRequest request = new ListRolesRequest();
+      ListRolesRequest.Builder requestBuilder = ListRolesRequest.builder();
       if (marker != null) {
-        request.setMarker(marker);
+        requestBuilder.marker(marker);
       }
 
-      ListRolesResult listRolesResult = iam.listRoles(request);
-      List<Role> roles = listRolesResult.getRoles();
+      ListRolesResponse listRolesResult = iam.listRoles(requestBuilder.build());
+      List<Role> roles = listRolesResult.roles();
       for (Role role : roles) {
         cacheableRoles.add(
             new IamRole(
-                role.getArn(),
-                role.getRoleName(),
+                role.arn(),
+                role.roleName(),
                 accountName,
-                iamPolicyReader.getTrustedEntities(role.getAssumeRolePolicyDocument())));
+                iamPolicyReader.getTrustedEntities(role.assumeRolePolicyDocument())));
       }
 
       if (listRolesResult.isTruncated()) {
-        marker = listRolesResult.getMarker();
+        marker = listRolesResult.marker();
       } else {
         marker = null;
       }
