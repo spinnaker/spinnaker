@@ -21,7 +21,6 @@ import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_APP
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.ECS_CLUSTERS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.IAM_ROLE;
 
-import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -126,6 +125,7 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
         nextToken = listClustersResult.nextToken();
       } while (nextToken != null && nextToken.length() != 0);
     }
+    return clusters;
   }
 
   /**
