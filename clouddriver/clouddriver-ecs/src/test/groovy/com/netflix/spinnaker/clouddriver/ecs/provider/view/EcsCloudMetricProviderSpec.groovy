@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.EcsCloudWatchAlarmCacheClient
 import com.netflix.spinnaker.clouddriver.ecs.provider.agent.EcsCloudMetricAlarmCachingAgent
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,8 +32,8 @@ class EcsCloudMetricProviderSpec extends Specification {
 
   def 'should get metric alarms'() {
     given:
-    def metricAlarm1 = new MetricAlarm().withAlarmName("alarm-name-1").withAlarmArn("alarmArn-1")
-    def metricAlarm2 = new MetricAlarm().withAlarmName("alarm-name-2").withAlarmArn("alarmArn-2")
+    def metricAlarm1 = MetricAlarm.builder().alarmName("alarm-name-1").alarmArn("alarmArn-1").build()
+    def metricAlarm2 = MetricAlarm.builder().alarmName("alarm-name-2").alarmArn("alarmArn-2").build()
     def attributes1 = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(metricAlarm1, 'account-1', 'region-1')
     def attributes2 = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(metricAlarm2, 'account-2', 'region-2')
 
@@ -44,10 +44,9 @@ class EcsCloudMetricProviderSpec extends Specification {
     cacheView.getAll(_) >> [new DefaultCacheData('key-1', attributes1, [:]), new DefaultCacheData('key-2', attributes2, [:])]
 
     metricAlarmCollection.size() == 2
-    metricAlarmCollection*.getAlarmArn().containsAll([metricAlarm1.getAlarmArn(), metricAlarm2.getAlarmArn()])
-    metricAlarmCollection*.getMetricName().containsAll([metricAlarm1.getMetricName(), metricAlarm2.getMetricName()])
+    metricAlarmCollection*.getAlarmArn().containsAll(["alarmArn-1", "alarmArn-2"])
+    metricAlarmCollection*.getAlarmName().containsAll(["alarm-name-1", "alarm-name-2"])
     metricAlarmCollection*.getAccountName().containsAll(['account-1', 'account-2'])
     metricAlarmCollection*.getRegion().containsAll(['region-1', 'region-2'])
   }
-
 }

@@ -20,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
+	orca_tasks "github.com/spinnaker/spinnaker/spin/cmd/orca-tasks"
 )
 
 type deleteOptions struct {
