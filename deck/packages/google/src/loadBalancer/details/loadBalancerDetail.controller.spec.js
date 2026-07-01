@@ -103,6 +103,68 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
     });
   });
 
+  it('uses loadBalancerType to disambiguate regional HTTP load balancers with a shared URL map', function () {
+    const app = ApplicationModelBuilder.createApplicationForTests('app', {
+      key: 'loadBalancers',
+      lazy: true,
+      defaultData: [],
+    });
+    const routedLoadBalancer = {
+      name: 'shared-url-map',
+      region: 'us-central1',
+      accountId: 'test',
+      vpcId: null,
+      loadBalancerType: 'EXTERNAL_MANAGED',
+    };
+    const internalLoadBalancer = {
+      name: 'shared-url-map (test/us-central1/INTERNAL_MANAGED)',
+      urlMapName: 'shared-url-map',
+      provider: 'gce',
+      account: 'test',
+      region: 'us-central1',
+      loadBalancerType: 'INTERNAL_MANAGED',
+      listeners: [{ name: 'internal-listener' }],
+      defaultService: { name: 'internal-backend-service', healthCheck: { name: 'internal-hc' } },
+      hostRules: [],
+    };
+    const externalLoadBalancer = {
+      name: 'shared-url-map (test/us-central1/EXTERNAL_MANAGED)',
+      urlMapName: 'shared-url-map',
+      provider: 'gce',
+      account: 'test',
+      region: 'us-central1',
+      loadBalancerType: 'EXTERNAL_MANAGED',
+      listeners: [{ name: 'external-listener' }],
+      defaultService: { name: 'external-backend-service', healthCheck: { name: 'external-hc' } },
+      hostRules: [],
+    };
+    app.loadBalancers.data.push(internalLoadBalancer, externalLoadBalancer);
+
+    window.inject(function ($controller, $rootScope, $q) {
+      const scope = $rootScope.$new();
+      const detailsController = $controller('gceLoadBalancerDetailsCtrl', {
+        $scope: scope,
+        loadBalancer: routedLoadBalancer,
+        app: app,
+        $state: $state,
+        loadBalancerReader: {
+          getLoadBalancerDetails: () =>
+            $q.resolve([
+              {
+                dnsname: '1.2.3.4',
+                listenerDescriptions: [{ listener: { loadBalancerPort: '443' } }],
+              },
+            ]),
+        },
+      });
+
+      scope.$digest();
+
+      expect(detailsController).toBeDefined();
+      expect(scope.loadBalancer).toBe(externalLoadBalancer);
+    });
+  });
+
   it('uses forwarding rule and backend service log resource types for regional external network load balancers', function () {
     const app = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'loadBalancers',

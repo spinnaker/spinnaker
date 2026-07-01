@@ -37,14 +37,14 @@ describe('gceLoadBalancingPolicySelector', () => {
     expect(ctrl.getBalancingModes()).toEqual(['RATE', 'UTILIZATION']);
   });
 
-  it('treats regional external network load balancers as passthrough for balancing modes', () => {
+  it('treats SSL load balancers as passthrough for balancing modes', () => {
     const ctrl = buildController({
-      loadBalancers: ['regional-external-network-lb'],
+      loadBalancers: ['ssl-lb'],
       loadBalancingPolicy: { namedPorts: [] },
       backingData: {
         filtered: {
           loadBalancerIndex: {
-            'regional-external-network-lb': { loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK' },
+            'ssl-lb': { loadBalancerType: 'SSL' },
           },
         },
       },
@@ -55,13 +55,13 @@ describe('gceLoadBalancingPolicySelector', () => {
 
   it('limits balancing modes to utilization when HTTP and passthrough load balancers are mixed', () => {
     const ctrl = buildController({
-      loadBalancers: ['external-url-map', 'regional-external-network-lb'],
+      loadBalancers: ['external-url-map', 'ssl-lb'],
       loadBalancingPolicy: { namedPorts: [] },
       backingData: {
         filtered: {
           loadBalancerIndex: {
             'external-url-map': { loadBalancerType: 'EXTERNAL_MANAGED' },
-            'regional-external-network-lb': { loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK' },
+            'ssl-lb': { loadBalancerType: 'SSL' },
           },
         },
       },

@@ -69,7 +69,8 @@ angular
           const nameMatches =
             test.name === loadBalancer.name ||
             (gceHttpLoadBalancerUtils.isRegionalHttpLoadBalancer(test) && test.urlMapName === loadBalancer.name);
-          return nameMatches;
+          const typeMatches = !loadBalancer.loadBalancerType || test.loadBalancerType === loadBalancer.loadBalancerType;
+          return nameMatches && typeMatches;
         }
 
         $scope.loadBalancer = application.loadBalancers.data.filter(function (test) {

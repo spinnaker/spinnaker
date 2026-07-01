@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer
 
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
+import com.google.api.services.compute.model.TargetHttpProxy
+import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
@@ -214,5 +217,71 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
 
     then:
       thrown IllegalArgumentException
+  }
+
+  void "deleteRegionalListenerIfOwned rejects listener from another URL map"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def targetHttpProxies = Mock(Compute.RegionTargetHttpProxies)
+      def targetHttpProxiesGet = Mock(Compute.RegionTargetHttpProxies.Get)
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+      operation.registry = new com.netflix.spectator.api.DefaultRegistry()
+      operation.safeRetry = com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry.withoutDelay()
+
+    when:
+      operation.deleteRegionalListenerIfOwned(
+        compute,
+        PROJECT_NAME,
+        REGION,
+        "unowned-listener",
+        "expected-url-map")
+
+    then:
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "unowned-listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+        name: "unowned-listener",
+        loadBalancingScheme: "EXTERNAL_MANAGED",
+        target: "projects/${PROJECT_NAME}/regions/${REGION}/targetHttpProxies/unowned-proxy")
+
+      1 * compute.regionTargetHttpProxies() >> targetHttpProxies
+      1 * targetHttpProxies.get(PROJECT_NAME, REGION, "unowned-proxy") >> targetHttpProxiesGet
+      1 * targetHttpProxiesGet.execute() >> new TargetHttpProxy(urlMap: "projects/${PROJECT_NAME}/regions/${REGION}/urlMaps/other-url-map")
+
+      thrown GoogleOperationException
+      0 * forwardingRules.delete(_, _, _)
+      0 * targetHttpProxies.delete(_, _, _)
+  }
+
+  void "deleteRegionalListenerIfOwned ignores missing listener"() {
+    setup:
+      def compute = Mock(Compute)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(
+        new UpsertGoogleLoadBalancerDescription())
+      operation.registry = new com.netflix.spectator.api.DefaultRegistry()
+      operation.safeRetry = com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry.withoutDelay()
+
+    when:
+      def result = operation.deleteRegionalListenerIfOwned(
+        compute,
+        PROJECT_NAME,
+        REGION,
+        "already-deleted-listener",
+        "expected-url-map")
+
+    then:
+      1 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION, "already-deleted-listener") >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> null
+
+      result == null
+      0 * forwardingRules.delete(_, _, _)
+      0 * compute.regionTargetHttpProxies()
+      0 * compute.regionTargetHttpsProxies()
   }
 }

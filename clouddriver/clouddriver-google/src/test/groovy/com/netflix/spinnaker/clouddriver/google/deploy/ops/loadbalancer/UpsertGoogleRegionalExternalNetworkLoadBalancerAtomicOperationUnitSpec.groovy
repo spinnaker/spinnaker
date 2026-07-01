@@ -276,7 +276,8 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       def regions = Mock(Compute.Regions)
       def regionsList = Mock(Compute.Regions.List)
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def primaryForwardingRuleGet = Mock(Compute.ForwardingRules.Get)
+      def listenerForwardingRuleGet = Mock(Compute.ForwardingRules.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -296,9 +297,9 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       1 * regions.list(PROJECT) >> regionsList
       1 * regionsList.execute() >> new RegionList(items: [new Region(name: REGION)])
 
-      2 * compute.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> new ForwardingRule(
+      3 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> primaryForwardingRuleGet
+      1 * primaryForwardingRuleGet.execute() >> new ForwardingRule(
         name: LOAD_BALANCER,
         region: "projects/${PROJECT}/regions/${REGION}",
         loadBalancingScheme: "EXTERNAL",
@@ -307,6 +308,17 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
         IPAddress: "35.1.2.3",
         networkTier: "PREMIUM",
         ports: ["80"]
+      )
+      1 * forwardingRules.get(PROJECT, REGION, "old-listener") >> listenerForwardingRuleGet
+      1 * listenerForwardingRuleGet.execute() >> new ForwardingRule(
+        name: "old-listener",
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}",
+        IPProtocol: "UDP",
+        IPAddress: "35.1.2.4",
+        networkTier: "PREMIUM",
+        ports: ["53"]
       )
       1 * forwardingRules.delete(PROJECT, REGION, "old-listener") >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> new Operation(name: "delete-old-listener", status: "DONE")
@@ -336,6 +348,80 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperationUnitSpec ext
       1 * compute.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT, REGION, "delete-old-listener") >> regionOperationsGet
       1 * regionOperationsGet.execute() >> new Operation(name: "delete-old-listener", status: "DONE")
+  }
+
+  void "rejects listenersToDelete that point at another backend service"() {
+    setup:
+      def compute = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def primaryForwardingRuleGet = Mock(Compute.ForwardingRules.Get)
+      def listenerForwardingRuleGet = Mock(Compute.ForwardingRules.Get)
+      def backendServices = Mock(Compute.RegionBackendServices)
+      def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
+      def healthChecks = Mock(Compute.RegionHealthChecks)
+      def healthChecksGet = Mock(Compute.RegionHealthChecks.Get)
+      def description = description(compute)
+      description.listenersToDelete = ["unowned-listener"]
+      @Subject def operation = operation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * compute.regions() >> regions
+      1 * regions.list(PROJECT) >> regionsList
+      1 * regionsList.execute() >> new RegionList(items: [new Region(name: REGION)])
+
+      2 * compute.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT, REGION, LOAD_BALANCER) >> primaryForwardingRuleGet
+      1 * primaryForwardingRuleGet.execute() >> new ForwardingRule(
+        name: LOAD_BALANCER,
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/${BACKEND_SERVICE}",
+        IPProtocol: "TCP",
+        IPAddress: "35.1.2.3",
+        networkTier: "PREMIUM",
+        ports: ["80"]
+      )
+      1 * forwardingRules.get(PROJECT, REGION, "unowned-listener") >> listenerForwardingRuleGet
+      1 * listenerForwardingRuleGet.execute() >> new ForwardingRule(
+        name: "unowned-listener",
+        region: "projects/${PROJECT}/regions/${REGION}",
+        loadBalancingScheme: "EXTERNAL",
+        backendService: "projects/${PROJECT}/regions/${REGION}/backendServices/other-backend",
+        IPProtocol: "TCP",
+        IPAddress: "35.1.2.4",
+        networkTier: "PREMIUM",
+        ports: ["80"]
+      )
+
+      1 * compute.regionBackendServices() >> backendServices
+      1 * backendServices.get(PROJECT, REGION, BACKEND_SERVICE) >> backendServicesGet
+      1 * backendServicesGet.execute() >> new BackendService(
+        name: BACKEND_SERVICE,
+        loadBalancingScheme: "EXTERNAL",
+        protocol: "TCP",
+        sessionAffinity: "NONE",
+        healthChecks: [HEALTH_CHECK_URL]
+      )
+
+      1 * compute.regionHealthChecks() >> healthChecks
+      1 * healthChecks.get(PROJECT, REGION, HEALTH_CHECK) >> healthChecksGet
+      1 * healthChecksGet.execute() >> new HealthCheck(
+        name: HEALTH_CHECK,
+        checkIntervalSec: 5,
+        timeoutSec: 5,
+        healthyThreshold: 2,
+        unhealthyThreshold: 2,
+        tcpHealthCheck: new TCPHealthCheck(port: 80)
+      )
+
+      thrown(GoogleOperationException)
+      0 * forwardingRules.delete(_, _, _)
+      0 * forwardingRules.insert(_, _, _)
   }
 
   void "throws when an existing forwarding rule with the same name is not regional external network passthrough"() {

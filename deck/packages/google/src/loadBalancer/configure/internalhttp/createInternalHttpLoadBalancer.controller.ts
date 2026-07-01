@@ -171,6 +171,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
       accountId: lb.credentials,
       region: lb.region,
       provider: 'gce',
+      loadBalancerType: lb.loadBalancerType,
     };
 
     if (!this.$state.includes('**.loadBalancerDetails')) {

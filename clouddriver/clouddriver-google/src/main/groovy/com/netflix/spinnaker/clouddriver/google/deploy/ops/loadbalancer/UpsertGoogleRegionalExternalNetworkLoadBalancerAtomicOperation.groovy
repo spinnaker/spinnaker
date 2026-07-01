@@ -234,7 +234,7 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     }
 
     description.listenersToDelete?.each { String forwardingRuleName ->
-      deleteRegionalForwardingRule(compute, project, region, forwardingRuleName)
+      deleteOwnedRegionalForwardingRule(compute, project, region, forwardingRuleName, backendServiceName)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
@@ -274,6 +274,33 @@ class UpsertGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
       googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
         30, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
     }
+  }
+
+  private void deleteOwnedRegionalForwardingRule(
+    compute, String project, String region, String forwardingRuleName, String expectedBackendServiceName) {
+    ForwardingRule forwardingRule = safeRetry.doRetry(
+      { timeExecute(
+        compute.forwardingRules().get(project, region, forwardingRuleName),
+        "compute.forwardingRules.get",
+        TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
+      "Regional forwarding rule $forwardingRuleName",
+      task,
+      [400, 412],
+      [404],
+      [action: "get", phase: BASE_PHASE, operation: "compute.forwardingRules.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+      registry
+    ) as ForwardingRule
+
+    if (!forwardingRule) {
+      return
+    }
+    if (!GCEUtil.isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) ||
+      GCEUtil.getLocalName(forwardingRule.backendService) != expectedBackendServiceName) {
+      throw new GoogleOperationException(
+        "Listener $forwardingRuleName is not owned by regional external network load balancer $description.loadBalancerName.")
+    }
+
+    deleteRegionalForwardingRule(compute, project, region, forwardingRuleName)
   }
 
   private void insertRegionalForwardingRule(compute, String project, String region, forwardingRule) {

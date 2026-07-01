@@ -42,8 +42,7 @@ angular
               return (
                 gceHttpLoadBalancerUtils.isHttpLoadBalancer(index[s]) ||
                 index[s].loadBalancerType === 'SSL' ||
-                index[s].loadBalancerType === 'TCP' ||
-                index[s].loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK'
+                index[s].loadBalancerType === 'TCP'
               );
             })
           );

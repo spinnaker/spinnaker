@@ -15,6 +15,7 @@ export interface ILoadBalancerStateParams {
   region: string;
   vpcId: string;
   provider: string;
+  loadBalancerType?: string;
 }
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
@@ -27,6 +28,10 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
       url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
       params: {
         vpcId: {
+          value: null,
+          squash: true,
+        },
+        loadBalancerType: {
           value: null,
           squash: true,
         },
@@ -48,6 +53,7 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
               region: $stateParams.region,
               vpcId: $stateParams.vpcId,
               provider: $stateParams.provider,
+              loadBalancerType: $stateParams.loadBalancerType,
             };
           },
         ],

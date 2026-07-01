@@ -361,6 +361,20 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             .findFirst()
             .ifPresent(
                 existingService -> {
+                  if (existingService.getLoadBalancingScheme() != null
+                      && !getLoadBalancingScheme()
+                          .equals(existingService.getLoadBalancingScheme())) {
+                    throw new GoogleOperationException(
+                        "Backend service "
+                            + backendServiceName
+                            + " already exists in "
+                            + region
+                            + " with loadBalancingScheme "
+                            + existingService.getLoadBalancingScheme()
+                            + ", expected "
+                            + getLoadBalancingScheme()
+                            + ".");
+                  }
                   serviceExistsSet.add(backendService.getName());
 
                   Set<String> existingHcs =
@@ -375,9 +389,14 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                                   ImmutableSet.of(backendService.getHealthCheck().getName()))
                               .size()
                           > 0;
+                  // GCP may omit sessionAffinity on an existing regional backend service;
+                  // normalize null to NONE before valueOf to avoid an NPE on update.
+                  GoogleSessionAffinity existingSessionAffinity =
+                      existingService.getSessionAffinity() != null
+                          ? GoogleSessionAffinity.valueOf(existingService.getSessionAffinity())
+                          : GoogleSessionAffinity.NONE;
                   Boolean differentSessionAffinity =
-                      !GoogleSessionAffinity.valueOf(existingService.getSessionAffinity())
-                          .equals(backendService.getSessionAffinity());
+                      !existingSessionAffinity.equals(backendService.getSessionAffinity());
                   Boolean differentSessionCookieTtl =
                       !Objects.equals(
                           existingService.getAffinityCookieTtlSec(),
@@ -911,14 +930,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
               .updateStatus(
                   getBasePhase(),
                   "Deleting listener " + forwardingRuleName + " in " + region + "...");
-          GCEUtil.deleteRegionalListener(
-              compute,
-              project,
-              region,
-              forwardingRuleName,
-              getBasePhase(),
-              getSafeRetry(),
-              UpsertGoogleInternalHttpLoadBalancerAtomicOperation.this);
+          deleteRegionalListenerIfOwned(compute, project, region, forwardingRuleName, urlMapName);
         }
       }
       getTask()
@@ -1091,6 +1103,148 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
         getTask(),
         getBasePhase(),
         googleSubnetProvider);
+  }
+
+  protected Operation deleteRegionalListenerIfOwned(
+      Compute compute,
+      String project,
+      String region,
+      String forwardingRuleName,
+      String expectedUrlMapName)
+      throws IOException {
+    ForwardingRule forwardingRule =
+        getSafeRetry()
+            .doRetry(
+                new Closure<ForwardingRule>(this) {
+                  public ForwardingRule doCall() throws IOException {
+                    return compute
+                        .forwardingRules()
+                        .get(project, region, forwardingRuleName)
+                        .execute();
+                  }
+                },
+                "forwarding rule " + forwardingRuleName,
+                getTask(),
+                List.of(400, 412),
+                List.of(404),
+                ImmutableMap.of(
+                    "action",
+                    "get",
+                    "phase",
+                    getBasePhase(),
+                    "operation",
+                    "compute.forwardingRules.get",
+                    TAG_SCOPE,
+                    SCOPE_REGIONAL,
+                    TAG_REGION,
+                    region),
+                getRegistry());
+
+    if (forwardingRule == null) {
+      return null;
+    }
+    if (!getLoadBalancingScheme().equals(forwardingRule.getLoadBalancingScheme())) {
+      throw new GoogleOperationException(
+          "Listener "
+              + forwardingRuleName
+              + " is not owned by "
+              + getLoadBalancerDescriptionLabel()
+              + " "
+              + description.getLoadBalancerName()
+              + ".");
+    }
+
+    GoogleTargetProxyType proxyType = Utils.getTargetProxyType(forwardingRule.getTarget());
+    if (proxyType != GoogleTargetProxyType.HTTP && proxyType != GoogleTargetProxyType.HTTPS) {
+      throw new GoogleOperationException(
+          "Listener " + forwardingRuleName + " does not target a regional HTTP(S) proxy.");
+    }
+
+    GenericJson targetProxy;
+    String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget());
+    switch (proxyType) {
+      case HTTP:
+        targetProxy =
+            getSafeRetry()
+                .doRetry(
+                    new Closure<TargetHttpProxy>(this) {
+                      public TargetHttpProxy doCall() throws IOException {
+                        return compute
+                            .regionTargetHttpProxies()
+                            .get(project, region, targetProxyName)
+                            .execute();
+                      }
+                    },
+                    "region target http proxy " + targetProxyName,
+                    getTask(),
+                    List.of(400, 412),
+                    List.of(404),
+                    ImmutableMap.of(
+                        "action",
+                        "get",
+                        "phase",
+                        getBasePhase(),
+                        "operation",
+                        "compute.regionTargetHttpProxies.get",
+                        TAG_SCOPE,
+                        SCOPE_REGIONAL,
+                        TAG_REGION,
+                        region),
+                    getRegistry());
+        break;
+      case HTTPS:
+        targetProxy =
+            getSafeRetry()
+                .doRetry(
+                    new Closure<TargetHttpsProxy>(this) {
+                      public TargetHttpsProxy doCall() throws IOException {
+                        return compute
+                            .regionTargetHttpsProxies()
+                            .get(project, region, targetProxyName)
+                            .execute();
+                      }
+                    },
+                    "region target https proxy " + targetProxyName,
+                    getTask(),
+                    List.of(400, 412),
+                    List.of(404),
+                    ImmutableMap.of(
+                        "action",
+                        "get",
+                        "phase",
+                        getBasePhase(),
+                        "operation",
+                        "compute.regionTargetHttpsProxies.get",
+                        TAG_SCOPE,
+                        SCOPE_REGIONAL,
+                        TAG_REGION,
+                        region),
+                    getRegistry());
+        break;
+      default:
+        throw new IllegalStateException("Unexpected proxy type " + proxyType);
+    }
+    String actualUrlMapName =
+        GCEUtil.getLocalName(targetProxy == null ? null : (String) targetProxy.get("urlMap"));
+    if (!expectedUrlMapName.equals(actualUrlMapName)) {
+      throw new GoogleOperationException(
+          "Listener "
+              + forwardingRuleName
+              + " is attached to URL map "
+              + actualUrlMapName
+              + ", not "
+              + expectedUrlMapName
+              + ".");
+    }
+
+    return GCEUtil.deleteRegionalListener(
+        compute,
+        project,
+        region,
+        forwardingRuleName,
+        getBasePhase(),
+        getSafeRetry(),
+        UpsertGoogleInternalHttpLoadBalancerAtomicOperation.this);
   }
 
   protected void configureLoadBalancerNetwork(

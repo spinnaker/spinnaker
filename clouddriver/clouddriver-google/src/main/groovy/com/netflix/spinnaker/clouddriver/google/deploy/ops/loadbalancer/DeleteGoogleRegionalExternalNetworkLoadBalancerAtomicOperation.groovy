@@ -157,25 +157,25 @@ class DeleteGoogleRegionalExternalNetworkLoadBalancerAtomicOperation extends Goo
     if (description.deleteHealthChecks) {
       def healthCheckUrl = backendService.healthChecks?.getAt(0)
       if (!healthCheckUrl) {
-        GCEUtil.updateStatusAndThrowNotFoundException("External regional backend service $backendServiceName has no health check to delete in $region for $project",
-          task, BASE_PHASE)
-      }
-      def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
-      Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
-        { timeExecute(
-          compute.regionHealthChecks().delete(project, region, healthCheckName),
-          "compute.regionHealthChecks.delete",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-        "Regional health check $healthCheckName",
-        project,
-        task,
-        [action: 'delete', operation: 'compute.regionHealthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
-        safeRetry,
-        this
-      )
-      if (deleteHealthCheckOp) {
-        googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteHealthCheckOp.getName(),
-          timeoutSeconds, task, "Regional health check $healthCheckName", BASE_PHASE)
+        log.warn("Regional external backend service $backendServiceName has no health check to delete in $region for $project.")
+      } else {
+        def healthCheckName = GCEUtil.getLocalName(healthCheckUrl)
+        Operation deleteHealthCheckOp = GCEUtil.deleteIfNotInUse(
+          { timeExecute(
+            compute.regionHealthChecks().delete(project, region, healthCheckName),
+            "compute.regionHealthChecks.delete",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
+          "Regional health check $healthCheckName",
+          project,
+          task,
+          [action: 'delete', operation: 'compute.regionHealthChecks.delete', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+          safeRetry,
+          this
+        )
+        if (deleteHealthCheckOp) {
+          googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteHealthCheckOp.getName(),
+            timeoutSeconds, task, "Regional health check $healthCheckName", BASE_PHASE)
+        }
       }
     }
 

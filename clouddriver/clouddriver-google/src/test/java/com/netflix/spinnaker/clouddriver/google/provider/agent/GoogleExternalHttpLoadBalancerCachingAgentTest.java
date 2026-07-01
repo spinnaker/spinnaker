@@ -50,6 +50,7 @@ import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spinnaker.clouddriver.google.batch.GoogleBatchRequest;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer;
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import java.io.IOException;
@@ -225,6 +226,44 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
     assertThat(loadBalancers).hasSize(1);
     assertThat(loadBalancers.get(0).getName()).isEqualTo("good-lb");
     verify(forwardingRules).get(PROJECT, REGION, "good-lb");
+  }
+
+  @Test
+  void constructLoadBalancers_defaultsMissingBackendSessionAffinityToNone() throws IOException {
+    Compute compute = mock(Compute.class);
+    configureSharedRegionalData(compute, null);
+    Compute.ForwardingRules forwardingRules = mock(Compute.ForwardingRules.class);
+    Compute.ForwardingRules.Get getForwardingRule = mock(Compute.ForwardingRules.Get.class);
+    when(compute.forwardingRules()).thenReturn(forwardingRules);
+    when(forwardingRules.get(PROJECT, REGION, "good-lb")).thenReturn(getForwardingRule);
+    when(getForwardingRule.execute()).thenReturn(buildHttpRule("good-lb", "good-proxy"));
+
+    Compute.RegionTargetHttpProxies targetHttpProxies = mock(Compute.RegionTargetHttpProxies.class);
+    Compute.RegionTargetHttpProxies.Get getGoodProxy =
+        mock(Compute.RegionTargetHttpProxies.Get.class);
+    when(compute.regionTargetHttpProxies()).thenReturn(targetHttpProxies);
+    when(targetHttpProxies.get(PROJECT, REGION, "good-proxy")).thenReturn(getGoodProxy);
+    when(getGoodProxy.execute()).thenReturn(new TargetHttpProxy().setUrlMap(urlMapUrl("good-map")));
+
+    Compute.RegionUrlMaps regionUrlMaps = mock(Compute.RegionUrlMaps.class);
+    Compute.RegionUrlMaps.Get getGoodMap = mock(Compute.RegionUrlMaps.Get.class);
+    when(compute.regionUrlMaps()).thenReturn(regionUrlMaps);
+    when(regionUrlMaps.get(PROJECT, REGION, "good-map")).thenReturn(getGoodMap);
+    when(getGoodMap.execute())
+        .thenReturn(
+            new UrlMap()
+                .setName("good-map")
+                .setDefaultService(backendServiceUrl("backend-service")));
+
+    GoogleExternalHttpLoadBalancerCachingAgent agent = createAgent(compute);
+
+    List<GoogleLoadBalancer> loadBalancers = agent.constructLoadBalancers("good-lb");
+
+    assertThat(loadBalancers).hasSize(1);
+    GoogleExternalHttpLoadBalancer loadBalancer =
+        (GoogleExternalHttpLoadBalancer) loadBalancers.get(0);
+    assertThat(loadBalancer.getDefaultService().getSessionAffinity())
+        .isEqualTo(GoogleSessionAffinity.NONE);
   }
 
   @Test
@@ -427,6 +466,11 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
   }
 
   private static void configureSharedRegionalData(Compute compute) throws IOException {
+    configureSharedRegionalData(compute, "NONE");
+  }
+
+  private static void configureSharedRegionalData(Compute compute, String sessionAffinity)
+      throws IOException {
     Compute.RegionBackendServices regionBackendServices = mock(Compute.RegionBackendServices.class);
     Compute.RegionBackendServices.List listBackendServices =
         mock(Compute.RegionBackendServices.List.class);
@@ -439,7 +483,7 @@ public class GoogleExternalHttpLoadBalancerCachingAgentTest {
                     List.of(
                         new BackendService()
                             .setName("backend-service")
-                            .setSessionAffinity("NONE")
+                            .setSessionAffinity(sessionAffinity)
                             .setBackends(Collections.emptyList())
                             .setHealthChecks(Collections.emptyList()))));
 

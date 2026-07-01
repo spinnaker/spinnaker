@@ -80,8 +80,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
   private static final Logger log =
       LoggerFactory.getLogger(AbstractGoogleRegionalHttpLoadBalancerCachingAgent.class);
 
-  private Map<String, List<BackendServiceGroupHealth>> bsNameToGroupHealthsMap = new HashMap<>();
-  private Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>();
+  private Map<String, List<BackendServiceGroupHealth>> backendServiceNameToGroupHealths =
+      new HashMap<>();
+  private Set<GroupHealthRequest> queuedBackendServiceGroupHealthRequests = new HashSet<>();
   private Set<LoadBalancerHealthResolution> resolutions = new HashSet<>();
 
   AbstractGoogleRegionalHttpLoadBalancerCachingAgent(
@@ -104,15 +105,21 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest();
 
     // These callbacks run across staged batches; reset all callback-owned state for each refresh.
-    bsNameToGroupHealthsMap = new HashMap<>();
-    queuedBsGroupHealthRequests = new HashSet<>();
+    backendServiceNameToGroupHealths = new HashMap<>();
+    queuedBackendServiceGroupHealthRequests = new HashSet<>();
     resolutions = new HashSet<>();
 
     try {
       List<BackendService> projectBackendServices =
           GCEUtil.fetchRegionBackendServices(this, getCompute(), getProject(), getRegion());
+      if (projectBackendServices == null) {
+        projectBackendServices = Collections.emptyList();
+      }
       List<HealthCheck> projectHealthChecks =
           GCEUtil.fetchRegionalHealthChecks(this, getCompute(), getProject(), getRegion());
+      if (projectHealthChecks == null) {
+        projectHealthChecks = Collections.emptyList();
+      }
 
       ForwardingRuleCallbacks forwardingRuleCallbacks =
           new ForwardingRuleCallbacks(
@@ -160,11 +167,12 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
 
       // Two-phase health resolution: the graph walk above only queued getHealth() batches and
       // recorded a resolution per backend service; the GroupHealthCallback fills
-      // bsNameToGroupHealthsMap as those batches execute, so health can only be applied here, once
-      // every batch has completed.
+      // backendServiceNameToGroupHealths as those batches execute, so health can only be applied
+      // here, once every batch has completed.
       for (LoadBalancerHealthResolution resolution : resolutions) {
         for (Object groupHealth :
-            bsNameToGroupHealthsMap.getOrDefault(resolution.getTarget(), Collections.emptyList())) {
+            backendServiceNameToGroupHealths.getOrDefault(
+                resolution.getTarget(), Collections.emptyList())) {
           GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), groupHealth);
         }
       }
@@ -603,7 +611,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     for (GoogleBackendService service : backendServicesToUpdate) {
       service.setRegion(loadBalancer.getRegion());
       service.setSessionAffinity(
-          GoogleSessionAffinity.valueOf(backendService.getSessionAffinity()));
+          backendService.getSessionAffinity() != null
+              ? GoogleSessionAffinity.valueOf(backendService.getSessionAffinity())
+              : GoogleSessionAffinity.NONE);
       service.setAffinityCookieTtlSec(backendService.getAffinityCookieTtlSec());
       service.setEnableCDN(backendService.getEnableCDN());
       String name = backendService.getPortName();
@@ -652,9 +662,9 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
       GroupHealthRequest groupHealthRequestKey =
           new GroupHealthRequest(getProject(), backendService.getName(), resourceGroup.getGroup());
       // A URL map can reference the same backend service/group through several rules; queue once.
-      if (!queuedBsGroupHealthRequests.contains(groupHealthRequestKey)) {
+      if (!queuedBackendServiceGroupHealthRequests.contains(groupHealthRequestKey)) {
         log.debug("Queueing a batch call for getHealth(): {}", groupHealthRequestKey);
-        queuedBsGroupHealthRequests.add(groupHealthRequestKey);
+        queuedBackendServiceGroupHealthRequests.add(groupHealthRequestKey);
         groupHealthRequest.queue(
             getCompute()
                 .regionBackendServices()
@@ -688,7 +698,7 @@ abstract class AbstractGoogleRegionalHttpLoadBalancerCachingAgent<T extends Goog
     @Override
     public void onSuccess(
         BackendServiceGroupHealth backendServiceGroupHealth, HttpHeaders responseHeaders) {
-      bsNameToGroupHealthsMap
+      backendServiceNameToGroupHealths
           .computeIfAbsent(backendServiceName, ignored -> new ArrayList<>())
           .add(backendServiceGroupHealth);
     }

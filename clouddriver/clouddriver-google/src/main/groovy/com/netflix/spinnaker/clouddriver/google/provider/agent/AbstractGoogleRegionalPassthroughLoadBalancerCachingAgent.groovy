@@ -55,8 +55,8 @@ import org.slf4j.LoggerFactory
 abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T extends GoogleLoadBalancer>
   extends AbstractGoogleLoadBalancerCachingAgent {
 
-  Map<String, List<BackendServiceGroupHealth>> bsNameToGroupHealthsMap = [:]
-  Set<GroupHealthRequest> queuedBsGroupHealthRequests = new HashSet<>()
+  Map<String, List<BackendServiceGroupHealth>> backendServiceNameToGroupHealths = [:]
+  Set<GroupHealthRequest> queuedBackendServiceGroupHealthRequests = new HashSet<>()
   Set<LoadBalancerHealthResolution> resolutions = new HashSet<>()
 
   AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
@@ -81,8 +81,8 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     GoogleBatchRequest groupHealthRequest = buildGoogleBatchRequest()
 
     // These callbacks run across staged batches; reset all callback-owned state for each refresh.
-    bsNameToGroupHealthsMap = [:]
-    queuedBsGroupHealthRequests = new HashSet<>()
+    backendServiceNameToGroupHealths = [:]
+    queuedBackendServiceGroupHealthRequests = new HashSet<>()
     resolutions = new HashSet<>()
 
     List<BackendService> projectRegionBackendServices = GCEUtil.fetchRegionBackendServices(this, compute, project, region)
@@ -118,10 +118,11 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
     executeIfRequestsAreQueued(groupHealthRequest, "${instrumentationPrefix()}.groupHealth")
 
     // Two-phase health resolution: the graph walk above only queued getHealth() batches and recorded
-    // a resolution per backend service; the GroupHealthCallback fills bsNameToGroupHealthsMap as
-    // those batches execute, so health can only be applied here, once every batch has completed.
+    // a resolution per backend service; the GroupHealthCallback fills
+    // backendServiceNameToGroupHealths as those batches execute, so health can only be applied
+    // here, once every batch has completed.
     resolutions.each { LoadBalancerHealthResolution resolution ->
-      (bsNameToGroupHealthsMap.get(resolution.getTarget()) ?: []).each { groupHealth ->
+      (backendServiceNameToGroupHealths.get(resolution.getTarget()) ?: []).each { groupHealth ->
         GCEUtil.handleHealthObject(resolution.getGoogleLoadBalancer(), groupHealth)
       }
     }
@@ -253,9 +254,9 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
 
       GroupHealthRequest groupHealthRequestKey = new GroupHealthRequest(project, backendService.name as String, resourceGroup.getGroup())
       // A regional forwarding rule can share backend service/group data across listeners.
-      if (!queuedBsGroupHealthRequests.contains(groupHealthRequestKey)) {
+      if (!queuedBackendServiceGroupHealthRequests.contains(groupHealthRequestKey)) {
         log.debug("Queueing a batch call for getHealth(): {}", groupHealthRequestKey)
-        queuedBsGroupHealthRequests.add(groupHealthRequestKey)
+        queuedBackendServiceGroupHealthRequests.add(groupHealthRequestKey)
         groupHealthRequest
           .queue(compute.regionBackendServices().getHealth(project, region, backendService.name as String, resourceGroup),
             groupHealthCallback)
@@ -278,10 +279,10 @@ abstract class AbstractGoogleRegionalPassthroughLoadBalancerCachingAgent<T exten
 
     @Override
     void onSuccess(BackendServiceGroupHealth backendServiceGroupHealth, HttpHeaders responseHeaders) throws IOException {
-      if (!bsNameToGroupHealthsMap.containsKey(backendServiceName)) {
-        bsNameToGroupHealthsMap.put(backendServiceName, [backendServiceGroupHealth])
+      if (!backendServiceNameToGroupHealths.containsKey(backendServiceName)) {
+        backendServiceNameToGroupHealths.put(backendServiceName, [backendServiceGroupHealth])
       } else {
-        bsNameToGroupHealthsMap.get(backendServiceName) << backendServiceGroupHealth
+        backendServiceNameToGroupHealths.get(backendServiceName) << backendServiceGroupHealth
       }
     }
   }

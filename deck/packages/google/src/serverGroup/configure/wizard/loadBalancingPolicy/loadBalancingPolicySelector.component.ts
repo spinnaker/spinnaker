@@ -176,7 +176,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
   }
 
   private isPassthroughLoadBalancerType(loadBalancerType: string): boolean {
-    return loadBalancerType === 'SSL' || loadBalancerType === 'TCP' || loadBalancerType === 'REGIONAL_EXTERNAL_NETWORK';
+    return loadBalancerType === 'SSL' || loadBalancerType === 'TCP';
   }
 }
 

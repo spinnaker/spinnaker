@@ -45,6 +45,7 @@ export class CommonGceLoadBalancerCtrl {
       accountId: loadBalancer.credentials,
       region: loadBalancer.region,
       provider: 'gce',
+      loadBalancerType: loadBalancer.loadBalancerType,
     };
 
     if (!this.$state.includes('**.loadBalancerDetails')) {

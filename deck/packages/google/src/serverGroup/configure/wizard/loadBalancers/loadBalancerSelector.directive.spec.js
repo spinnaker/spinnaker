@@ -29,9 +29,9 @@ describe('gceServerGroupLoadBalancerSelectorCtrl', () => {
     return ctrl;
   }
 
-  it('shows the load balancing policy selector for regional external network load balancers', () => {
+  it('hides the load balancing policy selector for regional external network load balancers', () => {
     const ctrl = buildController('REGIONAL_EXTERNAL_NETWORK');
 
-    expect(ctrl.showLoadBalancingPolicy()).toBe(true);
+    expect(ctrl.showLoadBalancingPolicy()).toBe(false);
   });
 });
