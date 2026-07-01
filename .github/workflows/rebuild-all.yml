@@ -58,7 +58,7 @@ jobs:
               workflow_id: 'deck-kayenta.yml',
               ref: '${{ github.ref_name }}',
               inputs: {
-                'publish-debs': true,
+                'publish-npm': true,
                 'version-override': '${{ needs.version.outputs.version }}'
               }
             });
