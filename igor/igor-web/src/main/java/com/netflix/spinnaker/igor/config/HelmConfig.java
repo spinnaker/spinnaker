@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.StringUtils;
 import retrofit2.Retrofit;
 
@@ -37,6 +38,9 @@ import retrofit2.Retrofit;
 @Slf4j
 public class HelmConfig {
   @Bean
+  @DependsOn(
+      "YamlHelper") // MAKE SURE the yamlHelper and it's properties are loaded FIRST... this enables
+  // certain operations
   HelmAccounts helmAccounts() {
     return new HelmAccounts();
   }
