@@ -27,8 +27,8 @@ import (
 
 	"github.com/andreyvit/diff"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 // testGateFail spins up a local http server that we will configure the GateClient
