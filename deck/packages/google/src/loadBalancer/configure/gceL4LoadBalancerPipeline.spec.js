@@ -1,5 +1,6 @@
 import { ApplicationModelBuilder } from '@spinnaker/core';
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './internal/gceCreateInternalLoadBalancer.controller';
+import { GCE_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER_CTRL } from './regionalexternalnetwork/gceCreateRegionalExternalNetworkLoadBalancer.controller';
 import { GCE_SSL_LOAD_BALANCER_CTRL } from './ssl/gceCreateSslLoadBalancer.controller';
 import { GCE_TCP_LOAD_BALANCER_CTRL } from './tcp/gceCreateTcpLoadBalancer.controller';
 
@@ -132,6 +133,53 @@ describe('GCE L4 load balancer controllers (pipeline mode)', function () {
         expect(modalInstance.close).toHaveBeenCalledWith(
           jasmine.objectContaining({
             loadBalancerName: 'internal-lb',
+            cloudProvider: 'gce',
+            healthCheck: {},
+            ports: ['80', '8080'],
+          }),
+        );
+      }),
+    );
+  });
+
+  describe('gceRegionalExternalNetworkLoadBalancerCtrl', function () {
+    beforeEach(() => {
+      window.module(GCE_REGIONAL_EXTERNAL_NETWORK_LOAD_BALANCER_CTRL);
+    });
+
+    it(
+      'closes with a pipeline command',
+      window.inject(function ($controller, $rootScope) {
+        const modalInstance = { close: jasmine.createSpy('close'), dismiss: jasmine.createSpy('dismiss') };
+        const loadBalancer = {
+          loadBalancerName: 'regional-external-network-lb',
+          loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+          backendService: { healthCheck: { healthCheckType: 'TCP' } },
+          instances: [],
+          ports: '80, 8080',
+          credentials: 'test',
+          region: 'us-west-2',
+        };
+
+        const ctrl = $controller('gceRegionalExternalNetworkLoadBalancerCtrl', {
+          $scope: $rootScope.$new(),
+          application: buildApp(),
+          $uibModalInstance: modalInstance,
+          loadBalancer,
+          gceCommonLoadBalancerCommandBuilder: {},
+          gceAddressReader: {},
+          isNew: true,
+          forPipelineConfig: true,
+          wizardSubFormValidation: {},
+          $state: {},
+        });
+
+        ctrl.submit();
+
+        expect(modalInstance.close).toHaveBeenCalledWith(
+          jasmine.objectContaining({
+            loadBalancerName: 'regional-external-network-lb',
+            loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
             cloudProvider: 'gce',
             healthCheck: {},
             ports: ['80', '8080'],

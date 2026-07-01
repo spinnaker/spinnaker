@@ -6,6 +6,7 @@ class GceAddressSelectorCtrl implements IController {
   public selectedAddress: IGceAddress;
   public addressList: IGceAddress[];
   public account: string;
+  public onAddressSelect: ({ address }: { address: IGceAddress }) => void;
   // The IP address string is the only piece that we can expect a parent resource to keep track of.
   // We'll try to match this IP to a full address map.
   private initialIpAddress: string;
@@ -14,6 +15,9 @@ class GceAddressSelectorCtrl implements IController {
     this.selectedAddress = this.addressList.find((address) => address.address === this.initialIpAddress);
     if (!this.selectedAddress) {
       this.selectedAddress = { address: this.initialIpAddress, account: this.account };
+    }
+    if (this.onAddressSelect) {
+      this.onAddressSelect({ address: this.selectedAddress });
     }
   }
 }

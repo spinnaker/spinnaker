@@ -2,6 +2,10 @@ import type { IGceHealthCheck } from './healthCheck';
 
 export interface IGceBackendService {
   name: string;
+  account?: string;
+  kind?: string;
+  region?: string;
+  selfLink?: string;
   backends: any[];
   healthCheck: IGceHealthCheck;
   sessionAffinity: string;

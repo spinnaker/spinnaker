@@ -49,10 +49,10 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     gceAddressReader,
     gceXpnNamingService,
   ) {
-    function buildCommand({ originalLoadBalancer, isNew, isInternal }) {
+    function buildCommand({ originalLoadBalancer, isNew, isInternal, isExternalManaged }) {
       originalLoadBalancer = _.cloneDeep(originalLoadBalancer);
 
-      return buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew, isInternal).then(
+      return buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew, isInternal, isExternalManaged).then(
         ({ backingData, loadBalancer }) => {
           return {
             backingData,
@@ -76,13 +76,13 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       );
     }
 
-    function buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew, isInternal) {
+    function buildBackingDataAndLoadBalancer(originalLoadBalancer, isNew, isInternal, isExternalManaged) {
       let region = null;
-      if (isInternal) {
+      if (isInternal || isExternalManaged) {
         region = originalLoadBalancer ? originalLoadBalancer.region : GCEProviderSettings.defaults.region;
       }
       return buildBackingData(region).then((backingData) => {
-        const loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, isInternal);
+        const loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, isInternal, isExternalManaged);
 
         unifyDataSources(backingData, loadBalancer);
 
@@ -94,7 +94,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       const promises = {
         backendServices: getBackendServices(region),
         healthChecks: getHealthChecks(region),
-        certificates: getCertificates(),
+        certificates: getCertificates(region),
         loadBalancerMap: getLoadBalancerMap(region),
         networks: getNetworks(),
         subnets: SubnetReader.listSubnetsByProvider('gce'),
@@ -104,7 +104,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       return $q.all(promises);
     }
 
-    function buildLoadBalancer(isNew, loadBalancer, isInternal) {
+    function buildLoadBalancer(isNew, loadBalancer, isInternal, isExternalManaged) {
       const loadBalancerTemplate = new HttpLoadBalancerTemplate(GCEProviderSettings.defaults.account || null);
       if (isInternal) {
         loadBalancerTemplate.loadBalancerType = 'INTERNAL_MANAGED';
@@ -118,6 +118,11 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
             listener.subnet = gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, listener.subnet);
           });
         }
+        loadBalancerTemplate.region = GCEProviderSettings.defaults.region;
+        loadBalancerTemplate.network = 'default';
+      } else if (isExternalManaged) {
+        loadBalancerTemplate.loadBalancerType = 'EXTERNAL_MANAGED';
+        loadBalancerTemplate.isInternal = false;
         loadBalancerTemplate.region = GCEProviderSettings.defaults.region;
         loadBalancerTemplate.network = 'default';
       } else {
@@ -168,8 +173,34 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
 
       backingData.subnetMap = _.groupBy(backingData.subnets, 'network');
       backingData.internalHttpLbNetworks = backingData.networks.filter((network) =>
-        backingData.subnetMap[network].find((subnet) => subnet.purpose === 'INTERNAL_HTTPS_LOAD_BALANCER'),
+        (backingData.subnetMap[network] || []).find((subnet) => subnet.purpose === 'INTERNAL_HTTPS_LOAD_BALANCER'),
       );
+      backingData.externalHttpLbNetworks = backingData.networks.filter((network) =>
+        (backingData.subnetMap[network] || []).find(
+          (subnet) => subnet.region === loadBalancer.region && subnet.purpose === 'REGIONAL_MANAGED_PROXY',
+        ),
+      );
+      // Regional external Application LBs use regional external addresses and require a
+      // proxy-only subnet in the selected network/region. Keep the shared backing data typed by
+      // load-balancer family so INTERNAL_MANAGED can still offer internal addresses.
+      backingData.addresses = getAddressesForLoadBalancer(loadBalancer, backingData.addresses);
+      reconcileExternalManagedNetwork(backingData, loadBalancer);
+    }
+
+    function getAddressesForLoadBalancer(loadBalancer, addresses) {
+      if (loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED') {
+        return addresses.filter((address) => address.addressType === 'EXTERNAL');
+      }
+      return addresses;
+    }
+
+    function reconcileExternalManagedNetwork(backingData, loadBalancer) {
+      if (loadBalancer.loadBalancerType !== 'EXTERNAL_MANAGED') {
+        return;
+      }
+      if (!backingData.externalHttpLbNetworks.includes(loadBalancer.network)) {
+        loadBalancer.network = backingData.externalHttpLbNetworks[0] || null;
+      }
     }
 
     function removeExistingListenersFromBackingData(backingData, existingListeners) {
@@ -223,8 +254,10 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       });
     }
 
-    function getCertificates() {
-      return gceCertificateReader.listCertificates();
+    function getCertificates(region) {
+      return gceCertificateReader.listCertificates().then((certificates) => {
+        return certificates.filter((certificate) => !region || certificate.region === region);
+      });
     }
 
     function getAccounts() {
@@ -233,6 +266,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
 
     function getLoadBalancerMap(region) {
       return loadBalancerReader.listLoadBalancers('gce').then((lbs) => {
+        const desiredRegion = region || gceHttpLoadBalancerUtils.REGION;
         return _.chain(lbs)
           .map((lb) => lb.accounts)
           .flatten()
@@ -241,8 +275,8 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
             const loadBalancers = _.chain(accounts)
               .map((a) => a.regions)
               .flatten()
-              .filter((region) => region.name === (region || gceHttpLoadBalancerUtils.REGION))
-              .map((region) => region.loadBalancers)
+              .filter((regionData) => regionData.name === desiredRegion)
+              .map((regionData) => regionData.loadBalancers)
               .flatten()
               .value();
 
@@ -255,8 +289,18 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
       });
     }
 
+    function usesRegionalResources(loadBalancer) {
+      return (
+        loadBalancer.loadBalancerType === 'INTERNAL_MANAGED' || loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED'
+      );
+    }
+
+    function getRegionalResourceRegion(loadBalancer) {
+      return usesRegionalResources(loadBalancer) ? loadBalancer.region : null;
+    }
+
     function onHealthCheckRefresh(command) {
-      getHealthChecks(command.loadBalancer.region).then((healthChecks) => {
+      getHealthChecks(getRegionalResourceRegion(command.loadBalancer)).then((healthChecks) => {
         command.backingData.healthChecks = healthChecks;
         command.backingData.healthChecksKeyedByName = _.keyBy(healthChecks, 'name');
         command.backingData.healthChecksKeyedByNameCopy = _.cloneDeep(command.backingData.healthChecksKeyedByName);
@@ -273,13 +317,13 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onCertificateRefresh(command) {
-      getCertificates().then((certificates) => {
+      getCertificates(getRegionalResourceRegion(command.loadBalancer)).then((certificates) => {
         command.backingData.certificates = certificates;
       });
     }
 
     function onBackendServiceRefresh(command) {
-      getBackendServices(command.loadBalancer.region).then((backendServices) => {
+      getBackendServices(getRegionalResourceRegion(command.loadBalancer)).then((backendServices) => {
         command.backingData.backendServices = backendServices;
         command.backingData.backendServicesKeyedByName = _.keyBy(backendServices, 'name');
         command.backingData.backendServicesKeyedByNameCopy = _.cloneDeep(
@@ -394,8 +438,9 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_COMMANDBUILDER_SERVICE, [
     }
 
     function onAddressRefresh(command) {
-      gceAddressReader.listAddresses('global').then((addresses) => {
-        command.backingData.addresses = addresses;
+      const region = getRegionalResourceRegion(command.loadBalancer) || 'global';
+      gceAddressReader.listAddresses(region).then((addresses) => {
+        command.backingData.addresses = getAddressesForLoadBalancer(command.loadBalancer, addresses);
       });
     }
 

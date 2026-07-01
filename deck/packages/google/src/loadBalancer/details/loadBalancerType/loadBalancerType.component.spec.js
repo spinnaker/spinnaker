@@ -57,6 +57,42 @@ describe('Component: gceLoadBalancerType', () => {
     expect(ctrl.type).toBe('HTTP');
   });
 
+  it('renders regional external HTTPS when an external managed listener has a certificate', () => {
+    const ctrl = buildController({
+      loadBalancerType: 'EXTERNAL_MANAGED',
+      certificate: null,
+      certificateMap: null,
+      listeners: [{ certificate: 'regional-cert', certificateMap: null }],
+    });
+
+    ctrl.$onInit();
+
+    expect(ctrl.type).toBe('Regional External HTTPS');
+  });
+
+  it('renders regional external HTTP when external managed listeners have no certificate', () => {
+    const ctrl = buildController({
+      loadBalancerType: 'EXTERNAL_MANAGED',
+      certificate: null,
+      certificateMap: null,
+      listeners: [{ certificate: null, certificateMap: null }],
+    });
+
+    ctrl.$onInit();
+
+    expect(ctrl.type).toBe('Regional External HTTP');
+  });
+
+  it('renders regional external TCP/UDP for regional external network load balancers', () => {
+    const ctrl = buildController({
+      loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+    });
+
+    ctrl.$onInit();
+
+    expect(ctrl.type).toBe('Regional External TCP/UDP');
+  });
+
   // Both fields populated simultaneously — the || means either triggers HTTPS.
   it('detects HTTPS when both certificate and certificateMap are present', () => {
     const ctrl = buildController({

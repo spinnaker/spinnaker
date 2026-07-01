@@ -143,6 +143,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_CREATEHTTPLOADBALANCER_CONTROLLER, [
               certificate: command.certificate || null,
               certificateMap: command.certificateMap || null,
               ipAddress: command.ipAddress,
+              networkTier: command.networkTier,
               subnet: command.subnet,
             },
           ],

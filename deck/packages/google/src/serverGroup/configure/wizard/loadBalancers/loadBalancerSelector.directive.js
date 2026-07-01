@@ -40,8 +40,7 @@ angular
             angular.isDefined(selected) &&
             _.some(selected, (s) => {
               return (
-                index[s].loadBalancerType === 'HTTP' ||
-                index[s].loadBalancerType === 'INTERNAL_MANAGED' ||
+                gceHttpLoadBalancerUtils.isHttpLoadBalancer(index[s]) ||
                 index[s].loadBalancerType === 'SSL' ||
                 index[s].loadBalancerType === 'TCP'
               );
