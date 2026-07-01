@@ -17,15 +17,15 @@ package assembler
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/account"
-	"github.com/spinnaker/spin/cmd/application"
-	"github.com/spinnaker/spin/cmd/canary"
-	canary_config "github.com/spinnaker/spin/cmd/canary/canary-config"
-	"github.com/spinnaker/spin/cmd/pipeline"
-	pipeline_template "github.com/spinnaker/spin/cmd/pipeline-template"
-	"github.com/spinnaker/spin/cmd/pipeline/execution"
-	"github.com/spinnaker/spin/cmd/project"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/account"
+	"github.com/spinnaker/spinnaker/spin/cmd/application"
+	"github.com/spinnaker/spinnaker/spin/cmd/canary"
+	canary_config "github.com/spinnaker/spinnaker/spin/cmd/canary/canary-config"
+	"github.com/spinnaker/spinnaker/spin/cmd/pipeline"
+	pipeline_template "github.com/spinnaker/spinnaker/spin/cmd/pipeline-template"
+	"github.com/spinnaker/spinnaker/spin/cmd/pipeline/execution"
+	"github.com/spinnaker/spinnaker/spin/cmd/project"
 )
 
 // AddSubCommands adds all the subcommands to the rootCmd.

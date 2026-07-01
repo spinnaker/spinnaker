@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineTemplateList_basic(t *testing.T) {
@@ -106,6 +106,7 @@ func TestPipelineTemplateList_withScopesParameter(t *testing.T) {
 func testGatePipelineTemplateListSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(pipelineTemplateListJson))
 	}))
 	return httptest.NewServer(mux)
@@ -116,6 +117,7 @@ func testGatePipelineTemplateListSuccess() *httptest.Server {
 func testGateScopedPipelineTemplateListSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(scopedPipelineTemplateListJson))
 	}))
 	return httptest.NewServer(mux)
@@ -136,6 +138,7 @@ func testGatePipelineTemplateListNoScopesParameter() *httptest.Server {
 		}
 
 		// Return successful response when no scopes parameter is present
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(pipelineTemplateListJson))
 	}))
 	return httptest.NewServer(mux)
@@ -154,6 +157,7 @@ func testGatePipelineTemplateListWithScopesParameter() *httptest.Server {
 		}
 
 		// Return successful response when scopes parameter is present
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(pipelineTemplateListJson))
 	}))
 	return httptest.NewServer(mux)
