@@ -4,7 +4,7 @@ ARG VERSION=dev
 WORKDIR /app
 COPY ./ ./
 
-ENV LD_VERSION="-X github.com/spinnaker/spin/version.Version=${VERSION}"
+ENV LD_VERSION="-X github.com/spinnaker/spinnaker/spin/version.Version=${VERSION}"
 
 RUN GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -ldflags "${LD_VERSION}" .
 
