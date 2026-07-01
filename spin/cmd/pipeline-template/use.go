@@ -22,10 +22,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	//"github.com/spinnaker/spin/cmd/output"
+	//"github.com/spinnaker/spinnaker/spin/cmd/output"
 	"sigs.k8s.io/yaml"
 
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 type useOptions struct {

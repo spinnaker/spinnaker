@@ -18,7 +18,7 @@ import (
 	"fmt"
 	// "github.com/antihax/optional"
 	"github.com/spf13/cobra"
-	//gate "github.com/spinnaker/spin/gateapi"
+	//gate "github.com/spinnaker/spinnaker/spin/gateapi"
 )
 
 type cancelAllPipelinesOptions struct {
