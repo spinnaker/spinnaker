@@ -1,0 +1,33 @@
+dependencies {
+  implementation project(":clouddriver-core")
+  implementation project(":clouddriver-security")
+  implementation project(":clouddriver-api")
+
+  implementation "com.netflix.frigga:frigga"
+  implementation "io.spinnaker.kork:kork-moniker"
+
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "com.squareup.okhttp3:okhttp"
+
+  implementation "org.springframework.boot:spring-boot-starter-web"
+  implementation "io.spinnaker.kork:kork-web"
+  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-exceptions"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+
+  // Lombok for boilerplate reduction
+  compileOnly "org.projectlombok:lombok"
+  annotationProcessor "org.projectlombok:lombok"
+
+  testImplementation "org.spockframework:spock-core"
+  testImplementation "org.spockframework:spock-spring"
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
+  implementation project(":cats:cats-core")
+
+  testCompileOnly "org.projectlombok:lombok"
+  testAnnotationProcessor "org.projectlombok:lombok"
+}

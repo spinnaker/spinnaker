@@ -51,6 +51,36 @@ defaultCloudProviderType: aws
 
 templatesNeedingRoot: aws-chroot.json
 
+proxmox:
+  # Enable by setting proxmox.enabled=true (or PROXMOX_ENABLED env var) in rosco-local.yml.
+  enabled: ${PROXMOX_ENABLED:false}
+  bakeryDefaults:
+    # Full URL to the Proxmox REST API, including /api2/json.
+    proxmoxUrl: ${PROXMOX_URL:https://pve01.example.com:8006/api2/json}
+    # Proxmox credentials. Use apiToken for API-token auth; set username+password for ticket auth.
+    username: ${PROXMOX_USERNAME:root@pam}
+    password: ${PROXMOX_PASSWORD:}
+    # apiToken: ${PROXMOX_API_TOKEN:}   # format: user@realm!tokenid=secret
+    node: ${PROXMOX_NODE:pve01}
+    storage: ${PROXMOX_STORAGE:local-lvm}
+    cloudInitStorage: ${PROXMOX_CLOUD_INIT_STORAGE:local}
+    insecureSkipTlsVerify: ${PROXMOX_INSECURE_SKIP_TLS_VERIFY:false}
+    templateFile: proxmox-clone.json
+    # See https://pve.proxmox.com/wiki/Cloud-Init_Support#_preparing_cloud_init_templates
+    # for adding cloud-init type images
+    baseImages:
+      - baseImage:
+          id: ubuntu-2404
+          shortDescription: Ubuntu 24.04 LTS
+          detailedDescription: Ubuntu Noble 24.04 LTS (cloud-init)
+          packageType: deb
+          templateFile: proxmox-clone.json
+        virtualizationSettings:
+          cloneVmId: 9000     # VMID of your Ubuntu 24.04 cloud-init template
+          sshUsername: ubuntu
+          cores: 2
+          memory: 2048
+
 alicloud:
   # The property referenced below, ALICLOUD_ENABLED, is not set in the
   # 'unified config' supported by the spinnaker/spinnaker project. If you
