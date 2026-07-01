@@ -79,5 +79,11 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateAutoscalingPolicy(description.autoscalingPolicy)
 
     helper.validateAutoHealingPolicy(description.autoHealingPolicy)
+
+    InstanceFlexibilityPolicyValidationSupport.rejectIssues(
+      errors,
+      "instanceFlexibilityPolicy",
+      "basicGoogleDeployDescription.instanceFlexibilityPolicy",
+      InstanceFlexibilityPolicyValidationSupport.validate(description))
   }
 }
