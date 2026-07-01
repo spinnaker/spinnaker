@@ -62,11 +62,13 @@ pnpm build
 
 ### Backend (Gradle)
 ```bash
-./gradlew build          # Build all services
-./gradlew test           # Run all tests
-./gradlew :orca:test     # Test single service
-./gradlew spotlessCheck  # Check code formatting
-./gradlew spotlessApply  # Apply formatting
+# IMPORTANT: Always run commands from the root of the repository
+./gradlew build                                    # Build all services
+./gradlew test                                     # Run all tests
+./gradlew clouddriver:clouddriver-google:test      # Test single subproject (use colon-separated path)
+./gradlew clouddriver:clouddriver-google:compileJava   # Compile specific subproject
+./gradlew spotlessCheck                            # Check code formatting
+./gradlew spotlessApply                            # Apply formatting
 ```
 
 ### Frontend (deck)
@@ -88,7 +90,7 @@ npm run lint
 ```
 
 ## Testing Strategy
-- Prefer running single service tests: `./gradlew :servicename:test`
+- Prefer running single subproject tests: `./gradlew clouddriver:clouddriver-google:test` (use colon-separated paths)
 - Backend uses JUnit 5 (via `useJUnitPlatform()`)
 - Frontend uses Karma (deck) and Jest (deck-kayenta)
 - Fix all test/type errors before committing
