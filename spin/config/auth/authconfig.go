@@ -15,12 +15,12 @@
 package auth
 
 import (
-	"github.com/spinnaker/spin/config/auth/basic"
-	gsa "github.com/spinnaker/spin/config/auth/googleserviceaccount"
-	config "github.com/spinnaker/spin/config/auth/iap"
-	"github.com/spinnaker/spin/config/auth/ldap"
-	"github.com/spinnaker/spin/config/auth/oauth2"
-	"github.com/spinnaker/spin/config/auth/x509"
+	"github.com/spinnaker/spinnaker/spin/config/auth/basic"
+	gsa "github.com/spinnaker/spinnaker/spin/config/auth/googleserviceaccount"
+	config "github.com/spinnaker/spinnaker/spin/config/auth/iap"
+	"github.com/spinnaker/spinnaker/spin/config/auth/ldap"
+	"github.com/spinnaker/spinnaker/spin/config/auth/oauth2"
+	"github.com/spinnaker/spinnaker/spin/config/auth/x509"
 )
 
 // Config is the CLI's authentication configuration.
