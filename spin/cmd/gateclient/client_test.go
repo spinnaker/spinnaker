@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spinnaker/spin/cmd/output"
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd/output"
+	gate "github.com/spinnaker/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestNewGateClientSetsContextAccessTokenFromOAuth2CachedToken(t *testing.T) {
