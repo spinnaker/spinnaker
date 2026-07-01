@@ -25,9 +25,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/canary"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestCanaryConfigSave_createjson(t *testing.T) {
@@ -253,6 +253,7 @@ func testGateCanaryConfigUpdateSuccess(buffer io.Writer) *httptest.Server {
 			}
 			buffer.Write([]byte(body))
 
+			w.Header().Add("content-type", "application/json")
 			w.Write([]byte(responseJson))
 		} else {
 			w.WriteHeader(http.StatusOK)
@@ -276,6 +277,7 @@ func testGateCanaryConfigSaveSuccess(buffer io.Writer) *httptest.Server {
 		}
 		buffer.Write([]byte(body))
 
+		w.Header().Add("content-type", "application/json")
 		w.Write([]byte(responseJson))
 	}))
 	// Return that we found no CC to signal a create.

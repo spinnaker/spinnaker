@@ -23,8 +23,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineTemplatePlan_basic(t *testing.T) {
@@ -118,6 +118,7 @@ func testGatePlanSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/v2/pipelineTemplates/plan", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
+			w.Header().Add("content-type", "application/json")
 			fmt.Fprintln(w, strings.TrimSpace(testPipelineTemplatePlanResp))
 		} else {
 			w.WriteHeader(http.StatusNotFound)
