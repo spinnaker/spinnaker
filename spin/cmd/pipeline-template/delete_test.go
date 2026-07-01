@@ -22,8 +22,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineTemplateDelete_basic(t *testing.T) {
@@ -111,6 +111,7 @@ func testGateDeleteSuccess() *httptest.Server {
 			resp := http.Response{StatusCode: 201}
 			b, _ := json.Marshal(&resp)
 
+			w.Header().Add("content-type", "application/json")
 			w.WriteHeader(http.StatusAccepted)
 			fmt.Fprintln(w, string(b)) // Write empty 201.
 		} else {
