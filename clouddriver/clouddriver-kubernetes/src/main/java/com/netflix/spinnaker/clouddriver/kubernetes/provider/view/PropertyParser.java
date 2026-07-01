@@ -38,7 +38,9 @@ public class PropertyParser {
       Pattern.compile("^\\s*" + MAGIC_JSON_SEARCH_STRING);
 
   private static final Splitter lineSplitter = Splitter.on("\n").omitEmptyStrings().trimResults();
-  private static final Splitter equalsSplitter = Splitter.on("=").omitEmptyStrings().trimResults();
+  // Split only at the first '=' so the value preserves any '=' characters it contains —
+  // critical for base64-encoded payloads, which use trailing '=' / '==' padding.
+  private static final Splitter equalsSplitter = Splitter.on("=").limit(2).trimResults();
 
   public static Map<String, Object> extractPropertiesFromLog(String buildLog) throws IOException {
     final Map<String, Object> map = new HashMap<>();
@@ -47,8 +49,7 @@ public class PropertyParser {
       if (MAGIC_SEARCH_PATTERN.matcher(line).find()) {
         log.debug("Identified: " + line);
         List<String> splittedLine = equalsSplitter.splitToList(line);
-        // if the split line doesn't match our expected length it cannot
-        // be parsed so we should skip it.
+        // if the split line doesn't have key + value it cannot be parsed; skip it.
         if (splittedLine.size() != 2) {
           continue;
         }
