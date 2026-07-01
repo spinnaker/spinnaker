@@ -22,9 +22,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/canary"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestCanaryConfigRetro_file(t *testing.T) {
