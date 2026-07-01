@@ -22,9 +22,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/pipeline"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/pipeline"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestExecutionList_basic(t *testing.T) {
@@ -83,6 +83,7 @@ func TestExecutionList_fail(t *testing.T) {
 func testGateExecutionListSuccess() *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle("/executions/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		fmt.Fprintln(w, strings.TrimSpace(executionListJson))
 	}))
 	return httptest.NewServer(mux)

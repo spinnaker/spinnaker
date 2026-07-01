@@ -23,7 +23,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 type retroOptions struct {
