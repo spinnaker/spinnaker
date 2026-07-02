@@ -1,10 +1,8 @@
-import { module } from 'angular';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
-import { react2angular } from 'react2angular';
 
 import type { Application } from '@spinnaker/core';
-import { ConfirmationModalService, ManifestWriter, robotToHuman, withErrorBoundary } from '@spinnaker/core';
+import { ConfirmationModalService, ManifestWriter, robotToHuman } from '@spinnaker/core';
 
 import type { IAnyKubernetesResource } from '../../interfaces';
 
@@ -27,7 +25,7 @@ export function ResumeRollout({ application, resource }: IResumeRolloutProps) {
           account: resource.account,
           reason: params.reason,
         };
-        return ManifestWriter.pauseRolloutManifest(payload, application);
+        return ManifestWriter.resumeRolloutManifest(payload, application);
       },
       taskMonitorConfig: {
         application,
@@ -38,9 +36,3 @@ export function ResumeRollout({ application, resource }: IResumeRolloutProps) {
   };
   return <MenuItem onClick={handleClick}>Resume Rollout</MenuItem>;
 }
-
-export const KUBERNETES_RESUME_ROLLOUT = 'spinnaker.kubernetes.resume.rollout';
-module(KUBERNETES_RESUME_ROLLOUT, []).component(
-  'kubernetesResumeRollout',
-  react2angular(withErrorBoundary(ResumeRollout, 'kubernetesResumeRollout'), ['application', 'resource']),
-);

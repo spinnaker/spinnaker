@@ -8,6 +8,7 @@ import { SETTINGS } from '../config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
 import { Tooltip } from '../presentation';
 import { ModalInjector } from '../reactShims';
+import { noop } from '../utils';
 
 const providerFilterFn = (_application: Application, _account: IAccountDetails, provider: ICloudProviderConfig) => {
   const sgConfig = provider.securityGroup;
@@ -18,10 +19,20 @@ const providerFilterFn = (_application: Application, _account: IAccountDetails, 
   );
 };
 
+const getProviderDefaults = (provider: string) => SETTINGS.providers[provider]?.defaults || {};
+
 const getDefaultCredentials = (app: Application, provider: string) =>
-  app.defaultCredentials[provider] || SETTINGS.providers[provider].defaults.account;
+  app.defaultCredentials?.[provider] || getProviderDefaults(provider).account;
 const getDefaultRegion = (app: Application, provider: string) =>
-  app.defaultRegions[provider] || SETTINGS.providers[provider].defaults.region;
+  app.defaultRegions?.[provider] || getProviderDefaults(provider).region;
+
+interface IAngularCreateSecurityGroupCommand {
+  credentials: string | undefined;
+  subnet: string;
+  regions: Array<string | undefined>;
+  vpcId: string | null;
+  securityGroupIngress: unknown[];
+}
 
 const getAngularModalOptions = (provider: any, selectedProvider: string, app: Application) => ({
   templateUrl: provider.createSecurityGroupTemplateUrl,
@@ -29,11 +40,13 @@ const getAngularModalOptions = (provider: any, selectedProvider: string, app: Ap
   windowClass: 'modal-z-index',
   size: 'lg',
   resolve: {
-    securityGroup: () => {
+    securityGroup: (): IAngularCreateSecurityGroupCommand => {
       return {
         credentials: getDefaultCredentials(app, selectedProvider),
         subnet: 'none',
         regions: [getDefaultRegion(app, selectedProvider)],
+        vpcId: null,
+        securityGroupIngress: [],
       };
     },
     application: () => {
@@ -57,9 +70,9 @@ export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {
         provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app));
       } else {
         // angular
-        ModalInjector.modalService.open(getAngularModalOptions(provider, selectedProvider, app)).result.catch(() => {});
+        ModalInjector.modalService.open(getAngularModalOptions(provider, selectedProvider, app)).result.catch(noop);
       }
-    });
+    }, noop);
   };
 
   return (
