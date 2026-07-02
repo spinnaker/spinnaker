@@ -21,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.ListClustersRequest;
-import com.amazonaws.services.ecs.model.ListClustersResult;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
@@ -32,19 +30,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.ListClustersRequest;
+import software.amazon.awssdk.services.ecs.model.ListClustersResponse;
 import spock.lang.Subject;
 
 public class EcsClusterCachingAgentTest extends CommonCachingAgent {
   @Subject
   private final EcsClusterCachingAgent agent =
-      new EcsClusterCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider);
+      new EcsClusterCachingAgent(netflixAmazonCredentials, REGION, clientProvider);
 
   @Test
   public void shouldGetListOfArns() {
     // Given
-    ListClustersResult listClustersResult =
-        new ListClustersResult().withClusterArns(CLUSTER_ARN_1, CLUSTER_ARN_2);
+    ListClustersResponse listClustersResult =
+        ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1, CLUSTER_ARN_2).build();
     when(ecs.listClusters(any(ListClustersRequest.class))).thenReturn(listClustersResult);
 
     // When
@@ -122,7 +121,8 @@ public class EcsClusterCachingAgentTest extends CommonCachingAgent {
   public void shouldAddToCache() {
     // Given
     String key = Keys.getClusterKey(ACCOUNT, REGION, CLUSTER_NAME_1);
-    ListClustersResult listClustersResult = new ListClustersResult().withClusterArns(CLUSTER_ARN_1);
+    ListClustersResponse listClustersResult =
+        ListClustersResponse.builder().clusterArns(CLUSTER_ARN_1).build();
     when(ecs.listClusters(any(ListClustersRequest.class))).thenReturn(listClustersResult);
 
     // When

@@ -153,8 +153,10 @@ public class CreateServerGroupAtomicOperation
   }
 
   private EcsServerGroupName buildEcsServerGroupName(AmazonECS ecs, Namer<EcsResource> namer) {
+    software.amazon.awssdk.services.ecs.EcsClient ecsV2 =
+        amazonClientProvider.getAmazonEcsV2(description.getCredentials(), getRegion());
     EcsServerGroupNameResolver serverGroupNameResolver =
-        new EcsServerGroupNameResolver(description.getEcsClusterName(), ecs, getRegion(), namer);
+        new EcsServerGroupNameResolver(description.getEcsClusterName(), ecsV2, getRegion(), namer);
 
     if (description.getMoniker() != null) {
       return serverGroupNameResolver.resolveNextName(description.getMoniker());
@@ -554,10 +556,14 @@ public class CreateServerGroupAtomicOperation
             .withDeploymentConfiguration(deploymentConfiguration)
             .withEnableExecuteCommand(description.isEnableExecuteCommand());
 
-    List<Tag> taskDefTags = new LinkedList<>();
+    List<software.amazon.awssdk.services.ecs.model.Tag> taskDefTags = new LinkedList<>();
     if (description.getTags() != null && !description.getTags().isEmpty()) {
       for (Map.Entry<String, String> entry : description.getTags().entrySet()) {
-        taskDefTags.add(new Tag().withKey(entry.getKey()).withValue(entry.getValue()));
+        taskDefTags.add(
+            software.amazon.awssdk.services.ecs.model.Tag.builder()
+                .key(entry.getKey())
+                .value(entry.getValue())
+                .build());
       }
     }
 
@@ -575,7 +581,7 @@ public class CreateServerGroupAtomicOperation
           }
 
           @Override
-          public List<Tag> getResourceTags() {
+          public List<software.amazon.awssdk.services.ecs.model.Tag> getResourceTags() {
             return taskDefTags;
           }
         },
@@ -583,8 +589,13 @@ public class CreateServerGroupAtomicOperation
 
     // Only add tags if they're set as it's an optional feature for ECS
     if (taggingEnabled) {
+      // Convert v2 tags to v1 tags for the v1 CreateServiceRequest
+      List<Tag> v1Tags = new LinkedList<>();
+      for (software.amazon.awssdk.services.ecs.model.Tag t : taskDefTags) {
+        v1Tags.add(new Tag().withKey(t.key()).withValue(t.value()));
+      }
       request
-          .withTags(taskDefTags)
+          .withTags(v1Tags)
           .withEnableECSManagedTags(true)
           .withPropagateTags(PropagateTags.SERVICE.toString());
     } else {

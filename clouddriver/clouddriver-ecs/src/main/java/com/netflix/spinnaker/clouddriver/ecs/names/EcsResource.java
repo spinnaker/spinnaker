@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.names;
 
-import com.amazonaws.services.ecs.model.Tag;
 import java.util.List;
+import software.amazon.awssdk.services.ecs.model.Tag;
 
 public interface EcsResource {
 

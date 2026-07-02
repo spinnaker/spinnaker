@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.names
 
-import com.amazonaws.services.ecs.model.Service
-import com.amazonaws.services.ecs.model.Tag
+import software.amazon.awssdk.services.ecs.model.Service
+import software.amazon.awssdk.services.ecs.model.Tag
 import com.netflix.spinnaker.moniker.Namer
 import spock.lang.Shared
 import spock.lang.Specification
@@ -38,7 +38,10 @@ class EcsTagNamerSpec extends Specification {
   @Unroll
   def "should derive correct moniker"() {
     given:
-    def service = new Service(serviceName: name, tags: tags?.collect {new Tag(key: it.key, value: it.value) })
+    def service = Service.builder()
+      .serviceName(name)
+      .tags(tags?.collect { Tag.builder().key(it.key).value(it.value).build() } ?: [])
+      .build()
     def moniker = namer.deriveMoniker(new EcsResourceService(service))
 
     expect:

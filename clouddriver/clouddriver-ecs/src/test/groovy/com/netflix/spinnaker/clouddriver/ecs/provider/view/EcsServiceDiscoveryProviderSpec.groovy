@@ -53,7 +53,7 @@ class EcsServiceDiscoveryProviderSpec extends Specification {
 
     HashSet keys = [key]
 
-    ServiceSummary serviceEntry = ServiceSummary.builder()
+    def serviceEntry = ServiceSummary.builder()
       .name(serviceName)
       .arn(serviceArn)
       .id(serviceId)
@@ -91,7 +91,7 @@ class EcsServiceDiscoveryProviderSpec extends Specification {
       keys.add(key)
       serviceIds.add(serviceId)
 
-      ServiceSummary serviceEntry = ServiceSummary.builder()
+      def serviceEntry = ServiceSummary.builder()
         .name(serviceName)
         .arn(serviceArn)
         .id(serviceId)
