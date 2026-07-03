@@ -33,7 +33,37 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
   private static final PROJECT_NAME = "my-project"
   private static final REGION = "us-central1"
 
-  void "resolveSubnet validates proxy-only subnet exists on selected network"() {
+  void "resolveSubnet accepts a same-project proxy-only subnet stored as a bare local network name"() {
+    setup:
+      def subnetProvider = Mock(GoogleSubnetProvider)
+      def description = new UpsertGoogleLoadBalancerDescription(
+        accountName: ACCOUNT_NAME,
+        region: REGION,
+        network: "default")
+      @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
+      operation.googleSubnetProvider = subnetProvider
+      def network = new GoogleNetwork(
+        name: "default",
+        id: "default",
+        selfLink: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default")
+      // GoogleSubnetProvider.deriveNetworkId reduces a same-project network to its bare local name,
+      // so this is the shape the cache actually produces (the earlier full-URL fixture never
+      // exercised the real path).
+      def proxyOnlySubnet = new GoogleSubnet(
+        account: ACCOUNT_NAME,
+        region: REGION,
+        network: "default",
+        purpose: "REGIONAL_MANAGED_PROXY")
+      subnetProvider.getAllMatchingKeyPattern("gce:subnets:*:${ACCOUNT_NAME}:${REGION}") >> ([proxyOnlySubnet] as Set)
+
+    when:
+      def resolvedSubnet = operation.resolveSubnet(network)
+
+    then:
+      resolvedSubnet == null
+  }
+
+  void "resolveSubnet accepts a proxy-only subnet whose network is a full self-link URL"() {
     setup:
       def subnetProvider = Mock(GoogleSubnetProvider)
       def description = new UpsertGoogleLoadBalancerDescription(
@@ -66,17 +96,19 @@ class UpsertGoogleExternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       def description = new UpsertGoogleLoadBalancerDescription(
         accountName: ACCOUNT_NAME,
         region: REGION,
-        network: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default")
+        network: "default")
       @Subject def operation = new UpsertGoogleExternalHttpLoadBalancerAtomicOperation(description)
       operation.googleSubnetProvider = subnetProvider
       def network = new GoogleNetwork(
         name: "default",
         id: "default",
         selfLink: "https://compute.googleapis.com/compute/v1/projects/${PROJECT_NAME}/global/networks/default")
+      // GoogleSubnetProvider.deriveNetworkId qualifies an XPN host-project network as
+      // "<project>/<name>", so a same-named network in another project must not be accepted.
       def proxyOnlySubnet = new GoogleSubnet(
         account: ACCOUNT_NAME,
         region: REGION,
-        network: "https://compute.googleapis.com/compute/v1/projects/other-project/global/networks/default",
+        network: "other-project/default",
         purpose: "REGIONAL_MANAGED_PROXY")
       subnetProvider.getAllMatchingKeyPattern("gce:subnets:*:${ACCOUNT_NAME}:${REGION}") >> ([proxyOnlySubnet] as Set)
 

@@ -26,10 +26,8 @@ import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleExternalHttpLoadBalancer;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -183,37 +181,44 @@ public class UpsertGoogleExternalHttpLoadBalancerAtomicOperation
   }
 
   private boolean isSameNetwork(GoogleSubnet subnet, GoogleNetwork network) {
+    // GoogleSubnetProvider.deriveNetworkId stores a cached subnet's network as a bare local name
+    // (e.g. "default") for the account's own project and as "<project>/<name>" for XPN host-project
+    // subnets, never as a full "projects/.../networks/..." URL. Match on the local network name
+    // and,
+    // when both sides expose a project, require the projects to agree. Comparing projects keeps a
+    // same-named network in another XPN project from being wrongly accepted, while a bare local
+    // name
+    // (no project) is treated as belonging to the selected network's project.
     String subnetNetwork = subnet.getNetwork();
-    Set<String> subnetQualifiedIds = new HashSet<>(qualifiedNetworkIds(subnetNetwork));
-    Set<String> selectedQualifiedIds = new HashSet<>(qualifiedNetworkIds(description.getNetwork()));
-    selectedQualifiedIds.addAll(qualifiedNetworkIds(network.getSelfLink()));
-    selectedQualifiedIds.addAll(qualifiedNetworkIds(network.getId()));
-    selectedQualifiedIds.addAll(qualifiedNetworkIds(network.getName()));
-
-    if (!subnetQualifiedIds.isEmpty() || !selectedQualifiedIds.isEmpty()) {
-      return subnetQualifiedIds.stream().anyMatch(selectedQualifiedIds::contains);
+    if (subnetNetwork == null) {
+      return false;
     }
-
-    // Fall back to local names only when neither side carries project-qualified identity. This
-    // avoids accepting proxy-only subnets from another XPN project that happens to reuse the same
-    // network name.
-    String subnetNetworkLocalName =
-        subnetNetwork != null ? GCEUtil.getLocalName(subnetNetwork) : null;
-    return Objects.equals(subnetNetwork, description.getNetwork())
-        || Objects.equals(subnetNetwork, network.getName())
-        || Objects.equals(subnetNetworkLocalName, network.getName())
-        || Objects.equals(subnetNetwork, network.getId());
+    String selectedName =
+        network.getName() != null ? network.getName() : GCEUtil.getLocalName(network.getSelfLink());
+    String subnetName = GCEUtil.getLocalName(subnetNetwork);
+    if (selectedName == null || subnetName == null || !subnetName.equals(selectedName)) {
+      return false;
+    }
+    String subnetProject = networkProject(subnetNetwork);
+    String selectedProject = networkProject(network.getSelfLink());
+    return subnetProject == null
+        || selectedProject == null
+        || subnetProject.equals(selectedProject);
   }
 
-  private Set<String> qualifiedNetworkIds(String value) {
-    if (value == null) {
-      return Set.of();
+  private String networkProject(String networkReference) {
+    if (networkReference == null) {
+      return null;
     }
-    String normalized = value;
-    int projectsIndex = normalized.indexOf("projects/");
-    if (projectsIndex >= 0) {
-      return Set.of(normalized.substring(projectsIndex));
+    if (networkReference.contains("projects/")) {
+      return GCEUtil.deriveProjectId(networkReference);
     }
-    return Set.of();
+    int lastSlash = networkReference.lastIndexOf('/');
+    if (lastSlash > 0) {
+      // "<project>/<name>" shape produced for XPN host-project subnets.
+      return networkReference.substring(0, lastSlash);
+    }
+    // Bare local name: the project is implicitly the account's/selected network's project.
+    return null;
   }
 }
