@@ -218,6 +218,8 @@ const helpContents: { [key: string]: string } = {
     <p>Network Load Balancing is a regional, non-proxied load balancer. You can use it to load balance UDP traffic, and TCP and SSL traffic on ports that are not supported by the SSL proxy and TCP proxy load balancers.</p>`,
   'gce.loadBalancerType.HTTP(S)':
     '<p>Google Cloud Platform (GCP) HTTP(S) Load Balancing provides global load balancing for HTTP(S) requests destined for your instances.</p>',
+  'gce.loadBalancerType.Internal HTTP(S)':
+    '<p>Google Cloud Regional Internal HTTP(S) Load Balancing provides regional Application Load Balancing using INTERNAL_MANAGED forwarding rules, regional URL maps, regional backend services, and a proxy-only subnet in the selected VPC and region. It is reachable only from clients within the VPC network.</p>',
   'gce.loadBalancerType.Regional External HTTP(S)':
     '<p>Google Cloud Regional External HTTP(S) Load Balancing provides regional Application Load Balancing using EXTERNAL_MANAGED forwarding rules, regional URL maps, regional backend services, regional external addresses, and a proxy-only subnet in the selected VPC and region.</p>',
   'gce.loadBalancerType.Internal':
