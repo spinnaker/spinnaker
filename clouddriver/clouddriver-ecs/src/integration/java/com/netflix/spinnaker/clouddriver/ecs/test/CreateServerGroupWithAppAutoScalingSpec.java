@@ -21,18 +21,20 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClient;
-import com.amazonaws.services.applicationautoscaling.model.*;
+import com.amazonaws.services.applicationautoscaling.model.Alarm;
+import com.amazonaws.services.applicationautoscaling.model.DescribeScalingPoliciesRequest;
+import com.amazonaws.services.applicationautoscaling.model.DescribeScalingPoliciesResult;
+import com.amazonaws.services.applicationautoscaling.model.PutScalingPolicyRequest;
+import com.amazonaws.services.applicationautoscaling.model.PutScalingPolicyResult;
+import com.amazonaws.services.applicationautoscaling.model.ScalingPolicy;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
-import com.amazonaws.services.cloudwatch.model.*;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
+import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsSpec;
 import io.restassured.http.ContentType;
@@ -44,87 +46,91 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.services.applicationautoscaling.ApplicationAutoScalingClient;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
+import software.amazon.awssdk.services.applicationautoscaling.model.DescribeScalableTargetsResponse;
+import software.amazon.awssdk.services.applicationautoscaling.model.ScalableTarget;
 import software.amazon.awssdk.services.ecs.EcsClient;
-import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
-import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.*;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup;
 
 public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
 
-  private AmazonECS mockECS = mock(AmazonECS.class);
-  private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
+  private EcsClient mockEcsV2 = mock(EcsClient.class);
+  private ElasticLoadBalancingV2Client mockELB = mock(ElasticLoadBalancingV2Client.class);
+  private ApplicationAutoScalingClient mockAutoScalingV2 = mock(ApplicationAutoScalingClient.class);
   private AWSApplicationAutoScalingClient mockAWSApplicationAutoScalingClient =
       mock(AWSApplicationAutoScalingClient.class);
   private AmazonCloudWatch mockAmazonCloudWatchClient = mock(AmazonCloudWatch.class);
-  private EcsClient mockEcsV2 = mock(EcsClient.class);
 
   @BeforeEach
   public void setup() {
-    // mock v2 ECS responses (used by EcsServerGroupNameResolver)
-    when(mockEcsV2.listServices(
-            any(software.amazon.awssdk.services.ecs.model.ListServicesRequest.class)))
+    // mock v2 ECS responses (used by EcsServerGroupNameResolver + source lookup)
+    when(mockEcsV2.listServices(any(ListServicesRequest.class)))
         .thenReturn(
             ListServicesResponse.builder().serviceArns(java.util.Collections.emptyList()).build());
-    when(mockEcsV2.describeServices(
-            any(software.amazon.awssdk.services.ecs.model.DescribeServicesRequest.class)))
+    when(mockEcsV2.describeServices(any(DescribeServicesRequest.class)))
         .thenReturn(
             DescribeServicesResponse.builder().services(java.util.Collections.emptyList()).build());
+    when(mockEcsV2.listAccountSettings(any(ListAccountSettingsRequest.class)))
+        .thenReturn(ListAccountSettingsResponse.builder().build());
+    when(mockEcsV2.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
+        .thenAnswer(
+            (Answer<RegisterTaskDefinitionResponse>)
+                invocation -> {
+                  RegisterTaskDefinitionRequest request = invocation.getArgument(0);
+                  String testArn = "arn:aws:ecs:::task-definition/" + request.family() + ":1";
+                  return RegisterTaskDefinitionResponse.builder()
+                      .taskDefinition(TaskDefinition.builder().taskDefinitionArn(testArn).build())
+                      .build();
+                });
+    when(mockEcsV2.createService(any(CreateServiceRequest.class)))
+        .thenReturn(
+            CreateServiceResponse.builder()
+                .service(Service.builder().serviceName("createdService").build())
+                .build());
 
     when(mockAwsProvider.getAmazonEcsV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockEcsV2);
 
-    // mock ECS responses
-    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
-        .thenReturn(new ListAccountSettingsResult());
-    when(mockECS.listServices(any(ListServicesRequest.class))).thenReturn(new ListServicesResult());
-    when(mockECS.describeServices(any(DescribeServicesRequest.class)))
-        .thenReturn(new DescribeServicesResult());
-    when(mockECS.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
-        .thenAnswer(
-            (Answer<RegisterTaskDefinitionResult>)
-                invocation -> {
-                  RegisterTaskDefinitionRequest request =
-                      (RegisterTaskDefinitionRequest) invocation.getArguments()[0];
-                  String testArn = "arn:aws:ecs:::task-definition/" + request.getFamily() + ":1";
-                  TaskDefinition taskDef = new TaskDefinition().withTaskDefinitionArn(testArn);
-                  return new RegisterTaskDefinitionResult().withTaskDefinition(taskDef);
-                });
-    when(mockECS.createService(any(CreateServiceRequest.class)))
-        .thenReturn(
-            new CreateServiceResult().withService(new Service().withServiceName("createdService")));
-
-    when(mockAwsProvider.getAmazonEcs(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockECS);
-
-    // mock ELB responses
+    // mock v2 ELB responses
     when(mockELB.describeTargetGroups(any(DescribeTargetGroupsRequest.class)))
         .thenAnswer(
-            (Answer<DescribeTargetGroupsResult>)
+            (Answer<DescribeTargetGroupsResponse>)
                 invocation -> {
-                  DescribeTargetGroupsRequest request =
-                      (DescribeTargetGroupsRequest) invocation.getArguments()[0];
+                  DescribeTargetGroupsRequest request = invocation.getArgument(0);
                   String testArn =
                       "arn:aws:elasticloadbalancing:::targetgroup/"
-                          + request.getNames().get(0)
+                          + request.names().get(0)
                           + "/76tgredfc";
-                  TargetGroup testTg = new TargetGroup().withTargetGroupArn(testArn);
-
-                  return new DescribeTargetGroupsResult().withTargetGroups(testTg);
+                  return DescribeTargetGroupsResponse.builder()
+                      .targetGroups(TargetGroup.builder().targetGroupArn(testArn).build())
+                      .build();
                 });
+    when(mockAwsProvider.getAmazonElasticLoadBalancingV2V2(
+            any(NetflixAmazonCredentials.class), anyString()))
+        .thenReturn(mockELB);
 
-    when(mockAWSApplicationAutoScalingClient.describeScalableTargets(
-            any(DescribeScalableTargetsRequest.class)))
-        .thenAnswer(
-            (Answer<DescribeScalableTargetsResult>)
-                invocation -> {
-                  ScalableTarget scalableTarget =
-                      new ScalableTarget()
-                          .withMaxCapacity(1)
-                          .withMinCapacity(1)
-                          .withResourceId("service/default/sample-webapp");
-                  return new DescribeScalableTargetsResult().withScalableTargets(scalableTarget);
-                });
+    // mock v2 Application Auto Scaling (source scalable target + register scalable target)
+    when(mockAutoScalingV2.describeScalableTargets(any(DescribeScalableTargetsRequest.class)))
+        .thenReturn(
+            DescribeScalableTargetsResponse.builder()
+                .scalableTargets(
+                    ScalableTarget.builder()
+                        .maxCapacity(1)
+                        .minCapacity(1)
+                        .resourceId("service/default/sample-webapp")
+                        .build())
+                .build());
+    when(mockAwsProvider.getAmazonApplicationAutoScalingV2(
+            any(NetflixAmazonCredentials.class), anyString()))
+        .thenReturn(mockAutoScalingV2);
 
+    // mock v1 Application Auto Scaling + CloudWatch used by
+    // EcsCloudMetricService.copyScalingPolicies
     when(mockAWSApplicationAutoScalingClient.describeScalingPolicies(
             any(DescribeScalingPoliciesRequest.class)))
         .thenAnswer(
@@ -163,10 +169,6 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
     when(mockAwsProvider.getAmazonCloudWatch(
             any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
         .thenReturn(mockAmazonCloudWatchClient);
-
-    when(mockAwsProvider.getAmazonElasticLoadBalancingV2(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockELB);
   }
 
   @DisplayName(
@@ -208,9 +210,7 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
                   .contentType(ContentType.JSON)
                   .extract()
                   .path("history");
-          if (taskHistory
-              .toString()
-              .contains(String.format("Done creating 1 of %s-v000", expectedServerGroupName))) {
+          if (taskHistory.toString().contains("Done copying scaling policies...")) {
             return true;
           }
           return false;
@@ -221,10 +221,10 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
     // then
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily());
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family());
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
 
     ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
         ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
@@ -233,21 +233,21 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
 
     assertEquals(
         "integInputsEc2TargetGroupMappingsWithAppAutoScalingGroup-targetGroup",
-        seenDescribeTargetGroups.getNames().get(0));
+        seenDescribeTargetGroups.names().get(0));
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals("EC2", seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.getServiceName());
-    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
+    assertEquals("EC2", seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName + "-v000", seenCreateServRequest.serviceName());
+    assertEquals(1, seenCreateServRequest.loadBalancers().size());
     assertEquals(
         "integInputsEc2TargetGroupMappingsWithAppAutoScaling-cluster",
-        seenCreateServRequest.getCluster());
-    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
-    assertEquals("v000", serviceLB.getContainerName());
-    assertEquals(80, serviceLB.getContainerPort().intValue());
+        seenCreateServRequest.cluster());
+    LoadBalancer serviceLB = seenCreateServRequest.loadBalancers().get(0);
+    assertEquals("v000", serviceLB.containerName());
+    assertEquals(80, serviceLB.containerPort().intValue());
 
     ArgumentCaptor<DescribeAlarmsRequest> describeAlarmsRequestArgsCaptor =
         ArgumentCaptor.forClass(DescribeAlarmsRequest.class);
@@ -269,14 +269,15 @@ public class CreateServerGroupWithAppAutoScalingSpec extends EcsSpec {
 
     ArgumentCaptor<DescribeScalableTargetsRequest> describeScalableTargetsRequestArgumentCaptor =
         ArgumentCaptor.forClass(DescribeScalableTargetsRequest.class);
-    verify(mockAWSApplicationAutoScalingClient, atLeast(1))
+    verify(mockAutoScalingV2, atLeast(1))
         .describeScalableTargets(describeScalableTargetsRequestArgumentCaptor.capture());
 
     assertTrue(
         describeScalableTargetsRequestArgumentCaptor.getAllValues().stream()
             .anyMatch(
                 scalabletarget ->
-                    ("ecs:service:DesiredCount").equals(scalabletarget.getScalableDimension())));
+                    ("ecs:service:DesiredCount")
+                        .equals(scalabletarget.scalableDimensionAsString())));
 
     ArgumentCaptor<PutScalingPolicyRequest> putScalingPolicyRequestArgumentCaptor =
         ArgumentCaptor.forClass(PutScalingPolicyRequest.class);

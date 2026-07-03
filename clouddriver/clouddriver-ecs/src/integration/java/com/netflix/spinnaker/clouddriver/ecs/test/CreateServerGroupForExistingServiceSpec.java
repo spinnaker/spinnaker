@@ -24,21 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.applicationautoscaling.AWSApplicationAutoScalingClient;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsRequest;
-import com.amazonaws.services.applicationautoscaling.model.DescribeScalableTargetsResult;
-import com.amazonaws.services.ecs.AmazonECS;
-import com.amazonaws.services.ecs.model.*;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
-import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.ecs.EcsSpec;
 import io.restassured.http.ContentType;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,107 +37,78 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.services.ecs.EcsClient;
-import software.amazon.awssdk.services.ecs.model.DescribeServicesResponse;
-import software.amazon.awssdk.services.ecs.model.ListServicesResponse;
+import software.amazon.awssdk.services.ecs.model.*;
+import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.DescribeTargetGroupsResponse;
+import software.amazon.awssdk.services.elasticloadbalancingv2.model.TargetGroup;
 
 public class CreateServerGroupForExistingServiceSpec extends EcsSpec {
 
-  private AWSApplicationAutoScalingClient mockAWSApplicationAutoScalingClient =
-      mock(AWSApplicationAutoScalingClient.class);
-
-  private AmazonECS mockECS = mock(AmazonECS.class);
-
-  private AmazonElasticLoadBalancing mockELB = mock(AmazonElasticLoadBalancing.class);
-
   private EcsClient mockEcsV2 = mock(EcsClient.class);
+
+  private ElasticLoadBalancingV2Client mockELB = mock(ElasticLoadBalancingV2Client.class);
 
   @BeforeEach
   public void setup() {
 
     // mock v2 ECS responses (used by EcsServerGroupNameResolver)
-    when(mockEcsV2.listServices(
-            any(software.amazon.awssdk.services.ecs.model.ListServicesRequest.class)))
+    when(mockEcsV2.listServices(any(ListServicesRequest.class)))
         .thenReturn(
             ListServicesResponse.builder()
                 .serviceArns(
                     Collections.singletonList(
                         "arn:aws:ecs:ecs-integInputEC2TgMappingsExistingServiceStack-v000"))
                 .build());
-    when(mockEcsV2.describeServices(
-            any(software.amazon.awssdk.services.ecs.model.DescribeServicesRequest.class)))
+    when(mockEcsV2.describeServices(any(DescribeServicesRequest.class)))
         .thenReturn(
             DescribeServicesResponse.builder()
                 .services(
                     Collections.singletonList(
-                        software.amazon.awssdk.services.ecs.model.Service.builder()
+                        Service.builder()
                             .serviceName("ecs-integInputEC2TgMappingsExistingServiceStack-v000")
+                            .createdAt(Instant.now())
                             .status("INACTIVE")
                             .build()))
                 .build());
 
+    when(mockEcsV2.listAccountSettings(any(ListAccountSettingsRequest.class)))
+        .thenReturn(ListAccountSettingsResponse.builder().build());
+
+    when(mockEcsV2.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
+        .thenAnswer(
+            (Answer<RegisterTaskDefinitionResponse>)
+                invocation -> {
+                  RegisterTaskDefinitionRequest request = invocation.getArgument(0);
+                  String testArn = "arn:aws:ecs:::task-definition/" + request.family() + ":2";
+                  return RegisterTaskDefinitionResponse.builder()
+                      .taskDefinition(TaskDefinition.builder().taskDefinitionArn(testArn).build())
+                      .build();
+                });
+
+    when(mockEcsV2.createService(any(CreateServiceRequest.class)))
+        .thenReturn(CreateServiceResponse.builder().service(Service.builder().build()).build());
+
     when(mockAwsProvider.getAmazonEcsV2(any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockEcsV2);
 
-    // mocking calls
-    when(mockECS.listAccountSettings(any(ListAccountSettingsRequest.class)))
-        .thenReturn(new ListAccountSettingsResult());
-    when(mockECS.describeServices(any(DescribeServicesRequest.class)))
-        .thenReturn(
-            new DescribeServicesResult()
-                .withServices(
-                    Collections.singletonList(
-                        new Service()
-                            .withServiceName("ecs-integInputEC2TgMappingsExistingServiceStack-v000")
-                            .withCreatedAt(new Date())
-                            .withStatus("INACTIVE"))));
-
-    when(mockECS.createService(any(CreateServiceRequest.class)))
-        .thenReturn(new CreateServiceResult().withService(new Service()));
-
-    when(mockECS.registerTaskDefinition(any(RegisterTaskDefinitionRequest.class)))
-        .thenAnswer(
-            (Answer<RegisterTaskDefinitionResult>)
-                invocation -> {
-                  RegisterTaskDefinitionRequest request =
-                      (RegisterTaskDefinitionRequest) invocation.getArguments()[0];
-                  String testArn = "arn:aws:ecs:::task-definition/" + request.getFamily() + ":2";
-                  TaskDefinition taskDef = new TaskDefinition().withTaskDefinitionArn(testArn);
-                  return new RegisterTaskDefinitionResult().withTaskDefinition(taskDef);
-                });
-
-    when(mockECS.listServices(any(ListServicesRequest.class)))
-        .thenReturn(
-            new ListServicesResult()
-                .withServiceArns(
-                    Collections.singletonList(
-                        "arn:aws:ecs:ecs-integInputEC2TgMappingsExistingServiceStack-v000")));
-
-    when(mockAWSApplicationAutoScalingClient.describeScalableTargets(
-            any(DescribeScalableTargetsRequest.class)))
-        .thenReturn(new DescribeScalableTargetsResult());
-
-    // mock ELB responses
+    // mock v2 ELB responses
     when(mockELB.describeTargetGroups(any(DescribeTargetGroupsRequest.class)))
         .thenAnswer(
-            (Answer<DescribeTargetGroupsResult>)
+            (Answer<DescribeTargetGroupsResponse>)
                 invocation -> {
-                  DescribeTargetGroupsRequest request =
-                      (DescribeTargetGroupsRequest) invocation.getArguments()[0];
+                  DescribeTargetGroupsRequest request = invocation.getArgument(0);
                   String testArn =
                       "arn:aws:elasticloadbalancing:::targetgroup/"
-                          + request.getNames().get(0)
+                          + request.names().get(0)
                           + "/76tgredfc";
-                  TargetGroup testTg = new TargetGroup().withTargetGroupArn(testArn);
-
-                  return new DescribeTargetGroupsResult().withTargetGroups(testTg);
+                  return DescribeTargetGroupsResponse.builder()
+                      .targetGroups(TargetGroup.builder().targetGroupArn(testArn).build())
+                      .build();
                 });
 
-    when(mockAwsProvider.getAmazonEcs(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
-        .thenReturn(mockECS);
-
-    when(mockAwsProvider.getAmazonElasticLoadBalancingV2(
-            any(NetflixAmazonCredentials.class), anyString(), anyBoolean()))
+    when(mockAwsProvider.getAmazonElasticLoadBalancingV2V2(
+            any(NetflixAmazonCredentials.class), anyString()))
         .thenReturn(mockELB);
   }
 
@@ -200,11 +162,11 @@ public class CreateServerGroupForExistingServiceSpec extends EcsSpec {
 
     ArgumentCaptor<RegisterTaskDefinitionRequest> registerTaskDefArgs =
         ArgumentCaptor.forClass(RegisterTaskDefinitionRequest.class);
-    verify(mockECS).registerTaskDefinition(registerTaskDefArgs.capture());
+    verify(mockEcsV2).registerTaskDefinition(registerTaskDefArgs.capture());
     RegisterTaskDefinitionRequest seenTaskDefRequest = registerTaskDefArgs.getValue();
-    assertEquals(expectedServerGroupName, seenTaskDefRequest.getFamily() + "-v001");
-    assertEquals(1, seenTaskDefRequest.getContainerDefinitions().size());
-    assertEquals("v001", seenTaskDefRequest.getContainerDefinitions().get(0).getName());
+    assertEquals(expectedServerGroupName, seenTaskDefRequest.family() + "-v001");
+    assertEquals(1, seenTaskDefRequest.containerDefinitions().size());
+    assertEquals("v001", seenTaskDefRequest.containerDefinitions().get(0).name());
 
     ArgumentCaptor<DescribeTargetGroupsRequest> elbArgCaptor =
         ArgumentCaptor.forClass(DescribeTargetGroupsRequest.class);
@@ -213,23 +175,22 @@ public class CreateServerGroupForExistingServiceSpec extends EcsSpec {
 
     assertTrue(
         seenTargetGroupRequest
-            .getNames()
+            .names()
             .contains("integInputEC2TgMappingsExistingService-targetGroup"));
 
     ArgumentCaptor<CreateServiceRequest> createServiceArgs =
         ArgumentCaptor.forClass(CreateServiceRequest.class);
-    verify(mockECS).createService(createServiceArgs.capture());
+    verify(mockEcsV2).createService(createServiceArgs.capture());
     CreateServiceRequest seenCreateServRequest = createServiceArgs.getValue();
-    assertEquals("EC2", seenCreateServRequest.getLaunchType());
-    assertEquals(expectedServerGroupName, seenCreateServRequest.getServiceName());
-    assertEquals(1, seenCreateServRequest.getLoadBalancers().size());
-    LoadBalancer serviceLB = seenCreateServRequest.getLoadBalancers().get(0);
-    assertEquals("v001", serviceLB.getContainerName());
-    assertEquals(80, serviceLB.getContainerPort().intValue());
-    assertEquals(
-        "integInputEC2TgMappingsExistingService-cluster", seenCreateServRequest.getCluster());
+    assertEquals("EC2", seenCreateServRequest.launchTypeAsString());
+    assertEquals(expectedServerGroupName, seenCreateServRequest.serviceName());
+    assertEquals(1, seenCreateServRequest.loadBalancers().size());
+    LoadBalancer serviceLB = seenCreateServRequest.loadBalancers().get(0);
+    assertEquals("v001", serviceLB.containerName());
+    assertEquals(80, serviceLB.containerPort().intValue());
+    assertEquals("integInputEC2TgMappingsExistingService-cluster", seenCreateServRequest.cluster());
     assertEquals(
         "arn:aws:elasticloadbalancing:::targetgroup/integInputEC2TgMappingsExistingService-targetGroup/76tgredfc",
-        serviceLB.getTargetGroupArn());
+        serviceLB.targetGroupArn());
   }
 }
