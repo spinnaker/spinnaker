@@ -88,7 +88,9 @@ public class CreateServerGroupAtomicOperation
   protected static final String DOCKER_LABEL_KEY_DETAIL = "spinnaker.detail";
 
   protected ObjectMapper mapper =
-      new ObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      new ObjectMapper()
+          .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          .registerModule(new AwsSdkV2JacksonModule());
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
