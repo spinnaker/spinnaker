@@ -1599,6 +1599,58 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void normalizeNullableCollections_defaultsNullCollectionsToEmpty() {
+    // Raw pipeline/REST deploy descriptions can omit these; the compose path dereferences them.
+    mockDescription.setInstanceMetadata(null);
+    mockDescription.setLabels(null);
+    mockDescription.setAuthScopes(null);
+
+    basicGoogleDeployHandler.normalizeNullableCollections(mockDescription);
+
+    assertNotNull(mockDescription.getInstanceMetadata());
+    assertTrue(mockDescription.getInstanceMetadata().isEmpty());
+    assertNotNull(mockDescription.getLabels());
+    assertTrue(mockDescription.getLabels().isEmpty());
+    assertNotNull(mockDescription.getAuthScopes());
+    assertTrue(mockDescription.getAuthScopes().isEmpty());
+  }
+
+  @Test
+  void normalizeNullableCollections_preservesExistingCollections() {
+    Map<String, String> instanceMetadata = new HashMap<>();
+    instanceMetadata.put("startup-script", "echo hi");
+    Map<String, String> labels = new HashMap<>();
+    labels.put("team", "delivery");
+    List<String> authScopes = List.of("compute");
+    mockDescription.setInstanceMetadata(instanceMetadata);
+    mockDescription.setLabels(labels);
+    mockDescription.setAuthScopes(authScopes);
+
+    basicGoogleDeployHandler.normalizeNullableCollections(mockDescription);
+
+    assertEquals(instanceMetadata, mockDescription.getInstanceMetadata());
+    assertEquals(labels, mockDescription.getLabels());
+    assertEquals(authScopes, mockDescription.getAuthScopes());
+  }
+
+  @Test
+  void buildLoadBalancerPolicyFromInput_withNullInstanceMetadata_returnsDefaultAfterNormalize()
+      throws Exception {
+    // Regression: raw deploys can omit instanceMetadata; buildLoadBalancerPolicyFromInput reads it
+    // directly, so normalizeNullableCollections must make it non-null to avoid a
+    // NullPointerException.
+    mockDescription.setInstanceMetadata(null);
+    mockDescription.setLoadBalancingPolicy(null);
+
+    basicGoogleDeployHandler.normalizeNullableCollections(mockDescription);
+    GoogleHttpLoadBalancingPolicy result =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(mockDescription);
+
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
+  }
+
+  @Test
   void validateAcceleratorConfig_throwsExceptionForInvalidConfig() {
     mockDescription.setAcceleratorConfigs(List.of(new AcceleratorConfig()));
     mockDescription.setRegional(false);

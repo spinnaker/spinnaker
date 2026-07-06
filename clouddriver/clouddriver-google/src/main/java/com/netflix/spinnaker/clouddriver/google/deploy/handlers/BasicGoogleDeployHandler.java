@@ -145,6 +145,7 @@ public class BasicGoogleDeployHandler
     Task task = getTask();
 
     try {
+      normalizeNullableCollections(description);
       String region = getRegionFromInput(description);
       String location = getLocationFromInput(description, region);
       GCEServerGroupNameResolver nameResolver = getServerGroupNameResolver(description, region);
@@ -275,6 +276,29 @@ public class BasicGoogleDeployHandler
 
     } catch (IOException e) {
       throw new IllegalStateException("Unexpected error in handler: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Deploy descriptions created outside the Deck server-group wizard (raw pipeline stages or direct
+   * REST payloads) can omit collection-valued fields, leaving them null. Several compose steps
+   * below dereference these collections directly: {@code buildServiceAccountFromInput} calls {@code
+   * authScopes.isEmpty()}, the moniker step writes into the {@code labels} map, and the
+   * load-balancer policy/backend-service steps read {@code instanceMetadata}. Default them to empty
+   * once here so raw-JSON deploys don't fail with a NullPointerException. Writing the map back
+   * (rather than defaulting locally) also lets {@code setupMonikerForOperation} and the
+   * instance-template labels share a single map instance, so moniker-derived labels are preserved
+   * instead of silently dropped when {@code labels} started out null.
+   */
+  protected void normalizeNullableCollections(BasicGoogleDeployDescription description) {
+    if (description.getInstanceMetadata() == null) {
+      description.setInstanceMetadata(new HashMap<>());
+    }
+    if (description.getLabels() == null) {
+      description.setLabels(new HashMap<>());
+    }
+    if (description.getAuthScopes() == null) {
+      description.setAuthScopes(new ArrayList<>());
     }
   }
 
