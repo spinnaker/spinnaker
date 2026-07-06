@@ -316,7 +316,9 @@ public class BasicGoogleDeployHandler
   }
 
   protected String getLocationFromInput(BasicGoogleDeployDescription description, String region) {
-    return description.getRegional() ? region : description.getZone();
+    // `regional` is nullable on raw pipeline/REST payloads (the Deck wizard always sets it); a
+    // null value means a zonal deploy, so compare via Boolean.TRUE rather than unboxing.
+    return Boolean.TRUE.equals(description.getRegional()) ? region : description.getZone();
   }
 
   protected String getMachineTypeNameFromInput(
@@ -1380,6 +1382,27 @@ public class BasicGoogleDeployHandler
     return instanceTemplateUrl;
   }
 
+  /**
+   * Determines whether server-group creation must block on the managed instance group becoming
+   * available before backend services or autoscalers are wired up.
+   *
+   * <p>{@code disableTraffic} is nullable: the Deck wizard always populates it, but raw
+   * pipeline/REST payloads may omit it. A null value means traffic is enabled ({@code false}), so
+   * it is compared via {@link Boolean#TRUE} rather than unboxed. The regional and zonal insert
+   * paths share this predicate so the null-safety and the load-balancer conditions stay in sync.
+   */
+  protected boolean shouldWaitForInstanceGroupManagerCreation(
+      BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {
+    boolean trafficEnabled = !Boolean.TRUE.equals(description.getDisableTraffic());
+    return (trafficEnabled && hasBackedServiceFromInput(description, lbInfo))
+        || autoscalerIsSpecified(description)
+        || (trafficEnabled
+            && (!lbInfo.internalLoadBalancers.isEmpty()
+                || !lbInfo.internalHttpLoadBalancers.isEmpty()
+                || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
+                || !lbInfo.externalHttpLoadBalancers.isEmpty()));
+  }
+
   protected String createRegionalInstanceGroupManagerAndWait(
       BasicGoogleDeployDescription description,
       LoadBalancerInfo lbInfo,
@@ -1401,13 +1424,7 @@ public class BasicGoogleDeployHandler
             TAG_REGION,
             region);
 
-    if ((!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (!description.getDisableTraffic()
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()
-                || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
-                || !lbInfo.externalHttpLoadBalancers.isEmpty()))) {
+    if (shouldWaitForInstanceGroupManagerCreation(description, lbInfo)) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
       googleOperationPoller.waitForRegionalOperation(
@@ -1490,13 +1507,7 @@ public class BasicGoogleDeployHandler
             TAG_ZONE,
             description.getZone());
 
-    if ((!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (!description.getDisableTraffic()
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()
-                || !lbInfo.regionalExternalNetworkLoadBalancers.isEmpty()
-                || !lbInfo.externalHttpLoadBalancers.isEmpty()))) {
+    if (shouldWaitForInstanceGroupManagerCreation(description, lbInfo)) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
       googleOperationPoller.waitForZonalOperation(

@@ -193,6 +193,18 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testGetLocationFromInput_RegionalNull() {
+    // Raw pipeline/REST payloads may omit `regional`; a null value must resolve to a zonal deploy
+    // instead of throwing when the Boolean is unboxed.
+    String zone = "us-central1-a";
+    mockDescription.setRegional(null);
+    mockDescription.setZone(zone);
+
+    assertEquals(
+        zone, basicGoogleDeployHandler.getLocationFromInput(mockDescription, "us-central1"));
+  }
+
+  @Test
   void testGetMachineTypeNameFromInput_WithCustomInstanceType() {
     String instanceType = "custom-4-16384";
     mockDescription.setInstanceType(instanceType);
@@ -2404,6 +2416,68 @@ public class BasicGoogleDeployHandlerTest {
     verify(basicGoogleDeployHandler)
         .createInstanceGroupManagerAndWait(any(), any(), any(), any(), any());
     verify(basicGoogleDeployHandler).createAutoscaler(any(), any(), any(), any());
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withNullDisableTraffic_doesNotThrow() {
+    // Raw pipeline/REST payloads omit `disableTraffic`; a null value must be treated as
+    // traffic-enabled instead of throwing when the Boolean is unboxed (the regional/zonal MIG
+    // insert paths evaluate this predicate right after creating the instance group).
+    BasicGoogleDeployHandler.LoadBalancerInfo emptyLbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(null);
+    doReturn(false)
+        .when(basicGoogleDeployHandler)
+        .hasBackedServiceFromInput(mockDescription, emptyLbInfo);
+    doReturn(false).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
+
+    assertDoesNotThrow(
+        () ->
+            assertFalse(
+                basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+                    mockDescription, emptyLbInfo)));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withNullDisableTrafficAndBackend_returnsTrue() {
+    // Null disableTraffic means traffic is enabled, so a backend service must trigger the wait.
+    BasicGoogleDeployHandler.LoadBalancerInfo emptyLbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(null);
+    doReturn(true)
+        .when(basicGoogleDeployHandler)
+        .hasBackedServiceFromInput(mockDescription, emptyLbInfo);
+
+    assertTrue(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, emptyLbInfo));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withDisableTrafficTrue_ignoresLoadBalancers() {
+    // With traffic explicitly disabled, backend/load-balancer presence must not force the wait;
+    // only an autoscaler (traffic-independent) should.
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.internalLoadBalancers.add(mock(GoogleLoadBalancerView.class));
+    mockDescription.setDisableTraffic(true);
+    doReturn(false).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
+
+    assertFalse(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, lbInfo));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_withAutoscaler_returnsTrueEvenIfTrafficDisabled() {
+    BasicGoogleDeployHandler.LoadBalancerInfo emptyLbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(true);
+    doReturn(true).when(basicGoogleDeployHandler).autoscalerIsSpecified(mockDescription);
+
+    assertTrue(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, emptyLbInfo));
   }
 
   @Test
