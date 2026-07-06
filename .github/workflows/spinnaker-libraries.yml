@@ -64,6 +64,7 @@ jobs:
           ./gradlew assemble publishToNexus
 
       - name: Close and release Nexus staging repository
+        continue-on-error: true
         env:
           ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
           ORG_GRADLE_PROJECT_nexusPublishEnabled: true
