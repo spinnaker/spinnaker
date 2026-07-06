@@ -1155,7 +1155,7 @@ class GCEUtil {
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
-      ).getItems()
+      ).getItems() ?: []
       backendServiceNames = projectRegionalForwardingRules.findAll { ForwardingRule forwardingRule ->
         isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in serverGroup.loadBalancers
       }.collect { ForwardingRule forwardingRule ->
@@ -1820,7 +1820,7 @@ class GCEUtil {
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
         executor.TAG_SCOPE, executor.SCOPE_REGIONAL, executor.TAG_REGION, region
-      ).getItems()
+      ).getItems() ?: []
 
       def matchingForwardingRules = projectForwardingRules.findAll { ForwardingRule forwardingRule ->
         isRegionalExternalNetworkPassthroughForwardingRule(forwardingRule) && forwardingRule.name in loadBalancersInMetadata

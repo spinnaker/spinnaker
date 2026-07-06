@@ -324,7 +324,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         break
       case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
         GoogleRegionalExternalNetworkLoadBalancer.View regionalExternalNetworkView = view as GoogleRegionalExternalNetworkLoadBalancer.View
-        def portString = regionalExternalNetworkView.ports.join(",")
+        // A passthrough forwarding rule exposes either discrete `ports` or a `portRange`/all-ports
+        // config, so `ports` is null for range/all-ports LBs; fall back to portRange for display.
+        def portString = regionalExternalNetworkView.ports?.join(",") ?: regionalExternalNetworkView.portRange
         instancePort = portString
         loadBalancerPort = portString
         sessionAffinity = regionalExternalNetworkView.backendService?.sessionAffinity

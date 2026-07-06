@@ -69,14 +69,16 @@ class GoogleSslCertificateCachingAgent extends AbstractGoogleCachingAgent  {
   }
 
   List<SslCertificate> loadSslCertificates() {
+    // GCP list responses omit `items` entirely (null) when a region/project has no SSL
+    // certificates, so default to an empty list before the cache builder iterates.
     if (region) {
-      return timeExecute(compute.regionSslCertificates().list(project, region),
+      return (timeExecute(compute.regionSslCertificates().list(project, region),
         "compute.regionSslCertificates.list", TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
-      ).items as List
+      ).items ?: []) as List
     }
-    return timeExecute(compute.sslCertificates().list(project),
+    return (timeExecute(compute.sslCertificates().list(project),
       "compute.sslCertificates.list", TAG_SCOPE, SCOPE_GLOBAL
-    ).items as List
+    ).items ?: []) as List
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<SslCertificate> sslCertificateList) {

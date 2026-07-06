@@ -77,10 +77,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
     // NOTE: get all the forwarding rule names to resolve which ones to delete later.
+    // getItems() is null (not empty) when the region has no forwarding rules, e.g. an idempotent
+    // re-delete after the rule is already gone; default to empty so lookups return not-found.
     List<ForwardingRule> projectForwardingRules = timeExecute(
         compute.forwardingRules().list(project, region),
         "compute.forwardingRules.list",
-        TAG_SCOPE, SCOPE_GLOBAL).getItems()
+        TAG_SCOPE, SCOPE_GLOBAL).getItems() ?: []
 
     // Same-name regional forwarding rules can now also be EXTERNAL passthrough LBs. Only the
     // INTERNAL passthrough shape is owned by this delete operation.
