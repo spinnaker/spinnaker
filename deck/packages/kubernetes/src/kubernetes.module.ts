@@ -1,14 +1,7 @@
-import { module } from 'angular';
-
-import {
-  CloudProviderRegistry,
-  SETTINGS,
-  STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
-  YAML_EDITOR_COMPONENT,
-} from '@spinnaker/core';
+import { CloudProviderRegistry, SETTINGS } from '@spinnaker/core';
 
 import './help/kubernetes.help';
-import { KUBERNETES_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
+import { KubernetesInstanceDetails } from './instance';
 import {
   KubernetesLoadBalancerActions,
   KubernetesLoadBalancerTransformer,
@@ -20,39 +13,18 @@ import {
   useKubernetesLoadBalancerDetails,
 } from './loadBalancer';
 import kubernetesLogo from './logo/kubernetes.logo.svg';
-import { KUBERNETES_ANNOTATION_CUSTOM_SECTIONS } from './manifest/annotationCustomSections.component';
-import { KUBERNETES_DELETE } from './manifest/delete/Delete';
-import { KUBERNETES_MANIFEST_DELETE_CTRL } from './manifest/delete/delete.controller';
-import { JSON_EDITOR_COMPONENT } from './manifest/editor/json/jsonEditor.component';
-import { KUBERNETES_MANIFEST_EVENTS } from './manifest/manifestEvents.component';
-import { KUBERNETES_MANIFEST_IMAGE_DETAILS } from './manifest/manifestImageDetails.component';
-import { KUBERNETES_MANIFEST_LABELS } from './manifest/manifestLabels.component';
-import { KUBERNETES_MANIFEST_QOS } from './manifest/manifestQos.component';
-import { KUBERNETES_MANIFEST_RESOURCES } from './manifest/manifestResources.component';
-import { KUBERNETES_PAUSE_ROLLOUT } from './manifest/rollout/PauseRollout';
-import { KUBERNETES_RESUME_ROLLOUT } from './manifest/rollout/ResumeRollout';
-import { KUBERNETES_UNDO_ROLLOUT } from './manifest/rollout/UndoRollout';
-import { KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL } from './manifest/rollout/pause.controller';
-import { KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL } from './manifest/rollout/resume.controller';
-import { KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL } from './manifest/rollout/undo.controller';
-import { KUBERNETES_SCALE } from './manifest/scale/Scale';
-import { KUBERNETES_MANIFEST_SCALE_CTRL } from './manifest/scale/scale.controller';
-import { KUBERNETES_MANIFEST_SELECTOR } from './manifest/selector/selector.component';
-import { KUBERNETES_MANIFEST_CONDITION } from './manifest/status/condition.component';
-import { KUBERNETES_MANIFEST_STATUS } from './manifest/status/status.component';
 import { ManifestWizard } from './manifest/wizard/ManifestWizard';
 import './pipelines/stages';
-import { KUBERNETES_DISABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/disableManifest.stage';
-import { KUBERNETES_ENABLE_MANIFEST_STAGE } from './pipelines/stages/traffic/enableManifest.stage';
+import './pipelines/stages/traffic/disableManifest.stage';
+import './pipelines/stages/traffic/enableManifest.stage';
 import './pipelines/validation/manifestSelector.validator';
-import { KUBERNETS_RAW_RESOURCE_MODULE } from './rawResource';
-import { KUBERNETES_REACT_MODULE } from './reactShims/kubernetes.react.module';
-import { KUBERNETES_RESOURCE_STATES } from './resources/resources.state';
-import { KUBERNETES_SECURITY_GROUP_DETAILS_CTRL } from './securityGroup/details/details.controller';
-import { KubernetesSecurityGroupReader } from './securityGroup/securityGroup.reader';
-import { KUBERNETES_SECURITY_GROUP_TRANSFORMER } from './securityGroup/transformer';
-import { KubernetesServerGroupActions } from './serverGroup/details/KubernetesServerGroupActions';
-import { kubernetesServerGroupDetailsGetter } from './serverGroup/details/kubernetesServerGroupDetailsGetter';
+import './rawResource';
+import './resources/resources.state';
+import {
+  KubernetesSecurityGroupDetails,
+  KubernetesSecurityGroupReader,
+  KubernetesV2SecurityGroupTransformer,
+} from './securityGroup';
 import {
   ServerGroupAnnotationCustomSection,
   ServerGroupEventsSection,
@@ -62,53 +34,17 @@ import {
   ServerGroupLabelsSection,
   ServerGroupManifestStatusSection,
   ServerGroupSizeSection,
-} from './serverGroup/details/sections';
-import { KubernetesV2ServerGroupCommandBuilder } from './serverGroup/serverGroupCommandBuilder';
-import { KubernetesV2ServerGroupTransformer } from './serverGroup/serverGroupTransformer';
+} from './serverGroup';
+import { KubernetesV2ServerGroupCommandBuilder } from './serverGroup';
+import { KubernetesV2ServerGroupTransformer } from './serverGroup';
+import { KubernetesServerGroupActions } from './serverGroup/details/KubernetesServerGroupActions';
+import { kubernetesServerGroupDetailsGetter } from './serverGroup/details/kubernetesServerGroupDetailsGetter';
 import { ServerGroupManagerDetails } from './serverGroupManager/details/ServerGroupManagerDetails';
 import './validation/applicationName.validator';
 
 import './logo/kubernetes.logo.less';
 
-export const KUBERNETES_MODULE = 'spinnaker.kubernetes';
-
-const requires = [
-  KUBERNETES_DELETE,
-  KUBERNETES_PAUSE_ROLLOUT,
-  KUBERNETES_RESUME_ROLLOUT,
-  KUBERNETES_UNDO_ROLLOUT,
-  KUBERNETES_SCALE,
-  KUBERNETES_REACT_MODULE,
-  KUBERNETES_INSTANCE_DETAILS_CTRL,
-  KUBERNETES_SECURITY_GROUP_DETAILS_CTRL,
-  KUBERNETES_MANIFEST_DELETE_CTRL,
-  KUBERNETES_MANIFEST_SCALE_CTRL,
-  KUBERNETES_MANIFEST_UNDO_ROLLOUT_CTRL,
-  KUBERNETES_MANIFEST_PAUSE_ROLLOUT_CTRL,
-  KUBERNETES_MANIFEST_RESUME_ROLLOUT_CTRL,
-  KUBERNETES_MANIFEST_STATUS,
-  KUBERNETES_MANIFEST_CONDITION,
-  KUBERNETES_SECURITY_GROUP_TRANSFORMER,
-  KUBERNETES_MANIFEST_SELECTOR,
-  KUBERNETES_MANIFEST_LABELS,
-  KUBERNETES_MANIFEST_EVENTS,
-  KUBERNETES_MANIFEST_RESOURCES,
-  KUBERNETES_MANIFEST_QOS,
-  KUBERNETES_ANNOTATION_CUSTOM_SECTIONS,
-  KUBERNETES_MANIFEST_IMAGE_DETAILS,
-  KUBERNETES_RESOURCE_STATES,
-  YAML_EDITOR_COMPONENT,
-  JSON_EDITOR_COMPONENT,
-  KUBERNETES_ENABLE_MANIFEST_STAGE,
-  KUBERNETES_DISABLE_MANIFEST_STAGE,
-  STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT,
-];
-
-if (SETTINGS.feature.kubernetesRawResources) {
-  requires.push(KUBERNETS_RAW_RESOURCE_MODULE);
-}
-
-module(KUBERNETES_MODULE, requires).config(() => {
+export function registerKubernetesProvider(): void {
   CloudProviderRegistry.registerProvider('kubernetes', {
     name: 'Kubernetes',
     adHocInfrastructureWritesEnabled: SETTINGS.kubernetesAdHocInfraWritesEnabled,
@@ -151,13 +87,11 @@ module(KUBERNETES_MODULE, requires).config(() => {
     securityGroup: {
       reader: KubernetesSecurityGroupReader,
       CreateSecurityGroupModal: ManifestWizard,
-      detailsController: 'kubernetesV2SecurityGroupDetailsCtrl',
-      detailsTemplateUrl: require('./securityGroup/details/details.html'),
-      transformer: 'kubernetesV2SecurityGroupTransformer',
+      details: KubernetesSecurityGroupDetails,
+      transformer: KubernetesV2SecurityGroupTransformer,
     },
     instance: {
-      detailsController: 'kubernetesV2InstanceDetailsCtrl',
-      detailsTemplateUrl: require('./instance/details/details.html'),
+      details: KubernetesInstanceDetails,
     },
     unsupportedStageTypes: [
       'deploy',
@@ -175,4 +109,6 @@ module(KUBERNETES_MODULE, requires).config(() => {
       'upsertLoadBalancers',
     ],
   });
-});
+}
+
+registerKubernetesProvider();

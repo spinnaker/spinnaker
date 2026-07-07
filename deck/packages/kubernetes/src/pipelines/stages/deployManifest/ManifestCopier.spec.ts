@@ -1,86 +1,13 @@
-import type { IQService, IScope } from 'angular';
-import { mock } from 'angular';
-
 import type { Application } from '@spinnaker/core';
-import { ApplicationModelBuilder, noop } from '@spinnaker/core';
+import { noop } from '@spinnaker/core';
 import { ManifestCopier } from './ManifestCopier';
 
 describe('<ManifestCopier />', () => {
   let application: Application;
 
-  beforeEach(
-    mock.inject(($q: IQService, $rootScope: IScope) => {
-      const $scope = $rootScope.$new();
-      // The application model implicitly depends on a bunch of Angular things, which is why
-      // we need the Angular mock environment (even though we're testing a React component).
-      application = ApplicationModelBuilder.createApplicationForTests(
-        'app',
-        {
-          key: 'serverGroups',
-          loader: () =>
-            $q.resolve([
-              // Replica sets in same cluster, no manager.
-              {
-                name: 'replicaSet my-replicaSet-v002',
-                region: 'default',
-                category: 'serverGroup',
-                account: 'my-k8s-account',
-                cloudProvider: 'kubernetes',
-                cluster: 'replicaSet my-replicaSet',
-              },
-              {
-                name: 'replicaSet my-replicaSet-v001',
-                region: 'default',
-                category: 'serverGroup',
-                account: 'my-k8s-account',
-                cloudProvider: 'kubernetes',
-                cluster: 'replicaSet my-replicaSet',
-              },
-              // Replica set managed by deployment.
-              {
-                name: 'replicaSet my-managed-replicaSet-v001',
-                region: 'default',
-                category: 'serverGroup',
-                account: 'my-k8s-account',
-                cloudProvider: 'kubernetes',
-                cluster: 'deployment my-deployment',
-                serverGroupManagers: [{ name: 'deployment my-deployment' }],
-              },
-            ]),
-          onLoad: (_app: Application, data: any) => $q.resolve(data),
-          defaultData: [],
-        },
-        {
-          key: 'serverGroupManagers',
-          loader: () =>
-            $q.resolve([
-              {
-                name: 'deployment my-deployment',
-                region: 'default',
-                account: 'my-k8s-account',
-                cloudProvider: 'kubernetes',
-              },
-            ]),
-          onLoad: (_app: Application, data: any) => $q.resolve(data),
-          defaultData: [],
-        },
-        {
-          key: 'securityGroups',
-          loader: () => $q.resolve([]),
-          onLoad: (_app: Application, data: any) => $q.resolve(data),
-          defaultData: [],
-        },
-        {
-          key: 'loadBalancers',
-          loader: () => $q.resolve([]),
-          onLoad: (_app: Application, data: any) => $q.resolve(data),
-          defaultData: [],
-        },
-      );
-      application.refresh();
-      $scope.$digest();
-    }),
-  );
+  beforeEach(() => {
+    application = buildApplication();
+  });
 
   describe('dropdown grouping & ordering', () => {
     it('sorts deployments to the top of the list', () => {
@@ -108,3 +35,51 @@ const buildProps = (application: Application) => ({
   onManifestSelected: noop,
   show: true,
 });
+
+const buildApplication = (): Application => {
+  const dataSources = {
+    serverGroups: [
+      // Replica sets in same cluster, no manager.
+      {
+        name: 'replicaSet my-replicaSet-v002',
+        region: 'default',
+        category: 'serverGroup',
+        account: 'my-k8s-account',
+        cloudProvider: 'kubernetes',
+        cluster: 'replicaSet my-replicaSet',
+      },
+      {
+        name: 'replicaSet my-replicaSet-v001',
+        region: 'default',
+        category: 'serverGroup',
+        account: 'my-k8s-account',
+        cloudProvider: 'kubernetes',
+        cluster: 'replicaSet my-replicaSet',
+      },
+      // Replica set managed by deployment.
+      {
+        name: 'replicaSet my-managed-replicaSet-v001',
+        region: 'default',
+        category: 'serverGroup',
+        account: 'my-k8s-account',
+        cloudProvider: 'kubernetes',
+        cluster: 'deployment my-deployment',
+        serverGroupManagers: [{ name: 'deployment my-deployment' }],
+      },
+    ],
+    serverGroupManagers: [
+      {
+        name: 'deployment my-deployment',
+        region: 'default',
+        account: 'my-k8s-account',
+        cloudProvider: 'kubernetes',
+      },
+    ],
+    securityGroups: [],
+    loadBalancers: [],
+  };
+
+  return ({
+    getDataSource: (key: keyof typeof dataSources) => ({ data: dataSources[key] }),
+  } as unknown) as Application;
+};
