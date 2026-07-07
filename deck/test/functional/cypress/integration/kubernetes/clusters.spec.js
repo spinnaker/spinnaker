@@ -1,4 +1,4 @@
-import {registerDefaultFixtures} from '../../support';
+import { registerDefaultFixtures } from '../../support';
 
 describe('kubernetes: Clusters', () => {
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('kubernetes: Clusters', () => {
     cy.intercept('/instances/k8s-local/dev/pod*/console?provider=kubernetes', {
       fixture: 'kubernetes/clusters/instances/console.json',
     });
-    cy.intercept('POST', '/tasks', {ref: '/tasks/01K17CHBN7Y358PSRE7GR04DC0'});
+    cy.intercept('POST', '/tasks', { ref: '/tasks/01K17CHBN7Y358PSRE7GR04DC0' });
     cy.intercept('/tasks/01K17CHBN7Y358PSRE7GR04DC0', {
       fixture: 'kubernetes/task/task.success.json',
     });
@@ -39,19 +39,19 @@ describe('kubernetes: Clusters', () => {
   it('should display the clusters section', () => {
     cy.visit('#/applications/kubernetesapp/clusters');
 
-    cy.contains('.rollup-title-cell', 'deployment backend')
-      .should('be.visible')
-      .as('deploymentBackend');
+    cy.contains('.rollup-title-cell', 'deployment backend').should('be.visible').as('deploymentBackend');
 
     cy.get('@deploymentBackend')
       .parents('.rollup-entry')
       .within(() => {
         cy.get('.account-tag-name').should('contain.text', 'k8s-local');
 
-        cy.get('.health-counts .instance-health-counts').eq(1).within(() => {
-          cy.contains('2');
-          cy.contains('100%');
-        });
+        cy.get('.health-counts .instance-health-counts')
+          .eq(1)
+          .within(() => {
+            cy.contains('2');
+            cy.contains('100%');
+          });
 
         cy.contains('.subgroup-title', 'dev').should('be.visible');
 
@@ -64,7 +64,9 @@ describe('kubernetes: Clusters', () => {
         cy.get('.instances .instance-group-Up a.health-status-Up')
           .should('have.length', 2)
           .each(($el) => {
-            cy.wrap($el).should('have.attr', 'title').and('match', /^pod backend-/);
+            cy.wrap($el)
+              .should('have.attr', 'title')
+              .and('match', /^pod backend-/);
           });
       });
   });
@@ -76,28 +78,26 @@ describe('kubernetes: Clusters', () => {
       .find('input[type="checkbox"]')
       .check({force: true});
 
-    cy.contains('label', 'with details')
-      .find('input[type="checkbox"]')
-      .check({force: true});
+    cy.contains('label', 'with details').find('input[type="checkbox"]').check({ force: true });
 
-    cy.get('.instance-list table thead tr').each($div => {
+    cy.get('.instance-list table thead tr').each(($div) => {
       cy.wrap($div).within(() => {
         cy.contains('th', 'Instance').should('exist');
         cy.contains('th', 'Launch Time').should('exist');
         cy.contains('th', 'Zone').should('exist');
         cy.contains('th', 'Provider').should('exist');
       });
-    })
+    });
 
     cy.get('.instances tbody tr').should('have.length', 8);
 
-    cy.get('.instances tbody tr').each($div => {
+    cy.get('.instances tbody tr').each(($div) => {
       cy.wrap($div).within(() => {
         cy.get('td').first().invoke('text').should('match', /^pod/);
         cy.contains('td', 'dev').should('exist');
         cy.contains('td', 'Up').should('exist');
       });
-    })
+    });
   });
 
   it('should open pod details and validates content', () => {
@@ -105,8 +105,7 @@ describe('kubernetes: Clusters', () => {
 
     cy.get('[title="pod backend-65b97dd546-vb8qf"]').click();
 
-    cy.get('.InstanceDetailsHeader h3')
-      .should('contain.text', 'backend-65b97dd546-vb8qf');
+    cy.get('.InstanceDetailsHeader h3').should('contain.text', 'backend-65b97dd546-vb8qf');
 
     cy.contains('h4', 'Information').should('be.visible');
     cy.contains('dt', 'Created').next('dd').should('contain.text', '2025-07-23');
@@ -121,30 +120,13 @@ describe('kubernetes: Clusters', () => {
     cy.get('.sp-modal-footer-right > .btn-primary').click();
 
     cy.contains('h4', 'Status').should('be.visible');
-    [
-      'PodReadyToStartContainers',
-      'Initialized',
-      'Ready',
-      'ContainersReady',
-      'PodScheduled',
-    ].forEach(status => {
-      cy.get('.collapsible-section')
-        .contains('Status')
-        .parent()
-        .should('contain.text', status);
+    ['PodReadyToStartContainers', 'Initialized', 'Ready', 'ContainersReady', 'PodScheduled'].forEach((status) => {
+      cy.get('.collapsible-section').contains('Status').parents('.collapsible-section').should('contain.text', status);
     });
 
     cy.contains('h4', 'Events').should('be.visible');
-    [
-      'Scheduled',
-      'Pulled',
-      'Created',
-      'Started',
-    ].forEach(event => {
-      cy.get('.collapsible-section')
-        .contains('Events')
-        .parent()
-        .should('contain.text', event);
+    ['Scheduled', 'Pulled', 'Created', 'Started'].forEach((event) => {
+      cy.get('.collapsible-section').contains('Events').parents('.collapsible-section').should('contain.text', event);
     });
 
     cy.contains('h4', 'Resources').scrollIntoView().should('be.visible');
@@ -159,11 +141,8 @@ describe('kubernetes: Clusters', () => {
       'app.kubernetes.io/name: kubernetes',
       'custom-label: custom-value',
       'pod-template-hash: 55f76f8479',
-    ].forEach(label => {
-      cy.get('.collapsible-section')
-        .contains('Labels')
-        .parent()
-        .should('contain.text', label);
+    ].forEach((label) => {
+      cy.get('.collapsible-section').contains('Labels').parents('.collapsible-section').should('contain.text', label);
     });
 
     cy.contains('button', 'Pod Actions').click();
@@ -185,10 +164,10 @@ describe('kubernetes: Clusters', () => {
     cy.contains('a', 'Delete').click();
 
     cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Submit')
+      .contains('Delete pod')
       .click();
 
-    cy.get('.modal-content .modal-title').should('contain.text', 'Deleting pod backend-65b97dd546-vb8qf in devDelete Pod backend-65b97dd546-vb8qf in dev');
+    cy.get('.modal-content .modal-title').should('contain.text', 'Deleting pod backend-65b97dd546-vb8qfDelete Pod backend-65b97dd546-vb8qf in dev');
     cy.get('.overlay-modal-status ul.task-progress-refresh li strong').should('contain.text', 'Operation succeeded!');
 
     cy.get('.modal-footer button.btn.btn-primary')
@@ -201,16 +180,14 @@ describe('kubernetes: Clusters', () => {
 
     cy.get('.server-group.rollup-pod-server-group').eq(1).click();
 
-    cy.get('.details-panel .header h3')
-      .should('contain.text', 'backend-65b97dd546');
+    cy.get('.details-panel .header h3').should('contain.text', 'backend-65b97dd546');
 
     cy.contains('h4', 'Information').should('be.visible');
     cy.contains('dt', 'Created').next('dd').should('contain.text', '2025-07-28');
     cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
     cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'dev');
     cy.contains('dt', 'Kind').next('dd').should('contain.text', 'replicaSet');
-    cy.contains('dt', 'Controller').next('a')
-      .should('contain.text', 'Deployment backend');
+    cy.contains('dt', 'Controller').next('a').should('contain.text', 'Deployment backend');
 
     cy.contains('.collapsible-section', 'deployment info')
       .as('deploymentInfoSection')
@@ -224,8 +201,7 @@ describe('kubernetes: Clusters', () => {
     cy.contains('li', 'nginx:1.27.3').should('exist');
 
     cy.contains('h4', 'Events').should('be.visible');
-    cy.contains('.collapsible-section', 'Events')
-      .should('contain.text', 'No recent events found');
+    cy.contains('.collapsible-section', 'Events').should('contain.text', 'No recent events found');
 
     const labels = [
       'app: backend',
@@ -235,21 +211,20 @@ describe('kubernetes: Clusters', () => {
       'pod-template-hash: 65b97dd546',
     ];
     cy.contains('h4', 'Labels').scrollIntoView().should('be.visible');
-    labels.forEach(label => {
-      cy.get('.collapsible-section')
-        .contains('Labels')
-        .parents()
-        .should('contain.text', label);
+    labels.forEach((label) => {
+      cy.get('.collapsible-section').contains('Labels').parents().should('contain.text', label);
     });
 
     cy.contains('h4', 'Size').scrollIntoView().should('be.visible');
     cy.contains('dt', 'Current').next('dd').should('contain.text', '2');
 
     cy.contains('h4', 'Health').scrollIntoView().should('be.visible');
-    cy.contains('dt', 'Instances').next('dd').within(() => {
-      cy.contains('2');
-      cy.contains('100%');
-    });
+    cy.contains('dt', 'Instances')
+      .next('dd')
+      .within(() => {
+        cy.contains('2');
+        cy.contains('100%');
+      });
 
     cy.get('.details-panel .actions .dropdown-toggle')
       .should('contain.text', 'Replica Set Actions');
@@ -275,11 +250,11 @@ describe('kubernetes: Clusters', () => {
     });
 
     cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Submit')
+      .contains('Delete replicaSet')
       .click();
 
     cy.get('.modal-content .modal-title')
-      .should('contain.text', 'Deleting replicaSet backend-65b97dd546 in devDelete ReplicaSet backend-65b97dd546 in dev');
+      .should('contain.text', 'Deleting replicaSet backend-65b97dd546Delete ReplicaSet backend-65b97dd546 in dev');
     cy.get('.overlay-modal-status ul.task-progress-refresh li strong')
       .should('contain.text', 'Operation succeeded!');
 
@@ -291,9 +266,7 @@ describe('kubernetes: Clusters', () => {
   it('should open deployment details and validate content', () => {
     cy.visit('#/applications/kubernetesapp/clusters');
 
-    cy.get('.flex-container-h.server-group-title')
-      .contains('deployment backend')
-      .click();
+    cy.get('.flex-container-h.server-group-title').contains('deployment backend').click();
 
     cy.get('.details-panel .header h3').should('contain.text', 'backend');
     cy.get('.details-panel .header .icon-kubernetes').should('exist');
@@ -304,9 +277,7 @@ describe('kubernetes: Clusters', () => {
     cy.contains('dt', 'Account').next('dd').should('contain.text', 'k8s-local');
     cy.contains('dt', 'Namespace').next('dd').should('contain.text', 'dev');
     cy.contains('dt', 'Kind').next('dd').should('contain.text', 'deployment');
-    cy.contains('dt', 'Managing').next('dd')
-      .find('a')
-      .should('contain.text', 'ReplicaSet backend-65b97dd546');
+    cy.contains('dt', 'Managing').next('dd').find('a').should('contain.text', 'ReplicaSet backend-65b97dd546');
 
     cy.contains('h4', 'Status').should('be.visible');
     cy.get('.collapsible-section')
@@ -333,17 +304,10 @@ describe('kubernetes: Clusters', () => {
       .parents('.collapsible-section')
       .should('contain.text', 'No recent events found');
 
-    const labels = [
-      'app: backend',
-      'app.kubernetes.io/managed-by: spinnaker',
-      'app.kubernetes.io/name: kubernetesapp',
-    ];
+    const labels = ['app: backend', 'app.kubernetes.io/managed-by: spinnaker', 'app.kubernetes.io/name: kubernetesapp'];
     cy.contains('h4', 'Labels').scrollIntoView().should('be.visible');
-    labels.forEach(label => {
-      cy.get('.collapsible-section')
-        .contains('Labels')
-        .parents('.collapsible-section')
-        .should('contain.text', label);
+    labels.forEach((label) => {
+      cy.get('.collapsible-section').contains('Labels').parents('.collapsible-section').should('contain.text', label);
     });
 
     cy.contains('h4', 'Artifacts').scrollIntoView().should('be.visible');
@@ -355,8 +319,7 @@ describe('kubernetes: Clusters', () => {
         cy.contains('nginx:1.27.3').should('exist');
       });
 
-    cy.get('.details-panel .actions .dropdown-toggle')
-      .should('contain.text', 'Deployment Actions');
+    cy.get('.details-panel .actions .dropdown-toggle').should('contain.text', 'Deployment Actions');
 
     cy.contains('button', 'Deployment Actions').click();
     cy.contains('a', 'Scale').click();
@@ -373,13 +336,17 @@ describe('kubernetes: Clusters', () => {
       cy.contains('button', 'Cancel').should('exist');
     });
 
-    cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Submit')
-      .click();
+    cy.get('.modal-footer button.btn.btn-primary').contains('Submit').click();
 
+    cy.get('input[type="text"]').type('kubernetesapp');
+    
     cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Close')
+      .contains('Confirm')
       .click();
+    
+    cy.get('.modal-footer button.btn.btn-primary')
+    .contains('Close')
+    .click();
 
     cy.contains('button', 'Deployment Actions').click();
     cy.contains('a', 'Undo Rollout').click();
@@ -388,7 +355,7 @@ describe('kubernetes: Clusters', () => {
       cy.get('.modal-title').should('contain.text', 'Undo rollout of Deployment backend in dev');
 
       cy.contains('Revision').should('exist');
-      cy.get('select').should('exist')
+      cy.get('.Select-input').should('exist')
 
       cy.contains('Reason').should('exist');
       cy.get('textarea[placeholder*="reason for this change"]').should('exist');
@@ -397,7 +364,7 @@ describe('kubernetes: Clusters', () => {
     });
 
     cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Submit')
+      .contains('Undo rollout')
       .click();
 
     cy.get('.modal-footer button.btn.btn-primary')
@@ -416,29 +383,21 @@ describe('kubernetes: Clusters', () => {
       cy.contains('button', 'Cancel').should('exist');
     });
 
-    cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Confirm')
-      .click();
+    cy.get('.modal-footer button.btn.btn-primary').contains('Confirm').click();
 
-    cy.get('.modal-footer button.btn.btn-primary')
-      .contains('Close')
-      .click();
+    cy.get('.modal-footer button.btn.btn-primary').contains('Close').click();
   });
 
   it('should create a new cluster', () => {
     cy.visit('#/applications/kubernetesapp/clusters');
 
-    cy.get('.application-actions')
-      .contains('button', 'Create Server Group')
-      .click();
+    cy.get('.application-actions').contains('button', 'Create Server Group').click();
 
     cy.wait(1000);
 
     cy.get('.modal-content').within(() => {
       cy.get('.modal-title').should('contain.text', 'Deploy Manifest');
-      cy.contains('.form-group', 'Account')
-        .find('select')
-        .select('k8s-local');
+      cy.contains('.form-group', 'Account').find('select').select('k8s-local');
 
       const manifest = `
 apiVersion: apps/v1
@@ -463,25 +422,15 @@ spec:
           ports:
             - containerPort: 80
 `;
-      cy.get('#yaml-editor textarea')
-        .first()
-        .invoke('val', manifest)
-        .trigger('input', {force: true});
+      cy.get('#yaml-editor textarea').first().invoke('val', manifest).trigger('input', { force: true });
 
-      cy.get('.modal-footer button.btn.btn-primary')
-        .contains('Create')
-        .click();
+      cy.get('.modal-footer button.btn.btn-primary').contains('Create').click();
 
-      cy.get('.modal-header .modal-title')
-        .should('contain.text', 'Deploying your manifest');
+      cy.get('.modal-header .modal-title').should('contain.text', 'Deploying your manifest');
 
-      cy.get('.overlay-modal-status ul.task-progress-refresh li strong')
-        .should('contain.text', 'Operation succeeded!');
+      cy.get('.overlay-modal-status ul.task-progress-refresh li strong').should('contain.text', 'Operation succeeded!');
 
-      cy.get('.modal-footer button.btn.btn-primary')
-        .contains('Close')
-        .click();
+      cy.get('.modal-footer button.btn.btn-primary').contains('Close').click();
     });
   });
-
 });

@@ -19,7 +19,7 @@ import {
   ValidationMessage,
 } from '@spinnaker/core';
 
-import type { IDeleteOptions } from './delete.controller';
+import type { IDeleteOptions } from './delete.types';
 import type { IAnyKubernetesResource } from '../../interfaces';
 import DeleteManifestOptionsForm from '../../pipelines/stages/deleteManifest/DeleteManifestOptionsForm';
 

@@ -1,30 +1,28 @@
 import type { FormikProps } from 'formik';
 import { Form } from 'formik';
-import React, { useState } from 'react';
+import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
 import type { Application, IModalComponentProps, IModalProps } from '@spinnaker/core';
 import {
+  ConfirmationModalService,
   ManifestWriter,
   ModalClose,
   robotToHuman,
   SpinFormik,
   SubmitButton,
-  TaskMonitorWrapper,
   TaskReason,
-  UserVerification,
-  useTaskMonitor,
 } from '@spinnaker/core';
 
+import type { IManifestCoordinates } from '../IManifestCoordinates';
+import type { IScaleCommand } from './ScaleSettingsForm';
 import { ScaleSettingsForm } from './ScaleSettingsForm';
-import type { IAnyKubernetesResource } from '../../interfaces';
-import type { IScaleCommand } from './scale.controller';
 
 export interface IKubernetesScaleModalProps
   extends Pick<IModalProps, 'isOpen'>,
     Pick<IModalComponentProps, 'dismissModal'> {
   application: Application;
-  resource: IAnyKubernetesResource;
+  coordinates: IManifestCoordinates;
   currentReplicas: number;
 }
 
@@ -33,9 +31,11 @@ export interface IKubernetesScaleValues {
   replicas: number;
 }
 
+const REPLICA_SCALE_FACTOR_WARNING = 5;
+
 export function ScaleModal({
   application,
-  resource,
+  coordinates,
   currentReplicas,
   isOpen,
   dismissModal,
@@ -43,26 +43,40 @@ export function ScaleModal({
   const initialValues: IKubernetesScaleValues = {
     replicas: currentReplicas,
   };
-  const [verified, setVerified] = useState<boolean>(false);
-  const taskMonitor = useTaskMonitor(
-    {
-      application,
-      title: `Scaling ${resource.name} in ${resource.namespace}`,
-      onTaskComplete: () => application.serverGroups.refresh(true),
-    },
-    dismissModal,
-  );
 
   const submit = (values: IKubernetesScaleValues): void => {
-    const payload = {
-      cloudProvider: 'kubernetes',
-      manifestName: resource.name,
-      location: resource.namespace,
-      account: resource.account,
-      reason: values.reason,
-      replicas: values.replicas,
-    };
-    return taskMonitor.submit(() => ManifestWriter.scaleManifest(payload, application));
+    dismissModal();
+
+    let body = `Are you <i>really</i> sure you want to scale ${coordinates.name} in ${coordinates.account} to ${values.replicas} replicas?`;
+    if (values.replicas === 0) {
+      body +=
+        ' <br><br><span style="color:red"><b>If this service does not have replicas in another cluster, this WILL cause an outage.</b></span>';
+    } else if (currentReplicas > 0 && values.replicas >= currentReplicas * REPLICA_SCALE_FACTOR_WARNING) {
+      body += ` <br><br><span style="color:red"><b>This will create more than ${REPLICA_SCALE_FACTOR_WARNING} times the current number of replicas.</b></span>`;
+    }
+
+    ConfirmationModalService.confirm({
+      header: `Really scale ${coordinates.name} in ${coordinates.account}?`,
+      body,
+      taskMonitorConfig: {
+        application,
+        title: `Scaling ${coordinates.name} in ${coordinates.account}`,
+        onTaskComplete: () => application.serverGroups.refresh(true),
+      },
+      verificationLabel: 'Enter the name of the service to confirm',
+      textToVerify: application.name,
+      submitMethod: () => {
+        const payload = {
+          cloudProvider: 'kubernetes',
+          manifestName: coordinates.name,
+          location: coordinates.namespace,
+          account: coordinates.account,
+          reason: values.reason,
+          replicas: values.replicas,
+        };
+        return ManifestWriter.scaleManifest(payload, application);
+      },
+    });
   };
 
   const onOptionChange = (formik: FormikProps<IKubernetesScaleValues>, values: IScaleCommand): void => {
@@ -71,7 +85,6 @@ export function ScaleModal({
 
   return (
     <Modal show={isOpen} onHide={dismissModal}>
-      <TaskMonitorWrapper monitor={taskMonitor} />
       <SpinFormik<IKubernetesScaleValues>
         initialValues={initialValues}
         onSubmit={submit}
@@ -80,7 +93,7 @@ export function ScaleModal({
             <ModalClose dismiss={dismissModal} />
             <Modal.Header>
               <Modal.Title>
-                Scale {robotToHuman(resource.name)} in {resource.namespace}
+                Scale {robotToHuman(coordinates.name)} in {coordinates.namespace}
               </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -97,14 +110,13 @@ export function ScaleModal({
               </Form>
             </Modal.Body>
             <Modal.Footer>
-              <UserVerification account={resource.account} onValidChange={setVerified} />
               <Button onClick={dismissModal}>Cancel</Button>
               <SubmitButton
                 onClick={() => submit(formik.values)}
-                isDisabled={!formik.isValid || formik.isSubmitting || !verified}
+                isDisabled={formik.isSubmitting}
                 isFormSubmit={true}
                 submitting={formik.isSubmitting}
-                label={`Scale ${resource.name}`}
+                label="Submit"
               />
             </Modal.Footer>
           </>
