@@ -1,6 +1,5 @@
 import { load } from 'js-yaml';
 import { cloneDeep, has } from 'lodash';
-import { $q } from 'ngimport';
 
 import type { Application, IAccountDetails, IArtifactAccount, IMoniker } from '@spinnaker/core';
 import { AccountService } from '@spinnaker/core';
@@ -65,62 +64,49 @@ export class KubernetesManifestCommandBuilder {
       sourceManifest = load(sourceManifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]);
     }
 
-    const dataToFetch = {
-      accounts: AccountService.getAllAccountDetailsForProvider('kubernetes'),
-      artifactAccounts: AccountService.getArtifactAccounts(),
-    };
+    return Promise.all([
+      AccountService.getAllAccountDetailsForProvider('kubernetes'),
+      AccountService.getArtifactAccounts(),
+    ]).then(([accounts, artifactAccounts]: [IAccountDetails[], IArtifactAccount[]]) => {
+      const backingData = { accounts, artifactAccounts };
 
-    // TODO(dpeach): if no callers of this method are Angular controllers,
-    // $q.all may be safely replaced with Promise.all.
-    return $q
-      .all(dataToFetch)
-      .then((backingData: { accounts: IAccountDetails[]; artifactAccounts: IArtifactAccount[] }) => {
-        const { accounts, artifactAccounts } = backingData;
+      const sourceAccountDetails = accounts.find((a) => a.name === sourceAccount);
+      const account = sourceAccountDetails ? sourceAccountDetails.name : accounts.length ? accounts[0].name : null;
 
-        const account = accounts.some((a) => a.name === sourceAccount)
-          ? accounts.find((a) => a.name === sourceAccount).name
-          : accounts.length
-          ? accounts[0].name
-          : null;
+      let manifestArtifactAccount: string = null;
+      const [artifactAccountData] = artifactAccounts;
+      if (artifactAccountData) {
+        manifestArtifactAccount = artifactAccountData.name;
+      }
 
-        let manifestArtifactAccount: string = null;
-        const [artifactAccountData] = artifactAccounts;
-        if (artifactAccountData) {
-          manifestArtifactAccount = artifactAccountData.name;
-        }
+      const cloudProvider = 'kubernetes';
+      const moniker = sourceMoniker || {
+        app: app.name,
+      };
 
-        const cloudProvider = 'kubernetes';
-        const moniker = sourceMoniker || {
-          app: app.name,
-        };
+      const relationships = {
+        loadBalancers: [] as string[],
+        securityGroups: [] as string[],
+      };
 
-        const relationships = {
-          loadBalancers: [] as string[],
-          securityGroups: [] as string[],
-        };
+      const versioned: any = null;
 
-        const versioned: any = null;
-
-        return {
-          command: {
-            cloudProvider,
-            manifest: null,
-            manifests: Array.isArray(sourceManifest)
-              ? sourceManifest
-              : sourceManifest != null
-              ? [sourceManifest]
-              : null,
-            relationships,
-            moniker,
-            account,
-            versioned,
-            manifestArtifactAccount,
-            source: ManifestSource.TEXT,
-          },
-          metadata: {
-            backingData,
-          },
-        } as IKubernetesManifestCommandData;
-      });
+      return {
+        command: {
+          cloudProvider,
+          manifest: null,
+          manifests: Array.isArray(sourceManifest) ? sourceManifest : sourceManifest != null ? [sourceManifest] : null,
+          relationships,
+          moniker,
+          account,
+          versioned,
+          manifestArtifactAccount,
+          source: ManifestSource.TEXT,
+        },
+        metadata: {
+          backingData,
+        },
+      } as IKubernetesManifestCommandData;
+    });
   }
 }

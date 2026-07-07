@@ -4,7 +4,7 @@ import React from 'react';
 import type { Application, IStage, IStageConfigProps } from '@spinnaker/core';
 
 import DeleteManifestOptionsForm from './DeleteManifestOptionsForm';
-import type { IDeleteOptions } from '../../../manifest/delete/delete.controller';
+import type { IDeleteOptions } from '../../../manifest/delete/delete.types';
 import type { IManifestSelector } from '../../../manifest/selector/IManifestSelector';
 import { SelectorMode } from '../../../manifest/selector/IManifestSelector';
 import { ManifestSelector } from '../../../manifest/selector/ManifestSelector';
