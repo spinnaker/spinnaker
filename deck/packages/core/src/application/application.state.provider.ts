@@ -5,6 +5,7 @@ import { module } from 'angular';
 import { ApplicationComponent } from './ApplicationComponent';
 import type { Application } from './application.model';
 import { ApplicationModelBuilder } from './applicationModel.builder';
+import { applyApplicationStateRegistrations } from './applicationState.registration';
 import { InsightLayout } from '../insight/InsightLayout';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
@@ -33,6 +34,7 @@ export class ApplicationStateProvider implements IServiceProvider {
   public static $inject = ['stateConfigProvider'];
   constructor(private stateConfigProvider: StateConfigProvider) {
     this.childStates.push(this.insightState);
+    applyApplicationStateRegistrations(this);
   }
 
   /**
