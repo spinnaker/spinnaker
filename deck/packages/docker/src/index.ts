@@ -1,2 +1,3 @@
+import './docker.module';
+
 export * from './image';
-export * from './docker.module';

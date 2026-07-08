@@ -1555,12 +1555,6 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
       date-fns:
         specifier: 2.21.1
         version: 2.21.1
@@ -1570,9 +1564,6 @@ importers:
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -1589,9 +1580,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -1826,9 +1814,6 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1836,9 +1821,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -2274,15 +2256,9 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
       lodash:
         specifier: ^4.17.19
         version: 4.18.1
-      ngimport:
-        specifier: ^0.6.0
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -2293,9 +2269,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -11612,7 +11585,6 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
-
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qjobs@1.2.0:
@@ -23094,7 +23066,7 @@ snapshots:
       jest-environment-jsdom: 26.6.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       jest-environment-node: 26.6.2
       jest-get-type: 26.3.0
-      jest-jasmine2: 26.6.3
+      jest-jasmine2: 26.6.3(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(utf-8-validate@5.0.10)
       jest-regex-util: 26.0.0
       jest-resolve: 26.6.2
       jest-util: 26.6.2
@@ -23258,7 +23230,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  jest-jasmine2@26.6.3:
+  jest-jasmine2@26.6.3(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(utf-8-validate@5.0.10):
     dependencies:
       '@babel/traverse': 7.29.7
       '@jest/environment': 26.6.2
@@ -23279,7 +23251,11 @@ snapshots:
       pretty-format: 26.6.2
       throat: 5.0.0
     transitivePeerDependencies:
+      - bufferutil
+      - canvas
       - supports-color
+      - ts-node
+      - utf-8-validate
 
   jest-leak-detector@26.6.2:
     dependencies:
