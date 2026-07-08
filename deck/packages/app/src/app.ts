@@ -15,7 +15,7 @@ import { ORACLE_MODULE } from '@spinnaker/oracle';
 import '@spinnaker/kayenta';
 import { TITUS_MODULE } from '@spinnaker/titus';
 import { ECS_MODULE } from '@spinnaker/ecs';
-import { CLOUDRUN_MODULE } from '@spinnaker/cloudrun';
+import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
 
 module('netflix.spinnaker', [
@@ -28,5 +28,4 @@ module('netflix.spinnaker', [
   APPENGINE_MODULE,
   CANARY_MODULE,
   TITUS_MODULE,
-  CLOUDRUN_MODULE,
 ]);
