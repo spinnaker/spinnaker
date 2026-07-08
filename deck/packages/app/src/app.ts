@@ -4,7 +4,7 @@ import { module } from 'angular';
 import './strictDi';
 
 import { CORE_MODULE } from '@spinnaker/core';
-import { DOCKER_MODULE } from '@spinnaker/docker';
+import '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
 import { APPENGINE_MODULE } from '@spinnaker/appengine';
 import { AZURE_MODULE } from '@spinnaker/azure';
@@ -24,7 +24,6 @@ module('netflix.spinnaker', [
   AZURE_MODULE,
   GOOGLE_MODULE,
   ECS_MODULE,
-  DOCKER_MODULE,
   ORACLE_MODULE,
   APPENGINE_MODULE,
   CANARY_MODULE,
