@@ -1,18 +1,19 @@
 import React from 'react';
 
-import type { IAccount, IFormikStageConfigInjectedProps } from '@spinnaker/core';
-import { AccountService, FormikFormField, NgReact, NumberInput, StageConfigField } from '@spinnaker/core';
+import type { IAccountDetails, IFormikStageConfigInjectedProps } from '@spinnaker/core';
+import { AccountService, FormikFormField, NumberInput, StageConfigField } from '@spinnaker/core';
+
+import { TencentcloudAccountRegionClusterSelector } from '../TencentcloudAccountRegionClusterSelector';
 
 const { useEffect, useState } = React;
-const { AccountRegionClusterSelector } = NgReact;
 
 export function RollbackClusterStageForm({ application, formik, pipeline }: IFormikStageConfigInjectedProps) {
   const stage = formik.values;
   const { setFieldValue } = formik;
-  const [accounts, setAccounts] = useState([]);
+  const [accounts, setAccounts] = useState<IAccountDetails[]>([]);
 
   useEffect(() => {
-    AccountService.listAccounts('tencentcloud').then((accounts: IAccount[]) => {
+    AccountService.listAccounts('tencentcloud').then((accounts: IAccountDetails[]) => {
       setAccounts(accounts);
     });
 
@@ -44,11 +45,12 @@ export function RollbackClusterStageForm({ application, formik, pipeline }: IFor
   return (
     <div className="form-horizontal">
       {!pipeline.strategy && (
-        <AccountRegionClusterSelector
+        <TencentcloudAccountRegionClusterSelector
           application={application}
           clusterField="cluster"
           component={stage}
           accounts={accounts}
+          setFieldValue={setFieldValue}
         />
       )}
       <StageConfigField label="Rollback Options">

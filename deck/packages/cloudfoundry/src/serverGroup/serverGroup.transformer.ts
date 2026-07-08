@@ -3,15 +3,12 @@ import { defaults } from 'lodash';
 import type { ICloudFoundryEnvVar, ICloudFoundryServerGroup } from '../domain';
 
 export class CloudFoundryServerGroupTransformer {
-  public static $inject = ['$q'];
-  public constructor(private $q: ng.IQService) {}
-
   public normalizeServerGroupDetails(serverGroup: ICloudFoundryServerGroup): ICloudFoundryServerGroup {
     return serverGroup;
   }
 
   public normalizeServerGroup(serverGroup: ICloudFoundryServerGroup): PromiseLike<ICloudFoundryServerGroup> {
-    return this.$q.resolve(serverGroup);
+    return Promise.resolve(serverGroup);
   }
 
   public convertServerGroupCommandToDeployConfiguration(base: any): any {
