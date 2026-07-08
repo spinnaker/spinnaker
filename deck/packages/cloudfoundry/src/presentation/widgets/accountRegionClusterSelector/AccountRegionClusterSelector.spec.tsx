@@ -1,17 +1,15 @@
-import type { IScope } from 'angular';
-import { mock, noop } from 'angular';
+import type { ReactWrapper, ShallowWrapper } from 'enzyme';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import type { Application, ApplicationDataSource, IMoniker, IServerGroup } from '@spinnaker/core';
-import { ApplicationModelBuilder, REACT_MODULE } from '@spinnaker/core';
+import type { Application, IMoniker, IServerGroup } from '@spinnaker/core';
 
 import type { IAccountRegionClusterSelectorProps } from './AccountRegionClusterSelector';
 import { AccountRegionClusterSelector } from './AccountRegionClusterSelector';
 
 describe('<AccountRegionClusterSelector />', () => {
-  let $scope: IScope;
   let application: Application;
+  const noop = () => {};
 
   function createServerGroup(account: string, cluster: string, name: string, region: string): IServerGroup {
     return {
@@ -26,27 +24,27 @@ describe('<AccountRegionClusterSelector />', () => {
     } as IServerGroup;
   }
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject(($rootScope: IScope) => {
-      $scope = $rootScope.$new();
-      application = ApplicationModelBuilder.createApplicationForTests('app', {
-        key: 'serverGroups',
-        loaded: true,
-        data: [
-          createServerGroup('account-name-one', 'app-stack-detailOne', 'app', 'region-one'),
-          createServerGroup('account-name-two', 'app-stack-detailTwo', 'app', 'region-two'),
-          createServerGroup('account-name-one', 'app-stack-detailOne', 'app', 'region-three'),
-          createServerGroup('account-name-one', 'app-stack-detailThree', 'app', 'region-one'),
-          createServerGroup('account-name-one', 'app-stack-detailFour', 'app', 'region-three'),
-          createServerGroup('account-name-one', 'app-stack-detailFive', 'app', 'region-two'),
-        ],
-        defaultData: [] as IServerGroup[],
-      } as ApplicationDataSource<IServerGroup[]>);
-    }),
-  );
+  async function flushComponent(component: ReactWrapper | ShallowWrapper): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    component.update();
+  }
 
-  it('initializes properly with provided component', () => {
+  beforeEach(() => {
+    const serverGroups = [
+      createServerGroup('account-name-one', 'app-stack-detailOne', 'app', 'region-one'),
+      createServerGroup('account-name-two', 'app-stack-detailTwo', 'app', 'region-two'),
+      createServerGroup('account-name-one', 'app-stack-detailOne', 'app', 'region-three'),
+      createServerGroup('account-name-one', 'app-stack-detailThree', 'app', 'region-one'),
+      createServerGroup('account-name-one', 'app-stack-detailFour', 'app', 'region-three'),
+      createServerGroup('account-name-one', 'app-stack-detailFive', 'app', 'region-two'),
+    ];
+    application = {
+      ready: () => Promise.resolve(),
+      getDataSource: () => ({ data: serverGroups }),
+    } as Application;
+  });
+
+  it('initializes properly with provided component', async () => {
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -68,7 +66,7 @@ describe('<AccountRegionClusterSelector />', () => {
     const component = shallow<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
     );
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
@@ -81,7 +79,7 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(component.state().componentName).toBe('');
   });
 
-  it('retrieves the correct list of regions when account is changed', () => {
+  it('retrieves the correct list of regions when account is changed', async () => {
     let credentials = '';
     let region = 'SHOULD-CHANGE';
     let regions = ['SHOULD-CHANGE'];
@@ -118,7 +116,7 @@ describe('<AccountRegionClusterSelector />', () => {
     const component = mount<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
     );
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
@@ -132,7 +130,7 @@ describe('<AccountRegionClusterSelector />', () => {
     accountSelectComponent.simulate('mouseDown');
     accountSelectComponent.simulate('change', { target: { value: 'account-name-two' } });
     accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().availableRegions.length).toBe(1, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-two');
@@ -143,7 +141,7 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(cluster).toBeUndefined('selected cluster is not cleared');
   });
 
-  it('retrieves the correct list of clusters when the selector is multi-region and the region is changed', () => {
+  it('retrieves the correct list of clusters when the selector is multi-region and the region is changed', async () => {
     let regions: string[] = [];
     let cluster = 'SHOULD-CHANGE';
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
@@ -177,7 +175,7 @@ describe('<AccountRegionClusterSelector />', () => {
     const component = mount<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
     );
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
@@ -191,7 +189,7 @@ describe('<AccountRegionClusterSelector />', () => {
     accountSelectComponent.simulate('mouseDown');
     accountSelectComponent.simulate('change', { target: { value: 'region-three' } });
     accountSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().clusters.length).toBe(3, 'number of clusters does not match');
     expect(component.state().clusters).toContain('app-stack-detailOne');
@@ -203,7 +201,7 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(regions).toContain('region-three');
   });
 
-  it('retrieves the correct list of clusters on startup and the selector is single-region', () => {
+  it('retrieves the correct list of clusters on startup and the selector is single-region', async () => {
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -233,7 +231,7 @@ describe('<AccountRegionClusterSelector />', () => {
     const component = mount<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
     );
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
@@ -244,7 +242,7 @@ describe('<AccountRegionClusterSelector />', () => {
     expect(component.state().clusters).toContain('app-stack-detailThree');
   });
 
-  it('the cluster value is updated in the component when cluster is changed', () => {
+  it('the cluster value is updated in the component when cluster is changed', async () => {
     let cluster = '';
     let moniker: IMoniker = { app: '' };
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
@@ -287,7 +285,7 @@ describe('<AccountRegionClusterSelector />', () => {
     const component = mount<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
     );
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.state().availableRegions.length).toBe(3, 'number of available regions does not match');
     expect(component.state().availableRegions).toContain('region-one');
@@ -301,13 +299,13 @@ describe('<AccountRegionClusterSelector />', () => {
     clusterSelectComponent.simulate('mouseDown');
     clusterSelectComponent.simulate('change', { target: { value: 'app-stack-detailThree' } });
     clusterSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(cluster).toBe('app-stack-detailThree');
     expect(moniker).toEqual(expectedMoniker);
   });
 
-  it('the cluster value is updated in the component when cluster is changed to freeform value', () => {
+  it('the cluster value is updated in the component when cluster is changed to freeform value', async () => {
     let cluster = '';
     let moniker: IMoniker = { app: '' };
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
@@ -342,20 +340,20 @@ describe('<AccountRegionClusterSelector />', () => {
     const component = mount<AccountRegionClusterSelector>(
       <AccountRegionClusterSelector {...accountRegionClusterProps} />,
     );
-    $scope.$digest();
+    await flushComponent(component);
 
     const clusterSelectComponent = component.find('Select[name="newCluster"] .Select-control input');
     clusterSelectComponent.simulate('mouseDown');
     clusterSelectComponent.simulate('change', { target: { value: 'app-stack-freeform' } });
     clusterSelectComponent.simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(cluster).toBe('app-stack-freeform');
     expect(moniker).toBeUndefined();
     expect(component.state().clusters).toContain('app-stack-freeform');
   });
 
-  it('initialize with form names', () => {
+  it('initialize with form names', async () => {
     const accountRegionClusterProps: IAccountRegionClusterSelectorProps = {
       accounts: [
         {
@@ -376,7 +374,7 @@ describe('<AccountRegionClusterSelector />', () => {
     };
 
     const component = shallow(<AccountRegionClusterSelector {...accountRegionClusterProps} />);
-    $scope.$digest();
+    await flushComponent(component);
 
     expect(component.find('Select[name="form.credentials"]').length).toBe(1, 'select for account not found');
     expect(component.find('Select[name="form.regions"]').length).toBe(1, 'select for regions not found');
