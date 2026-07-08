@@ -32,6 +32,7 @@ import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.contains;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -41,22 +42,34 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.LowLevelHttpRequest;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.client.testing.http.MockLowLevelHttpRequest;
+import com.google.api.client.testing.http.MockLowLevelHttpResponse;
+import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
+import com.netflix.spectator.api.DefaultRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
+import com.netflix.spinnaker.clouddriver.deploy.DescriptionValidationErrors;
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry;
+import com.netflix.spinnaker.clouddriver.google.deploy.converters.BasicGoogleDeployAtomicOperationConverter;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException;
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider;
+import com.netflix.spinnaker.clouddriver.google.deploy.validators.BasicGoogleDeployDescriptionValidator;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoHealingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet;
@@ -74,9 +87,12 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider;
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider;
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentials;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.config.GoogleConfiguration;
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -86,6 +102,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,6 +115,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.CollectionUtils;
 
 @ExtendWith(MockitoExtension.class)
 public class BasicGoogleDeployHandlerTest {
@@ -1115,6 +1134,53 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testGetBackendServiceToUpdate_WithNullMetadataAndLoadBalancerInitializesMetadata()
+      throws Exception {
+    mockDescription.setInstanceMetadata(null);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setRegional(true);
+
+    GoogleBackendService backendServiceMock = new GoogleBackendService();
+    backendServiceMock.setName("backend-service-ssl");
+
+    GoogleSslLoadBalancer googleSslLB = new GoogleSslLoadBalancer();
+    googleSslLB.setName("ssl-lb");
+    googleSslLB.setBackendService(backendServiceMock);
+
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    lbInfo.setSslLoadBalancers(List.of(googleSslLB.getView()));
+
+    mockedGCEUtil
+        .when(
+            () ->
+                GCEUtil.resolveHttpLoadBalancerNamesMetadata(anyList(), any(), anyString(), any()))
+        .thenReturn(List.of("http-lb"));
+    doReturn(new BackendService())
+        .when(basicGoogleDeployHandler)
+        .getBackendServiceFromProvider(any(), anyString());
+    mockedGCEUtil
+        .when(() -> GCEUtil.updateMetadataWithLoadBalancingPolicy(any(), any(), any()))
+        .then(Answers.RETURNS_SMART_NULLS);
+    mockedGCEUtil
+        .when(() -> GCEUtil.backendFromLoadBalancingPolicy(any()))
+        .thenReturn(new Backend());
+    when(mockCredentials.getProject()).thenReturn("test-project");
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getBackendServiceToUpdate(
+            mockDescription,
+            "serverGroupName",
+            lbInfo,
+            new GoogleHttpLoadBalancingPolicy(),
+            "us-central1");
+
+    assertThat(result).hasSize(1);
+    assertThat(mockDescription.getInstanceMetadata())
+        .containsEntry("global-load-balancer-names", "ssl-lb,http-lb");
+  }
+
+  @Test
   void testGetRegionBackendServicesToUpdateWithNoLoadBalancers() {
     List<BackendService> result =
         basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
@@ -1177,6 +1243,40 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(
         "load-balancer-1,load-balancer-2,internal-load-balancer,internal-http-load-balancer",
         instanceMetadata.get("load-balancer-names"));
+  }
+
+  @Test
+  void testGetRegionBackendServicesToUpdateWithNullMetadataAndInternalLoadBalancers()
+      throws IOException {
+    GoogleHttpLoadBalancingPolicy policy = new GoogleHttpLoadBalancingPolicy();
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        mock(BasicGoogleDeployHandler.LoadBalancerInfo.class);
+    GoogleBackendService backendService = new GoogleBackendService();
+    backendService.setName("backend-service-internal");
+
+    GoogleInternalLoadBalancer googleInternalLB = new GoogleInternalLoadBalancer();
+    googleInternalLB.setBackendService(backendService);
+    googleInternalLB.setName("internal-load-balancer");
+    when(lbInfo.getInternalLoadBalancers()).thenReturn(List.of(googleInternalLB.getView()));
+    when(lbInfo.getInternalHttpLoadBalancers()).thenReturn(Collections.emptyList());
+    mockDescription.setInstanceMetadata(null);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setRegional(true);
+    when(mockCredentials.getProject()).thenReturn("test-project");
+    doReturn(new BackendService())
+        .when(basicGoogleDeployHandler)
+        .getRegionBackendServiceFromProvider(any(), any(), any());
+    mockedGCEUtil
+        .when(() -> GCEUtil.buildRegionalServerGroupUrl(any(), any(), any()))
+        .thenReturn("regional-server-group-url");
+
+    List<BackendService> result =
+        basicGoogleDeployHandler.getRegionBackendServicesToUpdate(
+            mockDescription, "server-group-name", lbInfo, policy, "us-central1");
+
+    assertThat(result).hasSize(1);
+    assertThat(mockDescription.getInstanceMetadata())
+        .containsEntry("load-balancer-names", "internal-load-balancer");
   }
 
   @Test
@@ -1413,6 +1513,22 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testBuildServiceAccountFromInput_AuthScopesNull() {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setAuthScopes(null);
+    description.setServiceAccountEmail("custom-email");
+
+    mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
+
+    List<ServiceAccount> result =
+        basicGoogleDeployHandler.buildServiceAccountFromInput(description);
+
+    assertEquals("custom-email", description.getServiceAccountEmail());
+    assertThat(result).isEmpty();
+    mockedGCEUtil.verify(() -> GCEUtil.buildServiceAccount("custom-email", null), times(1));
+  }
+
+  @Test
   void testBuildSchedulingFromInput() {
     mockedGCEUtil
         .when(() -> GCEUtil.buildScheduling(mockDescription))
@@ -1450,6 +1566,7 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(2, labels.size());
     assertEquals("us-central1", labels.get("spinnaker-region"));
     assertEquals("my-server-group", labels.get("spinnaker-server-group"));
+    assertThat(mockDescription.getLabels()).isSameAs(labels);
   }
 
   @Test
@@ -2147,6 +2264,138 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testCreateInstanceGroupManagerFromInput_RegionalFlexPolicy_disablesInstanceRedistribution()
+      throws IOException {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setRegional(true);
+    mockDescription.setInstanceFlexibilityPolicy(flexPolicy());
+
+    doAnswer(invocation -> "target-link")
+        .when(basicGoogleDeployHandler)
+        .createRegionalInstanceGroupManagerAndWait(any(), any(), any(), any(), any(), any());
+    doNothing()
+        .when(basicGoogleDeployHandler)
+        .createRegionalAutoscaler(any(), any(), any(), any(), any());
+
+    basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+        mockDescription,
+        instanceGroupManager,
+        new BasicGoogleDeployHandler.LoadBalancerInfo(),
+        "test-server-group",
+        "us-central1",
+        mockTask);
+
+    assertThat(instanceGroupManager.getInstanceFlexibilityPolicy()).isNotNull();
+    assertThat(instanceGroupManager.getUpdatePolicy().getInstanceRedistributionType())
+        .isEqualTo("NONE");
+  }
+
+  @Test
+  void
+      testCreateInstanceGroupManagerFromInput_RegionalNonEvenDistribution_disablesInstanceRedistribution()
+          throws IOException {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setRegional(true);
+    mockDescription.setDistributionPolicy(new GoogleDistributionPolicy(null, "ANY"));
+
+    doAnswer(invocation -> "target-link")
+        .when(basicGoogleDeployHandler)
+        .createRegionalInstanceGroupManagerAndWait(any(), any(), any(), any(), any(), any());
+    doNothing()
+        .when(basicGoogleDeployHandler)
+        .createRegionalAutoscaler(any(), any(), any(), any(), any());
+
+    basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+        mockDescription,
+        instanceGroupManager,
+        new BasicGoogleDeployHandler.LoadBalancerInfo(),
+        "test-server-group",
+        "us-central1",
+        mockTask);
+
+    assertThat(instanceGroupManager.getDistributionPolicy().getTargetShape()).isEqualTo("ANY");
+    assertThat(instanceGroupManager.getUpdatePolicy().getInstanceRedistributionType())
+        .isEqualTo("NONE");
+  }
+
+  @Test
+  void
+      testCreateInstanceGroupManagerFromInput_RegionalEvenDistribution_doesNotForceInstanceRedistribution()
+          throws IOException {
+    InstanceGroupManager instanceGroupManager = new InstanceGroupManager();
+    mockDescription.setRegional(true);
+    mockDescription.setDistributionPolicy(new GoogleDistributionPolicy(null, "EVEN"));
+
+    doAnswer(invocation -> "target-link")
+        .when(basicGoogleDeployHandler)
+        .createRegionalInstanceGroupManagerAndWait(any(), any(), any(), any(), any(), any());
+    doNothing()
+        .when(basicGoogleDeployHandler)
+        .createRegionalAutoscaler(any(), any(), any(), any(), any());
+
+    basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+        mockDescription,
+        instanceGroupManager,
+        new BasicGoogleDeployHandler.LoadBalancerInfo(),
+        "test-server-group",
+        "us-central1",
+        mockTask);
+
+    assertThat(instanceGroupManager.getDistributionPolicy().getTargetShape()).isEqualTo("EVEN");
+    assertThat(instanceGroupManager.getUpdatePolicy()).isNull();
+  }
+
+  @Test
+  void testCreateInstanceGroupManagerFromInput_RegionalFlexPolicy_sendsRedistributionContract()
+      throws IOException {
+    CapturingComputeTransport transport = new CapturingComputeTransport();
+    Compute compute =
+        new Compute(
+            transport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myapp-flex-v000")
+            .setBaseInstanceName("myapp-flex-v000")
+            .setInstanceTemplate("global/instanceTemplates/myapp-flex-v000")
+            .setTargetSize(2);
+    mockDescription.setRegional(true);
+    mockDescription.setDisableTraffic(true);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setDistributionPolicy(new GoogleDistributionPolicy(null, "ANY"));
+    mockDescription.setInstanceFlexibilityPolicy(flexPolicy());
+    when(mockCredentials.getCompute()).thenReturn(compute);
+    when(mockCredentials.getProject()).thenReturn("my-project");
+    injectField("registry", new DefaultRegistry());
+
+    basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+        mockDescription,
+        instanceGroupManager,
+        new BasicGoogleDeployHandler.LoadBalancerInfo(),
+        "myapp-flex-v000",
+        "us-central1",
+        mockTask);
+
+    CapturedRequest insertRequest =
+        transport
+            .findPostTo("/projects/my-project/regions/us-central1/instanceGroupManagers")
+            .orElseThrow();
+    JsonNode capturedBody = objectMapper.readTree(insertRequest.body());
+
+    assertThat(insertRequest.method()).isEqualTo("POST");
+    assertThat(capturedBody.path("distributionPolicy").path("targetShape").asText())
+        .isEqualTo("ANY");
+    assertThat(
+            capturedBody
+                .path("instanceFlexibilityPolicy")
+                .path("instanceSelections")
+                .has("primary"))
+        .isTrue();
+    assertThat(capturedBody.path("updatePolicy").path("instanceRedistributionType").asText())
+        .isEqualTo("NONE");
+    assertThat(insertRequest.body()).doesNotContain("partnerMetadata");
+  }
+
+  @Test
   void testCreateInstanceGroupManagerFromInput_whenNotRegional() throws IOException {
     BasicGoogleDeployHandler.LoadBalancerInfo mockLBInfo =
         new BasicGoogleDeployHandler.LoadBalancerInfo();
@@ -2457,6 +2706,55 @@ public class BasicGoogleDeployHandlerTest {
     return mockLB;
   }
 
+  private record CapturedRequest(String method, String url, String body) {}
+
+  private static final class CapturingComputeTransport extends HttpTransport {
+    private final List<CapturedRequest> requests = new ArrayList<>();
+
+    @Override
+    protected LowLevelHttpRequest buildRequest(String method, String url) {
+      return new MockLowLevelHttpRequest(url) {
+        @Override
+        public MockLowLevelHttpResponse execute() throws IOException {
+          requests.add(new CapturedRequest(method, url, getContentAsString()));
+          return new MockLowLevelHttpResponse()
+              .setStatusCode(200)
+              .setContent(
+                  "{"
+                      + "\"name\":\"operation-1\","
+                      + "\"targetLink\":\"https://www.googleapis.com/compute/v1/projects/my-project/regions/us-central1/instanceGroupManagers/myapp-flex-v000\","
+                      + "\"status\":\"DONE\""
+                      + "}");
+        }
+      };
+    }
+
+    Optional<CapturedRequest> findPostTo(String path) {
+      return requests.stream()
+          .filter(request -> request.method().equals("POST"))
+          .filter(request -> request.url().contains(path))
+          .findFirst();
+    }
+  }
+
+  private static GoogleInstanceFlexibilityPolicy flexPolicy() {
+    GoogleInstanceFlexibilityPolicy.InstanceSelection selection =
+        new GoogleInstanceFlexibilityPolicy.InstanceSelection(0, List.of("e2-standard-2"));
+    GoogleInstanceFlexibilityPolicy flexPolicy = new GoogleInstanceFlexibilityPolicy();
+    flexPolicy.setInstanceSelections(Map.of("primary", selection));
+    return flexPolicy;
+  }
+
+  private void injectField(String fieldName, Object value) {
+    try {
+      Field field = BasicGoogleDeployHandler.class.getDeclaredField(fieldName);
+      field.setAccessible(true);
+      field.set(basicGoogleDeployHandler, value);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   @Test
   void testBuildLoadBalancerPolicyFromInput_WithValidInputPolicy() throws Exception {
     BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
@@ -2521,5 +2819,481 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(1.0f, result.getCapacityScaler());
     assertNotNull(result.getNamedPorts());
     assertEquals(1, result.getNamedPorts().size());
+  }
+
+  @Test
+  void testBuildLoadBalancerPolicyFromInput_WithNullMetadataFallsBackToDefaultPolicy()
+      throws Exception {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setInstanceMetadata(null);
+
+    GoogleHttpLoadBalancingPolicy result =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+
+    assertNotNull(result);
+    assertEquals(GoogleLoadBalancingPolicy.BalancingMode.UTILIZATION, result.getBalancingMode());
+    assertEquals(0.8f, result.getMaxUtilization());
+    assertEquals(1.0f, result.getCapacityScaler());
+    assertNotNull(description.getInstanceMetadata());
+  }
+
+  @Test
+  void testDirectEditMinimalDeployPayloadWithOmittedOptionalFieldsAssemblesWithoutNpe()
+      throws Exception {
+    CapturingComputeTransport transport = new CapturingComputeTransport();
+    Compute compute =
+        new Compute(
+            transport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
+    BasicGoogleDeployDescription description =
+        objectMapper.readValue(
+            "{"
+                + "\"application\":\"myapp\","
+                + "\"stack\":\"flex\","
+                + "\"region\":\"us-central1\","
+                + "\"regional\":true,"
+                + "\"selectZones\":false,"
+                + "\"distributionPolicy\":{\"targetShape\":\"ANY\"},"
+                + "\"instanceFlexibilityPolicy\":{\"instanceSelections\":{\"primary\":{\"rank\":0,\"machineTypes\":[\"e2-standard-2\"]}}}"
+                + "}",
+            BasicGoogleDeployDescription.class);
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myapp-flex-v000")
+            .setBaseInstanceName("myapp-flex-v000")
+            .setInstanceTemplate("global/instanceTemplates/myapp-flex-v000")
+            .setTargetSize(2);
+    description.setCredentials(mockCredentials);
+    description.setDisableTraffic(true);
+    when(mockCredentials.getCompute()).thenReturn(compute);
+    when(mockCredentials.getProject()).thenReturn("my-project");
+    injectField("registry", new DefaultRegistry());
+    mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
+    mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(any())).thenReturn(new Tags());
+
+    GoogleHttpLoadBalancingPolicy policy =
+        basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+    List<ServiceAccount> serviceAccounts =
+        basicGoogleDeployHandler.buildServiceAccountFromInput(description);
+    Tags tags = basicGoogleDeployHandler.buildTagsFromInput(description);
+    Map<String, String> labels =
+        basicGoogleDeployHandler.buildLabelsFromInput(
+            description, "myapp-flex-v000", "us-central1");
+    basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+        description,
+        instanceGroupManager,
+        new BasicGoogleDeployHandler.LoadBalancerInfo(),
+        "myapp-flex-v000",
+        "us-central1",
+        mockTask);
+    CapturedRequest insertRequest =
+        transport
+            .findPostTo("/projects/my-project/regions/us-central1/instanceGroupManagers")
+            .orElseThrow();
+    JsonNode capturedBody = objectMapper.readTree(insertRequest.body());
+
+    assertThat(policy).isNotNull();
+    assertThat(serviceAccounts).isEmpty();
+    assertThat(tags).isNotNull();
+    assertThat(labels).containsKeys("spinnaker-region", "spinnaker-server-group");
+    assertThat(description.getInstanceMetadata()).isNotNull();
+    assertThat(description.getLabels()).isSameAs(labels);
+    assertThat(capturedBody.path("distributionPolicy").path("targetShape").asText())
+        .isEqualTo("ANY");
+    assertThat(
+            capturedBody
+                .path("instanceFlexibilityPolicy")
+                .path("instanceSelections")
+                .has("primary"))
+        .isTrue();
+    assertThat(capturedBody.path("updatePolicy").path("instanceRedistributionType").asText())
+        .isEqualTo("NONE");
+  }
+
+  @Test
+  void testDirectEditPayload_NullTags_AssemblesThroughHandlerWithoutNpe() throws Exception {
+    assertDirectEditPartitionAssemblesWithoutNpe(description -> description.setTags(null));
+  }
+
+  @Test
+  void testDirectEditPayload_OmittedDistributionPolicyZones_AssemblesThroughHandlerWithoutNpe()
+      throws Exception {
+    // targetShape=ANY with no explicit zones must still produce a valid regional distribution
+    // policy; selectZones stays false so omitted zones are expected.
+    assertDirectEditPartitionAssemblesWithoutNpe(
+        description ->
+            description.setDistributionPolicy(new GoogleDistributionPolicy(null, "ANY")));
+  }
+
+  @Test
+  void testDirectEditPayload_EmptyLoadBalancers_AssemblesThroughHandlerWithoutNpe()
+      throws Exception {
+    assertDirectEditPartitionAssemblesWithoutNpe(
+        description -> description.setLoadBalancers(new ArrayList<>()));
+  }
+
+  @Test
+  void testDirectEditPayload_OmittedSource_AssemblesThroughHandlerWithoutNpe() throws Exception {
+    assertDirectEditPartitionAssemblesWithoutNpe(description -> description.setSource(null));
+  }
+
+  /**
+   * Drives a saved/direct-edit payload through real handler assembly (build helpers plus {@code
+   * createInstanceGroupManagerFromInput}) after applying one omitted/null partition. Asserts the
+   * partition does not cause an NPE and that the regional redistribution contract still holds in
+   * the serialized outbound request body. Complements the field-level null tests above by covering
+   * the optional fields that are omissible through saved/direct-edit payloads (tags,
+   * distributionPolicy.zones, loadBalancers, source).
+   */
+  private void assertDirectEditPartitionAssemblesWithoutNpe(
+      Consumer<BasicGoogleDeployDescription> partition) throws Exception {
+    CapturingComputeTransport transport = new CapturingComputeTransport();
+    Compute compute =
+        new Compute(
+            transport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
+    BasicGoogleDeployDescription description = populatedRegionalFlexDescription();
+    partition.accept(description);
+    description.setCredentials(mockCredentials);
+    description.setDisableTraffic(true);
+    when(mockCredentials.getCompute()).thenReturn(compute);
+    when(mockCredentials.getProject()).thenReturn("my-project");
+    injectField("registry", new DefaultRegistry());
+    mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
+    mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(any())).thenReturn(new Tags());
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myapp-flex-v000")
+            .setBaseInstanceName("myapp-flex-v000")
+            .setInstanceTemplate("global/instanceTemplates/myapp-flex-v000")
+            .setTargetSize(2);
+
+    assertDoesNotThrow(
+        () -> {
+          basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+          basicGoogleDeployHandler.buildServiceAccountFromInput(description);
+          basicGoogleDeployHandler.buildTagsFromInput(description);
+          basicGoogleDeployHandler.buildLabelsFromInput(
+              description, "myapp-flex-v000", "us-central1");
+          basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+              description,
+              instanceGroupManager,
+              new BasicGoogleDeployHandler.LoadBalancerInfo(),
+              "myapp-flex-v000",
+              "us-central1",
+              mockTask);
+        });
+
+    CapturedRequest insertRequest =
+        transport
+            .findPostTo("/projects/my-project/regions/us-central1/instanceGroupManagers")
+            .orElseThrow();
+    JsonNode capturedBody = objectMapper.readTree(insertRequest.body());
+    assertThat(capturedBody.path("distributionPolicy").path("targetShape").asText())
+        .isEqualTo("ANY");
+    assertThat(capturedBody.path("updatePolicy").path("instanceRedistributionType").asText())
+        .isEqualTo("NONE");
+  }
+
+  @Test
+  void testDirectEditThroughConverterValidatorAndHandler_FullyPopulated_AssemblesWithoutNpe()
+      throws Exception {
+    assertDirectEditThroughConverterValidatorAndHandler(input -> {});
+  }
+
+  @Test
+  void testDirectEditThroughConverterValidatorAndHandler_OmittedAuthScopes_AssemblesWithoutNpe()
+      throws Exception {
+    assertDirectEditThroughConverterValidatorAndHandler(input -> input.remove("authScopes"));
+  }
+
+  @Test
+  void
+      testDirectEditThroughConverterValidatorAndHandler_OmittedInstanceMetadata_AssemblesWithoutNpe()
+          throws Exception {
+    assertDirectEditThroughConverterValidatorAndHandler(input -> input.remove("instanceMetadata"));
+  }
+
+  @Test
+  void testDirectEditThroughConverterValidatorAndHandler_OmittedLabels_AssemblesWithoutNpe()
+      throws Exception {
+    assertDirectEditThroughConverterValidatorAndHandler(input -> input.remove("labels"));
+  }
+
+  @Test
+  void testDirectEditThroughConverterValidatorAndHandler_NullTags_AssemblesWithoutNpe()
+      throws Exception {
+    assertDirectEditThroughConverterValidatorAndHandler(input -> input.put("tags", null));
+  }
+
+  @Test
+  void
+      testDirectEditThroughConverterValidatorAndHandler_OmittedDistributionZones_AssemblesWithoutNpe()
+          throws Exception {
+    // selectZones stays true (from the base) while zones are removed, so this exercises the
+    // empty-zones guard in setDistributionPolicyToInstanceGroup; the helper asserts the outbound
+    // distributionPolicy omits zones without an NPE.
+    assertDirectEditThroughConverterValidatorAndHandler(
+        input -> {
+          @SuppressWarnings("unchecked")
+          Map<String, Object> distributionPolicy =
+              (Map<String, Object>) input.get("distributionPolicy");
+          distributionPolicy.remove("zones");
+        });
+  }
+
+  @Test
+  void testDirectEditThroughConverterValidatorAndHandler_EmptyLoadBalancers_AssemblesWithoutNpe()
+      throws Exception {
+    // The base resolves a real (stubbed) LB; emptying the list must take the early-return path in
+    // getLoadBalancerToUpdateFromInput instead of calling queryAllLoadBalancers (asserted in
+    // helper).
+    assertDirectEditThroughConverterValidatorAndHandler(
+        input -> input.put("loadBalancers", new ArrayList<>()));
+  }
+
+  @Test
+  void testDirectEditThroughConverterValidatorAndHandler_OmittedSource_AssemblesWithoutNpe()
+      throws Exception {
+    // source is only consumed by the higher-level handle() ancestry path, not by
+    // createInstanceGroupManagerFromInput; this case proves the converter+validator tolerate a
+    // payload whose optional nested `source` object is absent (the base includes it).
+    assertDirectEditThroughConverterValidatorAndHandler(input -> input.remove("source"));
+  }
+
+  /**
+   * Integrated inbound-boundary coverage for the direct-edit deploy path. Unlike the field-level
+   * partition tests above (which hand-build or directly deserialize the description), this drives
+   * the raw direct-edit payload map through the real {@link
+   * BasicGoogleDeployAtomicOperationConverter} and {@link BasicGoogleDeployDescriptionValidator}
+   * before real {@link BasicGoogleDeployHandler} assembly. It fails if the converter or validator
+   * rejects or mis-maps a null/omitted optional field on a regional flex payload, and asserts the
+   * serialized outbound {@code regionInstanceGroupManagers.insert} body still carries the GCP
+   * regional-MIG redistribution contract: flex or non-EVEN placement implies {@code
+   * updatePolicy.instanceRedistributionType=NONE}.
+   */
+  private void assertDirectEditThroughConverterValidatorAndHandler(
+      Consumer<Map<String, Object>> partition) throws Exception {
+    CapturingComputeTransport transport = new CapturingComputeTransport();
+    Compute compute =
+        new Compute(
+            transport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
+
+    // Real credentials so the converter, validator, and handler all resolve the same account. The
+    // capturing Compute lets us inspect the outbound insert body without a live GCP call.
+    GoogleNamedAccountCredentials credentials =
+        new GoogleNamedAccountCredentials.Builder()
+            .name("test-account")
+            .project("my-project")
+            .credentials(mock(GoogleCredentials.class))
+            .compute(compute)
+            .regionToZonesMap(
+                Map.of("us-central1", List.of("us-central1-a", "us-central1-b", "us-central1-c")))
+            .build();
+    MapBackedCredentialsRepository<GoogleNamedAccountCredentials> credentialsRepository =
+        new MapBackedCredentialsRepository<>(
+            GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
+            new NoopCredentialsLifecycleHandler<>());
+    credentialsRepository.save(credentials);
+
+    BasicGoogleDeployAtomicOperationConverter converter =
+        new BasicGoogleDeployAtomicOperationConverter();
+    converter.setCredentialsRepository(credentialsRepository);
+
+    BasicGoogleDeployDescriptionValidator validator = new BasicGoogleDeployDescriptionValidator();
+    validator.setCredentialsRepository(credentialsRepository);
+    // googleDeployDefaults is a private @Autowired Groovy field with no generated setter.
+    setPrivateField(validator, "googleDeployDefaults", new GoogleConfiguration.DeployDefaults());
+
+    Map<String, Object> input = directEditInput();
+    partition.accept(input);
+
+    // Inbound boundary 1: converter must build the description straight from the raw map.
+    BasicGoogleDeployDescription description = converter.convertDescription(input);
+
+    // Inbound boundary 2: validator must accept the same payload with no errors.
+    DescriptionValidationErrors errors = new DescriptionValidationErrors(description);
+    validator.validate(List.of(), description, errors);
+    assertThat(errors.hasErrors()).as("validation errors: %s", errors.getAllErrors()).isFalse();
+
+    // Handler assembly boundary: run the same build helpers plus the regional insert so the
+    // outbound request body reflects the fully assembled description. This is where a null/omitted
+    // optional field or a missing redistribution contract would surface.
+    injectField("registry", new DefaultRegistry());
+    mockedGCEUtil.when(() -> GCEUtil.buildServiceAccount(any(), any())).thenReturn(List.of());
+    mockedGCEUtil.when(() -> GCEUtil.buildTagsFromList(any())).thenReturn(new Tags());
+
+    // Stub the zone/LB collaborators only for the partitions that actually reach them, so strict
+    // stubbing still flags a genuinely dead stub.
+    boolean expectsExplicitZones =
+        Boolean.TRUE.equals(description.getSelectZones())
+            && description.getDistributionPolicy() != null
+            && !CollectionUtils.isEmpty(description.getDistributionPolicy().getZones());
+    if (expectsExplicitZones) {
+      mockedGCEUtil
+          .when(() -> GCEUtil.buildZoneUrl(eq("my-project"), any()))
+          .thenReturn(
+              "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a");
+    }
+    boolean expectsLoadBalancerLookup = !CollectionUtils.isEmpty(description.getLoadBalancers());
+    if (expectsLoadBalancerLookup) {
+      // Return an empty result so no GoogleLoadBalancerView is cast to a concrete view subtype
+      // downstream; the point of this partition is that a non-empty list drives the resolver call.
+      mockedGCEUtil
+          .when(() -> GCEUtil.queryAllLoadBalancers(any(), any(), any(), any()))
+          .thenReturn(List.of());
+    }
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myapp-flex-v000")
+            .setBaseInstanceName("myapp-flex-v000")
+            .setInstanceTemplate("global/instanceTemplates/myapp-flex-v000")
+            .setTargetSize(2);
+
+    // Resolve the LoadBalancerInfo from the raw description.loadBalancers (rather than passing an
+    // empty one) so the loadBalancers partition genuinely exercises inbound LB resolution.
+    BasicGoogleDeployHandler.LoadBalancerInfo lbInfo =
+        basicGoogleDeployHandler.getLoadBalancerToUpdateFromInput(description, mockTask);
+
+    assertDoesNotThrow(
+        () -> {
+          basicGoogleDeployHandler.buildLoadBalancerPolicyFromInput(description);
+          basicGoogleDeployHandler.buildServiceAccountFromInput(description);
+          basicGoogleDeployHandler.buildTagsFromInput(description);
+          basicGoogleDeployHandler.buildLabelsFromInput(
+              description, "myapp-flex-v000", "us-central1");
+          basicGoogleDeployHandler.createInstanceGroupManagerFromInput(
+              description,
+              instanceGroupManager,
+              lbInfo,
+              "myapp-flex-v000",
+              "us-central1",
+              mockTask);
+        });
+
+    // The LB partition must actually flow through GCEUtil.queryAllLoadBalancers (non-empty case) or
+    // take the early-return empty path (empty case), not silently no-op. lbInfo is empty either way
+    // (the resolver was stubbed to return no load balancers), so we assert on the branch taken.
+    assertThat(lbInfo).isNotNull();
+    if (expectsLoadBalancerLookup) {
+      mockedGCEUtil.verify(
+          () ->
+              GCEUtil.queryAllLoadBalancers(
+                  any(), eq(description.getLoadBalancers()), any(), any()));
+    } else {
+      mockedGCEUtil.verify(
+          () -> GCEUtil.queryAllLoadBalancers(any(), any(), any(), any()), never());
+    }
+
+    CapturedRequest insertRequest =
+        transport
+            .findPostTo("/projects/my-project/regions/us-central1/instanceGroupManagers")
+            .orElseThrow();
+    JsonNode capturedBody = objectMapper.readTree(insertRequest.body());
+    assertThat(capturedBody.path("distributionPolicy").path("targetShape").asText())
+        .isEqualTo("ANY");
+    JsonNode primarySelection =
+        capturedBody.path("instanceFlexibilityPolicy").path("instanceSelections").path("primary");
+    assertThat(primarySelection.path("rank").asInt()).isEqualTo(0);
+    List<String> outboundMachineTypes = new ArrayList<>();
+    primarySelection.path("machineTypes").forEach(node -> outboundMachineTypes.add(node.asText()));
+    assertThat(outboundMachineTypes).containsExactly("e2-standard-2");
+    assertThat(capturedBody.path("updatePolicy").path("instanceRedistributionType").asText())
+        .isEqualTo("NONE");
+
+    // The zones partition must materialize explicit zones in the outbound body when provided and
+    // omit them (without NPE) when absent, proving setDistributionPolicyToInstanceGroup consumed
+    // the direct-edit zones list.
+    JsonNode outboundZones = capturedBody.path("distributionPolicy").path("zones");
+    if (expectsExplicitZones) {
+      assertThat(outboundZones.isArray()).isTrue();
+      assertThat(outboundZones).hasSize(1);
+      assertThat(outboundZones.get(0).path("zone").asText())
+          .isEqualTo(
+              "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a");
+    } else {
+      assertThat(outboundZones.isMissingNode() || outboundZones.isEmpty()).isTrue();
+    }
+  }
+
+  /**
+   * A valid regional flex direct-edit payload as a raw request map (the shape Spinnaker hands to
+   * the converter), populated with the optional fields the partition mutators omit/null.
+   */
+  private Map<String, Object> directEditInput() {
+    Map<String, Object> input = new HashMap<>();
+    input.put("application", "myapp");
+    input.put("stack", "flex");
+    input.put("credentials", "test-account");
+    input.put("region", "us-central1");
+    input.put("regional", true);
+    // selectZones=true so an explicit distributionPolicy.zones list is actually consumed by
+    // setDistributionPolicyToInstanceGroup during handler assembly (the omitted-zones partition
+    // removes the zones while keeping selectZones=true to exercise the empty-zones guard).
+    input.put("selectZones", true);
+    input.put("disableTraffic", true);
+    input.put("targetSize", 2);
+    input.put("image", "debian-11");
+    input.put("instanceType", "e2-standard-2");
+
+    Map<String, Object> disk = new HashMap<>();
+    disk.put("type", "pd-ssd");
+    disk.put("sizeGb", 10);
+    input.put("disks", new ArrayList<>(List.of(disk)));
+
+    Map<String, Object> distributionPolicy = new HashMap<>();
+    distributionPolicy.put("targetShape", "ANY");
+    distributionPolicy.put("zones", new ArrayList<>(List.of("us-central1-a")));
+    input.put("distributionPolicy", distributionPolicy);
+
+    Map<String, Object> primarySelection = new HashMap<>();
+    primarySelection.put("rank", 0);
+    primarySelection.put("machineTypes", new ArrayList<>(List.of("e2-standard-2")));
+    Map<String, Object> instanceSelections = new HashMap<>();
+    instanceSelections.put("primary", primarySelection);
+    Map<String, Object> instanceFlexibilityPolicy = new HashMap<>();
+    instanceFlexibilityPolicy.put("instanceSelections", instanceSelections);
+    input.put("instanceFlexibilityPolicy", instanceFlexibilityPolicy);
+
+    input.put("tags", new ArrayList<>(List.of("allow-http")));
+    input.put("authScopes", new ArrayList<>(List.of("https://www.googleapis.com/auth/compute")));
+    input.put("labels", new HashMap<>(Map.of("team", "spinnaker")));
+    input.put("instanceMetadata", new HashMap<>(Map.of("user-key", "user-value")));
+    input.put("loadBalancers", new ArrayList<>(List.of("some-lb")));
+
+    Map<String, Object> source = new HashMap<>();
+    source.put("region", "us-central1");
+    source.put("serverGroupName", "myapp-flex-v000");
+    source.put("useSourceCapacity", false);
+    input.put("source", source);
+
+    return input;
+  }
+
+  private static void setPrivateField(Object target, String fieldName, Object value) {
+    try {
+      Field field = target.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      field.set(target, value);
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private BasicGoogleDeployDescription populatedRegionalFlexDescription() {
+    BasicGoogleDeployDescription description = new BasicGoogleDeployDescription();
+    description.setApplication("myapp");
+    description.setStack("flex");
+    description.setRegion("us-central1");
+    description.setRegional(true);
+    description.setSelectZones(false);
+    description.setDistributionPolicy(new GoogleDistributionPolicy(null, "ANY"));
+    description.setInstanceFlexibilityPolicy(flexPolicy());
+    description.setTags(new ArrayList<>(List.of("allow-http")));
+    description.setAuthScopes(new ArrayList<>(List.of("https://www.googleapis.com/auth/compute")));
+    description.setLabels(new HashMap<>(Map.of("team", "spinnaker")));
+    description.setInstanceMetadata(new HashMap<>(Map.of("user-key", "user-value")));
+    description.setLoadBalancers(new ArrayList<>(List.of("some-lb")));
+    return description;
   }
 }

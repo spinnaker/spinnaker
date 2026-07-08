@@ -950,6 +950,9 @@ class GCEUtil {
   // Builds the v1 ShieldedInstanceConfig (replaces beta ShieldedVmConfig).
   // See: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
   //      (shieldedInstanceConfig on InstanceProperties)
+  // Only fields explicitly present on the description are set. Omitted (null) fields are left unset
+  // so GCP applies its own defaults (Secure Boot off, vTPM on, integrity monitoring on) rather than
+  // Spinnaker forcing them. This preserves behavior for direct-edit payloads that omit these fields.
   static ShieldedInstanceConfig buildShieldedInstanceConfig(BaseGoogleInstanceDescription description) {
     def shieldedInstanceConfig = new ShieldedInstanceConfig()
 

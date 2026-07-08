@@ -36,11 +36,10 @@ class CopyLastGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOp
   }
 
   BasicGoogleDeployDescription convertDescription(Map input) {
-    // Pipelines saved before the v1 migration may still contain partnerMetadata (a beta-only
-    // feature removed in the stable API).  Strip it here so existing pipelines deploy without
-    // errors — the field is not propagated to GCE regardless.
+    // Saved pipelines may still contain partnerMetadata from older payload shapes. Strip it here so
+    // clones continue without propagating unsupported partner metadata into instanceTemplates.insert.
     if (input.containsKey('partnerMetadata')) {
-      log.warn("Stripping partnerMetadata from clone description — not supported under the stable v1 compute API.")
+      log.warn("Stripping partnerMetadata from clone description; it is not propagated to instanceTemplates.insert.")
       input.remove('partnerMetadata')
     }
 

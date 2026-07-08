@@ -637,4 +637,29 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       GCEUtil.buildCertificateMapUrl(PROJECT_NAME, "my-map") ==
         "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/global/certificateMaps/my-map"
   }
+
+  @Unroll
+  void "buildShieldedInstanceConfig only sets explicitly provided fields (#secureBoot/#vtpm/#integrity)"() {
+    given:
+      def description = new BasicGoogleDeployDescription(
+        enableSecureBoot: secureBoot,
+        enableVtpm: vtpm,
+        enableIntegrityMonitoring: integrity)
+
+    when:
+      def config = GCEUtil.buildShieldedInstanceConfig(description)
+
+    then:
+      // Omitted (null) description fields stay null so GCP defaults apply; explicit false/true pass through.
+      config.getEnableSecureBoot() == secureBoot
+      config.getEnableVtpm() == vtpm
+      config.getEnableIntegrityMonitoring() == integrity
+
+    where:
+      secureBoot | vtpm  | integrity
+      null       | null  | null
+      false      | false | false
+      true       | true  | true
+      true       | null  | false
+  }
 }

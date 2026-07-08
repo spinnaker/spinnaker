@@ -55,6 +55,7 @@ import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProper
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEServerGroupNameResolver;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller;
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleRmigRedistributionContract;
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry;
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription;
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException;
@@ -492,7 +493,7 @@ public class BasicGoogleDeployHandler
 
   protected GoogleHttpLoadBalancingPolicy buildLoadBalancerPolicyFromInput(
       BasicGoogleDeployDescription description) throws JsonProcessingException {
-    Map<String, String> instanceMetadata = description.getInstanceMetadata();
+    Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
     String sourcePolicyJson = instanceMetadata.get(LOAD_BALANCING_POLICY);
     if (description.getLoadBalancingPolicy() != null
         && description.getLoadBalancingPolicy().getBalancingMode() != null) {
@@ -527,7 +528,7 @@ public class BasicGoogleDeployHandler
     // If we try to execute the update, GCP will fail since the MIG is not created yet.
     if (hasBackedServiceFromInput(description, lbInfo)) {
       List<BackendService> backendServicesToUpdate = new ArrayList<>();
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
+      Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
       List<String> backendServices =
           instanceMetadata.get(BACKEND_SERVICE_NAMES) != null
               ? new ArrayList<>(
@@ -604,7 +605,7 @@ public class BasicGoogleDeployHandler
     if (!CollectionUtils.isEmpty(lbInfo.getInternalLoadBalancers())
         || !CollectionUtils.isEmpty(lbInfo.getInternalHttpLoadBalancers())) {
       List<BackendService> regionBackendServicesToUpdate = new ArrayList<>();
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
+      Map<String, String> instanceMetadata = ensureInstanceMetadata(description);
       List<String> existingRegionalLbs =
           instanceMetadata.get(REGIONAL_LOAD_BALANCER_NAMES) != null
               ? new ArrayList<>(
@@ -687,6 +688,15 @@ public class BasicGoogleDeployHandler
     return Collections.emptyList();
   }
 
+  private Map<String, String> ensureInstanceMetadata(BasicGoogleDeployDescription description) {
+    Map<String, String> instanceMetadata = description.getInstanceMetadata();
+    if (instanceMetadata == null) {
+      instanceMetadata = new HashMap<>();
+      description.setInstanceMetadata(instanceMetadata);
+    }
+    return instanceMetadata;
+  }
+
   protected void addUserDataToInstanceMetadata(
       BasicGoogleDeployDescription description,
       String serverGroupName,
@@ -743,13 +753,13 @@ public class BasicGoogleDeployHandler
 
   protected List<ServiceAccount> buildServiceAccountFromInput(
       BasicGoogleDeployDescription description) {
-    if (!description.getAuthScopes().isEmpty()
+    List<String> authScopes = description.getAuthScopes();
+    if (!CollectionUtils.isEmpty(authScopes)
         && StringUtils.isBlank(description.getServiceAccountEmail())) {
       description.setServiceAccountEmail("default");
     }
 
-    return GCEUtil.buildServiceAccount(
-        description.getServiceAccountEmail(), description.getAuthScopes());
+    return GCEUtil.buildServiceAccount(description.getServiceAccountEmail(), authScopes);
   }
 
   protected Scheduling buildSchedulingFromInput(BasicGoogleDeployDescription description) {
@@ -761,6 +771,7 @@ public class BasicGoogleDeployHandler
     Map<String, String> labels = description.getLabels();
     if (labels == null) {
       labels = new HashMap<>();
+      description.setLabels(labels);
     }
 
     // Used to group instances when querying for metrics from kayenta.
@@ -1054,6 +1065,7 @@ public class BasicGoogleDeployHandler
       throws IOException {
     if (Boolean.TRUE.equals(description.getRegional())) {
       setDistributionPolicyToInstanceGroup(description, instanceGroupManager);
+      GoogleRmigRedistributionContract.enforce(instanceGroupManager);
       String targetLink =
           createRegionalInstanceGroupManagerAndWait(
               description, lbInfo, serverGroupName, region, instanceGroupManager, task);

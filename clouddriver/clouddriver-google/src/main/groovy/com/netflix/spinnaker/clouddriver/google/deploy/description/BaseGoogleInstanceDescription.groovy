@@ -69,14 +69,10 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
   String accountName
 
   Map<String, String> resourceManagerTags
-  // Retained for deserialization compatibility with in-flight pipelines that still include
-  // partnerMetadata in their payloads.  Not propagated to GCE InstanceProperties under the
-  // stable v1 compute API — partnerMetadata was a beta-only feature.  Stripped at converter
-  // level (BasicGoogleDeployAtomicOperationConverter and
-  // CopyLastGoogleServerGroupAtomicOperationConverter) before Jackson deserialization so
-  // existing pipelines deploy without errors.
-  // See: https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
-  //      (partnerMetadata absent from v1 InstanceProperties)
+  // Retained for deserialization compatibility with saved pipelines that still include
+  // partnerMetadata in their deploy payloads. The deploy/clone converters strip this field before
+  // the request reaches instanceTemplates.insert because this path should not propagate
+  // partner-provided payload metadata to the stable Compute v1 insert body.
   Map<String, Object> partnerMetadata
 
   // The source of the image to deploy
