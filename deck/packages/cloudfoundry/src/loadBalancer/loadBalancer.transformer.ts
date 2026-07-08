@@ -41,9 +41,6 @@ export class CloudFoundryLoadBalancerUpsertDescription
 }
 
 export class CloudFoundryLoadBalancerTransformer {
-  public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {}
-
   public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
@@ -63,7 +60,7 @@ export class CloudFoundryLoadBalancerTransformer {
 
     const activeServerGroups = loadBalancer.serverGroups.filter((sg) => !sg.isDisabled);
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
-    return this.$q.resolve(loadBalancer);
+    return Promise.resolve(loadBalancer);
   }
 
   public constructNewCloudFoundryLoadBalancerTemplate(
