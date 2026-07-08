@@ -29,7 +29,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.Charsets;
@@ -177,36 +176,53 @@ class GithubArtifactCredentialsTest {
   }
 
   @Test
-  void downloadWithARestrictedUrl() throws IOException {
-    // explicitly deny the test server we're hitting.
+  void downloadWithARestrictedUrl(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
     // Github is interesting as ANY URL has to support BOTH the regular url & the download_url
-    // expected by the response.
-    // IT's VERY likely this is the same.  BUT should document this.
+    // expected by the response. Both must be on allowed hosts.
+    final String downloadPath = "/download/spinnaker/testing/master/manifest.yml";
+
+    GitHubArtifactCredentials.ContentMetadata contentMetadata =
+        new GitHubArtifactCredentials.ContentMetadata()
+            .setDownloadUrl(server.baseUrl() + downloadPath);
+
+    server.stubFor(
+        any(urlPathEqualTo(METADATA_PATH))
+            .withQueryParam("ref", equalTo("master"))
+            .willReturn(aResponse().withBody(objectMapper.writeValueAsString(contentMetadata))));
+
+    server.stubFor(
+        any(urlPathEqualTo(downloadPath)).willReturn(aResponse().withBody(FILE_CONTENTS)));
+
     GitHubArtifactAccount account =
         GitHubArtifactAccount.builder()
             .urlRestrictions(
                 HttpUrlRestrictions.builder()
-                    .allowedDomains(
-                        List.of("www.http-response.com", "jsonplaceholder.typicode.com"))
+                    .allowedHostnamesRegex("localhost|127\\.0\\.0\\.1")
+                    .rejectLocalhost(false)
                     .build())
-            .name("my-bitbucket-account")
+            .name("my-github-account")
             .build();
     GitHubArtifactCredentials credentials =
         new GitHubArtifactCredentials(account, okHttpClient, objectMapper);
-    Artifact artifact =
-        Artifact.builder()
-            .reference("http://example.com")
-            .version("master")
-            .type("github/file")
-            .build();
+
     assertThat(
             credentials.download(
                 Artifact.builder()
-                    .reference(
-                        "https://www.http-response.com/json?body={%22download_url%22:%22https://jsonplaceholder.typicode.com/posts/1%22}")
+                    .reference(server.baseUrl() + METADATA_PATH)
+                    .version("master")
+                    .type("github/file")
                     .build()))
         .isNotNull();
-    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
+
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            credentials.download(
+                Artifact.builder()
+                    .reference("http://example.com/artifact")
+                    .type("github/file")
+                    .build()));
   }
 
   @Test
