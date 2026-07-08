@@ -1,11 +1,25 @@
+import { CloudProviderRegistry, SETTINGS } from '@spinnaker/core';
+
+import { TencentcloudImageReader } from './image';
+
 describe('Tencentcloud package entrypoint', () => {
-  it('loads successfully', () => {
-    expect(() => require('./index')).not.toThrow();
+  let tencentcloudPackage: any;
+
+  beforeAll(() => {
+    SETTINGS.providers.tencentcloud = {};
+    tencentcloudPackage = require('./index');
   });
 
-  it('does not expose an Angular module token', () => {
-    const tencentcloudPackage = require('./index');
+  it('loads successfully', () => {
+    expect(tencentcloudPackage).toBeDefined();
+  });
 
+  it('registers the provider configuration', () => {
+    expect(CloudProviderRegistry.getValue('tencentcloud', 'image.reader')).toBe(TencentcloudImageReader);
+  });
+
+  it('does not expose Angular module tokens', () => {
     expect((tencentcloudPackage as any).TENCENTCLOUD_MODULE).toBeUndefined();
+    expect((tencentcloudPackage as any).TENCENTCLOUD_REACT_MODULE).toBeUndefined();
   });
 });
