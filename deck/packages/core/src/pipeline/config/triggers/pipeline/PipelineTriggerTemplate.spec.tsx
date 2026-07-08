@@ -2,6 +2,7 @@ import { mount, shallow } from 'enzyme';
 import React from 'react';
 
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
+import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
@@ -440,6 +441,87 @@ describe('<PipelineTriggerTemplate />', () => {
       const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
       expect(options.length).toBe(4);
       expect(options.map((o) => o.value)).toEqual(['exec-success', 'exec-failed', 'exec-running', 'exec-canceled']);
+    });
+  });
+
+  describe('Configurable execution option limit (SETTINGS.maxPipelineTriggerExecutionOptions)', () => {
+    const originalLimit = SETTINGS.maxPipelineTriggerExecutionOptions;
+
+    afterEach(() => {
+      SETTINGS.maxPipelineTriggerExecutionOptions = originalLimit;
+    });
+
+    it('defaults to 20 when no override is configured', async () => {
+      expect(SETTINGS.maxPipelineTriggerExecutionOptions).toBe(20);
+
+      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+
+      const trigger = createPipelineTrigger('source-pipeline-id');
+      const command = createCommand(trigger);
+
+      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+
+      await Promise.resolve();
+
+      expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 20 });
+    });
+
+    it('passes the configured override through to getExecutionsForConfigIds', async () => {
+      SETTINGS.maxPipelineTriggerExecutionOptions = 5;
+      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+
+      const trigger = createPipelineTrigger('source-pipeline-id');
+      const command = createCommand(trigger);
+
+      shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+
+      await Promise.resolve();
+
+      expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 5 });
+    });
+
+    it('renders exactly as many dropdown options as executions returned under a custom limit', async () => {
+      SETTINGS.maxPipelineTriggerExecutionOptions = 2;
+      // Simulate the backend honoring the overridden limit by returning only 2 executions,
+      // even though 3 exist for this pipeline in these specs (execution1/2/3).
+      const executions = [execution1, execution2];
+      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve(executions));
+
+      const trigger = createPipelineTrigger('source-pipeline-id');
+      const command = createCommand(trigger);
+
+      const wrapper = shallow(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+
+      await Promise.resolve();
+      wrapper.update();
+
+      expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 2 });
+      const options = wrapper.find('TetheredSelect').prop('options') as Array<{ value: string }>;
+      expect(options.length).toBe(2);
+      expect(options.map((o) => o.value)).toEqual(['exec-1', 'exec-2']);
+    });
+
+    it('re-reads the current SETTINGS value on every re-initialization (source pipeline change)', async () => {
+      getExecutionsForConfigIdsSpy.and.returnValue(Promise.resolve([]));
+
+      const trigger = createPipelineTrigger('source-pipeline-id');
+      const command = createCommand(trigger);
+
+      const wrapper = mount(<PipelineTriggerTemplate command={command} updateCommand={updateCommandSpy} />);
+      await Promise.resolve();
+
+      expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['source-pipeline-id'], { limit: 20 });
+      getExecutionsForConfigIdsSpy.calls.reset();
+
+      // Operator changes the setting at runtime (e.g. via settings-local.js hot-reload in dev,
+      // or simply because a later test/session picked a different value) - the NEXT fetch
+      // triggered by switching source pipelines should honor the new value immediately.
+      SETTINGS.maxPipelineTriggerExecutionOptions = 7;
+      const newTrigger = createPipelineTrigger('different-pipeline-id');
+      const newCommand = createCommand(newTrigger);
+      wrapper.setProps({ command: newCommand });
+
+      expect(getExecutionsForConfigIdsSpy).toHaveBeenCalledWith(['different-pipeline-id'], { limit: 7 });
     });
   });
 
