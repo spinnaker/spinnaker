@@ -1,5 +1,4 @@
 import { get } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Option } from 'react-select';
 import type { Subscription } from 'rxjs';
@@ -35,7 +34,9 @@ export class DockerTriggerTemplate extends React.Component<
   private subscription: Subscription;
 
   public static formatLabel(trigger: IDockerTrigger): PromiseLike<string> {
-    return $q.when(`(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`);
+    return Promise.resolve(
+      `(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`,
+    );
   }
 
   public constructor(props: ITriggerTemplateComponentProps) {
