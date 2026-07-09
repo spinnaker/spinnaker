@@ -1,6 +1,6 @@
 dependencies {
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
-  implementation "org.apache.ivy:ivy:2.4.0"
+  implementation "org.apache.ivy:ivy:2.5.3" // CVE-2022-37865
 
   testImplementation "commons-io:commons-io"
 }

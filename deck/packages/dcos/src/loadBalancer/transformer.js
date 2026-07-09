@@ -1,115 +1,105 @@
-'use strict';
-
-import { module } from 'angular';
 import _ from 'lodash';
 
 import { AccountService } from '@spinnaker/core';
 
 import { DcosProviderSettings } from '../dcos.settings';
 
-export const DCOS_LOADBALANCER_TRANSFORMER = 'spinnaker.dcos.loadBalancer.transformer';
-export const name = DCOS_LOADBALANCER_TRANSFORMER; // for backwards compatibility
-module(DCOS_LOADBALANCER_TRANSFORMER, []).factory('dcosLoadBalancerTransformer', [
-  '$q',
-  function ($q) {
-    function normalizeLoadBalancer(loadBalancer) {
-      loadBalancer.provider = loadBalancer.type;
-      loadBalancer.instances = [];
-      loadBalancer.instanceCounts = buildInstanceCounts(loadBalancer.serverGroups);
-      return $q.resolve(loadBalancer);
+function normalizeLoadBalancer(loadBalancer) {
+  loadBalancer.provider = loadBalancer.type;
+  loadBalancer.instances = [];
+  loadBalancer.instanceCounts = buildInstanceCounts(loadBalancer.serverGroups);
+  return Promise.resolve(loadBalancer);
+}
+
+function attemptToSetValidAccount(defaultAccount, defaultDcosCluster, loadBalancer) {
+  return AccountService.getCredentialsKeyedByAccount('dcos').then(function (dcosAccountsByName) {
+    const dcosAccountNames = _.keys(dcosAccountsByName);
+    let firstDcosAccount = null;
+
+    if (dcosAccountNames.length) {
+      firstDcosAccount = dcosAccountNames[0];
     }
 
-    function attemptToSetValidAccount(defaultAccount, defaultDcosCluster, loadBalancer) {
-      return AccountService.getCredentialsKeyedByAccount('dcos').then(function (dcosAccountsByName) {
-        const dcosAccountNames = _.keys(dcosAccountsByName);
-        let firstDcosAccount = null;
+    const defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
 
-        if (dcosAccountNames.length) {
-          firstDcosAccount = dcosAccountNames[0];
-        }
+    loadBalancer.account = defaultAccountIsValid
+      ? defaultAccount
+      : firstDcosAccount
+      ? firstDcosAccount
+      : 'my-dcos-account';
 
-        const defaultAccountIsValid = defaultAccount && dcosAccountNames.includes(defaultAccount);
+    attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, loadBalancer);
+  });
+}
 
-        loadBalancer.account = defaultAccountIsValid
-          ? defaultAccount
-          : firstDcosAccount
-          ? firstDcosAccount
-          : 'my-dcos-account';
+function attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, loadBalancer) {
+  const selectedAccount = dcosAccountsByName[loadBalancer.account];
+  if (selectedAccount) {
+    const clusterNames = _.map(selectedAccount.dcosClusters, 'name');
+    const defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
+    loadBalancer.dcosCluster = defaultDcosClusterIsValid
+      ? defaultDcosCluster
+      : clusterNames.length == 1
+      ? clusterNames[0]
+      : null;
+    loadBalancer.region = loadBalancer.dcosCluster;
+  }
+}
 
-        attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, loadBalancer);
-      });
-    }
+function buildInstanceCounts(serverGroups) {
+  const instanceCounts = _.chain(serverGroups)
+    .map('instances')
+    .flatten()
+    .reduce(
+      (acc, instance) => {
+        acc[_.camelCase(instance.health.state)]++;
+        return acc;
+      },
+      {
+        up: 0,
+        down: 0,
+        outOfService: 0,
+        succeeded: 0,
+        failed: 0,
+        unknown: 0,
+      },
+    )
+    .value();
 
-    function attemptToSetValidDcosCluster(dcosAccountsByName, defaultDcosCluster, loadBalancer) {
-      const selectedAccount = dcosAccountsByName[loadBalancer.account];
-      if (selectedAccount) {
-        const clusterNames = _.map(selectedAccount.dcosClusters, 'name');
-        const defaultDcosClusterIsValid = defaultDcosCluster && clusterNames.includes(defaultDcosCluster);
-        loadBalancer.dcosCluster = defaultDcosClusterIsValid
-          ? defaultDcosCluster
-          : clusterNames.length == 1
-          ? clusterNames[0]
-          : null;
-        loadBalancer.region = loadBalancer.dcosCluster;
-      }
-    }
+  instanceCounts.outOfService += _.chain(serverGroups).map('detachedInstances').flatten().value().length;
 
-    function buildInstanceCounts(serverGroups) {
-      const instanceCounts = _.chain(serverGroups)
-        .map('instances')
-        .flatten()
-        .reduce(
-          (acc, instance) => {
-            acc[_.camelCase(instance.health.state)]++;
-            return acc;
-          },
-          {
-            up: 0,
-            down: 0,
-            outOfService: 0,
-            succeeded: 0,
-            failed: 0,
-            unknown: 0,
-          },
-        )
-        .value();
+  return instanceCounts;
+}
 
-      instanceCounts.outOfService += _.chain(serverGroups).map('detachedInstances').flatten().value().length;
+function constructNewLoadBalancerTemplate() {
+  const defaultAccount = DcosProviderSettings.defaults.account;
+  const defaultDcosCluster = DcosProviderSettings.defaults.dcosCluster;
 
-      return instanceCounts;
-    }
+  const loadBalancer = {
+    provider: 'dcos',
+    bindHttpHttps: true,
+    cpus: 2,
+    instances: 1,
+    mem: 1024,
+    acceptedResourceRoles: ['slave_public'],
+    portRange: {
+      protocol: 'tcp',
+      minPort: 10000,
+      maxPort: 10100,
+    },
+  };
 
-    function constructNewLoadBalancerTemplate() {
-      const defaultAccount = DcosProviderSettings.defaults.account;
-      const defaultDcosCluster = DcosProviderSettings.defaults.dcosCluster;
+  attemptToSetValidAccount(defaultAccount, defaultDcosCluster, loadBalancer);
 
-      const loadBalancer = {
-        provider: 'dcos',
-        bindHttpHttps: true,
-        cpus: 2,
-        instances: 1,
-        mem: 1024,
-        acceptedResourceRoles: ['slave_public'],
-        portRange: {
-          protocol: 'tcp',
-          minPort: 10000,
-          maxPort: 10100,
-        },
-      };
+  return loadBalancer;
+}
 
-      attemptToSetValidAccount(defaultAccount, defaultDcosCluster, loadBalancer);
+function convertLoadBalancerForEditing(loadBalancer) {
+  return loadBalancer.description;
+}
 
-      return loadBalancer;
-    }
-
-    function convertLoadBalancerForEditing(loadBalancer) {
-      return loadBalancer.description;
-    }
-
-    return {
-      normalizeLoadBalancer: normalizeLoadBalancer,
-      constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
-      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
-    };
-  },
-]);
+export const dcosLoadBalancerTransformer = {
+  normalizeLoadBalancer,
+  constructNewLoadBalancerTemplate,
+  convertLoadBalancerForEditing,
+};

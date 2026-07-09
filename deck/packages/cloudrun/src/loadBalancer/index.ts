@@ -1,3 +1,5 @@
 export * from './loadBalancerTransformer';
-export * from './details/details.controller';
-export * from './configure/wizard/wizard.controller';
+export * from './configure/wizard/CloudrunLoadBalancerModal';
+export * from './details/CloudrunLoadBalancerActions';
+export * from './details/sections';
+export * from './details/useCloudrunLoadBalancerDetails';
