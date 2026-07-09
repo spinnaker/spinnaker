@@ -18,10 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SECRETS;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.ListSecretsRequest;
-import com.amazonaws.services.secretsmanager.model.ListSecretsResult;
-import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -38,6 +34,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.ListSecretsRequest;
+import software.amazon.awssdk.services.secretsmanager.model.ListSecretsResponse;
+import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry;
 
 public class SecretCachingAgent implements CachingAgent, AccountAware {
   static final Collection<AgentDataType> types =
@@ -62,8 +62,8 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("account", accountName);
     attributes.put("region", region);
-    attributes.put("secretName", secret.getName());
-    attributes.put("secretArn", secret.getARN());
+    attributes.put("secretName", secret.name());
+    attributes.put("secretArn", secret.arn());
     return attributes;
   }
 
@@ -74,18 +74,17 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AWSSecretsManager secretsManagerClient =
-        amazonClientProvider.getAmazonSecretsManager(account, region, false);
+    SecretsManagerClient secretsManagerClient =
+        amazonClientProvider.getAmazonSecretsManagerV2(account, region);
 
     Set<SecretListEntry> secrets = fetchSecrets(secretsManagerClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(secrets);
     Collection<CacheData> newData = newDataMap.get(SECRETS.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(SECRETS.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountRegionFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                SECRETS.toString(), Keys.buildGlob(SECRETS, accountName, region)));
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
@@ -109,7 +108,7 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
     Map<String, Collection<CacheData>> newDataMap = new HashMap<>();
 
     for (SecretListEntry secret : secrets) {
-      String key = Keys.getSecretKey(accountName, region, secret.getName());
+      String key = Keys.getSecretKey(accountName, region, secret.name());
       Map<String, Object> attributes = convertSecretToAttributes(accountName, region, secret);
 
       CacheData data = new DefaultCacheData(key, attributes, Collections.emptyMap());
@@ -121,19 +120,19 @@ public class SecretCachingAgent implements CachingAgent, AccountAware {
     return newDataMap;
   }
 
-  Set<SecretListEntry> fetchSecrets(AWSSecretsManager secretsManagerClient) {
+  Set<SecretListEntry> fetchSecrets(SecretsManagerClient secretsManagerClient) {
     Set<SecretListEntry> secrets = new HashSet<>();
     String nextToken = null;
     do {
-      ListSecretsRequest request = new ListSecretsRequest();
+      ListSecretsRequest.Builder requestBuilder = ListSecretsRequest.builder();
       if (nextToken != null) {
-        request.setNextToken(nextToken);
+        requestBuilder.nextToken(nextToken);
       }
 
-      ListSecretsResult result = secretsManagerClient.listSecrets(request);
-      secrets.addAll(result.getSecretList());
+      ListSecretsResponse result = secretsManagerClient.listSecrets(requestBuilder.build());
+      secrets.addAll(result.secretList());
 
-      nextToken = result.getNextToken();
+      nextToken = result.nextToken();
     } while (nextToken != null && nextToken.length() != 0);
 
     return secrets;

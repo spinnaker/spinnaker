@@ -1,8 +1,5 @@
-import type { IDeferred } from 'angular';
-import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import type { Formik } from 'formik';
 import { Form } from 'formik';
-import { $q } from 'ngimport';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 import { from as observableFrom, Subject } from 'rxjs';
@@ -58,19 +55,10 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
 
   private destroy$ = new Subject();
   private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancerModalValues>>();
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
 
   constructor(props: ICloudFoundryLoadBalancerModalProps) {
     super(props);
 
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: () => this.props.dismissModal(),
-      dismiss: () => this.props.dismissModal(),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
     this.state = {
       accounts: [],
       regions: [],

@@ -15,7 +15,7 @@ describe('kubernetes: Firewalls', () => {
     cy.intercept('/manifests/k8s-local/dev/networkPolicy*', {
       fixture: 'kubernetes/manifests/networkPolicy.json',
     });
-    cy.intercept('POST', '/tasks', {ref: '/tasks/01K17CHBN7Y358PSRE7GR04DC0'});
+    cy.intercept('POST', '/tasks', { ref: '/tasks/01K17CHBN7Y358PSRE7GR04DC0' });
     cy.intercept('/tasks/01K17CHBN7Y358PSRE7GR04DC0', {
       fixture: 'kubernetes/task/task.success.json',
     });
@@ -41,7 +41,10 @@ describe('kubernetes: Firewalls', () => {
       .within(() => {
         cy.get('.pod-subgroup.clickable')
           .should('have.attr', 'href')
-          .and('include', '/firewalls/firewallDetails/kubernetes/k8s-local/dev/networkPolicy%20backend-security-policy');
+          .and(
+            'include',
+            '/firewalls/firewallDetails/kubernetes/k8s-local/dev/networkPolicy%20backend-security-policy',
+          );
 
         cy.contains('h6 .clickable-header', 'DEV').should('exist');
 
@@ -78,16 +81,10 @@ describe('kubernetes: Firewalls', () => {
         cy.contains('Display Name:').should('exist').parent().should('contain.text', 'backend-security-policy');
       });
 
-    const labels = [
-      'app.kubernetes.io/managed-by: spinnaker',
-      'app.kubernetes.io/name: kubernetesapp',
-    ];
+    const labels = ['app.kubernetes.io/managed-by: spinnaker', 'app.kubernetes.io/name: kubernetesapp'];
     cy.contains('h4', 'Labels').scrollIntoView().should('be.visible');
-    labels.forEach(label => {
-      cy.get('.collapsible-section')
-        .contains('Labels')
-        .parent()
-        .should('contain.text', label);
+    labels.forEach((label) => {
+      cy.get('.collapsible-section').contains('Labels').parents('.collapsible-section').should('contain.text', label);
     });
 
     cy.contains('button', 'Network Policy Actions').click();
@@ -95,4 +92,31 @@ describe('kubernetes: Firewalls', () => {
     cy.contains('a', 'Edit Firewall').should('exist');
   });
 
+  it('should open delete modal and submit delete task', () => {
+    cy.intercept('POST', '/tasks', (req) => {
+      expect(req.body.job[0].type).to.equal('deleteManifest');
+      expect(req.body.job[0].manifestName).to.equal('networkPolicy backend-security-policy');
+      expect(req.body.job[0].location).to.equal('dev');
+      expect(req.body.job[0].account).to.equal('k8s-local');
+      req.reply({ ref: '/tasks/01K17CHBN7Y358PSRE7GR04DC0' });
+    }).as('deleteTask');
+
+    cy.visit('#/applications/kubernetesapp/firewalls');
+
+    cy.contains('.rollup-title-cell', 'networkPolicy backend-security-policy')
+      .should('be.visible')
+      .parents('.security-group-pod')
+      .within(() => {
+        cy.contains('h6.highlightable-header', 'DEV').click();
+      });
+
+    cy.contains('button', 'Network Policy Actions').click();
+    cy.contains('a', 'Delete Firewall').click();
+
+    cy.get('.modal-dialog').should('be.visible');
+    cy.get('.modal-title').should('contain.text', 'Delete NetworkPolicy backend-security-policy in dev');
+    cy.contains('button', 'Delete networkPolicy backend-security-policy').click();
+
+    cy.wait('@deleteTask');
+  });
 });

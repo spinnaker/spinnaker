@@ -1,16 +1,6 @@
-'use strict';
+import { dcosServerGroupConfigurationService } from './configuration.service';
 
 describe('dcosServerGroupConfigurationService', function () {
-  var service;
-
-  beforeEach(window.module(require('./configuration.service').name));
-
-  beforeEach(
-    window.inject(function (_dcosServerGroupConfigurationService_) {
-      service = _dcosServerGroupConfigurationService_;
-    }),
-  );
-
   describe('buildImageId', function () {
     it('buildImageId spec 1', function () {
       var image = {
@@ -20,7 +10,7 @@ describe('dcosServerGroupConfigurationService', function () {
       };
 
       var expected = 'dcos-test-test ';
-      var result = service.buildImageId(image);
+      var result = dcosServerGroupConfigurationService.buildImageId(image);
 
       expect(result).toEqual(expected);
     });
@@ -33,7 +23,7 @@ describe('dcosServerGroupConfigurationService', function () {
       };
 
       var expected = 'test-registry.com/test-repo (Tag resolved at runtime)';
-      var result = service.buildImageId(image);
+      var result = dcosServerGroupConfigurationService.buildImageId(image);
 
       expect(result).toEqual(expected);
     });
@@ -46,7 +36,7 @@ describe('dcosServerGroupConfigurationService', function () {
       };
 
       var expected = 'test-registry.com/test-repo:latest';
-      var result = service.buildImageId(image);
+      var result = dcosServerGroupConfigurationService.buildImageId(image);
 
       expect(result).toEqual(expected);
     });

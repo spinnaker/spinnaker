@@ -20,7 +20,11 @@ import {
 } from '@spinnaker/core';
 
 import type { IAnyKubernetesResource } from '../../interfaces';
-import type { IRolloutRevision } from './undo.controller';
+
+interface IRolloutRevision {
+  label: string;
+  revision: number;
+}
 
 export interface IKubernetesUndoRolloutModalProps
   extends Pick<IModalProps, 'isOpen'>,

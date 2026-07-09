@@ -61,10 +61,23 @@ export const ApiTokensPageContainer = () => {
   }
 
   const isAdmin = authUser.isAdmin ?? false;
+  const canMintApiTokens = authUser.canMintApiTokens ?? isAdmin;
+
+  // Users who are not in an allowed minting group (and are not admins) may not access this page.
+  if (!canMintApiTokens && !isAdmin) {
+    return (
+      <div className="container">
+        <div className="alert alert-warning">
+          You do not have permission to manage API tokens. Contact a Spinnaker administrator if you need access.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ApiTokensPage
       isAdmin={isAdmin}
-      canMintApiTokens={authUser.canMintApiTokens ?? isAdmin}
+      canMintApiTokens={canMintApiTokens}
       maxUserTokenLifetimeDays={authUser.maxUserTokenLifetimeDays ?? 0}
       maxServiceAccountTokenLifetimeDays={authUser.maxServiceAccountTokenLifetimeDays ?? 0}
     />
