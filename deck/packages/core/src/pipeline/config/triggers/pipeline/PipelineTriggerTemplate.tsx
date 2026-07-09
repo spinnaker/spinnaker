@@ -2,6 +2,7 @@ import { get, has } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
+import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipeline, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
@@ -76,7 +77,7 @@ export class PipelineTriggerTemplate extends React.Component<
     }
 
     ReactInjector.executionService
-      .getExecutionsForConfigIds([trigger.pipeline], { limit: 20 })
+      .getExecutionsForConfigIds([trigger.pipeline], { limit: SETTINGS.maxPipelineTriggerExecutionOptions })
       .then(this.executionLoadSuccess, this.executionLoadFailure);
   };
 

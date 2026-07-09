@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import { cloneDeep } from 'lodash';
-import { $q } from 'ngimport';
 
 import type {
   Application,
@@ -113,7 +111,6 @@ export class CloudrunV2ServerGroupCommandBuilder {
 }
 
 export class CloudrunServerGroupCommandBuilder {
-  public static $inject = ['$q'];
   public static ServerGroupCommandIsValid(command: ICloudrunServerGroupCommand): boolean {
     if (!command.moniker) {
       return false;
@@ -203,8 +200,8 @@ export class CloudrunServerGroupCommandBuilder {
       artifactAccounts: AccountService.getArtifactAccounts(),
     };
 
-    return $q.all(dataToFetch).then((backingData: { accounts: IAccountDetails[] }) => {
-      const { accounts } = backingData;
+    return Promise.all([dataToFetch.accounts, dataToFetch.artifactAccounts]).then(([accounts, artifactAccounts]) => {
+      const backingData = { accounts, artifactAccounts };
 
       const account = accounts.some((a) => a.name === sourceAccount)
         ? accounts.find((a) => a.name === sourceAccount).name
@@ -245,10 +242,3 @@ export class CloudrunServerGroupCommandBuilder {
     });
   }
 }
-
-export const CLOUDRUN_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.cloudrun.serverGroup.commandBuilder.service';
-
-module(CLOUDRUN_SERVER_GROUP_COMMAND_BUILDER, []).service(
-  'cloudrunV2ServerGroupCommandBuilder',
-  CloudrunV2ServerGroupCommandBuilder,
-);
