@@ -20,7 +20,6 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
-import com.netflix.spinnaker.clouddriver.model.Instance;
 import com.netflix.spinnaker.clouddriver.model.ServerGroup;
 import com.netflix.spinnaker.clouddriver.proxmox.ProxmoxProvider;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
@@ -30,13 +29,13 @@ import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxVm;
 import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxResource;
 import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.moniker.Moniker;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +75,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
   @Override
   public Set<ProxmoxServerCluster> getClusters(String application, String account) {
     Map<String, Set<ProxmoxServerCluster>> all = buildClusterMap(application, account);
-    return all.getOrDefault(application, Collections.emptySet());
+    return all.getOrDefault(account, Collections.emptySet());
   }
 
   @Override
@@ -96,13 +95,25 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
   @Override
   public ServerGroup getServerGroup(
       String account, String region, String serverGroupName, boolean includeDetails) {
+    // Fast path: derive app from the server group name via Frigga (works for Frigga-named SGs)
     Moniker moniker = tagNamer.deriveMoniker(namedResource(serverGroupName));
     String app = moniker.getApp();
-    if (app == null) return null;
+    if (app != null) {
+      ServerGroup found =
+          getClusters(app, account).stream()
+              .flatMap(c -> c.getServerGroups().stream())
+              .filter(sg -> serverGroupName.equals(sg.getName()))
+              .findFirst()
+              .orElse(null);
+      if (found != null) return found;
+    }
 
-    return getClusters(app, account).stream()
+    // Fallback: full scan across all apps in this account.
+    // Needed for tag-named server groups whose names aren't Frigga-parseable (e.g. "TrueNasSCALE").
+    return buildClusterMap(null, account).values().stream()
+        .flatMap(Set::stream)
         .flatMap(c -> c.getServerGroups().stream())
-        .filter(sg -> region.equals(sg.getRegion()) && serverGroupName.equals(sg.getName()))
+        .filter(sg -> serverGroupName.equals(sg.getName()))
         .findFirst()
         .orElse(null);
   }
@@ -126,37 +137,63 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
       String applicationFilter, String accountFilter) {
     Map<String, Set<ProxmoxServerCluster>> result = new HashMap<>();
 
-    String vmGlob =
+    String clusterGlob =
         accountFilter != null
-            ? ProxmoxCacheKeys.glob(ProxmoxResourceType.VM.name(), accountFilter)
-            : ProxmoxCacheKeys.globAll(ProxmoxResourceType.VM.name());
-    String lxcGlob =
-        accountFilter != null
-            ? ProxmoxCacheKeys.glob(ProxmoxResourceType.CONTAINER.name(), accountFilter)
-            : ProxmoxCacheKeys.globAll(ProxmoxResourceType.CONTAINER.name());
+            ? ProxmoxCacheKeys.glob(ProxmoxResourceType.CLUSTER.name(), accountFilter)
+            : ProxmoxCacheKeys.globAll(ProxmoxResourceType.CLUSTER.name());
 
-    Collection<String> vmIds = cacheView.filterIdentifiers(ProxmoxResourceType.VM.name(), vmGlob);
-    Collection<String> lxcIds =
-        cacheView.filterIdentifiers(ProxmoxResourceType.CONTAINER.name(), lxcGlob);
+    Collection<String> clusterIds =
+        cacheView.filterIdentifiers(ProxmoxResourceType.CLUSTER.name(), clusterGlob);
+    if (clusterIds.isEmpty()) return result;
 
-    Collection<CacheData> vms = cacheView.getAll(ProxmoxResourceType.VM.name(), vmIds);
-    Collection<CacheData> lxcs = cacheView.getAll(ProxmoxResourceType.CONTAINER.name(), lxcIds);
+    Collection<CacheData> clusterItems =
+        cacheView.getAll(ProxmoxResourceType.CLUSTER.name(), clusterIds);
 
-    for (CacheData item : vms) {
-      processItem(item, ProxmoxVm.class, applicationFilter, result);
-    }
-    for (CacheData item : lxcs) {
-      processItem(item, ProxmoxLxc.class, applicationFilter, result);
+    for (CacheData clusterEntry : clusterItems) {
+      String clusterName = (String) clusterEntry.getAttributes().get("name");
+      String account = (String) clusterEntry.getAttributes().get("accountName");
+      String app = (String) clusterEntry.getAttributes().get("app");
+
+      if (clusterName == null || account == null || app == null) continue;
+      if (applicationFilter != null && !applicationFilter.equals(app)) continue;
+
+      ProxmoxServerCluster cluster = new ProxmoxServerCluster();
+      cluster.setName(clusterName);
+      cluster.setAccountName(account);
+      cluster.setMoniker(Moniker.builder().app(app).cluster(clusterName).build());
+
+      Collection<String> vmRelIds =
+          clusterEntry.getRelationships().getOrDefault(ProxmoxResourceType.VM.name(), List.of());
+      Collection<String> lxcRelIds =
+          clusterEntry
+              .getRelationships()
+              .getOrDefault(ProxmoxResourceType.CONTAINER.name(), List.of());
+
+      if (!vmRelIds.isEmpty()) {
+        for (CacheData item :
+            cacheView.getAll(ProxmoxResourceType.VM.name(), new ArrayList<>(vmRelIds))) {
+          addToCluster(item, ProxmoxVm.class, cluster, app, clusterName);
+        }
+      }
+      if (!lxcRelIds.isEmpty()) {
+        for (CacheData item :
+            cacheView.getAll(ProxmoxResourceType.CONTAINER.name(), new ArrayList<>(lxcRelIds))) {
+          addToCluster(item, ProxmoxLxc.class, cluster, app, clusterName);
+        }
+      }
+
+      result.computeIfAbsent(account, k -> new HashSet<>()).add(cluster);
     }
 
     return result;
   }
 
-  private <T extends ProxmoxResource> void processItem(
+  private <T extends ProxmoxResource> void addToCluster(
       CacheData item,
       Class<T> resourceClass,
-      String applicationFilter,
-      Map<String, Set<ProxmoxServerCluster>> result) {
+      ProxmoxServerCluster cluster,
+      String app,
+      String clusterName) {
 
     T resource;
     try {
@@ -167,43 +204,43 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
       return;
     }
 
-    Moniker moniker = tagNamer.deriveMoniker(resource);
-    String app = moniker.getApp();
-    if (app == null) return;
-    if (applicationFilter != null && !app.equals(applicationFilter)) return;
-
-    String clusterName = moniker.getCluster() != null ? moniker.getCluster() : app;
-    String account = ProxmoxCacheKeys.getAccount(item.getId());
     String node = ProxmoxCacheKeys.getNode(item.getId());
-    if (account == null || node == null) return;
+    if (node == null) return;
 
-    ProxmoxInstance instance = buildInstance(resource, account, node);
-    ProxmoxServerGroup serverGroup = buildServerGroup(resource, account, node, moniker, instance);
+    Map<String, String> tagMap = ProxmoxTagNamer.parseTags(resource.getTags());
+    String serverGroupName =
+        tagMap.getOrDefault(ProxmoxTagNamer.SERVER_GROUP_TAG, resource.getName());
 
-    result.computeIfAbsent(app, k -> new HashSet<>());
-    Set<ProxmoxServerCluster> clusters = result.get(app);
+    ProxmoxInstance instance = buildInstance(resource.getName(), node, statusOf(resource));
 
-    String finalClusterName = clusterName;
-    Optional<ProxmoxServerCluster> existing =
-        clusters.stream()
-            .filter(c -> finalClusterName.equals(c.getName()) && account.equals(c.getAccountName()))
-            .findFirst();
+    final String finalSgName = serverGroupName;
+    ProxmoxServerGroup sg =
+        cluster.getServerGroups().stream()
+            .filter(s -> finalSgName.equals(s.getName()))
+            .findFirst()
+            .orElseGet(
+                () -> {
+                  ProxmoxServerGroup s = new ProxmoxServerGroup();
+                  s.setName(finalSgName);
+                  s.setApplication(app);
+                  s.setRegion(node);
+                  s.setZones(new HashSet<>(Set.of(node)));
+                  s.setInstances(new HashSet<>());
+                  s.setLoadBalancers(Collections.emptySet());
+                  s.setSecurityGroups(Collections.emptySet());
+                  s.setLaunchConfig(Collections.emptyMap());
+                  s.setMoniker(Moniker.builder().app(app).cluster(clusterName).build());
+                  cluster.getServerGroups().add(s);
+                  return s;
+                });
 
-    if (existing.isPresent()) {
-      existing.get().getServerGroups().add(serverGroup);
-    } else {
-      ProxmoxServerCluster cluster = new ProxmoxServerCluster();
-      cluster.setName(clusterName);
-      cluster.setAccountName(account);
-      cluster.getServerGroups().add(serverGroup);
-      clusters.add(cluster);
-    }
+    sg.getInstances().add(instance);
+    sg.getZones().add(node);
+    recomputeCounts(sg);
   }
 
-  private ProxmoxInstance buildInstance(ProxmoxResource resource, String account, String node) {
-    String status = statusOf(resource);
+  private ProxmoxInstance buildInstance(String name, String node, String status) {
     HealthState healthState = ProxmoxInstance.healthStateFrom(status);
-    String instanceName = resource.getName();
 
     Map<String, Object> healthEntry = new HashMap<>();
     healthEntry.put("type", "Proxmox");
@@ -211,46 +248,32 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
     healthEntry.put("state", status != null ? status : "unknown");
 
     return ProxmoxInstance.builder()
-        .name(instanceName)
+        .name(name)
         .zone(node)
         .healthState(healthState)
         .health(List.of(healthEntry))
         .build();
   }
 
-  private ProxmoxServerGroup buildServerGroup(
-      ProxmoxResource resource,
-      String account,
-      String node,
-      Moniker moniker,
-      ProxmoxInstance instance) {
-    String status = statusOf(resource);
-    boolean running = "running".equals(status);
+  private void recomputeCounts(ProxmoxServerGroup sg) {
+    int total = sg.getInstances().size();
+    int up =
+        (int) sg.getInstances().stream().filter(i -> i.getHealthState() == HealthState.Up).count();
+    int down = total - up;
 
     ServerGroup.InstanceCounts counts = new ServerGroup.InstanceCounts();
-    counts.setTotal(1);
-    if (running) counts.setUp(1);
-    else counts.setDown(1);
+    counts.setTotal(total);
+    counts.setUp(up);
+    counts.setDown(down);
+    sg.setInstanceCounts(counts);
 
     ServerGroup.Capacity capacity = new ServerGroup.Capacity();
-    capacity.setMin(1);
-    capacity.setMax(1);
-    capacity.setDesired(1);
-
-    ProxmoxServerGroup sg = new ProxmoxServerGroup();
-    sg.setName(resource.getName());
-    sg.setApplication(moniker.getApp());
-    sg.setRegion(node);
-    sg.setDisabled(!running);
-    sg.setZones(Set.of(node));
-    sg.setInstances(new HashSet<Instance>(Set.of(instance)));
-    sg.setLoadBalancers(Collections.emptySet());
-    sg.setSecurityGroups(Collections.emptySet());
-    sg.setLaunchConfig(Collections.emptyMap());
-    sg.setInstanceCounts(counts);
+    capacity.setMin(total);
+    capacity.setMax(total);
+    capacity.setDesired(total);
     sg.setCapacity(capacity);
-    sg.setMoniker(moniker);
-    return sg;
+
+    sg.setDisabled(up == 0);
   }
 
   private static String statusOf(ProxmoxResource resource) {

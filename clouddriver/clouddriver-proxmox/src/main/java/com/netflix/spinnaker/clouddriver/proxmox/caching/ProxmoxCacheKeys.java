@@ -39,6 +39,23 @@ public class ProxmoxCacheKeys {
     return String.join(SEP, PROVIDER, ProxmoxResourceType.STORAGE.name(), account, node, storage);
   }
 
+  public static String application(String app) {
+    return String.join(SEP, PROVIDER, ProxmoxResourceType.APPLICATION.name(), app);
+  }
+
+  public static String cluster(String account, String clusterName) {
+    return String.join(SEP, PROVIDER, ProxmoxResourceType.CLUSTER.name(), account, clusterName);
+  }
+
+  public static String image(String account, String node, int vmid) {
+    return String.join(
+        SEP, PROVIDER, ProxmoxResourceType.IMAGE.name(), account, node, String.valueOf(vmid));
+  }
+
+  public static String globAllApplications() {
+    return String.join(SEP, PROVIDER, ProxmoxResourceType.APPLICATION.name(), "*");
+  }
+
   /** Glob that matches all keys of the given cache type for a specific account. */
   public static String glob(String type, String account) {
     return String.join(SEP, PROVIDER, type, account, "*");

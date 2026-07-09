@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxStorage;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
@@ -31,8 +32,9 @@ import java.util.Map;
 import retrofit2.Response;
 
 public class StorageCachingAgent extends AbstractProxmoxCachingAgent {
-  public StorageCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
-    super(credentials, registry);
+  public StorageCachingAgent(
+      ProxmoxNamedAccountCredentials credentials, Registry registry, ProxmoxTagNamer tagNamer) {
+    super(credentials, registry, tagNamer);
   }
 
   @Override

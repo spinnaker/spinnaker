@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.proxmox.provider.view;
 import com.netflix.spinnaker.clouddriver.model.Cluster;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer;
 import com.netflix.spinnaker.clouddriver.proxmox.ProxmoxProvider;
+import com.netflix.spinnaker.moniker.Moniker;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class ProxmoxServerCluster implements Cluster {
   private String accountName;
   private Set<ProxmoxServerGroup> serverGroups = new HashSet<>();
   private Set<LoadBalancer> loadBalancers = new HashSet<>();
+  private Moniker moniker;
 
   @Override
   public String getType() {

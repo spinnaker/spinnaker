@@ -48,11 +48,6 @@ public class ProxmoxServerGroup implements ServerGroup {
   }
 
   @Override
-  public Moniker getMoniker() {
-    return moniker;
-  }
-
-  @Override
   public ImagesSummary getImagesSummary() {
     return null;
   }

@@ -15,11 +15,17 @@
  */
 package com.netflix.spinnaker.clouddriver.proxmox.provider.view;
 
+import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.model.ApplicationProvider;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -29,19 +35,45 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProxmoxApplicationProvider implements ApplicationProvider {
 
+  private final Cache cacheView;
   private final ProxmoxServerClusterProvider clusterProvider;
 
   @Override
   public Set<ProxmoxApplication> getApplications(boolean expand) {
-    return clusterProvider.getClusters().entrySet().stream()
-        .map(e -> buildApplication(e.getKey(), e.getValue(), expand))
+    Collection<String> appIds =
+        cacheView.filterIdentifiers(
+            ProxmoxResourceType.APPLICATION.name(), ProxmoxCacheKeys.globAllApplications());
+    Collection<CacheData> appData =
+        cacheView.getAll(ProxmoxResourceType.APPLICATION.name(), appIds);
+
+    return appData.stream()
+        .map(
+            data -> {
+              String name = (String) data.getAttributes().get("name");
+              if (name == null) return null;
+              Set<ProxmoxServerCluster> clusters =
+                  expand
+                      ? clusterProvider.getClusterDetails(name).values().stream()
+                          .flatMap(Set::stream)
+                          .collect(Collectors.toSet())
+                      : Collections.emptySet();
+              return buildApplication(name, clusters, expand);
+            })
+        .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }
 
   @Override
   public ProxmoxApplication getApplication(String name) {
-    Set<ProxmoxServerCluster> clusters = clusterProvider.getClusterDetails(name).get(name);
-    if (clusters == null || clusters.isEmpty()) return null;
+    CacheData data =
+        cacheView.get(ProxmoxResourceType.APPLICATION.name(), ProxmoxCacheKeys.application(name));
+    if (data == null) return null;
+
+    // getClusterDetails returns Map<account, Set<cluster>>; flatten across all accounts.
+    Set<ProxmoxServerCluster> clusters =
+        clusterProvider.getClusterDetails(name).values().stream()
+            .flatMap(Set::stream)
+            .collect(Collectors.toSet());
     return buildApplication(name, clusters, true);
   }
 

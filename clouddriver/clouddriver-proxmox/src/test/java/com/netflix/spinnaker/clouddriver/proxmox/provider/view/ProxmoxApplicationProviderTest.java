@@ -18,6 +18,11 @@ package com.netflix.spinnaker.clouddriver.proxmox.provider.view;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.netflix.spinnaker.cats.cache.Cache;
+import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,22 +35,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProxmoxApplicationProviderTest {
 
   private static final String ACCOUNT = "myaccount";
+  private static final String APP_TYPE = ProxmoxResourceType.APPLICATION.name();
 
+  @Mock private Cache cacheView;
   @Mock private ProxmoxServerClusterProvider clusterProvider;
 
   private ProxmoxApplicationProvider applicationProvider;
 
   @BeforeEach
   void setUp() {
-    applicationProvider = new ProxmoxApplicationProvider(clusterProvider);
+    applicationProvider = new ProxmoxApplicationProvider(cacheView, clusterProvider);
   }
 
   // ── getApplications(true) — with cluster expansion ────────────────────────
 
   @Test
   void getApplicationsExpandedReturnsAppsWithClusterNames() {
+    stubAppCache("myapp");
     ProxmoxServerCluster cluster = buildCluster("myapp-prod", ACCOUNT);
-    when(clusterProvider.getClusters()).thenReturn(Map.of("myapp", Set.of(cluster)));
+    when(clusterProvider.getClusterDetails("myapp")).thenReturn(Map.of(ACCOUNT, Set.of(cluster)));
 
     Set<ProxmoxApplication> apps = applicationProvider.getApplications(true);
 
@@ -58,9 +66,11 @@ class ProxmoxApplicationProviderTest {
 
   @Test
   void getApplicationsExpandedWithTwoClustersInSameAccount() {
+    stubAppCache("myapp");
     ProxmoxServerCluster cluster1 = buildCluster("myapp-prod", ACCOUNT);
     ProxmoxServerCluster cluster2 = buildCluster("myapp-staging", ACCOUNT);
-    when(clusterProvider.getClusters()).thenReturn(Map.of("myapp", Set.of(cluster1, cluster2)));
+    when(clusterProvider.getClusterDetails("myapp"))
+        .thenReturn(Map.of(ACCOUNT, Set.of(cluster1, cluster2)));
 
     Set<ProxmoxApplication> apps = applicationProvider.getApplications(true);
 
@@ -72,10 +82,11 @@ class ProxmoxApplicationProviderTest {
 
   @Test
   void getApplicationsExpandedWithTwoApps() {
+    stubAppCache("myapp", "otherapp");
     ProxmoxServerCluster c1 = buildCluster("myapp-prod", ACCOUNT);
     ProxmoxServerCluster c2 = buildCluster("otherapp-prod", ACCOUNT);
-    when(clusterProvider.getClusters())
-        .thenReturn(Map.of("myapp", Set.of(c1), "otherapp", Set.of(c2)));
+    when(clusterProvider.getClusterDetails("myapp")).thenReturn(Map.of(ACCOUNT, Set.of(c1)));
+    when(clusterProvider.getClusterDetails("otherapp")).thenReturn(Map.of(ACCOUNT, Set.of(c2)));
 
     Set<ProxmoxApplication> apps = applicationProvider.getApplications(true);
 
@@ -89,8 +100,7 @@ class ProxmoxApplicationProviderTest {
 
   @Test
   void getApplicationsNotExpandedReturnsEmptyClusterNames() {
-    ProxmoxServerCluster cluster = buildCluster("myapp-prod", ACCOUNT);
-    when(clusterProvider.getClusters()).thenReturn(Map.of("myapp", Set.of(cluster)));
+    stubAppCache("myapp");
 
     Set<ProxmoxApplication> apps = applicationProvider.getApplications(false);
 
@@ -104,8 +114,9 @@ class ProxmoxApplicationProviderTest {
 
   @Test
   void getApplicationReturnsCorrectApp() {
+    stubSingleAppCache("myapp");
     ProxmoxServerCluster cluster = buildCluster("myapp-prod", ACCOUNT);
-    when(clusterProvider.getClusterDetails("myapp")).thenReturn(Map.of("myapp", Set.of(cluster)));
+    when(clusterProvider.getClusterDetails("myapp")).thenReturn(Map.of(ACCOUNT, Set.of(cluster)));
 
     ProxmoxApplication app = applicationProvider.getApplication("myapp");
 
@@ -116,7 +127,7 @@ class ProxmoxApplicationProviderTest {
 
   @Test
   void getApplicationReturnsNullForNonexistentApp() {
-    when(clusterProvider.getClusterDetails("nonexistent")).thenReturn(Map.of());
+    when(cacheView.get(APP_TYPE, ProxmoxCacheKeys.application("nonexistent"))).thenReturn(null);
 
     ProxmoxApplication app = applicationProvider.getApplication("nonexistent");
 
@@ -125,8 +136,9 @@ class ProxmoxApplicationProviderTest {
 
   @Test
   void getApplicationAttributesContainName() {
+    stubSingleAppCache("myapp");
     ProxmoxServerCluster cluster = buildCluster("myapp-prod", ACCOUNT);
-    when(clusterProvider.getClusterDetails("myapp")).thenReturn(Map.of("myapp", Set.of(cluster)));
+    when(clusterProvider.getClusterDetails("myapp")).thenReturn(Map.of(ACCOUNT, Set.of(cluster)));
 
     ProxmoxApplication app = applicationProvider.getApplication("myapp");
 
@@ -134,6 +146,25 @@ class ProxmoxApplicationProviderTest {
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
+
+  private void stubAppCache(String... appNames) {
+    Collection<String> keys = new java.util.ArrayList<>();
+    Collection<com.netflix.spinnaker.cats.cache.CacheData> dataList = new java.util.ArrayList<>();
+    for (String name : appNames) {
+      String key = ProxmoxCacheKeys.application(name);
+      keys.add(key);
+      dataList.add(new DefaultCacheData(key, Map.of("name", name), Map.of()));
+    }
+    when(cacheView.filterIdentifiers(APP_TYPE, ProxmoxCacheKeys.globAllApplications()))
+        .thenReturn(keys);
+    when(cacheView.getAll(APP_TYPE, keys)).thenReturn(dataList);
+  }
+
+  private void stubSingleAppCache(String name) {
+    String key = ProxmoxCacheKeys.application(name);
+    when(cacheView.get(APP_TYPE, key))
+        .thenReturn(new DefaultCacheData(key, Map.of("name", name), Map.of()));
+  }
 
   private static ProxmoxServerCluster buildCluster(String name, String account) {
     ProxmoxServerCluster cluster = new ProxmoxServerCluster();

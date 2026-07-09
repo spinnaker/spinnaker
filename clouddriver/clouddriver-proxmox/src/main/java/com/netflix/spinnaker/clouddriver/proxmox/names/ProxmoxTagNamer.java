@@ -40,6 +40,12 @@ public class ProxmoxTagNamer implements NamingStrategy<ProxmoxResource> {
   public static final String DETAIL_TAG = "spinnaker-detail";
   public static final String SEQUENCE_TAG = "spinnaker-sequence";
 
+  /**
+   * Names the server group (deployment revision) that this VM belongs to, e.g. {@code
+   * myapp-prod-rev1}.
+   */
+  public static final String SERVER_GROUP_TAG = "spinnaker-server-group";
+
   @Override
   public String getName() {
     return "proxmoxTags";

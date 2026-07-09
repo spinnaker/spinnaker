@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxVm;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
@@ -65,7 +66,7 @@ class VMCachingAgentTest {
     registry = mockRegistry();
     when(credentials.getName()).thenReturn(ACCOUNT_NAME);
     when(credentials.getCredentials()).thenReturn(api);
-    agent = new VMCachingAgent(credentials, registry);
+    agent = new VMCachingAgent(credentials, registry, new ProxmoxTagNamer());
   }
 
   @Test
@@ -143,6 +144,21 @@ class VMCachingAgentTest {
 
     Collection<CacheData> cached = result.getCacheResults().get(ProxmoxResourceType.VM.name());
     // only the vm from pve01 should be present
+    assertThat(cached).hasSize(1);
+    assertThat(cached.iterator().next().getId())
+        .isEqualTo(ProxmoxCacheKeys.vm(ACCOUNT_NAME, NODE_NAME, 101));
+  }
+
+  @Test
+  void loadDataSkipsVmTemplates() throws Exception {
+    mockGetNodesResponse(List.of(ProxmoxNode.builder().node(NODE_NAME).build()));
+    ProxmoxVm regular = ProxmoxVm.builder().vmId(101).name("myapp-v001").build();
+    ProxmoxVm template = ProxmoxVm.builder().vmId(9000).name("ubuntu-template").template(1).build();
+    mockGetVmsResponse(NODE_NAME, List.of(regular, template));
+
+    CacheResult result = agent.loadData(providerCache);
+
+    Collection<CacheData> cached = result.getCacheResults().get(ProxmoxResourceType.VM.name());
     assertThat(cached).hasSize(1);
     assertThat(cached.iterator().next().getId())
         .isEqualTo(ProxmoxCacheKeys.vm(ACCOUNT_NAME, NODE_NAME, 101));

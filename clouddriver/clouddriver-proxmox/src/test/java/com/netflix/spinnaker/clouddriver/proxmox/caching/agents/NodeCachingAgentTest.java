@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
@@ -64,7 +65,7 @@ class NodeCachingAgentTest {
     registry = mockRegistry();
     when(credentials.getName()).thenReturn(ACCOUNT_NAME);
     when(credentials.getCredentials()).thenReturn(api);
-    agent = new NodeCachingAgent(credentials, registry);
+    agent = new NodeCachingAgent(credentials, registry, new ProxmoxTagNamer());
   }
 
   @Test

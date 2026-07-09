@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxLxc;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
@@ -65,7 +66,7 @@ class LxcCachingAgentTest {
     registry = mockRegistry();
     when(credentials.getName()).thenReturn(ACCOUNT_NAME);
     when(credentials.getCredentials()).thenReturn(api);
-    agent = new LxcCachingAgent(credentials, registry);
+    agent = new LxcCachingAgent(credentials, registry, new ProxmoxTagNamer());
   }
 
   @Test
@@ -141,6 +142,23 @@ class LxcCachingAgentTest {
     Call<ProxmoxResponse<List<ProxmoxLxc>>> failCall = mock(Call.class);
     when(api.getContainers("pve02")).thenReturn(failCall);
     when(failCall.execute()).thenThrow(new IOException("pve02 down"));
+
+    CacheResult result = agent.loadData(providerCache);
+
+    Collection<CacheData> cached =
+        result.getCacheResults().get(ProxmoxResourceType.CONTAINER.name());
+    assertThat(cached).hasSize(1);
+    assertThat(cached.iterator().next().getId())
+        .isEqualTo(ProxmoxCacheKeys.lxc(ACCOUNT_NAME, NODE_NAME, 200));
+  }
+
+  @Test
+  void loadDataSkipsLxcTemplates() throws Exception {
+    mockGetNodesResponse(List.of(ProxmoxNode.builder().node(NODE_NAME).build()));
+    ProxmoxLxc regular = ProxmoxLxc.builder().vmId(200).name("web-v001").build();
+    ProxmoxLxc template =
+        ProxmoxLxc.builder().vmId(9001).name("debian-template").template(1).build();
+    mockGetContainersResponse(NODE_NAME, List.of(regular, template));
 
     CacheResult result = agent.loadData(providerCache);
 

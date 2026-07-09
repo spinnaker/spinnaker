@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
@@ -35,8 +36,9 @@ import retrofit2.Response;
 public class NodeCachingAgent extends AbstractProxmoxCachingAgent {
   private static final Logger log = LoggerFactory.getLogger(NodeCachingAgent.class);
 
-  public NodeCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
-    super(credentials, registry);
+  public NodeCachingAgent(
+      ProxmoxNamedAccountCredentials credentials, Registry registry, ProxmoxTagNamer tagNamer) {
+    super(credentials, registry, tagNamer);
   }
 
   @Override

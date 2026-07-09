@@ -22,22 +22,28 @@ import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxCacheKeys;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxNode;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxVm;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.clouddriver.proxmox.security.ProxmoxNamedAccountCredentials;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import retrofit2.Response;
 
 public class VMCachingAgent extends AbstractProxmoxCachingAgent {
-  public VMCachingAgent(ProxmoxNamedAccountCredentials credentials, Registry registry) {
-    super(credentials, registry);
+  public VMCachingAgent(
+      ProxmoxNamedAccountCredentials credentials, Registry registry, ProxmoxTagNamer tagNamer) {
+    super(credentials, registry, tagNamer);
   }
 
   @Override
   public Collection<AgentDataType> getProvidedDataTypes() {
-    return List.of(AgentDataType.Authority.AUTHORITATIVE.forType(ProxmoxResourceType.VM.name()));
+    return List.of(
+        AgentDataType.Authority.AUTHORITATIVE.forType(ProxmoxResourceType.VM.name()),
+        AgentDataType.Authority.AUTHORITATIVE.forType(ProxmoxResourceType.APPLICATION.name()),
+        AgentDataType.Authority.AUTHORITATIVE.forType(ProxmoxResourceType.CLUSTER.name()));
   }
 
   @Override
@@ -61,7 +67,7 @@ public class VMCachingAgent extends AbstractProxmoxCachingAgent {
             continue;
           }
           for (ProxmoxVm vm : response.body().getData()) {
-            if (vm.getVmId() != null) {
+            if (vm.getVmId() != null && !Objects.equals(1, vm.getTemplate())) {
               vm.setNode(node.getNode());
               result.put(
                   ProxmoxCacheKeys.vm(credentials.getName(), node.getNode(), vm.getVmId()), vm);

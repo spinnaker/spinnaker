@@ -17,7 +17,9 @@ package com.netflix.spinnaker.clouddriver.proxmox.caching;
 
 /** Enumerates all Proxmox resource types that can be cached. */
 public enum ProxmoxResourceType {
+  APPLICATION("application"),
   CLUSTER("cluster"),
+  IMAGE("image"),
   NODE("node"),
   VM("vm"),
   DISK("disk"),

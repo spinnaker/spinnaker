@@ -20,8 +20,10 @@ import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.proxmox.ProxmoxProvider;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.agents.LxcCachingAgent;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.agents.NodeCachingAgent;
+import com.netflix.spinnaker.clouddriver.proxmox.caching.agents.ProxmoxTemplateCachingAgent;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.agents.StorageCachingAgent;
 import com.netflix.spinnaker.clouddriver.proxmox.caching.agents.VMCachingAgent;
+import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +37,7 @@ public class ProxmoxCredentialsLifecycleHandler
 
   private final ProxmoxProvider proxmoxProvider;
   private final Registry registry;
+  private final ProxmoxTagNamer tagNamer;
 
   @Override
   public void credentialsAdded(ProxmoxNamedAccountCredentials credentials) {
@@ -54,9 +57,10 @@ public class ProxmoxCredentialsLifecycleHandler
 
   private List<Agent> agentsFor(ProxmoxNamedAccountCredentials credentials) {
     return List.of(
-        new NodeCachingAgent(credentials, registry),
-        new VMCachingAgent(credentials, registry),
-        new LxcCachingAgent(credentials, registry),
-        new StorageCachingAgent(credentials, registry));
+        new NodeCachingAgent(credentials, registry, tagNamer),
+        new VMCachingAgent(credentials, registry, tagNamer),
+        new LxcCachingAgent(credentials, registry, tagNamer),
+        new StorageCachingAgent(credentials, registry, tagNamer),
+        new ProxmoxTemplateCachingAgent(credentials));
   }
 }

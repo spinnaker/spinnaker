@@ -26,8 +26,14 @@ import com.netflix.spinnaker.clouddriver.proxmox.caching.ProxmoxResourceType;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxLxc;
 import com.netflix.spinnaker.clouddriver.proxmox.model.ProxmoxVm;
 import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxTagNamer;
+import com.netflix.spinnaker.moniker.Moniker;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +56,7 @@ class ProxmoxServerClusterProviderTest {
 
   @Test
   void getClustersGroupsVmsByAppAndCluster() {
-    // Two VMs in the same app but different clusters
+    // Two VMs in the same app but different clusters — result keyed by account name.
     putVm(101, "myapp-prod-v001", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
     putVm(
         102,
@@ -58,28 +64,26 @@ class ProxmoxServerClusterProviderTest {
         "spinnaker-app+myapp;spinnaker-cluster+myapp-staging",
         "stopped");
 
-    Map<String, Set<ProxmoxServerCluster>> clusters = provider.getClusters();
+    Map<String, Set<ProxmoxServerCluster>> result = provider.getClusters();
 
-    assertThat(clusters).containsKey("myapp");
-    Set<ProxmoxServerCluster> appClusters = clusters.get("myapp");
-    assertThat(appClusters).hasSize(2);
-
-    Set<String> clusterNames =
-        appClusters.stream()
-            .map(ProxmoxServerCluster::getName)
-            .collect(java.util.stream.Collectors.toSet());
-    assertThat(clusterNames).containsExactlyInAnyOrder("myapp-prod", "myapp-staging");
+    assertThat(result).containsOnlyKeys(ACCOUNT);
+    Set<ProxmoxServerCluster> accountClusters = result.get(ACCOUNT);
+    assertThat(accountClusters).hasSize(2);
+    assertThat(
+            accountClusters.stream().map(ProxmoxServerCluster::getName).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("myapp-prod", "myapp-staging");
   }
 
   @Test
-  void getClustersWithTwoVmsSameCluster() {
+  void getClustersWithTwoVmsSameClusterNoServerGroupTag() {
+    // Without spinnaker-server-group, each VM becomes its own server group.
     putVm(101, "myapp-prod-v001", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
     putVm(102, "myapp-prod-v002", "spinnaker-app+myapp;spinnaker-cluster+myapp-prod", "running");
 
-    Map<String, Set<ProxmoxServerCluster>> clusters = provider.getClusters();
+    Map<String, Set<ProxmoxServerCluster>> result = provider.getClusters();
 
-    assertThat(clusters.get("myapp")).hasSize(1);
-    ProxmoxServerCluster cluster = clusters.get("myapp").iterator().next();
+    assertThat(result.get(ACCOUNT)).hasSize(1);
+    ProxmoxServerCluster cluster = result.get(ACCOUNT).iterator().next();
     assertThat(cluster.getServerGroups()).hasSize(2);
   }
 
@@ -101,8 +105,9 @@ class ProxmoxServerClusterProviderTest {
 
     Map<String, Set<ProxmoxServerCluster>> result = provider.getClusterSummaries("myapp");
 
-    assertThat(result).containsOnlyKeys("myapp");
-    assertThat(result.get("myapp")).hasSize(1);
+    assertThat(result).containsOnlyKeys(ACCOUNT);
+    assertThat(result.get(ACCOUNT)).hasSize(1);
+    assertThat(result.get(ACCOUNT).iterator().next().getName()).isEqualTo("myapp-prod");
   }
 
   @Test
@@ -179,6 +184,17 @@ class ProxmoxServerClusterProviderTest {
     assertThat(sg).isNull();
   }
 
+  @Test
+  void getServerGroupFallbackScanFindsTagNamedServerGroup() {
+    // "TrueNasSCALE" is not Frigga-parseable to app=nas; the fallback account scan must find it.
+    putVm(101, "TrueNasSCALE", "spinnaker-app+nas;spinnaker-cluster+truenas", "running");
+
+    var sg = provider.getServerGroup(ACCOUNT, NODE, "TrueNasSCALE", true);
+
+    assertThat(sg).isNotNull();
+    assertThat(sg.getName()).isEqualTo("TrueNasSCALE");
+  }
+
   // ── Frigga name fallback ──────────────────────────────────────────────────
 
   @Test
@@ -186,11 +202,11 @@ class ProxmoxServerClusterProviderTest {
     // No tags; name parsed by Frigga: app=myapp, cluster=myapp-prod
     putVm(101, "myapp-prod-v001", null, "running");
 
-    Map<String, Set<ProxmoxServerCluster>> clusters = provider.getClusters();
+    Map<String, Set<ProxmoxServerCluster>> result = provider.getClusters();
 
-    assertThat(clusters).containsKey("myapp");
-    assertThat(clusters.get("myapp")).hasSize(1);
-    assertThat(clusters.get("myapp").iterator().next().getName()).isEqualTo("myapp-prod");
+    assertThat(result).containsKey(ACCOUNT);
+    assertThat(result.get(ACCOUNT)).hasSize(1);
+    assertThat(result.get(ACCOUNT).iterator().next().getName()).isEqualTo("myapp-prod");
   }
 
   // ── LXC containers ────────────────────────────────────────────────────────
@@ -214,9 +230,39 @@ class ProxmoxServerClusterProviderTest {
         "spinnaker-app+webct;spinnaker-cluster+webct-staging",
         "stopped");
 
-    Map<String, Set<ProxmoxServerCluster>> clusters = provider.getClusters();
+    Map<String, Set<ProxmoxServerCluster>> result = provider.getClusters();
 
-    assertThat(clusters).containsKey("webct");
+    assertThat(
+            result.get(ACCOUNT).stream()
+                .map(ProxmoxServerCluster::getName)
+                .collect(Collectors.toSet()))
+        .contains("webct-staging");
+  }
+
+  // ── cluster moniker ───────────────────────────────────────────────────────
+
+  @Test
+  void clusterMonikerReflectsTagsNotVmName() {
+    // VM name "TrueNasSCALE" can't be Frigga-parsed to app=nas; moniker must come from tags
+    putVm(101, "TrueNasSCALE", "spinnaker-app+nas;spinnaker-cluster+truenas", "running");
+
+    ProxmoxServerCluster cluster = provider.getCluster("nas", ACCOUNT, "truenas");
+
+    assertThat(cluster).isNotNull();
+    assertThat(cluster.getMoniker()).isNotNull();
+    assertThat(cluster.getMoniker().getApp()).isEqualTo("nas");
+    assertThat(cluster.getMoniker().getCluster()).isEqualTo("truenas");
+  }
+
+  @Test
+  void serverGroupApplicationMatchesTagAppForNonFriggaName() {
+    putVm(101, "TrueNasSCALE", "spinnaker-app+nas;spinnaker-cluster+truenas", "running");
+
+    ProxmoxServerGroup sg = firstServerGroup("nas");
+
+    assertThat(sg.getApplication()).isEqualTo("nas");
+    assertThat(sg.getMoniker().getApp()).isEqualTo("nas");
+    assertThat(sg.getMoniker().getCluster()).isEqualTo("truenas");
   }
 
   // ── Cloud provider ID ─────────────────────────────────────────────────────
@@ -281,11 +327,131 @@ class ProxmoxServerClusterProviderTest {
     assertThat(instance.getName()).doesNotContain("/");
   }
 
+  // ── spinnaker-server-group tag: blue/green support ────────────────────────
+
+  @Test
+  void serverGroupTagGroupsMultipleVmsIntoOneServerGroup() {
+    // Two VMs tagged with the same spinnaker-server-group → one server group, two instances.
+    putVm(
+        101,
+        "myapp-prod-rev1-v001",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "running");
+    putVm(
+        102,
+        "myapp-prod-rev1-v002",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "running");
+
+    ProxmoxServerCluster cluster = provider.getCluster("myapp", ACCOUNT, "myapp-prod");
+
+    assertThat(cluster.getServerGroups()).hasSize(1);
+    ProxmoxServerGroup sg = cluster.getServerGroups().iterator().next();
+    assertThat(sg.getName()).isEqualTo("myapp-prod-rev1");
+    assertThat(sg.getInstances()).hasSize(2);
+  }
+
+  @Test
+  void twoServerGroupTagsEnableBlueGreenDeployInSameCluster() {
+    putVm(
+        101,
+        "myapp-prod-rev1-v001",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "running");
+    putVm(
+        102,
+        "myapp-prod-rev2-v001",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev2",
+        "running");
+
+    ProxmoxServerCluster cluster = provider.getCluster("myapp", ACCOUNT, "myapp-prod");
+
+    assertThat(cluster.getServerGroups()).hasSize(2);
+    assertThat(
+            cluster.getServerGroups().stream()
+                .map(ProxmoxServerGroup::getName)
+                .collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("myapp-prod-rev1", "myapp-prod-rev2");
+  }
+
+  @Test
+  void vmWithoutServerGroupTagIsItsOwnServerGroup() {
+    // Non-deployable VMs (no spinnaker-server-group) remain individual server groups.
+    putVm(101, "TrueNasSCALE", "spinnaker-app+nas;spinnaker-cluster+truenas", "running");
+
+    ProxmoxServerCluster cluster = provider.getCluster("nas", ACCOUNT, "truenas");
+
+    assertThat(cluster.getServerGroups()).hasSize(1);
+    ProxmoxServerGroup sg = cluster.getServerGroups().iterator().next();
+    assertThat(sg.getName()).isEqualTo("TrueNasSCALE");
+    assertThat(sg.getInstances()).hasSize(1);
+    assertThat(sg.getInstances().iterator().next().getName()).isEqualTo("TrueNasSCALE");
+  }
+
+  @Test
+  void instanceCountsAggregateAcrossMultipleVmsInServerGroup() {
+    putVm(
+        101,
+        "myapp-prod-rev1-v001",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "running");
+    putVm(
+        102,
+        "myapp-prod-rev1-v002",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "stopped");
+
+    ProxmoxServerGroup sg =
+        provider.getCluster("myapp", ACCOUNT, "myapp-prod").getServerGroups().iterator().next();
+
+    assertThat(sg.getInstanceCounts().getTotal()).isEqualTo(2);
+    assertThat(sg.getInstanceCounts().getUp()).isEqualTo(1);
+    assertThat(sg.getInstanceCounts().getDown()).isEqualTo(1);
+    assertThat(sg.isDisabled()).isFalse();
+  }
+
+  @Test
+  void serverGroupIsDisabledWhenAllInstancesAreStopped() {
+    putVm(
+        101,
+        "myapp-prod-rev1-v001",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "stopped");
+    putVm(
+        102,
+        "myapp-prod-rev1-v002",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "stopped");
+
+    ProxmoxServerGroup sg =
+        provider.getCluster("myapp", ACCOUNT, "myapp-prod").getServerGroups().iterator().next();
+
+    assertThat(sg.isDisabled()).isTrue();
+    assertThat(sg.getInstanceCounts().getTotal()).isEqualTo(2);
+    assertThat(sg.getInstanceCounts().getUp()).isEqualTo(0);
+  }
+
+  @Test
+  void serverGroupNamedByTagIsLookupableByGetServerGroup() {
+    putVm(
+        101,
+        "myapp-prod-rev1-v001",
+        "spinnaker-app+myapp;spinnaker-cluster+myapp-prod;spinnaker-server-group+myapp-prod-rev1",
+        "running");
+
+    var sg = provider.getServerGroup(ACCOUNT, NODE, "myapp-prod-rev1", true);
+
+    assertThat(sg).isNotNull();
+    assertThat(sg.getName()).isEqualTo("myapp-prod-rev1");
+  }
+
   // ── helpers ───────────────────────────────────────────────────────────────
 
   private ProxmoxServerGroup firstServerGroup(String app) {
-    return provider.getClusters().get(app).iterator().next().getServerGroups().iterator().next();
+    return provider.getClusters(app, ACCOUNT).iterator().next().getServerGroups().iterator().next();
   }
+
+  private static final ProxmoxTagNamer NAMER = new ProxmoxTagNamer();
 
   private void putVm(int vmId, String name, String tags, String status) {
     ProxmoxVm vm =
@@ -294,6 +460,7 @@ class ProxmoxServerClusterProviderTest {
         MAPPER.convertValue(vm, new TypeReference<Map<String, Object>>() {});
     String key = ProxmoxCacheKeys.vm(ACCOUNT, NODE, vmId);
     cache.merge(ProxmoxResourceType.VM.name(), new DefaultCacheData(key, attrs, Map.of()));
+    mergeClusterEntry(key, ProxmoxResourceType.VM.name(), NAMER.deriveMoniker(vm));
   }
 
   private void putLxc(int vmId, String name, String tags, String status) {
@@ -303,5 +470,44 @@ class ProxmoxServerClusterProviderTest {
         MAPPER.convertValue(lxc, new TypeReference<Map<String, Object>>() {});
     String key = ProxmoxCacheKeys.lxc(ACCOUNT, NODE, vmId);
     cache.merge(ProxmoxResourceType.CONTAINER.name(), new DefaultCacheData(key, attrs, Map.of()));
+    mergeClusterEntry(key, ProxmoxResourceType.CONTAINER.name(), NAMER.deriveMoniker(lxc));
+  }
+
+  private void mergeClusterEntry(String resourceKey, String resourceType, Moniker moniker) {
+    String app = moniker.getApp();
+    if (app == null) return;
+    String clusterName = moniker.getCluster() != null ? moniker.getCluster() : app;
+    String clusterKey = ProxmoxCacheKeys.cluster(ACCOUNT, clusterName);
+
+    // InMemoryCache.merge() replaces (not unions) relationship values for the same key, so we
+    // read the existing entry and rebuild the complete relationship list before writing.
+    var existing = cache.get(ProxmoxResourceType.CLUSTER.name(), clusterKey);
+    List<String> vmKeys =
+        existing != null
+            ? new ArrayList<>(
+                existing.getRelationships().getOrDefault(ProxmoxResourceType.VM.name(), List.of()))
+            : new ArrayList<>();
+    List<String> lxcKeys =
+        existing != null
+            ? new ArrayList<>(
+                existing
+                    .getRelationships()
+                    .getOrDefault(ProxmoxResourceType.CONTAINER.name(), List.of()))
+            : new ArrayList<>();
+
+    if (ProxmoxResourceType.VM.name().equals(resourceType)) {
+      vmKeys.add(resourceKey);
+    } else {
+      lxcKeys.add(resourceKey);
+    }
+
+    Map<String, Object> clusterAttrs =
+        new HashMap<>(Map.of("name", clusterName, "accountName", ACCOUNT, "app", app));
+    Map<String, Collection<String>> clusterRels = new HashMap<>();
+    if (!vmKeys.isEmpty()) clusterRels.put(ProxmoxResourceType.VM.name(), vmKeys);
+    if (!lxcKeys.isEmpty()) clusterRels.put(ProxmoxResourceType.CONTAINER.name(), lxcKeys);
+    cache.merge(
+        ProxmoxResourceType.CLUSTER.name(),
+        new DefaultCacheData(clusterKey, clusterAttrs, clusterRels));
   }
 }
