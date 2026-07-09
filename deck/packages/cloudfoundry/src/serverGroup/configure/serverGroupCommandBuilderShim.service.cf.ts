@@ -1,5 +1,3 @@
-import type { IQService } from 'angular';
-
 import type { Application, IPipeline, IStage } from '@spinnaker/core';
 import type { ICloudFoundryApplication, ICloudFoundryServerGroup } from '../../domain';
 
@@ -10,14 +8,11 @@ import type {
 } from './serverGroupConfigurationModel.cf';
 
 export class CloudFoundryServerGroupCommandBuilderShim {
-  public static $inject = ['$q'];
-  constructor(private $q: IQService) {}
-
   public buildNewServerGroupCommand(
     app: Application,
     defaults: any,
   ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
-    return this.$q.when(CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommand(app, defaults));
+    return Promise.resolve(CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommand(app, defaults));
   }
 
   public buildServerGroupCommandFromExisting(
@@ -25,7 +20,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     serverGroup: ICloudFoundryServerGroup,
     mode = 'clone',
   ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
-    return this.$q.when(
+    return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup, mode),
     );
   }
@@ -34,7 +29,9 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     stage: IStage,
     pipeline: IPipeline,
   ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
-    return this.$q.when(CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommandForPipeline(stage, pipeline));
+    return Promise.resolve(
+      CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommandForPipeline(stage, pipeline),
+    );
   }
 
   public buildServerGroupCommandFromPipeline(
@@ -43,7 +40,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     stage: IStage,
     pipeline: IPipeline,
   ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
-    return this.$q.when(
+    return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromPipeline(
         application,
         originalCluster,
@@ -57,7 +54,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     stage: IStage,
     pipeline: IPipeline,
   ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
-    return this.$q.when(
+    return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildCloneServerGroupCommandFromPipeline(stage, pipeline),
     );
   }

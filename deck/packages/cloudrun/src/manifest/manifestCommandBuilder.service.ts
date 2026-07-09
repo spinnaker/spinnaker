@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash';
-import { $q } from 'ngimport';
 
-import type { Application, IAccountDetails, IArtifactAccount, IMoniker } from '@spinnaker/core';
+import type { Application, IMoniker } from '@spinnaker/core';
 import { AccountService } from '@spinnaker/core';
 
 import { ManifestSource } from './ManifestSource';
@@ -62,55 +61,49 @@ export class CloudrunManifestCommandBuilder {
       artifactAccounts: AccountService.getArtifactAccounts(),
     };
 
-    return $q
-      .all(dataToFetch)
-      .then((backingData: { accounts: IAccountDetails[]; artifactAccounts: IArtifactAccount[] }) => {
-        const { accounts, artifactAccounts } = backingData;
+    return Promise.all([dataToFetch.accounts, dataToFetch.artifactAccounts]).then(([accounts, artifactAccounts]) => {
+      const backingData = { accounts, artifactAccounts };
 
-        const account = accounts.some((a) => a.name === sourceAccount)
-          ? accounts.find((a) => a.name === sourceAccount).name
-          : accounts.length
-          ? accounts[0].name
-          : null;
+      const account = accounts.some((a) => a.name === sourceAccount)
+        ? accounts.find((a) => a.name === sourceAccount).name
+        : accounts.length
+        ? accounts[0].name
+        : null;
 
-        let manifestArtifactAccount: string = null;
-        const [artifactAccountData] = artifactAccounts;
-        if (artifactAccountData) {
-          manifestArtifactAccount = artifactAccountData.name;
-        }
+      let manifestArtifactAccount: string = null;
+      const [artifactAccountData] = artifactAccounts;
+      if (artifactAccountData) {
+        manifestArtifactAccount = artifactAccountData.name;
+      }
 
-        const cloudProvider = 'cloudrun';
-        const moniker = sourceMoniker || {
-          app: app.name,
-        };
+      const cloudProvider = 'cloudrun';
+      const moniker = sourceMoniker || {
+        app: app.name,
+      };
 
-        const relationships = {
-          loadBalancers: [] as string[],
-          securityGroups: [] as string[],
-        };
+      const relationships = {
+        loadBalancers: [] as string[],
+        securityGroups: [] as string[],
+      };
 
-        const versioned: any = null;
+      const versioned: any = null;
 
-        return {
-          command: {
-            cloudProvider,
-            manifest: null,
-            manifests: Array.isArray(sourceManifest)
-              ? sourceManifest
-              : sourceManifest != null
-              ? [sourceManifest]
-              : null,
-            relationships,
-            moniker,
-            account,
-            versioned,
-            manifestArtifactAccount,
-            source: ManifestSource.TEXT,
-          },
-          metadata: {
-            backingData,
-          },
-        } as ICloudrunManifestCommandData;
-      });
+      return {
+        command: {
+          cloudProvider,
+          manifest: null,
+          manifests: Array.isArray(sourceManifest) ? sourceManifest : sourceManifest != null ? [sourceManifest] : null,
+          relationships,
+          moniker,
+          account,
+          versioned,
+          manifestArtifactAccount,
+          source: ManifestSource.TEXT,
+        },
+        metadata: {
+          backingData,
+        },
+      } as ICloudrunManifestCommandData;
+    });
   }
 }
