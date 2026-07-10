@@ -17,7 +17,6 @@ package com.netflix.spinnaker.clouddriver.proxmox.provider.view;
 
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider;
 import com.netflix.spinnaker.clouddriver.proxmox.ProxmoxProvider;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
