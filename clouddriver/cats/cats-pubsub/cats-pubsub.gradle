@@ -21,11 +21,8 @@ dependencies {
   implementation project(":clouddriver-api")
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
-  implementation "com.netflix.spectator:spectator-api"
   implementation "io.micrometer:micrometer-core"
   implementation "io.spinnaker.kork:kork-core"
-  implementation "io.spinnaker.kork:kork-jedis"
-  implementation "org.apache.commons:commons-lang3"
   implementation "org.jooq:jooq"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.data:spring-data-redis"

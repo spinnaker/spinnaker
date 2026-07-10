@@ -11,20 +11,18 @@ import org.springframework.stereotype.Component;
 @Alpha
 public class PubSubSchedulerProperties {
   private int delayBetweenSchedulerRunsMs =
-      15000; // Rune very 15 seconds to refresh state & queue as needed
+      15000; // Run every 15 seconds to refresh state & queue as needed
   private int minutesBeforeDeletingMarkedForDeletion =
       180; // IF an agent is marked for deletion, wait 3 hours before ACTUALLY deleting it in case
   // it comes back
   private int minutesBeforeReQueueOfAgents =
-      20; // if an agent hasn't moved to starting in 20 minutes... requeue it
-  private double percentMaxOverNormalDuration =
-      1.5; // This in combination of the max duration allows an agent to run for a long time before
-  // re-running it
-  private int maxDurationForAnAgentMinutes =
-      120; // Allow for up to two hours for an agent to complete
+      20; // If an agent hasn't moved out of PENDING in this window, its stream record was lost -
+  // re-enqueue it.  Also the idle threshold for reclaiming unacknowledged records from dead
+  // consumers.
   private int maxConcurrentAgents =
-      100; // Max concurrent runners.  Controls the listener thread pool size.
-  private int runnerQueueCapacity =
-      1000; // Burst buffer between message dispatch and the runner pool.  Messages rejected when
-  // this overflows are lost until the stale-pending sweep requeues them.
+      100; // Max concurrent executions per replica.  Sizes the runner worker pool; runners never
+  // pull more records than they have free workers.
+  private long streamMaxLength =
+      100_000; // Approximate cap on the redis stream length (XTRIM each scheduler cycle).
+  // Acknowledged records are not removed automatically, so this bounds redis memory.
 }

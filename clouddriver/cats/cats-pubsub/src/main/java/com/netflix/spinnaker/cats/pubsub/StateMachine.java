@@ -166,8 +166,8 @@ public class StateMachine {
               .set(field("current_state"), stateToSet.name())
               .set(field("last_transition_time"), System.currentTimeMillis())
               .set(field("last_execution_time"), 0L)
-              // Sentinel so brand new agents get a generous first-run allowance; the runner clamps
-              // this to cats.pubsub.maxDurationForAnAgentMinutes when computing lock durations.
+              // Sentinel meaning "never completed a run" - real durations replace it on the first
+              // successful completion.
               .set(field("last_duration"), (long) Integer.MAX_VALUE)
               .set(field("data_processed"), 0L)
               .onDuplicateKeyIgnore()

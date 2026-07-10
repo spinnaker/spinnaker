@@ -26,6 +26,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,15 +43,16 @@ import org.springframework.util.StopWatch;
  * handler that given an agent identified by "agentType", will actually do the agent execution. This
  * will ALSO update the state.
  *
- * <p>This implementation uses a pub/sub based approach where the state machine publishes messages
- * to a redis queue (by default). The runners are VERY simple "pull" from said queue & run the given
- * agent.
+ * <p>This implementation publishes execution requests to a redis STREAM consumed through a consumer
+ * group ({@link PubSubAgentRunner#CONSUMER_GROUP}): each record is delivered to exactly one
+ * consumer, records are durable across replica restarts, and runners pull work only when they have
+ * free capacity.
  *
- * <p>Coordination notes: EVERY replica runs this poller (there is no leader election) and redis
- * pub/sub BROADCASTS each message to every subscribed replica. Correctness therefore relies on the
- * conditional state transitions in {@link StateMachine#tryTransition}: a message is only published
- * by the scheduler instance that WINS the transition to PENDING, and only the runner instance that
- * wins the transition to RUNNING will execute the agent.
+ * <p>Coordination notes: EVERY replica runs this poller (there is no leader election). Correctness
+ * relies on the conditional state transitions in {@link StateMachine#tryTransition}: a record is
+ * only published by the scheduler instance that WINS the transition to PENDING, and only the runner
+ * instance that wins the transition to RUNNING will execute the agent. The stream is purely the
+ * dispatch channel - all retry/recovery decisions live in the SQL state machine sweeps.
  */
 @Component
 @ConditionalOnProperty("cats.pubsub.enabled")
@@ -62,7 +64,8 @@ public class PubSubAgentScheduler extends CatsModuleAware
   public static final Set<StateMachine.State> QUEUEABLE_STATES =
       Set.of(
           StateMachine.State.FINISHED, StateMachine.State.NOT_STARTED, StateMachine.State.FAILED);
-  public static final String CHANNEL = "pubsub_agent_queue";
+  public static final String STREAM_KEY = "pubsub_agent_stream";
+  public static final String AGENT_TYPE_FIELD = "agentType";
   @Autowired private StateMachine stateMachine;
   @Autowired private AgentIntervalProvider intervalProvider;
   @Autowired @Lazy public ProviderRegistry providerRegistry;
@@ -134,6 +137,7 @@ public class PubSubAgentScheduler extends CatsModuleAware
     queueEligibleAgents(agentsByType);
     requeueStalePendingAgents();
     purgeAgentsMarkedForDeletion();
+    trimStream();
     publishStateGauges();
     cycleTimer.stop();
     meterRegistry
@@ -188,7 +192,7 @@ public class PubSubAgentScheduler extends CatsModuleAware
                         Set.of(StateMachine.State.RUNNING),
                         StateMachine.State.PENDING)
                     > 0) {
-                  redisTemplate.convertAndSend(CHANNEL, runningAgent.getAgentType());
+                  enqueue(runningAgent.getAgentType());
                   countQueued("stuck-running");
                 }
               } catch (Exception e) {
@@ -227,7 +231,7 @@ public class PubSubAgentScheduler extends CatsModuleAware
                     > 0) {
                   log.debug(
                       "Queueing agent {} and moving to PENDING status", candidate.getAgentType());
-                  redisTemplate.convertAndSend(CHANNEL, candidate.getAgentType());
+                  enqueue(candidate.getAgentType());
                   countQueued("interval");
                   recordScheduleLateness(candidate, interval);
                 }
@@ -275,11 +279,10 @@ public class PubSubAgentScheduler extends CatsModuleAware
   }
 
   /**
-   * If an agent has been PENDING for longer than configured, the message was probably lost (redis
-   * pub/sub is fire-and-forget - e.g. published while all runners were restarting, or dropped by a
-   * saturated runner pool). Re-enqueue it. The PENDING->PENDING transition bumps
-   * last_transition_time so this fires once per configured window rather than on every scheduler
-   * cycle.
+   * If an agent has been PENDING for longer than configured, its stream record was lost (e.g.
+   * trimmed away by an extreme backlog, or the XADD failed after the state transition). Re-enqueue
+   * it. The PENDING->PENDING transition bumps last_transition_time so this fires once per
+   * configured window rather than on every scheduler cycle.
    */
   private void requeueStalePendingAgents() {
     long maxPendingMillis =
@@ -299,10 +302,10 @@ public class PubSubAgentScheduler extends CatsModuleAware
                         StateMachine.State.PENDING)
                     > 0) {
                   log.warn(
-                      "Agent {} has been PENDING for over {} minutes - the queue message was likely lost.  Re-enqueueing it.",
+                      "Agent {} has been PENDING for over {} minutes - the stream record was likely lost or trimmed.  Re-enqueueing it.",
                       pendingAgent.getAgentType(),
                       properties.getMinutesBeforeReQueueOfAgents());
-                  redisTemplate.convertAndSend(CHANNEL, pendingAgent.getAgentType());
+                  enqueue(pendingAgent.getAgentType());
                   countQueued("stale-pending");
                 }
               } catch (Exception e) {
@@ -332,6 +335,25 @@ public class PubSubAgentScheduler extends CatsModuleAware
             });
   }
 
+  /** Publish an execution request for an agent onto the stream. */
+  private void enqueue(String agentType) {
+    redisTemplate.opsForStream().add(STREAM_KEY, Map.of(AGENT_TYPE_FIELD, agentType));
+  }
+
+  /**
+   * Cap the stream length. Acknowledged records are not removed by redis automatically, so without
+   * trimming the stream grows forever. The cap is generous: if a backlog ever exceeds it, the
+   * oldest (almost certainly already-consumed) records are dropped, and the stale-PENDING sweep
+   * re-publishes anything that was still live.
+   */
+  private void trimStream() {
+    try {
+      redisTemplate.opsForStream().trim(STREAM_KEY, properties.getStreamMaxLength(), true);
+    } catch (Exception e) {
+      log.warn("Unable to trim the agent stream", e);
+    }
+  }
+
   /** Gauge of how many agents sit in each state - the primary "is the system healthy" signal. */
   private void publishStateGauges() {
     try {
@@ -345,8 +367,51 @@ public class PubSubAgentScheduler extends CatsModuleAware
                         "cats.pubsub.agents.state", Tags.of("state", name), new AtomicLong()))
             .set(counts.getOrDefault(state.name(), 0L));
       }
+      // The LIVE queue depth is the number of PENDING agents (published but not yet claimed).
+      // Stream length (XLEN) is NOT an overload signal: acknowledged records accumulate until the
+      // trim, so depth sits at streamMaxLength in steady state by design.  What overload actually
+      // breaks is the trim eating records that are still live - warn well before that can happen.
+      long liveBacklog = counts.getOrDefault(StateMachine.State.PENDING.name(), 0L);
+      if (liveBacklog > properties.getStreamMaxLength() / 2) {
+        log.warn(
+            "There are {} agents PENDING against a stream capacity of {}.  If the backlog reaches the cap, the per-cycle trim will start discarding live records (the stale-PENDING sweep will recover them, slowly).  Add runner capacity or raise cats.pubsub.streamMaxLength.",
+            liveBacklog,
+            properties.getStreamMaxLength());
+      }
     } catch (Exception e) {
       log.warn("Unable to publish agent state gauges", e);
     }
+    publishStreamGauges();
+  }
+
+  /**
+   * Stream-side observability: depth (XLEN - total records incl. consumed-until-trimmed), in-flight
+   * (delivered to a runner, not yet acknowledged) and the number of live consumers in the group (~=
+   * replicas currently pulling work).
+   */
+  private void publishStreamGauges() {
+    try {
+      Long depth = redisTemplate.opsForStream().size(STREAM_KEY);
+      streamGauge("stream-depth", "cats.pubsub.stream.depth").set(depth == null ? 0 : depth);
+      StreamInfo.XInfoGroups groups = redisTemplate.opsForStream().groups(STREAM_KEY);
+      groups.stream()
+          .filter(group -> PubSubAgentRunner.CONSUMER_GROUP.equals(group.groupName()))
+          .findFirst()
+          .ifPresent(
+              group -> {
+                streamGauge("stream-pending", "cats.pubsub.stream.pending")
+                    .set(group.pendingCount());
+                streamGauge("stream-consumers", "cats.pubsub.stream.consumers")
+                    .set(group.consumerCount());
+              });
+    } catch (Exception e) {
+      // Expected until the stream and consumer group exist (first startup).
+      log.debug("Unable to publish stream gauges: {}", e.getMessage());
+    }
+  }
+
+  private AtomicLong streamGauge(String key, String metricName) {
+    return agentStateGaugeValues.computeIfAbsent(
+        key, k -> meterRegistry.gauge(metricName, Tags.empty(), new AtomicLong()));
   }
 }
