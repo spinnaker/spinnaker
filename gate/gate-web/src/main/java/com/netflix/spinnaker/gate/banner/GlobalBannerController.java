@@ -38,9 +38,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST API for managing global UI banners.
  *
- * <p>{@code GET /banners} is intentionally unauthenticated — Deck polls it on every page load and
- * requiring a session would add unnecessary latency and couple the banner display to auth state.
- * All mutation endpoints require Fiat admin.
+ * <p>{@code GET /banners} requires authentication but no specific role — any logged-in user can
+ * fetch active banners. All mutation endpoints require Fiat admin.
  */
 @RestController
 @RequestMapping("/banners")
