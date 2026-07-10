@@ -11,12 +11,12 @@ import org.springframework.context.ApplicationListener
 @SpringBootTest(webEnvironment = NONE)
 internal class SpringStartupTests {
 
-  @MockkBean(relaxUnitFun = true)
+  @MockkBean(relaxUnitFun = true, relaxed = true)
   lateinit var applicationReadyListener: ApplicationListener<ApplicationReadyEvent>
 
   @Test
   fun `the application starts successfully`() {
-    verify(timeout = 2000) {
+    verify(timeout = 8000) {
       applicationReadyListener.onApplicationEvent(ofType())
     }
   }

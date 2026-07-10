@@ -1,6 +1,7 @@
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import { createRequire } from 'module';
 import path from 'path';
 import strip from 'rollup-plugin-strip-code';
 import { defineConfig } from 'vite';
@@ -10,7 +11,8 @@ import svgr from 'vite-plugin-svgr';
 import angularTemplateLoader from '@spinnaker/scripts/helpers/rollup-plugin-angularjs-template-loader';
 
 const DECK_ROOT = path.resolve(`${__dirname}/../../`);
-const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
+const require = createRequire(import.meta.url);
+const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
 
 const envLocalFilePath = path.resolve(`${__dirname}/.env.local`);
 if (fs.existsSync(envLocalFilePath)) {
@@ -24,7 +26,7 @@ export default defineConfig(({ command }) => {
     { find: 'root', replacement: DECK_ROOT },
     {
       find: 'coreImports',
-      replacement: `${NODE_MODULE_PATH}/@spinnaker/core/src/presentation/less/imports/commonImports.less`,
+      replacement: `${CORE_PACKAGE_ROOT}/src/presentation/less/imports/commonImports.less`,
     },
   ];
 

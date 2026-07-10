@@ -46,16 +46,18 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -64,6 +66,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.utility.DockerImageName;
 import retrofit2.mock.Calls;
 
+@Execution(ExecutionMode.SAME_THREAD)
 abstract class AbstractSAMLConfigurationIntegrationTest {
 
   protected static final String REALM_NAME = "test-realm";
@@ -72,11 +75,11 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   protected static final String TEST_PASSWORD = "testpassword";
   protected static final String TEST_EMAIL = "testuser@example.com";
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockitoBean ClouddriverService clouddriverService;
 
-  @MockBean FiatService fiatService;
+  @MockitoBean FiatService fiatService;
 
-  @MockBean Front50Service front50Service;
+  @MockitoBean Front50Service front50Service;
 
   @Autowired protected SecuritySamlProperties properties;
 
@@ -130,6 +133,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   }
 
   protected void assertSamlRedirectFlowWorks() throws Exception {
+
+    createSamlApplicationInKeycloak(port);
     HttpClient client =
         HttpClient.newBuilder()
             .cookieHandler(new CookieManager())
@@ -144,7 +149,9 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
                 .build(),
             HttpResponse.BodyHandlers.ofString());
     assertThat(response.headers().firstValue("Location").orElse(""))
-        .isEqualTo("http://localhost:" + port + "/saml2/authenticate/SSO");
+        .isEqualTo("http://localhost:" + port + "/saml2/authenticate?registrationId=SSO");
+    //        .isEqualTo("http://localhost:" + port + "/saml2/authenticate/SSO"); - this changed in
+    // later versions of spring to be an argument vs a path based approach.
     assertThat(response.statusCode()).isEqualTo(302);
 
     HttpRequest request =
@@ -163,8 +170,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
     assertThat(decodeSamlRequest)
         .contains("AuthnRequest")
         .contains("AssertionConsumerServiceURL")
-        .contains("http://localhost:" + port);
-
+        .contains("http://localhost:" + port + "/saml/SSO");
+    // Note hte saml AC (aka /saml/SSO) MUST match the redirectUris in the client.
     String samlRequestToKeycloak =
         generatePostBody(Map.of("SAMLRequest", samlRequest, "RelayState", relayState));
     HttpRequest authPost =
@@ -182,7 +189,9 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
     assertThat(authResponse.statusCode()).isEqualTo(200);
   }
 
-  protected void assertFullSamlAuthenticationFlowUsingABrowserWorks() {
+  protected void assertFullSamlAuthenticationFlowUsingABrowserWorks() throws Exception {
+    createSamlApplicationInKeycloak(port);
+
     when(fiatService.loginUser(TEST_EMAIL)).thenReturn(Calls.response((Void) null));
     when(fiatService.getUserPermission(TEST_EMAIL))
         .thenReturn(
@@ -230,6 +239,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
             .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
             .build();
 
+    Thread.sleep(
+        500); // The... test tends to need a minute post creation.... to make sure this WORKS
     HttpResponse<String> tokenResponse =
         client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
     String accessToken = extractAccessToken(tokenResponse.body());
@@ -243,6 +254,8 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
         """
             .formatted(REALM_NAME);
 
+    Thread.sleep(
+        500); // The... test tends to need a minute post creation.... to make sure this WORKS
     HttpRequest createRealmRequest =
         HttpRequest.newBuilder()
             .uri(URI.create(keycloakBaseUrl + "/admin/realms"))
@@ -250,35 +263,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(realmJson))
             .build();
-
     assertThat(client.send(createRealmRequest, HttpResponse.BodyHandlers.ofString()).statusCode())
-        .isEqualTo(201);
-
-    String clientJson =
-        """
-        {
-         "clientId":"%s",
-         "enabled":true,
-         "protocol":"saml",
-         "redirectUris":["*"],
-         "attributes":{
-          "saml.authnstatement":"true",
-          "saml.server.signature":"true",
-          "saml.client.signature": "false"
-         }
-        }
-        """
-            .formatted(CLIENT_ID);
-
-    HttpRequest createClientRequest =
-        HttpRequest.newBuilder()
-            .uri(URI.create(keycloakBaseUrl + "/admin/realms/" + REALM_NAME + "/clients"))
-            .header("Authorization", "Bearer " + accessToken)
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(clientJson))
-            .build();
-
-    assertThat(client.send(createClientRequest, HttpResponse.BodyHandlers.ofString()).statusCode())
         .isEqualTo(201);
 
     String userJson =
@@ -311,6 +296,53 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
     assertThat(createUserResponse.statusCode()).isEqualTo(201);
   }
 
+  private static void createSamlApplicationInKeycloak(int port)
+      throws IOException, InterruptedException {
+
+    HttpClient client = HttpClient.newHttpClient();
+
+    String tokenEndpoint = keycloakBaseUrl + "/realms/master/protocol/openid-connect/token";
+    String tokenBody = "client_id=admin-cli&username=admin&password=admin&grant_type=password";
+
+    HttpRequest tokenRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create(tokenEndpoint))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .POST(HttpRequest.BodyPublishers.ofString(tokenBody))
+            .build();
+
+    HttpResponse<String> tokenResponse =
+        client.send(tokenRequest, HttpResponse.BodyHandlers.ofString());
+    String accessToken = extractAccessToken(tokenResponse.body());
+
+    String clientJson =
+        """
+        {
+         "clientId":"%s",
+         "enabled":true,
+         "protocol":"saml",
+         "redirectUris":["http://localhost:%s/saml/SSO"],
+         "attributes":{
+          "saml.authnstatement":"true",
+          "saml.server.signature":"true",
+          "saml.client.signature": "false"
+         }
+        }
+        """
+            .formatted(CLIENT_ID, port);
+
+    HttpRequest createClientRequest =
+        HttpRequest.newBuilder()
+            .uri(URI.create(keycloakBaseUrl + "/admin/realms/" + REALM_NAME + "/clients"))
+            .header("Authorization", "Bearer " + accessToken)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(clientJson))
+            .build();
+
+    assertThat(client.send(createClientRequest, HttpResponse.BodyHandlers.ofString()).statusCode())
+        .isIn(List.of(201, 409)); // add 409 in case created in another test... we just move on
+  }
+
   private static String extractAccessToken(String json) {
     int start = json.indexOf("\"access_token\":\"") + 16;
     int end = json.indexOf("\"", start);
@@ -318,10 +350,16 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   }
 
   private static @NotNull String extractFieldFromBody(String fieldName, String body) {
-    int samlRequestIndex = body.indexOf(fieldName + "\" value=\"");
-    assertThat(samlRequestIndex).isGreaterThan(0);
-    String startOfBody = body.substring(samlRequestIndex + (fieldName + "\" value=\"").length());
-    int endOfBody = startOfBody.indexOf("\"/");
+    String stringInTheBody = fieldName + "\" type=\"hidden\" value=\"";
+    int samlRequestIndex = body.indexOf(stringInTheBody);
+    assertThat(samlRequestIndex)
+        .withFailMessage(
+            "Expected the body to contain the request with a specific format {}, but actually got {} ",
+            stringInTheBody,
+            body)
+        .isGreaterThan(0);
+    String startOfBody = body.substring(samlRequestIndex + (stringInTheBody).length());
+    int endOfBody = startOfBody.indexOf("\" /");
     return startOfBody.substring(0, endOfBody);
   }
 
