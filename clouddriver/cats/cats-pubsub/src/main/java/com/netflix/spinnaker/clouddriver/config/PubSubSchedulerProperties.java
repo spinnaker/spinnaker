@@ -23,6 +23,8 @@ public class PubSubSchedulerProperties {
   private int maxDurationForAnAgentMinutes =
       120; // Allow for up to two hours for an agent to complete
   private int maxConcurrentAgents =
-      100; // Max concurrent runners.  Controls the listener thread pool.  "Core" threads == 1/3 of
-  // this number
+      100; // Max concurrent runners.  Controls the listener thread pool size.
+  private int runnerQueueCapacity =
+      1000; // Burst buffer between message dispatch and the runner pool.  Messages rejected when
+  // this overflows are lost until the stale-pending sweep requeues them.
 }

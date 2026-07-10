@@ -86,16 +86,18 @@ class StateMachineTest {
             "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=MySQL;DATABASE_TO_UPPER=false", "sa", "");
     dslContext = DSL.using(connection, SQLDialect.MYSQL);
 
-    // Create the pubsub_agent_state table
+    // Create the pubsub_agent_state table.  This DDL MUST stay aligned with the liquibase
+    // migration (clouddriver-sql db.changelog 20250908-pubsub-scheduler.yml): notably there are NO
+    // column defaults there, so nullable columns must be handled by the StateMachine itself.
     dslContext.execute(
         """
           CREATE TABLE IF NOT EXISTS pubsub_agent_state (
-              agent_type VARCHAR(255) PRIMARY KEY,
-              current_state VARCHAR(50) NOT NULL,
-              last_execution_time BIGINT DEFAULT 0,
-              last_transition_time BIGINT DEFAULT 0,
-              last_duration BIGINT DEFAULT 0,
-              data_processed BIGINT DEFAULT 0
+              agent_type VARCHAR(512) PRIMARY KEY,
+              current_state VARCHAR(20) NOT NULL,
+              last_transition_time BIGINT,
+              last_execution_time BIGINT,
+              last_duration BIGINT,
+              data_processed BIGINT
           )
       """);
 
@@ -254,13 +256,90 @@ class StateMachineTest {
   }
 
   @Test
+  void tryTransition_shouldOnlyTransitionFromExpectedStates() {
+    stateMachine.createOrUpdateAgent(mockAgent.getAgentType(), FINISHED);
+
+    // Simulates two scheduler/runner replicas racing: the first conditional update wins...
+    assertEquals(
+        1, stateMachine.tryTransition(mockAgent.getAgentType(), Set.of(FINISHED), PENDING));
+    // ...and the second caller loses because the agent is no longer in an expected state.
+    assertEquals(
+        0, stateMachine.tryTransition(mockAgent.getAgentType(), Set.of(FINISHED), PENDING));
+    assertThat(stateMachine.getAgent(mockAgent.getAgentType()).getCurrentState())
+        .isEqualTo(PENDING.name());
+  }
+
+  @Test
+  void tryTransition_shouldNotResurrectDeletedAgents() {
+    stateMachine.createOrUpdateAgent(mockAgent.getAgentType(), DELETED);
+    assertEquals(0, stateMachine.tryTransition(mockAgent.getAgentType(), Set.of(PENDING), RUNNING));
+    assertThat(stateMachine.getAgent(mockAgent.getAgentType()).getCurrentState())
+        .isEqualTo(DELETED.name());
+  }
+
+  @Test
+  void tryTransition_samStateTransitionShouldBumpTransitionTime() throws Exception {
+    stateMachine.createOrUpdateAgent(mockAgent.getAgentType(), PENDING);
+    long initialTransitionTime =
+        stateMachine.getAgent(mockAgent.getAgentType()).getLastTransitionTime();
+    Thread.sleep(5);
+    // The stale-PENDING requeue relies on PENDING->PENDING advancing last_transition_time so an
+    // agent is only re-published once per requeue window.
+    assertEquals(1, stateMachine.tryTransition(mockAgent.getAgentType(), Set.of(PENDING), PENDING));
+    assertTrue(
+        stateMachine.getAgent(mockAgent.getAgentType()).getLastTransitionTime()
+            > initialTransitionTime);
+  }
+
+  @Test
+  void getAgent_shouldTolerateRowsWithNullColumns() {
+    // Rows written before data_processed existed (or by hand) can hold NULLs - the migration
+    // declares no column defaults.
+    dslContext.execute(
+        "INSERT INTO pubsub_agent_state (agent_type, current_state) VALUES ('legacy-agent', 'FINISHED')");
+
+    StateMachine.AgentState legacy = stateMachine.getAgent("legacy-agent");
+    assertNotNull(legacy);
+    assertEquals(0L, legacy.getDataProcessed());
+    assertEquals(0L, legacy.getLastDuration());
+    assertEquals(0L, legacy.getLastExecutionTime());
+    assertEquals(0L, legacy.getLastTransitionTime());
+  }
+
+  @Test
   void statesToIgnoreOnExisting_shouldContainCorrectStates() {
-    // Then
-    assertEquals(4, StateMachine.STATES_TO_IGNORE_ON_EXISTING.size());
-    assertTrue(StateMachine.STATES_TO_IGNORE_ON_EXISTING.contains(DELETED));
+    // DELETED is deliberately NOT ignored: a schedule() call must resurrect an agent that a
+    // previous unschedule() marked DELETED (providers reschedule via unschedule/schedule pairs).
+    assertEquals(3, StateMachine.STATES_TO_IGNORE_ON_EXISTING.size());
     assertTrue(StateMachine.STATES_TO_IGNORE_ON_EXISTING.contains(PENDING));
     assertTrue(StateMachine.STATES_TO_IGNORE_ON_EXISTING.contains(FINISHED));
     assertTrue(StateMachine.STATES_TO_IGNORE_ON_EXISTING.contains(RUNNING));
+  }
+
+  @Test
+  void createOrUpdateAgent_shouldResurrectDeletedAgents() {
+    // Simulates a provider rescheduling an agent: unschedule marks it DELETED, then schedule
+    // (createOrUpdateAgent) must bring it back rather than leaving it dead until purged.
+    stateMachine.createOrUpdateAgent(mockAgent.getAgentType(), NOT_STARTED);
+    stateMachine.disable(mockAgent);
+    assertThat(stateMachine.getAgent(mockAgent.getAgentType()).getCurrentState())
+        .isEqualTo(DELETED.name());
+
+    stateMachine.createOrUpdateAgent(mockAgent.getAgentType(), NOT_STARTED);
+    assertThat(stateMachine.getAgent(mockAgent.getAgentType()).getCurrentState())
+        .isEqualTo(NOT_STARTED.name());
+  }
+
+  @Test
+  void countAgentsByState_shouldGroupCorrectly() {
+    stateMachine.createOrUpdateAgent("agent-1", PENDING);
+    stateMachine.createOrUpdateAgent("agent-2", PENDING);
+    stateMachine.createOrUpdateAgent("agent-3", FINISHED);
+
+    Map<String, Long> counts = stateMachine.countAgentsByState();
+    assertEquals(2L, counts.get(PENDING.name()));
+    assertEquals(1L, counts.get(FINISHED.name()));
+    assertNull(counts.get(RUNNING.name()));
   }
 
   @Test

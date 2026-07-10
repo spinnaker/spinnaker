@@ -1,12 +1,14 @@
 package com.netflix.spinnaker.cats.pubsub;
 
+import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.noCondition;
 import static org.jooq.impl.DSL.table;
 
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.kork.annotations.Alpha;
-import java.sql.ResultSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Builder;
@@ -14,7 +16,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.RecordMapper;
@@ -30,19 +32,22 @@ import org.springframework.stereotype.Component;
 public class StateMachine {
   public static final String PUBSUB_AGENT_STATE = "pubsub_agent_state";
   public static final String AGENT_TYPE = "agent_type";
-  private static final int MAX_DURATION_FOR_AN_AGENT =
-      7200; // up to 2 hours.  NO AGENT should EVER take this long.  WE HOPE!
 
   private final DSLContext jooq;
+
+  private static long longOrZero(Long value) {
+    return value == null ? 0L : value;
+  }
+
   private static final RecordMapper<Record, AgentState> agentStateMapper =
       row ->
           AgentState.builder()
               .agentType(row.get(AGENT_TYPE, String.class))
               .currentState(row.get("current_state", String.class))
-              .lastTransitionTime(row.get("last_transition_time", Long.class))
-              .lastExecutionTime(row.get("last_execution_time", Long.class))
-              .lastDuration(row.get("last_duration", Long.class))
-              .dataProcessed(row.get("data_processed", Integer.class))
+              .lastTransitionTime(longOrZero(row.get("last_transition_time", Long.class)))
+              .lastExecutionTime(longOrZero(row.get("last_execution_time", Long.class)))
+              .lastDuration(longOrZero(row.get("last_duration", Long.class)))
+              .dataProcessed(longOrZero(row.get("data_processed", Long.class)))
               .build();
 
   public AgentState getAgent(String agentType) {
@@ -57,12 +62,28 @@ public class StateMachine {
   }
 
   /**
+   * Atomically transition an agent to a new state ONLY if it is currently in one of the expected
+   * states. This is the coordination primitive for the scheduler/runners: because the row update is
+   * conditional, exactly ONE caller wins when several schedulers or runners race on the same agent
+   * (e.g. multiple replicas all receive the same pub/sub message).
+   *
+   * @return the number of rows updated: 1 when this caller won the transition, 0 when the agent was
+   *     not in an expected state (someone else transitioned it first, it was deleted, or it no
+   *     longer exists)
+   */
+  public int tryTransition(String agentType, Set<State> expectedCurrentStates, State stateToSet) {
+    return jooq.update(table(PUBSUB_AGENT_STATE))
+        .set(field("current_state"), stateToSet.name())
+        .set(field("last_transition_time"), System.currentTimeMillis())
+        .where(field(AGENT_TYPE).eq(agentType))
+        .and(field("current_state").in(expectedCurrentStates.stream().map(State::name).toList()))
+        .execute();
+  }
+
+  /**
    * Allow updating the state of a specific agent AS LONG AS It's not marked for deletion.
    *
-   * @param agentType
-   * @param stateToSet
-   * @return
-   * @throws Exception
+   * @return the number of rows updated
    */
   public int changeStateUnlessMarkedForDeletion(String agentType, State stateToSet) {
     return jooq.update(table(PUBSUB_AGENT_STATE))
@@ -94,6 +115,7 @@ public class StateMachine {
     int rowsDeleted =
         jooq.update(table(PUBSUB_AGENT_STATE))
             .set(field("current_state"), StateMachine.State.DELETED.name())
+            .set(field("last_transition_time"), System.currentTimeMillis())
             .where(field(AGENT_TYPE).eq(agent.getAgentType()))
             .andNot(field("current_state").eq(StateMachine.State.DELETED.name()))
             .execute();
@@ -123,61 +145,73 @@ public class StateMachine {
     }
   }
 
+  // States owned by the scheduler/runner lifecycle that a (re)schedule call must not clobber.
+  // DELETED is deliberately NOT in this set: several providers reschedule agents via an
+  // unschedule/schedule pair, and the schedule call is an explicit statement that the agent should
+  // exist again - it must resurrect a row that unschedule marked DELETED, otherwise the agent
+  // stays dead until the purge removes the row and nothing ever re-creates it.
   public static final Set<State> STATES_TO_IGNORE_ON_EXISTING =
-      Set.of(State.DELETED, State.PENDING, State.FINISHED, State.RUNNING);
+      Set.of(State.PENDING, State.FINISHED, State.RUNNING);
 
+  /**
+   * Register an agent, or update the state of an existing agent that is "at rest" (i.e. not
+   * PENDING/RUNNING/FINISHED - states owned by the scheduler/runner lifecycle). Used when providers
+   * schedule (or reschedule via unschedule/reschedule) agents; a DELETED agent is resurrected.
+   */
   public void createOrUpdateAgent(String agentType, State stateToSet) {
-    // Get last COMPLETE date.  Get agent interval if scheduler aware.  IF interval is AFTER
-    // complete date, queue it.
-    try (@NotNull
-        ResultSet agentRecord =
-            jooq.select(
-                    field(AGENT_TYPE),
-                    field("current_state"),
-                    field("last_execution_time"),
-                    field("last_transition_time"),
-                    field("last_duration"))
-                .from(table(PUBSUB_AGENT_STATE))
-                .where(field(AGENT_TYPE).eq(agentType))
-                .forUpdate()
-                .resultSetConcurrency(ResultSet.CONCUR_UPDATABLE)
-                .fetchResultSet()) {
-
-      if (agentRecord.next()) {
-        // already exists... so we probably are rescheduling an agent.  Some of the providers to an
+    try {
+      int inserted =
+          jooq.insertInto(table(PUBSUB_AGENT_STATE))
+              .set(field(AGENT_TYPE), agentType)
+              .set(field("current_state"), stateToSet.name())
+              .set(field("last_transition_time"), System.currentTimeMillis())
+              .set(field("last_execution_time"), 0L)
+              // Sentinel so brand new agents get a generous first-run allowance; the runner clamps
+              // this to cats.pubsub.maxDurationForAnAgentMinutes when computing lock durations.
+              .set(field("last_duration"), (long) Integer.MAX_VALUE)
+              .set(field("data_processed"), 0L)
+              .onDuplicateKeyIgnore()
+              .execute();
+      if (inserted == 0) {
+        // already exists... so we probably are rescheduling an agent.  Some of the providers do an
         // unschedule/reschedule to reschedule various agents.
-        if (!STATES_TO_IGNORE_ON_EXISTING.contains(
-            State.valueOf(agentRecord.getString("current_state")))) {
-          // Never executed... so set some defaults for the next poll cycle to queue it as needed
-          agentRecord.updateString("current_state", stateToSet.name());
-          agentRecord.updateLong("last_transition_time", System.currentTimeMillis());
-          agentRecord.updateRow();
-        }
-      } else {
-        agentRecord.moveToInsertRow();
-        agentRecord.updateString(AGENT_TYPE, agentType);
-        agentRecord.updateLong("last_duration", Integer.MAX_VALUE);
-        agentRecord.updateLong("last_transition_time", System.currentTimeMillis());
-        agentRecord.updateLong("last_execution_time", 0);
-        agentRecord.updateString("current_state", stateToSet.name());
-        agentRecord.insertRow();
+        jooq.update(table(PUBSUB_AGENT_STATE))
+            .set(field("current_state"), stateToSet.name())
+            .set(field("last_transition_time"), System.currentTimeMillis())
+            .where(field(AGENT_TYPE).eq(agentType))
+            .andNot(
+                field("current_state")
+                    .in(STATES_TO_IGNORE_ON_EXISTING.stream().map(State::name).toList()))
+            .execute();
       }
     } catch (Exception e) {
       log.error(
-          "Failed to schedule agent {}.  THIS MAY still run... but there'll be no dataa in the schedule tame to report it!",
+          "Failed to schedule agent {}.  THIS MAY still run... but there'll be no data in the schedule table to report it!",
           agentType,
           e);
     }
   }
 
+  /** Count of agents per state - primarily for observability gauges. */
+  public Map<String, Long> countAgentsByState() {
+    return jooq.select(field("current_state"), count())
+        .from(table(PUBSUB_AGENT_STATE))
+        .groupBy(field("current_state"))
+        .fetchMap(
+            row -> row.get("current_state", String.class), row -> row.get(count()).longValue());
+  }
+
   public List<AgentState> listAgentsFilteredWhereIn(Set<State> filterList) {
     try {
-      var query = jooq.selectFrom(table(PUBSUB_AGENT_STATE));
-      if (filterList != null && !filterList.isEmpty()) {
-        query.where(field("current_state").in(filterList.stream().map(State::name).toList()));
-      }
-      query.orderBy(field("last_execution_time"));
-      return query.fetch().into(AgentState.class);
+      Condition stateFilter =
+          (filterList == null || filterList.isEmpty())
+              ? noCondition()
+              : field("current_state").in(filterList.stream().map(State::name).toList());
+      return jooq.selectFrom(table(PUBSUB_AGENT_STATE))
+          .where(stateFilter)
+          .orderBy(field("last_execution_time"))
+          .fetch()
+          .map(agentStateMapper);
     } catch (Exception e) {
       log.error("Unable to query the list of agents!", e);
       throw new RuntimeException(e);

@@ -10,6 +10,7 @@ import com.netflix.spinnaker.kork.annotations.Alpha;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.util.Optional;
 import lombok.extern.log4j.Log4j2;
@@ -23,7 +24,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
@@ -36,26 +36,33 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class PubSubSchedulerConfig {
 
   @Bean
-  PubSubAgentRunner listener() {
-    return new PubSubAgentRunner();
-  }
-
-  @Bean
-  MessageListenerAdapter messageListenerAdapter(PubSubAgentRunner listener) {
-    return new MessageListenerAdapter(listener, "onMessage");
-  }
-
-  @Bean
   RedisMessageListenerContainer redisMessageListenerContainer(
       PubSubSchedulerProperties properties,
       RedisConnectionFactory connectionFactory,
-      MessageListenerAdapter listener) {
+      MeterRegistry meterRegistry,
+      PubSubAgentRunner listener) {
     log.info("Starting message listener with " + properties.getMaxConcurrentAgents() + " agents");
     ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
     taskExecutor.setThreadNamePrefix("pubsub-agent-runner-");
+    // core == max with idle timeout: a ThreadPoolExecutor only grows past core once its queue is
+    // FULL, so a smaller core with a bounded queue would cap concurrency at the core size until
+    // the backlog saturates - the opposite of what we want.
     taskExecutor.setMaxPoolSize(properties.getMaxConcurrentAgents());
-    taskExecutor.setCorePoolSize(properties.getMaxConcurrentAgents() / 3);
-    taskExecutor.setQueueCapacity(0);
+    taskExecutor.setCorePoolSize(properties.getMaxConcurrentAgents());
+    taskExecutor.setAllowCoreThreadTimeOut(true);
+    // Bounded queue as burst buffer: pub/sub delivers ALL due agents at once, and a rejected
+    // dispatch means the message is simply lost until the stale-PENDING sweep requeues it many
+    // minutes later.  Rejections are still possible when the queue overflows - count them so
+    // saturation is visible.
+    taskExecutor.setQueueCapacity(properties.getRunnerQueueCapacity());
+    taskExecutor.setRejectedExecutionHandler(
+        (runnable, executor) -> {
+          meterRegistry.counter("cats.pubsub.runner.rejected").increment();
+          log.warn(
+              "Agent runner pool saturated ({} threads, queue capacity {}) - dropping a message.  The affected agent stays PENDING until the stale-pending sweep requeues it.  Consider raising cats.pubsub.maxConcurrentAgents or runnerQueueCapacity.",
+              properties.getMaxConcurrentAgents(),
+              properties.getRunnerQueueCapacity());
+        });
     taskExecutor.initialize();
 
     log.info("Starting RedisMessageListenerContainer & pubsub processing of scheduled agents");

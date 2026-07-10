@@ -47,3 +47,22 @@ databaseChangeLog:
             name: current_state
         - column:
             name: last_execution_time
+
+# The scheduler polls by state (WHERE current_state IN (...) ORDER BY last_execution_time) every
+# cycle; the index above leads with agent_type so it cannot serve those scans.
+- changeSet:
+    id: create-pubsub-scheduler-state-index
+    author: jasonmcintosh@spinnaker.io
+    changes:
+    - createIndex:
+        indexName: current_state_index
+        tableName: pubsub_agent_state
+        columns:
+        - column:
+            name: current_state
+        - column:
+            name: last_execution_time
+    rollback:
+      - dropIndex:
+          indexName: current_state_index
+          tableName: pubsub_agent_state

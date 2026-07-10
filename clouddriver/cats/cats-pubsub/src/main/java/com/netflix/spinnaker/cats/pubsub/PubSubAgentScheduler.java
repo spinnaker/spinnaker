@@ -6,12 +6,22 @@ import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
+import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.config.PubSubSchedulerProperties;
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -19,21 +29,28 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
 /**
  * This is an implementation of a scheduler system for spinnaker that operates with a slightly
  * DIFFERENT approach.
  *
- * <p>There are three key compoentns to this scheduler: 1) A state management machine that tracks
+ * <p>There are three key components to this scheduler: 1) A state management machine that tracks
  * known agents and their current processing state. This knows ALL known agents and their state. It
- * also tracks the last time an agent was run, and the last time it was scheduled to run. 3) A
- * poller that looks up the state and queues agents to be run based upon state/status 4) A message
- * handler that given an agent identifed by "agentType", will actually do the agent execution. This
+ * also tracks the last time an agent was run, and the last time it was scheduled to run. 2) A
+ * poller that looks up the state and queues agents to be run based upon state/status 3) A message
+ * handler that given an agent identified by "agentType", will actually do the agent execution. This
  * will ALSO update the state.
  *
  * <p>This implementation uses a pub/sub based approach where the state machine publishes messages
  * to a redis queue (by default). The runners are VERY simple "pull" from said queue & run the given
  * agent.
+ *
+ * <p>Coordination notes: EVERY replica runs this poller (there is no leader election) and redis
+ * pub/sub BROADCASTS each message to every subscribed replica. Correctness therefore relies on the
+ * conditional state transitions in {@link StateMachine#tryTransition}: a message is only published
+ * by the scheduler instance that WINS the transition to PENDING, and only the runner instance that
+ * wins the transition to RUNNING will execute the agent.
  */
 @Component
 @ConditionalOnProperty("cats.pubsub.enabled")
@@ -42,15 +59,25 @@ import org.springframework.stereotype.Component;
 public class PubSubAgentScheduler extends CatsModuleAware
     implements Runnable, AgentScheduler<AgentLock> {
 
-  public static final Set<StateMachine.State> QUEABLE_STATE_LIST =
+  public static final Set<StateMachine.State> QUEUEABLE_STATES =
       Set.of(
           StateMachine.State.FINISHED, StateMachine.State.NOT_STARTED, StateMachine.State.FAILED);
-  public static final String CHANNEL = "pubsbub_agent_queue";
+  public static final String CHANNEL = "pubsub_agent_queue";
   @Autowired private StateMachine stateMachine;
   @Autowired private AgentIntervalProvider intervalProvider;
   @Autowired @Lazy public ProviderRegistry providerRegistry;
   @Autowired RedisTemplate<String, String> redisTemplate;
   @Autowired PubSubSchedulerProperties properties;
+  @Autowired MeterRegistry meterRegistry;
+
+  // Optional: only present when a discovery/health integration is configured.  Used to stop
+  // scheduling while this replica is disabled (e.g. draining for shutdown).
+  @Autowired(required = false)
+  NodeStatusProvider nodeStatusProvider;
+
+  // Backing values for the per-state gauges.  Micrometer gauges hold weak references, so the map
+  // (owned by this bean) keeps them alive; the AtomicLongs are updated in place each cycle.
+  private final Map<String, AtomicLong> agentStateGaugeValues = new ConcurrentHashMap<>();
 
   /**
    * Overview - there are three entry points to "schedule" an agent for cache operations under
@@ -93,130 +120,233 @@ public class PubSubAgentScheduler extends CatsModuleAware
   @Override
   @Scheduled(fixedDelayString = "${cats.pubsub.delay-between-scheduler-runs-ms:15000}")
   public void run() {
+    if (nodeStatusProvider != null && !nodeStatusProvider.isNodeEnabled()) {
+      log.debug("Node is not enabled (draining or out of discovery); skipping scheduler cycle");
+      return;
+    }
     log.debug("Running agent scheduler to look for new agents to enqueue");
-    // Schedule & queue any agents that CAN be scheduled.
+    StopWatch cycleTimer = new StopWatch();
+    cycleTimer.start();
+    // One pass over the registry per cycle instead of a full registry scan per candidate agent -
+    // with thousands of agents the per-candidate lookup is quadratic and dominates the cycle.
+    Map<String, Agent> agentsByType = agentsByType();
+    requeueStuckRunningAgents(agentsByType);
+    queueEligibleAgents(agentsByType);
+    requeueStalePendingAgents();
+    purgeAgentsMarkedForDeletion();
+    publishStateGauges();
+    cycleTimer.stop();
+    meterRegistry
+        .timer("cats.pubsub.scheduler.cycle.duration")
+        .record(cycleTimer.getTotalTimeMillis(), TimeUnit.MILLISECONDS);
+    log.debug("Done running the agent scheduler in {} ms", cycleTimer.getTotalTimeMillis());
+  }
 
-    // Find any agents still running after their max interval (if one available) and reschedule
-    // them.  They likely failed
-    // or were hung.
+  private Map<String, Agent> agentsByType() {
+    Map<String, Agent> agents = new HashMap<>();
+    providerRegistry
+        .getProviders()
+        .forEach(
+            provider ->
+                provider
+                    .getAgents()
+                    .forEach(agent -> agents.putIfAbsent(agent.getAgentType(), agent)));
+    return agents;
+  }
+
+  /**
+   * Find any agents still running after their max timeout and reschedule them. They likely failed
+   * or were hung. UNFORTUNATELY there's no "interrupt" option on Agents in spinnaker to stop the
+   * original execution :( NOT Yet :( SO we just reschedule the execution instead. The original
+   * execution (if actually still alive) will continue to hold the redis lock, so the requeued
+   * message is dropped by runners until the lock is released.
+   */
+  private void requeueStuckRunningAgents(Map<String, Agent> agentsByType) {
     stateMachine
         .listAgentsFilteredWhereIn(Set.of(StateMachine.State.RUNNING))
         .forEach(
             runningAgent -> {
-              Agent agentThatCouldBeRun =
-                  providerRegistry.getAgentForProviderName(runningAgent.getAgentType());
-              AgentIntervalProvider.Interval interval =
-                  intervalProvider.getInterval(
-                      providerRegistry.getAgentForProviderName(runningAgent.getAgentType()));
-              if (interval.getTimeout()
-                  <= System.currentTimeMillis() - runningAgent.getLastTransitionTime()) {
-                // The agent has been running TOO long.  This is LIKELY a bad situation.  We'll
-                // reschedule it and mark it for pending status. UNFORTUNATELY there's no
-                // "interrupt" option on Agents in spinnaker to DO This :( NOT Yet :(  SO we just
-                // reschedule the execution instead.
-                // The bad side is you CAN get multiple agents of the same type running. E.g. if you
-                // have a Lambda caching agent that takes 5 hours to RUN... well, you may have 3 on
-                // that same account/region due to the max interval where it'll requeue that agent
-                // for processing.
-                try {
-                  log.warn(
-                      "Found agent {} that is in a running state for a longer than it should have been ({}).  Rescheduling.  WARNING:  THe agent MAY have been running before hand... and not finished.  Check agent for more information/logs and duration data!",
-                      runningAgent.getAgentType(),
-                      runningAgent.getLastTransitionTime());
-                  // ONLY send to the queue IF we successfully moved it to a pending state.  This
-                  // skips over a record marked for deletion.  TECHNICALLY this shouldn't happen.
-                  if (stateMachine.changeStateUnlessMarkedForDeletion(
-                          agentThatCouldBeRun.getAgentType(), StateMachine.State.PENDING)
-                      >= 0) {
-                    redisTemplate.convertAndSend(CHANNEL, runningAgent.getAgentType());
-                  }
-                } catch (Exception e) {
-                  e.printStackTrace();
-                  log.error(
-                      "Failed to send agent {} for processing OR update state!  ",
-                      runningAgent.getAgentType(),
-                      e);
+              Agent agent = agentsByType.get(runningAgent.getAgentType());
+              if (agent == null) {
+                log.warn(
+                    "Agent {} is marked RUNNING but is no longer in the provider registry.  Skipping timeout checks on it.",
+                    runningAgent.getAgentType());
+                return;
+              }
+              AgentIntervalProvider.Interval interval = intervalProvider.getInterval(agent);
+              if (System.currentTimeMillis() - runningAgent.getLastTransitionTime()
+                  < interval.getTimeout()) {
+                return;
+              }
+              try {
+                log.warn(
+                    "Found agent {} that has been in a running state longer than its timeout (last transition {}).  Rescheduling.  WARNING:  The original execution MAY still be running... check agent logs and duration data!",
+                    runningAgent.getAgentType(),
+                    runningAgent.getLastTransitionTime());
+                if (stateMachine.tryTransition(
+                        runningAgent.getAgentType(),
+                        Set.of(StateMachine.State.RUNNING),
+                        StateMachine.State.PENDING)
+                    > 0) {
+                  redisTemplate.convertAndSend(CHANNEL, runningAgent.getAgentType());
+                  countQueued("stuck-running");
                 }
+              } catch (Exception e) {
+                log.error(
+                    "Failed to send agent {} for processing OR update state!  ",
+                    runningAgent.getAgentType(),
+                    e);
               }
             });
+  }
 
+  /**
+   * Queue any agents whose interval has elapsed. The transition to PENDING is a conditional update
+   * - whichever scheduler replica wins the transition publishes the message; everyone else skips.
+   */
+  private void queueEligibleAgents(Map<String, Agent> agentsByType) {
     stateMachine
-        .listAgentsFilteredWhereIn(QUEABLE_STATE_LIST)
+        .listAgentsFilteredWhereIn(QUEUEABLE_STATES)
         .forEach(
-            agent -> {
-              Agent agentThatCouldBeRun =
-                  providerRegistry.getAgentForProviderName(agent.getAgentType());
-              if (agentThatCouldBeRun == null) {
+            candidate -> {
+              Agent agent = agentsByType.get(candidate.getAgentType());
+              if (agent == null) {
                 log.warn(
                     "Can't find agent "
-                        + agent.getAgentType()
+                        + candidate.getAgentType()
                         + " in the list of available provider agents!  Will skip scheduling and try on next run.  IF you see this a lot theres probably a bug someplace on agent lists/registry behavior...");
                 return;
               }
-              AgentIntervalProvider.Interval interval =
-                  intervalProvider.getInterval(agentThatCouldBeRun);
-              log.debug(
-                  "Looking at agent {} that COULD be scheduled.  The interval between runs is {} and the last time run was {} seconds ago ",
-                  agent.getAgentType(),
-                  interval.getInterval(),
-                  ((System.currentTimeMillis()
-                          - agent.getLastExecutionTime()
-                          - interval.getInterval())
-                      / 1000));
-              if (agent.getLastExecutionTime()
-                  <= System.currentTimeMillis() - interval.getInterval()) {
-                // schedule the agent to run.
-                try {
-                  log.debug("Running agent {} and moving to PENDING status", agent.getAgentType());
-                  stateMachine.createOrUpdateAgent(
-                      agentThatCouldBeRun.getAgentType(), StateMachine.State.PENDING);
-                  redisTemplate.convertAndSend(CHANNEL, agent.getAgentType());
-                } catch (Exception e) {
-                  log.error(
-                      "Failed to schedule agent {}.  This updates the table to mark that it is in a pending state (e.g. queued).  It's LIKELY this will have as a result NOT processed the agent at all!",
-                      agentThatCouldBeRun.getAgentType(),
-                      e);
+              AgentIntervalProvider.Interval interval = intervalProvider.getInterval(agent);
+              if (!isDueToRun(candidate, interval)) {
+                return;
+              }
+              try {
+                if (stateMachine.tryTransition(
+                        candidate.getAgentType(), QUEUEABLE_STATES, StateMachine.State.PENDING)
+                    > 0) {
+                  log.debug(
+                      "Queueing agent {} and moving to PENDING status", candidate.getAgentType());
+                  redisTemplate.convertAndSend(CHANNEL, candidate.getAgentType());
+                  countQueued("interval");
+                  recordScheduleLateness(candidate, interval);
                 }
+              } catch (Exception e) {
+                log.error(
+                    "Failed to queue agent {}.  It's LIKELY this agent was not processed at all and will be retried on the next scheduler cycle.",
+                    candidate.getAgentType(),
+                    e);
               }
             });
+  }
 
-    stateMachine
-        .listAgentsFilteredWhereIn(Set.of(StateMachine.State.DELETED))
-        .forEach(
-            runningAgent -> {
-              // Remove any agent marked as DELETED which hasn't changed in over 3 hours.
-              if (runningAgent.getLastTransitionTime()
-                  > System.currentTimeMillis()
-                      - Duration.ofMinutes(properties.getMinutesBeforeDeletingMarkedForDeletion())
-                          .toMillis()) {
-                // The agent has been running TOO long.  This is LIKELY a bad situation.  Figure out
-                // which pod it is, kill the agent process, and move on.  UNFORTUNATELY there's no
-                // "interrupt" option on Agents in spinnaker to DO This :( NOT Yet :(
-                stateMachine.delete(runningAgent.getAgentType());
-              }
-            });
-    // If it's been in pending for longer than 20 minutes... probably an issue with the queue.
-    // re-enqueue it with
-    // STRONG warnings
+  private boolean isDueToRun(
+      StateMachine.AgentState candidate, AgentIntervalProvider.Interval interval) {
+    long now = System.currentTimeMillis();
+    if (StateMachine.State.FAILED.name().equals(candidate.getCurrentState())) {
+      // Back off failed agents based on WHEN they failed - lastExecutionTime is only written on
+      // successful completion (and is 0 for agents that have never completed).
+      return now - candidate.getLastTransitionTime() >= interval.getErrorInterval();
+    }
+    return now - candidate.getLastExecutionTime() >= interval.getInterval();
+  }
+
+  /**
+   * How far past its due time (last execution + interval) an agent is when we queue it. A healthy
+   * system stays under one scheduler cycle; growth here means the runners can't keep up with the
+   * number of agents due.
+   */
+  private void recordScheduleLateness(
+      StateMachine.AgentState candidate, AgentIntervalProvider.Interval interval) {
+    // Agents that have never completed (lastExecutionTime == 0) would report nonsense lateness.
+    if (candidate.getLastExecutionTime() <= 0) {
+      return;
+    }
+    long dueAt = candidate.getLastExecutionTime() + interval.getInterval();
+    meterRegistry
+        .timer("cats.pubsub.schedule.lateness")
+        .record(Math.max(0, System.currentTimeMillis() - dueAt), TimeUnit.MILLISECONDS);
+  }
+
+  private void countQueued(String reason) {
+    meterRegistry
+        .counter("cats.pubsub.scheduler.queued", List.of(Tag.of("reason", reason)))
+        .increment();
+  }
+
+  /**
+   * If an agent has been PENDING for longer than configured, the message was probably lost (redis
+   * pub/sub is fire-and-forget - e.g. published while all runners were restarting, or dropped by a
+   * saturated runner pool). Re-enqueue it. The PENDING->PENDING transition bumps
+   * last_transition_time so this fires once per configured window rather than on every scheduler
+   * cycle.
+   */
+  private void requeueStalePendingAgents() {
+    long maxPendingMillis =
+        Duration.ofMinutes(properties.getMinutesBeforeReQueueOfAgents()).toMillis();
     stateMachine
         .listAgentsFilteredWhereIn(Set.of(StateMachine.State.PENDING))
         .forEach(
-            runningAgent -> {
-              // It's been pending for longer than 20 minutes... probably an issue with the queue.
-              // re-enqueue it with
-              if (runningAgent.getLastTransitionTime()
-                  < System.currentTimeMillis()
-                      - Duration.ofMinutes(properties.getMinutesBeforeReQueueOfAgents())
-                          .toMillis()) {
-                // The agent has been running TOO long.  This is LIKELY a bad situation.  Figure out
-                // which pod it is, kill the agent process, and move on.  UNFORTUNATELY there's no
-                // "interrupt" option on Agents in spinnaker to DO This :( NOT Yet :(
-                stateMachine.createOrUpdateAgent(
-                    runningAgent.getAgentType(), StateMachine.State.PENDING);
-                redisTemplate.convertAndSend(CHANNEL, runningAgent.getAgentType());
+            pendingAgent -> {
+              if (System.currentTimeMillis() - pendingAgent.getLastTransitionTime()
+                  < maxPendingMillis) {
+                return;
+              }
+              try {
+                if (stateMachine.tryTransition(
+                        pendingAgent.getAgentType(),
+                        Set.of(StateMachine.State.PENDING),
+                        StateMachine.State.PENDING)
+                    > 0) {
+                  log.warn(
+                      "Agent {} has been PENDING for over {} minutes - the queue message was likely lost.  Re-enqueueing it.",
+                      pendingAgent.getAgentType(),
+                      properties.getMinutesBeforeReQueueOfAgents());
+                  redisTemplate.convertAndSend(CHANNEL, pendingAgent.getAgentType());
+                  countQueued("stale-pending");
+                }
+              } catch (Exception e) {
+                log.error(
+                    "Failed to re-queue stale pending agent {}", pendingAgent.getAgentType(), e);
               }
             });
-    log.debug("Done running the agent scheduler.  Starting again in 15 seconds");
-    // reschedule pending agents every 15 seconds.
+  }
+
+  /**
+   * Remove any agent marked as DELETED which hasn't changed in the configured window. The delay
+   * exists because some providers "reschedule" agents via an unschedule/reschedule pair, and we
+   * want an in-flight execution to still see the DELETED marker when it completes.
+   */
+  private void purgeAgentsMarkedForDeletion() {
+    long purgeAfterMillis =
+        Duration.ofMinutes(properties.getMinutesBeforeDeletingMarkedForDeletion()).toMillis();
+    stateMachine
+        .listAgentsFilteredWhereIn(Set.of(StateMachine.State.DELETED))
+        .forEach(
+            deletedAgent -> {
+              if (System.currentTimeMillis() - deletedAgent.getLastTransitionTime()
+                  >= purgeAfterMillis) {
+                stateMachine.delete(deletedAgent.getAgentType());
+                meterRegistry.counter("cats.pubsub.scheduler.purged").increment();
+              }
+            });
+  }
+
+  /** Gauge of how many agents sit in each state - the primary "is the system healthy" signal. */
+  private void publishStateGauges() {
+    try {
+      Map<String, Long> counts = stateMachine.countAgentsByState();
+      for (StateMachine.State state : StateMachine.State.values()) {
+        agentStateGaugeValues
+            .computeIfAbsent(
+                state.name(),
+                name ->
+                    meterRegistry.gauge(
+                        "cats.pubsub.agents.state", Tags.of("state", name), new AtomicLong()))
+            .set(counts.getOrDefault(state.name(), 0L));
+      }
+    } catch (Exception e) {
+      log.warn("Unable to publish agent state gauges", e);
+    }
   }
 }
