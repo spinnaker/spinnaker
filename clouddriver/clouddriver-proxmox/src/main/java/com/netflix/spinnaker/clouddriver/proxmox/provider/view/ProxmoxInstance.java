@@ -35,6 +35,12 @@ public class ProxmoxInstance implements Instance {
   private Long launchTime;
   private HealthState healthState;
   private List<Map<String, Object>> health;
+  private Integer vmId;
+  private Integer cpus;
+  private Long memoryMb;
+  private Long diskGb;
+  private String osType;
+  private String status;
 
   @Override
   public String getCloudProvider() {

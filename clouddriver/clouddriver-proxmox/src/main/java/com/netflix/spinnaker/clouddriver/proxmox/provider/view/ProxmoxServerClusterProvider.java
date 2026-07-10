@@ -211,7 +211,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
     String serverGroupName =
         tagMap.getOrDefault(ProxmoxTagNamer.SERVER_GROUP_TAG, resource.getName());
 
-    ProxmoxInstance instance = buildInstance(resource.getName(), node, statusOf(resource));
+    ProxmoxInstance instance = buildInstance(resource, node);
 
     final String finalSgName = serverGroupName;
     ProxmoxServerGroup sg =
@@ -228,7 +228,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
                   s.setInstances(new HashSet<>());
                   s.setLoadBalancers(Collections.emptySet());
                   s.setSecurityGroups(Collections.emptySet());
-                  s.setLaunchConfig(Collections.emptyMap());
+                  s.setLaunchConfig(buildLaunchConfig(resource));
                   s.setMoniker(Moniker.builder().app(app).cluster(clusterName).build());
                   cluster.getServerGroups().add(s);
                   return s;
@@ -239,7 +239,32 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
     recomputeCounts(sg);
   }
 
-  private ProxmoxInstance buildInstance(String name, String node, String status) {
+  private Map<String, Object> buildLaunchConfig(ProxmoxResource resource) {
+    Map<String, Object> config = new HashMap<>();
+    if (resource instanceof ProxmoxVm vm) {
+      if (vm.getCpus() != null) config.put("cpus", vm.getCpus());
+      if (vm.getCores() != null) config.put("cores", vm.getCores());
+      if (vm.getSockets() != null) config.put("sockets", vm.getSockets());
+      if (vm.getMaxMem() != null) config.put("memoryMb", vm.getMaxMem() / (1024 * 1024));
+      if (vm.getMaxDisk() != null) config.put("diskGb", vm.getMaxDisk() / (1024 * 1024 * 1024));
+      if (vm.getOsType() != null) config.put("osType", vm.getOsType());
+      if (vm.getMachine() != null) config.put("machine", vm.getMachine());
+      if (vm.getBios() != null) config.put("bios", vm.getBios());
+      if (vm.getStatus() != null) config.put("status", vm.getStatus());
+      if (vm.getVmId() != null) config.put("vmId", vm.getVmId());
+    } else if (resource instanceof ProxmoxLxc lxc) {
+      if (lxc.getCpus() != null) config.put("cpus", lxc.getCpus());
+      if (lxc.getMaxMem() != null) config.put("memoryMb", lxc.getMaxMem() / (1024 * 1024));
+      if (lxc.getMaxDisk() != null) config.put("diskGb", lxc.getMaxDisk() / (1024 * 1024 * 1024));
+      if (lxc.getOsType() != null) config.put("osType", lxc.getOsType());
+      if (lxc.getStatus() != null) config.put("status", lxc.getStatus());
+      if (lxc.getVmId() != null) config.put("vmId", lxc.getVmId());
+    }
+    return config;
+  }
+
+  private ProxmoxInstance buildInstance(ProxmoxResource resource, String node) {
+    String status = statusOf(resource);
     HealthState healthState = ProxmoxInstance.healthStateFrom(status);
 
     Map<String, Object> healthEntry = new HashMap<>();
@@ -247,12 +272,28 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
     healthEntry.put("status", healthState.name());
     healthEntry.put("state", status != null ? status : "unknown");
 
-    return ProxmoxInstance.builder()
-        .name(name)
-        .zone(node)
-        .healthState(healthState)
-        .health(List.of(healthEntry))
-        .build();
+    ProxmoxInstance.ProxmoxInstanceBuilder builder =
+        ProxmoxInstance.builder()
+            .name(resource.getName())
+            .zone(node)
+            .healthState(healthState)
+            .health(List.of(healthEntry))
+            .vmId(resource.getVmId())
+            .status(status);
+
+    if (resource instanceof ProxmoxVm vm) {
+      if (vm.getCpus() != null) builder.cpus(vm.getCpus());
+      if (vm.getMaxMem() != null) builder.memoryMb(vm.getMaxMem() / (1024 * 1024));
+      if (vm.getMaxDisk() != null) builder.diskGb(vm.getMaxDisk() / (1024 * 1024 * 1024));
+      if (vm.getOsType() != null) builder.osType(vm.getOsType());
+    } else if (resource instanceof ProxmoxLxc lxc) {
+      if (lxc.getCpus() != null) builder.cpus(lxc.getCpus());
+      if (lxc.getMaxMem() != null) builder.memoryMb(lxc.getMaxMem() / (1024 * 1024));
+      if (lxc.getMaxDisk() != null) builder.diskGb(lxc.getMaxDisk() / (1024 * 1024 * 1024));
+      if (lxc.getOsType() != null) builder.osType(lxc.getOsType());
+    }
+
+    return builder.build();
   }
 
   private void recomputeCounts(ProxmoxServerGroup sg) {

@@ -29,6 +29,7 @@ async function buildModules() {
         'huaweicloud',
         'kubernetes',
         'oracle',
+        'proxmox',
         'tencentcloud',
       ].map((module) => runPnpmBuild(`${PACKAGES_ROOT}/${module}`)),
     );

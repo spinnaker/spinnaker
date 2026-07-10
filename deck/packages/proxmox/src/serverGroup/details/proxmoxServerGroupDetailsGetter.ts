@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs-compat';
+import { Observable } from 'rxjs';
 
 import type { IServerGroup, IServerGroupDetailsProps } from '@spinnaker/core';
 import { ServerGroupReader } from '@spinnaker/core';

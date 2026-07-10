@@ -30,6 +30,7 @@
     "@spinnaker/kayenta": "workspace:^2.6.0",
     "@spinnaker/kubernetes": "workspace:^0.6.2",
     "@spinnaker/oracle": "workspace:^0.0.91",
+    "@spinnaker/proxmox": "workspace:^0.0.1",
     "@spinnaker/styleguide": "^2.0.0",
     "@spinnaker/titus": "workspace:^0.5.44",
     "@uirouter/angularjs": "1.0.26",

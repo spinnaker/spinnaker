@@ -64,7 +64,8 @@ export class ProxmoxInstanceDetails extends React.Component<
           instanceDetails.serverGroup = instanceManager.name;
           return instanceDetails;
         })
-        .then((instance) => this.setState({ instance, loading: false }));
+        .then((instance) => this.setState({ instance, loading: false }))
+        .catch(() => this.setState({ loading: false }));
     } else {
       this.setState({ loading: false });
     }
@@ -132,16 +133,22 @@ export class ProxmoxInstanceDetails extends React.Component<
               </dd>
               <dt>Node</dt>
               <dd>{stateInstance.region}</dd>
-              {stateInstance.zone && (
-                <>
-                  <dt>Zone</dt>
-                  <dd>{stateInstance.zone}</dd>
-                </>
-              )}
               {stateInstance.serverGroup && (
                 <>
                   <dt>Server Group</dt>
                   <dd>{stateInstance.serverGroup}</dd>
+                </>
+              )}
+              {stateInstance.vmId != null && (
+                <>
+                  <dt>VM ID</dt>
+                  <dd>{stateInstance.vmId}</dd>
+                </>
+              )}
+              {stateInstance.status && (
+                <>
+                  <dt>Status</dt>
+                  <dd>{stateInstance.status}</dd>
                 </>
               )}
               {stateInstance.launchTime && (
@@ -152,16 +159,50 @@ export class ProxmoxInstanceDetails extends React.Component<
               )}
             </dl>
           </CollapsibleSection>
+
+          {(stateInstance.cpus != null || stateInstance.memoryMb != null || stateInstance.diskGb != null || stateInstance.osType) && (
+            <CollapsibleSection heading="VM Configuration" defaultExpanded={true}>
+              <dl className="dl-horizontal dl-narrow">
+                {stateInstance.cpus != null && (
+                  <>
+                    <dt>vCPUs</dt>
+                    <dd>{stateInstance.cpus}</dd>
+                  </>
+                )}
+                {stateInstance.memoryMb != null && (
+                  <>
+                    <dt>Memory</dt>
+                    <dd>{stateInstance.memoryMb} MB</dd>
+                  </>
+                )}
+                {stateInstance.diskGb != null && (
+                  <>
+                    <dt>Disk</dt>
+                    <dd>{stateInstance.diskGb} GB</dd>
+                  </>
+                )}
+                {stateInstance.osType && (
+                  <>
+                    <dt>OS Type</dt>
+                    <dd>{stateInstance.osType}</dd>
+                  </>
+                )}
+              </dl>
+            </CollapsibleSection>
+          )}
+
           {stateInstance.health?.length > 0 && (
             <CollapsibleSection heading="Health" defaultExpanded={true}>
-              <ul>
+              <dl className="dl-horizontal dl-narrow">
                 {stateInstance.health.map((h: any, i: number) => (
-                  <li key={i}>
-                    <b>{h.type}</b>: <span className={h.state?.toLowerCase()}>{h.state}</span>
-                    {h.description && <span> — {h.description}</span>}
-                  </li>
+                  <React.Fragment key={i}>
+                    <dt>{h.type}</dt>
+                    <dd>
+                      <span className={`health-status-${h.state?.toLowerCase()}`}>{h.state}</span>
+                    </dd>
+                  </React.Fragment>
                 ))}
-              </ul>
+              </dl>
             </CollapsibleSection>
           )}
         </div>
