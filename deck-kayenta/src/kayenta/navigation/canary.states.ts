@@ -1,4 +1,5 @@
-import { Transition, UIRouter } from '@uirouter/core';
+import type { Transition } from '@uirouter/core';
+import { UIRouter } from '@uirouter/core';
 import * as Creators from 'kayenta/actions/creators';
 import Canary, { canaryStore } from 'kayenta/canary';
 import ConfigDetailLoader from 'kayenta/edit/configDetailLoader';
@@ -8,9 +9,8 @@ import SelectConfig from 'kayenta/edit/selectConfig';
 import ResultDetailLoader from 'kayenta/report/detail/detailLoader';
 import ExecutionListLoadStates from 'kayenta/report/list/loadStates';
 import Report from 'kayenta/report/report';
-import { $rootScope } from 'ngimport';
 
-import { ApplicationStateProvider, INestedState } from '@spinnaker/core';
+import type { ApplicationStateProvider, INestedState } from '@spinnaker/core';
 
 import '../canary.dataSource.bridge';
 import { CanarySettings } from '../canary.settings';
@@ -149,16 +149,18 @@ export function registerTransitionHooks($uiRouter: UIRouter) {
   );
 
   // Prompts confirmation for page navigation if config hasn't been saved.
-  // Should be possible with a $uiRouter transition hook, but it's not.
-  $rootScope.$on('$stateChangeStart', (event) => {
-    const state = canaryStore.getState();
-    const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
-    if (state.selectedConfig && !state.selectedConfig.isInSyncWithServer) {
-      if (!window.confirm(warningMessage)) {
-        event.preventDefault();
+  $uiRouter.transitionService.onBefore(
+    {},
+    () => {
+      const state = canaryStore.getState();
+      const warningMessage = 'You have unsaved changes.\nAre you sure you want to navigate away from this page?';
+      if (state.selectedConfig && !state.selectedConfig.isInSyncWithServer && !window.confirm(warningMessage)) {
+        return false;
       }
-    }
-  });
+      return undefined;
+    },
+    { priority: 10 },
+  );
 
   // Prompts confirmation for page reload if config hasn't been saved.
   $uiRouter.transitionService.onEnter({ to: '**.configDetail.**' }, () => {
@@ -171,7 +173,7 @@ export function registerTransitionHooks($uiRouter: UIRouter) {
 
   // Clears reload hook when leaving canary config view.
   $uiRouter.transitionService.onExit({ from: '**.configDetail.**' }, () => {
-    window.onbeforeunload = undefined;
+    window.onbeforeunload = null;
   });
 
   $uiRouter.transitionService.onSuccess({ to: '**.report.**' }, (transition: Transition) => {

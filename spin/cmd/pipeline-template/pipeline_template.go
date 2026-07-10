@@ -17,7 +17,7 @@ package pipeline_template
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd"
 )
 
 type pipelineTemplateOptions struct {

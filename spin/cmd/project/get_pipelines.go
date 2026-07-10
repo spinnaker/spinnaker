@@ -18,9 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	gate "github.com/spinnaker/spin/gateapi"
-
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 
 	"github.com/spf13/cobra"
 )
@@ -61,7 +59,7 @@ func getProjectPipelines(cmd *cobra.Command, options *getProjectPipelinesOptions
 		return err
 	}
 
-	project, resp, err := options.GateClient.ProjectControllerApi.AllPipelinesForProject(options.GateClient.Context, projectName, &gate.ProjectControllerApiAllPipelinesForProjectOpts{})
+	project, resp, err := options.GateClient.ProjectControllerAPI.AllPipelinesForProject(options.GateClient.Context, projectName).Execute()
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Project '%s' not found\n", projectName)

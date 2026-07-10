@@ -20,11 +20,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 type executeOptions struct {
@@ -93,22 +91,25 @@ func executePipeline(cmd *cobra.Command, options *executeOptions) error {
 		return fmt.Errorf("Could not parse supplied artifacts: %v.\n", err)
 	}
 
-	trigger := map[string]interface{}{"type": "manual"}
+	trigger := map[string]map[string]interface{}{
+		"trigger": {
+			"type": "manual",
+		},
+	}
 	if len(parameters) > 0 {
-		trigger["parameters"] = parameters
+		trigger["trigger"]["parameters"] = parameters
 	}
 
 	if _, ok := artifactsFile["artifacts"]; ok {
 		artifacts := artifactsFile["artifacts"].([]interface{})
 		if len(artifacts) > 0 {
-			trigger["artifacts"] = artifacts
+			trigger["trigger"]["artifacts"] = artifacts
 		}
 	}
 
-	_, resp, err := options.GateClient.PipelineControllerApi.InvokePipelineConfig(options.GateClient.Context,
+	_, resp, err := options.GateClient.PipelineControllerAPI.InvokePipelineConfig(options.GateClient.Context,
 		options.application,
-		options.name,
-		&gate.PipelineControllerApiInvokePipelineConfigOpts{Body: optional.NewInterface(trigger)})
+		options.name).RequestBody(trigger).Execute()
 	if err != nil {
 		return fmt.Errorf("Execute pipeline failed with response: %v and error: %s\n", resp, err)
 	}

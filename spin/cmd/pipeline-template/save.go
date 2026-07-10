@@ -18,12 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
-	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
+	orca_tasks "github.com/spinnaker/spinnaker/spin/cmd/orca-tasks"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 type saveOptions struct {
@@ -81,13 +79,13 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 
 	templateId := templateJson["id"].(string)
 
-	getQueryParam := &gate.V2PipelineTemplatesControllerApiGetOpts{}
+	getReq := options.GateClient.V2PipelineTemplatesControllerAPI.Get1(options.GateClient.Context, templateId)
 	if options.tag != "" {
-		getQueryParam.Tag = optional.NewString(options.tag)
+		getReq = getReq.Tag(options.tag)
 	} else if tag, exists := templateJson["tag"]; exists {
 		// Use comma-ok assertion to avoid panic if tag is non-string (e.g. JSON array).
 		if tagStr, ok := tag.(string); ok && tagStr != "" {
-			getQueryParam.Tag = optional.NewString(tagStr)
+			getReq = getReq.Tag(tagStr)
 		} else {
 			return fmt.Errorf(
 				"Pipeline template tag must be a string (valid values: latest, stable, unstable, experimental, test, canary), got: %v",
@@ -96,7 +94,7 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 		}
 	}
 
-	_, resp, queryErr := options.GateClient.V2PipelineTemplatesControllerApi.Get(options.GateClient.Context, templateId, getQueryParam)
+	_, resp, queryErr := getReq.Execute()
 
 	var saveResp *http.Response
 	var saveRet map[string]interface{}
@@ -104,19 +102,17 @@ func savePipelineTemplate(cmd *cobra.Command, options *saveOptions) error {
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		opt := &gate.V2PipelineTemplatesControllerApiUpdateOpts{}
+		updateReq := options.GateClient.V2PipelineTemplatesControllerAPI.Update(options.GateClient.Context, templateId).RequestBody(templateJson)
 		if options.tag != "" {
-			opt.Tag = optional.NewString(options.tag)
+			updateReq = updateReq.Tag(options.tag)
 		}
-
-		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.Update(options.GateClient.Context, templateJson, templateId, opt)
+		saveRet, saveResp, saveErr = updateReq.Execute()
 	case http.StatusNotFound:
-		opt := &gate.V2PipelineTemplatesControllerApiCreateOpts{}
+		createReq := options.GateClient.V2PipelineTemplatesControllerAPI.Create(options.GateClient.Context).RequestBody(templateJson)
 		if options.tag != "" {
-			opt.Tag = optional.NewString(options.tag)
+			createReq = createReq.Tag(options.tag)
 		}
-
-		saveRet, saveResp, saveErr = options.GateClient.V2PipelineTemplatesControllerApi.Create(options.GateClient.Context, templateJson, opt)
+		saveRet, saveResp, saveErr = createReq.Execute()
 	default:
 		if queryErr != nil {
 			return queryErr

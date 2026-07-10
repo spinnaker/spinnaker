@@ -13,7 +13,6 @@ export interface IProviderSettings {
 }
 
 export interface INotificationSettings {
-  bearychat: { enabled: boolean };
   email: { enabled: boolean };
   githubStatus: { enabled: boolean };
   googlechat: { enabled: boolean };
@@ -130,6 +129,7 @@ export interface ISpinnakerSettings {
   };
   maxFetchHistoryOnEvaluateVariables?: number;
   maxPipelineAgeDays: number;
+  maxPipelineTriggerExecutionOptions?: number;
   newApplicationDefaults: INewApplicationDefaults;
   notifications: INotificationSettings;
   onDemandClusterThreshold: number;
@@ -178,6 +178,7 @@ SETTINGS.managedDelivery = SETTINGS.managedDelivery || {
   manifestBasePath: '.spinnaker',
 };
 SETTINGS.maxFetchHistoryOnEvaluateVariables = SETTINGS.maxFetchHistoryOnEvaluateVariables ?? 100;
+SETTINGS.maxPipelineTriggerExecutionOptions = SETTINGS.maxPipelineTriggerExecutionOptions ?? 20;
 
 // A helper to make resetting settings to steady state after running tests easier
 const originalSettings: ISpinnakerSettings = cloneDeep(SETTINGS);

@@ -57,10 +57,10 @@ import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import retrofit2.mock.Calls;
 
@@ -103,8 +103,8 @@ class DockerRegistryImageLookupControllerTest {
   @Autowired MockMvc mockMvc;
   @Autowired WriteableCache cache;
   @Autowired AccountCredentialsRepository accountCredentialsRepository;
-  @MockBean FiatStatus fiatStatus;
-  @MockBean FiatService fiatService;
+  @MockitoBean FiatStatus fiatStatus;
+  @MockitoBean FiatService fiatService;
 
   @BeforeEach
   void setUp() {
@@ -153,7 +153,7 @@ class DockerRegistryImageLookupControllerTest {
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/images/find"))
+        .perform(get("/dockerRegistry/images/find").queryParam("account", "test-account"))
         .andExpect(jsonPath("$[0].account").value("test-account"));
   }
 
@@ -166,8 +166,8 @@ class DockerRegistryImageLookupControllerTest {
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/images/find"))
-        .andExpectAll(status().isOk(), jsonPath("$.length()").value(0));
+        .perform(get("/dockerRegistry/images/find").queryParam("account", "test-account"))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -179,7 +179,10 @@ class DockerRegistryImageLookupControllerTest {
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/images/find").queryParam("includeDetails", "true"))
+        .perform(
+            get("/dockerRegistry/images/find")
+                .queryParam("account", "test-account")
+                .queryParam("includeDetails", "true"))
         .andExpect(jsonPath("$[0].artifact.type").value("docker"))
         .andExpect(jsonPath("$[0].artifact.metadata.registry").value("test-registry"))
         .andExpect(jsonPath("$[0].artifact.metadata.labels.commitId").value("test-commit"));
@@ -216,7 +219,10 @@ class DockerRegistryImageLookupControllerTest {
 
     // Test find with query parameter
     mockMvc
-        .perform(get("/dockerRegistry/images/find").queryParam("q", "test-repository"))
+        .perform(
+            get("/dockerRegistry/images/find")
+                .queryParam("account", "test-account")
+                .queryParam("q", "test-repository"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].repository").value("test-repository"))
         .andExpect(jsonPath("$[0].tag").value("1.0"))
@@ -305,6 +311,7 @@ class DockerRegistryImageLookupControllerTest {
     mockMvc
         .perform(
             get("/dockerRegistry/images/find")
+                .queryParam("account", "test-account")
                 .queryParam("repository", "repo1")
                 .queryParam("tag", "tag1"))
         .andExpect(status().isOk())

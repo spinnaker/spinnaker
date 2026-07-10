@@ -193,10 +193,11 @@ internal fun DSLContext.selectEnvironmentColumns() =
 
 /** Helper function to construct an [Environment] off a record from [ACTIVE_ENVIRONMENT]. */
 internal fun SqlStorageContext.makeEnvironment(
-  record: Record9<String, String, Int, Boolean, String, String, String, String, String>,
+  record: Record9<String, String, Int, Byte, String, String, String, String, String>,
   objectMapper: ObjectMapper
 ): Environment {
-  val (environmentUid, name, _, isPreview, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson, metadataJson) = record
+  val (environmentUid, name, _, isPreviewByte, constraintsJson, notificationsJson, verifyWithJson, postDeployActionsJson, metadataJson) = record
+  val isPreview = isPreviewByte.toInt() != 0
   return Environment(
     name = name,
     isPreview = isPreview,

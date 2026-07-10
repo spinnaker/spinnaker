@@ -20,7 +20,7 @@
     "lib": "npm run build"
   },
   "dependencies": {
-    "@spinnaker/core": "^0.29.1",
+    "@spinnaker/core": "workspace:^0.29.1",
     "@uirouter/angularjs": "1.0.26",
     "angular": "1.6.10",
     "angular-ui-bootstrap": "2.5.0",
@@ -33,8 +33,8 @@
     "ui-select": "0.19.8"
   },
   "devDependencies": {
-    "@spinnaker/eslint-plugin": "^3.0.2",
-    "@spinnaker/scripts": "^0.4.0",
+    "@spinnaker/eslint-plugin": "workspace:^3.0.2",
+    "@spinnaker/scripts": "workspace:^0.4.0",
     "@types/angular": "1.6.26",
     "@types/angular-mocks": "1.5.10",
     "@types/angular-ui-bootstrap": "0.13.41",

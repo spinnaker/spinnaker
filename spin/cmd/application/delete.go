@@ -18,12 +18,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
-	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
+	orca_tasks "github.com/spinnaker/spinnaker/spin/cmd/orca-tasks"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 type deleteOptions struct {
@@ -66,7 +64,7 @@ func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string
 		},
 	}
 
-	_, resp, err := options.GateClient.ApplicationControllerApi.GetApplication(options.GateClient.Context, applicationName, &gate.ApplicationControllerApiGetApplicationOpts{Expand: optional.NewBool(false)})
+	_, resp, err := options.GateClient.ApplicationControllerAPI.GetApplication(options.GateClient.Context, applicationName).Execute()
 
 	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("Attempting to delete application '%s' which does not exist, exiting...", applicationName)
@@ -82,7 +80,7 @@ func deleteApplication(cmd *cobra.Command, options *deleteOptions, args []string
 		"description": fmt.Sprintf("Delete Application: %s", applicationName),
 	}
 
-	taskRef, resp, err := options.GateClient.TaskControllerApi.Task(options.GateClient.Context, deleteAppTask)
+	taskRef, resp, err := options.GateClient.TaskControllerAPI.Task(options.GateClient.Context).RequestBody(deleteAppTask).Execute()
 	if err != nil {
 		return err
 	}

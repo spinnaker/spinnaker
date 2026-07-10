@@ -18,11 +18,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 var (
@@ -55,13 +53,11 @@ func getExecution(cmd *cobra.Command, options *getOptions, args []string) error 
 		return err
 	}
 
-	query := &gate.ExecutionsControllerApiGetLatestExecutionsByConfigIdsOpts{
-		ExecutionIds: optional.NewString(id), // Status filtering is ignored when executionId is supplied
-		Limit:        optional.NewInt32(1),
-	}
+	req := options.GateClient.ExecutionsControllerAPI.GetLatestExecutionsByConfigIds(options.GateClient.Context)
+	req = req.ExecutionIds(id) // Status filtering is ignored when executionId is supplied
+	req = req.Limit(1)
 
-	successPayload, resp, err := options.GateClient.ExecutionsControllerApi.GetLatestExecutionsByConfigIds(
-		options.GateClient.Context, query)
+	successPayload, resp, err := req.Execute()
 	if err != nil {
 		return err
 	}

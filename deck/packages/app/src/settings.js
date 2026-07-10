@@ -7,8 +7,8 @@ if (typeof process === 'undefined') {
   process.env = {};
 }
 
-// Use environment variables when developing locally via 'yarn start', i.e.:
-// API_HOST=https://gate.spinnaker.mycompany.com yarn start
+// Use environment variables when developing locally via 'pnpm start', i.e.:
+// API_HOST=https://gate.spinnaker.mycompany.com pnpm start
 const apiHost = import.meta.env.VITE_API_HOST || process.env.API_HOST || 'http://localhost:8084';
 const atlasWebComponentsUrl = import.meta.env.VITE_ATLAS_WEB_COMPONENTS_URL || process.env.ATLAS_WEB_COMPONENTS_URL;
 const authEndpoint = import.meta.env.VITE_AUTH_ENDPOINT || process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
@@ -150,13 +150,11 @@ window.spinnakerSettings = {
   },
   maxFetchHistoryOnEvaluateVariables: 100,
   maxPipelineAgeDays: 14,
+  maxPipelineTriggerExecutionOptions: 20,
   newApplicationDefaults: {
     chaosMonkey: false,
   },
   notifications: {
-    bearychat: {
-      enabled: true,
-    },
     email: {
       enabled: true,
     },
@@ -316,7 +314,6 @@ window.spinnakerSettings = {
     'pubsub',
     'travis',
     'webhook',
-    'wercker',
     'helm/oci',
   ],
   useClassicFirewallLabels: useClassicFirewallLabels,

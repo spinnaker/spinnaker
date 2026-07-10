@@ -20,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	orca_tasks "github.com/spinnaker/spin/cmd/orca-tasks"
+	orca_tasks "github.com/spinnaker/spinnaker/spin/cmd/orca-tasks"
 )
 
 type deleteOptions struct {
@@ -53,7 +53,7 @@ func NewDeleteCmd(prjOptions *projectOptions) *cobra.Command {
 func deleteProject(cmd *cobra.Command, options *saveOptions) error {
 	projectName := options.projectName
 
-	project, resp, err := options.GateClient.ProjectControllerApi.Get2(options.GateClient.Context, projectName)
+	project, resp, err := options.GateClient.ProjectControllerAPI.Get3(options.GateClient.Context, projectName).Execute()
 	if resp != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Project '%s' not found\n", projectName)
@@ -69,7 +69,7 @@ func deleteProject(cmd *cobra.Command, options *saveOptions) error {
 		"description": fmt.Sprintf("Delete Project: %s", projectName),
 	}
 
-	ref, _, err := options.GateClient.TaskControllerApi.Task(options.GateClient.Context, deleteProjectTask)
+	ref, _, err := options.GateClient.TaskControllerAPI.Task(options.GateClient.Context).RequestBody(deleteProjectTask).Execute()
 	if err != nil {
 		return err
 	}

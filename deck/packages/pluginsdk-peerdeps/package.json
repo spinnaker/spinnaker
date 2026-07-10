@@ -19,12 +19,12 @@
   },
   "files": [],
   "peerDependencies": {
-    "@rollup/plugin-commonjs": "^28.0.0",
+    "@rollup/plugin-commonjs": "^28.0.9",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
-    "@rollup/plugin-replace": "^6.0.0",
-    "@rollup/plugin-typescript": "^12.0.0",
-    "@rollup/plugin-url": "^8.0.0",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@rollup/plugin-url": "^8.0.2",
     "@spinnaker/core": "0.29.1",
     "@spinnaker/eslint-plugin": "3.0.1",
     "@spinnaker/pluginsdk": "*",
@@ -32,7 +32,7 @@
     "@types/react": "~16.8.0",
     "@uirouter/core": "6.0.4",
     "@uirouter/react": "1.0.2",
-    "bufferutil": "4.0.2",
+    "bufferutil": "4.0.9",
     "lodash-es": "4.17.21",
     "npm-run-all2": "5.0.0",
     "postcss": "^8.4.14",
@@ -49,7 +49,7 @@
     "rxjs": "6.6.7",
     "shx": "0.3.3",
     "typescript": "5.0.4",
-    "utf-8-validate": "5.0.3"
+    "utf-8-validate": "5.0.10"
   },
   "peerDependenciesMeta": {
     "@rollup/plugin-commonjs": {

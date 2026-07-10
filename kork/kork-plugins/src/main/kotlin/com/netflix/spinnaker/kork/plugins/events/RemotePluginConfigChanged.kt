@@ -43,8 +43,11 @@ data class RemotePluginConfigChanged(
    * The type of config change.
    */
   enum class Status {
+    /** Remote plugin configuration was enabled. */
     ENABLED,
+    /** Remote plugin configuration was disabled. */
     DISABLED,
+    /** Remote plugin configuration was updated. */
     UPDATED
   }
 }

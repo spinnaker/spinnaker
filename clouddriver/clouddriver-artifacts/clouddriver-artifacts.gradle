@@ -1,5 +1,5 @@
 plugins {
-  id 'com.adarshr.test-logger' version '2.1.0' apply false
+  id 'com.adarshr.test-logger' version '4.0.0' apply false
 }
 allprojects {
   apply plugin: 'com.adarshr.test-logger'
@@ -27,6 +27,7 @@ allprojects {
     implementation "org.springframework.boot:spring-boot-starter-web"
 
     testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
+    testImplementation "com.squareup.okhttp3:mockwebserver"
     testImplementation "org.assertj:assertj-core"
     testImplementation "org.junit-pioneer:junit-pioneer:0.3.0"
     testImplementation "org.junit.jupiter:junit-jupiter-api"

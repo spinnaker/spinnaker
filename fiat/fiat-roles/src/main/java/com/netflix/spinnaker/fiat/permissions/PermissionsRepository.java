@@ -79,4 +79,12 @@ public interface PermissionsRepository {
    * @param id
    */
   void remove(String id);
+
+  /**
+   * Returns {@code true} if the repository contains no stored user permissions. Implementations
+   * should override this with an efficient count check rather than loading all entries.
+   */
+  default boolean isEmpty() {
+    return getAllById().isEmpty();
+  }
 }

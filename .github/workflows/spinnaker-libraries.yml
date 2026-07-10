@@ -36,7 +36,7 @@ jobs:
   libraries-nexus:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/version
         id: version
@@ -61,4 +61,16 @@ jobs:
           ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
         run: |
-          ./gradlew assemble publishToNexus closeAndReleaseNexusStagingRepository
+          ./gradlew assemble publishToNexus
+
+      - name: Close and release Nexus staging repository
+        continue-on-error: true
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ steps.version.outputs.version }}
+          ORG_GRADLE_PROJECT_nexusPublishEnabled: true
+          ORG_GRADLE_PROJECT_nexusUsername: ${{ secrets.NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_nexusPassword: ${{ secrets.NEXUS_PASSWORD }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningKey: ${{ secrets.NEXUS_PGP_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_nexusPgpSigningPassword: ${{ secrets.NEXUS_PGP_SIGNING_PASSWORD }}
+        run: |
+          ./gradlew findNexusStagingRepository closeAndReleaseNexusStagingRepository

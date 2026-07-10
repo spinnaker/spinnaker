@@ -40,13 +40,13 @@ import (
 	"golang.org/x/oauth2/google"
 	"sigs.k8s.io/yaml"
 
-	"github.com/spinnaker/spin/cmd/output"
-	"github.com/spinnaker/spin/config"
-	"github.com/spinnaker/spin/config/auth"
-	iap "github.com/spinnaker/spin/config/auth/iap"
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
-	"github.com/spinnaker/spin/version"
+	"github.com/spinnaker/spinnaker/spin/cmd/output"
+	"github.com/spinnaker/spinnaker/spin/config"
+	"github.com/spinnaker/spinnaker/spin/config/auth"
+	iap "github.com/spinnaker/spinnaker/spin/config/auth/iap"
+	gate "github.com/spinnaker/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/version"
 )
 
 const (
@@ -231,16 +231,30 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		}
 	}
 
+	// Parse gate endpoint URL to extract host and scheme for OpenAPI Generator configuration
+	gateURL, err := url.Parse(gateClient.GateEndpoint())
+	if err != nil {
+		ui.Error(fmt.Sprintf("Invalid Gate endpoint URL: %v", err))
+		return nil, err
+	}
+
 	cfg := &gate.Configuration{
-		BasePath:      gateClient.GateEndpoint(),
+		Host:          gateURL.Host,
+		Scheme:        gateURL.Scheme,
 		DefaultHeader: m,
 		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
 		HTTPClient:    httpClient,
+		Servers: gate.ServerConfigurations{
+			{
+				URL:         gateClient.GateEndpoint(),
+				Description: "Spinnaker Gate API",
+			},
+		},
 	}
 	gateClient.APIClient = gate.NewAPIClient(cfg)
 
 	// TODO: Verify version compatibility between Spin CLI and Gate.
-	_, _, err = gateClient.VersionControllerApi.GetVersion(gateClient.Context)
+	_, _, err = gateClient.VersionControllerAPI.GetVersion(gateClient.Context).Execute()
 	if err != nil {
 		ui.Error("Could not reach Gate, please ensure it is running. Failing.")
 		return nil, err
