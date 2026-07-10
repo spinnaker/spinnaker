@@ -150,6 +150,7 @@ window.spinnakerSettings = {
   },
   maxFetchHistoryOnEvaluateVariables: 100,
   maxPipelineAgeDays: 14,
+  maxPipelineTriggerExecutionOptions: 20,
   newApplicationDefaults: {
     chaosMonkey: false,
   },

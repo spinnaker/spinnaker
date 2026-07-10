@@ -40,13 +40,13 @@ import (
 	"golang.org/x/oauth2/google"
 	"sigs.k8s.io/yaml"
 
-	"github.com/spinnaker/spin/cmd/output"
-	"github.com/spinnaker/spin/config"
-	"github.com/spinnaker/spin/config/auth"
-	iap "github.com/spinnaker/spin/config/auth/iap"
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
-	"github.com/spinnaker/spin/version"
+	"github.com/spinnaker/spinnaker/spin/cmd/output"
+	"github.com/spinnaker/spinnaker/spin/config"
+	"github.com/spinnaker/spinnaker/spin/config/auth"
+	iap "github.com/spinnaker/spinnaker/spin/config/auth/iap"
+	gate "github.com/spinnaker/spinnaker/spin/gateapi"
+	"github.com/spinnaker/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/version"
 )
 
 const (
@@ -244,6 +244,12 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		DefaultHeader: m,
 		UserAgent:     fmt.Sprintf("%s/%s", version.UserAgent, version.String()),
 		HTTPClient:    httpClient,
+		Servers: gate.ServerConfigurations{
+			{
+				URL:         gateClient.GateEndpoint(),
+				Description: "Spinnaker Gate API",
+			},
+		},
 	}
 	gateClient.APIClient = gate.NewAPIClient(cfg)
 

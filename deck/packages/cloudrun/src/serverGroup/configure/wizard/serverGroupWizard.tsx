@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
-//import type { IModalInstanceService } from 'angular-ui-bootstrap';
 import { noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 import { WizardServerGroupBasicSettings } from './BasicSettings';
 import { WizardServerGroupConfigFilesSettings } from './ConfigFiles';
@@ -12,6 +11,8 @@ export interface ICloudrunServerGroupModalProps extends IModalComponentProps {
   application: Application;
   command: ICloudrunServerGroupCommandData;
   isNew?: boolean;
+  closeModal?: (command: any) => void;
+  dismissModal?: () => void;
 }
 
 export interface ICloudrunServerGroupModalState {

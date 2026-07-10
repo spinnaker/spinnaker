@@ -1,14 +1,10 @@
-import { module } from 'angular';
 import type { IServerGroup } from '@spinnaker/core';
 
 import type { ICloudrunServerGroupCommand } from '../serverGroup/configure/serverGroupCommandBuilder.service';
 
 export class CloudrunV2ServerGroupTransformer {
-  public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {}
-
   public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
-    return this.$q.resolve(serverGroup);
+    return Promise.resolve(serverGroup);
   }
 
   public convertServerGroupCommandToDeployConfiguration(command: ICloudrunServerGroupCommand): any {
@@ -53,9 +49,3 @@ export class CloudrunDeployDescription {
     this.configArtifacts = [];
   }
 }
-
-export const CLOUDRUN_SERVER_GROUP_TRANSFORMER = 'spinnaker.cloudrun.serverGroup.transformer.service';
-module(CLOUDRUN_SERVER_GROUP_TRANSFORMER, []).service(
-  'cloudrunV2ServerGroupTransformer',
-  CloudrunV2ServerGroupTransformer,
-);
