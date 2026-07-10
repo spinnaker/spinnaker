@@ -5,6 +5,7 @@ import { useRecoilState } from 'recoil';
 import { Icon } from '@spinnaker/presentation';
 import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
 import { UserMenu } from '../authentication/userMenu/UserMenu';
+import { GlobalBannerDisplay } from '../banner/global/GlobalBannerDisplay';
 import { CollapsibleSectionStateCache } from '../cache';
 import { HelpMenu } from '../help/HelpMenu';
 import { overridableComponent } from '../overrideRegistry';
@@ -63,6 +64,8 @@ export const SpinnakerHeaderContent = () => {
   ];
 
   return (
+    <>
+    <GlobalBannerDisplay />
     <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
       <div className="navbar-header horizontal middle">
         <div
@@ -107,6 +110,7 @@ export const SpinnakerHeaderContent = () => {
         </div>
       )}
     </nav>
+    </>
   );
 };
 
