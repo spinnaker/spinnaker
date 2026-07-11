@@ -93,7 +93,11 @@ public class ApiTokenService {
           return Optional.empty();
         }
         Instant now = Instant.now();
-        redisRepo.updateLastFiatCheck(record.getId(), tokenHash, now);
+        try {
+          redisRepo.updateLastFiatCheck(record.getId(), tokenHash, now);
+        } catch (RedisApiTokenRepository.TokenOperationFailedException e) {
+          log.debug("Fiat-check timestamp update lost WATCH race; skipping — request proceeds", e);
+        }
         record.setLastFiatCheckAt(now.toString());
       }
     }

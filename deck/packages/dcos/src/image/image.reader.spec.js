@@ -1,17 +1,8 @@
-'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
 
+import { dcosImageReader } from './image.reader';
+
 describe('Service: DCOS Image Reader', function () {
-  var service;
-
-  beforeEach(window.module(require('./image.reader').name));
-
-  beforeEach(
-    window.inject(function (dcosImageReader) {
-      service = dcosImageReader;
-    }),
-  );
-
   describe('findImages', function () {
     var query = 'abc',
       region = 'usw';
@@ -24,7 +15,7 @@ describe('Service: DCOS Image Reader', function () {
 
       http.expectGET(buildQueryString()).respond(200, [{ success: true }]);
 
-      service.findImages({ provider: 'dcos', q: query, region: region }).then(function (results) {
+      dcosImageReader.findImages({ provider: 'dcos', q: query, region: region }).then(function (results) {
         result = results;
       });
 
@@ -42,7 +33,7 @@ describe('Service: DCOS Image Reader', function () {
 
       http.expectGET(buildQueryString()).respond(200, [{ success: true }]);
 
-      var promise = service.findImages({ provider: 'dcos', q: query, region: region });
+      var promise = dcosImageReader.findImages({ provider: 'dcos', q: query, region: region });
 
       promise.then(function (results) {
         result = results;
@@ -61,7 +52,7 @@ describe('Service: DCOS Image Reader', function () {
 
       http.expectGET(buildQueryString()).respond(404, {});
 
-      service.findImages({ provider: 'dcos', q: query, region: region }).then(function (results) {
+      dcosImageReader.findImages({ provider: 'dcos', q: query, region: region }).then(function (results) {
         result = results;
       });
 

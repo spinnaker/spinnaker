@@ -5,8 +5,9 @@ import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
 import { react2angular } from 'react2angular';
 
-import type { IArtifact, IExpectedArtifact } from '@spinnaker/core';
+import type { IAccountDetails, IArtifact, IExpectedArtifact } from '@spinnaker/core';
 import {
+  AccountService,
   ArtifactTypePatterns,
   CheckboxInput,
   HelpField,
@@ -15,6 +16,7 @@ import {
   TetheredSelect,
   withErrorBoundary,
 } from '@spinnaker/core';
+import { DockerImageReader } from '@spinnaker/docker';
 
 import type {
   IEcsContainerMapping,
@@ -36,6 +38,8 @@ interface ITaskDefinitionState {
   containerMappings: IEcsContainerMapping[];
   targetGroupMappings: IEcsTargetGroupMapping[];
   dockerImages: IEcsDockerImage[];
+  dockerRegistryAccounts: IAccountDetails[];
+  selectedDockerAccount: string;
   targetGroupsAvailable: string[];
   loadBalancedContainer: string;
   evaluateTaskDefinitionArtifactExpressions: boolean;
@@ -73,6 +77,8 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
       targetGroupMappings: cmd.targetGroupMappings,
       targetGroupsAvailable: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.targetGroups : [],
       dockerImages: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.images : [],
+      dockerRegistryAccounts: [],
+      selectedDockerAccount: cmd.imageDescription?.account ?? '',
       loadBalancedContainer: cmd.loadBalancedContainer || defaultContainer,
       taskDefArtifactAccount: cmd.taskDefinitionArtifactAccount,
       evaluateTaskDefinitionArtifactExpressions: cmd.evaluateTaskDefinitionArtifactExpressions,
@@ -81,6 +87,10 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
 
   // TODO: Separate docker image component used by both TaskDefinition and Container
   public componentDidMount() {
+    AccountService.listAccounts('dockerRegistry').then((accounts: IAccountDetails[]) => {
+      this.setState({ dockerRegistryAccounts: accounts });
+    });
+
     this.props.configureCommand('1').then(() => {
       this.setState({
         dockerImages: this.props.command.backingData.filtered.images,
@@ -88,6 +98,16 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
       });
     });
   }
+
+  private updateDockerRegistryAccount = (newAccount: Option<string>) => {
+    const account = newAccount.value;
+    this.setState({ selectedDockerAccount: account, dockerImages: [] });
+    DockerImageReader.findImages({ provider: 'dockerRegistry', account, count: 50 }).then((images) => {
+      const ecsImages = images as IEcsDockerImage[];
+      this.props.command.backingData.filtered.images = ecsImages;
+      this.setState({ dockerImages: ecsImages });
+    });
+  };
 
   private getIdToImageMap = (): Map<string, IEcsDockerImage> => {
     const imageIdToDescription = new Map<string, IEcsDockerImage>();
@@ -223,6 +243,11 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const updateTargetGroupMappingTargetGroup = this.updateTargetGroupMappingTargetGroup;
     const updateTargetGroupMappingPort = this.updateTargetGroupMappingPort;
     const updateEvaluateTaskDefArtifactFlag = this.updateEvaluateTaskDefArtifactFlag;
+
+    const dockerRegistryAccountOptions = this.state.dockerRegistryAccounts.map((account) => ({
+      label: account.name,
+      value: account.name,
+    }));
 
     const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
@@ -372,6 +397,21 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
             text="Evaluate SpEL expressions in artifact"
           />
         </StageConfigField>
+
+        <div className="form-group">
+          <div className="col-md-3 sm-label-right">
+            <b>Docker Registry Account</b>
+          </div>
+          <div className="col-md-9" data-test-id="Artifacts.dockerRegistryAccount">
+            <TetheredSelect
+              placeholder="Select a Docker registry account..."
+              options={dockerRegistryAccountOptions}
+              value={this.state.selectedDockerAccount}
+              onChange={(e: Option) => this.updateDockerRegistryAccount(e as Option<string>)}
+              clearable={false}
+            />
+          </div>
+        </div>
 
         <div className="form-group">
           <div className="sm-label-left">

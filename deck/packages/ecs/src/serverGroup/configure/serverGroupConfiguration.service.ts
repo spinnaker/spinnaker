@@ -239,13 +239,18 @@ export class EcsServerGroupConfigurationService {
       imageQueries.push(imageQuery);
     }
 
+    // Scope image search to a known account. If no account is available yet the Docker registry
+    // account picker in the wizard will trigger an account-scoped reload once the user selects one.
+    const searchAccount = cmd.imageDescription?.account;
+
     let imagesPromise;
-    if (imageQueries.length) {
+    if (imageQueries.length && searchAccount) {
       imagesPromise = this.$q
         .all(
           imageQueries.map((q) =>
             DockerImageReader.findImages({
               provider: 'dockerRegistry',
+              account: searchAccount,
               count: 50,
               q: q,
             }),
