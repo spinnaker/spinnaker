@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.stream.StreamInfo;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
@@ -69,7 +69,7 @@ public class PubSubAgentScheduler extends CatsModuleAware
   @Autowired private StateMachine stateMachine;
   @Autowired private AgentIntervalProvider intervalProvider;
   @Autowired @Lazy public ProviderRegistry providerRegistry;
-  @Autowired RedisTemplate<String, String> redisTemplate;
+  @Autowired StringRedisTemplate redisTemplate;
   @Autowired PubSubSchedulerProperties properties;
   @Autowired MeterRegistry meterRegistry;
 

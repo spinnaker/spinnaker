@@ -38,7 +38,7 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamReadRequest;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -82,7 +82,7 @@ public class PubSubAgentRunner
   @Autowired StateMachine stateMachine;
   @Autowired MeterRegistry meterRegistry;
   @Autowired PubSubSchedulerProperties properties;
-  @Autowired RedisTemplate<String, String> redisTemplate;
+  @Autowired StringRedisTemplate redisTemplate;
   @Autowired RedisConnectionFactory redisConnectionFactory;
 
   @Autowired(required = false)
