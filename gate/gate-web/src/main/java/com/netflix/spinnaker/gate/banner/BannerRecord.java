@@ -46,6 +46,9 @@ public class BannerRecord {
   /** CSS colour value for the banner background (e.g. {@code #fff3cd}). */
   private String backgroundColor;
 
+  /** CSS font-size value for the banner text (e.g. {@code 14px}). */
+  private String fontSize;
+
   /** Whether the banner is administratively enabled. */
   private boolean enabled;
 

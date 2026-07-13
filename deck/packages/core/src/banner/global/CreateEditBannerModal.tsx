@@ -59,6 +59,16 @@ export interface ICreateEditBannerModalProps {
 
 const DEFAULT_COLOR = 'var(--color-text-on-dark)';
 const DEFAULT_BG = 'var(--color-alert)';
+const DEFAULT_FONT_SIZE = '14px';
+
+const fontSizeOptions: Array<Option<string>> = [
+  { label: '12px', value: '12px' },
+  { label: '14px', value: '14px' },
+  { label: '16px', value: '16px' },
+  { label: '18px', value: '18px' },
+  { label: '20px', value: '20px' },
+  { label: '24px', value: '24px' },
+];
 
 export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEditBannerModalProps) {
   const isEdit = !!existing;
@@ -67,6 +77,7 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
   const [message, setMessage] = useState(existing?.message ?? '');
   const [color, setColor] = useState(existing?.color ?? DEFAULT_COLOR);
   const [backgroundColor, setBackgroundColor] = useState(existing?.backgroundColor ?? DEFAULT_BG);
+  const [fontSize, setFontSize] = useState(existing?.fontSize ?? DEFAULT_FONT_SIZE);
   const [enabled, setEnabled] = useState(existing?.enabled ?? true);
   const [scheduleOpen, setScheduleOpen] = useState(!!(existing?.startTimestamp || existing?.endTimestamp));
   const [startDatetime, setStartDatetime] = useState(msToDatetimeLocal(existing?.startTimestamp));
@@ -107,6 +118,7 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
       message: messageTrimmed,
       color,
       backgroundColor,
+      fontSize,
       enabled,
       startTimestamp: startMs,
       endTimestamp: endMs,
@@ -126,7 +138,7 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
   // ---------------------------------------------------------------------------
 
   const colorOptionRenderer = (option: Option<string>) => (
-    <div className="create-edit-banner-modal-color-swatch" style={{ backgroundColor: option.value }} />
+    <div className="custom-banner-config-color-option" style={{ backgroundColor: option.value }} />
   );
 
   // ---------------------------------------------------------------------------
@@ -185,7 +197,7 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              style={{ backgroundColor, color }}
+              style={{ backgroundColor, color, fontSize }}
               required
             />
             <span className="help-block text-muted" style={{ marginTop: 2 }}>
@@ -196,7 +208,7 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
                 <strong>Preview</strong>
                 <div
                   className="create-edit-banner-modal-preview"
-                  style={{ backgroundColor, color, padding: '6px 10px', borderRadius: 3, marginTop: 4 }}
+                  style={{ backgroundColor, color, fontSize, padding: '6px 10px', borderRadius: 3, marginTop: 4 }}
                 >
                   <Markdown message={messageTrimmed} />
                 </div>
@@ -204,9 +216,9 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
             )}
           </div>
 
-          {/* Colours */}
+          {/* Colours + font size */}
           <div className="row">
-            <div className="col-xs-6 form-group">
+            <div className="col-xs-4 form-group">
               <label>Text colour</label>
               <Select
                 clearable={false}
@@ -217,7 +229,7 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
                 valueRenderer={colorOptionRenderer}
               />
             </div>
-            <div className="col-xs-6 form-group">
+            <div className="col-xs-4 form-group">
               <label>Background colour</label>
               <Select
                 clearable={false}
@@ -226,6 +238,15 @@ export function CreateEditBannerModal({ existing, onClose, onSaved }: ICreateEdi
                 onChange={(option: Option<string>) => setBackgroundColor(option.value)}
                 optionRenderer={colorOptionRenderer}
                 valueRenderer={colorOptionRenderer}
+              />
+            </div>
+            <div className="col-xs-4 form-group">
+              <label>Font size</label>
+              <Select
+                clearable={false}
+                options={fontSizeOptions}
+                value={fontSize}
+                onChange={(option: Option<string>) => setFontSize(option.value)}
               />
             </div>
           </div>

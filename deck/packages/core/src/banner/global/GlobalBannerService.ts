@@ -21,6 +21,8 @@ export interface IBannerRecord {
   color?: string;
   /** CSS colour value for the background. */
   backgroundColor?: string;
+  /** CSS font-size value (e.g. '14px'). */
+  fontSize?: string;
   enabled: boolean;
   createdAt?: number;
   updatedAt?: number;
