@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import groovy.util.logging.Slf4j;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,9 +36,11 @@ import org.springframework.stereotype.Component;
 public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTask
     implements RetryableTask {
 
-  public CloudrunSourceServerGroupTask() {}
+  private final YamlHelper yamlHelper;
 
-  public CloudrunSourceServerGroupTask(SourceResolver sourceResolver) {
+  @Autowired
+  public CloudrunSourceServerGroupTask(SourceResolver sourceResolver, YamlHelper yamlHelper) {
+    this.yamlHelper = yamlHelper;
     super.setSourceResolver(sourceResolver);
   }
 
@@ -56,8 +59,7 @@ public class CloudrunSourceServerGroupTask extends DetermineSourceServerGroupTas
   private void setRegionInContextFromPayload(StageExecution stage) {
 
     ObjectMapper yamlReader =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
     if (stage.getContext() != null
         && stage.getContext().get("configFiles") != null
         && (!((List) stage.getContext().get("configFiles")).isEmpty())) {

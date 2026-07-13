@@ -59,10 +59,11 @@ public class TemplateLoader {
   public TemplateLoader(
       Collection<TemplateSchemeLoader> schemeLoaders,
       ObjectMapper objectMapper,
-      Renderer renderer) {
+      Renderer renderer,
+      YamlHelper yamlHelper) {
     this.schemeLoaders = schemeLoaders;
     this.objectMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
             .setConfig(objectMapper.getSerializationConfig())
             .setConfig(objectMapper.getDeserializationConfig());
     this.renderer = renderer;

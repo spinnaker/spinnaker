@@ -38,11 +38,10 @@ public class HelmAccounts {
 
   public List<HelmAccount> accounts;
 
-  public HelmAccounts() {
+  public HelmAccounts(YamlHelper yamlHelper) {
     this.accounts = new ArrayList<>();
     this.mapper =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
   }
 
   public HelmIndex getIndex(String account) {

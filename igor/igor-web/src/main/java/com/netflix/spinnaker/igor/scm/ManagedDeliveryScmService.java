@@ -53,7 +53,8 @@ public class ManagedDeliveryScmService {
       Optional<StashMaster> stashMaster,
       Optional<GitHubMaster> gitHubMaster,
       Optional<GitLabMaster> gitLabMaster,
-      Optional<BitBucketMaster> bitBucketMaster) {
+      Optional<BitBucketMaster> bitBucketMaster,
+      YamlHelper yamlHelper) {
     this.configProperties =
         configProperties.isPresent()
             ? configProperties.get()
@@ -64,8 +65,7 @@ public class ManagedDeliveryScmService {
     this.bitBucketMaster = bitBucketMaster;
     this.jsonMapper = new ObjectMapper();
     this.yamlMapper =
-        new ObjectMapper(
-            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
   }
 
   /**

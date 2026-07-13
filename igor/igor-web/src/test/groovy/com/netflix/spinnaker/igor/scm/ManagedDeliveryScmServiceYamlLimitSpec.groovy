@@ -30,7 +30,7 @@ import static com.netflix.spinnaker.igor.scm.stash.client.StashMaster.DEFAULT_PA
 
 /**
  * Verifies that ManagedDeliveryScmService respects the YAML code-point limit configured
- * via YamlHelper, allowing operators to control maximum YAML document size.
+ * via the injected YamlHelper, allowing operators to control maximum YAML document size.
  */
 class ManagedDeliveryScmServiceYamlLimitSpec extends Specification {
 
@@ -44,20 +44,15 @@ class ManagedDeliveryScmServiceYamlLimitSpec extends Specification {
   void setup() {
     YamlParserProperties props = new YamlParserProperties()
     props.setCodePointLimit(CODE_POINT_LIMIT)
-    new YamlHelper(props)
 
     service = new ManagedDeliveryScmService(
       Optional.of(new ManagedDeliveryConfigProperties(manifestBasePath: ".spinnaker")),
       Optional.of(new StashMaster(stashClient: client, baseUrl: "https://stash.example.com")),
       Optional.empty(),
       Optional.empty(),
-      Optional.empty()
+      Optional.empty(),
+      new YamlHelper(props)
     )
-  }
-
-  void cleanup() {
-    // Reset to defaults so YamlHelper state does not leak into other tests
-    new YamlHelper(new YamlParserProperties())
   }
 
   void 'getDeliveryConfigManifest throws when YAML content exceeds configured code-point limit'() {

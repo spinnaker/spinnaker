@@ -24,22 +24,16 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.igor.helm.model.HelmIndex;
 import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.kork.yaml.YamlParserProperties;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.test.util.ReflectionTestUtils;
 import retrofit2.mock.Calls;
 
 /**
- * Verifies that HelmAccounts respects the YAML code-point limit configured via YamlHelper, allowing
- * operators to control maximum YAML document size when fetching Helm index files.
+ * Verifies that HelmAccounts respects the YAML code-point limit configured via the injected
+ * YamlHelper, allowing operators to control maximum YAML document size when fetching Helm index
+ * files.
  */
-@Execution(
-    ExecutionMode
-        .SAME_THREAD) // Since we're "tweaking" the size limits... and those are static... can't run
-// concurrently
 class HelmAccountsYamlLimitTest {
 
   private static final int CODE_POINT_LIMIT = 200;
@@ -47,21 +41,18 @@ class HelmAccountsYamlLimitTest {
   private HelmAccountsService mockService;
   private HelmAccounts helmAccounts;
 
-  @BeforeEach
-  void setUp() {
+  private HelmAccounts newHelmAccounts(int codePointLimit) {
     YamlParserProperties props = new YamlParserProperties();
-    props.setCodePointLimit(CODE_POINT_LIMIT);
-    new YamlHelper(props);
-
-    helmAccounts = new HelmAccounts();
-    mockService = mock(HelmAccountsService.class);
-    ReflectionTestUtils.setField(helmAccounts, "service", mockService);
+    props.setCodePointLimit(codePointLimit);
+    HelmAccounts accounts = new HelmAccounts(new YamlHelper(props));
+    ReflectionTestUtils.setField(accounts, "service", mockService);
+    return accounts;
   }
 
-  @AfterEach
-  void tearDown() {
-    // Reset YamlHelper state so this test does not affect other tests
-    new YamlHelper(new YamlParserProperties());
+  @BeforeEach
+  void setUp() {
+    mockService = mock(HelmAccountsService.class);
+    helmAccounts = newHelmAccounts(CODE_POINT_LIMIT);
   }
 
   @Test
@@ -78,12 +69,7 @@ class HelmAccountsYamlLimitTest {
   // limits on this ONE test
   @Test
   void getIndexReturnsWhenCodeLimitSetHigher() {
-    YamlParserProperties props = new YamlParserProperties();
-    props.setCodePointLimit(CODE_POINT_LIMIT + 6000000);
-    new YamlHelper(props);
-    helmAccounts = new HelmAccounts();
-    mockService = mock(HelmAccountsService.class);
-    ReflectionTestUtils.setField(helmAccounts, "service", mockService);
+    helmAccounts = newHelmAccounts(CODE_POINT_LIMIT + 6000000);
 
     String largeYaml = "value: " + "a".repeat(CODE_POINT_LIMIT + 5000000);
     when(mockService.getIndex(anyMap())).thenReturn(Calls.response(largeYaml));

@@ -35,11 +35,12 @@ public class FileTemplateSchemeLoader implements TemplateSchemeLoader {
   private final ObjectMapper yamlObjectMapper;
 
   @Autowired
-  public FileTemplateSchemeLoader(ObjectMapper pipelineTemplateObjectMapper) {
+  public FileTemplateSchemeLoader(
+      ObjectMapper pipelineTemplateObjectMapper, YamlHelper yamlHelper) {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
     this.yamlObjectMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
             .setConfig(jsonObjectMapper.getSerializationConfig())
             .setConfig(jsonObjectMapper.getDeserializationConfig());
   }

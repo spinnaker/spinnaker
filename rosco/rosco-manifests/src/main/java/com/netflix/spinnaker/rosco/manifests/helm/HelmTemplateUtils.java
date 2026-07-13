@@ -43,16 +43,18 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
    * Dedicated ObjectMapper for YAML processing. This custom ObjectMapper ensures specialized
    * handling of YAML format, allowing distinct settings from the default JSON ObjectMapper.
    */
-  private final ObjectMapper yamlObjectMapper =
-      new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
+  private final ObjectMapper yamlObjectMapper;
 
   public HelmTemplateUtils(
       ArtifactDownloader artifactDownloader,
       Optional<ArtifactStore> artifactStore,
       ArtifactStoreConfigurationProperties artifactStoreProperties,
-      RoscoHelmConfigurationProperties helmConfigurationProperties) {
+      RoscoHelmConfigurationProperties helmConfigurationProperties,
+      YamlHelper yamlHelper) {
     super(artifactDownloader, artifactStore, artifactStoreProperties.getHelm());
     this.helmConfigurationProperties = helmConfigurationProperties;
+    this.yamlObjectMapper =
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
   }
 
   public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, HelmBakeManifestRequest request)

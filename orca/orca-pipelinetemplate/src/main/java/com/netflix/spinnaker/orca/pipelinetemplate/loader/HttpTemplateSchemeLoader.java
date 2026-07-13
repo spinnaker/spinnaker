@@ -47,11 +47,12 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
   private final OkHttpClient okHttpClient;
 
   @Autowired
-  public HttpTemplateSchemeLoader(ObjectMapper pipelineTemplateObjectMapper) {
+  public HttpTemplateSchemeLoader(
+      ObjectMapper pipelineTemplateObjectMapper, YamlHelper yamlHelper) {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
     this.yamlObjectMapper =
-        new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build())
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
             .setConfig(jsonObjectMapper.getSerializationConfig())
             .setConfig(jsonObjectMapper.getDeserializationConfig());
 
