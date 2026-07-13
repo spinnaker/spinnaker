@@ -19,7 +19,10 @@ import Select from 'react-select';
 
 import type { IBannerRecord } from './GlobalBannerService';
 import { GlobalBannerService } from './GlobalBannerService';
-import { bannerBackgroundColorOptions, bannerTextColorOptions } from '../../application/config/customBanner/customBannerColors';
+import {
+  bannerBackgroundColorOptions,
+  bannerTextColorOptions,
+} from '../../application/config/customBanner/customBannerColors';
 import { Markdown } from '../../presentation/Markdown';
 
 const MAX_ID_LENGTH = 64;

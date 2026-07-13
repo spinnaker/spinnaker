@@ -58,7 +58,12 @@ export function GlobalBannerDisplay() {
         <div
           key={banner.id}
           className="global-banner-display-item"
-          style={{ backgroundColor: banner.backgroundColor, color: banner.color, fontSize: banner.fontSize, textAlign: 'center' }}
+          style={{
+            backgroundColor: banner.backgroundColor,
+            color: banner.color,
+            fontSize: banner.fontSize,
+            textAlign: 'center',
+          }}
         >
           <Markdown message={banner.message} />
         </div>

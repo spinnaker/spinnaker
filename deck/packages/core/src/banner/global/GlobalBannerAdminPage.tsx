@@ -49,17 +49,12 @@ export function GlobalBannerAdminPage() {
     load();
   };
 
-  const formatTs = (ms?: number) =>
-    ms ? new Date(ms).toLocaleString() : <span className="text-muted">—</span>;
+  const formatTs = (ms?: number) => (ms ? new Date(ms).toLocaleString() : <span className="text-muted">—</span>);
 
   return (
     <div className="container">
-      {showCreate && (
-        <CreateEditBannerModal onClose={() => setShowCreate(false)} onSaved={handleSaved} />
-      )}
-      {editing && (
-        <CreateEditBannerModal existing={editing} onClose={() => setEditing(null)} onSaved={handleSaved} />
-      )}
+      {showCreate && <CreateEditBannerModal onClose={() => setShowCreate(false)} onSaved={handleSaved} />}
+      {editing && <CreateEditBannerModal existing={editing} onClose={() => setEditing(null)} onSaved={handleSaved} />}
 
       <div className="content-section">
         <div className="flex-container-h baseline" style={{ marginBottom: 16 }}>

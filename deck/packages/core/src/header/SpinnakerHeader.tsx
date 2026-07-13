@@ -65,51 +65,51 @@ export const SpinnakerHeaderContent = () => {
 
   return (
     <>
-    <GlobalBannerDisplay />
-    <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
-      <div className="navbar-header horizontal middle">
-        <div
-          onClick={toggleNav}
-          className={`nav-container navbar-menu-icon horizontal middle center sp-margin-xl-right ${
-            isApplicationView ? 'app-view-menu' : ''
-          }`}
-        >
-          {isApplicationView && (
-            <Icon name={verticalNavExpanded ? 'menuClose' : 'menu'} size="medium" color="primary" />
-          )}
+      <GlobalBannerDisplay />
+      <nav className="container spinnaker-header" role="navigation" aria-label="Main Menu">
+        <div className="navbar-header horizontal middle">
+          <div
+            onClick={toggleNav}
+            className={`nav-container navbar-menu-icon horizontal middle center sp-margin-xl-right ${
+              isApplicationView ? 'app-view-menu' : ''
+            }`}
+          >
+            {isApplicationView && (
+              <Icon name={verticalNavExpanded ? 'menuClose' : 'menu'} size="medium" color="primary" />
+            )}
+          </div>
+          <a className="navbar-brand flex-1" href="#">
+            SPINNAKER
+          </a>
         </div>
-        <a className="navbar-brand flex-1" href="#">
-          SPINNAKER
-        </a>
-      </div>
-      {navExpanded && (
-        <div className="nav-container nav-items">
-          <ul className="nav nav-items flex-1 page-nav">
-            {navItems.map((item) => {
-              const { onClick, ...restProps } = item.srefProps;
-              return (
-                <li key={item.key}>
-                  <a
-                    {...restProps}
-                    onClick={(e) => {
-                      onClick(e);
-                      logger.log({ category: LOG_CATEGORY, action: item.key });
-                    }}
-                  >
-                    {item.text}
-                  </a>
-                </li>
-              );
-            })}
-            <GlobalSearch />
-          </ul>
-          <ul className="nav nav-items">
-            <UserMenu />
-            <HelpMenu />
-          </ul>
-        </div>
-      )}
-    </nav>
+        {navExpanded && (
+          <div className="nav-container nav-items">
+            <ul className="nav nav-items flex-1 page-nav">
+              {navItems.map((item) => {
+                const { onClick, ...restProps } = item.srefProps;
+                return (
+                  <li key={item.key}>
+                    <a
+                      {...restProps}
+                      onClick={(e) => {
+                        onClick(e);
+                        logger.log({ category: LOG_CATEGORY, action: item.key });
+                      }}
+                    >
+                      {item.text}
+                    </a>
+                  </li>
+                );
+              })}
+              <GlobalSearch />
+            </ul>
+            <ul className="nav nav-items">
+              <UserMenu />
+              <HelpMenu />
+            </ul>
+          </div>
+        )}
+      </nav>
     </>
   );
 };
