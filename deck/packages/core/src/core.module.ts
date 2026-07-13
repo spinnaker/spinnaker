@@ -27,6 +27,7 @@ import './analytics/GoogleAnalyticsInitializer';
 import { UI_ROUTER_REACT_ERROR_BOUNDARY } from './presentation/SpinErrorBoundary';
 import { ANALYTICS_MODULE } from './analytics/angulartics.module';
 import { APITOKEN_MODULE } from './apitoken/apitoken.module';
+import { GLOBALBANNER_MODULE } from './banner/global/globalbanner.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap';
 import { APPLICATION_MODULE } from './application/application.module';
 import { ARTIFACT_MODULE } from './artifact/artifact.module';
@@ -109,6 +110,7 @@ module(CORE_MODULE, [
 
   ANALYTICS_MODULE,
   APITOKEN_MODULE,
+  GLOBALBANNER_MODULE,
   APPLICATION_MODULE,
   APPLICATION_BOOTSTRAP_MODULE,
   ARTIFACT_MODULE,
