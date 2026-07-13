@@ -12,6 +12,7 @@ interface IAuthResponse {
   username: string;
   roles?: string[];
   canMintApiTokens?: boolean;
+  isAdmin?: boolean;
 }
 
 export class AuthenticationInitializer {
@@ -28,6 +29,7 @@ export class AuthenticationInitializer {
             authenticated: false,
             roles: response.data.roles,
             canMintApiTokens: response.data.canMintApiTokens,
+            isAdmin: response.data.isAdmin,
           });
           ModalInjector.modalStackService.dismissAll();
           this.visibilityWatch.unsubscribe();
@@ -68,6 +70,7 @@ export class AuthenticationInitializer {
             authenticated: false,
             roles: response.data.roles,
             canMintApiTokens: response.data.canMintApiTokens,
+            isAdmin: response.data.isAdmin,
           });
           $rootScope.authenticating = false;
         } else {
@@ -89,6 +92,7 @@ export class AuthenticationInitializer {
               authenticated: false,
               roles: response.data.roles,
               canMintApiTokens: response.data.canMintApiTokens,
+              isAdmin: response.data.isAdmin,
             });
             $rootScope.authenticating = false;
             this.userLoggedOut = false;

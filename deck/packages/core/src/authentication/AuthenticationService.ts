@@ -4,6 +4,7 @@ export interface IUser {
   roles?: string[];
   lastAuthenticated?: number;
   canMintApiTokens?: boolean;
+  isAdmin?: boolean;
 }
 
 const defaultUser: IUser = {
@@ -11,6 +12,7 @@ const defaultUser: IUser = {
   roles: [],
   authenticated: false,
   canMintApiTokens: false,
+  isAdmin: false,
 };
 
 export class AuthenticationService {
@@ -29,6 +31,7 @@ export class AuthenticationService {
       this.user.lastAuthenticated = new Date().getTime();
       this.user.roles = authenticatedUser.roles;
       this.user.canMintApiTokens = authenticatedUser.canMintApiTokens ?? false;
+      this.user.isAdmin = authenticatedUser.isAdmin ?? false;
     }
 
     this.authEvents.forEach((event: Function) => event());
