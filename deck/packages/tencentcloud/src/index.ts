@@ -1,2 +1,3 @@
-export { TENCENTCLOUD_MODULE } from './tencentcloud.module';
+import './tencentcloud.module';
+
 export * from './tencentcloud.settings';

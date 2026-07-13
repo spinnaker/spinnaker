@@ -9,7 +9,7 @@ ext {
     arrow            : "0.13.2",
     aws              : "1.12.261",
     awsv2            : "2.23.7",
-    bouncycastle     : "1.81", // fixes CVE-2024-34447
+    bouncycastle     : "1.84", // fixes CVE-2024-34447, CVE-2025-14813
     gcp              : "26.34.0",
     groovy           : "4.0.15",
     jsch             : "0.1.54",
@@ -23,7 +23,7 @@ ext {
     spek2            : "2.0.9",
     springdocs          : "2.8.17",
     springBoot       : "3.5.15",
-    springCloud      : "2025.0.2",
+    springCloud      : "2025.0.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
     // bring in latest, though it's ahead of deps.  This is due to springdocs
     // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
     // referencing a field that didn't come in... until 2.2.30
@@ -130,8 +130,10 @@ dependencies {
     // and in some cases *-jdk15on libraries are excluded so as to use the available *-jdk18on or *-jdk15to18
     // some of the modules would still use <1.70 as they can't be upgraded without upgrading spring boot
     api('org.mockito.kotlin:mockito-kotlin:5.4.0')
+    api("com.azure:azure-security-keyvault-keys:4.11.1") // CVE-2026-33117
     api("org.bouncycastle:bcpkix-jdk18on:${versions.bouncycastle}")
     api("org.bouncycastle:bcprov-jdk18on:${versions.bouncycastle}")
+    api("org.bouncycastle:bcprov-jdk15to18:${versions.bouncycastle}") // CVE-2025-14813: some transitive deps still pull jdk15to18 artifact
     api("org.jetbrains:annotations:19.0.0")
     api("org.spekframework.spek2:spek-dsl-jvm:${versions.spek2}")
     api("org.spekframework.spek2:spek-runner-junit5:${versions.spek2}")
