@@ -16,16 +16,20 @@
 
 package com.netflix.spinnaker.gate.banner;
 
+import com.netflix.spinnaker.gate.security.SpinnakerUser;
+import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.security.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST API for managing global UI banners.
@@ -44,22 +49,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/banners")
 @ConditionalOnProperty("global-banner.enabled")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class GlobalBannerController {
 
   private final GlobalBannerService globalBannerService;
   private final GlobalBannerProperties properties;
+  private final PermissionService permissionService;
 
   // ---------------------------------------------------------------------------
-  // Public read (no auth required — polled by Deck on every page load)
+  // Read — any authenticated user
   // ---------------------------------------------------------------------------
 
-  @Operation(
-      summary = "Get active banners",
-      description =
-          "Returns all banners that are currently active. This endpoint is public so Deck can"
-              + " display banners without requiring a session.")
+  @Operation(summary = "Get active banners")
   @GetMapping
   public ResponseEntity<List<BannerRecord>> getActiveBanners() {
     return ResponseEntity.ok(globalBannerService.getActiveBanners());
@@ -69,22 +71,20 @@ public class GlobalBannerController {
   // Admin reads
   // ---------------------------------------------------------------------------
 
-  @Operation(
-      summary = "Get all banners (admin)",
-      description = "Returns all banners including disabled ones. Requires Fiat admin.")
+  @Operation(summary = "Get all banners (admin)")
   @GetMapping("/all")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
-  public ResponseEntity<List<BannerRecord>> getAllBanners() {
+  public ResponseEntity<List<BannerRecord>> getAllBanners(
+      @Parameter(hidden = true) @SpinnakerUser User user) {
+    requireAdmin(user);
     return ResponseEntity.ok(globalBannerService.getAllBanners());
   }
 
-  @Operation(
-      summary = "Get banner by id (admin)",
-      description = "Returns a specific banner by id. Requires Fiat admin.")
+  @Operation(summary = "Get banner by id (admin)")
   @GetMapping("/{id}")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   public ResponseEntity<BannerRecord> getBannerById(
+      @Parameter(hidden = true) @SpinnakerUser User user,
       @Parameter(description = "Banner id") @PathVariable String id) {
+    requireAdmin(user);
     Optional<BannerRecord> banner = globalBannerService.getBannerById(id);
     return banner.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
@@ -93,14 +93,11 @@ public class GlobalBannerController {
   // Admin writes
   // ---------------------------------------------------------------------------
 
-  @Operation(
-      summary = "Create or update a banner (admin)",
-      description =
-          "Creates or updates the banner with the given id. Both id and message are required."
-              + " Requires Fiat admin.")
+  @Operation(summary = "Create or update a banner (admin)")
   @PutMapping
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
-  public ResponseEntity<BannerRecord> saveBanner(@RequestBody BannerRecord bannerRecord) {
+  public ResponseEntity<BannerRecord> saveBanner(
+      @Parameter(hidden = true) @SpinnakerUser User user, @RequestBody BannerRecord bannerRecord) {
+    requireAdmin(user);
     if (bannerRecord.getId() == null || bannerRecord.getId().isBlank()) {
       log.warn("Attempt to save banner with missing id");
       return ResponseEntity.badRequest().build();
@@ -119,16 +116,13 @@ public class GlobalBannerController {
     return ResponseEntity.ok(globalBannerService.save(bannerRecord));
   }
 
-  @Operation(
-      summary = "Update a banner by id (admin)",
-      description =
-          "Updates the banner with the given id. Returns 404 if the banner does not exist."
-              + " Requires Fiat admin.")
+  @Operation(summary = "Update a banner by id (admin)")
   @PostMapping("/{id}")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   public ResponseEntity<BannerRecord> updateBanner(
+      @Parameter(hidden = true) @SpinnakerUser User user,
       @Parameter(description = "Banner id") @PathVariable String id,
       @RequestBody BannerRecord bannerRecord) {
+    requireAdmin(user);
     Optional<BannerRecord> existing = globalBannerService.getBannerById(id);
     if (existing.isEmpty()) {
       log.warn("Attempt to update non-existent banner id='{}'", id);
@@ -145,47 +139,48 @@ public class GlobalBannerController {
           properties.getMaxMessageLength());
       return ResponseEntity.badRequest().build();
     }
-    // Ensure the path variable id always wins over any id in the request body.
     bannerRecord.setId(id);
-    // Preserve createdAt from the existing record.
     bannerRecord.setCreatedAt(existing.get().getCreatedAt());
     return ResponseEntity.ok(globalBannerService.save(bannerRecord));
   }
 
-  @Operation(
-      summary = "Delete a banner by id (admin)",
-      description =
-          "Deletes the banner with the given id. Returns 404 if it does not exist."
-              + " Requires Fiat admin.")
+  @Operation(summary = "Delete a banner by id (admin)")
   @DeleteMapping("/{id}")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
   public ResponseEntity<Void> deleteBanner(
+      @Parameter(hidden = true) @SpinnakerUser User user,
       @Parameter(description = "Banner id") @PathVariable String id) {
+    requireAdmin(user);
     boolean deleted = globalBannerService.delete(id);
     return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
   }
 
-  @Operation(
-      summary = "Delete all banners (admin)",
-      description =
-          "Deletes all banners. The number of deleted banners is returned in the"
-              + " X-Deleted-Count response header. Requires Fiat admin.")
+  @Operation(summary = "Delete all banners (admin)")
   @DeleteMapping
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
-  public ResponseEntity<Void> deleteAllBanners() {
+  public ResponseEntity<Void> deleteAllBanners(@Parameter(hidden = true) @SpinnakerUser User user) {
+    requireAdmin(user);
     int count = globalBannerService.deleteAll();
     return ResponseEntity.noContent().header("X-Deleted-Count", String.valueOf(count)).build();
   }
 
-  @Operation(
-      summary = "Force cache refresh (admin)",
-      description =
-          "Forces an immediate refresh of the active-banner cache from Redis without waiting for"
-              + " the next scheduled interval. Requires Fiat admin.")
+  @Operation(summary = "Force cache refresh (admin)")
   @PostMapping("/refresh")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
-  public ResponseEntity<Map<String, String>> forceRefresh() {
+  public ResponseEntity<Map<String, String>> forceRefresh(
+      @Parameter(hidden = true) @SpinnakerUser User user) {
+    requireAdmin(user);
     globalBannerService.forceRefresh();
     return ResponseEntity.ok(Map.of("status", "ok", "message", "Banner cache refreshed"));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  private void requireAdmin(User user) {
+    if (user == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+    }
+    if (!permissionService.isAdmin(user.getUsername())) {
+      throw new AccessDeniedException("Only admins may manage global banners");
+    }
   }
 }
