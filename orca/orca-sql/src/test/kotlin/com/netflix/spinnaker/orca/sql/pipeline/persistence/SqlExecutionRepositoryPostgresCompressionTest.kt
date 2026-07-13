@@ -21,12 +21,15 @@ import com.netflix.spinnaker.kork.sql.config.RetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.jooq.impl.DSL.field
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.mockito.kotlin.mock
 import org.testcontainers.DockerClientFactory
 import java.lang.System.currentTimeMillis
@@ -50,116 +53,117 @@ import javax.sql.DataSource
  * exhibited this bug (no native enum type strictness), which is why the existing, MySQL-only
  * SqlExecutionRepositoryTest suite never caught it.
  */
-class SqlExecutionRepositoryPostgresCompressionTest : JUnit5Minutests {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class SqlExecutionRepositoryPostgresCompressionTest {
 
-  fun tests() = rootContext<Fixture> {
-    fixture { Fixture() }
+  private val testRetryProperties = RetryProperties()
+  private val orcaObjectMapper = OrcaObjectMapper.newInstance()
+  private val mockDataSource = mock<DataSource>()
 
-    beforeAll {
-      assumeTrue(DockerClientFactory.instance().isDockerAvailable)
-    }
-
-    after {
-      SqlTestUtil.cleanupDb(database.context)
-    }
-
-    context("execution body compression against PostgreSQL") {
-
-      val testType = ExecutionType.PIPELINE
-      val testTable = testType.tableName
-      val testId = "test_id"
-      val testApplication = "test-application"
-      val testCompressibleBody = "test_body_long_enough_to_compress"
-      val testCompressiblePairs = mutableMapOf(
-        field("id") to testId,
-        field("application") to testApplication,
-        field("body") to testCompressibleBody,
-        field("build_time") to currentTimeMillis(),
-        field("status") to "RUNNING"
-      )
-
-      test("upsert (INSERT) of a compressed execution body succeeds against PostgreSQL") {
-        assertThatCode {
-          sqlExecutionRepository.upsert(
-            database.context,
-            table = testTable,
-            insertPairs = testCompressiblePairs,
-            updatePairs = testCompressiblePairs,
-            id = testId,
-            enableCompression = true
-          )
-        }.doesNotThrowAnyException()
-
-        val compressedExecutions = database.context
-          .select(listOf(field("id"), field("compression_type")))
-          .from(testTable.compressedExecTable)
-          .fetch()
-        assertThat(compressedExecutions).hasSize(1)
-        assertThat(compressedExecutions.getValue(0, field("compression_type"))).isEqualTo("ZLIB")
-      }
-
-      test("upsert (ON CONFLICT DO UPDATE) of a compressed execution body succeeds against PostgreSQL") {
-        // Initial insert.
-        sqlExecutionRepository.upsert(
-          database.context,
-          table = testTable,
-          insertPairs = testCompressiblePairs,
-          updatePairs = testCompressiblePairs,
-          id = testId,
-          enableCompression = true
-        )
-
-        // Re-upserting the same id exercises the ON CONFLICT DO UPDATE SET path, which is
-        // where the original bug manifested.
-        assertThatCode {
-          sqlExecutionRepository.upsert(
-            database.context,
-            table = testTable,
-            insertPairs = testCompressiblePairs,
-            updatePairs = testCompressiblePairs,
-            id = testId,
-            enableCompression = true
-          )
-        }.doesNotThrowAnyException()
-
-        val compressedExecutions = database.context
-          .select(listOf(field("id"), field("compression_type")))
-          .from(testTable.compressedExecTable)
-          .fetch()
-        assertThat(compressedExecutions).hasSize(1)
-        assertThat(compressedExecutions.getValue(0, field("compression_type"))).isEqualTo("ZLIB")
-      }
-    }
+  private val executionCompressionPropertiesEnabled = ExecutionCompressionProperties().apply {
+    enabled = true
+    bodyCompressionThreshold = 9
+    compressionType = CompressionType.ZLIB
   }
 
-  private inner class Fixture {
-    val database = SqlTestUtil.initTcPostgresDatabase()!!
+  private val testType = ExecutionType.PIPELINE
+  private val testTable = testType.tableName
+  private val testId = "test_id"
+  private val testApplication = "test-application"
+  private val testCompressibleBody = "test_body_long_enough_to_compress"
 
-    val testRetryProprties = RetryProperties()
-    val orcaObjectMapper = OrcaObjectMapper.newInstance()
-    val mockDataSource = mock<DataSource>()
+  private val testCompressiblePairs = mutableMapOf(
+    field("id") to testId,
+    field("application") to testApplication,
+    field("body") to testCompressibleBody,
+    field("build_time") to currentTimeMillis(),
+    field("status") to "RUNNING"
+  )
 
-    val executionCompressionPropertiesEnabled = ExecutionCompressionProperties().apply {
-      enabled = true
-      bodyCompressionThreshold = 9
-      compressionType = CompressionType.ZLIB
-    }
+  private lateinit var database: SqlTestUtil.TestDatabase
+  private lateinit var sqlExecutionRepository: SqlExecutionRepository
 
-    val sqlExecutionRepository =
-      SqlExecutionRepository(
-        "test",
+  @BeforeAll
+  fun beforeAll() {
+    assumeTrue(DockerClientFactory.instance().isDockerAvailable)
+  }
+
+  @BeforeEach
+  fun setup() {
+    database = SqlTestUtil.initTcPostgresDatabase()!!
+    sqlExecutionRepository = SqlExecutionRepository(
+      "test",
+      database.context,
+      orcaObjectMapper,
+      testRetryProperties,
+      10,
+      100,
+      "poolName",
+      "myReadPoolName",
+      null,
+      emptyList(),
+      executionCompressionPropertiesEnabled,
+      false,
+      mockDataSource
+    )
+  }
+
+  @AfterEach
+  fun cleanup() {
+    SqlTestUtil.cleanupDb(database.context)
+  }
+
+  @Test
+  fun `upsert INSERT of a compressed execution body succeeds against PostgreSQL`() {
+    assertThatCode {
+      sqlExecutionRepository.upsert(
         database.context,
-        orcaObjectMapper,
-        testRetryProprties,
-        10,
-        100,
-        "poolName",
-        "myReadPoolName",
-        null,
-        emptyList(),
-        executionCompressionPropertiesEnabled,
-        false,
-        mockDataSource
+        table = testTable,
+        insertPairs = testCompressiblePairs,
+        updatePairs = testCompressiblePairs,
+        id = testId,
+        enableCompression = true
       )
+    }.doesNotThrowAnyException()
+
+    val compressedExecutions = database.context
+      .select(listOf(field("id"), field("compression_type")))
+      .from(testTable.compressedExecTable)
+      .fetch()
+    assertThat(compressedExecutions).hasSize(1)
+    assertThat(compressedExecutions.getValue(0, field("compression_type"))).isEqualTo("ZLIB")
+  }
+
+  @Test
+  fun `upsert ON CONFLICT DO UPDATE of a compressed execution body succeeds against PostgreSQL`() {
+    // Initial insert.
+    sqlExecutionRepository.upsert(
+      database.context,
+      table = testTable,
+      insertPairs = testCompressiblePairs,
+      updatePairs = testCompressiblePairs,
+      id = testId,
+      enableCompression = true
+    )
+
+    // Re-upserting the same id exercises the ON CONFLICT DO UPDATE SET path, which is
+    // where the original bug manifested.
+    assertThatCode {
+      sqlExecutionRepository.upsert(
+        database.context,
+        table = testTable,
+        insertPairs = testCompressiblePairs,
+        updatePairs = testCompressiblePairs,
+        id = testId,
+        enableCompression = true
+      )
+    }.doesNotThrowAnyException()
+
+    val compressedExecutions = database.context
+      .select(listOf(field("id"), field("compression_type")))
+      .from(testTable.compressedExecTable)
+      .fetch()
+    assertThat(compressedExecutions).hasSize(1)
+    assertThat(compressedExecutions.getValue(0, field("compression_type"))).isEqualTo("ZLIB")
   }
 }
