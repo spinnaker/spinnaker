@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { IServerGroupDetailsSectionProps } from '@spinnaker/core';
-import { AccountTag, CollapsibleSection } from '@spinnaker/core';
+import { AccountTag, CollapsibleSection, timestamp } from '@spinnaker/core';
 
 export function EcsServerGroupInformationSection({ serverGroup }: IServerGroupDetailsSectionProps) {
   return (
@@ -14,7 +14,11 @@ export function EcsServerGroupInformationSection({ serverGroup }: IServerGroupDe
         <dt>Region</dt>
         <dd>{serverGroup.region}</dd>
         <dt>Created</dt>
-        <dd>{serverGroup.createdTime || 'Unknown'}</dd>
+        <dd>{serverGroup.createdTime ? timestamp(serverGroup.createdTime) : 'Unknown'}</dd>
+        <dt>ECS Cluster</dt>
+        <dd>{(serverGroup as any).ecsCluster}</dd>
+        <dt>VPC ID</dt>
+        <dd>{(serverGroup as any).vpcId}</dd>
       </dl>
     </CollapsibleSection>
   );

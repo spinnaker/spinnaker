@@ -16,10 +16,6 @@ export class ServerGroupEventsReader {
         region: serverGroup.region,
         provider: serverGroup.cloudProvider,
       })
-      .get()
-      .catch((error: any): any[] => {
-        console.error(error, 'error retrieving events');
-        return [];
-      });
+      .get();
   }
 }

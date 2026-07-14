@@ -1,3 +1,4 @@
+import { AWSProviderSettings } from '@spinnaker/amazon';
 import { CloudProviderRegistry, Registry } from '@spinnaker/core';
 
 import * as ecs from './index';
@@ -5,6 +6,18 @@ import { registerEcsPipelineStages } from './ecs.module';
 import { EcsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { EcsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { EcsServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
+import { EcsServerGroupActions } from './serverGroup/details/EcsServerGroupActions';
+import { EcsServerGroupEventsSection } from './serverGroup/details/sections/EcsServerGroupEventsSection';
+import {
+  EcsBuildInfoSection,
+  EcsCapacitySection,
+  EcsEnvironmentVariablesSection,
+  EcsFirewallsSection,
+  EcsHealthSection,
+  EcsScalingPoliciesSection,
+  EcsTaskDefinitionSection,
+} from './serverGroup/details/sections/EcsServerGroupDetailsSections';
+import { EcsServerGroupInformationSection } from './serverGroup/details/sections/EcsServerGroupInformationSection';
 import { EcsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 describe('ECS package registration', () => {
@@ -12,6 +25,21 @@ describe('ECS package registration', () => {
     expect((ecs as any)['ECS' + '_MODULE']).toBeUndefined();
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.transformer')).toBe(EcsServerGroupTransformer);
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.commandBuilder')).toBe(EcsServerGroupCommandBuilder);
+    expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsActions')).toBe(EcsServerGroupActions);
+    expect(CloudProviderRegistry.getValue('ecs', 'adHocInfrastructureWritesEnabled')).toBe(
+      AWSProviderSettings.adHocInfraWritesEnabled,
+    );
+    expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsSections')).toEqual([
+      EcsServerGroupInformationSection,
+      EcsTaskDefinitionSection,
+      EcsEnvironmentVariablesSection,
+      EcsHealthSection,
+      EcsFirewallsSection,
+      EcsCapacitySection,
+      EcsScalingPoliciesSection,
+      EcsBuildInfoSection,
+      EcsServerGroupEventsSection,
+    ]);
     expect(CloudProviderRegistry.getValue('ecs', 'securityGroup.reader')).toBe(EcsSecurityGroupReader);
     expect(CloudProviderRegistry.getValue('ecs', 'securityGroup.transformer')).toBe(EcsSecurityGroupTransformer);
     expect(

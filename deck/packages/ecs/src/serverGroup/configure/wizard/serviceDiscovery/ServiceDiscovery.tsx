@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
@@ -35,35 +36,85 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     super(props);
     const cmd = this.props.command;
 
+    const serviceDiscoveryAssociations = this.normalizeContainerNames(
+      cmd.serviceDiscoveryAssociations || [],
+      cmd.useTaskDefinitionArtifact,
+    );
+    cmd.serviceDiscoveryAssociations = serviceDiscoveryAssociations;
     this.state = {
-      serviceDiscoveryAssociations: cmd.serviceDiscoveryAssociations,
-      serviceDiscoveryRegistriesAvailable:
-        cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.serviceDiscoveryRegistries : [],
+      serviceDiscoveryAssociations,
+      serviceDiscoveryRegistriesAvailable: this.mergeRegistries(
+        cmd.backingData?.filtered?.serviceDiscoveryRegistries || [],
+        serviceDiscoveryAssociations,
+      ),
       useTaskDefinitionArtifact: cmd.useTaskDefinitionArtifact,
     };
-
-    if (!this.state.useTaskDefinitionArtifact) {
-      this.state.serviceDiscoveryAssociations.forEach((serviceDiscoveryRegistryAssociation) => {
-        serviceDiscoveryRegistryAssociation.containerName = null;
-      });
-    }
   }
 
   public componentDidMount() {
     this.props.configureCommand('1').then(() => {
       this.setState({
-        serviceDiscoveryRegistriesAvailable: this.props.command.backingData.filtered.serviceDiscoveryRegistries,
+        serviceDiscoveryRegistriesAvailable: this.mergeRegistries(
+          this.props.command.backingData.filtered.serviceDiscoveryRegistries || [],
+          this.state.serviceDiscoveryAssociations,
+        ),
       });
     });
   }
 
+  public componentDidUpdate() {
+    const cmd = this.props.command;
+    const currentAssociations = cmd.serviceDiscoveryAssociations || [];
+    const serviceDiscoveryAssociations = this.normalizeContainerNames(
+      currentAssociations,
+      cmd.useTaskDefinitionArtifact,
+    );
+    if (!isEqual(currentAssociations, serviceDiscoveryAssociations)) {
+      cmd.serviceDiscoveryAssociations = serviceDiscoveryAssociations;
+      this.props.notifyAngular('serviceDiscoveryAssociations', serviceDiscoveryAssociations);
+    }
+    const nextState: IServiceDiscoveryState = {
+      serviceDiscoveryAssociations,
+      serviceDiscoveryRegistriesAvailable: this.mergeRegistries(
+        cmd.backingData?.filtered?.serviceDiscoveryRegistries || [],
+        serviceDiscoveryAssociations,
+      ),
+      useTaskDefinitionArtifact: cmd.useTaskDefinitionArtifact,
+    };
+    if (!isEqual(this.state, nextState)) {
+      this.setState(nextState);
+    }
+  }
+
+  private normalizeContainerNames = (
+    associations: IEcsServiceDiscoveryRegistryAssociation[],
+    useTaskDefinitionArtifact: boolean,
+  ): IEcsServiceDiscoveryRegistryAssociation[] => {
+    const normalized = associations.map((association) => ({
+      ...association,
+      containerName: useTaskDefinitionArtifact ? association.containerName || '' : null,
+    }));
+    return isEqual(associations, normalized) ? associations : normalized;
+  };
+
   private getNameToRegistryMap = (): Map<string, IEcsServiceDiscoveryRegistry> => {
     const displayNameToRegistry = new Map<string, IEcsServiceDiscoveryRegistry>();
-    this.props.command.backingData.filtered.serviceDiscoveryRegistries.forEach((e) => {
+    this.state.serviceDiscoveryRegistriesAvailable.forEach((e) => {
       displayNameToRegistry.set(e.displayName, e);
     });
 
     return displayNameToRegistry;
+  };
+
+  private mergeRegistries = (
+    available: IEcsServiceDiscoveryRegistry[],
+    associations: IEcsServiceDiscoveryRegistryAssociation[],
+  ): IEcsServiceDiscoveryRegistry[] => {
+    const registries = new Map<string, IEcsServiceDiscoveryRegistry>();
+    [...available, ...associations.map((association) => association.registry)].filter(Boolean).forEach((registry) => {
+      registries.set(registry.displayName, registry as IEcsServiceDiscoveryRegistry);
+    });
+    return Array.from(registries.values());
   };
 
   private getEmptyRegistry = (): IEcsServiceDiscoveryRegistry => {
@@ -138,7 +189,9 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
           {useTaskDefinitionArtifact && (
             <td>
               <input
+                aria-label={`Container name ${index + 1}`}
                 className="form-control input-sm"
+                data-test-id="ServiceDiscovery.containerName"
                 placeholder="Enter a container name ..."
                 required={true}
                 value={mapping.containerName}
@@ -146,8 +199,9 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
               />
             </td>
           )}
-          <td>
+          <td data-test-id="ServiceDiscovery.registry">
             <TetheredSelect
+              inputProps={{ 'aria-label': `Service registry ${index + 1}` }}
               placeholder="Select a registry..."
               options={registriesAvailable}
               value={mapping.registry.displayName.toString()}
@@ -158,6 +212,8 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
           </td>
           <td>
             <input
+              aria-label={`Container port ${index + 1}`}
+              data-test-id="ServiceDiscovery.containerPort"
               type="number"
               className="form-control input-sm no-spel"
               required={true}
@@ -167,10 +223,15 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
           </td>
           <td>
             <div className="form-control-static">
-              <a className="btn-link sm-label" onClick={() => removeServiceDiscoveryAssociation(index)}>
+              <button
+                aria-label={`Remove service registry ${index + 1}`}
+                className="btn-link sm-label"
+                onClick={() => removeServiceDiscoveryAssociation(index)}
+                type="button"
+              >
                 <span className="glyphicon glyphicon-trash" />
                 <span className="sr-only">Remove</span>
-              </a>
+              </button>
             </div>
           </td>
         </tr>
@@ -178,7 +239,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     });
 
     const newServiceDiscoveryAssociation = this.state.serviceDiscoveryRegistriesAvailable.length ? (
-      <button className="btn btn-block btn-sm add-new" onClick={this.pushServiceDiscoveryAssociation}>
+      <button className="btn btn-block btn-sm add-new" onClick={this.pushServiceDiscoveryAssociation} type="button">
         <span className="glyphicon glyphicon-plus-sign" />
         Add New Service Registry
       </button>

@@ -1,14 +1,41 @@
-import { get, uniq } from 'lodash';
+import { get, uniq, uniqBy } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, ISubnet } from '@spinnaker/core';
-import { AccountService, DeployInitializer, NameUtils, noop, ReactModal, REST } from '@spinnaker/core';
+import type { Application, IModalComponentProps, ISubnet, IWizardPageInjectedProps } from '@spinnaker/core';
+import {
+  AccountService,
+  AngularServices,
+  DeployInitializer,
+  NameUtils,
+  noop,
+  ReactModal,
+  REST,
+  TaskMonitor,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
-import { Container } from './container/Container';
 import { EcsClusterReader } from '../../../ecsCluster/ecsCluster.read.service';
 import { IamRoleReader } from '../../../iamRoles/iamRole.read.service';
 import { MetricAlarmReader } from '../../../metricAlarm/metricAlarm.read.service';
-import { EcsNetworking } from './networking/Networking';
+import { AdvancedSettings } from './pages/AdvancedSettings';
+import { BasicSettings } from './pages/BasicSettings';
+import { ContainerSettings } from './pages/ContainerSettings';
+import { HorizontalScalingSettings } from './pages/HorizontalScalingSettings';
+import { LoggingSettings } from './pages/LoggingSettings';
+import { NetworkingSettings } from './pages/NetworkingSettings';
+import { ServiceDiscoverySettings } from './pages/ServiceDiscoverySettings';
+import { TaskDefinitionSettings } from './pages/TaskDefinitionSettings';
+import {
+  EcsWizardPageValidation,
+  validateEcsBasicSettings,
+  validateEcsCapacity,
+  validateEcsContainer,
+  validateEcsServerGroup,
+  validateEcsServiceDiscovery,
+  validateEcsTaskDefinition,
+} from './pages/validation';
+import { PlacementStrategyService } from '../../../placementStrategy/placementStrategy.service';
 import { SecretReader } from '../../../secrets/secret.read.service';
 import type {
   IEcsCapacityProviderStrategyItem,
@@ -17,7 +44,8 @@ import type {
   IEcsTargetGroupMapping,
 } from '../serverGroupConfiguration.service';
 import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
-import { TaskDefinition } from './taskDefinition/TaskDefinition';
+
+type EcsFormikProps = IWizardPageInjectedProps<IEcsServerGroupCommand>['formik'];
 
 export interface IEcsCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
@@ -26,23 +54,19 @@ export interface IEcsCloneServerGroupModalProps extends IModalComponentProps {
 }
 
 interface IEcsCloneServerGroupModalState {
-  activeCapacityProviderIndex: number | null;
   command: IEcsServerGroupCommand;
-  clusterQuery: string;
-  launchTypeQuery: string;
   loaded: boolean;
   requiresTemplateSelection: boolean;
+  taskMonitor: TaskMonitor;
 }
-
-const TaskDefinitionReact = ({ children }: React.PropsWithChildren<object>) =>
-  React.createElement('task-definition-react', null, children);
 
 export class EcsCloneServerGroupModal extends React.Component<
   IEcsCloneServerGroupModalProps,
   IEcsCloneServerGroupModalState
 > {
+  private command: IEcsServerGroupCommand;
   private configureRequest = 0;
-  private lastCapacityProviderMode: 'custom' | 'default' | null = null;
+  private formik: EcsFormikProps = null;
   private unmounted = false;
 
   public static defaultProps: Partial<IEcsCloneServerGroupModalProps> = {
@@ -53,6 +77,7 @@ export class EcsCloneServerGroupModal extends React.Component<
   private ecsClusterReader = new EcsClusterReader();
   private iamRoleReader = new IamRoleReader();
   private metricAlarmReader = new MetricAlarmReader();
+  private placementStrategyService = new PlacementStrategyService();
   private secretReader = new SecretReader();
 
   public static show(props: IEcsCloneServerGroupModalProps): Promise<IEcsServerGroupCommand> {
@@ -63,13 +88,17 @@ export class EcsCloneServerGroupModal extends React.Component<
   constructor(props: IEcsCloneServerGroupModalProps) {
     super(props);
     this.ensureCommandShape(props.command);
+    this.command = props.command;
     this.state = {
-      activeCapacityProviderIndex: null,
       command: props.command,
-      clusterQuery: props.command.ecsClusterName || '',
-      launchTypeQuery: props.command.launchType || '',
       loaded: false,
       requiresTemplateSelection: get(props, 'command.viewState.requiresTemplateSelection', false),
+      taskMonitor: new TaskMonitor({
+        application: props.application,
+        title: 'Creating your server group',
+        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onTaskComplete: this.onTaskComplete,
+      }),
     };
   }
 
@@ -85,15 +114,46 @@ export class EcsCloneServerGroupModal extends React.Component<
     this.unmounted = true;
   }
 
+  private onTaskComplete = () => {
+    this.props.application.serverGroups.refresh();
+    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
+  };
+
+  private onApplicationRefresh = (): void => {
+    if (this.unmounted) {
+      return;
+    }
+
+    const { command, taskMonitor } = this.state;
+    const cloneStage = taskMonitor.task?.execution?.stages?.find((stage: any) => stage.type === 'cloneServerGroup');
+    const newServerGroupName = cloneStage?.context?.['deploy.server.groups']?.[command.region];
+    if (!newServerGroupName) {
+      return;
+    }
+
+    let transitionTo = '^.^.^.clusters.serverGroup';
+    if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+      transitionTo = '^.serverGroup';
+    }
+    if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+      transitionTo = '^.^.serverGroup';
+    }
+    if (AngularServices.$state.includes('**.clusters')) {
+      transitionTo = '.serverGroup';
+    }
+    AngularServices.$state.go(transitionTo, {
+      accountId: command.credentials,
+      provider: 'ecs',
+      region: command.region,
+      serverGroup: newServerGroupName,
+    });
+  };
+
   private templateSelected = () => {
     this.ensureCommandShape(this.props.command);
-    this.lastCapacityProviderMode = null;
     this.setState(
       {
-        activeCapacityProviderIndex: null,
         command: this.props.command,
-        clusterQuery: this.props.command.ecsClusterName || '',
-        launchTypeQuery: this.props.command.launchType || '',
         loaded: false,
         requiresTemplateSelection: false,
       },
@@ -103,13 +163,19 @@ export class EcsCloneServerGroupModal extends React.Component<
     );
   };
 
-  private configureCommand = (imageQuery = ''): PromiseLike<void> => {
-    const command = this.state.command;
+  private configureCommand = (imageQuery = '', command = this.state.command): PromiseLike<void> => {
     const request = ++this.configureRequest;
     this.ensureCommandShape(command);
+    this.command = command;
     return this.loadBackingData(command, imageQuery, request).then(() => {
       if (!this.unmounted && request === this.configureRequest) {
-        this.setState({ command, loaded: true });
+        const configuredCommand = this.command;
+        configuredCommand.availabilityZones = command.availabilityZones;
+        configuredCommand.backingData = command.backingData;
+        configuredCommand.region = command.region;
+        this.attachEventHandlers(configuredCommand);
+        this.syncCommand(configuredCommand);
+        this.setState({ loaded: true });
       }
     });
   };
@@ -136,7 +202,7 @@ export class EcsCloneServerGroupModal extends React.Component<
       this.safe(ServiceDiscoveryReader.listServiceDiscoveryRegistries(), []),
       imageQuery
         ? this.safe(REST('/images/find').query({ provider: 'dockerRegistry', count: 50, q: imageQuery }).get(), [])
-        : [],
+        : command.backingData.images || [],
     ]).then(
       ([
         credentialsKeyedByAccount,
@@ -194,6 +260,7 @@ export class EcsCloneServerGroupModal extends React.Component<
           subnetTypes: this.getSubnetTypes(command, subnetList),
           targetGroups: this.getTargetGroups(command, loadBalancerList),
         };
+        this.reconcileLocation(command);
         this.attachEventHandlers(command);
       },
     );
@@ -229,6 +296,7 @@ export class EcsCloneServerGroupModal extends React.Component<
     command.backingData.secrets = command.backingData.secrets || [];
     command.backingData.serviceDiscoveryRegistries = command.backingData.serviceDiscoveryRegistries || [];
     command.containerMappings = command.containerMappings || [];
+    command.serviceDiscoveryAssociations = command.serviceDiscoveryAssociations || [];
     command.targetGroupMappings = command.targetGroupMappings || [];
     command.taskDefinitionArtifact = command.taskDefinitionArtifact || {};
     command.viewState = command.viewState || ({} as any);
@@ -245,18 +313,41 @@ export class EcsCloneServerGroupModal extends React.Component<
       );
       return { dirty: {} };
     };
-    command.regionChanged = () => {
-      this.configureCommand();
+    command.regionChanged = (changedCommand: IEcsServerGroupCommand = command) => {
+      this.reconcileLocation(changedCommand);
+      this.syncCommand(changedCommand);
+      this.configureCommand('', changedCommand);
       return { dirty: {} };
     };
-    command.credentialsChanged = () => {
-      this.configureCommand();
+    command.credentialsChanged = (changedCommand: IEcsServerGroupCommand = command) => {
+      this.reconcileLocation(changedCommand);
+      this.syncCommand(changedCommand);
+      this.configureCommand('', changedCommand);
       return { dirty: {} };
     };
-    command.placementStrategyNameChanged = () => ({ dirty: {} });
+    command.placementStrategyNameChanged = (changedCommand: IEcsServerGroupCommand = command) => {
+      changedCommand.placementStrategySequence = this.placementStrategyService.getPredefinedStrategy(
+        changedCommand.placementStrategyName,
+      );
+      return { dirty: {} };
+    };
     command.clusterChanged = () => {
       command.moniker = NameUtils.getMoniker(command.application, command.stack, command.freeFormDetails);
     };
+  }
+
+  private reconcileLocation(command: IEcsServerGroupCommand): void {
+    const account = command.backingData.credentialsKeyedByAccount?.[command.credentials];
+    const regions = account?.regions || [];
+    command.backingData.filtered.regions = regions;
+
+    const selectedRegion = regions.find((region: any) => region.name === command.region);
+    if (!selectedRegion) {
+      command.region = null;
+    }
+    const availabilityZones = selectedRegion?.availabilityZones || [];
+    command.backingData.filtered.availabilityZones = availabilityZones;
+    command.availabilityZones = availabilityZones;
   }
 
   private normalizeImages(command: IEcsServerGroupCommand, images: IEcsDockerImage[]): IEcsDockerImage[] {
@@ -265,7 +356,10 @@ export class EcsCloneServerGroupModal extends React.Component<
       command.imageDescription,
       ...command.containerMappings.map((mapping) => mapping.imageDescription),
     ].filter(Boolean);
-    return uniq([...images, ...commandImages].map((image) => this.normalizeImage(image))).filter(Boolean);
+    return uniqBy(
+      [...images, ...commandImages].map((image) => this.normalizeImage(image)),
+      (image) => image.imageId || image.id || image.name,
+    ).filter(Boolean);
   }
 
   private normalizeImage(image: any): IEcsDockerImage {
@@ -367,15 +461,19 @@ export class EcsCloneServerGroupModal extends React.Component<
 
   private getTargetGroups(command: IEcsServerGroupCommand, loadBalancers: any[]): string[] {
     const fromLoadBalancers = loadBalancers.flatMap((loadBalancer) =>
-      (loadBalancer.accounts || []).flatMap((account: any) =>
-        (account.regions || []).flatMap((region: any) =>
-          (region.loadBalancers || []).flatMap((regionLoadBalancer: any) =>
-            (regionLoadBalancer.targetGroups || []).map((targetGroup: any) =>
-              typeof targetGroup === 'string' ? targetGroup : targetGroup.targetGroupName,
+      (loadBalancer.accounts || [])
+        .filter((account: any) => account.name === command.credentials)
+        .flatMap((account: any) =>
+          (account.regions || [])
+            .filter((region: any) => region.name === command.region)
+            .flatMap((region: any) =>
+              (region.loadBalancers || []).flatMap((regionLoadBalancer: any) =>
+                (regionLoadBalancer.targetGroups || []).map((targetGroup: any) =>
+                  typeof targetGroup === 'string' ? targetGroup : targetGroup.targetGroupName,
+                ),
+              ),
             ),
-          ),
         ),
-      ),
     );
     const fromCommand = (command.targetGroupMappings || []).map(
       (mapping: IEcsTargetGroupMapping) => mapping.targetGroup,
@@ -400,121 +498,64 @@ export class EcsCloneServerGroupModal extends React.Component<
       .flatMap((details) => details.defaultCapacityProviderStrategy || []);
   }
 
-  private updateCommand = (field: string, value: any) => {
-    const command = this.state.command;
-    command[field] = value;
-    if (field === 'stack' || field === 'freeFormDetails' || field === 'ecsClusterName') {
+  private syncCommand(command: IEcsServerGroupCommand, formik = this.formik): void {
+    this.command = command;
+    formik?.setValues(command);
+    this.setState({ command });
+  }
+
+  private updateCommand = (formik: EcsFormikProps, field: string, value: any) => {
+    if (field === 'credentials' || field === 'region' || field === 'ecsClusterName' || field === 'subnetTypes') {
+      this.configureRequest += 1;
+    }
+    formik.setFieldValue(field, value);
+    const command = { ...this.command, [field]: value };
+    if (field === 'stack' || field === 'freeFormDetails') {
       command.clusterChanged(command);
     }
+    if (field === 'credentials') {
+      command.credentialsChanged(command);
+    }
+    if (field === 'region') {
+      command.regionChanged(command);
+    }
+    if (field === 'subnetTypes') {
+      command.subnetTypeChanged(command);
+    }
+    if (field === 'placementStrategyName') {
+      command.placementStrategyNameChanged(command);
+    }
+    if (field === 'useTaskDefinitionArtifact') {
+      command.serviceDiscoveryAssociations = (command.serviceDiscoveryAssociations || []).map((association) => ({
+        ...association,
+        containerName: value ? association.containerName || '' : null,
+      }));
+    }
+    if (field !== 'credentials' && field !== 'region') {
+      this.syncCommand(command, formik);
+    }
     this.setState({ command }, () => {
-      if (field === 'ecsClusterName') {
-        this.configureCommand();
+      if (field === 'ecsClusterName' || field === 'subnetTypes') {
+        this.configureCommand('', command);
       }
     });
   };
 
-  private selectCluster = (clusterName: string) => {
-    this.setState({ clusterQuery: clusterName });
-    this.updateCommand('ecsClusterName', clusterName);
-  };
-
-  private updateClusterQuery = (clusterQuery: string) => {
-    const clusters = this.state.command.backingData.filtered.ecsClusters || [];
-    const matchingCluster = clusters.find((cluster: string) => clusterQuery.endsWith(cluster));
-    this.setState({ clusterQuery: matchingCluster || clusterQuery });
-    if (matchingCluster) {
-      this.updateCommand('ecsClusterName', matchingCluster);
-    }
-  };
-
-  private selectLaunchType = (launchType: string) => {
-    this.setState({ launchTypeQuery: launchType });
-    this.updateCommand('launchType', launchType);
-  };
-
-  private updateLaunchTypeQuery = (launchTypeQuery: string) => {
-    this.setState({ launchTypeQuery });
-    if ((this.state.command.backingData.launchTypes || []).includes(launchTypeQuery)) {
-      this.updateCommand('launchType', launchTypeQuery);
-    }
-  };
-
-  private useDefaultCapacityProviders = () => {
-    this.lastCapacityProviderMode = 'default';
-    const defaultStrategy = this.state.command.backingData.filtered.defaultCapacityProviderStrategy?.[0];
-    this.updateCommandFields({
-      capacityProviderMode: 'default',
-      capacityProviderStrategy: defaultStrategy ? [defaultStrategy] : [],
-      useDefaultCapacityProviders: true,
-    });
-  };
-
-  private useCustomCapacityProviders = () => {
-    this.lastCapacityProviderMode = 'custom';
-    this.updateCommandFields({
-      capacityProviderMode: 'custom',
-      capacityProviderStrategy: [],
-      useDefaultCapacityProviders: false,
-    });
-  };
-
-  private addCapacityProvider = () => {
-    this.lastCapacityProviderMode = 'custom';
-    this.updateCommandFields({
-      capacityProviderMode: 'custom',
-      capacityProviderStrategy: [
-        ...(this.state.command.capacityProviderStrategy || []),
-        { base: null, capacityProvider: '', weight: null },
-      ],
-      useDefaultCapacityProviders: false,
-    });
-  };
-
-  private updateCapacityProvider = (
-    index: number,
-    field: keyof IEcsCapacityProviderStrategyItem,
-    value: string | number,
-  ) => {
-    this.lastCapacityProviderMode = 'custom';
-    const strategies = this.state.command.capacityProviderStrategy?.length
-      ? [...this.state.command.capacityProviderStrategy]
-      : [{ base: null, capacityProvider: '', weight: null }];
-    const strategy = strategies[index] || { base: null, capacityProvider: '', weight: null };
-    strategies[index] = { ...strategy, [field]: value };
-    this.updateCommandFields({
-      capacityProviderMode: 'custom',
-      capacityProviderStrategy: strategies,
-      useDefaultCapacityProviders: false,
-    });
-  };
-
-  private updateCommandFields = (fields: Partial<IEcsServerGroupCommand>) => {
-    const command = this.state.command;
-    Object.assign(command, fields);
+  private submit = (command: IEcsServerGroupCommand = this.state.command) => {
+    const { taskMonitor } = this.state;
     this.setState({ command });
-  };
-
-  private notifyAngular = (field: string, value: any) => {
-    const currentCommand = this.state.command;
-    const command =
-      field === 'pipeline'
-        ? { ...currentCommand, viewState: { ...currentCommand.viewState, pipeline: value } }
-        : { ...currentCommand, [field]: value };
-    if (field === 'pipeline') {
-      currentCommand.viewState = command.viewState;
-    } else {
-      currentCommand[field] = value;
+    const mode = command.viewState?.mode;
+    if (mode === 'editPipeline' || mode === 'createPipeline') {
+      return this.props.closeModal(command);
     }
-    this.setState({ command });
-  };
-
-  private submit = () => {
-    this.props.closeModal(this.state.command);
+    return taskMonitor.submit(() =>
+      AngularServices.serverGroupWriter.cloneServerGroup(command as any, this.props.application),
+    );
   };
 
   public render() {
     const { application, dismissModal, title } = this.props;
-    const { clusterQuery, command, launchTypeQuery, loaded, requiresTemplateSelection } = this.state;
+    const { command, loaded, requiresTemplateSelection } = this.state;
 
     if (requiresTemplateSelection) {
       return (
@@ -528,290 +569,144 @@ export class EcsCloneServerGroupModal extends React.Component<
       );
     }
 
-    const clusterOptions = (command.backingData.filtered.ecsClusters || []).map((cluster) => ({
-      label: cluster,
-      value: cluster,
-    }));
-    const launchTypeOptions = (command.backingData.launchTypes || []).map((launchType) => ({
-      label: launchType,
-      value: launchType,
-    }));
-    const capacityProviderStrategy = command.capacityProviderStrategy || [];
-    const showingCustomCapacityProviders =
-      command.useDefaultCapacityProviders === false ||
-      command.capacityProviderMode === 'custom' ||
-      this.lastCapacityProviderMode === 'custom';
-    const displayedCapacityProviderStrategy = capacityProviderStrategy;
-
     return (
-      <div className="modal-content">
-        <div className="modal-header">
-          <button type="button" className="close" onClick={dismissModal}>
-            <span>&times;</span>
-          </button>
-          <h3 className="modal-title">{title}</h3>
-        </div>
-        <div className="modal-body form-horizontal">
-          {!loaded ? (
-            <div className="load medium">
-              <div className="message">Loading server group configuration...</div>
-              <div className="bars">
-                <div className="bar" />
-                <div className="bar" />
-                <div className="bar" />
-              </div>
-            </div>
-          ) : (
+      <WizardModal<IEcsServerGroupCommand>
+        closeModal={this.submit}
+        dismissModal={dismissModal}
+        heading={title}
+        initialValues={command}
+        loading={!loaded}
+        submitButtonLabel={command.viewState?.submitButtonLabel || 'Done'}
+        taskMonitor={this.state.taskMonitor}
+        validate={validateEcsServerGroup}
+        render={({ formik, nextIdx, wizard }) => {
+          this.formik = formik;
+          const configureFormikCommand = (query = '') => this.configureCommand(query, formik.values);
+          const updateFormikCommand = (field: string, value: any) => this.updateCommand(formik, field, value);
+          return (
             <>
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Cluster</label>
-                <div className="col-md-7" data-test-id="ServerGroup.clusterName">
-                  <input
-                    className="form-control input-sm"
-                    value={clusterQuery}
-                    onFocus={() => this.setState({ clusterQuery: '' })}
-                    onChange={(event) => this.updateClusterQuery(event.target.value)}
-                  />
-                  {clusterOptions.map((cluster) => (
-                    <button
-                      className="Select-option"
-                      key={cluster.value}
-                      onClick={() => this.selectCluster(cluster.value)}
-                      style={{ display: 'block' }}
-                      type="button"
-                    >
-                      <span>{cluster.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Stack</label>
-                <div className="col-md-7">
-                  <input
-                    className="form-control input-sm"
-                    data-test-id="ServerGroup.stack"
-                    value={command.stack || ''}
-                    onChange={(event) => this.updateCommand('stack', event.target.value)}
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Details</label>
-                <div className="col-md-7">
-                  <input
-                    className="form-control input-sm"
-                    data-test-id="ServerGroup.details"
-                    value={command.freeFormDetails || ''}
-                    onChange={(event) => this.updateCommand('freeFormDetails', event.target.value)}
-                  />
-                </div>
-              </div>
-
-              <EcsNetworking
-                command={command}
-                notifyAngular={this.notifyAngular}
-                configureCommand={this.configureCommand}
+              <WizardPage
+                label="Basic Settings"
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsBasicSettings}>
+                    <BasicSettings
+                      application={application}
+                      command={formik.values}
+                      configureCommand={configureFormikCommand}
+                      onFieldChange={updateFormikCommand}
+                    />
+                  </EcsWizardPageValidation>
+                )}
+                wizard={wizard}
               />
-
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Task Definition</label>
-                <div className="col-md-7">
-                  <button
-                    type="button"
-                    className="btn btn-default"
-                    data-test-id="ServerGroup.useArtifacts"
-                    onClick={() => this.updateCommand('useTaskDefinitionArtifact', true)}
-                  >
-                    Use artifacts
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-default"
-                    data-test-id="ServerGroup.useInputs"
-                    onClick={() => this.updateCommand('useTaskDefinitionArtifact', false)}
-                  >
-                    Use container inputs
-                  </button>
-                </div>
-              </div>
-
-              {command.useTaskDefinitionArtifact ? (
-                <TaskDefinitionReact>
-                  <TaskDefinition
-                    command={command}
-                    notifyAngular={this.notifyAngular}
-                    configureCommand={this.configureCommand}
+              <WizardPage
+                label="Networking"
+                order={nextIdx()}
+                render={() => (
+                  <NetworkingSettings
+                    application={application}
+                    command={formik.values}
+                    configureCommand={configureFormikCommand}
+                    onFieldChange={updateFormikCommand}
                   />
-                </TaskDefinitionReact>
-              ) : (
-                <Container
-                  command={command}
-                  notifyAngular={this.notifyAngular}
-                  configureCommand={this.configureCommand}
+                )}
+                wizard={wizard}
+              />
+              <WizardPage
+                label="Task Definition"
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsTaskDefinition}>
+                    <TaskDefinitionSettings
+                      application={application}
+                      command={formik.values}
+                      configureCommand={configureFormikCommand}
+                      onFieldChange={updateFormikCommand}
+                    />
+                  </EcsWizardPageValidation>
+                )}
+                wizard={wizard}
+              />
+              {!formik.values.useTaskDefinitionArtifact && (
+                <WizardPage
+                  label="Container"
+                  order={nextIdx()}
+                  render={({ innerRef }) => (
+                    <EcsWizardPageValidation ref={innerRef} validator={validateEcsContainer}>
+                      <ContainerSettings
+                        application={application}
+                        command={formik.values}
+                        configureCommand={configureFormikCommand}
+                        onFieldChange={updateFormikCommand}
+                      />
+                    </EcsWizardPageValidation>
+                  )}
+                  wizard={wizard}
                 />
               )}
-
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Launch Type</label>
-                <div className="col-md-7">
-                  <input
-                    className="form-control input-sm"
-                    data-test-id="ServerGroup.launchType"
-                    value={launchTypeQuery}
-                    onFocus={() => this.setState({ launchTypeQuery: '' })}
-                    onChange={(event) => this.updateLaunchTypeQuery(event.target.value)}
-                  />
-                  {launchTypeOptions.map((launchType) => (
-                    <span
-                      className="ui-select-highlight"
-                      key={launchType.value}
-                      onClick={() => this.selectLaunchType(launchType.value)}
-                      style={{ display: 'block' }}
-                    >
-                      {launchType.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Logging</label>
-                <div className="col-md-7">
-                  <input
-                    className="form-control input-sm"
-                    data-test-id="Logging.logDriver"
-                    value={command.logDriver || ''}
-                    onChange={(event) => this.updateCommand('logDriver', event.target.value)}
-                  />
-                  {command.logDriver && <span>{command.logDriver}</span>}
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="col-md-3 sm-label-right">Capacity Providers</label>
-                <div className="col-md-7">
-                  <button
-                    type="button"
-                    className="btn btn-default"
-                    data-test-id="ServerGroup.computeOptionsCapacityProviders"
-                  >
-                    Capacity providers
-                  </button>
-                  <div className="radio">
-                    <label>
-                      <input
-                        data-test-id="ServerGroup.capacityProviders.default"
-                        type="radio"
-                        checked={command.useDefaultCapacityProviders === true}
-                        onClick={this.useDefaultCapacityProviders}
-                        onChange={noop}
-                      />
-                      Use cluster default
-                    </label>
-                  </div>
-                  <div className="radio">
-                    <label>
-                      <input
-                        data-test-id="ServerGroup.capacityProviders.custom"
-                        type="radio"
-                        checked={command.useDefaultCapacityProviders === false}
-                        onClick={this.useCustomCapacityProviders}
-                        onChange={noop}
-                      />
-                      Use custom
-                    </label>
-                  </div>
-                  {!showingCustomCapacityProviders && (
-                    <>
-                      <input
-                        className="form-control input-sm"
-                        data-test-id="ServerGroup.defaultCapacityProvider.name.0"
-                        disabled={true}
-                        value={command.capacityProviderStrategy?.[0]?.capacityProvider || ''}
-                      />
-                      <input
-                        className="form-control input-sm"
-                        data-test-id="ServerGroup.capacityProvider.base.0"
-                        disabled={true}
-                        value={command.capacityProviderStrategy?.[0]?.base ?? ''}
-                      />
-                      <input
-                        className="form-control input-sm"
-                        data-test-id="ServerGroup.capacityProvider.weight.0"
-                        disabled={true}
-                        value={command.capacityProviderStrategy?.[0]?.weight ?? ''}
-                      />
-                    </>
+              <WizardPage
+                label="Horizontal Scaling"
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsCapacity}>
+                    <HorizontalScalingSettings
+                      application={application}
+                      command={formik.values}
+                      configureCommand={configureFormikCommand}
+                      onFieldChange={updateFormikCommand}
+                    />
+                  </EcsWizardPageValidation>
+                )}
+                wizard={wizard}
+              />
+              {!formik.values.useTaskDefinitionArtifact && (
+                <WizardPage
+                  label="Logging"
+                  order={nextIdx()}
+                  render={() => (
+                    <LoggingSettings
+                      application={application}
+                      command={formik.values}
+                      configureCommand={configureFormikCommand}
+                      onFieldChange={updateFormikCommand}
+                    />
                   )}
-                  {showingCustomCapacityProviders && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-block btn-sm add-new"
-                        data-test-id="ServerGroup.addCapacityProvider"
-                        onClick={this.addCapacityProvider}
-                      >
-                        Add New Capacity Provider
-                      </button>
-                      {displayedCapacityProviderStrategy.map((strategy, index) => (
-                        <React.Fragment key={index}>
-                          <input
-                            className="form-control input-sm"
-                            data-test-id={`ServerGroup.customCapacityProvider.name.${index}`}
-                            onFocus={() => this.setState({ activeCapacityProviderIndex: index })}
-                            onChange={(event) => {
-                              this.setState({ activeCapacityProviderIndex: index });
-                              this.updateCapacityProvider(index, 'capacityProvider', event.target.value);
-                            }}
-                            value={strategy.capacityProvider || ''}
-                          />
-                          {this.state.activeCapacityProviderIndex === index && (
-                            <div
-                              className="Select-option"
-                              onClick={() => {
-                                this.updateCapacityProvider(index, 'capacityProvider', 'FARGATE_SPOT');
-                                this.setState({ activeCapacityProviderIndex: null });
-                              }}
-                            >
-                              FARGATE_SPOT
-                            </div>
-                          )}
-                          <input
-                            className="form-control input-sm"
-                            data-test-id={`ServerGroup.capacityProvider.base.${index}`}
-                            value={strategy.base ?? ''}
-                            onChange={(event) => this.updateCapacityProvider(index, 'base', Number(event.target.value))}
-                          />
-                          <input
-                            className="form-control input-sm"
-                            data-test-id={`ServerGroup.capacityProvider.weight.${index}`}
-                            value={strategy.weight ?? ''}
-                            onChange={(event) =>
-                              this.updateCapacityProvider(index, 'weight', Number(event.target.value))
-                            }
-                          />
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </div>
+                  wizard={wizard}
+                />
+              )}
+              <WizardPage
+                label="Service Discovery"
+                order={nextIdx()}
+                render={({ innerRef }) => (
+                  <EcsWizardPageValidation ref={innerRef} validator={validateEcsServiceDiscovery}>
+                    <ServiceDiscoverySettings
+                      application={application}
+                      command={formik.values}
+                      configureCommand={configureFormikCommand}
+                      onFieldChange={updateFormikCommand}
+                    />
+                  </EcsWizardPageValidation>
+                )}
+                wizard={wizard}
+              />
+              <WizardPage
+                label="Advanced Settings"
+                order={nextIdx()}
+                render={() => (
+                  <AdvancedSettings
+                    application={application}
+                    command={formik.values}
+                    configureCommand={configureFormikCommand}
+                    onFieldChange={updateFormikCommand}
+                  />
+                )}
+                wizard={wizard}
+              />
             </>
-          )}
-        </div>
-        <div className="modal-footer">
-          <button type="button" className="btn btn-default" onClick={dismissModal}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-test-id="ServerGroupWizard.submitButton"
-            onClick={this.submit}
-          >
-            {command.viewState?.submitButtonLabel || 'Done'}
-          </button>
-        </div>
-      </div>
+          );
+        }}
+      />
     );
   }
 }

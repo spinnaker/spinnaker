@@ -1,5 +1,15 @@
 import { registerDefaultFixtures } from '../../support';
 
+const fillInlineArtifactField = (label, value) => {
+  cy.get('[data-test-id="EcsServerGroupWizard.taskDefinition"]')
+    .contains('.label-text', new RegExp(`^${label}\\s*$`))
+    .closest('.form-group')
+    .find('input')
+    .type(value);
+};
+
+const submitServerGroup = () => cy.contains('.wizard-modal .modal-footer button', 'Done').should('be.enabled').click();
+
 describe('amazon ecs: ECSApp Server Group', () => {
   beforeEach(() => {
     registerDefaultFixtures();
@@ -65,8 +75,7 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="Deploy.addServerGroup"]').click();
     cy.get('span:contains("Continue")').click();
 
-    cy.get('[data-test-id="ServerGroup.clusterName"]').type('spinnaker-deployment-cluster');
-    cy.get('span:contains("spinnaker-deployment-cluster")').click();
+    cy.get('[data-test-id="ServerGroup.clusterName"]').select('spinnaker-deployment-cluster');
 
     cy.get('[data-test-id="ServerGroup.stack"]').type('create');
     cy.get('[data-test-id="ServerGroup.details"]').type('artifact');
@@ -80,14 +89,16 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="Networking.associatePublicIpAddressFalse"]').click();
     cy.get('[data-test-id="ServerGroup.useArtifacts"]').click();
 
-    cy.get('task-definition-react .Select-placeholder:contains("Select an artifact")').type(' ');
+    cy.get(
+      '[data-test-id="EcsServerGroupWizard.taskDefinition"] .Select-placeholder:contains("Select an artifact")',
+    ).type(' ');
 
-    cy.get('task-definition-react .Select-option:contains("Define")').click();
+    cy.get('[data-test-id="EcsServerGroupWizard.taskDefinition"] .Select-option:contains("Define")').click();
 
-    cy.get('task-definition-react input').eq(3).type('new-ecs-artifact');
-    cy.get('task-definition-react input').eq(4).type('0.0.1');
-    cy.get('task-definition-react input').eq(5).type('someLocation');
-    cy.get('task-definition-react input').eq(6).type('someReference');
+    fillInlineArtifactField('Name', 'new-ecs-artifact');
+    fillInlineArtifactField('Version', '0.0.1');
+    fillInlineArtifactField('Location', 'someLocation');
+    fillInlineArtifactField('Reference', 'someReference');
 
     cy.get('[data-test-id="Artifacts.containerAdd"]').click();
     cy.get('[data-test-id="Artifacts.containerName"]').type('v001-container');
@@ -99,10 +110,9 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="Artifacts.targetGroup"]').type('demo');
     cy.get('.Select-option:contains("demo")').click();
 
-    cy.get('[data-test-id="ServerGroup.launchType"]').type('FARGATE');
-    cy.get('.ui-select-highlight:contains("FARGATE")').click();
+    cy.get('[data-test-id="ServerGroup.launchType"]').select('FARGATE');
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
 
     cy.get('.account-tag').should('have.length', 2);
     cy.get('td:contains("ecsapp-prod-ecsdemo")').should('have.length', 1);
@@ -121,8 +131,7 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="Deploy.addServerGroup"]').click();
     cy.get('span:contains("Continue")').click();
 
-    cy.get('[data-test-id="ServerGroup.clusterName"]').type('spinnaker-deployment-cluster');
-    cy.get('span:contains("spinnaker-deployment-cluster")').click();
+    cy.get('[data-test-id="ServerGroup.clusterName"]').select('spinnaker-deployment-cluster');
 
     cy.get('[data-test-id="ServerGroup.stack"]').type('create');
     cy.get('[data-test-id="ServerGroup.details"]').type('inputs');
@@ -141,13 +150,11 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ContainerInputs.computeUnits"]').type(1024);
     cy.get('[data-test-id="ContainerInputs.reservedMemory"]').type(1024);
 
-    cy.get('[data-test-id="ServerGroup.launchType"]').type('FARGATE');
-    cy.get('.ui-select-highlight:contains("FARGATE")').click();
+    cy.get('[data-test-id="ServerGroup.launchType"]').select('FARGATE');
 
-    cy.get('[data-test-id="Logging.logDriver"]').type('awslogs');
-    cy.get('span:contains("awslogs")').click();
+    cy.get('[data-test-id="Logging.logDriver"]').select('awslogs');
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
 
     cy.get('.account-tag').should('have.length', 2);
     cy.get('td:contains("ecsapp-prod-ecsdemo")').should('have.length', 1);
@@ -171,7 +178,7 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ContainerInputs.computeUnits"]').clear().type(1024);
     cy.get('[data-test-id="ContainerInputs.reservedMemory"]').clear().type(2048);
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
 
     cy.get('.account-tag').should('have.length', 1);
     cy.get('td:contains("ecsapp-edit-inputs")').should('have.length', 1);
@@ -182,7 +189,7 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ContainerInputs.computeUnits"]').should('have.value', '1024');
     cy.get('[data-test-id="ContainerInputs.reservedMemory"]').should('have.value', '2048');
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('[data-test-id="Pipeline.revertChanges"]').click();
   });
 
@@ -195,20 +202,19 @@ describe('amazon ecs: ECSApp Server Group', () => {
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
     cy.get('[data-test-id="ServerGroup.details"]').clear().type('computeOptions');
-    cy.get('[data-test-id="ServerGroup.clusterName"]').type('example-app-test-Cluster-NSnYsTXmCfV2');
-    cy.get('span:contains("example-app-test-Cluster-NSnYsTXmCfV2")').click();
+    cy.get('[data-test-id="ServerGroup.clusterName"]').select('example-app-test-Cluster-NSnYsTXmCfV2');
 
     cy.get('[data-test-id="ServerGroup.computeOptionsCapacityProviders"]').click();
     cy.get('[data-test-id="ServerGroup.capacityProviders.default"]').click();
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('.glyphicon-edit').click();
 
     cy.get('[data-test-id="ServerGroup.defaultCapacityProvider.name.0"]').should('have.value', 'FARGATE_SPOT');
     cy.get('[data-test-id="ServerGroup.capacityProvider.base.0"]').should('have.value', '0');
     cy.get('[data-test-id="ServerGroup.capacityProvider.weight.0"]').should('have.value', '1');
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('[data-test-id="Pipeline.revertChanges"]').click();
   });
 
@@ -221,8 +227,7 @@ describe('amazon ecs: ECSApp Server Group', () => {
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
     cy.get('[data-test-id="ServerGroup.details"]').clear().type('computeOptions');
-    cy.get('[data-test-id="ServerGroup.clusterName"]').type('example-app-test-Cluster-NSnYsTXmCfV2');
-    cy.get('span:contains("example-app-test-Cluster-NSnYsTXmCfV2")').click();
+    cy.get('[data-test-id="ServerGroup.clusterName"]').select('example-app-test-Cluster-NSnYsTXmCfV2');
 
     cy.get('[data-test-id="ServerGroup.computeOptionsCapacityProviders"]').click();
     cy.get('[data-test-id="ServerGroup.capacityProviders.custom"]').click();
@@ -233,14 +238,14 @@ describe('amazon ecs: ECSApp Server Group', () => {
     cy.get('[data-test-id="ServerGroup.capacityProvider.base.0"]').type(1);
     cy.get('[data-test-id="ServerGroup.capacityProvider.weight.0"]').type(2);
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('.glyphicon-edit').click();
 
     cy.get('[data-test-id="ServerGroup.customCapacityProvider.name.0"]').should('have.value', 'FARGATE_SPOT');
     cy.get('[data-test-id="ServerGroup.capacityProvider.base.0"]').should('have.value', '1');
     cy.get('[data-test-id="ServerGroup.capacityProvider.weight.0"]').should('have.value', '2');
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('[data-test-id="Pipeline.revertChanges"]').click();
   });
 
@@ -253,17 +258,16 @@ describe('amazon ecs: ECSApp Server Group', () => {
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
     cy.get('[data-test-id="ServerGroup.details"]').clear().type('computeOptions');
-    cy.get('[data-test-id="ServerGroup.clusterName"]').type('example-app-test-Cluster-NSnYsTXmCfV2');
-    cy.get('span:contains("example-app-test-Cluster-NSnYsTXmCfV2")').click();
+    cy.get('[data-test-id="ServerGroup.clusterName"]').select('example-app-test-Cluster-NSnYsTXmCfV2');
 
-    cy.get('task-definition-react .evaluateTaskDef [type="checkbox"]').check();
+    cy.get('[data-test-id="EcsServerGroupWizard.taskDefinition"] .evaluateTaskDef [type="checkbox"]').check();
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('.glyphicon-edit').click();
 
     cy.get('.evaluateTaskDef [type="checkbox"]').check({ force: true }).should('be.checked');
 
-    cy.get('[data-test-id="ServerGroupWizard.submitButton"]').click();
+    submitServerGroup();
     cy.get('[data-test-id="Pipeline.revertChanges"]').click();
   });
 });
