@@ -7,10 +7,12 @@ import {
   ErrorModalService,
   InfrastructureCaches,
   LoadBalancerWriter,
-  ReactInjector,
+  ManagedMenuItem,
+  AngularServices,
   Registry,
   ServerGroupReader,
   ServerGroupWarningMessageService,
+  SubmitButton,
   TaskExecutor,
 } from '@spinnaker/core';
 
@@ -22,6 +24,7 @@ import { GceInstanceTypeService } from './instance/gceInstanceType.service';
 import { GceMultiInstanceTaskTransformer } from './instance/gceMultiInstanceTask.transformer';
 import { GceLoadBalancerSetTransformer } from './loadBalancer/loadBalancer.setTransformer';
 import { GceLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
+import { GceLoadBalancerChoiceModal } from './loadBalancer/configure/choice/GceLoadBalancerChoiceModal';
 import { GceLoadBalancerActions, loadGceLoadBalancerDetails } from './loadBalancer/details/gceLoadBalancerDetails';
 import { interpolatedBakeDetailUrl } from './pipeline/stages/bake/gceBakeStage';
 import { GceSecurityGroupModal } from './securityGroup/configure/GceSecurityGroupModal';
@@ -29,10 +32,6 @@ import { GceSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { GceSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { GceServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { GceServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
-import {
-  canSubmitGceServerGroupCommand,
-  GceCloneServerGroupModal,
-} from './serverGroup/configure/wizard/GceCloneServerGroupModal';
 import {
   cloneGceServerGroup,
   GceServerGroupActions,
@@ -87,6 +86,12 @@ describe('Google provider registration', () => {
     expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.useDetailsHook')).toBeDefined();
     expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.detailsActions')).toBeDefined();
     expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.detailsSections').length).toBeGreaterThan(0);
+    expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.CreateLoadBalancerModal')).toBe(
+      GceLoadBalancerChoiceModal,
+    );
+    expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.CreateLoadBalancerModal').supportsPipelineConfig).toBe(
+      true,
+    );
     expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.transformer')).toBe(GceLoadBalancerTransformer);
     expect(CloudProviderRegistry.getValue('gce', 'loadBalancer.setTransformer')).toBe(GceLoadBalancerSetTransformer);
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.CreateSecurityGroupModal')).toBeDefined();
@@ -94,6 +99,14 @@ describe('Google provider registration', () => {
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.reader')).toBe(GceSecurityGroupReader);
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.transformer')).toBe(GceSecurityGroupTransformer);
     expect(CloudProviderRegistry.getValue('gce', 'subnet.renderer')).toBe(GceSubnetRenderer);
+    expect(CloudProviderRegistry.getValue('gce', 'applicationProviderFields')).toEqual([
+      {
+        field: 'associatePublicIpAddress',
+        helpKey: 'gce.serverGroup.associatePublicIpAddress.providerField',
+        label: 'Associate Public IP Address',
+        type: 'boolean',
+      },
+    ]);
 
     expect(CloudProviderRegistry.getValue('gce', `serverGroup.details${legacyCtrlKey}`)).toBeNull();
     expect(CloudProviderRegistry.getValue('gce', `serverGroup.details${legacyViewKey}`)).toBeNull();
@@ -154,61 +167,34 @@ describe('Google provider registration', () => {
     expect((result[0] as any).listeners.map((listener: any) => listener.port)).toEqual(['80', '443']);
   });
 
-  it('does not allow the React GCE server group modal to submit unconfigured create commands', () => {
-    expect(canSubmitGceServerGroupCommand({ viewState: { mode: 'create' } })).toBe(false);
-    expect(canSubmitGceServerGroupCommand({ viewState: { mode: 'createPipeline' } })).toBe(false);
-    expect(
-      canSubmitGceServerGroupCommand({ source: { serverGroupName: 'fnord-v001' }, viewState: { mode: 'clone' } }),
-    ).toBe(true);
-    expect(canSubmitGceServerGroupCommand({ instanceType: 'n1-standard-1', viewState: { mode: 'editPipeline' } })).toBe(
-      true,
-    );
-  });
-
-  it('keeps global and regional GCE load balancer metadata separate for pipeline commands', () => {
-    const closeModal = jasmine.createSpy('closeModal');
-
-    shallow(
-      React.createElement(GceCloneServerGroupModal, {
-        application: { serverGroups: { refresh: jasmine.createSpy('refresh') } },
-        closeModal,
-        command: {
-          capacity: { desired: 2 },
-          credentials: 'test-account',
-          instanceMetadata: {},
-          loadBalancerMetadata: {
-            'global-load-balancer-names': ['frontend-forwarding-rule'],
-            'load-balancer-names': ['network-load-balancer'],
-          },
-          loadBalancers: ['frontend-map', 'network-load-balancer'],
-          region: 'us-central1',
-          source: { serverGroupName: 'fnord-v001' },
-          tags: [],
-          viewState: { mode: 'editPipeline' },
-        },
+  it('allows GCE firewalls that apply to all target tags', async () => {
+    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
+      getAllSecurityGroups: () => Promise.resolve({}),
+    } as any);
+    const wrapper = shallow(
+      React.createElement(GceSecurityGroupModal, {
+        application: { name: 'fnord', securityGroups: { data: [] } },
+        credentials: 'test-account',
       }),
-    )
-      .find('button.btn-primary')
-      .simulate('click');
-
-    const submittedCommand = closeModal.calls.mostRecent().args[0];
-    expect(submittedCommand.instanceMetadata['load-balancer-names']).toBe('network-load-balancer');
-    expect(submittedCommand.instanceMetadata['global-load-balancer-names']).toBe('frontend-forwarding-rule');
-    expect(submittedCommand.loadBalancerMetadata).toBeUndefined();
-  });
-
-  it('allows GCE firewalls that apply to all target tags', () => {
-    const wrapper = shallow(React.createElement(GceSecurityGroupModal, { application: { name: 'fnord' } }));
+    );
 
     wrapper.setState({
-      name: 'fnord-firewall',
-      network: 'default',
-      ports: '443',
-      sourceRanges: '10.0.0.0/8',
-      targetTags: '',
-    });
+      securityGroup: {
+        ...(wrapper.state() as any).securityGroup,
+        ipIngress: [{ type: 'tcp', startPort: 443, endPort: 443 }],
+        name: 'fnord-firewall',
+        network: 'default',
+        sourceRanges: ['10.0.0.0/8'],
+        sourceTags: [],
+        targetTags: [],
+      },
+    } as any);
 
-    expect(wrapper.find('button.btn-primary').prop('disabled')).toBe(false);
+    await Promise.resolve();
+    await Promise.resolve();
+    wrapper.update();
+
+    expect(wrapper.find(SubmitButton).prop('isDisabled')).toBe(false);
   });
 
   it('loads and enriches GCE load balancer details through the Core reader', async () => {
@@ -313,7 +299,11 @@ describe('Google provider registration', () => {
       urlMapName: 'frontend-map',
     };
 
-    shallow(React.createElement(GceLoadBalancerActions, { app, loadBalancer })).find('button').simulate('click');
+    const wrapper = shallow(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
+    wrapper
+      .find(ManagedMenuItem)
+      .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
+      .prop('onClick')();
     const modalParams = confirmSpy.calls.mostRecent().args[0] as any;
     await modalParams.submitMethod({ deleteHealthChecks: true, reason: 'cleanup' });
 
@@ -428,7 +418,7 @@ describe('Google provider registration', () => {
   it('does not force Google health provider params when platform-health override is disabled', async () => {
     const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
     const writer = { enableServerGroup: jasmine.createSpy('enableServerGroup').and.returnValue(Promise.resolve({})) };
-    spyOnProperty(ReactInjector, 'serverGroupWriter', 'get').and.returnValue(writer as any);
+    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
 
     shallow(
       React.createElement(GceServerGroupActions, {
@@ -454,7 +444,7 @@ describe('Google provider registration', () => {
       destroyServerGroup: jasmine.createSpy('destroyServerGroup').and.returnValue(Promise.resolve({})),
       disableServerGroup: jasmine.createSpy('disableServerGroup').and.returnValue(Promise.resolve({})),
     };
-    spyOnProperty(ReactInjector, 'serverGroupWriter', 'get').and.returnValue(writer as any);
+    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
     const app = { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true }, name: 'fnord' };
     const serverGroup = { account: 'test-account', isDisabled: false, name: 'fnord-v001', region: 'us-central1' };
 

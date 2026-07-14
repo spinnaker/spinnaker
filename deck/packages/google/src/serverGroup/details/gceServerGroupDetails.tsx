@@ -3,17 +3,26 @@ import { Observable } from 'rxjs';
 
 import {
   AccountTag,
+  AngularServices,
+  CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
   ErrorModalService,
-  ReactInjector,
+  ManagedMenuItem,
   ServerGroupReader,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 
+import { GceAutoHealingPolicyDetails } from './autoHealingPolicy';
+import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
+import { GceAutoscalingPolicyDetails } from './autoscalingPolicy';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
 import { GceServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
 import { GceCloneServerGroupModal } from '../configure/wizard/GceCloneServerGroupModal';
+import type { IGceServerGroup } from '../../domain';
+import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
+import { GceRollbackServerGroupModal, getGceRollbackCandidates } from './rollback/GceRollbackServerGroupModal';
 
 function findServerGroupSummary(app: any, serverGroup: any): any {
   const serverGroups = app?.serverGroups?.data || [];
@@ -121,6 +130,10 @@ export function cloneGceServerGroup(
 }
 
 export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  if (CloudProviderRegistry.isDisabled('gce')) {
+    return null;
+  }
+
   const confirmationDefaults = {
     account: serverGroup.account,
     askForReason: true,
@@ -132,13 +145,36 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
     cloneGceServerGroup(app, serverGroup);
   };
 
+  const rollbackServerGroup = () => {
+    const serverGroups = getGceRollbackCandidates(app, serverGroup, app.serverGroups?.data || []);
+    GceRollbackServerGroupModal.show({
+      application: app,
+      serverGroup,
+      serverGroups,
+      serverGroupWriter: AngularServices.serverGroupWriter,
+    });
+  };
+
+  const resizeServerGroup = () => {
+    GceResizeServerGroupModal.show({
+      application: app,
+      autoscalingPolicyWriter: GceAutoscalingPolicyWriter,
+      serverGroup,
+      serverGroupWriter: AngularServices.serverGroupWriter,
+    });
+  };
+
   const destroyServerGroup = () => {
     const confirmationModalParams: any = {
       ...confirmationDefaults,
       buttonText: `Destroy ${serverGroup.name}`,
       header: `Really destroy ${serverGroup.name}?`,
       submitMethod: (params: any) =>
-        ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app, withGcePlatformHealthParams(app, params)),
+        AngularServices.serverGroupWriter.destroyServerGroup(
+          serverGroup,
+          app,
+          withGcePlatformHealthParams(app, params),
+        ),
       taskMonitorConfig: { application: app, title: `Destroying ${serverGroup.name}` },
     };
     ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
@@ -151,7 +187,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       buttonText: `Disable ${serverGroup.name}`,
       header: `Really disable ${serverGroup.name}?`,
       submitMethod: (params: any) =>
-        ReactInjector.serverGroupWriter.disableServerGroup(
+        AngularServices.serverGroupWriter.disableServerGroup(
           serverGroup,
           app.name,
           withGcePlatformHealthParams(app, params),
@@ -168,7 +204,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       buttonText: `Enable ${serverGroup.name}`,
       header: `Really enable ${serverGroup.name}?`,
       submitMethod: (params: any) =>
-        ReactInjector.serverGroupWriter.enableServerGroup(serverGroup, app, withGcePlatformHealthParams(app, params)),
+        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, withGcePlatformHealthParams(app, params)),
       taskMonitorConfig: { application: app, title: `Enabling ${serverGroup.name}` },
     });
   };
@@ -179,6 +215,14 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
         Server Group Actions
       </button>
       <ul className="dropdown-menu">
+        {!serverGroup.isDisabled && (
+          <ManagedMenuItem resource={serverGroup} application={app} onClick={rollbackServerGroup}>
+            Rollback
+          </ManagedMenuItem>
+        )}
+        <ManagedMenuItem resource={serverGroup} application={app} onClick={resizeServerGroup}>
+          Resize
+        </ManagedMenuItem>
         <li>
           <a onClick={cloneServerGroup}>Clone</a>
         </li>
@@ -258,8 +302,48 @@ export function GceServerGroupLaunchConfigSection({ serverGroup }: { app: any; s
   );
 }
 
+export function GceAutoscalingPolicySection({
+  app,
+  serverGroup,
+}: {
+  app: Application;
+  serverGroup: IGceServerGroup;
+}): JSX.Element {
+  return (
+    <CollapsibleSection heading="Autoscaling">
+      <GceAutoscalingPolicyDetails
+        application={app}
+        mutationsEnabled={!CloudProviderRegistry.isDisabled('gce')}
+        policy={serverGroup.autoscalingPolicy}
+        serverGroup={serverGroup}
+      />
+    </CollapsibleSection>
+  );
+}
+
+export function GceAutoHealingPolicySection({
+  app,
+  serverGroup,
+}: {
+  app: Application;
+  serverGroup: IGceServerGroup;
+}): JSX.Element {
+  return (
+    <CollapsibleSection heading="Auto-healing">
+      <GceAutoHealingPolicyDetails
+        application={app}
+        mutationsEnabled={!CloudProviderRegistry.isDisabled('gce')}
+        policy={serverGroup.autoHealingPolicy}
+        serverGroup={serverGroup}
+      />
+    </CollapsibleSection>
+  );
+}
+
 export const gceServerGroupDetailsSections = [
   GceServerGroupInformationSection,
   GceServerGroupCapacitySection,
   GceServerGroupLaunchConfigSection,
+  GceAutoscalingPolicySection,
+  GceAutoHealingPolicySection,
 ];

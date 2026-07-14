@@ -3,15 +3,18 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   AccountService,
   AccountTag,
+  AngularServices,
+  CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
   InfrastructureCaches,
   LoadBalancerWriter,
-  ReactInjector,
+  ManagedMenuItem,
   TaskExecutor,
   useDataSource,
 } from '@spinnaker/core';
 
+import { GceLoadBalancerChoiceModal } from '../configure/choice/GceLoadBalancerChoiceModal';
 import { GceHttpLoadBalancerUtils } from '../httpLoadBalancerUtils.service';
 
 interface IUseDetailsProps {
@@ -205,7 +208,7 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
           autoClose,
           loadBalancers,
           loadBalancerParams,
-          loadBalancerReader: ReactInjector.loadBalancerReader,
+          loadBalancerReader: AngularServices.loadBalancerReader,
         }),
       );
     } catch (e) {
@@ -303,7 +306,21 @@ function GceLoadBalancerDeleteOptions({
 }
 
 export function GceLoadBalancerActions({ app, loadBalancer }: { app: any; loadBalancer: any }): JSX.Element {
+  if (CloudProviderRegistry.isDisabled('gce')) {
+    return null;
+  }
+
   const hasInstances = (loadBalancer.instances || []).length > 0;
+  const editLoadBalancer = () => {
+    GceLoadBalancerChoiceModal.show({
+      app,
+      application: app,
+      forPipelineConfig: false,
+      isNew: false,
+      loadBalancer,
+      mode: 'edit',
+    } as any);
+  };
   const deleteLoadBalancer = () => {
     const deleteParams = { deleteHealthChecks: false };
     ConfirmationModalService.confirm({
@@ -318,9 +335,26 @@ export function GceLoadBalancerActions({ app, loadBalancer }: { app: any; loadBa
   };
 
   return (
-    <button className="btn btn-sm btn-default" disabled={hasInstances} onClick={deleteLoadBalancer} type="button">
-      Delete
-    </button>
+    <div className="dropdown" id="gce-load-balancer-actions-dropdown">
+      <button className="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" type="button">
+        Load Balancer Actions
+      </button>
+      <ul className="dropdown-menu">
+        <ManagedMenuItem application={app} resource={loadBalancer} onClick={editLoadBalancer}>
+          Edit Load Balancer
+        </ManagedMenuItem>
+        {!hasInstances && (
+          <ManagedMenuItem application={app} resource={loadBalancer} onClick={deleteLoadBalancer}>
+            Delete Load Balancer
+          </ManagedMenuItem>
+        )}
+        {hasInstances && (
+          <li className="disabled" title="You must detach all instances before deleting this load balancer.">
+            <a>Delete Load Balancer</a>
+          </li>
+        )}
+      </ul>
+    </div>
   );
 }
 

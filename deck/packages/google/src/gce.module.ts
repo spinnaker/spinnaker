@@ -6,6 +6,7 @@ import { GceImageReader } from './image';
 import { GceInstanceDetails } from './instance/details/GceInstanceDetails';
 import { GceInstanceTypeService } from './instance/gceInstanceType.service';
 import { GceMultiInstanceTaskTransformer } from './instance/gceMultiInstanceTask.transformer';
+import { GceLoadBalancerChoiceModal } from './loadBalancer/configure/choice/GceLoadBalancerChoiceModal';
 import {
   GceLoadBalancerActions,
   gceLoadBalancerDetailsSections,
@@ -70,6 +71,7 @@ export function registerGoogleProvider(): void {
       multiInstanceTaskTransformer: GceMultiInstanceTaskTransformer,
     },
     loadBalancer: {
+      CreateLoadBalancerModal: GceLoadBalancerChoiceModal,
       detailsActions: GceLoadBalancerActions,
       detailsSections: gceLoadBalancerDetailsSections,
       transformer: GceLoadBalancerTransformer,

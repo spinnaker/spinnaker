@@ -338,6 +338,24 @@ export class GceFindImageStageConfig extends GceBaseStageConfig {
           onChange: (selectionStrategy) => updateStage(this.props, { selectionStrategy }),
         }),
       ),
+      h(
+        StageConfigField,
+        { label: 'Server Group Filters' },
+        h(
+          'div',
+          { className: 'checkbox' },
+          h(
+            'label',
+            null,
+            h('input', {
+              checked: stage.onlyEnabled,
+              type: 'checkbox',
+              onChange: (e) => updateStage(this.props, { onlyEnabled: e.target.checked }),
+            }),
+            ' Only consider enabled Server Groups',
+          ),
+        ),
+      ),
     );
   }
 }
