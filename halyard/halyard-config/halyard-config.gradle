@@ -18,6 +18,7 @@ dependencies {
   implementation 'io.spinnaker.kork:kork-secrets'
   implementation 'io.spinnaker.kork:kork-secrets-aws'
   implementation 'io.spinnaker.kork:kork-secrets-gcp'
+  implementation 'io.spinnaker.kork:kork-secrets-k8s'
   implementation 'io.spinnaker.kork:kork-retrofit'
   implementation 'io.spinnaker.kork:kork-retrofit2'
   implementation "io.spinnaker.kork:kork-docker"
