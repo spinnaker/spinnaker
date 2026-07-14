@@ -23,5 +23,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("kustomize")
 public class RoscoKustomizeConfigurationProperties {
   private String v4ExecutablePath = "kustomize4";
-  private String v3ExecutablePath = "kustomize";
+  private String v5ExecutablePath = "kustomize5";
 }

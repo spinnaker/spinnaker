@@ -15,8 +15,8 @@ public class BakeManifestRequest {
   public enum TemplateRenderer {
     HELM2,
     HELM3,
-    KUSTOMIZE,
     KUSTOMIZE4,
+    KUSTOMIZE5,
     HELMFILE,
     CF;
 

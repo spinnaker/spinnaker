@@ -238,13 +238,13 @@ class KustomizeTemplateUtilsSpec extends Specification {
         }
 
         then:
-        (0..1) * kustomizeProperties.v3ExecutablePath >> "kustomize"
         (0..1) * kustomizeProperties.v4ExecutablePath >> "kustomize4"
+        (0..1) * kustomizeProperties.v5ExecutablePath >> "kustomize5"
         recipe.command[0] == command
 
         where:
         templateRenderer                                | command
-        BakeManifestRequest.TemplateRenderer.KUSTOMIZE  | "kustomize"
         BakeManifestRequest.TemplateRenderer.KUSTOMIZE4 | "kustomize4"
+        BakeManifestRequest.TemplateRenderer.KUSTOMIZE5 | "kustomize5"
     }
 }

@@ -1,7 +1,7 @@
 #
 # Builder Image
 #
-FROM gradle:7.6.1-jdk17 AS builder
+FROM gradle:8.14.5-jdk17 AS builder
 
 # Prep build environment
 ENV GRADLE_USER_HOME=cache
@@ -19,7 +19,7 @@ RUN tar -xf /tmp/workdir/kayenta-web/build/distributions/kayenta.tar -C /opt
 #
 # Release Image
 #
-FROM alpine:3.20
+FROM alpine:3.24
 
 LABEL maintainer="delivery-engineering@netflix.com"
 

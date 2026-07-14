@@ -248,9 +248,9 @@ public class KustomizeTemplateUtils {
   }
 
   private String getKustomizeExecutableForRequest(KustomizeBakeManifestRequest request) {
-    if (TemplateRenderer.KUSTOMIZE4.equals(request.getTemplateRenderer())) {
-      return kustomizeConfigurationProperties.getV4ExecutablePath();
+    if (TemplateRenderer.KUSTOMIZE5.equals(request.getTemplateRenderer())) {
+      return kustomizeConfigurationProperties.getV5ExecutablePath();
     }
-    return kustomizeConfigurationProperties.getV3ExecutablePath();
+    return kustomizeConfigurationProperties.getV4ExecutablePath();
   }
 }
