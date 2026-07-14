@@ -244,6 +244,9 @@ public class PermissionService {
   }
 
   public boolean isAdmin(String userId) {
+    if (!fiatStatus.isEnabled()) {
+      return false;
+    }
     var permission = permissionEvaluator.getPermission(userId);
     return permission != null && permission.isAdmin();
   }
