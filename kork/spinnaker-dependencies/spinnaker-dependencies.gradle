@@ -20,6 +20,7 @@ ext {
     retrofit2        : "2.12.0",
     spectator        : "1.7.3", // watch to match what is coming from eureka which defines this, but not ALL the versions
     spek             : "1.1.5",
+    elasticsearch    : "8.19.18", // Used by clouddriver, moved here for central dep management
     spek2            : "2.0.9",
     springdocs          : "2.8.17",
     springBoot       : "3.5.15",
@@ -76,6 +77,7 @@ dependencies {
     api("com.hubspot.jinjava:jinjava:2.8.3") // fixes CVE-2026-25526
     //TODO:  jsch moved to com.github.mwiede/jsch
     api("com.jcraft:jsch:${versions.jsch}")
+    api("org.elasticsearch:elasticsearch:${versions.elasticsearch}")
     api("com.jcraft:jsch.agentproxy.connector-factory:${versions.jschAgentProxy}")
     api("com.jcraft:jsch.agentproxy.jsch:${versions.jschAgentProxy}")
 
