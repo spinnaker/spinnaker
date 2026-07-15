@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { IAmazonHealth } from '@spinnaker/amazon';
-import { InstanceInformation, InstanceStatus } from '@spinnaker/amazon';
+import { InstanceInformation, InstanceStatus, VpcTag } from '@spinnaker/amazon';
 import type { Application, IInstanceDetailsProps, IMoniker } from '@spinnaker/core';
 import {
   AngularServices,
@@ -430,7 +430,7 @@ export class EcsInstanceDetails extends React.Component<IEcsInstanceDetailsProps
             />
             <CollapsibleSection heading="Networking">
               <dl className="horizontal-when-filters-collapsed">
-                {instance.vpcId && <LabeledValue label="VPC" value={instance.vpcId} />}
+                {instance.vpcId && <LabeledValue label="VPC" value={<VpcTag vpcId={instance.vpcId} />} />}
                 {instance.subnetId && (
                   <LabeledValue label="Subnet" value={<SubnetTag subnetId={instance.subnetId} />} />
                 )}

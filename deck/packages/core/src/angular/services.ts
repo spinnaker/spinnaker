@@ -14,11 +14,11 @@ import type { OverrideRegistry } from '../overrideRegistry/override.registry';
 import type { PageTitleService } from '../pageTitle';
 import type { ExecutionDetailsSectionService } from '../pipeline/details/executionDetailsSection.service';
 import type { ExecutionService } from '../pipeline/service/execution.service';
+import type { StateEvents } from '../reactShims/state.events';
 import type { InfrastructureSearchService } from '../search/infrastructure/infrastructureSearch.service';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
 import type { ServerGroupCommandBuilderService } from '../serverGroup/configure/common/serverGroupCommandBuilder.service';
 import type { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
-import type { StateEvents } from '../reactShims/state.events';
 
 class AngularServiceAccessors {
   private wrappedState: StateService;

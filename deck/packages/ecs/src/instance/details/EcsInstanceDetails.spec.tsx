@@ -1,7 +1,7 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { InstanceInformation, InstanceStatus } from '@spinnaker/amazon';
+import { InstanceInformation, InstanceStatus, VpcTag } from '@spinnaker/amazon';
 import {
   AngularServices,
   CollapsibleSection,
@@ -78,6 +78,10 @@ describe('EcsInstanceDetails', () => {
     const networking = wrapper
       .find(CollapsibleSection)
       .filterWhere((section) => section.prop('heading') === 'Networking');
+    const vpc = shallow(<div>{networking.prop('children')}</div>)
+      .find(LabeledValue)
+      .filterWhere((value) => value.prop('label') === 'VPC');
+    expect(vpc.prop('value')).toEqual(<VpcTag vpcId="vpc-1" />);
     const networkAddresses = shallow(<div>{networking.prop('children')}</div>)
       .find('NetworkAddress')
       .map((address) => address.prop('address'));
