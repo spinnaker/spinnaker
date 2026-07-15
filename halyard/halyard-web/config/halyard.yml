@@ -18,6 +18,15 @@ spinnaker:
         enabled: true
       writerEnabled: false
       bucket: halconfig
+  secrets:
+    kubernetes:
+      # Enables kork's KubernetesSecretEngine (identifier "k8s") inside Halyard's own Spring
+      # context so that `hal config generate` can resolve `encrypted:k8s!...`/`encryptedFile:k8s!...`
+      # secrets embedded in a halconfig. This is separate from (and does not affect) the
+      # `spinnaker.secrets.kubernetes.enabled` property inside the *deployed* microservices'
+      # own spinnaker-local.yml, which must still be set there independently if those services
+      # also need to resolve k8s secrets themselves.
+      enabled: true
 
 management:
   endpoint:
