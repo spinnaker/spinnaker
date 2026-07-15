@@ -42,4 +42,7 @@ public interface ProcessesService {
 
   @GET("v3/processes/{guid}/stats")
   Call<ProcessResources> findProcessStatsById(@Path("guid") String guid);
+
+  @DELETE("v3/processes/{guid}/instances/{index}")
+  Call<ResponseBody> terminateInstance(@Path("guid") String guid, @Path("index") String index);
 }

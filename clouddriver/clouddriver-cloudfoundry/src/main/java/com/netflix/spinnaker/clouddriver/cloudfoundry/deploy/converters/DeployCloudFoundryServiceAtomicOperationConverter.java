@@ -26,6 +26,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.DeployCloudFoundryServiceAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -118,13 +119,9 @@ public class DeployCloudFoundryServiceAtomicOperationConverter
       throw new IllegalArgumentException("Service Instance Name must not be null or empty.");
     }
     List<String> serviceInstances =
-        client
-            .getServiceInstances()
-            .findAllVersionedServiceInstancesBySpaceAndName(
-                space, String.format("%s-v%03d", serviceInstanceName, 0))
-            .stream()
-            .filter(n -> n.getEntity().getName().startsWith(serviceInstanceName))
-            .map(rs -> rs.getEntity().getName())
+        client.getServiceInstances().findAllServiceInstancesBySpace(space).stream()
+            .map(ServiceInstance::getName)
+            .filter(n -> n.startsWith(serviceInstanceName))
             .filter(n -> isVersioned(n))
             .collect(Collectors.toList());
 
