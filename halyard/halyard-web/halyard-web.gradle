@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.halyard.Main'
+application.mainClass = 'com.netflix.spinnaker.halyard.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'

@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.clouddriver.Main'
+application.mainClass = 'com.netflix.spinnaker.clouddriver.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'

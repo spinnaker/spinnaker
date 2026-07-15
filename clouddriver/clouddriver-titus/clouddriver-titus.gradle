@@ -67,6 +67,10 @@ sourceSets {
 }
 
 compileJava.dependsOn generateProto
+// The generated proto sources are added to the main source set, so every compile task
+// that reads them must depend on generateProto. Gradle 9 fails the build on the implicit
+// dependency otherwise. compileKotlin is only present when the Kotlin plugin is applied.
+tasks.matching { it.name == 'compileKotlin' }.configureEach { dependsOn generateProto }
 
 task cleanGenerated(type: Delete) {
   delete "$projectDir/src/generated"
