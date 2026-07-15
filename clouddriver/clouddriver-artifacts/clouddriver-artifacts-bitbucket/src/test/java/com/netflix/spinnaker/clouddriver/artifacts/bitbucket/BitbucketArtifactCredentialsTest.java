@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Function;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Assertions;
@@ -159,25 +158,40 @@ class BitbucketArtifactCredentialsTest {
   }
 
   @Test
-  void blockDownloadUnlessInWhiteList() throws IOException {
-    // explicitly deny the test server we're hitting.
+  void blockDownloadUnlessInWhiteList(@WiremockResolver.Wiremock WireMockServer server)
+      throws IOException {
     BitbucketArtifactAccount account =
         BitbucketArtifactAccount.builder()
             .urlRestrictions(
-                HttpUrlRestrictions.builder().allowedDomains(List.of("google.com")).build())
+                HttpUrlRestrictions.builder()
+                    .allowedHostnamesRegex("localhost|127\\.0\\.0\\.1")
+                    .rejectLocalhost(false)
+                    .build())
             .name("my-bitbucket-account")
             .build();
     BitbucketArtifactCredentials credentials =
         new BitbucketArtifactCredentials(account, okHttpClient);
-    Artifact artifact =
-        Artifact.builder()
-            .reference("http://example.com")
-            .version("master")
-            .type("bitbucket/file")
-            .build();
-    assertThat(credentials.download(Artifact.builder().reference("http://google.com").build()))
+
+    server.stubFor(
+        any(urlPathEqualTo(DOWNLOAD_PATH))
+            .willReturn(aResponse().withStatus(200).withBody(FILE_CONTENTS)));
+
+    assertThat(
+            credentials.download(
+                Artifact.builder()
+                    .reference(server.baseUrl() + DOWNLOAD_PATH)
+                    .type("bitbucket/file")
+                    .build()))
         .isNotNull();
-    Assertions.assertThrows(IllegalArgumentException.class, () -> credentials.download(artifact));
+
+    Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            credentials.download(
+                Artifact.builder()
+                    .reference("http://example.com/artifact")
+                    .type("bitbucket/file")
+                    .build()));
   }
 
   @Test
