@@ -6,12 +6,12 @@ import './strictDi';
 import { CORE_MODULE } from '@spinnaker/core';
 import '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
-import { APPENGINE_MODULE } from '@spinnaker/appengine';
+import '@spinnaker/appengine';
 import { AZURE_MODULE } from '@spinnaker/azure';
 import { GOOGLE_MODULE } from '@spinnaker/google';
 import { CANARY_MODULE } from './canary/canary.module';
 import '@spinnaker/kubernetes';
-import { ORACLE_MODULE } from '@spinnaker/oracle';
+import '@spinnaker/oracle';
 import '@spinnaker/kayenta';
 import { TITUS_MODULE } from '@spinnaker/titus';
 import { ECS_MODULE } from '@spinnaker/ecs';
@@ -24,8 +24,6 @@ module('netflix.spinnaker', [
   AZURE_MODULE,
   GOOGLE_MODULE,
   ECS_MODULE,
-  ORACLE_MODULE,
-  APPENGINE_MODULE,
   CANARY_MODULE,
   TITUS_MODULE,
 ]);
