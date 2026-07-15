@@ -177,15 +177,16 @@ public class AccountDefinitionConfiguration {
   }
 
   @ConfigurationProperties("account.storage")
-  @ConditionalOnProperty("account.storage.enabled")
+  @ConditionalOnProperty(value = "account.storage.enabled", matchIfMissing = true)
   @Data
   public static class Properties {
     /**
-     * Indicates whether to enable durable storage for account definitions. When enabled with an
-     * implementation of {@link AccountDefinitionRepository}, account definitions can be stored and
-     * retrieved by a durable storage provider.
+     * Indicates whether to enable durable storage for account definitions. Enabled by default; when
+     * an implementation of {@link AccountDefinitionRepository} is available, account definitions
+     * can be stored and retrieved by a durable storage provider. Set {@code
+     * account.storage.enabled} to {@code false} to disable.
      */
-    private boolean enabled;
+    private boolean enabled = true;
 
     /**
      * Additional packages to scan for {@link

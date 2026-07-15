@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.docker-registry.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.docker-registry.enabled"},
+    matchIfMissing = true)
 public class DockerRegistryAccountDefinitionSourceConfiguration {
   @Bean
   @Primary

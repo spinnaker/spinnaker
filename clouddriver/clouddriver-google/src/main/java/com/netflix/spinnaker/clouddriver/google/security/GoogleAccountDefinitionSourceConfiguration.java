@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.google.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.google.enabled"},
+    matchIfMissing = true)
 public class GoogleAccountDefinitionSourceConfiguration {
   @Bean
   public CredentialsDefinitionSource<GoogleConfigurationProperties.ManagedAccount>

@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.security;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.secrets.SecretException;
@@ -42,7 +41,6 @@ import org.springframework.util.ReflectionUtils;
  * Service wrapper for an {@link AccountDefinitionRepository} which enforces permissions and other
  * validations.
  */
-@Beta
 @NonnullByDefault
 @RequiredArgsConstructor
 public class AccountDefinitionService {

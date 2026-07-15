@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.aws.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.aws.enabled"},
+    matchIfMissing = true)
 public class AmazonAccountDefinitionSourceConfiguration {
   @Bean
   public CredentialsDefinitionSource<AccountsConfiguration.Account> amazonAccountSource(

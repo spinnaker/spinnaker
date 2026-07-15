@@ -24,7 +24,6 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionService;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
@@ -127,7 +126,6 @@ public class CredentialsController {
   }
 
   @GetMapping("/type/{accountType}")
-  @Beta
   public List<? extends CredentialsDefinition> listAccountsByType(
       @PathVariable String accountType,
       @RequestParam(required = false, defaultValue = "100") Integer limit,
@@ -138,21 +136,18 @@ public class CredentialsController {
   }
 
   @PostMapping
-  @Beta
   public CredentialsDefinition createAccount(@RequestBody CredentialsDefinition definition) {
     validateAccountStorageEnabled();
     return accountDefinitionService.createAccount(definition);
   }
 
   @PutMapping
-  @Beta
   public CredentialsDefinition saveAccount(@RequestBody CredentialsDefinition definition) {
     validateAccountStorageEnabled();
     return accountDefinitionService.saveAccount(definition);
   }
 
   @PutMapping("/{accountName}")
-  @Beta
   public CredentialsDefinition updateAccount(
       @RequestBody CredentialsDefinition definition, @PathVariable String accountName) {
     validateAccountStorageEnabled();
@@ -167,14 +162,12 @@ public class CredentialsController {
   }
 
   @DeleteMapping("/{accountName}")
-  @Beta
   public void deleteAccount(@PathVariable String accountName) {
     validateAccountStorageEnabled();
     accountDefinitionService.deleteAccount(accountName);
   }
 
   @GetMapping("/{accountName}/history")
-  @Beta
   public List<AccountDefinitionRepository.Revision> getAccountHistory(
       @PathVariable String accountName) {
     validateAccountStorageEnabled();

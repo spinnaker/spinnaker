@@ -26,11 +26,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({
-  "account.storage.enabled",
-  "account.storage.aws.enabled",
-  "account.storage.ecs.enabled"
-})
+@ConditionalOnProperty(
+    value = {
+      "account.storage.enabled",
+      "account.storage.aws.enabled",
+      "account.storage.ecs.enabled"
+    },
+    matchIfMissing = true)
 public class EcsAccountDefinitionSource {
 
   @Bean

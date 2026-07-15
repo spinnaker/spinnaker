@@ -27,7 +27,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.azure.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.azure.enabled"},
+    matchIfMissing = true)
 public class AzureAccountDefinitionSourceConfiguration {
   @Bean
   public CredentialsDefinitionSource<AzureConfigurationProperties.ManagedAccount>

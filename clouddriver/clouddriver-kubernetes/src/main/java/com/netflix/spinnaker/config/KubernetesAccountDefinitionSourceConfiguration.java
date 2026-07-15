@@ -28,7 +28,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.kubernetes.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.kubernetes.enabled"},
+    matchIfMissing = true)
 public class KubernetesAccountDefinitionSourceConfiguration {
   @Bean
   @Primary
