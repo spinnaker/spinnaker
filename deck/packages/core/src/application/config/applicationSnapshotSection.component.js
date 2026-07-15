@@ -20,26 +20,28 @@ module(CORE_APPLICATION_CONFIG_APPLICATIONSNAPSHOTSECTION_COMPONENT, [
   controller: [
     '$state',
     function ($state) {
-      if (this.application.notFound || this.application.hasError) {
-        return;
-      }
+      this.$onInit = () => {
+        if (!this.application || this.application.notFound || this.application.hasError) {
+          return;
+        }
 
-      this.takeSnapshot = () => {
-        const submitMethod = () => {
-          return SnapshotWriter.takeSnapshot(this.application.attributes);
+        this.takeSnapshot = () => {
+          const submitMethod = () => {
+            return SnapshotWriter.takeSnapshot(this.application.attributes);
+          };
+
+          const taskMonitor = {
+            application: this.application,
+            title: 'Taking snapshot of ' + this.application.name,
+          };
+
+          ConfirmationModalService.confirm({
+            header: 'Are you sure you want to take a snapshot of: ' + this.application.name + '?',
+            buttonText: 'Take snapshot',
+            taskMonitorConfig: taskMonitor,
+            submitMethod: submitMethod,
+          });
         };
-
-        const taskMonitor = {
-          application: this.application,
-          title: 'Taking snapshot of ' + this.application.name,
-        };
-
-        ConfirmationModalService.confirm({
-          header: 'Are you sure you want to take a snapshot of: ' + this.application.name + '?',
-          buttonText: 'Take snapshot',
-          taskMonitorConfig: taskMonitor,
-          submitMethod: submitMethod,
-        });
       };
     },
   ],

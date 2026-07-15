@@ -59,14 +59,19 @@ public class EcsCloudMetricService {
     amazonCloudWatch.deleteAlarms(
         new DeleteAlarmsRequest()
             .withAlarmNames(
-                metricAlarms.stream().map(MetricAlarm::getAlarmName).collect(Collectors.toSet())));
+                metricAlarms.stream()
+                    .map(EcsMetricAlarm::getAlarmName)
+                    .collect(Collectors.toSet())));
 
     Set<String> resources = new HashSet<>();
     // Stream and flatMap it? Couldn't figure out how.
-    for (MetricAlarm metricAlarm : metricAlarms) {
-      resources.addAll(buildResourceList(metricAlarm.getOKActions(), serviceName));
-      resources.addAll(buildResourceList(metricAlarm.getAlarmActions(), serviceName));
-      resources.addAll(buildResourceList(metricAlarm.getInsufficientDataActions(), serviceName));
+    for (EcsMetricAlarm metricAlarm : metricAlarms) {
+      resources.addAll(buildResourceList(new ArrayList<>(metricAlarm.getOKActions()), serviceName));
+      resources.addAll(
+          buildResourceList(new ArrayList<>(metricAlarm.getAlarmActions()), serviceName));
+      resources.addAll(
+          buildResourceList(
+              new ArrayList<>(metricAlarm.getInsufficientDataActions()), serviceName));
     }
 
     deregisterScalableTargets(resources, account, region);

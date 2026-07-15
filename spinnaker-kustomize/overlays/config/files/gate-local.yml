@@ -69,3 +69,23 @@ api-tokens:
   ## Fiat roles permitted to mint tokens. Admins always bypass this check.
   #allowed-minting-roles:
   #  - spinnaker-api-users
+
+## ---------------------------------------------------------------------------
+## Global banners
+## ---------------------------------------------------------------------------
+## Operator-controlled UI banners displayed across all Deck pages. Banners are
+## stored in Redis and served via GET /banners (public, no auth required).
+## Create/update/delete operations require Fiat admin.
+##
+## Each banner supports optional startTimestamp / endTimestamp (Unix epoch ms)
+## for scheduled activation windows. The active-banner cache is refreshed from
+## Redis every refresh-interval-ms milliseconds.
+global-banner:
+  enabled: false
+  ## All values below are optional — shown with their defaults. Uncomment to override.
+  ## Redis namespace prefix so Gate can share a Redis instance with other services.
+  #redis-key-prefix: global-banner
+  ## How often (milliseconds) the in-process active-banner cache is refreshed.
+  #refresh-interval-ms: 60000
+  ## Maximum permitted length of a banner message, in characters.
+  #max-message-length: 2000

@@ -1,20 +1,24 @@
-import { mock } from 'angular';
-import type { IStage } from 'core';
-import { ApplicationModelBuilder, REACT_MODULE, SpinFormik, StageConfigField } from 'core';
-import { mount } from 'enzyme';
+import type { Application, IStage } from 'core';
+import { AccountService, StageConfigField } from 'core';
+import { shallow } from 'enzyme';
 import React from 'react';
-
-import { mockServerGroupDataSourceConfig } from '@spinnaker/mocks';
 
 import { CloudFoundryCreateServiceBindingsStageConfigForm } from './CloudFoundryCreateServiceBindingsStageConfigForm';
 
 describe('<CloudFoundryCreateServiceBindingsStageConfigForm/>', function () {
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject());
+  const application = {
+    ready: () => Promise.resolve(),
+    getDataSource: () => ({ data: [] }),
+  } as Application;
+
+  beforeEach(() => {
+    spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve([]));
+    spyOn(AccountService, 'getRegionsForAccount').and.returnValue(Promise.resolve([]));
+  });
 
   const getProps = () => {
     return {
-      application: ApplicationModelBuilder.createApplicationForTests('my-application', mockServerGroupDataSourceConfig),
+      application,
       pipeline: {
         application: 'my-application',
         id: 'pipeline-id',
@@ -32,19 +36,19 @@ describe('<CloudFoundryCreateServiceBindingsStageConfigForm/>', function () {
     const stage = ({
       serviceBindingRequests: [{ serviceInstanceName: 'service1' }, { serviceInstanceName: 'service2' }],
     } as unknown) as IStage;
+    const formik = {
+      values: stage,
+      setFieldValue: jasmine.createSpy('setFieldValue'),
+    } as any;
 
     const props = getProps();
-    const component = mount(
-      <SpinFormik
-        initialValues={stage}
-        onSubmit={() => null}
-        validate={() => null}
-        render={(formik) => <CloudFoundryCreateServiceBindingsStageConfigForm {...props} formik={formik} />}
-      />,
-    );
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === 'Target').length).toBe(1);
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === 'Restage Required').length).toBe(1);
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === 'Restart Required').length).toBe(1);
-    expect(component.find(StageConfigField).findWhere((x) => x.text() === 'Service Instance Name').length).toBe(2);
+    const component = shallow(<CloudFoundryCreateServiceBindingsStageConfigForm {...props} formik={formik} />);
+
+    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Target').length).toBe(1);
+    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Restage Required').length).toBe(1);
+    expect(component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Restart Required').length).toBe(1);
+    expect(
+      component.find(StageConfigField).filterWhere((x) => x.prop('label') === 'Service Instance Name').length,
+    ).toBe(2);
   });
 });

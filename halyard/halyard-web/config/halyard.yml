@@ -18,6 +18,15 @@ spinnaker:
         enabled: true
       writerEnabled: false
       bucket: halconfig
+  secrets:
+    kubernetes:
+      # Enables kork's KubernetesSecretEngine (identifier "k8s") inside Halyard's own Spring
+      # context so that `hal config generate` can resolve `encrypted:k8s!...`/`encryptedFile:k8s!...`
+      # secrets embedded in a halconfig. This is separate from (and does not affect) the
+      # `spinnaker.secrets.kubernetes.enabled` property inside the *deployed* microservices'
+      # own spinnaker-local.yml, which must still be set there independently if those services
+      # also need to resolve k8s secrets themselves.
+      enabled: true
 
 management:
   endpoint:
@@ -31,4 +40,12 @@ management:
 
 backup:
   google:
+    enabled: false
+
+# Spring Framework 6 (Spring Boot 3) removed lenient trailing-slash route matching. Halyard maps many
+# endpoints with an explicit trailing slash (e.g. .../haServices/, .../generate/, .../deploy/), and
+# the hal CLI calls them that way. Disable the kork-web UrlHandlerFilter, which would otherwise trim
+# the trailing slash before dispatch and make those routes return 404.
+url-handler:
+  trailing-slash:
     enabled: false

@@ -15,24 +15,26 @@
 package auth
 
 import (
-	"github.com/spinnaker/spin/config/auth/basic"
-	gsa "github.com/spinnaker/spin/config/auth/googleserviceaccount"
-	config "github.com/spinnaker/spin/config/auth/iap"
-	"github.com/spinnaker/spin/config/auth/ldap"
-	"github.com/spinnaker/spin/config/auth/oauth2"
-	"github.com/spinnaker/spin/config/auth/x509"
+	"github.com/spinnaker/spinnaker/spin/config/auth/apitoken"
+	"github.com/spinnaker/spinnaker/spin/config/auth/basic"
+	gsa "github.com/spinnaker/spinnaker/spin/config/auth/googleserviceaccount"
+	config "github.com/spinnaker/spinnaker/spin/config/auth/iap"
+	"github.com/spinnaker/spinnaker/spin/config/auth/ldap"
+	"github.com/spinnaker/spinnaker/spin/config/auth/oauth2"
+	"github.com/spinnaker/spinnaker/spin/config/auth/x509"
 )
 
 // Config is the CLI's authentication configuration.
 type Config struct {
-	Enabled          bool           `json:"enabled" yaml:"enabled"`
-	IgnoreRedirects  bool           `json:"ignoreRedirects" yaml:"ignoreRedirects"`
-	IgnoreCertErrors bool           `json:"ignoreCertErrors" yaml:"ignoreCertErrors"`
-	X509             *x509.Config   `json:"x509,omitempty" yaml:"x509,omitempty"`
-	OAuth2           *oauth2.Config `json:"oauth2,omitempty" yaml:"oauth2,omitempty"`
-	Basic            *basic.Config  `json:"basic,omitempty" yaml:"basic,omitempty"`
-	Iap              *config.Config `json:"iap,omitempty" yaml:"iap,omitempty"`
-	Ldap             *ldap.Config   `json:"ldap,omitempty" yaml:"ldap,omitempty"`
+	Enabled          bool             `json:"enabled" yaml:"enabled"`
+	IgnoreRedirects  bool             `json:"ignoreRedirects" yaml:"ignoreRedirects"`
+	IgnoreCertErrors bool             `json:"ignoreCertErrors" yaml:"ignoreCertErrors"`
+	X509             *x509.Config     `json:"x509,omitempty" yaml:"x509,omitempty"`
+	OAuth2           *oauth2.Config   `json:"oauth2,omitempty" yaml:"oauth2,omitempty"`
+	Basic            *basic.Config    `json:"basic,omitempty" yaml:"basic,omitempty"`
+	Iap              *config.Config   `json:"iap,omitempty" yaml:"iap,omitempty"`
+	Ldap             *ldap.Config     `json:"ldap,omitempty" yaml:"ldap,omitempty"`
+	ApiToken         *apitoken.Config `json:"apiToken,omitempty" yaml:"apiToken,omitempty"`
 
 	GoogleServiceAccount *gsa.Config `json:"google_service_account,omitempty" yaml:"google_service_account,omitempty"`
 }
