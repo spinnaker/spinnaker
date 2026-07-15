@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { camelCase, chain, cloneDeep, filter, get, has, reduce } from 'lodash';
 
 import type {
@@ -76,9 +75,6 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
 }
 
 export class AppengineLoadBalancerTransformer {
-  public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {}
-
   public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
@@ -97,7 +93,7 @@ export class AppengineLoadBalancerTransformer {
 
     const activeServerGroups = filter(loadBalancer.serverGroups, { isDisabled: false });
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
-    return this.$q.resolve(loadBalancer);
+    return Promise.resolve(loadBalancer);
   }
 
   public convertLoadBalancerForEditing(
@@ -161,10 +157,3 @@ export class AppengineLoadBalancerTransformer {
     return instance as IInstance;
   }
 }
-
-export const APPENGINE_LOAD_BALANCER_TRANSFORMER = 'spinnaker.appengine.loadBalancer.transformer.service';
-
-module(APPENGINE_LOAD_BALANCER_TRANSFORMER, []).service(
-  'appengineLoadBalancerTransformer',
-  AppengineLoadBalancerTransformer,
-);
