@@ -247,10 +247,17 @@ public class KustomizeTemplateUtils {
     return FilenameUtils.getExtension(evaluate) == "";
   }
 
+  @SuppressWarnings("deprecation")
   private String getKustomizeExecutableForRequest(KustomizeBakeManifestRequest request) {
     if (TemplateRenderer.KUSTOMIZE5.equals(request.getTemplateRenderer())) {
       return kustomizeConfigurationProperties.getV5ExecutablePath();
     }
-    return kustomizeConfigurationProperties.getV4ExecutablePath();
+    if (TemplateRenderer.KUSTOMIZE4.equals(request.getTemplateRenderer())) {
+      return kustomizeConfigurationProperties.getV4ExecutablePath();
+    }
+    log.warn(
+        "Kustomize v3 is deprecated and will be removed in the 2026.4.x releases."
+            + " Update bake stages to use KUSTOMIZE4 or KUSTOMIZE5.");
+    return kustomizeConfigurationProperties.getV3ExecutablePath();
   }
 }

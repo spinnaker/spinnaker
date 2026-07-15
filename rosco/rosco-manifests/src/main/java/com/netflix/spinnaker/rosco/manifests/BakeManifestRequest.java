@@ -15,6 +15,9 @@ public class BakeManifestRequest {
   public enum TemplateRenderer {
     HELM2,
     HELM3,
+    /** Kustomize v3 is end-of-life upstream; scheduled for removal in Spinnaker 2026.4.x. */
+    @Deprecated
+    KUSTOMIZE,
     KUSTOMIZE4,
     KUSTOMIZE5,
     HELMFILE,
