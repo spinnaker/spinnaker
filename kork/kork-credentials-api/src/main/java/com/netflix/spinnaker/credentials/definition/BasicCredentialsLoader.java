@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * CredentialsLoader that expects the full list of credentials on each load, and updates the
@@ -32,6 +33,7 @@ import lombok.Setter;
  * @param <T>
  * @param <U>
  */
+@Slf4j
 public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends Credentials>
     extends AbstractCredentialsLoader<U> {
   protected final CredentialsParser<T, U> parser;
@@ -79,26 +81,38 @@ public class BasicCredentialsLoader<T extends CredentialsDefinition, U extends C
         .peek(loadedDefinitions::remove)
         .forEach(credentialsRepository::delete);
 
-    List<U> toApply = new ArrayList<>();
+    List<Map.Entry<T, U>> toApply = new ArrayList<>();
 
     for (T definition : definitions) {
-      if (!loadedDefinitions.containsKey(definition.getName())) {
-        U cred = parser.parse(definition);
-        if (cred != null) {
-          toApply.add(cred);
-          // Add to loaded definition now in case we trigger another parse before this one finishes
-          loadedDefinitions.put(definition.getName(), definition);
-        }
-      } else if (!loadedDefinitions.get(definition.getName()).equals(definition)) {
-        U cred = parser.parse(definition);
-        if (cred != null) {
-          toApply.add(cred);
-          loadedDefinitions.put(definition.getName(), definition);
+      T loadedDefinition = loadedDefinitions.get(definition.getName());
+      if (loadedDefinition == null || !loadedDefinition.equals(definition)) {
+        try {
+          U cred = parser.parse(definition);
+          if (cred != null) {
+            toApply.add(Map.entry(definition, cred));
+          }
+        } catch (RuntimeException e) {
+          log.error(
+              "Error parsing credentials definition '{}'; will retry on next load",
+              definition.getName(),
+              e);
         }
       }
     }
 
-    Stream<U> stream = parallel ? toApply.parallelStream() : toApply.stream();
-    stream.forEach(credentialsRepository::save);
+    Stream<Map.Entry<T, U>> stream = parallel ? toApply.parallelStream() : toApply.stream();
+    stream.forEach(
+        entry -> {
+          T definition = entry.getKey();
+          try {
+            credentialsRepository.save(entry.getValue());
+            // Only mark the definition as loaded once it has been stored in the repository;
+            // otherwise a failed save would never be retried on subsequent loads
+            loadedDefinitions.put(definition.getName(), definition);
+          } catch (RuntimeException e) {
+            log.error(
+                "Error saving credentials '{}'; will retry on next load", definition.getName(), e);
+          }
+        });
   }
 }
