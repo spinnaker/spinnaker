@@ -135,7 +135,7 @@ public class AmazonBasicCredentialsLoader<
       return;
     }
 
-    List<U> toApply = new ArrayList<>();
+    List<Map.Entry<T, U>> toApply = new ArrayList<>();
     if (credentialsConfig.getLoadAccounts().isMultiThreadingEnabled()) {
       log.info(
           "Multi-threading is enabled for loading aws accounts. Using {} threads, with timeout: {}s",
@@ -145,27 +145,40 @@ public class AmazonBasicCredentialsLoader<
     } else {
       log.info("Multi-threading is disabled. AWS accounts will be loaded serially");
       for (T definition : definitions) {
-        if (!loadedDefinitions.containsKey(definition.getName())) {
-          U cred = parser.parse(definition);
-          if (cred != null) {
-            toApply.add(cred);
-            // Add to loaded definition now in case we trigger another parse before this one
-            // finishes
-            loadedDefinitions.put(definition.getName(), definition);
-          }
-        } else if (!loadedDefinitions.get(definition.getName()).equals(definition)) {
-          U cred = parser.parse(definition);
-          if (cred != null) {
-            toApply.add(cred);
-            loadedDefinitions.put(definition.getName(), definition);
+        T loadedDefinition = loadedDefinitions.get(definition.getName());
+        if (loadedDefinition == null || !loadedDefinition.equals(definition)) {
+          try {
+            U cred = parser.parse(definition);
+            if (cred != null) {
+              toApply.add(Map.entry(definition, cred));
+            }
+          } catch (RuntimeException e) {
+            log.error(
+                "Failed to load aws account '{}'; will retry on next load",
+                definition.getName(),
+                e);
           }
         }
       }
     }
 
     log.info("saving aws accounts in the credentials repository");
-    Stream<U> stream = parallel ? toApply.parallelStream() : toApply.stream();
-    stream.forEach(credentialsRepository::save);
+    Stream<Map.Entry<T, U>> stream = parallel ? toApply.parallelStream() : toApply.stream();
+    stream.forEach(
+        entry -> {
+          T definition = entry.getKey();
+          try {
+            credentialsRepository.save(entry.getValue());
+            // Only mark the definition as loaded once it has been stored in the repository;
+            // otherwise a failed save would never be retried on subsequent loads
+            loadedDefinitions.put(definition.getName(), definition);
+          } catch (RuntimeException e) {
+            log.error(
+                "Failed to save aws account '{}'; will retry on next load",
+                definition.getName(),
+                e);
+          }
+        });
     log.info("parsed and saved {} aws accounts", credentialsRepository.getAll().size());
   }
 
@@ -175,8 +188,8 @@ public class AmazonBasicCredentialsLoader<
    * @param definitions - the list of aws accounts to parse
    * @return - a list of parsed aws accounts
    */
-  private List<U> multiThreadedParseAccounts(Collection<T> definitions) {
-    List<U> toApply = new ArrayList<>();
+  private List<Map.Entry<T, U>> multiThreadedParseAccounts(Collection<T> definitions) {
+    List<Map.Entry<T, U>> toApply = new ArrayList<>();
     final ExecutorService executorService =
         Executors.newFixedThreadPool(
             credentialsConfig.getLoadAccounts().getNumberOfThreads(),
@@ -184,33 +197,25 @@ public class AmazonBasicCredentialsLoader<
                 .setNameFormat(AmazonCredentialsParser.class.getSimpleName() + "-%d")
                 .build());
 
-    final ArrayList<Future<U>> futures = new ArrayList<>(definitions.size());
+    final ArrayList<Map.Entry<T, Future<U>>> futures = new ArrayList<>(definitions.size());
     for (T definition : definitions) {
-      if (!loadedDefinitions.containsKey(definition.getName())
-          || !loadedDefinitions.get(definition.getName()).equals(definition)) {
-        futures.add(executorService.submit(() -> parser.parse(definition)));
+      T loadedDefinition = loadedDefinitions.get(definition.getName());
+      if (loadedDefinition == null || !loadedDefinition.equals(definition)) {
+        futures.add(Map.entry(definition, executorService.submit(() -> parser.parse(definition))));
       }
     }
-    for (Future<U> future : futures) {
+    for (Map.Entry<T, Future<U>> entry : futures) {
       try {
         U cred =
-            future.get(credentialsConfig.getLoadAccounts().getTimeoutInSeconds(), TimeUnit.SECONDS);
+            entry
+                .getValue()
+                .get(credentialsConfig.getLoadAccounts().getTimeoutInSeconds(), TimeUnit.SECONDS);
         if (cred != null) {
-          toApply.add(cred);
-          // Add to loaded definition now in case we trigger another parse before this one finishes
-          definitions.stream()
-              .filter(t -> t.getName().equals(cred.getName()))
-              .findFirst()
-              .ifPresentOrElse(
-                  definition -> loadedDefinitions.put(cred.getName(), definition),
-                  () ->
-                      log.warn(
-                          "could not find the parsed aws account: '{}' in the input credential definitions.",
-                          cred.getName()));
+          toApply.add(Map.entry(entry.getKey(), cred));
         }
       } catch (Exception e) {
         // failure to load an account should not prevent clouddriver from starting up.
-        log.error("Failed to load aws account: ", e);
+        log.error("Failed to load aws account '{}': ", entry.getKey().getName(), e);
       }
     }
     try {
