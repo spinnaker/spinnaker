@@ -59,6 +59,7 @@ const getReactModalOptions = (selectedProvider: string, app: Application) => ({
   credentials: getDefaultCredentials(app, selectedProvider),
   application: app,
   isNew: true,
+  region: getDefaultRegion(app, selectedProvider),
 });
 
 export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {

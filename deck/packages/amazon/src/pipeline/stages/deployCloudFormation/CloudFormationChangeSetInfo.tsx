@@ -1,9 +1,7 @@
-import { module } from 'angular';
 import React, { useState } from 'react';
-import { react2angular } from 'react2angular';
 
 import type { IStage, IStageConfigProps } from '@spinnaker/core';
-import { CheckboxInput, ReactSelectInput, StageConfigField, TextInput, withErrorBoundary } from '@spinnaker/core';
+import { CheckboxInput, ReactSelectInput, StageConfigField, TextInput } from '@spinnaker/core';
 
 export interface ICloudFormationChangeSetInfoProps {
   stage: IStage[];
@@ -68,13 +66,3 @@ export const CloudFormationChangeSetInfo = (props: ICloudFormationChangeSetInfoP
     </div>
   );
 };
-
-export const CLOUD_FORMATION_CHANGE_SET_INFO = 'spinnaker.amazon.cloudformation.changetset.info.component';
-
-module(CLOUD_FORMATION_CHANGE_SET_INFO, []).component(
-  'cloudFormationChangeSetInfo',
-  react2angular(withErrorBoundary(CloudFormationChangeSetInfo, 'cloudFormationChangeSetInfo'), [
-    'stage',
-    'stageconfig',
-  ]),
-);

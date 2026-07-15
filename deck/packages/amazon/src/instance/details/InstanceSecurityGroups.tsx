@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import { orderBy } from 'lodash';
 import React from 'react';
 
@@ -18,28 +17,26 @@ export const InstanceSecurityGroups = ({ instance }: IInstanceSecurityGroupsProp
 
   return (
     <CollapsibleSection heading={securityGroupLabel} defaultExpanded={true}>
-      <UIRouterContextComponent>
-        <ul>
-          {(sortedSecurityGroups || []).map((sg) => (
-            <li key={sg.groupId}>
-              <UISref
-                to="^.firewallDetails"
-                params={{
-                  name: sg.groupName,
-                  accountId: account,
-                  region,
-                  vpcId,
-                  provider,
-                }}
-              >
-                <a>
-                  {sg.groupName} ({sg.groupId})
-                </a>
-              </UISref>
-            </li>
-          ))}
-        </ul>
-      </UIRouterContextComponent>
+      <ul>
+        {(sortedSecurityGroups || []).map((sg) => (
+          <li key={sg.groupId}>
+            <UISref
+              to="^.firewallDetails"
+              params={{
+                name: sg.groupName,
+                accountId: account,
+                region,
+                vpcId,
+                provider,
+              }}
+            >
+              <a>
+                {sg.groupName} ({sg.groupId})
+              </a>
+            </UISref>
+          </li>
+        ))}
+      </ul>
     </CollapsibleSection>
   );
 };
