@@ -871,15 +871,6 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       classnames:
         specifier: 2.2.6
         version: 2.2.6
@@ -895,9 +886,9 @@ importers:
       react:
         specifier: ^16.14.0
         version: 16.14.0
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      react-bootstrap:
+        specifier: 0.32.1
+        version: 0.32.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
         specifier: 6.6.7
         version: 6.6.7
@@ -911,12 +902,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/classnames':
         specifier: 2.2.0
         version: 2.2.0
@@ -929,6 +914,9 @@ importers:
       '@types/react':
         specifier: 16.14.10
         version: 16.14.10
+      '@types/react-bootstrap':
+        specifier: 0.32.5
+        version: 0.32.5
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -1919,24 +1907,15 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      '@uirouter/core':
-        specifier: 6.0.8
-        version: 6.0.8
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
+      react:
+        specifier: ^16.14.0
+        version: 16.14.0
+      rxjs:
+        specifier: 6.6.7
+        version: 6.6.7
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1944,15 +1923,12 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
+      '@types/react':
+        specifier: 16.14.10
+        version: 16.14.10
       shx:
         specifier: 0.3.3
         version: 0.3.3

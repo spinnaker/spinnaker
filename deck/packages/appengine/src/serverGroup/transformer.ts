@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { IArtifact, IArtifactAccountPair, IServerGroup } from '@spinnaker/core';
 
 import type { IAppengineServerGroupCommand } from './configure/serverGroupCommandBuilder.service';
@@ -58,7 +56,7 @@ export class AppengineDeployDescription {
     this.trigger = command.trigger;
     this.gitCredentialType = command.gitCredentialType;
     this.configFiles = command.configFiles;
-    this.configArtifacts = command.configArtifacts.filter((a) => !!a.id || !!a.artifact);
+    this.configArtifacts = (command.configArtifacts || []).filter((a) => !!a.id || !!a.artifact);
     this.applicationDirectoryRoot = command.applicationDirectoryRoot;
     this.interestingHealthProviderNames = command.interestingHealthProviderNames || [];
     this.expectedArtifactId = command.expectedArtifactId;
@@ -72,21 +70,11 @@ export class AppengineDeployDescription {
 }
 
 export class AppengineServerGroupTransformer {
-  public static $inject = ['$q'];
-  constructor(private $q: ng.IQService) {}
-
   public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
-    return this.$q.resolve(serverGroup);
+    return Promise.resolve(serverGroup);
   }
 
   public convertServerGroupCommandToDeployConfiguration(command: IAppengineServerGroupCommand) {
     return new AppengineDeployDescription(command);
   }
 }
-
-export const APPENGINE_SERVER_GROUP_TRANSFORMER = 'spinnaker.appengine.serverGroup.transformer.service';
-
-module(APPENGINE_SERVER_GROUP_TRANSFORMER, []).service(
-  'appengineServerGroupTransformer',
-  AppengineServerGroupTransformer,
-);
