@@ -231,6 +231,13 @@ func NewGateClient(ui output.Ui, gateEndpoint, defaultHeaders, configLocation st
 		}
 	}
 
+	if gateClient.Config.Auth != nil && gateClient.Config.Auth.Enabled && gateClient.Config.Auth.ApiToken != nil {
+		if !gateClient.Config.Auth.ApiToken.IsValid() {
+			return nil, fmt.Errorf("incorrect API token configuration: token must not be empty")
+		}
+		m["X-Spinnaker-Token"] = gateClient.Config.Auth.ApiToken.Token
+	}
+
 	// Parse gate endpoint URL to extract host and scheme for OpenAPI Generator configuration
 	gateURL, err := url.Parse(gateClient.GateEndpoint())
 	if err != nil {
