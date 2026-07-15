@@ -68,7 +68,7 @@ export function GceHttpLoadBalancerHealthCheckEditor({
             })
           }
         >
-          {['HTTP', 'HTTPS', 'TCP', 'SSL'].map((protocol) => (
+          {['HTTP', 'HTTPS', 'HTTP2', 'GRPC', 'TCP', 'SSL'].map((protocol) => (
             <option key={protocol} value={protocol}>
               {protocol}
             </option>
@@ -85,7 +85,9 @@ export function GceHttpLoadBalancerHealthCheckEditor({
           onChange={(event) => onChange({ ...healthCheck, name: event.target.value })}
         />
       </label>
-      {(healthCheck.healthCheckType === 'HTTP' || healthCheck.healthCheckType === 'HTTPS') && (
+      {(healthCheck.healthCheckType === 'HTTP' ||
+        healthCheck.healthCheckType === 'HTTPS' ||
+        healthCheck.healthCheckType === 'HTTP2') && (
         <label>
           Request path
           <input
@@ -94,6 +96,17 @@ export function GceHttpLoadBalancerHealthCheckEditor({
             type="text"
             value={healthCheck.requestPath || ''}
             onChange={(event) => onChange({ ...healthCheck, requestPath: event.target.value })}
+          />
+        </label>
+      )}
+      {healthCheck.healthCheckType === 'GRPC' && (
+        <label>
+          Service name
+          <input
+            data-testid="health-check-grpc-service-name"
+            type="text"
+            value={healthCheck.grpcServiceName || ''}
+            onChange={(event) => onChange({ ...healthCheck, grpcServiceName: event.target.value })}
           />
         </label>
       )}

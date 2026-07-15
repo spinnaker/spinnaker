@@ -2,7 +2,7 @@ export const GCE_LOAD_BALANCER_TYPES = ['NETWORK', 'INTERNAL', 'TCP', 'SSL', 'HT
 
 export type GceLoadBalancerType = typeof GCE_LOAD_BALANCER_TYPES[number];
 export type GceLoadBalancerEditorMode = 'create' | 'edit' | 'pipeline';
-export type GceLoadBalancerProtocol = 'TCP' | 'UDP' | 'HTTP' | 'HTTPS' | 'SSL';
+export type GceLoadBalancerProtocol = 'TCP' | 'UDP' | 'HTTP' | 'HTTPS' | 'HTTP2' | 'GRPC' | 'SSL';
 
 export interface IGceLoadBalancerCapabilities {
   address: boolean;
@@ -55,11 +55,13 @@ export interface IGceLoadBalancerListener {
   portRange: string;
   address?: IGceResourceReference;
   certificate?: IGceResourceReference;
+  certificateMap?: string;
   subnet?: IGceResourceReference;
 }
 
 export interface IGceLoadBalancerHealthCheck {
   checkIntervalSec?: number;
+  grpcServiceName?: string;
   healthCheckType?: GceLoadBalancerProtocol;
   healthyThreshold?: number;
   host?: string;
@@ -262,7 +264,7 @@ function normalizeLoadBalancerType(value: unknown): GceLoadBalancerType {
 
 function normalizeProtocol(value: unknown, type: GceLoadBalancerType): GceLoadBalancerProtocol {
   const normalized = asString(value).toUpperCase();
-  if (['TCP', 'UDP', 'HTTP', 'HTTPS', 'SSL'].includes(normalized)) {
+  if (['TCP', 'UDP', 'HTTP', 'HTTPS', 'HTTP2', 'GRPC', 'SSL'].includes(normalized)) {
     return normalized as GceLoadBalancerProtocol;
   }
   if (type === 'SSL') {
@@ -281,7 +283,7 @@ function normalizeListener(
     protocol: normalizeProtocol(
       listener.protocol ||
         (isHttpType(type)
-          ? listener.certificate || Number(listener.port || listener.portRange) === 443
+          ? listener.certificate || listener.certificateMap || Number(listener.port || listener.portRange) === 443
             ? 'HTTPS'
             : 'HTTP'
           : listener.ipProtocol),
@@ -291,12 +293,16 @@ function normalizeListener(
   };
   const address = normalizeReference(listener.address || listener.ipAddress);
   const certificate = normalizeReference(listener.certificate);
+  const certificateMap = asString(listener.certificateMap);
   const subnet = normalizeReference(listener.subnet);
   if (address) {
     normalized.address = address;
   }
   if (certificate) {
     normalized.certificate = certificate;
+  }
+  if (certificateMap) {
+    normalized.certificateMap = certificateMap;
   }
   if (subnet) {
     normalized.subnet = subnet;
@@ -453,6 +459,9 @@ function serializeListener(
   }
   if (capabilitiesForType.certificates && listener.certificate) {
     serialized.certificate = serializeCertificateName(listener.certificate);
+  }
+  if (capabilitiesForType.certificates && listener.certificateMap) {
+    serialized.certificateMap = listener.certificateMap;
   }
   if (capabilitiesForType.subnet && listener.subnet) {
     serialized.subnet = serializeSubnetName(listener.subnet);

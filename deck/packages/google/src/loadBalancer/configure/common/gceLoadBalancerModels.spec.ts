@@ -6,6 +6,25 @@ import {
 } from './gceLoadBalancerModels';
 
 describe('GCE load balancer models', () => {
+  it('preserves certificate maps and modern health-check protocols', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      {
+        account: 'test-account',
+        healthChecks: [{ healthCheckType: 'GRPC', grpcServiceName: 'example.Health', name: 'grpc', port: 443 }],
+        listeners: [{ certificateMap: 'shared-map', name: 'https', port: 443, protocol: 'HTTPS' }],
+        loadBalancerType: 'HTTP',
+        name: 'web',
+      },
+      'create',
+    );
+
+    expect(serializeGceLoadBalancerCommand(command)).toEqual(
+      jasmine.objectContaining({
+        healthChecks: [jasmine.objectContaining({ healthCheckType: 'GRPC', grpcServiceName: 'example.Health' })],
+        listeners: [jasmine.objectContaining({ certificateMap: 'shared-map' })],
+      }),
+    );
+  });
   it('defines capabilities for every supported load balancer type', () => {
     expect(GCE_LOAD_BALANCER_TYPES).toEqual(['NETWORK', 'INTERNAL', 'TCP', 'SSL', 'HTTP', 'INTERNAL_MANAGED']);
     expect(Object.keys(GCE_LOAD_BALANCER_CAPABILITIES)).toEqual(GCE_LOAD_BALANCER_TYPES);

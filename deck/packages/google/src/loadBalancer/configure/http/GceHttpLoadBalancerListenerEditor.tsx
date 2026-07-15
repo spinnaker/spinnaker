@@ -110,24 +110,40 @@ export function GceHttpLoadBalancerListenerEditor({
         </select>
       </label>
       {listener.protocol === 'HTTPS' && (
-        <label>
-          Certificate
-          <select
-            data-testid="listener-certificate"
-            required
-            value={listener.certificate?.name || ''}
-            onChange={(event) =>
-              onChange({ ...listener, certificate: selectedReference(event.target.value, certificates) })
-            }
-          >
-            <option value="">Select...</option>
-            {certificates.map((certificate) => (
-              <option key={certificate.name} value={certificate.name}>
-                {certificate.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <label>
+            Certificate
+            <select
+              data-testid="listener-certificate"
+              value={listener.certificate?.name || ''}
+              onChange={(event) =>
+                onChange({
+                  ...listener,
+                  certificate: selectedReference(event.target.value, certificates),
+                  certificateMap: undefined,
+                })
+              }
+            >
+              <option value="">Select...</option>
+              {certificates.map((certificate) => (
+                <option key={certificate.name} value={certificate.name}>
+                  {certificate.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Certificate map
+            <input
+              data-testid="listener-certificate-map"
+              type="text"
+              value={listener.certificateMap || ''}
+              onChange={(event) =>
+                onChange({ ...listener, certificate: undefined, certificateMap: event.target.value || undefined })
+              }
+            />
+          </label>
+        </>
       )}
       <button type="button" className="btn btn-sm btn-default" onClick={onRemove}>
         Remove listener

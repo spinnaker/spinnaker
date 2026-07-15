@@ -16,6 +16,8 @@ const application = {
 } as any;
 
 describe('GceCloneServerGroupModal', () => {
+  const serverGroupWriter = { cloneServerGroup: () => Promise.resolve() };
+
   beforeEach(() => {
     application.serverGroups.onNextRefresh.calls.reset();
     application.serverGroups.refresh.calls.reset();
@@ -23,6 +25,7 @@ describe('GceCloneServerGroupModal', () => {
       dismiss: jasmine.createSpy('dismiss'),
       result: Promise.resolve(),
     } as any);
+    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(serverGroupWriter as any);
   });
 
   it('opens as a wizard modal', () => {

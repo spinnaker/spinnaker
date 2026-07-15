@@ -12,6 +12,7 @@ import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
 import { GceRollbackServerGroupModal } from './rollback/GceRollbackServerGroupModal';
 
 describe('GCE server group details integration', () => {
+  const serverGroupWriter = {} as any;
   const serverGroup = {
     account: 'prod',
     app: 'fnord',
@@ -48,6 +49,10 @@ describe('GCE server group details integration', () => {
 
   const linkAction = (wrapper: any, label: string) =>
     wrapper.find('a').filterWhere((link: any) => link.text() === label);
+
+  beforeEach(() => {
+    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(serverGroupWriter);
+  });
 
   it('registers autoscaling and auto-healing sections backed by the completed details components', () => {
     registerGoogleProvider();

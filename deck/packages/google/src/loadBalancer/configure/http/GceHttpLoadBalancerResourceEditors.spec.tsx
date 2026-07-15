@@ -34,6 +34,26 @@ describe('GceHttpLoadBalancerResourceEditors', () => {
     expect(wrapper.find('button').everyWhere((button) => button.prop('type') === 'button')).toBe(true);
   });
 
+  it('supports HTTP2 request paths and GRPC service names', () => {
+    const onChange = jasmine.createSpy('onChange');
+    const wrapper = shallow(
+      <GceHttpLoadBalancerHealthCheckEditor
+        healthCheck={{ healthCheckType: 'GRPC', name: 'grpc-check', port: 443 }}
+        healthChecks={[]}
+        onChange={onChange}
+        onRemove={jasmine.createSpy('onRemove')}
+      />,
+    );
+
+    expect(
+      wrapper.find('[data-testid="health-check-protocol"] option').map((option) => option.prop('value')),
+    ).toContain('HTTP2');
+    expect(
+      wrapper.find('[data-testid="health-check-protocol"] option').map((option) => option.prop('value')),
+    ).toContain('GRPC');
+    expect(wrapper.find('[data-testid="health-check-grpc-service-name"]').length).toBe(1);
+  });
+
   it('selects complete backend-service and health-check references', () => {
     const onChange = jasmine.createSpy('onChange');
     const backendServices = [

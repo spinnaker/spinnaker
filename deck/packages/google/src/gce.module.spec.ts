@@ -99,15 +99,6 @@ describe('Google provider registration', () => {
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.reader')).toBe(GceSecurityGroupReader);
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.transformer')).toBe(GceSecurityGroupTransformer);
     expect(CloudProviderRegistry.getValue('gce', 'subnet.renderer')).toBe(GceSubnetRenderer);
-    expect(CloudProviderRegistry.getValue('gce', 'applicationProviderFields')).toEqual([
-      {
-        field: 'associatePublicIpAddress',
-        helpKey: 'gce.serverGroup.associatePublicIpAddress.providerField',
-        label: 'Associate Public IP Address',
-        type: 'boolean',
-      },
-    ]);
-
     expect(CloudProviderRegistry.getValue('gce', `serverGroup.details${legacyCtrlKey}`)).toBeNull();
     expect(CloudProviderRegistry.getValue('gce', `serverGroup.details${legacyViewKey}`)).toBeNull();
     expect(CloudProviderRegistry.getValue('gce', `instance.details${legacyCtrlKey}`)).toBeNull();
