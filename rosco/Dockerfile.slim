@@ -1,10 +1,12 @@
-FROM alpine:3.20
+FROM alpine:3.24
 LABEL maintainer="sig-platform@spinnaker.io"
 
+# DEPRECATED: kustomize v3 is end-of-life upstream; removal planned for the 2026.4.x releases
 ENV KUSTOMIZE_VERSION=3.9.4
 ENV KUSTOMIZE4_VERSION=4.5.7
-ENV PACKER_VERSION=1.10.1
-ENV HELMFILE_VERSION=1.1.7
+ENV KUSTOMIZE5_VERSION=5.8.1
+ENV PACKER_VERSION=1.15.4
+ENV HELMFILE_VERSION=1.7.0
 
 
 ARG TARGETARCH
@@ -32,6 +34,7 @@ RUN wget https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get &&
   ./get --version v2.17.0 && \
   rm get
 
+# DEPRECATED: kustomize v3 is end-of-life upstream; removal planned for the 2026.4.x releases
 RUN mkdir kustomize && \
   curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_${TARGETARCH}.tar.gz|\
   tar xvz -C kustomize/ && \
@@ -42,6 +45,12 @@ RUN mkdir kustomize && \
   curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE4_VERSION}/kustomize_v${KUSTOMIZE4_VERSION}_linux_${TARGETARCH}.tar.gz|\
   tar xvz -C kustomize/ && \
   mv ./kustomize/kustomize /usr/local/bin/kustomize4 && \
+  rm -rf ./kustomize
+
+RUN mkdir kustomize && \
+  curl -s -L https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v${KUSTOMIZE5_VERSION}/kustomize_v${KUSTOMIZE5_VERSION}_linux_${TARGETARCH}.tar.gz|\
+  tar xvz -C kustomize/ && \
+  mv ./kustomize/kustomize /usr/local/bin/kustomize5 && \
   rm -rf ./kustomize
 
 RUN mkdir helmfile && \
