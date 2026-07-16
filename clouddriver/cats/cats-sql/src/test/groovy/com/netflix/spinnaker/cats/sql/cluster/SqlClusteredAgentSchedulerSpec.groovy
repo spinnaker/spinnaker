@@ -103,7 +103,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler = new SqlClusteredAgentScheduler(context, nodeIdentity, intervalProvider, nodeStatusProvider, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor, runnableScheduler,
-      shardingFilter)
+      shardingFilter, 0)
 
 
     when:
@@ -148,7 +148,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor1, runnableScheduler1,
-      shardingFilter1)
+      shardingFilter1, 0)
 
     // node 2
     def agent2 = Stub(CachingAgent)
@@ -169,7 +169,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, intervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor2, runnableScheduler2,
-      shardingFilter2)
+      shardingFilter2, 0)
 
 
     when:
@@ -220,7 +220,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor1, runnableScheduler1,
-      shardingFilter1)
+      shardingFilter1, 0)
 
     // node 2
     def agent2 = Stub(CachingAgent)
@@ -240,7 +240,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, intervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor2, runnableScheduler2,
-      shardingFilter2)
+      shardingFilter2, 0)
 
 
     when:
@@ -268,6 +268,116 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     1 * exec1.executeAgent(_)
     1 * exec1.stopExecutingAndCleanup()
     1 * exec2.executeAgent(_)
+  }
+
+  def 'longRunningAgent is rescheduled if node topology changes and still running but above rebalance threshold'() {
+    given:
+    SqlClusteredAgentScheduler scheduler1
+    ManualRunnableScheduler runnableScheduler1
+    ManualRunnableScheduler runnableExecutor1
+    def agentType1 = "someagenttype-1"
+    def agentType2 = "someagenttype-2"
+
+    // node 1
+    def agent1 = Stub(CachingAgent)
+    agent1.getAgentType() >> agentType1
+    def instr1 = Mock(ExecutionInstrumentation)
+    def exec1 = Spy(MockAgentLongRunningExecution)
+
+    def agent2 = Stub(CachingAgent)
+    agent2.getAgentType() >> agentType2
+    def instr2 = Mock(ExecutionInstrumentation)
+    def exec2 = Spy(MockAgentLongRunningExecution)
+
+    def nodeIdentity1 = Stub(NodeIdentity)
+    def nodeStatusProvider1 = Stub(NodeStatusProvider)
+    def shardingFilter1 = new MockShardingFilter()
+
+    nodeIdentity1.nodeIdentity >> "node1"
+    nodeStatusProvider1.isNodeEnabled() >> true
+    shardingFilter1.add(agentType1)
+    shardingFilter1.add(agentType2)
+
+    runnableScheduler1 = new ManualRunnableScheduler()
+    runnableExecutor1 = new ManualRunnableScheduler()
+
+    scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
+      runnableExecutor1, runnableScheduler1,
+      shardingFilter1, 50)
+
+
+    when:
+    scheduler1.schedule(agent1, exec1, instr1)
+    scheduler1.schedule(agent2, exec2, instr2)
+    runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
+    Thread.sleep(600)
+
+    shardingFilter1.remove(agentType2)
+
+    runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
+    then:
+    1 * exec1.executeAgent(_)
+    1 * exec2.executeAgent(_)
+    1 * exec2.stopExecutingAndCleanup()
+  }
+
+  def 'longRunningAgent is not rescheduled if node topology changes and still running but below rebalance threshold'() {
+    given:
+    SqlClusteredAgentScheduler scheduler1
+    ManualRunnableScheduler runnableScheduler1
+    ManualRunnableScheduler runnableExecutor1
+    def agentType1 = "someagenttype-1b"
+    def agentType2 = "someagenttype-2b"
+
+    // node 1
+    def agent1 = Stub(CachingAgent)
+    agent1.getAgentType() >> agentType1
+    def instr1 = Mock(ExecutionInstrumentation)
+    def exec1 = Spy(MockAgentLongRunningExecution)
+
+    def agent2 = Stub(CachingAgent)
+    agent2.getAgentType() >> agentType2
+    def instr2 = Mock(ExecutionInstrumentation)
+    def exec2 = Spy(MockAgentLongRunningExecution)
+
+    def nodeIdentity1 = Stub(NodeIdentity)
+    def nodeStatusProvider1 = Stub(NodeStatusProvider)
+    def shardingFilter1 = new MockShardingFilter()
+
+    nodeIdentity1.nodeIdentity >> "node1"
+    nodeStatusProvider1.isNodeEnabled() >> true
+    shardingFilter1.add(agentType1)
+    shardingFilter1.add(agentType2)
+
+    runnableScheduler1 = new ManualRunnableScheduler()
+    runnableExecutor1 = new ManualRunnableScheduler()
+
+    scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
+      runnableExecutor1, runnableScheduler1,
+      shardingFilter1, 300)
+
+
+    when:
+    scheduler1.schedule(agent1, exec1, instr1)
+    scheduler1.schedule(agent2, exec2, instr2)
+    runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
+    Thread.sleep(600)
+
+    shardingFilter1.remove(agentType2)
+
+    runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
+    then:
+    1 * exec1.executeAgent(_)
+    1 * exec2.executeAgent(_)
+    0 * exec2.stopExecutingAndCleanup()
   }
 
 
@@ -300,7 +410,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor1, runnableScheduler1,
-      shardingFilter1)
+      shardingFilter1, 0)
 
     // node 2
     def agent2 = Stub(CachingAgent)
@@ -320,7 +430,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, intervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor2, runnableScheduler2,
-      shardingFilter2)
+      shardingFilter2, 0)
 
 
     when:
@@ -378,7 +488,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, biggerIntervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor1, runnableScheduler1,
-      shardingFilter1)
+      shardingFilter1, 0)
 
     // node 2
     def agent2 = Stub(CachingAgent)
@@ -398,7 +508,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, biggerIntervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
       runnableExecutor2, runnableScheduler2,
-      shardingFilter2)
+      shardingFilter2, 0)
 
 
     when:

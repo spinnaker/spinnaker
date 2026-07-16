@@ -124,7 +124,8 @@ class SqlClusteredAgentSchedulerTest : JUnit5Minutests {
       tableNamespace,
       agentExecutionPool,
       lockPollingScheduler,
-      shardingFilter
+      shardingFilter,
+      0
     )
 
     init {

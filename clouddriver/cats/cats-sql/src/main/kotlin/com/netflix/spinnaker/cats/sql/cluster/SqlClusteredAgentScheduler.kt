@@ -66,7 +66,8 @@ class SqlClusteredAgentScheduler(
   lockPollingScheduler: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
     ThreadFactoryBuilder().setNameFormat(SqlClusteredAgentScheduler::class.java.simpleName + "-%d").build()
   ),
-  private val shardingFilter: ShardingFilter
+  private val shardingFilter: ShardingFilter,
+  private val rebalancePercentageThreshold: Int = 50
 ) : CatsModuleAware(), AgentScheduler<AgentLock>, Runnable {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -290,6 +291,20 @@ class SqlClusteredAgentScheduler(
     val thisNodeAgentsNotRunning = filteredForThisNode
       .filter { (it.value.execution as LongRunningAgentExecution).state != RUNNING}
     log.debug("{} Long Running Agents filtered for node: {} not running", thisNodeAgentsNotRunning.size, nodeIdentity.nodeIdentity)
+
+    if (rebalancePercentageThreshold > 0) {
+      val expectedForThisNodeOrOne = if (filteredForThisNode.size > 0) filteredForThisNode.size else 1
+      val agentsCurrentlyRunningThisNode = longRunningAgents
+        .filter { (it.value.execution as LongRunningAgentExecution).state == RUNNING}
+      log.debug("{} Long Running Agents Currently running in node {}", agentsCurrentlyRunningThisNode.size, nodeIdentity.nodeIdentity)
+      val aboveExpectedPercentageThreshold = ((agentsCurrentlyRunningThisNode.size-filteredForThisNode.size.toDouble())/expectedForThisNodeOrOne*100).toInt()
+      if (aboveExpectedPercentageThreshold > rebalancePercentageThreshold) {
+        val agentsToBeStopped = agentsCurrentlyRunningThisNode.filter { !shardingFilter.filter(it.value.agent) }
+        log.info("Long Running Agents in {} needing to be rebalanced above configured threshold ({}%>{}%). Stopping {}",
+          nodeIdentity.nodeIdentity, aboveExpectedPercentageThreshold, rebalancePercentageThreshold, agentsToBeStopped)
+        agentsToBeStopped.forEach { unschedule(it.value.agent) }
+      }
+    }
 
     val candidateAgentLocks = thisNodeAgentsNotRunning
       .filter { tryAcquireSingleLongRunning(it.key, now, intervalProvider.getInterval(it.value.agent).interval) }
