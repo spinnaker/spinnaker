@@ -1,4 +1,4 @@
-FROM golang:1.17 as build
+FROM golang:1.26.5 as build
 ARG VERSION=dev
 
 WORKDIR /app
@@ -8,7 +8,7 @@ ENV LD_VERSION="-X github.com/spinnaker/spinnaker/spin/version.Version=${VERSION
 
 RUN GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -ldflags "${LD_VERSION}" .
 
-FROM alpine
+FROM alpine:3.24
 
 RUN apk update \
     && apk add ca-certificates \
