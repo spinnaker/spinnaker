@@ -37,6 +37,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.RecordHandler
 import org.jooq.SQLDialect
 import org.jooq.exception.DataAccessException
 import org.jooq.exception.SQLDialectNotSupportedException
@@ -95,7 +96,7 @@ class SqlCache(
   }
 
   /**
-   * Only evicts cache records but not relationship rows
+   * Evicts cache records and relationships.
    */
   override fun evictAll(type: String, ids: Collection<String>) {
     if (ids.isEmpty()) {
@@ -106,7 +107,22 @@ class SqlCache(
 
     var deletedCount = 0
     var opCount = 0
+    var relationshipsDeleted = 0
     try {
+      val relationshipsForEviction = getRelationshipsForEviction(type, ids)
+      relationshipsForEviction.forEach { (type, uuids) ->
+        if (uuids.isNotEmpty()) {
+          relationshipsDeleted += uuids.size
+          uuids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)) { chunk ->
+            withRetry(RetryCategory.WRITE) {
+              jooq.deleteFrom(table(sqlNames.relTableName(type)))
+                .where(field("uuid").`in`(*chunk.toTypedArray()))
+                .execute()
+            }
+          }
+        }
+      }
+
       ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)) { chunk ->
         withRetry(RetryCategory.WRITE) {
           jooq.deleteFrom(table(sqlNames.resourceTableName(type)))
@@ -125,8 +141,72 @@ class SqlCache(
       type = type,
       itemCount = ids.size,
       itemsDeleted = deletedCount,
+      relationshipsDeleted = relationshipsDeleted,
       deleteOperations = opCount
     )
+  }
+
+  private fun getRelationshipsForEviction(type: String, ids: Collection<String>): Map<String, List<String>> {
+    val relationshipUUIDs = hashMapOf<String, MutableList<String>>()
+
+    val backwardRelationships = hashMapOf<String, MutableList<RelPointer>>()
+    ids.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)) { chunk ->
+      withRetry(RetryCategory.READ) {
+        val forwardsRelsRS =
+          jooq.select(field("uuid"), field("id"), field("rel_id"), field("rel_type"))
+            .from(table(sqlNames.relTableName(type)))
+            .where(field("id").`in`(*chunk.toTypedArray()))
+            .fetch()
+            .intoResultSet()
+
+        while (forwardsRelsRS.next()) {
+          val uuid = forwardsRelsRS.getString("uuid")
+          val id = forwardsRelsRS.getString("id")
+          val relId = forwardsRelsRS.getString("rel_id")
+          val relType = forwardsRelsRS.getString("rel_type")
+
+          // save uuid for forward relationship
+          relationshipUUIDs.computeIfAbsent(type) { mutableListOf() }.add(uuid)
+
+          // construct backward relationship. will select its uuid later
+          backwardRelationships.computeIfAbsent(relType) { mutableListOf() }.add(
+            RelPointer(
+              id = relId,
+              rel_id = id,
+              rel_type = type,
+            )
+          )
+        }
+      }
+    }
+
+    // select the uuid for the backward relationships
+    // assume that each object contains a handful of relationships, so it would be faster to
+    // select all its relationships by a table index, and filter them in memory
+    backwardRelationships.forEach { (relType, relPointers) ->
+      relPointers.chunked(dynamicConfigService.getConfig(Int::class.java, "sql.cache.read-batch-size", 500)) { chunk ->
+        withRetry(RetryCategory.READ) {
+          val rs = jooq.select(field("uuid"), field("id"), field("rel_id"), field("rel_type"))
+            .from(table(sqlNames.relTableName(relType)))
+            .where(field("id").`in`(*chunk.map { it.id }.toTypedArray()))
+            .fetch()
+            .intoResultSet()
+
+          while (rs.next()) {
+            if (chunk.contains(RelPointer(
+              id = rs.getString("id"),
+              rel_id = rs.getString("rel_id"),
+              rel_type = rs.getString("rel_type"),
+            ))) {
+              val uuid = rs.getString("uuid")
+              relationshipUUIDs.computeIfAbsent(relType) { mutableListOf() }.add(uuid)
+            }
+          }
+        }
+      }
+    }
+
+    return relationshipUUIDs
   }
 
   fun mergeAll(
@@ -704,10 +784,17 @@ class SqlCache(
   private fun storeInformative(type: String, items: MutableCollection<CacheData>, cleanup: Boolean): StoreResult {
     val result = StoreResult()
 
-    val sourceAgents = items.filter { it.relationships.isNotEmpty() }
+    // rel_type -> agent name
+    // e.g.: "pod:KubernetesCachingAgent" -> "KubernetesCachingAgent"
+    val agentNames = hashMapOf<String, String>()
+    items.filter { it.relationships.isNotEmpty() }
       .map { it.relationships.keys }
       .flatten()
-      .toSet()
+      .forEach { rel ->
+        agentNames.computeIfAbsent(rel) { it.substringAfter(":", it) }
+      }
+
+    val sourceAgents = agentNames.values.toSet()
 
     if (sourceAgents.isEmpty()) {
       log.info("no relationships found for type $type")
@@ -789,6 +876,11 @@ class SqlCache(
         }
       }
 
+    // should never happen but will log if it does, and simplify troubleshooting
+    if (newFwdRelPointers.isEmpty() != newRevRelIds.isEmpty()) {
+      log.error("Inconsistent relationship data for $type: $newFwdRelPointers, $newRevRelIds")
+    }
+
     newFwdRelPointers.forEach { (relType, pointers) ->
       val now = clock.millis()
       var ulid = ULID().nextValue()
@@ -807,7 +899,7 @@ class SqlCache(
 
           insert.apply {
             chunk.forEach {
-              values(ulid.toString(), it.id, it.rel_id, sqlNames.checkAgentName(it.rel_type), relType, now)
+              values(ulid.toString(), it.id, it.rel_id, sqlNames.checkAgentName(agentNames[it.rel_type]), relType, now)
               ulid = ULID().nextMonotonicValue(ulid)
             }
           }
@@ -837,7 +929,7 @@ class SqlCache(
 
             insert.apply {
               chunk.forEach {
-                values(ulid.toString(), it.rel_id, it.id, sqlNames.checkAgentName(it.rel_type), type, now)
+                values(ulid.toString(), it.rel_id, it.id, sqlNames.checkAgentName(agentNames[it.rel_type]), type, now)
                 ulid = ULID().nextMonotonicValue(ulid)
               }
             }

@@ -51,13 +51,15 @@ class SpectatorSqlCacheMetrics(
     type: String,
     itemCount: Int,
     itemsDeleted: Int,
+    relationshipsDeleted: Int,
     deleteOperations: Int
   ) {
     val tags = tags(prefix, type)
     registry.counter(id("cats.sqlCache.evict", "itemCount", tags)).increment(itemCount.toLong())
     registry.counter(id("cats.sqlCache.evict", "itemsDeleted", tags)).increment(itemsDeleted.toLong())
+    registry.counter(id("cats.sqlCache.evict", "relationshipsDeleted", tags)).increment(relationshipsDeleted.toLong())
     registry.counter(id("cats.sqlCache.evict", "deleteOperations", tags)).increment(deleteOperations.toLong())
-    super.evict(prefix, type, itemCount, itemsDeleted, deleteOperations)
+    super.evict(prefix, type, itemCount, itemsDeleted, relationshipsDeleted, deleteOperations)
   }
 
   override fun get(
