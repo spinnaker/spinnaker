@@ -21,11 +21,16 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution
+import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.DefaultAgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.cluster.DefaultNodeStatusProvider
+import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
+import com.netflix.spinnaker.cats.test.MockAgentLongRunningExecution
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
+import com.netflix.spinnaker.cats.test.MockShardingFilter
 import com.netflix.spinnaker.cats.test.TestAgent
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
@@ -50,7 +55,9 @@ class ClusteredAgentSchedulerSpec extends Specification {
     ManualRunnableScheduler lockPollingScheduler
     ManualRunnableScheduler agentExecutionScheduler
     HealthEndpoint healthEndpoint
+    AgentIntervalProvider intervalProvider
     AgentExecution exec = Mock(AgentExecution)
+    LongRunningAgentExecution longRunningExec = Mock(LongRunningAgentExecution)
     ExecutionInstrumentation inst = Mock(ExecutionInstrumentation)
     DynamicConfigService dcs = Stub(DynamicConfigService) {
       getConfig(Integer, _ as String, 1000) >> 1000
@@ -59,7 +66,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
     }
 
     def setup() {
-        def interval = new DefaultAgentIntervalProvider(6000000)
+        intervalProvider = new DefaultAgentIntervalProvider(6000000)
         agent = new TestAgent()
         jedis = Mock(Jedis)
         jedisPool = Stub(JedisPool) {
@@ -77,7 +84,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         scheduler = new ClusteredAgentScheduler(
           new JedisClientDelegate(jedisPool),
           new DefaultNodeIdentity(),
-          interval,
+          intervalProvider,
           new DefaultNodeStatusProvider(),
           healthEndpoint,
           lockPollingScheduler,
@@ -181,7 +188,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
       !scheduler.activeAgents.containsKey(agent.agentType)
     }
 
-  def 'test that a long-running/stuck agent is removed from the active agents map after sufficient time has elapsed'() {
+  def 'test that a stuck (running for longer than allowed) agent is removed from the active agents map after sufficient time has elapsed'() {
     given:
     def arbitraryAgentInterval = 500l
     // agent is configured with an interval of 500ms (so this agent is supposed to timeout after 2 * 500 = 1s)
@@ -325,7 +332,127 @@ class ClusteredAgentSchedulerSpec extends Specification {
       realScheduler.activeAgents.containsKey(agent.agentType)
     }
 
-    /**
+
+    def 'long running agent run proceeds if agent acquires execution token'() {
+      when:
+      scheduler.schedule(agent, longRunningExec, inst)
+      lockPollingScheduler.runAll()
+      agentExecutionScheduler.runAll()
+
+      then:
+      1 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'OK'
+      1 * inst.executionStarted(agent)
+      1 * longRunningExec.executeAgent(agent)
+    }
+
+  def 'long running agent run does not proceed if already started agent is still running and node topology changes'() {
+    given:
+    def agent1 = Mock(Agent)
+    def agent2 = Mock(Agent)
+
+    def inst1 = Mock(ExecutionInstrumentation)
+    def inst2 = Mock(ExecutionInstrumentation)
+
+    LongRunningAgentExecution longRunningExec1 = Spy(MockAgentLongRunningExecution)
+    LongRunningAgentExecution longRunningExec2 = Spy(MockAgentLongRunningExecution)
+
+    def lockPollingScheduler2 = new ManualRunnableScheduler()
+    def agentExecutionScheduler2 = new ManualRunnableScheduler()
+    def nodeIdentity2 = Stub(NodeIdentity)
+    def scheduler2 = new ClusteredAgentScheduler(
+      new JedisClientDelegate(jedisPool),
+      nodeIdentity2,
+      intervalProvider,
+      new DefaultNodeStatusProvider(),
+      lockPollingScheduler2,
+      agentExecutionScheduler2,
+      ".*",
+      null,
+      dcs,
+      new NoopShardingFilter()
+    )
+
+    when:
+    agent1.getAgentType() >> "someagent"
+    agent2.getAgentType() >> "someagent"
+    nodeIdentity2.getNodeIdentity() >> "node2"
+
+    scheduler.schedule(agent1, longRunningExec1, inst1)
+    lockPollingScheduler.runAll()
+    agentExecutionScheduler.runAll()
+    Thread.sleep(600)
+    scheduler2.schedule(agent2, longRunningExec2, inst2)
+    lockPollingScheduler2.runAll()
+    agentExecutionScheduler2.runAll()
+
+    then:
+    2 * jedis.set(_ as String, _ as String, _ as SetParams) >>> ['OK', null]
+    1 * inst1.executionStarted(agent1)
+    1 * longRunningExec1.executeAgent(agent1)
+    0 * longRunningExec2.executeAgent(agent2)
+    0 * inst2.executionStarted(agent2)
+  }
+
+  def 'long running agent proceeds in another node if already started agent stops and node topology changes'() {
+    given:
+    def agent1 = Mock(Agent)
+    def agent2 = Mock(Agent)
+
+    def inst1 = Mock(ExecutionInstrumentation)
+    def inst2 = Mock(ExecutionInstrumentation)
+
+    def intervalProvider2 = Stub(AgentIntervalProvider)
+
+    LongRunningAgentExecution longRunningExec1 = Spy(MockAgentLongRunningExecution)
+    LongRunningAgentExecution longRunningExec2 = Spy(MockAgentLongRunningExecution)
+
+    def lockPollingScheduler2 = new ManualRunnableScheduler()
+    def agentExecutionScheduler2 = new ManualRunnableScheduler()
+    def nodeIdentity2 = Stub(NodeIdentity)
+    def shardingFilter2 = new MockShardingFilter()
+    def scheduler2 = new ClusteredAgentScheduler(
+      new JedisClientDelegate(jedisPool),
+      nodeIdentity2,
+      intervalProvider,
+      new DefaultNodeStatusProvider(),
+      lockPollingScheduler2,
+      agentExecutionScheduler2,
+      ".*",
+      null,
+      dcs,
+      shardingFilter2
+    )
+
+    when:
+    intervalProvider2.getInterval(_ as Agent) >> new AgentIntervalProvider.Interval(500L, 500L)
+    agent1.getAgentType() >> "someagent"
+    agent2.getAgentType() >> "someagent"
+    nodeIdentity2.getNodeIdentity() >> "node2"
+    shardingFilter2.add("someagent")
+
+    scheduler2.schedule(agent2, longRunningExec2, inst2)
+    lockPollingScheduler2.runAll()
+    agentExecutionScheduler2.runAll()
+    Thread.sleep(600)
+    shardingFilter2.remove("someagent")
+    longRunningExec2.fail()
+    lockPollingScheduler2.runAll()
+    agentExecutionScheduler2.runAll()
+    scheduler.schedule(agent1, longRunningExec1, inst1)
+    lockPollingScheduler.runAll()
+    agentExecutionScheduler.runAll()
+
+    then:
+    2 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'OK'
+    1 * inst1.executionStarted(agent1)
+    1 * longRunningExec1.executeAgent(agent1)
+    1 * longRunningExec2.stopExecutingAndCleanup()
+    1 * longRunningExec2.executeAgent(agent2)
+    1 * inst2.executionStarted(agent2)
+  }
+
+
+  /**
      * a test {@link AgentExecution} class that simulates a long-running/stuck agent execution
      */
     private class TestStuckAgentExecution implements AgentExecution {

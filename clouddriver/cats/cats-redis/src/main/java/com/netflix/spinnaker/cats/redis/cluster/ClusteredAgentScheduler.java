@@ -17,14 +17,18 @@
 package com.netflix.spinnaker.cats.redis.cluster;
 
 import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
+import static com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.FAILED;
+import static com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.RUNNING;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
+import com.netflix.spinnaker.cats.agent.AgentExecutionRunnable;
 import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.NodeIdentity;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
@@ -32,7 +36,14 @@ import com.netflix.spinnaker.cats.cluster.ShardingFilter;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,6 +78,8 @@ public class ClusteredAgentScheduler extends CatsModuleAware
    */
   @Getter // visible for tests
   private final Map<String, AgentExecutionAction> agents = new ConcurrentHashMap<>();
+
+  private final Map<String, AgentExecutionRunnable> longRunningAgents = new ConcurrentHashMap<>();
 
   /** This contains all the agents that are currently scheduled for execution */
   @Getter // visible for tests
@@ -216,6 +229,90 @@ public class ClusteredAgentScheduler extends CatsModuleAware
     return acquired;
   }
 
+  private void removeRelocated() {
+    Set<AgentExecutionRunnable> stoppedAgentsRelocated =
+        longRunningAgents.values().stream()
+            .filter(it -> !shardingFilter.filter(it.getAgent()))
+            .filter(it -> (((LongRunningAgentExecution) it.getExecution()).getState() == FAILED))
+            .collect(Collectors.toSet());
+    stoppedAgentsRelocated.forEach(
+        it -> ((LongRunningAgentExecution) it.getExecution()).stopExecutingAndCleanup());
+  }
+
+  private void renewAgentLocks() {
+    Map<String, AgentExecutionRunnable> runningAgentsToBeRenewed =
+        longRunningAgents.entrySet().stream()
+            .filter(
+                e ->
+                    ((LongRunningAgentExecution) e.getValue().getExecution()).getState() == RUNNING)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    logger.debug(
+        "{} Long Running Agents Locks to be renewed in {}",
+        runningAgentsToBeRenewed.size(),
+        nodeIdentity.getNodeIdentity());
+
+    runningAgentsToBeRenewed.forEach(
+        (key, value) ->
+            ttlLock(
+                key,
+                System.currentTimeMillis()
+                    + intervalProvider.getInterval(value.getAgent()).getInterval()));
+  }
+
+  private void submitLongRunningAgents() {
+    Map<String, AgentExecutionRunnable> filteredForThisNode =
+        longRunningAgents.entrySet().stream()
+            .filter(it -> shardingFilter.filter(it.getValue().getAgent()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    logger.debug(
+        "{} Long Running Agents filtered for node: {}",
+        filteredForThisNode.size(),
+        nodeIdentity.getNodeIdentity());
+
+    Map<String, AgentExecutionRunnable> thisNodeAgentsNotRunning =
+        filteredForThisNode.entrySet().stream()
+            .filter(
+                it ->
+                    ((LongRunningAgentExecution) it.getValue().getExecution()).getState()
+                        != RUNNING)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    logger.debug(
+        "{} Long Running Agents filtered for node: {} not running",
+        thisNodeAgentsNotRunning.size(),
+        nodeIdentity.getNodeIdentity());
+
+    Map<String, AgentExecutionRunnable> candidateAgents =
+        thisNodeAgentsNotRunning.entrySet().stream()
+            .filter(
+                it ->
+                    acquireRunKey(
+                        it.getKey(),
+                        intervalProvider.getInterval(it.getValue().getAgent()).getInterval()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    logger.debug(
+        "{} Long Running Agents filtered for node: {} with lock acquired",
+        candidateAgents.size(),
+        nodeIdentity.getNodeIdentity());
+
+    logger.debug(
+        "Long Running Agents to be executed in {}: {}",
+        nodeIdentity.getNodeIdentity(),
+        candidateAgents.keySet());
+    candidateAgents.forEach(
+        (key, value) -> {
+          LongRunningAgentExecution longRunningAgentExecution =
+              ((LongRunningAgentExecution) value.getExecution());
+          if (longRunningAgentExecution.getState() == FAILED) {
+            longRunningAgentExecution
+                .stopExecutingAndCleanup()
+                .orTimeout(longRunningAgentExecution.getStopTimeoutMillis(), TimeUnit.MILLISECONDS)
+                .whenComplete((res, ex) -> agentExecutionPool.submit(value));
+          } else {
+            agentExecutionPool.submit(value);
+          }
+        });
+  }
+
   @Override
   public void run() {
     if (!nodeStatusProvider.isNodeEnabled()) {
@@ -228,6 +325,13 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       } catch (Throwable t) {
         logger.error("Unable to run agents", t);
       }
+    }
+    try {
+      removeRelocated();
+      renewAgentLocks();
+      submitLongRunningAgents();
+    } catch (Throwable t) {
+      logger.error("Unable to submit long running agents", t);
     }
   }
 
@@ -295,6 +399,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
                   agentType,
                   nodeIdentity.getNodeIdentity(),
                   SetParams.setParams().nx().px(timeout));
+          logger.debug("{} New run key: {}", agentType, response);
           return SUCCESS_RESPONSE.equals(response);
         });
   }
@@ -327,25 +432,26 @@ public class ClusteredAgentScheduler extends CatsModuleAware
     final long newTtl = when - System.currentTimeMillis();
     final boolean delete = newTtl < MIN_TTL_THRESHOLD;
 
-    if (delete) {
-      boolean success = deleteLock(agentType);
-      if (!success) {
-        logger.debug("Delete lock was unsuccessful for " + agentType);
+    try {
+      if (delete) {
+        boolean success = deleteLock(agentType);
+        if (!success) {
+          logger.debug("Delete lock was unsuccessful for " + agentType);
+        }
+      } else {
+        boolean success = ttlLock(agentType, newTtl);
+        if (!success) {
+          logger.debug("Ttl lock was unsuccessful for " + agentType);
+        }
       }
-    } else {
-      boolean success = ttlLock(agentType, newTtl);
-      if (!success) {
-        logger.debug("Ttl lock was unsuccessful for " + agentType);
-      }
+    } catch (Throwable t) {
+      logger.debug("Error while releasing run key for " + agentType, t);
     }
   }
 
   private void agentCompleted(String agentType, long nextExecutionTime) {
-    try {
-      releaseRunKey(agentType, nextExecutionTime);
-    } finally {
-      activeAgents.remove(agentType);
-    }
+    releaseRunKey(agentType, nextExecutionTime);
+    activeAgents.remove(agentType);
   }
 
   @Override
@@ -366,9 +472,15 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       ((AgentSchedulerAware) agent).setAgentScheduler(this);
     }
 
-    AgentExecutionAction agentExecutionAction =
-        new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
-    agents.put(agent.getAgentType(), agentExecutionAction);
+    if (agentExecution instanceof LongRunningAgentExecution) {
+      AgentExecutionRunnable runnable =
+          new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation);
+      longRunningAgents.put(agent.getAgentType(), runnable);
+    } else {
+      AgentExecutionAction agentExecutionAction =
+          new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
+      agents.put(agent.getAgentType(), agentExecutionAction);
+    }
   }
 
   /**
@@ -392,11 +504,13 @@ public class ClusteredAgentScheduler extends CatsModuleAware
    */
   @Override
   public void unschedule(Agent agent) {
-    try {
-      releaseRunKey(agent.getAgentType(), 0); // Delete lock key now.
-    } finally {
+    releaseRunKey(agent.getAgentType(), 0); // Delete lock key now.
+    if (longRunningAgents.containsKey(agent.getAgentType())) {
+      AgentExecutionRunnable runnable = longRunningAgents.get(agent.getAgentType());
+      ((LongRunningAgentExecution) runnable.getExecution()).stopExecutingAndCleanup();
+      longRunningAgents.remove(agent.getAgentType());
+    } else {
       agents.remove(agent.getAgentType());
-      // explicitly remove it from the active agents map
       activeAgents.remove(agent.getAgentType());
     }
   }

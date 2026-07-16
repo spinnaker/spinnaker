@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.cats.test
 
 import com.netflix.spinnaker.cats.agent.Agent
@@ -82,4 +83,5 @@ class MockAgentLongRunningExecution implements LongRunningAgentExecution{
       future.complete()
     }
   }
+
 }
