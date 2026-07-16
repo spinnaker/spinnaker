@@ -137,13 +137,15 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       KubernetesNamedAccountCredentials namedAccountCredentials,
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
+      @Nullable Front50ApplicationLoader front50ApplicationLoader,
+      Registry registry) {
     KubernetesStreamingCachingAgentFactory factory = streamingCachingAgentFactory();
     return factory.buildCachingAgent(
         namedAccountCredentials,
         configurationProperties,
         kubernetesSpinnakerKindMap,
-        front50ApplicationLoader);
+        front50ApplicationLoader,
+        registry);
   }
 
   // used for stripping sensitive values

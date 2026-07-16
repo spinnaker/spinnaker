@@ -89,7 +89,8 @@ public class KubernetesCachingAgentDispatcher {
                       credentials,
                       configurationProperties,
                       kubernetesSpinnakerKindMap,
-                      front50ApplicationLoader))
+                      front50ApplicationLoader,
+                      registry))
           .filter(Objects::nonNull)
           .forEach(result::add);
     } else {

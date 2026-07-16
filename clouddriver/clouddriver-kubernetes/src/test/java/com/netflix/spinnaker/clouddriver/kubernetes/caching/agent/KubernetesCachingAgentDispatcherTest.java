@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesStreamingCachingProperties;
@@ -47,7 +48,7 @@ public class KubernetesCachingAgentDispatcherTest {
     KubernetesCachingAgentDispatcher dispatcher =
         new KubernetesCachingAgentDispatcher(
             new ObjectMapper(),
-            null,
+            new NoopRegistry(),
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
             null);
@@ -65,7 +66,7 @@ public class KubernetesCachingAgentDispatcherTest {
     KubernetesCachingAgentDispatcher dispatcher =
         new KubernetesCachingAgentDispatcher(
             new ObjectMapper(),
-            null,
+            new NoopRegistry(),
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
             null);
@@ -85,7 +86,7 @@ public class KubernetesCachingAgentDispatcherTest {
     KubernetesCachingAgentDispatcher dispatcher =
         new KubernetesCachingAgentDispatcher(
             new ObjectMapper(),
-            null,
+            new NoopRegistry(),
             configProperties,
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
             null);

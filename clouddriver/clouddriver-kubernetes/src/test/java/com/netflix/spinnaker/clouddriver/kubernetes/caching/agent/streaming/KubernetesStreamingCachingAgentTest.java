@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ApplicationCacheKey;
@@ -348,6 +349,10 @@ class KubernetesStreamingCachingAgentTest extends BaseKubernetesCachingAgentTest
       KubernetesNamedAccountCredentials namedAccountCredentials,
       KubernetesConfigurationProperties configurationProperties) {
     return new KubernetesStreamingCachingAgent(
-        namedAccountCredentials, configurationProperties, kubernetesSpinnakerKindMap, null);
+        namedAccountCredentials,
+        configurationProperties,
+        kubernetesSpinnakerKindMap,
+        null,
+        new NoopRegistry());
   }
 }

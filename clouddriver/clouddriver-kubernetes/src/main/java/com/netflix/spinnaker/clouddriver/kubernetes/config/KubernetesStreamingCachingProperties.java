@@ -26,6 +26,12 @@ public class KubernetesStreamingCachingProperties {
   private long readinessTimeoutMillis = 30_000L;
   private long livenessTimeoutMillis = 30_000L;
 
+  private int kubeapiDiscoveryConnectionTimeoutMillis = 10_000;
+  private int kubeapiDiscoveryReadTimeoutMillis = 30_000;
+  private int kubeapiDiscoveryRetryLimit = 3;
+  private int kubeapiDiscoveryRetryBackoffMillis = 1_000;
+  private boolean kubeapiDiscoveryRetryExponential = false;
+
   private int eventQueueCapacity = 100;
   private int bulkedEventQueueCapacity = 100;
   private int bulkMaxEvents = 100;

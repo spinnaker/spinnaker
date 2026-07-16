@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import com.google.common.base.Suppliers;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -44,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -54,16 +57,23 @@ import org.springframework.lang.Nullable;
 public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAgent
     implements Agent {
 
+  private static final String METRIC_PREFIX = "kubernetes.agent.streaming.buildCacheResult.";
+
   private final KubernetesNamedAccountCredentials namedAccountCredentials;
   private final Supplier<Set<String>> getDeclaredNamespaces;
+  private final Registry registry;
+
+  private final Timer elapsedTime;
 
   public KubernetesStreamingCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
+      @Nullable Front50ApplicationLoader front50ApplicationLoader,
+      Registry registry) {
     super(configurationProperties, kubernetesSpinnakerKindMap, front50ApplicationLoader);
     this.namedAccountCredentials = namedAccountCredentials;
+    this.registry = registry;
 
     this.getDeclaredNamespaces =
         Suppliers.memoize(
@@ -71,6 +81,9 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
               return new HashSet<>(
                   this.namedAccountCredentials.getCredentials().getDeclaredNamespaces());
             });
+
+    String account = namedAccountCredentials.getCredentials().getAccountName();
+    this.elapsedTime = registry.timer(METRIC_PREFIX + "elapsedTime", "account", account);
   }
 
   @Override
@@ -102,7 +115,7 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
     ProviderCache cache = providerRegistry.getProviderCache(getProviderName());
     List<KubernetesKind> kubernetesKinds = filteredPrimaryKinds();
     return new KubernetesStreamingCachingAgentExecution(
-        namedAccountCredentials, cache, kubernetesKinds);
+        namedAccountCredentials, cache, kubernetesKinds, registry);
   }
 
   /**
@@ -111,6 +124,9 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
    */
   public CacheResult buildCacheResult(
       List<KubernetesManifest> updated, List<KubernetesManifest> deleted) {
+    long startTime = System.nanoTime();
+    String account = namedAccountCredentials.getCredentials().getAccountName();
+
     KubernetesCacheData kubernetesCacheData = new KubernetesCacheData();
     KubernetesCredentials credentials = namedAccountCredentials.getCredentials();
     Set<String> declaredNamespaces = getDeclaredNamespaces.get();
@@ -119,6 +135,17 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
     AtomicInteger cachingFailures = new AtomicInteger();
 
     updated.stream()
+        .peek(
+            m -> {
+              registry
+                  .counter(
+                      METRIC_PREFIX + "updatesProcessed",
+                      "account",
+                      account,
+                      "kind",
+                      m.getKindName())
+                  .increment();
+            })
         .filter(
             m ->
                 declaredNamespaces.isEmpty()
@@ -145,6 +172,14 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
                     List.of(),
                     credentials.isCacheAllApplicationRelationships());
                 successfulCachedManifests.incrementAndGet();
+                registry
+                    .counter(
+                        METRIC_PREFIX + "successfullyProcessed",
+                        "account",
+                        account,
+                        "kind",
+                        rs.getKindName())
+                    .increment();
               } catch (RuntimeException e) {
                 log.warn(
                     "{}: Failure converting manifest: {}. Error: ",
@@ -153,6 +188,14 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
                     e);
                 log.debug("{}: Failure converting {}. Error: ", getAgentType(), rs, e);
                 cachingFailures.incrementAndGet();
+                registry
+                    .counter(
+                        METRIC_PREFIX + "failedToProcess",
+                        "account",
+                        account,
+                        "kind",
+                        rs.getKindName())
+                    .increment();
               }
             });
 
@@ -176,12 +219,24 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
         cachedEntriesTotal);
     KubernetesCacheDataConverter.logStratifiedCacheData(getAgentType(), cachedData);
 
+    long endTime = System.nanoTime();
+    elapsedTime.record(endTime - startTime, TimeUnit.NANOSECONDS);
+
     return result;
   }
 
   private Map<String, Collection<String>> computeEvictableData(List<KubernetesManifest> deleted) {
+    String account = namedAccountCredentials.getCredentials().getAccountName();
     Map<String, Collection<String>> evictionsByKey = new HashMap<>();
     for (KubernetesManifest manifest : deleted) {
+      registry
+          .counter(
+              METRIC_PREFIX + "evictionsProcessed",
+              "account",
+              account,
+              "kind",
+              manifest.getKindName())
+          .increment();
       // we evict resources from all namespaces even if the account is configured to only
       // cache resources in declared namespaces, because that's how the caching agent deletes
       // stale resources (e.g. if you delete a namespace from the account, we need to evict

@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -485,6 +486,10 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
       KubernetesNamedAccountCredentials namedAccountCredentials,
       KubernetesConfigurationProperties configurationProperties) {
     return new KubernetesStreamingCachingAgent(
-        namedAccountCredentials, configurationProperties, kubernetesSpinnakerKindMap, null);
+        namedAccountCredentials,
+        configurationProperties,
+        kubernetesSpinnakerKindMap,
+        null,
+        new NoopRegistry());
   }
 }

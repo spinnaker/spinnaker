@@ -17,6 +17,11 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Timer;
+import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
@@ -59,6 +64,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -66,21 +72,66 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KubernetesStreamingCachingAgentExecution implements LongRunningAgentExecution {
 
+  private static final String METRIC_PREFIX = "kubernetes.agent.streaming.execution";
+
   private final KubernetesNamedAccountCredentials namedAccountCredentials;
   private final KubernetesStreamingCachingProperties cachingProperties;
   private final ProviderCache cache;
   private final List<KubernetesKind> kubernetesKinds;
+
+  private final Registry registry;
   private final RetrySupport retrySupport = new RetrySupport();
   private final AtomicReference<State> state = new AtomicReference<>(null);
+
+  private final Id queueSize;
+  private final Id queueRemainingCapacity;
+  private final Id bulkedQueueSize;
+  private final Id bulkedQueueRemainingCapacity;
+  private final Timer elapsedTime;
+
+  private final Counter batchesProcessed;
+  private final Timer batchProcessingTime;
+  private final Timer cacheSaveTime;
 
   public KubernetesStreamingCachingAgentExecution(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ProviderCache cache,
-      List<KubernetesKind> kubernetesKinds) {
+      List<KubernetesKind> kubernetesKinds,
+      Registry registry) {
     this.namedAccountCredentials = namedAccountCredentials;
     this.cache = cache;
     this.kubernetesKinds = kubernetesKinds;
     this.cachingProperties = namedAccountCredentials.getStreamingCaching();
+    this.registry = registry;
+
+    String account = namedAccountCredentials.getCredentials().getAccountName();
+    this.queueSize =
+        registry
+            .createId(METRIC_PREFIX + ".queueSize")
+            .withTag("account", account)
+            .withTag("queueType", "events");
+    this.queueRemainingCapacity =
+        registry
+            .createId(METRIC_PREFIX + ".queueRemainingCapacity")
+            .withTag("account", account)
+            .withTag("queueType", "events");
+    this.bulkedQueueSize =
+        registry
+            .createId(METRIC_PREFIX + ".queueSize")
+            .withTag("account", account)
+            .withTag("queueType", "bulkedEvents");
+    this.bulkedQueueRemainingCapacity =
+        registry
+            .createId(METRIC_PREFIX + ".queueRemainingCapacity")
+            .withTag("account", account)
+            .withTag("queueType", "bulkedEvents");
+
+    this.elapsedTime = registry.timer(METRIC_PREFIX + ".elapsedTime", "account", account);
+    this.batchesProcessed =
+        registry.counter(METRIC_PREFIX + ".batchesProcessed", "account", account);
+    this.cacheSaveTime = registry.timer(METRIC_PREFIX + ".cacheSaveTime", "account", account);
+    this.batchProcessingTime =
+        registry.timer(METRIC_PREFIX + ".batchProcessingTime", "account", account);
   }
 
   @Override
@@ -123,6 +174,15 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
             })
         .whenComplete(
             (result, e) -> {
+              // unregister polled meter metrics
+              unregisterPolledMeterMetrics(
+                  registry,
+                  queueSize,
+                  queueRemainingCapacity,
+                  bulkedQueueSize,
+                  bulkedQueueRemainingCapacity);
+
+              // clear state
               state.compareAndSet(s, null);
             });
   }
@@ -142,12 +202,16 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
       }
     }
 
+    long startTime = System.nanoTime();
     try {
       future.get();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     } catch (Exception e) {
       throw new RuntimeException(e);
+    } finally {
+      long endTime = System.nanoTime();
+      elapsedTime.record(endTime - startTime, TimeUnit.NANOSECONDS);
     }
   }
 
@@ -175,6 +239,15 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
         new ArrayBlockingQueue<>(cachingProperties.getEventQueueCapacity());
     BlockingQueue<List<KubernetesStreamingEvent>> bulkedQueue =
         new ArrayBlockingQueue<>(cachingProperties.getBulkedEventQueueCapacity());
+
+    PolledMeter.using(registry).withId(queueSize).monitorSize(queue);
+    PolledMeter.using(registry).withId(bulkedQueueSize).monitorSize(bulkedQueue);
+    PolledMeter.using(registry)
+        .withId(queueRemainingCapacity)
+        .monitorValue(queue, BlockingQueue::remainingCapacity);
+    PolledMeter.using(registry)
+        .withId(bulkedQueueRemainingCapacity)
+        .monitorValue(bulkedQueue, BlockingQueue::remainingCapacity);
 
     CompletableFuture<Void> batcherFuture =
         CompletableFuture.runAsync(
@@ -216,17 +289,43 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
   }
 
   private Set<APIResource> loadKubernetesResources(ApiClient client) {
-    return retrySupport.retry(
-        () -> {
-          try {
-            return ModelMapper.refresh(new Discovery(client));
-          } catch (ApiException e) {
-            throw new RuntimeException("Failed to refresh Kubernetes discovery", e);
-          }
-        },
-        3,
-        Duration.ofMillis(1_000L),
-        false);
+    long startTime = System.nanoTime();
+    boolean success = false;
+    int connectTimeout = client.getConnectTimeout();
+    int readTimeout = client.getReadTimeout();
+    try {
+      client.setConnectTimeout(cachingProperties.getKubeapiDiscoveryConnectionTimeoutMillis());
+      client.setReadTimeout(cachingProperties.getKubeapiDiscoveryReadTimeoutMillis());
+      Set<APIResource> resources =
+          retrySupport.retry(
+              () -> {
+                try {
+                  return ModelMapper.refresh(new Discovery(client));
+                } catch (ApiException e) {
+                  throw new RuntimeException("Failed to refresh Kubernetes discovery", e);
+                }
+              },
+              cachingProperties.getKubeapiDiscoveryRetryLimit(),
+              Duration.ofMillis(cachingProperties.getKubeapiDiscoveryRetryBackoffMillis()),
+              cachingProperties.isKubeapiDiscoveryRetryExponential());
+      success = true;
+      return resources;
+    } finally {
+      long endTime = System.nanoTime();
+      String account = namedAccountCredentials.getCredentials().getAccountName();
+      registry
+          .timer(
+              METRIC_PREFIX + ".apiDiscoveryTime",
+              "account",
+              account,
+              "success",
+              String.valueOf(success))
+          .record(endTime - startTime, TimeUnit.NANOSECONDS);
+
+      // restore timeouts
+      client.setConnectTimeout(connectTimeout);
+      client.setReadTimeout(readTimeout);
+    }
   }
 
   private void initInformers(
@@ -239,6 +338,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     String accountName = namedAccountCredentials.getCredentials().getAccountName();
 
     Map<KubernetesKind, APIResource> kindToResource = new HashMap<>();
+    int informerCount = 0;
     for (APIResource resource : k8sResources) {
       String resourceKind = resource.getKind();
       if (resourceKind == null) {
@@ -303,6 +403,14 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
                     kind,
                     th.getMessage(),
                     th);
+                registry
+                    .counter(
+                        METRIC_PREFIX + ".informerError",
+                        "account",
+                        accountName,
+                        "kind",
+                        kind.toString())
+                    .increment();
               });
       informer.addEventHandler(
           new KubernetesStreamingWatcher(
@@ -311,13 +419,23 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
               apiResource.getGroup(),
               apiResource.getPreferredVersion(),
               queue));
+      informerCount++;
     }
+
+    log.info(
+        "KubernetesStreaming caching agent {}: {} informers created",
+        agent.getAgentType(),
+        informerCount);
   }
 
   private void processEvents(
       State cachingState,
       KubernetesStreamingCachingAgent agent,
       List<KubernetesStreamingEvent> batch) {
+    long startProcessingTime = System.nanoTime();
+
+    batchesProcessed.increment(batch.size());
+
     List<KubernetesManifest> updated = new ArrayList<>();
     List<KubernetesManifest> deleted = new ArrayList<>();
     for (KubernetesStreamingEvent event : batch) {
@@ -330,6 +448,8 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
       }
     }
     CacheResult cacheResult = agent.buildCacheResult(updated, deleted);
+
+    long startCacheSaveTime = System.nanoTime();
 
     // save objects without relationships
     Map<String, Collection<CacheData>> objects = new HashMap<>();
@@ -349,6 +469,16 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     // evict deleted items
     cacheResult.getEvictions().forEach(cache::evictDeletedItems);
 
+    long endTime = System.nanoTime();
+    cacheSaveTime.record(endTime - startCacheSaveTime, TimeUnit.NANOSECONDS);
+    batchProcessingTime.record(endTime - startProcessingTime, TimeUnit.NANOSECONDS);
+
     cachingState.updateLastProcessedEventBatchTime();
+  }
+
+  private void unregisterPolledMeterMetrics(Registry registry, Id... ids) {
+    for (Id id : ids) {
+      PolledMeter.remove(registry, id);
+    }
   }
 }
