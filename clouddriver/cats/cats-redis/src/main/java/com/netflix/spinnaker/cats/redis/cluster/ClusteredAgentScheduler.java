@@ -89,6 +89,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
   private final HealthEndpoint healthEndpoint;
   private final DynamicConfigService dynamicConfigService;
   private final ShardingFilter shardingFilter;
+  private final int rebalancePercentageThreshold;
 
   // flag that enables the capability to wait for the health check to be successful before running
   // caching agents
@@ -122,6 +123,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       AgentIntervalProvider intervalProvider,
       NodeStatusProvider nodeStatusProvider,
       HealthEndpoint healthEndpoint,
+      int rebalancePercentageThreshold,
       String enabledAgentPattern,
       Integer agentLockAcquisitionIntervalSeconds,
       DynamicConfigService dynamicConfigService,
@@ -140,6 +142,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
             new ThreadFactoryBuilder()
                 .setNameFormat(AgentExecutionAction.class.getSimpleName() + "-%d")
                 .build()),
+        rebalancePercentageThreshold,
         enabledAgentPattern,
         agentLockAcquisitionIntervalSeconds,
         dynamicConfigService,
@@ -154,6 +157,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       HealthEndpoint healthEndpoint,
       ScheduledExecutorService lockPollingScheduler,
       ExecutorService agentExecutionPool,
+      int rebalancePercentageThreshold,
       String enabledAgentPattern,
       Integer agentLockAcquisitionIntervalSeconds,
       DynamicConfigService dynamicConfigService,
@@ -165,6 +169,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
     this.nodeStatusProvider = nodeStatusProvider;
     this.healthEndpoint = healthEndpoint;
     this.agentExecutionPool = agentExecutionPool;
+    this.rebalancePercentageThreshold = rebalancePercentageThreshold;
     this.enabledAgentPattern = Pattern.compile(enabledAgentPattern);
     this.dynamicConfigService = dynamicConfigService;
     this.shardingFilter = shardingFilter;
@@ -203,7 +208,8 @@ public class ClusteredAgentScheduler extends CatsModuleAware
       return Collections.emptyMap();
     }
     Map<String, NextAttempt> acquired = new HashMap<>(agents.size());
-    // Shuffle the list before grabbing so that we don't favor some agents accidentally
+    // Shuffle the list before grabbing so that we don't favor some agents
+    // accidentally
     List<Map.Entry<String, AgentExecutionAction>> agentsEntrySet =
         new ArrayList<>(agents.entrySet());
     Collections.shuffle(agentsEntrySet);
@@ -280,6 +286,50 @@ public class ClusteredAgentScheduler extends CatsModuleAware
         "{} Long Running Agents filtered for node: {} not running",
         thisNodeAgentsNotRunning.size(),
         nodeIdentity.getNodeIdentity());
+
+    if (rebalancePercentageThreshold > 0) {
+      int expectedForThisNodeOrOne =
+          filteredForThisNode.size() > 0 ? filteredForThisNode.size() : 1;
+      Map<String, AgentExecutionRunnable> agentsCurrentlyRunningThisNode =
+          longRunningAgents.entrySet().stream()
+              .filter(
+                  entry ->
+                      ((LongRunningAgentExecution) entry.getValue().getExecution()).getState()
+                          == RUNNING)
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+      logger.debug(
+          "{} Long Running Agents Currently running in node {}",
+          agentsCurrentlyRunningThisNode.size(),
+          nodeIdentity.getNodeIdentity());
+
+      int aboveExpectedPercentageThreshold =
+          (int)
+              (((agentsCurrentlyRunningThisNode.size() - filteredForThisNode.size())
+                      / (double) expectedForThisNodeOrOne)
+                  * 100);
+
+      if (aboveExpectedPercentageThreshold > rebalancePercentageThreshold) {
+        Map<String, AgentExecutionRunnable> agentsToBeStopped =
+            agentsCurrentlyRunningThisNode.entrySet().stream()
+                .filter(entry -> !shardingFilter.filter(entry.getValue().getAgent()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        logger.info(
+            "Long Running Agents in {} needing to be rebalanced above configured threshold ({}%>{}%). Stopping {}",
+            nodeIdentity.getNodeIdentity(),
+            aboveExpectedPercentageThreshold,
+            rebalancePercentageThreshold,
+            agentsToBeStopped.keySet());
+
+        agentsToBeStopped.forEach(
+            (key, value) -> {
+              ((LongRunningAgentExecution) value.getExecution())
+                  .stopExecutingAndCleanup()
+                  .whenComplete((res, ex) -> releaseRunKey(value.getAgent().getAgentType(), 0));
+            });
+      }
+    }
 
     Map<String, AgentExecutionRunnable> candidateAgents =
         thisNodeAgentsNotRunning.entrySet().stream()

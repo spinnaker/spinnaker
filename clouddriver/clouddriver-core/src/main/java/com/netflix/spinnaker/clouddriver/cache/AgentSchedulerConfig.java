@@ -61,6 +61,7 @@ public class AgentSchedulerConfig {
           agentIntervalProvider,
           nodeStatusProvider,
           healthEndpoint,
+          redisConfigurationProperties.getRebalancePercentageThreshold(),
           redisConfigurationProperties.getAgent().getEnabledPattern(),
           redisConfigurationProperties.getAgent().getAgentLockAcquisitionIntervalSeconds(),
           dynamicConfigService,

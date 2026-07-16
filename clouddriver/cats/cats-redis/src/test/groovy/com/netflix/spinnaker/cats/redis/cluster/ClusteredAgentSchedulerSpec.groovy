@@ -89,6 +89,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
           healthEndpoint,
           lockPollingScheduler,
           agentExecutionScheduler,
+          0,
           ".*",
           null,
           dcs,
@@ -211,6 +212,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
       healthEndpoint,
       lockPollingScheduler,
       agentExecutionScheduler,
+      0,
       ".*",
       null,
       dcs,
@@ -286,6 +288,7 @@ class ClusteredAgentSchedulerSpec extends Specification {
         healthEndpoint,
         lockPollingScheduler,
         agentExecutionScheduler,
+        0,
         ".*",
         null,
         dcs,
@@ -364,8 +367,10 @@ class ClusteredAgentSchedulerSpec extends Specification {
       nodeIdentity2,
       intervalProvider,
       new DefaultNodeStatusProvider(),
+      healthEndpoint,
       lockPollingScheduler2,
       agentExecutionScheduler2,
+      0,
       ".*",
       null,
       dcs,
@@ -415,8 +420,10 @@ class ClusteredAgentSchedulerSpec extends Specification {
       nodeIdentity2,
       intervalProvider,
       new DefaultNodeStatusProvider(),
+      healthEndpoint,
       lockPollingScheduler2,
       agentExecutionScheduler2,
+      0,
       ".*",
       null,
       dcs,
@@ -449,6 +456,125 @@ class ClusteredAgentSchedulerSpec extends Specification {
     1 * longRunningExec2.stopExecutingAndCleanup()
     1 * longRunningExec2.executeAgent(agent2)
     1 * inst2.executionStarted(agent2)
+  }
+
+  def 'longRunningAgent is rescheduled if node topology changes and still running but above rebalance threshold'() {
+    given:
+    ClusteredAgentScheduler scheduler1
+    def agentType1 = "someagenttype-1"
+    def agentType2 = "someagenttype-2"
+
+    // node 1
+    def agent1 = Stub(CachingAgent)
+    agent1.getAgentType() >> agentType1
+    def instr1 = Mock(ExecutionInstrumentation)
+    def exec1 = Spy(MockAgentLongRunningExecution)
+
+    def agent2 = Stub(CachingAgent)
+    agent2.getAgentType() >> agentType2
+    def instr2 = Mock(ExecutionInstrumentation)
+    def exec2 = Spy(MockAgentLongRunningExecution)
+
+    def nodeIdentity1 = Stub(NodeIdentity)
+    def shardingFilter1 = new MockShardingFilter()
+
+    nodeIdentity1.nodeIdentity >> "node1"
+    shardingFilter1.add(agentType1)
+    shardingFilter1.add(agentType2)
+
+    scheduler1 = new ClusteredAgentScheduler(
+      new JedisClientDelegate(jedisPool),
+      nodeIdentity1,
+      intervalProvider,
+      new DefaultNodeStatusProvider(),
+      healthEndpoint,
+      lockPollingScheduler,
+      agentExecutionScheduler,
+      50,
+      ".*",
+      null,
+      dcs,
+      shardingFilter1
+    )
+
+
+    when:
+    scheduler1.schedule(agent1, exec1, instr1)
+    scheduler1.schedule(agent2, exec2, instr2)
+    lockPollingScheduler.runAll()
+    agentExecutionScheduler.runAll()
+
+    Thread.sleep(600)
+
+    shardingFilter1.remove(agentType2)
+
+    lockPollingScheduler.runAll()
+    agentExecutionScheduler.runAll()
+
+    then:
+    2 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'OK'
+    1 * exec1.executeAgent(_)
+    1 * exec2.executeAgent(_)
+    1 * exec2.stopExecutingAndCleanup()
+  }
+
+  def 'longRunningAgent is not rescheduled if node topology changes and still running but below rebalance threshold'() {
+    given:
+    ClusteredAgentScheduler scheduler1
+    def agentType1 = "someagenttype-1b"
+    def agentType2 = "someagenttype-2b"
+
+    // node 1
+    def agent1 = Stub(CachingAgent)
+    agent1.getAgentType() >> agentType1
+    def instr1 = Mock(ExecutionInstrumentation)
+    def exec1 = Spy(MockAgentLongRunningExecution)
+
+    def agent2 = Stub(CachingAgent)
+    agent2.getAgentType() >> agentType2
+    def instr2 = Mock(ExecutionInstrumentation)
+    def exec2 = Spy(MockAgentLongRunningExecution)
+
+    def nodeIdentity1 = Stub(NodeIdentity)
+    def shardingFilter1 = new MockShardingFilter()
+
+    nodeIdentity1.nodeIdentity >> "node1"
+    shardingFilter1.add(agentType1)
+    shardingFilter1.add(agentType2)
+
+    scheduler1 = new ClusteredAgentScheduler(
+      new JedisClientDelegate(jedisPool),
+      nodeIdentity1,
+      intervalProvider,
+      new DefaultNodeStatusProvider(),
+      healthEndpoint,
+      lockPollingScheduler,
+      agentExecutionScheduler,
+      300,
+      ".*",
+      null,
+      dcs,
+      shardingFilter1
+    )
+
+    when:
+    scheduler1.schedule(agent1, exec1, instr1)
+    scheduler1.schedule(agent2, exec2, instr2)
+    lockPollingScheduler.runAll()
+    agentExecutionScheduler.runAll()
+
+    Thread.sleep(600)
+
+    shardingFilter1.remove(agentType2)
+
+    lockPollingScheduler.runAll()
+    agentExecutionScheduler.runAll()
+
+    then:
+    2 * jedis.set(_ as String, _ as String, _ as SetParams) >> 'OK'
+    1 * exec1.executeAgent(_)
+    1 * exec2.executeAgent(_)
+    0 * exec2.stopExecutingAndCleanup()
   }
 
 
