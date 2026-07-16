@@ -2,8 +2,10 @@ FROM python:3.12-alpine3.20
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 
-ENV KUBECTL_DEFAULT_RELEASE=1.22.17
-ENV KUBECTL_RELEASES="${KUBECTL_DEFAULT_RELEASE} 1.26.12 1.27.9 1.28.5 1.29.0"
+# The default version of kubectl to use. You can override this per cluster by "kubectlExecutable"
+# account property. For example: "kubectlExecutable: /usr/local/bin/kubectl-1.28"
+ENV KUBECTL_DEFAULT_RELEASE=1.29.0
+ENV KUBECTL_RELEASES="1.22.17 1.26.12 1.27.9 1.28.5 ${KUBECTL_DEFAULT_RELEASE}"
 ENV AWS_CLI_VERSION=2.15.57
 ENV AWS_AIM_AUTHENTICATOR_VERSION=0.6.14
 ENV GOOGLE_CLOUD_SDK_VERSION=476.0.0

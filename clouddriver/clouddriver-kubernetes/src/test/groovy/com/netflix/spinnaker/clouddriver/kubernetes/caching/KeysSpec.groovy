@@ -119,7 +119,6 @@ class KeysSpec extends Specification {
     KubernetesKind.DEPLOYMENT  | KubernetesApiVersion.APPS_V1              | "ac"      | "name"      | "nameer"
     KubernetesKind.REPLICA_SET | KubernetesApiVersion.APPS_V1              | ""        | ""          | ""
     KubernetesKind.SERVICE     | KubernetesApiVersion.V1                   | "account" | "namespace" | ""
-    KubernetesKind.INGRESS     | KubernetesApiVersion.EXTENSIONS_V1BETA1   | "ac"      | ""          | "nameer"
     KubernetesKind.INGRESS     | KubernetesApiVersion.NETWORKING_K8S_IO_V1 | "ac"      | ""          | "nameer"
   }
 

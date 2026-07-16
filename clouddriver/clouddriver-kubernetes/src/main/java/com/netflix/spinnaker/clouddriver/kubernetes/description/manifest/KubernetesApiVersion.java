@@ -27,12 +27,8 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class KubernetesApiVersion {
   public static final KubernetesApiVersion V1 = new KubernetesApiVersion("v1");
-  public static final KubernetesApiVersion EXTENSIONS_V1BETA1 =
-      new KubernetesApiVersion("extensions/v1beta1");
   public static final KubernetesApiVersion NETWORKING_K8S_IO_V1 =
       new KubernetesApiVersion("networking.k8s.io/v1");
-  public static final KubernetesApiVersion NETWORKING_K8S_IO_V1BETA1 =
-      new KubernetesApiVersion("networking.k8s.io/v1beta1");
   public static final KubernetesApiVersion APPS_V1 = new KubernetesApiVersion("apps/v1");
   public static final KubernetesApiVersion BATCH_V1 = new KubernetesApiVersion("batch/v1");
   public static final KubernetesApiVersion NONE = new KubernetesApiVersion("");
