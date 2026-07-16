@@ -43,6 +43,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,8 @@ class KubernetesStreamingWatcherTest {
             "test-account",
             executor,
             new KubernetesStreamingWatcherFactory(
-                k8sClient, "account", 0, executor, new NoOpStartupConcurrencyControl()));
+                k8sClient, "account", 0, executor, new NoOpStartupConcurrencyControl()),
+            new OkHttpClient());
     eventQueue = new ArrayBlockingQueue<>(100);
     isRunning = mock(Supplier.class);
   }

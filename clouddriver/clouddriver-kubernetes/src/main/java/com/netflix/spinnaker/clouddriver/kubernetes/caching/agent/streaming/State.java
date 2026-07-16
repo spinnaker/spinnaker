@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 
 @Slf4j
 @ToString(
@@ -38,6 +39,15 @@ class State {
   private final String agentType;
   private final ExecutorService executorService;
   private final KubernetesStreamingWatcherFactory factory;
+
+  /**
+   * The OkHttp client shared by all watchers for this agent. By default, OkHttp does not cancel
+   * requests when a thread is interrupted. This is a workaround to ensure that all requests are
+   * cancelled when the agent is stopped. Without this, the agent may get stuck waiting for a
+   * response from the Kubernetes API.
+   */
+  private final OkHttpClient watcherHttpClient;
+
   private final AtomicLong lastReceivedEventTimeMillis = new AtomicLong();
   private final AtomicLong lastProcessedEventBatchTimeMillis = new AtomicLong();
   private final long startTimeMillis = System.currentTimeMillis();
@@ -47,14 +57,20 @@ class State {
   State(
       String agentType,
       ExecutorService executorService,
-      KubernetesStreamingWatcherFactory factory) {
-    if (agentType == null || executorService == null || factory == null) {
-      throw new IllegalStateException("agentType, executorService and factory must not be null");
+      KubernetesStreamingWatcherFactory factory,
+      OkHttpClient watcherHttpClient) {
+    if (agentType == null
+        || executorService == null
+        || factory == null
+        || watcherHttpClient == null) {
+      throw new IllegalStateException(
+          "agentType, executorService, factory and watcherHttpClient must not be null");
     }
 
     this.agentType = agentType;
     this.executorService = executorService;
     this.factory = factory;
+    this.watcherHttpClient = watcherHttpClient;
   }
 
   void start() {
@@ -71,6 +87,7 @@ class State {
     }
     stopped = true;
     factory.stopAllRegisteredWatchers();
+    watcherHttpClient.dispatcher().cancelAll();
     executorService.shutdownNow();
     return executorService.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS);
   }

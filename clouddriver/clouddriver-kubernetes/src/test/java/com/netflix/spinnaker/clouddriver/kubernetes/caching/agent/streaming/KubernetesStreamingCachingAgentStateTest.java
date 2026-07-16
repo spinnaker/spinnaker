@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState;
 import java.util.concurrent.ExecutorService;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -36,7 +37,7 @@ class KubernetesStreamingCachingAgentStateTest {
   void setUp() {
     executor = Mockito.mock(ExecutorService.class);
     kubernetesWatcherFactory = Mockito.mock(KubernetesStreamingWatcherFactory.class);
-    state = new State("test-account", executor, kubernetesWatcherFactory);
+    state = new State("test-account", executor, kubernetesWatcherFactory, new OkHttpClient());
   }
 
   @Test

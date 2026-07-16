@@ -67,6 +67,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 
 @Slf4j
 public class KubernetesStreamingCachingAgentExecution implements LongRunningAgentExecution {
@@ -283,7 +284,9 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
             cachingProperties.getListPaginationSize(),
             executorService,
             concurrencyControl);
-    State cachingState = new State(agent.getAgentType(), executorService, factory);
+
+    OkHttpClient httpClient = client.getHttpClient();
+    State cachingState = new State(agent.getAgentType(), executorService, factory, httpClient);
 
     BlockingQueue<KubernetesStreamingEvent> queue =
         new ArrayBlockingQueue<>(cachingProperties.getEventQueueCapacity());
