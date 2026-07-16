@@ -51,6 +51,7 @@ describe('<CreateSecurityGroupButton />', () => {
       application: app,
       credentials: 'button-test-account',
       isNew: true,
+      region: 'dev',
     });
   });
 
@@ -76,6 +77,7 @@ describe('<CreateSecurityGroupButton />', () => {
       application: app,
       credentials: undefined,
       isNew: true,
+      region: undefined,
     });
   });
 });
