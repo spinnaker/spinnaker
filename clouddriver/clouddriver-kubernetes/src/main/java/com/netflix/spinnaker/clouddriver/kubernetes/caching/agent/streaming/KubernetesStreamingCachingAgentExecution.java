@@ -149,13 +149,26 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
 
   @Override
   public synchronized CompletableFuture<Void> stopExecutingAndCleanup() {
+    String accountName = namedAccountCredentials.getCredentials().getAccountName();
+    log.info("Stopping Kubernetes streaming agent execution for {}", accountName);
+
     State s = state.get();
+
+    // unregister polled meter metrics even if the agent is not running
+    // this is to ensure that metrics are cleaned up properly even if the agent failed to start
+    unregisterPolledMeterMetrics(
+        registry, queueSize, queueRemainingCapacity, bulkedQueueSize, bulkedQueueRemainingCapacity);
+
     if (s == null) {
+      log.info(
+          "KubernetesStreaming caching agent {} execution is not running, nothing to stop",
+          accountName);
       return CompletableFuture.completedFuture(null);
     }
 
     return CompletableFuture.runAsync(
             () -> {
+              log.info("Stopping KubernetesStreaming caching agent {} execution", accountName);
               try {
                 long timeout = Math.max(0, getStopTimeoutMillis() - 1_000L);
                 boolean stopped = s.stopAndWait(timeout);
@@ -167,18 +180,22 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
               } catch (InterruptedException e) {
                 log.warn("Interrupted while waiting for executor to terminate", e);
                 Thread.currentThread().interrupt();
+              } finally {
+                log.info("KubernetesStreaming caching agent {} stopped", accountName);
               }
             })
         .whenComplete(
             (result, e) -> {
-              // unregister polled meter metrics
-              unregisterPolledMeterMetrics(
-                  registry,
-                  queueSize,
-                  queueRemainingCapacity,
-                  bulkedQueueSize,
-                  bulkedQueueRemainingCapacity);
-
+              if (e != null) {
+                log.warn(
+                    "Error while stopping KubernetesStreaming caching agent {} execution",
+                    accountName,
+                    e);
+              } else {
+                log.info(
+                    "KubernetesStreaming caching agent {} execution stopped successfully",
+                    accountName);
+              }
               // clear state
               state.compareAndSet(s, null);
             });
@@ -186,6 +203,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
 
   @Override
   public void executeAgent(Agent agent) {
+    log.info("Starting KubernetesStreaming caching agent {} execution", agent.getAgentType());
     CompletableFuture<Void> future = null;
     synchronized (this) {
       try {
@@ -198,6 +216,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
         return;
       }
     }
+    log.info("KubernetesStreaming caching agent {} execution started", agent.getAgentType());
 
     long startTime = System.nanoTime();
     try {
