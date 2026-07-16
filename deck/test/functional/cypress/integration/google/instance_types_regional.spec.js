@@ -1,4 +1,4 @@
-import { registerDefaultFixtures, ReactSelect } from '../../support';
+import { registerDefaultFixtures } from '../../support';
 
 describe('google: Regional Instance Type Distribution', () => {
   before(() => {
@@ -17,11 +17,9 @@ describe('google: Regional Instance Type Distribution', () => {
   });
 
   const selectImage = () => {
-    const imageDropdown = ReactSelect('v2-wizard-page[key=location] div.form-group:contains("Image")');
-    imageDropdown.get();
-    imageDropdown.toggleDropdown();
-    imageDropdown.type('ubuntu-1404-trusty-v20181002', { force: true });
-    imageDropdown.select(0);
+    cy.contains('ul.steps-indicator li a', 'Image').click();
+    cy.get('select[aria-label="Image"]:visible').select('ubuntu-1404-trusty-v20181002');
+    cy.contains('ul.steps-indicator li a', 'Basic Settings').click();
   };
 
   it('should hide c4-standard-2 in europe-west1-d when regional is false', () => {
@@ -30,24 +28,12 @@ describe('google: Regional Instance Type Distribution', () => {
 
     selectImage();
 
-    cy.get('v2-wizard-page[key=location]').within(() => {
-      cy.get('div.form-group:contains("Region") select').select('europe-west1');
-    });
-
-    cy.get('v2-wizard-page[key=zones]').within(() => {
-      cy.contains('Distribute instances across multiple zones')
-        .parent()
-        .find('input[type="checkbox"]')
-        .should('not.be.checked');
-
-      cy.get('div.form-group:contains("Zone") select').select('europe-west1-d');
-    });
-
-    cy.get('.btn-primary').first().click({ force: true });
-
-    cy.get('v2-wizard-page[key="instance-type"]').within(() => {
-      cy.contains('c4-standard-2').should('not.exist');
-    });
+    cy.get('select[aria-label="Region"]:visible').select('europe-west1');
+    cy.contains('ul.steps-indicator li a', 'Capacity/Distribution').click();
+    cy.get('input[aria-label="Regional server group"]').should('not.be.checked');
+    cy.get('select[aria-label="Zone"]:visible').select('europe-west1-d');
+    cy.contains('ul.steps-indicator li a', 'Instance Type').click();
+    cy.contains('option', 'c4-standard-2').should('not.exist');
   });
 
   it('should show c4-standard-2 when regional is enabled without zone selection', () => {
@@ -56,18 +42,15 @@ describe('google: Regional Instance Type Distribution', () => {
 
     selectImage();
 
-    cy.get('v2-wizard-page[key=location]').within(() => {
-      cy.get('div.form-group:contains("Region") select').select('europe-west1');
-    });
-    cy.contains('Distribute instances across multiple zones', { timeout: 10000 })
-      .parent()
-      .find('input[type="checkbox"]')
+    cy.get('select[aria-label="Region"]:visible').select('europe-west1');
+    cy.contains('ul.steps-indicator li a', 'Capacity/Distribution').click();
+    cy.get('input[aria-label="Regional server group"]')
       .click({ force: true })
       .should('be.checked');
 
     cy.wait(1000);
 
-    cy.get('.btn-primary').first().click({ force: true });
+    cy.contains('ul.steps-indicator li a', 'Instance Type').click();
 
     const maxAttempts = 3;
     let attempts = 0;
