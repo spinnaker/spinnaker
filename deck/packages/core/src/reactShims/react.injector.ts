@@ -58,6 +58,8 @@ export class CoreReactInject extends ReactInject {
   public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
   public get providerServiceDelegate() { return this.$injector.get('providerServiceDelegate') as ProviderServiceDelegate; }
   public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
+  public get serverGroupCommandBuilder() { return this.$injector.get('serverGroupCommandBuilder') as any; }
+  public get serverGroupTransformer() { return this.$injector.get('serverGroupTransformer') as any; }
   public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
 
