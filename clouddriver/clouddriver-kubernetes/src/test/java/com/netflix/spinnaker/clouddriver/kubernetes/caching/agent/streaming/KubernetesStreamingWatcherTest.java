@@ -92,7 +92,7 @@ class KubernetesStreamingWatcherTest {
         .thenReturn(false);
 
     DynamicKubernetesListObject emptyList = getList(getJsonFixture("kubeapi/pods.default.json"));
-    when(adapter.list(any(), eq(0), isNull())).thenReturn(emptyList);
+    when(adapter.list(anyInt(), any(), eq(0), isNull())).thenReturn(emptyList);
 
     Watchable watchable = mock(Watchable.class);
     when(watchable.hasNext()).thenReturn(true);
@@ -105,8 +105,8 @@ class KubernetesStreamingWatcherTest {
     watcher.run();
     assertThat(eventQueue.size()).isEqualTo(0);
 
-    verify(adapter).list("0", 0, null);
-    verify(adapter).list("", 0, null);
+    verify(adapter).list(20, "0", 0, null);
+    verify(adapter).list(20, "", 0, null);
   }
 
   @Test
@@ -115,7 +115,7 @@ class KubernetesStreamingWatcherTest {
     when(isRunning.get()).thenReturn(true).thenReturn(true).thenReturn(false);
 
     DynamicKubernetesListObject nullMetaList = getList(getJsonFixture("initialList/nullMeta.json"));
-    when(adapter.list(any(), eq(0), isNull())).thenReturn(nullMetaList);
+    when(adapter.list(anyInt(), any(), eq(0), isNull())).thenReturn(nullMetaList);
 
     Watchable watchable = mock(Watchable.class);
     when(watchable.hasNext()).thenReturn(false);
@@ -133,7 +133,7 @@ class KubernetesStreamingWatcherTest {
     when(isRunning.get()).thenReturn(false);
 
     DynamicKubernetesListObject nullMetaList = getList(getJsonFixture("initialList/pods.json"));
-    when(adapter.list(any(), eq(0), isNull())).thenReturn(nullMetaList);
+    when(adapter.list(anyInt(), any(), eq(0), isNull())).thenReturn(nullMetaList);
 
     Watchable watchable = mock(Watchable.class);
     when(watchable.hasNext()).thenReturn(true);
@@ -165,7 +165,7 @@ class KubernetesStreamingWatcherTest {
                   new RuntimeException("Wrapper exception", interruptedIOException);
 
               try {
-                when(adapter.list(any(), eq(0), isNull())).thenThrow(wrappedException);
+                when(adapter.list(anyInt(), any(), eq(0), isNull())).thenThrow(wrappedException);
               } catch (Exception e) {
                 fail("Exception should not be thrown");
               }
@@ -213,6 +213,7 @@ class KubernetesStreamingWatcherTest {
         eventQueue,
         knownKeys,
         1000,
+        20,
         60 * 5,
         new NoOpStartupConcurrencyControl(),
         isRunning);

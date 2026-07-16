@@ -41,9 +41,10 @@ public class K8SListWatchAdapter {
     api = new DynamicKubernetesApi(group, version, resourcePlural, apiClient);
   }
 
-  DynamicKubernetesListObject list(String lastSyncResourceVersion, int limit, String continueFrom)
+  DynamicKubernetesListObject list(
+      Integer timeoutSeconds, String lastSyncResourceVersion, int limit, String continueFrom)
       throws ApiException {
-    ListOptions listOptions = getListOptions(null, lastSyncResourceVersion);
+    ListOptions listOptions = getListOptions(timeoutSeconds, lastSyncResourceVersion);
     if (limit > 0) {
       listOptions.setLimit(limit);
       if (continueFrom != null) {

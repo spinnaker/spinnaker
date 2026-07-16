@@ -63,6 +63,7 @@ public class KubernetesStreamingWatcher implements Runnable {
   private final BlockingQueue<KubernetesStreamingEvent> eventQueue;
   private final Supplier<Boolean> isRunning;
   private final int retryTimeoutMillis;
+  private final int listTimeoutSeconds;
   private final int watchTimeoutSeconds;
   private final K8SListWatchAdapter adapter;
   private final StartupConcurrencyControl concurrencyControl;
@@ -80,6 +81,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       BlockingQueue<KubernetesStreamingEvent> eventQueue,
       Set<Keys.InfrastructureCacheKey> initialKnownKeys,
       int retryTimeoutMillis,
+      int listTimeoutSeconds,
       int watchTimeoutSeconds,
       StartupConcurrencyControl concurrencyControl) {
     this(
@@ -93,6 +95,7 @@ public class KubernetesStreamingWatcher implements Runnable {
         eventQueue,
         initialKnownKeys,
         retryTimeoutMillis,
+        listTimeoutSeconds,
         watchTimeoutSeconds,
         concurrencyControl,
         () -> !Thread.currentThread().isInterrupted());
@@ -109,6 +112,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       BlockingQueue<KubernetesStreamingEvent> eventQueue,
       Set<Keys.InfrastructureCacheKey> initialKnownKeys,
       int retryTimeoutMillis,
+      int listTimeoutSeconds,
       int watchTimeoutSeconds,
       StartupConcurrencyControl concurrencyControl,
       Supplier<Boolean> isRunning) {
@@ -124,6 +128,7 @@ public class KubernetesStreamingWatcher implements Runnable {
             .map(KubernetesStreamingWatcher::toKey)
             .collect(Collectors.toSet());
     this.retryTimeoutMillis = retryTimeoutMillis;
+    this.listTimeoutSeconds = listTimeoutSeconds;
     this.watchTimeoutSeconds = watchTimeoutSeconds;
     this.concurrencyControl = concurrencyControl;
     this.isRunning = isRunning;
@@ -201,7 +206,7 @@ public class KubernetesStreamingWatcher implements Runnable {
         throw new InterruptedException("syncList::list is interrupted");
       }
       DynamicKubernetesListObject list =
-          adapter.list(lastSyncResourceVersion, paginationSize, lastContinue);
+          adapter.list(listTimeoutSeconds, lastSyncResourceVersion, paginationSize, lastContinue);
 
       V1ListMeta listMeta = list.getMetadata();
       resourceVersion = listMeta.getResourceVersion();

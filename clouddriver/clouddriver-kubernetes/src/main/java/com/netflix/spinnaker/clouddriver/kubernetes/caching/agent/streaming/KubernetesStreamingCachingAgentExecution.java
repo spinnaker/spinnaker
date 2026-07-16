@@ -322,6 +322,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
         client,
         queue,
         cachingProperties.getWatcherRetryTimeoutMillis(),
+        cachingProperties.getListTimeoutSeconds(),
         cachingProperties.getWatchTimeoutSeconds());
     factory.startAllWatchers();
 
@@ -401,6 +402,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
       ApiClient client,
       BlockingQueue<KubernetesStreamingEvent> queue,
       int watcherRetryTimeoutMillis,
+      int listTimeoutSeconds,
       int watchTimeoutSeconds) {
     KubernetesStreamingWatcherFactory factory = cachingState.getFactory();
     String accountName = namedAccountCredentials.getCredentials().getAccountName();
@@ -456,6 +458,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
           queue,
           existingObjects,
           watcherRetryTimeoutMillis,
+          listTimeoutSeconds,
           watchTimeoutSeconds);
       watcherCount++;
     }

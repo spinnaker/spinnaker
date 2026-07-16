@@ -64,6 +64,7 @@ public class KubernetesStreamingWatcherFactory {
       BlockingQueue<KubernetesStreamingEvent> queue,
       Set<Keys.InfrastructureCacheKey> knownKeys,
       int watcherRetryTimeoutMillis,
+      int listTimeoutSeconds,
       int watchTimeoutSeconds) {
     Type apiType = TypeToken.get(apiTypeClass).getType();
 
@@ -83,6 +84,7 @@ public class KubernetesStreamingWatcherFactory {
             queue,
             knownKeys,
             watcherRetryTimeoutMillis,
+            listTimeoutSeconds,
             watchTimeoutSeconds,
             concurrencyControl);
 

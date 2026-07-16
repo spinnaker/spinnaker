@@ -40,4 +40,5 @@ public class KubernetesStreamingCachingProperties {
   private int watcherRetryTimeoutMillis = 1_000;
   private int watchTimeoutSeconds = 60 * 5;
   private int listPaginationSize = 200;
+  private int listTimeoutSeconds = 20;
 }

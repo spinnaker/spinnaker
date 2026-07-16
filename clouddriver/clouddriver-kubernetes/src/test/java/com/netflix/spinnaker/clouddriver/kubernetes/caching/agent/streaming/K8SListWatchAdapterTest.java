@@ -60,7 +60,7 @@ class K8SListWatchAdapterTest {
     ArgumentCaptor<ListOptions> listOptionsCaptor = ArgumentCaptor.forClass(ListOptions.class);
 
     // when
-    adapter.list("12345", 100, "continue-token");
+    adapter.list(10, "12345", 100, "continue-token");
 
     // then
     // https://github.com/kubernetes/kubernetes/issues/85221#issuecomment-553748143
@@ -69,6 +69,7 @@ class K8SListWatchAdapterTest {
     assertThat(capturedOptions.getResourceVersion()).isNull();
     assertThat(capturedOptions.getContinue()).isEqualTo("continue-token");
     assertThat(capturedOptions.getLimit()).isEqualTo(100);
+    assertThat(capturedOptions.getTimeoutSeconds()).isEqualTo(10);
   }
 
   @Test
@@ -83,7 +84,7 @@ class K8SListWatchAdapterTest {
     ArgumentCaptor<ListOptions> listOptionsCaptor = ArgumentCaptor.forClass(ListOptions.class);
 
     // when
-    adapter.list("12345", 100, null);
+    adapter.list(10, "12345", 100, null);
 
     // then
     verify(mockApi).list(listOptionsCaptor.capture());
@@ -91,6 +92,7 @@ class K8SListWatchAdapterTest {
     assertThat(capturedOptions.getResourceVersion()).isEqualTo("12345");
     assertThat(capturedOptions.getContinue()).isNull();
     assertThat(capturedOptions.getLimit()).isEqualTo(100);
+    assertThat(capturedOptions.getTimeoutSeconds()).isEqualTo(10);
   }
 
   @Test
@@ -105,7 +107,7 @@ class K8SListWatchAdapterTest {
     ArgumentCaptor<ListOptions> listOptionsCaptor = ArgumentCaptor.forClass(ListOptions.class);
 
     // when
-    adapter.list("12345", 0, "continue-token");
+    adapter.list(10, "12345", 0, "continue-token");
 
     // then
     verify(mockApi).list(listOptionsCaptor.capture());
@@ -113,5 +115,6 @@ class K8SListWatchAdapterTest {
     assertThat(capturedOptions.getResourceVersion()).isEqualTo("12345");
     assertThat(capturedOptions.getContinue()).isNull();
     assertThat(capturedOptions.getLimit()).isNull();
+    assertThat(capturedOptions.getTimeoutSeconds()).isEqualTo(10);
   }
 }
