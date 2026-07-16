@@ -110,7 +110,7 @@
             </copy-to-clipboard>
           </dd>
         </div>
-        <div ng-if="ctrl.loadBalancer.loadBalancerType === 'HTTP'">
+        <div ng-if="ctrl.isExternalHttpLoadBalancer(loadBalancer)">
           <dt>DNS Names</dt>
           <dd>
             <ul>
@@ -158,15 +158,17 @@
       heading="Backend Services"
       ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.backendService"
     >
-      <dl class="horizontal-when-filters-collapsed" ng-switch on="loadBalancer.loadBalancerType">
-        <div ng-repeat="service in loadBalancer.elb.backendServices" ng-switch-when="HTTP">
-          <hr ng-if="$index > 0" />
-          <gce-backend-service-details backend-service="service"></gce-backend-service-details>
+      <dl class="horizontal-when-filters-collapsed">
+        <div ng-if="ctrl.isHttpLoadBalancer(loadBalancer)">
+          <div ng-repeat="service in loadBalancer.elb.backendServices">
+            <hr ng-if="$index > 0" />
+            <gce-backend-service-details backend-service="service"></gce-backend-service-details>
+          </div>
         </div>
 
         <gce-backend-service-details
           backend-service="loadBalancer.backendService"
-          ng-switch-default
+          ng-if="!ctrl.isHttpLoadBalancer(loadBalancer)"
         ></gce-backend-service-details>
       </dl>
     </collapsible-section>
@@ -174,15 +176,23 @@
       ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
       heading="Health Checks"
     >
-      <dl class="horizontal-when-filters-collapsed" ng-switch on="loadBalancer.loadBalancerType">
-        <gce-health-check ng-switch-when="NETWORK" health-check="loadBalancer.healthCheck"></gce-health-check>
+      <dl class="horizontal-when-filters-collapsed">
+        <gce-health-check
+          ng-if="loadBalancer.loadBalancerType === 'NETWORK'"
+          health-check="loadBalancer.healthCheck"
+        ></gce-health-check>
 
-        <div ng-switch-when="HTTP" ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
-          <hr ng-if="$index > 0" />
-          <gce-health-check health-check="healthCheck"></gce-health-check>
+        <div ng-if="ctrl.isHttpLoadBalancer(loadBalancer)">
+          <div ng-repeat="healthCheck in loadBalancer.elb.healthChecks">
+            <hr ng-if="$index > 0" />
+            <gce-health-check health-check="healthCheck"></gce-health-check>
+          </div>
         </div>
 
-        <gce-health-check ng-switch-default health-check="loadBalancer.backendService.healthCheck"></gce-health-check>
+        <gce-health-check
+          ng-if="loadBalancer.loadBalancerType !== 'NETWORK' && !ctrl.isHttpLoadBalancer(loadBalancer)"
+          health-check="loadBalancer.backendService.healthCheck"
+        ></gce-health-check>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">

@@ -145,6 +145,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
             certificate: command.certificate || null,
             certificateMap: command.certificateMap || null,
             ipAddress: command.ipAddress,
+            networkTier: command.networkTier,
             subnet: command.subnet,
           },
         ],
@@ -170,6 +171,7 @@ class CreateInternalHttpLoadBalancerController implements ng.IComponentControlle
       accountId: lb.credentials,
       region: lb.region,
       provider: 'gce',
+      loadBalancerType: lb.loadBalancerType,
     };
 
     if (!this.$state.includes('**.loadBalancerDetails')) {

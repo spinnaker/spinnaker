@@ -30,6 +30,29 @@ describe('gceServerGroupTransformer', () => {
                 loadBalancerType: 'HTTP',
                 listeners: [{ name: 'http-load-balancer-listener' }, { name: 'https-load-balancer-listener' }],
               },
+              {
+                name: 'regional-url-map-name (my-google-account/us-central1)',
+                provider: 'gce',
+                account: 'my-google-account',
+                region: 'us-central1',
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                listeners: [{ name: 'regional-http-listener' }, { name: 'regional-https-listener' }],
+              },
+              {
+                name: 'regional-url-map-name (my-google-account/us-east1)',
+                provider: 'gce',
+                account: 'my-google-account',
+                region: 'us-east1',
+                loadBalancerType: 'EXTERNAL_MANAGED',
+                listeners: [{ name: 'regional-http-listener' }],
+              },
+              {
+                name: 'regional-external-network-lb',
+                provider: 'gce',
+                account: 'my-google-account',
+                region: 'us-central1',
+                loadBalancerType: 'REGIONAL_EXTERNAL_NETWORK',
+              },
             ],
           };
         },
@@ -54,6 +77,32 @@ describe('gceServerGroupTransformer', () => {
       expect(normalizedServerGroup.loadBalancers.includes('url-map-name')).toEqual(true);
       expect(normalizedServerGroup.loadBalancers.includes('network-load-balancer')).toEqual(true);
       expect(normalizedServerGroup.loadBalancers.includes('internal-load-balancer')).toEqual(true);
+    });
+
+    it('should map regional external listener names to url map names', function () {
+      const serverGroup = {
+        account: 'my-google-account',
+        region: 'us-central1',
+        loadBalancers: ['regional-http-listener', 'regional-https-listener'],
+      };
+
+      let normalizedServerGroup;
+      transformer.normalizeServerGroup(serverGroup, app).then((normalized) => (normalizedServerGroup = normalized));
+      $scope.$digest();
+      expect(normalizedServerGroup.loadBalancers).toEqual(['regional-url-map-name (my-google-account/us-central1)']);
+    });
+
+    it('should keep regional external network load balancers on the default name path', function () {
+      const serverGroup = {
+        account: 'my-google-account',
+        region: 'us-central1',
+        loadBalancers: ['regional-external-network-lb'],
+      };
+
+      let normalizedServerGroup;
+      transformer.normalizeServerGroup(serverGroup, app).then((normalized) => (normalizedServerGroup = normalized));
+      $scope.$digest();
+      expect(normalizedServerGroup.loadBalancers).toEqual(['regional-external-network-lb']);
     });
   });
 });

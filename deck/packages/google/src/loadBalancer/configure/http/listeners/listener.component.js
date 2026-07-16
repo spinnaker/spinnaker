@@ -31,8 +31,21 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
 
         this.getCertificates = () => {
           return this.command.backingData.certificates
-            .filter((certificate) => certificate.account === this.command.loadBalancer.credentials)
+            .filter((certificate) => {
+              const matchesAccount = certificate.account === this.command.loadBalancer.credentials;
+              const matchesRegion =
+                this.command.loadBalancer.loadBalancerType === 'HTTP'
+                  ? !certificate.region
+                  : certificate.region === this.command.loadBalancer.region;
+              return matchesAccount && matchesRegion;
+            })
             .map((certificate) => certificate.name);
+        };
+
+        this.supportsTypedCertificate = () => this.command.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED';
+
+        this.normalizeCertificate = (certificate) => {
+          return _.isString(certificate) ? certificate.trim() : certificate;
         };
 
         this.getSubnets = () => {
@@ -48,6 +61,10 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
               address.addressType === 'INTERNAL' && address.subnetwork.split('/').pop() === this.listener.subnet,
           );
         };
+
+        this.showExternalIpSelector = () =>
+          this.command.loadBalancer.loadBalancerType === 'HTTP' ||
+          this.command.loadBalancer.loadBalancerType === 'EXTERNAL_MANAGED';
 
         this.updateName = (listener, appName) => {
           listener.name = this.getName(listener, appName);
@@ -65,7 +82,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
 
         this.isHttps = (port) => port === 443 || port === '443';
         // certificateMap writes are only supported on global external/classic HTTPS proxies (HTTP
-        // type). INTERNAL_MANAGED regional proxies do not support certificateMap per GCP docs.
+        // type). Regional proxies do not support certificateMap per GCP docs.
         this.supportsCertificateMap = () => this.command.loadBalancer.loadBalancerType === 'HTTP';
         this.certificateMapPattern = /^[a-z]([-a-z0-9]*[a-z0-9])?$/;
         // Extracts the short resource name from a certificateMap value. Users may paste a full
@@ -120,6 +137,7 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
 
         this.onCertificateSelected = (listener) => {
           if (listener.certificate) {
+            listener.certificate = this.normalizeCertificate(listener.certificate);
             listener.certificateSource = 'certificate';
             listener.certificateMap = null;
           }
@@ -154,8 +172,10 @@ module(GOOGLE_LOADBALANCER_CONFIGURE_HTTP_LISTENERS_LISTENER_COMPONENT, [GCE_ADD
         this.onAddressSelect = (address) => {
           if (address) {
             this.listener.ipAddress = address.address;
+            this.listener.networkTier = address.networkTier || null;
           } else {
             this.listener.ipAddress = null;
+            this.listener.networkTier = null;
           }
         };
       };

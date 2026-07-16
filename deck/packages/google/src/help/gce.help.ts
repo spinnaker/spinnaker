@@ -2,13 +2,13 @@ import { HelpContentsRegistry } from '@spinnaker/core';
 
 const helpContents: { [key: string]: string } = {
   'gce.httpLoadBalancer.certificate':
-    'The name of an SSL certificate. If specified, Spinnaker will create an HTTPS load balancer.',
+    'The name of an SSL certificate. Regional External HTTP(S) load balancers accept regional Compute SSL certificate names, or full Certificate Manager certificate resources such as projects/{project}/locations/{region}/certificates/{name}. If specified, Spinnaker will create an HTTPS load balancer.',
   'gce.httpLoadBalancer.certificateMap':
     'A Certificate Manager certificate map name. Certificate maps let GCP manage and auto-rotate TLS certificates, replacing individual certificate selection.',
   'gce.httpLoadBalancer.defaultService':
     'A default service handles any requests that do not match a specified host rule or path matching rule.',
   'gce.httpLoadBalancer.externalIP':
-    'The IP address for this listener. If you do not specify an IP, your listener will be assigned an ephemeral IP.',
+    'The IP address for this listener. Regional External HTTP(S) load balancers use regional external addresses; selecting a reserved address also supplies its network tier. If you do not specify an IP, your listener will be assigned an ephemeral IP.',
   'gce.httpLoadBalancer.hostRule.hostPattern': 'For example, <b>example.com</b>.',
   'gce.httpLoadBalancer.namedPort': `
       For HTTP(S) and SSL/TCP load balancers,
@@ -62,6 +62,8 @@ const helpContents: { [key: string]: string } = {
   'gce.internalLoadBalancer.ports': 'Use a comma to separate up to five TCP ports.',
   'gce.internalHttpLoadBalancer.network':
     "Network must have a subnet whose 'purpose' is 'INTERNAL_HTTPS_LOAD_BALANCER'",
+  'gce.externalManagedHttpLoadBalancer.network':
+    "Network must have a subnet in the selected region whose 'purpose' is 'REGIONAL_MANAGED_PROXY'",
   'gce.loadBalancer.connectionDraining':
     '(Optional) If set, enables connection draining for this backend service. This field defines the number of seconds to wait before instances that belong to this backend service are terminated in order to drain in-flight connections.',
   'gce.loadBalancer.detail':
@@ -216,8 +218,14 @@ const helpContents: { [key: string]: string } = {
     <p>Network Load Balancing is a regional, non-proxied load balancer. You can use it to load balance UDP traffic, and TCP and SSL traffic on ports that are not supported by the SSL proxy and TCP proxy load balancers.</p>`,
   'gce.loadBalancerType.HTTP(S)':
     '<p>Google Cloud Platform (GCP) HTTP(S) Load Balancing provides global load balancing for HTTP(S) requests destined for your instances.</p>',
+  'gce.loadBalancerType.Internal HTTP(S)':
+    '<p>Google Cloud Regional Internal HTTP(S) Load Balancing provides regional Application Load Balancing using INTERNAL_MANAGED forwarding rules, regional URL maps, regional backend services, and a proxy-only subnet in the selected VPC and region. It is reachable only from clients within the VPC network.</p>',
+  'gce.loadBalancerType.Regional External HTTP(S)':
+    '<p>Google Cloud Regional External HTTP(S) Load Balancing provides regional Application Load Balancing using EXTERNAL_MANAGED forwarding rules, regional URL maps, regional backend services, regional external addresses, and a proxy-only subnet in the selected VPC and region.</p>',
   'gce.loadBalancerType.Internal':
     '<p>Internal TCP/UDP Load Balancing is a regional load balancer that enables you to run and scale your services behind a private load balancing IP address that is accessible only to your internal virtual machine instances.</p>',
+  'gce.loadBalancerType.Regional External TCP/UDP':
+    '<p>Regional External TCP/UDP Load Balancing is a regional passthrough load balancer backed by an external forwarding rule, regional backend service, and regional health check.</p>',
   'gce.loadBalancerType.SSL':
     '<p>Google Cloud SSL Proxy Load Balancing terminates user SSL (TLS) connections at the load balancing layer, then balances the connections across your instances using the SSL or TCP protocols. This supports both IPv4 and IPv6 addresses for client traffic.</p>',
   'gce.loadBalancerType.TCP':

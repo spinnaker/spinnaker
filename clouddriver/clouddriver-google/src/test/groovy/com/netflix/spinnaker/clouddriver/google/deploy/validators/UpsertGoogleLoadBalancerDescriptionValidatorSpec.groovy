@@ -17,11 +17,14 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.validators
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleBackendService
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -53,7 +56,14 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
     validator = new UpsertGoogleLoadBalancerDescriptionValidator()
     def credentialsRepo = new MapBackedCredentialsRepository(GoogleNamedAccountCredentials.CREDENTIALS_TYPE,
       new NoopCredentialsLifecycleHandler<>())
-    def credentials = new GoogleNamedAccountCredentials.Builder().name(ACCOUNT_NAME).credentials(new FakeGoogleCredentials()).build()
+    def compute = Mock(Compute)
+    def credentials = new GoogleNamedAccountCredentials.Builder()
+      .name(ACCOUNT_NAME)
+      .credentials(new FakeGoogleCredentials())
+      .compute(compute)
+      .regionsToManage([REGION], [])
+      .regionToZonesMap(["us-central1": ["us-central1-a"]])
+      .build()
     credentialsRepo.save(credentials)
     validator.credentialsRepository = credentialsRepo
     converter = new UpsertGoogleLoadBalancerAtomicOperationConverter(
@@ -369,6 +379,145 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
     then:
       1 * errors.rejectValue("certificateMap",
         "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
+  }
+
+  void "pass validation with proper external managed HTTP inputs"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        networkTier       : "STANDARD",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : "regional-cert",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "fail validation when certificateMap is provided for external managed HTTP"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : "my-map",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("certificateMap",
+        "upsertGoogleLoadBalancerDescription.certificateMap.regionalManagedNotSupported")
+  }
+
+  void "fail validation when external managed HTTP network is missing"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("network",
+        "upsertGoogleLoadBalancerDescription.network.required")
+  }
+
+  void "fail validation when external managed HTTP network tier is unsupported"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        networkTier       : "BASIC",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("networkTier",
+        "upsertGoogleLoadBalancerDescription.networkTier.notSupported")
+  }
+
+  void "fail validation when external managed HTTP ip protocol is not TCP"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.EXTERNAL_MANAGED,
+        region            : REGION,
+        network           : "default",
+        ipProtocol        : "UDP",
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("ipProtocol",
+        "upsertGoogleLoadBalancerDescription.ipProtocol.tcpRequired")
   }
 
   void "fail with improperly formatted ports"() {
@@ -768,5 +917,63 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('portRange', _)
+  }
+
+  void "pass validation with regional external network description inputs"() {
+    setup:
+      def description = regionalExternalNetworkDescription()
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  @Unroll
+  void "fail regional external network validation for #field"() {
+    setup:
+      def description = regionalExternalNetworkDescription()
+      mutation(description)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(field, code)
+
+    where:
+      field                            | code                                                                              | mutation
+      "ipProtocol"                     | "upsertGoogleLoadBalancerDescription.ipProtocol.notSupported"                     | { it.ipProtocol = "ESP" }
+      "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["1", "2", "3", "4", "5", "6"] }
+      "ports"                          | "upsertGoogleLoadBalancerDescription.ports.invalid"                               | { it.ports = ["abc"] }
+      "portRange"                      | "upsertGoogleLoadBalancerDescription.portRange.notSupported"                      | { it.portRange = "80-90" }
+      "networkTier"                    | "upsertGoogleLoadBalancerDescription.networkTier.notSupported"                    | { it.networkTier = "FIXED" }
+      "backendService.sessionAffinity" | "upsertGoogleLoadBalancerDescription.backendService.sessionAffinity.notSupported" | { it.backendService.sessionAffinity = GoogleSessionAffinity.GENERATED_COOKIE }
+      "ipAddress"                      | "upsertGoogleLoadBalancerDescription.ipAddress.ipv6NotSupported"                  | { it.ipAddress = "2001:db8::1" }
+  }
+
+  private static UpsertGoogleLoadBalancerDescription regionalExternalNetworkDescription() {
+    new UpsertGoogleLoadBalancerDescription(
+      loadBalancerType: GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK,
+      loadBalancerName: LOAD_BALANCER_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      ipProtocol: "TCP",
+      ipAddress: "35.1.2.3",
+      networkTier: "PREMIUM",
+      ports: ["80"],
+      backendService: new GoogleBackendService(
+        name: "regional-external-network-lb",
+        sessionAffinity: GoogleSessionAffinity.CLIENT_IP,
+        healthCheck: new GoogleHealthCheck(
+          name: "tcp-hc",
+          healthCheckType: GoogleHealthCheck.HealthCheckType.TCP,
+          port: 80
+        )
+      )
+    )
   }
 }

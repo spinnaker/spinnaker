@@ -21,6 +21,7 @@ angular
 
       InfrastructureCaches.clearCache('backendServices');
       InfrastructureCaches.clearCache('healthChecks');
+      InfrastructureCaches.clearCache('addresses');
 
       return TaskExecutor.executeTask({
         job: loadBalancers,
@@ -48,7 +49,9 @@ angular
       return TaskExecutor.executeTask({
         job: [job],
         application: application,
-        description: `Delete load balancer: ${loadBalancer.urlMapName} in ${loadBalancer.account}:global`,
+        description: `Delete load balancer: ${loadBalancer.urlMapName} in ${loadBalancer.account}:${
+          loadBalancer.region || 'global'
+        }`,
       });
     }
 

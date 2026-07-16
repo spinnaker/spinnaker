@@ -56,15 +56,23 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
   public static final String TARGET_HTTPS_PROXY_NAME_PREFIX = "target-https-proxy";
   @Autowired private GoogleOperationPoller googleOperationPoller;
   @Autowired private AtomicOperationsRegistry atomicOperationsRegistry;
-  @Autowired private GoogleNetworkProvider googleNetworkProvider;
-  @Autowired private GoogleSubnetProvider googleSubnetProvider;
+  @Autowired protected GoogleNetworkProvider googleNetworkProvider;
+  @Autowired protected GoogleSubnetProvider googleSubnetProvider;
   @Autowired private OrchestrationProcessor orchestrationProcessor;
   @Autowired private SafeRetry safeRetry;
-  private final UpsertGoogleLoadBalancerDescription description;
+  protected final UpsertGoogleLoadBalancerDescription description;
 
   public UpsertGoogleInternalHttpLoadBalancerAtomicOperation(
       UpsertGoogleLoadBalancerDescription description) {
     this.description = description;
+  }
+
+  protected String getBasePhase() {
+    return BASE_PHASE;
+  }
+
+  protected String getLoadBalancerDescriptionLabel() {
+    return "Internal HTTP load balancer";
   }
 
   static String getFirstSslCertificateName(List<String> sslCertificates) {
@@ -107,16 +115,9 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             description.getAccountName(),
             description.getNetwork(),
             getTask(),
-            BASE_PHASE,
+            getBasePhase(),
             googleNetworkProvider);
-    GoogleSubnet subnet =
-        GCEUtil.querySubnet(
-            description.getAccountName(),
-            description.getRegion(),
-            description.getSubnet(),
-            getTask(),
-            BASE_PHASE,
-            googleSubnetProvider);
+    GoogleSubnet subnet = resolveSubnet(network);
     GoogleInternalHttpLoadBalancer internalHttpLoadBalancer = new GoogleInternalHttpLoadBalancer();
 
     internalHttpLoadBalancer.setName(description.getLoadBalancerName());
@@ -127,16 +128,17 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
     internalHttpLoadBalancer.setCertificate(description.getCertificate());
     internalHttpLoadBalancer.setIpAddress(description.getIpAddress());
     internalHttpLoadBalancer.setIpProtocol(description.getIpProtocol());
-    internalHttpLoadBalancer.setNetwork(network.getSelfLink());
-    internalHttpLoadBalancer.setSubnet(subnet.getSelfLink());
+    configureLoadBalancerNetwork(internalHttpLoadBalancer, network, subnet);
     internalHttpLoadBalancer.setPortRange(description.getPortRange());
 
     String internalHttpLoadBalancerName = internalHttpLoadBalancer.getName();
 
     getTask()
         .updateStatus(
-            BASE_PHASE,
-            "Initializing upsert of Internal HTTP load balancer "
+            getBasePhase(),
+            "Initializing upsert of "
+                + getLoadBalancerDescriptionLabel()
+                + " "
                 + internalHttpLoadBalancerName
                 + "...");
 
@@ -166,10 +168,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
     // service/hc exists or
     // needs updated by _name_ later.
     List<GoogleBackendService> backendServicesFromDescription =
-        ImmutableSet.copyOf(
-                Utils.getBackendServicesFromInternalHttpLoadBalancerView(
-                    internalHttpLoadBalancer.getView()))
-            .asList();
+        ImmutableSet.copyOf(getBackendServicesFromLoadBalancer(internalHttpLoadBalancer)).asList();
     List<GoogleHealthCheck> healthChecksFromDescription =
         backendServicesFromDescription.stream()
             .map(GoogleBackendService::getHealthCheck)
@@ -250,6 +249,18 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
       // TargetProxy
       GenericJson existingProxy = null;
       if (forwardingRuleExists) {
+        if (!getLoadBalancingScheme().equals(existingRule.getLoadBalancingScheme())) {
+          throw new IllegalStateException(
+              "Forwarding rule "
+                  + internalHttpLoadBalancerName
+                  + " already exists in "
+                  + region
+                  + " with loadBalancingScheme "
+                  + existingRule.getLoadBalancingScheme()
+                  + ", expected "
+                  + getLoadBalancingScheme()
+                  + ".");
+        }
         String targetProxyName = GCEUtil.getLocalName(existingRule.getTarget());
         switch (Utils.getTargetProxyType(existingRule.getTarget())) {
           case HTTP:
@@ -279,11 +290,11 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
 
             List<String> existingSslCertificates =
                 ((TargetHttpsProxy) existingProxy).getSslCertificates();
-            String existingCertificateName = getFirstSslCertificateName(existingSslCertificates);
+            String existingCertificateName =
+                getExistingCertificateForComparison(existingSslCertificates);
             String desiredCertificateName =
-                GCEUtil.getLocalName(
-                    GCEUtil.buildRegionalCertificateUrl(
-                        project, region, internalHttpLoadBalancer.getCertificate()));
+                getDesiredCertificateForComparison(
+                    project, region, internalHttpLoadBalancer.getCertificate());
             targetProxyNeedsUpdated =
                 !Objects.equals(existingCertificateName, desiredCertificateName);
             break;
@@ -350,6 +361,20 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             .findFirst()
             .ifPresent(
                 existingService -> {
+                  if (existingService.getLoadBalancingScheme() != null
+                      && !getLoadBalancingScheme()
+                          .equals(existingService.getLoadBalancingScheme())) {
+                    throw new GoogleOperationException(
+                        "Backend service "
+                            + backendServiceName
+                            + " already exists in "
+                            + region
+                            + " with loadBalancingScheme "
+                            + existingService.getLoadBalancingScheme()
+                            + ", expected "
+                            + getLoadBalancingScheme()
+                            + ".");
+                  }
                   serviceExistsSet.add(backendService.getName());
 
                   Set<String> existingHcs =
@@ -364,9 +389,14 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                                   ImmutableSet.of(backendService.getHealthCheck().getName()))
                               .size()
                           > 0;
+                  // GCP may omit sessionAffinity on an existing regional backend service;
+                  // normalize null to NONE before valueOf to avoid an NPE on update.
+                  GoogleSessionAffinity existingSessionAffinity =
+                      existingService.getSessionAffinity() != null
+                          ? GoogleSessionAffinity.valueOf(existingService.getSessionAffinity())
+                          : GoogleSessionAffinity.NONE;
                   Boolean differentSessionAffinity =
-                      !GoogleSessionAffinity.valueOf(existingService.getSessionAffinity())
-                          .equals(backendService.getSessionAffinity());
+                      !existingSessionAffinity.equals(backendService.getSessionAffinity());
                   Boolean differentSessionCookieTtl =
                       !Objects.equals(
                           existingService.getAffinityCookieTtlSec(),
@@ -400,7 +430,8 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
         if (!healthCheckExistsSet.contains(healthCheck.getName())) {
           getTask()
               .updateStatus(
-                  BASE_PHASE, "Creating health check " + healthCheckName + " in " + region + "...");
+                  getBasePhase(),
+                  "Creating health check " + healthCheckName + " in " + region + "...");
           HealthCheck newHealthCheck = GCEUtil.createNewHealthCheck(healthCheck);
           Operation insertHealthCheckOperation =
               timeExecute(
@@ -418,10 +449,11 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
               null,
               getTask(),
               "region health check " + healthCheckName,
-              BASE_PHASE);
+              getBasePhase());
         } else if (healthCheckExistsSet.contains(healthCheck.getName())
             && healthCheckNeedsUpdatedSet.contains(healthCheck.getName())) {
-          getTask().updateStatus(BASE_PHASE, "Updating health check " + healthCheckName + "...");
+          getTask()
+              .updateStatus(getBasePhase(), "Updating health check " + healthCheckName + "...");
           HealthCheck hcToUpdate =
               existingHealthChecks.stream()
                   .filter(hc -> hc.getName().equals(healthCheckName))
@@ -444,7 +476,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
               null,
               getTask(),
               "region health check " + healthCheckName,
-              BASE_PHASE);
+              getBasePhase());
         }
       }
 
@@ -459,12 +491,12 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
         if (!serviceExistsSet.contains(backendService.getName())) {
           getTask()
               .updateStatus(
-                  BASE_PHASE,
+                  getBasePhase(),
                   "Creating backend service " + backendServiceName + " in " + region + "...");
           BackendService service = new BackendService();
 
           BackendService bs = service.setName(backendServiceName);
-          service.setLoadBalancingScheme("INTERNAL_MANAGED");
+          service.setLoadBalancingScheme(getLoadBalancingScheme());
           service.setPortName(
               backendService.getPortName() != null
                   ? backendService.getPortName()
@@ -494,13 +526,13 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
               null,
               getTask(),
               "region backend service " + backendServiceName,
-              BASE_PHASE);
+              getBasePhase());
         } else if (serviceExistsSet.contains(backendService.getName())) {
           // Update the actual backend service if necessary.
           if (serviceNeedsUpdatedSet.contains(backendService.getName())) {
             getTask()
                 .updateStatus(
-                    BASE_PHASE,
+                    getBasePhase(),
                     "Updating backend service " + backendServiceName + " in " + region + "...");
             BackendService bsToUpdate =
                 existingServices.stream()
@@ -538,7 +570,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                 null,
                 getTask(),
                 "region backend service  " + backendServiceName,
-                BASE_PHASE);
+                getBasePhase());
           }
 
           fixBackendMetadata(
@@ -568,7 +600,8 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
       String urlMapUrl = null;
       if (!urlMapExists) {
         getTask()
-            .updateStatus(BASE_PHASE, "Creating URL map " + urlMapName + " in " + region + "...");
+            .updateStatus(
+                getBasePhase(), "Creating URL map " + urlMapName + " in " + region + "...");
         UrlMap newUrlMap = new UrlMap();
         newUrlMap.setName(urlMapName);
         newUrlMap.setHostRules(new ArrayList<>());
@@ -580,6 +613,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
           String pathMatcherName = PATH_MATCHER_PREFIX + "-" + UUID.randomUUID().toString();
           GooglePathMatcher pathMatcher = hostRule.getPathMatcher();
           PathMatcher matcher = new PathMatcher();
+          matcher.setName(pathMatcherName);
           matcher.setDefaultService(
               GCEUtil.buildRegionBackendServiceUrl(
                   project, region, pathMatcher.getDefaultService().getName()));
@@ -618,11 +652,12 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             null,
             getTask(),
             "region url map " + urlMapName,
-            BASE_PHASE);
+            getBasePhase());
         urlMapUrl = insertUrlMapOperation.getTargetLink();
       } else if (urlMapExists) {
         getTask()
-            .updateStatus(BASE_PHASE, "Updating URL map " + urlMapName + " in " + region + "...");
+            .updateStatus(
+                getBasePhase(), "Updating URL map " + urlMapName + " in " + region + "...");
         existingUrlMap.setDefaultService(
             GCEUtil.buildRegionBackendServiceUrl(
                 project, region, internalHttpLoadBalancer.getDefaultService().getName()));
@@ -669,7 +704,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             null,
             getTask(),
             "region url map " + urlMapName,
-            BASE_PHASE);
+            getBasePhase());
         urlMapUrl = updateUrlMapOperation.getTargetLink();
       } else {
         urlMapUrl = existingUrlMap.getSelfLink();
@@ -685,12 +720,12 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
           targetProxyName = internalHttpLoadBalancerName + "-" + TARGET_HTTPS_PROXY_NAME_PREFIX;
           getTask()
               .updateStatus(
-                  BASE_PHASE, "Creating target proxy " + targetProxyName + " in " + region + "...");
+                  getBasePhase(),
+                  "Creating target proxy " + targetProxyName + " in " + region + "...");
           TargetHttpsProxy proxy = new TargetHttpsProxy();
           proxy.setSslCertificates(
               Arrays.asList(
-                  GCEUtil.buildRegionalCertificateUrl(
-                      project, region, internalHttpLoadBalancer.getCertificate())));
+                  buildCertificateUrl(project, region, internalHttpLoadBalancer.getCertificate())));
           proxy.setUrlMap(urlMapUrl);
           proxy.setName(targetProxyName);
           targetProxy = proxy;
@@ -708,7 +743,8 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
           targetProxyName = internalHttpLoadBalancerName + "-" + TARGET_HTTP_PROXY_NAME_PREFIX;
           getTask()
               .updateStatus(
-                  BASE_PHASE, "Creating target proxy " + targetProxyName + " in " + region + "...");
+                  getBasePhase(),
+                  "Creating target proxy " + targetProxyName + " in " + region + "...");
           TargetHttpProxy proxy = new TargetHttpProxy();
           proxy.setName(targetProxyName);
           proxy.setUrlMap(urlMapUrl);
@@ -733,7 +769,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             null,
             getTask(),
             "region target proxy " + targetProxyName,
-            BASE_PHASE);
+            getBasePhase());
         targetProxyUrl = insertTargetProxyOperation.getTargetLink();
       } else if (targetProxyExists && targetProxyNeedsUpdated) {
         GoogleTargetProxyType proxyType =
@@ -745,14 +781,14 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             targetProxyName = internalHttpLoadBalancerName + "-" + TARGET_HTTPS_PROXY_NAME_PREFIX;
             getTask()
                 .updateStatus(
-                    BASE_PHASE,
+                    getBasePhase(),
                     "Updating target proxy " + targetProxyName + " in " + region + "...");
             RegionTargetHttpsProxiesSetSslCertificatesRequest request =
                 new RegionTargetHttpsProxiesSetSslCertificatesRequest();
             RegionTargetHttpsProxiesSetSslCertificatesRequest setSslReq =
                 request.setSslCertificates(
                     Arrays.asList(
-                        GCEUtil.buildRegionalCertificateUrl(
+                        buildCertificateUrl(
                             project, region, internalHttpLoadBalancer.getCertificate())));
             Operation sslCertOp =
                 timeExecute(
@@ -772,7 +808,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                 null,
                 getTask(),
                 "set ssl cert " + internalHttpLoadBalancer.getCertificate(),
-                BASE_PHASE);
+                getBasePhase());
             UrlMapReference reference = new UrlMapReference();
             UrlMapReference urlMapRef = reference.setUrlMap(urlMapUrl);
             Operation setUrlMapOp =
@@ -793,12 +829,14 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                 null,
                 getTask(),
                 "set urlMap " + urlMapUrl + " for target proxy " + targetProxyName,
-                BASE_PHASE);
+                getBasePhase());
             targetProxyUrl = setUrlMapOp.getTargetLink();
             break;
           default:
             throw new IllegalStateException(
-                "Updating Internal Http load balancer "
+                "Updating "
+                    + getLoadBalancerDescriptionLabel()
+                    + " "
                     + internalHttpLoadBalancerName
                     + " in "
                     + region
@@ -814,7 +852,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
       if (!forwardingRuleExists) {
         getTask()
             .updateStatus(
-                BASE_PHASE,
+                getBasePhase(),
                 "Creating internal forwarding rule "
                     + internalHttpLoadBalancerName
                     + " in "
@@ -822,17 +860,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                     + "...");
         ForwardingRule rule = new ForwardingRule();
 
-        rule.setName(internalHttpLoadBalancerName);
-        rule.setLoadBalancingScheme("INTERNAL_MANAGED");
-        rule.setIPAddress(internalHttpLoadBalancer.getIpAddress());
-        rule.setIPProtocol(internalHttpLoadBalancer.getIpProtocol());
-        rule.setNetwork(internalHttpLoadBalancer.getNetwork());
-        rule.setSubnetwork(internalHttpLoadBalancer.getSubnet());
-        rule.setPortRange(
-            StringGroovyMethods.asBoolean(internalHttpLoadBalancer.getCertificate())
-                ? "443"
-                : internalHttpLoadBalancer.getPortRange());
-        rule.setTarget(targetProxyUrl);
+        configureForwardingRule(rule, internalHttpLoadBalancer, targetProxyUrl);
 
         Operation forwardingRuleOp =
             safeRetry.doRetry(
@@ -860,7 +888,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
                     "action",
                     "insert",
                     "phase",
-                    BASE_PHASE,
+                    getBasePhase(),
                     "operation",
                     "compute.forwardingRules.insert",
                     TAG_SCOPE,
@@ -887,7 +915,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
             null,
             getTask(),
             "forwarding rule " + internalHttpLoadBalancerName,
-            BASE_PHASE);
+            getBasePhase());
       }
 
       // NOTE: there is no update for forwarding rules because we support adding/deleting multiple
@@ -900,21 +928,17 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
         for (String forwardingRuleName : description.getListenersToDelete()) {
           getTask()
               .updateStatus(
-                  BASE_PHASE, "Deleting listener " + forwardingRuleName + " in " + region + "...");
-          GCEUtil.deleteRegionalListener(
-              compute,
-              project,
-              region,
-              forwardingRuleName,
-              BASE_PHASE,
-              getSafeRetry(),
-              UpsertGoogleInternalHttpLoadBalancerAtomicOperation.this);
+                  getBasePhase(),
+                  "Deleting listener " + forwardingRuleName + " in " + region + "...");
+          deleteRegionalListenerIfOwned(compute, project, region, forwardingRuleName, urlMapName);
         }
       }
       getTask()
           .updateStatus(
-              BASE_PHASE,
-              "Done upserting Internal HTTP load balancer "
+              getBasePhase(),
+              "Done upserting "
+                  + getLoadBalancerDescriptionLabel()
+                  + " "
                   + internalHttpLoadBalancerName
                   + " in "
                   + region);
@@ -922,7 +946,7 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
       Map<String, String> lb = new HashMap<>(1);
       lb.put("name", internalHttpLoadBalancerName);
       Map<String, Map<String, String>> regionToLb = new HashMap<>(1);
-      regionToLb.put("region", lb);
+      regionToLb.put(region, lb);
 
       Map<String, Map<String, Map<String, String>>> lbs = new HashMap<>(1);
       lbs.put("loadBalancers", regionToLb);
@@ -1069,6 +1093,201 @@ public class UpsertGoogleInternalHttpLoadBalancerAtomicOperation
 
   public void setOrchestrationProcessor(OrchestrationProcessor orchestrationProcessor) {
     this.orchestrationProcessor = orchestrationProcessor;
+  }
+
+  protected GoogleSubnet resolveSubnet(GoogleNetwork network) {
+    return GCEUtil.querySubnet(
+        description.getAccountName(),
+        description.getRegion(),
+        description.getSubnet(),
+        getTask(),
+        getBasePhase(),
+        googleSubnetProvider);
+  }
+
+  protected Operation deleteRegionalListenerIfOwned(
+      Compute compute,
+      String project,
+      String region,
+      String forwardingRuleName,
+      String expectedUrlMapName)
+      throws IOException {
+    ForwardingRule forwardingRule =
+        getSafeRetry()
+            .doRetry(
+                new Closure<ForwardingRule>(this) {
+                  public ForwardingRule doCall() throws IOException {
+                    return compute
+                        .forwardingRules()
+                        .get(project, region, forwardingRuleName)
+                        .execute();
+                  }
+                },
+                "forwarding rule " + forwardingRuleName,
+                getTask(),
+                List.of(400, 412),
+                List.of(404),
+                ImmutableMap.of(
+                    "action",
+                    "get",
+                    "phase",
+                    getBasePhase(),
+                    "operation",
+                    "compute.forwardingRules.get",
+                    TAG_SCOPE,
+                    SCOPE_REGIONAL,
+                    TAG_REGION,
+                    region),
+                getRegistry());
+
+    if (forwardingRule == null) {
+      return null;
+    }
+    if (!getLoadBalancingScheme().equals(forwardingRule.getLoadBalancingScheme())) {
+      throw new GoogleOperationException(
+          "Listener "
+              + forwardingRuleName
+              + " is not owned by "
+              + getLoadBalancerDescriptionLabel()
+              + " "
+              + description.getLoadBalancerName()
+              + ".");
+    }
+
+    GoogleTargetProxyType proxyType = Utils.getTargetProxyType(forwardingRule.getTarget());
+    if (proxyType != GoogleTargetProxyType.HTTP && proxyType != GoogleTargetProxyType.HTTPS) {
+      throw new GoogleOperationException(
+          "Listener " + forwardingRuleName + " does not target a regional HTTP(S) proxy.");
+    }
+
+    GenericJson targetProxy;
+    String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget());
+    switch (proxyType) {
+      case HTTP:
+        targetProxy =
+            getSafeRetry()
+                .doRetry(
+                    new Closure<TargetHttpProxy>(this) {
+                      public TargetHttpProxy doCall() throws IOException {
+                        return compute
+                            .regionTargetHttpProxies()
+                            .get(project, region, targetProxyName)
+                            .execute();
+                      }
+                    },
+                    "region target http proxy " + targetProxyName,
+                    getTask(),
+                    List.of(400, 412),
+                    List.of(404),
+                    ImmutableMap.of(
+                        "action",
+                        "get",
+                        "phase",
+                        getBasePhase(),
+                        "operation",
+                        "compute.regionTargetHttpProxies.get",
+                        TAG_SCOPE,
+                        SCOPE_REGIONAL,
+                        TAG_REGION,
+                        region),
+                    getRegistry());
+        break;
+      case HTTPS:
+        targetProxy =
+            getSafeRetry()
+                .doRetry(
+                    new Closure<TargetHttpsProxy>(this) {
+                      public TargetHttpsProxy doCall() throws IOException {
+                        return compute
+                            .regionTargetHttpsProxies()
+                            .get(project, region, targetProxyName)
+                            .execute();
+                      }
+                    },
+                    "region target https proxy " + targetProxyName,
+                    getTask(),
+                    List.of(400, 412),
+                    List.of(404),
+                    ImmutableMap.of(
+                        "action",
+                        "get",
+                        "phase",
+                        getBasePhase(),
+                        "operation",
+                        "compute.regionTargetHttpsProxies.get",
+                        TAG_SCOPE,
+                        SCOPE_REGIONAL,
+                        TAG_REGION,
+                        region),
+                    getRegistry());
+        break;
+      default:
+        throw new IllegalStateException("Unexpected proxy type " + proxyType);
+    }
+    String actualUrlMapName =
+        GCEUtil.getLocalName(targetProxy == null ? null : (String) targetProxy.get("urlMap"));
+    if (!expectedUrlMapName.equals(actualUrlMapName)) {
+      throw new GoogleOperationException(
+          "Listener "
+              + forwardingRuleName
+              + " is attached to URL map "
+              + actualUrlMapName
+              + ", not "
+              + expectedUrlMapName
+              + ".");
+    }
+
+    return GCEUtil.deleteRegionalListener(
+        compute,
+        project,
+        region,
+        forwardingRuleName,
+        getBasePhase(),
+        getSafeRetry(),
+        UpsertGoogleInternalHttpLoadBalancerAtomicOperation.this);
+  }
+
+  protected void configureLoadBalancerNetwork(
+      GoogleInternalHttpLoadBalancer loadBalancer, GoogleNetwork network, GoogleSubnet subnet) {
+    loadBalancer.setNetwork(network.getSelfLink());
+    loadBalancer.setSubnet(subnet.getSelfLink());
+  }
+
+  protected List<GoogleBackendService> getBackendServicesFromLoadBalancer(
+      GoogleInternalHttpLoadBalancer loadBalancer) {
+    return Utils.getBackendServicesFromInternalHttpLoadBalancerView(loadBalancer.getView());
+  }
+
+  protected String getLoadBalancingScheme() {
+    return "INTERNAL_MANAGED";
+  }
+
+  protected String buildCertificateUrl(String project, String region, String certificate) {
+    return GCEUtil.buildRegionalCertificateUrl(project, region, certificate);
+  }
+
+  protected String getExistingCertificateForComparison(List<String> sslCertificates) {
+    return getFirstSslCertificateName(sslCertificates);
+  }
+
+  protected String getDesiredCertificateForComparison(
+      String project, String region, String certificate) {
+    return GCEUtil.getLocalName(buildCertificateUrl(project, region, certificate));
+  }
+
+  protected void configureForwardingRule(
+      ForwardingRule rule, GoogleInternalHttpLoadBalancer loadBalancer, String targetProxyUrl) {
+    rule.setName(loadBalancer.getName());
+    rule.setLoadBalancingScheme(getLoadBalancingScheme());
+    rule.setIPAddress(loadBalancer.getIpAddress());
+    rule.setIPProtocol(loadBalancer.getIpProtocol());
+    rule.setNetwork(loadBalancer.getNetwork());
+    rule.setSubnetwork(loadBalancer.getSubnet());
+    rule.setPortRange(
+        StringGroovyMethods.asBoolean(loadBalancer.getCertificate())
+            ? "443"
+            : loadBalancer.getPortRange());
+    rule.setTarget(targetProxyUrl);
   }
 
   public SafeRetry getSafeRetry() {

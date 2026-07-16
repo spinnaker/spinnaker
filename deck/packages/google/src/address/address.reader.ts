@@ -15,6 +15,7 @@ interface IAddressSearchResults {
 export interface IGceAddress {
   account?: string;
   address: string;
+  addressType?: string;
   creationTimestamp?: string;
   description?: string;
   id?: number;

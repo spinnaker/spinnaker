@@ -92,6 +92,12 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       case GoogleLoadBalancerType.INTERNAL_MANAGED:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleInternalHttpLoadBalancer)
         break
+      case GoogleLoadBalancerType.EXTERNAL_MANAGED:
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleExternalHttpLoadBalancer)
+        break
+      case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleRegionalExternalNetworkLoadBalancer)
+        break
       case GoogleLoadBalancerType.HTTP:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleHttpLoadBalancer)
         break
@@ -137,6 +143,12 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           break
         case GoogleLoadBalancerType.INTERNAL_MANAGED:
           isDisabled = Utils.determineInternalHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
+          break
+        case GoogleLoadBalancerType.EXTERNAL_MANAGED:
+          isDisabled = Utils.determineExternalHttpLoadBalancerDisabledState(loadBalancer, serverGroup)
+          break
+        case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+          isDisabled = Utils.determineRegionalExternalNetworkLoadBalancerDisabledState(loadBalancer, serverGroup)
           break
         case GoogleLoadBalancerType.NETWORK:
           isDisabled = serverGroup.disabled
@@ -215,9 +227,18 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
             backendServices = Utils.getBackendServicesFromInternalHttpLoadBalancerView(httpView).collect { it.name }
             urlMapName = httpView.urlMapName
             break
+          case (GoogleLoadBalancerType.EXTERNAL_MANAGED):
+            GoogleExternalHttpLoadBalancer.ExternalHttpLbView httpView = view as GoogleExternalHttpLoadBalancer.ExternalHttpLbView
+            backendServices = Utils.getBackendServicesFromExternalHttpLoadBalancerView(httpView).collect { it.name }
+            urlMapName = httpView.urlMapName
+            break
           case (GoogleLoadBalancerType.INTERNAL):
             GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
             backendServices << ilbView.backendService.name
+            break
+          case (GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK):
+            GoogleRegionalExternalNetworkLoadBalancer.View regionalExternalNetworkView = view as GoogleRegionalExternalNetworkLoadBalancer.View
+            backendServices << regionalExternalNetworkView.backendService.name
             break
           case (GoogleLoadBalancerType.SSL):
             GoogleSslLoadBalancer.View sslView = view as GoogleSslLoadBalancer.View
@@ -288,11 +309,27 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         List<GoogleBackendService> backendServices = Utils.getBackendServicesFromInternalHttpLoadBalancerView(httpView)
         backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck.view] }
         break
+      case GoogleLoadBalancerType.EXTERNAL_MANAGED:
+        instancePort = 'http'
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        GoogleExternalHttpLoadBalancer.ExternalHttpLbView httpView = view as GoogleExternalHttpLoadBalancer.ExternalHttpLbView
+        List<GoogleBackendService> backendServices = Utils.getBackendServicesFromExternalHttpLoadBalancerView(httpView)
+        backendServiceHealthChecks = backendServices.collectEntries { [it.name, it.healthCheck.view] }
+        break
       case GoogleLoadBalancerType.INTERNAL:
         GoogleInternalLoadBalancer.View ilbView = view as GoogleInternalLoadBalancer.View
         def portString = ilbView.ports.join(",")
         instancePort = portString
         loadBalancerPort = portString
+        break
+      case GoogleLoadBalancerType.REGIONAL_EXTERNAL_NETWORK:
+        GoogleRegionalExternalNetworkLoadBalancer.View regionalExternalNetworkView = view as GoogleRegionalExternalNetworkLoadBalancer.View
+        // A passthrough forwarding rule exposes either discrete `ports` or a `portRange`/all-ports
+        // config, so `ports` is null for range/all-ports LBs; fall back to portRange for display.
+        def portString = regionalExternalNetworkView.ports?.join(",") ?: regionalExternalNetworkView.portRange
+        instancePort = portString
+        loadBalancerPort = portString
+        sessionAffinity = regionalExternalNetworkView.backendService?.sessionAffinity
         break
       case GoogleLoadBalancerType.SSL:
         instancePort = Utils.derivePortOrPortRange(view.portRange)

@@ -24,6 +24,7 @@ module(GOOGLE_SERVERGROUP_SERVERGROUP_TRANSFORMER, [GCE_HTTP_LOAD_BALANCER_UTILS
                 serverGroup.loadBalancers,
                 serverGroup.account,
                 application.getDataSource('loadBalancers').data,
+                serverGroup.region,
               );
             }
             return serverGroup;

@@ -3,6 +3,7 @@ import { module } from 'angular';
 import { chain, get, has, intersection, set, without } from 'lodash';
 
 import type { IGceBackendService, INamedPort } from '../../../../domain';
+import { GceHttpLoadBalancerUtils } from '../../../../loadBalancer/httpLoadBalancerUtils.service';
 
 import './loadBalancingPolicySelector.component.less';
 
@@ -10,10 +11,10 @@ class GceLoadBalancingPolicySelectorController implements IController {
   public maxPort = 65535;
   public command: any;
   [key: string]: any;
-  public globalBackendServices: IGceBackendService[];
+  public backendServices: IGceBackendService[];
 
-  public static $inject = ['gceBackendServiceReader'];
-  constructor(private gceBackendServiceReader: any) {}
+  public static $inject = ['gceBackendServiceReader', '$q'];
+  constructor(private gceBackendServiceReader: any, private $q: any) {}
 
   public setModel(propertyName: string, viewValue: number): void {
     set(this, propertyName, viewValue / 100);
@@ -48,22 +49,22 @@ class GceLoadBalancingPolicySelectorController implements IController {
     /*
      * Three cases:
      *   - If we have only HTTP(S) load balancers, our balancing mode can be RATE or UTILIZATION.
-     *   - If we have only SSL/TCP load balancers, our balancing mode can be CONNECTION or UTILIZATION.
+     *   - If we have only passthrough load balancers, our balancing mode can be CONNECTION or UTILIZATION.
      *   - If we have both, only UTILIZATION.
      * */
     if (has(this, 'command.backingData.filtered.loadBalancerIndex')) {
       const index = this.command.backingData.filtered.loadBalancerIndex;
       const selected = this.command.loadBalancers;
 
-      const hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
-      const hasTcp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'TCP');
-      const hasHttp =
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP') ||
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP2') ||
-        selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'GRPC');
-      if ((hasSsl || hasTcp) && hasHttp) {
+      const hasPassthrough = selected.find((loadBalancer: any) =>
+        this.isPassthroughLoadBalancerType(get(index[loadBalancer], 'loadBalancerType')),
+      );
+      const hasHttp = selected.find((loadBalancer: any) =>
+        this.isHttpFamilyLoadBalancerType(get(index[loadBalancer], 'loadBalancerType')),
+      );
+      if (hasPassthrough && hasHttp) {
         balancingModes = ['UTILIZATION'];
-      } else if (hasSsl || hasTcp) {
+      } else if (hasPassthrough) {
         balancingModes = ['CONNECTION', 'UTILIZATION'];
       } else {
         balancingModes = ['RATE', 'UTILIZATION'];
@@ -77,9 +78,14 @@ class GceLoadBalancingPolicySelectorController implements IController {
   }
 
   public $onInit(): void {
-    this.gceBackendServiceReader.listBackendServices('globalBackendService').then((services: IGceBackendService[]) => {
-      this.globalBackendServices = services;
-    });
+    this.$q
+      .all([
+        this.gceBackendServiceReader.listBackendServices('globalBackendService'),
+        this.gceBackendServiceReader.listBackendServices('regionBackendService'),
+      ])
+      .then(([globalServices, regionalServices]: IGceBackendService[][]) => {
+        this.backendServices = globalServices.concat(regionalServices);
+      });
   }
 
   public $onDestroy(): void {
@@ -103,16 +109,41 @@ class GceLoadBalancingPolicySelectorController implements IController {
     const selected = this.command.loadBalancers;
     const inUsePortNames = this.command.loadBalancingPolicy.namedPorts.map((namedPort: INamedPort) => namedPort.name);
 
-    const getThem = (globalBackendServices: IGceBackendService[], loadBalancer: string): string[] => {
-      switch (get(index[loadBalancer], 'loadBalancerType')) {
+    const getThem = (backendServices: IGceBackendService[], loadBalancer: string): string[] => {
+      const selectedLoadBalancer = index[loadBalancer];
+      const loadBalancerType = get(selectedLoadBalancer, 'loadBalancerType');
+      const isRegionalHttpLoadBalancer =
+        loadBalancerType === 'INTERNAL_MANAGED' || loadBalancerType === 'EXTERNAL_MANAGED';
+      const serviceMatchesScope = (service: IGceBackendService): boolean => {
+        // Backend service names are scoped in GCP; match the selected LB's account, kind, and
+        // region before using the service's portName as a named-port suggestion.
+        const account = get(selectedLoadBalancer, 'account');
+        if (service.account && account && service.account !== account) {
+          return false;
+        }
+        if (loadBalancerType === 'HTTP') {
+          return service.kind === 'globalBackendService';
+        }
+        if (isRegionalHttpLoadBalancer) {
+          const region = get(selectedLoadBalancer, 'region');
+          return (
+            service.kind === 'regionBackendService' &&
+            (!region || service.region === region || (service.selfLink || '').includes(`/regions/${region}/`))
+          );
+        }
+        return true;
+      };
+      switch (loadBalancerType) {
         case 'SSL':
         case 'TCP':
         case 'GRPC':
         case 'HTTP2':
+        case 'INTERNAL_MANAGED':
+        case 'EXTERNAL_MANAGED':
         case 'HTTP': {
           const lbBackendServices: string[] = get(index[loadBalancer], 'backendServices');
-          const filteredBackendServices = globalBackendServices.filter((service: IGceBackendService) =>
-            lbBackendServices.includes(service.name),
+          const filteredBackendServices = backendServices.filter(
+            (service: IGceBackendService) => lbBackendServices.includes(service.name) && serviceMatchesScope(service),
           );
           const portNames = filteredBackendServices.map((service: IGceBackendService) => service.portName);
           const portNameIntersection = intersection(portNames, inUsePortNames);
@@ -124,7 +155,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
     };
 
     return chain(selected)
-      .flatMap((lbName: string) => getThem(this.globalBackendServices, lbName))
+      .flatMap((lbName: string) => getThem(this.backendServices || [], lbName))
       .uniq()
       .value();
   }
@@ -134,6 +165,18 @@ class GceLoadBalancingPolicySelectorController implements IController {
       return 0;
     }
     return value ? Math.round(value * 100) : undefined;
+  }
+
+  private isHttpFamilyLoadBalancerType(loadBalancerType: string): boolean {
+    return (
+      GceHttpLoadBalancerUtils.HTTP_LOAD_BALANCER_TYPES.includes(loadBalancerType) ||
+      loadBalancerType === 'HTTP2' ||
+      loadBalancerType === 'GRPC'
+    );
+  }
+
+  private isPassthroughLoadBalancerType(loadBalancerType: string): boolean {
+    return loadBalancerType === 'SSL' || loadBalancerType === 'TCP';
   }
 }
 
