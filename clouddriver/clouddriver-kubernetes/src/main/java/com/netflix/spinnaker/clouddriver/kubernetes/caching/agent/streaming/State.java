@@ -87,8 +87,8 @@ class State {
     }
     stopped = true;
     factory.stopAllRegisteredWatchers();
-    watcherHttpClient.dispatcher().cancelAll();
     executorService.shutdownNow();
+    watcherHttpClient.dispatcher().cancelAll();
     return executorService.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS);
   }
 
