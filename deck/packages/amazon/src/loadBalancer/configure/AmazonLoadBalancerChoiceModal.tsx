@@ -17,12 +17,21 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
   ILoadBalancerModalProps,
   IAmazonLoadBalancerChoiceModalState
 > {
+  public static supportsPipelineConfig = true;
+
   public static defaultProps: Partial<ILoadBalancerModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: ILoadBalancerModalProps): Promise<void> {
+  public static show(props: ILoadBalancerModalProps): Promise<any> {
+    if ((props as any).isNew === false && props.loadBalancer?.loadBalancerType) {
+      const loadBalancerType = LoadBalancerTypes.find((type) => type.type === props.loadBalancer.loadBalancerType);
+      if (loadBalancerType) {
+        return loadBalancerType.component.show(props);
+      }
+    }
+
     return ReactModal.show(
       AmazonLoadBalancerChoiceModal,
       {

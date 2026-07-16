@@ -1,28 +1,11 @@
 import React from 'react';
 
-import { CollapsibleSection, confirmNotManaged, ModalInjector } from '@spinnaker/core';
+import { CollapsibleSection } from '@spinnaker/core';
 import { HelpField } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { AWSProviderSettings } from '../../../aws.settings';
 
 export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
-  private editAdvancedSettings = (): void => {
-    const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app).then(
-      (notManaged) =>
-        notManaged &&
-        ModalInjector.modalService.open({
-          templateUrl: require('../advancedSettings/editAsgAdvancedSettings.modal.html'),
-          controller: 'EditAsgAdvancedSettingsCtrl as ctrl',
-          resolve: {
-            application: () => app,
-            serverGroup: () => serverGroup,
-          },
-        }),
-    );
-  };
-
   public render(): JSX.Element {
     const { serverGroup } = this.props;
 
@@ -50,11 +33,6 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
             <dd>{`${asg.capacityRebalance}`}</dd>,
           ]}
         </dl>
-        {AWSProviderSettings.adHocInfraWritesEnabled && (
-          <a className="clickable" onClick={this.editAdvancedSettings}>
-            Edit Advanced Settings
-          </a>
-        )}
       </CollapsibleSection>
     );
   }
