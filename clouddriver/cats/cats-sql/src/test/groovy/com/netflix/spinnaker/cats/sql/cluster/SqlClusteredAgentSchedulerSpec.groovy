@@ -40,6 +40,8 @@ import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.concurrent.CompletableFuture
+
 @Requires({ DockerClientFactory.instance().isDockerAvailable() })
 abstract class SqlClusteredAgentSchedulerSpec extends Specification {
   SqlTestUtil.TestDatabase testDatabase
@@ -91,7 +93,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     def agent = Stub(CachingAgent)
     def instr = Mock(ExecutionInstrumentation)
-    def exec = Mock(LongRunningAgentExecution)
+    def exec = Spy(MockAgentLongRunningExecution)
 
 
     def nodeIdentity = Stub(NodeIdentity)
@@ -116,12 +118,14 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     scheduler.schedule(agent, exec, instr)
     runnableExecutor.runAll()
     runnableScheduler.runAll()
+    exec.stopRunning()
     Thread.sleep(600)
     runnableExecutor.runAll()
     runnableScheduler.runAll()
 
     then:
     2 * exec.executeAgent(_)
+    1 * exec.stopExecutingAndCleanup()
 
   }
 
@@ -141,11 +145,10 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     def exec1 = Spy(MockAgentLongRunningExecution)
     def nodeIdentity1 = Stub(NodeIdentity)
     def nodeStatusProvider1 = Stub(NodeStatusProvider)
-    def shardingFilter1 = Stub(ShardingFilter)
+    def shardingFilter1 = new MockShardingFilter()
 
     nodeIdentity1.nodeIdentity >> "node1"
     nodeStatusProvider1.isNodeEnabled() >> true
-    shardingFilter1.filter(_ as Agent) >> [true, false]
     agent1.getAgentType() >> agentType
 
     runnableScheduler1 = new ManualRunnableScheduler()
@@ -161,7 +164,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     def exec2 = Mock(LongRunningAgentExecution)
     def nodeIdentity2 = Stub(NodeIdentity)
     def nodeStatusProvider2 = Stub(NodeStatusProvider)
-    def shardingFilter2 = Stub(ShardingFilter)
+    def shardingFilter2 = new MockShardingFilter()
 
     nodeIdentity2.nodeIdentity >> "node2"
     nodeStatusProvider2.isNodeEnabled() >> true
@@ -178,10 +181,13 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
 
     when:
+    shardingFilter1.add("someagent-1")
     scheduler1.schedule(agent1, exec1, instr1)
     runnableExecutor1.runAll()
     runnableScheduler1.runAll()
     Thread.sleep(600)
+    exec1.stopRunning()
+    shardingFilter1.remove("someagent-1")
     runnableExecutor1.runAll()
     runnableScheduler1.runAll()
     scheduler2.schedule(agent2, exec2, instr2)
@@ -190,6 +196,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
 
     then:
     1 * exec1.executeAgent(_)
+    1 * exec1.stopExecutingAndCleanup()
     0 * exec2.executeAgent(_)
   }
 
@@ -260,8 +267,13 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor2.runAll()
     runnableScheduler2.runAll()
 
+    //guarantee it is not stopped twice
+    runnableExecutor1.runAll()
+    runnableScheduler1.runAll()
+
     then:
     1 * exec1.executeAgent(_)
+    1 * exec1.stopExecutingAndCleanup()
     1 * exec2.executeAgent(_)
   }
 

@@ -36,6 +36,7 @@ import org.springframework.dao.DataAccessException
 import org.springframework.dao.DataIntegrityViolationException
 import java.sql.SQLException
 import java.util.concurrent.*
+import java.util.function.BiConsumer
 import java.util.regex.Pattern
 import java.util.regex.Pattern.CASE_INSENSITIVE
 
@@ -69,6 +70,7 @@ class SqlClusteredAgentScheduler(
 
   private val agents: MutableMap<String, AgentExecutionAction> = ConcurrentHashMap()
   private val longRunningAgents: MutableMap<String, AgentExecutionRunnable> = ConcurrentHashMap()
+  private val scheduledLongRunningAgents: MutableSet<AgentExecutionRunnable> = HashSet()
   private val activeAgents: MutableMap<String, NextAttempt> = ConcurrentHashMap()
   private val activeAgentsFutures: MutableMap<String, Future<*>> = ConcurrentHashMap()
   private val enabledAgents: Pattern
@@ -245,8 +247,17 @@ class SqlClusteredAgentScheduler(
   }
 
   private fun scheduleLongRunningAgents() {
+    removeRelocated()
     renewAgents()
     submitLongRunningAgents()
+  }
+
+  private fun removeRelocated() {
+    val stoppedAgentsRelocated = scheduledLongRunningAgents.filter { !shardingFilter.filter(it.agent) }.filter { !(it.execution as LongRunningAgentExecution).isRunning }
+    stoppedAgentsRelocated.forEach {
+      (it.execution as LongRunningAgentExecution).stopExecutingAndCleanup()
+    }
+    scheduledLongRunningAgents.removeAll(stoppedAgentsRelocated)
   }
 
   private fun renewAgents() {
@@ -275,7 +286,16 @@ class SqlClusteredAgentScheduler(
     log.debug("{} Long Running Agents filtered for node: {} with lock acquired", candidateAgentLocks.size, nodeIdentity.nodeIdentity)
 
     log.debug("Long Running Agents to be executed in {}: {}", nodeIdentity.nodeIdentity, candidateAgentLocks.keys)
-    candidateAgentLocks.forEach { agentExecutionPool.submit(it.value)}
+    candidateAgentLocks.forEach {
+      if (it.value in scheduledLongRunningAgents) {
+        (it.value.execution as LongRunningAgentExecution).stopExecutingAndCleanup()
+          .whenComplete(BiConsumer<Void, Throwable> { res: Void?, ex: Throwable? -> agentExecutionPool.submit(it.value) })
+      }
+      else {
+        agentExecutionPool.submit(it.value);
+        scheduledLongRunningAgents.add(it.value)
+      }
+    }
   }
 
   private fun cleanupZombieAgents() {
