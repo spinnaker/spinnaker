@@ -4,6 +4,30 @@ import * as angular from 'angular';
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
 import { Registry } from '../../../../registry';
 
+export function openLoadBalancerModal(config, modalService, { application, loadBalancer, isNew, forPipelineConfig }) {
+  if (config.CreateLoadBalancerModal && config.CreateLoadBalancerModal.supportsPipelineConfig) {
+    return config.CreateLoadBalancerModal.show({
+      app: application,
+      application,
+      loadBalancer,
+      isNew,
+      forPipelineConfig,
+    });
+  }
+
+  return modalService.open({
+    templateUrl: config.createLoadBalancerTemplateUrl,
+    controller: `${config.createLoadBalancerController} as ctrl`,
+    size: 'lg',
+    resolve: {
+      application: () => application,
+      loadBalancer: () => loadBalancer,
+      isNew: () => isNew,
+      forPipelineConfig: () => forPipelineConfig,
+    },
+  }).result;
+}
+
 export const CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE =
   'spinnaker.core.pipeline.stage.createLoadBalancerStage';
 export const name = CORE_PIPELINE_CONFIG_STAGES_CREATELOADBALANCER_CREATELOADBALANCERSTAGE; // for backwards compatibility
@@ -30,50 +54,17 @@ angular
         $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
       }
 
-      function appendLoadBalancers(loadBalancers) {
-        if (Array.isArray(loadBalancers)) {
-          $scope.stage.loadBalancers.push(...loadBalancers);
-        } else if (loadBalancers) {
-          $scope.stage.loadBalancers.push(loadBalancers);
-        }
-      }
-
-      function updateLoadBalancerAtIndex(loadBalancer, index) {
-        if (Array.isArray(loadBalancer)) {
-          $scope.stage.loadBalancers.splice(index, 1, ...loadBalancer);
-        } else if (loadBalancer) {
-          $scope.stage.loadBalancers[index] = loadBalancer;
-        }
-      }
-
-      function openLoadBalancerModal(config, loadBalancer, isNew) {
-        if (config.pipelineCreateLoadBalancerModal) {
-          return config.pipelineCreateLoadBalancerModal({
-            application: $scope.application,
-            loadBalancer,
-            isNew,
-            $uibModal,
-          });
-        }
-        return $uibModal.open({
-          templateUrl: config.createLoadBalancerTemplateUrl,
-          controller: `${config.createLoadBalancerController} as ctrl`,
-          size: 'lg',
-          resolve: {
-            application: () => $scope.application,
-            loadBalancer: () => loadBalancer,
-            isNew: () => isNew,
-            forPipelineConfig: () => true,
-          },
-        }).result;
-      }
-
       this.addLoadBalancer = function () {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
           const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-          openLoadBalancerModal(config, null, true)
+          openLoadBalancerModal(config, $uibModal, {
+            application: $scope.application,
+            loadBalancer: null,
+            isNew: true,
+            forPipelineConfig: true,
+          })
             .then(function (newLoadBalancer) {
-              appendLoadBalancers(newLoadBalancer);
+              $scope.stage.loadBalancers.push(newLoadBalancer);
             })
             .catch(() => {});
         });
@@ -82,10 +73,14 @@ angular
       this.editLoadBalancer = function (loadBalancer, index) {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
           const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-          const loadBalancerCopy = angular.copy(loadBalancer);
-          openLoadBalancerModal(config, loadBalancerCopy, false)
+          openLoadBalancerModal(config, $uibModal, {
+            application: $scope.application,
+            loadBalancer: angular.copy(loadBalancer),
+            isNew: false,
+            forPipelineConfig: true,
+          })
             .then(function (updatedLoadBalancer) {
-              updateLoadBalancerAtIndex(updatedLoadBalancer, index);
+              $scope.stage.loadBalancers[index] = updatedLoadBalancer;
             })
             .catch(() => {});
         });
