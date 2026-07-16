@@ -307,12 +307,16 @@ class SqlClusteredAgentScheduler(
           scheduled != null && // agents with the same type
             scheduled === it // the exact same agent configuration (by reference)
         }
-      log.info("Stopping {} unscheduled active long running agents: {}", unscheduledActiveAgents.size, unscheduledActiveAgents.agentTypes())
+      if (unscheduledActiveAgents.isNotEmpty()) {
+        log.info("Stopping {} unscheduled active long running agents: {}", unscheduledActiveAgents.size, unscheduledActiveAgents.agentTypes())
+      }
 
       // filter not running agents (failed to run, failed to start), will restart them
       val (runningActiveAgents, failedActiveAgents) = scheduledActiveAgents
         .partition { it.execution.asLongRunning().state == RUNNING }
-      log.info("Stopping {} not running (failed) agents: {}", failedActiveAgents.size, failedActiveAgents.agentTypes())
+      if (failedActiveAgents.isNotEmpty()) {
+        log.info("Stopping {} not running (failed) agents: {}", failedActiveAgents.size, failedActiveAgents.agentTypes())
+      }
 
       val (agentsToKeep, rebalancedAgents) = rebalanceLongRunningAgents(runningActiveAgents)
 

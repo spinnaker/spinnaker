@@ -36,10 +36,15 @@ import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -48,6 +53,11 @@ import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class KubernetesStreamingWatcher implements Runnable {
+
+  @FunctionalInterface
+  interface Sleeper {
+    void sleep(long millis) throws InterruptedException;
+  }
 
   private static final String ERROR_EVENT = "ERROR";
   private static final String BOOKMARK_EVENT = "BOOKMARK";
@@ -67,6 +77,10 @@ public class KubernetesStreamingWatcher implements Runnable {
   private final int watchTimeoutSeconds;
   private final K8SListWatchAdapter adapter;
   private final StartupConcurrencyControl concurrencyControl;
+  private final Sleeper sleeper;
+  private final LongSupplier tickerMillis;
+  private final AtomicLong lastHeartbeatTimeMillis = new AtomicLong();
+  private final AtomicBoolean heartbeatRecorded = new AtomicBoolean();
   private String lastSyncResourceVersion = RESOURCE_VERSION_USE_FROM_CACHE;
   private final int paginationSize;
 
@@ -101,6 +115,40 @@ public class KubernetesStreamingWatcher implements Runnable {
         () -> !Thread.currentThread().isInterrupted());
   }
 
+  KubernetesStreamingWatcher(
+      K8SListWatchAdapter adapter,
+      State state,
+      String kind,
+      String group,
+      String version,
+      String account,
+      int paginationSize,
+      BlockingQueue<KubernetesStreamingEvent> eventQueue,
+      Set<Keys.InfrastructureCacheKey> initialKnownKeys,
+      int retryTimeoutMillis,
+      int listTimeoutSeconds,
+      int watchTimeoutSeconds,
+      StartupConcurrencyControl concurrencyControl,
+      LongSupplier tickerMillis) {
+    this(
+        adapter,
+        state,
+        kind,
+        group,
+        version,
+        account,
+        paginationSize,
+        eventQueue,
+        initialKnownKeys,
+        retryTimeoutMillis,
+        listTimeoutSeconds,
+        watchTimeoutSeconds,
+        concurrencyControl,
+        () -> !Thread.currentThread().isInterrupted(),
+        Thread::sleep,
+        tickerMillis);
+  }
+
   public KubernetesStreamingWatcher(
       K8SListWatchAdapter adapter,
       State state,
@@ -116,6 +164,76 @@ public class KubernetesStreamingWatcher implements Runnable {
       int watchTimeoutSeconds,
       StartupConcurrencyControl concurrencyControl,
       Supplier<Boolean> isRunning) {
+    this(
+        adapter,
+        state,
+        kind,
+        group,
+        version,
+        account,
+        paginationSize,
+        eventQueue,
+        initialKnownKeys,
+        retryTimeoutMillis,
+        listTimeoutSeconds,
+        watchTimeoutSeconds,
+        concurrencyControl,
+        isRunning,
+        Thread::sleep);
+  }
+
+  KubernetesStreamingWatcher(
+      K8SListWatchAdapter adapter,
+      State state,
+      String kind,
+      String group,
+      String version,
+      String account,
+      int paginationSize,
+      BlockingQueue<KubernetesStreamingEvent> eventQueue,
+      Set<Keys.InfrastructureCacheKey> initialKnownKeys,
+      int retryTimeoutMillis,
+      int listTimeoutSeconds,
+      int watchTimeoutSeconds,
+      StartupConcurrencyControl concurrencyControl,
+      Supplier<Boolean> isRunning,
+      Sleeper sleeper) {
+    this(
+        adapter,
+        state,
+        kind,
+        group,
+        version,
+        account,
+        paginationSize,
+        eventQueue,
+        initialKnownKeys,
+        retryTimeoutMillis,
+        listTimeoutSeconds,
+        watchTimeoutSeconds,
+        concurrencyControl,
+        isRunning,
+        sleeper,
+        systemTickerMillis());
+  }
+
+  KubernetesStreamingWatcher(
+      K8SListWatchAdapter adapter,
+      State state,
+      String kind,
+      String group,
+      String version,
+      String account,
+      int paginationSize,
+      BlockingQueue<KubernetesStreamingEvent> eventQueue,
+      Set<Keys.InfrastructureCacheKey> initialKnownKeys,
+      int retryTimeoutMillis,
+      int listTimeoutSeconds,
+      int watchTimeoutSeconds,
+      StartupConcurrencyControl concurrencyControl,
+      Supplier<Boolean> isRunning,
+      Sleeper sleeper,
+      LongSupplier tickerMillis) {
     this.adapter = adapter;
     this.state = state;
     this.account = account;
@@ -132,6 +250,8 @@ public class KubernetesStreamingWatcher implements Runnable {
     this.watchTimeoutSeconds = watchTimeoutSeconds;
     this.concurrencyControl = concurrencyControl;
     this.isRunning = isRunning;
+    this.sleeper = sleeper;
+    this.tickerMillis = tickerMillis;
   }
 
   public void run() {
@@ -148,44 +268,97 @@ public class KubernetesStreamingWatcher implements Runnable {
 
         boolean watchActive = true;
         while (isRunning.get() && watchActive) {
+          Watchable<DynamicKubernetesObject> watch;
+          try {
+            watch = adapter.watch(watchTimeoutSeconds, lastSyncResourceVersion);
+          } catch (Exception e) {
+            if (!Thread.currentThread().isInterrupted()
+                && hasCause(e, SocketTimeoutException.class)) {
+              log.debug(
+                  "{}:{}:: Watch open timed out, retrying from resourceVersion {}.",
+                  account,
+                  watcherId(),
+                  lastSyncResourceVersion);
+              if (!sleepBeforeRetry()) {
+                return;
+              }
+              continue;
+            }
+            throw e;
+          }
 
-          try (Watchable<DynamicKubernetesObject> watch =
-              adapter.watch(watchTimeoutSeconds, lastSyncResourceVersion)) {
+          try (watch) {
+            recordHeartbeat();
             watchActive = handle(watch);
+          } catch (Exception e) {
+            if (!Thread.currentThread().isInterrupted()
+                && hasCause(e, SocketTimeoutException.class)) {
+              log.debug(
+                  "{}:{}:: Watch timed out, reconnecting from resourceVersion {}.",
+                  account,
+                  watcherId(),
+                  lastSyncResourceVersion);
+              continue;
+            }
+            throw e;
           }
         }
       } catch (ApiException e) {
-        if (e.getCode() == HttpURLConnection.HTTP_GONE) {
+        if (Thread.currentThread().isInterrupted()) {
+          log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), e);
+          Thread.currentThread().interrupt();
+          return;
+        } else if (hasCause(e, InterruptedIOException.class)
+            && !hasCause(e, SocketTimeoutException.class)) {
+          log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), e);
+          Thread.currentThread().interrupt();
+          return;
+        } else if (e.getCode() == HttpURLConnection.HTTP_GONE) {
           log.info("{}:{}:: Restarting watching.", account, watcherId());
           lastSyncResourceVersion = RESOURCE_VERSION_LIST_ALL;
-        } else if (e.getCause() instanceof ConnectException) {
+        } else if (hasCause(e, ConnectException.class)) {
           log.warn(
               "{}:{}:: Error connecting to Kubernetes API, retrying in {} ms.",
               account,
               watcherId(),
               retryTimeoutMillis);
-          try {
-            Thread.sleep(retryTimeoutMillis);
-          } catch (InterruptedException ie) {
-            log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), ie);
-            Thread.currentThread().interrupt();
+          if (!sleepBeforeRetry()) {
             return;
           }
         } else {
-          log.warn("{}:{}:: Error watching Kubernetes objects.", account, watcherId(), e);
+          if (hasCause(e, SocketTimeoutException.class)) {
+            log.debug("{}:{}:: List timed out, retrying.", account, watcherId());
+          } else {
+            log.warn("{}:{}:: Error watching Kubernetes objects.", account, watcherId(), e);
+          }
+          if (!sleepBeforeRetry()) {
+            return;
+          }
         }
       } catch (InterruptedException ie) {
         log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), ie);
         Thread.currentThread().interrupt();
         return;
       } catch (Exception e) {
-        if ((e.getCause() instanceof InterruptedIOException)
-            || Thread.currentThread().isInterrupted()) {
+        if (Thread.currentThread().isInterrupted()) {
           log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), e);
           Thread.currentThread().interrupt();
           return;
+        } else if (hasCause(e, InterruptedIOException.class)
+            && !hasCause(e, SocketTimeoutException.class)) {
+          log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), e);
+          Thread.currentThread().interrupt();
+          return;
+        } else {
+          if (hasCause(e, SocketTimeoutException.class)) {
+            log.debug("{}:{}:: List timed out, retrying.", account, watcherId());
+          } else {
+            log.warn("{}:{}:: Error watching Kubernetes objects.", account, watcherId(), e);
+          }
+          if (!sleepBeforeRetry()) {
+            return;
+          }
         }
-        log.warn("{}:{}:: Error watching Kubernetes objects.", account, watcherId(), e);
       }
     }
   }
@@ -208,6 +381,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       }
       DynamicKubernetesListObject list =
           adapter.list(listTimeoutSeconds, lastSyncResourceVersion, paginationSize, lastContinue);
+      recordHeartbeat();
 
       V1ListMeta listMeta = list.getMetadata();
       resourceVersion = listMeta.getResourceVersion();
@@ -226,8 +400,7 @@ public class KubernetesStreamingWatcher implements Runnable {
           continue;
         }
 
-        eventQueue.put(new KubernetesStreamingEvent(Type.UPSERT, manifest));
-        state.updateLastReceivedEventTime();
+        state.enqueueEvent(eventQueue, new KubernetesStreamingEvent(Type.UPSERT, manifest));
       }
       if (paginationSize > 0) {
         if (paginationSize < items.size()) {
@@ -274,7 +447,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       if (Thread.interrupted()) {
         throw new InterruptedException("syncList::deleteEvents is interrupted");
       }
-      eventQueue.put(event);
+      state.enqueueEvent(eventQueue, event);
     }
 
     log.debug("{}:{}:: List resulted in {} DELETES", account, watcherId(), deletedKeys.size());
@@ -318,6 +491,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       while (isRunning.get() && watch.hasNext()) {
         eventCount++;
         Watch.Response<DynamicKubernetesObject> response = watch.next();
+        recordHeartbeat();
         String eventType = response.type.toUpperCase();
         log.debug("{}:{}:: Received event type: {}", account, watcherId(), eventType);
         if (ERROR_EVENT.equals(eventType)) {
@@ -331,10 +505,9 @@ public class KubernetesStreamingWatcher implements Runnable {
             return false;
           }
           log.error("{}:{}:: Received error event: {}", account, watcherId(), response.object);
+          sleeper.sleep(retryTimeoutMillis);
           return true;
         }
-        state.updateLastReceivedEventTime();
-
         DynamicKubernetesObject obj = response.object;
 
         V1ObjectMeta meta = obj.getMetadata();
@@ -356,7 +529,7 @@ public class KubernetesStreamingWatcher implements Runnable {
         try {
           KubernetesStreamingEvent event =
               new KubernetesStreamingEvent(getEventType(eventType), manifest);
-          eventQueue.put(event);
+          state.enqueueEvent(eventQueue, event);
           String key = toKey(obj);
           if (event.getType() == Type.UPSERT) {
             seenKeys.add(key);
@@ -365,11 +538,6 @@ public class KubernetesStreamingWatcher implements Runnable {
           }
         } catch (IllegalArgumentException e) {
           log.warn("{}:{}:: unsupported event type: {}", account, watcherId(), eventType);
-        } catch (RuntimeException e) {
-          if (e.getCause() instanceof InterruptedIOException) {
-            throw (InterruptedException) new InterruptedException("watch interrupted").initCause(e);
-          }
-          throw e;
         }
       }
       return true;
@@ -420,7 +588,46 @@ public class KubernetesStreamingWatcher implements Runnable {
     return obj.getMetadata().getName();
   }
 
-  private String watcherId() {
+  private static boolean hasCause(Throwable throwable, Class<? extends Throwable> causeType) {
+    Throwable cause = throwable;
+    while (cause != null) {
+      if (causeType.isInstance(cause)) {
+        return true;
+      }
+      cause = cause.getCause();
+    }
+    return false;
+  }
+
+  private boolean sleepBeforeRetry() {
+    try {
+      sleeper.sleep(retryTimeoutMillis);
+      return true;
+    } catch (InterruptedException e) {
+      log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), e);
+      Thread.currentThread().interrupt();
+      return false;
+    }
+  }
+
+  private void recordHeartbeat() {
+    lastHeartbeatTimeMillis.set(tickerMillis.getAsLong());
+    heartbeatRecorded.set(true);
+  }
+
+  long getLastHeartbeatTimeMillis() {
+    return lastHeartbeatTimeMillis.get();
+  }
+
+  boolean hasRecordedHeartbeat() {
+    return heartbeatRecorded.get();
+  }
+
+  static LongSupplier systemTickerMillis() {
+    return () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+  }
+
+  String watcherId() {
     return String.format("Kubernetes Watcher[%s/%s]", apiGroup, kind);
   }
 }

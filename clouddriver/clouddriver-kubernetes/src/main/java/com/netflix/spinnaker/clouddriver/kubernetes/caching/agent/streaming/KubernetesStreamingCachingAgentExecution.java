@@ -64,6 +64,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,8 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
 
   private final Registry registry;
   private final RetrySupport retrySupport = new RetrySupport();
-  private final AtomicReference<State> state = new AtomicReference<>(null);
+  private final AtomicReference<LifecycleSnapshot> lifecycle =
+      new AtomicReference<>(LifecycleSnapshot.notRunning());
 
   private final Id queueSize;
   private final Id queueRemainingCapacity;
@@ -147,20 +149,32 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
 
   @Override
   public LongRunningAgentExecutionState getState() {
-    State s = state.get();
-    if (s == null) {
-      log.debug(
-          "KubernetesStreaming caching agent {} is not running (no state)",
-          namedAccountCredentials.getCredentials().getAccountName());
-      return LongRunningAgentExecutionState.NOT_RUNNING;
+    LifecycleSnapshot snapshot = lifecycle.get();
+    switch (snapshot.phase) {
+      case STARTING:
+        log.debug(
+            "KubernetesStreaming caching agent {} startup is in progress",
+            namedAccountCredentials.getCredentials().getAccountName());
+        return LongRunningAgentExecutionState.RUNNING;
+      case CLEANING_UP:
+        return LongRunningAgentExecutionState.CLEANING_UP;
+      case NOT_RUNNING:
+        log.debug(
+            "KubernetesStreaming caching agent {} is not running (no state)",
+            namedAccountCredentials.getCredentials().getAccountName());
+        return LongRunningAgentExecutionState.NOT_RUNNING;
+      case RUNNING:
+        break;
+      default:
+        throw new IllegalStateException("Unknown lifecycle phase " + snapshot.phase);
     }
 
     LongRunningAgentExecutionState status =
-        s.getState(
+        snapshot.state.getState(
             cachingProperties.getReadinessTimeoutMillis(),
             cachingProperties.getLivenessTimeoutMillis());
 
-    log.debug("KubernetesStreaming caching agent state: {}, status: {}", s, status);
+    log.debug("KubernetesStreaming caching agent state: {}, status: {}", snapshot.state, status);
     return status;
   }
 
@@ -170,59 +184,109 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
   }
 
   @Override
-  public synchronized CompletableFuture<Void> stopExecutingAndCleanup() {
+  public CompletableFuture<Void> stopExecutingAndCleanup() {
     String accountName = namedAccountCredentials.getCredentials().getAccountName();
     log.info("Stopping Kubernetes streaming agent execution for {}", accountName);
 
-    State s = state.get();
+    LifecycleSnapshot current;
+    CompletableFuture<Void> ownerFuture;
+    LifecycleSnapshot cleaningUp;
+    synchronized (this) {
+      current = lifecycle.get();
+      if (current.phase == LifecyclePhase.CLEANING_UP) {
+        return current.cleanupFuture;
+      }
 
-    // unregister polled meter metrics even if the agent is not running
-    // this is to ensure that metrics are cleaned up properly even if the agent failed to start
-    unregisterPolledMeterMetrics(
-        registry, queueSize, queueRemainingCapacity, bulkedQueueSize, bulkedQueueRemainingCapacity);
+      if (current.phase == LifecyclePhase.NOT_RUNNING) {
+        // Clean stale metrics even if startup failed before publishing a running state.
+        unregisterPolledMeterMetrics(
+            registry,
+            queueSize,
+            queueRemainingCapacity,
+            bulkedQueueSize,
+            bulkedQueueRemainingCapacity);
+        log.info(
+            "KubernetesStreaming caching agent {} execution is not running, nothing to stop",
+            accountName);
+        return CompletableFuture.completedFuture(null);
+      }
+      if (current.phase != LifecyclePhase.RUNNING) {
+        throw new IllegalStateException(
+            "Cannot stop execution in lifecycle phase " + current.phase);
+      }
 
-    if (s == null) {
-      log.info(
-          "KubernetesStreaming caching agent {} execution is not running, nothing to stop",
-          accountName);
-      return CompletableFuture.completedFuture(null);
+      ownerFuture = new CompletableFuture<>();
+      cleaningUp = LifecycleSnapshot.cleaningUp(current.state, ownerFuture);
+      lifecycle.set(cleaningUp);
     }
 
-    return CompletableFuture.runAsync(
-            () -> {
-              log.info("Stopping KubernetesStreaming caching agent {} execution", accountName);
-              try {
-                long timeout = Math.max(0, getStopTimeoutMillis() - 1_000L);
-                boolean stopped = s.stopAndWait(timeout);
-                if (!stopped) {
-                  log.warn(
-                      "KubernetesStreaming caching agent {} did not terminate in {}ms. Continue anyway",
-                      accountName,
-                      getStopTimeoutMillis());
-                }
-              } catch (InterruptedException e) {
-                log.warn("Interrupted while waiting for executor to terminate, {}", accountName, e);
-                Thread.currentThread().interrupt();
-              } finally {
-                log.info("KubernetesStreaming caching agent {} stopped", accountName);
-              }
-            },
-            cleanupExecutorService)
-        .whenComplete(
-            (result, e) -> {
-              if (e != null) {
-                log.warn(
-                    "Error while stopping KubernetesStreaming caching agent {} execution",
-                    accountName,
-                    e);
-              } else {
-                log.info(
-                    "KubernetesStreaming caching agent {} execution stopped successfully",
-                    accountName);
-              }
-              // clear state
-              state.compareAndSet(s, null);
-            });
+    try {
+      cleanupExecutorService.execute(
+          () -> runCleanup(accountName, current.state, cleaningUp, ownerFuture));
+    } catch (RuntimeException | Error submissionFailure) {
+      log.warn(
+          "Failed to submit KubernetesStreaming caching agent {} cleanup; running it synchronously",
+          accountName,
+          submissionFailure);
+      runCleanup(accountName, current.state, cleaningUp, ownerFuture);
+    }
+    return ownerFuture;
+  }
+
+  private void runCleanup(
+      String accountName,
+      State state,
+      LifecycleSnapshot cleaningUp,
+      CompletableFuture<Void> ownerFuture) {
+    if (!cleaningUp.cleanupStarted.compareAndSet(false, true)) {
+      return;
+    }
+    Throwable cleanupFailure = null;
+    log.info("Stopping KubernetesStreaming caching agent {} execution", accountName);
+    try {
+      unregisterPolledMeterMetrics(
+          registry,
+          queueSize,
+          queueRemainingCapacity,
+          bulkedQueueSize,
+          bulkedQueueRemainingCapacity);
+    } catch (RuntimeException | Error e) {
+      cleanupFailure = e;
+    }
+    try {
+      long stopTimeoutMillis = getStopTimeoutMillis();
+      long timeout = stopTimeoutMillis > 1_000L ? stopTimeoutMillis - 1_000L : 0;
+      boolean stopped = state.stopAndWait(timeout);
+      if (!stopped) {
+        log.warn(
+            "KubernetesStreaming caching agent {} did not terminate in {}ms. Continue anyway",
+            accountName,
+            stopTimeoutMillis);
+      }
+    } catch (InterruptedException e) {
+      log.warn("Interrupted while waiting for executor to terminate, {}", accountName, e);
+      Thread.currentThread().interrupt();
+    } catch (RuntimeException | Error e) {
+      if (cleanupFailure == null) {
+        cleanupFailure = e;
+      } else if (cleanupFailure != e) {
+        cleanupFailure.addSuppressed(e);
+      }
+    } finally {
+      log.info("KubernetesStreaming caching agent {} stopped", accountName);
+    }
+
+    lifecycle.compareAndSet(cleaningUp, LifecycleSnapshot.notRunning());
+    if (cleanupFailure == null) {
+      log.info("KubernetesStreaming caching agent {} execution stopped successfully", accountName);
+      ownerFuture.complete(null);
+    } else {
+      log.warn(
+          "Error while stopping KubernetesStreaming caching agent {} execution",
+          accountName,
+          cleanupFailure);
+      ownerFuture.completeExceptionally(cleanupFailure);
+    }
   }
 
   @Override
@@ -230,14 +294,23 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     log.info("Starting KubernetesStreaming caching agent {} execution", agent.getAgentType());
     CompletableFuture<Void> future = null;
     synchronized (this) {
-      try {
-        future = startExecution(agent);
-      } catch (RuntimeException e) {
-        log.error("Failed to start Kubernetes streaming caching agent {}", agent.getAgentType(), e);
-        throw e;
-      }
-      if (future == null) {
-        return;
+      LifecycleSnapshot current = lifecycle.get();
+      if (current.phase != LifecyclePhase.NOT_RUNNING) {
+        log.warn(
+            "KubernetesStreaming caching agent {} is already running. Skip this execution",
+            agent.getAgentType());
+        future = CompletableFuture.completedFuture(null);
+      } else {
+        LifecycleSnapshot starting = LifecycleSnapshot.starting();
+        lifecycle.set(starting);
+        try {
+          future = startExecution(agent);
+        } catch (RuntimeException | Error e) {
+          lifecycle.compareAndSet(starting, LifecycleSnapshot.notRunning());
+          log.error(
+              "Failed to start Kubernetes streaming caching agent {}", agent.getAgentType(), e);
+          throw e;
+        }
       }
     }
     log.info("KubernetesStreaming caching agent {} execution started", agent.getAgentType());
@@ -261,29 +334,18 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
   }
 
   private CompletableFuture<Void> startExecution(Agent agent) {
-    if (state.get() != null) {
-      log.warn(
-          "KubernetesStreaming caching agent {} is already running. Skip this execution",
-          agent.getAgentType());
-      return CompletableFuture.completedFuture(null);
-    }
+    validateWatchHeartbeatInterval();
 
     ApiClient client = createApiClient();
     Set<APIResource> k8sResources = loadKubernetesResources(client);
-    client.setReadTimeout(0); // for watch requests
+    client.setReadTimeout(cachingProperties.getWatchHeartbeatIntervalMillis());
 
     ThreadFactory threadFactory =
         new ThreadFactoryBuilder()
             .setNameFormat("KubernetesStreamingCachingAgentExecutionThread-%d")
             .build();
     ExecutorService executorService = Executors.newCachedThreadPool(threadFactory);
-    KubernetesStreamingWatcherFactory factory =
-        new KubernetesStreamingWatcherFactory(
-            client,
-            namedAccountCredentials.getCredentials().getAccountName(),
-            cachingProperties.getListPaginationSize(),
-            executorService,
-            concurrencyControl);
+    KubernetesStreamingWatcherFactory factory = createWatcherFactory(client, executorService);
 
     OkHttpClient httpClient = client.getHttpClient();
     State cachingState = new State(agent.getAgentType(), executorService, factory, httpClient);
@@ -293,46 +355,121 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     BlockingQueue<List<KubernetesStreamingEvent>> bulkedQueue =
         new ArrayBlockingQueue<>(cachingProperties.getBulkedEventQueueCapacity());
 
-    PolledMeter.using(registry).withId(queueSize).monitorSize(queue);
-    PolledMeter.using(registry).withId(bulkedQueueSize).monitorSize(bulkedQueue);
-    PolledMeter.using(registry)
-        .withId(queueRemainingCapacity)
-        .monitorValue(queue, BlockingQueue::remainingCapacity);
-    PolledMeter.using(registry)
-        .withId(bulkedQueueRemainingCapacity)
-        .monitorValue(bulkedQueue, BlockingQueue::remainingCapacity);
+    try {
+      PolledMeter.using(registry).withId(queueSize).monitorSize(queue);
+      PolledMeter.using(registry).withId(bulkedQueueSize).monitorSize(bulkedQueue);
+      PolledMeter.using(registry)
+          .withId(queueRemainingCapacity)
+          .monitorValue(queue, BlockingQueue::remainingCapacity);
+      PolledMeter.using(registry)
+          .withId(bulkedQueueRemainingCapacity)
+          .monitorValue(bulkedQueue, BlockingQueue::remainingCapacity);
 
-    CompletableFuture<Void> batcherFuture =
-        CompletableFuture.runAsync(
-            new KubernetesQueueBatcher<>(
-                queue,
-                bulkedQueue,
-                cachingProperties.getBulkMaxEvents(),
-                cachingProperties.getBulkMaxWaitMillis()),
-            executorService);
-    CompletableFuture<Void> processorFuture =
-        CompletableFuture.runAsync(
-            new KubernetesQueueProcessor<>(
-                bulkedQueue,
-                batch ->
-                    processEvents(cachingState, (KubernetesStreamingCachingAgent) agent, batch)),
-            executorService);
+      CompletableFuture<Void> batcherFuture =
+          CompletableFuture.runAsync(
+              new KubernetesQueueBatcher<>(
+                  queue,
+                  bulkedQueue,
+                  cachingProperties.getBulkMaxEvents(),
+                  cachingProperties.getBulkMaxWaitMillis()),
+              executorService);
+      CompletableFuture<Void> processorFuture =
+          CompletableFuture.runAsync(
+              createEventProcessor(bulkedQueue, cachingState, agent), executorService);
+      cachingState.monitorWorkers(batcherFuture, processorFuture);
 
-    initWatchers(
-        agent,
-        cachingState,
-        k8sResources,
+      initWatchers(
+          agent,
+          cachingState,
+          k8sResources,
+          client,
+          queue,
+          cachingProperties.getWatcherRetryTimeoutMillis(),
+          cachingProperties.getListTimeoutSeconds(),
+          cachingProperties.getWatchTimeoutSeconds());
+      factory.startAllWatchers();
+
+      cachingState.start();
+      lifecycle.set(LifecycleSnapshot.running(cachingState));
+
+      return CompletableFuture.allOf(batcherFuture, processorFuture);
+    } catch (RuntimeException | Error startupFailure) {
+      cleanupFailedStartup(cachingState, startupFailure);
+      throw startupFailure;
+    }
+  }
+
+  protected KubernetesStreamingWatcherFactory createWatcherFactory(
+      ApiClient client, ExecutorService executorService) {
+    return new KubernetesStreamingWatcherFactory(
         client,
-        queue,
-        cachingProperties.getWatcherRetryTimeoutMillis(),
-        cachingProperties.getListTimeoutSeconds(),
-        cachingProperties.getWatchTimeoutSeconds());
-    factory.startAllWatchers();
+        namedAccountCredentials.getCredentials().getAccountName(),
+        cachingProperties.getListPaginationSize(),
+        executorService,
+        concurrencyControl);
+  }
 
-    cachingState.start();
-    state.set(cachingState);
+  private void cleanupFailedStartup(State cachingState, Throwable startupFailure) {
+    String accountName = namedAccountCredentials.getCredentials().getAccountName();
+    try {
+      boolean stopped = cachingState.stopAndWait(getStopTimeoutMillis());
+      if (!stopped) {
+        recordStartupCleanupFailure(
+            startupFailure,
+            new IllegalStateException(
+                "Kubernetes streaming caching agent startup resources did not terminate in "
+                    + getStopTimeoutMillis()
+                    + "ms"),
+            accountName);
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      recordStartupCleanupFailure(startupFailure, e, accountName);
+    } catch (RuntimeException | Error e) {
+      recordStartupCleanupFailure(startupFailure, e, accountName);
+    } finally {
+      try {
+        unregisterPolledMeterMetrics(
+            registry,
+            queueSize,
+            queueRemainingCapacity,
+            bulkedQueueSize,
+            bulkedQueueRemainingCapacity);
+      } catch (RuntimeException | Error e) {
+        recordStartupCleanupFailure(startupFailure, e, accountName);
+      }
+    }
+  }
 
-    return CompletableFuture.allOf(batcherFuture, processorFuture);
+  private void recordStartupCleanupFailure(
+      Throwable startupFailure, Throwable cleanupFailure, String accountName) {
+    if (cleanupFailure != startupFailure) {
+      startupFailure.addSuppressed(cleanupFailure);
+    }
+    log.warn(
+        "Failed to fully clean up Kubernetes streaming caching agent {} after startup failure",
+        accountName,
+        cleanupFailure);
+  }
+
+  private void validateWatchHeartbeatInterval() {
+    int listTimeoutSeconds = cachingProperties.getListTimeoutSeconds();
+    long listTimeoutMillis = listTimeoutSeconds * 1_000L;
+    int watchHeartbeatIntervalMillis = cachingProperties.getWatchHeartbeatIntervalMillis();
+    long livenessTimeoutMillis = cachingProperties.getLivenessTimeoutMillis();
+    if (listTimeoutSeconds < 0
+        || watchHeartbeatIntervalMillis <= 0
+        || listTimeoutMillis > watchHeartbeatIntervalMillis
+        || watchHeartbeatIntervalMillis >= livenessTimeoutMillis) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Invalid Kubernetes streaming caching timeout configuration: expected "
+                  + "listTimeoutSeconds >= 0, 0 < watchHeartbeatIntervalMillis, and "
+                  + "listTimeoutSeconds * 1000 <= watchHeartbeatIntervalMillis < "
+                  + "livenessTimeoutMillis; but listTimeoutSeconds=%d, "
+                  + "watchHeartbeatIntervalMillis=%d, livenessTimeoutMillis=%d",
+              listTimeoutSeconds, watchHeartbeatIntervalMillis, livenessTimeoutMillis));
+    }
   }
 
   protected ApiClient createApiClient() {
@@ -358,7 +495,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     }
   }
 
-  private Set<APIResource> loadKubernetesResources(ApiClient client) {
+  Set<APIResource> loadKubernetesResources(ApiClient client) {
     long startTime = System.nanoTime();
     boolean success = false;
     int connectTimeout = client.getConnectTimeout();
@@ -472,7 +609,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
         watcherCount);
   }
 
-  private void processEvents(
+  void processEvents(
       State cachingState,
       KubernetesStreamingCachingAgent agent,
       List<KubernetesStreamingEvent> batch) {
@@ -517,12 +654,63 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     cacheSaveTime.record(endTime - startCacheSaveTime, TimeUnit.NANOSECONDS);
     batchProcessingTime.record(endTime - startProcessingTime, TimeUnit.NANOSECONDS);
 
-    cachingState.updateLastProcessedEventBatchTime();
+    cachingState.updateLastProcessedEventBatchTime(batch);
+  }
+
+  KubernetesQueueProcessor<List<KubernetesStreamingEvent>> createEventProcessor(
+      BlockingQueue<List<KubernetesStreamingEvent>> queue, State cachingState, Agent agent) {
+    return new KubernetesQueueProcessor<>(
+        queue,
+        batch -> processEvents(cachingState, (KubernetesStreamingCachingAgent) agent, batch),
+        cachingState::recordFailedEventBatch);
   }
 
   private void unregisterPolledMeterMetrics(Registry registry, Id... ids) {
     for (Id id : ids) {
       PolledMeter.remove(registry, id);
+    }
+  }
+
+  private enum LifecyclePhase {
+    NOT_RUNNING,
+    STARTING,
+    RUNNING,
+    CLEANING_UP
+  }
+
+  private static final class LifecycleSnapshot {
+    private static final LifecycleSnapshot NOT_RUNNING =
+        new LifecycleSnapshot(LifecyclePhase.NOT_RUNNING, null, null);
+    private static final LifecycleSnapshot STARTING =
+        new LifecycleSnapshot(LifecyclePhase.STARTING, null, null);
+
+    private final LifecyclePhase phase;
+    private final State state;
+    private final CompletableFuture<Void> cleanupFuture;
+    private final AtomicBoolean cleanupStarted = new AtomicBoolean();
+
+    private LifecycleSnapshot(
+        LifecyclePhase phase, State state, CompletableFuture<Void> cleanupFuture) {
+      this.phase = phase;
+      this.state = state;
+      this.cleanupFuture = cleanupFuture;
+    }
+
+    private static LifecycleSnapshot notRunning() {
+      return NOT_RUNNING;
+    }
+
+    private static LifecycleSnapshot starting() {
+      return STARTING;
+    }
+
+    private static LifecycleSnapshot running(State state) {
+      return new LifecycleSnapshot(LifecyclePhase.RUNNING, state, null);
+    }
+
+    private static LifecycleSnapshot cleaningUp(
+        State state, CompletableFuture<Void> cleanupFuture) {
+      return new LifecycleSnapshot(LifecyclePhase.CLEANING_UP, state, cleanupFuture);
     }
   }
 }

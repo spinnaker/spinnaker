@@ -24,6 +24,7 @@ public class KubernetesStreamingCachingProperties {
 
   private long stopTimeoutMillis = 30_000L;
   private long readinessTimeoutMillis = 30_000L;
+  private int watchHeartbeatIntervalMillis = 25_000;
   private long livenessTimeoutMillis = 30_000L;
 
   private int kubeapiDiscoveryConnectionTimeoutMillis = 10_000;

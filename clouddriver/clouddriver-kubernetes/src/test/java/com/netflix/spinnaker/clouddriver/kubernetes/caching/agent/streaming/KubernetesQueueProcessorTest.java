@@ -133,6 +133,34 @@ class KubernetesQueueProcessorTest {
     }
   }
 
+  @Test
+  void continuesAfterSustainedProcessingFailures() throws InterruptedException {
+    queueProcessor =
+        new KubernetesQueueProcessor<>(
+            queue,
+            item -> {
+              if (item.startsWith("failed")) {
+                throw new RuntimeException("Test exception for " + item);
+              }
+              handledItems.add(item);
+            },
+            (item, e) -> handledItems.add("dropped: " + item));
+    Thread processor = startQueueProcessor();
+    queue.add("failed1");
+    queue.add("failed2");
+    queue.add("failed3");
+    queue.add("successful");
+
+    try {
+      assertThat(handledItems.take()).isEqualTo("dropped: failed1");
+      assertThat(handledItems.take()).isEqualTo("dropped: failed2");
+      assertThat(handledItems.take()).isEqualTo("dropped: failed3");
+      assertThat(handledItems.take()).isEqualTo("successful");
+    } finally {
+      processor.interrupt();
+    }
+  }
+
   private Thread startQueueProcessor() {
     Thread thread = new Thread(queueProcessor);
     thread.start();

@@ -50,9 +50,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -570,11 +573,15 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
         new KubernetesConfigurationProperties();
     KubernetesNamedAccountCredentials namedAccountCredentials = getNamedAccountCredentials();
     namedAccountCredentials.getStreamingCaching().setWatcherRetryTimeoutMillis(500);
+    namedAccountCredentials.getStreamingCaching().setListTimeoutSeconds(2);
+    namedAccountCredentials.getStreamingCaching().setWatchHeartbeatIntervalMillis(3_000);
+    namedAccountCredentials.getStreamingCaching().setLivenessTimeoutMillis(5_000);
     namedAccountCredentials.getStreamingCaching().setWatchTimeoutSeconds(2);
-    namedAccountCredentials.getStreamingCaching().setStopTimeoutMillis(100);
+    namedAccountCredentials.getStreamingCaching().setStopTimeoutMillis(3_000);
     namedAccountCredentials.getStreamingCaching().setBulkMaxWaitMillis(100);
     namedAccountCredentials.getStreamingCaching().setListPaginationSize(paginationSize);
     ExecutorService cleanupExecutorService = Executors.newFixedThreadPool(1);
+    ExecutorService agentExecutorService = Executors.newSingleThreadExecutor();
     KubernetesStreamingCachingAgent cachingAgent =
         createCachingAgent(
             namedAccountCredentials, configurationProperties, cleanupExecutorService);
@@ -582,25 +589,95 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
     ProviderCache cache = providerRegistry.getProviderCache(kubernetesProvider.getProviderName());
     LongRunningAgentExecution agentExecution = cachingAgent.getAgentExecution(providerRegistry);
 
-    Thread agentThread = null;
+    Future<?> executionFuture = null;
+    Throwable failure = null;
     try {
-      agentThread = new Thread(() -> agentExecution.executeAgent(cachingAgent));
-      agentThread.start();
+      executionFuture =
+          agentExecutorService.submit(() -> agentExecution.executeAgent(cachingAgent));
 
       awaitUntilAsserted(() -> assertion.accept(cache));
+    } catch (Throwable t) {
+      failure = t;
     } finally {
-      if (agentExecution != null) {
-        agentExecution.stopExecutingAndCleanup().join();
-      }
-      if (agentThread != null) {
-        agentThread.interrupt();
-        agentThread.join(); // should we join the interrupot?
+      try {
+        agentExecution.stopExecutingAndCleanup().get(2_500, TimeUnit.MILLISECONDS);
+      } catch (ExecutionException e) {
+        failure = recordFailure(failure, e.getCause());
+      } catch (TimeoutException e) {
+        failure =
+            recordFailure(failure, new AssertionError("Agent cleanup did not finish in time", e));
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        failure = recordFailure(failure, e);
       }
 
-      // 1 second should be enough because all threads have to be stopped by this point already
-      cleanupExecutorService.shutdownNow();
-      assertThat(cleanupExecutorService.awaitTermination(1, TimeUnit.SECONDS)).isTrue();
+      if (executionFuture != null) {
+        try {
+          executionFuture.get(500, TimeUnit.MILLISECONDS);
+        } catch (ExecutionException e) {
+          failure = recordFailure(failure, e.getCause());
+        } catch (TimeoutException e) {
+          failure =
+              recordFailure(
+                  failure, new AssertionError("Agent execution did not finish after cleanup", e));
+          executionFuture.cancel(true);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          failure = recordFailure(failure, e);
+          executionFuture.cancel(true);
+        }
+      }
+
+      failure = shutDownExecutor(agentExecutorService, "agent", failure);
+      failure = shutDownExecutor(cleanupExecutorService, "cleanup", failure);
     }
+
+    propagateFailure(failure);
+  }
+
+  private static Throwable recordFailure(Throwable primary, Throwable additional) {
+    if (primary == null) {
+      return additional;
+    }
+    if (primary != additional) {
+      primary.addSuppressed(additional);
+    }
+    return primary;
+  }
+
+  private static Throwable shutDownExecutor(
+      ExecutorService executorService, String executorName, Throwable failure) {
+    executorService.shutdown();
+    try {
+      if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+        failure =
+            recordFailure(
+                failure,
+                new AssertionError(executorName + " executor did not terminate after cleanup"));
+        executorService.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      failure = recordFailure(failure, e);
+      executorService.shutdownNow();
+    }
+    return failure;
+  }
+
+  private static void propagateFailure(Throwable failure) throws InterruptedException {
+    if (failure == null) {
+      return;
+    }
+    if (failure instanceof InterruptedException interruptedException) {
+      throw interruptedException;
+    }
+    if (failure instanceof RuntimeException runtimeException) {
+      throw runtimeException;
+    }
+    if (failure instanceof Error error) {
+      throw error;
+    }
+    throw new AssertionError(failure);
   }
 
   private void awaitUntilAsserted(Runnable assertion) {
