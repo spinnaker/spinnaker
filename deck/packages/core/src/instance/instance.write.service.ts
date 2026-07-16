@@ -177,10 +177,15 @@ export class InstanceWriter {
     );
   }
 
-  public static enableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
+  public static enableInstanceInDiscovery(
+    instance: IInstance,
+    application: Application,
+    params: IJob = {},
+  ): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
+          ...params,
           type: 'enableInstancesInDiscovery',
           instanceIds: [instance.id],
           region: instance.region,
@@ -208,10 +213,15 @@ export class InstanceWriter {
     );
   }
 
-  public static disableInstanceInDiscovery(instance: IInstance, application: Application): PromiseLike<ITask> {
+  public static disableInstanceInDiscovery(
+    instance: IInstance,
+    application: Application,
+    params: IJob = {},
+  ): PromiseLike<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
+          ...params,
           type: 'disableInstancesInDiscovery',
           instanceIds: [instance.id],
           region: instance.region,

@@ -40,7 +40,26 @@ class AngularServiceAccessors {
     return $injector.get('$uibModal') as IModalService;
   }
   public get $uiRouter() {
-    return $injector.get('$uiRouter') as UIRouter;
+    try {
+      return $injector.get('$uiRouter') as UIRouter;
+    } catch (_error) {
+      const noopSubscription = { unsubscribe: () => {} };
+      type NoopObservable = {
+        subscribe: () => typeof noopSubscription;
+        pipe: (..._operators: unknown[]) => NoopObservable;
+      };
+      const noopObservable: NoopObservable = { subscribe: () => noopSubscription, pipe: () => noopObservable };
+      return ({
+        globals: {
+          current: { name: '' },
+          params: {},
+          params$: noopObservable,
+          start$: noopObservable,
+          success$: noopObservable,
+        },
+        transitionService: { onBefore: () => () => {}, onStart: () => () => {}, onSuccess: () => () => {} },
+      } as unknown) as UIRouter;
+    }
   }
   public get cacheInitializer() {
     return $injector.get('cacheInitializer') as CacheInitializerService;
@@ -102,6 +121,13 @@ class AngularServiceAccessors {
   public get stateEvents() {
     return $injector.get('stateEvents') as StateEvents;
   }
+  public has(serviceName: string): boolean {
+    try {
+      return $injector.has(serviceName);
+    } catch (_error) {
+      return false;
+    }
+  }
 
   private createStateService(): StateService {
     const wrappedState = Object.create($injector.get('$state')) as StateService;
@@ -124,3 +150,7 @@ class AngularServiceAccessors {
 }
 
 export const AngularServices = new AngularServiceAccessors();
+
+export const ErrorModalService = {
+  error: (options: unknown): unknown => ($injector.get('ErrorModalService') as any).error(options),
+};

@@ -52,6 +52,7 @@ import { MANAGED_RESOURCES_DATA_SOURCE, CORE_MANAGED_MANAGED_MODULE } from './ma
 import { FUNCTION_MODULE } from './function/function.module';
 
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
+import { IAP_INTERCEPTOR } from './api/iap.interceptor';
 
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
 import { PAGER_DUTY_MODULE } from './pagerDuty/pagerDuty.module';
@@ -148,6 +149,7 @@ module(CORE_MODULE, [
   CORE_MODAL_MODAL_MODULE,
 
   NETWORK_INTERCEPTOR,
+  IAP_INTERCEPTOR,
 
   CORE_NOTIFICATION_NOTIFICATIONS_MODULE,
 
