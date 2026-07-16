@@ -1,56 +1,54 @@
 'use strict';
 
+import { AzureServerGroupConfigurationService } from './serverGroupConfiguration.service';
+
 describe('Service: azureServerGroupConfiguration', function () {
   var service;
 
-  beforeEach(window.module(require('./serverGroupConfiguration.service').name));
+  beforeEach(function () {
+    service = new AzureServerGroupConfigurationService(Promise);
 
-  beforeEach(
-    window.inject(function (_azureServerGroupConfigurationService_) {
-      service = _azureServerGroupConfigurationService_;
-
-      this.allLoadBalancers = [
-        {
-          name: 'elb-1',
-          accounts: [
-            {
-              name: 'test',
-              regions: [
-                {
-                  name: 'us-east-1',
-                  loadBalancers: [
-                    { region: 'us-east-1', vpcId: null, name: 'elb-1' },
-                    { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1' },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'elb-2',
-          accounts: [
-            {
-              name: 'test',
-              regions: [
-                {
-                  name: 'us-east-1',
-                  loadBalancers: [
-                    { region: 'us-east-1', vpcId: null, name: 'elb-2' },
-                    { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2' },
-                  ],
-                },
-                {
-                  name: 'us-west-1',
-                  loadBalancers: [{ region: 'us-west-1', vpcId: null, name: 'elb-2' }],
-                },
-              ],
-            },
-          ],
-        },
-      ];
-    }),
-  );
+    this.allLoadBalancers = [
+      {
+        name: 'elb-1',
+        accounts: [
+          {
+            name: 'test',
+            regions: [
+              {
+                name: 'us-east-1',
+                loadBalancers: [
+                  { region: 'us-east-1', vpcId: null, name: 'elb-1' },
+                  { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1' },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'elb-2',
+        accounts: [
+          {
+            name: 'test',
+            regions: [
+              {
+                name: 'us-east-1',
+                loadBalancers: [
+                  { region: 'us-east-1', vpcId: null, name: 'elb-2' },
+                  { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2' },
+                ],
+              },
+              {
+                name: 'us-west-1',
+                loadBalancers: [{ region: 'us-west-1', vpcId: null, name: 'elb-2' }],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+  });
 
   describe('configureSecurityGroupOptions', function () {
     beforeEach(function () {
@@ -117,7 +115,7 @@ describe('Service: azureServerGroupConfiguration', function () {
 
       expect(this.command.backingData.filtered.securityGroups).toEqual(expected);
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.viewState.securityGroupConfigured).toBeTrue;
+      expect(this.command.viewState.securityGroupsConfigured).toBeTrue();
     });
 
     it('finds matching firewalls, sets dirty flag for subsequent time', function () {
@@ -129,7 +127,7 @@ describe('Service: azureServerGroupConfiguration', function () {
 
       expect(this.command.backingData.filtered.securityGroups).toEqual(expected);
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.viewState.securityGroupConfigured).toBeTrue;
+      expect(this.command.viewState.securityGroupsConfigured).toBeTrue();
     });
 
     it('clears the selected securityGroup', function () {
@@ -148,9 +146,9 @@ describe('Service: azureServerGroupConfiguration', function () {
 
       var result = service.configureSecurityGroupOptions(this.command);
 
-      expect(this.command.selectedSecurityGroup).toBeNull;
+      expect(this.command.selectedSecurityGroup).toBeNull();
       expect(result).toEqual({ dirty: { securityGroups: true } });
-      expect(this.command.viewState.securityGroupConfigured).toBeTrue;
+      expect(this.command.viewState.securityGroupsConfigured).toBeTrue();
     });
 
     it('returns no firewalls if none match', function () {
@@ -159,10 +157,10 @@ describe('Service: azureServerGroupConfiguration', function () {
 
       var result = service.configureSecurityGroupOptions(this.command);
 
-      expect(this.command.selectedSecurityGroup).toBeUndefined;
+      expect(this.command.selectedSecurityGroup).toBeUndefined();
       expect(result).toEqual({ dirty: { securityGroups: true } });
       expect(this.command.backingData.filtered.securityGroups).toEqual([]);
-      expect(this.command.viewState.securityGroupConfigured).toBeFalse;
+      expect(this.command.viewState.securityGroupsConfigured).toBeFalse();
     });
 
     it('returns empty zone list if region is not supported', function () {

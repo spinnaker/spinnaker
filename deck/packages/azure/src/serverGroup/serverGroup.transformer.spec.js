@@ -1,14 +1,10 @@
-'use strict';
+import { AzureServerGroupTransformer } from './serverGroup.transformer';
 
 describe('azureServerGroupTransformer', function () {
   var transformer;
 
-  beforeEach(window.module(require('./serverGroup.transformer').name));
-
   beforeEach(function () {
-    window.inject(function (_azureServerGroupTransformer_) {
-      transformer = _azureServerGroupTransformer_;
-    });
+    transformer = new AzureServerGroupTransformer();
   });
 
   describe('command transforms', function () {
