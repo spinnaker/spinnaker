@@ -101,7 +101,8 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
   public LongRunningAgentExecution getAgentExecution(ProviderRegistry providerRegistry) {
     ProviderCache cache = providerRegistry.getProviderCache(getProviderName());
     List<KubernetesKind> kubernetesKinds = filteredPrimaryKinds();
-    throw new UnsupportedOperationException("Not yet implemented"); // todo (CPD-1825): implement
+    return new KubernetesStreamingCachingAgentExecution(
+        namedAccountCredentials, cache, kubernetesKinds);
   }
 
   /**

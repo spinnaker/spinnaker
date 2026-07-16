@@ -1,0 +1,7 @@
+{
+  "metadata": {
+    "resourceVersion": "3",
+    "name": "my-pod-1",
+    "namespace": "test-namespace"
+  }
+}

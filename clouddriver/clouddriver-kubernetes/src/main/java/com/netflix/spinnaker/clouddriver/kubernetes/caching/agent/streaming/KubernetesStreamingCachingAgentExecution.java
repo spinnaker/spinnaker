@@ -1,0 +1,354 @@
+/*
+ * Copyright 2025 Wise, PLC.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.cats.agent.CacheResult;
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState;
+import com.netflix.spinnaker.cats.cache.CacheData;
+import com.netflix.spinnaker.cats.cache.DefaultCacheData;
+import com.netflix.spinnaker.cats.provider.ProviderCache;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureCacheKey;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingEvent.Type;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesStreamingCachingProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
+import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import com.netflix.spinnaker.kork.core.RetrySupport;
+import io.kubernetes.client.Discovery;
+import io.kubernetes.client.Discovery.APIResource;
+import io.kubernetes.client.common.KubernetesObject;
+import io.kubernetes.client.informer.SharedIndexInformer;
+import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.Config;
+import io.kubernetes.client.util.ModelMapper;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesApi;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class KubernetesStreamingCachingAgentExecution implements LongRunningAgentExecution {
+
+  private final KubernetesNamedAccountCredentials namedAccountCredentials;
+  private final KubernetesStreamingCachingProperties cachingProperties;
+  private final ProviderCache cache;
+  private final List<KubernetesKind> kubernetesKinds;
+  private final RetrySupport retrySupport = new RetrySupport();
+  private final AtomicReference<State> state = new AtomicReference<>(null);
+
+  public KubernetesStreamingCachingAgentExecution(
+      KubernetesNamedAccountCredentials namedAccountCredentials,
+      ProviderCache cache,
+      List<KubernetesKind> kubernetesKinds) {
+    this.namedAccountCredentials = namedAccountCredentials;
+    this.cache = cache;
+    this.kubernetesKinds = kubernetesKinds;
+    this.cachingProperties = namedAccountCredentials.getStreamingCaching();
+  }
+
+  @Override
+  public LongRunningAgentExecutionState getState() {
+    State s = state.get();
+    if (s == null) {
+      return LongRunningAgentExecutionState.NOT_RUNNING;
+    }
+    return s.getState(
+        cachingProperties.getReadinessTimeoutMillis(),
+        cachingProperties.getLivenessTimeoutMillis());
+  }
+
+  @Override
+  public long getStopTimeoutMillis() {
+    return cachingProperties.getStopTimeoutMillis();
+  }
+
+  @Override
+  public synchronized CompletableFuture<Void> stopExecutingAndCleanup() {
+    State s = state.get();
+    if (s == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return CompletableFuture.runAsync(
+            () -> {
+              try {
+                long timeout = Math.max(0, getStopTimeoutMillis() - 1_000L);
+                boolean stopped = s.stopAndWait(timeout);
+                if (!stopped) {
+                  log.warn(
+                      "KubernetesStreaming caching agent did not terminate in {}ms. Continue anyway",
+                      getStopTimeoutMillis());
+                }
+              } catch (InterruptedException e) {
+                log.warn("Interrupted while waiting for executor to terminate", e);
+                Thread.currentThread().interrupt();
+              }
+            })
+        .whenComplete(
+            (result, e) -> {
+              state.compareAndSet(s, null);
+            });
+  }
+
+  @Override
+  public void executeAgent(Agent agent) {
+    CompletableFuture<Void> future = null;
+    synchronized (this) {
+      try {
+        future = startExecution(agent);
+      } catch (RuntimeException e) {
+        log.error("Failed to start Kubernetes streaming caching agent {}", agent.getAgentType(), e);
+        throw e;
+      }
+      if (future == null) {
+        return;
+      }
+    }
+
+    try {
+      future.get();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private CompletableFuture<Void> startExecution(Agent agent) {
+    if (state.get() != null) {
+      log.warn(
+          "KubernetesStreaming caching agent {} is already running. Skip this execution",
+          agent.getAgentType());
+      return CompletableFuture.completedFuture(null);
+    }
+
+    ApiClient client = createApiClient();
+    Set<APIResource> k8sResources = loadKubernetesResources(client);
+    client.setReadTimeout(0); // for watch requests
+
+    ThreadFactory threadFactory =
+        new ThreadFactoryBuilder()
+            .setNameFormat("KubernetesStreamingCachingAgentExecutionThread-%d")
+            .build();
+    ExecutorService executorService = Executors.newCachedThreadPool(threadFactory);
+    KubernetesInformerFactory factory = new KubernetesInformerFactory(client, executorService);
+    State cachingState = new State(executorService, factory);
+
+    BlockingQueue<KubernetesStreamingEvent> queue =
+        new ArrayBlockingQueue<>(cachingProperties.getEventQueueCapacity());
+    BlockingQueue<List<KubernetesStreamingEvent>> bulkedQueue =
+        new ArrayBlockingQueue<>(cachingProperties.getBulkedEventQueueCapacity());
+
+    CompletableFuture<Void> batcherFuture =
+        CompletableFuture.runAsync(
+            new KubernetesQueueBatcher<>(
+                queue,
+                bulkedQueue,
+                cachingProperties.getBulkMaxEvents(),
+                cachingProperties.getBulkMaxWaitMillis()),
+            executorService);
+    CompletableFuture<Void> processorFuture =
+        CompletableFuture.runAsync(
+            new KubernetesQueueProcessor<>(
+                bulkedQueue,
+                batch ->
+                    processEvents(cachingState, (KubernetesStreamingCachingAgent) agent, batch)),
+            executorService);
+
+    initInformers(agent, cachingState, k8sResources, client, queue);
+    factory.startAllRegisteredInformers();
+
+    cachingState.start();
+    state.set(cachingState);
+
+    return CompletableFuture.allOf(batcherFuture, processorFuture);
+  }
+
+  private ApiClient createApiClient() {
+    String kubeconfigFile = namedAccountCredentials.getCredentials().getKubeconfigFile();
+    if (kubeconfigFile == null) {
+      String accountName = namedAccountCredentials.getCredentials().getAccountName();
+      throw new IllegalStateException("Kubeconfig is not set for account: " + accountName);
+    }
+
+    try {
+      return Config.fromConfig(kubeconfigFile);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to create ApiClient in agent", e);
+    }
+  }
+
+  private Set<APIResource> loadKubernetesResources(ApiClient client) {
+    return retrySupport.retry(
+        () -> {
+          try {
+            return ModelMapper.refresh(new Discovery(client));
+          } catch (ApiException e) {
+            throw new RuntimeException("Failed to refresh Kubernetes discovery", e);
+          }
+        },
+        3,
+        Duration.ofMillis(1_000L),
+        false);
+  }
+
+  private void initInformers(
+      Agent agent,
+      State cachingState,
+      Set<APIResource> k8sResources,
+      ApiClient client,
+      BlockingQueue<KubernetesStreamingEvent> queue) {
+    KubernetesInformerFactory factory = cachingState.getFactory();
+    String accountName = namedAccountCredentials.getCredentials().getAccountName();
+
+    Map<KubernetesKind, APIResource> kindToResource = new HashMap<>();
+    for (APIResource resource : k8sResources) {
+      String resourceKind = resource.getKind();
+      if (resourceKind == null) {
+        continue;
+      }
+
+      KubernetesApiGroup group = KubernetesApiGroup.fromString(resource.getGroup());
+      KubernetesKind kind = KubernetesKind.from(resourceKind, group);
+      if (group == KubernetesApiGroup.NONE || kind == KubernetesKind.NONE) {
+        log.warn(
+            "Agent: {}. Unknown kind: {}. Skip this resource", agent.getAgentType(), resourceKind);
+        continue;
+      }
+
+      kindToResource.put(kind, resource);
+    }
+
+    for (KubernetesKind kind : kubernetesKinds) {
+      APIResource apiResource = kindToResource.get(kind);
+      if (apiResource == null) {
+        log.warn("Agent: {}, No API resource found for kind: {}", agent.getAgentType(), kind);
+        continue;
+      }
+
+      // support only preferred version now
+      // if you want to support all versions, you need to create a new informer for each version
+      // and somehow merge the results before deleting stale objects from the cache
+      DynamicKubernetesApi api =
+          new DynamicKubernetesApi(
+              apiResource.getGroup(),
+              apiResource.getPreferredVersion(),
+              apiResource.getResourcePlural(),
+              client);
+      KubernetesInformerCache<DynamicKubernetesObject> informerCache =
+          new KubernetesInformerCache<>();
+
+      List<InfrastructureCacheKey> existingPods =
+          cache.getIdentifiers(kind.toString()).stream()
+              .map(Keys::parseKey)
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .filter(key -> key instanceof InfrastructureCacheKey)
+              .map(key -> (InfrastructureCacheKey) key)
+              .filter(key -> accountName.equals(key.getAccount()))
+              .collect(Collectors.toList());
+      informerCache.loadFromPersistentCache(existingPods);
+
+      Class<? extends KubernetesObject> apiTypeClass =
+          (Class<? extends KubernetesObject>)
+              ModelMapper.getApiTypeClass(
+                  apiResource.getGroup(), apiResource.getPreferredVersion(), apiResource.getKind());
+
+      SharedIndexInformer<DynamicKubernetesObject> informer =
+          factory.sharedIndexInformerFor(
+              api,
+              apiTypeClass,
+              informerCache,
+              (clazz, th) -> {
+                log.error(
+                    "Unexpected exception in Kubernetes informer for account: {}, kind: {}. Exception: {}",
+                    accountName,
+                    kind,
+                    th.getMessage(),
+                    th);
+              });
+      informer.addEventHandler(
+          new KubernetesStreamingWatcher(
+              cachingState,
+              apiResource.getKind(),
+              apiResource.getGroup(),
+              apiResource.getPreferredVersion(),
+              queue));
+    }
+  }
+
+  private void processEvents(
+      State cachingState,
+      KubernetesStreamingCachingAgent agent,
+      List<KubernetesStreamingEvent> batch) {
+    List<KubernetesManifest> updated = new ArrayList<>();
+    List<KubernetesManifest> deleted = new ArrayList<>();
+    for (KubernetesStreamingEvent event : batch) {
+      if (event.getType() == Type.UPSERT) {
+        updated.add(event.getObject());
+      } else if (event.getType() == Type.DELETE) {
+        deleted.add(event.getObject());
+      } else {
+        log.warn("Agent: {}. Unknown event type: {}", agent.getAgentType(), event.getType());
+      }
+    }
+    CacheResult cacheResult = agent.buildCacheResult(updated, deleted);
+
+    // save objects without relationships
+    Map<String, Collection<CacheData>> objects = new HashMap<>();
+    for (Entry<String, Collection<CacheData>> e : cacheResult.getCacheResults().entrySet()) {
+      String type = e.getKey();
+      List<CacheData> items =
+          e.getValue().stream()
+              .map(item -> new DefaultCacheData(item.getId(), item.getAttributes(), Map.of()))
+              .collect(Collectors.toList());
+      objects.put(type, items);
+    }
+    cache.putCacheResult(agent.getAgentType(), new ArrayList<>(), new DefaultCacheResult(objects));
+
+    // save relationships
+    cache.addCacheResult(agent.getAgentType(), new ArrayList<>(), cacheResult);
+
+    // evict deleted items
+    cacheResult.getEvictions().forEach(cache::evictDeletedItems);
+
+    cachingState.updateLastProcessedEventBatchTime();
+  }
+}

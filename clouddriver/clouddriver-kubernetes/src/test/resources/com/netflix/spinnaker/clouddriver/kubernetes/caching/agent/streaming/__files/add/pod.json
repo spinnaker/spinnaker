@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "resourceVersion": "2",
+    "name": "my-pod-3",
+    "namespace": "test-namespace",
+    "ownerReferences": [
+      {
+        "apiVersion": "apps/v1",
+        "kind": "ReplicaSet",
+        "name": "my-replicaset"
+      }
+    ]
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "my-pod-container",
+        "image": "my-pod-container-image:v1"
+      }
+    ]
+  }
+}
