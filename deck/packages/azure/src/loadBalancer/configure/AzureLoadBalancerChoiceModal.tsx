@@ -1,9 +1,10 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
-import { CloudProviderRegistry, ModalClose, ModalInjector, noop, ReactModal } from '@spinnaker/core';
+import type { ILoadBalancerModalProps, ILoadBalancerUpsertCommand } from '@spinnaker/core';
+import { ModalClose, noop, ReactModal } from '@spinnaker/core';
 
+import { AzureLoadBalancerModal, getAzureLoadBalancerTypeChoice } from './AzureLoadBalancerModal';
 import type { IAzureLoadBalancer } from '../../utility';
 import { AzureLoadBalancerTypes } from '../../utility';
 
@@ -12,27 +13,51 @@ export interface IAzureLoadBalancerChoiceModalState {
   selectedChoice: IAzureLoadBalancer;
 }
 
+interface IAzureLoadBalancerChoiceModalProps extends Omit<ILoadBalancerModalProps, 'closeModal'> {
+  closeModal?(loadBalancerCommand: ILoadBalancerUpsertCommand | Promise<ILoadBalancerUpsertCommand>): void;
+}
+
 export class AzureLoadBalancerChoiceModal extends React.Component<
-  ILoadBalancerModalProps,
+  IAzureLoadBalancerChoiceModalProps,
   IAzureLoadBalancerChoiceModalState
 > {
-  public static defaultProps: Partial<ILoadBalancerModalProps> = {
+  public static defaultProps: Partial<IAzureLoadBalancerChoiceModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: ILoadBalancerModalProps): Promise<void> {
-    return ReactModal.show(AzureLoadBalancerChoiceModal, {
+  public static supportsPipelineConfig = true;
+
+  public static show(props: ILoadBalancerModalProps): Promise<ILoadBalancerUpsertCommand> {
+    if ((props as any).isNew === false) {
+      const application = (props as any).app || (props as any).application;
+
+      return AzureLoadBalancerModal.show({
+        ...props,
+        app: application,
+        application,
+        loadBalancer: props.loadBalancer,
+        isNew: false,
+        forPipelineConfig: props.forPipelineConfig || false,
+      });
+    }
+
+    const componentProps: IAzureLoadBalancerChoiceModalProps = {
       ...props,
       className: 'create-pipeline-modal-overflow-visible',
-    });
+    };
+
+    return ReactModal.show<IAzureLoadBalancerChoiceModalProps, ILoadBalancerUpsertCommand>(
+      AzureLoadBalancerChoiceModal,
+      componentProps,
+    );
   }
 
-  constructor(props: ILoadBalancerModalProps) {
+  constructor(props: IAzureLoadBalancerChoiceModalProps) {
     super(props);
     this.state = {
       choices: AzureLoadBalancerTypes,
-      selectedChoice: AzureLoadBalancerTypes[0],
+      selectedChoice: getAzureLoadBalancerTypeChoice(props.loadBalancer, (props as any).loadBalancerType),
     };
   }
 
@@ -41,23 +66,18 @@ export class AzureLoadBalancerChoiceModal extends React.Component<
   }
 
   private choose = (): void => {
-    this.close();
-    const provider: any = CloudProviderRegistry.getValue('azure', 'loadBalancer');
-    ModalInjector.modalService
-      .open({
-        templateUrl: provider.createLoadBalancerTemplateUrl,
-        windowClass: 'modal-z-index',
-        controller: `${provider.createLoadBalancerController} as ctrl`,
-        size: 'lg',
-        resolve: {
-          application: () => this.props.app,
-          loadBalancer: (): any => null,
-          isNew: () => true,
-          forPipelineConfig: () => false,
-          loadBalancerType: () => this.state.selectedChoice,
-        },
-      })
-      .result.catch(() => {});
+    const application = (this.props as any).app || (this.props as any).application;
+    const configurePromise = AzureLoadBalancerModal.show({
+      ...this.props,
+      app: application,
+      application,
+      loadBalancer: this.props.loadBalancer || null,
+      isNew: (this.props as any).isNew !== false,
+      forPipelineConfig: this.props.forPipelineConfig || false,
+      loadBalancerType: this.state.selectedChoice,
+    });
+
+    this.props.closeModal(configurePromise);
   };
 
   public close = (reason?: any): void => {
