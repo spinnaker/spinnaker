@@ -1,16 +1,11 @@
-'use strict';
-
-import { module } from 'angular';
 import _ from 'lodash';
 
-export const AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER = 'spinnaker.azure.serverGroup.transformer';
-export const name = AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER; // for backwards compatibility
-module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupTransformer', function () {
-  function normalizeServerGroup(serverGroup) {
+export class AzureServerGroupTransformer {
+  normalizeServerGroup(serverGroup) {
     return serverGroup;
   }
 
-  function parseCustomScriptsSettings(command, configuration) {
+  parseCustomScriptsSettings(command, configuration) {
     /*
         At the first time this wizard pops up, the type of command.customScriptsSettings.fileUris is String. As for the following
         occurrences of its pop up with this field unchanged, its type becomes an array. So here differentiate the two scenarios
@@ -34,7 +29,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
     }
   }
 
-  function convertServerGroupCommandToDeployConfiguration(command) {
+  convertServerGroupCommandToDeployConfiguration(command) {
     let tempImage;
 
     if (command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline') {
@@ -74,8 +69,11 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
       image: command.image,
       account: command.credentials,
       selectedProvider: 'azure',
-      vnet: command.vnet,
-      vnetResourceGroup: command.selectedVnet.resourceGroup,
+      vnet: command.selectedVnet && command.selectedVnet.name ? command.selectedVnet.name : command.vnet,
+      vnetResourceGroup:
+        command.selectedVnet && command.selectedVnet.resourceGroup
+          ? command.selectedVnet.resourceGroup
+          : command.vnetResourceGroup,
       subnet: command.subnet,
       useSourceCapacity: false,
       capacity: {
@@ -125,7 +123,7 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
     if (typeof command.customScriptsSettings !== 'undefined') {
       configuration.customScriptsSettings.commandToExecute = command.customScriptsSettings.commandToExecute;
       if (!_.isEmpty(command.customScriptsSettings.fileUris)) {
-        parseCustomScriptsSettings(command, configuration);
+        this.parseCustomScriptsSettings(command, configuration);
       }
     }
 
@@ -141,10 +139,4 @@ module(AZURE_SERVERGROUP_SERVERGROUP_TRANSFORMER, []).factory('azureServerGroupT
 
     return configuration;
   }
-
-  return {
-    convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
-    normalizeServerGroup: normalizeServerGroup,
-    parseCustomScriptsSettings: parseCustomScriptsSettings,
-  };
-});
+}
