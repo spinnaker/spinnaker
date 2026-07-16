@@ -32,6 +32,7 @@ export const MapPair = (props: {
         )}
         <td>
           <input
+            aria-label={keyLabel}
             className="form-control input input-sm"
             type="text"
             value={pair.key}
@@ -53,6 +54,7 @@ export const MapPair = (props: {
             />
           ) : (
             <input
+              aria-label={valueLabel}
               className="form-control input input-sm"
               type="text"
               value={pair.value}

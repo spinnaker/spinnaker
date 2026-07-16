@@ -97,3 +97,4 @@ export * from './widgets';
 export * from './yamlEditor';
 
 export * from './core.module';
+export * from './angular/services';
