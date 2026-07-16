@@ -38,6 +38,8 @@ import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigura
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -99,7 +101,11 @@ final class HelmTemplateUtilsTest {
     helmConfig.setExpandOverrides(false);
     helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
     Artifact chartArtifact = Artifact.builder().name("test-artifact").version("3").build();
 
     bakeManifestRequest = new HelmBakeManifestRequest();
@@ -177,7 +183,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     String output = helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests);
 
@@ -232,7 +242,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     String output = helmTemplateUtils.removeTestsDirectoryTemplates(inputManifests);
 
@@ -248,7 +262,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -282,7 +300,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
 
@@ -323,7 +345,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
 
@@ -384,7 +410,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -410,7 +440,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -436,7 +470,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -500,7 +538,8 @@ final class HelmTemplateUtilsTest {
             artifactDownloader,
             Optional.ofNullable(artifactStore),
             artifactStoreConfiguration,
-            helmConfigurationProperties);
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     request.setOutputName("output_name");
     request.setTemplateRenderer(BakeManifestRequest.TemplateRenderer.HELM3);
@@ -576,7 +615,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
     Artifact artifact = Artifact.builder().build();
@@ -712,7 +755,8 @@ final class HelmTemplateUtilsTest {
             artifactDownloader,
             Optional.ofNullable(artifactStore),
             artifactStoreConfig,
-            helmConfigurationProperties);
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     bakeManifestRequest = new HelmBakeManifestRequest();
     bakeManifestRequest.setInputArtifacts(ImmutableList.of(chartArtifact, valuesArtifact));
@@ -753,7 +797,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
 
@@ -799,7 +847,11 @@ final class HelmTemplateUtilsTest {
         new RoscoHelmConfigurationProperties();
     HelmTemplateUtils helmTemplateUtils =
         new HelmTemplateUtils(
-            artifactDownloader, Optional.empty(), artifactStoreConfig, helmConfigurationProperties);
+            artifactDownloader,
+            Optional.empty(),
+            artifactStoreConfig,
+            helmConfigurationProperties,
+            new YamlHelper(new YamlParserProperties()));
 
     HelmBakeManifestRequest request = new HelmBakeManifestRequest();
 

@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import { AccountTag, LabeledValue, timestamp } from '@spinnaker/core';
@@ -45,19 +44,17 @@ export const InstanceInformation = ({
         label="Server Group"
         value={
           <div>
-            <UIRouterContextComponent>
-              <UISref
-                to="^.serverGroup"
-                params={{
-                  region,
-                  accountId: account,
-                  serverGroup,
-                  provider,
-                }}
-              >
-                <a>{serverGroup}</a>
-              </UISref>
-            </UIRouterContextComponent>
+            <UISref
+              to="^.serverGroup"
+              params={{
+                region,
+                accountId: account,
+                serverGroup,
+                provider,
+              }}
+            >
+              <a>{serverGroup}</a>
+            </UISref>
           </div>
         }
       />
