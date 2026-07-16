@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 import { ScheduledAction } from '../scheduledAction/ScheduledAction';
@@ -34,17 +33,6 @@ export class ScheduledActionsDetailsSection extends React.Component<
 
     return { scheduledActionsDisabled };
   }
-
-  private editScheduledActions = (): void => {
-    ModalInjector.modalService.open({
-      templateUrl: require('../scheduledAction/editScheduledActions.modal.html'),
-      controller: 'EditScheduledActionsCtrl as ctrl',
-      resolve: {
-        application: () => this.props.app,
-        serverGroup: () => this.props.serverGroup,
-      },
-    });
-  };
 
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState(this.getState(nextProps));
@@ -81,11 +69,6 @@ export class ScheduledActionsDetailsSection extends React.Component<
           </p>
         )}
         {serverGroup.scheduledActions.length === 0 && <p>No Scheduled Actions are configured for this server group.</p>}
-        {AWSProviderSettings.adHocInfraWritesEnabled && (
-          <a className="clickable" onClick={this.editScheduledActions}>
-            Edit Scheduled Actions
-          </a>
-        )}
       </CollapsibleSection>
     );
   }

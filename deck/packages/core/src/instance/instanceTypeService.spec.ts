@@ -1,7 +1,19 @@
 import { mock } from 'angular';
 
 import type { IInstanceTypeCategory, InstanceTypeService } from './instanceType.service';
+import { CORE_INSTANCE_INSTANCE_MODULE } from './instance.module';
 import { INSTANCE_TYPE_SERVICE } from './instanceType.service';
+
+describe('Core instance module registration', function () {
+  beforeEach(mock.module(CORE_INSTANCE_INSTANCE_MODULE));
+
+  it(
+    'registers the shared instance type service',
+    mock.inject(function ($injector: ng.auto.IInjectorService) {
+      expect($injector.has('instanceTypeService')).toBe(true);
+    }),
+  );
+});
 
 describe('Service: instanceTypeService', function () {
   let instanceTypeService: InstanceTypeService, $q: ng.IQService, $scope: ng.IScope;

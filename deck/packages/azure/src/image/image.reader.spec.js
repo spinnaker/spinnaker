@@ -1,16 +1,13 @@
 'use strict';
 import { mockHttpClient } from 'core/api/mock/jasmine';
+import { AzureImageReader } from './image.reader';
 
 describe('Service: Azure Image Reader', function () {
   var service;
 
-  beforeEach(window.module(require('./image.reader').name));
-
-  beforeEach(
-    window.inject(function (azureImageReader) {
-      service = azureImageReader;
-    }),
-  );
+  beforeEach(function () {
+    service = new AzureImageReader();
+  });
 
   describe('findImages', function () {
     var query = 'abc',

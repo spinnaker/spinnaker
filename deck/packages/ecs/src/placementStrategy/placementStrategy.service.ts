@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { IPlacementStrategy } from './IPlacementStrategy';
 
 export class PlacementStrategyService {
@@ -57,7 +55,3 @@ export class PlacementStrategyService {
     return [{ type: 'spread', field: 'instanceId' }];
   }
 }
-
-export const PLACEMENT_STRATEGY_SERVICE = 'spinnaker.ecs.placementStrategyService.service';
-
-module(PLACEMENT_STRATEGY_SERVICE, []).service('placementStrategyService', PlacementStrategyService);

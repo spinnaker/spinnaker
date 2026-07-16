@@ -1,31 +1,41 @@
 'use strict';
 
-import { module } from 'angular';
-import { GCE_ADDRESS_READER } from '../address/address.reader';
+import { InfrastructureCaches, REST, SearchService } from '@spinnaker/core';
 
-import { GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER } from '../backendService/backendService.reader';
-import { GCE_HEALTH_CHECK_READER } from '../healthCheck/healthCheck.read.service';
+import { GceCertificateReader } from '../certificate/certificate.reader';
+import { GceHealthCheckReader } from '../healthCheck/healthCheck.read.service';
 
 export const GOOGLE_CACHE_CACHECONFIGURER_SERVICE = 'spinnaker.gce.cache.initializer';
 export const name = GOOGLE_CACHE_CACHECONFIGURER_SERVICE; // for backwards compatibility
-module(GOOGLE_CACHE_CACHECONFIGURER_SERVICE, [
-  GOOGLE_BACKENDSERVICE_BACKENDSERVICE_READER,
-  GCE_ADDRESS_READER,
-  GCE_HEALTH_CHECK_READER,
-]).factory('gceCacheConfigurer', [
-  'gceAddressReader',
-  'gceBackendServiceReader',
-  'gceCertificateReader',
-  'gceHealthCheckReader',
-  function (gceAddressReader, gceBackendServiceReader, gceCertificateReader, gceHealthCheckReader) {
+export class GceCacheConfigurer {
+  constructor() {
+    const gceCertificateReader = new GceCertificateReader();
+    const gceHealthCheckReader = new GceHealthCheckReader();
+    const listAddresses = () =>
+      SearchService.search({ q: '', type: 'addresses', allowShortQuery: 'true' }, InfrastructureCaches.get('addresses'))
+        .then((searchResults) => {
+          if (searchResults && searchResults.results) {
+            return searchResults.results
+              .filter((result) => result.provider === 'gce')
+              .map((result) => ({ ...JSON.parse(result.address), account: result.account, region: result.region }));
+          }
+          return [];
+        })
+        .catch(() => []);
+    const listBackendServices = () =>
+      REST('/search')
+        .useCache(InfrastructureCaches.get('backendServices'))
+        .query({ q: '', type: 'backendServices', allowShortQuery: 'true' })
+        .get();
+
     const config = Object.create(null);
 
     config.addresses = {
-      initializers: [() => gceAddressReader.listAddresses()],
+      initializers: [listAddresses],
     };
 
     config.backendServices = {
-      initializers: [() => gceBackendServiceReader.listBackendServices()],
+      initializers: [listBackendServices],
     };
 
     config.certificates = {
@@ -37,5 +47,5 @@ module(GOOGLE_CACHE_CACHECONFIGURER_SERVICE, [
     };
 
     return config;
-  },
-]);
+  }
+}
