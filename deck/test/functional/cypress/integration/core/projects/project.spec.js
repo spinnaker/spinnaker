@@ -271,7 +271,7 @@ describe('core: Project', () => {
 
   afterEach(() => {
     cy.window().then((win) => {
-      win.removeAllListeners && win.removeAllListeners();
+      win && win.removeAllListeners && win.removeAllListeners();
     });
   });
 });
