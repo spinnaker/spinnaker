@@ -9,7 +9,6 @@ import type { IExecution, IExecutionStage } from '../../../../domain';
 import { manualJudgmentService } from './manualJudgment.service';
 import { Markdown } from '../../../../presentation/Markdown';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
-import { ErrorModalService } from '../../../../wiseModal';
 
 export interface IManualJudgmentApprovalProps {
   execution: IExecution;
@@ -60,19 +59,9 @@ export class ManualJudgmentApproval extends React.Component<
     const { application, execution, stage } = this.props;
     const judgmentInput: string = this.state.judgmentInput ? this.state.judgmentInput.value : null;
     this.setState({ submitting: true, error: false, judgmentDecision });
-    manualJudgmentService
-      .provideJudgment(application, execution, stage, judgmentDecision, judgmentInput)
-      .catch((err) => {
-        this.setState({ submitting: false, error: true });
-        const message = err.data?.message.split('Message:')[1] ?? 'An unknown error occurred';
-        ErrorModalService.error({
-          body: (
-            <Markdown
-              message={`<p>Sorry, there was a problem submitting your judgment.</p><br /><pre style="white-space: pre-wrap">HTTP status: ${err.data?.status} - ${message}</pre>`}
-            />
-          ),
-        });
-      });
+    manualJudgmentService.provideJudgment(application, execution, stage, judgmentDecision, judgmentInput).catch(() => {
+      this.setState({ submitting: false, error: true });
+    });
   }
 
   private isManualJudgmentStageNotAuthorized(): boolean {

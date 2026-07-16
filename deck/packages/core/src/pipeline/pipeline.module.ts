@@ -10,8 +10,6 @@ import { CLONE_SERVER_GROUP_STAGE } from './config/stages/cloneServerGroup/clone
 import { STAGE_COMMON_MODULE } from './config/stages/common/stage.common.module';
 import './config/stages/concourse/concourseStage';
 import './config/stages/createLoadBalancer/createLoadBalancerStage';
-import './config/stages/databaseMigration/databaseMigrationCancellationStage';
-import './config/stages/databaseMigration/databaseMigrationStage';
 import './config/stages/deploy/deployStage';
 import './config/stages/deployService/deployServiceStage';
 import { DESTROY_ASG_STAGE } from './config/stages/destroyAsg/destroyAsgStage';
@@ -49,7 +47,6 @@ import { CORE_PIPELINE_CONFIG_STAGES_TAGIMAGE_TAGIMAGESTAGE_MODULE } from './con
 import './config/stages/travis/travisStage';
 import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import './config/stages/unshareService/unshareServiceStage';
-import './config/stages/uploadArtifactToObjectStorage/uploadArtifactToObjectStorage.stage';
 import './config/stages/wait/waitStage';
 import './config/stages/waitForCondition/waitForConditionStage';
 import { CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS } from './config/stages/waitForParentTasks/waitForParentTasks';

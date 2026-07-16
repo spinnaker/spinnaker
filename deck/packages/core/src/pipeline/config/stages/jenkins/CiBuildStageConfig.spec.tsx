@@ -1,12 +1,11 @@
 import { mock } from 'angular';
-import { mount, shallow } from 'enzyme';
+import { mount } from 'enzyme';
 import React from 'react';
 
 import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
 import { HelpField } from '../../../../help';
 import { ReactModal } from '../../../../presentation';
 import { REACT_MODULE } from '../../../../reactShims';
-import { WerckerStageConfig } from '../wercker/WerckerStageConfig';
 import { CiBuildStageConfig } from './CiBuildStageConfig';
 
 describe('<CiBuildStageConfig />', () => {
@@ -82,45 +81,6 @@ describe('<CiBuildStageConfig />', () => {
     expect(props.stageFieldUpdated).toHaveBeenCalled();
   });
 
-  it('clears saved Wercker app, pipeline, and job missing from Igor through updateStageField', async () => {
-    const props = createProps({
-      master: 'master',
-      app: 'org/missing',
-      pipeline: 'old-pipeline',
-      job: 'org/missing/old-pipeline',
-    });
-    (IgorService.listJobsForMaster as any).and.returnValue(Promise.resolve(['type/org/current/current-pipeline']));
-
-    mount(<CiBuildStageConfig {...props} buildServiceType={BuildServiceType.Wercker} werckerMode={true} />);
-    await flushPromises();
-
-    expect(props.stage.app).toBe('');
-    expect(props.stage.pipeline).toBe('');
-    expect(props.stage.job).toBe('');
-    expect(props.updateStageField).toHaveBeenCalledWith({ app: '', pipeline: '', job: '' });
-    expect(props.stageFieldUpdated).toHaveBeenCalled();
-  });
-
-  it('clears saved Wercker pipelines missing from Igor through updateStageField', async () => {
-    const props = createProps({
-      master: 'master',
-      app: 'org/current',
-      pipeline: 'old-pipeline',
-      job: 'org/current/old-pipeline',
-    });
-    (IgorService.listJobsForMaster as any).and.returnValue(Promise.resolve(['type/org/current/current-pipeline']));
-
-    mount(<CiBuildStageConfig {...props} buildServiceType={BuildServiceType.Wercker} werckerMode={true} />);
-    await flushPromises();
-    await flushPromises();
-
-    expect(props.stage.app).toBe('org/current');
-    expect(props.stage.pipeline).toBe('');
-    expect(props.stage.job).toBe('');
-    expect(props.updateStageField).toHaveBeenCalledWith({ pipeline: '', job: '' });
-    expect(props.stageFieldUpdated).toHaveBeenCalled();
-  });
-
   it('clears master refresh state when Igor rejects', async () => {
     let rejectMasters: (error: Error) => void;
     const mastersPromise = new Promise<string[]>((_resolve, reject) => (rejectMasters = reject));
@@ -185,29 +145,6 @@ describe('<CiBuildStageConfig />', () => {
 
     expect(props.stage.job).toBe('new-job');
     expect(props.updateStageField).not.toHaveBeenCalledWith({ job: '' });
-  });
-
-  it('ignores stale Wercker app list responses for a newer app on the same master', async () => {
-    let resolveJobs: (jobs: string[]) => void;
-    (IgorService.listJobsForMaster as any).and.returnValue(new Promise((resolve) => (resolveJobs = resolve)));
-    const props = createProps({
-      master: 'master',
-      app: 'org/old',
-      pipeline: 'old-pipeline',
-      job: 'org/old/old-pipeline',
-    });
-
-    mount(<CiBuildStageConfig {...props} buildServiceType={BuildServiceType.Wercker} werckerMode={true} />);
-    props.stage.app = 'org/new';
-    props.stage.pipeline = 'new-pipeline';
-    props.stage.job = 'org/new/new-pipeline';
-    resolveJobs!(['type/org/old/old-pipeline']);
-    await flushPromises();
-
-    expect(props.stage.app).toBe('org/new');
-    expect(props.stage.pipeline).toBe('new-pipeline');
-    expect(props.stage.job).toBe('org/new/new-pipeline');
-    expect(props.updateStageField).not.toHaveBeenCalledWith({ app: '', pipeline: '', job: '' });
   });
 
   it('ignores stale job config responses after a saved job is cleared', async () => {
@@ -277,11 +214,5 @@ describe('<CiBuildStageConfig />', () => {
 
     expect(helpFieldIds).toContain('pipeline.config.jenkins.markUnstableAsSuccessful.false');
     expect(helpFieldIds).toContain('pipeline.config.jenkins.markUnstableAsSuccessful.true');
-  });
-
-  it('enables inline parameters for Wercker builds', () => {
-    const component = shallow(<WerckerStageConfig {...createProps({ type: 'wercker' })} />);
-
-    expect(component.find(CiBuildStageConfig).prop('showInlineParameters')).toBe(true);
   });
 });

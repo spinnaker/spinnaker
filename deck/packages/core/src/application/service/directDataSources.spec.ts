@@ -3,9 +3,7 @@ import { registerApplicationConfigDataSource } from '../config/appConfig.dataSou
 import { navigationCategoryRegistry } from '../nav/navigationCategory.registry';
 import { SETTINGS } from '../../config/settings';
 import { registerCiDataSources } from '../../ci/ci.dataSource';
-import { registerDeployboardDataSource } from '../../deployboard/deployboard.dataSource';
 import { registerManagedResourcesDataSources } from '../../managed/managed.dataSource';
-import { registerProfilerDataSource } from '../../profiler/profiler.dataSource';
 import { registerServerGroupManagerDataSource } from '../../serverGroupManager/serverGroupManager.dataSource';
 
 describe('direct application data source registration', () => {
@@ -27,12 +25,6 @@ describe('direct application data source registration', () => {
     registerApplicationConfigDataSource();
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual(['config']);
-  });
-
-  it('registers profiler without Angular module execution', () => {
-    registerProfilerDataSource();
-
-    expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual(['jfrDumps']);
   });
 
   it('registers server group manager without Angular module execution', () => {
@@ -77,12 +69,5 @@ describe('direct application data source registration', () => {
     registerCiDataSources();
 
     expect(ApplicationDataSourceRegistry.getDataSources()).toEqual([]);
-  });
-
-  it('registers deployboard without Angular module execution', () => {
-    registerDeployboardDataSource();
-
-    expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual(['deployboard']);
-    expect(navigationCategoryRegistry.getAll().filter((category) => category.key === 'deployments').length).toBe(1);
   });
 });

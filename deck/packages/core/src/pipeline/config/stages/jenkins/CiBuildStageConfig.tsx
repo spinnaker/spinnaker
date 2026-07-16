@@ -24,22 +24,17 @@ export interface ICiBuildStageConfigProps extends IStageConfigProps {
   showJenkinsParameters?: boolean;
   showInlineParameters?: boolean;
   info?: React.ReactNode;
-  werckerMode?: boolean;
 }
 
 interface ICiBuildStageConfigState {
   masters: string[];
   jobs: string[];
-  apps: string[];
-  pipelines: string[];
   jobParams: IParameterDefinitionList[];
   invalidParameters: { [key: string]: any };
   useDefaultParameters: { [key: string]: boolean };
   mastersRefreshing: boolean;
   jobsRefreshing: boolean;
   jobsLoaded: boolean;
-  appsRefreshing: boolean;
-  appsLoaded: boolean;
 }
 
 export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps, ICiBuildStageConfigState> {
@@ -52,16 +47,12 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
     this.state = {
       masters: [],
       jobs: [],
-      apps: [],
-      pipelines: [],
       jobParams: [],
       invalidParameters: {},
       useDefaultParameters: {},
       mastersRefreshing: false,
       jobsRefreshing: false,
       jobsLoaded: false,
-      appsRefreshing: false,
-      appsLoaded: false,
     };
   }
 
@@ -72,7 +63,7 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
     this.setDefault('continuePipeline', false);
     this.refreshMasters();
     if (stage.master) {
-      this.props.werckerMode ? this.updateAppsList() : this.updateJobsList();
+      this.updateJobsList();
     }
     if (stage.job) {
       this.updateJobConfig();
@@ -114,7 +105,7 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
             )}
           </StageConfigField>
 
-          {this.props.werckerMode ? this.renderWerckerJobFields(stage) : this.renderJobField(stage)}
+          {this.renderJobField(stage)}
 
           {this.props.propertyFileHelpKey && (
             <StageConfigField label="Property File" helpKey={this.props.propertyFileHelpKey}>
@@ -197,54 +188,6 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
           </div>
         )}
       </StageConfigField>
-    );
-  }
-
-  private renderWerckerJobFields(stage: any) {
-    return (
-      <>
-        <StageConfigField label="Application">
-          {!stage.master && <p className="form-control-static">(Select a build service)</p>}
-          {stage.master && this.isParameterized(stage.master) && <p className="form-control-static">{stage.app}</p>}
-          {stage.master && !this.isParameterized(stage.master) && (
-            <div className="flex-container-h middle">
-              <Select
-                value={stage.app}
-                placeholder="Select an Application..."
-                options={this.state.apps.map((app) => ({ label: app, value: app }))}
-                onChange={this.onAppChanged}
-                clearable={false}
-              />
-              <button
-                className="btn btn-link"
-                type="button"
-                onClick={this.refreshApps}
-                title="Refresh application list"
-              >
-                <span className={`fa fa-sync-alt ${this.state.appsRefreshing ? 'fa-spin' : ''}`} />
-              </button>
-            </div>
-          )}
-        </StageConfigField>
-        <StageConfigField label="Pipeline">
-          {!stage.app && <p className="form-control-static">(Select an Application)</p>}
-          {stage.app && this.isParameterized(stage.job) && <p className="form-control-static">{stage.job}</p>}
-          {stage.app && !this.isParameterized(stage.job) && (
-            <div className="flex-container-h middle">
-              <Select
-                value={stage.pipeline}
-                placeholder="Select a pipeline..."
-                options={this.state.pipelines.map((pipeline) => ({ label: pipeline, value: pipeline }))}
-                onChange={this.onPipelineChanged}
-                clearable={false}
-              />
-              <button className="btn btn-link" type="button" onClick={this.refreshJobs} title="Refresh job list">
-                <span className={`fa fa-sync-alt ${this.state.appsRefreshing ? 'fa-spin' : ''}`} />
-              </button>
-            </div>
-          )}
-        </StageConfigField>
-      </>
     );
   }
 
@@ -407,24 +350,13 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
   }
 
   private onMasterChanged = (option: Option<string>) => {
-    this.updateStageField({ master: option.value, job: '', app: '', pipeline: '' });
-    this.props.werckerMode ? this.updateAppsList(option.value) : this.updateJobsList(option.value);
+    this.updateStageField({ master: option.value, job: '' });
+    this.updateJobsList(option.value);
   };
 
   private onJobChanged = (option: Option<string>) => {
     this.updateStageField({ job: option.value });
     this.updateJobConfig(option.value);
-  };
-
-  private onAppChanged = (option: Option<string>) => {
-    this.updateStageField({ app: option.value, pipeline: '', job: '' });
-    this.updateWerckerPipelines(option.value);
-  };
-
-  private onPipelineChanged = (option: Option<string>) => {
-    const app = (this.props.stage as any).app;
-    this.updateStageField({ pipeline: option.value, job: `${app}/${option.value}` });
-    this.updateJobConfig(`${app}/${option.value}`);
   };
 
   private refreshMasters = (): void => {
@@ -436,14 +368,7 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
       .catch(() => this.setStateIfMounted({ mastersRefreshing: false }));
   };
 
-  private refreshJobs = (): void => {
-    this.props.werckerMode ? this.refreshApps() : this.updateJobsList();
-  };
-
-  private refreshApps = (): void => {
-    this.setStateIfMounted({ appsRefreshing: true });
-    this.updateAppsList();
-  };
+  private refreshJobs = (): void => this.updateJobsList();
 
   private updateJobsList(master = (this.props.stage as any).master): void {
     const job = (this.props.stage as any).job || '';
@@ -464,69 +389,6 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
         this.setStateIfMounted({ jobs, jobsLoaded: true, jobsRefreshing: false });
       })
       .catch(() => this.setStateIfMounted({ jobsLoaded: true, jobsRefreshing: false }));
-  }
-
-  private updateAppsList(master = (this.props.stage as any).master): void {
-    const stage = this.props.stage as any;
-    const app = stage.app || '';
-    const pipeline = stage.pipeline || '';
-    const job = stage.job || '';
-    if (!master || this.isParameterized(master) || this.isParameterized(job)) {
-      this.setStateIfMounted({ appsLoaded: true });
-      return;
-    }
-    this.setStateIfMounted({ apps: [], appsLoaded: false, appsRefreshing: true });
-    IgorService.listJobsForMaster(master)
-      .then((jobs: string[]) => {
-        const currentStage = this.props.stage as any;
-        if (currentStage.master !== master) {
-          return;
-        }
-        const apps = jobs.reduce((acc: { [key: string]: string }, jobName) => {
-          const app = jobName.substring(jobName.indexOf('/') + 1, jobName.lastIndexOf('/'));
-          acc[app] = app;
-          return acc;
-        }, {});
-        const appNames = Object.keys(apps);
-        let appForPipelineRefresh = currentStage.app;
-        let pipelineToClean = currentStage.app === app ? pipeline : undefined;
-        if (currentStage.app === app && appNames.length && !appNames.includes(currentStage.app)) {
-          this.updateStageField({ app: '', pipeline: '', job: '' });
-          appForPipelineRefresh = '';
-          pipelineToClean = undefined;
-        }
-        this.setStateIfMounted({ jobs, apps: appNames, appsLoaded: true, appsRefreshing: false }, () => {
-          this.updateWerckerPipelines(appForPipelineRefresh, pipelineToClean);
-        });
-      })
-      .catch(() => this.setStateIfMounted({ appsLoaded: true, appsRefreshing: false }));
-  }
-
-  private updateWerckerPipelines(
-    app = (this.props.stage as any).app,
-    pipelineToClean = (this.props.stage as any).pipeline,
-  ): void {
-    const stage = this.props.stage as any;
-    const pipelines = this.state.jobs.reduce((acc: { [key: string]: string }, jobName) => {
-      if (
-        !jobName.startsWith('pipeline') &&
-        app === jobName.substring(jobName.indexOf('/') + 1, jobName.lastIndexOf('/'))
-      ) {
-        const pipeline = jobName.substring(jobName.lastIndexOf('/') + 1);
-        acc[pipeline] = pipeline;
-      }
-      return acc;
-    }, {});
-    const pipelineNames = Object.keys(pipelines);
-    if (
-      pipelineNames.length &&
-      stage.pipeline === pipelineToClean &&
-      stage.pipeline &&
-      !pipelineNames.includes(stage.pipeline)
-    ) {
-      this.updateStageField({ pipeline: '', job: '' });
-    }
-    this.setStateIfMounted({ pipelines: pipelineNames });
   }
 
   private updateJobConfig(job = (this.props.stage as any).job): void {
