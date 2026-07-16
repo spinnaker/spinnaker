@@ -81,9 +81,9 @@ final class ZoneGoogleServerGroupManagers implements GoogleServerGroupManagers {
         managers.patch(credentials.getProject(), zone, instanceGroupName, content), "patch", zone);
   }
 
-  // In Compute v1, instanceGroupManagers.update and .patch are both HTTP PATCH with
-  // JSON merge patch (RFC 7386) semantics — there is no PUT-based full-replacement endpoint.
-  // See: https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers/update
+  // Legacy-named update() delegates to the only stable-v1 MIG mutation endpoint (HTTP PATCH /
+  // JSON merge patch). Historically beta "update" was not equivalent to this path.
+  // See: https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers/patch
   @Override
   public GoogleComputeOperationRequest<ComputeRequest<Operation>> update(
       InstanceGroupManager content) throws IOException {

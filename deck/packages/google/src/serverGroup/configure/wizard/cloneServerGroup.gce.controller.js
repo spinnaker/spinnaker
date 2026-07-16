@@ -9,6 +9,7 @@ import { FirewallLabels, INSTANCE_TYPE_SERVICE, ModalWizard, TaskMonitor } from 
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_HIDDENMETADATAKEYS_VALUE } from './hiddenMetadataKeys.value';
 import { GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE } from '../../../instance/custom/customInstanceBuilder.gce.service';
 import { GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE } from './securityGroups/tagManager.service';
+import { hasValidFlexibilityPolicy } from './zones/GceInstanceFlexibilityConfigurer';
 
 export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_CLONESERVERGROUP_GCE_CONTROLLER =
   'spinnaker.serverGroup.configure.gce.cloneServerGroup';
@@ -274,6 +275,7 @@ angular
           ($scope.command.regional || $scope.command.zone) &&
           $scope.command.capacity.desired !== null &&
           (!$scope.command.selectZones || selectedZones) &&
+          hasValidFlexibilityPolicy($scope.command) &&
           $scope.form.$valid &&
           (!autoScalingPolicy ||
             (autoScalingPolicy &&
@@ -437,6 +439,13 @@ angular
 
       this.setAutoHealingPolicy = function (autoHealingPolicy) {
         $scope.command.autoHealingPolicy = autoHealingPolicy;
+      };
+
+      // Called from React; wrap in $apply so Angular sees the flexibility policy change.
+      this.setInstanceFlexibilityPolicy = (policy) => {
+        $scope.$applyAsync(() => {
+          $scope.command.instanceFlexibilityPolicy = policy;
+        });
       };
 
       this.onEnableAutoScalingChange = function () {

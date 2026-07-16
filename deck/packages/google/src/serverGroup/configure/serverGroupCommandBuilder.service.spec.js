@@ -209,4 +209,102 @@ describe('Service: gceServerGroupCommandBuilder', function () {
 
     expect(command.partnerMetadata).toBeUndefined();
   });
+
+  it('strips legacy maxUnavailable-only autoHealingPolicy from pipeline commands', function () {
+    const command = resolve(
+      builder.buildServerGroupCommandFromPipeline(
+        { name: 'myapp', attributes: {} },
+        {
+          account: 'test-account',
+          zone: 'us-central1-a',
+          availabilityZones: { 'us-central1': ['us-central1-a'] },
+          instanceType: 'n1-standard-1',
+          disks: [],
+          tags: [],
+          instanceMetadata: {},
+          resourceManagerTags: {},
+          autoHealingPolicy: {
+            maxUnavailable: { percent: 10 },
+          },
+        },
+        {},
+        {},
+      ),
+    );
+
+    expect(command.autoHealingPolicy).toBeUndefined();
+  });
+
+  it('rebuilds pipeline autoHealingPolicy without maxUnavailable when health check is present', function () {
+    const command = resolve(
+      builder.buildServerGroupCommandFromPipeline(
+        { name: 'myapp', attributes: {} },
+        {
+          account: 'test-account',
+          zone: 'us-central1-a',
+          availabilityZones: { 'us-central1': ['us-central1-a'] },
+          instanceType: 'n1-standard-1',
+          disks: [],
+          tags: [],
+          instanceMetadata: {},
+          resourceManagerTags: {},
+          autoHealingPolicy: {
+            healthCheck: 'projects/test-project/global/healthChecks/example-hc',
+            healthCheckUrl: 'projects/test-project/global/healthChecks/example-hc',
+            initialDelaySec: 45,
+            maxUnavailable: { fixed: 2 },
+          },
+        },
+        {},
+        {},
+      ),
+    );
+
+    expect(command.autoHealingPolicy.healthCheck).toBe('example-hc');
+    expect(command.autoHealingPolicy.initialDelaySec).toBe(45);
+    expect(command.autoHealingPolicy.maxUnavailable).toBeUndefined();
+  });
+
+  it('deep-clones instanceFlexibilityPolicy when cloning an existing server group', function () {
+    const serverGroup = buildServerGroup('shieldedInstanceConfig', {
+      enableSecureBoot: false,
+      enableVtpm: false,
+      enableIntegrityMonitoring: false,
+    });
+    serverGroup.instanceFlexibilityPolicy = {
+      instanceSelections: {
+        preferred: { machineTypes: ['n2-standard-8'] },
+        fallback: { rank: 1, machineTypes: ['e2-standard-8'] },
+      },
+    };
+    const command = resolve(
+      builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup),
+    );
+
+    expect(command.instanceFlexibilityPolicy).toEqual(serverGroup.instanceFlexibilityPolicy);
+    expect(command.instanceFlexibilityPolicy).not.toBe(serverGroup.instanceFlexibilityPolicy);
+    command.instanceFlexibilityPolicy.instanceSelections.preferred.machineTypes.push('c3-standard-8');
+    expect(serverGroup.instanceFlexibilityPolicy.instanceSelections.preferred.machineTypes).toEqual(['n2-standard-8']);
+  });
+
+  it('does not hydrate autoHealingPolicy.maxUnavailable onto clone commands', function () {
+    const serverGroup = buildServerGroup('shieldedInstanceConfig', {
+      enableSecureBoot: false,
+      enableVtpm: false,
+      enableIntegrityMonitoring: false,
+    });
+    serverGroup.autoHealingPolicy = {
+      healthCheck: 'projects/test/global/healthChecks/hc',
+      healthCheckUrl: 'projects/test/global/healthChecks/hc',
+      initialDelaySec: 60,
+      maxUnavailable: { fixed: 3 },
+    };
+    const command = resolve(
+      builder.buildServerGroupCommandFromExisting({ name: 'myapp', attributes: {} }, serverGroup),
+    );
+
+    expect(command.autoHealingPolicy.healthCheck).toBe('hc');
+    expect(command.autoHealingPolicy.initialDelaySec).toBe(60);
+    expect(command.autoHealingPolicy.maxUnavailable).toBeUndefined();
+  });
 });

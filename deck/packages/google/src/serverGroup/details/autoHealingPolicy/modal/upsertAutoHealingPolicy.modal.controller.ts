@@ -71,7 +71,13 @@ class GceUpsertAutoHealingPolicyModalCtrl implements IController {
     this.isNew = !this.serverGroup.autoHealingPolicy;
     this.submitButtonLabel = this.isNew ? 'Create' : 'Update';
     if (!this.isNew) {
-      this.autoHealingPolicy = cloneDeep(this.serverGroup.autoHealingPolicy);
+      // Strip legacy cached maxUnavailable so editing health check / delay does not
+      // resubmit an unsupported Compute v1 field and fail Clouddriver validation.
+      const cachedPolicy = cloneDeep(this.serverGroup.autoHealingPolicy) as IGceAutoHealingPolicy & {
+        maxUnavailable?: unknown;
+      };
+      const { maxUnavailable: _ignored, ...policyWithoutMaxUnavailable } = cachedPolicy;
+      this.autoHealingPolicy = policyWithoutMaxUnavailable;
     }
     this.taskMonitor = new TaskMonitor({
       application: this.application,

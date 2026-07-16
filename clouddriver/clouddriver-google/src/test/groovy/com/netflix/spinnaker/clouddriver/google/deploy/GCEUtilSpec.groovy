@@ -662,4 +662,99 @@ package com.netflix.spinnaker.clouddriver.google.deploy
       true       | true  | true
       true       | null  | false
   }
+
+  void "buildInstanceDescriptionFromTemplate reads v1 shieldedInstanceConfig"() {
+    given:
+      def template = shieldedInstanceTemplate()
+      template.properties.shieldedInstanceConfig = new ShieldedInstanceConfig(
+        enableSecureBoot: true,
+        enableVtpm: false,
+        enableIntegrityMonitoring: true)
+
+    when:
+      def description = GCEUtil.buildInstanceDescriptionFromTemplate(PROJECT_NAME, template)
+
+    then:
+      description.enableSecureBoot
+      !description.enableVtpm
+      description.enableIntegrityMonitoring
+  }
+
+  void "buildInstanceDescriptionFromTemplate falls back to legacy shieldedVmConfig"() {
+    given:
+      def template = shieldedInstanceTemplate()
+      // Legacy beta key is not a typed v1 accessor; store it on GenericJson for read-path fallback.
+      template.properties.set("shieldedVmConfig", new ShieldedInstanceConfig(
+        enableSecureBoot: false,
+        enableVtpm: true,
+        enableIntegrityMonitoring: false
+      ))
+
+    when:
+      def description = GCEUtil.buildInstanceDescriptionFromTemplate(PROJECT_NAME, template)
+
+    then:
+      !description.enableSecureBoot
+      description.enableVtpm
+      !description.enableIntegrityMonitoring
+  }
+
+  void "buildInstanceDescriptionFromTemplate reads legacy shieldedVmConfig from wire JSON map"() {
+    given:
+      def template = shieldedInstanceTemplate()
+      // Real Compute client responses store unknown nested objects as Map-like JSON values.
+      def legacyWireValue = GsonFactory.defaultInstance.fromString(
+        '{"enableSecureBoot":false,"enableVtpm":true,"enableIntegrityMonitoring":false}',
+        Object
+      )
+      template.properties.set("shieldedVmConfig", legacyWireValue)
+
+    when:
+      def description = GCEUtil.buildInstanceDescriptionFromTemplate(PROJECT_NAME, template)
+
+    then:
+      !(legacyWireValue instanceof ShieldedInstanceConfig)
+      !description.enableSecureBoot
+      description.enableVtpm
+      !description.enableIntegrityMonitoring
+  }
+
+  void "buildInstanceDescriptionFromTemplate prefers shieldedInstanceConfig over legacy key"() {
+    given:
+      def template = shieldedInstanceTemplate()
+      template.properties.shieldedInstanceConfig = new ShieldedInstanceConfig(
+        enableSecureBoot: true,
+        enableVtpm: false,
+        enableIntegrityMonitoring: true)
+      template.properties.set("shieldedVmConfig", new ShieldedInstanceConfig(
+        enableSecureBoot: false,
+        enableVtpm: true,
+        enableIntegrityMonitoring: false
+      ))
+
+    when:
+      def description = GCEUtil.buildInstanceDescriptionFromTemplate(PROJECT_NAME, template)
+
+    then:
+      description.enableSecureBoot
+      !description.enableVtpm
+      description.enableIntegrityMonitoring
+  }
+
+  private static InstanceTemplate shieldedInstanceTemplate() {
+    new InstanceTemplate(
+      name: "example-template",
+      properties: new InstanceProperties(
+        machineType: "e2-standard-2",
+        disks: [new AttachedDisk(
+          boot: true,
+          autoDelete: true,
+          initializeParams: new AttachedDiskInitializeParams(
+            sourceImage: "projects/debian-cloud/global/images/debian-11",
+            diskType: "pd-ssd",
+            diskSizeGb: 10))],
+        networkInterfaces: [
+          new NetworkInterface(network: "projects/${PROJECT_NAME}/global/networks/default")
+        ]))
+  }
 }

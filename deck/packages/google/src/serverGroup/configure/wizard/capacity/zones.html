@@ -3,5 +3,11 @@
     <gce-regional-selector command="command"></gce-regional-selector>
     <gce-zone-selector command="command"></gce-zone-selector>
     <gce-target-shape-selector command="command"></gce-target-shape-selector>
+    <gce-instance-flexibility-configurer
+      instance-flexibility-policy="command.instanceFlexibilityPolicy"
+      regional="command.regional"
+      target-shape="command.distributionPolicy.targetShape"
+      set-instance-flexibility-policy="ctrl.setInstanceFlexibilityPolicy"
+    ></gce-instance-flexibility-configurer>
   </div>
 </ng-form>

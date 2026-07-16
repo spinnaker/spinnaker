@@ -206,28 +206,27 @@ angular
       }
 
       function populateAutoHealingPolicy(serverGroup, command) {
+        // Always clear first: pipeline edit copies cluster JSON onto the command before this
+        // runs, and legacy payloads may carry unsupported maxUnavailable alone or alongside
+        // a health check. Rebuild from supported fields only so Deck cannot resubmit it.
+        delete command.autoHealingPolicy;
         const autoHealingPolicy = serverGroup.autoHealingPolicy;
-        if (autoHealingPolicy) {
-          const healthCheckUrl = autoHealingPolicy.healthCheckUrl
-            ? autoHealingPolicy.healthCheckUrl
-            : autoHealingPolicy.healthCheck;
-
-          if (healthCheckUrl) {
-            const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
-            command.autoHealingPolicy = {
-              healthCheck: healthCheckName,
-              healthCheckKind: healthCheckKind,
-              healthCheckUrl: healthCheckUrl,
-              initialDelaySec: autoHealingPolicy.initialDelaySec,
-            };
-          }
-
-          const maxUnavailable = autoHealingPolicy.maxUnavailable;
-          if (maxUnavailable) {
-            command.autoHealingPolicy.maxUnavailable = maxUnavailable;
-            command.viewState.maxUnavailableMetric = typeof maxUnavailable.percent === 'number' ? 'percent' : 'fixed';
-          }
+        if (!autoHealingPolicy) {
+          return;
         }
+        const healthCheckUrl = autoHealingPolicy.healthCheckUrl
+          ? autoHealingPolicy.healthCheckUrl
+          : autoHealingPolicy.healthCheck;
+        if (!healthCheckUrl) {
+          return;
+        }
+        const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
+        command.autoHealingPolicy = {
+          healthCheck: healthCheckName,
+          healthCheckKind: healthCheckKind,
+          healthCheckUrl: healthCheckUrl,
+          initialDelaySec: autoHealingPolicy.initialDelaySec,
+        };
       }
 
       // Dual-key fallback: try v1 key (shieldedInstanceConfig) first, then legacy beta key
@@ -478,6 +477,10 @@ angular
             zones: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.zones : [],
             targetShape: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.targetShape : null,
           },
+          // Deep-clone so clone/edit cannot mutate the cached server-group policy object.
+          instanceFlexibilityPolicy: serverGroup.instanceFlexibilityPolicy
+            ? _.cloneDeep(serverGroup.instanceFlexibilityPolicy)
+            : null,
           selectZones: serverGroup.selectZones,
           source: {
             account: serverGroup.account,

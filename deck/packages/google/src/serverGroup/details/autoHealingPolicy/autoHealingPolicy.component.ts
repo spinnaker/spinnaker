@@ -55,11 +55,6 @@ const gceAutoHealingPolicyDetails: IComponentOptions = {
       <help-field key="gce.serverGroup.initialDelaySec"></help-field>
     </dt>
     <dd>{{$ctrl.serverGroup.initialDelaySec}} seconds</dd>
-    <dt ng-if="$ctrl.serverGroup.maxUnavailable">
-      Max Unavailable
-      <help-field key="gce.serverGroup.maxUnavailable"></help-field>
-    </dt>
-    <dd ng-if="$ctrl.serverGroup.maxUnavailable">{{$ctrl.serverGroup.maxUnavailable}}</dd>
     <action-icons class="text-right"
                   edit="$ctrl.editPolicy()"
                   edit-info="Edit Policy"

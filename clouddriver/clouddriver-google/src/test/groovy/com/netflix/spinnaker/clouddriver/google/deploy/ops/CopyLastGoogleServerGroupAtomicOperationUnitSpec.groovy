@@ -196,8 +196,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          autoHealingPolicy:
                                                              new GoogleAutoHealingPolicy(
                                                                  healthCheck: 'different-health-check',
-                                                                 initialDelaySec: 900,
-                                                                 maxUnavailable: [fixed: 5]
+                                                                 initialDelaySec: 900
                                                              ),
                                                          source: [region: REGION,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
@@ -276,7 +275,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
   }
 
-  void "operation copies shielded config from ancestor when request does not override it"() {
+  @Unroll
+  void "operation copies shielded config from ancestor key #shieldedKey when request does not override it"() {
     setup:
       def ancestorShieldedConfig = new ShieldedInstanceConfig(
         enableSecureBoot: true,
@@ -293,9 +293,68 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         tags: tags,
         labels: LABELS,
         scheduling: scheduling,
-        serviceAccounts: serviceAccount,
-        shieldedInstanceConfig: ancestorShieldedConfig
+        serviceAccounts: serviceAccount
       )
+      ancestorInstanceProperties.set(shieldedKey, ancestorShieldedConfig)
+      def ancestorInstanceTemplate = new InstanceTemplate(
+        name: INSTANCE_TEMPLATE_NAME,
+        properties: ancestorInstanceProperties
+      )
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        zone: ZONE,
+        asg: [(GCEUtil.REGIONAL_LOAD_BALANCER_NAMES): LOAD_BALANCERS, desiredCapacity: 2],
+        launchConfig: [instanceTemplate: ancestorInstanceTemplate]
+      ).view
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        region: REGION,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials
+      )
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({
+        it.enableSecureBoot == true &&
+          it.enableVtpm == false &&
+          it.enableIntegrityMonitoring == true
+      }, _) >> deploymentResult
+
+    where:
+      shieldedKey << ["shieldedInstanceConfig", "shieldedVmConfig"]
+  }
+
+  void "operation copies legacy shieldedVmConfig map values from wire-shaped ancestor properties"() {
+    setup:
+      def ancestorInstanceProperties = new InstanceProperties(
+        machineType: INSTANCE_TYPE,
+        minCpuPlatform: MIN_CPU_PLATFORM,
+        disks: attachedDisks,
+        networkInterfaces: [networkInterface],
+        canIpForward: false,
+        metadata: instanceMetadata,
+        tags: tags,
+        labels: LABELS,
+        scheduling: scheduling,
+        serviceAccounts: serviceAccount
+      )
+      // Mimic Compute client deserialization of an unknown nested object as Map.
+      ancestorInstanceProperties.set("shieldedVmConfig", [
+        enableSecureBoot: true,
+        enableVtpm: false,
+        enableIntegrityMonitoring: true
+      ])
       def ancestorInstanceTemplate = new InstanceTemplate(
         name: INSTANCE_TEMPLATE_NAME,
         properties: ancestorInstanceProperties
@@ -623,6 +682,51 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       }, _) >> deploymentResult
   }
 
+  void "operation preserves explicit empty flexibility policy instead of inheriting ancestor selections"() {
+    setup:
+      def ancestorSelection = new GoogleInstanceFlexibilityPolicy.InstanceSelection(
+        1, ["n2-standard-8"])
+      def ancestorPolicy = new GoogleInstanceFlexibilityPolicy()
+      ancestorPolicy.setInstanceSelections(["preferred": ancestorSelection])
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        regional: true,
+        region: REGION,
+        asg: [desiredCapacity: 2],
+        distributionPolicy: new GoogleDistributionPolicy(
+          ["us-central1-a", "us-central1-b"], "BALANCED"),
+        instanceFlexibilityPolicy: ancestorPolicy
+      ).view
+      def requestPolicy = new GoogleInstanceFlexibilityPolicy()
+      requestPolicy.setInstanceSelections([:])
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        targetSize: 2,
+        instanceFlexibilityPolicy: requestPolicy,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials
+      )
+      def deploymentResult = new DeploymentResult(
+        serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(
+        ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({
+        it.instanceFlexibilityPolicy.is(requestPolicy) &&
+          it.instanceFlexibilityPolicy.instanceSelections.isEmpty()
+      }, _) >> deploymentResult
+  }
+
   void "operation allows inherited single-selection flexibility policy without rank"() {
     setup:
       def selection = new GoogleInstanceFlexibilityPolicy.InstanceSelection()
@@ -661,6 +765,78 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         it.instanceFlexibilityPolicy?.instanceSelections?.get("preferred") != null &&
           it.instanceFlexibilityPolicy.instanceSelections.get("preferred").rank == null &&
           it.distributionPolicy?.targetShape == "BALANCED"
+      }, _) >> deploymentResult
+  }
+
+  void "operation inherits ancestor selectZones and explicit zones when override is omitted"() {
+    setup:
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        regional: true,
+        region: REGION,
+        asg: [desiredCapacity: 2],
+        selectZones: true,
+        distributionPolicy: new GoogleDistributionPolicy(["us-central1-a", "us-central1-b"], "BALANCED")
+      ).view
+
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        targetSize: 2,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials
+      )
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({
+        it.selectZones == true &&
+          it.distributionPolicy?.zones == ["us-central1-a", "us-central1-b"]
+      }, _) >> deploymentResult
+  }
+
+  void "operation honors explicit selectZones false over ancestor true"() {
+    setup:
+      def ancestorServerGroup = new GoogleServerGroup(
+        name: ANCESTOR_SERVER_GROUP_NAME,
+        regional: true,
+        region: REGION,
+        asg: [desiredCapacity: 2],
+        selectZones: true,
+        distributionPolicy: new GoogleDistributionPolicy(["us-central1-a", "us-central1-b"], "BALANCED")
+      ).view
+
+      def description = new BasicGoogleDeployDescription(
+        source: [region: REGION, serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+        targetSize: 2,
+        selectZones: false,
+        accountName: ACCOUNT_NAME,
+        credentials: credentials
+      )
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> ancestorServerGroup
+      1 * basicGoogleDeployHandlerMock.handle({
+        it.selectZones == false
       }, _) >> deploymentResult
   }
 }

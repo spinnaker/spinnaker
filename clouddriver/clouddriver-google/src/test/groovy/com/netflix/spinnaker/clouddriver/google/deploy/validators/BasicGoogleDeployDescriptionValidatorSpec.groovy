@@ -452,134 +452,73 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                  "basicGoogleDeployDescription.autoscalingPolicy.minNumReplicas.")
   }
 
-  void "instance flexibility policy on zonal (non-regional) server group fails validation"() {
-    setup:
+  void "selectZones on a zonal create request fails validation"() {
+    given:
       def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(1)
-      selection.setMachineTypes(["n2-standard-8", "c3-standard-8"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
+      def description = new BasicGoogleDeployDescription(
         regional: false,
-        zone: ZONE
-      ), errors)
-
-    then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.requiresRegional",
-                             "Instance flexibility policy is only supported for regional server groups.")
-  }
-
-  void "instance flexibility policy with EVEN target shape fails validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(1)
-      selection.setMachineTypes(["n2-standard-8"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
+        selectZones: true,
+        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
+          zones: ["us-central1-a"]))
 
     when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue(
+        "selectZones",
+        "basicGoogleDeployDescription.selectZones.requiresRegional",
+        "selectZones requires a regional server group.")
+  }
+
+  @Unroll
+  void "selectZones with zones #zones fails create validation"() {
+    given:
+      def errors = Mock(ValidationErrors)
+      def description = new BasicGoogleDeployDescription(
         regional: true,
         region: REGION,
+        selectZones: true,
         distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
-          zones: ["us-central1-a", "us-central1-b"],
-          targetShape: "EVEN"
-        )
-      ), errors)
+          zones: zones))
+
+    when:
+      validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
-                             "Instance flexibility policy cannot be used with EVEN target distribution shape.")
+      1 * errors.rejectValue(
+        "distributionPolicy.zones",
+        "basicGoogleDeployDescription.distributionPolicy.zones.requiredWhenSelectZones",
+        "distributionPolicy.zones must contain at least one zone when selectZones is true.")
+
+    where:
+      zones << [null, []]
   }
 
-  void "instance flexibility policy with omitted target shape fails validation due to implicit EVEN default"() {
+  void "instance flexibility validation issues use the create validator error-code prefix"() {
     setup:
       def errors = Mock(ValidationErrors)
       def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(1)
+      selection.setRank(-1)
       selection.setMachineTypes(["n2-standard-8"])
       def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
       flexPolicy.setInstanceSelections(["preferred": selection])
 
     when:
       validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
-        regional: true,
-        region: REGION
-      ), errors)
-
-    then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.incompatibleWithEvenShape",
-                             "Instance flexibility policy cannot be used with EVEN target distribution shape.")
-  }
-
-  void "instance flexibility policy on regional server group with BALANCED shape passes validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(1)
-      selection.setMachineTypes(["n2-standard-8"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        application: APPLICATION,
-        image: IMAGE,
-        instanceType: INSTANCE_TYPE,
-        targetSize: TARGET_SIZE,
         regional: true,
         region: REGION,
-        accountName: ACCOUNT_NAME,
-        disks: [DISK_PD_STANDARD],
         instanceFlexibilityPolicy: flexPolicy,
         distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
-          zones: ["us-central1-a", "us-central1-b"],
           targetShape: "BALANCED"
         )
       ), errors)
 
     then:
-      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
-  }
-
-  void "instance flexibility policy accepts machine type URLs that match instanceType"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(1)
-      selection.setMachineTypes(["zones/us-central1-a/machineTypes/n2-standard-8"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        application: APPLICATION,
-        image: IMAGE,
-        instanceType: "n2-standard-8",
-        targetSize: TARGET_SIZE,
-        regional: true,
-        region: REGION,
-        accountName: ACCOUNT_NAME,
-        disks: [DISK_PD_STANDARD],
-        instanceFlexibilityPolicy: flexPolicy,
-        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
-          zones: ["us-central1-a", "us-central1-b"],
-          targetShape: "BALANCED"
-        )
-      ), errors)
-
-    then:
-      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
+      1 * errors.rejectValue(
+        "instanceFlexibilityPolicy",
+        "basicGoogleDeployDescription.instanceFlexibilityPolicy.negativeRank",
+        "Each instance selection rank must be zero or greater.")
   }
 
   void "partnerMetadata on description does not trigger validation rejection"() {
@@ -595,117 +534,4 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       0 * errors.rejectValue("partnerMetadata", _, _)
   }
 
-  void "flexibility policy with null selection entry fails validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": null])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
-        regional: true,
-        region: REGION
-      ), errors)
-
-    then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.nullSelection",
-                             "Instance flexibility policy must not contain null selection entries.")
-  }
-
-  void "flexibility policy with missing rank in multiple selections fails validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def missingRank = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      missingRank.setMachineTypes(["n2-standard-8"])
-      def ranked = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      ranked.setRank(1)
-      ranked.setMachineTypes(["n2-standard-16"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": missingRank, "fallback": ranked])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
-        regional: true,
-        region: REGION,
-        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
-          zones: ["us-central1-a", "us-central1-b"],
-          targetShape: "BALANCED"
-        )
-      ), errors)
-
-    then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.missingRank",
-                             "Each instance selection must specify rank when multiple selections are configured.")
-  }
-
-  void "flexibility policy with single selection and missing rank passes validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setMachineTypes(["n2-standard-8"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
-        regional: true,
-        region: REGION,
-        distributionPolicy: new com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy(
-          zones: ["us-central1-a", "us-central1-b"],
-          targetShape: "BALANCED"
-        )
-      ), errors)
-
-    then:
-      0 * errors.rejectValue("instanceFlexibilityPolicy", _, _)
-  }
-
-  void "flexibility policy with negative rank fails validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(-1)
-      selection.setMachineTypes(["n2-standard-8"])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
-        regional: true,
-        region: REGION
-      ), errors)
-
-    then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.negativeRank",
-                             "Each instance selection rank must be zero or greater.")
-  }
-
-  void "flexibility policy with empty machineTypes fails validation"() {
-    setup:
-      def errors = Mock(ValidationErrors)
-      def selection = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy.InstanceSelection()
-      selection.setRank(1)
-      selection.setMachineTypes([])
-      def flexPolicy = new com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy()
-      flexPolicy.setInstanceSelections(["preferred": selection])
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(
-        instanceFlexibilityPolicy: flexPolicy,
-        regional: true,
-        region: REGION
-      ), errors)
-
-    then:
-      1 * errors.rejectValue("instanceFlexibilityPolicy",
-                             "basicGoogleDeployDescription.instanceFlexibilityPolicy.emptyMachineTypes",
-                             "Each instance selection must specify at least one machine type.")
-  }
 }

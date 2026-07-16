@@ -412,7 +412,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     isRegional << [true, false]
   }
 
-  void "builds autoHealing policy based on ancestor autoHealing policy and input description; overrides everything"() {
+  void "builds autoHealing policy based on ancestor autoHealing policy and input description; overrides health check fields"() {
     given:
     def ancestorPolicy = new GoogleAutoHealingPolicy(
       healthCheck: 'ancestor',
@@ -426,9 +426,14 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(fixed: 10)
     )
 
-    expect:
-    UpsertGoogleAutoscalingPolicyAtomicOperation
-      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription) == inputDescription
+    when:
+    def result = UpsertGoogleAutoscalingPolicyAtomicOperation
+      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription)
+
+    then:
+    result.healthCheck == 'update'
+    result.initialDelaySec == 200
+    result.maxUnavailable == null
   }
 
   void "builds autoHealing policy based on ancestor autoHealing policy and input description; overrides nothing"() {
@@ -445,28 +450,61 @@ class UpsertGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
       maxUnavailable: null
     )
 
-    expect:
-    UpsertGoogleAutoscalingPolicyAtomicOperation
-      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription) == ancestorPolicy
+    when:
+    def result = UpsertGoogleAutoscalingPolicyAtomicOperation
+      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription)
+
+    then:
+    result.healthCheck == 'ancestor'
+    result.initialDelaySec == 100
+    result.maxUnavailable == null
   }
 
-  void "if the input description's maxUnavailable is empty object, the resulting policy has no maxUnavailable property"() {
+  @Unroll
+  void "autoHealing upsert sends exact #scope PATCH and stable v1 body"() {
     given:
-    def ancestorPolicy = new GoogleAutoHealingPolicy(
-      healthCheck: 'ancestor',
-      initialDelaySec: 100,
-      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(percent: 1)
-    )
+    def transport = new com.netflix.spinnaker.clouddriver.google.test.CapturingComputeTransport()
+    def compute = new Compute(transport, com.google.api.client.json.gson.GsonFactory.defaultInstance, null)
+    def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional, selfLink: SELF_LINK).view
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).build()
+    def description = new UpsertGoogleAutoscalingPolicyDescription(
+      accountName: ACCOUNT_NAME,
+      region: REGION,
+      serverGroupName: SERVER_GROUP_NAME,
+      autoHealingPolicy: new GoogleAutoHealingPolicy(
+        healthCheck: 'hc',
+        initialDelaySec: 30,
+        maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent(fixed: 3)),
+      writeMetadata: false,
+      credentials: credentials)
+    GroovySpy(GCEUtil, global: true)
+    GCEUtil.queryHealthCheck(_, _, _, _, _, _, _, _, _) >> [selfLink: 'hc-link']
+    @Subject def operation = Spy(UpsertGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock, atomicOperationsRegistryMock, orchestrationProcessorMock, cacheView, objectMapper])
+    operation.registry = new DefaultRegistry()
 
-    def inputDescription = new GoogleAutoHealingPolicy(
-      healthCheck: null,
-      initialDelaySec: null,
-      maxUnavailable: new GoogleAutoHealingPolicy.FixedOrPercent()
-    )
+    when:
+    operation.operate([])
 
-    expect:
-    UpsertGoogleAutoscalingPolicyAtomicOperation
-      .copyAndOverrideAncestorAutoHealingPolicy(ancestorPolicy, inputDescription).maxUnavailable == null
+    then:
+    1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+    def expectedPath =
+      "/compute/v1/projects/${PROJECT_NAME}/${scope}/${location}/instanceGroupManagers/${SERVER_GROUP_NAME}"
+    def patchRequest = transport.findPatchTo(expectedPath).orElseThrow {
+      new AssertionError("Captured requests did not contain ${expectedPath}: ${transport.requests}")
+    }
+    patchRequest.method() == "PATCH"
+    new URI(patchRequest.url()).path == expectedPath
+    def body = new ObjectMapper().readTree(patchRequest.body())
+    body.path("autoHealingPolicies").size() == 1
+    body.path("autoHealingPolicies").get(0).path("healthCheck").asText() == 'hc-link'
+    body.path("autoHealingPolicies").get(0).path("initialDelaySec").asInt() == 30
+    body.path("autoHealingPolicies").get(0).path("maxUnavailable").isMissingNode()
+    !patchRequest.body().contains("maxUnavailable")
+
+    where:
+    isRegional | scope     | location
+    false      | "zones"   | ZONE
+    true       | "regions" | REGION
   }
 
   void "update the instance template when updatePolicyMetadata is called"() {

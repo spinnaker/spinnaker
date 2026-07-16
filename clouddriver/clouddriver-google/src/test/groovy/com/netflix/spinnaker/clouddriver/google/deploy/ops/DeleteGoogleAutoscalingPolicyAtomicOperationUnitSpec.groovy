@@ -164,6 +164,47 @@ class DeleteGoogleAutoscalingPolicyAtomicOperationUnitSpec extends Specification
     isRegional << [true, false]
   }
 
+  @Unroll
+  void "autoHealing delete sends exact #scope PATCH and empty policy body"() {
+    setup:
+    def transport = new com.netflix.spinnaker.clouddriver.google.test.CapturingComputeTransport()
+    def compute = new Compute(transport, com.google.api.client.json.gson.GsonFactory.defaultInstance, null)
+    def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(compute).build()
+    def description = new DeleteGoogleAutoscalingPolicyDescription(
+      serverGroupName: SERVER_GROUP_NAME,
+      region: REGION,
+      accountName: ACCOUNT_NAME,
+      credentials: credentials,
+      deleteAutoHealingPolicy: true
+    )
+    def serverGroup = new GoogleServerGroup(zone: ZONE, regional: isRegional).view
+    @Subject def operation = Spy(DeleteGoogleAutoscalingPolicyAtomicOperation, constructorArgs: [description, googleClusterProviderMock, operationPollerMock, atomicOperationsRegistry, orchestrationProcessorMock])
+    operation.registry = new DefaultRegistry()
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * operation.deletePolicyMetadata(compute, credentials, PROJECT_NAME, _) >> null
+    1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
+    def expectedPath =
+      "/compute/v1/projects/${PROJECT_NAME}/${scope}/${location}/instanceGroupManagers/${SERVER_GROUP_NAME}"
+    def patchRequest = transport.findPatchTo(expectedPath).orElseThrow()
+    patchRequest.method() == "PATCH"
+    new URI(patchRequest.url()).path == expectedPath
+    def body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(patchRequest.body())
+    body.path("autoHealingPolicies").isArray()
+    body.path("autoHealingPolicies").size() == 1
+    body.path("autoHealingPolicies").get(0).isObject()
+    body.path("autoHealingPolicies").get(0).size() == 0
+    !patchRequest.body().contains("maxUnavailable")
+
+    where:
+    isRegional | scope     | location
+    false      | "zones"   | ZONE
+    true       | "regions" | REGION
+  }
+
   void "delete the instance template when deletePolicyMetadata is called"() {
     given:
     def registry = new DefaultRegistry()

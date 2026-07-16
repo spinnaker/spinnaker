@@ -20,7 +20,21 @@ import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerUpdatePolicy;
 import org.apache.commons.lang3.StringUtils;
 
-/** Applies GCP's regional MIG placement invariants before sending manager requests. */
+/**
+ * Enforces Spinnaker's regional MIG redistribution contract before sending manager requests.
+ *
+ * <p>GCP requires {@code instanceRedistributionType=NONE} for {@code BALANCED} and {@code
+ * ANY_SINGLE_ZONE}; {@code ANY} itself does not proactively rebalance. GCP's instance-flexibility
+ * creation examples also use {@code NONE}. Spinnaker applies {@code NONE} uniformly whenever
+ * instance flexibility or any non-{@code EVEN} target shape is present.
+ *
+ * @see <a
+ *     href="https://cloud.google.com/compute/docs/instance-groups/regional-mig-set-target-distribution-shape">
+ *     Set the target distribution shape (GCP docs)</a>
+ * @see <a
+ *     href="https://cloud.google.com/compute/docs/instance-groups/configure-instance-flexibility">
+ *     Configure instance flexibility (GCP docs)</a>
+ */
 public final class GoogleRmigRedistributionContract {
 
   private static final String EVEN_TARGET_SHAPE = "EVEN";

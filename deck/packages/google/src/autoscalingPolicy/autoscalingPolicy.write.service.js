@@ -45,13 +45,16 @@ angular
     }
 
     function upsertAutoHealingPolicy(application, serverGroup, policy, params = {}) {
+      // Defense-in-depth: never submit legacy maxUnavailable to Clouddriver after the
+      // stable-v1 rejection. Cached server-group policy objects may still carry it.
+      const { maxUnavailable, ...autoHealingPolicy } = policy || {};
       const job = {
         type: 'upsertScalingPolicy',
         cloudProvider: serverGroup.type,
         credentials: serverGroup.account,
         region: serverGroup.region,
         serverGroupName: serverGroup.name,
-        autoHealingPolicy: policy,
+        autoHealingPolicy,
       };
       angular.extend(job, params);
 

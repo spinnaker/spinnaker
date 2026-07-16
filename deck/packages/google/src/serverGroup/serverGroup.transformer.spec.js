@@ -56,4 +56,30 @@ describe('gceServerGroupTransformer', () => {
       expect(normalizedServerGroup.loadBalancers.includes('internal-load-balancer')).toEqual(true);
     });
   });
+
+  describe('convertServerGroupCommandToDeployConfiguration', () => {
+    it('preserves instanceFlexibilityPolicy for pipeline edit/save round-trips', () => {
+      const flexibilityPolicy = {
+        instanceSelections: {
+          preferred: { machineTypes: ['n2-standard-8'] },
+          fallback: { rank: 2, machineTypes: ['e2-standard-8'] },
+        },
+      };
+      const command = {
+        credentials: 'test-account',
+        region: 'us-central1',
+        zone: 'us-central1-a',
+        enableTraffic: true,
+        instanceFlexibilityPolicy: flexibilityPolicy,
+        backingData: { filtered: { truncatedZones: ['us-central1-a'] } },
+        viewState: { mode: 'editPipeline' },
+      };
+
+      const deployConfig = transformer.convertServerGroupCommandToDeployConfiguration(command);
+
+      expect(deployConfig.instanceFlexibilityPolicy).toEqual(flexibilityPolicy);
+      expect(deployConfig.backingData).toBeUndefined();
+      expect(deployConfig.viewState).toBeUndefined();
+    });
+  });
 });

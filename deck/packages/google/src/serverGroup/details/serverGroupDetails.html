@@ -109,6 +109,9 @@
         <dt ng-if="ctrl.serverGroup.regional">Target Shape</dt>
         <dd ng-if="ctrl.serverGroup.regional">{{ctrl.serverGroup.distributionPolicy.targetShape}}</dd>
       </dl>
+      <gce-instance-flexibility-policy-details
+        instance-flexibility-policy="ctrl.serverGroup.instanceFlexibilityPolicy"
+      ></gce-instance-flexibility-policy-details>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
       <dl class="dl-horizontal dl-narrow" ng-if="ctrl.serverGroup.asg.minSize === ctrl.serverGroup.asg.maxSize">

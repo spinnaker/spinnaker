@@ -2,6 +2,7 @@
 
 import { module } from 'angular';
 
+import { GCE_INSTANCE_FLEXIBILITY_POLICY_DETAILS } from './GceInstanceFlexibilityPolicyDetails';
 import { GCE_ADD_AUTOHEALING_POLICY_BUTTON } from './autoHealingPolicy/addAutoHealingPolicyButton.component';
 import { GCE_AUTOHEALING_POLICY_DETAILS } from './autoHealingPolicy/autoHealingPolicy.component';
 import { GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL } from './autoHealingPolicy/modal/upsertAutoHealingPolicy.modal.controller';
@@ -14,4 +15,5 @@ module(GOOGLE_SERVERGROUP_DETAILS_SERVERGROUP_DETAILS_GCE_MODULE, [
   GCE_ADD_AUTOHEALING_POLICY_BUTTON,
   GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL,
   GCE_AUTOHEALING_POLICY_DETAILS,
+  GCE_INSTANCE_FLEXIBILITY_POLICY_DETAILS,
 ]);

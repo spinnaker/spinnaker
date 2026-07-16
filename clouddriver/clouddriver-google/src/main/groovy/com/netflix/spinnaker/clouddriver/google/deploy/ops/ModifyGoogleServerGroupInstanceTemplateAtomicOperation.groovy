@@ -223,7 +223,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
       // Prior to the v1 migration this block checked for "shieldedVmConfig" in overriddenProperties,
       // which never matched because that key does not exist on the description model — individual
       // boolean flags (enableSecureBoot, enableVtpm, enableIntegrityMonitoring) are the actual
-      // description properties.  Checking for the individual keys fixes this.
+      // description properties. Checking for the individual keys fixes this.
       // See: https://cloud.google.com/compute/docs/reference/rest/v1/instances/insert
       //      (shieldedInstanceConfig field on InstanceProperties)
       if (overriddenProperties.containsKey("enableSecureBoot")

@@ -52,6 +52,7 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)
+    helper.validateAutoHealingPolicy(description.autoHealingPolicy)
 
     if (description.instanceType) {
       helper.validateInstanceType(description.instanceType,
@@ -66,6 +67,7 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
     }
 
     def effectiveDescription = resolveEffectiveDescription(description)
+    helper.validateExplicitZoneIntent(effectiveDescription)
     InstanceFlexibilityPolicyValidationSupport.rejectIssues(
       errors,
       "instanceFlexibilityPolicy",
@@ -100,6 +102,8 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
       description.distributionPolicy != null
         ? description.distributionPolicy
         : ancestorServerGroup.distributionPolicy
+    effectiveDescription.selectZones =
+      description.selectZones != null ? description.selectZones : ancestorServerGroup.selectZones
     effectiveDescription.instanceFlexibilityPolicy =
       description.instanceFlexibilityPolicy != null
         ? description.instanceFlexibilityPolicy

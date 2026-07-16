@@ -732,13 +732,26 @@ public class BasicGoogleDeployHandler
   }
 
   protected void addSelectZonesToInstanceMetadata(BasicGoogleDeployDescription description) {
-    if (Boolean.TRUE.equals(description.getRegional())
-        && Boolean.TRUE.equals(description.getSelectZones())) {
-      Map<String, String> instanceMetadata = description.getInstanceMetadata();
-      if (description.getInstanceMetadata() == null) {
-        instanceMetadata = new HashMap<>();
+    boolean explicitlySelectedZones =
+        Boolean.TRUE.equals(description.getRegional())
+            && Boolean.TRUE.equals(description.getSelectZones());
+    Map<String, String> sourceMetadata = description.getInstanceMetadata();
+
+    if (sourceMetadata == null) {
+      if (explicitlySelectedZones) {
+        description.setInstanceMetadata(new HashMap<>(Map.of(SELECT_ZONES, "true")));
       }
-      instanceMetadata.put(SELECT_ZONES, "true");
+      return;
+    }
+
+    // Only this marker represents explicit user intent; observed GCP distribution zones do not.
+    if (explicitlySelectedZones || sourceMetadata.containsKey(SELECT_ZONES)) {
+      Map<String, String> instanceMetadata = new HashMap<>(sourceMetadata);
+      if (explicitlySelectedZones) {
+        instanceMetadata.put(SELECT_ZONES, "true");
+      } else {
+        instanceMetadata.remove(SELECT_ZONES);
+      }
       description.setInstanceMetadata(instanceMetadata);
     }
   }
@@ -1102,7 +1115,10 @@ public class BasicGoogleDeployHandler
       }
 
       if (StringUtils.isNotBlank(description.getDistributionPolicy().getTargetShape())) {
-        distributionPolicy.setTargetShape(description.getDistributionPolicy().getTargetShape());
+        // Canonicalize before the GCP call so Deck/API casing and whitespace cannot produce
+        // rejected or inconsistently stored distribution shapes.
+        distributionPolicy.setTargetShape(
+            description.getDistributionPolicy().getTargetShape().trim().toUpperCase(Locale.ROOT));
       }
 
       if (!CollectionUtils.isEmpty(distributionPolicy.getZones())
@@ -1117,7 +1133,8 @@ public class BasicGoogleDeployHandler
    * Maps the Spinnaker flexibility policy model to the GCE v1 {@code
    * InstanceGroupManagerInstanceFlexibilityPolicy}. Malformed entries (null key, null selection, or
    * empty machineTypes) are silently filtered out as a defense-in-depth measure. Rank is optional
-   * when there is only one effective selection, but required when multiple selections are present.
+   * for one or multiple selections; omitted ranks are left unset so GCP applies equal/default
+   * preference.
    *
    * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers">
    *     InstanceGroupManager resource — instanceFlexibilityPolicy field (v1)</a>
@@ -1145,32 +1162,34 @@ public class BasicGoogleDeployHandler
       return;
     }
     int totalEntries = rawSelections.size();
-    Map<
-            String,
-            com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy
-                .InstanceSelection>
-        structurallyValidSelections =
-            rawSelections.entrySet().stream()
-                .filter(entry -> entry.getKey() != null)
-                .filter(entry -> entry.getValue() != null)
-                .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    boolean allowMissingRank = structurallyValidSelections.size() == 1;
     Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> selections =
-        structurallyValidSelections.entrySet().stream()
-            .filter(entry -> allowMissingRank || entry.getValue().getRank() != null)
+        rawSelections.entrySet().stream()
+            .filter(entry -> entry.getKey() != null)
+            .filter(entry -> entry.getValue() != null)
+            .filter(entry -> !CollectionUtils.isEmpty(entry.getValue().getMachineTypes()))
             .collect(
                 Collectors.toMap(
                     Map.Entry::getKey,
-                    entry ->
-                        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
-                            .setRank(entry.getValue().getRank())
-                            .setMachineTypes(entry.getValue().getMachineTypes())));
+                    entry -> {
+                      InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection selection =
+                          new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+                              .setMachineTypes(
+                                  entry.getValue().getMachineTypes().stream()
+                                      .map(
+                                          machineType ->
+                                              machineType == null ? null : machineType.trim())
+                                      .collect(Collectors.toList()));
+                      // Omit null rank so the serialized GCP body does not send an explicit null.
+                      if (entry.getValue().getRank() != null) {
+                        selection.setRank(entry.getValue().getRank());
+                      }
+                      return selection;
+                    }));
     int droppedEntries = totalEntries - selections.size();
     if (droppedEntries > 0) {
       log.warn(
           "Dropped {} of {} instance flexibility selections due to null key, null value, "
-              + "missing rank when multiple selections are present, or empty machineTypes",
+              + "or empty machineTypes",
           droppedEntries,
           totalEntries);
     }

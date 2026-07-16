@@ -172,12 +172,6 @@ const helpContents: { [key: string]: string } = {
     'VMs in the group are recreated as needed. You can use a health check to recreate a VM if the health check finds the VM unresponsive. If you do not select a health check, VMs are recreated only when stopped.',
   'gce.serverGroup.initialDelaySec':
     'The time to allow an instance to boot and applications to fully start before the first health check.',
-  'gce.serverGroup.maxUnavailable': `
-      Maximum number of instances that can be unavailable when auto-healing. The instance is considered available if all of the following conditions are satisfied:
-      <ul>
-        <li>1. Instance's status is RUNNING.</li>
-        <li>2. Instance's liveness health check result was observed to be HEALTHY at least once.</li>
-      </ul>`,
   'gce.serverGroup.subnet': `
       Subnetworks allow you to regionally segment the network IP space into prefixes (subnets) and control which prefix a VM instance's internal IP address is allocated from. There are several types of GCE networks:
       <ul>

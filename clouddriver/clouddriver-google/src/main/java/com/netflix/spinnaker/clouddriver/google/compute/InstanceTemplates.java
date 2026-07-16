@@ -62,9 +62,8 @@ public class InstanceTemplates {
   }
 
   /**
-   * Lists instance templates. In the beta API a {@code setView("FULL")} parameter was required to
-   * return complete template properties; the stable v1 API always returns full properties by
-   * default, so the view parameter is omitted.
+   * Lists instance templates. The beta API used {@code setView("FULL")}; the stable v1 list method
+   * has no {@code view} query parameter, so that beta-only option is omitted.
    *
    * @see <a href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates/list">
    *     instanceTemplates.list (v1)</a>

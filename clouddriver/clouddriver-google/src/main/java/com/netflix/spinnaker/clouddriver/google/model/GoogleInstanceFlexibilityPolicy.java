@@ -43,7 +43,10 @@ public class GoogleInstanceFlexibilityPolicy {
   @NoArgsConstructor
   @AllArgsConstructor
   public static class InstanceSelection {
-    /** Rank of this selection group (lower rank = higher preference). */
+    /**
+     * Rank of this selection group (lower rank = higher preference). Optional; omitted ranks
+     * receive equal/default preference in GCP.
+     */
     Integer rank;
 
     /** Machine types acceptable for this selection group. */

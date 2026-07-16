@@ -79,7 +79,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
    * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertScalingPolicy": { "serverGroupName": "autoscale-regional", "region": "us-central1", "credentials": "my-google-account", "autoscalingPolicy": { "maxNumReplicas": 2, "minNumReplicas": 1, "coolDownPeriodSec": 30, "cpuUtilization": {}, "loadBalancingUtilization": {}, "customMetricUtilizations" : [] }}} ]' localhost:7002/gce/ops
    *
    * Autohealing policy:
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertScalingPolicy": { "serverGroupName": "autoheal-regional", "region": "us-central1", "credentials": "my-google-account", "autoHealingPolicy": {"initialDelaySec": 30, "healthCheck": "hc", "maxUnavailable": { "fixed": 3 }}}} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertScalingPolicy": { "serverGroupName": "autoheal-regional", "region": "us-central1", "credentials": "my-google-account", "autoHealingPolicy": {"initialDelaySec": 30, "healthCheck": "hc"}}} ]' localhost:7002/gce/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertScalingPolicy": { "serverGroupName": "autoheal-regional", "region": "us-central1", "credentials": "my-google-account", "autoHealingPolicy": {"initialDelaySec": 50}}} ]' localhost:7002/gce/ops
    */
 
@@ -148,8 +148,9 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       }
     }
 
-    // setAutoHealingPolicies was removed in the stable Compute v1 API. Auto-healing policies
-    // are now managed via the InstanceGroupManager resource itself using patch (JSON merge patch).
+    // The dedicated instanceGroupManagers.setAutoHealingPolicies RPC is absent from stable Compute
+    // v1. InstanceGroupManager#setAutoHealingPolicies remains the model setter used to construct
+    // the PATCH body.
     // See: https://cloud.google.com/compute/docs/reference/rest/v1/regionInstanceGroupManagers/patch
     if (description.autoHealingPolicy) {
       def ancestorAutoHealingPolicyDescription =
@@ -166,7 +167,7 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
         task.updateStatus BASE_PHASE, "Creating new autoHealing policy for $serverGroupName..."
         autoHealingPolicy =
           buildAutoHealingPolicyFromAutoHealingPolicyDescription(
-            normalizeNewAutoHealingPolicy(description.autoHealingPolicy),
+            description.autoHealingPolicy,
             project, compute)
       }
 
@@ -277,26 +278,11 @@ class UpsertGoogleAutoscalingPolicyAtomicOperation extends GoogleAtomicOperation
       }
     }
 
-    // Deletes existing maxUnavailable if passed an empty object.
-    if (update.maxUnavailable != null) {
-      if (update.maxUnavailable.fixed != null || update.maxUnavailable.percent != null) {
-        newDescription.maxUnavailable = update.maxUnavailable
-      } else {
-        newDescription.maxUnavailable = null
-      }
-    }
+    // Never propagate maxUnavailable: stable Compute v1 rejects it at validation, and
+    // patch bodies only serialize healthCheck/initialDelaySec.
+    newDescription.maxUnavailable = null
 
     return newDescription
-  }
-
-  // Forces the behavior of this operation to be consistent: passing an empty `maxUnavailable` object
-  // always results in a policy with no `maxUnavailable` property.
-  private static GoogleAutoHealingPolicy normalizeNewAutoHealingPolicy(GoogleAutoHealingPolicy newPolicy) {
-    if (newPolicy.maxUnavailable?.fixed == null && newPolicy.maxUnavailable?.percent == null) {
-      newPolicy.maxUnavailable = null
-    }
-
-    return newPolicy
   }
 
   private buildAutoHealingPolicyFromAutoHealingPolicyDescription(GoogleAutoHealingPolicy autoHealingPolicyDescription, String project, Compute compute) {

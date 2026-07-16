@@ -29,19 +29,18 @@ import java.util.List;
  * A wrapper around {@link InstanceGroupManagers} and {@link RegionInstanceGroupManagers} that
  * performs operations on a specific {@link GoogleServerGroup}.
  *
- * <p><b>Note on {@code patch} vs {@code update}:</b> In the stable Compute v1 API, both {@code
- * instanceGroupManagers.patch} and {@code instanceGroupManagers.update} use HTTP PATCH with <a
- * href="https://tools.ietf.org/html/rfc7386">JSON merge patch</a> semantics. There is no PUT-based
- * replacement endpoint. Both methods in this interface therefore delegate to the same underlying
- * {@code managers.patch()} call. {@code update} is retained for source compatibility with existing
- * callers.
+ * <p><b>Note on {@code patch} vs {@code update}:</b> In the stable Compute v1 API, {@code
+ * instanceGroupManagers.update} is not a historical beta full-replacement PUT. Both the {@code
+ * patch} and legacy-named {@code update} methods in this interface delegate to the only stable-v1
+ * endpoint — HTTP PATCH with <a href="https://tools.ietf.org/html/rfc7386">JSON merge patch</a>
+ * semantics. {@code update} is retained only for source compatibility with existing callers.
  *
  * @see <a
  *     href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers/patch">
  *     instanceGroupManagers.patch (v1)</a>
  * @see <a
  *     href="https://cloud.google.com/compute/docs/reference/rest/v1/instanceGroupManagers/update">
- *     instanceGroupManagers.update (v1) — identical PATCH semantics</a>
+ *     instanceGroupManagers.update (v1) — same PATCH endpoint</a>
  */
 public interface GoogleServerGroupManagers {
 

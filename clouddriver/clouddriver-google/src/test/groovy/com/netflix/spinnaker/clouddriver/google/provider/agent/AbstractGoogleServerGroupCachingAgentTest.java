@@ -226,6 +226,122 @@ class AbstractGoogleServerGroupCachingAgentTest {
   }
 
   @Test
+  void regionalServerGroup_restoresSelectZonesAndProjectsFlexAndAutoscalerFieldsOnView() {
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> instanceSelections =
+        new HashMap<>();
+    instanceSelections.put(
+        "preferred",
+        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+            .setMachineTypes(ImmutableList.of("n2-standard-8")));
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myServerGroup")
+            .setRegion(REGION_URL)
+            .setInstanceTemplate("http://compute/global/instanceTemplates/myInstanceTemplate")
+            .setDistributionPolicy(
+                new DistributionPolicy()
+                    .setZones(
+                        ImmutableList.of(
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/fakezone1"),
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/fakezone2")))
+                    .setTargetShape("BALANCED"))
+            .setInstanceFlexibilityPolicy(
+                new InstanceGroupManagerInstanceFlexibilityPolicy()
+                    .setInstanceSelections(instanceSelections));
+    InstanceTemplate instanceTemplate =
+        new InstanceTemplate()
+            .setName("myInstanceTemplate")
+            .setProperties(
+                new InstanceProperties()
+                    .setMetadata(
+                        new Metadata()
+                            .setItems(
+                                ImmutableList.of(
+                                    new Items().setKey("select-zones").setValue("true")))));
+    Autoscaler autoscaler =
+        new Autoscaler()
+            .setRegion(REGION_URL)
+            .setTarget("myServerGroup")
+            .setStatus("ACTIVE")
+            .setRecommendedSize(4);
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setInstanceTemplates(instanceTemplate)
+            .setAutoscalers(autoscaler)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(
+            compute, ImmutableList.of(instanceGroupManager), ImmutableList.of(autoscaler));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+    GoogleServerGroup.View view = serverGroup.getView();
+
+    assertThat(serverGroup.getSelectZones()).isTrue();
+    assertThat(view.getSelectZones()).isTrue();
+    assertThat(view.getDistributionPolicy().getZones())
+        .containsExactlyInAnyOrder("fakezone1", "fakezone2");
+    assertThat(view.getDistributionPolicy().getTargetShape()).isEqualTo("BALANCED");
+    assertThat(view.getInstanceFlexibilityPolicy().getInstanceSelections())
+        .containsOnlyKeys("preferred");
+    assertThat(view.getAutoscalerStatus()).isEqualTo("ACTIVE");
+    assertThat(view.getRecommendedSize()).isEqualTo(4);
+  }
+
+  @Test
+  void regionalServerGroup_withoutSelectZonesMarker_keepsObservedZonesWithoutExplicitIntent() {
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("example-server-group")
+            .setRegion(REGION_URL)
+            .setInstanceTemplate("http://compute/global/instanceTemplates/example-template")
+            .setDistributionPolicy(
+                new DistributionPolicy()
+                    .setZones(
+                        ImmutableList.of(
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/example-zone-a"),
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/example-zone-b"))));
+    InstanceTemplate instanceTemplate =
+        new InstanceTemplate()
+            .setName("example-template")
+            .setProperties(
+                new InstanceProperties()
+                    .setMetadata(
+                        new Metadata()
+                            .setItems(
+                                ImmutableList.of(
+                                    new Items()
+                                        .setKey("unrelated-key")
+                                        .setValue("unrelated-value")))));
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setInstanceTemplates(instanceTemplate)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(compute, ImmutableList.of(instanceGroupManager));
+
+    GoogleServerGroup serverGroup =
+        getOnlyServerGroup(cachingAgent.loadData(inMemoryProviderCache()));
+    GoogleServerGroup.View view = serverGroup.getView();
+
+    assertThat(serverGroup.getSelectZones()).isNotEqualTo(true);
+    assertThat(view.getSelectZones()).isNotEqualTo(true);
+    assertThat(serverGroup.getZones())
+        .containsExactlyInAnyOrder("example-zone-a", "example-zone-b");
+    assertThat(view.getDistributionPolicy().getZones())
+        .containsExactlyInAnyOrder("example-zone-a", "example-zone-b");
+  }
+
+  @Test
   void serverGroupProperties_mapInstanceFlexibilityPolicyAndIgnoreMalformedEntries() {
     Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> instanceSelections =
         new HashMap<>();

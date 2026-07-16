@@ -33,6 +33,7 @@ import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.GLOBAL_LOA
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.LOAD_BALANCING_POLICY;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_LOAD_BALANCER_NAMES;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGION_BACKEND_SERVICE_NAMES;
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.SELECT_ZONES;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -941,6 +942,13 @@ public abstract class AbstractGoogleServerGroupCachingAgent
         } catch (IOException e) {
           log.warn("Error parsing load balancing policy", e);
         }
+      }
+
+      // Deploy writes select-zones=true into template metadata when the caller chose explicit
+      // regional zones. Restore that intent so clone/edit can emit the same
+      // distributionPolicy.zones.
+      if ("true".equalsIgnoreCase(metadata.get(SELECT_ZONES))) {
+        serverGroup.setSelectZones(true);
       }
     }
 

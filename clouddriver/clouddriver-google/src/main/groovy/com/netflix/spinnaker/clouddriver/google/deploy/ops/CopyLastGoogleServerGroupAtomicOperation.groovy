@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AutoscalingPolicy
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy
 import com.google.api.services.compute.model.InstanceProperties
+import com.google.api.services.compute.model.ShieldedInstanceConfig
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -93,7 +94,7 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
 
   // Defense-in-depth: re-validate the merged description (request overrides + ancestor fallback)
   // at operation time because the ancestor server group may have changed between the validator
-  // run and operation execution.  Throws IllegalArgumentException on the first constraint
+  // run and operation execution. Throws IllegalArgumentException on the first constraint
   // violation, preventing the deploy handler from being invoked with an invalid flex policy.
   private static void validateInstanceFlexibilityPolicyConstraints(
       BasicGoogleDeployDescription description) {
@@ -151,7 +152,10 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
       description.instanceFlexibilityPolicy != null ?
         description.instanceFlexibilityPolicy :
         ancestorServerGroup.instanceFlexibilityPolicy
-    newDescription.selectZones = description.selectZones ?: ancestorServerGroup.selectZones
+    newDescription.selectZones =
+      description.selectZones != null
+        ? description.selectZones
+        : ancestorServerGroup.selectZones
 
     def ancestorInstanceTemplate = ancestorServerGroup.launchConfig.instanceTemplate
 
@@ -265,8 +269,10 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
           : ancestorInstanceProperties.canIpForward
 
       // Dual-key fallback: try v1 key first, then legacy beta key for backward compat
-      // with server groups cached before the v1 migration.
-      def shieldedInstanceConfig = ancestorInstanceProperties.shieldedInstanceConfig ?: ancestorInstanceProperties.shieldedVmConfig
+      // with server groups cached before the v1 migration. Normalize Map/GenericJson wire
+      // values so a direct cast cannot ClassCastException on real API responses.
+      def shieldedInstanceConfig =
+        GCEUtil.resolveShieldedInstanceConfig(ancestorInstanceProperties)
 
       if (shieldedInstanceConfig) {
         newDescription.enableSecureBoot =
