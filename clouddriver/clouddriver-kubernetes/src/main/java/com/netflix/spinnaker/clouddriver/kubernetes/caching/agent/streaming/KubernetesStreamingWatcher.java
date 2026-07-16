@@ -205,22 +205,22 @@ public class KubernetesStreamingWatcher implements Runnable {
         state.updateLastReceivedEventTime();
       }
       if (paginationSize > 0) {
-        if (listMeta.getRemainingItemCount() == null) {
-          // replace later with debug
-          log.info(
+        if (paginationSize < items.size()) {
+          log.debug(
               "{}:{}:: Paginated List returned {} items. Limit ({}) possibly ignored",
               account,
               watcherId(),
               items.size(),
               paginationSize);
         } else {
-          // replace later with debug
-          log.info(
+          log.debug(
               "{}:{}:: Paginated List returned {} items. Estimated remaining items {}",
               account,
               watcherId(),
               items.size(),
-              listMeta.getRemainingItemCount());
+              listMeta.getRemainingItemCount() == null
+                  ? "unknown"
+                  : listMeta.getRemainingItemCount());
         }
       }
       lastContinue = listMeta.getContinue();
