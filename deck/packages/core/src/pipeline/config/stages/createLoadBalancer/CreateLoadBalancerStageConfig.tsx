@@ -39,7 +39,7 @@ export class CreateLoadBalancerStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   }
 
-  private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): PromiseLike<ILoadBalancer> {
+  private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): PromiseLike<ILoadBalancer | ILoadBalancer[]> {
     return ProviderSelectionService.selectProvider(this.props.application, 'loadBalancer').then((selectedProvider) => {
       const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
       return openLoadBalancerModal(config, ModalInjector.modalService, {
@@ -53,16 +53,22 @@ export class CreateLoadBalancerStageConfig extends React.Component<
 
   private addLoadBalancer = (): void => {
     this.openProviderModal(null, true)
-      .then((newLoadBalancer) => this.updateLoadBalancers(this.state.loadBalancers.concat(newLoadBalancer)))
+      .then((newLoadBalancer) => {
+        const newLoadBalancers = Array.isArray(newLoadBalancer) ? newLoadBalancer : [newLoadBalancer];
+        this.updateLoadBalancers([...this.state.loadBalancers, ...newLoadBalancers]);
+      })
       .catch(() => {});
   };
 
   private editLoadBalancer = (loadBalancer: ILoadBalancer, index: number): void => {
     this.openProviderModal(cloneDeep(loadBalancer), false)
       .then((updatedLoadBalancer) => {
-        const loadBalancers = this.state.loadBalancers.slice(0);
-        loadBalancers[index] = updatedLoadBalancer;
-        this.updateLoadBalancers(loadBalancers);
+        const updatedLoadBalancers = Array.isArray(updatedLoadBalancer) ? updatedLoadBalancer : [updatedLoadBalancer];
+        this.updateLoadBalancers([
+          ...this.state.loadBalancers.slice(0, index),
+          ...updatedLoadBalancers,
+          ...this.state.loadBalancers.slice(index + 1),
+        ]);
       })
       .catch(() => {});
   };
