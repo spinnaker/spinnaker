@@ -63,7 +63,7 @@ describe('google: Create Server Group Modal GPU Accelerators', () => {
 
   afterEach(() => {
     cy.window().then((win) => {
-      win.removeAllListeners && win.removeAllListeners();
+      win && win.removeAllListeners && win.removeAllListeners();
     });
   });
 });
