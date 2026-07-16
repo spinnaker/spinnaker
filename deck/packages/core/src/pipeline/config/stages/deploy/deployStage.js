@@ -80,9 +80,18 @@ angular
     'serverGroupTransformer',
     function ($injector, $scope, $uibModal, stage, serverGroupCommandBuilder, serverGroupTransformer) {
       $scope.stage = stage;
+      const subnetRenderers = {};
 
       function initializeCommand() {
         $scope.stage.clusters = $scope.stage.clusters || [];
+      }
+
+      function applyClusterUpdate(updateCluster) {
+        if ($scope.$root.$$phase) {
+          updateCluster();
+        } else {
+          $scope.$apply(updateCluster);
+        }
       }
 
       this.getRegion = function (cluster) {
@@ -116,7 +125,10 @@ angular
         const cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
         if (CloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
           const subnetRenderer = CloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
-          if ($injector.has(subnetRenderer)) {
+          if (typeof subnetRenderer === 'function') {
+            subnetRenderers[cloudProvider] = subnetRenderers[cloudProvider] || new subnetRenderer();
+            return subnetRenderers[cloudProvider].render(cluster);
+          } else if ($injector.has(subnetRenderer)) {
             return $injector.get(subnetRenderer).render(cluster);
           } else {
             throw new Error('No "' + subnetRenderer + '" service found for provider "' + cloudProvider + '".');
@@ -137,11 +149,13 @@ angular
           const config = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
 
           const handleResult = function (command) {
-            // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
-            command.provider = selectedProvider;
-            const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-            delete stageCluster.credentials;
-            $scope.stage.clusters.push(stageCluster);
+            applyClusterUpdate(() => {
+              // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
+              command.provider = selectedProvider;
+              const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+              delete stageCluster.credentials;
+              $scope.stage.clusters.push(stageCluster);
+            });
           };
 
           const title = 'Configure Deployment Cluster';
@@ -177,9 +191,11 @@ angular
         const providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
 
         const handleResult = function (command) {
-          const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-          delete stageCluster.credentials;
-          $scope.stage.clusters[index] = stageCluster;
+          applyClusterUpdate(() => {
+            const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+            delete stageCluster.credentials;
+            $scope.stage.clusters[index] = stageCluster;
+          });
         };
 
         const title = 'Configure Deployment Cluster';

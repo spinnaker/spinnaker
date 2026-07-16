@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { Application, IModalComponentProps } from '@spinnaker/core';
 import {
@@ -10,7 +8,6 @@ import {
   robotToHuman,
   TaskMonitorModal,
   TextAreaInput,
-  withErrorBoundary,
 } from '@spinnaker/core';
 
 import { enabledProcesses } from './ServiceJobProcesses';
@@ -124,13 +121,3 @@ export class ServiceJobProcessesSection extends React.Component<ITitusServerGrou
     );
   }
 }
-
-export const SERVICE_JOB_PROCESSES_DETAILS_SECTION = 'spinnaker.titus.servicejobprocesses.section';
-
-module(SERVICE_JOB_PROCESSES_DETAILS_SECTION, []).component(
-  'titusServiceJobProcessesSection',
-  react2angular(withErrorBoundary(ServiceJobProcessesSection, 'titusServiceJobProcessesSection'), [
-    'serverGroup',
-    'app',
-  ]),
-);

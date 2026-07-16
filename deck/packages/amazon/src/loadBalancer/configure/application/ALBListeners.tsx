@@ -1,6 +1,5 @@
 import type { FormikErrors, FormikProps } from 'formik';
 import { difference, flatten, get, some, uniq, uniqBy } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { SortEnd } from 'react-sortable-hoc';
 import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
@@ -452,7 +451,7 @@ export class ALBListeners
           if (confirmRemove) {
             this.initialActionsWithAuth.delete(actions);
           }
-          return $q.resolve();
+          return Promise.resolve();
         },
       });
     } else {

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.artifacts.helm;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -111,7 +112,9 @@ public class IndexParser {
   }
 
   private IndexConfig buildIndexConfig(InputStream in) throws IOException {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    ObjectMapper mapper =
+        new ObjectMapper(
+            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
     IndexConfig indexConfig;
     try {
       indexConfig = mapper.readValue(in, IndexConfig.class);

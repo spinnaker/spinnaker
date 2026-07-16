@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { CollapsibleSection, confirmNotManaged, HelpField, ModalInjector, timestamp, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, HelpField, timestamp, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 
@@ -22,23 +21,6 @@ export class ScalingProcessesDetailsSection extends React.Component<
 
     this.state = this.getState(props);
   }
-
-  private toggleScalingProcesses = (): void => {
-    const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app).then(
-      (isNotManaged) =>
-        isNotManaged &&
-        ModalInjector.modalService.open({
-          templateUrl: require('../scalingProcesses/modifyScalingProcesses.html'),
-          controller: 'ModifyScalingProcessesCtrl as ctrl',
-          resolve: {
-            serverGroup: () => serverGroup,
-            application: () => app,
-            processes: () => this.state.autoScalingProcesses,
-          },
-        }),
-    );
-  };
 
   private getState(props: IAmazonServerGroupDetailsSectionProps): IScalingProcessesDetailsSectionState {
     const { serverGroup } = props;
@@ -102,11 +84,6 @@ export class ScalingProcessesDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
-        {AWSProviderSettings.adHocInfraWritesEnabled && (
-          <a className="clickable" onClick={this.toggleScalingProcesses}>
-            Edit Scaling Processes
-          </a>
-        )}
       </CollapsibleSection>
     );
   }

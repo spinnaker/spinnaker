@@ -17,9 +17,11 @@ import {
 
 import { ServerGroupBasicSettings, ServerGroupParameters, ServerGroupResources } from './pages';
 import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
-import { TitusReactInjector } from '../../../reactShims';
 import type { ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
-import { getDefaultJobDisruptionBudgetForApp } from '../serverGroupConfiguration.service';
+import {
+  getDefaultJobDisruptionBudgetForApp,
+  getTitusServerGroupConfigurationService,
+} from '../serverGroupConfiguration.service';
 
 export interface ITitusCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
@@ -119,8 +121,9 @@ export class TitusCloneServerGroupModal extends React.Component<
 
   private configureCommand = () => {
     const { command } = this.props;
-    TitusReactInjector.titusServerGroupConfigurationService.configureCommand(command).then(() => {
-      TitusReactInjector.titusServerGroupConfigurationService.configureSubnets(command);
+    const configurationService = getTitusServerGroupConfigurationService();
+    configurationService.configureCommand(command).then(() => {
+      configurationService.configureSubnets(command);
       if (!command.credentials.includes('${')) {
         // so as to not erase registry when account is a spel expression
         command.registry = ((command.backingData.credentialsKeyedByAccount[command.credentials] as any) || {}).registry;

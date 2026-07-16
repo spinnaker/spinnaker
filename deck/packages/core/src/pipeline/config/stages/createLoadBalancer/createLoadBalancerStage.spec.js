@@ -1,5 +1,103 @@
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
-import { name as moduleName } from './createLoadBalancerStage';
+import { name as moduleName, openLoadBalancerModal } from './createLoadBalancerStage';
+
+describe('createLoadBalancerStage modal opener', () => {
+  it('opens a React load balancer modal when the provider has one', async () => {
+    const application = { name: 'fnord' };
+    const loadBalancer = { name: 'fnord-main' };
+    const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
+    const config = {
+      CreateLoadBalancerModal: {
+        supportsPipelineConfig: true,
+        show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+      },
+    };
+    const modalService = { open: jasmine.createSpy('open') };
+
+    const command = await openLoadBalancerModal(config, modalService, {
+      application,
+      loadBalancer,
+      isNew: false,
+      forPipelineConfig: true,
+    });
+
+    expect(command).toBe(result);
+    expect(config.CreateLoadBalancerModal.show).toHaveBeenCalledWith({
+      app: application,
+      application,
+      loadBalancer,
+      isNew: false,
+      forPipelineConfig: true,
+    });
+    expect(modalService.open).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the Angular modal registration when a React modal does not support pipeline results', async () => {
+    const application = { name: 'fnord' };
+    const loadBalancer = { name: 'fnord-main' };
+    const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
+    const config = {
+      CreateLoadBalancerModal: {
+        show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+      },
+      createLoadBalancerController: 'legacyCtrl',
+      createLoadBalancerTemplateUrl: 'legacy.html',
+    };
+    const modalService = { open: jasmine.createSpy('open').and.returnValue({ result: Promise.resolve(result) }) };
+
+    const command = await openLoadBalancerModal(config, modalService, {
+      application,
+      loadBalancer,
+      isNew: false,
+      forPipelineConfig: true,
+    });
+
+    expect(command).toBe(result);
+    expect(config.CreateLoadBalancerModal.show).not.toHaveBeenCalled();
+    expect(modalService.open).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        templateUrl: 'legacy.html',
+        controller: 'legacyCtrl as ctrl',
+      }),
+    );
+  });
+
+  it('falls back to the Angular modal registration for legacy providers', async () => {
+    const application = { name: 'fnord' };
+    const loadBalancer = { name: 'fnord-main' };
+    const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
+    const config = {
+      createLoadBalancerController: 'legacyCtrl',
+      createLoadBalancerTemplateUrl: 'legacy.html',
+    };
+    const modalService = { open: jasmine.createSpy('open').and.returnValue({ result: Promise.resolve(result) }) };
+
+    const command = await openLoadBalancerModal(config, modalService, {
+      application,
+      loadBalancer,
+      isNew: false,
+      forPipelineConfig: true,
+    });
+
+    expect(command).toBe(result);
+    expect(modalService.open).toHaveBeenCalledWith({
+      templateUrl: 'legacy.html',
+      controller: 'legacyCtrl as ctrl',
+      size: 'lg',
+      resolve: {
+        application: jasmine.any(Function),
+        loadBalancer: jasmine.any(Function),
+        isNew: jasmine.any(Function),
+        forPipelineConfig: jasmine.any(Function),
+      },
+    });
+    const modalOptions = modalService.open.calls.mostRecent().args[0];
+    expect(modalOptions.resolve.application()).toBe(application);
+    expect(modalOptions.resolve.loadBalancer()).toBe(loadBalancer);
+    expect(modalOptions.resolve.isNew()).toBe(false);
+    expect(modalOptions.resolve.forPipelineConfig()).toBe(true);
+  });
+});
 
 describe('createLoadBalancerStageCtrl', function () {
   beforeEach(() => {
@@ -11,20 +109,20 @@ describe('createLoadBalancerStageCtrl', function () {
       this.$scope = $rootScope.$new();
       this.$scope.stage = {};
       this.$scope.application = {};
-      this.$uibModal = {
-        open: jasmine.createSpy('open').and.returnValue({ result: $q.when([{ name: 'lb1' }, { name: 'lb2' }]) }),
+      this.modalResult = $q.when([{ name: 'lb1' }, { name: 'lb2' }]);
+      this.cloudProviderConfig = {
+        CreateLoadBalancerModal: {
+          supportsPipelineConfig: true,
+          show: jasmine.createSpy('show').and.callFake(() => this.modalResult),
+        },
       };
 
       spyOn(ProviderSelectionService, 'selectProvider').and.returnValue($q.when('gce'));
-      this.cloudProviderConfig = {
-        createLoadBalancerTemplateUrl: 'template',
-        createLoadBalancerController: 'ctrl',
-      };
-      spyOn(CloudProviderRegistry, 'getValue').and.callFake(() => this.cloudProviderConfig);
+      spyOn(CloudProviderRegistry, 'getValue').and.returnValue(this.cloudProviderConfig);
 
       this.ctrl = $controller('createLoadBalancerStageCtrl', {
         $scope: this.$scope,
-        $uibModal: this.$uibModal,
+        $uibModal: { open: jasmine.createSpy('open') },
       });
       this.$rootScope = $rootScope;
       this.$q = $q;
@@ -40,62 +138,11 @@ describe('createLoadBalancerStageCtrl', function () {
 
   it('splices array results when editing a load balancer', function () {
     this.$scope.stage.loadBalancers = [{ name: 'old' }];
-    this.$uibModal.open.and.returnValue({ result: this.$q.when([{ name: 'new1' }, { name: 'new2' }]) });
+    this.modalResult = this.$q.when([{ name: 'new1' }, { name: 'new2' }]);
 
     this.ctrl.editLoadBalancer(this.$scope.stage.loadBalancers[0], 0);
     this.$rootScope.$digest();
 
     expect(this.$scope.stage.loadBalancers).toEqual([{ name: 'new1' }, { name: 'new2' }]);
-  });
-
-  it('uses provider hook when adding load balancers', function () {
-    const hookResult = { name: 'hook-lb' };
-    this.cloudProviderConfig.pipelineCreateLoadBalancerModal = jasmine
-      .createSpy('pipelineCreateLoadBalancerModal')
-      .and.returnValue(this.$q.when(hookResult));
-
-    this.ctrl.addLoadBalancer();
-    this.$rootScope.$digest();
-
-    expect(this.cloudProviderConfig.pipelineCreateLoadBalancerModal).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        application: this.$scope.application,
-        loadBalancer: null,
-        isNew: true,
-        $uibModal: this.$uibModal,
-      }),
-    );
-    expect(this.$uibModal.open).not.toHaveBeenCalled();
-    expect(this.$scope.stage.loadBalancers).toEqual([hookResult]);
-  });
-
-  it('uses provider hook when editing a load balancer', function () {
-    this.$scope.stage.loadBalancers = [{ name: 'old' }];
-    const hookResult = { name: 'updated' };
-    this.cloudProviderConfig.pipelineCreateLoadBalancerModal = jasmine
-      .createSpy('pipelineCreateLoadBalancerModal')
-      .and.returnValue(this.$q.when(hookResult));
-
-    this.ctrl.editLoadBalancer(this.$scope.stage.loadBalancers[0], 0);
-    this.$rootScope.$digest();
-
-    const hookArgs = this.cloudProviderConfig.pipelineCreateLoadBalancerModal.calls.mostRecent().args[0];
-    expect(hookArgs.loadBalancer).toEqual({ name: 'old' });
-    expect(hookArgs.loadBalancer).not.toBe(this.$scope.stage.loadBalancers[0]);
-    expect(hookArgs.isNew).toBe(false);
-    expect(this.$uibModal.open).not.toHaveBeenCalled();
-    expect(this.$scope.stage.loadBalancers).toEqual([hookResult]);
-  });
-
-  it('flattens array results when hook returns array', function () {
-    this.cloudProviderConfig.pipelineCreateLoadBalancerModal = jasmine
-      .createSpy('pipelineCreateLoadBalancerModal')
-      .and.returnValue(this.$q.when([{ name: 'hook1' }, { name: 'hook2' }]));
-
-    this.ctrl.addLoadBalancer();
-    this.$rootScope.$digest();
-
-    expect(this.$uibModal.open).not.toHaveBeenCalled();
-    expect(this.$scope.stage.loadBalancers).toEqual([{ name: 'hook1' }, { name: 'hook2' }]);
   });
 });
