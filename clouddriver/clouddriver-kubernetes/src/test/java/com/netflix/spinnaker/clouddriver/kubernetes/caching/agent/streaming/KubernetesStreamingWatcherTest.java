@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,6 +33,7 @@ import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesListObject;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -144,6 +146,41 @@ class KubernetesStreamingWatcherTest {
     assertThat(eventQueue.size()).isEqualTo(0);
     assertThat(state.getLastReceivedEventTime()).isEqualTo(0L);
     assertThat(state.getLastProcessedEventBatchTime()).isEqualTo(0L);
+  }
+
+  @Test
+  void testInterruptedIOExceptionCausesGracefulExit() throws ApiException, InterruptedException {
+    // we're going to interrupt the thread in this test
+    // create a new thread to not affect the test runner thread
+    Thread thread =
+        new Thread(
+            () -> {
+              KubernetesStreamingWatcher watcher = createWatcher("Pod", "", "v1");
+              when(isRunning.get()).thenReturn(true);
+
+              // Simulate an exception with InterruptedIOException as the cause
+              InterruptedIOException interruptedIOException =
+                  new InterruptedIOException("IO interrupted");
+              RuntimeException wrappedException =
+                  new RuntimeException("Wrapper exception", interruptedIOException);
+
+              try {
+                when(adapter.list(any(), eq(0), isNull())).thenThrow(wrappedException);
+              } catch (Exception e) {
+                fail("Exception should not be thrown");
+              }
+
+              watcher.run();
+
+              // Verify the thread interrupt flag was set
+              assertThat(Thread.currentThread().isInterrupted()).isTrue();
+            });
+
+    thread.start();
+    thread.join();
+
+    // Verify no events were queued
+    assertThat(eventQueue.size()).isEqualTo(0);
   }
 
   private String getJsonFixture(String path) throws IOException {

@@ -174,6 +174,11 @@ public class KubernetesStreamingWatcher implements Runnable {
         Thread.currentThread().interrupt();
         return;
       } catch (Exception e) {
+        if (e.getCause() instanceof InterruptedIOException) {
+          log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), e);
+          Thread.currentThread().interrupt();
+          return;
+        }
         log.warn("{}:{}:: Error watching Kubernetes objects.", account, watcherId(), e);
       }
     }
