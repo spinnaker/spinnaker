@@ -195,11 +195,12 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
                 boolean stopped = s.stopAndWait(timeout);
                 if (!stopped) {
                   log.warn(
-                      "KubernetesStreaming caching agent did not terminate in {}ms. Continue anyway",
+                      "KubernetesStreaming caching agent {} did not terminate in {}ms. Continue anyway",
+                      accountName,
                       getStopTimeoutMillis());
                 }
               } catch (InterruptedException e) {
-                log.warn("Interrupted while waiting for executor to terminate", e);
+                log.warn("Interrupted while waiting for executor to terminate, {}", accountName, e);
                 Thread.currentThread().interrupt();
               } finally {
                 log.info("KubernetesStreaming caching agent {} stopped", accountName);
