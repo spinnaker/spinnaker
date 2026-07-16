@@ -135,7 +135,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
   public LongRunningAgentExecutionState getState() {
     State s = state.get();
     if (s == null) {
-      log.info(
+      log.debug(
           "KubernetesStreaming caching agent {} is not running (no state)",
           namedAccountCredentials.getCredentials().getAccountName());
       return LongRunningAgentExecutionState.NOT_RUNNING;
@@ -146,7 +146,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
             cachingProperties.getReadinessTimeoutMillis(),
             cachingProperties.getLivenessTimeoutMillis());
 
-    log.info("KubernetesStreaming caching agent state: {}, status: {}", s, status);
+    log.debug("KubernetesStreaming caching agent state: {}, status: {}", s, status);
     return status;
   }
 
