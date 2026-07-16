@@ -3,10 +3,9 @@ import { chain, find, sortBy } from 'lodash';
 import React from 'react';
 
 import type { ISecurityGroup, ISecurityGroupsByAccount } from '@spinnaker/core';
-import { CollapsibleSection, confirmNotManaged, FirewallLabels, ModalInjector } from '@spinnaker/core';
+import { CollapsibleSection, FirewallLabels } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
-import { AWSProviderSettings } from '../../../aws.settings';
 import { AwsSecurityGroupReader } from '../../../securityGroup/securityGroup.reader';
 
 export interface ISecurityGroupsDetailsSectionState {
@@ -61,23 +60,6 @@ export class SecurityGroupsDetailsSection extends React.Component<
     return securityGroups;
   }
 
-  private updateSecurityGroups = (): void => {
-    const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app).then(
-      (notManaged) =>
-        notManaged &&
-        ModalInjector.modalService.open({
-          templateUrl: require('../securityGroup/editSecurityGroups.modal.html'),
-          controller: 'EditSecurityGroupsCtrl as $ctrl',
-          resolve: {
-            application: () => app,
-            serverGroup: () => serverGroup,
-            securityGroups: () => this.state.securityGroups,
-          },
-        }),
-    );
-  };
-
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState({ securityGroups: this.getSecurityGroups(nextProps) });
   }
@@ -108,11 +90,6 @@ export class SecurityGroupsDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
-        {AWSProviderSettings.adHocInfraWritesEnabled && serverGroup.vpcId && (
-          <a className="clickable" onClick={this.updateSecurityGroups}>
-            Edit {FirewallLabels.get('Firewalls')}
-          </a>
-        )}
       </CollapsibleSection>
     );
   }
