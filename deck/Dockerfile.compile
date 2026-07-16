@@ -1,9 +1,8 @@
-FROM alpine:3.18
+FROM alpine:3.24
 RUN apk add --update \
     openjdk17-jre-headless \
-
-RUN apt-get update && apt-get install -y \
-  git
+    git \
+    && rm -rf /var/cache/apk
 
 LABEL maintainer="sig-platform@spinnaker.io"
 ENV GRADLE_USER_HOME /workspace/.gradle
