@@ -204,6 +204,11 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
       future.get();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+      throw new AgentExecutionInterruptedException(
+          String.format(
+              "Agent execution interrupted while waiting for completion %s",
+              namedAccountCredentials.getName()),
+          e);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
