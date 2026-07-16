@@ -302,7 +302,9 @@ class SqlClusteredAgentScheduler(
         val agentsToBeStopped = agentsCurrentlyRunningThisNode.filter { !shardingFilter.filter(it.value.agent) }
         log.info("Long Running Agents in {} needing to be rebalanced above configured threshold ({}%>{}%). Stopping {}",
           nodeIdentity.nodeIdentity, aboveExpectedPercentageThreshold, rebalancePercentageThreshold, agentsToBeStopped)
-        agentsToBeStopped.forEach { unschedule(it.value.agent) }
+        agentsToBeStopped.forEach {
+          (it.value.execution as LongRunningAgentExecution).stopExecutingAndCleanup().whenComplete { res,ex -> releaseLock(it.value.agent.agentType, 0) }
+        }
       }
     }
 
