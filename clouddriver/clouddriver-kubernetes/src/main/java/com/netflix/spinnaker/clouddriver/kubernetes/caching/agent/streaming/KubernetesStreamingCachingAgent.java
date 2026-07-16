@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
+
 import com.google.common.base.Suppliers;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Timer;
-import com.netflix.spinnaker.cats.agent.Agent;
+import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
+import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -49,13 +53,14 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.Nullable;
 
 @Slf4j
 public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAgent
-    implements Agent {
+    implements CachingAgent {
 
   private static final String METRIC_PREFIX = "kubernetes.agent.streaming.buildCacheResult.";
 
@@ -84,6 +89,25 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
 
     String account = namedAccountCredentials.getCredentials().getAccountName();
     this.elapsedTime = registry.timer(METRIC_PREFIX + "elapsedTime", "account", account);
+  }
+
+  @Override
+  public Set<AgentDataType> getProvidedDataTypes() {
+    Stream<String> logicalTypes =
+        Stream.of(Keys.LogicalKind.APPLICATIONS, Keys.LogicalKind.CLUSTERS).map(Enum::toString);
+    Stream<String> kubernetesTypes = filteredPrimaryKinds().stream().map(KubernetesKind::toString);
+
+    return Stream.concat(logicalTypes, kubernetesTypes)
+        .map(AUTHORITATIVE::forType)
+        .collect(toImmutableSet());
+  }
+
+  @Override
+  public CacheResult loadData(ProviderCache providerCache) {
+    // the agent has to implement "CachingAgent" in order to be registered as an agent.
+    // if it is not registered, a background thread will delete all its cached data.
+    throw new UnsupportedOperationException(
+        "KubernetesStreamingCachingAgent does not support loadData");
   }
 
   @Override

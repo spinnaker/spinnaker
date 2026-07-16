@@ -19,7 +19,9 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.CacheResult;
+import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ApplicationCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ClusterCacheKey;
@@ -50,6 +52,33 @@ class KubernetesStreamingCachingAgentTest extends BaseKubernetesCachingAgentTest
   private static final String APPLICATION_KEY = ApplicationCacheKey.createKey(MONIKER_APPLICATION);
   private static final String CLUSTER_KEY =
       ClusterCacheKey.createKey(ACCOUNT, MONIKER_APPLICATION, MONIKER_CLUSTER);
+
+  @Test
+  void getProvidedDataTypes_returnsAllRegisteredKinds() {
+    KubernetesConfigurationProperties configurationProperties =
+        new KubernetesConfigurationProperties();
+    KubernetesNamedAccountCredentials namedAccountCredentials = getNamedAccountCredentials();
+    KubernetesStreamingCachingAgent cachingAgent =
+        createCachingAgent(namedAccountCredentials, configurationProperties);
+
+    assertThat(cachingAgent.getProvidedDataTypes())
+        .contains(
+            Authority.AUTHORITATIVE.forType("applications"),
+            Authority.AUTHORITATIVE.forType("clusters"),
+
+            // and check some of the k8s kinds
+            Authority.AUTHORITATIVE.forType(KubernetesKind.DEPLOYMENT.toString()),
+            Authority.AUTHORITATIVE.forType(KubernetesKind.REPLICA_SET.toString()),
+            Authority.AUTHORITATIVE.forType(KubernetesKind.POD.toString()));
+  }
+
+  @Test
+  void testImplementCachingAgent() {
+    // The caching agent must implement the CachingAgent interface in order to be registered in
+    // SqlUnknownAgentCleanupAgent. Otherwise, the background job will delete
+    // the agent's cache data periodically.
+    assertThat(CachingAgent.class).isAssignableFrom(KubernetesStreamingCachingAgent.class);
+  }
 
   @Test
   void buildCacheResult_emptyData_returnsEmptyCacheResult() {
