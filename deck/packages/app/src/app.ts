@@ -14,9 +14,9 @@ import '@spinnaker/proxmox';
 import '@spinnaker/kubernetes';
 import '@spinnaker/oracle';
 import '@spinnaker/kayenta';
-import { TITUS_MODULE } from '@spinnaker/titus';
+import '@spinnaker/titus';
 import { ECS_MODULE } from '@spinnaker/ecs';
 import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
 
-module('netflix.spinnaker', [CORE_MODULE, AMAZON_MODULE, GOOGLE_MODULE, ECS_MODULE, CANARY_MODULE, TITUS_MODULE]);
+module('netflix.spinnaker', [CORE_MODULE, AMAZON_MODULE, GOOGLE_MODULE, ECS_MODULE, CANARY_MODULE]);

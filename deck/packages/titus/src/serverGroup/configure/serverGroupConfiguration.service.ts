@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import { chain, cloneDeep, flatten, intersection, xor } from 'lodash';
-import { $q } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import type {
@@ -25,13 +23,13 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
-  CACHE_INITIALIZER_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
   NameUtils,
-  SECURITY_GROUP_READER,
+  ReactInjector,
+  REST,
   setMatchingResourceSummary,
   SubnetReader,
 } from '@spinnaker/core';
+
 import type { IJobDisruptionBudget, ITitusResources } from '../../domain';
 import type { ITitusServiceJobProcesses } from '../../domain/ITitusServiceJobProcesses';
 
@@ -112,12 +110,27 @@ export interface ITitusServerGroupCommand extends IServerGroupCommand {
 }
 
 export class TitusServerGroupConfigurationService {
-  public static $inject = ['cacheInitializer', 'loadBalancerReader', 'securityGroupReader'];
   constructor(
     private cacheInitializer: CacheInitializerService,
     private loadBalancerReader: LoadBalancerReader,
     private securityGroupReader: SecurityGroupReader,
   ) {}
+
+  private getCacheInitializer(): CacheInitializerService {
+    return this.cacheInitializer || ReactInjector.cacheInitializer;
+  }
+
+  private getLoadBalancerReader(): Pick<LoadBalancerReader, 'listLoadBalancers'> {
+    return (
+      this.loadBalancerReader || {
+        listLoadBalancers: (cloudProvider: string) => REST('/loadBalancers').query({ provider: cloudProvider }).get(),
+      }
+    );
+  }
+
+  private getSecurityGroupReader(): SecurityGroupReader {
+    return this.securityGroupReader || ReactInjector.securityGroupReader;
+  }
 
   public configureZones(command: ITitusServerGroupCommand) {
     command.backingData.filtered.regions = command.backingData.credentialsKeyedByAccount[command.credentials].regions;
@@ -204,59 +217,57 @@ export class TitusServerGroupConfigurationService {
       }
     };
     cmd.image = cmd.viewState.imageId;
-    return $q
-      .all([
-        AccountService.getCredentialsKeyedByAccount('titus'),
-        this.securityGroupReader.getAllSecurityGroups(),
-        VpcReader.listVpcs(),
-        SubnetReader.listSubnets(),
-        AccountService.getCredentialsKeyedByAccount('aws'),
-      ])
-      .then(([credentialsKeyedByAccount, securityGroups, vpcs, subnets, awsCredentials]) => {
-        const backingData: any = {
-          credentialsKeyedByAccount,
-          securityGroups,
-          vpcs,
-        };
+    return Promise.all([
+      AccountService.getCredentialsKeyedByAccount('titus'),
+      this.getSecurityGroupReader().getAllSecurityGroups(),
+      VpcReader.listVpcs(),
+      SubnetReader.listSubnets(),
+      AccountService.getCredentialsKeyedByAccount('aws'),
+    ]).then(([credentialsKeyedByAccount, securityGroups, vpcs, subnets, awsCredentials]) => {
+      const backingData: any = {
+        credentialsKeyedByAccount,
+        securityGroups,
+        vpcs,
+      };
 
-        // add the AWS accountId to the credentialsKeyedByAccount to easily set container attributes
-        Object.keys(credentialsKeyedByAccount).forEach((acc) => {
-          const awsAccount = credentialsKeyedByAccount[acc].awsAccount;
-          const awsAccountId = awsCredentials[awsAccount].accountId;
-          credentialsKeyedByAccount[acc].accountId = awsAccountId;
-        });
-        backingData.credentialsKeyedByAccount = credentialsKeyedByAccount;
-
-        if (cmd.credentials) {
-          cmd.containerAttributes['titusParameter.agent.accountId'] =
-            backingData.credentialsKeyedByAccount[cmd.credentials].accountId;
-        }
-
-        backingData.images = [];
-        backingData.accounts = Object.keys(credentialsKeyedByAccount);
-        backingData.subnets = subnets;
-        backingData.filtered = {};
-        if (cmd.credentials.includes('${')) {
-          // If our dependency is an expression, the only thing we can really do is to just preserve current selections
-          backingData.filtered.regions = [{ name: cmd.region }];
-        } else {
-          backingData.filtered.regions = credentialsKeyedByAccount[cmd.credentials]?.regions ?? [];
-        }
-        cmd.backingData = backingData;
-        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
-
-        let securityGroupRefresher: PromiseLike<any> = $q.when();
-        if (cmd.securityGroups && cmd.securityGroups.length) {
-          const regionalSecurityGroupIds = backingData.filtered.securityGroups.map((g: ISecurityGroup) => g.id);
-          if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
-            securityGroupRefresher = this.refreshSecurityGroups(cmd, false);
-          }
-        }
-
-        return $q.all([this.refreshLoadBalancers(cmd), securityGroupRefresher]).then(() => {
-          this.attachEventHandlers(cmd);
-        });
+      // add the AWS accountId to the credentialsKeyedByAccount to easily set container attributes
+      Object.keys(credentialsKeyedByAccount).forEach((acc) => {
+        const awsAccount = credentialsKeyedByAccount[acc].awsAccount;
+        const awsAccountId = awsCredentials[awsAccount].accountId;
+        credentialsKeyedByAccount[acc].accountId = awsAccountId;
       });
+      backingData.credentialsKeyedByAccount = credentialsKeyedByAccount;
+
+      if (cmd.credentials) {
+        cmd.containerAttributes['titusParameter.agent.accountId'] =
+          backingData.credentialsKeyedByAccount[cmd.credentials].accountId;
+      }
+
+      backingData.images = [];
+      backingData.accounts = Object.keys(credentialsKeyedByAccount);
+      backingData.subnets = subnets;
+      backingData.filtered = {};
+      if (cmd.credentials.includes('${')) {
+        // If our dependency is an expression, the only thing we can really do is to just preserve current selections
+        backingData.filtered.regions = [{ name: cmd.region }];
+      } else {
+        backingData.filtered.regions = credentialsKeyedByAccount[cmd.credentials]?.regions ?? [];
+      }
+      cmd.backingData = backingData;
+      backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
+
+      let securityGroupRefresher: PromiseLike<any> = Promise.resolve();
+      if (cmd.securityGroups && cmd.securityGroups.length) {
+        const regionalSecurityGroupIds = backingData.filtered.securityGroups.map((g: ISecurityGroup) => g.id);
+        if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
+          securityGroupRefresher = this.refreshSecurityGroups(cmd, false);
+        }
+      }
+
+      return Promise.all([this.refreshLoadBalancers(cmd), securityGroupRefresher]).then(() => {
+        this.attachEventHandlers(cmd);
+      });
+    });
   }
 
   private getVpcId(command: ITitusServerGroupCommand): string {
@@ -326,14 +337,18 @@ export class TitusServerGroupConfigurationService {
     command: ITitusServerGroupCommand,
     skipCommandReconfiguration: boolean,
   ): PromiseLike<void> {
-    return this.cacheInitializer.refreshCache('securityGroups').then(() => {
-      return this.securityGroupReader.getAllSecurityGroups().then((securityGroups: any) => {
-        command.backingData.securityGroups = securityGroups;
-        if (!skipCommandReconfiguration) {
-          this.configureSecurityGroupOptions(command);
-        }
+    return this.getCacheInitializer()
+      .refreshCache('securityGroups')
+      .then(() => {
+        return this.getSecurityGroupReader()
+          .getAllSecurityGroups()
+          .then((securityGroups: any) => {
+            command.backingData.securityGroups = securityGroups;
+            if (!skipCommandReconfiguration) {
+              this.configureSecurityGroupOptions(command);
+            }
+          });
       });
-    });
   }
 
   private getCredentials(command: ITitusServerGroupCommand): IAccountDetails {
@@ -395,16 +410,21 @@ export class TitusServerGroupConfigurationService {
   }
 
   public refreshLoadBalancers(command: ITitusServerGroupCommand) {
-    return this.loadBalancerReader.listLoadBalancers('aws').then((loadBalancers) => {
-      command.backingData.loadBalancers = loadBalancers;
-      this.configureLoadBalancerOptions(command);
-    });
+    return this.getLoadBalancerReader()
+      .listLoadBalancers('aws')
+      .then((loadBalancers) => {
+        command.backingData.loadBalancers = loadBalancers;
+        this.configureLoadBalancerOptions(command);
+      });
   }
 }
 
-export const TITUS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.titus.serverGroup.configure.service';
-module(TITUS_SERVER_GROUP_CONFIGURATION_SERVICE, [
-  CACHE_INITIALIZER_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  SECURITY_GROUP_READER,
-]).service('titusServerGroupConfigurationService', TitusServerGroupConfigurationService);
+export class TitusServerGroupConfigurationServiceFactory extends TitusServerGroupConfigurationService {
+  constructor() {
+    super(null, null, null);
+  }
+}
+
+export function getTitusServerGroupConfigurationService(): TitusServerGroupConfigurationService {
+  return new TitusServerGroupConfigurationService(null, null, null);
+}
