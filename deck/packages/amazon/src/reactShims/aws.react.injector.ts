@@ -1,25 +1,47 @@
-import IInjectorService = angular.auto.IInjectorService;
+import { ReactInjector } from '@spinnaker/core';
+import { FunctionReader } from '@spinnaker/core';
 
-import type { FunctionReader } from '@spinnaker/core';
-import { ReactInject } from '@spinnaker/core';
-import type { EvaluateCloudFormationChangeSetExecutionService } from '../pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
-import type { AwsServerGroupCommandBuilder } from '../serverGroup/configure/serverGroupCommandBuilder.service';
+import { AwsFunctionTransformer } from '../function';
+import { AwsInstanceTypeService } from '../instance/awsInstanceType.service';
+import { EvaluateCloudFormationChangeSetExecutionService } from '../pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
+import { createAwsServerGroupCommandBuilder } from '../serverGroup/configure/serverGroupCommandBuilder.service';
+import { AwsServerGroupConfigurationService } from '../serverGroup/configure/serverGroupConfiguration.service';
+import { AwsServerGroupTransformer } from '../serverGroup/serverGroup.transformer';
 
-import type { AwsServerGroupConfigurationService } from '../serverGroup/configure/serverGroupConfiguration.service';
-import type { AwsServerGroupTransformer } from '../serverGroup/serverGroup.transformer';
+let awsInstanceTypeService: AwsInstanceTypeService;
+let awsServerGroupConfigurationService: AwsServerGroupConfigurationService;
+let awsServerGroupTransformer: AwsServerGroupTransformer;
+let functionReader: FunctionReader;
+let evaluateCloudFormationChangeSetExecutionService: EvaluateCloudFormationChangeSetExecutionService;
 
-// prettier-ignore
-export class AwsReactInject extends ReactInject {
-  public get awsInstanceTypeService() { return this.$injector.get('awsInstanceTypeService') as any; }
-  public get awsServerGroupCommandBuilder() { return this.$injector.get('awsServerGroupCommandBuilder') as AwsServerGroupCommandBuilder; }
-  public get awsServerGroupConfigurationService() { return this.$injector.get('awsServerGroupConfigurationService') as AwsServerGroupConfigurationService; }
-  public get awsServerGroupTransformer() { return this.$injector.get('awsServerGroupTransformer') as AwsServerGroupTransformer; }
-
-  public get functionReader() { return this.$injector.get('functionReader') as FunctionReader; }
-  public get evaluateCloudFormationChangeSetExecutionService() { return this.$injector.get('evaluateCloudFormationChangeSetExecutionService') as EvaluateCloudFormationChangeSetExecutionService; }
-  public initialize($injector: IInjectorService) {
-    this.$injector = $injector;
-  }
-}
-
-export const AwsReactInjector: AwsReactInject = new AwsReactInject();
+export const AwsReactInjector = {
+  get awsInstanceTypeService() {
+    return (awsInstanceTypeService = awsInstanceTypeService || new AwsInstanceTypeService());
+  },
+  get awsServerGroupCommandBuilder() {
+    return createAwsServerGroupCommandBuilder(
+      ReactInjector.instanceTypeService,
+      AwsReactInjector.awsServerGroupConfigurationService,
+    );
+  },
+  get awsServerGroupConfigurationService() {
+    return (
+      awsServerGroupConfigurationService ||
+      (awsServerGroupConfigurationService = new AwsServerGroupConfigurationService())
+    );
+  },
+  get awsServerGroupTransformer() {
+    return (awsServerGroupTransformer = awsServerGroupTransformer || new AwsServerGroupTransformer());
+  },
+  get functionReader() {
+    return (functionReader = functionReader || new FunctionReader(new AwsFunctionTransformer()));
+  },
+  get evaluateCloudFormationChangeSetExecutionService() {
+    return (
+      evaluateCloudFormationChangeSetExecutionService ||
+      (evaluateCloudFormationChangeSetExecutionService = new EvaluateCloudFormationChangeSetExecutionService(
+        ReactInjector.executionService,
+      ))
+    );
+  },
+};

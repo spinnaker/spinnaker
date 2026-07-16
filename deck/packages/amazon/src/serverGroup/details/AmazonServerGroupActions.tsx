@@ -1,4 +1,4 @@
-import { filter, find, get, orderBy } from 'lodash';
+import { get } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 
@@ -8,7 +8,6 @@ import {
   ClusterTargetBuilder,
   ConfirmationModalService,
   ManagedMenuItem,
-  ModalInjector,
   Overridable,
   ReactInjector,
   ServerGroupWarningMessageService,
@@ -167,10 +166,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     ConfirmationModalService.confirm(confirmationModalParams)
-      // Wait for the confirmation modal to go away first to avoid react/angular bootstrap fighting
-      // over the body.modal-open class
-      .then(() => new Promise((resolve) => setTimeout(resolve, 500)))
-      .then(() => this.rollbackServerGroup())
+      .then(() => this.showEnableServerGroupModal())
       .catch((error) => {
         // don't show the enable modal if the user cancels with the header button
         if (error?.source === 'footer') {
@@ -210,65 +206,6 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     ConfirmationModalService.confirm(confirmationModalParams);
   }
 
-  private rollbackServerGroup = (): void => {
-    const { app } = this.props;
-
-    let serverGroup: IAmazonServerGroup = this.props.serverGroup;
-    let previousServerGroup: IAmazonServerGroup;
-    let allServerGroups = app
-      .getDataSource('serverGroups')
-      .data.filter(
-        (g: IAmazonServerGroup) =>
-          g.cluster === serverGroup.cluster && g.region === serverGroup.region && g.account === serverGroup.account,
-      );
-
-    if (serverGroup.isDisabled) {
-      // if the selected server group is disabled, it represents the server group that should be _rolled back to_
-      previousServerGroup = serverGroup;
-
-      /*
-       * Find an existing server group to rollback, prefer the largest enabled server group.
-       *
-       * isRollbackEnabled() ensures that at least one enabled server group exists.
-       */
-      serverGroup = orderBy(
-        allServerGroups.filter((g: IAmazonServerGroup) => g.name !== previousServerGroup.name && !g.isDisabled),
-        ['instanceCounts.total', 'createdTime'],
-        ['desc', 'desc'],
-      )[0] as IAmazonServerGroup;
-    }
-
-    // the set of all server groups should not include the server group selected for rollback
-    allServerGroups = allServerGroups.filter((g: IAmazonServerGroup) => g.name !== serverGroup.name);
-
-    if (allServerGroups.length === 1 && !previousServerGroup) {
-      // if there is only one other server group, default to it being the rollback target
-      previousServerGroup = allServerGroups[0];
-    }
-
-    ModalInjector.modalService.open({
-      templateUrl: ReactInjector.overrideRegistry.getTemplate(
-        'aws.rollback.modal',
-        require('./rollback/rollbackServerGroup.html'),
-      ),
-      controller: 'awsRollbackServerGroupCtrl as ctrl',
-      resolve: {
-        serverGroup: () => serverGroup,
-        previousServerGroup: () => previousServerGroup,
-        disabledServerGroups: () => {
-          const cluster = find(app.clusters, {
-            name: serverGroup.cluster,
-            account: serverGroup.account,
-            serverGroups: [],
-          });
-          return filter(cluster.serverGroups, { isDisabled: true, region: serverGroup.region });
-        },
-        allServerGroups: () => allServerGroups,
-        application: () => app,
-      },
-    });
-  };
-
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     AwsReactInjector.awsServerGroupCommandBuilder
@@ -291,12 +228,6 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           <Dropdown className="dropdown" id="server-group-actions-dropdown">
             <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
             <Dropdown.Menu className="dropdown-menu">
-              {this.isRollbackEnabled() && (
-                <ManagedMenuItem resource={serverGroup} application={app} onClick={this.rollbackServerGroup}>
-                  Rollback
-                </ManagedMenuItem>
-              )}
-              {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
               <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
               {!serverGroup.isDisabled && (
                 <ManagedMenuItem resource={serverGroup} application={app} onClick={this.disableServerGroup}>
