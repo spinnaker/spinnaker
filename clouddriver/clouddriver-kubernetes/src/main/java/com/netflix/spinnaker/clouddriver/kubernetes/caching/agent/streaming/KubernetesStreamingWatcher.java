@@ -189,7 +189,7 @@ public class KubernetesStreamingWatcher implements Runnable {
 
       V1ListMeta listMeta = list.getMetadata();
       resourceVersion = listMeta.getResourceVersion();
-      lastContinue = listMeta.getContinue();
+
       List<DynamicKubernetesObject> items = list.getItems();
 
       for (DynamicKubernetesObject obj : items) {
@@ -205,14 +205,25 @@ public class KubernetesStreamingWatcher implements Runnable {
         state.updateLastReceivedEventTime();
       }
       if (paginationSize > 0) {
-        // replace later with debug
-        log.info(
-            "{}:{}:: Paginated List returned {} items. Estimated remaining items {}",
-            account,
-            watcherId(),
-            items.size(),
-            listMeta.getRemainingItemCount());
+        if (listMeta.getRemainingItemCount() == null) {
+          // replace later with debug
+          log.info(
+              "{}:{}:: Paginated List returned {} items. Limit ({}) possibly ignored",
+              account,
+              watcherId(),
+              items.size(),
+              paginationSize);
+        } else {
+          // replace later with debug
+          log.info(
+              "{}:{}:: Paginated List returned {} items. Estimated remaining items {}",
+              account,
+              watcherId(),
+              items.size(),
+              listMeta.getRemainingItemCount());
+        }
       }
+      lastContinue = listMeta.getContinue();
     } while (paginationSize > 0 && !StringUtils.isEmpty(lastContinue));
     lastSyncResourceVersion = resourceVersion;
 
