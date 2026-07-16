@@ -147,7 +147,9 @@ export class ServerGroupImageSettings extends GceServerGroupWizardPage {
 }
 
 function imageOptions(rawImages: readonly any[], persistedImage: string | null | undefined): IImageOption[] {
-  const images = rawImages.map((image) => (typeof image === 'string' ? image : image.imageName)).filter(Boolean);
+  const images = Array.from(
+    new Set(rawImages.map((image) => (typeof image === 'string' ? image : image.imageName)).filter(Boolean)),
+  );
   return preservePersistedReference(
     images,
     persistedImage,

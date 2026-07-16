@@ -171,7 +171,7 @@ export function GceNetworkLoadBalancerEditor({
 
       <h4>Health Check</h4>
       <div className="form-group" data-field="healthCheckEnabled">
-        <div className="col-md-6 col-md-offset-4">
+        <div className="col-md-7 col-md-offset-3">
           <label>
             <input
               checked={Boolean(healthCheck)}
@@ -222,8 +222,8 @@ function textField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-4 control-label">{label}</label>
-      <div className="col-md-6">
+      <label className="col-md-3 sm-label-right">{label}</label>
+      <div className="col-md-7">
         <input
           className="form-control input-sm"
           disabled={disabled}
@@ -243,8 +243,8 @@ function numberField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-4 control-label">{label}</label>
-      <div className="col-md-6">
+      <label className="col-md-3 sm-label-right">{label}</label>
+      <div className="col-md-7">
         <input
           className="form-control input-sm"
           onChange={(event) => onChange(event.target.value === '' ? undefined : Number(event.target.value))}
@@ -266,8 +266,8 @@ function selectField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-4 control-label">{label}</label>
-      <div className="col-md-6">
+      <label className="col-md-3 sm-label-right">{label}</label>
+      <div className="col-md-7">
         <select
           className="form-control input-sm"
           disabled={disabled}

@@ -8,6 +8,7 @@ import * as editorModule from './GceHttpLoadBalancerEditor';
 import {
   buildGceHttpLoadBalancerOptions,
   constrainGceHttpLoadBalancerCommand,
+  FormRow,
   GceHttpLoadBalancerEditor,
 } from './GceHttpLoadBalancerEditor';
 import { GceHttpLoadBalancerListenerEditor } from './GceHttpLoadBalancerListenerEditor';
@@ -135,6 +136,17 @@ describe('GceHttpLoadBalancerEditor', () => {
     expect(
       internalListener.find('[data-testid="listener-protocol"] option').map((option) => option.prop('value')),
     ).toEqual(['HTTP', 'HTTPS']);
+  });
+
+  it('renders location controls as form rows instead of nesting them inside bold labels', () => {
+    const command = normalizeGceLoadBalancerCommand(
+      { account: 'account-a', listeners: [{ name: 'frontend', port: 80 }], loadBalancerType: 'HTTP', name: 'web' },
+      'create',
+    );
+    const wrapper = shallow(
+      <GceHttpLoadBalancerEditor command={command} data={emptyData} onChange={jasmine.createSpy()} />,
+    );
+    expect(wrapper.find(FormRow).length).toBeGreaterThan(2);
   });
 
   it('validates account, name, location, listeners, backends, health checks, and routing', () => {

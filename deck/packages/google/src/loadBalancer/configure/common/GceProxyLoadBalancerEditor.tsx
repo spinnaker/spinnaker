@@ -399,8 +399,8 @@ function textField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-4 control-label">{label}</label>
-      <div className="col-md-6">
+      <label className="col-md-3 sm-label-right">{label}</label>
+      <div className="col-md-7">
         <input
           className="form-control input-sm"
           disabled={disabled}
@@ -420,8 +420,8 @@ function numberField(
 ): JSX.Element {
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-4 control-label">{label}</label>
-      <div className="col-md-6">
+      <label className="col-md-3 sm-label-right">{label}</label>
+      <div className="col-md-7">
         <input
           className="form-control input-sm"
           type="number"
@@ -446,8 +446,8 @@ function selectField(
   if (allowCustomValue && value && !names.includes(value)) names.push(value);
   return (
     <div className="form-group" data-field={field}>
-      <label className="col-md-4 control-label">{label}</label>
-      <div className="col-md-6">
+      <label className="col-md-3 sm-label-right">{label}</label>
+      <div className="col-md-7">
         <select
           className="form-control input-sm"
           disabled={disabled}

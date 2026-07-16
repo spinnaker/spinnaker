@@ -16,6 +16,8 @@ import type {
 } from '../common';
 import { mergeGceResourceOptions } from '../common';
 
+import './httpLoadBalancerWizard.component.less';
+
 export interface IGceHttpLoadBalancerEditorProps {
   command: IGceLoadBalancerCommand;
   data: IGceLoadBalancerData;
@@ -27,6 +29,15 @@ interface IGceHttpLoadBalancerDataItem extends IGceLoadBalancerDataItem {
   id?: string;
   network?: string;
   region?: string;
+}
+
+export function FormRow({ children, label }: { children: React.ReactNode; label: string }): JSX.Element {
+  return (
+    <div className="form-group">
+      <label className="col-md-2 sm-label-right">{label}</label>
+      <div className="col-md-8">{children}</div>
+    </div>
+  );
 }
 
 export interface IGceHttpLoadBalancerOptions extends IGceLoadBalancerData {
@@ -309,9 +320,9 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
     <div className="gce-http-load-balancer-editor">
       <section>
         <h4>Location</h4>
-        <label>
-          Name
+        <FormRow label="Name">
           <input
+            className="form-control input-sm"
             data-testid="load-balancer-name"
             maxLength={63}
             required
@@ -320,10 +331,10 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
             value={command.name}
             onChange={(event) => update({ name: event.target.value })}
           />
-        </label>
-        <label>
-          Type
+        </FormRow>
+        <FormRow label="Type">
           <select
+            className="form-control input-sm"
             data-testid="load-balancer-type"
             disabled={editing}
             value={command.loadBalancerType}
@@ -332,10 +343,10 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
             <option value="HTTP">HTTP(S)</option>
             <option value="INTERNAL_MANAGED">Internal managed HTTP</option>
           </select>
-        </label>
-        <label>
-          Account
+        </FormRow>
+        <FormRow label="Account">
           <select
+            className="form-control input-sm"
             data-testid="credentials"
             disabled={editing}
             required
@@ -349,12 +360,12 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
               </option>
             ))}
           </select>
-        </label>
+        </FormRow>
         {command.loadBalancerType === 'INTERNAL_MANAGED' && (
           <React.Fragment>
-            <label>
-              Region
+            <FormRow label="Region">
               <select
+                className="form-control input-sm"
                 data-testid="region"
                 disabled={editing}
                 required
@@ -368,10 +379,10 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
                   </option>
                 ))}
               </select>
-            </label>
-            <label>
-              Network
+            </FormRow>
+            <FormRow label="Network">
               <select
+                className="form-control input-sm"
                 data-testid="network"
                 required
                 value={command.network?.name || ''}
@@ -384,10 +395,10 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
                   </option>
                 ))}
               </select>
-            </label>
-            <label>
-              Subnet
+            </FormRow>
+            <FormRow label="Subnet">
               <select
+                className="form-control input-sm"
                 data-testid="subnet"
                 required
                 value={command.subnet?.name || ''}
@@ -406,7 +417,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
                   </option>
                 ))}
               </select>
-            </label>
+            </FormRow>
           </React.Fragment>
         )}
       </section>
@@ -477,9 +488,9 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
       </section>
       <section>
         <h4>Default service</h4>
-        <label>
-          Default backend service
+        <FormRow label="Default backend service">
           <select
+            className="form-control input-sm"
             data-testid="default-backend-service"
             required
             value={command.defaultService?.name || ''}
@@ -494,7 +505,7 @@ export function GceHttpLoadBalancerEditor({ command, data, onChange }: IGceHttpL
               </option>
             ))}
           </select>
-        </label>
+        </FormRow>
       </section>
       <section>
         <h4>Host and path rules</h4>

@@ -72,6 +72,8 @@ export function registerGoogleProvider(): void {
     },
     loadBalancer: {
       CreateLoadBalancerModal: GceLoadBalancerChoiceModal,
+      pipelineCreateLoadBalancerModal: (props: any) =>
+        GceLoadBalancerChoiceModal.show({ ...props, app: props.application, forPipelineConfig: true }),
       detailsActions: GceLoadBalancerActions,
       detailsSections: gceLoadBalancerDetailsSections,
       transformer: GceLoadBalancerTransformer,

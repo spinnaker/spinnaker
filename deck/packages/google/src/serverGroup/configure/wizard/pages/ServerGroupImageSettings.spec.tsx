@@ -9,7 +9,9 @@ import type { IGceServerGroupCommand } from '../GceServerGroupWizard.types';
 
 describe('ServerGroupImageSettings', () => {
   it('renders accessible image and source controls while preserving unavailable persisted values', () => {
-    const formik = testFormik();
+    const formik = testFormik(
+      command({ backingData: { allImages: [{ imageName: 'known-image' }, { imageName: 'known-image' }] } }),
+    );
     const wrapper = shallow(<ServerGroupImageSettings app={{ name: 'app' } as any} formik={formik} />);
 
     expect(selectOptions(wrapper, 'Image source')).toEqual([
