@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -100,8 +101,15 @@ public class CacheConfig {
   }
 
   @Bean
+  @ConditionalOnExpression("${caching.metrics.new:false} == false")
   ExecutionInstrumentation metricInstrumentation(Registry registry) {
     return new MetricInstrumentation(registry);
+  }
+
+  @Bean
+  @ConditionalOnExpression("${caching.metrics.new:false} == true")
+  ExecutionInstrumentation newMetricInstrumentation(Registry registry) {
+    return new NewMetricInstrumentation(registry);
   }
 
   @Bean
