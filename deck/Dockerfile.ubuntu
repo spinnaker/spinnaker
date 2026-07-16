@@ -1,4 +1,4 @@
-FROM ubuntu:jammy
+FROM ubuntu:resolute
 LABEL maintainer="sig-platform@spinnaker.io"
 
 WORKDIR /opt/deck
