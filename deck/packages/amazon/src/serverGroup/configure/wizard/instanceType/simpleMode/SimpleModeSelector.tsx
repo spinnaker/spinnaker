@@ -22,7 +22,7 @@ export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
 
   const instanceProfileChanged = (newProfile: string) => {
     // Instance profile is already set on values.viewState, so just use that value.
-    // Once angular is gone from this component tree, we can move all the viewState stuff
+    // Once this component tree is fully standalone, we can move all the viewState stuff
     // into react state
     props.setFieldValue('viewState', {
       ...command.viewState,
