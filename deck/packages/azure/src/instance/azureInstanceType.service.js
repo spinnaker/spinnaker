@@ -1,13 +1,8 @@
-'use strict';
-
-import { module } from 'angular';
 import _ from 'lodash';
 
-export const AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE = 'spinnaker.azure.instanceType.service';
-export const name = AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE; // for backwards compatibility
-module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeService', [
-  '$q',
-  function ($q) {
+export class AzureInstanceTypeService {
+  constructor($q) {
+    const resolve = (value) => ($q && $q.when ? $q.when(value) : Promise.resolve(value));
     const B = {
       type: 'B-series',
       description:
@@ -809,7 +804,7 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
         }
         category.stats = buildStats(category);
       });
-      return $q.when(categories);
+      return resolve(categories);
     }
 
     const getAllTypesByRegion = function getAllTypesByRegion() {
@@ -822,10 +817,8 @@ module(AZURE_INSTANCE_AZUREINSTANCETYPE_SERVICE, []).factory('azureInstanceTypeS
       return locationToInstanceTypesMap[location];
     }
 
-    return {
-      getCategories: getCategories,
-      getAvailableTypesForRegions: getAvailableTypesForRegions,
-      getAllTypesByRegion: getAllTypesByRegion,
-    };
-  },
-]);
+    this.getCategories = getCategories;
+    this.getAvailableTypesForRegions = getAvailableTypesForRegions;
+    this.getAllTypesByRegion = getAllTypesByRegion;
+  }
+}
