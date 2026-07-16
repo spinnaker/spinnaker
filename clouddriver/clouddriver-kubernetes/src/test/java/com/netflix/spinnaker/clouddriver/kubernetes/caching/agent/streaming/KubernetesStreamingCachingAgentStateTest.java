@@ -30,13 +30,13 @@ class KubernetesStreamingCachingAgentStateTest {
   private State state;
 
   private ExecutorService executor;
-  private KubernetesInformerFactory kubernetesInformerFactory;
+  private KubernetesStreamingWatcherFactory kubernetesWatcherFactory;
 
   @BeforeEach
   void setUp() {
     executor = Mockito.mock(ExecutorService.class);
-    kubernetesInformerFactory = Mockito.mock(KubernetesInformerFactory.class);
-    state = new State(executor, kubernetesInformerFactory);
+    kubernetesWatcherFactory = Mockito.mock(KubernetesStreamingWatcherFactory.class);
+    state = new State(executor, kubernetesWatcherFactory);
   }
 
   @Test
@@ -64,7 +64,7 @@ class KubernetesStreamingCachingAgentStateTest {
 
     // stop
     state.stopAndWait(0);
-    Mockito.verify(kubernetesInformerFactory, Mockito.times(1)).stopAllRegisteredInformers(false);
+    Mockito.verify(kubernetesWatcherFactory, Mockito.times(1)).stopAllRegisteredWatchers();
     Mockito.verify(executor, Mockito.times(1)).shutdownNow();
 
     // CLEANING_UP state is returned if the executor is not terminated yet

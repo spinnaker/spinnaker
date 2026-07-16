@@ -24,14 +24,14 @@ import java.util.concurrent.atomic.AtomicLong;
 class State {
 
   private final ExecutorService executorService;
-  private final KubernetesInformerFactory factory;
+  private final KubernetesStreamingWatcherFactory factory;
   private final AtomicLong lastReceivedEventTimeMillis = new AtomicLong();
   private final AtomicLong lastProcessedEventBatchTimeMillis = new AtomicLong();
   private final long startTimeMillis = System.currentTimeMillis();
   private volatile boolean started = false;
   private volatile boolean stopped = false;
 
-  State(ExecutorService executorService, KubernetesInformerFactory factory) {
+  State(ExecutorService executorService, KubernetesStreamingWatcherFactory factory) {
     if (executorService == null || factory == null) {
       throw new IllegalStateException("ExecutorService or factory is null");
     }
@@ -52,12 +52,12 @@ class State {
       throw new IllegalStateException("Already stopped");
     }
     stopped = true;
-    factory.stopAllRegisteredInformers(false);
+    factory.stopAllRegisteredWatchers();
     executorService.shutdownNow();
     return executorService.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS);
   }
 
-  KubernetesInformerFactory getFactory() {
+  KubernetesStreamingWatcherFactory getFactory() {
     return factory;
   }
 

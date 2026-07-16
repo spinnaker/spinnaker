@@ -17,25 +17,32 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
+import com.google.gson.JsonParser;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.models.V1ObjectMeta;
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.models.V1Status;
+import io.kubernetes.client.util.Watch;
+import io.kubernetes.client.util.Watchable;
+import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesListObject;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
 class KubernetesStreamingWatcherTest {
@@ -43,14 +50,21 @@ class KubernetesStreamingWatcherTest {
   private ExecutorService executor;
   private State state;
   private BlockingQueue<KubernetesStreamingEvent> eventQueue;
+  private K8SListWatchAdapter adapter;
+  private Set<Keys.InfrastructureCacheKey> knownKeys;
+  private Supplier<Boolean> isRunning;
 
   @BeforeEach
   void setUp() {
+    knownKeys = new HashSet<>();
     executor = Executors.newSingleThreadExecutor();
-    ApiClient k8sClient = Mockito.mock(ApiClient.class);
+    ApiClient k8sClient = mock(ApiClient.class);
+    adapter = mock(K8SListWatchAdapter.class);
     Mockito.when(k8sClient.getReadTimeout()).thenReturn(0);
-    state = new State(executor, new KubernetesInformerFactory(k8sClient, executor));
+    state =
+        new State(executor, new KubernetesStreamingWatcherFactory(k8sClient, "account", executor));
     eventQueue = new ArrayBlockingQueue<>(100);
+    isRunning = mock(Supplier.class);
   }
 
   @AfterEach
@@ -58,112 +72,105 @@ class KubernetesStreamingWatcherTest {
     executor.shutdownNow();
   }
 
-  @ParameterizedTest
-  @MethodSource("handlersList")
-  void testNamespacedEventWithAllRequiredFields(
-      Handler handler, KubernetesStreamingEvent.Type eventType) {
+  @Test
+  void testProcessErrorObject() throws ApiException, IOException {
     KubernetesStreamingWatcher watcher = createWatcher("Pod", "", "v1");
+    when(isRunning.get())
+        .thenReturn(true)
+        .thenReturn(true)
+        .thenReturn(true)
+        .thenReturn(true)
+        .thenReturn(true)
+        .thenReturn(true)
+        .thenReturn(false);
 
-    DynamicKubernetesObject obj = getPodEvent(true);
-    handler.accept(watcher, obj);
+    DynamicKubernetesListObject emptyList = getList(getJsonFixture("kubeapi/pods.default.json"));
+    when(adapter.list(any())).thenReturn(emptyList);
 
-    KubernetesStreamingEvent expected = new KubernetesStreamingEvent(eventType, getPodManifest());
+    Watchable watchable = mock(Watchable.class);
+    when(watchable.hasNext()).thenReturn(true);
+    V1Status status = new V1Status();
+    status.setCode(HttpURLConnection.HTTP_GONE);
+    Watch.Response response = new Watch.Response<>("ERROR", status);
+    when(watchable.next()).thenReturn(response);
+    when(adapter.watch(any(), any())).thenReturn(watchable);
 
-    assertThat(eventQueue.size()).isEqualTo(1);
-    assertThat(eventQueue.poll()).isEqualTo(expected);
-    assertThat(state.getLastReceivedEventTime()).isGreaterThan(0L);
-    assertThat(state.getLastProcessedEventBatchTime()).isEqualTo(0L);
-  }
+    watcher.run();
+    assertThat(eventQueue.size()).isEqualTo(0);
 
-  @ParameterizedTest
-  @MethodSource("handlersList")
-  void testNamespacedEventWithoutRequiredFields(
-      Handler handler, KubernetesStreamingEvent.Type eventType) {
-    KubernetesStreamingWatcher watcher = createWatcher("Pod", "", "v1");
-
-    // object without kind and apiVersion. watcher should fill them
-    DynamicKubernetesObject obj = getPodEvent(false);
-    handler.accept(watcher, obj);
-
-    KubernetesStreamingEvent expected = new KubernetesStreamingEvent(eventType, getPodManifest());
-
-    assertThat(eventQueue.size()).isEqualTo(1);
-    assertThat(eventQueue.poll()).isEqualTo(expected);
-    assertThat(state.getLastReceivedEventTime()).isGreaterThan(0L);
-    assertThat(state.getLastProcessedEventBatchTime()).isEqualTo(0L);
+    verify(adapter).list("0");
+    verify(adapter).list("");
   }
 
   @Test
-  void testProcessNullObject() {
+  void testProcessNullMeta() throws ApiException, IOException {
     KubernetesStreamingWatcher watcher = createWatcher("Pod", "", "v1");
+    when(isRunning.get()).thenReturn(true).thenReturn(true).thenReturn(false);
 
-    watcher.onAdd(null);
+    DynamicKubernetesListObject nullMetaList = getList(getJsonFixture("initialList/nullMeta.json"));
+    when(adapter.list(any())).thenReturn(nullMetaList);
+
+    Watchable watchable = mock(Watchable.class);
+    when(watchable.hasNext()).thenReturn(false);
+    when(adapter.watch(any(), any())).thenReturn(watchable);
+
+    watcher.run();
     assertThat(eventQueue.size()).isEqualTo(0);
     assertThat(state.getLastReceivedEventTime()).isEqualTo(0L);
     assertThat(state.getLastProcessedEventBatchTime()).isEqualTo(0L);
   }
 
   @Test
-  void testProcessNullMeta() {
+  void testProcessesListAndEvents() throws ApiException, IOException {
     KubernetesStreamingWatcher watcher = createWatcher("Pod", "", "v1");
+    when(isRunning.get()).thenReturn(false);
 
-    DynamicKubernetesObject obj = new DynamicKubernetesObject();
-    obj.setMetadata(null);
+    DynamicKubernetesListObject nullMetaList = getList(getJsonFixture("initialList/pods.json"));
+    when(adapter.list(any())).thenReturn(nullMetaList);
 
-    watcher.onAdd(obj);
+    Watchable watchable = mock(Watchable.class);
+    when(watchable.hasNext()).thenReturn(true);
+    DynamicKubernetesObject obj = getObject(getJsonFixture("delete/pod.json"));
+    Watch.Response response = new Watch.Response<>("DELETED", obj);
+    when(watchable.next()).thenReturn(response);
+    when(adapter.watch(any(), any())).thenReturn(watchable);
+
+    watcher.run();
     assertThat(eventQueue.size()).isEqualTo(0);
     assertThat(state.getLastReceivedEventTime()).isEqualTo(0L);
     assertThat(state.getLastProcessedEventBatchTime()).isEqualTo(0L);
   }
 
-  @MethodSource
-  static Stream<Arguments> handlersList() {
-    Handler onAdd = KubernetesStreamingWatcher::onAdd;
-    Handler onUpdate = (instance, obj) -> instance.onUpdate(obj, obj);
-    Handler onDelete = (instance, obj) -> instance.onDelete(obj, false);
-
-    return Stream.of(
-        Arguments.of(onAdd, KubernetesStreamingEvent.Type.UPSERT),
-        Arguments.of(onUpdate, KubernetesStreamingEvent.Type.UPSERT),
-        Arguments.of(onDelete, KubernetesStreamingEvent.Type.DELETE));
+  private String getJsonFixture(String path) throws IOException {
+    InputStream is =
+        getClass()
+            .getResourceAsStream(
+                String.format(
+                    "/com/netflix/spinnaker/clouddriver/kubernetes/caching/agent/streaming/__files/%s",
+                    path));
+    return new String(is.readAllBytes(), StandardCharsets.UTF_8);
   }
 
-  private static DynamicKubernetesObject getPodEvent(boolean withKind) {
-    DynamicKubernetesObject obj = new DynamicKubernetesObject();
-    if (withKind) {
-      obj.setKind("Pod");
-      obj.setApiVersion("v1");
-    }
-    V1ObjectMeta objectMeta = new V1ObjectMeta();
-    objectMeta.setName("test-pod");
-    objectMeta.setNamespace("test-namespace");
-    objectMeta.setLabels(Map.of("key1", "value"));
-    objectMeta.setAnnotations(Map.of("key2", "value"));
-    obj.setMetadata(objectMeta);
-    return obj;
+  private DynamicKubernetesListObject getList(String payload) {
+    return new DynamicKubernetesListObject(JsonParser.parseString(payload).getAsJsonObject());
   }
 
-  private static KubernetesManifest getPodManifest() {
-    KubernetesManifest expected = new KubernetesManifest();
-    expected.put("kind", "Pod");
-    expected.put("apiVersion", "v1");
-    expected.put(
-        "metadata",
-        Map.of(
-            "name", "test-pod",
-            "namespace", "test-namespace",
-            "labels", Map.of("key1", "value"),
-            "annotations", Map.of("key2", "value"),
-            "finalizers", List.of(),
-            "managedFields", List.of(),
-            "ownerReferences", List.of()));
-    return expected;
+  private DynamicKubernetesObject getObject(String payload) {
+    return new DynamicKubernetesObject(JsonParser.parseString(payload).getAsJsonObject());
   }
 
   private KubernetesStreamingWatcher createWatcher(String kind, String group, String version) {
-    return new KubernetesStreamingWatcher(state, kind, group, version, eventQueue);
+    return new KubernetesStreamingWatcher(
+        adapter,
+        state,
+        kind,
+        group,
+        version,
+        "account",
+        eventQueue,
+        knownKeys,
+        1000,
+        60 * 5,
+        isRunning);
   }
-
-  private interface Handler
-      extends BiConsumer<KubernetesStreamingWatcher, DynamicKubernetesObject> {}
 }

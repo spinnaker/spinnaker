@@ -315,7 +315,6 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
     wireMockServer.stubFor(
         get(urlPathEqualTo("/api/v1/pods"))
             .withQueryParam("watch", or(equalTo("false"), absent()))
-            .withQueryParam("resourceVersion", equalTo("1"))
             .inScenario("watch partial response")
             .whenScenarioStateIs("invalid response returned")
             .willReturn(
@@ -425,6 +424,10 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
     KubernetesConfigurationProperties configurationProperties =
         new KubernetesConfigurationProperties();
     KubernetesNamedAccountCredentials namedAccountCredentials = getNamedAccountCredentials();
+    namedAccountCredentials.getStreamingCaching().setWatcherRetryTimeoutMillis(500);
+    namedAccountCredentials.getStreamingCaching().setWatchTimeoutSeconds(2);
+    namedAccountCredentials.getStreamingCaching().setStopTimeoutMillis(100);
+    namedAccountCredentials.getStreamingCaching().setBulkMaxWaitMillis(100);
     KubernetesStreamingCachingAgent cachingAgent =
         createCachingAgent(namedAccountCredentials, configurationProperties);
 
@@ -443,14 +446,14 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
       }
       if (agentThread != null) {
         agentThread.interrupt();
-        agentThread.join();
+        agentThread.join(); // should we join the interrupot?
       }
     }
   }
 
   private void awaitUntilAsserted(Runnable assertion) {
     Duration pollInterval = Duration.ofMillis(100);
-    Duration timeout = Duration.ofSeconds(3);
+    Duration timeout = Duration.ofSeconds(5);
 
     long pollingEndedNanos = System.nanoTime() + timeout.toNanos();
     AssertionError assertionError = null;

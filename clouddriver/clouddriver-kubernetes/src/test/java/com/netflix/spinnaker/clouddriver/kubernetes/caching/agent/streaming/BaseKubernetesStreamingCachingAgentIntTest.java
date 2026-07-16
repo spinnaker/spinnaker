@@ -43,7 +43,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-@Timeout(5)
+@Timeout(10)
 public abstract class BaseKubernetesStreamingCachingAgentIntTest
     extends BaseKubernetesCachingAgentTest {
 

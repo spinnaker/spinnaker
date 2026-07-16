@@ -41,13 +41,10 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAcco
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import io.kubernetes.client.Discovery;
 import io.kubernetes.client.Discovery.APIResource;
-import io.kubernetes.client.common.KubernetesObject;
-import io.kubernetes.client.informer.SharedIndexInformer;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.ModelMapper;
-import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesApi;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -232,7 +229,9 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
             .setNameFormat("KubernetesStreamingCachingAgentExecutionThread-%d")
             .build();
     ExecutorService executorService = Executors.newCachedThreadPool(threadFactory);
-    KubernetesInformerFactory factory = new KubernetesInformerFactory(client, executorService);
+    KubernetesStreamingWatcherFactory factory =
+        new KubernetesStreamingWatcherFactory(
+            client, namedAccountCredentials.getCredentials().getAccountName(), executorService);
     State cachingState = new State(executorService, factory);
 
     BlockingQueue<KubernetesStreamingEvent> queue =
@@ -265,8 +264,15 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
                     processEvents(cachingState, (KubernetesStreamingCachingAgent) agent, batch)),
             executorService);
 
-    initInformers(agent, cachingState, k8sResources, client, queue);
-    factory.startAllRegisteredInformers();
+    initWatchers(
+        agent,
+        cachingState,
+        k8sResources,
+        client,
+        queue,
+        cachingProperties.getWatcherRetryTimeoutMillis(),
+        cachingProperties.getWatchTimeoutSeconds());
+    factory.startAllWatchers();
 
     cachingState.start();
     state.set(cachingState);
@@ -328,17 +334,19 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     }
   }
 
-  private void initInformers(
+  private void initWatchers(
       Agent agent,
       State cachingState,
       Set<APIResource> k8sResources,
       ApiClient client,
-      BlockingQueue<KubernetesStreamingEvent> queue) {
-    KubernetesInformerFactory factory = cachingState.getFactory();
+      BlockingQueue<KubernetesStreamingEvent> queue,
+      int watcherRetryTimeoutMillis,
+      int watchTimeoutSeconds) {
+    KubernetesStreamingWatcherFactory factory = cachingState.getFactory();
     String accountName = namedAccountCredentials.getCredentials().getAccountName();
 
     Map<KubernetesKind, APIResource> kindToResource = new HashMap<>();
-    int informerCount = 0;
+    int watcherCount = 0;
     for (APIResource resource : k8sResources) {
       String resourceKind = resource.getKind();
       if (resourceKind == null) {
@@ -363,19 +371,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
         continue;
       }
 
-      // support only preferred version now
-      // if you want to support all versions, you need to create a new informer for each version
-      // and somehow merge the results before deleting stale objects from the cache
-      DynamicKubernetesApi api =
-          new DynamicKubernetesApi(
-              apiResource.getGroup(),
-              apiResource.getPreferredVersion(),
-              apiResource.getResourcePlural(),
-              client);
-      KubernetesInformerCache<DynamicKubernetesObject> informerCache =
-          new KubernetesInformerCache<>();
-
-      List<InfrastructureCacheKey> existingPods =
+      Set<InfrastructureCacheKey> existingObjects =
           cache.getIdentifiers(kind.toString()).stream()
               .map(Keys::parseKey)
               .filter(Optional::isPresent)
@@ -383,49 +379,31 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
               .filter(key -> key instanceof InfrastructureCacheKey)
               .map(key -> (InfrastructureCacheKey) key)
               .filter(key -> accountName.equals(key.getAccount()))
-              .collect(Collectors.toList());
-      informerCache.loadFromPersistentCache(existingPods);
+              .collect(Collectors.toSet());
 
-      Class<? extends KubernetesObject> apiTypeClass =
-          (Class<? extends KubernetesObject>)
+      Class<DynamicKubernetesObject> apiTypeClass =
+          (Class<DynamicKubernetesObject>)
               ModelMapper.getApiTypeClass(
                   apiResource.getGroup(), apiResource.getPreferredVersion(), apiResource.getKind());
 
-      SharedIndexInformer<DynamicKubernetesObject> informer =
-          factory.sharedIndexInformerFor(
-              api,
-              apiTypeClass,
-              informerCache,
-              (clazz, th) -> {
-                log.error(
-                    "Unexpected exception in Kubernetes informer for account: {}, kind: {}. Exception: {}",
-                    accountName,
-                    kind,
-                    th.getMessage(),
-                    th);
-                registry
-                    .counter(
-                        METRIC_PREFIX + ".informerError",
-                        "account",
-                        accountName,
-                        "kind",
-                        kind.toString())
-                    .increment();
-              });
-      informer.addEventHandler(
-          new KubernetesStreamingWatcher(
-              cachingState,
-              apiResource.getKind(),
-              apiResource.getGroup(),
-              apiResource.getPreferredVersion(),
-              queue));
-      informerCount++;
+      factory.watcherFor(
+          apiTypeClass,
+          apiResource.getKind(),
+          apiResource.getGroup(),
+          apiResource.getPreferredVersion(),
+          apiResource.getResourcePlural(),
+          cachingState,
+          queue,
+          existingObjects,
+          watcherRetryTimeoutMillis,
+          watchTimeoutSeconds);
+      watcherCount++;
     }
 
     log.info(
-        "KubernetesStreaming caching agent {}: {} informers created",
+        "KubernetesStreaming caching agent {}: {} watchers created",
         agent.getAgentType(),
-        informerCount);
+        watcherCount);
   }
 
   private void processEvents(

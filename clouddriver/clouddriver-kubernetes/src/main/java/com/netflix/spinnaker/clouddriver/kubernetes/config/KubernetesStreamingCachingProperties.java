@@ -32,8 +32,11 @@ public class KubernetesStreamingCachingProperties {
   private int kubeapiDiscoveryRetryBackoffMillis = 1_000;
   private boolean kubeapiDiscoveryRetryExponential = false;
 
-  private int eventQueueCapacity = 100;
+  private int eventQueueCapacity = 1000;
   private int bulkedEventQueueCapacity = 100;
   private int bulkMaxEvents = 100;
   private int bulkMaxWaitMillis = 300;
+
+  private int watcherRetryTimeoutMillis = 1_000;
+  private int watchTimeoutSeconds = 60 * 5;
 }

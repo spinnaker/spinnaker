@@ -1,0 +1,29 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "1"
+  },
+  "items": [
+    {
+      "spec": {
+        "containers": [
+          {
+            "name": "my-pod-container",
+            "image": "my-pod-container-image:v1"
+          }
+        ]
+      }
+    },
+    {
+      "spec": {
+        "containers": [
+          {
+            "name": "my-pod-container",
+            "image": "my-pod-container-image:v1"
+          }
+        ]
+      }
+    }
+  ]
+}

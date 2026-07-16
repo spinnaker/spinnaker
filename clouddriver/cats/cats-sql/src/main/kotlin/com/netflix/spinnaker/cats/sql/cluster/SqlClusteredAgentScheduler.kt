@@ -287,15 +287,21 @@ class SqlClusteredAgentScheduler(
     log.debug("{} Long Running Agents filtered for node: {} with lock acquired", candidateAgentLocks.size, nodeIdentity.nodeIdentity)
 
     log.debug("Long Running Agents to be executed in {}: {}", nodeIdentity.nodeIdentity, candidateAgentLocks.keys)
-    candidateAgentLocks.forEach {
-      if ((it.value.execution as LongRunningAgentExecution).state == FAILED) {
+    val failedAgents = candidateAgentLocks.filter { (it.value.execution as LongRunningAgentExecution).state == FAILED }
+    val notRunning = candidateAgentLocks.filter { (it.value.execution as LongRunningAgentExecution).state == NOT_RUNNING }
+    if (!notRunning.isEmpty()) {
+      log.info("Long Running Agents not running in {}: {}", nodeIdentity.nodeIdentity, notRunning.keys)
+      notRunning.forEach {
+        agentExecutionPool.submit(it.value);
+      }
+    }
+    if (!failedAgents.isEmpty()) {
+      log.info("Long Running Agents failed in {}: {}", nodeIdentity.nodeIdentity, failedAgents.keys)
+      failedAgents.forEach {
         val longRunningExecution = (it.value.execution as LongRunningAgentExecution)
         longRunningExecution.stopExecutingAndCleanup()
           .orTimeout(longRunningExecution.stopTimeoutMillis, TimeUnit.MILLISECONDS)
           .whenComplete(BiConsumer<Void, Throwable> { res: Void?, ex: Throwable? -> agentExecutionPool.submit(it.value) })
-      }
-      else if ((it.value.execution as LongRunningAgentExecution).state == NOT_RUNNING) {
-        agentExecutionPool.submit(it.value);
       }
     }
   }
