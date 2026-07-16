@@ -29,6 +29,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureC
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
@@ -100,6 +102,10 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   protected abstract KubernetesCachingAgentFactory cachingAgentFactory();
 
+  protected KubernetesStreamingCachingAgentFactory streamingCachingAgentFactory() {
+    return KubernetesStreamingCachingAgent::new;
+  }
+
   public ImmutableSet<Artifact> listArtifacts(KubernetesManifest manifest) {
     return artifactReplacer.findAll(manifest);
   }
@@ -125,6 +131,19 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
             configurationProperties,
             kubernetesSpinnakerKindMap,
             front50ApplicationLoader);
+  }
+
+  public KubernetesStreamingCachingAgent buildStreamingCachingAgent(
+      KubernetesNamedAccountCredentials namedAccountCredentials,
+      KubernetesConfigurationProperties configurationProperties,
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
+    KubernetesStreamingCachingAgentFactory factory = streamingCachingAgentFactory();
+    return factory.buildCachingAgent(
+        namedAccountCredentials,
+        configurationProperties,
+        kubernetesSpinnakerKindMap,
+        front50ApplicationLoader);
   }
 
   // used for stripping sensitive values

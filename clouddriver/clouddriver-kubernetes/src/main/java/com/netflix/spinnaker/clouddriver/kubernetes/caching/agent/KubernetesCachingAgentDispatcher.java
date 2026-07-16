@@ -62,7 +62,7 @@ public class KubernetesCachingAgentDispatcher {
     this.front50ApplicationLoader = front50ApplicationLoader;
   }
 
-  public Collection<KubernetesCachingAgent> buildAllCachingAgents(
+  public Collection<AbstractKubernetesCachingAgent> buildAllCachingAgents(
       KubernetesNamedAccountCredentials credentials) {
 
     if (!configurationProperties.getCache().isEnabled()) {
@@ -71,36 +71,52 @@ public class KubernetesCachingAgentDispatcher {
     }
 
     KubernetesCredentials kubernetesCredentials = credentials.getCredentials();
-    List<KubernetesCachingAgent> result = new ArrayList<>();
+    List<AbstractKubernetesCachingAgent> result = new ArrayList<>();
     Long agentInterval =
         Optional.ofNullable(credentials.getCacheIntervalSeconds())
             .map(TimeUnit.SECONDS::toMillis)
             .orElse(null);
 
     ResourcePropertyRegistry propertyRegistry = kubernetesCredentials.getResourcePropertyRegistry();
+    boolean streamingCachingEnabled = credentials.getStreamingCaching().isEnabled();
 
-    IntStream.range(0, credentials.getCacheThreads())
-        .forEach(
-            i ->
-                propertyRegistry.values().stream()
-                    .map(KubernetesResourceProperties::getHandler)
-                    .map(
-                        h ->
-                            h.buildCachingAgent(
-                                credentials,
-                                objectMapper,
-                                registry,
-                                i,
-                                credentials.getCacheThreads(),
-                                agentInterval,
-                                configurationProperties,
-                                kubernetesSpinnakerKindMap,
-                                front50ApplicationLoader))
-                    .filter(Objects::nonNull)
-                    .forEach(result::add));
+    if (streamingCachingEnabled) {
+      propertyRegistry.values().stream()
+          .map(KubernetesResourceProperties::getHandler)
+          .map(
+              h ->
+                  h.buildStreamingCachingAgent(
+                      credentials,
+                      configurationProperties,
+                      kubernetesSpinnakerKindMap,
+                      front50ApplicationLoader))
+          .filter(Objects::nonNull)
+          .forEach(result::add);
+    } else {
+      IntStream.range(0, credentials.getCacheThreads())
+          .forEach(
+              i ->
+                  propertyRegistry.values().stream()
+                      .map(KubernetesResourceProperties::getHandler)
+                      .map(
+                          h ->
+                              h.buildCachingAgent(
+                                  credentials,
+                                  objectMapper,
+                                  registry,
+                                  i,
+                                  credentials.getCacheThreads(),
+                                  agentInterval,
+                                  configurationProperties,
+                                  kubernetesSpinnakerKindMap,
+                                  front50ApplicationLoader))
+                      .filter(Objects::nonNull)
+                      .forEach(result::add));
+    }
 
     return result.stream()
-        .collect(Collectors.toMap(KubernetesCachingAgent::getAgentType, c -> c, (a, b) -> b))
+        .collect(
+            Collectors.toMap(AbstractKubernetesCachingAgent::getAgentType, c -> c, (a, b) -> b))
         .values();
   }
 }

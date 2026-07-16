@@ -20,6 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security;
 import static lombok.EqualsAndHashCode.Include;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesStreamingCachingProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
@@ -52,6 +53,8 @@ public class KubernetesNamedAccountCredentials
 
   @Include private final Long cacheIntervalSeconds;
 
+  @Include private final KubernetesStreamingCachingProperties streamingCaching;
+
   public KubernetesNamedAccountCredentials(
       ManagedAccount managedAccount, KubernetesCredentials.Factory credentialFactory) {
     managedAccount.validate();
@@ -62,6 +65,7 @@ public class KubernetesNamedAccountCredentials
         Optional.ofNullable(managedAccount.getAccountType()).orElse(managedAccount.getName());
     this.cacheThreads = managedAccount.getCacheThreads();
     this.cacheIntervalSeconds = managedAccount.getCacheIntervalSeconds();
+    this.streamingCaching = managedAccount.getStreamingCaching();
 
     Permissions permissions = managedAccount.getPermissions().build();
     if (permissions.isRestricted()) {

@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.KubernetesProvider;
-import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.AbstractKubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentDispatcher;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
@@ -59,7 +59,7 @@ public class KubernetesCredentialsLifecycleHandler
           credentials.getName());
     }
 
-    Collection<KubernetesCachingAgent> newlyAddedAgents =
+    Collection<AbstractKubernetesCachingAgent> newlyAddedAgents =
         cachingAgentDispatcher.buildAllCachingAgents(credentials);
 
     log.info("Adding {} agents for new account {}", newlyAddedAgents.size(), credentials.getName());
@@ -76,7 +76,7 @@ public class KubernetesCredentialsLifecycleHandler
           credentials.getName());
     }
 
-    Collection<KubernetesCachingAgent> updatedAgents =
+    Collection<AbstractKubernetesCachingAgent> updatedAgents =
         cachingAgentDispatcher.buildAllCachingAgents(credentials);
 
     log.info(
