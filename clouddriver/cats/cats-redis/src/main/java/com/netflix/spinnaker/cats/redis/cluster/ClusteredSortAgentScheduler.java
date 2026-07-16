@@ -278,6 +278,15 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     }
 
     if (agentExecution instanceof LongRunningAgentExecution) {
+      AgentExecutionRunnable previous = longRunningAgents.get(agent.getAgentType());
+      if (previous != null) {
+        try {
+          ((LongRunningAgentExecution) previous.getExecution()).stopExecutingAndCleanup().join();
+        } catch (Exception e) {
+          log.warn("Failed to stop previous agent execution {}", agent.getAgentType(), e);
+        }
+      }
+
       longRunningAgents.put(
           agent.getAgentType(),
           new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation));

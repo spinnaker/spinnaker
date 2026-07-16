@@ -27,6 +27,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An AgentScheduler that executes on a fixed interval.
@@ -48,6 +50,7 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
   private final Map<Agent, Future> agentFutures = new ConcurrentHashMap<Agent, Future>();
   private final Map<Agent, AgentExecutionRunnable> longRunningExecutionRunnables =
       new ConcurrentHashMap<Agent, AgentExecutionRunnable>();
+  private final Logger log;
 
   public DefaultAgentScheduler() {
     this(DEFAULT_INTERVAL);
@@ -83,6 +86,7 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
     this.timeUnit = timeUnit;
     this.executorService = executorService;
     scheduledExecutorService.schedule(new LongRunningAgentRescheduleRunnable(), interval, timeUnit);
+    this.log = LoggerFactory.getLogger(DefaultAgentScheduler.class);
   }
 
   @Override
@@ -102,6 +106,15 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
       Agent agent,
       LongRunningAgentExecution agentExecution,
       ExecutionInstrumentation executionInstrumentation) {
+    AgentExecutionRunnable previous = longRunningExecutionRunnables.get(agent);
+    if (previous != null) {
+      try {
+        ((LongRunningAgentExecution) previous.getExecution()).stopExecutingAndCleanup().join();
+      } catch (Exception e) {
+        log.warn("Failed to stop previous agent execution {}", agent.getAgentType(), e);
+      }
+    }
+
     AgentExecutionRunnable runnable =
         new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation);
     longRunningExecutionRunnables.put(agent, runnable);
