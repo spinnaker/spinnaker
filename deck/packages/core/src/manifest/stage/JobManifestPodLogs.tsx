@@ -8,6 +8,7 @@ import { Button, Modal } from 'react-bootstrap';
 import type { IPodNameProvider } from '../PodNameProvider';
 import type { IInstanceConsoleOutput, IInstanceMultiOutputLog } from '../../instance/InstanceReader';
 import { InstanceReader } from '../../instance/InstanceReader';
+import { SETTINGS } from '../../config/settings';
 
 // IJobManifestPodLogs is the data needed to get logs
 export interface IJobManifestPodLogsProps {
@@ -23,11 +24,13 @@ export interface IJobManifestPodLogsState {
   selectedContainerLog: IInstanceMultiOutputLog;
   errorMessage: string;
   loadingLogs: boolean;
+  autoRefresh: boolean;
 }
 
 // JobManifestPodLogs exposes pod logs for Job type manifests in the deploy manifest stage
 export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps, IJobManifestPodLogsState> {
   private ansiUp: AnsiUp;
+  private autoRefreshTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(props: IJobManifestPodLogsProps) {
     super(props);
@@ -37,9 +40,14 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
       showModal: false,
       errorMessage: null,
       loadingLogs: false,
+      autoRefresh: false,
     };
-    bindAll(this, ['open', 'close', 'onClick']);
+    bindAll(this, ['open', 'close', 'onClick', 'refresh', 'toggleAutoRefresh']);
     this.ansiUp = new AnsiUp();
+  }
+
+  public componentWillUnmount() {
+    this.clearAutoRefreshTimer();
   }
 
   private canShow(): boolean {
@@ -56,14 +64,34 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
   }
 
   public close() {
-    this.setState({ showModal: false });
+    this.clearAutoRefreshTimer();
+    this.setState({ showModal: false, autoRefresh: false });
   }
 
   public open() {
     this.setState({ showModal: true });
   }
 
-  public onClick() {
+  private clearAutoRefreshTimer() {
+    if (this.autoRefreshTimer !== null) {
+      clearInterval(this.autoRefreshTimer);
+      this.autoRefreshTimer = null;
+    }
+  }
+
+  public toggleAutoRefresh() {
+    const { autoRefresh } = this.state;
+    if (autoRefresh) {
+      this.clearAutoRefreshTimer();
+      this.setState({ autoRefresh: false });
+    } else {
+      const interval = SETTINGS.consoleLogRefreshIntervalMs ?? 30000;
+      this.autoRefreshTimer = setInterval(this.refresh, interval);
+      this.setState({ autoRefresh: true });
+    }
+  }
+
+  public refresh() {
     const { account, podNamesProviders } = this.props;
     const region = this.resourceRegion();
 
@@ -86,17 +114,24 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
           tempLogs.push(...containerLogs);
         });
 
-        this.setState({
+        this.setState((prevState) => ({
           containerLogs: tempLogs,
-          selectedContainerLog: tempLogs[0],
+          selectedContainerLog:
+            prevState.selectedContainerLog
+              ? (tempLogs.find((l) => l.name === prevState.selectedContainerLog.name) ?? tempLogs[0])
+              : tempLogs[0],
           loadingLogs: false,
-        });
-        this.open();
+          errorMessage: null,
+        }));
       })
       .catch((exception: any) => {
-        this.setState({ errorMessage: exception.data.message });
-        this.open();
+        this.setState({ errorMessage: exception.data.message, loadingLogs: false });
       });
+  }
+
+  public onClick() {
+    this.refresh();
+    this.open();
   }
 
   public selectLog(log: IInstanceMultiOutputLog) {
@@ -104,7 +139,8 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
   }
 
   public render() {
-    const { showModal, containerLogs, errorMessage, selectedContainerLog } = this.state;
+    const { showModal, containerLogs, errorMessage, selectedContainerLog, loadingLogs, autoRefresh } = this.state;
+    const refreshInterval = SETTINGS.consoleLogRefreshIntervalMs ?? 30000;
     if (this.canShow()) {
       return (
         <div>
@@ -116,7 +152,12 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
               <Modal.Title>Console Output</Modal.Title>
             </Modal.Header>
             <Modal.Body className="flex-fill">
-              {containerLogs.length && (
+              {loadingLogs && (
+                <div className="horizontal center middle" style={{ padding: '10px' }}>
+                  <span className="glyphicon glyphicon-refresh glyphicon-spin" /> Loading logs...
+                </div>
+              )}
+              {!loadingLogs && containerLogs.length > 0 && (
                 <>
                   <ul className="tabs-basic console-output-tabs">
                     {containerLogs.map((log, i) => (
@@ -140,6 +181,16 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
               {errorMessage && <pre className="body-small">{errorMessage}</pre>}
             </Modal.Body>
             <Modal.Footer>
+              <Button onClick={this.refresh} disabled={loadingLogs}>
+                Refresh
+              </Button>
+              <Button
+                onClick={this.toggleAutoRefresh}
+                title={`Auto-refresh every ${refreshInterval / 1000}s`}
+                bsStyle={autoRefresh ? 'primary' : 'default'}
+              >
+                {autoRefresh ? 'Auto-Refresh: On' : 'Auto-Refresh: Off'}
+              </Button>
               <Button onClick={this.close}>Close</Button>
             </Modal.Footer>
           </Modal>

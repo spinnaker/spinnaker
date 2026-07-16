@@ -6,6 +6,7 @@ import type { IInstance } from '../../../domain';
 import type { IModalComponentProps } from '../../../presentation';
 import { ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { Spinner } from '../../../widgets';
+import { SETTINGS } from '../../../config/settings';
 
 import './ConsoleOutputModal.less';
 
@@ -16,6 +17,7 @@ export interface IConsoleOutputModalProps extends IModalComponentProps {
 
 export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: IConsoleOutputModalProps) => {
   const logContainerEnd = React.useRef(null);
+  const [autoRefresh, setAutoRefresh] = React.useState(false);
 
   const getConsoleOutput = () => {
     return InstanceReader.getConsoleOutput(instance.account, instance.region, instance.id, instance.provider);
@@ -27,6 +29,14 @@ export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: 
     (consoleOutputResponse?.output || [])[0] as IInstanceMultiOutputLog,
   );
   const loading = status === 'PENDING';
+
+  const refreshInterval = SETTINGS.consoleLogRefreshIntervalMs ?? 30000;
+
+  React.useEffect(() => {
+    if (!autoRefresh) return undefined;
+    const intervalId = setInterval(refreshLogs, refreshInterval);
+    return () => clearInterval(intervalId);
+  }, [autoRefresh, refreshLogs, refreshInterval]);
 
   const jumpToEnd = () => {
     logContainerEnd.current.scrollIntoView({ behavior: 'smooth' });
@@ -83,6 +93,15 @@ export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: 
             {consoleOutput && (
               <button className="btn btn-link" onClick={refreshLogs}>
                 Refresh
+              </button>
+            )}
+            {consoleOutput && (
+              <button
+                className={`btn btn-link ${autoRefresh ? 'active' : ''}`}
+                onClick={() => setAutoRefresh((prev) => !prev)}
+                title={`Auto-refresh every ${refreshInterval / 1000}s`}
+              >
+                {autoRefresh ? 'Auto-Refresh: On' : 'Auto-Refresh: Off'}
               </button>
             )}
             {consoleOutput && (
