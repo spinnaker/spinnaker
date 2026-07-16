@@ -85,6 +85,14 @@ angular
         $scope.stage.clusters = $scope.stage.clusters || [];
       }
 
+      function applyClusterUpdate(updateCluster) {
+        if ($scope.$root.$$phase) {
+          updateCluster();
+        } else {
+          $scope.$apply(updateCluster);
+        }
+      }
+
       this.getRegion = function (cluster) {
         if (cluster.region) {
           return cluster.region;
@@ -137,11 +145,13 @@ angular
           const config = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
 
           const handleResult = function (command) {
-            // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
-            command.provider = selectedProvider;
-            const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-            delete stageCluster.credentials;
-            $scope.stage.clusters.push(stageCluster);
+            applyClusterUpdate(() => {
+              // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
+              command.provider = selectedProvider;
+              const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+              delete stageCluster.credentials;
+              $scope.stage.clusters.push(stageCluster);
+            });
           };
 
           const title = 'Configure Deployment Cluster';
@@ -177,9 +187,11 @@ angular
         const providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
 
         const handleResult = function (command) {
-          const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-          delete stageCluster.credentials;
-          $scope.stage.clusters[index] = stageCluster;
+          applyClusterUpdate(() => {
+            const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+            delete stageCluster.credentials;
+            $scope.stage.clusters[index] = stageCluster;
+          });
         };
 
         const title = 'Configure Deployment Cluster';
