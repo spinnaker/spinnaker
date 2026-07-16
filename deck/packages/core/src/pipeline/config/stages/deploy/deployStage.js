@@ -80,6 +80,7 @@ angular
     'serverGroupTransformer',
     function ($injector, $scope, $uibModal, stage, serverGroupCommandBuilder, serverGroupTransformer) {
       $scope.stage = stage;
+      const subnetRenderers = {};
 
       function initializeCommand() {
         $scope.stage.clusters = $scope.stage.clusters || [];
@@ -124,7 +125,10 @@ angular
         const cloudProvider = cluster.cloudProvider || cluster.provider || cluster.providerType || 'aws';
         if (CloudProviderRegistry.hasValue(cloudProvider, 'subnet')) {
           const subnetRenderer = CloudProviderRegistry.getValue(cloudProvider, 'subnet').renderer;
-          if ($injector.has(subnetRenderer)) {
+          if (typeof subnetRenderer === 'function') {
+            subnetRenderers[cloudProvider] = subnetRenderers[cloudProvider] || new subnetRenderer();
+            return subnetRenderers[cloudProvider].render(cluster);
+          } else if ($injector.has(subnetRenderer)) {
             return $injector.get(subnetRenderer).render(cluster);
           } else {
             throw new Error('No "' + subnetRenderer + '" service found for provider "' + cloudProvider + '".');
