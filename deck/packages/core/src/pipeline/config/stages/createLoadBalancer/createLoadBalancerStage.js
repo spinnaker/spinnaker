@@ -54,6 +54,22 @@ angular
         $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
       }
 
+      function appendLoadBalancers(loadBalancers) {
+        if (Array.isArray(loadBalancers)) {
+          $scope.stage.loadBalancers.push(...loadBalancers);
+        } else if (loadBalancers) {
+          $scope.stage.loadBalancers.push(loadBalancers);
+        }
+      }
+
+      function updateLoadBalancerAtIndex(loadBalancer, index) {
+        if (Array.isArray(loadBalancer)) {
+          $scope.stage.loadBalancers.splice(index, 1, ...loadBalancer);
+        } else if (loadBalancer) {
+          $scope.stage.loadBalancers[index] = loadBalancer;
+        }
+      }
+
       this.addLoadBalancer = function () {
         ProviderSelectionService.selectProvider($scope.application, 'loadBalancer').then(function (selectedProvider) {
           const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
@@ -64,7 +80,7 @@ angular
             forPipelineConfig: true,
           })
             .then(function (newLoadBalancer) {
-              $scope.stage.loadBalancers.push(newLoadBalancer);
+              appendLoadBalancers(newLoadBalancer);
             })
             .catch(() => {});
         });
@@ -80,7 +96,7 @@ angular
             forPipelineConfig: true,
           })
             .then(function (updatedLoadBalancer) {
-              $scope.stage.loadBalancers[index] = updatedLoadBalancer;
+              updateLoadBalancerAtIndex(updatedLoadBalancer, index);
             })
             .catch(() => {});
         });
