@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
+import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
@@ -34,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.Nullable;
 
 @Slf4j
-public abstract class AbstractKubernetesCachingAgent implements Agent {
+public abstract class AbstractKubernetesCachingAgent implements Agent, AccountAware {
 
   public static final List<SpinnakerKind> SPINNAKER_UI_KINDS =
       Arrays.asList(

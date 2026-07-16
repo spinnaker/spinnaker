@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentIntervalAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
@@ -62,7 +61,7 @@ import org.springframework.lang.Nullable;
  * all) kubernetes kinds of that account.
  */
 public abstract class KubernetesCachingAgent extends AbstractKubernetesCachingAgent
-    implements AgentIntervalAware, CachingAgent, AccountAware {
+    implements AgentIntervalAware, CachingAgent {
   private static final Logger log = LoggerFactory.getLogger(KubernetesCachingAgent.class);
 
   @Getter @Nonnull protected final String accountName;

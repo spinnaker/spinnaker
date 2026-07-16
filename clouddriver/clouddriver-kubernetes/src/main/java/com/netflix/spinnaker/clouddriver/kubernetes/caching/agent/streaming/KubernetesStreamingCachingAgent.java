@@ -274,4 +274,9 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
     }
     return evictionsByKey;
   }
+
+  @Override
+  public String getAccountName() {
+    return namedAccountCredentials.getCredentials().getAccountName();
+  }
 }
