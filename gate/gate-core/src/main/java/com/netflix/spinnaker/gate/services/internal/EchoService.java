@@ -22,7 +22,7 @@ public interface EchoService {
 
   @Headers("Accept: application/json")
   @POST("webhooks/cdevents/{source}")
-  Call<ResponseEntity<Void>> webhooks(
+  Call<Map> webhooks(
       @Path("source") String source,
       @Body CloudEvent cdevent,
       @Header("Ce-Data") String ceDataJsonString,
