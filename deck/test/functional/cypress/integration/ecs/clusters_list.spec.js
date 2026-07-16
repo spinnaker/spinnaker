@@ -56,10 +56,10 @@ describe('Amazon ECS: aws-prod-ecsdemo cluster', () => {
       .get('a[title="f8757e00-184d-4288-b535-4124a739e7be"]')
       .click();
 
-    cy.get('.details-panel > .header')
-      .get('instance-details-header')
-      .get('.header-text')
-      .get('h3:contains("f8757e00-184d-4288-b535-4124a739e7be")');
+    cy.get('.details-panel > .header .InstanceDetailsHeader .header-text h3').should(
+      'contain.text',
+      'f8757e00-184d-4288-b535-4124a739e7be',
+    );
 
     cy.get('[data-test-id="instanceDetails.content"]')
       .get('.collapsible-section')

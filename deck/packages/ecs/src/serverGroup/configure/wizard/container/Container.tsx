@@ -141,6 +141,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
 
   private updateDockerRegistryAccount = (newAccount: Option<string>) => {
     const account = newAccount.value;
+    this.props.command.backingData.filtered.images = [];
     this.setState({ selectedDockerAccount: account, dockerImages: [] });
     DockerImageReader.findImages({ provider: 'dockerRegistry', account, count: 50 }).then((images) => {
       const ecsImages = images as IEcsDockerImage[];

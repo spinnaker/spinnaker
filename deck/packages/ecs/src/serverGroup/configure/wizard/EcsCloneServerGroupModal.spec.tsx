@@ -94,6 +94,9 @@ const renderCapacityProvider = (command: IEcsServerGroupCommand): ShallowWrapper
 
 describe('EcsCloneServerGroupModal', () => {
   beforeEach(() => {
+    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue({
+      cloneServerGroup: () => Promise.resolve(),
+    } as any);
     spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
       dismiss: jasmine.createSpy('dismiss'),
       result: Promise.resolve(),

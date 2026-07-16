@@ -48,6 +48,11 @@ describe('<EcsServerGroupActions />', () => {
 
   beforeEach(() => {
     AWSProviderSettings.adHocInfraWritesEnabled = true;
+    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue({
+      destroyServerGroup: () => Promise.resolve(),
+      disableServerGroup: () => Promise.resolve(),
+      enableServerGroup: () => Promise.resolve(),
+    } as any);
   });
 
   afterEach(() => {
