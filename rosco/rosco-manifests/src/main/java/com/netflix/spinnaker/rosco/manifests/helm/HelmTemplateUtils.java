@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfigurationProperties;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.rosco.jobs.BakeRecipe;
 import com.netflix.spinnaker.rosco.manifests.ArtifactDownloader;
 import com.netflix.spinnaker.rosco.manifests.BakeManifestEnvironment;
@@ -42,15 +43,18 @@ public class HelmTemplateUtils extends HelmBakeTemplateUtils<HelmBakeManifestReq
    * Dedicated ObjectMapper for YAML processing. This custom ObjectMapper ensures specialized
    * handling of YAML format, allowing distinct settings from the default JSON ObjectMapper.
    */
-  private final ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
+  private final ObjectMapper yamlObjectMapper;
 
   public HelmTemplateUtils(
       ArtifactDownloader artifactDownloader,
       Optional<ArtifactStore> artifactStore,
       ArtifactStoreConfigurationProperties artifactStoreProperties,
-      RoscoHelmConfigurationProperties helmConfigurationProperties) {
+      RoscoHelmConfigurationProperties helmConfigurationProperties,
+      YamlHelper yamlHelper) {
     super(artifactDownloader, artifactStore, artifactStoreProperties.getHelm());
     this.helmConfigurationProperties = helmConfigurationProperties;
+    this.yamlObjectMapper =
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build());
   }
 
   public BakeRecipe buildBakeRecipe(BakeManifestEnvironment env, HelmBakeManifestRequest request)
