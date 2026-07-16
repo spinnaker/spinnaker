@@ -17,6 +17,8 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.*
+import com.netflix.spinnaker.kork.yaml.YamlHelper
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -51,7 +53,7 @@ class V1SchemaIntegrationSpec extends Specification {
   ObjectMapper objectMapper = OrcaObjectMapper.newInstance()
   def oortService = Mock(OortService)
 
-  TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)], objectMapper, renderer)
+  TemplateLoader templateLoader = new TemplateLoader([new ResourceSchemeLoader("/integration/v1schema", objectMapper)], objectMapper, renderer, new YamlHelper(new YamlParserProperties()))
   V2TemplateLoader v2TemplateLoader = new V2TemplateLoader(oortService, objectMapper)
   ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 

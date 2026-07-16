@@ -21,6 +21,7 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
@@ -46,11 +47,12 @@ public class HttpTemplateSchemeLoader implements TemplateSchemeLoader {
   private final OkHttpClient okHttpClient;
 
   @Autowired
-  public HttpTemplateSchemeLoader(ObjectMapper pipelineTemplateObjectMapper) {
+  public HttpTemplateSchemeLoader(
+      ObjectMapper pipelineTemplateObjectMapper, YamlHelper yamlHelper) {
     this.jsonObjectMapper = pipelineTemplateObjectMapper;
 
     this.yamlObjectMapper =
-        new ObjectMapper(new YAMLFactory())
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
             .setConfig(jsonObjectMapper.getSerializationConfig())
             .setConfig(jsonObjectMapper.getDeserializationConfig());
 

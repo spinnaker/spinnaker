@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties;
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver;
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
@@ -45,7 +47,9 @@ final class CloudrunSourceServerGroupTaskTest {
 
   @BeforeEach
   void setUp() {
-    task = new CloudrunSourceServerGroupTask(sourceResolver);
+    task =
+        new CloudrunSourceServerGroupTask(
+            sourceResolver, new YamlHelper(new YamlParserProperties()));
   }
 
   @Test
