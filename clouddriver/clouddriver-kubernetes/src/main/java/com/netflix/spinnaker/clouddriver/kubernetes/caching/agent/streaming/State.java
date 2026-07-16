@@ -20,9 +20,22 @@ import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+@ToString(
+    of = {
+      "agentType",
+      "started",
+      "stopped",
+      "startTimeMillis",
+      "lastReceivedEventTimeMillis",
+      "lastProcessedEventBatchTimeMillis"
+    })
 class State {
 
+  private final String agentType;
   private final ExecutorService executorService;
   private final KubernetesStreamingWatcherFactory factory;
   private final AtomicLong lastReceivedEventTimeMillis = new AtomicLong();
@@ -31,11 +44,15 @@ class State {
   private volatile boolean started = false;
   private volatile boolean stopped = false;
 
-  State(ExecutorService executorService, KubernetesStreamingWatcherFactory factory) {
-    if (executorService == null || factory == null) {
-      throw new IllegalStateException("ExecutorService or factory is null");
+  State(
+      String agentType,
+      ExecutorService executorService,
+      KubernetesStreamingWatcherFactory factory) {
+    if (agentType == null || executorService == null || factory == null) {
+      throw new IllegalStateException("agentType, executorService and factory must not be null");
     }
 
+    this.agentType = agentType;
     this.executorService = executorService;
     this.factory = factory;
   }
@@ -63,11 +80,15 @@ class State {
 
   LongRunningAgentExecutionState getState(long readinessTimeoutMs, long livenessTimeoutMs) {
     if (!started) {
+      log.info("Streaming agent {} not started yet, returning NOT_RUNNING state", agentType);
       return LongRunningAgentExecutionState.NOT_RUNNING;
     }
 
     if (stopped) {
       if (executorService.isTerminated()) {
+        log.info(
+            "Streaming agent {} has stopped and executor service is terminated, returning NOT_RUNNING state",
+            agentType);
         return LongRunningAgentExecutionState.NOT_RUNNING;
       } else {
         return LongRunningAgentExecutionState.CLEANING_UP;

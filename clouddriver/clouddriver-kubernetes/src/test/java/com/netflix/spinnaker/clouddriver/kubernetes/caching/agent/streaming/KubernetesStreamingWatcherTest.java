@@ -62,7 +62,10 @@ class KubernetesStreamingWatcherTest {
     adapter = mock(K8SListWatchAdapter.class);
     Mockito.when(k8sClient.getReadTimeout()).thenReturn(0);
     state =
-        new State(executor, new KubernetesStreamingWatcherFactory(k8sClient, "account", executor));
+        new State(
+            "test-account",
+            executor,
+            new KubernetesStreamingWatcherFactory(k8sClient, "account", executor));
     eventQueue = new ArrayBlockingQueue<>(100);
     isRunning = mock(Supplier.class);
   }

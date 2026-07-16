@@ -36,7 +36,7 @@ class KubernetesStreamingCachingAgentStateTest {
   void setUp() {
     executor = Mockito.mock(ExecutorService.class);
     kubernetesWatcherFactory = Mockito.mock(KubernetesStreamingWatcherFactory.class);
-    state = new State(executor, kubernetesWatcherFactory);
+    state = new State("test-account", executor, kubernetesWatcherFactory);
   }
 
   @Test
