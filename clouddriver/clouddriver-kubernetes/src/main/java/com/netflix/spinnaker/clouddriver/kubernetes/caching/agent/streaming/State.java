@@ -62,6 +62,7 @@ class State {
       throw new IllegalStateException("Already started");
     }
     started = true;
+    log.info("Started streaming agent {}", agentType);
   }
 
   boolean stopAndWait(long timeoutMs) throws InterruptedException {
@@ -104,12 +105,32 @@ class State {
     if (lastProcessedEventBatchTimeMillis.get() + livenessTimeoutMs > now) {
       return LongRunningAgentExecutionState.RUNNING;
     } else {
+      log.warn(
+          "Streaming agent {} FAILED liveness check. "
+              + "Last processed batch: {} ago (limit: {}ms), "
+              + "Last received event: {} ago, "
+              + "Agent age: {}ms. ",
+          agentType,
+          lastProcessedEventBatchTimeMillis.get() > 0
+              ? (now - lastProcessedEventBatchTimeMillis.get()) + "ms"
+              : "NOT PROCESSED",
+          livenessTimeoutMs,
+          lastReceivedEventTimeMillis.get() > 0
+              ? (now - lastReceivedEventTimeMillis.get()) + "ms"
+              : "NOT PROCESSED",
+          now - startTimeMillis);
       return LongRunningAgentExecutionState.FAILED;
     }
   }
 
   void updateLastReceivedEventTime() {
     long now = System.currentTimeMillis();
+    if (lastReceivedEventTimeMillis.get() == 0) {
+      log.info(
+          "Streaming agent {}: FIRST event received ({}ms after start).",
+          agentType,
+          now - startTimeMillis);
+    }
     lastReceivedEventTimeMillis.set(now);
   }
 
@@ -119,7 +140,14 @@ class State {
 
   void updateLastProcessedEventBatchTime() {
     long now = System.currentTimeMillis();
+    boolean isFirstBatch = lastProcessedEventBatchTimeMillis.get() == 0;
     lastProcessedEventBatchTimeMillis.set(now);
+    if (isFirstBatch) {
+      log.info(
+          "Streaming agent {}: FIRST batch processed ({}ms after start).",
+          agentType,
+          now - startTimeMillis);
+    }
   }
 
   long getLastProcessedEventBatchTime() {

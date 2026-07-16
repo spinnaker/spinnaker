@@ -323,7 +323,7 @@ class SqlClusteredAgentScheduler(
       }
     }
     if (!failedAgents.isEmpty()) {
-      log.info("Long Running Agents failed in {}: {}", nodeIdentity.nodeIdentity, failedAgents.keys)
+      log.warn("Long Running Agents failed in {}: {}", nodeIdentity.nodeIdentity, failedAgents.keys)
       failedAgents.forEach {
         val longRunningExecution = (it.value.execution as LongRunningAgentExecution)
         longRunningExecution.stopExecutingAndCleanup()

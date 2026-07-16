@@ -132,6 +132,11 @@ public class KubernetesStreamingWatcher implements Runnable {
     while (isRunning.get()) {
       try {
         try (StartupConcurrencyPermit permit = concurrencyControl.acquire()) {
+          log.info(
+              "{}:{}:: Starting initial syncList (resourceVersion: {})",
+              account,
+              watcherId(),
+              lastSyncResourceVersion);
           syncList();
         }
 
