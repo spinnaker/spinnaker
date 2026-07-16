@@ -1,130 +1,125 @@
-'use strict';
-
-import { module } from 'angular';
 import _ from 'lodash';
 import { $log } from 'ngimport';
 
 import { OrchestratedItemTransformer } from '@spinnaker/core';
 
-export const CANARY_CANARY_CANARYSTAGE_TRANSFORMER = 'spinnaker.canary.transformer';
-export const name = CANARY_CANARY_CANARYSTAGE_TRANSFORMER; // for backwards compatibility
-module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransformer', function () {
-  // adds "canary" or "baseline" to the deploy stage name when converting it to a task
-  function getDeployTaskName(stage) {
-    if (stage.context.freeFormDetails) {
-      const nameParts = stage.name.split(' ');
-      if (_.endsWith(stage.context.freeFormDetails, 'canary')) {
-        nameParts.splice(1, 0, 'canary');
-      } else {
-        nameParts.splice(1, 0, 'baseline');
+// adds "canary" or "baseline" to the deploy stage name when converting it to a task
+function getDeployTaskName(stage) {
+  if (stage.context.freeFormDetails) {
+    const nameParts = stage.name.split(' ');
+    if (_.endsWith(stage.context.freeFormDetails, 'canary')) {
+      nameParts.splice(1, 0, 'canary');
+    } else {
+      nameParts.splice(1, 0, 'baseline');
+    }
+    return nameParts.join(' ');
+  }
+  return stage.name;
+}
+
+function getException(stage) {
+  OrchestratedItemTransformer.defineProperties(stage);
+  if (stage.isFailed && _.has(stage, 'context.canary.canaryResult')) {
+    const result = stage.context.canary.canaryResult;
+    if (result.overallResult === 'FAILURE' && result.message) {
+      return `Canary terminated by user. Reason: ${result.message}`;
+    }
+  }
+
+  const exception = stage.context.exception;
+  if (exception && exception.details && exception.details.errors && exception.details.errors.length) {
+    return exception.details.errors.join(', ');
+  }
+
+  return stage.isFailed ? stage.failureMessage : null;
+}
+
+function buildCanaryDeploymentsFromClusterPairs(stage) {
+  return _.map(stage.context.clusterPairs, function (pair) {
+    const name = function (cluster) {
+      const parts = [cluster.application];
+      if (cluster.stack) {
+        parts.push(cluster.stack);
+      } else if (cluster.freeFormDetails) {
+        parts.push('');
       }
-      return nameParts.join(' ');
-    }
-    return stage.name;
-  }
-
-  function getException(stage) {
-    OrchestratedItemTransformer.defineProperties(stage);
-    if (stage.isFailed && _.has(stage, 'context.canary.canaryResult')) {
-      const result = stage.context.canary.canaryResult;
-      if (result.overallResult === 'FAILURE' && result.message) {
-        return `Canary terminated by user. Reason: ${result.message}`;
+      if (cluster.freeFormDetails) {
+        parts.push(cluster.freeFormDetails);
       }
-    }
-
-    const exception = stage.context.exception;
-    if (exception && exception.details && exception.details.errors && exception.details.errors.length) {
-      return exception.details.errors.join(', ');
-    }
-
-    return stage.isFailed ? stage.failureMessage : null;
-  }
-
-  function buildCanaryDeploymentsFromClusterPairs(stage) {
-    return _.map(stage.context.clusterPairs, function (pair) {
-      const name = function (cluster) {
-        const parts = [cluster.application];
-        if (cluster.stack) {
-          parts.push(cluster.stack);
-        } else if (cluster.freeFormDetails) {
-          parts.push('');
-        }
-        if (cluster.freeFormDetails) {
-          parts.push(cluster.freeFormDetails);
-        }
-        return parts.join('-');
-      };
-      const region = function (cluster) {
-        return _.head(_.keys(cluster.availabilityZones));
-      };
-      return {
-        canaryCluster: {
-          accountName: pair.canary.account,
-          imageId: null,
-          buildId: null,
-          name: name(pair.canary),
-          region: region(pair.canary),
-          type: 'aws',
-        },
-        baselineCluster: {
-          accountName: pair.baseline.account,
-          imageId: pair.baseline.amiName,
-          buildId: pair.baseline.buildUrl,
-          name: name(pair.baseline),
-          region: region(pair.baseline),
-          type: 'aws',
-        },
-      };
-    });
-  }
-
-  function extractBuild(cluster) {
-    cluster.build = cluster.build || {};
-    if (cluster.buildId) {
-      const parts = cluster.buildId.split('/');
-      parts.pop();
-      cluster.build.url = cluster.buildId;
-      cluster.build.number = parts.pop();
-    }
-  }
-
-  function createSyntheticCanaryDeploymentStage(
-    stage,
-    deployment,
-    status,
-    deployParent,
-    deploymentEndTime,
-    canaryDeploymentId,
-    execution,
-  ) {
+      return parts.join('-');
+    };
+    const region = function (cluster) {
+      return _.head(_.keys(cluster.availabilityZones));
+    };
     return {
-      parentStageId: stage.id,
-      syntheticStageOwner: 'STAGE_AFTER',
-      id: stage.id + '-' + deployment.id,
-      type: 'canaryDeployment',
-      name: deployment.canaryCluster.region,
-      status: status,
-      startTime: deployParent.startTime,
-      endTime: deploymentEndTime,
-      context: {
-        commits: deployment.commits,
-        canaryDeploymentId: canaryDeploymentId,
-        application: stage.context.canary.application || execution.application,
-        canaryCluster: deployment.canaryCluster,
-        baselineCluster: deployment.baselineCluster,
-        canaryResult: deployment.canaryResult,
-        status: {
-          reportUrl: deployment.canaryResult.canaryReportURL,
-          score: deployment.canaryResult.score,
-          result: deployment.canaryResult.result,
-          duration: deployment.canaryResult.timeDuration,
-          health: deployment.health ? deployment.health.health : '',
-        },
+      canaryCluster: {
+        accountName: pair.canary.account,
+        imageId: null,
+        buildId: null,
+        name: name(pair.canary),
+        region: region(pair.canary),
+        type: 'aws',
+      },
+      baselineCluster: {
+        accountName: pair.baseline.account,
+        imageId: pair.baseline.amiName,
+        buildId: pair.baseline.buildUrl,
+        name: name(pair.baseline),
+        region: region(pair.baseline),
+        type: 'aws',
       },
     };
-  }
+  });
+}
 
-  this.transform = function (application, execution) {
+function extractBuild(cluster) {
+  cluster.build = cluster.build || {};
+  if (cluster.buildId) {
+    const parts = cluster.buildId.split('/');
+    parts.pop();
+    cluster.build.url = cluster.buildId;
+    cluster.build.number = parts.pop();
+  }
+}
+
+function createSyntheticCanaryDeploymentStage(
+  stage,
+  deployment,
+  status,
+  deployParent,
+  deploymentEndTime,
+  canaryDeploymentId,
+  execution,
+) {
+  return {
+    parentStageId: stage.id,
+    syntheticStageOwner: 'STAGE_AFTER',
+    id: stage.id + '-' + deployment.id,
+    type: 'canaryDeployment',
+    name: deployment.canaryCluster.region,
+    status: status,
+    startTime: deployParent.startTime,
+    endTime: deploymentEndTime,
+    context: {
+      commits: deployment.commits,
+      canaryDeploymentId: canaryDeploymentId,
+      application: stage.context.canary.application || execution.application,
+      canaryCluster: deployment.canaryCluster,
+      baselineCluster: deployment.baselineCluster,
+      canaryResult: deployment.canaryResult,
+      status: {
+        reportUrl: deployment.canaryResult.canaryReportURL,
+        score: deployment.canaryResult.score,
+        result: deployment.canaryResult.result,
+        duration: deployment.canaryResult.timeDuration,
+        health: deployment.health ? deployment.health.health : '',
+      },
+    },
+  };
+}
+
+export const canaryStageTransformer = {
+  transform: function (application, execution) {
     const syntheticStagesToAdd = [];
     if (!execution.hydrated) {
       // don't bother trying to transform if it isn't hydrated
@@ -334,5 +329,5 @@ module(CANARY_CANARY_CANARYSTAGE_TRANSFORMER, []).service('canaryStageTransforme
       }
     });
     execution.stages = execution.stages.concat(syntheticStagesToAdd);
-  };
-});
+  },
+};
