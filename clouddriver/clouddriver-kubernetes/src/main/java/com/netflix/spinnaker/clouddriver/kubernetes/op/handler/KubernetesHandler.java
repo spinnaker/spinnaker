@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.Replacer;
@@ -138,14 +139,16 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
-      Registry registry) {
+      Registry registry,
+      StartupConcurrencyControl concurrencyControl) {
     KubernetesStreamingCachingAgentFactory factory = streamingCachingAgentFactory();
     return factory.buildCachingAgent(
         namedAccountCredentials,
         configurationProperties,
         kubernetesSpinnakerKindMap,
         front50ApplicationLoader,
-        registry);
+        registry,
+        concurrencyControl);
   }
 
   // used for stripping sensitive values

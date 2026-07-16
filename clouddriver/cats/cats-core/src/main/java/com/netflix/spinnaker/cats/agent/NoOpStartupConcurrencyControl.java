@@ -16,14 +16,24 @@
 
 package com.netflix.spinnaker.cats.agent;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 
-public interface LongRunningAgentExecution extends AgentExecution {
-  StartupConcurrencyControl getConcurrencyControl();
+public class NoOpStartupConcurrencyControl implements StartupConcurrencyControl {
+  private static final StartupConcurrencyPermit NO_OP_PERMIT =
+      new NoOpStartupConcurrencyControlPermit();
 
-  LongRunningAgentExecutionState getState();
+  @Override
+  public StartupConcurrencyPermit acquire() {
+    return NO_OP_PERMIT;
+  }
 
-  long getStopTimeoutMillis();
+  @Override
+  public Optional<StartupConcurrencyPermit> acquire(long timeoutMillis) {
+    return Optional.of(NO_OP_PERMIT);
+  }
+}
 
-  CompletableFuture<Void> stopExecutingAndCleanup();
+class NoOpStartupConcurrencyControlPermit implements StartupConcurrencyPermit {
+  @Override
+  public void close() {}
 }

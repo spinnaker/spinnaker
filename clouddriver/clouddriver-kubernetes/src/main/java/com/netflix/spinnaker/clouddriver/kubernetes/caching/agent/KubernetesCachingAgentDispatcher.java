@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesResourceProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
@@ -47,6 +48,7 @@ public class KubernetesCachingAgentDispatcher {
   private final KubernetesConfigurationProperties configurationProperties;
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   @Nullable private final Front50ApplicationLoader front50ApplicationLoader;
+  private final StartupConcurrencyControl concurrencyControl;
 
   @Autowired
   public KubernetesCachingAgentDispatcher(
@@ -54,12 +56,14 @@ public class KubernetesCachingAgentDispatcher {
       Registry registry,
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
-      @Nullable Front50ApplicationLoader front50ApplicationLoader) {
+      @Nullable Front50ApplicationLoader front50ApplicationLoader,
+      StartupConcurrencyControl concurrencyControl) {
     this.objectMapper = objectMapper;
     this.registry = registry;
     this.configurationProperties = configurationProperties;
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
     this.front50ApplicationLoader = front50ApplicationLoader;
+    this.concurrencyControl = concurrencyControl;
   }
 
   public Collection<AbstractKubernetesCachingAgent> buildAllCachingAgents(
@@ -90,7 +94,8 @@ public class KubernetesCachingAgentDispatcher {
                       configurationProperties,
                       kubernetesSpinnakerKindMap,
                       front50ApplicationLoader,
-                      registry))
+                      registry,
+                      concurrencyControl))
           .filter(Objects::nonNull)
           .forEach(result::add);
     } else {

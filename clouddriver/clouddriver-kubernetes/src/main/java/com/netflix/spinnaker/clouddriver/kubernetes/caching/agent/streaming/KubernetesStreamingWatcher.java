@@ -19,6 +19,8 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.K8SListWatchAdapter.RESOURCE_VERSION_LIST_ALL;
 import static com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.K8SListWatchAdapter.RESOURCE_VERSION_USE_FROM_CACHE;
 
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyPermit;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCacheDataConverter;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingEvent.Type;
@@ -62,6 +64,7 @@ public class KubernetesStreamingWatcher implements Runnable {
   private final int retryTimeoutMillis;
   private final int watchTimeoutSeconds;
   private final K8SListWatchAdapter adapter;
+  private final StartupConcurrencyControl concurrencyControl;
   private String lastSyncResourceVersion = RESOURCE_VERSION_USE_FROM_CACHE;
 
   public KubernetesStreamingWatcher(
@@ -74,7 +77,8 @@ public class KubernetesStreamingWatcher implements Runnable {
       BlockingQueue<KubernetesStreamingEvent> eventQueue,
       Set<Keys.InfrastructureCacheKey> initialKnownKeys,
       int retryTimeoutMillis,
-      int watchTimeoutSeconds) {
+      int watchTimeoutSeconds,
+      StartupConcurrencyControl concurrencyControl) {
     this(
         adapter,
         state,
@@ -86,6 +90,7 @@ public class KubernetesStreamingWatcher implements Runnable {
         initialKnownKeys,
         retryTimeoutMillis,
         watchTimeoutSeconds,
+        concurrencyControl,
         () -> !Thread.currentThread().isInterrupted());
   }
 
@@ -100,6 +105,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       Set<Keys.InfrastructureCacheKey> initialKnownKeys,
       int retryTimeoutMillis,
       int watchTimeoutSeconds,
+      StartupConcurrencyControl concurrencyControl,
       Supplier<Boolean> isRunning) {
     this.adapter = adapter;
     this.state = state;
@@ -113,14 +119,16 @@ public class KubernetesStreamingWatcher implements Runnable {
             .collect(Collectors.toSet());
     this.retryTimeoutMillis = retryTimeoutMillis;
     this.watchTimeoutSeconds = watchTimeoutSeconds;
+    this.concurrencyControl = concurrencyControl;
     this.isRunning = isRunning;
   }
 
   public void run() {
     while (isRunning.get()) {
       try {
-
-        this.lastSyncResourceVersion = syncList();
+        try (StartupConcurrencyPermit permit = concurrencyControl.acquire()) {
+          this.lastSyncResourceVersion = syncList();
+        }
 
         boolean watchActive = true;
         while (isRunning.get() && watchActive) {
@@ -185,6 +193,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       }
 
       eventQueue.put(new KubernetesStreamingEvent(Type.UPSERT, manifest));
+      state.updateLastReceivedEventTime();
     }
 
     log.debug("{}:{}:: List resulted in {} UPSERTS", account, watcherId(), seenKeys.size());

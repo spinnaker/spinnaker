@@ -27,6 +27,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -89,17 +90,20 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
   private final Counter batchesProcessed;
   private final Timer batchProcessingTime;
   private final Timer cacheSaveTime;
+  private final StartupConcurrencyControl concurrencyControl;
 
   public KubernetesStreamingCachingAgentExecution(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ProviderCache cache,
       List<KubernetesKind> kubernetesKinds,
-      Registry registry) {
+      Registry registry,
+      StartupConcurrencyControl concurrencyControl) {
     this.namedAccountCredentials = namedAccountCredentials;
     this.cache = cache;
     this.kubernetesKinds = kubernetesKinds;
     this.cachingProperties = namedAccountCredentials.getStreamingCaching();
     this.registry = registry;
+    this.concurrencyControl = concurrencyControl;
 
     String account = namedAccountCredentials.getCredentials().getAccountName();
     this.queueSize =
@@ -129,6 +133,11 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     this.cacheSaveTime = registry.timer(METRIC_PREFIX + ".cacheSaveTime", "account", account);
     this.batchProcessingTime =
         registry.timer(METRIC_PREFIX + ".batchProcessingTime", "account", account);
+  }
+
+  @Override
+  public StartupConcurrencyControl getConcurrencyControl() {
+    return concurrencyControl;
   }
 
   @Override
@@ -263,7 +272,10 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     ExecutorService executorService = Executors.newCachedThreadPool(threadFactory);
     KubernetesStreamingWatcherFactory factory =
         new KubernetesStreamingWatcherFactory(
-            client, namedAccountCredentials.getCredentials().getAccountName(), executorService);
+            client,
+            namedAccountCredentials.getCredentials().getAccountName(),
+            executorService,
+            concurrencyControl);
     State cachingState = new State(agent.getAgentType(), executorService, factory);
 
     BlockingQueue<KubernetesStreamingEvent> queue =

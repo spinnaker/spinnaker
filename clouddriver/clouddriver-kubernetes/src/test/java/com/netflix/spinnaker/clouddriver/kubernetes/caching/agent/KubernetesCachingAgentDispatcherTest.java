@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesStreamingCachingProperties;
@@ -51,7 +52,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new NoopRegistry(),
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
-            null);
+            null,
+            new NoOpStartupConcurrencyControl());
     KubernetesNamedAccountCredentials creds = mockCredentials(1, streaming);
     Collection<AbstractKubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 
@@ -69,7 +71,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new NoopRegistry(),
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
-            null);
+            null,
+            new NoOpStartupConcurrencyControl());
     KubernetesNamedAccountCredentials creds = mockCredentials(2, streaming);
     Collection<AbstractKubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 
@@ -89,7 +92,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new NoopRegistry(),
             configProperties,
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
-            null);
+            null,
+            new NoOpStartupConcurrencyControl());
     KubernetesNamedAccountCredentials creds = mockCredentials(2, streaming);
     Collection<AbstractKubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 

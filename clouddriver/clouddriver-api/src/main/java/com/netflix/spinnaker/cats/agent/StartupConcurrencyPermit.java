@@ -16,14 +16,12 @@
 
 package com.netflix.spinnaker.cats.agent;
 
-import java.util.concurrent.CompletableFuture;
-
-public interface LongRunningAgentExecution extends AgentExecution {
-  StartupConcurrencyControl getConcurrencyControl();
-
-  LongRunningAgentExecutionState getState();
-
-  long getStopTimeoutMillis();
-
-  CompletableFuture<Void> stopExecutingAndCleanup();
+/**
+ * Objects implementing this interface signal that a Long running agent have acquired the permission
+ * to run a costly operation. You can release the acquired permission by calling `close`. It should
+ * also be noted that it is advised to use this object in try-with-resource statements to avoid
+ * boilerplate code.
+ */
+public interface StartupConcurrencyPermit extends AutoCloseable {
+  void close();
 }

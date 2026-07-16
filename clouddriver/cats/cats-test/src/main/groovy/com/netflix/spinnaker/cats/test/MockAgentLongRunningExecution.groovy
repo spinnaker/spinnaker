@@ -20,6 +20,8 @@ package com.netflix.spinnaker.cats.test
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -38,6 +40,11 @@ class MockAgentLongRunningExecution implements LongRunningAgentExecution{
 
   void setStopDelay(long stopDelay) {
     this.stopDelay = stopDelay
+  }
+
+  @Override
+  StartupConcurrencyControl getConcurrencyControl() {
+    return new NoOpStartupConcurrencyControl()
   }
 
   LongRunningAgentExecutionState getState() {

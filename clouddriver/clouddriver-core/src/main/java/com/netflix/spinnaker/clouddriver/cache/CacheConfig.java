@@ -21,6 +21,9 @@ import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
+import com.netflix.spinnaker.cats.agent.SemaphoreStartupConcurrencyControl;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory;
@@ -69,6 +72,19 @@ public class CacheConfig {
     return (agent, agentExecution, executionInstrumentation) -> {
       // do nothing
     };
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "caching.streaming.startupConcurrency", havingValue = "0")
+  StartupConcurrencyControl noOpStartupConcurrencyControl() {
+    return new NoOpStartupConcurrencyControl();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "caching.streaming.startupConcurrency", matchIfMissing = true)
+  StartupConcurrencyControl semaphoreStartupConcurrencyControl(
+      @Value("${caching.streaming.startupConcurrency:#{2}}") int concurrencyLimit) {
+    return new SemaphoreStartupConcurrencyControl(concurrencyLimit);
   }
 
   @Bean

@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.google.gson.JsonParser;
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -65,7 +66,8 @@ class KubernetesStreamingWatcherTest {
         new State(
             "test-account",
             executor,
-            new KubernetesStreamingWatcherFactory(k8sClient, "account", executor));
+            new KubernetesStreamingWatcherFactory(
+                k8sClient, "account", executor, new NoOpStartupConcurrencyControl()));
     eventQueue = new ArrayBlockingQueue<>(100);
     isRunning = mock(Supplier.class);
   }
@@ -174,6 +176,7 @@ class KubernetesStreamingWatcherTest {
         knownKeys,
         1000,
         60 * 5,
+        new NoOpStartupConcurrencyControl(),
         isRunning);
   }
 }

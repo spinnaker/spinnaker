@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
@@ -29,5 +30,6 @@ public interface KubernetesStreamingCachingAgentFactory {
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
-      Registry registry);
+      Registry registry,
+      StartupConcurrencyControl concurrencyControl);
 }

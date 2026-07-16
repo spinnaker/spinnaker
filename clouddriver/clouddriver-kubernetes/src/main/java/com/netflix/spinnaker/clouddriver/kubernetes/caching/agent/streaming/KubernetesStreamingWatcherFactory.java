@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import com.google.gson.reflect.TypeToken;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
@@ -35,14 +36,19 @@ public class KubernetesStreamingWatcherFactory {
   private final Map<Type, KubernetesStreamingWatcher> watchers;
   private final Map<KubernetesStreamingWatcher, Future> watchersFutures;
   private final String account;
+  private final StartupConcurrencyControl concurrencyControl;
 
   public KubernetesStreamingWatcherFactory(
-      ApiClient apiClient, String account, ExecutorService threadPool) {
+      ApiClient apiClient,
+      String account,
+      ExecutorService threadPool,
+      StartupConcurrencyControl concurrencyControl) {
     this.threadPool = threadPool;
     this.apiClient = apiClient;
     this.account = account;
     this.watchers = new ConcurrentHashMap<>();
     this.watchersFutures = new ConcurrentHashMap<>();
+    this.concurrencyControl = concurrencyControl;
   }
 
   public KubernetesStreamingWatcher watcherFor(
@@ -73,7 +79,8 @@ public class KubernetesStreamingWatcherFactory {
             queue,
             knownKeys,
             watcherRetryTimeoutMillis,
-            watchTimeoutSeconds);
+            watchTimeoutSeconds,
+            concurrencyControl);
 
     this.watchers.putIfAbsent(apiType, watcher);
     return watcher;

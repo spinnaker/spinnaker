@@ -22,6 +22,7 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ApplicationCacheKey;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.ClusterCacheKey;
@@ -382,6 +383,7 @@ class KubernetesStreamingCachingAgentTest extends BaseKubernetesCachingAgentTest
         configurationProperties,
         kubernetesSpinnakerKindMap,
         null,
-        new NoopRegistry());
+        new NoopRegistry(),
+        new NoOpStartupConcurrencyControl());
   }
 }

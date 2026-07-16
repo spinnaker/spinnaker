@@ -31,6 +31,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
@@ -493,6 +494,7 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
         configurationProperties,
         kubernetesSpinnakerKindMap,
         null,
-        new NoopRegistry());
+        new NoopRegistry(),
+        new NoOpStartupConcurrencyControl());
   }
 }

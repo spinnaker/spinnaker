@@ -27,6 +27,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
@@ -69,13 +70,15 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
   private final Registry registry;
 
   private final Timer elapsedTime;
+  private final StartupConcurrencyControl concurrencyControl;
 
   public KubernetesStreamingCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
-      Registry registry) {
+      Registry registry,
+      StartupConcurrencyControl concurrencyControl) {
     super(configurationProperties, kubernetesSpinnakerKindMap, front50ApplicationLoader);
     this.namedAccountCredentials = namedAccountCredentials;
     this.registry = registry;
@@ -88,6 +91,7 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
             });
 
     String account = namedAccountCredentials.getCredentials().getAccountName();
+    this.concurrencyControl = concurrencyControl;
     this.elapsedTime = registry.timer(METRIC_PREFIX + "elapsedTime", "account", account);
   }
 
@@ -139,7 +143,7 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
     ProviderCache cache = providerRegistry.getProviderCache(getProviderName());
     List<KubernetesKind> kubernetesKinds = filteredPrimaryKinds();
     return new KubernetesStreamingCachingAgentExecution(
-        namedAccountCredentials, cache, kubernetesKinds, registry);
+        namedAccountCredentials, cache, kubernetesKinds, registry, concurrencyControl);
   }
 
   /**
