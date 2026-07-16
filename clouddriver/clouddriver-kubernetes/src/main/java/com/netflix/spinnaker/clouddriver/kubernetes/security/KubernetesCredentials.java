@@ -131,6 +131,8 @@ public class KubernetesCredentials {
 
   @Include @Getter private final boolean debug;
 
+  @Getter private final String server;
+
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
   private final KubernetesKindRegistry kindRegistry;
   @Getter private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
@@ -150,6 +152,7 @@ public class KubernetesCredentials {
       KubernetesKindRegistry.Factory kindRegistryFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       String kubeconfigFile,
+      String server,
       Namer<KubernetesManifest> manifestNamer,
       GlobalResourcePropertyRegistry globalResourcePropertyRegistry) {
     this.registry = registry;
@@ -192,6 +195,7 @@ public class KubernetesCredentials {
     this.kubeconfigFileHash = KubeconfigFileHasher.hashKubeconfigFile(kubeconfigFile);
     this.serviceAccount = managedAccount.isServiceAccount();
     this.context = managedAccount.getContext();
+    this.server = server;
 
     this.onlySpinnakerManaged = managedAccount.isOnlySpinnakerManaged();
     this.checkPermissionsOnStartup = managedAccount.isCheckPermissionsOnStartup();
@@ -828,6 +832,7 @@ public class KubernetesCredentials {
           kindRegistryFactory,
           kubernetesSpinnakerKindMap,
           getKubeconfigFile(configFileService, managedAccount),
+          getServer(managedAccount),
           manifestNamer,
           globalResourcePropertyRegistry);
     }
@@ -843,6 +848,13 @@ public class KubernetesCredentials {
             managedAccount.getKubeconfigContents(), managedAccount.getName());
       }
 
+      return "";
+    }
+
+    private String getServer(ManagedAccount managedAccount) {
+      if (StringUtils.isNotEmpty(managedAccount.getServer())) {
+        return managedAccount.getServer();
+      }
       return "";
     }
   }

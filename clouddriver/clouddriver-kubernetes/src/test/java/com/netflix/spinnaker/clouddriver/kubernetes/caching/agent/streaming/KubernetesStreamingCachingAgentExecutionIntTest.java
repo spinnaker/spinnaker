@@ -23,7 +23,11 @@ import static org.mockito.ArgumentMatchers.*;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import com.google.common.collect.ImmutableList;
+import com.netflix.spectator.api.Counter;
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.NoopRegistry;
+import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
 import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -34,12 +38,16 @@ import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory;
 import com.netflix.spinnaker.cats.provider.DefaultProviderRegistry;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesStreamingCachingProperties;
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -489,6 +497,48 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
         Map.of(
             POD_KIND,
             Set.of("kubernetes.v2:infrastructure:pod:my-account:test-namespace:my-pod-3")));
+  }
+
+  @Test
+  @DisplayName("Should create ApiClient with server if server is provided")
+  void createApiClientWithServer() {
+    KubernetesNamedAccountCredentials mockedNamedAccountCredentials =
+        Mockito.mock(KubernetesNamedAccountCredentials.class);
+    KubernetesCredentials mockedCredentials = Mockito.mock(KubernetesCredentials.class);
+    KubernetesStreamingCachingProperties mockedProperties =
+        Mockito.mock(KubernetesStreamingCachingProperties.class);
+    Registry mockedRegistry = Mockito.mock(Registry.class);
+    ProviderCache mockedProviderCache = Mockito.mock(ProviderCache.class);
+
+    // Registry/Id/Timer mock setup
+    Id mockId = Mockito.mock(Id.class);
+    Mockito.when(mockId.withTag(anyString(), anyString())).thenReturn(mockId);
+    Mockito.when(mockedRegistry.createId(anyString())).thenReturn(mockId);
+
+    Timer mockTimer = Mockito.mock(Timer.class);
+    Counter mockCounter = Mockito.mock(Counter.class);
+    Mockito.when(mockedRegistry.timer(anyString(), anyString(), anyString())).thenReturn(mockTimer);
+    Mockito.when(
+            mockedRegistry.timer(anyString(), anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(mockTimer);
+    Mockito.when(mockedRegistry.counter(anyString(), anyString(), anyString()))
+        .thenReturn(mockCounter);
+
+    // Credentials setup
+    Mockito.when(mockedNamedAccountCredentials.getStreamingCaching()).thenReturn(mockedProperties);
+    Mockito.when(mockedNamedAccountCredentials.getCredentials()).thenReturn(mockedCredentials);
+    Mockito.when(mockedCredentials.getAccountName()).thenReturn("acct");
+
+    // Kubeconfig is null and server is set
+    Mockito.when(mockedCredentials.getKubeconfigFile()).thenReturn(null);
+    Mockito.when(mockedCredentials.getServer()).thenReturn("http://localhost:10111");
+
+    KubernetesStreamingCachingAgentExecution mockedExecution =
+        new KubernetesStreamingCachingAgentExecution(
+            mockedNamedAccountCredentials, mockedProviderCache, List.of(), mockedRegistry, null);
+
+    ApiClient apiClient = mockedExecution.createApiClient();
+    assertThat(apiClient.getBasePath()).isEqualTo("http://localhost:10111");
   }
 
   private void runCachingAgentAndExpect(Map<String, Set<String>> expected)

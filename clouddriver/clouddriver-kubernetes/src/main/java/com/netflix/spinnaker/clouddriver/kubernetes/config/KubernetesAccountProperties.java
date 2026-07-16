@@ -84,6 +84,7 @@ public class KubernetesAccountProperties {
     private boolean cacheAllApplicationRelationships = false;
     private RawResourcesEndpointConfig rawResourcesEndpointConfig =
         new RawResourcesEndpointConfig();
+    private String server;
 
     public void validate() {
       if (Strings.isNullOrEmpty(name)) {

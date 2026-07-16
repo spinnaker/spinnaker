@@ -186,6 +186,18 @@ final class KubectlJobExecutorTest {
     }
   }
 
+  @Test
+  void getServerWhenParameterIsNotNull() {
+    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
+    String serverValue = "http://localhost:10111";
+    when(credentials.getServer()).thenReturn(serverValue);
+    KubectlJobExecutor executor =
+        new KubectlJobExecutor(
+            jobExecutor, kubernetesConfigurationProperties, mock(MeterRegistry.class));
+
+    assertThat(executor.kubectlAuthPrefix(credentials)).contains("--server=" + serverValue);
+  }
+
   @DisplayName("test to verify how kubectl errors are handled when retries are disabled")
   @Test
   void kubectlJobExecutorErrorHandlingWhenRetriesAreDisabled() {

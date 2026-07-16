@@ -44,6 +44,7 @@ import io.kubernetes.client.Discovery;
 import io.kubernetes.client.Discovery.APIResource;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.ClientBuilder;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.ModelMapper;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
@@ -325,15 +326,24 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
     return CompletableFuture.allOf(batcherFuture, processorFuture);
   }
 
-  private ApiClient createApiClient() {
+  protected ApiClient createApiClient() {
     String kubeconfigFile = namedAccountCredentials.getCredentials().getKubeconfigFile();
-    if (kubeconfigFile == null) {
-      String accountName = namedAccountCredentials.getCredentials().getAccountName();
-      throw new IllegalStateException("Kubeconfig is not set for account: " + accountName);
-    }
+    String server = namedAccountCredentials.getCredentials().getServer();
 
     try {
-      return Config.fromConfig(kubeconfigFile);
+      if (server == null && kubeconfigFile == null) {
+        String accountName = namedAccountCredentials.getCredentials().getAccountName();
+        throw new IllegalStateException(
+            "Both kubeconfig and server are not set for account: " + accountName);
+      }
+      if (server != null && !server.isEmpty()) {
+        return new ClientBuilder().setBasePath(server).build();
+      }
+      if (kubeconfigFile != null) {
+        return Config.fromConfig(kubeconfigFile);
+      }
+      throw new IllegalStateException(
+          "Unexpected error: Unable to create ApiClient. Either server or kubeconfigFile should be set.");
     } catch (Exception e) {
       throw new RuntimeException("Failed to create ApiClient in agent", e);
     }
