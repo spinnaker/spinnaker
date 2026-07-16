@@ -196,7 +196,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       state.updateLastReceivedEventTime();
     }
 
-    log.debug("{}:{}:: List resulted in {} UPSERTS", account, watcherId(), seenKeys.size());
+    log.info("{}:{}:: List resulted in {} UPSERTS", account, watcherId(), seenKeys.size());
 
     Set<String> deletedKeys =
         knownKeys.stream().filter(key -> !seenKeys.contains(key)).collect(Collectors.toSet());
