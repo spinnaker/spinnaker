@@ -36,7 +36,7 @@ class LocalJobFriendlyPackerCommandFactory implements PackerCommandFactory {
     packerCommand.addAll(roscoPackerConfigurationProperties.additionalParameters)
 
     parameterMap.each { key, value ->
-      if (key && value) {
+      if (key && value != null && value != "") {
         def keyValuePair = "$key=${value instanceof String ? value.trim() : value}"
 
         packerCommand << "-var"
