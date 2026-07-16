@@ -32,6 +32,7 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -45,6 +46,7 @@ import org.springframework.context.annotation.Configuration;
 })
 @EnableConfigurationProperties(CatsInMemorySearchProperties.class)
 public class CacheConfig {
+
   @Bean
   @ConditionalOnMissingBean(NamedCacheFactory.class)
   NamedCacheFactory namedCacheFactory() {
@@ -54,8 +56,10 @@ public class CacheConfig {
   @Bean
   @ConditionalOnMissingBean(AgentScheduler.class)
   @ConditionalOnProperty(value = "caching.write-enabled", matchIfMissing = true)
-  AgentScheduler agentScheduler() {
-    return new DefaultAgentScheduler(60, TimeUnit.SECONDS);
+  AgentScheduler agentScheduler(
+      @Value("${cats.defaultscheduler.scheduleTmeout:#{60L}}") long scheduleTimeout,
+      @Value("${cats.defaultscheduler.stopTmeout:#{60L}}") long stopTimeout) {
+    return new DefaultAgentScheduler(scheduleTimeout, stopTimeout, TimeUnit.SECONDS);
   }
 
   @Bean

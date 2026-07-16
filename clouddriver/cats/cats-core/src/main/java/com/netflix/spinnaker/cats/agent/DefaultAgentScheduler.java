@@ -16,16 +16,10 @@
 
 package com.netflix.spinnaker.cats.agent;
 
-import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * An AgentScheduler that executes on a fixed interval.
@@ -38,40 +32,81 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock> {
   private static final long DEFAULT_INTERVAL = 60000;
+  private static final long DEFAULT_STOP_TIMEOUT = 60000;
 
   private final ScheduledExecutorService scheduledExecutorService;
+  private final ExecutorService executorService;
+
   private final long interval;
   private final TimeUnit timeUnit;
+  private final long stopTimeout;
   private final Map<Agent, Future> agentFutures = new ConcurrentHashMap<Agent, Future>();
+  private final Map<Agent, AgentExecutionRunnable> longRunningExecutionRunnables =
+      new ConcurrentHashMap<Agent, AgentExecutionRunnable>();
 
   public DefaultAgentScheduler() {
-    this(DEFAULT_INTERVAL);
+    this(DEFAULT_INTERVAL, DEFAULT_STOP_TIMEOUT);
   }
 
-  public DefaultAgentScheduler(long interval) {
-    this(interval, TimeUnit.MILLISECONDS);
+  public DefaultAgentScheduler(long interval, long stopTimeout) {
+    this(interval, stopTimeout, TimeUnit.MILLISECONDS);
   }
 
-  public DefaultAgentScheduler(long interval, TimeUnit unit) {
+  public DefaultAgentScheduler(long interval, long stopTimeout, TimeUnit unit) {
     this(
         Executors.newScheduledThreadPool(
             Runtime.getRuntime().availableProcessors(),
             new ThreadFactoryBuilder()
-                .setNameFormat(DefaultAgentScheduler.class.getSimpleName() + "-%d")
+                .setNameFormat(DefaultAgentScheduler.class.getSimpleName() + ":ScheduledAgents-%d")
                 .build()),
         interval,
-        unit);
+        stopTimeout,
+        unit,
+        Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder()
+                .setNameFormat(
+                    DefaultAgentScheduler.class.getSimpleName() + ":LongRunningAgents-%d")
+                .build()));
   }
 
   public DefaultAgentScheduler(
-      ScheduledExecutorService scheduledExecutorService, long interval, TimeUnit timeUnit) {
+      ScheduledExecutorService scheduledExecutorService,
+      long interval,
+      long stopTimeout,
+      TimeUnit timeUnit,
+      ExecutorService executorService) {
     this.scheduledExecutorService = scheduledExecutorService;
     this.interval = interval;
     this.timeUnit = timeUnit;
+    this.executorService = executorService;
+    scheduledExecutorService.schedule(new LongRunningAgentRescheduleRunnable(), interval, timeUnit);
+    this.stopTimeout = stopTimeout;
   }
 
   @Override
   public void schedule(
+      Agent agent,
+      AgentExecution agentExecution,
+      ExecutionInstrumentation executionInstrumentation) {
+    if (agentExecution instanceof LongRunningAgentExecution) {
+      scheduleLongRunningAgent(
+          agent, (LongRunningAgentExecution) agentExecution, executionInstrumentation);
+    } else {
+      scheduleSimpleAgent(agent, agentExecution, executionInstrumentation);
+    }
+  }
+
+  private void scheduleLongRunningAgent(
+      Agent agent,
+      LongRunningAgentExecution agentExecution,
+      ExecutionInstrumentation executionInstrumentation) {
+    AgentExecutionRunnable runnable =
+        new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation);
+    longRunningExecutionRunnables.put(agent, runnable);
+    executorService.submit(runnable);
+  }
+
+  private void scheduleSimpleAgent(
       Agent agent,
       AgentExecution agentExecution,
       ExecutionInstrumentation executionInstrumentation) {
@@ -97,6 +132,11 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
     if (agentFutures.containsKey(agent)) {
       agentFutures.get(agent).cancel(false);
       agentFutures.remove(agent);
+    } else if (longRunningExecutionRunnables.containsKey(agent)) {
+      AgentExecutionRunnable runnable = longRunningExecutionRunnables.get(agent);
+
+      ((LongRunningAgentExecution) runnable.getExecution()).stopExecutingAndCleanup();
+      longRunningExecutionRunnables.remove(agent);
     }
   }
 
@@ -115,26 +155,17 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
     return false;
   }
 
-  private static class AgentExecutionRunnable implements Runnable {
-    private final Agent agent;
-    private final AgentExecution execution;
-    private final ExecutionInstrumentation executionInstrumentation;
-
-    public AgentExecutionRunnable(
-        Agent agent, AgentExecution execution, ExecutionInstrumentation executionInstrumentation) {
-      this.agent = agent;
-      this.execution = execution;
-      this.executionInstrumentation = executionInstrumentation;
-    }
-
+  private class LongRunningAgentRescheduleRunnable implements Runnable {
     public void run() {
-      long startTimeMs = System.currentTimeMillis();
-      try {
-        executionInstrumentation.executionStarted(agent);
-        execution.executeAgent(agent);
-        executionInstrumentation.executionCompleted(agent, elapsedTimeMs(startTimeMs));
-      } catch (Throwable t) {
-        executionInstrumentation.executionFailed(agent, t, elapsedTimeMs(startTimeMs));
+      for (AgentExecutionRunnable runnable :
+          DefaultAgentScheduler.this.longRunningExecutionRunnables.values()) {
+        LongRunningAgentExecution execution = (LongRunningAgentExecution) runnable.getExecution();
+        if (!execution.isRunning()) {
+          execution
+              .stopExecutingAndCleanup()
+              .orTimeout(stopTimeout, timeUnit)
+              .whenComplete((res, ex) -> executorService.submit(runnable));
+        }
       }
     }
   }
