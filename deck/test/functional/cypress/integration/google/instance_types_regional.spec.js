@@ -94,7 +94,7 @@ describe('google: Regional Instance Type Distribution', () => {
 
   afterEach(() => {
     cy.window().then((win) => {
-      win.removeAllListeners && win.removeAllListeners();
+      win && win.removeAllListeners && win.removeAllListeners();
     });
   });
 });
