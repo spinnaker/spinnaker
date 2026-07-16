@@ -1,12 +1,11 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import { sortBy } from 'lodash';
 import React from 'react';
 
 import type { Application, ISecurityGroup } from '@spinnaker/core';
 import { AccountService, CollapsibleSection, FirewallLabels, ReactInjector } from '@spinnaker/core';
 import type { ITitusServerGroupView } from '../../domain';
-import { TitusReactInjector } from '../../reactShims';
+import { TitusSecurityGroupReader } from '../../securityGroup/securityGroup.read.service';
 
 export interface ITitusServerGroupDetailsSectionProps {
   app: Application;
@@ -35,7 +34,7 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
     const { region } = serverGroup;
     if (app.securityGroupsIndex && serverGroup.accountDetails) {
       const securityGroups = serverGroup.securityGroups.map((sgId) =>
-        TitusReactInjector.titusSecurityGroupReader.resolveIndexedSecurityGroup(
+        TitusSecurityGroupReader.resolveIndexedSecurityGroup(
           app.securityGroupsIndex,
           { account: serverGroup.accountDetails.awsAccount, region },
           sgId,
@@ -78,28 +77,24 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
       <CollapsibleSection heading={FirewallLabels.get('Firewalls')} outerDivClassName="">
         <ul>
           {initializing && serverGroup.securityGroups.map((sgId) => <li key={sgId}>...</li>)}
-          <UIRouterContextComponent>
-            <>
-              {sortBy(securityGroups, 'name').map((securityGroup) => (
-                <li key={securityGroup.name}>
-                  <UISref
-                    to="^.firewallDetails"
-                    params={{
-                      name: securityGroup.name,
-                      accountId: securityGroup.account,
-                      region: serverGroup.region,
-                      vpcId: securityGroup.vpcId,
-                      provider: 'aws',
-                    }}
-                  >
-                    <a>
-                      {securityGroup.name} ({securityGroup.id})
-                    </a>
-                  </UISref>
-                </li>
-              ))}
-            </>
-          </UIRouterContextComponent>
+          {sortBy(securityGroups, 'name').map((securityGroup) => (
+            <li key={securityGroup.name}>
+              <UISref
+                to="^.firewallDetails"
+                params={{
+                  name: securityGroup.name,
+                  accountId: securityGroup.account,
+                  region: serverGroup.region,
+                  vpcId: securityGroup.vpcId,
+                  provider: 'aws',
+                }}
+              >
+                <a>
+                  {securityGroup.name} ({securityGroup.id})
+                </a>
+              </UISref>
+            </li>
+          ))}
         </ul>
       </CollapsibleSection>
     );
