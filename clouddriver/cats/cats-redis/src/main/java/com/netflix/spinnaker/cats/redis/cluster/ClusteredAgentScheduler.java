@@ -475,6 +475,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware
     if (agentExecution instanceof LongRunningAgentExecution) {
       AgentExecutionRunnable previous = longRunningAgents.get(agent.getAgentType());
       if (previous != null) {
+        logger.info("Stopping previous running agent execution {}", agent.getAgentType());
         try {
           ((LongRunningAgentExecution) previous.getExecution()).stopExecutingAndCleanup().join();
         } catch (Exception e) {

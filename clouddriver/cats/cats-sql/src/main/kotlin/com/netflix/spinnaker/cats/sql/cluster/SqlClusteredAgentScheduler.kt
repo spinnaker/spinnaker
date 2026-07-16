@@ -108,6 +108,7 @@ class SqlClusteredAgentScheduler(
       val previous = longRunningAgents[agent.agentType]
       previous?.let {
         try {
+          log.info("Stopping previous running agent execution {}", agent.agentType)
           (it.execution as LongRunningAgentExecution).stopExecutingAndCleanup().join()
         } catch (e: Exception) {
           log.warn("Failed to stop previous agent execution {}", agent.agentType, e)

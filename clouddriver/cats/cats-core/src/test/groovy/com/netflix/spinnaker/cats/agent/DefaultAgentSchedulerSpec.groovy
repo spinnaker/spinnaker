@@ -159,6 +159,7 @@ class DefaultAgentSchedulerSpec extends Specification {
     1 * instr.executionStarted(agent)
     1 * instr.executionCompleted(agent, _)
     1 * exec.stopExecutingAndCleanup()
+    1 * agent.getAgentType()
     0 * _
   }
 

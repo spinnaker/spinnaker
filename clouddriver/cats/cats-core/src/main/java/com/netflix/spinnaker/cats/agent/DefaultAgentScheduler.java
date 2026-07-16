@@ -94,6 +94,7 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
       Agent agent,
       AgentExecution agentExecution,
       ExecutionInstrumentation executionInstrumentation) {
+    log.info("Scheduling agent {}", agent.getAgentType());
     if (agentExecution instanceof LongRunningAgentExecution) {
       scheduleLongRunningAgent(
           agent, (LongRunningAgentExecution) agentExecution, executionInstrumentation);
@@ -108,6 +109,7 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
       ExecutionInstrumentation executionInstrumentation) {
     AgentExecutionRunnable previous = longRunningExecutionRunnables.get(agent);
     if (previous != null) {
+      log.info("Stopping previous running agent execution {}", agent.getAgentType());
       try {
         ((LongRunningAgentExecution) previous.getExecution()).stopExecutingAndCleanup().join();
       } catch (Exception e) {
