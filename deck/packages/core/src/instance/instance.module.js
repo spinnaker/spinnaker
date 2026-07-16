@@ -10,6 +10,7 @@ import { CORE_INSTANCE_DETAILS_INSTANCELINKS_COMPONENT } from './details/instanc
 import { CORE_INSTANCE_DETAILS_MULTIPLEINSTANCES_CONTROLLER } from './details/multipleInstances.controller';
 import { INSTANCE_STATES } from './instance.states';
 import './instanceSearchResultType';
+import { INSTANCE_TYPE_SERVICE } from './instanceType.service';
 import { CORE_INSTANCE_LOADBALANCER_INSTANCELOADBALANCERHEALTH_DIRECTIVE } from './loadBalancer/instanceLoadBalancerHealth.directive';
 
 import './instanceSelection.less';
@@ -25,4 +26,5 @@ module(CORE_INSTANCE_INSTANCE_MODULE, [
   CORE_INSTANCE_DETAILS_INSTANCEINSIGHTS_COMPONENT,
   CORE_INSTANCE_DETAILS_HEADER_COMPONENT,
   INSTANCE_STATES,
+  INSTANCE_TYPE_SERVICE,
 ]);
