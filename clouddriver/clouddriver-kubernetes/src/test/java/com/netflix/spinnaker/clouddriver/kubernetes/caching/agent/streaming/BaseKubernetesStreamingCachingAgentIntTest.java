@@ -139,6 +139,22 @@ public abstract class BaseKubernetesStreamingCachingAgentIntTest
     mockKubeapiList(path, null, file);
   }
 
+  protected void mockKubeapiList(
+      String path, String resourceVersion, String continueFrom, String file) {
+    StringValuePattern resourceVersionMatcher =
+        resourceVersion != null ? equalTo(resourceVersion) : or(equalTo("0"), absent());
+    StringValuePattern continueFromMatcher =
+        continueFrom != null ? equalTo(continueFrom) : absent();
+    wireMockServer.stubFor(
+        get(urlPathEqualTo(path))
+            .withQueryParam("resourceVersion", resourceVersionMatcher)
+            .withQueryParam("continue", continueFromMatcher)
+            .withQueryParam("limit", matching(".*"))
+            .withQueryParam("watch", or(equalTo("false"), absent()))
+            .willReturn(
+                aResponse().withHeader("Content-Type", "application/json").withBodyFile(file)));
+  }
+
   protected void mockKubeapiList(String path, String resourceVersion, String file) {
     StringValuePattern resourceVersionMatcher =
         resourceVersion != null ? equalTo(resourceVersion) : or(equalTo("0"), absent());

@@ -36,16 +36,19 @@ public class KubernetesStreamingWatcherFactory {
   private final Map<Type, KubernetesStreamingWatcher> watchers;
   private final Map<KubernetesStreamingWatcher, Future> watchersFutures;
   private final String account;
+  private final int paginationSize;
   private final StartupConcurrencyControl concurrencyControl;
 
   public KubernetesStreamingWatcherFactory(
       ApiClient apiClient,
       String account,
+      int paginationSize,
       ExecutorService threadPool,
       StartupConcurrencyControl concurrencyControl) {
     this.threadPool = threadPool;
     this.apiClient = apiClient;
     this.account = account;
+    this.paginationSize = paginationSize;
     this.watchers = new ConcurrentHashMap<>();
     this.watchersFutures = new ConcurrentHashMap<>();
     this.concurrencyControl = concurrencyControl;
@@ -76,6 +79,7 @@ public class KubernetesStreamingWatcherFactory {
             group,
             version,
             account,
+            paginationSize,
             queue,
             knownKeys,
             watcherRetryTimeoutMillis,

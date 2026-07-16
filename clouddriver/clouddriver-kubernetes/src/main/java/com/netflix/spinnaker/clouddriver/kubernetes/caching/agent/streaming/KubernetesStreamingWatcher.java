@@ -66,6 +66,7 @@ public class KubernetesStreamingWatcher implements Runnable {
   private final K8SListWatchAdapter adapter;
   private final StartupConcurrencyControl concurrencyControl;
   private String lastSyncResourceVersion = RESOURCE_VERSION_USE_FROM_CACHE;
+  private final int paginationSize;
 
   public KubernetesStreamingWatcher(
       K8SListWatchAdapter adapter,
@@ -74,6 +75,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       String group,
       String version,
       String account,
+      int paginationSize,
       BlockingQueue<KubernetesStreamingEvent> eventQueue,
       Set<Keys.InfrastructureCacheKey> initialKnownKeys,
       int retryTimeoutMillis,
@@ -86,6 +88,7 @@ public class KubernetesStreamingWatcher implements Runnable {
         group,
         version,
         account,
+        paginationSize,
         eventQueue,
         initialKnownKeys,
         retryTimeoutMillis,
@@ -101,6 +104,7 @@ public class KubernetesStreamingWatcher implements Runnable {
       String group,
       String version,
       String account,
+      int paginationSize,
       BlockingQueue<KubernetesStreamingEvent> eventQueue,
       Set<Keys.InfrastructureCacheKey> initialKnownKeys,
       int retryTimeoutMillis,
@@ -110,6 +114,7 @@ public class KubernetesStreamingWatcher implements Runnable {
     this.adapter = adapter;
     this.state = state;
     this.account = account;
+    this.paginationSize = paginationSize;
     this.kind = kind;
     this.apiGroup = StringUtils.isBlank(group) ? version : group + "/" + version;
     this.eventQueue = eventQueue;
@@ -127,7 +132,7 @@ public class KubernetesStreamingWatcher implements Runnable {
     while (isRunning.get()) {
       try {
         try (StartupConcurrencyPermit permit = concurrencyControl.acquire()) {
-          this.lastSyncResourceVersion = syncList();
+          syncList();
         }
 
         boolean watchActive = true;
@@ -174,29 +179,44 @@ public class KubernetesStreamingWatcher implements Runnable {
    * @throws ApiException
    * @throws InterruptedException
    */
-  private String syncList() throws ApiException, InterruptedException {
-    DynamicKubernetesListObject list = adapter.list(lastSyncResourceVersion);
-
-    V1ListMeta listMeta = list.getMetadata();
-    String resourceVersion = listMeta.getResourceVersion();
-    List<DynamicKubernetesObject> items = list.getItems();
-
+  private void syncList() throws ApiException, InterruptedException {
     Set<String> seenKeys = new HashSet<>();
+    String lastContinue = null;
+    String resourceVersion = null;
+    do {
+      DynamicKubernetesListObject list =
+          adapter.list(lastSyncResourceVersion, paginationSize, lastContinue);
 
-    for (DynamicKubernetesObject obj : items) {
-      seenKeys.add(toKey(obj));
-      fillMissedFields(obj);
-      KubernetesManifest manifest = convert(obj);
+      V1ListMeta listMeta = list.getMetadata();
+      resourceVersion = listMeta.getResourceVersion();
+      lastContinue = listMeta.getContinue();
+      List<DynamicKubernetesObject> items = list.getItems();
 
-      if (manifest == null) {
-        continue;
+      for (DynamicKubernetesObject obj : items) {
+        seenKeys.add(toKey(obj));
+        fillMissedFields(obj);
+        KubernetesManifest manifest = convert(obj);
+
+        if (manifest == null) {
+          continue;
+        }
+
+        eventQueue.put(new KubernetesStreamingEvent(Type.UPSERT, manifest));
+        state.updateLastReceivedEventTime();
       }
+      if (paginationSize > 0) {
+        // replace later with debug
+        log.info(
+            "{}:{}:: Paginated List returned {} items. Estimated remaining items {}",
+            account,
+            watcherId(),
+            items.size(),
+            listMeta.getRemainingItemCount());
+      }
+    } while (paginationSize > 0 && !StringUtils.isEmpty(lastContinue));
+    lastSyncResourceVersion = resourceVersion;
 
-      eventQueue.put(new KubernetesStreamingEvent(Type.UPSERT, manifest));
-      state.updateLastReceivedEventTime();
-    }
-
-    log.info("{}:{}:: List resulted in {} UPSERTS", account, watcherId(), seenKeys.size());
+    log.debug("{}:{}:: List resulted in {} UPSERTS", account, watcherId(), seenKeys.size());
 
     Set<String> deletedKeys =
         knownKeys.stream().filter(key -> !seenKeys.contains(key)).collect(Collectors.toSet());
@@ -219,8 +239,6 @@ public class KubernetesStreamingWatcher implements Runnable {
     }
 
     log.debug("{}:{}:: List resulted in {} DELETES", account, watcherId(), deletedKeys.size());
-
-    return resourceVersion;
   }
 
   private DynamicKubernetesObject getEmptyObject(String key) {

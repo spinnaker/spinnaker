@@ -16,15 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.absent;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.or;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
@@ -79,6 +73,87 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
   }
 
   @Test
+  @DisplayName("loads all existing resources with paginated 'list' when starts")
+  void testInitialLoadPaginated() throws InterruptedException {
+    mockKubeapiList("/api/v1/pods", null, null, "initialList/paginated-pods-1.json");
+    mockKubeapiList(
+        "/api/v1/pods", null, "some-arbitrary-tag", "initialList/paginated-pods-2.json");
+    mockKubeapiList("/apis/apps/v1/replicasets", "initialList/replicasets.json");
+
+    runCachingAgentAndExpect(
+        Map.of(
+            POD_KIND,
+            Set.of(
+                "kubernetes.v2:infrastructure:pod:my-account:test-namespace:my-pod-1",
+                "kubernetes.v2:infrastructure:pod:my-account:test-namespace:my-pod-2"),
+            REPLICA_SET_KIND,
+            Set.of(
+                "kubernetes.v2:infrastructure:replicaSet:my-account:test-namespace:my-replicaset")),
+        1);
+  }
+
+  @Test
+  @DisplayName("paginated 'list' returns resource expired. retry should help")
+  void testPaginatedListErrorResponse() throws InterruptedException {
+    wireMockServer.stubFor(
+        get(urlPathEqualTo("/api/v1/pods"))
+            .withQueryParam("watch", or(equalTo("false"), absent()))
+            .withQueryParam("resourceVersion", or(equalTo("0"), absent()))
+            .withQueryParam("limit", matching(".*"))
+            .inScenario("list returns resource expired")
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willSetStateTo("return resource expired")
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("initialList/paginated-pods-1.json")));
+
+    wireMockServer.stubFor(
+        get(urlPathEqualTo("/api/v1/pods"))
+            .withQueryParam("watch", or(equalTo("false"), absent()))
+            .withQueryParam("resourceVersion", or(equalTo("0"), absent()))
+            .withQueryParam("limit", matching(".*"))
+            .inScenario("list returns resource expired")
+            .whenScenarioStateIs("return resource expired")
+            .willSetStateTo("resource expired returned")
+            .willReturn(
+                aResponse().withHeader("Content-Type", "application/json").withStatus(410)));
+
+    wireMockServer.stubFor(
+        get(urlPathEqualTo("/api/v1/pods"))
+            .withQueryParam("watch", or(equalTo("false"), absent()))
+            .withQueryParam("resourceVersion", or(equalTo("0"), absent()))
+            .withQueryParam("limit", matching(".*"))
+            .inScenario("list returns resource expired")
+            .whenScenarioStateIs("resource expired returned")
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("initialList/paginated-pods-1.json")));
+
+    wireMockServer.stubFor(
+        get(urlPathEqualTo("/api/v1/pods"))
+            .withQueryParam("watch", or(equalTo("false"), absent()))
+            .withQueryParam("resourceVersion", or(equalTo("0"), absent()))
+            .withQueryParam("limit", matching(".*"))
+            .withQueryParam("continue", equalTo("some-arbitrary-tag"))
+            .inScenario("list returns resource expired")
+            .whenScenarioStateIs("resource expired returned")
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("initialList/paginated-pods-2.json")));
+
+    runCachingAgentAndExpect(
+        Map.of(
+            POD_KIND,
+            Set.of(
+                "kubernetes.v2:infrastructure:pod:my-account:test-namespace:my-pod-1",
+                "kubernetes.v2:infrastructure:pod:my-account:test-namespace:my-pod-2")),
+        1);
+  }
+
+  @Test
   @DisplayName("saves relationships on initial load")
   void testSaveRelationshipsOnInitialLoad() throws InterruptedException {
     mockKubeapiList("/api/v1/pods", "initialList/pods.json");
@@ -95,7 +170,8 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
                   REPLICA_SET_KIND,
                   Set.of(
                       "kubernetes.v2:infrastructure:replicaSet:my-account:test-namespace:my-replicaset"));
-        });
+        },
+        0);
   }
 
   @Test
@@ -118,7 +194,8 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
                   REPLICA_SET_KIND,
                   Set.of(
                       "kubernetes.v2:infrastructure:replicaSet:my-account:test-namespace:my-replicaset"));
-        });
+        },
+        0);
   }
 
   @Test
@@ -154,7 +231,8 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
               .first()
               .extracting("image")
               .isEqualTo("my-pod-container-image:v2");
-        });
+        },
+        0);
   }
 
   @Test
@@ -417,10 +495,18 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
       throws InterruptedException {
     Set<String> expectedTypes = expected.keySet();
     runCachingAgentAndAssert(
-        (cache) -> assertThat(getCachedData(cache, expectedTypes)).isEqualTo(expected));
+        (cache) -> assertThat(getCachedData(cache, expectedTypes)).isEqualTo(expected), 0);
   }
 
-  private void runCachingAgentAndAssert(Consumer<ProviderCache> assertion)
+  private void runCachingAgentAndExpect(Map<String, Set<String>> expected, int paginationSize)
+      throws InterruptedException {
+    Set<String> expectedTypes = expected.keySet();
+    runCachingAgentAndAssert(
+        (cache) -> assertThat(getCachedData(cache, expectedTypes)).isEqualTo(expected),
+        paginationSize);
+  }
+
+  private void runCachingAgentAndAssert(Consumer<ProviderCache> assertion, int paginationSize)
       throws InterruptedException {
     KubernetesConfigurationProperties configurationProperties =
         new KubernetesConfigurationProperties();
@@ -429,6 +515,7 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
     namedAccountCredentials.getStreamingCaching().setWatchTimeoutSeconds(2);
     namedAccountCredentials.getStreamingCaching().setStopTimeoutMillis(100);
     namedAccountCredentials.getStreamingCaching().setBulkMaxWaitMillis(100);
+    namedAccountCredentials.getStreamingCaching().setListPaginationSize(paginationSize);
     KubernetesStreamingCachingAgent cachingAgent =
         createCachingAgent(namedAccountCredentials, configurationProperties);
 

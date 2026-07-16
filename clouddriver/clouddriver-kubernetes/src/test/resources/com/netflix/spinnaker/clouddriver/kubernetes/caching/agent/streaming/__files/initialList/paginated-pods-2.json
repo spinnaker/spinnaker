@@ -1,0 +1,31 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "1",
+    "continue": null
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "my-pod-2",
+        "namespace": "test-namespace",
+        "ownerReferences": [
+          {
+            "apiVersion": "apps/v1",
+            "kind": "ReplicaSet",
+            "name": "my-replicaset"
+          }
+        ]
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "my-pod-container",
+            "image": "my-pod-container-image:v1"
+          }
+        ]
+      }
+    }
+  ]
+}

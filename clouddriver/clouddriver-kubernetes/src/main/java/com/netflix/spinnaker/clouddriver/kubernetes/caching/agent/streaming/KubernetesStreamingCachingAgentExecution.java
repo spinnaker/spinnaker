@@ -274,6 +274,7 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
         new KubernetesStreamingWatcherFactory(
             client,
             namedAccountCredentials.getCredentials().getAccountName(),
+            cachingProperties.getListPaginationSize(),
             executorService,
             concurrencyControl);
     State cachingState = new State(agent.getAgentType(), executorService, factory);

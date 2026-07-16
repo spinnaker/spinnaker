@@ -67,7 +67,7 @@ class KubernetesStreamingWatcherTest {
             "test-account",
             executor,
             new KubernetesStreamingWatcherFactory(
-                k8sClient, "account", executor, new NoOpStartupConcurrencyControl()));
+                k8sClient, "account", 0, executor, new NoOpStartupConcurrencyControl()));
     eventQueue = new ArrayBlockingQueue<>(100);
     isRunning = mock(Supplier.class);
   }
@@ -90,7 +90,7 @@ class KubernetesStreamingWatcherTest {
         .thenReturn(false);
 
     DynamicKubernetesListObject emptyList = getList(getJsonFixture("kubeapi/pods.default.json"));
-    when(adapter.list(any())).thenReturn(emptyList);
+    when(adapter.list(any(), eq(0), isNull())).thenReturn(emptyList);
 
     Watchable watchable = mock(Watchable.class);
     when(watchable.hasNext()).thenReturn(true);
@@ -103,8 +103,8 @@ class KubernetesStreamingWatcherTest {
     watcher.run();
     assertThat(eventQueue.size()).isEqualTo(0);
 
-    verify(adapter).list("0");
-    verify(adapter).list("");
+    verify(adapter).list("0", 0, null);
+    verify(adapter).list("", 0, null);
   }
 
   @Test
@@ -113,7 +113,7 @@ class KubernetesStreamingWatcherTest {
     when(isRunning.get()).thenReturn(true).thenReturn(true).thenReturn(false);
 
     DynamicKubernetesListObject nullMetaList = getList(getJsonFixture("initialList/nullMeta.json"));
-    when(adapter.list(any())).thenReturn(nullMetaList);
+    when(adapter.list(any(), eq(0), isNull())).thenReturn(nullMetaList);
 
     Watchable watchable = mock(Watchable.class);
     when(watchable.hasNext()).thenReturn(false);
@@ -131,7 +131,7 @@ class KubernetesStreamingWatcherTest {
     when(isRunning.get()).thenReturn(false);
 
     DynamicKubernetesListObject nullMetaList = getList(getJsonFixture("initialList/pods.json"));
-    when(adapter.list(any())).thenReturn(nullMetaList);
+    when(adapter.list(any(), eq(0), isNull())).thenReturn(nullMetaList);
 
     Watchable watchable = mock(Watchable.class);
     when(watchable.hasNext()).thenReturn(true);
@@ -172,6 +172,7 @@ class KubernetesStreamingWatcherTest {
         group,
         version,
         "account",
+        0,
         eventQueue,
         knownKeys,
         1000,
