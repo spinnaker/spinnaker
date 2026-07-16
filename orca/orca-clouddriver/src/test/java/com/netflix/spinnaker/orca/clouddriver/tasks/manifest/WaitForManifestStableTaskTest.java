@@ -295,7 +295,9 @@ final class WaitForManifestStableTaskTest {
         createStageWithContext(
             ImmutableMap.<String, Object>builder()
                 .put("account.name", ACCOUNT)
-                .put("outputs.manifestNamesByNamespace", ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)))
+                .put(
+                    "outputs.manifestNamesByNamespace",
+                    ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)))
                 .put("stableManifestTimeoutMinutes", 60)
                 .build());
 
@@ -322,7 +324,9 @@ final class WaitForManifestStableTaskTest {
         createStageWithContext(
             ImmutableMap.<String, Object>builder()
                 .put("account.name", ACCOUNT)
-                .put("outputs.manifestNamesByNamespace", ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)))
+                .put(
+                    "outputs.manifestNamesByNamespace",
+                    ImmutableMap.of(NAMESPACE, ImmutableList.of(MANIFEST_1)))
                 .put("stableManifestTimeoutMinutes", "45")
                 .build());
 
