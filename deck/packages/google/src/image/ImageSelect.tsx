@@ -1,11 +1,7 @@
-import { module } from 'angular';
 import { chain } from 'lodash';
 import React from 'react';
 import type { AutocompleteResult, Option } from 'react-select';
 import { Async } from 'react-select';
-import { react2angular } from 'react2angular';
-
-import { withErrorBoundary } from '@spinnaker/core';
 
 import type { IGceImage } from '../image';
 
@@ -53,14 +49,3 @@ export class ImageSelect extends React.Component<IImageSelectProps> {
     );
   }
 }
-
-export const GCE_IMAGE_SELECT = 'spinnaker.gce.imageSelect';
-module(GCE_IMAGE_SELECT, []).component(
-  'gceImageSelect',
-  react2angular(withErrorBoundary(ImageSelect, 'gceImageSelect'), [
-    'availableImages',
-    'selectedImage',
-    'selectImage',
-    'target',
-  ]),
-);

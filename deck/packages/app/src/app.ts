@@ -8,7 +8,7 @@ import '@spinnaker/docker';
 import '@spinnaker/amazon';
 import '@spinnaker/appengine';
 import '@spinnaker/azure';
-import { GOOGLE_MODULE } from '@spinnaker/google';
+import '@spinnaker/google';
 import { CANARY_MODULE } from './canary/canary.module';
 import '@spinnaker/proxmox';
 import '@spinnaker/kubernetes';
@@ -19,4 +19,4 @@ import '@spinnaker/ecs';
 import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
 
-module('netflix.spinnaker', [CORE_MODULE, GOOGLE_MODULE, CANARY_MODULE]);
+module('netflix.spinnaker', [CORE_MODULE, CANARY_MODULE]);
