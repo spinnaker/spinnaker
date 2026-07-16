@@ -23,22 +23,16 @@
     "@spinnaker/amazon": "workspace:^0.14.5",
     "@spinnaker/core": "workspace:^0.29.1",
     "@spinnaker/docker": "workspace:^0.0.147",
-    "@uirouter/angularjs": "1.0.26",
     "@uirouter/react": "1.0.7",
-    "angular": "1.8.3",
-    "angular-ui-bootstrap": "2.5.0",
     "lodash": "4.18.1",
-    "ngimport": "0.6.1",
     "react": "16.14.0",
     "react-bootstrap": "0.32.1",
     "react-select": "1.2.1",
-    "react2angular": "3.2.1"
+    "rxjs": "6.6.7"
   },
   "devDependencies": {
     "@spinnaker/eslint-plugin": "workspace:^3.0.2",
     "@spinnaker/scripts": "workspace:^0.4.0",
-    "@types/angular": "1.6.26",
-    "@types/angular-ui-bootstrap": "0.13.41",
     "@types/lodash": "4.14.64",
     "@types/react": "16.14.10",
     "@types/react-bootstrap": "0.32.5",
