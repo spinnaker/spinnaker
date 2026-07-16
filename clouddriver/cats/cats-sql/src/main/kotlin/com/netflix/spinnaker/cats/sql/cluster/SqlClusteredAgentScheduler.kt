@@ -32,16 +32,19 @@ import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DataAccessException
 import org.springframework.dao.DataIntegrityViolationException
 import java.sql.SQLException
 import java.util.concurrent.*
 import java.util.function.BiConsumer
 import java.util.regex.Pattern
 import java.util.regex.Pattern.CASE_INSENSITIVE
-import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.FAILED
-import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.NOT_RUNNING
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.RUNNING
+import org.jooq.exception.SQLStateClass
+import java.time.Clock
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.collections.filter
+import kotlin.collections.partition
+import kotlin.concurrent.withLock
 
 /**
  * IMPORTANT: Using SQL for locking isn't a good idea. By enabling this scheduler, you'll be adding a fair amount of
@@ -67,13 +70,33 @@ class SqlClusteredAgentScheduler(
     ThreadFactoryBuilder().setNameFormat(SqlClusteredAgentScheduler::class.java.simpleName + "-%d").build()
   ),
   private val shardingFilter: ShardingFilter,
-  private val rebalancePercentageThreshold: Int = 50
+  private val rebalancePercentageThreshold: Int = 50,
+  private val clock: Clock = Clock.systemDefaultZone(),
 ) : CatsModuleAware(), AgentScheduler<AgentLock>, Runnable {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
+  /**
+   * longRunningAgents contains all available long-running caching agents (the same agents on all pods).
+   * activeLongRunningAgents contains only running agents on this Clouddriver instance.
+   *
+   * longRunningAgents is updated by "schedule" and "unschedule" methods.
+   * transition longRunningAgents -> activeLongRunningAgents happens only by one background thread ("run" method).
+   *
+   * scheduled agents don't start immediately after calling the "schedule" method. They start only
+   * on the next "run" invocation.
+   *
+   * "run" method compares active agents with all available agents and reconcile them:
+   * 1. stops all outdated agents first.
+   * 2. schedules missed agents.
+   *
+   * The access to both maps happens under longRunningAgentsLock.
+   */
+  private val longRunningAgentsLock = ReentrantLock()
+  private val longRunningAgents: MutableMap<String, AgentExecutionRunnable> = mutableMapOf()
+  private val activeLongRunningAgents: MutableMap<String, AgentExecutionRunnable> = mutableMapOf()
+
   private val agents: MutableMap<String, AgentExecutionAction> = ConcurrentHashMap()
-  private val longRunningAgents: MutableMap<String, AgentExecutionRunnable> = ConcurrentHashMap()
   private val activeAgents: MutableMap<String, NextAttempt> = ConcurrentHashMap()
   private val activeAgentsFutures: MutableMap<String, Future<*>> = ConcurrentHashMap()
   private val enabledAgents: Pattern
@@ -106,34 +129,25 @@ class SqlClusteredAgentScheduler(
       agent.agentScheduler = this
     }
     if (agentExecution is LongRunningAgentExecution) {
-      val previous = longRunningAgents[agent.agentType]
-      previous?.let {
-        try {
-          log.info("Stopping previous running agent execution {}", agent.agentType)
-          (it.execution as LongRunningAgentExecution).stopExecutingAndCleanup().join()
-        } catch (e: Exception) {
-          log.warn("Failed to stop previous agent execution {}", agent.agentType, e)
-        }
+      longRunningAgentsLock.withLock {
+        val runnable = AgentExecutionRunnable(agent, agentExecution, executionInstrumentation)
+        longRunningAgents[agent.agentType] = runnable
       }
-
-      val runnable =
-        AgentExecutionRunnable(agent, agentExecution, executionInstrumentation)
-      longRunningAgents[agent.agentType] = runnable
     }
     else {
-      agents[agent.agentType] = AgentExecutionAction(agent, agentExecution, executionInstrumentation)
+      agents[agent.agentType] = AgentExecutionAction(agent, agentExecution, executionInstrumentation, clock)
     }
   }
 
   override fun unschedule(agent: Agent) {
-    releaseLock(agent.agentType, 0) // Release the lock immediately
-    if (longRunningAgents.contains(agent.agentType)) {
-      val runnable = longRunningAgents[agent.agentType]
-      (runnable!!.execution as LongRunningAgentExecution).stopExecutingAndCleanup().join()
-      longRunningAgents.remove(agent.agentType)
+    log.info("Unscheduling agent {}", agent.agentType)
+
+    longRunningAgentsLock.withLock {
+      longRunningAgents.remove(agent.agentType) // do not release the lock immediately
     }
-    else {
-      agents.remove(agent.agentType)
+
+    agents.remove(agent.agentType)?.let {
+      releaseLock(agent.agentType, 0)
     }
   }
 
@@ -166,7 +180,7 @@ class SqlClusteredAgentScheduler(
         val agentExecution = it.value
         val interval = intervalProvider.getInterval(agentExecution.agent)
 
-        val currentTime = System.currentTimeMillis()
+        val currentTime = clock.millis()
         if (tryAcquireSingle(agentType, currentTime, interval.timeout)) {
           Pair(agentType, NextAttempt(currentTime, interval.interval, interval.errorInterval))
         } else {
@@ -214,7 +228,7 @@ class SqlClusteredAgentScheduler(
         .fetch()
         .intoResultSet()
 
-      val now = System.currentTimeMillis()
+      val now = clock.millis()
       while (existingLocks.next()) {
         val lockExpiry = existingLocks.getLong("lock_expiry")
         if (now > lockExpiry) {
@@ -259,84 +273,157 @@ class SqlClusteredAgentScheduler(
     return trimmedCandidates
   }
 
+  /**
+   * Reconcile long-running caching agent executions.
+   * longRunningAgents - all available agents.
+   * activeLongRunningAgents - running agents on this instance.
+   *
+   * Find agents to stop:
+   * 1. Deleted agents
+   * 2. New agent configuration (same agent type, different execution object)
+   * 3. Failed agents (will restart immediately after stopping)
+   * 4. Agents that should be running on different instances (only if exceeds rebalancing threshold)
+   * 5. Agents for which the lock failed to renew
+   *
+   * Find agents to start:
+   * 1. Agents that are not running on this specific instance yet
+   *
+   * Process found agents:
+   * Stop agents
+   * Start agents
+   * Save all active agents in activeLongRunningAgents
+   *
+   * Notes:
+   * If some agents are unscheduled during the reconciliation, they will be stopped next run.
+   * We don't force stop moved agents until a threshold is reached to avoid constant restarts. Only
+   * failed/stopped agents are moved if number of running agents is below the threshold.
+   */
   private fun scheduleLongRunningAgents() {
-    removeRelocated()
-    renewAgents()
-    submitLongRunningAgents()
-  }
+    val schedulingResult = longRunningAgentsLock.withLock {
+      // filter "unscheduled" agents. need to stop them
+      val (scheduledActiveAgents, unscheduledActiveAgents) = activeLongRunningAgents.values
+        .partition {
+          val scheduled = longRunningAgents[it.agent.agentType]
+          scheduled != null && // agents with the same type
+            scheduled === it // the exact same agent configuration (by reference)
+        }
+      log.info("Stopping {} unscheduled active long running agents: {}", unscheduledActiveAgents.size, unscheduledActiveAgents.agentTypes())
 
-  private fun removeRelocated() {
-    val failedAgentsRelocated = longRunningAgents.filter { !shardingFilter.filter(it.value.agent) }.filter { (it.value.execution as LongRunningAgentExecution).state == FAILED }
-    failedAgentsRelocated.forEach {
-      (it.value.execution as LongRunningAgentExecution).stopExecutingAndCleanup()
+      // filter not running agents (failed to run, failed to start), will restart them
+      val (runningActiveAgents, failedActiveAgents) = scheduledActiveAgents
+        .partition { it.execution.asLongRunning().state == RUNNING }
+      log.info("Stopping {} not running (failed) agents: {}", failedActiveAgents.size, failedActiveAgents.agentTypes())
+
+      val (agentsToKeep, rebalancedAgents) = rebalanceLongRunningAgents(runningActiveAgents)
+
+      val (agentsWithRenewedLock, agentsWithoutLocks) = renewAgents(agentsToKeep)
+
+      // all running/failed agents that has to be stopped
+      val agentsToStop = unscheduledActiveAgents + failedActiveAgents + rebalancedAgents + agentsWithoutLocks
+
+      // find new agents that we need to start
+      val runningAgentTypes = agentsWithRenewedLock.agentTypes().toSet()
+      val agentsToStart = longRunningAgents
+        .filter { shardingFilter.filter(it.value.agent) } // should be on this instance
+        .filterNot { runningAgentTypes.contains(it.key) } // not running (either new or failed)
+        .map { it.value }
+
+      LongRunningAgentSchedulingResult(
+        toStop = agentsToStop,
+        toKeep = agentsWithRenewedLock,
+        toStart = agentsToStart
+      )
+    }
+
+    stopLongRunningAgents(schedulingResult.toStop)
+    val (startedNewAgents, notStartedAgents) = startLongRunningAgents(schedulingResult.toStart)
+
+    // only one thread should access "activeLongRunningAgents", so we don't have to acquire the lock
+    // to guarantee visibility of modifications.
+    // but do it just in case if the "scheduler" thread dies and another one will be created
+    longRunningAgentsLock.withLock {
+      val newActiveLongRunningAgents = (startedNewAgents + schedulingResult.toKeep).associateBy { it.agent.agentType }
+
+      this.activeLongRunningAgents.clear()
+      this.activeLongRunningAgents += newActiveLongRunningAgents
     }
   }
 
-  private fun renewAgents() {
-    val now = System.currentTimeMillis()
-    val runningAgentsToBeRenewed = longRunningAgents
-      .filter { (it.value.execution as LongRunningAgentExecution).state == RUNNING}
-    log.debug("{} Long Running Agents Locks to be renewed in {}", runningAgentsToBeRenewed.size, nodeIdentity.nodeIdentity)
+  private fun renewAgents(runningActiveAgents: List<AgentExecutionRunnable>): RenewAgentLocksResult {
+    val now = clock.millis()
+    log.debug("{} Long Running Agents Locks to be renewed in {}: {}", runningActiveAgents.size, nodeIdentity.nodeIdentity, runningActiveAgents.agentTypes())
 
-    runningAgentsToBeRenewed.forEach {renewSingleLongRunning(it.key, now, intervalProvider.getInterval(it.value.agent).interval) }
+    val (succeeded, failed) = runningActiveAgents.partition {
+      renewSingleLongRunning(it.agent.agentType, now, intervalProvider.getInterval(it.agent).interval)
+    }
+
+    if (failed.isNotEmpty()) {
+      log.warn("Failed to renew locks for {} agents: {}", failed.size, failed.agentTypes())
+    }
+
+    return RenewAgentLocksResult(succeeded = succeeded, failed = failed)
   }
 
-  private fun submitLongRunningAgents() {
-    val now = System.currentTimeMillis()
+  private fun rebalanceLongRunningAgents(runningActiveAgents: List<AgentExecutionRunnable>): RebalancingResult {
+    if (rebalancePercentageThreshold <= 0) {
+      return RebalancingResult(toKeep = runningActiveAgents)
+    }
 
-    val filteredForThisNode = longRunningAgents
-      .filter { shardingFilter.filter(it.value.agent) }
+    val filteredForThisNode = runningActiveAgents.filter { shardingFilter.filter(it.agent) }
     log.debug("{} Long Running Agents filtered for node: {}", filteredForThisNode.size, nodeIdentity.nodeIdentity)
 
-    val thisNodeAgentsNotRunning = filteredForThisNode
-      .filter { (it.value.execution as LongRunningAgentExecution).state != RUNNING}
-    log.debug("{} Long Running Agents filtered for node: {} not running", thisNodeAgentsNotRunning.size, nodeIdentity.nodeIdentity)
+    val expectedForThisNodeOrOne = if (filteredForThisNode.size > 0) filteredForThisNode.size else 1
+    log.debug("{} Long Running Agents Currently running in node {}", runningActiveAgents.size, nodeIdentity.nodeIdentity)
 
-    if (rebalancePercentageThreshold > 0) {
-      val expectedForThisNodeOrOne = if (filteredForThisNode.size > 0) filteredForThisNode.size else 1
-      val agentsCurrentlyRunningThisNode = longRunningAgents
-        .filter { (it.value.execution as LongRunningAgentExecution).state == RUNNING}
-      log.debug("{} Long Running Agents Currently running in node {}", agentsCurrentlyRunningThisNode.size, nodeIdentity.nodeIdentity)
-      val aboveExpectedPercentageThreshold = ((agentsCurrentlyRunningThisNode.size-filteredForThisNode.size.toDouble())/expectedForThisNodeOrOne*100).toInt()
-      if (aboveExpectedPercentageThreshold > rebalancePercentageThreshold) {
-        val agentsToBeStopped = agentsCurrentlyRunningThisNode.filter { !shardingFilter.filter(it.value.agent) }
-        log.info("Long Running Agents in {} needing to be rebalanced above configured threshold ({}%>{}%). Stopping {}",
-          nodeIdentity.nodeIdentity, aboveExpectedPercentageThreshold, rebalancePercentageThreshold, agentsToBeStopped.keys)
-        agentsToBeStopped.forEach {
-          (it.value.execution as LongRunningAgentExecution).stopExecutingAndCleanup().whenComplete { res,ex -> releaseLock(it.value.agent.agentType, 0) }
-        }
-      }
+    val aboveExpectedPercentageThreshold =
+      ((runningActiveAgents.size - filteredForThisNode.size.toDouble()) / expectedForThisNodeOrOne * 100).toInt()
+    if (aboveExpectedPercentageThreshold <= rebalancePercentageThreshold) {
+      return RebalancingResult(toKeep = runningActiveAgents)
     }
 
-    val candidateAgentLocks = thisNodeAgentsNotRunning
-      .filter { tryAcquireSingleLongRunning(it.key, now, intervalProvider.getInterval(it.value.agent).interval) }
+    val (toKeep, toStop) = runningActiveAgents.partition { shardingFilter.filter(it.agent) }
+    log.info(
+      "Long Running Agents in {} needing to be rebalanced above configured threshold ({}%>{}%). Stopping {}",
+      nodeIdentity.nodeIdentity,
+      aboveExpectedPercentageThreshold,
+      rebalancePercentageThreshold,
+      toStop.map { it.agent.agentType })
 
-    log.debug("{} Long Running Agents filtered for node: {} with lock acquired", candidateAgentLocks.size, nodeIdentity.nodeIdentity)
+    return RebalancingResult(toKeep = toKeep, toStop = toStop)
+  }
 
-    log.debug("Long Running Agents to be executed in {}: {}", nodeIdentity.nodeIdentity, candidateAgentLocks.keys)
-    val failedAgents = candidateAgentLocks.filter { (it.value.execution as LongRunningAgentExecution).state == FAILED }
-    val notRunning = candidateAgentLocks.filter { (it.value.execution as LongRunningAgentExecution).state == NOT_RUNNING }
-    if (!notRunning.isEmpty()) {
-      log.info("Long Running Agents not running in {}: {}", nodeIdentity.nodeIdentity, notRunning.keys)
-      notRunning.forEach {
-        agentExecutionPool.submit(it.value);
-      }
+  private fun stopLongRunningAgents(agents: List<AgentExecutionRunnable>) {
+    val stopFutures = agents.map {
+      val longRunningExecution = it.execution.asLongRunning()
+      longRunningExecution.stopExecutingAndCleanup()
+        .orTimeout(longRunningExecution.stopTimeoutMillis, TimeUnit.MILLISECONDS)
+        .whenComplete(BiConsumer { _: Void?, _: Throwable? ->
+          releaseLock(it.agent.agentType, 0)
+        })
     }
-    if (!failedAgents.isEmpty()) {
-      log.warn("Long Running Agents failed in {}: {}", nodeIdentity.nodeIdentity, failedAgents.keys)
-      failedAgents.forEach {
-        val longRunningExecution = (it.value.execution as LongRunningAgentExecution)
-        longRunningExecution.stopExecutingAndCleanup()
-          .orTimeout(longRunningExecution.stopTimeoutMillis, TimeUnit.MILLISECONDS)
-          .whenComplete(BiConsumer<Void, Throwable> { res: Void?, ex: Throwable? -> agentExecutionPool.submit(it.value) })
-      }
-    }
+
+    CompletableFuture.allOf(*stopFutures.toTypedArray()).join()
+  }
+
+  private fun startLongRunningAgents(agents: List<AgentExecutionRunnable>): StartAgentsResult {
+    val now = clock.millis()
+
+    val (withLock, withoutLock) = agents
+      .partition { tryAcquireSingleLongRunning(it.agent.agentType, now, intervalProvider.getInterval(it.agent).interval) }
+    log.debug("{} Long Running Agents filtered for node: {} with lock acquired: {}", withLock.size, nodeIdentity.nodeIdentity, withLock.agentTypes())
+
+    withLock.forEach { agentExecutionPool.submit(it) }
+
+    return StartAgentsResult(
+      succeeded = withLock,
+      failed = withoutLock,
+    )
   }
 
   private fun cleanupZombieAgents() {
     val zombieAgentThreshold = dynamicConfigService.getConfig(Long::class.java, "sql.agent.zombie-threshold-ms", 3600000)
     activeAgents
-      .filter { it.value.currentTime < System.currentTimeMillis() - zombieAgentThreshold }
+      .filter { it.value.currentTime < clock.millis() - zombieAgentThreshold }
       .forEach {
         log.warn("Found zombie agent {}, removing it", it.key)
         activeAgents.remove(it.key, it.value)
@@ -396,20 +483,28 @@ class SqlClusteredAgentScheduler(
           )
           .execute()
       }
-    } catch (e: DataIntegrityViolationException) {
-      // Integrity constraint exceptions are ok: It means there was a racecondition between us acquiring this lock
-      // and some other node updating its lock lease
-      log.debug("Race condition while trying to acquire agent lock", e)
-      return false
-    } catch (e: DataAccessException) {
-      // Integrity constraint exceptions are ok: It means there was a racecondition between us acquiring this lock
-      // and some other node updating its lock lease
-      log.warn("Race condition while trying to acquire agent lock", e)
-      return false
-    } catch (e: SQLException) {
-      log.error("Unexpected sql exception while trying to acquire agent lock", e)
+    } catch (e: Exception) {
+      when (e) {
+        // Integrity constraint exceptions are ok: It means there was a race condition between us
+        // acquiring this lock and some other node updating its lock lease
+        is DataIntegrityViolationException -> {
+          log.debug("Race condition while trying to acquire agent lock", e)
+        }
+        is org.jooq.exception.DataAccessException -> {
+          if (e.sqlStateClass() == SQLStateClass.C23_INTEGRITY_CONSTRAINT_VIOLATION) {
+            log.debug("Race condition while trying to acquire agent lock", e)
+          } else {
+            log.warn("Unexpected DataAccessException while trying to acquire agent lock", e)
+          }
+        }
+        // any other sql exception are unexpected
+        is org.springframework.dao.DataAccessException, is SQLException -> {
+          log.warn("Unexpected SQL exception while trying to acquire agent lock", e)
+        }
+      }
       return false
     }
+
     log.debug("Successfully acquired lock for {} in {}", agentType, nodeIdentity.nodeIdentity)
     return true
   }
@@ -443,7 +538,7 @@ class SqlClusteredAgentScheduler(
   }
 
   private fun releaseLock(agentType: String, nextExecutionTime: Long) {
-    val newTtl = nextExecutionTime - System.currentTimeMillis()
+    val newTtl = nextExecutionTime - clock.millis()
 
     withPool(POOL_NAME) {
       if (newTtl < dynamicConfigService.getConfig(Long::class.java, "sql.agent.release-threshold-ms", 500)) {
@@ -455,7 +550,7 @@ class SqlClusteredAgentScheduler(
       } else {
         try {
           jooq.update(table(lockTable))
-            .set(field("lock_expiry"), System.currentTimeMillis() + newTtl)
+            .set(field("lock_expiry"), clock.millis() + newTtl)
             .where(field("agent_name").eq(agentType))
             .execute()
         } catch (e: SQLException) {
@@ -486,11 +581,12 @@ private enum class Status {
 private class AgentExecutionAction(
   val agent: Agent,
   val agentExecution: AgentExecution,
-  val executionInstrumentation: ExecutionInstrumentation
+  val executionInstrumentation: ExecutionInstrumentation,
+  private val clock: Clock,
 ) {
 
   fun execute(): Status {
-    val startTimeMs = System.currentTimeMillis()
+    val startTimeMs = clock.millis()
     return try {
       executionInstrumentation.executionStarted(agent)
       agentExecution.executeAgent(agent)
@@ -531,3 +627,28 @@ private data class NextAttempt(
       currentTime + errorInterval
     }
 }
+
+private fun AgentExecution.asLongRunning() = this as LongRunningAgentExecution
+
+private fun List<AgentExecutionRunnable>.agentTypes() = map { it.agent.agentType }
+
+private data class RebalancingResult(
+  val toKeep: List<AgentExecutionRunnable> = listOf(),
+  val toStop: List<AgentExecutionRunnable> = listOf(),
+)
+
+private data class RenewAgentLocksResult(
+  val succeeded: List<AgentExecutionRunnable> = listOf(),
+  val failed: List<AgentExecutionRunnable> = listOf(),
+)
+
+private data class StartAgentsResult(
+  val succeeded: List<AgentExecutionRunnable> = listOf(),
+  val failed: List<AgentExecutionRunnable> = listOf(),
+)
+
+private data class LongRunningAgentSchedulingResult(
+  val toKeep: List<AgentExecutionRunnable> = listOf(),
+  val toStop: List<AgentExecutionRunnable> = listOf(),
+  val toStart: List<AgentExecutionRunnable> = listOf(),
+)

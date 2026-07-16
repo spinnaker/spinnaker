@@ -25,6 +25,7 @@ import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
 import com.netflix.spinnaker.cats.sql.cluster.SqlClusteredAgentScheduler
+import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -81,20 +82,6 @@ class SqlClusteredAgentSchedulerTest : JUnit5Minutests {
         actual3 == actual4,
         "Expected variation in agent order of execution, " +
           "but the same agents ran in the same order: " + actual1)
-    }
-
-    test("should stop long running agents before rescheduling") {
-      val agent: Agent = mock()
-      whenever(agent.agentType).thenReturn("agent1")
-      val agentExec1: LongRunningAgentExecution = mock()
-      whenever(agentExec1.stopExecutingAndCleanup()).thenReturn(CompletableFuture.completedFuture(null))
-
-      sqlClusteredAgentScheduler.schedule(agent, agentExec1, mock())
-
-      val agentExec2: LongRunningAgentExecution = mock()
-      sqlClusteredAgentScheduler.schedule(agent, agentExec2, mock())
-
-      verify(agentExec1).stopExecutingAndCleanup()
     }
   }
 
