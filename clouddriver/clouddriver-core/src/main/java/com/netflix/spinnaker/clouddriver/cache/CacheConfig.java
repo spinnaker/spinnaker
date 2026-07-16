@@ -57,9 +57,8 @@ public class CacheConfig {
   @ConditionalOnMissingBean(AgentScheduler.class)
   @ConditionalOnProperty(value = "caching.write-enabled", matchIfMissing = true)
   AgentScheduler agentScheduler(
-      @Value("${cats.defaultscheduler.scheduleTmeout:#{60L}}") long scheduleTimeout,
-      @Value("${cats.defaultscheduler.stopTmeout:#{60L}}") long stopTimeout) {
-    return new DefaultAgentScheduler(scheduleTimeout, stopTimeout, TimeUnit.SECONDS);
+      @Value("${cats.defaultscheduler.scheduleTimeout:#{60L}}") long scheduleTimeout) {
+    return new DefaultAgentScheduler(scheduleTimeout, TimeUnit.SECONDS);
   }
 
   @Bean

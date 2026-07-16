@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.sql.test
+package com.netflix.spinnaker.cats.test
 
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.cluster.ShardingFilter

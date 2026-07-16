@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.cats.agent
 
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
+import com.netflix.spinnaker.cats.test.MockAgentLongRunningExecution
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -36,7 +37,7 @@ class DefaultAgentSchedulerSpec extends Specification {
         def instr = Mock(ExecutionInstrumentation)
         def exec = Mock(AgentExecution)
         runnableScheduler = new ManualRunnableScheduler()
-        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, 1, TimeUnit.SECONDS, runnableScheduler)
+        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS, runnableScheduler)
 
         when:
         scheduler.schedule(agent, exec, instr)
@@ -55,7 +56,7 @@ class DefaultAgentSchedulerSpec extends Specification {
         def instr = Mock(ExecutionInstrumentation)
         def exec = Mock(AgentExecution)
         runnableScheduler = new ManualRunnableScheduler()
-        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, 1, TimeUnit.SECONDS, runnableScheduler)
+        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS, runnableScheduler)
         def cause = new RuntimeException('failboat')
 
         when:
@@ -73,16 +74,15 @@ class DefaultAgentSchedulerSpec extends Specification {
         setup:
         def agent = Stub(Agent)
         def instr = Mock(ExecutionInstrumentation)
-        def exec = Stub(LongRunningAgentExecution) {
-          isRunning() >>> [false]
-        }
+        def exec = new MockAgentLongRunningExecution()
         runnableScheduler = new ManualRunnableScheduler()
         runnableExecutor = new ManualRunnableScheduler()
-        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, 1, TimeUnit.SECONDS, runnableExecutor)
+        scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS, runnableExecutor)
 
         when:
         scheduler.schedule(agent, exec, instr)
         runnableExecutor.runAll()
+        exec.fail()
         runnableScheduler.runAll()
         runnableExecutor.runAll()
 
@@ -92,16 +92,41 @@ class DefaultAgentSchedulerSpec extends Specification {
         0 * _
     }
 
+  def 'longRunningAgent is rescheduled after failure and scheduler times out stop'() {
+    setup:
+    def agent = Stub(Agent)
+    def instr = Mock(ExecutionInstrumentation)
+    def exec = new MockAgentLongRunningExecution()
+    exec.stopDelay = 999999999
+
+    runnableScheduler = new ManualRunnableScheduler()
+    runnableExecutor = new ManualRunnableScheduler()
+    scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS, runnableExecutor)
+
+    when:
+    scheduler.schedule(agent, exec, instr)
+    runnableExecutor.runAll()
+    exec.fail()
+    runnableScheduler.runAll()
+    runnableScheduler.runAll() //runs twice to verify there is no race condition in rescheduling (ie.: submit multiple times)
+    Thread.sleep(1500) // leave time for the timeout in MockAgentLongRunningExecution to reschedule
+    runnableExecutor.runAll()
+
+    then:
+    2 * instr.executionStarted(agent)
+    2 * instr.executionCompleted(agent, _ )
+    0 * _
+  }
+
   def 'longRunningAgent is NOT rescheduled after failure'() {
     setup:
     def agent = Stub(Agent)
     def instr = Mock(ExecutionInstrumentation)
-    def exec = Stub(LongRunningAgentExecution) {
-      isRunning() >>> [true]
-    }
+    def exec = new MockAgentLongRunningExecution()
+
     runnableScheduler = new ManualRunnableScheduler()
     runnableExecutor = new ManualRunnableScheduler()
-    scheduler = new DefaultAgentScheduler(runnableScheduler, 1, 1, TimeUnit.SECONDS, runnableExecutor)
+    scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS, runnableExecutor)
 
     when:
     scheduler.schedule(agent, exec, instr)
@@ -118,19 +143,21 @@ class DefaultAgentSchedulerSpec extends Specification {
     setup:
     def agent = Mock(Agent)
     def instr = Mock(ExecutionInstrumentation)
-    def exec = Mock(LongRunningAgentExecution)
-    exec.isRunning() >> true
-    exec.stopExecutingAndCleanup() >> CompletableFuture.completedFuture()
+    def exec = Spy(MockAgentLongRunningExecution)
 
     runnableScheduler = new ManualRunnableScheduler()
     runnableExecutor = new ManualRunnableScheduler()
-    scheduler = new DefaultAgentScheduler(runnableScheduler, 1, 1, TimeUnit.SECONDS, runnableExecutor)
+    scheduler = new DefaultAgentScheduler(runnableScheduler, 1, TimeUnit.SECONDS, runnableExecutor)
 
     when:
     scheduler.schedule(agent, exec, instr)
+    runnableExecutor.runAll()
     scheduler.unschedule(agent)
 
     then:
+    1 * exec.executeAgent(agent)
+    1 * instr.executionStarted(agent)
+    1 * instr.executionCompleted(agent, _)
     1 * exec.stopExecutingAndCleanup()
     0 * _
   }

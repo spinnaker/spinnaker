@@ -14,28 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.sql.test
+package com.netflix.spinnaker.cats.agent;
 
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution
-
-import java.util.concurrent.CompletableFuture
-
-class MockAgentLongRunningExecution implements LongRunningAgentExecution{
-  private boolean running
-  boolean isRunning() {
-    return running
-  }
-
-  CompletableFuture<Void> stopExecutingAndCleanup() {
-    return CompletableFuture.completedFuture()
-  }
-
-  void executeAgent(Agent agent) {
-    running = true
-  }
-
-  void stopRunning() {
-    running = false
-  }
+public enum LongRunningAgentExecutionState {
+  NOT_RUNNING,
+  RUNNING,
+  FAILED,
+  CLEANING_UP
 }

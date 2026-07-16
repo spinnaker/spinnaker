@@ -39,6 +39,9 @@ import java.util.concurrent.*
 import java.util.function.BiConsumer
 import java.util.regex.Pattern
 import java.util.regex.Pattern.CASE_INSENSITIVE
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.FAILED
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.NOT_RUNNING
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.RUNNING
 
 /**
  * IMPORTANT: Using SQL for locking isn't a good idea. By enabling this scheduler, you'll be adding a fair amount of
@@ -70,7 +73,6 @@ class SqlClusteredAgentScheduler(
 
   private val agents: MutableMap<String, AgentExecutionAction> = ConcurrentHashMap()
   private val longRunningAgents: MutableMap<String, AgentExecutionRunnable> = ConcurrentHashMap()
-  private val scheduledLongRunningAgents: MutableSet<AgentExecutionRunnable> = HashSet()
   private val activeAgents: MutableMap<String, NextAttempt> = ConcurrentHashMap()
   private val activeAgentsFutures: MutableMap<String, Future<*>> = ConcurrentHashMap()
   private val enabledAgents: Pattern
@@ -253,17 +255,16 @@ class SqlClusteredAgentScheduler(
   }
 
   private fun removeRelocated() {
-    val stoppedAgentsRelocated = scheduledLongRunningAgents.filter { !shardingFilter.filter(it.agent) }.filter { !(it.execution as LongRunningAgentExecution).isRunning }
-    stoppedAgentsRelocated.forEach {
-      (it.execution as LongRunningAgentExecution).stopExecutingAndCleanup()
+    val failedAgentsRelocated = longRunningAgents.filter { !shardingFilter.filter(it.value.agent) }.filter { (it.value.execution as LongRunningAgentExecution).state == FAILED }
+    failedAgentsRelocated.forEach {
+      (it.value.execution as LongRunningAgentExecution).stopExecutingAndCleanup()
     }
-    scheduledLongRunningAgents.removeAll(stoppedAgentsRelocated)
   }
 
   private fun renewAgents() {
     val now = System.currentTimeMillis()
     val runningAgentsToBeRenewed = longRunningAgents
-      .filter { (it.value.execution as LongRunningAgentExecution).isRunning}
+      .filter { (it.value.execution as LongRunningAgentExecution).state == RUNNING}
     log.debug("{} Long Running Agents Locks to be renewed in {}", runningAgentsToBeRenewed.size, nodeIdentity.nodeIdentity)
 
     runningAgentsToBeRenewed.forEach {renewSingleLongRunning(it.key, now, intervalProvider.getInterval(it.value.agent).interval) }
@@ -277,7 +278,7 @@ class SqlClusteredAgentScheduler(
     log.debug("{} Long Running Agents filtered for node: {}", filteredForThisNode.size, nodeIdentity.nodeIdentity)
 
     val thisNodeAgentsNotRunning = filteredForThisNode
-      .filter { !(it.value.execution as LongRunningAgentExecution).isRunning}
+      .filter { (it.value.execution as LongRunningAgentExecution).state != RUNNING}
     log.debug("{} Long Running Agents filtered for node: {} not running", thisNodeAgentsNotRunning.size, nodeIdentity.nodeIdentity)
 
     val candidateAgentLocks = thisNodeAgentsNotRunning
@@ -287,13 +288,14 @@ class SqlClusteredAgentScheduler(
 
     log.debug("Long Running Agents to be executed in {}: {}", nodeIdentity.nodeIdentity, candidateAgentLocks.keys)
     candidateAgentLocks.forEach {
-      if (it.value in scheduledLongRunningAgents) {
-        (it.value.execution as LongRunningAgentExecution).stopExecutingAndCleanup()
+      if ((it.value.execution as LongRunningAgentExecution).state == FAILED) {
+        val longRunningExecution = (it.value.execution as LongRunningAgentExecution)
+        longRunningExecution.stopExecutingAndCleanup()
+          .orTimeout(longRunningExecution.stopTimeoutMillis, TimeUnit.MILLISECONDS)
           .whenComplete(BiConsumer<Void, Throwable> { res: Void?, ex: Throwable? -> agentExecutionPool.submit(it.value) })
       }
-      else {
+      else if ((it.value.execution as LongRunningAgentExecution).state == NOT_RUNNING) {
         agentExecutionPool.submit(it.value);
-        scheduledLongRunningAgents.add(it.value)
       }
     }
   }

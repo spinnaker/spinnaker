@@ -16,10 +16,17 @@
 
 package com.netflix.spinnaker.cats.agent;
 
+import static com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.FAILED;
+
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An AgentScheduler that executes on a fixed interval.
@@ -32,27 +39,25 @@ import java.util.concurrent.*;
  */
 public class DefaultAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock> {
   private static final long DEFAULT_INTERVAL = 60000;
-  private static final long DEFAULT_STOP_TIMEOUT = 60000;
 
   private final ScheduledExecutorService scheduledExecutorService;
   private final ExecutorService executorService;
 
   private final long interval;
   private final TimeUnit timeUnit;
-  private final long stopTimeout;
   private final Map<Agent, Future> agentFutures = new ConcurrentHashMap<Agent, Future>();
   private final Map<Agent, AgentExecutionRunnable> longRunningExecutionRunnables =
       new ConcurrentHashMap<Agent, AgentExecutionRunnable>();
 
   public DefaultAgentScheduler() {
-    this(DEFAULT_INTERVAL, DEFAULT_STOP_TIMEOUT);
+    this(DEFAULT_INTERVAL);
   }
 
-  public DefaultAgentScheduler(long interval, long stopTimeout) {
-    this(interval, stopTimeout, TimeUnit.MILLISECONDS);
+  public DefaultAgentScheduler(long interval) {
+    this(interval, TimeUnit.MILLISECONDS);
   }
 
-  public DefaultAgentScheduler(long interval, long stopTimeout, TimeUnit unit) {
+  public DefaultAgentScheduler(long interval, TimeUnit unit) {
     this(
         Executors.newScheduledThreadPool(
             Runtime.getRuntime().availableProcessors(),
@@ -60,7 +65,6 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
                 .setNameFormat(DefaultAgentScheduler.class.getSimpleName() + ":ScheduledAgents-%d")
                 .build()),
         interval,
-        stopTimeout,
         unit,
         Executors.newCachedThreadPool(
             new ThreadFactoryBuilder()
@@ -72,7 +76,6 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
   public DefaultAgentScheduler(
       ScheduledExecutorService scheduledExecutorService,
       long interval,
-      long stopTimeout,
       TimeUnit timeUnit,
       ExecutorService executorService) {
     this.scheduledExecutorService = scheduledExecutorService;
@@ -80,7 +83,6 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
     this.timeUnit = timeUnit;
     this.executorService = executorService;
     scheduledExecutorService.schedule(new LongRunningAgentRescheduleRunnable(), interval, timeUnit);
-    this.stopTimeout = stopTimeout;
   }
 
   @Override
@@ -160,10 +162,10 @@ public class DefaultAgentScheduler extends CatsModuleAware implements AgentSched
       for (AgentExecutionRunnable runnable :
           DefaultAgentScheduler.this.longRunningExecutionRunnables.values()) {
         LongRunningAgentExecution execution = (LongRunningAgentExecution) runnable.getExecution();
-        if (!execution.isRunning()) {
+        if (execution.getState() == FAILED) {
           execution
               .stopExecutingAndCleanup()
-              .orTimeout(stopTimeout, timeUnit)
+              .orTimeout(execution.getStopTimeoutMillis(), TimeUnit.MILLISECONDS)
               .whenComplete((res, ex) -> executorService.submit(runnable));
         }
       }

@@ -61,12 +61,12 @@ public interface CatsModule {
       return this;
     }
 
-    public Builder intervalScheduler(long interval, long stopTimeout) {
-      return scheduler(new DefaultAgentScheduler(interval, stopTimeout, TimeUnit.MILLISECONDS));
+    public Builder intervalScheduler(long interval) {
+      return scheduler(new DefaultAgentScheduler(interval, TimeUnit.MILLISECONDS));
     }
 
-    public Builder intervalScheduler(long interval, long stopTimeout, TimeUnit unit) {
-      return intervalScheduler(unit.toMillis(interval), unit.toMillis(stopTimeout));
+    public Builder intervalScheduler(long interval, TimeUnit unit) {
+      return intervalScheduler(unit.toMillis(interval));
     }
 
     public Builder instrumentation(Collection<ExecutionInstrumentation> instrumentation) {

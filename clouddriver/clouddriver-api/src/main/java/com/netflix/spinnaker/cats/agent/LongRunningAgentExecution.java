@@ -19,7 +19,9 @@ package com.netflix.spinnaker.cats.agent;
 import java.util.concurrent.CompletableFuture;
 
 public interface LongRunningAgentExecution extends AgentExecution {
-  boolean isRunning();
+  LongRunningAgentExecutionState getState();
+
+  long getStopTimeoutMillis();
 
   CompletableFuture<Void> stopExecutingAndCleanup();
 }

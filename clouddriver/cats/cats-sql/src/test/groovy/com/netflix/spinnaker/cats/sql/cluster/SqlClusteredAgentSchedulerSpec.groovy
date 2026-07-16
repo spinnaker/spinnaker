@@ -21,8 +21,8 @@ import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
-import com.netflix.spinnaker.cats.sql.test.MockAgentLongRunningExecution
-import com.netflix.spinnaker.cats.sql.test.MockShardingFilter
+import com.netflix.spinnaker.cats.test.MockAgentLongRunningExecution
+import com.netflix.spinnaker.cats.test.MockShardingFilter
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
@@ -32,15 +32,10 @@ import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import org.jooq.DSLContext
-import org.junit.Before
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.testcontainers.DockerClientFactory
 import spock.lang.Requires
 import spock.lang.Specification
-import spock.lang.Subject
-
-import java.util.concurrent.CompletableFuture
 
 @Requires({ DockerClientFactory.instance().isDockerAvailable() })
 abstract class SqlClusteredAgentSchedulerSpec extends Specification {
@@ -79,9 +74,6 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     else if (entry == "sql.agent.release-threshold-ms") {
       return 500L
     }
-    else if (entry == "sql.agent.zombie-threshold-ms") {
-      return 3600000L
-    }
   }
 
   def 'longRunningAgent is rescheduled after failure'() {
@@ -100,7 +92,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     def nodeStatusProvider = Stub(NodeStatusProvider)
     def shardingFilter = Stub(ShardingFilter)
 
-    nodeIdentity.nodeIdentity >> agentType
+    nodeIdentity.nodeIdentity >> "node-0"
     nodeStatusProvider.isNodeEnabled() >> true
     shardingFilter.filter(_ as Agent) >> true
     agent.getAgentType() >> agentType
@@ -110,18 +102,18 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor = new ManualRunnableScheduler()
 
     scheduler = new SqlClusteredAgentScheduler(context, nodeIdentity, intervalProvider, nodeStatusProvider, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler, runnableExecutor,
+      runnableExecutor, runnableScheduler,
       shardingFilter)
 
 
     when:
     scheduler.schedule(agent, exec, instr)
-    runnableExecutor.runAll()
     runnableScheduler.runAll()
-    exec.stopRunning()
+    runnableExecutor.runAll()
+    exec.fail()
     Thread.sleep(600)
-    runnableExecutor.runAll()
     runnableScheduler.runAll()
+    runnableExecutor.runAll()
 
     then:
     2 * exec.executeAgent(_)
@@ -155,7 +147,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor1 = new ManualRunnableScheduler()
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler1, runnableExecutor1,
+      runnableExecutor1, runnableScheduler1,
       shardingFilter1)
 
     // node 2
@@ -176,23 +168,23 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor2 = new ManualRunnableScheduler()
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, intervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler2, runnableExecutor2,
+      runnableExecutor2, runnableScheduler2,
       shardingFilter2)
 
 
     when:
     shardingFilter1.add("someagent-1")
     scheduler1.schedule(agent1, exec1, instr1)
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
     Thread.sleep(600)
-    exec1.stopRunning()
+    exec1.fail()
     shardingFilter1.remove("someagent-1")
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
     scheduler2.schedule(agent2, exec2, instr2)
-    runnableExecutor2.runAll()
     runnableScheduler2.runAll()
+    runnableExecutor2.runAll()
 
     then:
     1 * exec1.executeAgent(_)
@@ -227,7 +219,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor1 = new ManualRunnableScheduler()
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler1, runnableExecutor1,
+      runnableExecutor1, runnableScheduler1,
       shardingFilter1)
 
     // node 2
@@ -247,29 +239,30 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor2 = new ManualRunnableScheduler()
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, intervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler2, runnableExecutor2,
+      runnableExecutor2, runnableScheduler2,
       shardingFilter2)
 
 
     when:
     scheduler1.schedule(agent1, exec1, instr1)
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
 
     Thread.sleep(600)
 
     shardingFilter1.remove(agentType)
     shardingFilter2.add(agentType)
-    exec1.stopRunning()
-    runnableExecutor1.runAll()
+    exec1.fail()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
     scheduler2.schedule(agent2, exec2, instr2)
-    runnableExecutor2.runAll()
     runnableScheduler2.runAll()
+    runnableExecutor2.runAll()
 
     //guarantee it is not stopped twice
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
 
     then:
     1 * exec1.executeAgent(_)
@@ -306,7 +299,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor1 = new ManualRunnableScheduler()
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, intervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler1, runnableExecutor1,
+      runnableExecutor1, runnableScheduler1,
       shardingFilter1)
 
     // node 2
@@ -326,24 +319,25 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor2 = new ManualRunnableScheduler()
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, intervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler2, runnableExecutor2,
+      runnableExecutor2, runnableScheduler2,
       shardingFilter2)
 
 
     when:
     scheduler1.schedule(agent1, exec1, instr1)
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
 
     Thread.sleep(600)
 
     shardingFilter1.remove(agentType)
     shardingFilter2.add(agentType)
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
     scheduler2.schedule(agent2, exec2, instr2)
-    runnableExecutor2.runAll()
     runnableScheduler2.runAll()
+    runnableExecutor2.runAll()
 
     then:
     1 * exec1.executeAgent(_)
@@ -383,7 +377,7 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor1 = new ManualRunnableScheduler()
 
     scheduler1 = new SqlClusteredAgentScheduler(context, nodeIdentity1, biggerIntervalProvider, nodeStatusProvider1, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler1, runnableExecutor1,
+      runnableExecutor1, runnableScheduler1,
       shardingFilter1)
 
     // node 2
@@ -403,24 +397,25 @@ abstract class SqlClusteredAgentSchedulerSpec extends Specification {
     runnableExecutor2 = new ManualRunnableScheduler()
 
     scheduler2 = new SqlClusteredAgentScheduler(context, nodeIdentity2, biggerIntervalProvider, nodeStatusProvider2, dynamicConfigService, enabledAgentPattern, disabledAgentsConfig, 500, null,
-      runnableScheduler2, runnableExecutor2,
+      runnableExecutor2, runnableScheduler2,
       shardingFilter2)
 
 
     when:
     scheduler1.schedule(agent1, exec1, instr1)
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
 
     Thread.sleep(200)
 
     shardingFilter1.remove(agentType)
     shardingFilter2.add(agentType)
-    runnableExecutor1.runAll()
     runnableScheduler1.runAll()
+    runnableExecutor1.runAll()
+
     scheduler2.schedule(agent2, exec2, instr2)
-    runnableExecutor2.runAll()
     runnableScheduler2.runAll()
+    runnableExecutor2.runAll()
 
     then:
     1 * exec1.executeAgent(_)
