@@ -1,6 +1,3 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
-
 import type {
   Application,
   IArtifact,
@@ -95,9 +92,6 @@ export class AppengineServerGroupCommandBuilder {
     return pipeline.expectedArtifacts || [];
   }
 
-  public static $inject = ['$q'];
-  constructor(private $q: IQService) {}
-
   public buildNewServerGroupCommand(
     app: Application,
     selectedProvider: string,
@@ -117,7 +111,7 @@ export class AppengineServerGroupCommandBuilder {
       disableStrategySelection: mode === 'create',
     };
 
-    return this.$q.all(dataToFetch).then((backingData: any) => {
+    return this.resolveAll(dataToFetch).then((backingData: any) => {
       const credentials = this.getCredentials(backingData.accounts);
       const region = this.getRegion(backingData.accounts, credentials);
 
@@ -129,6 +123,9 @@ export class AppengineServerGroupCommandBuilder {
         credentials,
         region,
         selectedProvider,
+        configArtifacts: [],
+        configFilepaths: [],
+        configFiles: [],
         interestingHealthProviderNames: [],
         sourceType: AppengineSourceType.GIT,
       } as IAppengineServerGroupCommand;
@@ -161,7 +158,7 @@ export class AppengineServerGroupCommandBuilder {
   }> {
     // We can't copy server group configuration for App Engine, and can't build the full command here because we don't have
     // access to the application.
-    return this.$q.when({
+    return Promise.resolve({
       viewState: {
         pipeline,
         stage: _stage,
@@ -225,11 +222,15 @@ export class AppengineServerGroupCommandBuilder {
         return 'Create';
     }
   }
+
+  private resolveAll<T extends Record<string, PromiseLike<any>>>(
+    dataToFetch: T,
+  ): Promise<{ [K in keyof T]: Awaited<T[K]> }> {
+    const entries = Object.entries(dataToFetch);
+    return Promise.all(entries.map(([, promise]) => promise)).then((values) => {
+      return entries.reduce((result, [key], index) => ({ ...result, [key]: values[index] }), {}) as {
+        [K in keyof T]: Awaited<T[K]>;
+      };
+    });
+  }
 }
-
-export const APPENGINE_SERVER_GROUP_COMMAND_BUILDER = 'spinnaker.appengine.serverGroupCommandBuilder.service';
-
-module(APPENGINE_SERVER_GROUP_COMMAND_BUILDER, []).service(
-  'appengineServerGroupCommandBuilder',
-  AppengineServerGroupCommandBuilder,
-);
