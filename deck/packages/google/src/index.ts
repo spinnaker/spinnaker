@@ -1,1 +1,1 @@
-export { GOOGLE_MODULE } from './gce.module';
+export { registerGooglePipelineStages, registerGoogleProvider } from './gce.module';

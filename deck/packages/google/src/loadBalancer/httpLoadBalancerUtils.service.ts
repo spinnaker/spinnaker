@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { uniq } from 'lodash';
 
 import type { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalancer';
@@ -7,9 +6,10 @@ export class GceHttpLoadBalancerUtils {
   public static REGION = 'global';
 
   public isHttpLoadBalancer(lb: IGceLoadBalancer): lb is IGceHttpLoadBalancer {
+    const loadBalancer = lb as any;
     return (
-      (lb.provider === 'gce' || lb.type === 'gce') &&
-      (lb.loadBalancerType === 'HTTP' || lb.loadBalancerType === 'INTERNAL_MANAGED')
+      (loadBalancer.provider === 'gce' || loadBalancer.type === 'gce') &&
+      (loadBalancer.loadBalancerType === 'HTTP' || loadBalancer.loadBalancerType === 'INTERNAL_MANAGED')
     );
   }
 
@@ -39,4 +39,3 @@ export class GceHttpLoadBalancerUtils {
 }
 
 export const GCE_HTTP_LOAD_BALANCER_UTILS = 'spinnaker.gce.httpLoadBalancerUtils.service';
-module(GCE_HTTP_LOAD_BALANCER_UTILS, []).service('gceHttpLoadBalancerUtils', GceHttpLoadBalancerUtils);

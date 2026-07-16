@@ -1,17 +1,16 @@
 'use strict';
 
-import { module } from 'angular';
 import _ from 'lodash';
 
 export const GOOGLE_COMMON_XPNNAMING_GCE_SERVICE = 'spinnaker.gce.common.xpnNaming.service';
 export const name = GOOGLE_COMMON_XPNNAMING_GCE_SERVICE; // for backwards compatibility
-module(GOOGLE_COMMON_XPNNAMING_GCE_SERVICE, []).factory('gceXpnNamingService', function () {
-  const deriveProjectId = (resourceWithSelfLink) => {
+export class GceXpnNamingService {
+  deriveProjectId = (resourceWithSelfLink) => {
     const pathSegments = resourceWithSelfLink.selfLink.split('/');
     return pathSegments[pathSegments.indexOf('projects') + 1];
   };
 
-  const decorateXpnResourceIfNecessary = (projectId, xpnResource) => {
+  decorateXpnResourceIfNecessary = (projectId, xpnResource) => {
     if (!xpnResource) {
       return null;
     }
@@ -27,9 +26,4 @@ module(GOOGLE_COMMON_XPNNAMING_GCE_SERVICE, []).factory('gceXpnNamingService', f
       return xpnResourceName;
     }
   };
-
-  return {
-    deriveProjectId,
-    decorateXpnResourceIfNecessary,
-  };
-});
+}
