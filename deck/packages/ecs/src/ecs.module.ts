@@ -42,6 +42,7 @@ import { TASK_DEFINITION_REACT } from './serverGroup/configure/wizard/taskDefini
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { ECS_SERVERGROUP_MODULE } from './serverGroup/serverGroup.module';
 import { ECS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
+import { ECS_VPC_MODULE } from './vpc/vpc.module';
 
 import './logo/ecs.logo.less';
 
@@ -79,6 +80,7 @@ module(ECS_MODULE, [
   ECS_SECURITY_GROUP_MODULE,
   ECS_SERVERGROUP_MODULE,
   ECS_TARGET_GROUP_STATES,
+  ECS_VPC_MODULE,
 ]).config(function () {
   CloudProviderRegistry.registerProvider('ecs', {
     name: 'EC2 Container Service',
