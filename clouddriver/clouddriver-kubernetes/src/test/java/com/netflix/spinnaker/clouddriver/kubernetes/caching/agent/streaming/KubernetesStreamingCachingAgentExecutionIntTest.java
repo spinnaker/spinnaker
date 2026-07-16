@@ -50,6 +50,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -535,7 +538,12 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
 
     KubernetesStreamingCachingAgentExecution mockedExecution =
         new KubernetesStreamingCachingAgentExecution(
-            mockedNamedAccountCredentials, mockedProviderCache, List.of(), mockedRegistry, null);
+            mockedNamedAccountCredentials,
+            mockedProviderCache,
+            List.of(),
+            mockedRegistry,
+            null,
+            null);
 
     ApiClient apiClient = mockedExecution.createApiClient();
     assertThat(apiClient.getBasePath()).isEqualTo("http://localhost:10111");
@@ -566,8 +574,10 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
     namedAccountCredentials.getStreamingCaching().setStopTimeoutMillis(100);
     namedAccountCredentials.getStreamingCaching().setBulkMaxWaitMillis(100);
     namedAccountCredentials.getStreamingCaching().setListPaginationSize(paginationSize);
+    ExecutorService cleanupExecutorService = Executors.newFixedThreadPool(1);
     KubernetesStreamingCachingAgent cachingAgent =
-        createCachingAgent(namedAccountCredentials, configurationProperties);
+        createCachingAgent(
+            namedAccountCredentials, configurationProperties, cleanupExecutorService);
 
     ProviderCache cache = providerRegistry.getProviderCache(kubernetesProvider.getProviderName());
     LongRunningAgentExecution agentExecution = cachingAgent.getAgentExecution(providerRegistry);
@@ -586,6 +596,10 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
         agentThread.interrupt();
         agentThread.join(); // should we join the interrupot?
       }
+
+      // 1 second should be enough because all threads have to be stopped by this point already
+      cleanupExecutorService.shutdownNow();
+      assertThat(cleanupExecutorService.awaitTermination(1, TimeUnit.SECONDS)).isTrue();
     }
   }
 
@@ -625,13 +639,15 @@ public class KubernetesStreamingCachingAgentExecutionIntTest
 
   private static KubernetesStreamingCachingAgent createCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
-      KubernetesConfigurationProperties configurationProperties) {
+      KubernetesConfigurationProperties configurationProperties,
+      ExecutorService cleanupExecutorService) {
     return new KubernetesStreamingCachingAgent(
         namedAccountCredentials,
         configurationProperties,
         kubernetesSpinnakerKindMap,
         null,
         new NoopRegistry(),
-        new NoOpStartupConcurrencyControl());
+        new NoOpStartupConcurrencyControl(),
+        cleanupExecutorService);
   }
 }

@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -49,6 +50,7 @@ public class KubernetesCachingAgentDispatcher {
   private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
   @Nullable private final Front50ApplicationLoader front50ApplicationLoader;
   private final StartupConcurrencyControl concurrencyControl;
+  private final ExecutorService cleanupExecutorService;
 
   @Autowired
   public KubernetesCachingAgentDispatcher(
@@ -57,13 +59,15 @@ public class KubernetesCachingAgentDispatcher {
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
-      StartupConcurrencyControl concurrencyControl) {
+      StartupConcurrencyControl concurrencyControl,
+      ExecutorService cleanupExecutorService) {
     this.objectMapper = objectMapper;
     this.registry = registry;
     this.configurationProperties = configurationProperties;
     this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
     this.front50ApplicationLoader = front50ApplicationLoader;
     this.concurrencyControl = concurrencyControl;
+    this.cleanupExecutorService = cleanupExecutorService;
   }
 
   public Collection<AbstractKubernetesCachingAgent> buildAllCachingAgents(
@@ -95,7 +99,8 @@ public class KubernetesCachingAgentDispatcher {
                       kubernetesSpinnakerKindMap,
                       front50ApplicationLoader,
                       registry,
-                      concurrencyControl))
+                      concurrencyControl,
+                      cleanupExecutorService))
           .filter(Objects::nonNull)
           .forEach(result::add);
     } else {

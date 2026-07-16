@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.AgentDataType.Authority;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -384,6 +385,7 @@ class KubernetesStreamingCachingAgentTest extends BaseKubernetesCachingAgentTest
         kubernetesSpinnakerKindMap,
         null,
         new NoopRegistry(),
-        new NoOpStartupConcurrencyControl());
+        new NoOpStartupConcurrencyControl(),
+        MoreExecutors.newDirectExecutorService());
   }
 }

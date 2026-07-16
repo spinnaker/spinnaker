@@ -92,19 +92,22 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
   private final Timer batchProcessingTime;
   private final Timer cacheSaveTime;
   private final StartupConcurrencyControl concurrencyControl;
+  private final ExecutorService cleanupExecutorService;
 
   public KubernetesStreamingCachingAgentExecution(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ProviderCache cache,
       List<KubernetesKind> kubernetesKinds,
       Registry registry,
-      StartupConcurrencyControl concurrencyControl) {
+      StartupConcurrencyControl concurrencyControl,
+      ExecutorService cleanupExecutorService) {
     this.namedAccountCredentials = namedAccountCredentials;
     this.cache = cache;
     this.kubernetesKinds = kubernetesKinds;
     this.cachingProperties = namedAccountCredentials.getStreamingCaching();
     this.registry = registry;
     this.concurrencyControl = concurrencyControl;
+    this.cleanupExecutorService = cleanupExecutorService;
 
     String account = namedAccountCredentials.getCredentials().getAccountName();
     this.queueSize =
@@ -201,7 +204,8 @@ public class KubernetesStreamingCachingAgentExecution implements LongRunningAgen
               } finally {
                 log.info("KubernetesStreaming caching agent {} stopped", accountName);
               }
-            })
+            },
+            cleanupExecutorService)
         .whenComplete(
             (result, e) -> {
               if (e != null) {

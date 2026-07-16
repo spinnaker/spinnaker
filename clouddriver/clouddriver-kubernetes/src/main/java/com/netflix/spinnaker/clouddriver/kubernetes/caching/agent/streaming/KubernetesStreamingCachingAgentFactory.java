@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50Applica
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
+import java.util.concurrent.ExecutorService;
 import org.springframework.lang.Nullable;
 
 public interface KubernetesStreamingCachingAgentFactory {
@@ -31,5 +32,6 @@ public interface KubernetesStreamingCachingAgentFactory {
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
       Registry registry,
-      StartupConcurrencyControl concurrencyControl);
+      StartupConcurrencyControl concurrencyControl,
+      ExecutorService cleanupExecutorService);
 }

@@ -51,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -71,6 +72,7 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
 
   private final Timer elapsedTime;
   private final StartupConcurrencyControl concurrencyControl;
+  private final ExecutorService cleanupExecutorService;
 
   public KubernetesStreamingCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
@@ -78,10 +80,12 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
       Registry registry,
-      StartupConcurrencyControl concurrencyControl) {
+      StartupConcurrencyControl concurrencyControl,
+      ExecutorService cleanupExecutorService) {
     super(configurationProperties, kubernetesSpinnakerKindMap, front50ApplicationLoader);
     this.namedAccountCredentials = namedAccountCredentials;
     this.registry = registry;
+    this.cleanupExecutorService = cleanupExecutorService;
 
     this.getDeclaredNamespaces =
         Suppliers.memoize(
@@ -143,7 +147,12 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
     ProviderCache cache = providerRegistry.getProviderCache(getProviderName());
     List<KubernetesKind> kubernetesKinds = filteredPrimaryKinds();
     return new KubernetesStreamingCachingAgentExecution(
-        namedAccountCredentials, cache, kubernetesKinds, registry, concurrencyControl);
+        namedAccountCredentials,
+        cache,
+        kubernetesKinds,
+        registry,
+        concurrencyControl,
+        cleanupExecutorService);
   }
 
   /**

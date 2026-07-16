@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
@@ -113,7 +114,8 @@ final class KubernetesDataProviderIntegrationTest {
           new KubernetesConfigurationProperties(),
           kindMap,
           null,
-          new NoOpStartupConcurrencyControl());
+          new NoOpStartupConcurrencyControl(),
+          MoreExecutors.newDirectExecutorService());
   private static final GlobalResourcePropertyRegistry resourcePropertyRegistry =
       new GlobalResourcePropertyRegistry(
           handlers, new KubernetesUnregisteredCustomResourceHandler());

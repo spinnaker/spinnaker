@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
@@ -34,6 +35,9 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -85,6 +89,15 @@ public class CacheConfig {
   StartupConcurrencyControl semaphoreStartupConcurrencyControl(
       @Value("${caching.streaming.startupConcurrency:#{2}}") int concurrencyLimit) {
     return new SemaphoreStartupConcurrencyControl(concurrencyLimit);
+  }
+
+  @Bean(destroyMethod = "shutdown")
+  ExecutorService cleanupExecutorService() {
+    ThreadFactory threadFactory =
+        new ThreadFactoryBuilder()
+            .setNameFormat("LongRunningAgentExecutionCleanupThread-%d")
+            .build();
+    return Executors.newCachedThreadPool(threadFactory);
   }
 
   @Bean

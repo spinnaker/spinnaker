@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgent;
@@ -53,7 +54,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
             null,
-            new NoOpStartupConcurrencyControl());
+            new NoOpStartupConcurrencyControl(),
+            MoreExecutors.newDirectExecutorService());
     KubernetesNamedAccountCredentials creds = mockCredentials(1, streaming);
     Collection<AbstractKubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 
@@ -72,7 +74,8 @@ public class KubernetesCachingAgentDispatcherTest {
             new KubernetesConfigurationProperties(),
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
             null,
-            new NoOpStartupConcurrencyControl());
+            new NoOpStartupConcurrencyControl(),
+            MoreExecutors.newDirectExecutorService());
     KubernetesNamedAccountCredentials creds = mockCredentials(2, streaming);
     Collection<AbstractKubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 
@@ -93,7 +96,8 @@ public class KubernetesCachingAgentDispatcherTest {
             configProperties,
             new KubernetesSpinnakerKindMap(new ArrayList<>()),
             null,
-            new NoOpStartupConcurrencyControl());
+            new NoOpStartupConcurrencyControl(),
+            MoreExecutors.newDirectExecutorService());
     KubernetesNamedAccountCredentials creds = mockCredentials(2, streaming);
     Collection<AbstractKubernetesCachingAgent> agents = dispatcher.buildAllCachingAgents(creds);
 

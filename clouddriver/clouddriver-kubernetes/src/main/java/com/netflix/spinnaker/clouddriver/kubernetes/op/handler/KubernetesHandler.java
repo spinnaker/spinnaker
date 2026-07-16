@@ -43,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Warning;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -140,7 +141,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader,
       Registry registry,
-      StartupConcurrencyControl concurrencyControl) {
+      StartupConcurrencyControl concurrencyControl,
+      ExecutorService cleanupExecutorService) {
     KubernetesStreamingCachingAgentFactory factory = streamingCachingAgentFactory();
     return factory.buildCachingAgent(
         namedAccountCredentials,
@@ -148,7 +150,8 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
         kubernetesSpinnakerKindMap,
         front50ApplicationLoader,
         registry,
-        concurrencyControl);
+        concurrencyControl,
+        cleanupExecutorService);
   }
 
   // used for stripping sensitive values

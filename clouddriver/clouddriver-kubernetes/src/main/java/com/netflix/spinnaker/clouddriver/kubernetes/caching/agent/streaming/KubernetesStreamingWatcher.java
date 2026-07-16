@@ -33,6 +33,7 @@ import io.kubernetes.client.util.Watch;
 import io.kubernetes.client.util.Watchable;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesListObject;
 import io.kubernetes.client.util.generic.dynamic.DynamicKubernetesObject;
+import java.io.InterruptedIOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.util.HashSet;
@@ -159,9 +160,10 @@ public class KubernetesStreamingWatcher implements Runnable {
               watcherId(),
               retryTimeoutMillis);
           try {
-            Thread.currentThread().sleep(retryTimeoutMillis);
+            Thread.sleep(retryTimeoutMillis);
           } catch (InterruptedException ie) {
             log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), ie);
+            Thread.currentThread().interrupt();
             return;
           }
         } else {
@@ -169,6 +171,7 @@ public class KubernetesStreamingWatcher implements Runnable {
         }
       } catch (InterruptedException ie) {
         log.info("{}:{}:: Kubernetes watcher has been interrupted.", account, watcherId(), ie);
+        Thread.currentThread().interrupt();
         return;
       } catch (Exception e) {
         log.warn("{}:{}:: Error watching Kubernetes objects.", account, watcherId(), e);
@@ -189,6 +192,9 @@ public class KubernetesStreamingWatcher implements Runnable {
     String lastContinue = null;
     String resourceVersion = null;
     do {
+      if (Thread.interrupted()) {
+        throw new InterruptedException("syncList::list is interrupted");
+      }
       DynamicKubernetesListObject list =
           adapter.list(lastSyncResourceVersion, paginationSize, lastContinue);
 
@@ -198,6 +204,9 @@ public class KubernetesStreamingWatcher implements Runnable {
       List<DynamicKubernetesObject> items = list.getItems();
 
       for (DynamicKubernetesObject obj : items) {
+        if (Thread.interrupted()) {
+          throw new InterruptedException("syncList::newItems is interrupted");
+        }
         seenKeys.add(toKey(obj));
         fillMissedFields(obj);
         KubernetesManifest manifest = convert(obj);
@@ -251,6 +260,9 @@ public class KubernetesStreamingWatcher implements Runnable {
     knownKeys.removeAll(deletedKeys);
 
     for (KubernetesStreamingEvent event : deleteEvents) {
+      if (Thread.interrupted()) {
+        throw new InterruptedException("syncList::deleteEvents is interrupted");
+      }
       eventQueue.put(event);
     }
 
@@ -287,7 +299,7 @@ public class KubernetesStreamingWatcher implements Runnable {
     return String.format("%s/%s", namespace, name);
   }
 
-  private boolean handle(Watchable<DynamicKubernetesObject> watch) {
+  private boolean handle(Watchable<DynamicKubernetesObject> watch) throws InterruptedException {
     int eventCount = 0;
     Set<String> seenKeys = new HashSet<>();
     Set<String> deletedKeys = new HashSet<>();
@@ -340,10 +352,13 @@ public class KubernetesStreamingWatcher implements Runnable {
           } else {
             deletedKeys.add(key);
           }
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
         } catch (IllegalArgumentException e) {
           log.warn("{}:{}:: unsupported event type: {}", account, watcherId(), eventType);
+        } catch (RuntimeException e) {
+          if (e.getCause() instanceof InterruptedIOException) {
+            throw (InterruptedException) new InterruptedException("watch interrupted").initCause(e);
+          }
+          throw e;
         }
       }
       return true;
