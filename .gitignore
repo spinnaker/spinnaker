@@ -3,6 +3,11 @@
 build/
 .claude
 
+## Kotlin errors/sessions
+.kotlin/
+## VIM files
+*.swp
+
 *.iml
 *.idea
 .DS_Store
