@@ -232,7 +232,7 @@ public class KubernetesStreamingCachingAgent extends AbstractKubernetesCachingAg
     DefaultCacheResult result = new DefaultCacheResult(cachedData, evictions, Map.of(), true);
 
     int cachedEntriesTotal = cachedData.values().stream().mapToInt(Collection::size).sum();
-    log.info(
+    log.debug(
         "{}: Results: Build cache result. New and updated manifests: {}, deleted: {}."
             + " Successful: {}, Failed: {}, Skipped: {}, Evictions: {}."
             + " Total Kubernetes caching groups: {}, containing: {} entries",
