@@ -34,17 +34,13 @@ import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesCachingPoli
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesCachingProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKindProperties.ResourceScope;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifestAnnotater;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +48,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -66,17 +61,9 @@ import org.springframework.lang.Nullable;
  * instance of a caching agent is responsible for caching only one account, and only some (but not
  * all) kubernetes kinds of that account.
  */
-public abstract class KubernetesCachingAgent
+public abstract class KubernetesCachingAgent extends AbstractKubernetesCachingAgent
     implements AgentIntervalAware, CachingAgent, AccountAware {
   private static final Logger log = LoggerFactory.getLogger(KubernetesCachingAgent.class);
-
-  public static final List<SpinnakerKind> SPINNAKER_UI_KINDS =
-      Arrays.asList(
-          SpinnakerKind.SERVER_GROUP_MANAGERS,
-          SpinnakerKind.SERVER_GROUPS,
-          SpinnakerKind.INSTANCES,
-          SpinnakerKind.LOAD_BALANCERS,
-          SpinnakerKind.SECURITY_GROUPS);
 
   @Getter @Nonnull protected final String accountName;
   protected final Registry registry;
@@ -93,9 +80,6 @@ public abstract class KubernetesCachingAgent
 
   protected final KubernetesConfigurationProperties configurationProperties;
 
-  protected final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
-  @Nullable private final Front50ApplicationLoader front50ApplicationLoader;
-
   protected KubernetesCachingAgent(
       KubernetesNamedAccountCredentials namedAccountCredentials,
       ObjectMapper objectMapper,
@@ -106,6 +90,7 @@ public abstract class KubernetesCachingAgent
       KubernetesConfigurationProperties configurationProperties,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       @Nullable Front50ApplicationLoader front50ApplicationLoader) {
+    super(configurationProperties, kubernetesSpinnakerKindMap, front50ApplicationLoader);
     this.accountName = namedAccountCredentials.getName();
     this.credentials = namedAccountCredentials.getCredentials();
     this.objectMapper = objectMapper;
@@ -114,8 +99,6 @@ public abstract class KubernetesCachingAgent
     this.agentCount = agentCount;
     this.agentInterval = agentInterval;
     this.configurationProperties = configurationProperties;
-    this.kubernetesSpinnakerKindMap = kubernetesSpinnakerKindMap;
-    this.front50ApplicationLoader = front50ApplicationLoader;
   }
 
   protected Map<String, Object> defaultIntrospectionDetails() {
@@ -123,56 +106,6 @@ public abstract class KubernetesCachingAgent
     result.put("namespaces", getNamespaces());
     result.put("kinds", filteredPrimaryKinds());
     return result;
-  }
-
-  protected abstract List<KubernetesKind> primaryKinds();
-
-  /**
-   * Filters the list of kinds returned from primaryKinds according to configuration.
-   *
-   * @return filtered list of primaryKinds.
-   */
-  protected List<KubernetesKind> filteredPrimaryKinds() {
-    List<KubernetesKind> primaryKinds = primaryKinds();
-    List<KubernetesKind> filteredPrimaryKinds;
-
-    if (configurationProperties.getCache().isCacheAll()) {
-      filteredPrimaryKinds = primaryKinds;
-
-    } else if (configurationProperties.getCache().getCacheKinds() != null
-        && configurationProperties.getCache().getCacheKinds().size() > 0) {
-      // If provider config specifies what kinds to cache, use it
-      filteredPrimaryKinds =
-          configurationProperties.getCache().getCacheKinds().stream()
-              .map(KubernetesKind::fromString)
-              .filter(primaryKinds::contains)
-              .collect(Collectors.toList());
-
-    } else {
-      // Only cache kinds used in Spinnaker's classic infrastructure screens, which are the kinds
-      // mapped to Spinnaker kinds like ServerGroups, Instances, etc.
-      filteredPrimaryKinds =
-          SPINNAKER_UI_KINDS.stream()
-              .map(kubernetesSpinnakerKindMap::translateSpinnakerKind)
-              .flatMap(Collection::stream)
-              .filter(primaryKinds::contains)
-              .collect(Collectors.toList());
-    }
-
-    // Filter out explicitly omitted kinds in provider config
-    if (configurationProperties.getCache().getCacheOmitKinds() != null
-        && configurationProperties.getCache().getCacheOmitKinds().size() > 0) {
-      List<KubernetesKind> omitKinds =
-          configurationProperties.getCache().getCacheOmitKinds().stream()
-              .map(KubernetesKind::fromString)
-              .collect(Collectors.toList());
-      filteredPrimaryKinds =
-          filteredPrimaryKinds.stream()
-              .filter(k -> !omitKinds.contains(k))
-              .collect(Collectors.toList());
-    }
-
-    return filteredPrimaryKinds;
   }
 
   private ImmutableList<KubernetesManifest> loadResources(
@@ -278,72 +211,6 @@ public abstract class KubernetesCachingAgent
 
   protected CacheResult buildCacheResult(KubernetesManifest resource) {
     return buildCacheResult(ImmutableMap.of(resource.getKind(), ImmutableList.of(resource)));
-  }
-
-  /**
-   * method that determines if the provided manifest should be cached or not. It makes that
-   * determination based on the following rules:
-   *
-   * <p>- if a manifest's caching properties has ignore == true, then it will not be cached.
-   *
-   * <p>- Otherwise, if account is configured to be "onlySpinnakerManaged", and
-   * "moniker.spinnaker.io/application" annotation is empty, then it will not be cached.
-   *
-   * <p>- if {@link KubernetesConfigurationProperties.Cache#isCheckApplicationInFront50()} is true,
-   * and the application name obtained from the manifest is not known to front50, then the manifest
-   * will not be cached as long as it belongs to one of the logical relationship kinds specified in
-   * {@link KubernetesCacheDataConverter#getLogicalRelationshipKinds()}.
-   *
-   * <p>- If none of the above criteria is satisfied, then the manifest will be cached.
-   *
-   * @param credentials account credentials
-   * @return true, if manifest should be cached, false otherwise
-   */
-  private Predicate<KubernetesManifest> shouldCacheManifest(KubernetesCredentials credentials) {
-    return m -> {
-      KubernetesCachingProperties props = KubernetesManifestAnnotater.getCachingProperties(m);
-      if (props.isIgnore()) {
-        return false;
-      }
-
-      if (credentials.isOnlySpinnakerManaged() && props.getApplication().isEmpty()) {
-        return false;
-      }
-
-      if (configurationProperties.getCache().isCheckApplicationInFront50()) {
-        // only certain type of kinds are stored in cats_v1_applications table
-        SpinnakerKind spinnakerKind =
-            credentials.getKubernetesSpinnakerKindMap().translateKubernetesKind(m.getKind());
-        log.debug(
-            "{}: manifest: {}, kind: {}, spinnakerKind: {}, logicalRelationshipKinds: {}",
-            getAgentType(),
-            m.getFullResourceName(),
-            m.getKind(),
-            spinnakerKind,
-            KubernetesCacheDataConverter.getLogicalRelationshipKinds());
-        if (KubernetesCacheDataConverter.getLogicalRelationshipKinds().contains(spinnakerKind)) {
-          if (front50ApplicationLoader == null) {
-            return false;
-          }
-
-          String appNameFromMoniker = credentials.getNamer().deriveMoniker(m).getApp();
-
-          boolean shouldCache =
-              front50ApplicationLoader.getData().stream()
-                  .anyMatch(app -> app.equalsIgnoreCase(appNameFromMoniker));
-
-          log.debug(
-              "{}: manifest: {}, application name: {}, shouldCache: {}",
-              getAgentType(),
-              m.getFullResourceName(),
-              appNameFromMoniker,
-              shouldCache);
-
-          return shouldCache;
-        }
-      }
-      return true;
-    };
   }
 
   protected CacheResult buildCacheResult(Map<KubernetesKind, List<KubernetesManifest>> resources) {

@@ -216,7 +216,7 @@ public class KubernetesCacheDataConverter {
         .collect(toImmutableSet());
   }
 
-  static void logStratifiedCacheData(
+  public static void logStratifiedCacheData(
       String agentType, Map<String, Collection<CacheData>> stratifiedCacheData) {
     for (Map.Entry<String, Collection<CacheData>> entry : stratifiedCacheData.entrySet()) {
       log.info(
