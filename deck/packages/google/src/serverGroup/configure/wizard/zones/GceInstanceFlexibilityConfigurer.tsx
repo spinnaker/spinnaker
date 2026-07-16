@@ -5,7 +5,7 @@ import { react2angular } from 'react2angular';
 
 import { withErrorBoundary } from '@spinnaker/core';
 
-import type { IGceInstanceFlexibilityPolicy, IGceInstanceSelection } from '../../../domain/serverGroup';
+import type { IGceInstanceFlexibilityPolicy, IGceInstanceSelection } from '../../../../domain/serverGroup';
 
 export interface IGceInstanceFlexibilityConfigurerProps {
   instanceFlexibilityPolicy?: IGceInstanceFlexibilityPolicy;
