@@ -16,12 +16,7 @@
 package com.netflix.spinnaker.cats.sql.cluster
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.AgentExecution
-import com.netflix.spinnaker.cats.agent.AgentLock
-import com.netflix.spinnaker.cats.agent.AgentScheduler
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
-import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
@@ -32,15 +27,17 @@ import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
-import java.sql.SQLException
-import java.util.regex.Pattern
-import java.util.regex.Pattern.CASE_INSENSITIVE
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataAccessException
 import org.springframework.dao.DataIntegrityViolationException
+import java.sql.SQLException
 import java.util.concurrent.*
+import java.util.regex.Pattern
+import java.util.regex.Pattern.CASE_INSENSITIVE
 
 /**
  * IMPORTANT: Using SQL for locking isn't a good idea. By enabling this scheduler, you'll be adding a fair amount of
@@ -71,6 +68,7 @@ class SqlClusteredAgentScheduler(
   private val log = LoggerFactory.getLogger(javaClass)
 
   private val agents: MutableMap<String, AgentExecutionAction> = ConcurrentHashMap()
+  private val longRunningAgents: MutableMap<String, AgentExecutionRunnable> = ConcurrentHashMap()
   private val activeAgents: MutableMap<String, NextAttempt> = ConcurrentHashMap()
   private val activeAgentsFutures: MutableMap<String, Future<*>> = ConcurrentHashMap()
   private val enabledAgents: Pattern
@@ -102,17 +100,32 @@ class SqlClusteredAgentScheduler(
     if (agent is AgentSchedulerAware) {
       agent.agentScheduler = this
     }
-    agents[agent.agentType] = AgentExecutionAction(agent, agentExecution, executionInstrumentation)
+    if (agentExecution is LongRunningAgentExecution) {
+      val runnable =
+        AgentExecutionRunnable(agent, agentExecution, executionInstrumentation)
+      longRunningAgents[agent.agentType] = runnable
+    }
+    else {
+      agents[agent.agentType] = AgentExecutionAction(agent, agentExecution, executionInstrumentation)
+    }
   }
 
   override fun unschedule(agent: Agent) {
     releaseLock(agent.agentType, 0) // Release the lock immediately
-    agents.remove(agent.agentType)
+    if (longRunningAgents.contains(agent.agentType)) {
+      val runnable = longRunningAgents[agent.agentType]
+      (runnable!!.execution as LongRunningAgentExecution).stopExecutingAndCleanup().join()
+      longRunningAgents.remove(agent.agentType)
+    }
+    else {
+      agents.remove(agent.agentType)
+    }
   }
 
   override fun run() {
     if (nodeStatusProvider.isNodeEnabled) {
       try {
+        scheduleLongRunningAgents()
         runAgents()
       } catch (t: Throwable) {
         log.error("Failed running cache agents", t)
@@ -222,13 +235,47 @@ class SqlClusteredAgentScheduler(
           log.warn(
             "Dropping caching agent: {}. Wanted to run {} agents, but a max of {} was configured and there are " +
               "already {} currently running. Consider increasing sql.agent.max-concurrent-agents",
-          it.key, candidateAgentLocks.size, maxConcurrentAgents, skip)
+            it.key, candidateAgentLocks.size, maxConcurrentAgents, skip)
           return@forEach
         }
         trimmedCandidates[it.key] = it.value
       }
 
     return trimmedCandidates
+  }
+
+  private fun scheduleLongRunningAgents() {
+    renewAgents()
+    submitLongRunningAgents()
+  }
+
+  private fun renewAgents() {
+    val now = System.currentTimeMillis()
+    val runningAgentsToBeRenewed = longRunningAgents
+      .filter { (it.value.execution as LongRunningAgentExecution).isRunning}
+    log.debug("{} Long Running Agents Locks to be renewed in {}", runningAgentsToBeRenewed.size, nodeIdentity.nodeIdentity)
+
+    runningAgentsToBeRenewed.forEach {renewSingleLongRunning(it.key, now, intervalProvider.getInterval(it.value.agent).interval) }
+  }
+
+  private fun submitLongRunningAgents() {
+    val now = System.currentTimeMillis()
+
+    val filteredForThisNode = longRunningAgents
+      .filter { shardingFilter.filter(it.value.agent) }
+    log.debug("{} Long Running Agents filtered for node: {}", filteredForThisNode.size, nodeIdentity.nodeIdentity)
+
+    val thisNodeAgentsNotRunning = filteredForThisNode
+      .filter { !(it.value.execution as LongRunningAgentExecution).isRunning}
+    log.debug("{} Long Running Agents filtered for node: {} not running", thisNodeAgentsNotRunning.size, nodeIdentity.nodeIdentity)
+
+    val candidateAgentLocks = thisNodeAgentsNotRunning
+      .filter { tryAcquireSingleLongRunning(it.key, now, intervalProvider.getInterval(it.value.agent).interval) }
+
+    log.debug("{} Long Running Agents filtered for node: {} with lock acquired", candidateAgentLocks.size, nodeIdentity.nodeIdentity)
+
+    log.debug("Long Running Agents to be executed in {}: {}", nodeIdentity.nodeIdentity, candidateAgentLocks.keys)
+    candidateAgentLocks.forEach { agentExecutionPool.submit(it.value)}
   }
 
   private fun cleanupZombieAgents() {
@@ -248,6 +295,68 @@ class SqlClusteredAgentScheduler(
           }
         }
       }
+  }
+
+
+  private fun renewSingleLongRunning(agentType: String, now: Long, timeout: Long): Boolean {
+    try {
+      withPool(POOL_NAME) {
+        val renewed = jooq.update(table(lockTable))
+          .set(field("lock_acquired"), now)
+          .set(field("lock_expiry"), now + timeout)
+          .where(field("agent_name").eq(agentType), field("owner_id").eq(nodeIdentity.nodeIdentity))
+          .execute() > 0
+        log.debug("Agent: {} lock {} renewed in {}", agentType,  if (renewed) "" else "not", nodeIdentity.nodeIdentity)
+        return renewed
+      }
+    } catch (e: SQLException) {
+      log.error("Unexpected sql exception while trying to renew agent lock", e)
+      return false
+    }
+  }
+
+  private fun tryAcquireSingleLongRunning(agentType: String, now: Long, timeout: Long): Boolean {
+    try {
+      withPool(POOL_NAME) {
+        if (jooq.update(table(lockTable))
+            .set(field("lock_acquired"), now)
+            .set(field("lock_expiry"), now + timeout)
+            .set(field("owner_id"),nodeIdentity.nodeIdentity)
+            .where(field("agent_name").eq(agentType), field("lock_expiry").lt(now))
+            .execute() > 0) {
+          return true
+        }
+        jooq.insertInto(table(lockTable))
+          .columns(
+            field("agent_name"),
+            field("owner_id"),
+            field("lock_acquired"),
+            field("lock_expiry")
+          )
+          .values(
+            agentType,
+            nodeIdentity.nodeIdentity,
+            now,
+            now + timeout
+          )
+          .execute()
+      }
+    } catch (e: DataIntegrityViolationException) {
+      // Integrity constraint exceptions are ok: It means there was a racecondition between us acquiring this lock
+      // and some other node updating its lock lease
+      log.debug("Race condition while trying to acquire agent lock", e)
+      return false
+    } catch (e: DataAccessException) {
+      // Integrity constraint exceptions are ok: It means there was a racecondition between us acquiring this lock
+      // and some other node updating its lock lease
+      log.warn("Race condition while trying to acquire agent lock", e)
+      return false
+    } catch (e: SQLException) {
+      log.error("Unexpected sql exception while trying to acquire agent lock", e)
+      return false
+    }
+    log.debug("Successfully acquired lock for {} in {}", agentType, nodeIdentity.nodeIdentity)
+    return true
   }
 
   private fun tryAcquireSingle(agentType: String, now: Long, timeout: Long): Boolean {

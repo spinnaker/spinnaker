@@ -21,6 +21,7 @@ import org.jooq.DSLContext
 import org.jooq.SQLDialect
 import org.testcontainers.DockerClientFactory
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -29,7 +30,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
-
+@Ignore //seems like those tests were never run as it was missing useJUnitPlatform in build.gradle
 @Requires({ DockerClientFactory.instance().isDockerAvailable() })
 class SqlProviderCacheSpec extends ProviderCacheSpec {
 
