@@ -1,0 +1,61 @@
+[
+  {
+    "application": "compute",
+    "id": "gce-load-balancer-pipeline",
+    "index": 0,
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "name": "GCE load balancers",
+    "stages": [
+      {
+        "loadBalancers": [],
+        "name": "Create Load Balancers",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "upsertLoadBalancers"
+      }
+    ],
+    "triggers": []
+  },
+  {
+    "application": "compute",
+    "id": "gce-network-load-balancer-pipeline",
+    "index": 1,
+    "keepWaitingPipelines": false,
+    "limitConcurrent": true,
+    "name": "GCE network load balancer",
+    "stages": [
+      {
+        "loadBalancers": [
+          {
+            "cloudProvider": "gce",
+            "credentials": "gce",
+            "healthCheck": {
+              "checkIntervalSec": 10,
+              "healthyThreshold": 10,
+              "name": "gce-network-hc",
+              "port": 80,
+              "requestPath": "/",
+              "timeoutSec": 5,
+              "unhealthyThreshold": 2
+            },
+            "ipProtocol": "TCP",
+            "loadBalancerName": "gce-network",
+            "loadBalancerType": "NETWORK",
+            "name": "gce-network",
+            "portRange": "8080",
+            "provider": "gce",
+            "region": "us-central1",
+            "sessionAffinity": "NONE",
+            "type": "upsertLoadBalancer"
+          }
+        ],
+        "name": "Create Load Balancers",
+        "refId": "1",
+        "requisiteStageRefIds": [],
+        "type": "upsertLoadBalancers"
+      }
+    ],
+    "triggers": []
+  }
+]
