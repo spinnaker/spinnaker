@@ -4,7 +4,7 @@ import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
 
 import type { IAccountDetails } from '@spinnaker/core';
-import { AccountService, HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { AccountService, HelpField, TetheredSelect } from '@spinnaker/core';
 import { DockerImageReader } from '@spinnaker/docker';
 
 import type {
@@ -100,6 +100,8 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       computeUnits: cmd.computeUnits,
       reservedMemory: cmd.reservedMemory,
       dockerImages: cmd.backingData?.filtered?.images || [],
+      dockerRegistryAccounts: this.state.dockerRegistryAccounts,
+      selectedDockerAccount: this.state.selectedDockerAccount,
       targetGroupMappings,
       targetGroupsAvailable: uniq([
         ...(cmd.backingData?.filtered?.targetGroups || []),
