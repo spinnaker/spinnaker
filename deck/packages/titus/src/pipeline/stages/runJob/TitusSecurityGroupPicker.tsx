@@ -1,5 +1,4 @@
 import { chain, xor } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 
 import { SecurityGroupSelector, ServerGroupSecurityGroupsRemoved, VpcReader } from '@spinnaker/amazon';
@@ -127,7 +126,7 @@ export class TitusSecurityGroupPicker extends React.Component<
       this.securityGroups = groups;
     });
     const vpcLoader = VpcReader.listVpcs().then((vpcs: IVpc[]) => (this.vpcs = vpcs));
-    $q.all([credentialLoader, groupLoader, vpcLoader]).then(() => this.configureSecurityGroupOptions());
+    Promise.all([credentialLoader, groupLoader, vpcLoader]).then(() => this.configureSecurityGroupOptions());
   }
 
   public componentWillReceiveProps(nextProps: ITitusSecurityGroupPickerProps) {
