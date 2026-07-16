@@ -30,6 +30,7 @@ class NewMetricInstrumentation implements ExecutionInstrumentation {
   private final Registry registry;
   private final Id executionTimeId;
   private final Id completedExecutionsId;
+  private final Id startedExecutionsId;
   private final ConcurrentMap<String, LongTaskTimer> timers = new ConcurrentHashMap<>();
   private final ConcurrentMap<String, Long> timerIds = new ConcurrentHashMap<>();
 
@@ -43,6 +44,10 @@ class NewMetricInstrumentation implements ExecutionInstrumentation {
     completedExecutionsId =
         registry
             .createId("completedExecutions")
+            .withTag("className", NewMetricInstrumentation.class.getSimpleName());
+    startedExecutionsId =
+        registry
+            .createId("startedExecutions")
             .withTag("className", NewMetricInstrumentation.class.getSimpleName());
   }
 
@@ -68,6 +73,7 @@ class NewMetricInstrumentation implements ExecutionInstrumentation {
     }
     Long taskId = timer.start();
     timerIds.put(agentName, taskId);
+    registry.counter(startedExecutionsId.withTag("agent", agentName)).increment();
   }
 
   @Override

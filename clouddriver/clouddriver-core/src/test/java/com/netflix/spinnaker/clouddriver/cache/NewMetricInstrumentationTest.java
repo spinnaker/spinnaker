@@ -83,6 +83,12 @@ public class NewMetricInstrumentationTest {
             .withTag("className", NewMetricInstrumentation.class.getSimpleName())
             .withTag("agent", String.format("TestProvider/%s", agentType));
 
+    Id expectedStartedExecutionsId =
+        registry
+            .createId("startedExecutions")
+            .withTag("className", NewMetricInstrumentation.class.getSimpleName())
+            .withTag("agent", String.format("TestProvider/%s", agentType));
+
     Id expectedExecutionTimeId =
         registry
             .createId("executionTime")
@@ -96,6 +102,14 @@ public class NewMetricInstrumentationTest {
     metricInstrumentation.executionStarted(agent);
 
     // then
+    Counter startedCounter = registry.counter(expectedStartedExecutionsId);
+    Counter completedCounter =
+        registry.counter(expectedCompletedExecutionsId.withTag("success", "true"));
+
+    assertEquals(0.0, completedCounter.measure().iterator().next().value());
+
+    assertEquals(1.0, startedCounter.measure().iterator().next().value());
+
     assertTrue(
         StreamSupport.stream(timer.measure().spliterator(), false)
             .anyMatch(it -> it.id().equals(activeTasksId)));
@@ -107,7 +121,6 @@ public class NewMetricInstrumentationTest {
     metricInstrumentation.executionCompleted(agent, 500L);
 
     // then
-    Counter counter = registry.counter(expectedCompletedExecutionsId.withTag("success", "true"));
-    assertEquals(1.0, counter.measure().iterator().next().value());
+    assertEquals(1.0, completedCounter.measure().iterator().next().value());
   }
 }
