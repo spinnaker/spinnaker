@@ -48,6 +48,10 @@ public class K8SListWatchAdapter {
       listOptions.setLimit(limit);
       if (continueFrom != null) {
         listOptions.setContinue(continueFrom);
+
+        // resource version must be null when continueFrom is set
+        // https://github.com/kubernetes/kubernetes/issues/85221#issuecomment-553748143
+        listOptions.setResourceVersion(null);
       }
     }
     return api.list(listOptions).throwsApiException().getObject();
