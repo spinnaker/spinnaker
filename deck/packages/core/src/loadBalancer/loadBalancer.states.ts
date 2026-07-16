@@ -5,6 +5,7 @@ import { LoadBalancers } from './LoadBalancers';
 import type { ApplicationStateProvider } from '../application';
 import { APPLICATION_STATE_PROVIDER } from '../application';
 import { LoadBalancerDetails } from './details';
+import { TargetGroupDetails } from './details/TargetGroupDetailsWrapper';
 import { filterModelConfig } from './filter/LoadBalancerFilterModel';
 import { LoadBalancerFilters } from './filter/LoadBalancerFilters';
 import type { INestedState, StateConfigProvider } from '../navigation';
@@ -65,6 +66,47 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
       },
     };
 
+    const targetGroupDetails: INestedState = {
+      name: 'targetGroupDetails',
+      url: '/targetGroupDetails/:provider/:accountId/:region/:vpcId/:loadBalancerName/:name',
+      params: {
+        vpcId: {
+          value: null,
+          squash: true,
+        },
+      },
+      views: {
+        'detail@../insight': {
+          component: TargetGroupDetails,
+          $type: 'react',
+        },
+      },
+      resolve: {
+        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
+        name: ['$stateParams', ($stateParams: StateParams) => $stateParams.name],
+        provider: ['$stateParams', ($stateParams: StateParams) => $stateParams.provider],
+        targetGroup: [
+          '$stateParams',
+          ($stateParams: StateParams) => ({
+            accountId: $stateParams.accountId,
+            loadBalancerName: $stateParams.loadBalancerName,
+            name: $stateParams.name,
+            provider: $stateParams.provider,
+            region: $stateParams.region,
+            vpcId: $stateParams.vpcId,
+          }),
+        ],
+      },
+      data: {
+        pageTitleDetails: {
+          title: 'Target Group Details',
+          nameParam: 'name',
+          accountParam: 'accountId',
+          regionParam: 'region',
+        },
+      },
+    };
+
     const loadBalancers: INestedState = {
       url: `/loadBalancers?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
       name: 'loadBalancers',
@@ -83,5 +125,6 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
 
     applicationStateProvider.addInsightState(loadBalancers);
     applicationStateProvider.addInsightDetailState(loadBalancerDetails);
+    applicationStateProvider.addInsightDetailState(targetGroupDetails);
   },
 ]);

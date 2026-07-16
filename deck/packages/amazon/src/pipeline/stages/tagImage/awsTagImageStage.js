@@ -1,34 +1,16 @@
-'use strict';
+import { Registry } from '@spinnaker/core';
 
-import { module } from 'angular';
+import { AmazonStageConfig } from '../AmazonStageConfig';
 
-import { PipelineConfigService, Registry, StageConstants } from '@spinnaker/core';
+export const awsTagImageStage = {
+  provides: 'upsertImageTags',
+  cloudProvider: 'aws',
+  component: AmazonStageConfig,
+  executionConfigSections: ['tagImageConfig', 'taskStatus'],
+};
 
-export const AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE = 'spinnaker.amazon.pipeline.stage.tagImageStage';
-export const name = AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE; // for backwards compatibility
-module(AMAZON_PIPELINE_STAGES_TAGIMAGE_AWSTAGIMAGESTAGE, [])
-  .config(function () {
-    Registry.pipeline.registerStage({
-      provides: 'upsertImageTags',
-      cloudProvider: 'aws',
-      templateUrl: require('./tagImageStage.html'),
-      executionDetailsUrl: require('./tagImageExecutionDetails.html'),
-      executionConfigSections: ['tagImageConfig', 'taskStatus'],
-    });
-  })
-  .controller('awsTagImageStageCtrl', [
-    '$scope',
-    ($scope) => {
-      $scope.stage.tags = $scope.stage.tags || {};
-      $scope.stage.cloudProvider = $scope.stage.cloudProvider || 'aws';
+export function registerAwsTagImageStage() {
+  Registry.pipeline.registerStage(awsTagImageStage);
+}
 
-      const initUpstreamStages = () => {
-        const upstreamDependencies = PipelineConfigService.getAllUpstreamDependencies(
-          $scope.pipeline,
-          $scope.stage,
-        ).filter((stage) => StageConstants.IMAGE_PRODUCING_STAGES.includes(stage.type));
-        $scope.consideredStages = new Map(upstreamDependencies.map((stage) => [stage.refId, stage.name]));
-      };
-      $scope.$watch('stage.requisiteStageRefIds', initUpstreamStages);
-    },
-  ]);
+registerAwsTagImageStage();
