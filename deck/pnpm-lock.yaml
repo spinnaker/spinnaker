@@ -1541,24 +1541,12 @@ importers:
       '@spinnaker/docker':
         specifier: workspace:^0.0.147
         version: link:../docker
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
       '@uirouter/react':
         specifier: 1.0.7
         version: 1.0.7(react@16.14.0)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -1568,9 +1556,9 @@ importers:
       react-select:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      rxjs:
+        specifier: 6.6.7
+        version: 6.6.7
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1578,12 +1566,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
