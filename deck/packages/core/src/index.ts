@@ -8,6 +8,7 @@ export * from './apitoken';
 export * from './application';
 export * from './artifact';
 export * from './authentication';
+export * from './angular/services';
 export * from './banner';
 export * from './cache';
 export * from './certificates';

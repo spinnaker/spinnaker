@@ -1,5 +1,3 @@
-import { $log } from 'ngimport';
-
 import type { IServerGroup } from '@spinnaker/core';
 import { REST } from '@spinnaker/core';
 
@@ -18,10 +16,6 @@ export class ServerGroupEventsReader {
         region: serverGroup.region,
         provider: serverGroup.cloudProvider,
       })
-      .get()
-      .catch((error: any): any[] => {
-        $log.error(error, 'error retrieving events');
-        return [];
-      });
+      .get();
   }
 }
