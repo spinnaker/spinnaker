@@ -116,10 +116,9 @@ export class JobManifestPodLogs extends React.Component<IJobManifestPodLogsProps
 
         this.setState((prevState) => ({
           containerLogs: tempLogs,
-          selectedContainerLog:
-            prevState.selectedContainerLog
-              ? (tempLogs.find((l) => l.name === prevState.selectedContainerLog.name) ?? tempLogs[0])
-              : tempLogs[0],
+          selectedContainerLog: prevState.selectedContainerLog
+            ? tempLogs.find((l) => l.name === prevState.selectedContainerLog.name) ?? tempLogs[0]
+            : tempLogs[0],
           loadingLogs: false,
           errorMessage: null,
         }));

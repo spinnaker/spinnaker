@@ -29,7 +29,10 @@ function wrapWithModalContext(node: React.ReactElement) {
 }
 
 // Flush microtask queue so useData resolves
-const flushMicrotasks = () => act(async () => { await Promise.resolve(); });
+const flushMicrotasks = () =>
+  act(async () => {
+    await Promise.resolve();
+  });
 
 function makeWrapper(usesMultiOutput = false) {
   return mount(
@@ -43,15 +46,15 @@ describe('ConsoleOutputModal', () => {
   let getConsoleOutputSpy: jasmine.Spy;
 
   beforeEach(() => {
-    getConsoleOutputSpy = spyOn(InstanceReader, 'getConsoleOutput').and.returnValue(
-      Promise.resolve(singleOutput),
-    );
+    getConsoleOutputSpy = spyOn(InstanceReader, 'getConsoleOutput').and.returnValue(Promise.resolve(singleOutput));
     SETTINGS.consoleLogRefreshIntervalMs = 30000;
   });
 
   afterEach(() => {
     SETTINGS.resetToOriginal();
-    try { jasmine.clock().uninstall(); } catch (_) {}
+    try {
+      jasmine.clock().uninstall();
+    } catch (_) {}
   });
 
   describe('rendering', () => {
@@ -109,7 +112,10 @@ describe('ConsoleOutputModal', () => {
       wrapper.update();
 
       getConsoleOutputSpy.calls.reset();
-      wrapper.find('button').filterWhere((b: any) => b.text() === 'Refresh').simulate('click');
+      wrapper
+        .find('button')
+        .filterWhere((b: any) => b.text() === 'Refresh')
+        .simulate('click');
       expect(getConsoleOutputSpy).toHaveBeenCalledTimes(1);
       wrapper.unmount();
     });
@@ -125,7 +131,9 @@ describe('ConsoleOutputModal', () => {
       expect(autoRefreshBtn().text()).toBe('Auto-Refresh: Off');
 
       // Use act to flush state update from the click
-      act(() => { autoRefreshBtn().simulate('click'); });
+      act(() => {
+        autoRefreshBtn().simulate('click');
+      });
       wrapper.update();
       expect(autoRefreshBtn().text()).toBe('Auto-Refresh: On');
       wrapper.unmount();
@@ -138,7 +146,10 @@ describe('ConsoleOutputModal', () => {
       wrapper.update();
 
       act(() => {
-        wrapper.find('button').filterWhere((b: any) => b.text() === 'Auto-Refresh: Off').simulate('click');
+        wrapper
+          .find('button')
+          .filterWhere((b: any) => b.text() === 'Auto-Refresh: Off')
+          .simulate('click');
       });
       wrapper.update();
 
@@ -152,12 +163,15 @@ describe('ConsoleOutputModal', () => {
       await flushMicrotasks();
       wrapper.update();
 
-      const autoRefreshBtn = () =>
-        wrapper.find('button').filterWhere((b: any) => b.text().startsWith('Auto-Refresh'));
+      const autoRefreshBtn = () => wrapper.find('button').filterWhere((b: any) => b.text().startsWith('Auto-Refresh'));
 
-      act(() => { autoRefreshBtn().simulate('click'); }); // on
+      act(() => {
+        autoRefreshBtn().simulate('click');
+      }); // on
       wrapper.update();
-      act(() => { autoRefreshBtn().simulate('click'); }); // off
+      act(() => {
+        autoRefreshBtn().simulate('click');
+      }); // off
       wrapper.update();
 
       expect(clearIntervalSpy).toHaveBeenCalled();
@@ -172,7 +186,10 @@ describe('ConsoleOutputModal', () => {
       wrapper.update();
 
       act(() => {
-        wrapper.find('button').filterWhere((b: any) => b.text() === 'Auto-Refresh: Off').simulate('click');
+        wrapper
+          .find('button')
+          .filterWhere((b: any) => b.text() === 'Auto-Refresh: Off')
+          .simulate('click');
       });
       wrapper.update();
 

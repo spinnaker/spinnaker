@@ -29,15 +29,15 @@ describe('JobManifestPodLogs', () => {
   let getConsoleOutputSpy: jasmine.Spy;
 
   beforeEach(() => {
-    getConsoleOutputSpy = spyOn(InstanceReader, 'getConsoleOutput').and.returnValue(
-      Promise.resolve(mockConsoleOutput),
-    );
+    getConsoleOutputSpy = spyOn(InstanceReader, 'getConsoleOutput').and.returnValue(Promise.resolve(mockConsoleOutput));
     SETTINGS.consoleLogRefreshIntervalMs = 30000;
   });
 
   afterEach(() => {
     SETTINGS.resetToOriginal();
-    try { jasmine.clock().uninstall(); } catch (_) {}
+    try {
+      jasmine.clock().uninstall();
+    } catch (_) {}
   });
 
   describe('rendering', () => {
@@ -47,9 +47,7 @@ describe('JobManifestPodLogs', () => {
     });
 
     it('renders nothing when a pod name is empty', () => {
-      const wrapper = shallow(
-        <JobManifestPodLogs {...defaultProps} podNamesProviders={[makeProvider('')]} />,
-      );
+      const wrapper = shallow(<JobManifestPodLogs {...defaultProps} podNamesProviders={[makeProvider('')]} />);
       expect(wrapper.isEmptyRender()).toBe(true);
     });
   });
