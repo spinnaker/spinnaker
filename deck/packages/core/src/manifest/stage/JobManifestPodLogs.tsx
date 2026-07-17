@@ -6,9 +6,9 @@ import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
 import type { IPodNameProvider } from '../PodNameProvider';
+import { SETTINGS } from '../../config/settings';
 import type { IInstanceConsoleOutput, IInstanceMultiOutputLog } from '../../instance/InstanceReader';
 import { InstanceReader } from '../../instance/InstanceReader';
-import { SETTINGS } from '../../config/settings';
 
 // IJobManifestPodLogs is the data needed to get logs
 export interface IJobManifestPodLogsProps {

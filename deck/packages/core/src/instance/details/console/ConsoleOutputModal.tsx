@@ -2,11 +2,11 @@ import * as React from 'react';
 
 import type { IInstanceMultiOutputLog } from '../../InstanceReader';
 import { InstanceReader } from '../../InstanceReader';
+import { SETTINGS } from '../../../config/settings';
 import type { IInstance } from '../../../domain';
 import type { IModalComponentProps } from '../../../presentation';
 import { ModalBody, ModalFooter, ModalHeader, useData } from '../../../presentation';
 import { Spinner } from '../../../widgets';
-import { SETTINGS } from '../../../config/settings';
 
 import './ConsoleOutputModal.less';
 
