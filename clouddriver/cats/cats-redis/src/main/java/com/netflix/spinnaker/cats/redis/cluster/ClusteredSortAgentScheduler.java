@@ -59,7 +59,7 @@ import redis.clients.jedis.JedisPool;
  * we already have a (30s / 1) * (# of clouddrivers) factor of improvement.
  */
 public class ClusteredSortAgentScheduler extends CatsModuleAware
-    implements AgentScheduler<ClusteredSortAgentLock>, Runnable {
+    implements AgentScheduler<AgentLock>, Runnable {
   private static enum Status {
     SUCCESS,
     FAILURE
@@ -231,23 +231,23 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
   }
 
   @Override
-  public ClusteredSortAgentLock tryLock(Agent agent) {
+  public AgentLock tryLock(Agent agent) {
     ScoreTuple scores = acquireAgent(agent);
     if (scores != null) {
-      return new ClusteredSortAgentLock(agent, scores.acquireScore, scores.releaseScore);
+      return new AgentLock(agent, scores.acquireScore, scores.releaseScore);
     } else {
       return null;
     }
   }
 
   @Override
-  public boolean tryRelease(ClusteredSortAgentLock lock) {
+  public boolean tryRelease(AgentLock lock) {
     return conditionalReleaseAgent(lock.getAgent(), lock.getAcquireScore(), lock.getReleaseScore())
         != null;
   }
 
   @Override
-  public boolean lockValid(ClusteredSortAgentLock lock) {
+  public boolean lockValid(AgentLock lock) {
     try (Jedis jedis = jedisPool.getResource()) {
       return jedis.evalsha(
               getScriptSha(VALID_SCORE_SCRIPT, jedis),
