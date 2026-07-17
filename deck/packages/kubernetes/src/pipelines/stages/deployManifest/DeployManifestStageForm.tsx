@@ -257,25 +257,17 @@ export class DeployManifestStageForm extends React.Component<
         />
         <hr />
         <h4>Stability Timeout</h4>
-        <StageConfigField
-          label="Timeout (minutes)"
-          helpKey="kubernetes.manifest.stableManifestTimeout"
-        >
+        <StageConfigField label="Timeout (minutes)" helpKey="kubernetes.manifest.stableManifestTimeout">
           <NumberInput
             value={stage.stableManifestTimeoutMinutes ?? ''}
             min={1}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               const val = e.target.value;
-              this.props.formik.setFieldValue(
-                'stableManifestTimeoutMinutes',
-                val === '' ? undefined : Number(val),
-              );
+              this.props.formik.setFieldValue('stableManifestTimeoutMinutes', val === '' ? undefined : Number(val));
             }}
           />
           <div className="form-inline">
-            <span className="input-label sp-padding-xs-left">
-              Leave blank to use the default (30 minutes).
-            </span>
+            <span className="input-label sp-padding-xs-left">Leave blank to use the default (30 minutes).</span>
           </div>
         </StageConfigField>
       </div>
