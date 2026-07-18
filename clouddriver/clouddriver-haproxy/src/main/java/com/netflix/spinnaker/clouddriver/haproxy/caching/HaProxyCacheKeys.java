@@ -33,6 +33,12 @@ public class HaProxyCacheKeys {
     return String.join(SEP, PROVIDER, HaProxyResourceType.BACKEND.name(), account, region, name);
   }
 
+  /** Runtime health of one backend server: {@code haproxy;HEALTH;account;region;backend;server}. */
+  public static String health(String account, String region, String backend, String server) {
+    return String.join(
+        SEP, PROVIDER, HaProxyResourceType.HEALTH.name(), account, region, backend, server);
+  }
+
   public static String application(String app) {
     return String.join(SEP, PROVIDER, HaProxyResourceType.APPLICATION.name(), app);
   }
@@ -68,5 +74,11 @@ public class HaProxyCacheKeys {
   public static String getName(String key) {
     String[] parts = key.split(SEP, -1);
     return parts.length > 4 ? parts[4] : null;
+  }
+
+  /** The server segment of a HEALTH key (the name segment holds the backend). */
+  public static String getServer(String key) {
+    String[] parts = key.split(SEP, -1);
+    return parts.length > 5 ? parts[5] : null;
   }
 }

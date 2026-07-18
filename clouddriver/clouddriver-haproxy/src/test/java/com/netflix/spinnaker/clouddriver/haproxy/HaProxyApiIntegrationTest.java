@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.haproxy.dataplane.api.ServerApi;
 import com.netflix.spinnaker.clouddriver.haproxy.dataplane.model.Backend;
 import com.netflix.spinnaker.clouddriver.haproxy.dataplane.model.Frontend;
 import com.netflix.spinnaker.clouddriver.haproxy.dataplane.model.Info;
+import com.netflix.spinnaker.clouddriver.haproxy.dataplane.model.RuntimeServer;
 import com.netflix.spinnaker.clouddriver.haproxy.dataplane.model.Server;
 import com.netflix.spinnaker.clouddriver.haproxy.security.HaProxyNamedAccountCredentials;
 import com.netflix.spinnaker.config.HaProxyConfigurationProperties;
@@ -130,6 +131,36 @@ class HaProxyApiIntegrationTest {
                   System.out.printf(
                       "    server=%-20s %s:%s check=%s%n",
                       s.getName(), s.getAddress(), s.getPort(), s.getCheck()));
+    }
+  }
+
+  @Test
+  void runtimeServerStatesAreLoaded() throws Exception {
+    List<Backend> backends =
+        credentials.getApi(BackendApi.class).getBackends(null, false).execute().body();
+    assertThat(backends).isNotNull();
+
+    System.out.println("=== Runtime server states ===");
+    for (Backend backend : backends) {
+      Response<List<RuntimeServer>> response =
+          credentials.getApi(ServerApi.class).getAllRuntimeServer(backend.getName()).execute();
+      assertThat(response.isSuccessful())
+          .as(
+              "GET /runtime/backends/%s/servers returned HTTP %d",
+              backend.getName(), response.code())
+          .isTrue();
+      response
+          .body()
+          .forEach(
+              s ->
+                  System.out.printf(
+                      "  backend=%-30s server=%-20s %s:%s admin=%s operational=%s%n",
+                      backend.getName(),
+                      s.getName(),
+                      s.getAddress(),
+                      s.getPort(),
+                      s.getAdminState(),
+                      s.getOperationalState()));
     }
   }
 }

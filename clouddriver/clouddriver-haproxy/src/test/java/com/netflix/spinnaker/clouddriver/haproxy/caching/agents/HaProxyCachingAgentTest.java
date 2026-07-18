@@ -125,7 +125,7 @@ class HaProxyCachingAgentTest {
   }
 
   @Test
-  void backendAgentCachesBackendsWithEmbeddedServers() throws Exception {
+  void backendAgentCachesBackendsWithEmbeddedServersAndRuntimeHealth() throws Exception {
     server.enqueue(
         new MockResponse()
             .setHeader("Content-Type", "application/json")
@@ -133,12 +133,22 @@ class HaProxyCachingAgentTest {
                 "[{\"name\":\"web-main-v001\",\"mode\":\"http\","
                     + "\"metadata\":{\"spinnaker-app\":\"web\",\"spinnaker-cluster\":\"web-main\"},"
                     + "\"servers\":{\"web001\":{\"name\":\"web001\",\"address\":\"10.0.0.11\",\"port\":8080}}}]"));
+    server.enqueue(
+        new MockResponse()
+            .setHeader("Content-Type", "application/json")
+            .setBody(
+                "[{\"name\":\"web001\",\"address\":\"10.0.0.11\",\"port\":8080,"
+                    + "\"admin_state\":\"ready\",\"operational_state\":\"up\"},"
+                    + "{\"name\":\"web002\",\"address\":\"10.0.0.12\",\"port\":8080,"
+                    + "\"admin_state\":\"maint\",\"operational_state\":\"down\"}]"));
 
     BackendCachingAgent agent = new BackendCachingAgent(credentials, registry, namer);
     CacheResult result = agent.loadData(null);
 
     assertThat(server.takeRequest().getPath())
         .isEqualTo("/v3/services/haproxy/configuration/backends?full_section=true");
+    assertThat(server.takeRequest().getPath())
+        .isEqualTo("/v3/services/haproxy/runtime/backends/web-main-v001/servers");
 
     String backendKey = HaProxyCacheKeys.backend("homelab", "dc1", "web-main-v001");
     CacheData backend =
@@ -151,8 +161,29 @@ class HaProxyCachingAgentTest {
     assertThat(servers).containsKey("web001");
     assertThat(servers.get("web001")).containsEntry("address", "10.0.0.11");
 
+    @SuppressWarnings("unchecked")
+    Map<String, Map<String, Object>> runtimeServers =
+        (Map<String, Map<String, Object>>) backend.getAttributes().get("runtime_servers");
+    assertThat(runtimeServers.get("web001")).containsEntry("operational_state", "up");
+    assertThat(runtimeServers.get("web002")).containsEntry("admin_state", "maint");
+
     assertThat(backend.getRelationships().get(HaProxyResourceType.CLUSTER.name()))
         .containsExactly(HaProxyCacheKeys.cluster("homelab", "web-main"));
+
+    // One HEALTH entry per runtime server, related back to the backend.
+    var healthEntries = result.getCacheResults().get(HaProxyResourceType.HEALTH.name());
+    assertThat(healthEntries).hasSize(2);
+    CacheData up =
+        entry(healthEntries, HaProxyCacheKeys.health("homelab", "dc1", "web-main-v001", "web001"));
+    assertThat(up.getAttributes())
+        .containsEntry("state", "Up")
+        .containsEntry("address", "10.0.0.11")
+        .containsEntry("backend", "web-main-v001");
+    CacheData maint =
+        entry(healthEntries, HaProxyCacheKeys.health("homelab", "dc1", "web-main-v001", "web002"));
+    assertThat(maint.getAttributes()).containsEntry("state", "OutOfService");
+    assertThat(maint.getRelationships().get(HaProxyResourceType.BACKEND.name()))
+        .containsExactly(backendKey);
   }
 
   @Test

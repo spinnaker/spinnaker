@@ -82,7 +82,19 @@ class HaProxyLoadBalancerProviderTest {
                 "servers",
                 Map.of(
                     "web001", Map.of("name", "web001", "address", "10.0.0.11", "port", 8080),
-                    "web002", Map.of("name", "web002", "address", "10.0.0.12", "port", 8080))),
+                    "web002", Map.of("name", "web002", "address", "10.0.0.12", "port", 8080)),
+                "runtime_servers",
+                Map.of(
+                    "web001",
+                        Map.of(
+                            "name", "web001",
+                            "admin_state", "ready",
+                            "operational_state", "up"),
+                    "web002",
+                        Map.of(
+                            "name", "web002",
+                            "admin_state", "ready",
+                            "operational_state", "down"))),
             Map.of()));
     // web-main-v002 is intentionally absent from the cache to cover dangling backend references.
   }
@@ -112,7 +124,19 @@ class HaProxyLoadBalancerProviderTest {
             .orElseThrow();
     assertThat(attached.getInstances()).hasSize(2);
     assertThat(attached.getInstances())
-        .anySatisfy(instance -> assertThat(instance.getName()).isEqualTo("web001"));
+        .anySatisfy(
+            instance -> {
+              assertThat(instance.getName()).isEqualTo("web001");
+              assertThat(instance.getHealth())
+                  .containsEntry("state", "Up")
+                  .containsEntry("type", "HaProxyServer");
+            });
+    assertThat(attached.getInstances())
+        .anySatisfy(
+            instance -> {
+              assertThat(instance.getName()).isEqualTo("web002");
+              assertThat(instance.getHealth()).containsEntry("state", "Down");
+            });
 
     LoadBalancerServerGroup dangling =
         lb.getServerGroups().stream()

@@ -20,7 +20,8 @@ public enum HaProxyResourceType {
   APPLICATION("application"),
   CLUSTER("cluster"),
   FRONTEND("frontend"),
-  BACKEND("backend");
+  BACKEND("backend"),
+  HEALTH("health");
 
   private final String name;
 
