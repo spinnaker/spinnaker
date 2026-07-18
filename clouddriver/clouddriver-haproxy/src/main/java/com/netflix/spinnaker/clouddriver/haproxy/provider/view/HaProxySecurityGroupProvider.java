@@ -42,10 +42,10 @@ import org.springframework.stereotype.Component;
  * Presents the client-access policy of cached HAProxy frontends as security groups.
  *
  * <p>A frontend yields a security group (named after the frontend) when it declares {@code src}
- * ACLs referenced by {@code http-request allow/deny} rules. Each referenced ACL value expands to
- * one {@link IpRangeRule} per address, with the frontend's bind ports as the port ranges and the
- * rule's {@code type/cond/cond_test} recorded in the description. Frontends without such rules
- * produce no security group.
+ * ACLs referenced by {@code http-request allow/deny} rules or {@code tcp-request
+ * connection/content/session accept/reject} rules. Each referenced ACL value expands to one {@link
+ * IpRangeRule} per address, with the frontend's bind ports as the port ranges and the originating
+ * rule recorded in the description. Frontends without such rules produce no security group.
  */
 @Component
 public class HaProxySecurityGroupProvider implements SecurityGroupProvider<HaProxySecurityGroup> {
@@ -137,6 +137,7 @@ public class HaProxySecurityGroupProvider implements SecurityGroupProvider<HaPro
         deriveInboundRules(
             (Collection<Map<String, Object>>) attributes.get("acl_list"),
             (Collection<Map<String, Object>>) attributes.get("http_request_rule_list"),
+            (Collection<Map<String, Object>>) attributes.get("tcp_request_rule_list"),
             (Map<String, Map<String, Object>>) attributes.get("binds"));
     if (inboundRules.isEmpty()) {
       return null;
@@ -157,8 +158,9 @@ public class HaProxySecurityGroupProvider implements SecurityGroupProvider<HaPro
   private Set<Rule> deriveInboundRules(
       Collection<Map<String, Object>> acls,
       Collection<Map<String, Object>> httpRequestRules,
+      Collection<Map<String, Object>> tcpRequestRules,
       Map<String, Map<String, Object>> binds) {
-    if (acls == null || acls.isEmpty() || httpRequestRules == null) {
+    if (acls == null || acls.isEmpty()) {
       return Set.of();
     }
 
@@ -176,29 +178,59 @@ public class HaProxySecurityGroupProvider implements SecurityGroupProvider<HaPro
     }
 
     SortedSet<Rule.PortRange> portRanges = bindPortRanges(binds);
-
     Set<Rule> rules = new LinkedHashSet<>();
-    for (Map<String, Object> rule : httpRequestRules) {
-      Object type = rule.get("type");
-      if (!"allow".equals(type) && !"deny".equals(type)) {
-        continue;
-      }
-      String condTest = rule.get("cond_test") instanceof String test ? test : "";
-      String description =
-          String.format("http-request %s %s %s", type, rule.get("cond"), condTest).trim();
-      for (String token : condTest.split("\\s+")) {
-        String aclName = token.startsWith("!") ? token.substring(1) : token;
-        String value = srcAclValues.get(aclName);
-        if (value == null) {
+
+    if (httpRequestRules != null) {
+      for (Map<String, Object> rule : httpRequestRules) {
+        Object type = rule.get("type");
+        if (!"allow".equals(type) && !"deny".equals(type)) {
           continue;
         }
-        for (String address : value.trim().split("\\s+")) {
-          rules.add(
-              new IpRangeRule(toRange(address), "tcp", new TreeSet<>(portRanges), description));
-        }
+        expandAclReferences(
+            rules, rule, String.format("http-request %s", type), srcAclValues, portRanges);
       }
     }
+
+    if (tcpRequestRules != null) {
+      for (Map<String, Object> rule : tcpRequestRules) {
+        Object type = rule.get("type");
+        Object action = rule.get("action");
+        boolean gatesConnections =
+            "connection".equals(type) || "content".equals(type) || "session".equals(type);
+        if (!gatesConnections || (!"accept".equals(action) && !"reject".equals(action))) {
+          continue;
+        }
+        expandAclReferences(
+            rules,
+            rule,
+            String.format("tcp-request %s %s", type, action),
+            srcAclValues,
+            portRanges);
+      }
+    }
+
     return rules;
+  }
+
+  /** Adds an {@link IpRangeRule} per address of every src ACL referenced by the rule's cond. */
+  private static void expandAclReferences(
+      Set<Rule> rules,
+      Map<String, Object> rule,
+      String rulePrefix,
+      Map<String, String> srcAclValues,
+      SortedSet<Rule.PortRange> portRanges) {
+    String condTest = rule.get("cond_test") instanceof String test ? test : "";
+    String description = String.format("%s %s %s", rulePrefix, rule.get("cond"), condTest).trim();
+    for (String token : condTest.split("\\s+")) {
+      String aclName = token.startsWith("!") ? token.substring(1) : token;
+      String value = srcAclValues.get(aclName);
+      if (value == null) {
+        continue;
+      }
+      for (String address : value.trim().split("\\s+")) {
+        rules.add(new IpRangeRule(toRange(address), "tcp", new TreeSet<>(portRanges), description));
+      }
+    }
   }
 
   private static SortedSet<Rule.PortRange> bindPortRanges(Map<String, Map<String, Object>> binds) {

@@ -71,6 +71,31 @@ class HaProxySecurityGroupProviderTest {
                         Map.of("type", "set-header", "hdr_name", "X-Forwarded-Proto"))),
             Map.of()));
 
+    // TCP-mode frontend gated by a tcp-request connection rule.
+    cache.merge(
+        HaProxyResourceType.FRONTEND.name(),
+        new DefaultCacheData(
+            HaProxyCacheKeys.frontend(ACCOUNT, REGION, "mysql-main"),
+            Map.of(
+                "name", "mysql-main",
+                "mode", "tcp",
+                "binds", Map.of("db", Map.of("address", "*", "port", 3306)),
+                "acl_list",
+                    List.of(
+                        Map.of(
+                            "acl_name", "db_clients",
+                            "criterion", "src",
+                            "value", "10.1.0.0/16")),
+                "tcp_request_rule_list",
+                    List.of(
+                        Map.of(
+                            "type", "connection",
+                            "action", "reject",
+                            "cond", "unless",
+                            "cond_test", "db_clients"),
+                        Map.of("type", "inspect-delay", "timeout", 5000))),
+            Map.of()));
+
     // Frontend without any access rules: not a security group.
     cache.merge(
         HaProxyResourceType.FRONTEND.name(),
@@ -81,11 +106,29 @@ class HaProxySecurityGroupProviderTest {
   }
 
   @Test
+  void tcpRequestRulesBecomeSecurityGroups() {
+    HaProxySecurityGroup group = provider.get(ACCOUNT, REGION, "mysql-main", null);
+
+    assertThat(group).isNotNull();
+    assertThat(group.getInboundRules()).hasSize(1);
+    IpRangeRule rule = (IpRangeRule) group.getInboundRules().iterator().next();
+    assertThat(rule.getRange().getIp()).isEqualTo("10.1.0.0");
+    assertThat(rule.getRange().getCidr()).isEqualTo("/16");
+    assertThat(rule.getDescription()).isEqualTo("tcp-request connection reject unless db_clients");
+    assertThat(rule.getPortRanges())
+        .extracting(range -> range.getStartPort())
+        .containsExactly(3306);
+  }
+
+  @Test
   void frontendsWithAccessRulesBecomeSecurityGroups() {
     Collection<HaProxySecurityGroup> groups = provider.getAll(true);
 
-    assertThat(groups).hasSize(1);
-    HaProxySecurityGroup group = groups.iterator().next();
+    assertThat(groups)
+        .extracting(HaProxySecurityGroup::getName)
+        .containsExactlyInAnyOrder("web-main", "mysql-main");
+    HaProxySecurityGroup group =
+        groups.stream().filter(g -> g.getName().equals("web-main")).findFirst().orElseThrow();
     assertThat(group.getName()).isEqualTo("web-main");
     assertThat(group.getId()).isEqualTo("web-main");
     assertThat(group.getAccountName()).isEqualTo(ACCOUNT);
@@ -116,21 +159,21 @@ class HaProxySecurityGroupProviderTest {
 
   @Test
   void filtersNarrowByAccountRegionAndName() {
-    assertThat(provider.getAllByAccount(true, ACCOUNT)).hasSize(1);
+    assertThat(provider.getAllByAccount(true, ACCOUNT)).hasSize(2);
     assertThat(provider.getAllByAccount(true, "other")).isEmpty();
-    assertThat(provider.getAllByRegion(true, REGION)).hasSize(1);
+    assertThat(provider.getAllByRegion(true, REGION)).hasSize(2);
     assertThat(provider.getAllByRegion(true, "other")).isEmpty();
     assertThat(provider.getAllByAccountAndName(true, ACCOUNT, "web-main")).hasSize(1);
     assertThat(provider.getAllByAccountAndName(true, ACCOUNT, "plain-frontend")).isEmpty();
-    assertThat(provider.getAllByAccountAndRegion(true, ACCOUNT, REGION)).hasSize(1);
+    assertThat(provider.getAllByAccountAndRegion(true, ACCOUNT, REGION)).hasSize(2);
   }
 
   @Test
   void includeRulesFalseStripsRules() {
     Collection<HaProxySecurityGroup> groups = provider.getAll(false);
 
-    assertThat(groups).hasSize(1);
-    assertThat(groups.iterator().next().getInboundRules()).isEmpty();
+    assertThat(groups).hasSize(2);
+    assertThat(groups).allSatisfy(group -> assertThat(group.getInboundRules()).isEmpty());
   }
 
   @Test
