@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.haproxy.security;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.clouddriver.haproxy.HaProxyProvider;
+import com.netflix.spinnaker.clouddriver.haproxy.caching.agents.BackendCachingAgent;
+import com.netflix.spinnaker.clouddriver.haproxy.caching.agents.FrontendCachingAgent;
+import com.netflix.spinnaker.clouddriver.haproxy.names.HaProxyMetadataNamer;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +34,7 @@ public class HaProxyCredentialsLifecycleHandler
 
   private final HaProxyProvider haProxyProvider;
   private final Registry registry;
+  private final HaProxyMetadataNamer namer;
 
   @Override
   public void credentialsAdded(HaProxyNamedAccountCredentials credentials) {
@@ -49,7 +53,8 @@ public class HaProxyCredentialsLifecycleHandler
   }
 
   private List<Agent> agentsFor(HaProxyNamedAccountCredentials credentials) {
-    // Caching agents (frontends, backends, stats) are added in follow-up changes.
-    return List.of();
+    return List.of(
+        new FrontendCachingAgent(credentials, registry, namer),
+        new BackendCachingAgent(credentials, registry, namer));
   }
 }
