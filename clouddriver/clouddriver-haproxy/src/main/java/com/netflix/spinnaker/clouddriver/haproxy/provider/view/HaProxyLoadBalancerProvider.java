@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.haproxy.HaProxyProvider;
 import com.netflix.spinnaker.clouddriver.haproxy.caching.HaProxyCacheKeys;
 import com.netflix.spinnaker.clouddriver.haproxy.caching.HaProxyResourceType;
 import com.netflix.spinnaker.clouddriver.haproxy.model.HaProxyLoadBalancer;
+import com.netflix.spinnaker.clouddriver.haproxy.model.HaProxyServerHealth;
 import com.netflix.spinnaker.clouddriver.haproxy.names.HaProxyMetadataNamer;
 import com.netflix.spinnaker.clouddriver.haproxy.names.HaProxyResource;
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance;
@@ -174,11 +175,18 @@ public class HaProxyLoadBalancerProvider implements LoadBalancerProvider<HaProxy
       Boolean disabled = null;
       if (backend != null) {
         disabled = (Boolean) backend.getAttributes().get("disabled");
+        Object runtimeServers = backend.getAttributes().get("runtime_servers");
         Object servers = backend.getAttributes().get("servers");
         if (servers instanceof Map<?, ?> serverMap) {
           for (Object server : serverMap.values()) {
             if (server instanceof Map<?, ?> attrs && attrs.get("name") instanceof String id) {
-              instances.add(LoadBalancerInstance.builder().id(id).name(id).zone(region).build());
+              instances.add(
+                  LoadBalancerInstance.builder()
+                      .id(id)
+                      .name(id)
+                      .zone(region)
+                      .health(runtimeHealth(runtimeServers, id))
+                      .build());
             }
           }
         }
@@ -195,6 +203,18 @@ public class HaProxyLoadBalancerProvider implements LoadBalancerProvider<HaProxy
               .build());
     }
     return serverGroups;
+  }
+
+  /** Health map for a server from the backend's cached runtime state; null when unavailable. */
+  private static Map<String, Object> runtimeHealth(Object runtimeServers, String serverName) {
+    if (runtimeServers instanceof Map<?, ?> runtimeMap
+        && runtimeMap.get(serverName) instanceof Map<?, ?> runtime) {
+      return HaProxyServerHealth.healthMap(
+          runtime.get("admin_state") instanceof String admin ? admin : null,
+          runtime.get("operational_state") instanceof String operational ? operational : null,
+          runtime.get("check_status"));
+    }
+    return null;
   }
 
   /** Wraps a cached section name and metadata for moniker derivation. */
