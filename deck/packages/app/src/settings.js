@@ -101,6 +101,7 @@ window.spinnakerSettings = {
     'dcos',
     'ecs',
     'gce',
+    'haproxy',
     'huaweicloud',
     'kubernetes',
     'oracle',
@@ -261,6 +262,12 @@ window.spinnakerSettings = {
         },
         region: 'us-central1',
         zone: 'us-central1-f',
+      },
+    },
+    haproxy: {
+      defaults: {
+        account: 'my-haproxy',
+        region: 'default',
       },
     },
     huaweicloud: {
