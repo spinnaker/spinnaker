@@ -70,6 +70,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.ecs.EcsClient;
 
 public class CreateServerGroupAtomicOperation
     extends AbstractEcsAtomicOperation<CreateServerGroupDescription, DeploymentResult> {
@@ -153,7 +154,7 @@ public class CreateServerGroupAtomicOperation
   }
 
   private EcsServerGroupName buildEcsServerGroupName(AmazonECS ecs, Namer<EcsResource> namer) {
-    software.amazon.awssdk.services.ecs.EcsClient ecsV2 =
+    EcsClient ecsV2 =
         amazonClientProvider.getAmazonEcsV2(description.getCredentials(), getRegion());
     EcsServerGroupNameResolver serverGroupNameResolver =
         new EcsServerGroupNameResolver(description.getEcsClusterName(), ecsV2, getRegion(), namer);
