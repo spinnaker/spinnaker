@@ -7,6 +7,7 @@ import type { ClusterService } from '../cluster/cluster.service';
 import type { ImageReader } from '../image/image.reader';
 import type { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import type { InstanceTypeService, InstanceWriter } from '../instance';
+import type { LoadBalancerReader } from '../loadBalancer/loadBalancer.read.service';
 import type { OverrideRegistry } from '../overrideRegistry/override.registry';
 import type { PageTitleService } from '../pageTitle';
 import type { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
@@ -51,11 +52,14 @@ export class CoreReactInject extends ReactInject {
   public get insightFilterStateModel() { return this.$injector.get('insightFilterStateModel') as InsightFilterStateModel; }
   public get instanceTypeService() { return this.$injector.get('instanceTypeService') as InstanceTypeService; }
   public get instanceWriter() { return this.$injector.get('instanceWriter') as InstanceWriter; }
+  public get loadBalancerReader() { return this.$injector.get('loadBalancerReader') as LoadBalancerReader; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pageTitleService() { return this.$injector.get('pageTitleService') as PageTitleService; }
   public get providerServiceDelegate() { return this.$injector.get('providerServiceDelegate') as ProviderServiceDelegate; }
   public get securityGroupReader() { return this.$injector.get('securityGroupReader') as SecurityGroupReader; }
+  public get serverGroupCommandBuilder() { return this.$injector.get('serverGroupCommandBuilder') as any; }
+  public get serverGroupTransformer() { return this.$injector.get('serverGroupTransformer') as any; }
   public get serverGroupWriter() { return this.$injector.get('serverGroupWriter') as ServerGroupWriter; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
 
