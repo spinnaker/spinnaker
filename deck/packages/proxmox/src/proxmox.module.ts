@@ -1,7 +1,7 @@
 import { CloudProviderRegistry } from '@spinnaker/core';
 
-import { ProxmoxInstanceDetails } from './instance/details/ProxmoxInstanceDetails';
 import { ProxmoxServerGroupTransformer } from './ProxmoxServerGroupTransformer';
+import { ProxmoxInstanceDetails } from './instance/details/ProxmoxInstanceDetails';
 import {
   ProxmoxServerGroupActions,
   ProxmoxServerGroupInformationSection,
