@@ -103,11 +103,14 @@ abstract class AbstractEcsCachingAgent<T> implements CachingAgent, AccountAware 
    */
   Set<String> getClusters(EcsClient ecs, ProviderCache providerCache) {
     Set<String> clusters =
-        providerCache.getAll(ECS_CLUSTERS.toString()).stream()
-            .filter(
-                cacheData ->
-                    cacheData.getAttributes().get("region").equals(region)
-                        && cacheData.getAttributes().get("account").equals(accountName))
+         providerCache
+             .getAll(
+                 ECS_CLUSTERS.toString(),
+                 providerCache.filterIdentifiers(
+                     ECS_CLUSTERS.toString(), Keys.buildGlob(ECS_CLUSTERS, accountName, region)))
+             .stream()
+             .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
+             .collect(Collectors.toSet());
             .map(cacheData -> (String) cacheData.getAttributes().get("clusterArn"))
             .collect(Collectors.toSet());
 
