@@ -27,6 +27,9 @@ let testContext;
 testContext = require.context('./packages/amazon/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
+testContext = require.context('./packages/app/src', true, /\.spec\.(js|ts|tsx)$/);
+testContext.keys().forEach(testContext);
+
 testContext = require.context('./packages/appengine/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
