@@ -681,6 +681,9 @@ importers:
       '@spinnaker/google':
         specifier: workspace:^0.2.14
         version: link:../google
+      '@spinnaker/haproxy':
+        specifier: workspace:^0.0.1
+        version: link:../haproxy
       '@spinnaker/kayenta':
         specifier: workspace:^2.6.0
         version: link:../../../deck-kayenta
@@ -1769,6 +1772,40 @@ importers:
       '@types/react-select':
         specifier: 1.3.4
         version: 1.3.4
+      shx:
+        specifier: 0.3.3
+        version: 0.3.3
+      typescript:
+        specifier: 5.0.4
+        version: 5.0.4
+
+  packages/haproxy:
+    dependencies:
+      '@spinnaker/core':
+        specifier: workspace:^0.29.1
+        version: link:../core
+      lodash:
+        specifier: 4.18.1
+        version: 4.18.1
+      react:
+        specifier: ^16.14.0
+        version: 16.14.0
+      rxjs:
+        specifier: 6.6.7
+        version: 6.6.7
+    devDependencies:
+      '@spinnaker/eslint-plugin':
+        specifier: workspace:^3.0.2
+        version: link:../eslint-plugin
+      '@spinnaker/scripts':
+        specifier: workspace:^0.4.0
+        version: link:../scripts
+      '@types/lodash':
+        specifier: 4.14.64
+        version: 4.14.64
+      '@types/react':
+        specifier: 16.14.10
+        version: 16.14.10
       shx:
         specifier: 0.3.3
         version: 0.3.3

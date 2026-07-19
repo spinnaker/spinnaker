@@ -10,6 +10,7 @@ import '@spinnaker/appengine';
 import { AZURE_MODULE } from '@spinnaker/azure';
 import { GOOGLE_MODULE } from '@spinnaker/google';
 import { CANARY_MODULE } from './canary/canary.module';
+import '@spinnaker/haproxy';
 import '@spinnaker/kubernetes';
 import '@spinnaker/oracle';
 import '@spinnaker/kayenta';
