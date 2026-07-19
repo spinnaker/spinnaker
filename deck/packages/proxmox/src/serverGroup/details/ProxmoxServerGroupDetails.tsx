@@ -63,7 +63,10 @@ export function ProxmoxServerGroupInformationSection({ serverGroup }: IServerGro
             {lc.cpus != null && (
               <>
                 <dt>vCPUs</dt>
-                <dd>{lc.cpus}{lc.cores != null ? ` (${lc.sockets ?? 1} socket × ${lc.cores} cores)` : ''}</dd>
+                <dd>
+                  {lc.cpus}
+                  {lc.cores != null ? ` (${lc.sockets ?? 1} socket × ${lc.cores} cores)` : ''}
+                </dd>
               </>
             )}
             {lc.memoryMb != null && (

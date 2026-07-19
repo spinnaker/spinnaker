@@ -2,7 +2,14 @@ import { flattenDeep } from 'lodash';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
-import { AccountTag, CollapsibleSection, InstanceReader, RecentHistoryService, Spinner, timestamp } from '@spinnaker/core';
+import {
+  AccountTag,
+  CollapsibleSection,
+  InstanceReader,
+  RecentHistoryService,
+  Spinner,
+  timestamp,
+} from '@spinnaker/core';
 
 interface InstanceFromStateParams {
   instanceId: string;
@@ -76,7 +83,14 @@ export class ProxmoxInstanceDetails extends React.Component<
 
     const closeButton = (
       <div className="close-button">
-        <a className="btn btn-link" href="#" onClick={(e) => { e.preventDefault(); history.back(); }}>
+        <a
+          className="btn btn-link"
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            history.back();
+          }}
+        >
           <span className="glyphicon glyphicon-remove" />
         </a>
       </div>
@@ -160,7 +174,10 @@ export class ProxmoxInstanceDetails extends React.Component<
             </dl>
           </CollapsibleSection>
 
-          {(stateInstance.cpus != null || stateInstance.memoryMb != null || stateInstance.diskGb != null || stateInstance.osType) && (
+          {(stateInstance.cpus != null ||
+            stateInstance.memoryMb != null ||
+            stateInstance.diskGb != null ||
+            stateInstance.osType) && (
             <CollapsibleSection heading="VM Configuration" defaultExpanded={true}>
               <dl className="dl-horizontal dl-narrow">
                 {stateInstance.cpus != null && (

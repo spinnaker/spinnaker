@@ -5,14 +5,16 @@ import { ServerGroupReader } from '@spinnaker/core';
 
 function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<IServerGroup> {
   const { app, serverGroup } = props;
-  return app.ready().then(() =>
-    app.serverGroups.data.find(
-      (sg: IServerGroup) =>
-        sg.name === serverGroup.name &&
-        (sg as any).account === serverGroup.accountId &&
-        sg.region === serverGroup.region,
-    ),
-  );
+  return app
+    .ready()
+    .then(() =>
+      app.serverGroups.data.find(
+        (sg: IServerGroup) =>
+          sg.name === serverGroup.name &&
+          (sg as any).account === serverGroup.accountId &&
+          sg.region === serverGroup.region,
+      ),
+    );
 }
 
 export function proxmoxServerGroupDetailsGetter(
