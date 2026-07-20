@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.*;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription.Code.NOT_AUTHORIZED;
-import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -29,11 +28,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ApplicationEnv;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.MapRoute;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
@@ -500,14 +496,14 @@ public class Applications {
       case STARTED:
         try {
           instances =
-              safelyCall(() -> api.instances(cloudFoundryServerGroup.getId()))
-                  .orElse(emptyMap())
-                  .entrySet()
+              safelyCall(() -> api.findWebProcessStats(cloudFoundryServerGroup.getId()))
+                  .map(ProcessResources::getResources)
+                  .orElse(emptyList())
                   .stream()
                   .map(
                       inst -> {
                         HealthState healthState = HealthState.Unknown;
-                        switch (inst.getValue().getState()) {
+                        switch (inst.getState()) {
                           case RUNNING:
                             healthState = HealthState.Up;
                             break;
@@ -519,13 +515,13 @@ public class Applications {
                             healthState = HealthState.Starting;
                             break;
                         }
+                        Long uptime = inst.getUptime() == null ? 0L : inst.getUptime();
                         return CloudFoundryInstance.builder()
                             .appGuid(cloudFoundryServerGroup.getId())
-                            .key(inst.getKey())
+                            .key(String.valueOf(inst.getIndex()))
                             .healthState(healthState)
-                            .details(inst.getValue().getDetails())
-                            .launchTime(
-                                System.currentTimeMillis() - (inst.getValue().getUptime() * 1000))
+                            .details(inst.getDetails())
+                            .launchTime(System.currentTimeMillis() - (uptime * 1000))
                             .zone(cloudFoundryServerGroup.getRegion())
                             .build();
                       })
@@ -573,11 +569,28 @@ public class Applications {
   }
 
   public void mapRoute(String applicationGuid, String routeGuid) throws CloudFoundryApiException {
-    safelyCall(() -> api.mapRoute(applicationGuid, routeGuid, new MapRoute()));
+    Destination destination = new Destination(new Destination.App(applicationGuid));
+    safelyCall(
+        () -> api.addRouteDestination(routeGuid, new Destination.Page(singletonList(destination))));
+  }
+
+  public List<Destination> listRouteDestinations(String routeGuid) throws CloudFoundryApiException {
+    return safelyCall(() -> api.listRouteDestinations(routeGuid))
+        .map(Destination.Page::getDestinations)
+        .orElse(emptyList());
   }
 
   public void unmapRoute(String applicationGuid, String routeGuid) throws CloudFoundryApiException {
-    safelyCall(() -> api.unmapRoute(applicationGuid, routeGuid));
+    String destinationGuid =
+        listRouteDestinations(routeGuid).stream()
+            .filter(d -> applicationGuid.equals(d.getApp().getGuid()))
+            .map(Destination::getGuid)
+            .findFirst()
+            .orElse(null);
+    if (destinationGuid == null) {
+      return;
+    }
+    safelyCall(() -> api.removeRouteDestination(routeGuid, destinationGuid));
   }
 
   public void startApplication(String applicationGuid) throws CloudFoundryApiException {
@@ -593,7 +606,14 @@ public class Applications {
   }
 
   public void deleteAppInstance(String guid, String index) throws CloudFoundryApiException {
-    safelyCall(() -> api.deleteAppInstance(guid, index));
+    String processGuid =
+        safelyCall(() -> api.findWebProcess(guid))
+            .map(Process::getGuid)
+            .orElseThrow(
+                () ->
+                    new CloudFoundryApiException(
+                        "Unable to find web process for application '" + guid + "'"));
+    processes.terminateInstance(processGuid, index);
   }
 
   public CloudFoundryServerGroup createApplication(
@@ -709,16 +729,15 @@ public class Applications {
         () -> api.setCurrentDroplet(appGuid, new ToOneRelationship(new Relationship(dropletGuid))));
   }
 
-  public List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
-      getTakenSlots(String clusterName, String spaceId) {
+  public List<Application> getTakenSlots(String clusterName, String spaceId) {
     String finalName = buildFinalAsgName(clusterName);
-    List<String> filter =
-        asList("name<=" + finalName, "name>=" + clusterName, "space_guid:" + spaceId);
-    return collectPageResources("applications", page -> api.listAppsFiltered(page, filter, 10))
+    return collectPages("applications", page -> api.all(page, resultsPerPage, null, spaceId))
         .stream()
+        .filter(app -> app.getName().compareTo(clusterName) >= 0)
+        .filter(app -> app.getName().compareTo(finalName) <= 0)
         .filter(
             app -> {
-              Names entityNames = Names.parseName(app.getEntity().getName());
+              Names entityNames = Names.parseName(app.getName());
               return clusterName.equals(entityNames.getCluster());
             })
         .collect(Collectors.toList());
@@ -731,7 +750,7 @@ public class Applications {
   }
 
   public void restageApplication(String appGuid) {
-    safelyCall(() -> api.restageApplication(appGuid, ""));
+    safelyCall(() -> api.restageApplication(appGuid));
   }
 
   public ProcessStats.State getAppState(String guid) {
@@ -748,7 +767,7 @@ public class Applications {
                     .orElse(ProcessStats.State.DOWN));
   }
 
-  public List<Resource<ServiceBinding>> getServiceBindingsByApp(String appGuid) {
-    return collectPageResources("service bindings", pg -> api.getServiceBindings(appGuid));
+  public List<ServiceCredentialBinding> getServiceBindingsByApp(String appGuid) {
+    return collectPages("service bindings", pg -> api.getServiceBindings(appGuid, "app"));
   }
 }

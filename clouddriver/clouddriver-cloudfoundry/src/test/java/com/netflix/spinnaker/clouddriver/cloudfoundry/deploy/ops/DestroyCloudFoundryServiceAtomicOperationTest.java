@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.IN_PROGRESS;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.NOT_FOUND;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.State.IN_PROGRESS;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.State.NOT_FOUND;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.Type.DELETE;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
