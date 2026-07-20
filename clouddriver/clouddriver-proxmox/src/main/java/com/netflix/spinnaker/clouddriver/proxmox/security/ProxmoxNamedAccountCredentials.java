@@ -57,9 +57,21 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
 
   private final String environment;
   private final String accountType;
+
+  // Contains the API password/token — must never be serialized to the /credentials endpoints.
+  @com.fasterxml.jackson.annotation.JsonIgnore
   private final ProxmoxConfigurationProperties.ProxmoxManagedAccount managedAccount;
+
   private final Permissions permissions;
-  private final ProxmoxApiService apiService;
+
+  @com.fasterxml.jackson.annotation.JsonIgnore private final ProxmoxApiService apiService;
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  private final AtomicReference<List<java.util.Map<String, String>>> cachedRegions =
+      new AtomicReference<>();
+
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  private final AtomicReference<List<String>> cachedStoragePools = new AtomicReference<>();
 
   public ProxmoxNamedAccountCredentials(
       ProxmoxConfigurationProperties.ProxmoxManagedAccount managedAccount) {
@@ -69,6 +81,74 @@ public class ProxmoxNamedAccountCredentials extends AbstractAccountCredentials<P
     this.managedAccount = managedAccount;
     this.permissions = new Permissions.Builder().set(managedAccount.getPermissions()).build();
     this.apiService = buildApiService(managedAccount);
+  }
+
+  /**
+   * Proxmox nodes exposed as Spinnaker regions ({@code [{name: "pve01"}, ...]}) so deck account
+   * details and bakery region lookups can populate node dropdowns. Fetched lazily (first
+   * /credentials request) and memoized; refreshed when the account is reloaded.
+   */
+  public List<java.util.Map<String, String>> getRegions() {
+    List<java.util.Map<String, String>> regions = cachedRegions.get();
+    if (regions == null) {
+      regions = fetchRegions();
+      cachedRegions.compareAndSet(null, regions);
+    }
+    return regions;
+  }
+
+  /** Storage pools capable of holding VM disk images, for deck storage dropdowns. */
+  public List<String> getStoragePools() {
+    List<String> pools = cachedStoragePools.get();
+    if (pools == null) {
+      pools = fetchStoragePools(getRegions());
+      cachedStoragePools.compareAndSet(null, pools);
+    }
+    return pools;
+  }
+
+  private List<java.util.Map<String, String>> fetchRegions() {
+    try {
+      var response = apiService.getNodes().execute();
+      if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+        return response.body().getData().stream()
+            .map(node -> java.util.Map.of("name", node.getNode()))
+            .sorted(java.util.Comparator.comparing(m -> m.get("name")))
+            .toList();
+      }
+      log.warn("Failed to list Proxmox nodes for account {}: HTTP {}", name, response.code());
+    } catch (Exception e) {
+      log.warn("Failed to list Proxmox nodes for account {}", name, e);
+    }
+    return List.of();
+  }
+
+  private List<String> fetchStoragePools(List<java.util.Map<String, String>> regions) {
+    java.util.Set<String> pools = new java.util.TreeSet<>();
+    for (var region : regions) {
+      try {
+        var response = apiService.getStorage(region.get("name")).execute();
+        if (response.isSuccessful()
+            && response.body() != null
+            && response.body().getData() != null) {
+          response.body().getData().stream()
+              // Only pools that can hold VM/container disks
+              .filter(
+                  s ->
+                      s.getContent() == null
+                          || s.getContent().contains("images")
+                          || s.getContent().contains("rootdir"))
+              .filter(s -> s.getEnabled() == null || s.getEnabled() != 0)
+              .map(s -> s.getStorage())
+              .filter(Objects::nonNull)
+              .forEach(pools::add);
+        }
+      } catch (Exception e) {
+        log.warn(
+            "Failed to list storage pools on node {} for account {}", region.get("name"), name, e);
+      }
+    }
+    return List.copyOf(pools);
   }
 
   /**

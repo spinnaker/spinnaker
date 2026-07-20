@@ -59,10 +59,61 @@ public class ProxmoxServerGroupCreator implements ServerGroupCreator {
     // clouddriver's proxmox converters resolve credentials from the "credentials" key.
     operation.computeIfAbsent("credentials", (k) -> operation.get("account"));
 
+    bindTemplateFromBakeResults(stage, operation);
+
     List<Map> operations = new ArrayList<>();
     Map<String, Object> wrapper = new HashMap<>();
     wrapper.put(OPERATION, operation);
     operations.add(wrapper);
     return operations;
+  }
+
+  /**
+   * When the deploy configuration has no template, bind the template VMID produced by an upstream
+   * Bake stage: the proxmox bake handler scrapes the new template's VMID into the bake result, and
+   * orca propagates it through {@code deploymentDetails[].imageId}.
+   */
+  private void bindTemplateFromBakeResults(StageExecution stage, Map<String, Object> operation) {
+    Object existing = operation.get("templateVmid");
+    boolean hasTemplate =
+        existing != null && !existing.toString().isBlank() && !"0".equals(existing.toString());
+    if (hasTemplate) {
+      return;
+    }
+
+    Object detailsObj = stage.getContext().get("deploymentDetails");
+    if (!(detailsObj instanceof List)) {
+      return;
+    }
+    Object region = operation.get("region");
+    Map<String, Object> fallback = null;
+    for (Object entry : (List<?>) detailsObj) {
+      if (!(entry instanceof Map)) continue;
+      Map<String, Object> detail = (Map<String, Object>) entry;
+      Object provider = detail.get("cloudProvider");
+      if (provider != null && !"proxmox".equals(provider)) continue;
+      Object imageId = detail.getOrDefault("imageId", detail.get("ami"));
+      if (imageId == null || !imageId.toString().matches("\\d+")) continue;
+      if (region != null && region.equals(detail.get("region"))) {
+        applyTemplate(operation, imageId, detail);
+        return;
+      }
+      if (fallback == null) {
+        fallback = detail;
+      }
+    }
+    if (fallback != null) {
+      applyTemplate(operation, fallback.getOrDefault("imageId", fallback.get("ami")), fallback);
+    }
+  }
+
+  private void applyTemplate(
+      Map<String, Object> operation, Object imageId, Map<String, Object> detail) {
+    operation.put("templateVmid", Integer.parseInt(imageId.toString()));
+    // The baked template lives on the node the bake ran on, which may differ from the target.
+    Object bakeRegion = detail.get("region");
+    if (bakeRegion != null && operation.get("templateNode") == null) {
+      operation.put("templateNode", bakeRegion);
+    }
   }
 }

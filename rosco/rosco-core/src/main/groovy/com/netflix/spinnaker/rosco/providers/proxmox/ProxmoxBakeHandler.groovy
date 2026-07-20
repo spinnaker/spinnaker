@@ -39,8 +39,9 @@ class ProxmoxBakeHandler extends CloudProviderBakeHandler {
     cloudProviderBakeHandlerRegistry.register(BakeRequest.CloudProviderType.proxmox, this)
   }
 
-  // Packer proxmox plugin logs "Template ID: <vmid>" after converting the VM to a template.
-  private static final String TEMPLATE_ID_TOKEN = /Template ID:/
+  // The packer proxmox plugin reports the new template's VMID in its final artifact line
+  // ("A template was created: <vmid>"); also accept "Template ID: <vmid>" from custom templates.
+  private static final String TEMPLATE_ID_TOKEN = /(?:Template ID|A template was created):/
 
   ImageNameFactory imageNameFactory = new ProxmoxImageNameFactory()
 
