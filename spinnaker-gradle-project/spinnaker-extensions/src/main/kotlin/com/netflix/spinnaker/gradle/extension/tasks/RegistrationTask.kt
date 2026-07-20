@@ -21,11 +21,13 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 /**
  * Task to register a spinnaker plugin.
  * This task will invoke a spinnaker API to register 'spinnaker plugin' metadata with Front50.
  */
+@DisableCachingByDefault(because = "Plugin registration is not cacheable")
 open class RegistrationTask : DefaultTask() {
 
   @Internal
