@@ -1412,11 +1412,7 @@ public class DeployManifestIT extends BaseTest {
     System.out.println("> Using namespace: " + account1Ns + ", appName: " + appName);
     String imageNoTag = "index.docker.io/library/alpine";
     String imageWithTag = "index.docker.io/library/alpine:3.12";
-    String apiVersion = "batch/v1beta1";
-
-    if (KubeTestUtils.compareVersion(KUBERNETES_VERSION, "v1.20") > 0) {
-      apiVersion = "batch/v1";
-    }
+    String apiVersion = "batch/v1";
 
     List<Map<String, Object>> manifest =
         KubeTestUtils.loadYaml("classpath:manifests/cronJob.yml")
@@ -1455,36 +1451,6 @@ public class DeployManifestIT extends BaseTest {
         imageWithTag,
         imageDeployed,
         "Expected correct " + DEPLOYMENT_1_NAME + " image to be scheduled");
-  }
-
-  @DisplayName(
-      ".\n===\n"
-          + "Given k8s version < 1.22.0 and a v1beta1 CRD manifest\n"
-          + "When sending deploy manifest request\n"
-          + "Then a v1beta1 CRD is created\n===")
-  @Test
-  public void shouldDeployCrdV1beta1IfSupported() throws IOException, InterruptedException {
-    if (KubeTestUtils.compareVersion(KUBERNETES_VERSION, "v1.21") > 0) {
-      return;
-    }
-    // ------------------------- given --------------------------
-    final String crdName = "crontabs.stable.example.com";
-    final List<Map<String, Object>> manifest =
-        KubeTestUtils.loadYaml("classpath:manifests/crd_v1beta1.yml")
-            .withValue("metadata.name", crdName)
-            .asList();
-    // ------------------------- when --------------------------
-    final List<Map<String, Object>> request =
-        KubeTestUtils.loadJson("classpath:requests/deploy_manifest.json")
-            .withValue("deployManifest.account", ACCOUNT1_NAME)
-            .withValue("deployManifest.moniker.app", APP1_NAME)
-            .withValue("deployManifest.manifests", manifest)
-            .asList();
-    KubeTestUtils.deployAndWaitStable(
-        baseUrl(), request, "", String.format("customResourceDefinition %s", crdName));
-    // ------------------------- then --------------------------
-    String exits = kubeCluster.execKubectl(String.format("get crd %s", crdName));
-    assertTrue(exits.contains(crdName));
   }
 
   @DisplayName(
