@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ApplicationEnv;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import java.util.List;
-import java.util.Map;
 import okhttp3.MultipartBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -38,30 +38,34 @@ public interface ApplicationService {
   @GET("v3/apps/{guid}")
   Call<Application> findById(@Path("guid") String guid);
 
-  @GET("v2/apps/{guid}/env")
+  @GET("v3/apps/{guid}/env")
   Call<ApplicationEnv> findApplicationEnvById(@Path("guid") String guid);
 
   @GET("v3/apps/{guid}/droplets/current")
   Call<Droplet> findDropletByApplicationGuid(@Path("guid") String guid);
 
-  @GET("v2/apps/{guid}/instances")
-  Call<Map<String, InstanceStatus>> instances(@Path("guid") String guid);
+  @GET("v3/apps/{guid}/processes/web/stats")
+  Call<ProcessResources> findWebProcessStats(@Path("guid") String guid);
 
-  @GET("v2/apps")
-  Call<Page<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
-      listAppsFiltered(
-          @Query("page") Integer page,
-          @Query("q") List<String> q,
-          @Query("results-per-page") Integer resultsPerPage);
+  @GET("v3/apps/{guid}/processes/web")
+  Call<Process> findWebProcess(@Path("guid") String guid);
 
-  /** Requires an empty body. */
-  @PUT("v2/apps/{aguid}/routes/{rguid}")
-  Call<ResponseBody> mapRoute(
-      @Path("aguid") String applicationGuid, @Path("rguid") String routeGuid, @Body MapRoute body);
+  /**
+   * Route mapping in CAPI v3 is done by creating/removing "destinations" on the route, rather than
+   * a v2 app<->route association. These are declared here (instead of on RouteService) since the
+   * only current consumer, {@code Applications.mapRoute}/{@code unmapRoute}, only has an
+   * ApplicationService dependency.
+   */
+  @POST("v3/routes/{rguid}/destinations")
+  Call<Destination.Page> addRouteDestination(
+      @Path("rguid") String routeGuid, @Body Destination.Page body);
 
-  @DELETE("v2/apps/{aguid}/routes/{rguid}")
-  Call<ResponseBody> unmapRoute(
-      @Path("aguid") String applicationGuid, @Path("rguid") String routeGuid);
+  @GET("v3/routes/{rguid}/destinations")
+  Call<Destination.Page> listRouteDestinations(@Path("rguid") String routeGuid);
+
+  @DELETE("v3/routes/{rguid}/destinations/{dguid}")
+  Call<ResponseBody> removeRouteDestination(
+      @Path("rguid") String routeGuid, @Path("dguid") String destinationGuid);
 
   @POST("v3/apps/{guid}/actions/start")
   Call<ResponseBody> startApplication(@Path("guid") String guid, @Body StartApplication body);
@@ -71,9 +75,6 @@ public interface ApplicationService {
 
   @DELETE("v3/apps/{guid}")
   Call<ResponseBody> deleteApplication(@Path("guid") String guid);
-
-  @DELETE("v2/apps/{guid}/instances/{index}")
-  Call<ResponseBody> deleteAppInstance(@Path("guid") String guid, @Path("index") String index);
 
   @POST("v3/apps")
   Call<Application> createApplication(@Body CreateApplication application);
@@ -103,9 +104,10 @@ public interface ApplicationService {
   @PATCH("v3/apps/{guid}/relationships/current_droplet")
   Call<ResponseBody> setCurrentDroplet(@Path("guid") String appGuid, @Body ToOneRelationship body);
 
-  @POST("v2/apps/{guid}/restage")
-  Call<ResponseBody> restageApplication(@Path("guid") String appGuid, @Body Object dummy);
+  @POST("v3/apps/{guid}/actions/restage")
+  Call<ResponseBody> restageApplication(@Path("guid") String appGuid);
 
-  @GET("v2/apps/{guid}/service_bindings")
-  Call<Page<ServiceBinding>> getServiceBindings(@Path("guid") String appGuid);
+  @GET("v3/service_credential_bindings")
+  Call<Pagination<ServiceCredentialBinding>> getServiceBindings(
+      @Query("app_guids") String appGuid, @Query("type") String type);
 }

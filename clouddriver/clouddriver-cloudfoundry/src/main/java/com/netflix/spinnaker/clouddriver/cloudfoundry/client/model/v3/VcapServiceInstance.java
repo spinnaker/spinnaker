@@ -1,11 +1,11 @@
 /*
  * Copyright 2018 Pivotal, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,28 +14,34 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
 import static java.util.Arrays.stream;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.Data;
 
+/**
+ * Represents a bound service instance entry as it appears inside the {@code VCAP_SERVICES}
+ * environment variable payload returned by {@code GET /v3/apps/{guid}/env}. This shape is distinct
+ * from the top-level v3 {@link ServiceInstance} resource.
+ */
 @Data
-public class LastOperation {
-  private LastOperation.Type type;
-  private LastOperation.State state;
-  private String description;
+public class VcapServiceInstance {
+  private String name;
+
+  @Nullable private Set<String> tags;
+
+  private String plan;
+  private String servicePlanGuid;
+  private LastOperation lastOperation;
+  private Type type;
 
   public enum Type {
-    CREATE("create"),
-    CREATE_SERVICE_KEY("createServiceKey"),
-    DELETE("delete"),
-    DELETE_SERVICE_KEY("deleteServiceKey"),
-    SHARE("share"),
-    UNSHARE("unshare"),
-    UPDATE("update");
+    MANAGED_SERVICE_INSTANCE("managed_service_instance"),
+    USER_PROVIDED_SERVICE_INSTANCE("user_provided_service_instance");
 
     private final String type;
 
@@ -48,28 +54,6 @@ public class LastOperation {
     public static Type fromType(String type) {
       return stream(Type.values())
           .filter(st -> st.type.equalsIgnoreCase(type))
-          .findFirst()
-          .orElse(null);
-    }
-  }
-
-  public enum State {
-    FAILED("failed"),
-    IN_PROGRESS("in progress"),
-    NOT_FOUND("not found"),
-    SUCCEEDED("succeeded");
-
-    private final String state;
-
-    State(String state) {
-      this.state = state;
-    }
-
-    @Nullable
-    @JsonCreator
-    public static State fromState(String state) {
-      return stream(State.values())
-          .filter(st -> st.state.equalsIgnoreCase(state))
           .findFirst()
           .orElse(null);
     }

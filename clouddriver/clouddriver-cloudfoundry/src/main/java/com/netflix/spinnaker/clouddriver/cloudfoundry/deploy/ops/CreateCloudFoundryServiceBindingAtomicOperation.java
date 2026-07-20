@@ -20,7 +20,6 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops.CloudFoundryOperationUtils.describeProcessState;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.CreateCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -66,31 +65,28 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
         .getClient()
         .getServiceInstances()
         .findAllServicesBySpaceAndNames(description.getSpace(), serviceInstanceNames)
-        .forEach(s -> serviceInstanceGuids.put(s.getEntity().getName(), s.getMetadata().getGuid()));
+        .forEach(s -> serviceInstanceGuids.put(s.getName(), s.getGuid()));
 
-    List<CreateServiceBinding> bindings =
-        description.getServiceBindingRequests().stream()
-            .map(
-                s -> {
-                  String serviceGuid = serviceInstanceGuids.get(s.getServiceInstanceName());
-                  if (serviceGuid == null || serviceGuid.isEmpty()) {
-                    throw new CloudFoundryApiException(
-                        "Unable to find service with the name: '"
-                            + s.getServiceInstanceName()
-                            + "'");
-                  }
-                  if (s.isUpdatable()) {
-                    removeBindings(serviceGuid, description.getServerGroupId());
-                  }
-                  return new CreateServiceBinding(
+    description.getServiceBindingRequests().stream()
+        .forEach(
+            s -> {
+              String serviceGuid = serviceInstanceGuids.get(s.getServiceInstanceName());
+              if (serviceGuid == null || serviceGuid.isEmpty()) {
+                throw new CloudFoundryApiException(
+                    "Unable to find service with the name: '" + s.getServiceInstanceName() + "'");
+              }
+              if (s.isUpdatable()) {
+                removeBindings(serviceGuid, description.getServerGroupId());
+              }
+              description
+                  .getClient()
+                  .getServiceInstances()
+                  .createServiceBinding(
                       serviceGuid,
                       description.getServerGroupId(),
                       s.getServiceInstanceName(),
                       s.getParameters());
-                })
-            .collect(Collectors.toList());
-
-    bindings.forEach(b -> description.getClient().getServiceInstances().createServiceBinding(b));
+            });
 
     if (description.isRestageRequired()) {
       getTask().updateStatus(PHASE, "Restaging application '" + description.getServerGroupName());
@@ -154,13 +150,9 @@ public class CreateCloudFoundryServiceBindingAtomicOperation implements AtomicOp
 
   private void removeBindings(String serviceGuid, String appGuid) {
     description.getClient().getApplications().getServiceBindingsByApp(appGuid).stream()
-        .filter(s -> serviceGuid.equalsIgnoreCase(s.getEntity().getServiceInstanceGuid()))
+        .filter(s -> serviceGuid.equalsIgnoreCase(s.getServiceInstanceGuid()))
         .findAny()
         .ifPresent(
-            s ->
-                description
-                    .getClient()
-                    .getServiceInstances()
-                    .deleteServiceBinding(s.getMetadata().getGuid()));
+            s -> description.getClient().getServiceInstances().deleteServiceBinding(s.getGuid()));
   }
 }
