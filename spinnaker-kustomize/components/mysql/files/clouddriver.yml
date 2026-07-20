@@ -24,13 +24,13 @@ sql:
       # for more detail and to view defaults, see:
       # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
       default: true
-      jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
+      jdbcUrl: jdbc:mysql://mysql:3306/clouddriver
       user: clouddriver_service
-      password: ${CLOUDDRIVER_MARIADB}
+      password: ${CLOUDDRIVER_MYSQL}
   migration:
     user: clouddriver_migrate
-    jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
-    password: ${CLOUDDRIVER_MARIADB}
+    jdbcUrl: jdbc:mysql://mysql:3306/clouddriver
+    password: ${CLOUDDRIVER_MYSQL}
 
 redis:
   enabled: false
@@ -67,7 +67,7 @@ redis:
 #       # for more detail and to view defaults, see:
 #       # https://github.com/spinnaker/kork/blob/master/kork-sql/src/main/kotlin/com/netflix/spinnaker/kork/sql/config/ConnectionPoolProperties.kt
 #       default: true
-#       jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
+#       jdbcUrl: jdbc:mysql://mysql:3306/clouddriver
 #       user: clouddriver_service
 #       # password: depending on db auth and how spinnaker secrets are managed
 #     # The following tasks connection pool is optional. At Netflix, clouddriver
@@ -76,5 +76,5 @@ redis:
 #     # separate tasks pool.
 #     tasks:
 #       user: clouddriver_service
-#       jdbcUrl: jdbc:mysql://mariadb:3306/clouddriver
-#       password: ${CLOUDDRIVER_MARIADB}
+#       jdbcUrl: jdbc:mysql://mysql:3306/clouddriver
+#       password: ${CLOUDDRIVER_MYSQL}
