@@ -10,9 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Space;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
@@ -38,32 +37,46 @@ class SpacesTest {
     String serviceInstanceId = "service-instance-guid";
     ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setName(serviceInstanceName);
+    serviceInstance.setGuid(serviceInstanceId);
     when(spaceService.getServiceInstancesById(any(), any(), any()))
-        .thenReturn(
-            Calls.response(Response.success(Page.singleton(serviceInstance, serviceInstanceId))));
+        .thenReturn(Calls.response(Response.success(generateServiceInstancePage(serviceInstance))));
 
     CloudFoundryServiceInstance actual =
         spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, cloudFoundrySpace);
 
     assertThat(actual.getName()).isEqualTo(serviceInstanceName);
     assertThat(actual.getId()).isEqualTo(serviceInstanceId);
-    verify(spaceService)
-        .getServiceInstancesById(
-            eq(spaceId), any(), eq(Collections.singletonList("name:" + serviceInstanceName)));
+    verify(spaceService).getServiceInstancesById(eq(spaceId), any(), eq(serviceInstanceName));
   }
 
   @Test
   void getServiceInstanceByNameAndSpaceShouldReturnNullWhenSpaceHasNoServiceInstances() {
     String serviceInstanceName1 = "service-instance";
     when(spaceService.getServiceInstancesById(any(), any(), any()))
-        .thenReturn(
-            Calls.response(
-                Response.success(new Page<ServiceInstance>().setTotalResults(0).setTotalPages(1))));
+        .thenReturn(Calls.response(Response.success(generateEmptyServiceInstancePage())));
 
     CloudFoundryServiceInstance actual =
         spaces.getServiceInstanceByNameAndSpace(serviceInstanceName1, cloudFoundrySpace);
 
     assertThat(actual).isNull();
+  }
+
+  private Pagination<ServiceInstance> generateServiceInstancePage(ServiceInstance serviceInstance) {
+    Pagination.Details details = new Pagination.Details();
+    details.setTotalPages(1);
+    Pagination<ServiceInstance> pagination = new Pagination<>();
+    pagination.setPagination(details);
+    pagination.setResources(Collections.singletonList(serviceInstance));
+    return pagination;
+  }
+
+  private Pagination<ServiceInstance> generateEmptyServiceInstancePage() {
+    Pagination.Details details = new Pagination.Details();
+    details.setTotalPages(1);
+    Pagination<ServiceInstance> pagination = new Pagination<>();
+    pagination.setPagination(details);
+    pagination.setResources(Collections.emptyList());
+    return pagination;
   }
 
   @Test
