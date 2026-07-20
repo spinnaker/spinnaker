@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService, InstanceTypeService } from '@spinnaker/core';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
 import { GCEProviderSettings } from '../../gce.settings';
 import { parseHealthCheckUrl } from '../../healthCheck/healthCheckUtils';
@@ -15,11 +15,15 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
   'spinnaker.gce.serverGroupCommandBuilder.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
 export class GceServerGroupCommandBuilder {
-  constructor($q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) }) {
-    const instanceTypeService = new GceInstanceTypeService($q);
-    const gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService();
-    const gceServerGroupHiddenMetadataKeys = GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS;
-    const gceXpnNamingService = new GceXpnNamingService();
+  constructor(
+    $q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) },
+    instanceTypeService = new InstanceTypeService({
+      getDelegate: () => new GceInstanceTypeService($q),
+    }),
+    gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService(),
+    gceXpnNamingService = new GceXpnNamingService(),
+    gceServerGroupHiddenMetadataKeys = GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS,
+  ) {
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
     //   2) Each machine type appears in exactly one category.
@@ -223,7 +227,7 @@ export class GceServerGroupCommandBuilder {
       const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
       command.autoHealingPolicy = {
         healthCheck: healthCheckName,
-        healthCheckKind: healthCheckKind,
+        healthCheckKind,
         healthCheckUrl: healthCheckUrl,
         initialDelaySec: autoHealingPolicy.initialDelaySec,
       };
@@ -233,20 +237,15 @@ export class GceServerGroupCommandBuilder {
     // (shieldedVmConfig) for backward compat with server groups created before the v1 migration.
     // Ref: https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
     function populateShieldedVmConfig(source, command) {
-      const shieldedVmConfig =
-        _.get(source, 'launchConfig.instanceTemplate.properties.shieldedInstanceConfig') ||
-        _.get(source, 'launchConfig.instanceTemplate.properties.shieldedVmConfig');
-      command.enableSecureBoot = _.get(
-        shieldedVmConfig,
-        'enableSecureBoot',
-        _.get(source, 'enableSecureBoot', false),
-      );
-      command.enableVtpm = _.get(shieldedVmConfig, 'enableVtpm', _.get(source, 'enableVtpm', false));
-      command.enableIntegrityMonitoring = _.get(
-        shieldedVmConfig,
-        'enableIntegrityMonitoring',
-        _.get(source, 'enableIntegrityMonitoring', false),
-      );
+      const shieldedInstanceConfig = _.get(source, 'launchConfig.instanceTemplate.properties.shieldedInstanceConfig');
+      const shieldedVmConfig = _.get(source, 'launchConfig.instanceTemplate.properties.shieldedVmConfig');
+      ['enableSecureBoot', 'enableVtpm', 'enableIntegrityMonitoring'].forEach((field) => {
+        command[field] = _.has(shieldedInstanceConfig, field)
+          ? shieldedInstanceConfig[field]
+          : _.has(shieldedVmConfig, field)
+          ? shieldedVmConfig[field]
+          : _.get(source, field, false);
+      });
     }
 
     function populateCustomMetadata(metadataItems, command) {
@@ -478,10 +477,11 @@ export class GceServerGroupCommandBuilder {
           zones: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.zones : [],
           targetShape: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.targetShape : null,
         },
-        // Deep-clone so clone/edit cannot mutate the cached server-group policy object.
-        instanceFlexibilityPolicy: serverGroup.instanceFlexibilityPolicy
-          ? _.cloneDeep(serverGroup.instanceFlexibilityPolicy)
-          : null,
+        // Preserve explicit empty policies while keeping absence distinct.
+        instanceFlexibilityPolicy:
+          serverGroup.instanceFlexibilityPolicy === undefined
+            ? undefined
+            : _.cloneDeep(serverGroup.instanceFlexibilityPolicy),
         selectZones: serverGroup.selectZones,
         source: {
           account: serverGroup.account,

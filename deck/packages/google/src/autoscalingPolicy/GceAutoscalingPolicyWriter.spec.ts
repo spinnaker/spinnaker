@@ -81,8 +81,15 @@ describe('GceAutoscalingPolicyWriter', () => {
     });
   });
 
-  it('upserts auto-healing through the scaling policy operation', () => {
-    const autoHealingPolicy = { healthCheck: 'web-health-check', initialDelaySec: 0 } as any;
+  it('upserts only the supported auto-healing policy shape', () => {
+    const autoHealingPolicy = {
+      healthCheck: 'web-health-check',
+      healthCheckKind: 'healthCheck',
+      healthCheckUrl: 'https://compute/healthChecks/web-health-check',
+      initialDelaySec: 0,
+      maxUnavailable: { fixed: 2 },
+      unknownPolicyField: 'discard',
+    } as any;
 
     GceAutoscalingPolicyWriter.upsertAutoHealingPolicy(application, regionalServerGroup, autoHealingPolicy);
 
@@ -96,7 +103,12 @@ describe('GceAutoscalingPolicyWriter', () => {
           credentials: 'my-account',
           region: 'us-central1',
           serverGroupName: 'my-app-main-v001',
-          autoHealingPolicy,
+          autoHealingPolicy: {
+            healthCheck: 'web-health-check',
+            healthCheckKind: 'healthCheck',
+            healthCheckUrl: 'https://compute/healthChecks/web-health-check',
+            initialDelaySec: 0,
+          },
         },
       ],
     });

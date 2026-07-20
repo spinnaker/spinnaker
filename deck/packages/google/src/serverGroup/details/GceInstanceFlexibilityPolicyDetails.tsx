@@ -1,9 +1,5 @@
-import { module } from 'angular';
 import { isEmpty } from 'lodash';
 import React from 'react';
-import { react2angular } from 'react2angular';
-
-import { withErrorBoundary } from '@spinnaker/core';
 
 import type { IGceInstanceFlexibilityPolicy } from '../../domain/serverGroup';
 
@@ -38,11 +34,3 @@ export function GceInstanceFlexibilityPolicyDetails({
     </dl>
   );
 }
-
-export const GCE_INSTANCE_FLEXIBILITY_POLICY_DETAILS = 'spinnaker.gce.instanceFlexibilityPolicyDetails.component';
-module(GCE_INSTANCE_FLEXIBILITY_POLICY_DETAILS, []).component(
-  'gceInstanceFlexibilityPolicyDetails',
-  react2angular(withErrorBoundary(GceInstanceFlexibilityPolicyDetails, 'gceInstanceFlexibilityPolicyDetails'), [
-    'instanceFlexibilityPolicy',
-  ]),
-);

@@ -40,6 +40,18 @@ function policyJob(serverGroup: IGcePolicyServerGroup, type: IGcePolicyJob['type
   };
 }
 
+function supportedAutoHealingPolicy(policy: IGceAutoHealingPolicy): IGceAutoHealingPolicy {
+  // This is the final task boundary: legacy server responses can still carry fields that
+  // stable Compute v1 no longer accepts, so assemble the outbound contract explicitly.
+  const supported: IGceAutoHealingPolicy = {};
+  (['healthCheck', 'healthCheckKind', 'healthCheckUrl', 'initialDelaySec'] as const).forEach((field) => {
+    if (policy[field] !== undefined) {
+      (supported as any)[field] = policy[field];
+    }
+  });
+  return supported;
+}
+
 export class GceAutoscalingPolicyWriter {
   public static upsertAutoscalingPolicy(
     application: Application,
@@ -73,7 +85,12 @@ export class GceAutoscalingPolicyWriter {
     return TaskExecutor.executeTask({
       application,
       description: `Upsert autohealing policy ${serverGroup.name}`,
-      job: [{ ...policyJob(serverGroup, 'upsertScalingPolicy'), autoHealingPolicy }],
+      job: [
+        {
+          ...policyJob(serverGroup, 'upsertScalingPolicy'),
+          autoHealingPolicy: supportedAutoHealingPolicy(autoHealingPolicy),
+        },
+      ],
     });
   }
 

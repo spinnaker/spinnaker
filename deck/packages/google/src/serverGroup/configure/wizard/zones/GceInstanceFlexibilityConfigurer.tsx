@@ -1,9 +1,5 @@
-import { module } from 'angular';
 import { isEmpty } from 'lodash';
 import React from 'react';
-import { react2angular } from 'react2angular';
-
-import { withErrorBoundary } from '@spinnaker/core';
 
 import type { IGceInstanceFlexibilityPolicy, IGceInstanceSelection } from '../../../../domain/serverGroup';
 
@@ -11,10 +7,12 @@ export interface IGceInstanceFlexibilityConfigurerProps {
   instanceFlexibilityPolicy?: IGceInstanceFlexibilityPolicy;
   regional?: boolean;
   targetShape?: string;
+  validationError?: string;
   setInstanceFlexibilityPolicy: (policy: IGceInstanceFlexibilityPolicy) => void;
 }
 
 const FLEX_TARGET_SHAPES = new Set(['BALANCED', 'ANY', 'ANY_SINGLE_ZONE']);
+const VALIDATION_ERROR_ID = 'gce-instance-flexibility-error';
 
 function hasSelections(policy?: IGceInstanceFlexibilityPolicy): boolean {
   return !isEmpty(policy?.instanceSelections);
@@ -75,6 +73,7 @@ export function GceInstanceFlexibilityConfigurer({
   instanceFlexibilityPolicy,
   regional,
   targetShape: targetShapeProp,
+  validationError,
   setInstanceFlexibilityPolicy,
 }: IGceInstanceFlexibilityConfigurerProps) {
   const policy = instanceFlexibilityPolicy || { instanceSelections: {} };
@@ -160,6 +159,11 @@ export function GceInstanceFlexibilityConfigurer({
         <b>Instance Flexibility</b>
       </div>
       <div className="col-md-9">
+        {validationError && (
+          <div className="alert alert-danger" id={VALIDATION_ERROR_ID} role="alert">
+            {validationError}
+          </div>
+        )}
         {!enabled && (
           <button type="button" className="btn btn-sm btn-default" onClick={addSelection}>
             Add flexibility policy
@@ -184,6 +188,7 @@ export function GceInstanceFlexibilityConfigurer({
               <div key={name} className="well well-sm" style={{ marginBottom: '10px' }} data-selection-name={name}>
                 {(() => {
                   const selectionId = `instance-flexibility-selection-${encodeURIComponent(name)}`;
+                  const rankInvalid = !hasValidRank(selection);
                   return (
                     <>
                       <div className="form-group">
@@ -224,6 +229,8 @@ export function GceInstanceFlexibilityConfigurer({
                             min={0}
                             step={1}
                             className="form-control input-sm"
+                            aria-describedby={rankInvalid && validationError ? VALIDATION_ERROR_ID : undefined}
+                            aria-invalid={rankInvalid}
                             value={selection.rank == null ? '' : selection.rank}
                             onChange={(e) => updateRank(name, e.target.value)}
                           />
@@ -237,6 +244,10 @@ export function GceInstanceFlexibilityConfigurer({
                               <input
                                 id={`${selectionId}-machine-type-${index}`}
                                 className="form-control input-sm"
+                                aria-describedby={
+                                  !machineType?.trim() && validationError ? VALIDATION_ERROR_ID : undefined
+                                }
+                                aria-invalid={!machineType?.trim()}
                                 value={machineType}
                                 onChange={(e) => updateMachineType(name, index, e.target.value)}
                                 placeholder="e.g. n2-standard-8"
@@ -295,14 +306,3 @@ export function hasValidFlexibilityPolicy(command: {
     ) && hasUniqueMachineTypes(command.instanceFlexibilityPolicy)
   );
 }
-
-export const GCE_INSTANCE_FLEXIBILITY_CONFIGURER = 'spinnaker.gce.instanceFlexibility.component';
-module(GCE_INSTANCE_FLEXIBILITY_CONFIGURER, []).component(
-  'gceInstanceFlexibilityConfigurer',
-  react2angular(withErrorBoundary(GceInstanceFlexibilityConfigurer, 'gceInstanceFlexibilityConfigurer'), [
-    'instanceFlexibilityPolicy',
-    'regional',
-    'targetShape',
-    'setInstanceFlexibilityPolicy',
-  ]),
-);

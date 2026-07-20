@@ -14,6 +14,7 @@ import {
 } from '@spinnaker/core';
 import type { Application } from '@spinnaker/core';
 
+import { GceInstanceFlexibilityPolicyDetails } from './GceInstanceFlexibilityPolicyDetails';
 import { GceAutoHealingPolicyDetails } from './autoHealingPolicy';
 import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
 import { GceAutoscalingPolicyDetails } from './autoscalingPolicy';
@@ -278,8 +279,28 @@ export function GceServerGroupCapacitySection({ serverGroup }: { app: any; serve
   );
 }
 
+type ShieldedField = 'enableSecureBoot' | 'enableVtpm' | 'enableIntegrityMonitoring';
+
+function shieldedValue(serverGroup: any, field: ShieldedField): boolean | undefined {
+  const properties = serverGroup.launchConfig?.instanceTemplate?.properties;
+  const stableConfig = serverGroup.shieldedInstanceConfig || properties?.shieldedInstanceConfig;
+  const legacyConfig = serverGroup.shieldedVmConfig || properties?.shieldedVmConfig;
+  if (Object.prototype.hasOwnProperty.call(stableConfig || {}, field)) {
+    return stableConfig[field];
+  }
+  if (Object.prototype.hasOwnProperty.call(legacyConfig || {}, field)) {
+    return legacyConfig[field];
+  }
+  return serverGroup[field];
+}
+
 export function GceServerGroupLaunchConfigSection({ serverGroup }: { app: any; serverGroup: any }): JSX.Element {
   const template = serverGroup.launchConfig?.instanceTemplate;
+  const shieldedSettings: Array<[string, boolean | undefined]> = [
+    ['Secure Boot', shieldedValue(serverGroup, 'enableSecureBoot')],
+    ['vTPM', shieldedValue(serverGroup, 'enableVtpm')],
+    ['Integrity Monitoring', shieldedValue(serverGroup, 'enableIntegrityMonitoring')],
+  ];
   return (
     <CollapsibleSection heading="Launch Configuration" defaultExpanded={true}>
       <dl className="dl-horizontal dl-narrow">
@@ -287,6 +308,14 @@ export function GceServerGroupLaunchConfigSection({ serverGroup }: { app: any; s
         <dd>{template?.name || '-'}</dd>
         <dt>Zones</dt>
         <dd>{(serverGroup.zones || []).join(', ') || '-'}</dd>
+        <dt>Target shape</dt>
+        <dd>{serverGroup.distributionPolicy?.targetShape || '-'}</dd>
+        {shieldedSettings.map(([label, value]) => (
+          <React.Fragment key={label}>
+            <dt>{label}</dt>
+            <dd>{value === undefined ? '-' : String(value)}</dd>
+          </React.Fragment>
+        ))}
         <dt>Logs</dt>
         <dd>
           {serverGroup.logsLink ? (
@@ -298,6 +327,7 @@ export function GceServerGroupLaunchConfigSection({ serverGroup }: { app: any; s
           )}
         </dd>
       </dl>
+      <GceInstanceFlexibilityPolicyDetails instanceFlexibilityPolicy={serverGroup.instanceFlexibilityPolicy} />
     </CollapsibleSection>
   );
 }

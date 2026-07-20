@@ -1,9 +1,7 @@
-import * as angular from 'angular';
 import { shallow } from 'enzyme';
 import React from 'react';
 
 import {
-  GCE_INSTANCE_FLEXIBILITY_CONFIGURER,
   GceInstanceFlexibilityConfigurer,
   hasValidFlexibilityPolicy,
   nextSelectionName,
@@ -153,6 +151,35 @@ describe('GceInstanceFlexibilityConfigurer', () => {
         }),
       ).toBe(false);
     });
+  });
+
+  it('announces submission errors and associates malformed persisted controls', () => {
+    const wrapper = shallow(
+      <GceInstanceFlexibilityConfigurer
+        instanceFlexibilityPolicy={{
+          instanceSelections: {
+            preferred: { rank: -1, machineTypes: ['', 'n2-standard-8'] },
+          },
+        }}
+        regional={true}
+        targetShape="BALANCED"
+        validationError="Instance flexibility policy is invalid."
+        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+      />,
+    );
+    const errorId = 'gce-instance-flexibility-error';
+    const rankInput = wrapper.find('#instance-flexibility-selection-preferred-rank');
+    const blankMachineType = wrapper.find('input[aria-label="Machine type 1 for selection preferred"]');
+    const validMachineType = wrapper.find('input[aria-label="Machine type 2 for selection preferred"]');
+
+    expect(wrapper.find(`#${errorId}`).prop('role')).toBe('alert');
+    expect(wrapper.find(`#${errorId}`).text()).toBe('Instance flexibility policy is invalid.');
+    expect(rankInput.prop('aria-invalid')).toBe(true);
+    expect(rankInput.prop('aria-describedby')).toBe(errorId);
+    expect(blankMachineType.prop('aria-invalid')).toBe(true);
+    expect(blankMachineType.prop('aria-describedby')).toBe(errorId);
+    expect(validMachineType.prop('aria-invalid')).toBe(false);
+    expect(validMachineType.prop('aria-describedby')).toBeUndefined();
   });
 
   it('accepts regional BALANCED/ANY/ANY_SINGLE_ZONE with rankless selections', () => {
@@ -345,43 +372,5 @@ describe('GceInstanceFlexibilityConfigurer', () => {
     wrapper.setProps({ regional: false, targetShape: 'EVEN' });
     expect(wrapper.text()).toContain('Flexibility requires a regional server group.');
     expect(wrapper.text()).toContain('not EVEN');
-  });
-
-  describe('Angular bridge', () => {
-    beforeEach(angular.mock.module(GCE_INSTANCE_FLEXIBILITY_CONFIGURER));
-
-    it(
-      'rerenders when separately bound policy and primitive values change',
-      angular.mock.inject(($compile, $rootScope) => {
-        const scope = $rootScope.$new();
-        scope.policy = undefined;
-        scope.regional = true;
-        scope.targetShape = 'BALANCED';
-        scope.setPolicy = jasmine.createSpy('setPolicy');
-        const element = $compile(`
-        <gce-instance-flexibility-configurer
-          instance-flexibility-policy="policy"
-          regional="regional"
-          target-shape="targetShape"
-          set-instance-flexibility-policy="setPolicy"
-        ></gce-instance-flexibility-configurer>
-      `)(scope);
-
-        scope.$digest();
-        expect(element.text()).toContain('Add flexibility policy');
-
-        scope.policy = policy;
-        scope.$digest();
-        expect(element[0].querySelector('button[aria-label="Remove selection preferred"]')).not.toBeNull();
-
-        scope.regional = false;
-        scope.targetShape = 'EVEN';
-        scope.$digest();
-        expect(element.text()).toContain('Flexibility requires a regional server group.');
-        expect(element.text()).toContain('not EVEN');
-
-        scope.$destroy();
-      }),
-    );
   });
 });
