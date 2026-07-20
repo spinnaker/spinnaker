@@ -21,6 +21,9 @@ import lombok.Data;
 @Data
 public class ProcessStats {
   private State state;
+  private Integer index;
+  private Long uptime;
+  private String details;
 
   public enum State {
     RUNNING,

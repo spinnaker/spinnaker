@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @Data
-public class ServicePlan {
-  private String id;
-  private String name;
-  private String serviceGuid;
+public class ApplicationEnv {
+  private SystemEnv systemEnvJson;
+  private Map<String, Object> environmentJson;
+
+  @Data
+  public static class SystemEnv {
+    @JsonProperty("VCAP_SERVICES")
+    private Map<String, List<VcapServiceInstance>> vcapServices;
+  }
 }
