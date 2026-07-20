@@ -1,11 +1,9 @@
-import { module } from 'angular';
-
-import { APP_CONFIG_STATES } from './appConfig.states';
 import { ApplicationDataSourceRegistry } from '../service/ApplicationDataSourceRegistry';
 
 export const CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE = 'spinnaker.core.application.config.dataSource';
 export const name = CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE; // for backwards compatibility
-module(CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE, [APP_CONFIG_STATES]).run(function () {
+
+export function registerApplicationConfigDataSource() {
   ApplicationDataSourceRegistry.registerDataSource({
     key: 'config',
     label: 'Config',
@@ -14,4 +12,6 @@ module(CORE_APPLICATION_CONFIG_APPCONFIG_DATASOURCE, [APP_CONFIG_STATES]).run(fu
     defaultData: [],
     iconName: 'spMenuConfig',
   });
-});
+}
+
+registerApplicationConfigDataSource();
