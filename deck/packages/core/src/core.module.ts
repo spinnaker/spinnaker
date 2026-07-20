@@ -48,7 +48,7 @@ import { INSIGHT_MODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { MANAGED_RESOURCE_CONFIG } from './managed/externals/ManagedResourceConfig';
-import { MANAGED_RESOURCES_DATA_SOURCE, CORE_MANAGED_MANAGED_MODULE } from './managed';
+import { CORE_MANAGED_MANAGED_MODULE } from './managed';
 import { FUNCTION_MODULE } from './function/function.module';
 
 import { NETWORK_INTERCEPTOR } from './api/network.interceptor';
@@ -68,8 +68,6 @@ import { SERVER_GROUP_MANAGER_MODULE } from './serverGroupManager/serverGroupMan
 import { SLACK_COMPONENT } from './slack';
 import { STYLEGUIDE_MODULE } from './styleguide/styleguide.module';
 import { SUBNET_MODULE } from './subnet/subnet.module';
-
-import { FIREWALL_LABEL_COMPONENT } from './securityGroup/label/firewallLabel.component';
 
 import { LABEL_FILTER_COMPONENT } from './cluster/filter/labelFilter.component';
 
@@ -130,7 +128,6 @@ module(CORE_MODULE, [
 
   ENTITY_TAGS_MODULE,
 
-  FIREWALL_LABEL_COMPONENT,
   CORE_FORMS_FORMS_MODULE,
 
   HEALTH_COUNTS_MODULE,
@@ -144,7 +141,6 @@ module(CORE_MODULE, [
   LOAD_BALANCER_MODULE,
   FUNCTION_MODULE,
   MANAGED_RESOURCE_CONFIG,
-  MANAGED_RESOURCES_DATA_SOURCE,
   CORE_MANAGED_MANAGED_MODULE,
   CORE_MODAL_MODAL_MODULE,
 
