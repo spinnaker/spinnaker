@@ -19,29 +19,30 @@ import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
 import com.netflix.spinnaker.clouddriver.proxmox.deploy.description.ProxmoxResourceDescription;
 import java.util.Map;
 
-/** Reboots running QEMU VMs or LXC containers. */
-public class RebootProxmoxInstancesAtomicOperation extends AbstractProxmoxInstancesAtomicOperation {
+/** Stops individual running VMs/containers without deleting them. */
+public class StopProxmoxInstancesAtomicOperation extends AbstractProxmoxInstancesAtomicOperation {
 
-  public RebootProxmoxInstancesAtomicOperation(ProxmoxResourceDescription description) {
-    super("REBOOT_PROXMOX_INSTANCES", description);
+  public StopProxmoxInstancesAtomicOperation(ProxmoxResourceDescription description) {
+    super("STOP_PROXMOX_INSTANCES", description);
   }
 
   @Override
   protected String verb() {
-    return "Rebooting";
+    return "Stopping";
   }
 
   @Override
   protected void applyTo(ProxmoxApiService api, String node, int vmid, String vmType) {
     String upid;
     if ("lxc".equals(vmType)) {
-      upid = executeCall(api.rebootLxc(node, vmid, Map.of()));
+      upid = executeCall(api.stopLxc(node, vmid, Map.of()));
     } else {
-      upid = executeCall(api.rebootVm(node, vmid, Map.of()));
+      upid = executeCall(api.stopVm(node, vmid, Map.of()));
     }
+    // Stop failure is tolerated — the resource may already be stopped
     if (upid != null) {
-      pollTaskUntilDone(api, node, upid);
+      pollTaskIgnoringFailure(api, node, upid);
     }
-    updateStatus("Rebooted " + vmType + " " + vmid);
+    updateStatus("Stopped " + vmType + " " + vmid + " on " + node);
   }
 }

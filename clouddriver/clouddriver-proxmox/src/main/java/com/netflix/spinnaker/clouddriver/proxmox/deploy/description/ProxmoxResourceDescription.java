@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.clouddriver.proxmox.deploy.description;
 
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,4 +28,20 @@ public class ProxmoxResourceDescription extends ProxmoxBaseDescription {
 
   /** {@code "qemu"} for KVM VMs, {@code "lxc"} for containers. */
   private String vmType = "qemu";
+
+  /**
+   * When set, the operation applies to every member of the server group (resolved via the
+   * spinnaker-server-group tag, or VM name for single-VM groups) instead of a single {@link #vmid}.
+   * This is the shape orca's generic server group tasks submit.
+   */
+  private String serverGroupName;
+
+  /** Spinnaker region (Proxmox node); used with {@link #serverGroupName} to scope resolution. */
+  private String region;
+
+  /**
+   * Instance names (Spinnaker instance ids are Proxmox VM/container names). When set, the operation
+   * applies to exactly these instances; each is resolved to its node and vmid.
+   */
+  private List<String> instanceIds;
 }

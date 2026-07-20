@@ -33,6 +33,10 @@ import java.util.Objects;
 import retrofit2.Response;
 
 public class VMCachingAgent extends AbstractProxmoxCachingAgent {
+  /** QEMU disk devices, including EFI and TPM state volumes and detached (unused) disks. */
+  private static final java.util.regex.Pattern QEMU_DISK_KEYS =
+      java.util.regex.Pattern.compile("^(scsi|sata|virtio|ide|efidisk|tpmstate|unused)\\d+$");
+
   public VMCachingAgent(
       ProxmoxNamedAccountCredentials credentials, Registry registry, ProxmoxTagNamer tagNamer) {
     super(credentials, registry, tagNamer);
@@ -69,6 +73,15 @@ public class VMCachingAgent extends AbstractProxmoxCachingAgent {
           for (ProxmoxVm vm : response.body().getData()) {
             if (vm.getVmId() != null && !Objects.equals(1, vm.getTemplate())) {
               vm.setNode(node.getNode());
+              Map<String, Object> config =
+                  fetchConfig(
+                      credentials.getCredentials().getVmConfig(node.getNode(), vm.getVmId()),
+                      node.getNode(),
+                      vm.getVmId());
+              if (config != null) {
+                mergeConfig(vm, config);
+                vm.setDisks(extractDiskEntries(config, QEMU_DISK_KEYS));
+              }
               result.put(
                   ProxmoxCacheKeys.vm(credentials.getName(), node.getNode(), vm.getVmId()), vm);
             }

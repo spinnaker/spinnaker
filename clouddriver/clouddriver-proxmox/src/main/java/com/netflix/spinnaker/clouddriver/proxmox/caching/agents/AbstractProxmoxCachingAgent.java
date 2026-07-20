@@ -64,6 +64,66 @@ public abstract class AbstractProxmoxCachingAgent
     return response.body().getData();
   }
 
+  /**
+   * Executes a per-resource /config call and returns the raw config map, or null on failure. The
+   * list endpoints only expose runtime status; disks, network and firmware details live here.
+   */
+  protected Map<String, Object> fetchConfig(
+      retrofit2.Call<
+              com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxResponse<Map<String, Object>>>
+          call,
+      String node,
+      Integer vmid) {
+    if (call == null) {
+      return null;
+    }
+    try {
+      var response = call.execute();
+      if (!response.isSuccessful()
+          || response.body() == null
+          || response.body().getData() == null) {
+        log.warn(
+            "Failed to fetch config for vmid {} on node {} for account {}: HTTP {}",
+            vmid,
+            node,
+            credentials.getName(),
+            response.code());
+        return null;
+      }
+      return response.body().getData();
+    } catch (IOException e) {
+      log.warn(
+          "Failed to fetch config for vmid {} on node {} for account {}",
+          vmid,
+          node,
+          credentials.getName(),
+          e);
+      return null;
+    }
+  }
+
+  /** Merges raw /config values onto the typed model (unknown keys are ignored). */
+  protected <T> void mergeConfig(T item, Map<String, Object> config) {
+    try {
+      objectMapper.updateValue(item, config);
+    } catch (com.fasterxml.jackson.databind.JsonMappingException e) {
+      log.warn("Failed to merge config into {}", item.getClass().getSimpleName(), e);
+    }
+  }
+
+  /** Extracts disk-like config entries (device name → config string) matching the pattern. */
+  protected static Map<String, String> extractDiskEntries(
+      Map<String, Object> config, java.util.regex.Pattern diskKeyPattern) {
+    Map<String, String> disks = new TreeMap<>();
+    config.forEach(
+        (key, value) -> {
+          if (value != null && diskKeyPattern.matcher(key).matches()) {
+            disks.put(key, value.toString());
+          }
+        });
+    return disks;
+  }
+
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
   @Override

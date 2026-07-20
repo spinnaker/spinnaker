@@ -1,4 +1,5 @@
 import type { IServerGroup } from '@spinnaker/core';
+import { NameUtils } from '@spinnaker/core';
 
 export class ProxmoxServerGroupTransformer {
   public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
@@ -11,6 +12,21 @@ export class ProxmoxServerGroupTransformer {
   }
 
   public convertServerGroupCommandToDeployConfiguration(base: any): any {
-    return { ...base, cloudProvider: 'proxmox' };
+    // Strip UI-only state and fill in the fields clouddriver's ProxmoxDeployDescription
+    // derives from the moniker (VM name + Spinnaker tags).
+    const { backingData, viewState, selectedProvider, ...command } = base;
+    const clusterName = NameUtils.getClusterName(command.application, command.stack, command.freeFormDetails);
+    return {
+      ...command,
+      cloudProvider: 'proxmox',
+      account: command.account ?? command.credentials,
+      name: command.name ?? clusterName,
+      moniker: command.moniker ?? {
+        app: command.application,
+        cluster: clusterName,
+        stack: command.stack || undefined,
+        detail: command.freeFormDetails || undefined,
+      },
+    };
   }
 }

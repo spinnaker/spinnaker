@@ -33,6 +33,10 @@ import java.util.Objects;
 import retrofit2.Response;
 
 public class LxcCachingAgent extends AbstractProxmoxCachingAgent {
+  /** LXC storage devices: root filesystem, mount points, and detached (unused) volumes. */
+  private static final java.util.regex.Pattern LXC_DISK_KEYS =
+      java.util.regex.Pattern.compile("^(rootfs|mp\\d+|unused\\d+)$");
+
   public LxcCachingAgent(
       ProxmoxNamedAccountCredentials credentials, Registry registry, ProxmoxTagNamer tagNamer) {
     super(credentials, registry, tagNamer);
@@ -68,6 +72,15 @@ public class LxcCachingAgent extends AbstractProxmoxCachingAgent {
           for (ProxmoxLxc lxc : response.body().getData()) {
             if (lxc.getVmId() != null && !Objects.equals(1, lxc.getTemplate())) {
               lxc.setNode(node.getNode());
+              Map<String, Object> config =
+                  fetchConfig(
+                      credentials.getCredentials().getLxcConfig(node.getNode(), lxc.getVmId()),
+                      node.getNode(),
+                      lxc.getVmId());
+              if (config != null) {
+                mergeConfig(lxc, config);
+                lxc.setDisks(extractDiskEntries(config, LXC_DISK_KEYS));
+              }
               result.put(
                   ProxmoxCacheKeys.lxc(credentials.getName(), node.getNode(), lxc.getVmId()), lxc);
             }

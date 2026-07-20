@@ -40,11 +40,21 @@ public interface ProxmoxApiService {
   @GET("nodes/{node}/qemu")
   Call<ProxmoxResponse<List<ProxmoxVm>>> getVms(@Path("node") String node);
 
-  @GET("nodes/{node}/qemu/{vmid}")
-  Call<ProxmoxResponse<ProxmoxVm>> getVmConfig(@Path("node") String node, @Path("vmid") int vmid);
+  /**
+   * Full VM configuration (disks, network, BIOS, cloud-init, ...). The list endpoint only returns
+   * runtime status, so caching agents merge this in to expose configuration details.
+   */
+  @GET("nodes/{node}/qemu/{vmid}/config")
+  Call<ProxmoxResponse<Map<String, Object>>> getVmConfig(
+      @Path("node") String node, @Path("vmid") int vmid);
 
   @GET("nodes/{node}/lxc")
   Call<ProxmoxResponse<List<ProxmoxLxc>>> getContainers(@Path("node") String node);
+
+  /** Full LXC container configuration (rootfs, mount points, network, ...). */
+  @GET("nodes/{node}/lxc/{vmid}/config")
+  Call<ProxmoxResponse<Map<String, Object>>> getLxcConfig(
+      @Path("node") String node, @Path("vmid") int vmid);
 
   @GET("nodes/{node}/storage")
   Call<ProxmoxResponse<List<ProxmoxStorage>>> getStorage(@Path("node") String node);
@@ -73,6 +83,12 @@ public interface ProxmoxApiService {
   @FormUrlEncoded
   @POST("nodes/{node}/qemu/{vmid}/clone")
   Call<ProxmoxResponse<String>> cloneVm(
+      @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
+
+  /** Start a stopped QEMU VM. Returns a UPID. */
+  @FormUrlEncoded
+  @POST("nodes/{node}/qemu/{vmid}/status/start")
+  Call<ProxmoxResponse<String>> startVm(
       @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
 
   /** Stop a running QEMU VM. Returns a UPID. */
@@ -128,6 +144,12 @@ public interface ProxmoxApiService {
   @FormUrlEncoded
   @POST("nodes/{node}/lxc/{vmid}/clone")
   Call<ProxmoxResponse<String>> cloneLxc(
+      @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
+
+  /** Start a stopped LXC container. Returns a UPID. */
+  @FormUrlEncoded
+  @POST("nodes/{node}/lxc/{vmid}/status/start")
+  Call<ProxmoxResponse<String>> startLxc(
       @Path("node") String node, @Path("vmid") int vmid, @FieldMap Map<String, String> params);
 
   /** Stop a running LXC container. Returns a UPID. */

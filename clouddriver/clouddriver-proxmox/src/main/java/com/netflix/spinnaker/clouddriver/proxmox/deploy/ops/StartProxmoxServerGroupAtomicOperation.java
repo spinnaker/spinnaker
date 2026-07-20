@@ -20,13 +20,13 @@ import com.netflix.spinnaker.clouddriver.proxmox.deploy.description.ProxmoxResou
 import java.util.List;
 import java.util.Map;
 
-public class DestroyProxmoxServerGroupAtomicOperation extends AbstractProxmoxAtomicOperation<Void> {
+public class StartProxmoxServerGroupAtomicOperation extends AbstractProxmoxAtomicOperation<Void> {
 
-  private static final String PHASE = "DESTROY_PROXMOX_SERVER_GROUP";
+  private static final String PHASE = "START_PROXMOX_SERVER_GROUP";
 
   private final ProxmoxResourceDescription description;
 
-  public DestroyProxmoxServerGroupAtomicOperation(ProxmoxResourceDescription description) {
+  public StartProxmoxServerGroupAtomicOperation(ProxmoxResourceDescription description) {
     super(PHASE);
     this.description = description;
   }
@@ -36,51 +36,38 @@ public class DestroyProxmoxServerGroupAtomicOperation extends AbstractProxmoxAto
     ProxmoxApiService api = description.getApiService();
 
     if (description.getServerGroupName() != null) {
-      // Server-group scoped (orca / deck): destroy every member.
       String region =
           description.getRegion() != null ? description.getRegion() : description.getNode();
       List<ProxmoxServerGroupMembers.Member> members =
           ProxmoxServerGroupMembers.resolve(api, description.getServerGroupName(), region);
       updateStatus(
-          "Destroying server group "
+          "Starting server group "
               + description.getServerGroupName()
               + " ("
               + members.size()
               + " member(s))");
       for (ProxmoxServerGroupMembers.Member member : members) {
-        destroyOne(api, member.node(), member.vmid(), member.vmType());
+        startOne(api, member.node(), member.vmid(), member.vmType());
       }
-      updateStatus("Destroyed server group " + description.getServerGroupName());
+      updateStatus("Started server group " + description.getServerGroupName());
     } else {
-      destroyOne(api, description.getNode(), description.getVmid(), description.getVmType());
+      startOne(api, description.getNode(), description.getVmid(), description.getVmType());
     }
     return null;
   }
 
-  private void destroyOne(ProxmoxApiService api, String node, int vmid, String vmType) {
-    updateStatus("Stopping " + vmType + " " + vmid + " on " + node + " before deletion");
-    String stopUpid;
+  private void startOne(ProxmoxApiService api, String node, int vmid, String vmType) {
+    updateStatus("Starting " + vmType + " " + vmid + " on " + node);
+    String upid;
     if ("lxc".equals(vmType)) {
-      stopUpid = executeCall(api.stopLxc(node, vmid, Map.of()));
+      upid = executeCall(api.startLxc(node, vmid, Map.of()));
     } else {
-      stopUpid = executeCall(api.stopVm(node, vmid, Map.of()));
+      upid = executeCall(api.startVm(node, vmid, Map.of()));
     }
-    // Stop failure is tolerated — the resource may already be stopped
-    if (stopUpid != null) {
-      pollTaskIgnoringFailure(api, node, stopUpid);
+    // Start failure is tolerated — the resource may already be running
+    if (upid != null) {
+      pollTaskIgnoringFailure(api, node, upid);
     }
-
-    updateStatus("Deleting " + vmType + " " + vmid + " on " + node);
-    String deleteUpid;
-    if ("lxc".equals(vmType)) {
-      deleteUpid = executeCall(api.deleteLxc(node, vmid));
-    } else {
-      deleteUpid = executeCall(api.deleteVm(node, vmid));
-    }
-    if (deleteUpid != null) {
-      pollTaskUntilDone(api, node, deleteUpid);
-    }
-
-    updateStatus("Deleted " + vmType + " " + vmid);
+    updateStatus("Started " + vmType + " " + vmid);
   }
 }

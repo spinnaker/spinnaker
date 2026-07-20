@@ -47,6 +47,20 @@ public class DeployProxmoxServerGroupAtomicOperation
     int templateVmid = description.getTemplateVmid();
     String vmType = description.getVmType();
 
+    // Version the server group Spinnaker-style: each deploy into a cluster creates a new
+    // cluster-vNNN server group so deck shows cluster → versions → instances.
+    String clusterName =
+        description.getMoniker() != null && description.getMoniker().getCluster() != null
+            ? description.getMoniker().getCluster()
+            : description.getName();
+    int sequence = ProxmoxServerGroupMembers.nextSequence(api, clusterName);
+    String serverGroupName = String.format("%s-v%03d", clusterName, sequence);
+    if (description.getMoniker() != null) {
+      description.getMoniker().setCluster(clusterName);
+      description.getMoniker().setSequence(sequence);
+    }
+    updateStatus("Deploying server group " + serverGroupName + " (cluster " + clusterName + ")");
+
     int newVmid =
         description.getVmid() != null ? description.getVmid() : executeCall(api.getNextVmId());
 
@@ -62,7 +76,8 @@ public class DeployProxmoxServerGroupAtomicOperation
             + " as vmid "
             + newVmid);
 
-    Map<String, String> cloneParams = buildCloneParams(newVmid, targetNode, templateNode);
+    Map<String, String> cloneParams =
+        buildCloneParams(serverGroupName, newVmid, targetNode, templateNode);
     String upid;
     if ("lxc".equals(vmType)) {
       upid = executeCall(api.cloneLxc(templateNode, templateVmid, cloneParams));
@@ -71,9 +86,9 @@ public class DeployProxmoxServerGroupAtomicOperation
     }
     pollTaskUntilDone(api, templateNode, upid);
 
-    updateStatus("Applying config overrides to '" + description.getName() + "' on " + targetNode);
+    updateStatus("Applying config overrides to '" + serverGroupName + "' on " + targetNode);
 
-    Map<String, String> configParams = buildConfigParams();
+    Map<String, String> configParams = buildConfigParams(serverGroupName);
     String configUpid;
     if ("lxc".equals(vmType)) {
       configUpid = executeCall(api.updateLxcConfig(targetNode, newVmid, configParams));
@@ -101,24 +116,31 @@ public class DeployProxmoxServerGroupAtomicOperation
       executeCall(api.regenerateCloudInit(targetNode, newVmid, Map.of()));
     }
 
-    String name = description.getName();
-    updateStatus("Deployed " + vmType + " '" + name + "' (vmid " + newVmid + ") on " + targetNode);
+    updateStatus(
+        "Deployed "
+            + vmType
+            + " '"
+            + serverGroupName
+            + "' (vmid "
+            + newVmid
+            + ") on "
+            + targetNode);
 
     DeploymentResult result = new DeploymentResult();
-    result.getServerGroupNames().add(targetNode + ":" + name);
-    result.getServerGroupNameByRegion().put(targetNode, name);
+    result.getServerGroupNames().add(targetNode + ":" + serverGroupName);
+    result.getServerGroupNameByRegion().put(targetNode, serverGroupName);
     return result;
   }
 
   private Map<String, String> buildCloneParams(
-      int newVmid, String targetNode, String templateNode) {
+      String serverGroupName, int newVmid, String targetNode, String templateNode) {
     Map<String, String> params = new LinkedHashMap<>();
     params.put("newid", String.valueOf(newVmid));
-    if (description.getName() != null) {
+    if (serverGroupName != null) {
       if ("lxc".equals(description.getVmType())) {
-        params.put("hostname", description.getName());
+        params.put("hostname", serverGroupName);
       } else {
-        params.put("name", description.getName());
+        params.put("name", serverGroupName);
       }
     }
     params.put("full", description.isFullClone() ? "1" : "0");
@@ -131,7 +153,7 @@ public class DeployProxmoxServerGroupAtomicOperation
     return params;
   }
 
-  private Map<String, String> buildConfigParams() {
+  private Map<String, String> buildConfigParams(String serverGroupName) {
     Map<String, String> params = new LinkedHashMap<>();
     params.put("memory", String.valueOf(description.getMemory()));
     params.put("cores", String.valueOf(description.getCores()));
@@ -155,7 +177,12 @@ public class DeployProxmoxServerGroupAtomicOperation
       }
     }
 
-    String tagString = buildTagString(description.getMoniker(), description.getTags());
+    String tagString =
+        buildTagString(
+            description.getMoniker(),
+            description.getTags(),
+            serverGroupName,
+            description.getTemplateVmid());
     if (tagString != null) {
       params.put("tags", tagString);
     }
@@ -164,8 +191,18 @@ public class DeployProxmoxServerGroupAtomicOperation
     return params;
   }
 
-  private static String buildTagString(Moniker moniker, String existingTags) {
+  private static String buildTagString(
+      Moniker moniker, String existingTags, String serverGroupName, int templateVmid) {
     Map<String, String> tags = new LinkedHashMap<>(ProxmoxTagNamer.parseTags(existingTags));
+
+    // Group-membership and provenance tags: scaling operations resolve members by the
+    // server-group tag and clone additional instances from the recorded template.
+    if (serverGroupName != null) {
+      tags.put(ProxmoxTagNamer.SERVER_GROUP_TAG, serverGroupName);
+    }
+    if (templateVmid > 0) {
+      tags.put(ProxmoxTagNamer.TEMPLATE_TAG, String.valueOf(templateVmid));
+    }
 
     if (moniker != null) {
       if (moniker.getApp() != null) tags.put(ProxmoxTagNamer.APP_TAG, moniker.getApp());

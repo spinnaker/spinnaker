@@ -11,6 +11,8 @@ import {
   timestamp,
 } from '@spinnaker/core';
 
+import { ProxmoxInstanceActions } from './ProxmoxInstanceActions';
+
 interface InstanceFromStateParams {
   instanceId: string;
 }
@@ -34,6 +36,67 @@ interface IProxmoxInstanceDetailsState {
   instanceIdNotFound: string;
   loading: boolean;
 }
+
+const detailRow = (label: string, value: React.ReactNode): JSX.Element | null =>
+  value == null || value === '' ? null : (
+    <>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </>
+  );
+
+const yesNo = (value: boolean | undefined): string | null => (value == null ? null : value ? 'Yes' : 'No');
+
+const formatUptime = (seconds: number): string | null => {
+  if (seconds == null || seconds <= 0) {
+    return null;
+  }
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const parts: string[] = [];
+  if (days) {
+    parts.push(`${days}d`);
+  }
+  if (hours) {
+    parts.push(`${hours}h`);
+  }
+  parts.push(`${minutes}m`);
+  return parts.join(' ');
+};
+
+const diskDeviceLabel = (device: string, config: string): string => {
+  if (device.startsWith('efidisk')) {
+    return `${device} (EFI)`;
+  }
+  if (device.startsWith('tpmstate')) {
+    return `${device} (TPM)`;
+  }
+  if (device.startsWith('unused')) {
+    return `${device} (detached)`;
+  }
+  if (config.includes('cloudinit')) {
+    return `${device} (cloud-init)`;
+  }
+  if (config.includes('media=cdrom')) {
+    return `${device} (CD/DVD)`;
+  }
+  return device;
+};
+
+const formatBytes = (bytes: number): string | null => {
+  if (bytes == null) {
+    return null;
+  }
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1024 && unit < units.length - 1) {
+    value = value / 1024;
+    unit++;
+  }
+  return `${value.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
+};
 
 export class ProxmoxInstanceDetails extends React.Component<
   IProxmoxInstanceDetailsProps,
@@ -137,6 +200,9 @@ export class ProxmoxInstanceDetails extends React.Component<
             <span className={`glyphicon glyphicon-hdd ${stateInstance.healthState ?? ''}`} />
             <h3 className="horizontal middle space-between flex-1">{stateInstance.name}</h3>
           </div>
+          <div className="actions">
+            <ProxmoxInstanceActions app={this.props.app} instance={stateInstance} />
+          </div>
         </div>
         <div className="content">
           <CollapsibleSection heading="Instance Information" defaultExpanded={true}>
@@ -145,32 +211,20 @@ export class ProxmoxInstanceDetails extends React.Component<
               <dd>
                 <AccountTag account={stateInstance.account} />
               </dd>
-              <dt>Node</dt>
-              <dd>{stateInstance.region}</dd>
-              {stateInstance.serverGroup && (
-                <>
-                  <dt>Server Group</dt>
-                  <dd>{stateInstance.serverGroup}</dd>
-                </>
+              {detailRow('Node', stateInstance.region)}
+              {detailRow('Server Group', stateInstance.serverGroup)}
+              {detailRow('VM ID', stateInstance.vmId)}
+              {detailRow(
+                'Type',
+                stateInstance.vmType === 'qemu' ? 'QEMU VM' : stateInstance.vmType === 'lxc' ? 'LXC Container' : null,
               )}
-              {stateInstance.vmId != null && (
-                <>
-                  <dt>VM ID</dt>
-                  <dd>{stateInstance.vmId}</dd>
-                </>
-              )}
-              {stateInstance.status && (
-                <>
-                  <dt>Status</dt>
-                  <dd>{stateInstance.status}</dd>
-                </>
-              )}
-              {stateInstance.launchTime && (
-                <>
-                  <dt>Launched</dt>
-                  <dd>{timestamp(stateInstance.launchTime)}</dd>
-                </>
-              )}
+              {detailRow('Status', stateInstance.status)}
+              {detailRow('QMP Status', stateInstance.qmpStatus)}
+              {detailRow('Uptime', formatUptime(stateInstance.uptimeSeconds))}
+              {detailRow('Launched', stateInstance.launchTime ? timestamp(stateInstance.launchTime) : null)}
+              {detailRow('HA Managed', yesNo(stateInstance.haManaged))}
+              {detailRow('Start on Boot', yesNo(stateInstance.onBoot))}
+              {detailRow('Protected', yesNo(stateInstance.protection))}
             </dl>
           </CollapsibleSection>
 
@@ -180,31 +234,108 @@ export class ProxmoxInstanceDetails extends React.Component<
             stateInstance.osType) && (
             <CollapsibleSection heading="VM Configuration" defaultExpanded={true}>
               <dl className="dl-horizontal dl-narrow">
-                {stateInstance.cpus != null && (
-                  <>
-                    <dt>vCPUs</dt>
-                    <dd>{stateInstance.cpus}</dd>
-                  </>
+                {detailRow(
+                  'vCPUs',
+                  stateInstance.cpus != null
+                    ? `${stateInstance.cpus}${
+                        stateInstance.cores != null
+                          ? ` (${stateInstance.sockets ?? 1} socket × ${stateInstance.cores} cores)`
+                          : ''
+                      }`
+                    : null,
                 )}
-                {stateInstance.memoryMb != null && (
-                  <>
-                    <dt>Memory</dt>
-                    <dd>{stateInstance.memoryMb} MB</dd>
-                  </>
-                )}
-                {stateInstance.diskGb != null && (
-                  <>
-                    <dt>Disk</dt>
-                    <dd>{stateInstance.diskGb} GB</dd>
-                  </>
-                )}
-                {stateInstance.osType && (
-                  <>
-                    <dt>OS Type</dt>
-                    <dd>{stateInstance.osType}</dd>
-                  </>
-                )}
+                {detailRow('Memory', stateInstance.memoryMb != null ? `${stateInstance.memoryMb} MB` : null)}
+                {detailRow('Swap', stateInstance.swapMb != null ? `${stateInstance.swapMb} MB` : null)}
+                {detailRow('Disk', stateInstance.diskGb != null ? `${stateInstance.diskGb} GB` : null)}
+                {detailRow('OS Type', stateInstance.osType)}
+                {detailRow('Machine', stateInstance.machine)}
+                {detailRow('BIOS', stateInstance.bios)}
+                {detailRow('Boot Order', stateInstance.bootOrder)}
+                {detailRow('SCSI Controller', stateInstance.scsiController)}
+                {detailRow('QEMU Agent', yesNo(stateInstance.agentEnabled))}
               </dl>
+            </CollapsibleSection>
+          )}
+
+          {(stateInstance.disks && Object.keys(stateInstance.disks).length > 0) || stateInstance.disk0 ? (
+            <CollapsibleSection heading="Storage" defaultExpanded={true}>
+              <dl className="dl-horizontal dl-narrow">
+                {stateInstance.disks && Object.keys(stateInstance.disks).length > 0
+                  ? Object.entries(stateInstance.disks).map(([device, config]) => (
+                      <React.Fragment key={device}>
+                        <dt>{diskDeviceLabel(device, `${config}`)}</dt>
+                        <dd>{`${config}`}</dd>
+                      </React.Fragment>
+                    ))
+                  : detailRow('Boot Disk', stateInstance.disk0)}
+              </dl>
+            </CollapsibleSection>
+          ) : null}
+
+          {(stateInstance.cpuUsage != null ||
+            stateInstance.memoryUsedMb != null ||
+            stateInstance.diskUsedGb != null ||
+            stateInstance.networkInBytes != null) && (
+            <CollapsibleSection heading="Utilization" defaultExpanded={true}>
+              <dl className="dl-horizontal dl-narrow">
+                {detailRow(
+                  'CPU Usage',
+                  stateInstance.cpuUsage != null ? `${(stateInstance.cpuUsage * 100).toFixed(1)}%` : null,
+                )}
+                {detailRow(
+                  'Memory Used',
+                  stateInstance.memoryUsedMb != null
+                    ? `${stateInstance.memoryUsedMb} MB${
+                        stateInstance.memoryMb != null ? ` of ${stateInstance.memoryMb} MB` : ''
+                      }`
+                    : null,
+                )}
+                {detailRow(
+                  'Swap Used',
+                  stateInstance.swapUsedMb != null
+                    ? `${stateInstance.swapUsedMb} MB${
+                        stateInstance.swapMb != null ? ` of ${stateInstance.swapMb} MB` : ''
+                      }`
+                    : null,
+                )}
+                {detailRow(
+                  'Disk Used',
+                  stateInstance.diskUsedGb != null
+                    ? `${stateInstance.diskUsedGb} GB${
+                        stateInstance.diskGb != null ? ` of ${stateInstance.diskGb} GB` : ''
+                      }`
+                    : null,
+                )}
+                {detailRow('Network In', formatBytes(stateInstance.networkInBytes))}
+                {detailRow('Network Out', formatBytes(stateInstance.networkOutBytes))}
+                {detailRow('Disk Read', formatBytes(stateInstance.diskReadBytes))}
+                {detailRow('Disk Write', formatBytes(stateInstance.diskWriteBytes))}
+              </dl>
+            </CollapsibleSection>
+          )}
+
+          {stateInstance.net0 && (
+            <CollapsibleSection heading="Network" defaultExpanded={true}>
+              <dl className="dl-horizontal dl-narrow">{detailRow('net0', stateInstance.net0)}</dl>
+            </CollapsibleSection>
+          )}
+
+          {stateInstance.tags && Object.keys(stateInstance.tags).length > 0 && (
+            <CollapsibleSection heading="Tags" defaultExpanded={true}>
+              <dl className="dl-horizontal dl-narrow">
+                {Object.entries(stateInstance.tags).map(([key, value]) => (
+                  <React.Fragment key={key}>
+                    <dt>{key}</dt>
+                    <dd>{`${value}`}</dd>
+                  </React.Fragment>
+                ))}
+              </dl>
+            </CollapsibleSection>
+          )}
+
+          {stateInstance.description && (
+            <CollapsibleSection heading="Notes" defaultExpanded={false}>
+              <p>{stateInstance.description}</p>
             </CollapsibleSection>
           )}
 

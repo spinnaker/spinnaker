@@ -20,7 +20,6 @@ import com.netflix.spinnaker.clouddriver.proxmox.deploy.description.ProxmoxResou
 import java.util.List;
 import java.util.Map;
 
-/** Stops a running QEMU VM or LXC container (hard power-off). */
 public class StopProxmoxServerGroupAtomicOperation extends AbstractProxmoxAtomicOperation<Void> {
 
   private static final String PHASE = "STOP_PROXMOX_SERVER_GROUP";
@@ -35,10 +34,29 @@ public class StopProxmoxServerGroupAtomicOperation extends AbstractProxmoxAtomic
   @Override
   public Void operate(List priorOutputs) {
     ProxmoxApiService api = description.getApiService();
-    String node = description.getNode();
-    int vmid = description.getVmid();
-    String vmType = description.getVmType();
 
+    if (description.getServerGroupName() != null) {
+      String region =
+          description.getRegion() != null ? description.getRegion() : description.getNode();
+      List<ProxmoxServerGroupMembers.Member> members =
+          ProxmoxServerGroupMembers.resolve(api, description.getServerGroupName(), region);
+      updateStatus(
+          "Stopping server group "
+              + description.getServerGroupName()
+              + " ("
+              + members.size()
+              + " member(s))");
+      for (ProxmoxServerGroupMembers.Member member : members) {
+        stopOne(api, member.node(), member.vmid(), member.vmType());
+      }
+      updateStatus("Stopped server group " + description.getServerGroupName());
+    } else {
+      stopOne(api, description.getNode(), description.getVmid(), description.getVmType());
+    }
+    return null;
+  }
+
+  private void stopOne(ProxmoxApiService api, String node, int vmid, String vmType) {
     updateStatus("Stopping " + vmType + " " + vmid + " on " + node);
     String upid;
     if ("lxc".equals(vmType)) {
@@ -46,11 +64,10 @@ public class StopProxmoxServerGroupAtomicOperation extends AbstractProxmoxAtomic
     } else {
       upid = executeCall(api.stopVm(node, vmid, Map.of()));
     }
+    // Stop failure is tolerated — the resource may already be stopped
     if (upid != null) {
-      pollTaskUntilDone(api, node, upid);
+      pollTaskIgnoringFailure(api, node, upid);
     }
-
     updateStatus("Stopped " + vmType + " " + vmid);
-    return null;
   }
 }

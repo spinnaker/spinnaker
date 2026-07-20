@@ -19,29 +19,41 @@ import com.netflix.spinnaker.clouddriver.proxmox.client.ProxmoxApiService;
 import com.netflix.spinnaker.clouddriver.proxmox.deploy.description.ProxmoxResourceDescription;
 import java.util.Map;
 
-/** Reboots running QEMU VMs or LXC containers. */
-public class RebootProxmoxInstancesAtomicOperation extends AbstractProxmoxInstancesAtomicOperation {
+/** Stops and permanently deletes individual VMs/containers. */
+public class TerminateProxmoxInstancesAtomicOperation
+    extends AbstractProxmoxInstancesAtomicOperation {
 
-  public RebootProxmoxInstancesAtomicOperation(ProxmoxResourceDescription description) {
-    super("REBOOT_PROXMOX_INSTANCES", description);
+  public TerminateProxmoxInstancesAtomicOperation(ProxmoxResourceDescription description) {
+    super("TERMINATE_PROXMOX_INSTANCES", description);
   }
 
   @Override
   protected String verb() {
-    return "Rebooting";
+    return "Terminating";
   }
 
   @Override
   protected void applyTo(ProxmoxApiService api, String node, int vmid, String vmType) {
-    String upid;
+    String stopUpid;
     if ("lxc".equals(vmType)) {
-      upid = executeCall(api.rebootLxc(node, vmid, Map.of()));
+      stopUpid = executeCall(api.stopLxc(node, vmid, Map.of()));
     } else {
-      upid = executeCall(api.rebootVm(node, vmid, Map.of()));
+      stopUpid = executeCall(api.stopVm(node, vmid, Map.of()));
     }
-    if (upid != null) {
-      pollTaskUntilDone(api, node, upid);
+    // Stop failure is tolerated — the resource may already be stopped
+    if (stopUpid != null) {
+      pollTaskIgnoringFailure(api, node, stopUpid);
     }
-    updateStatus("Rebooted " + vmType + " " + vmid);
+
+    String deleteUpid;
+    if ("lxc".equals(vmType)) {
+      deleteUpid = executeCall(api.deleteLxc(node, vmid));
+    } else {
+      deleteUpid = executeCall(api.deleteVm(node, vmid));
+    }
+    if (deleteUpid != null) {
+      pollTaskUntilDone(api, node, deleteUpid);
+    }
+    updateStatus("Terminated " + vmType + " " + vmid + " on " + node);
   }
 }

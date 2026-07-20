@@ -3,6 +3,7 @@ package com.netflix.spinnaker.clouddriver.proxmox.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxResource;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -134,6 +135,12 @@ public class ProxmoxLxc implements ProxmoxResource {
    * Root filesystem configuration string. Format: {@code <storage>:<size>,<options>} e.g.
    * "local-lvm:8".
    */
+  /**
+   * All disk-like config entries (rootfs, mp*, unused*), keyed by device name. Populated from the
+   * /config endpoint by the caching agent.
+   */
+  private Map<String, String> disks;
+
   @JsonProperty("rootfs")
   private String rootFs;
 

@@ -3,6 +3,7 @@ package com.netflix.spinnaker.clouddriver.proxmox.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.proxmox.names.ProxmoxResource;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -163,6 +164,12 @@ public class ProxmoxVm implements ProxmoxResource {
   /** Primary network interface config string (net0). */
   @JsonProperty("net0")
   private String net0;
+
+  /**
+   * All disk-like config entries (scsi*, sata*, virtio*, ide*, efidisk*, tpmstate*, unused*), keyed
+   * by device name. Populated from the /config endpoint by the caching agent.
+   */
+  private Map<String, String> disks;
 
   /** Primary SCSI disk config string (scsi0). */
   @JsonProperty("scsi0")

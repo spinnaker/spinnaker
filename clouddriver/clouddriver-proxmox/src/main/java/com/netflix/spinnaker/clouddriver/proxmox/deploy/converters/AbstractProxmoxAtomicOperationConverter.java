@@ -48,7 +48,9 @@ abstract class AbstractProxmoxAtomicOperationConverter<D extends ProxmoxBaseDesc
   @Override
   public D convertDescription(Map<String, Object> input) {
     D description = getObjectMapper().convertValue(input, descriptionClass);
-    description.setCredentials(getCredentialsObject(input.get("credentials").toString()));
+    // Pipeline deploy stages strip "credentials" from stored clusters, leaving only "account".
+    Object credentials = input.getOrDefault("credentials", input.get("account"));
+    description.setCredentials(getCredentialsObject(credentials.toString()));
     return description;
   }
 }

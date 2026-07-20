@@ -90,6 +90,39 @@ class VMCachingAgentTest {
   }
 
   @Test
+  void loadDataMergesConfigAndCollectsAllDisks() throws Exception {
+    mockGetNodesResponse(List.of(ProxmoxNode.builder().node(NODE_NAME).build()));
+    ProxmoxVm vm = ProxmoxVm.builder().vmId(101).name("myapp-prod-v001").build();
+    mockGetVmsResponse(NODE_NAME, List.of(vm));
+
+    Call<ProxmoxResponse<java.util.Map<String, Object>>> configCall = mock(Call.class);
+    ProxmoxResponse<java.util.Map<String, Object>> configBody = new ProxmoxResponse<>();
+    configBody.setData(
+        java.util.Map.of(
+            "scsi0", "local-lvm:vm-101-disk-0,size=20G",
+            "efidisk0", "local-lvm:vm-101-disk-1,efitype=4m,size=4M",
+            "ide2", "local-lvm:vm-101-cloudinit,media=cdrom",
+            "unused0", "local-lvm:vm-101-disk-2",
+            "bios", "ovmf",
+            "cores", 2,
+            "net0", "virtio,bridge=vmbr0"));
+    when(api.getVmConfig(NODE_NAME, 101)).thenReturn(configCall);
+    when(configCall.execute()).thenReturn(Response.success(configBody));
+
+    CacheResult result = agent.loadData(providerCache);
+
+    CacheData cached =
+        result.getCacheResults().get(ProxmoxResourceType.VM.name()).iterator().next();
+    java.util.Map<String, String> disks =
+        (java.util.Map<String, String>) cached.getAttributes().get("disks");
+    assertThat(disks)
+        .containsOnlyKeys("scsi0", "efidisk0", "ide2", "unused0")
+        .containsEntry("efidisk0", "local-lvm:vm-101-disk-1,efitype=4m,size=4M");
+    assertThat(cached.getAttributes().get("bios")).isEqualTo("ovmf");
+    assertThat(cached.getAttributes().get("cores")).isEqualTo(2);
+  }
+
+  @Test
   void loadDataSetsNodeFieldOnVm() throws Exception {
     mockGetNodesResponse(List.of(ProxmoxNode.builder().node(NODE_NAME).build()));
     ProxmoxVm vm = ProxmoxVm.builder().vmId(101).name("myapp-v001").build();

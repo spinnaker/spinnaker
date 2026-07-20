@@ -42,6 +42,62 @@ public class ProxmoxInstance implements Instance {
   private String osType;
   private String status;
 
+  /** {@code "qemu"} for KVM VMs, {@code "lxc"} for containers. */
+  private String vmType;
+
+  /** Uptime in seconds; 0 when stopped. */
+  private Long uptimeSeconds;
+
+  /** Current CPU usage as a fraction of allocated vCPUs (0.0 – cpus). */
+  private Double cpuUsage;
+
+  /** Memory currently in use, in MB. */
+  private Long memoryUsedMb;
+
+  /** Root disk usage in GB. */
+  private Long diskUsedGb;
+
+  private Integer sockets;
+  private Integer cores;
+  private String machine;
+  private String bios;
+  private String bootOrder;
+  private String scsiController;
+
+  /** Primary network interface config string (net0). */
+  private String net0;
+
+  /** Primary disk config string (scsi0 for VMs, rootfs for containers). */
+  private String disk0;
+
+  /**
+   * All disk-like config entries keyed by device name (scsi*, sata*, virtio*, ide*, efidisk*,
+   * tpmstate*, unused* for VMs; rootfs, mp*, unused* for containers).
+   */
+  private Map<String, String> disks;
+
+  private String description;
+
+  /** Proxmox tags parsed into category/value pairs (Spinnaker moniker tags included). */
+  private Map<String, String> tags;
+
+  private Boolean agentEnabled;
+  private Boolean onBoot;
+  private Boolean protection;
+  private String qmpStatus;
+  private Boolean haManaged;
+
+  /** LXC swap currently in use, in MB. */
+  private Long swapUsedMb;
+
+  /** LXC swap limit, in MB. */
+  private Long swapMb;
+
+  private Long networkInBytes;
+  private Long networkOutBytes;
+  private Long diskReadBytes;
+  private Long diskWriteBytes;
+
   @Override
   public String getCloudProvider() {
     return ProxmoxProvider.ID;

@@ -229,7 +229,12 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
                   s.setLoadBalancers(Collections.emptySet());
                   s.setSecurityGroups(Collections.emptySet());
                   s.setLaunchConfig(buildLaunchConfig(resource));
-                  s.setMoniker(Moniker.builder().app(app).cluster(clusterName).build());
+                  // Carry the full tag-derived moniker (stack/detail/sequence) so deck can order
+                  // server group versions within the cluster.
+                  Moniker derived = tagNamer.deriveMoniker(resource);
+                  derived.setApp(app);
+                  derived.setCluster(clusterName);
+                  s.setMoniker(derived);
                   cluster.getServerGroups().add(s);
                   return s;
                 });
@@ -252,6 +257,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
       if (vm.getBios() != null) config.put("bios", vm.getBios());
       if (vm.getStatus() != null) config.put("status", vm.getStatus());
       if (vm.getVmId() != null) config.put("vmId", vm.getVmId());
+      if (vm.getDisks() != null && !vm.getDisks().isEmpty()) config.put("disks", vm.getDisks());
     } else if (resource instanceof ProxmoxLxc lxc) {
       if (lxc.getCpus() != null) config.put("cpus", lxc.getCpus());
       if (lxc.getMaxMem() != null) config.put("memoryMb", lxc.getMaxMem() / (1024 * 1024));
@@ -259,6 +265,7 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
       if (lxc.getOsType() != null) config.put("osType", lxc.getOsType());
       if (lxc.getStatus() != null) config.put("status", lxc.getStatus());
       if (lxc.getVmId() != null) config.put("vmId", lxc.getVmId());
+      if (lxc.getDisks() != null && !lxc.getDisks().isEmpty()) config.put("disks", lxc.getDisks());
     }
     return config;
   }
@@ -279,21 +286,100 @@ public class ProxmoxServerClusterProvider implements ClusterProvider<ProxmoxServ
             .healthState(healthState)
             .health(List.of(healthEntry))
             .vmId(resource.getVmId())
-            .status(status);
+            .status(status)
+            .tags(ProxmoxTagNamer.parseTags(resource.getTags()));
 
     if (resource instanceof ProxmoxVm vm) {
+      builder.vmType("qemu");
       if (vm.getCpus() != null) builder.cpus(vm.getCpus());
       if (vm.getMaxMem() != null) builder.memoryMb(vm.getMaxMem() / (1024 * 1024));
       if (vm.getMaxDisk() != null) builder.diskGb(vm.getMaxDisk() / (1024 * 1024 * 1024));
       if (vm.getOsType() != null) builder.osType(vm.getOsType());
+      applyRuntimeStats(
+          builder,
+          vm.getUptime(),
+          status,
+          vm.getCpu(),
+          vm.getMem(),
+          vm.getDisk(),
+          vm.getNetIn(),
+          vm.getNetOut(),
+          vm.getDiskRead(),
+          vm.getDiskWrite());
+      builder
+          .sockets(vm.getSockets())
+          .cores(vm.getCores())
+          .machine(vm.getMachine())
+          .bios(vm.getBios())
+          .bootOrder(vm.getBoot())
+          .scsiController(vm.getScsiHw())
+          .net0(vm.getNet0())
+          .disk0(vm.getScsi0())
+          .disks(vm.getDisks())
+          .description(vm.getDescription())
+          .qmpStatus(vm.getQmpStatus());
+      if (vm.getAgent() != null) builder.agentEnabled(vm.getAgent().startsWith("1"));
+      if (vm.getOnBoot() != null) builder.onBoot(vm.getOnBoot() == 1);
+      if (vm.getProtection() != null) builder.protection(vm.getProtection() == 1);
+      if (vm.getHa() != null && vm.getHa().getManaged() != null) {
+        builder.haManaged(vm.getHa().getManaged() == 1);
+      }
     } else if (resource instanceof ProxmoxLxc lxc) {
+      builder.vmType("lxc");
       if (lxc.getCpus() != null) builder.cpus(lxc.getCpus());
       if (lxc.getMaxMem() != null) builder.memoryMb(lxc.getMaxMem() / (1024 * 1024));
       if (lxc.getMaxDisk() != null) builder.diskGb(lxc.getMaxDisk() / (1024 * 1024 * 1024));
       if (lxc.getOsType() != null) builder.osType(lxc.getOsType());
+      applyRuntimeStats(
+          builder,
+          lxc.getUptime(),
+          status,
+          lxc.getCpu(),
+          lxc.getMem(),
+          lxc.getDisk(),
+          lxc.getNetIn(),
+          lxc.getNetOut(),
+          lxc.getDiskRead(),
+          lxc.getDiskWrite());
+      builder
+          .net0(lxc.getNet0())
+          .disk0(lxc.getRootFs())
+          .disks(lxc.getDisks())
+          .description(lxc.getDescription());
+      if (lxc.getSwap() != null) builder.swapUsedMb(lxc.getSwap() / (1024 * 1024));
+      if (lxc.getMaxSwap() != null) builder.swapMb(lxc.getMaxSwap() / (1024 * 1024));
+      if (lxc.getOnBoot() != null) builder.onBoot(lxc.getOnBoot() == 1);
+      if (lxc.getProtection() != null) builder.protection(lxc.getProtection() == 1);
     }
 
     return builder.build();
+  }
+
+  private void applyRuntimeStats(
+      ProxmoxInstance.ProxmoxInstanceBuilder builder,
+      Long uptime,
+      String status,
+      Double cpu,
+      Long mem,
+      Long disk,
+      Long netIn,
+      Long netOut,
+      Long diskRead,
+      Long diskWrite) {
+    if (uptime != null) {
+      builder.uptimeSeconds(uptime);
+      if (uptime > 0 && "running".equals(status)) {
+        builder.launchTime(System.currentTimeMillis() - uptime * 1000);
+      }
+    }
+    if (cpu != null) builder.cpuUsage(cpu);
+    if (mem != null) builder.memoryUsedMb(mem / (1024 * 1024));
+    if (disk != null) builder.diskUsedGb(disk / (1024 * 1024 * 1024));
+    builder
+        .networkInBytes(netIn)
+        .networkOutBytes(netOut)
+        .diskReadBytes(diskRead)
+        .diskWriteBytes(diskWrite);
   }
 
   private void recomputeCounts(ProxmoxServerGroup sg) {

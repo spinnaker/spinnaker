@@ -1,11 +1,9 @@
 import React from 'react';
 
-import type { IInstance, IServerGroupActionsProps, IServerGroupDetailsSectionProps } from '@spinnaker/core';
+import type { IInstance, IServerGroupDetailsSectionProps } from '@spinnaker/core';
 import { AccountTag, CollapsibleSection, HealthCounts, timestamp } from '@spinnaker/core';
 
-export function ProxmoxServerGroupActions(_props: IServerGroupActionsProps): JSX.Element {
-  return null;
-}
+export { ProxmoxServerGroupActions } from './ProxmoxServerGroupActions';
 
 export function ProxmoxServerGroupInformationSection({ serverGroup }: IServerGroupDetailsSectionProps): JSX.Element {
   const sg = serverGroup as any;

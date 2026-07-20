@@ -46,6 +46,12 @@ public class ProxmoxTagNamer implements NamingStrategy<ProxmoxResource> {
    */
   public static final String SERVER_GROUP_TAG = "spinnaker-server-group";
 
+  /**
+   * Records the VMID of the template a member was cloned from, so scaling operations can create
+   * additional instances from the same template.
+   */
+  public static final String TEMPLATE_TAG = "spinnaker-template";
+
   @Override
   public String getName() {
     return "proxmoxTags";
