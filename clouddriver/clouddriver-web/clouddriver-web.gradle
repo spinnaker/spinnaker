@@ -52,7 +52,9 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
   testImplementation "org.springframework.security:spring-security-test"
   testImplementation "org.spockframework:spock-core"
-  testImplementation "io.kubernetes:client-java-api-fluent:13.0.2"
+  // Kubernetes model classes (V1Job, V1Pod, ...) used by ObjectMapperTest; version
+  // comes from the spring-cloud BOM.
+  testImplementation "io.kubernetes:client-java"
   testImplementation "org.apache.groovy:groovy-json"
 
   // Add each included cloud provider project as a runtime dependency
