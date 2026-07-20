@@ -5,14 +5,15 @@ import { Modal, ModalFooter } from 'react-bootstrap';
 
 import type { Application, IModalComponentProps, IServerGroup, IServerGroupJob } from '@spinnaker/core';
 import {
+  AngularServices,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../../domain';
 import { Routes } from '../../../presentation/forms/serverGroup';
 
@@ -86,7 +87,7 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
+      return AngularServices.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
         serverGroupName: serverGroup.name,
       });
     });

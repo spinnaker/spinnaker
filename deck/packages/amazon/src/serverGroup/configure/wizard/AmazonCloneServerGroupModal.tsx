@@ -2,9 +2,18 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
-import { FirewallLabels, noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import {
+  AngularServices,
+  FirewallLabels,
+  noop,
+  ReactModal,
+  TaskMonitor,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
+import { AwsServices } from '../../../aws.services';
 import {
   ServerGroupAdvancedSettings,
   ServerGroupBasicSettings,
@@ -14,7 +23,6 @@ import {
   ServerGroupSecurityGroups,
   ServerGroupZones,
 } from './pages';
-import { AwsReactInjector } from '../../../reactShims';
 import type { IAmazonServerGroupCommand } from '../serverGroupConfiguration.service';
 
 export interface IAmazonCloneServerGroupModalProps extends IModalComponentProps {
@@ -96,19 +104,19 @@ export class AmazonCloneServerGroupModal extends React.Component<
           provider: 'aws',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (ReactInjector.$state.includes('**.clusters.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters')) {
+        if (AngularServices.$state.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        ReactInjector.$state.go(transitionTo, newStateParams);
+        AngularServices.$state.go(transitionTo, newStateParams);
       }
     }
   };
@@ -118,12 +126,12 @@ export class AmazonCloneServerGroupModal extends React.Component<
 
     command.credentialsChanged(command);
     command.regionChanged(command);
-    AwsReactInjector.awsServerGroupConfigurationService.configureSubnetPurposes(command);
+    AwsServices.awsServerGroupConfigurationService.configureSubnetPurposes(command);
   };
 
   private configureCommand = () => {
     const { application, command } = this.props;
-    AwsReactInjector.awsServerGroupConfigurationService.configureCommand(application, command).then(() => {
+    AwsServices.awsServerGroupConfigurationService.configureCommand(application, command).then(() => {
       this.initializeCommand();
       this.setState({ loaded: true, requiresTemplateSelection: false });
     });
@@ -154,7 +162,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else {
       this.state.taskMonitor.submit(() =>
-        ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     }
   };

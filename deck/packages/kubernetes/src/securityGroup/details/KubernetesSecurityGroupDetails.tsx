@@ -11,12 +11,12 @@ import type {
 import {
   AccountTag,
   AddEntityTagLinks,
+  AngularServices,
   CloudProviderLogo,
   CollapsibleSection,
   EntityNotifications,
   FirewallLabels,
   ManifestReader,
-  ReactInjector,
   robotToHuman,
   SETTINGS,
   timestamp,
@@ -105,7 +105,7 @@ export class KubernetesSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || ReactInjector.securityGroupReader;
+    return this.props.securityGroupReader || AngularServices.securityGroupReader;
   }
 
   private getCoordinatesKey(props: IKubernetesSecurityGroupDetailsProps): string {
@@ -161,12 +161,12 @@ export class KubernetesSecurityGroupDetails extends React.Component<
       return;
     }
 
-    ReactInjector.$state.params.allowModalToStayOpen = true;
-    ReactInjector.$state.go('^', null, { location: 'replace' });
+    AngularServices.$state.params.allowModalToStayOpen = true;
+    AngularServices.$state.go('^', null, { location: 'replace' });
   };
 
   private closeDetails = (): void => {
-    ReactInjector.$state.go('^');
+    AngularServices.$state.go('^');
   };
 
   public render(): JSX.Element {

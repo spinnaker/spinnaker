@@ -1,11 +1,10 @@
 import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { ArtifactIcon } from './ArtifactIcon';
 import type { IArtifactAccount } from '../../account';
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import { TetheredSelect } from '../../presentation';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IArtifactAccountSelectorProps {
   accounts: IArtifactAccount[];
@@ -47,7 +46,7 @@ export class ArtifactAccountSelector extends React.Component<IArtifactAccountSel
 export const ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT = 'spinnaker.core.artifacts.account.selector.react';
 module(ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT, []).component(
   'artifactAccountSelectorReact',
-  react2angular(withErrorBoundary(ArtifactAccountSelector, 'artifactAccountSelectorReact'), [
+  angularComponentFromReact(ArtifactAccountSelector, 'artifactAccountSelectorReact', [
     'accounts',
     'className',
     'onChange',

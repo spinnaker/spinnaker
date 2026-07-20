@@ -3,7 +3,7 @@ import React from 'react';
 import type { Option } from 'react-select';
 
 import type { IWizardPageComponent } from '@spinnaker/core';
-import { HelpField, ReactInjector, TetheredSelect } from '@spinnaker/core';
+import { AngularServices, HelpField, TetheredSelect } from '@spinnaker/core';
 
 import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -49,7 +49,7 @@ export class ServerGroupLoadBalancers
   public refreshLoadBalancers = () => {
     const { values } = this.props.formik;
     this.setState({ refreshing: true });
-    const configurationService: any = ReactInjector.providerServiceDelegate.getDelegate(
+    const configurationService: any = AngularServices.providerServiceDelegate.getDelegate(
       values.cloudProvider || values.selectedProvider,
       'serverGroup.configurationService',
     );

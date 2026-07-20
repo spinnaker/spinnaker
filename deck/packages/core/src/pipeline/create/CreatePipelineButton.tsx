@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { CreatePipelineModal } from './CreatePipelineModal';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { Tooltip } from '../../presentation/Tooltip';
-import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';
 
 export interface ICreatePipelineButtonProps {
@@ -34,7 +34,7 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
   };
 
   private goToPipelineConfig = (id: string) => {
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     if (!$state.current.name.includes('.executions.execution')) {
       $state.go('^.pipelineConfig', { pipelineId: id });
     } else {

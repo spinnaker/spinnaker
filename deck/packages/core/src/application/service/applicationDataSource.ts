@@ -22,12 +22,12 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
+import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../application.model';
 import type { IEntityTags } from '../../domain';
 import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
 import { FirewallLabels } from '../../securityGroup';
 import { toIPromise } from '../../utils';
 
@@ -381,8 +381,8 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     }
 
     if (config.autoActivate) {
-      ReactInjector.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
-      ReactInjector.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
+      AngularServices.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
+      AngularServices.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
 
     // While we can initialize these fields directly on the class to give them private/public

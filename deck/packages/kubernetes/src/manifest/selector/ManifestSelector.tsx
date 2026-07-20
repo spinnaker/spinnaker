@@ -10,12 +10,12 @@ import {
   AccountSelectInput,
   AccountService,
   AppListExtractor,
-  NgReact,
   noop,
   ScopeClusterSelector,
   SETTINGS,
   StageConfigField,
   StageConstants,
+  TargetSelect,
 } from '@spinnaker/core';
 
 import type { IManifestLabelSelector } from './IManifestLabelSelector';
@@ -310,7 +310,6 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   };
 
   public render() {
-    const { TargetSelect } = NgReact;
     const selectedMode = this.getSelectedMode();
     const modes = this.props.modes || [selectedMode];
     const { selector, accounts, kinds, namespaces, resources, loading } = this.state;

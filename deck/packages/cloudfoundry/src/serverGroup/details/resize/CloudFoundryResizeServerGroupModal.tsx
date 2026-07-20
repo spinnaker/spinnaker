@@ -5,17 +5,18 @@ import { Modal, ModalFooter } from 'react-bootstrap';
 
 import type { Application, ICapacity, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
+  AngularServices,
   FormikFormField,
   ModalClose,
   noop,
   NumberInput,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
   TaskMonitorWrapper,
   TaskReason,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../../domain';
 
 export interface ICloudFoundryResizeServerGroupModalProps extends IModalComponentProps {
@@ -102,7 +103,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
+      return AngularServices.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
     });
   };
 

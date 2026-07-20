@@ -6,9 +6,9 @@ import { Subject } from 'rxjs';
 import type { IWizardPageComponent } from '@spinnaker/core';
 import { parseNum } from '@spinnaker/core';
 
+import { AwsServices } from '../../../../aws.services';
 import type { IAmazonInstanceTypeCategory } from '../../../../instance/awsInstanceType.service';
 import { InstanceTypeSelector } from '../instanceType/InstanceTypeSelector';
-import { AwsReactInjector } from '../../../../reactShims';
 import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
 export interface IServerGroupInstanceTypeProps {
@@ -117,7 +117,7 @@ export class ServerGroupInstanceType
   }
 
   public componentDidMount(): void {
-    Promise.resolve(AwsReactInjector.awsInstanceTypeService.getCategories()).then(
+    Promise.resolve(AwsServices.awsInstanceTypeService.getCategories()).then(
       (categories: IAmazonInstanceTypeCategory[]) => {
         this.setState({ instanceTypeDetails: categories });
       },

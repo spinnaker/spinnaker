@@ -3,13 +3,13 @@ import type { IScope } from 'angular';
 import type { IModalService } from 'angular-ui-bootstrap';
 import React from 'react';
 import { Button } from 'react-bootstrap';
+import { AngularServices } from '../angular/services';
 
 import type { Application } from '../application';
 import type { CacheInitializerService } from '../cache';
 import type { OverrideRegistry } from '../overrideRegistry';
 import { Overridable } from '../overrideRegistry';
 import { ConfigureProjectModal } from '../projects';
-import { ModalInjector, ReactInjector } from '../reactShims';
 
 export interface IInsightMenuProps {
   createApp?: boolean;
@@ -34,11 +34,11 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
   constructor(props: IInsightMenuProps) {
     super(props);
     this.state = {} as IInsightMenuState;
-    this.$state = ReactInjector.$state;
-    this.$uibModal = ModalInjector.modalService;
-    this.$rootScope = ReactInjector.$rootScope;
-    this.overrideRegistry = ReactInjector.overrideRegistry;
-    this.cacheInitializer = ReactInjector.cacheInitializer;
+    this.$state = AngularServices.$state;
+    this.$uibModal = AngularServices.modalService;
+    this.$rootScope = AngularServices.$rootScope;
+    this.overrideRegistry = AngularServices.overrideRegistry;
+    this.cacheInitializer = AngularServices.cacheInitializer;
   }
 
   private createProject = () =>

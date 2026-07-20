@@ -2,7 +2,7 @@ import { get, trim } from 'lodash';
 import React from 'react';
 
 import type { IManifest } from '@spinnaker/core';
-import { AccountService, ReactInjector } from '@spinnaker/core';
+import { AccountService, AngularServices } from '@spinnaker/core';
 
 const UNMAPPED_K8S_RESOURCE_STATE_KEY = 'cloudrunResource';
 
@@ -73,7 +73,7 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, 
       const spinnakerKind = this.spinnakerKindFromCloudrunKind(kind, account.spinnakerKindMap);
       const stateKey = this.spinnakerKindStateMap[spinnakerKind] || UNMAPPED_K8S_RESOURCE_STATE_KEY;
       const params = this.getStateParams(stateKey);
-      const url = ReactInjector.$state.href(`home.applications.application.insight.clusters.${stateKey}`, params);
+      const url = AngularServices.$state.href(`home.applications.application.insight.clusters.${stateKey}`, params);
       this.setState({ url });
     });
   }

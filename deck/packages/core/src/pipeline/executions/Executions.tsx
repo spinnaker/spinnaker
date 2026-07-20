@@ -2,6 +2,7 @@ import { get } from 'lodash';
 import { $q } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
+import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../../application';
 import type { IDefaultTagFilterConfig } from '../../application/config/defaultTagFilter/DefaultTagFilterConfig';
@@ -16,7 +17,6 @@ import { FilterCollapse, FilterTags } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
 import { Overridable } from '../../overrideRegistry';
 import { Tooltip } from '../../presentation/Tooltip';
-import { ReactInjector } from '../../reactShims';
 import { SchedulerFactory } from '../../scheduler';
 import type { IScheduler } from '../../scheduler/SchedulerFactory';
 import { ExecutionState } from '../../state';
@@ -50,7 +50,7 @@ let disableForwarding = false;
 export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
-  private insightFilterStateModel = ReactInjector.insightFilterStateModel;
+  private insightFilterStateModel = AngularServices.insightFilterStateModel;
   private activeRefresher: IScheduler;
 
   private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50, 100, 200];
@@ -157,7 +157,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   };
 
   private startPipeline(command: IPipelineCommand): PromiseLike<void> {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     this.setState({ triggeringExecution: true });
     return executionService
       .startAndMonitorPipeline(this.props.app, command.pipelineName, command.trigger)
@@ -188,11 +188,11 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private clearManualExecutionParam(): void {
-    ReactInjector.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
+    AngularServices.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
   }
 
   private handleAgedOutExecutions(executionId: string, forwardToPermalink: boolean): void {
-    const { $state, executionService } = ReactInjector;
+    const { $state, executionService } = AngularServices;
     if (forwardToPermalink && executionId && !forwardedExecutions.has(executionId)) {
       // We only want to forward to permalink on initial load
       executionService.getExecution(executionId).then(() => {
@@ -233,7 +233,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
         this.normalizeExecutionNames();
 
         // if an execution was selected but is no longer present, navigate up
-        const { $state } = ReactInjector;
+        const { $state } = AngularServices;
         if ($state.params.executionId) {
           const executions: IExecution[] = app.executions.data;
           if (executions.every((e) => e.id !== $state.params.executionId)) {
@@ -250,7 +250,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
     $q.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
-      const nameOrIdToStart = ReactInjector.$stateParams.startManualExecution;
+      const nameOrIdToStart = AngularServices.$stateParams.startManualExecution;
       if (nameOrIdToStart) {
         const toStart = app.pipelineConfigs.data.find((p: IPipeline) => [p.id, p.name].includes(nameOrIdToStart));
         if (toStart) {

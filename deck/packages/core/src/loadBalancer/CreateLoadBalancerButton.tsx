@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { IAccountDetails } from '../account';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { ICloudProviderConfig } from '../cloudProvider';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
@@ -8,7 +9,6 @@ import type { ILoadBalancer } from '../domain';
 import type { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
 import type { IModalComponentProps } from '../presentation';
 import { Tooltip } from '../presentation';
-import { ModalInjector } from '../reactShims';
 
 export interface ILoadBalancerModalProps extends IModalComponentProps {
   className?: string;
@@ -67,7 +67,7 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
           });
         } else {
           // angular
-          ModalInjector.modalService
+          AngularServices.modalService
             .open({
               templateUrl: provider.createLoadBalancerTemplateUrl,
               controller: `${provider.createLoadBalancerController} as ctrl`,

@@ -1,9 +1,9 @@
 import React from 'react';
+import { AngularServices } from '../angular/services';
 
 import { NotFound } from '../notfound/NotFound';
-import { ReactInjector } from '../reactShims';
 
 export function TaskNotFound() {
-  const { params } = ReactInjector.$state;
+  const { params } = AngularServices.$state;
   return <NotFound type="Task" entityId={params.taskId} />;
 }

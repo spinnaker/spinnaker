@@ -3,6 +3,7 @@ import React from 'react';
 import type { Observable } from 'rxjs';
 import { empty as observableEmpty, Subject } from 'rxjs';
 import { distinctUntilChanged, map, scan, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { AngularServices } from '../../angular/services';
 
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { SearchResultPods } from '../infrastructure/SearchResultPods';
@@ -10,7 +11,6 @@ import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.se
 import { InfrastructureSearchServiceV2 } from '../infrastructure/infrastructureSearchV2.service';
 import { InsightMenu } from '../../insight/InsightMenu';
 import type { IQueryParams } from '../../navigation';
-import { ReactInjector } from '../../reactShims';
 import { SearchResults, searchResultTypeRegistry, SearchStatus } from '../searchResult';
 import type { ITag } from '../../widgets';
 import { Search } from '../widgets';
@@ -27,8 +27,8 @@ export interface ISearchV2State {
 }
 
 export class SearchV2 extends React.Component<{}, ISearchV2State> {
-  private $state = ReactInjector.$state;
-  private $uiRouter = ReactInjector.$uiRouter;
+  private $state = AngularServices.$state;
+  private $uiRouter = AngularServices.$uiRouter;
 
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
@@ -52,7 +52,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     };
 
     // just set the page title - don't try to get fancy w/ the search terms
-    ReactInjector.pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Search' } });
+    AngularServices.pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Search' } });
   }
 
   // returns parameter values that are OK to send through to the back end search API as filters

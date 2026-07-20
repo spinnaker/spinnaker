@@ -5,6 +5,7 @@ import React from 'react';
 import type { SortEnd } from 'react-sortable-hoc';
 import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc';
 import type { Subscription } from 'rxjs';
+import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../../application';
 import { FilterSearch } from '../../cluster/filter/FilterSearch';
@@ -13,7 +14,6 @@ import { PipelineConfigService } from '../config/services/PipelineConfigService'
 import type { IExecution, IPipeline, IPipelineTag } from '../../domain';
 import { ExecutionFilterService } from './executionFilter.service';
 import type { IFilterTag } from '../../filterModel';
-import { ReactInjector } from '../../reactShims';
 import { ExecutionState } from '../../state';
 import { logger } from '../../utils';
 
@@ -78,7 +78,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     });
 
     this.initialize();
-    this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => {
+    this.locationChangeUnsubscribe = AngularServices.$uiRouter.transitionService.onSuccess({}, () => {
       ExecutionState.filterModel.asFilterModel.activate();
       ExecutionFilterService.updateExecutionGroups(application);
     });

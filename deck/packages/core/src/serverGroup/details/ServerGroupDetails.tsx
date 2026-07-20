@@ -6,12 +6,12 @@ import { takeUntil } from 'rxjs/operators';
 import { RunningTasks } from './RunningTasks';
 import type { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';
 import { ServerGroupInsightActions } from './ServerGroupInsightActions';
+import { AngularServices } from '../../angular/services';
 import { CloudProviderLogo } from '../../cloudProvider/CloudProviderLogo';
 import { SETTINGS } from '../../config/settings';
 import type { IServerGroup } from '../../domain';
 import { EntityNotifications } from '../../entityTag/notifications/EntityNotifications';
 import { ManagedResourceDetailsIndicator } from '../../managed';
-import { ReactInjector } from '../../reactShims';
 import { timestamp } from '../../utils/timeFormatters';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
@@ -29,8 +29,8 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
   }
 
   private autoClose(): void {
-    ReactInjector.$state.params.allowModalToStayOpen = true;
-    ReactInjector.$state.go('^', null, { location: 'replace' });
+    AngularServices.$state.params.allowModalToStayOpen = true;
+    AngularServices.$state.go('^', null, { location: 'replace' });
   }
 
   private updateServerGroup = (serverGroup: IServerGroup): void => {
