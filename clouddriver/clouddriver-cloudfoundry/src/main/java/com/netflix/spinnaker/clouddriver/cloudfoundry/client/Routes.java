@@ -16,34 +16,26 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPages;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonList;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.RouteService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Route;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.RouteMapping;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateRoute;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Destination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Route;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryDomain;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryLoadBalancer;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +52,6 @@ public class Routes {
   private final Integer resultsPerPage;
 
   private final ForkJoinPool forkJoinPool;
-  private final LoadingCache<String, List<RouteMapping>> routeMappings;
 
   public Routes(
       String account,
@@ -69,8 +60,7 @@ public class Routes {
       Domains domains,
       Spaces spaces,
       Integer resultsPerPage,
-      ForkJoinPool forkJoinPool,
-      CloudFoundryConfigurationProperties.LocalCacheConfig localCacheConfig) {
+      ForkJoinPool forkJoinPool) {
     this.account = account;
     this.api = api;
     this.applications = applications;
@@ -78,54 +68,29 @@ public class Routes {
     this.spaces = spaces;
     this.resultsPerPage = resultsPerPage;
     this.forkJoinPool = forkJoinPool;
-
-    CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
-    if (localCacheConfig.getRoutesAccessExpirySeconds() >= 0) {
-      builder.expireAfterAccess(localCacheConfig.getRoutesAccessExpirySeconds(), TimeUnit.SECONDS);
-    }
-    if (localCacheConfig.getRoutesWriteExpirySeconds() >= 0) {
-      builder.expireAfterWrite(localCacheConfig.getRoutesWriteExpirySeconds(), TimeUnit.SECONDS);
-    }
-
-    this.routeMappings =
-        builder.build(
-            new CacheLoader<>() {
-              @Override
-              public List<RouteMapping> load(@Nonnull String guid)
-                  throws CloudFoundryApiException, ResourceNotFoundException {
-                return collectPageResources("route mappings", pg -> api.routeMappings(guid, pg))
-                    .stream()
-                    .map(Resource::getEntity)
-                    .collect(Collectors.toList());
-              }
-            });
   }
 
-  private CloudFoundryLoadBalancer map(Resource<Route> res) throws CloudFoundryApiException {
-    Route route = res.getEntity();
-
+  private CloudFoundryLoadBalancer map(Route route) throws CloudFoundryApiException {
     Set<CloudFoundryServerGroup> mappedApps = emptySet();
-    try {
+    List<Destination> destinations = route.getDestinations();
+    if (destinations != null && !destinations.isEmpty()) {
       mappedApps =
-          routeMappings.get(res.getMetadata().getGuid()).stream()
+          destinations.stream()
               .map(
-                  rm -> {
+                  d -> {
                     try {
-                      return applications.findById(rm.getAppGuid());
+                      return applications.findById(d.getApp().getGuid());
                     } catch (Exception e) {
                       return null;
                     }
                   })
               .filter(Objects::nonNull)
               .collect(Collectors.toSet());
-    } catch (Exception e) {
-      if (!(e.getCause() instanceof ResourceNotFoundException))
-        throw new CloudFoundryApiException(e.getCause(), "Unable to find route mappings by id");
     }
 
     return CloudFoundryLoadBalancer.builder()
         .account(account)
-        .id(res.getMetadata().getGuid())
+        .id(route.getGuid())
         .host(route.getHost())
         .path(route.getPath())
         .port(route.getPort())
@@ -141,18 +106,23 @@ public class Routes {
     CloudFoundrySpace id = spaces.findById(spaceId);
     String orgId = id.getOrganization().getId();
 
-    List<String> queryParams = new ArrayList<>();
-    queryParams.add("host:" + routeId.getHost());
-    queryParams.add("organization_guid:" + orgId);
-    queryParams.add("domain_guid:" + routeId.getDomainGuid());
-    if (routeId.getPath() != null) queryParams.add("path:" + routeId.getPath());
-    if (routeId.getPort() != null) queryParams.add("port:" + routeId.getPort().toString());
-
-    return collectPageResources("route mappings", pg -> api.all(pg, 1, queryParams)).stream()
+    return collectPages(
+            "routes",
+            pg ->
+                api.all(
+                    pg,
+                    1,
+                    routeId.getHost(),
+                    orgId,
+                    routeId.getDomainGuid(),
+                    routeId.getPath(),
+                    routeId.getPort() != null ? String.valueOf(routeId.getPort()) : null,
+                    null))
+        .stream()
         .filter(
-            routeResource ->
-                (routeId.getPath() != null || routeResource.getEntity().getPath().isEmpty())
-                    && (routeId.getPort() != null || routeResource.getEntity().getPort() == null))
+            route ->
+                (routeId.getPath() != null || route.getPath() == null || route.getPath().isEmpty())
+                    && (routeId.getPort() != null || route.getPort() == null))
         .findFirst()
         .map(this::map)
         .orElse(null);
@@ -184,16 +154,18 @@ public class Routes {
       if (!spaces.isEmpty()) {
         List<String> spaceGuids =
             spaces.stream().map(CloudFoundrySpace::getId).collect(Collectors.toList());
-        String orgFilter =
-            "organization_guid IN "
-                + spaces.stream()
-                    .map(s -> s.getOrganization().getId())
-                    .collect(Collectors.joining(","));
+        String orgGuids =
+            spaces.stream()
+                .map(s -> s.getOrganization().getId())
+                .distinct()
+                .collect(Collectors.joining(","));
         return forkJoinPool
             .submit(
                 () ->
-                    collectPageResources(
-                            "routes", pg -> api.all(pg, resultsPerPage, singletonList(orgFilter)))
+                    collectPages(
+                            "routes",
+                            pg ->
+                                api.all(pg, resultsPerPage, null, orgGuids, null, null, null, null))
                         .parallelStream()
                         .map(this::map)
                         .filter(lb -> spaceGuids.contains(lb.getSpace().getId()))
@@ -203,7 +175,9 @@ public class Routes {
         return forkJoinPool
             .submit(
                 () ->
-                    collectPageResources("routes", pg -> api.all(pg, resultsPerPage, null))
+                    collectPages(
+                            "routes",
+                            pg -> api.all(pg, resultsPerPage, null, null, null, null, null, null))
                         .parallelStream()
                         .map(this::map)
                         .collect(Collectors.toList()))
@@ -216,10 +190,10 @@ public class Routes {
 
   public CloudFoundryLoadBalancer createRoute(RouteId routeId, String spaceId)
       throws CloudFoundryApiException {
-    Route route = new Route(routeId, spaceId);
+    CreateRoute body = CreateRoute.fromRouteId(routeId, spaceId);
     try {
-      Resource<Route> newRoute =
-          safelyCall(() -> api.createRoute(route))
+      Route newRoute =
+          safelyCall(() -> api.createRoute(body))
               .orElseThrow(
                   () ->
                       new CloudFoundryApiException(

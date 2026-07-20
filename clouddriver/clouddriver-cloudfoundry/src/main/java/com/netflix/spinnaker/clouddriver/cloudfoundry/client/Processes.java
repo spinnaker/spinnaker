@@ -97,4 +97,8 @@ public class Processes {
         .map(pr -> pr.getResources().stream().findAny().map(ProcessStats::getState))
         .orElse(Optional.empty());
   }
+
+  public void terminateInstance(String processGuid, String index) throws CloudFoundryApiException {
+    safelyCall(() -> api.terminateInstance(processGuid, index));
+  }
 }
