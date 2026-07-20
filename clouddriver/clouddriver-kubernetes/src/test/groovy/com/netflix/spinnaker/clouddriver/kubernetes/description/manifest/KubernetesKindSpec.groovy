@@ -20,12 +20,12 @@ package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiGroup
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionBuilder
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionNames
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionNamesBuilder
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionSpec
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinitionSpecBuilder
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinition
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionBuilder
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionNames
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionNamesBuilder
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionSpec
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinitionSpecBuilder
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -199,12 +199,12 @@ class KubernetesKindSpec extends Specification {
     when:
     def kind = "TestKind"
     def group = "stable.example.com"
-    V1beta1CustomResourceDefinition crd =
-      new V1beta1CustomResourceDefinitionBuilder()
+    V1CustomResourceDefinition crd =
+      new V1CustomResourceDefinitionBuilder()
         .withSpec(
-          new V1beta1CustomResourceDefinitionSpecBuilder()
+          new V1CustomResourceDefinitionSpecBuilder()
             .withNames(
-              new V1beta1CustomResourceDefinitionNamesBuilder().withKind(kind).build())
+              new V1CustomResourceDefinitionNamesBuilder().withKind(kind).build())
             .withGroup(group)
             .build())
         .build()
