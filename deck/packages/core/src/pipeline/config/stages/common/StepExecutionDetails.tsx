@@ -10,9 +10,13 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
   constructor(props: IExecutionDetailsProps) {
     super(props);
     this.state = {
-      configSections: props.detailsSections.map((s) => s.title),
+      configSections: this.getDetailsSections(props).map((s) => s.title),
       currentSection: null,
     };
+  }
+
+  private getDetailsSections(props: IExecutionDetailsProps) {
+    return props.detailsSections.filter((section) => !section.shouldShow || section.shouldShow(props));
   }
 
   public updateCurrentSection(): void {
@@ -31,7 +35,7 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
   }
 
   public componentWillReceiveProps(nextProps: IExecutionDetailsProps): void {
-    const configSections = nextProps.detailsSections.map((s) => s.title);
+    const configSections = this.getDetailsSections(nextProps).map((s) => s.title);
     if (!isEqual(this.state.configSections, configSections)) {
       this.setState({ configSections });
       this.syncDetails(configSections);
@@ -42,10 +46,11 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
 
   public render() {
     const { configSections, currentSection } = this.state;
+    const detailsSections = this.getDetailsSections(this.props);
     return (
       <div>
         <ExecutionDetailsSectionNav sections={configSections} />
-        {this.props.detailsSections.map((Section) => (
+        {detailsSections.map((Section) => (
           <SpinErrorBoundary category="StepExecutionDetails.Section" key={Section.title}>
             <Section name={Section.title} current={currentSection} {...this.props} />
           </SpinErrorBoundary>
