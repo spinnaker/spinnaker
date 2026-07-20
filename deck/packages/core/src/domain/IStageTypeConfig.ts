@@ -1,10 +1,18 @@
-import type { IExecutionContext, IExecutionStageLabelProps, IExecutionStageSummary } from './IExecutionStage';
+import type {
+  IExecutionContext,
+  IExecutionDetailsProps,
+  IExecutionStageLabelProps,
+  IExecutionStageSummary,
+} from './IExecutionStage';
 import type { IStage } from './IStage';
 import type { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 import type { IExecutionDetailsSectionProps } from '../pipeline/config/stages/common';
 import type { IStageSummaryProps } from '../pipeline/details/StageSummary';
 
-export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & { title: string };
+export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & {
+  title: string;
+  shouldShow?: (props: IExecutionDetailsProps) => boolean;
+};
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   accountExtractor?: (stage: IStage) => string[];
