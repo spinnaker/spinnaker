@@ -54,17 +54,17 @@ subprojects {
 // Subproject must apply application plugin to be able to call this method.
 def createScript(project, mainClass, name) {
   project.tasks.create(name: name, type: CreateStartScripts) {
-    outputDir       = new File(project.buildDir, 'scripts')
-    mainClassName   = mainClass
+    outputDir       = project.layout.buildDirectory.dir('scripts').get().asFile
+    it.mainClass.set(mainClass)
     applicationName = name
-    classpath       = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtime
+    classpath       = project.tasks[JavaPlugin.JAR_TASK_NAME].outputs.files + project.configurations.runtimeClasspath
   }
   project.tasks[name].dependsOn(project.jar)
 
   project.applicationDistribution.with {
     into("bin") {
       from(project.tasks[name])
-      fileMode = 0755
+      filePermissions { unix(0755) }
     }
   }
 }

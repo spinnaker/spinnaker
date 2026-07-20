@@ -49,7 +49,7 @@ enum class SpinnakerVersionAlias {
   LATEST, SUPPORTED, NIGHTLY;
 
   companion object {
-    fun from(str: String) = try { valueOf(str.toUpperCase()) } catch (iae: IllegalArgumentException) { null }
+    fun from(str: String) = try { valueOf(str.uppercase()) } catch (iae: IllegalArgumentException) { null }
     fun isAlias(str: String) = values().any { from(str) != null }
   }
 }
