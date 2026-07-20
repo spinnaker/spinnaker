@@ -22,7 +22,8 @@ ext {
     spek             : "1.1.5",
     elasticsearch    : "8.19.18", // Used by clouddriver, moved here for central dep management
     spek2            : "2.0.9",
-    springdocs          : "2.8.17",
+    kubernetesClient : "23.0.0",
+    springdocs       : "2.8.17",
     springBoot       : "3.5.15",
     springCloud      : "2025.0.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
     // bring in latest, though it's ahead of deps.  This is due to springdocs
@@ -148,5 +149,9 @@ dependencies {
     api("org.pf4j:pf4j-update:2.3.0")
     api("org.springdoc:springdoc-openapi-starter-webmvc-ui:${versions.springdocs}")
     api("org.threeten:threeten-extra:1.0")
+
+    // kubernetes
+    api("io.kubernetes:client-java:${versions.kubernetesClient}")
+    api("io.kubernetes:client-java-api-fluent:${versions.kubernetesClient}")
   }
 }

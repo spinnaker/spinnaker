@@ -58,7 +58,8 @@ class SqlAgentSchedulerConfiguration {
       disabledAgentsConfig = sqlAgentProperties.disabledAgents,
       tableNamespace = tableNamespace,
       agentLockAcquisitionIntervalSeconds = sqlAgentProperties.agentLockAcquisitionIntervalSeconds,
-      shardingFilter = shardingFilter
+      shardingFilter = shardingFilter,
+      rebalancePercentageThreshold = sqlAgentProperties.rebalancePercentageThreshold
     )
   }
 }

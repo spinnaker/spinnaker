@@ -60,8 +60,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.Ku
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.moniker.Namer;
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinition;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -131,6 +131,8 @@ public class KubernetesCredentials {
 
   @Include @Getter private final boolean debug;
 
+  @Getter private final String server;
+
   @Getter private final ResourcePropertyRegistry resourcePropertyRegistry;
   private final KubernetesKindRegistry kindRegistry;
   @Getter private final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap;
@@ -150,6 +152,7 @@ public class KubernetesCredentials {
       KubernetesKindRegistry.Factory kindRegistryFactory,
       KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
       String kubeconfigFile,
+      String server,
       Namer<KubernetesManifest> manifestNamer,
       GlobalResourcePropertyRegistry globalResourcePropertyRegistry) {
     this.registry = registry;
@@ -192,6 +195,7 @@ public class KubernetesCredentials {
     this.kubeconfigFileHash = KubeconfigFileHasher.hashKubeconfigFile(kubeconfigFile);
     this.serviceAccount = managedAccount.isServiceAccount();
     this.context = managedAccount.getContext();
+    this.server = server;
 
     this.onlySpinnakerManaged = managedAccount.isOnlySpinnakerManaged();
     this.checkPermissionsOnStartup = managedAccount.isCheckPermissionsOnStartup();
@@ -331,7 +335,7 @@ public class KubernetesCredentials {
               .map(
                   manifest ->
                       KubernetesCacheDataConverter.getResource(
-                          manifest, V1beta1CustomResourceDefinition.class))
+                          manifest, V1CustomResourceDefinition.class))
               .map(KubernetesKindProperties::fromCustomResourceDefinition)
               .collect(
                   toImmutableMap(KubernetesKindProperties::getKubernetesKind, Function.identity()));
@@ -828,6 +832,7 @@ public class KubernetesCredentials {
           kindRegistryFactory,
           kubernetesSpinnakerKindMap,
           getKubeconfigFile(configFileService, managedAccount),
+          getServer(managedAccount),
           manifestNamer,
           globalResourcePropertyRegistry);
     }
@@ -843,6 +848,13 @@ public class KubernetesCredentials {
             managedAccount.getKubeconfigContents(), managedAccount.getName());
       }
 
+      return "";
+    }
+
+    private String getServer(ManagedAccount managedAccount) {
+      if (StringUtils.isNotEmpty(managedAccount.getServer())) {
+        return managedAccount.getServer();
+      }
       return "";
     }
   }

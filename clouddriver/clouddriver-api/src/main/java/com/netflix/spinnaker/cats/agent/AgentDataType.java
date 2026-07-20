@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.cats.agent;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * Describes both the type name as well as authority for an Agent's provided data.
@@ -27,6 +29,8 @@ import com.netflix.spinnaker.kork.annotations.Beta;
  * complete set of data, so will not result in deletions when elements are no longer present.
  */
 @Beta
+@ToString
+@EqualsAndHashCode
 public class AgentDataType {
   public enum Authority {
     AUTHORITATIVE,

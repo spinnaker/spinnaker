@@ -77,7 +77,7 @@ dependencies {
   implementation "io.spinnaker.kork:kork-secrets"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.kubernetes:client-java"
-  implementation "io.kubernetes:client-java-api-fluent:13.0.2"
+  implementation "io.kubernetes:client-java-api-fluent"
   implementation "org.apache.commons:commons-lang3"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
@@ -103,6 +103,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-test"
   testImplementation "org.apache.groovy:groovy-templates"
   testImplementation "com.squareup.retrofit2:retrofit-mock"
+  testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   integrationImplementation 'org.springframework.security:spring-security-test'
 
   integrationImplementation project(":clouddriver-web")

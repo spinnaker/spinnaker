@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.cache;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentLock;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.NoOpStartupConcurrencyControl;
+import com.netflix.spinnaker.cats.agent.SemaphoreStartupConcurrencyControl;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory;
@@ -31,7 +35,12 @@ import com.netflix.spinnaker.clouddriver.search.SearchProvider;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -45,6 +54,7 @@ import org.springframework.context.annotation.Configuration;
 })
 @EnableConfigurationProperties(CatsInMemorySearchProperties.class)
 public class CacheConfig {
+
   @Bean
   @ConditionalOnMissingBean(NamedCacheFactory.class)
   NamedCacheFactory namedCacheFactory() {
@@ -54,8 +64,9 @@ public class CacheConfig {
   @Bean
   @ConditionalOnMissingBean(AgentScheduler.class)
   @ConditionalOnProperty(value = "caching.write-enabled", matchIfMissing = true)
-  AgentScheduler agentScheduler() {
-    return new DefaultAgentScheduler(60, TimeUnit.SECONDS);
+  AgentScheduler agentScheduler(
+      @Value("${cats.defaultscheduler.scheduleTimeout:#{60L}}") long scheduleTimeout) {
+    return new DefaultAgentScheduler(scheduleTimeout, TimeUnit.SECONDS);
   }
 
   @Bean
@@ -65,6 +76,28 @@ public class CacheConfig {
     return (agent, agentExecution, executionInstrumentation) -> {
       // do nothing
     };
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "caching.streaming.startupConcurrency", havingValue = "0")
+  StartupConcurrencyControl noOpStartupConcurrencyControl() {
+    return new NoOpStartupConcurrencyControl();
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "caching.streaming.startupConcurrency", matchIfMissing = true)
+  StartupConcurrencyControl semaphoreStartupConcurrencyControl(
+      @Value("${caching.streaming.startupConcurrency:#{2}}") int concurrencyLimit) {
+    return new SemaphoreStartupConcurrencyControl(concurrencyLimit);
+  }
+
+  @Bean(destroyMethod = "shutdown")
+  ExecutorService cleanupExecutorService() {
+    ThreadFactory threadFactory =
+        new ThreadFactoryBuilder()
+            .setNameFormat("LongRunningAgentExecutionCleanupThread-%d")
+            .build();
+    return Executors.newCachedThreadPool(threadFactory);
   }
 
   @Bean
@@ -97,8 +130,15 @@ public class CacheConfig {
   }
 
   @Bean
+  @ConditionalOnExpression("${caching.metrics.new:false} == false")
   ExecutionInstrumentation metricInstrumentation(Registry registry) {
     return new MetricInstrumentation(registry);
+  }
+
+  @Bean
+  @ConditionalOnExpression("${caching.metrics.new:false} == true")
+  ExecutionInstrumentation newMetricInstrumentation(Registry registry) {
+    return new NewMetricInstrumentation(registry);
   }
 
   @Bean

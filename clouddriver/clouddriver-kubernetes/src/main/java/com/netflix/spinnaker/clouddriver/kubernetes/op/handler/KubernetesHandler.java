@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.cats.agent.StartupConcurrencyControl;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.ArtifactReplacer.ReplaceResult;
 import com.netflix.spinnaker.clouddriver.kubernetes.artifact.Replacer;
@@ -29,6 +30,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys.InfrastructureC
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.Front50ApplicationLoader;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgent;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.KubernetesCachingAgentFactory;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgent;
+import com.netflix.spinnaker.clouddriver.kubernetes.caching.agent.streaming.KubernetesStreamingCachingAgentFactory;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.view.provider.KubernetesManifestProvider;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
@@ -40,6 +43,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Warning;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -100,6 +104,10 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
 
   protected abstract KubernetesCachingAgentFactory cachingAgentFactory();
 
+  protected KubernetesStreamingCachingAgentFactory streamingCachingAgentFactory() {
+    return KubernetesStreamingCachingAgent::new;
+  }
+
   public ImmutableSet<Artifact> listArtifacts(KubernetesManifest manifest) {
     return artifactReplacer.findAll(manifest);
   }
@@ -125,6 +133,25 @@ public abstract class KubernetesHandler implements CanDeploy, CanDelete, CanPatc
             configurationProperties,
             kubernetesSpinnakerKindMap,
             front50ApplicationLoader);
+  }
+
+  public KubernetesStreamingCachingAgent buildStreamingCachingAgent(
+      KubernetesNamedAccountCredentials namedAccountCredentials,
+      KubernetesConfigurationProperties configurationProperties,
+      KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap,
+      @Nullable Front50ApplicationLoader front50ApplicationLoader,
+      Registry registry,
+      StartupConcurrencyControl concurrencyControl,
+      ExecutorService cleanupExecutorService) {
+    KubernetesStreamingCachingAgentFactory factory = streamingCachingAgentFactory();
+    return factory.buildCachingAgent(
+        namedAccountCredentials,
+        configurationProperties,
+        kubernetesSpinnakerKindMap,
+        front50ApplicationLoader,
+        registry,
+        concurrencyControl,
+        cleanupExecutorService);
   }
 
   // used for stripping sensitive values

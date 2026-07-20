@@ -1,0 +1,12 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "resourceVersion": "1"
+  },
+  "items": [
+    {
+      "metadata": {
+        "name": "my-pod-1",
+        "namespace": "test-namespace",
+        "ownerRefe

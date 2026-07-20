@@ -6,7 +6,19 @@
     "email": "test@abc.com",
     "instancePort": 80,
     "lastModifiedBy": "test@abc.com",
-    "name": "MY",
+    "name": "MY-APPLICATION",
+    "permissions": {},
+    "trafficGuards": [],
+    "updateTs": "1627312672356"
+  },
+  {
+    "cloudProviders": null,
+    "createTs": null,
+    "description": null,
+    "email": "test@abc.com",
+    "instancePort": 80,
+    "lastModifiedBy": "test@abc.com",
+    "name": "MY-APPLICATION",
     "permissions": {},
     "trafficGuards": [],
     "updateTs": "1627312672356"

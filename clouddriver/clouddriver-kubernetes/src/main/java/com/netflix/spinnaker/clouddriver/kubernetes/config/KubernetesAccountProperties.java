@@ -75,6 +75,8 @@ public class KubernetesAccountProperties {
     private boolean checkPermissionsOnStartup = true;
     private List<CustomKubernetesResource> customResources = new ArrayList<>();
     private List<KubernetesCachingPolicy> cachingPolicies = new ArrayList<>();
+    private KubernetesStreamingCachingProperties streamingCaching =
+        new KubernetesStreamingCachingProperties();
     private List<String> kinds = new ArrayList<>();
     private List<String> omitKinds = new ArrayList<>();
     private boolean onlySpinnakerManaged = false;
@@ -82,6 +84,7 @@ public class KubernetesAccountProperties {
     private boolean cacheAllApplicationRelationships = false;
     private RawResourcesEndpointConfig rawResourcesEndpointConfig =
         new RawResourcesEndpointConfig();
+    private String server;
 
     public void validate() {
       if (Strings.isNullOrEmpty(name)) {

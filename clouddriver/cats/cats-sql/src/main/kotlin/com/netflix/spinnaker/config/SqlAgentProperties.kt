@@ -28,6 +28,7 @@ class SqlAgentProperties {
 
   var maxConcurrentAgents: Int = 100
   var agentLockAcquisitionIntervalSeconds: Long = 1
+  var rebalancePercentageThreshold: Int = 50
   var poll: SqlPollProperties = SqlPollProperties()
 }
 

@@ -34,6 +34,7 @@ interface SqlCacheMetrics {
     type: String,
     itemCount: Int,
     itemsDeleted: Int,
+    relationshipsDeleted: Int,
     deleteOperations: Int
   ) {}
 

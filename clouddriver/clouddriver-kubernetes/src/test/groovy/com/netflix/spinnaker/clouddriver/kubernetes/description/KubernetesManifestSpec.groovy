@@ -32,7 +32,7 @@ class KubernetesManifestSpec extends Specification {
   def NAME = "my-name"
   def NAMESPACE = "my-namespace"
   def KIND = KubernetesKind.REPLICA_SET
-  def API_VERSION = KubernetesApiVersion.EXTENSIONS_V1BETA1
+  def API_VERSION = KubernetesApiVersion.APPS_V1
   def KEY = "hi"
   def VALUE = "there"
   def CRD_NAME = "default-custom1"
@@ -93,7 +93,7 @@ class KubernetesManifestSpec extends Specification {
     KubernetesManifest manifest = objectToManifest(testPayload)
 
     then:
-    manifest.getApiVersion() == KubernetesApiVersion.EXTENSIONS_V1BETA1
+    manifest.getApiVersion() == KubernetesApiVersion.APPS_V1
 
     when:
     manifest.setApiVersion(KubernetesApiVersion.NETWORKING_K8S_IO_V1)

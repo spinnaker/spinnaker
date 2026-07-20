@@ -1,0 +1,6 @@
+{
+  "metadata": {
+    "resourceVersion": "2",
+    "name": "my-pod-3",
+    "namespace": "test-namespace",
+    "ownerRefe

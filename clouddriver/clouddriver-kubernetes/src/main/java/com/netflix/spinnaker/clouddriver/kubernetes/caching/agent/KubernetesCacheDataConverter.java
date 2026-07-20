@@ -43,8 +43,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.Kuberne
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import com.netflix.spinnaker.moniker.Moniker;
 import com.netflix.spinnaker.moniker.Namer;
-import io.kubernetes.client.openapi.JSON;
-import java.util.*;
+import io.kubernetes.client.util.generic.dynamic.LegacyJSON;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.ParametersAreNonnullByDefault;
 import lombok.Getter;
@@ -54,7 +60,13 @@ import org.slf4j.LoggerFactory;
 public class KubernetesCacheDataConverter {
   private static final Logger log = LoggerFactory.getLogger(KubernetesCacheDataConverter.class);
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static final JSON json = new JSON();
+
+  // A new JSON implementation validates the input and throws an exception if it doesn't match
+  // the schema. Clouddriver heavily relies on this feature to extract subsets of the manifest
+  // and convert them to other types.
+  // There is a TODO to remove this and use strict JSON parsing, see: {@link
+  // com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest}
+  private static final LegacyJSON json = new LegacyJSON();
   // TODO(lwander): make configurable
   @Getter private static final int logicalTtlSeconds = toIntExact(TimeUnit.MINUTES.toSeconds(10));
   @Getter private static final int infrastructureTtlSeconds = -1;
@@ -204,10 +216,10 @@ public class KubernetesCacheDataConverter {
         .collect(toImmutableSet());
   }
 
-  static void logStratifiedCacheData(
+  public static void logStratifiedCacheData(
       String agentType, Map<String, Collection<CacheData>> stratifiedCacheData) {
     for (Map.Entry<String, Collection<CacheData>> entry : stratifiedCacheData.entrySet()) {
-      log.info(
+      log.debug(
           agentType
               + ": grouping "
               + entry.getKey()

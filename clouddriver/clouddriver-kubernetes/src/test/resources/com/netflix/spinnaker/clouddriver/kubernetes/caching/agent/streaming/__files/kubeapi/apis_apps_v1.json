@@ -1,0 +1,76 @@
+{
+  "kind": "APIResourceList",
+  "apiVersion": "v1",
+  "groupVersion": "apps/v1",
+  "resources": [
+    {
+      "name": "deployments",
+      "singularName": "deployment",
+      "namespaced": true,
+      "kind": "Deployment",
+      "verbs": [
+        "create",
+        "delete",
+        "deletecollection",
+        "get",
+        "list",
+        "patch",
+        "update",
+        "watch"
+      ],
+      "shortNames": [
+        "deploy"
+      ],
+      "categories": [
+        "all"
+      ],
+      "storageVersionHash": "8aSe+NMegvE="
+    },
+    {
+      "name": "replicasets",
+      "singularName": "replicaset",
+      "namespaced": true,
+      "kind": "ReplicaSet",
+      "verbs": [
+        "create",
+        "delete",
+        "deletecollection",
+        "get",
+        "list",
+        "patch",
+        "update",
+        "watch"
+      ],
+      "shortNames": [
+        "rs"
+      ],
+      "categories": [
+        "all"
+      ],
+      "storageVersionHash": "P1RzHs8/mWQ="
+    },
+    {
+      "name": "statefulsets",
+      "singularName": "statefulset",
+      "namespaced": true,
+      "kind": "StatefulSet",
+      "verbs": [
+        "create",
+        "delete",
+        "deletecollection",
+        "get",
+        "list",
+        "patch",
+        "update",
+        "watch"
+      ],
+      "shortNames": [
+        "sts"
+      ],
+      "categories": [
+        "all"
+      ],
+      "storageVersionHash": "H+vl74LkKdo="
+    }
+  ]
+}

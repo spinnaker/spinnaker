@@ -20,6 +20,7 @@ import java.util.concurrent.*
 
 class ManualRunnableScheduler implements ScheduledExecutorService {
     private final Collection<Callable<?>> callables = new LinkedList<>()
+    private final Collection<Callable<?>> submittedCallables = new LinkedList<>()
 
     private static class RunnableWrapper implements Callable<Object> {
         private final Runnable runnable;
@@ -125,7 +126,7 @@ class ManualRunnableScheduler implements ScheduledExecutorService {
 
     @Override
     def <T> Future<T> submit(Callable<T> task) {
-        callables.add(task)
+        submittedCallables.add(task)
         new ScheduledFutureImpl(task)
     }
 
@@ -167,11 +168,16 @@ class ManualRunnableScheduler implements ScheduledExecutorService {
     @Override
     void shutdown() {
         callables.clear()
+        submittedCallables.clear()
     }
 
     public void runAll() {
         for (Callable callable : callables) {
             callable.call()
         }
+        for (Callable callable : submittedCallables) {
+            callable.call()
+        }
+        submittedCallables.clear()
     }
 }

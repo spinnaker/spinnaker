@@ -17,9 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.view.model;
 
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.EXTENSIONS_V1BETA1;
 import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1;
-import static com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesApiVersion.NETWORKING_K8S_IO_V1BETA1;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -61,8 +59,8 @@ import org.slf4j.LoggerFactory;
 @Value
 public final class KubernetesSecurityGroup implements KubernetesResource, SecurityGroup {
   private static final Logger log = LoggerFactory.getLogger(KubernetesSecurityGroup.class);
-  private static final ImmutableSet<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
-      ImmutableSet.of(EXTENSIONS_V1BETA1, NETWORKING_K8S_IO_V1BETA1, NETWORKING_K8S_IO_V1);
+  private static final Set<KubernetesApiVersion> SUPPORTED_API_VERSIONS =
+      Set.of(NETWORKING_K8S_IO_V1);
 
   private final String account;
   private final String id;

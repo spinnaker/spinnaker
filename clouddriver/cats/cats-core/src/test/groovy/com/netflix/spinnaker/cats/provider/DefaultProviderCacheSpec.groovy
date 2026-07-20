@@ -16,5 +16,5 @@
 
 package com.netflix.spinnaker.cats.provider
 
-class DefaultProvierCacheSpec extends ProviderCacheSpec {
+class DefaultProviderCacheSpec extends ProviderCacheSpec {
 }

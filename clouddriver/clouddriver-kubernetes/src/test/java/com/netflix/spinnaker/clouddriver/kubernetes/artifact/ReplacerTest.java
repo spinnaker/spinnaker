@@ -130,7 +130,13 @@ final class ReplacerTest {
     String replicaSet =
         json.serialize(
             new V1ReplicaSetBuilder()
+                .withNewMetadata()
+                .withName("my-app-deployment")
+                .endMetadata()
                 .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(Map.of("app", "my-app"))
+                .endSelector()
                 .withNewTemplate()
                 .withNewSpec()
                 .addToContainers(
@@ -388,11 +394,18 @@ final class ReplacerTest {
     String replicaSet =
         json.serialize(
             new V1ReplicaSetBuilder()
+                .withNewMetadata()
+                .withName("my-app-deployment")
+                .endMetadata()
                 .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(Map.of("app", "my-app"))
+                .endSelector()
                 .withNewTemplate()
                 .withNewSpec()
                 .addToVolumes(
                     new V1VolumeBuilder()
+                        .withName("my-volume-1")
                         .withConfigMap(
                             new V1ConfigMapVolumeSourceBuilder()
                                 .withName("first-config-map")
@@ -400,6 +413,7 @@ final class ReplacerTest {
                         .build())
                 .addToVolumes(
                     new V1VolumeBuilder()
+                        .withName("my-volume-2")
                         .withConfigMap(
                             new V1ConfigMapVolumeSourceBuilder()
                                 .withName("second-config-map")
@@ -407,6 +421,7 @@ final class ReplacerTest {
                         .build())
                 .addToVolumes(
                     new V1VolumeBuilder()
+                        .withName("my-volume-3")
                         .withSecret(
                             new V1SecretVolumeSourceBuilder()
                                 .withSecretName("first-secret")
@@ -414,6 +429,7 @@ final class ReplacerTest {
                         .build())
                 .addToVolumes(
                     new V1VolumeBuilder()
+                        .withName("my-volume-4")
                         .withSecret(
                             new V1SecretVolumeSourceBuilder()
                                 .withSecretName("second-secret")
@@ -601,7 +617,13 @@ final class ReplacerTest {
     String replicaSet =
         json.serialize(
             new V1ReplicaSetBuilder()
+                .withNewMetadata()
+                .withName("my-app-deployment")
+                .endMetadata()
                 .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(Map.of("app", "my-app"))
+                .endSelector()
                 .withNewTemplate()
                 .withNewSpec()
                 .addToVolumes(
@@ -813,7 +835,13 @@ final class ReplacerTest {
     String replicaSet =
         json.serialize(
             new V1ReplicaSetBuilder()
+                .withNewMetadata()
+                .withName("my-app-deployment")
+                .endMetadata()
                 .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(Map.of("app", "my-app"))
+                .endSelector()
                 .withNewTemplate()
                 .withNewSpec()
                 .addToContainers(
@@ -821,6 +849,7 @@ final class ReplacerTest {
                         .withName("my-image-with-tag")
                         .withEnv(
                             new V1EnvVarBuilder()
+                                .withName("ENV_VAR_1")
                                 .withValueFrom(
                                     new V1EnvVarSourceBuilder()
                                         .withConfigMapKeyRef(
@@ -831,6 +860,7 @@ final class ReplacerTest {
                                         .build())
                                 .build(),
                             new V1EnvVarBuilder()
+                                .withName("ENV_VAR_2")
                                 .withValueFrom(
                                     new V1EnvVarSourceBuilder()
                                         .withConfigMapKeyRef(
@@ -842,6 +872,7 @@ final class ReplacerTest {
                                         .build())
                                 .build(),
                             new V1EnvVarBuilder()
+                                .withName("ENV_VAR_3")
                                 .withValueFrom(
                                     new V1EnvVarSourceBuilder()
                                         .withConfigMapKeyRef(
@@ -852,6 +883,7 @@ final class ReplacerTest {
                                         .build())
                                 .build(),
                             new V1EnvVarBuilder()
+                                .withName("ENV_VAR_4")
                                 .withValueFrom(
                                     new V1EnvVarSourceBuilder()
                                         .withSecretKeyRef(
@@ -862,6 +894,7 @@ final class ReplacerTest {
                                         .build())
                                 .build(),
                             new V1EnvVarBuilder()
+                                .withName("ENV_VAR_5")
                                 .withValueFrom(
                                     new V1EnvVarSourceBuilder()
                                         .withSecretKeyRef(
@@ -872,6 +905,7 @@ final class ReplacerTest {
                                         .build())
                                 .build(),
                             new V1EnvVarBuilder()
+                                .withName("ENV_VAR_6")
                                 .withValueFrom(
                                     new V1EnvVarSourceBuilder()
                                         .withSecretKeyRef(
@@ -1055,7 +1089,13 @@ final class ReplacerTest {
     String replicaSet =
         json.serialize(
             new V1ReplicaSetBuilder()
+                .withNewMetadata()
+                .withName("my-app-deployment")
+                .endMetadata()
                 .withNewSpec()
+                .withNewSelector()
+                .withMatchLabels(Map.of("app", "my-app"))
+                .endSelector()
                 .withNewTemplate()
                 .withNewSpec()
                 .addToContainers(
@@ -1242,6 +1282,8 @@ final class ReplacerTest {
         json.serialize(
             new V1HorizontalPodAutoscalerBuilder()
                 .withNewSpec()
+                .withMinReplicas(1)
+                .withMaxReplicas(10)
                 .withScaleTargetRef(
                     new V1CrossVersionObjectReferenceBuilder()
                         .withKind("deployment")
@@ -1257,6 +1299,8 @@ final class ReplacerTest {
         json.serialize(
             new V1HorizontalPodAutoscalerBuilder()
                 .withNewSpec()
+                .withMinReplicas(1)
+                .withMaxReplicas(10)
                 .withScaleTargetRef(
                     new V1CrossVersionObjectReferenceBuilder()
                         .withKind("replicaSet")
@@ -1319,8 +1363,8 @@ final class ReplacerTest {
             NAMESPACE,
             ACCOUNT);
 
-    V1beta1CronJob replacedCronJob =
-        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1beta1CronJob.class);
+    V1CronJob replacedCronJob =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1CronJob.class);
     assertThat(
             replacedCronJob
                 .getSpec()
@@ -1364,8 +1408,8 @@ final class ReplacerTest {
       expectedImageAndTag = "gcr.io/my-repository/my-image:expected-tag";
     }
 
-    V1beta1CronJob replacedCronJob =
-        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1beta1CronJob.class);
+    V1CronJob replacedCronJob =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1CronJob.class);
     assertThat(
             replacedCronJob
                 .getSpec()
@@ -1387,8 +1431,9 @@ final class ReplacerTest {
   private KubernetesManifest getCronJob() {
     String cronJob =
         json.serialize(
-            new V1beta1CronJobBuilder()
+            new V1CronJobBuilder()
                 .withNewSpec()
+                .withSchedule("*/5 * * * *")
                 .withNewJobTemplate()
                 .withNewSpec()
                 .withNewTemplate()
@@ -1414,8 +1459,9 @@ final class ReplacerTest {
   private KubernetesManifest getCronJobWithOneContainerWithImageTag() {
     String cronJob =
         json.serialize(
-            new V1beta1CronJobBuilder()
+            new V1CronJobBuilder()
                 .withNewSpec()
+                .withSchedule("*/5 * * * *")
                 .withNewJobTemplate()
                 .withNewSpec()
                 .withNewTemplate()

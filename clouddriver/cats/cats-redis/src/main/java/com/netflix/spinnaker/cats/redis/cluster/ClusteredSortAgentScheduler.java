@@ -17,16 +17,20 @@
 package com.netflix.spinnaker.cats.redis.cluster;
 
 import static com.netflix.spinnaker.cats.agent.ExecutionInstrumentation.elapsedTimeMs;
+import static com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.FAILED;
+import static com.netflix.spinnaker.cats.agent.LongRunningAgentExecutionState.RUNNING;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.agent.AgentExecution;
+import com.netflix.spinnaker.cats.agent.AgentExecutionRunnable;
 import com.netflix.spinnaker.cats.agent.AgentScheduler;
 import com.netflix.spinnaker.cats.agent.AgentSchedulerAware;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.CachingAgent;
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution;
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider;
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.module.CatsModuleAware;
@@ -40,8 +44,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -82,12 +88,15 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
   // This code assumes that every agent being run is in exactly either the WAITING or WORKING set.
   @VisibleForTesting static final String WAITING_SET = "WAITZ";
   @VisibleForTesting static final String WORKING_SET = "WORKZ";
+  @VisibleForTesting static final String LONG_RUNNING_WAITING_SET = "LR_WAITZ";
+  @VisibleForTesting static final String LONG_RUNNING_WORKING_SET = "LR_WORKZ";
   private static final String ADD_AGENT_SCRIPT = "addAgentScript";
   private static final String VALID_SCORE_SCRIPT = "validScoreScript";
   private static final String SWAP_SET_SCRIPT = "swapSetScript";
   private static final String REMOVE_AGENT_SCRIPT = "removeAgentScript";
   private static final String CONDITIONAL_SWAP_SET_SCRIPT = "conditionalSwapSetScript";
-
+  private static final String BUMP_SCORE_SCRIPT = "bumpScoreScript";
+  private final Map<String, AgentExecutionRunnable> longRunningAgents = new ConcurrentHashMap<>();
   private ConcurrentHashMap<String, String> scriptShas;
 
   public ClusteredSortAgentScheduler(
@@ -95,6 +104,28 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
       NodeStatusProvider nodeStatusProvider,
       AgentIntervalProvider intervalProvider,
       Integer parallelism) {
+    this(
+        jedisPool,
+        nodeStatusProvider,
+        intervalProvider,
+        parallelism,
+        Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder()
+                .setNameFormat(AgentWorker.class.getSimpleName() + "-%d")
+                .build()),
+        Executors.newSingleThreadScheduledExecutor(
+            new ThreadFactoryBuilder()
+                .setNameFormat(ClusteredSortAgentScheduler.class.getSimpleName() + "-%d")
+                .build()));
+  }
+
+  public ClusteredSortAgentScheduler(
+      JedisPool jedisPool,
+      NodeStatusProvider nodeStatusProvider,
+      AgentIntervalProvider intervalProvider,
+      Integer parallelism,
+      ExecutorService executorService,
+      ScheduledExecutorService scheduledExecutorService) {
     this.jedisPool = jedisPool;
     this.nodeStatusProvider = nodeStatusProvider;
     this.agents = new ConcurrentHashMap<>();
@@ -113,16 +144,8 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     scriptShas = new ConcurrentHashMap<>();
     storeScripts();
 
-    this.agentWorkPool =
-        Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder()
-                .setNameFormat(AgentWorker.class.getSimpleName() + "-%d")
-                .build());
-    Executors.newSingleThreadScheduledExecutor(
-            new ThreadFactoryBuilder()
-                .setNameFormat(ClusteredSortAgentScheduler.class.getSimpleName() + "-%d")
-                .build())
-        .scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
+    this.agentWorkPool = executorService;
+    scheduledExecutorService.scheduleAtFixedRate(this, 0, 1, TimeUnit.SECONDS);
   }
 
   private void storeScripts() {
@@ -171,16 +194,32 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
       scriptShas.put(
           ADD_AGENT_SCRIPT,
           jedis.scriptLoad(
-              "if redis.call('zrank', KEYS[1], ARGV[1]) ~= nil then\n"
-                  + "  if redis.call('zrank', KEYS[2], ARGV[1]) ~= nil then\n"
-                  + "    return redis.call('zadd', KEYS[1], ARGV[2], ARGV[1])\n"
-                  + "  else return nil end\n"
-                  + "else return nil end\n"));
+              "local inWait = redis.call('zscore', KEYS[1], ARGV[1])\n"
+                  + "local inWork = redis.call('zscore', KEYS[2], ARGV[1])\n"
+                  + "if inWork == nil or inWork == false then\n"
+                  + "if inWait == nil or inWait == false then\n"
+                  + "  return redis.call('zadd', KEYS[1], ARGV[2], ARGV[1])\n"
+                  + "else \n "
+                  + "  return KEYS[1]\n"
+                  + "end\n"
+                  + "else"
+                  + "  return KEYS[2]\n"
+                  + "end\n"));
 
       scriptShas.put(
           REMOVE_AGENT_SCRIPT,
           jedis.scriptLoad(
               "redis.call('zrem', KEYS[1], ARGV[1])\n" + "redis.call('zrem', KEYS[2], ARGV[1])\n"));
+
+      scriptShas.put(
+          BUMP_SCORE_SCRIPT,
+          jedis.scriptLoad(
+              "local score = redis.call('zscore', KEYS[1], ARGV[1])\n"
+                  + "if score ~= nil then\n"
+                  + "  redis.call('zrem', KEYS[1], ARGV[1])\n"
+                  + "  redis.call('zadd', KEYS[1], ARGV[2], ARGV[1])\n"
+                  + "  return score\n"
+                  + "else return nil end\n"));
     }
   }
 
@@ -201,6 +240,34 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     return scriptShas.get(scriptName);
   }
 
+  private void addAgent(Jedis jedis, String agent, String waitingSet, String workingSet) {
+    Object result =
+        jedis.evalsha(
+            getScriptSha(ADD_AGENT_SCRIPT, jedis),
+            2,
+            waitingSet,
+            workingSet,
+            agent,
+            score(jedis, NOW));
+    log.debug("agent added: {} to {}/{} with result {}", agent, waitingSet, workingSet, result);
+  }
+
+  private void addAgent(String agent, String waitingSet, String workingSet) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      addAgent(jedis, agent, waitingSet, workingSet);
+    }
+  }
+
+  private void removeAgent(String agent, String waitingSet, String workingSet) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      jedis.evalsha(getScriptSha(REMOVE_AGENT_SCRIPT, jedis), 2, waitingSet, workingSet, agent);
+    }
+  }
+
+  private boolean shouldRefresh() {
+    return runCount % REDIS_REFRESH_PERIOD == 0;
+  }
+
   @Override
   public void schedule(
       Agent agent,
@@ -210,23 +277,32 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
       ((AgentSchedulerAware) agent).setAgentScheduler(this);
     }
 
-    if (!(agentExecution instanceof CachingAgent.CacheExecution)) {
-      throw new IllegalArgumentException(
-          "Sort scheduler requires agent executions to be of type CacheExecution");
-    }
+    if (agentExecution instanceof LongRunningAgentExecution) {
+      AgentExecutionRunnable previous = longRunningAgents.get(agent.getAgentType());
+      if (previous != null) {
+        log.info("Stopping previous running agent execution {}", agent.getAgentType());
+        try {
+          ((LongRunningAgentExecution) previous.getExecution()).stopExecutingAndCleanup().join();
+        } catch (Exception e) {
+          log.warn("Failed to stop previous agent execution {}", agent.getAgentType(), e);
+        }
+      }
 
-    agents.put(
-        agent.getAgentType(),
-        new AgentWorker(
-            agent, (CachingAgent.CacheExecution) agentExecution, executionInstrumentation, this));
-    try (Jedis jedis = jedisPool.getResource()) {
-      jedis.evalsha(
-          getScriptSha(ADD_AGENT_SCRIPT, jedis),
-          2,
-          WAITING_SET,
-          WORKING_SET,
+      longRunningAgents.put(
           agent.getAgentType(),
-          score(jedis, NOW));
+          new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation));
+      addAgent(agent.getAgentType(), LONG_RUNNING_WAITING_SET, LONG_RUNNING_WORKING_SET);
+    } else {
+      if (!(agentExecution instanceof CachingAgent.CacheExecution)) {
+        throw new IllegalArgumentException(
+            "Sort scheduler requires agent executions to be of type CacheExecution or LongRunningAgentExecution");
+      }
+
+      agents.put(
+          agent.getAgentType(),
+          new AgentWorker(
+              agent, (CachingAgent.CacheExecution) agentExecution, executionInstrumentation, this));
+      addAgent(agent.getAgentType(), WAITING_SET, WORKING_SET);
     }
   }
 
@@ -260,14 +336,12 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
   }
 
   public void unschedule(Agent agent) {
-    agents.remove(agent.getAgentType());
-    try (Jedis jedis = jedisPool.getResource()) {
-      jedis.evalsha(
-          getScriptSha(REMOVE_AGENT_SCRIPT, jedis),
-          2,
-          WAITING_SET,
-          WORKING_SET,
-          agent.getAgentType());
+    if (agent instanceof LongRunningAgentExecution) {
+      longRunningAgents.remove(agent.getAgentType());
+      removeAgent(agent.getAgentType(), LONG_RUNNING_WAITING_SET, LONG_RUNNING_WORKING_SET);
+    } else {
+      agents.remove(agent.getAgentType());
+      removeAgent(agent.getAgentType(), WAITING_SET, WORKING_SET);
     }
   }
 
@@ -283,6 +357,7 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     }
     try {
       saturatePool();
+      saturateLongRunningAgentsPool();
     } catch (Throwable t) {
       log.error("Failed to run caching agents", t);
     } finally {
@@ -315,9 +390,27 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     }
   }
 
+  private long getTimeout(Agent agent) {
+    long timeout = intervalProvider.getInterval(agent).getTimeout() / 1000;
+    return timeout > 0 ? timeout : 1;
+  }
+
+  private ScoreTuple acquireLongRunningAgent(Agent agent) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      String acquireScore = score(jedis, getTimeout(agent));
+      Object releaseScore =
+          jedis.evalsha(
+              getScriptSha(SWAP_SET_SCRIPT, jedis),
+              Arrays.asList(LONG_RUNNING_WAITING_SET, LONG_RUNNING_WORKING_SET),
+              Arrays.asList(agent.getAgentType(), acquireScore));
+
+      return releaseScore != null ? new ScoreTuple(acquireScore, releaseScore.toString()) : null;
+    }
+  }
+
   private ScoreTuple acquireAgent(Agent agent) {
     try (Jedis jedis = jedisPool.getResource()) {
-      String acquireScore = score(jedis, intervalProvider.getInterval(agent).getTimeout());
+      String acquireScore = score(jedis, getTimeout(agent));
       Object releaseScore =
           jedis.evalsha(
               getScriptSha(SWAP_SET_SCRIPT, jedis),
@@ -360,9 +453,22 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     }
   }
 
+  private ScoreTuple releaseLongRunningAgent(Agent agent) {
+    try (Jedis jedis = jedisPool.getResource()) {
+      String acquireScore = score(jedis, getTimeout(agent));
+      Object releaseScore =
+          jedis.evalsha(
+              getScriptSha(SWAP_SET_SCRIPT, jedis),
+              Arrays.asList(LONG_RUNNING_WORKING_SET, LONG_RUNNING_WAITING_SET),
+              Arrays.asList(agent.getAgentType(), acquireScore));
+
+      return releaseScore != null ? new ScoreTuple(acquireScore, releaseScore.toString()) : null;
+    }
+  }
+
   private ScoreTuple releaseAgent(Agent agent) {
     try (Jedis jedis = jedisPool.getResource()) {
-      String acquireScore = score(jedis, intervalProvider.getInterval(agent).getInterval());
+      String acquireScore = score(jedis, getTimeout(agent));
       Object releaseScore =
           jedis
               .evalsha(
@@ -375,20 +481,114 @@ public class ClusteredSortAgentScheduler extends CatsModuleAware
     }
   }
 
+  private ScoreTuple bumpAgentScore(Jedis jedis, Agent agent) {
+    long timeout = getTimeout(agent);
+    String newScore = score(jedis, timeout);
+    Object renewScore =
+        jedis.evalsha(
+            getScriptSha(BUMP_SCORE_SCRIPT, jedis),
+            1,
+            LONG_RUNNING_WORKING_SET,
+            agent.getAgentType(),
+            newScore);
+    return renewScore != null ? new ScoreTuple(newScore, renewScore.toString()) : null;
+  }
+
+  private void cleanupFailedAgents() {
+    Set<AgentExecutionRunnable> failedAgentsToBeCleanedUp =
+        longRunningAgents.values().stream()
+            .filter(it -> ((LongRunningAgentExecution) it.getExecution()).getState() == FAILED)
+            .collect(Collectors.toSet());
+    failedAgentsToBeCleanedUp.forEach(
+        it -> {
+          LongRunningAgentExecution longRunningAgentExecution =
+              (LongRunningAgentExecution) it.getExecution();
+          longRunningAgentExecution
+              .stopExecutingAndCleanup()
+              .orTimeout(longRunningAgentExecution.getStopTimeoutMillis(), TimeUnit.MILLISECONDS)
+              .whenComplete(
+                  (res, ex) -> {
+                    releaseLongRunningAgent(it.getAgent());
+                  });
+        });
+  }
+
+  private void renewLongRunningAgents(Jedis jedis) {
+    Set<AgentExecutionRunnable> runningAgentsToBeRenewed =
+        longRunningAgents.values().stream()
+            .filter(it -> ((LongRunningAgentExecution) it.getExecution()).getState() == RUNNING)
+            .collect(Collectors.toSet());
+    runningAgentsToBeRenewed.forEach(
+        it -> {
+          ScoreTuple renewScore = bumpAgentScore(jedis, it.getAgent());
+          if (renewScore != null) {
+            log.debug(
+                "Renewing agent {} new score {} old score {}",
+                it.getAgent().getAgentType(),
+                renewScore.acquireScore,
+                renewScore.releaseScore);
+          } else {
+            log.debug("Agent {} was not renewed", it.getAgent().getAgentType());
+          }
+        });
+  }
+
+  void saturateLongRunningAgentsPool() {
+    try (Jedis jedis = jedisPool.getResource()) {
+      if (shouldRefresh()) {
+        for (String agent : longRunningAgents.keySet()) {
+          addAgent(jedis, agent, LONG_RUNNING_WAITING_SET, LONG_RUNNING_WORKING_SET);
+        }
+      }
+
+      renewLongRunningAgents(jedis);
+      cleanupFailedAgents();
+
+      List<String> expiredLongRunningKeys =
+          jedis.zrangeByScore(LONG_RUNNING_WORKING_SET, "-inf", score(jedis, NOW));
+      for (String key : expiredLongRunningKeys) {
+        AgentExecutionRunnable runnable = longRunningAgents.get(key);
+        if (runnable != null) {
+          releaseLongRunningAgent(runnable.getAgent());
+        }
+      }
+
+      log.debug("current score {}", score(jedis, NOW));
+      log.debug("First on Work queue: {}", jedis.zrangeWithScores(LONG_RUNNING_WAITING_SET, 0, 1));
+
+      List<String> keys = new ArrayList<>();
+      keys.addAll(jedis.zrangeByScore(LONG_RUNNING_WAITING_SET, "-inf", score(jedis, NOW)));
+      Set<AgentExecutionRunnable> workers = new HashSet<>();
+
+      // Loop until we either run out of threads to use, or agents (which are keys) to run.
+      while (!keys.isEmpty() && runningAgents.map(Semaphore::tryAcquire).orElse(true)) {
+        try {
+          String agent = keys.remove(0);
+
+          AgentExecutionRunnable runnable = longRunningAgents.get(agent);
+          if (runnable != null && acquireLongRunningAgent(runnable.getAgent()) != null) {
+            if (workers.add(runnable)) {
+              agentWorkPool.submit(runnable);
+              continue;
+            }
+          }
+          runningAgents.ifPresent(Semaphore::release);
+        } catch (Throwable t) {
+          log.error("Failed to submit AgentExecutionRunnable to agentWorkPool", t);
+          runningAgents.ifPresent(Semaphore::release);
+        }
+      }
+    }
+  }
+
   @VisibleForTesting
   void saturatePool() {
     try (Jedis jedis = jedisPool.getResource()) {
       // Occasionally repopulate the agents in case redis went down. If they already exist, this is
       // a NOOP
-      if (runCount % REDIS_REFRESH_PERIOD == 0) {
+      if (shouldRefresh()) {
         for (String agent : agents.keySet()) {
-          jedis.evalsha(
-              getScriptSha(ADD_AGENT_SCRIPT, jedis),
-              2,
-              WAITING_SET,
-              WORKING_SET,
-              agent,
-              score(jedis, NOW));
+          addAgent(jedis, agent, WAITING_SET, WORKING_SET);
         }
       }
 

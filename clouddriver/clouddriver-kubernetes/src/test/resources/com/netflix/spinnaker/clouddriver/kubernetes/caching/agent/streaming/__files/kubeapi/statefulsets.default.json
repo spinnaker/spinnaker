@@ -1,0 +1,8 @@
+{
+  "kind": "StatefulSetList",
+  "apiVersion": "apps/v1",
+  "metadata": {
+    "resourceVersion": "1"
+  },
+  "items": []
+}

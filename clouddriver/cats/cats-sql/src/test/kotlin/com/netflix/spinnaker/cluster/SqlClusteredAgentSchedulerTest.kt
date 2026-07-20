@@ -17,24 +17,35 @@
 
 package com.netflix.spinnaker.cluster
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
+import com.netflix.spinnaker.cats.agent.LongRunningAgentExecution
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
 import com.netflix.spinnaker.cats.cluster.NoopShardingFilter
 import com.netflix.spinnaker.cats.sql.cluster.SqlClusteredAgentScheduler
+import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.jooq.*
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.mockito.stubbing.Answer
+import org.slf4j.LoggerFactory
 import java.sql.ResultSet
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.FutureTask
 import java.util.concurrent.ScheduledExecutorService
@@ -44,6 +55,34 @@ class SqlClusteredAgentSchedulerTest : JUnit5Minutests {
   fun tests() = rootContext<Fixture> {
     fixture {
       Fixture()
+    }
+
+    test("should not log empty long-running agent stop lists") {
+      val logger = LoggerFactory.getLogger(SqlClusteredAgentScheduler::class.java) as Logger
+      val originalLevel = logger.level
+      val appender = ListAppender<ILoggingEvent>().apply {
+        context = LoggerFactory.getILoggerFactory() as LoggerContext
+        start()
+      }
+      logger.level = Level.INFO
+      logger.addAppender(appender)
+
+      try {
+        whenever(dynamicConfigService.getConfig(eq(Int::class.java), eq("sql.agent.max-concurrent-agents"),
+          any())).thenReturn(2)
+        sqlClusteredAgentScheduler.run()
+
+        val messages = appender.list.map { it.formattedMessage }
+        assertAll(
+          { assertFalse(messages.contains("Stopping 0 unscheduled active long running agents: []")) },
+          { assertFalse(messages.contains("Stopping 0 not running (failed) agents: []")) },
+          { assertFalse(appender.list.any { it.level == Level.ERROR }) },
+        )
+      } finally {
+        logger.detachAppender(appender)
+        logger.level = originalLevel
+        appender.stop()
+      }
     }
 
     test("should shuffle agents") {
@@ -107,7 +146,8 @@ class SqlClusteredAgentSchedulerTest : JUnit5Minutests {
       tableNamespace,
       agentExecutionPool,
       lockPollingScheduler,
-      shardingFilter
+      shardingFilter,
+      0
     )
 
     init {

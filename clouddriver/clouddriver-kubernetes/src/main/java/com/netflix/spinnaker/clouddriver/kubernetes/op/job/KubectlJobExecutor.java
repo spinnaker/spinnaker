@@ -74,6 +74,7 @@ public class KubectlJobExecutor {
   private static final String KUBECTL_COMMAND_OPTION_TOKEN = "--token=";
   private static final String KUBECTL_COMMAND_OPTION_KUBECONFIG = "--kubeconfig=";
   private static final String KUBECTL_COMMAND_OPTION_CONTEXT = "--context=";
+  private static final String KUBECTL_COMMAND_OPTION_SERVER = "--server=";
 
   private final JobExecutor jobExecutor;
 
@@ -691,7 +692,7 @@ public class KubectlJobExecutor {
     }
   }
 
-  private List<String> kubectlAuthPrefix(KubernetesCredentials credentials) {
+  protected List<String> kubectlAuthPrefix(KubernetesCredentials credentials) {
     List<String> command = new ArrayList<>();
     if (!Strings.isNullOrEmpty(credentials.getKubectlExecutable())) {
       command.add(credentials.getKubectlExecutable());
@@ -714,14 +715,21 @@ public class KubectlJobExecutor {
         command.add(KUBECTL_COMMAND_OPTION_TOKEN + getOAuthToken(credentials));
       }
 
-      String kubeconfigFile = credentials.getKubeconfigFile();
-      if (!Strings.isNullOrEmpty(kubeconfigFile)) {
-        command.add(KUBECTL_COMMAND_OPTION_KUBECONFIG + kubeconfigFile);
-      }
-
       String context = credentials.getContext();
       if (!Strings.isNullOrEmpty(context)) {
         command.add(KUBECTL_COMMAND_OPTION_CONTEXT + context);
+      }
+
+      String kubeconfigFile = credentials.getKubeconfigFile();
+      String server = credentials.getServer();
+      if (!Strings.isNullOrEmpty(kubeconfigFile) && Strings.isNullOrEmpty(server)) {
+        command.add(KUBECTL_COMMAND_OPTION_KUBECONFIG + kubeconfigFile);
+      }
+      if (!Strings.isNullOrEmpty(server) && Strings.isNullOrEmpty(kubeconfigFile)) {
+        command.add(KUBECTL_COMMAND_OPTION_SERVER + server);
+      }
+      if (!Strings.isNullOrEmpty(server) && !Strings.isNullOrEmpty(kubeconfigFile)) {
+        throw new IllegalArgumentException("Kubeconfig file and server cannot both be set");
       }
     }
 

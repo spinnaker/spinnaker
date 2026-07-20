@@ -28,6 +28,7 @@ import com.netflix.spinnaker.kork.sql.config.SqlRetryProperties
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import org.jooq.SQLDialect
 import org.testcontainers.DockerClientFactory
+import spock.lang.Ignore
 import spock.lang.Requires
 
 import java.time.Clock

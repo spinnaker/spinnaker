@@ -19,6 +19,10 @@ apply plugin: "groovy"
 
 tasks.compileGroovy.enabled = false
 
+test {
+  useJUnitPlatform()
+}
+
 dependencies {
   implementation project(":cats:cats-core")
   implementation project(":cats:cats-redis")

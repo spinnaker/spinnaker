@@ -42,6 +42,7 @@ import io.kubernetes.client.openapi.models.V1ReplicaSet;
 import io.kubernetes.client.openapi.models.V1ReplicaSetBuilder;
 import io.kubernetes.client.openapi.models.V1ReplicaSetSpec;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -494,12 +495,16 @@ final class ArtifactReplacerTest {
                 .endMetadata()
                 .withNewSpec()
                 .withReplicas(3)
+                .withNewSelector()
+                .withMatchLabels(Map.of("app", "my-app"))
+                .endSelector()
                 .withNewTemplate()
                 .withNewSpec()
                 .addNewContainer()
+                .withName("my-container")
                 .addNewEnvFrom()
                 .withNewConfigMapRef()
-                .withNewName(configMapRef)
+                .withName(configMapRef)
                 .endConfigMapRef()
                 .endEnvFrom()
                 .endContainer()

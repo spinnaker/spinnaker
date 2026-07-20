@@ -18,9 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.caching.agent;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -28,15 +26,11 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.io.Resources;
 import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultJsonCacheData;
@@ -45,161 +39,20 @@ import com.netflix.spinnaker.cats.provider.DefaultProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.kubernetes.caching.Keys;
-import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesConfigurationProperties;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.GlobalResourcePropertyRegistry;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesCoordinates;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.KubernetesSpinnakerKindMap;
-import com.netflix.spinnaker.clouddriver.kubernetes.description.ResourcePropertyRegistry;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.*;
-import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestNamer;
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.*;
-import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.model.Front50Application;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.IntStream;
 import lombok.Value;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.stubbing.Answer;
 import retrofit2.mock.Calls;
 
-final class KubernetesCoreCachingAgentTest {
-  private static final String ACCOUNT = "my-account";
-  private static final String NAMESPACE1 = "test-namespace";
-  private static final String NAMESPACE2 = "test-namespace2";
-  private static final String DEPLOYMENT_NAME = "my-deployment";
-  private static final String STORAGE_CLASS_NAME = "my-storage-class";
-
-  private static final String DEPLOYMENT_KIND = KubernetesKind.DEPLOYMENT.toString();
-  private static final String STORAGE_CLASS_KIND = KubernetesKind.STORAGE_CLASS.toString();
-
-  private static final ImmutableMap<KubernetesKind, KubernetesKindProperties> kindProperties =
-      ImmutableMap.<KubernetesKind, KubernetesKindProperties>builder()
-          .put(
-              KubernetesKind.DEPLOYMENT,
-              KubernetesKindProperties.create(KubernetesKind.DEPLOYMENT, true))
-          .put(
-              KubernetesKind.STORAGE_CLASS,
-              KubernetesKindProperties.create(KubernetesKind.STORAGE_CLASS, false))
-          .put(
-              KubernetesKind.NAMESPACE,
-              KubernetesKindProperties.create(KubernetesKind.NAMESPACE, false))
-          .put(KubernetesKind.POD, KubernetesKindProperties.create(KubernetesKind.POD, true))
-          .put(
-              KubernetesKind.REPLICA_SET,
-              KubernetesKindProperties.create(KubernetesKind.REPLICA_SET, true))
-          .build();
-
-  private static final ObjectMapper objectMapper = new ObjectMapper();
-  private static final ResourcePropertyRegistry resourcePropertyRegistry =
-      new GlobalResourcePropertyRegistry(
-          ImmutableList.of(), new KubernetesUnregisteredCustomResourceHandler());
-  private static final ImmutableList<KubernetesHandler> handlers =
-      ImmutableList.of(
-          new KubernetesDeploymentHandler(),
-          new KubernetesReplicaSetHandler(),
-          new KubernetesServiceHandler(),
-          new KubernetesPodHandler(),
-          new KubernetesConfigMapHandler());
-  private static final KubernetesSpinnakerKindMap kubernetesSpinnakerKindMap =
-      new KubernetesSpinnakerKindMap(handlers);
-
-  /** A test Deployment manifest */
-  private static KubernetesManifest deploymentManifest(String deploymentName) {
-    KubernetesManifest deployment = new KubernetesManifest();
-    deployment.put("metadata", new HashMap<>());
-    deployment.setNamespace(NAMESPACE1);
-    deployment.setKind(KubernetesKind.DEPLOYMENT);
-    deployment.setApiVersion(KubernetesApiVersion.APPS_V1);
-    deployment.setName(deploymentName);
-    return deployment;
-  }
-
-  /** A test StorageClass manifest object */
-  private static KubernetesManifest storageClassManifest() {
-    KubernetesManifest storageClass = new KubernetesManifest();
-    storageClass.put("metadata", new HashMap<>());
-    storageClass.setKind(KubernetesKind.STORAGE_CLASS);
-    storageClass.setApiVersion(KubernetesApiVersion.fromString("storage.k8s.io/v1"));
-    storageClass.setName(STORAGE_CLASS_NAME);
-    return storageClass;
-  }
-
-  /** Returns a mock KubernetesCredentials object */
-  private static KubernetesCredentials mockKubernetesCredentials(String deploymentName) {
-    KubernetesCredentials credentials = mock(KubernetesCredentials.class);
-    when(credentials.getGlobalKinds()).thenReturn(kindProperties.keySet().asList());
-    when(credentials.getKindProperties(any(KubernetesKind.class)))
-        .thenAnswer(invocation -> kindProperties.get(invocation.getArgument(0)));
-    when(credentials.getDeclaredNamespaces()).thenReturn(ImmutableList.of(NAMESPACE1, NAMESPACE2));
-    when(credentials.getResourcePropertyRegistry()).thenReturn(resourcePropertyRegistry);
-    when(credentials.get(
-            KubernetesCoordinates.builder()
-                .kind(KubernetesKind.DEPLOYMENT)
-                .namespace(NAMESPACE1)
-                .name(deploymentName)
-                .build()))
-        .thenReturn(deploymentManifest(deploymentName));
-    when(credentials.get(
-            KubernetesCoordinates.builder()
-                .kind(KubernetesKind.STORAGE_CLASS)
-                .name(STORAGE_CLASS_NAME)
-                .build()))
-        .thenReturn(storageClassManifest());
-    when(credentials.list(any(List.class), any()))
-        .thenAnswer(
-            (Answer<ImmutableList<KubernetesManifest>>)
-                invocation -> {
-                  Object[] args = invocation.getArguments();
-                  ImmutableSet<KubernetesKind> kinds =
-                      ImmutableSet.copyOf((List<KubernetesKind>) args[0]);
-                  String namespace = (String) args[1];
-                  ImmutableList.Builder<KubernetesManifest> result = new ImmutableList.Builder<>();
-                  if (kinds.contains(KubernetesKind.DEPLOYMENT) && NAMESPACE1.equals(namespace)) {
-                    result.add(deploymentManifest(deploymentName));
-                  }
-                  if (kinds.contains(KubernetesKind.STORAGE_CLASS)) {
-                    result.add(storageClassManifest());
-                  }
-                  return result.build();
-                });
-    when(credentials.getNamer()).thenReturn(new KubernetesManifestNamer());
-    when(credentials.isValidKind(any(KubernetesKind.class))).thenReturn(true);
-    when(credentials.getKubernetesSpinnakerKindMap())
-        .thenReturn(
-            new KubernetesSpinnakerKindMap(
-                List.of(new KubernetesDeploymentHandler(), new KubernetesStorageClassHandler())));
-    return credentials;
-  }
-
-  /**
-   * Returns a KubernetesNamedAccountCredentials that contains a mock KubernetesCredentials object
-   */
-  private static KubernetesNamedAccountCredentials getNamedAccountCredentials() {
-    return getNamedAccountCredentials(DEPLOYMENT_NAME);
-  }
-
-  /**
-   * Returns a KubernetesNamedAccountCredentials with a custom deployment name that contains a mock
-   * KubernetesCredentials object
-   */
-  private static KubernetesNamedAccountCredentials getNamedAccountCredentials(
-      String deploymentName) {
-    ManagedAccount managedAccount = new ManagedAccount();
-    managedAccount.setName(ACCOUNT);
-
-    KubernetesCredentials mockCredentials = mockKubernetesCredentials(deploymentName);
-    KubernetesCredentials.Factory credentialFactory = mock(KubernetesCredentials.Factory.class);
-    when(credentialFactory.build(managedAccount)).thenReturn(mockCredentials);
-    return new KubernetesNamedAccountCredentials(managedAccount, credentialFactory);
-  }
-
+final class KubernetesCoreCachingAgentTest extends BaseKubernetesCachingAgentTest {
   /**
    * Given a KubernetesNamedAccountCredentials object and the number of caching agents to build,
    * builds a set of caching agents responsible for caching the account's data and returns a
@@ -381,7 +234,8 @@ final class KubernetesCoreCachingAgentTest {
 
     when(front50Service.getAllApplicationsUnrestricted())
         .thenReturn(
-            Calls.response(getApplicationsFromFront50("applications-response-from-front50.json")));
+            Calls.response(
+                getApplicationsFromFront50("applications-response-from-front50-2.json")));
 
     front50ApplicationLoader.refreshCache();
     verify(front50Service).getAllApplicationsUnrestricted();
@@ -572,38 +426,5 @@ final class KubernetesCoreCachingAgentTest {
             .filter(k -> !k.equals(KubernetesKind.DEPLOYMENT))
             .toArray(KubernetesKind[]::new);
     assertThat(filteredPrimaryKinds).containsExactlyInAnyOrder(expected); // excludes Deployment
-  }
-
-  private static ImmutableList<String> getAuthoritativeTypes(
-      Collection<AgentDataType> agentDataTypes) {
-    return agentDataTypes.stream()
-        .filter(dataType -> dataType.getAuthority() == AUTHORITATIVE)
-        .map(AgentDataType::getTypeName)
-        .collect(toImmutableList());
-  }
-
-  private void validateStorageClassInCacheResult(
-      String storageClassKey, Map<String, Collection<CacheData>> cacheResults) {
-    assertThat(cacheResults).containsKey(STORAGE_CLASS_KIND);
-    Collection<CacheData> storageClasses = cacheResults.get(STORAGE_CLASS_KIND);
-    assertThat(storageClasses).extracting(CacheData::getId).contains(storageClassKey);
-    assertThat(storageClasses)
-        .extracting(storageClass -> storageClass.getAttributes().get("name"))
-        .containsExactly(STORAGE_CLASS_NAME);
-  }
-
-  private Set<Front50Application> getApplicationsFromFront50(String fileName)
-      throws JsonProcessingException {
-    return objectMapper.readValue(
-        getResource(fileName), new TypeReference<Set<Front50Application>>() {});
-  }
-
-  private String getResource(String name) {
-    try {
-      return Resources.toString(
-          KubernetesCoreCachingAgentTest.class.getResource(name), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
   }
 }

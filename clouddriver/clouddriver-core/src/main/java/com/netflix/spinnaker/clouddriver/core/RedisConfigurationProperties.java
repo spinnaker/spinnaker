@@ -49,4 +49,5 @@ public class RedisConfigurationProperties {
 
   private String scheduler = "default";
   private int parallelism = -1;
+  private int rebalancePercentageThreshold = 50;
 }
