@@ -60,8 +60,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.Ku
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor.KubectlNotFoundException;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import com.netflix.spinnaker.moniker.Namer;
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinition;
 import io.kubernetes.client.openapi.models.V1DeleteOptions;
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -331,7 +331,7 @@ public class KubernetesCredentials {
               .map(
                   manifest ->
                       KubernetesCacheDataConverter.getResource(
-                          manifest, V1beta1CustomResourceDefinition.class))
+                          manifest, V1CustomResourceDefinition.class))
               .map(KubernetesKindProperties::fromCustomResourceDefinition)
               .collect(
                   toImmutableMap(KubernetesKindProperties::getKubernetesKind, Function.identity()));

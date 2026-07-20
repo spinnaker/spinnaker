@@ -1,7 +1,7 @@
 #
 # Builder Image
 #
-FROM gradle:8.14.5-jdk17 AS builder
+FROM gradle:9.6.1-jdk17 AS builder
 
 # Prep build environment
 ENV GRADLE_USER_HOME=cache
