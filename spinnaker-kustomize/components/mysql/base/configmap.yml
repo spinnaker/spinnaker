@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: mariadb
+  name: mysql
 data:
   config.cnf: |
-    [mariadb]
+    [mysqld]
     transaction_isolation=READ-COMMITTED
 
   init.sh: |
@@ -12,7 +12,7 @@ data:
 
     set -o errexit -o nounset -o pipefail
 
-    echo "Initialize MariaDB with databases, users and grants"
+    echo "Initialize MySQL with databases, users and grants"
 
     # for each database ensure an environment variable is set with the desired password.
     # eg: clouddriver=<cdpass>, echo=<echopass>, etc
@@ -45,8 +45,8 @@ data:
     echo -e "\n# Create users if they don't exist" >>"${init_file}"
     for db in "${databases[@]}"; do
       cat >>"${init_file}" <<EOF
-    CREATE USER IF NOT EXISTS ${db}_migrate IDENTIFIED BY '${db}';
-    CREATE USER IF NOT EXISTS ${db}_service IDENTIFIED BY '${db}';
+    CREATE USER IF NOT EXISTS '${db}_migrate'@'%' IDENTIFIED BY '${db}';
+    CREATE USER IF NOT EXISTS '${db}_service'@'%' IDENTIFIED BY '${db}';
     EOF
 
     done
@@ -54,21 +54,19 @@ data:
     echo -e "\n# Create grants if they don't exist" >>"${init_file}"
     for db in "${databases[@]}"; do
       cat >>"${init_file}" <<EOF
-    GRANT
-      SELECT, INSERT, UPDATE, DELETE, CREATE, EXECUTE, SHOW VIEW
-      ON ${db}.* TO '${db}_service'@'%' IDENTIFIED BY '${db}';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, EXECUTE, SHOW VIEW
+      ON ${db}.* TO '${db}_service'@'%';
 
-    GRANT
-      SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, REFERENCES, INDEX, ALTER, LOCK TABLES, EXECUTE, SHOW VIEW
-      ON ${db}.* TO '${db}_migrate'@'%' IDENTIFIED BY '${db}';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, REFERENCES, INDEX, ALTER, LOCK TABLES, EXECUTE, SHOW VIEW
+      ON ${db}.* TO '${db}_migrate'@'%';
     EOF
 
     done
 
     echo -e "FLUSH PRIVILEGES;" >>"${init_file}"
-    
-    echo "Initializing database from "${init_file}"..."
-    mariadb --user=root --password="${MARIADB_ROOT_PASSWORD}" <"${init_file}"
+
+    echo "Initializing database from ${init_file}..."
+    mysql --user=root --password="${MYSQL_ROOT_PASSWORD}" <"${init_file}"
     ## Successful apply, now keep a copy to make sure we don't re-init
     mkdir -p /var/lib/mysql
     cp ${init_file} /var/lib/mysql/init.sql
