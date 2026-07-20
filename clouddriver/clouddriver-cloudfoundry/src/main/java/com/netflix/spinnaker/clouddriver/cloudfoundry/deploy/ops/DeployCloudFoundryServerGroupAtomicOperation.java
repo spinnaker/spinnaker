@@ -27,7 +27,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.CloudFoundryCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.CloudFoundryArtifactCredentials;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryApiException;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreatePackage;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Lifecycle;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
@@ -46,7 +45,6 @@ import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.io.*;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
@@ -167,36 +165,33 @@ public class DeployCloudFoundryServerGroupAtomicOperation
         .getClient()
         .getServiceInstances()
         .findAllServicesBySpaceAndNames(serverGroup.getSpace(), serviceNames)
-        .forEach(s -> serviceInstanceGuids.put(s.getEntity().getName(), s.getMetadata().getGuid()));
+        .forEach(s -> serviceInstanceGuids.put(s.getName(), s.getGuid()));
 
-    // try and create service binding request for each service
-    List<CreateServiceBinding> bindings =
-        serviceNames.stream()
-            .map(
-                name -> {
-                  String serviceGuid = serviceInstanceGuids.get(name);
-                  if (serviceGuid == null || serviceGuid.isEmpty()) {
-                    getTask()
-                        .updateStatus(
-                            PHASE,
-                            "Failed to create Cloud Foundry service bindings between application '"
-                                + description.getServerGroupName()
-                                + "' and services: "
-                                + serviceNames);
+    // create a service binding request for each service
+    serviceNames.forEach(
+        name -> {
+          String serviceGuid = serviceInstanceGuids.get(name);
+          if (serviceGuid == null || serviceGuid.isEmpty()) {
+            getTask()
+                .updateStatus(
+                    PHASE,
+                    "Failed to create Cloud Foundry service bindings between application '"
+                        + description.getServerGroupName()
+                        + "' and services: "
+                        + serviceNames);
 
-                    throw new CloudFoundryApiException(
-                        "Unable to find service with the name: '"
-                            + name
-                            + "' in "
-                            + serverGroup.getSpace());
-                  }
+            throw new CloudFoundryApiException(
+                "Unable to find service with the name: '"
+                    + name
+                    + "' in "
+                    + serverGroup.getSpace());
+          }
 
-                  return new CreateServiceBinding(
-                      serviceGuid, serverGroup.getId(), name, Collections.emptyMap());
-                })
-            .collect(Collectors.toList());
-
-    bindings.forEach(b -> description.getClient().getServiceInstances().createServiceBinding(b));
+          description
+              .getClient()
+              .getServiceInstances()
+              .createServiceBinding(serviceGuid, serverGroup.getId(), name, Collections.emptyMap());
+        });
 
     getTask()
         .updateStatus(

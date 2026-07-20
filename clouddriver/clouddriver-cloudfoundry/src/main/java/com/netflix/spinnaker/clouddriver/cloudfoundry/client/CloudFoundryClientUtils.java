@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ErrorDescription;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Page;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,28 +76,6 @@ public final class CloudFoundryClientUtils {
 
     List<R> allResources = new ArrayList<>(firstPage.getResources());
     for (int page = 2; page <= firstPage.getPagination().getTotalPages(); page++) {
-      final int p = page;
-      allResources.addAll(
-          safelyCall(() -> fetchPage.apply(p))
-              .orElseThrow(
-                  () ->
-                      new CloudFoundryApiException("Unable to retrieve " + resourceNamePluralized))
-              .getResources());
-    }
-
-    return allResources;
-  }
-
-  static <R> List<Resource<R>> collectPageResources(
-      String resourceNamePluralized, Function<Integer, Call<Page<R>>> fetchPage)
-      throws CloudFoundryApiException {
-    Page<R> firstPage =
-        safelyCall(() -> fetchPage.apply(null))
-            .orElseThrow(
-                () -> new CloudFoundryApiException("Unable to retrieve " + resourceNamePluralized));
-
-    List<Resource<R>> allResources = new ArrayList<>(firstPage.getResources());
-    for (int page = 2; page <= firstPage.getTotalPages(); page++) {
       final int p = page;
       allResources.addAll(
           safelyCall(() -> fetchPage.apply(p))

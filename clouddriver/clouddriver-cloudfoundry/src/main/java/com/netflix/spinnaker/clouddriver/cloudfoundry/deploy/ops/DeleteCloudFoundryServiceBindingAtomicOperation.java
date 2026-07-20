@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
@@ -59,7 +58,7 @@ public class DeleteCloudFoundryServiceBindingAtomicOperation implements AtomicOp
                 + "' from services: "
                 + unbindingServiceInstanceNames);
 
-    List<Resource<ServiceBinding>> bindings =
+    List<ServiceCredentialBinding> bindings =
         description
             .getClient()
             .getApplications()
@@ -79,14 +78,10 @@ public class DeleteCloudFoundryServiceBindingAtomicOperation implements AtomicOp
   }
 
   private void removeBindings(
-      List<Resource<ServiceBinding>> bindings, List<String> unbindingServiceBindingNames) {
+      List<ServiceCredentialBinding> bindings, List<String> unbindingServiceBindingNames) {
     bindings.stream()
-        .filter(b -> unbindingServiceBindingNames.contains(b.getEntity().getName()))
+        .filter(b -> unbindingServiceBindingNames.contains(b.getName()))
         .forEach(
-            b ->
-                description
-                    .getClient()
-                    .getServiceInstances()
-                    .deleteServiceBinding(b.getMetadata().getGuid()));
+            b -> description.getClient().getServiceInstances().deleteServiceBinding(b.getGuid()));
   }
 }

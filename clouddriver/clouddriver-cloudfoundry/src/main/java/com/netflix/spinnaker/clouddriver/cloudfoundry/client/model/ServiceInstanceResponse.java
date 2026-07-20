@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation;
 import lombok.Data;
 
 @Data
