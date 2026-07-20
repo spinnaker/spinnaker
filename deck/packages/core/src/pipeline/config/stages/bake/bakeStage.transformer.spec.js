@@ -1,14 +1,6 @@
-'use strict';
+import { bakeStageTransformer } from './bakeStage.transformer';
 
 describe('bakeStageTransformer', function () {
-  beforeEach(window.module(require('./bakeStage.transformer').name));
-
-  beforeEach(
-    window.inject(function (bakeStageTransformer) {
-      this.transformer = bakeStageTransformer;
-    }),
-  );
-
   describe('transform', function () {
     it('should add allPreviouslyBaked/somePreviouslyBaked flags when all/some child bake stages are marked previouslyBaked', function () {
       var execution = {
@@ -27,7 +19,7 @@ describe('bakeStageTransformer', function () {
 
       execution.stages.forEach((stage) => (stage.type = 'bake'));
 
-      this.transformer.transform({}, execution);
+      bakeStageTransformer.transform({}, execution);
 
       expect(execution.stages[0].context.allPreviouslyBaked).toBe(true);
       expect(execution.stages[0].context.somePreviouslyBaked).toBe(false);
