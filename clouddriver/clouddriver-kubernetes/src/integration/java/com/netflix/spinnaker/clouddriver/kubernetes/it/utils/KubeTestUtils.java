@@ -45,7 +45,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
-import org.testcontainers.utility.ComparableVersion;
 import org.yaml.snakeyaml.Yaml;
 
 public abstract class KubeTestUtils {
@@ -498,12 +497,5 @@ public abstract class KubeTestUtils {
     }
 
     deployAndWaitStable(baseUrl, account, namespace, kind, name, app, image);
-  }
-
-  public static int compareVersion(String sv1, String sv2) {
-    ComparableVersion v1 = new ComparableVersion(sv1.replace("v", ""));
-    ComparableVersion v2 = new ComparableVersion(sv2.replace("v", ""));
-
-    return v1.compareTo(v2);
   }
 }

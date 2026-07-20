@@ -22,13 +22,14 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.kotlin.dsl.getByType
-import java.io.File
+import org.gradle.work.DisableCachingByDefault
 import java.lang.IllegalStateException
 
 /**
  * Task to assemble plugin related files(dependency jars, class files etc) into a zip.
  */
-open class AssembleJavaPluginZipTask : Zip() {
+@DisableCachingByDefault(because = "Plugin zip assembly is not cacheable")
+abstract class AssembleJavaPluginZipTask : Zip() {
 
   @Internal
   override fun getGroup(): String = Plugins.GROUP
@@ -42,20 +43,22 @@ open class AssembleJavaPluginZipTask : Zip() {
     this.archiveExtension.set("zip")
 
     val sourceSets = project.extensions.getByType<JavaPluginExtension>().sourceSets
+    val mainSourceSet = sourceSets.getByName("main")
 
-    val configs = listOf("implementation", "runtimeOnly").map { project.configurations.getByName(it).copy() }
-    configs.forEach { it.isCanBeResolved  = true }
-    val copySpecs = configs.map {
-      project.copySpec().from(it)
-        .into("lib/")
-    }
+    // Use runtimeClasspath (already resolvable) to get dependency JARs.
+    // .copy() on non-resolvable configurations was removed in Gradle 9.
+    val runtimeClasspath = project.configurations.getByName("runtimeClasspath")
+    val ownClassDirs = mainSourceSet.runtimeClasspath.files.filter { !it.absolutePath.endsWith(".jar") }
+
     this.with(
-      *(copySpecs.toTypedArray()),
       project.copySpec()
-        .from(sourceSets.getByName("main").runtimeClasspath.files.filter { !it.absolutePath.endsWith(".jar") })
-        .from(sourceSets.getByName("main").resources)
+        .from(runtimeClasspath.filter { it.absolutePath.endsWith(".jar") })
+        .into("lib/"),
+      project.copySpec()
+        .from(ownClassDirs)
+        .from(mainSourceSet.resources)
         .into("classes/"),
-      project.copySpec().from(File(project.buildDir, "tmp/jar"))
+      project.copySpec().from(project.layout.buildDirectory.dir("tmp/jar"))
         .into("classes/META-INF/")
     )
 

@@ -20,7 +20,9 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.testing.Test
+import org.gradle.work.DisableCachingByDefault
 
+@DisableCachingByDefault(because = "Compatibility tests are not cacheable")
 abstract class CompatibilityTestTask : Test() {
 
   @get:OutputFile
