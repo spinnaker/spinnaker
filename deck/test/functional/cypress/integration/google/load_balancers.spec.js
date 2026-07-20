@@ -203,7 +203,7 @@ describe('google: Load Balancers', () => {
 
         cy.visit(`#/applications/compute/executions/configure/${typePipelineId}`);
         cy.contains('.pipeline-config-graph .label-body.node', 'Create Load Balancers').click({ force: true });
-        cy.contains('tbody tr', name).within(() => cy.contains('a', 'Edit').click());
+        cy.contains('tbody tr', name).within(() => cy.contains('button', 'Edit').click());
         cy.contains('.modal-header h3', heading).should('be.visible');
         setSelectField('Account', 'gce');
         cy.contains('.modal-footer button', 'Done').should('be.enabled').click();
@@ -334,13 +334,13 @@ function assertPipelineOperation(name) {
   cy.contains('tbody tr', name).within(() => {
     cy.contains('td', 'gce').should('exist');
     cy.contains('td', 'global').should('exist');
-    cy.contains('a', 'Edit').should('exist');
+    cy.contains('button', 'Edit').should('exist');
   });
   cy.contains('tbody tr', name).should('have.length', 1).and('contain.text', name);
 }
 
 function editPipelineOperation(name, portRange) {
-  cy.contains('tbody tr', name).within(() => cy.contains('a', 'Edit').click());
+  cy.contains('tbody tr', name).within(() => cy.contains('button', 'Edit').click());
   cy.get('[data-testid="load-balancer-name"]').should('have.value', 'pipeline-http');
   cy.get('[data-testid="load-balancer-type"]').should('have.value', 'HTTP');
   cy.get('[data-testid="listener-name"]').should('have.value', name);
