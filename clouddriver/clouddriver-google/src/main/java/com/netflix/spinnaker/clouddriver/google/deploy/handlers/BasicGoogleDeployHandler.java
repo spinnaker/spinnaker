@@ -292,7 +292,7 @@ public class BasicGoogleDeployHandler
   }
 
   protected String getLocationFromInput(BasicGoogleDeployDescription description, String region) {
-    return description.getRegional() ? region : description.getZone();
+    return Boolean.TRUE.equals(description.getRegional()) ? region : description.getZone();
   }
 
   protected String getMachineTypeNameFromInput(
@@ -1382,6 +1382,17 @@ public class BasicGoogleDeployHandler
     return instanceTemplateUrl;
   }
 
+  /**
+   * Returns whether dependent backend-service or autoscaler operations require the MIG insert to
+   * complete first. An omitted {@code disableTraffic} value preserves the traffic-enabled default.
+   */
+  protected boolean shouldWaitForInstanceGroupManagerCreation(
+      BasicGoogleDeployDescription description, LoadBalancerInfo lbInfo) {
+    return autoscalerIsSpecified(description)
+        || (!Boolean.TRUE.equals(description.getDisableTraffic())
+            && hasBackedServiceFromInput(description, lbInfo));
+  }
+
   protected String createRegionalInstanceGroupManagerAndWait(
       BasicGoogleDeployDescription description,
       LoadBalancerInfo lbInfo,
@@ -1403,11 +1414,7 @@ public class BasicGoogleDeployHandler
             TAG_REGION,
             region);
 
-    if ((!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (!description.getDisableTraffic()
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()))) {
+    if (shouldWaitForInstanceGroupManagerCreation(description, lbInfo)) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
       googleOperationPoller.waitForRegionalOperation(
@@ -1490,11 +1497,7 @@ public class BasicGoogleDeployHandler
             TAG_ZONE,
             description.getZone());
 
-    if ((!description.getDisableTraffic() && hasBackedServiceFromInput(description, lbInfo))
-        || autoscalerIsSpecified(description)
-        || (!description.getDisableTraffic()
-            && (!lbInfo.internalLoadBalancers.isEmpty()
-                || !lbInfo.internalHttpLoadBalancers.isEmpty()))) {
+    if (shouldWaitForInstanceGroupManagerCreation(description, lbInfo)) {
       // Before updating the Backend Services or creating the Autoscaler we must wait until the
       // managed instance group is created.
       googleOperationPoller.waitForZonalOperation(

@@ -205,6 +205,15 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
+  void testGetLocationFromInput_RegionalOmittedResolvesZonally() {
+    String zone = "us-central1-a";
+    mockDescription.setRegional(null);
+    mockDescription.setZone(zone);
+
+    assertEquals(zone, basicGoogleDeployHandler.getLocationFromInput(mockDescription, ""));
+  }
+
+  @Test
   void testGetMachineTypeNameFromInput_WithCustomInstanceType() {
     String instanceType = "custom-4-16384";
     mockDescription.setInstanceType(instanceType);
@@ -2614,6 +2623,67 @@ public class BasicGoogleDeployHandlerTest {
     verify(basicGoogleDeployHandler)
         .createInstanceGroupManagerAndWait(any(), any(), any(), any(), any());
     verify(basicGoogleDeployHandler).createAutoscaler(any(), any(), any(), any());
+  }
+
+  @Test
+  void createInstanceGroupManagerAndWait_withOmittedDisableTraffic_doesNotThrow()
+      throws IOException {
+    CapturingComputeTransport transport = new CapturingComputeTransport();
+    Compute compute =
+        new Compute(
+            transport, GsonFactory.getDefaultInstance(), /* httpRequestInitializer= */ null);
+    mockDescription.setCredentials(mockCredentials);
+    mockDescription.setZone("us-central1-a");
+    when(mockCredentials.getCompute()).thenReturn(compute);
+    when(mockCredentials.getProject()).thenReturn("test-project");
+    injectField("registry", new DefaultRegistry());
+
+    assertDoesNotThrow(
+        () ->
+            basicGoogleDeployHandler.createInstanceGroupManagerAndWait(
+                mockDescription,
+                new BasicGoogleDeployHandler.LoadBalancerInfo(),
+                "example-server-group",
+                new InstanceGroupManager(),
+                mockTask));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_nullDisableTrafficEnablesBackendWait() {
+    BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    mockDescription.setDisableTraffic(null);
+    mockDescription.setInstanceMetadata(Map.of("backend-service-names", "example-backend-service"));
+
+    assertTrue(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, loadBalancerInfo));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_disableTrafficSuppressesLoadBalancerWait() {
+    BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    loadBalancerInfo.getSslLoadBalancers().add(new GoogleLoadBalancerView() {});
+    mockDescription.setDisableTraffic(true);
+
+    assertFalse(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, loadBalancerInfo));
+  }
+
+  @Test
+  void shouldWaitForInstanceGroupManagerCreation_autoscalerForcesWait() {
+    BasicGoogleDeployHandler.LoadBalancerInfo loadBalancerInfo =
+        new BasicGoogleDeployHandler.LoadBalancerInfo();
+    when(mockAutoscalingPolicy.getCpuUtilization())
+        .thenReturn(new GoogleAutoscalingPolicy.CpuUtilization());
+    mockDescription.setAutoscalingPolicy(mockAutoscalingPolicy);
+    mockDescription.setDisableTraffic(true);
+
+    assertTrue(
+        basicGoogleDeployHandler.shouldWaitForInstanceGroupManagerCreation(
+            mockDescription, loadBalancerInfo));
   }
 
   @Test
