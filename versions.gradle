@@ -19,7 +19,7 @@ ext {
   // matched to springBoot dependencies and Gradle 8 compatibility
   // This is tied to VERY recent jackson upgrades, and need to be on a version that works with jackson which uses 2.1
   // 1.9 though spring boot 3.5 ... can't read 2.1 versions from latest versions.  This keeps us a touch safer
-    kotlinVersion = "2.0.21"
+    kotlinVersion = "2.1.20"
 }
 
 // Define dependencies needed by buildscripts, as that lifecycle phase cannot receive root properties normally

@@ -30,8 +30,11 @@ subprojects {
   }
 
   group = 'io.spinnaker.gradle'
-  sourceCompatibility = JavaVersion.VERSION_17
-  targetCompatibility = JavaVersion.VERSION_17
+  java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+  }
 
   dependencies {
     implementation platform('com.google.cloud:libraries-bom:26.78.0')
