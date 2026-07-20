@@ -3,10 +3,11 @@ import { NameUtils } from '@spinnaker/core';
 
 export class ProxmoxServerGroupTransformer {
   public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
-    // Show the server group name in the cluster pod header via the images slot,
-    // since Proxmox doesn't use Frigga naming (moniker.sequence is always null).
-    if (!serverGroup.buildInfo) {
-      (serverGroup as any).buildInfo = { images: [serverGroup.name] };
+    // Versioned deployments (cluster-vNNN) get their sequence label from the moniker; groups
+    // without a sequence are manually created VMs, so surface that in the pod header via the
+    // images slot instead of looking like a normal deployment.
+    if (!serverGroup.buildInfo && serverGroup.moniker?.sequence == null) {
+      (serverGroup as any).buildInfo = { images: ['unversioned (manually created)'] };
     }
     return Promise.resolve(serverGroup);
   }

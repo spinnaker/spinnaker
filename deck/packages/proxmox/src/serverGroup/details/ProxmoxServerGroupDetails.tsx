@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { IInstance, IServerGroupDetailsSectionProps } from '@spinnaker/core';
-import { AccountTag, CollapsibleSection, HealthCounts, timestamp } from '@spinnaker/core';
+import { AccountTag, CollapsibleSection, HealthCounts, NameUtils, timestamp } from '@spinnaker/core';
 
 export { ProxmoxServerGroupActions } from './ProxmoxServerGroupActions';
 
@@ -32,6 +32,14 @@ export function ProxmoxServerGroupInformationSection({ serverGroup }: IServerGro
               <dd>{sg.cluster}</dd>
             </>
           )}
+          <dt>Version</dt>
+          <dd>
+            {serverGroup.moniker?.sequence != null ? (
+              NameUtils.getSequence(serverGroup.moniker.sequence)
+            ) : (
+              <span className="text-muted">unversioned (manually created)</span>
+            )}
+          </dd>
           {sg.application && (
             <>
               <dt>Application</dt>
