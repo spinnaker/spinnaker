@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mariadb
+  name: mysql
 spec:
-  serviceName: "mariadb"
+  serviceName: "mysql"
   replicas: 1
   template:
     spec:
       containers:
-      - name: mariadb
-        image: mariadb:latest
+      - name: mysql
+        image: mysql:8.0
         env:
-        - name: MARIADB_ROOT_PASSWORD
+        - name: MYSQL_ROOT_PASSWORD
           value: "testing123"
         - name: clouddriver
           value: "testing123"
@@ -30,9 +30,10 @@ spec:
         readinessProbe:
           exec:
             command:
-            - healthcheck.sh
-            - --connect
-            - --innodb_initialized
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
           initialDelaySeconds: 20
         resources:
           requests:
@@ -42,34 +43,29 @@ spec:
           allowPrivilegeEscalation: false
         volumeMounts:
         - name: config
-          mountPath: /etc/mysql/mariadb.conf.d
+          mountPath: /etc/mysql/conf.d
         - name: init
           mountPath: /docker-entrypoint-initdb.d/init.sh
           subPath: init.sh
-        - name: mariadb
+        - name: mysql
           mountPath: /var/lib/mysql
-      securityContext:
-        runAsUser: 10111
-        runAsGroup: 10111
-        runAsNonRoot: true
-        fsGroup: 10111
       volumes:
       - name: config
         configMap:
-          name: mariadb
+          name: mysql
           items:
           - key: config.cnf
             path: config.cnf
       - name: init
         configMap:
-          name: mariadb
+          name: mysql
           defaultMode: 0755
           items:
           - key: init.sh
             path: init.sh
   volumeClaimTemplates:
   - metadata:
-      name: mariadb
+      name: mysql
     spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
