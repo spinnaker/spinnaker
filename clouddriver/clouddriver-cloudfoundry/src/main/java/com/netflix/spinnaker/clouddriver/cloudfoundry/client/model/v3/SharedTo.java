@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Pivotal, Inc.
+ * Copyright 2019 Pivotal, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2;
+package com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
-import lombok.AllArgsConstructor;
+import java.util.Map;
+import java.util.Set;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Delegate;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Data
-public class Route {
-  @JsonIgnore @Delegate private RouteId routeId = new RouteId();
-
-  private String spaceGuid;
+public class SharedTo {
+  private Set<Map<String, String>> data;
 }

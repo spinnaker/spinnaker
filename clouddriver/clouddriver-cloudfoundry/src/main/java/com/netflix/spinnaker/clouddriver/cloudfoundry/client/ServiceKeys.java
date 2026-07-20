@@ -16,14 +16,18 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPageResources;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.collectPages;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClientUtils.safelyCall;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBindingDetails;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -37,18 +41,15 @@ public class ServiceKeys {
         .map(
             ssi ->
                 getServiceKey(ssi.getId(), serviceKeyName)
-                    .map(Resource::getEntity)
-                    .map(ServiceKey::getCredentials)
+                    .map(this::getServiceKeyCredentials)
                     .orElseGet(
                         () ->
                             safelyCall(
                                     () ->
                                         api.createServiceKey(
-                                            new CreateServiceKey()
-                                                .setName(serviceKeyName)
-                                                .setServiceInstanceGuid(ssi.getId())))
-                                .map(Resource::getEntity)
-                                .map(ServiceCredentials::getCredentials)
+                                            CreateServiceCredentialBinding.forServiceKey(
+                                                serviceKeyName, ssi.getId())))
+                                .map(this::getServiceKeyCredentials)
                                 .orElseThrow(
                                     () ->
                                         new CloudFoundryApiException(
@@ -85,11 +86,8 @@ public class ServiceKeys {
             ssi ->
                 getServiceKey(ssi.getId(), serviceKeyName)
                     .map(
-                        serviceKeyResource ->
-                            safelyCall(
-                                () ->
-                                    api.deleteServiceKey(
-                                        serviceKeyResource.getMetadata().getGuid()))))
+                        serviceKeyBinding ->
+                            safelyCall(() -> api.deleteServiceKey(serviceKeyBinding.getGuid()))))
         .map(
             _a ->
                 (ServiceKeyResponse)
@@ -108,13 +106,18 @@ public class ServiceKeys {
                         + "'"));
   }
 
-  Optional<Resource<ServiceKey>> getServiceKey(String serviceInstanceId, String serviceKeyName) {
-    List<String> queryParams =
-        Arrays.asList("service_instance_guid:" + serviceInstanceId, "name:" + serviceKeyName);
-    return collectPageResources(
+  Optional<ServiceCredentialBinding> getServiceKey(
+      String serviceInstanceId, String serviceKeyName) {
+    return collectPages(
             "service key by service instance id and service key name",
-            pg -> api.getServiceKey(pg, queryParams))
+            pg -> api.getServiceKey(pg, serviceInstanceId, serviceKeyName, "key"))
         .stream()
         .findFirst();
+  }
+
+  private Map<String, Object> getServiceKeyCredentials(ServiceCredentialBinding binding) {
+    return safelyCall(() -> api.getServiceKeyDetails(binding.getGuid()))
+        .map(ServiceCredentialBindingDetails::getCredentials)
+        .orElse(null);
   }
 }
