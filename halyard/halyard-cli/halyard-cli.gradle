@@ -38,7 +38,7 @@ dependencies {
 
 apply plugin: 'application'
 
-mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'
+application.mainClass = 'com.netflix.spinnaker.halyard.cli.Main'
 
 task generateDocs(type: Exec, dependsOn: installDist) {
   workingDir "$projectDir"
