@@ -1,6 +1,7 @@
 import type { IServerGroup } from '@spinnaker/core';
 
 import type { IGceAutoHealingPolicy } from './autoHealingPolicy';
+import type { IGceAutoscalingPolicy } from '../autoscalingPolicy';
 
 export interface IGceInstanceSelection {
   rank?: number;
@@ -23,6 +24,8 @@ export interface IGceDistributionPolicy {
 // TODO(dpeach): fill in the remaining GCE specific properties.
 export interface IGceServerGroup extends IServerGroup {
   autoHealingPolicy?: IGceAutoHealingPolicy;
+  autoscalingMessages?: string[];
+  autoscalingPolicy?: IGceAutoscalingPolicy;
   distributionPolicy?: IGceDistributionPolicy;
   instanceFlexibilityPolicy?: IGceInstanceFlexibilityPolicy;
   selectZones?: boolean;

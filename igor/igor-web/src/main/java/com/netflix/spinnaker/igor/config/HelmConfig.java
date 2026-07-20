@@ -25,6 +25,7 @@ import com.netflix.spinnaker.igor.helm.accounts.HelmAccountsService;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory;
 import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -37,8 +38,8 @@ import retrofit2.Retrofit;
 @Slf4j
 public class HelmConfig {
   @Bean
-  HelmAccounts helmAccounts() {
-    return new HelmAccounts();
+  HelmAccounts helmAccounts(YamlHelper yamlHelper) {
+    return new HelmAccounts(yamlHelper);
   }
 
   @Bean

@@ -2,6 +2,7 @@
 
 import * as angular from 'angular';
 import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
+import 'angular-ui-sortable';
 import _ from 'lodash';
 
 import { SETTINGS } from '../../../config/settings';
@@ -18,6 +19,7 @@ angular
   .module(CORE_APPLICATION_CONFIG_LINKS_APPLICATIONLINKS_COMPONENT, [
     CORE_APPLICATION_CONFIG_LINKS_EDITLINKS_MODAL_CONTROLLER,
     ANGULAR_UI_BOOTSTRAP,
+    'ui.sortable',
     CONFIG_SECTION_FOOTER,
   ])
   .component('applicationLinks', {

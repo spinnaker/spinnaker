@@ -1,24 +1,18 @@
 'use strict';
 
-describe('gceServerGroupTransformer', () => {
-  let transformer, $q, $scope;
-  beforeEach(window.module(require('./serverGroup.transformer').name));
+import { GceServerGroupTransformer } from './serverGroup.transformer';
 
-  beforeEach(() => {
-    window.inject((_$q_, $rootScope, _gceServerGroupTransformer_) => {
-      $q = _$q_;
-      $scope = $rootScope.$new();
-      transformer = _gceServerGroupTransformer_;
-    });
-  });
+describe('gceServerGroupTransformer', () => {
+  let transformer;
 
   describe('normalize server group load balancers', () => {
     let app;
     beforeEach(() => {
+      transformer = new GceServerGroupTransformer();
       app = {
         getDataSource: () => {
           return {
-            ready: () => $q.resolve(),
+            ready: () => Promise.resolve(),
             data: [
               { name: 'network-load-balancer', account: 'my-google-account' },
               { name: 'internal-load-balancer', account: 'my-google-account' },
@@ -36,7 +30,7 @@ describe('gceServerGroupTransformer', () => {
       };
     });
 
-    it('should map listener names to url map names', function () {
+    it('should map listener names to url map names', async function () {
       const serverGroup = {
         account: 'my-google-account',
         loadBalancers: [
@@ -47,9 +41,7 @@ describe('gceServerGroupTransformer', () => {
         ],
       };
 
-      let normalizedServerGroup;
-      transformer.normalizeServerGroup(serverGroup, app).then((normalized) => (normalizedServerGroup = normalized));
-      $scope.$digest();
+      const normalizedServerGroup = await transformer.normalizeServerGroup(serverGroup, app);
       expect(normalizedServerGroup.loadBalancers.length).toBe(3);
       expect(normalizedServerGroup.loadBalancers.includes('url-map-name')).toEqual(true);
       expect(normalizedServerGroup.loadBalancers.includes('network-load-balancer')).toEqual(true);
@@ -57,7 +49,27 @@ describe('gceServerGroupTransformer', () => {
     });
   });
 
-  describe('convertServerGroupCommandToDeployConfiguration', () => {
+  describe('convert server group command to deploy configuration', () => {
+    beforeEach(() => {
+      transformer = new GceServerGroupTransformer();
+    });
+
+    it('uses existing availability zones when pipeline commands do not have backing data', () => {
+      const deployConfig = transformer.convertServerGroupCommandToDeployConfiguration({
+        availabilityZones: { 'us-central1': ['us-central1-a', 'us-central1-b'] },
+        capacity: { desired: 2, max: 2, min: 2 },
+        credentials: 'my-google-account',
+        enableTraffic: true,
+        instanceMetadata: {},
+        region: 'us-central1',
+        viewState: { mode: 'editPipeline' },
+      });
+
+      expect(deployConfig.availabilityZones).toEqual({ 'us-central1': ['us-central1-a', 'us-central1-b'] });
+      expect(deployConfig.account).toBe('my-google-account');
+      expect(deployConfig.backingData).toBeUndefined();
+    });
+
     it('preserves instanceFlexibilityPolicy for pipeline edit/save round-trips', () => {
       const flexibilityPolicy = {
         instanceSelections: {

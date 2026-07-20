@@ -87,8 +87,8 @@ importers:
         specifier: 3.7.1
         version: 3.7.1
       jquery:
-        specifier: 3.5.1
-        version: 3.5.1
+        specifier: 3.7.1
+        version: 3.7.1
       karma:
         specifier: 6.3.16
         version: 6.3.16(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -467,14 +467,14 @@ importers:
         specifier: ^26.6.3
         version: 26.6.3(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(utf-8-validate@5.0.10)
       jquery:
-        specifier: 3.5.1
-        version: 3.5.1
+        specifier: 3.7.1
+        version: 3.7.1
       jquery-textcomplete:
         specifier: 1.6.1
         version: 1.6.1
       jquery-ui:
-        specifier: 1.13.2
-        version: 1.13.2
+        specifier: 1.14.2
+        version: 1.14.2
       js-worker-search:
         specifier: ^1.2.1
         version: 1.4.1
@@ -533,27 +533,12 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
       '@uirouter/core':
         specifier: 6.0.8
         version: 6.0.8
       '@uirouter/react':
         specifier: 1.0.7
         version: 1.0.7(react@16.14.0)
-      '@uirouter/react-hybrid':
-        specifier: 1.0.2
-        version: 1.0.2(angular@1.8.3)(react@16.14.0)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
-      angular2react:
-        specifier: 3.0.2
-        version: 3.0.2(@types/angular@1.6.26)(@types/react-dom@16.8.4)(@types/react@16.14.10)(angular@1.8.3)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       bootstrap:
         specifier: 3.4.1
         version: 3.4.1
@@ -575,9 +560,6 @@ importers:
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -596,9 +578,6 @@ importers:
       react-virtualized-select:
         specifier: 3.1.3
         version: 3.1.3(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
         specifier: 6.6.7
         version: 6.6.7
@@ -612,12 +591,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/classnames':
         specifier: 2.2.0
         version: 2.2.0
@@ -625,8 +598,8 @@ importers:
         specifier: 3.10.3
         version: 3.10.3
       '@types/jquery':
-        specifier: 2.0.43
-        version: 2.0.43
+        specifier: 3.5.32
+        version: 3.5.32
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -709,8 +682,8 @@ importers:
         specifier: 15.5.0
         version: 15.5.0
       jquery:
-        specifier: 3.5.1
-        version: 3.5.1
+        specifier: 3.7.1
+        version: 3.7.1
       lodash:
         specifier: 4.18.1
         version: 4.18.1
@@ -871,15 +844,6 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       classnames:
         specifier: 2.2.6
         version: 2.2.6
@@ -895,9 +859,9 @@ importers:
       react:
         specifier: ^16.14.0
         version: 16.14.0
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      react-bootstrap:
+        specifier: 0.32.1
+        version: 0.32.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
         specifier: 6.6.7
         version: 6.6.7
@@ -911,12 +875,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/classnames':
         specifier: 2.2.0
         version: 2.2.0
@@ -929,6 +887,9 @@ importers:
       '@types/react':
         specifier: 16.14.10
         version: 16.14.10
+      '@types/react-bootstrap':
+        specifier: 0.32.5
+        version: 0.32.5
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -941,15 +902,9 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
+      '@uirouter/react':
+        specifier: 1.0.7
+        version: 1.0.7(react@16.14.0)
       lodash:
         specifier: 4.18.1
         version: 4.18.1
@@ -962,6 +917,9 @@ importers:
       react-select:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      rxjs:
+        specifier: 6.6.7
+        version: 6.6.7
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -969,12 +927,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -1275,8 +1227,8 @@ importers:
         specifier: 1.0.4
         version: 1.0.4
       jquery:
-        specifier: 3.5.1
-        version: 3.5.1
+        specifier: 3.7.1
+        version: 3.7.1
       jquery-textcomplete:
         specifier: 1.6.1
         version: 1.6.1
@@ -1435,8 +1387,8 @@ importers:
         specifier: 3.6.9
         version: 3.6.9
       '@types/jquery':
-        specifier: 2.0.43
-        version: 2.0.43
+        specifier: 3.5.32
+        version: 3.5.32
       '@types/js-yaml':
         specifier: 3.5.30
         version: 3.5.30
@@ -1586,24 +1538,12 @@ importers:
       '@spinnaker/docker':
         specifier: workspace:^0.0.147
         version: link:../docker
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
       '@uirouter/react':
         specifier: 1.0.7
         version: 1.0.7(react@16.14.0)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -1613,9 +1553,9 @@ importers:
       react-select:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
+      rxjs:
+        specifier: 6.6.7
+        version: 6.6.7
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1623,12 +1563,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -1726,36 +1660,18 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
       react-select:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
         specifier: 6.6.7
         version: 6.6.7
-      ui-select:
-        specifier: 0.19.8
-        version: 0.19.8
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1763,15 +1679,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-mocks':
-        specifier: 1.5.10
-        version: 1.5.10
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -1919,24 +1826,15 @@ importers:
       '@spinnaker/core':
         specifier: workspace:^0.29.1
         version: link:../core
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
-      '@uirouter/core':
-        specifier: 6.0.8
-        version: 6.0.8
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
+      react:
+        specifier: ^16.14.0
+        version: 16.14.0
+      rxjs:
+        specifier: 6.6.7
+        version: 6.6.7
     devDependencies:
       '@spinnaker/eslint-plugin':
         specifier: workspace:^3.0.2
@@ -1944,15 +1842,12 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
+      '@types/react':
+        specifier: 16.14.10
+        version: 16.14.10
       shx:
         specifier: 0.3.3
         version: 0.3.3
@@ -2037,10 +1932,10 @@ importers:
         version: 0.29.1(@types/angular@1.6.26)(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(graphql@15.10.2)(subscriptions-transport-ws@0.9.19(bufferutil@4.0.9)(graphql@15.10.2)(utf-8-validate@5.0.10))
       '@spinnaker/eslint-plugin':
         specifier: 3.0.1
-        version: 3.0.1(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)
+        version: 3.0.1(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)
       '@spinnaker/pluginsdk':
         specifier: '*'
-        version: 2026.1.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(bufferutil@4.0.9)(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)(utf-8-validate@5.0.10)
+        version: 2026.1.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(bufferutil@4.0.9)(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)(utf-8-validate@5.0.10)
       '@spinnaker/presentation':
         specifier: 0.3.1
         version: 0.3.1(lodash@4.18.1)(react@16.14.0)
@@ -2278,21 +2173,9 @@ importers:
       '@spinnaker/mocks':
         specifier: workspace:1.0.7
         version: link:../mocks
-      '@uirouter/angularjs':
-        specifier: 1.0.26
-        version: 1.0.26(angular@1.8.3)
       '@uirouter/react':
         specifier: 1.0.7
         version: 1.0.7(react@16.14.0)
-      '@uirouter/react-hybrid':
-        specifier: 1.0.2
-        version: 1.0.2(angular@1.8.3)(react@16.14.0)
-      angular:
-        specifier: 1.8.3
-        version: 1.8.3
-      angular-ui-bootstrap:
-        specifier: 2.5.0
-        version: 2.5.0
       formik:
         specifier: 1.5.1
         version: 1.5.1(react@16.14.0)
@@ -2302,9 +2185,6 @@ importers:
       luxon:
         specifier: 1.28.1
         version: 1.28.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       pretty-ms:
         specifier: 5.0.0
         version: 5.0.0
@@ -2317,9 +2197,6 @@ importers:
       react-select:
         specifier: 1.2.1
         version: 1.2.1(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
-      react2angular:
-        specifier: 3.2.1
-        version: 3.2.1(@types/prop-types@15.5.2)(@types/react-dom@16.8.4)(@types/react@16.14.10)(prop-types@15.8.1)(react-dom@16.14.0(react@16.14.0))(react@16.14.0)
       rxjs:
         specifier: 6.6.7
         version: 6.6.7
@@ -2330,12 +2207,6 @@ importers:
       '@spinnaker/scripts':
         specifier: workspace:^0.4.0
         version: link:../scripts
-      '@types/angular':
-        specifier: 1.6.26
-        version: 1.6.26
-      '@types/angular-ui-bootstrap':
-        specifier: 0.13.41
-        version: 0.13.41
       '@types/lodash':
         specifier: 4.14.64
         version: 4.14.64
@@ -5068,8 +4939,8 @@ packages:
   '@types/jest@29.5.14':
     resolution: {integrity: sha512-ZN+4sdnLUbo8EVvVc2ao0GFW6oVrQRPn4K2lglySj7APvSrgzxHiNNK99us4WDMi57xxA2yggblIAMNhXOotLQ==}
 
-  '@types/jquery@2.0.43':
-    resolution: {integrity: sha512-pXO9Jc+1E6WA4kr+giyanKw4kJhblVa26cl9390aCi3nBR9V0cVoz6/64T7GjG1rHk8vp9cEg3rwEfgYRcd3BQ==}
+  '@types/jquery@3.5.32':
+    resolution: {integrity: sha512-b9Xbf4CkMqS02YH8zACqN1xzdxc3cO735Qe5AbSUFmyOiaWAbcpqh9Wna+Uk0vgACvoQHpWDg2rGdHkYPLmCiQ==}
 
   '@types/js-yaml@3.5.30':
     resolution: {integrity: sha512-VaR8pHTi2rD9zUcDAsVQw5sIFicg6fiE4yEulRo7enMc9gfvj6bV1mVv/fSfPWEow4ES1B2IHtDZBBW81NdTAA==}
@@ -5228,6 +5099,9 @@ packages:
 
   '@types/serve-static@1.15.10':
     resolution: {integrity: sha512-tRs1dB+g8Itk72rlSI2ZrW6vZg0YrLI81iQSTkMmOqnqCaNr/8Ek4VwWcN5vZgCYWbg/JJSGBlUaYGAOP73qBw==}
+
+  '@types/sizzle@2.3.10':
+    resolution: {integrity: sha512-TC0dmN0K8YcWEAEfiPi5gJP14eJe30TTGjkvek3iM/1NdHHsdCA/Td6GvNndMOo/iSnIsZ4HuuhrYPDAmbxzww==}
 
   '@types/sockjs@0.3.36':
     resolution: {integrity: sha512-MK9V6NzAS1+Ud7JV9lJLFqW85VbC9dq3LmwZCuBe4wBDgKC0Kj/jd8Xl+nSviU+Qc3+m7umHHyHg//2KSa0a0Q==}
@@ -6608,6 +6482,7 @@ packages:
   conventional-changelog-core@5.0.1:
     resolution: {integrity: sha512-Rvi5pH+LvgsqGwZPZ3Cq/tz4ty7mjijhr3qR4m9IBXNbxGGYgTVVO+duXzz9aArmHxFtwZ+LRkrNIMDQzgoY4A==}
     engines: {node: '>=14'}
+    deprecated: Deprecated and no longer maintained. Please use conventional-changelog instead.
 
   conventional-changelog-preset-loader@3.0.0:
     resolution: {integrity: sha512-qy9XbdSLmVnwnvzEisjxdDiLA4OmV3o8db+Zdg4WiFw14fP3B6XNz98X0swPPpkTd/pc1K7+adKgEDM1JCUMiA==}
@@ -8256,7 +8131,7 @@ packages:
   git-raw-commits@3.0.0:
     resolution: {integrity: sha512-b5OHmZ3vAgGrDn/X0kS+9qCfNKWe4K/jFnhwzVWWg0/k5eLa3060tZShrRg8Dja5kPc+YjS0Gc6y7cRr44Lpjw==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-remote-origin-url@2.0.0:
@@ -8266,7 +8141,7 @@ packages:
   git-semver-tags@5.0.1:
     resolution: {integrity: sha512-hIvOeZwRbQ+7YEUmCkHqo8FOLQZCEn18yevLHADlFPZY02KJGsu5FZt9YW/lybfK2uhWFI7Qg/07LekJiTv7iA==}
     engines: {node: '>=14'}
-    deprecated: This package is no longer maintained. For the JavaScript API, please use @conventional-changelog/git-client instead.
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   git-up@7.0.0:
@@ -9544,11 +9419,14 @@ packages:
   jquery-textcomplete@1.6.1:
     resolution: {integrity: sha512-lJ3AGurHSUAFXgtN0/GW1IvK1vXy27cQBohvSrqNtX27/7xUWtec9zJtwv+92tBez4uY25W97uNwUI519qhsXA==}
 
-  jquery-ui@1.13.2:
-    resolution: {integrity: sha512-wBZPnqWs5GaYJmo1Jj0k/mrSkzdQzKDwhXNtHKcBdAcKVxMM3KNYFq+iJ2i1rwiG53Z8M4mTn3Qxrm17uH1D4Q==}
+  jquery-ui@1.14.2:
+    resolution: {integrity: sha512-1gSl7PUjyipa2adSr780Ujk16faicrV7PjPPzPtvWk7tTqBnsqp67NNV9jZK2+BIxUPXWSnIUU/LBCgwgGZE+Q==}
 
   jquery@3.5.1:
     resolution: {integrity: sha512-XwIBPqcMn57FxfT+Go5pzySnm4KWkT1Tv7gjrpT1srtf8Weynl6R273VJ5GjkRb51IzMp5nbaPjJXMWeju2MKg==}
+
+  jquery@3.7.1:
+    resolution: {integrity: sha512-m4avr8yL8kmFN8psrbFFFmB/If14iN5o9nw/NgnnM+kybDJpRsAynV2BsfpTYrTRysYUdADVD7CkUUizgkpLfg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -11564,6 +11442,7 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qjobs@1.2.0:
@@ -15396,6 +15275,11 @@ snapshots:
   '@esbuild/win32-x64@0.28.1':
     optional: true
 
+  '@eslint-community/eslint-utils@4.9.1(eslint@7.10.0)':
+    dependencies:
+      eslint: 7.10.0
+      eslint-visitor-keys: 3.4.3
+
   '@eslint-community/eslint-utils@4.9.1(eslint@7.32.0)':
     dependencies:
       eslint: 7.32.0
@@ -17364,13 +17248,13 @@ snapshots:
       - react-native
       - subscriptions-transport-ws
 
-  '@spinnaker/eslint-plugin@3.0.1(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)':
+  '@spinnaker/eslint-plugin@3.0.1(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)':
     dependencies:
-      '@typescript-eslint/eslint-plugin': 4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)
-      '@typescript-eslint/parser': 4.4.0(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/eslint-plugin': 8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/parser': 8.32.0(eslint@7.10.0)(typescript@5.0.4)
       eslint: 7.10.0
-      eslint-config-prettier: 6.12.0(eslint@7.10.0)
-      eslint-plugin-react-hooks: 4.1.2(eslint@7.10.0)
+      eslint-config-prettier: 10.1.8(eslint@7.10.0)
+      eslint-plugin-react-hooks: 7.0.1(eslint@7.10.0)
       lodash: 4.18.1
       ts-node: 10.9.2(@types/node@16.4.13)(typescript@5.0.4)
     transitivePeerDependencies:
@@ -17379,13 +17263,13 @@ snapshots:
       - '@types/node'
       - typescript
 
-  '@spinnaker/eslint-plugin@3.0.2(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)':
+  '@spinnaker/eslint-plugin@3.0.2(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)':
     dependencies:
-      '@typescript-eslint/eslint-plugin': 4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)
-      '@typescript-eslint/parser': 4.4.0(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/eslint-plugin': 8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/parser': 8.32.0(eslint@7.10.0)(typescript@5.0.4)
       eslint: 7.10.0
-      eslint-config-prettier: 6.12.0(eslint@7.10.0)
-      eslint-plugin-react-hooks: 4.1.2(eslint@7.10.0)
+      eslint-config-prettier: 10.1.8(eslint@7.10.0)
+      eslint-plugin-react-hooks: 7.0.1(eslint@7.10.0)
       lodash: 4.18.1
       ts-node: 10.9.2(@types/node@16.4.13)(typescript@5.0.4)
     transitivePeerDependencies:
@@ -17451,9 +17335,9 @@ snapshots:
       typescript: 5.0.4
       utf-8-validate: 5.0.10
 
-  '@spinnaker/pluginsdk@2026.1.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(bufferutil@4.0.9)(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)(utf-8-validate@5.0.10)':
+  '@spinnaker/pluginsdk@2026.1.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(bufferutil@4.0.9)(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)(utf-8-validate@5.0.10)':
     dependencies:
-      '@spinnaker/scripts': 0.4.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)
+      '@spinnaker/scripts': 0.4.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)
       check-peer-dependencies: 4.3.4
       chokidar: 3.6.0
       express: 4.22.2
@@ -17533,7 +17417,7 @@ snapshots:
       lodash: 4.17.23
       react: 16.14.0
 
-  '@spinnaker/scripts@0.4.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)':
+  '@spinnaker/scripts@0.4.0(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(ts-node@10.9.2(@types/node@16.4.13)(typescript@5.0.4))(tslib@2.8.1)(typescript@5.0.4)':
     dependencies:
       '@rollup/plugin-commonjs': 17.1.0(rollup@2.80.0)
       '@rollup/plugin-json': 4.1.0(rollup@2.80.0)
@@ -17541,7 +17425,7 @@ snapshots:
       '@rollup/plugin-replace': 2.4.2(rollup@2.80.0)
       '@rollup/plugin-typescript': 8.5.0(rollup@2.80.0)(tslib@2.8.1)(typescript@5.0.4)
       '@rollup/plugin-url': 6.1.0(rollup@2.80.0)
-      '@spinnaker/eslint-plugin': 3.0.2(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@6.12.0(eslint@7.10.0))(eslint-plugin-react-hooks@4.1.2(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)
+      '@spinnaker/eslint-plugin': 3.0.2(@types/node@16.4.13)(@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4))(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint-config-prettier@10.1.8(eslint@7.10.0))(eslint-plugin-react-hooks@7.0.1(eslint@7.10.0))(eslint@7.10.0)(typescript@5.0.4)
       '@spinnaker/styleguide': 2.0.0
       '@svgr/rollup': 6.5.1
       autoprefixer: 10.5.0(postcss@8.5.15)
@@ -17964,7 +17848,9 @@ snapshots:
       expect: 29.7.0
       pretty-format: 29.7.0
 
-  '@types/jquery@2.0.43': {}
+  '@types/jquery@3.5.32':
+    dependencies:
+      '@types/sizzle': 2.3.10
 
   '@types/js-yaml@3.5.30': {}
 
@@ -18129,6 +18015,8 @@ snapshots:
       '@types/node': 16.4.13
       '@types/send': 0.17.6
 
+  '@types/sizzle@2.3.10': {}
+
   '@types/sockjs@0.3.36':
     dependencies:
       '@types/node': 16.4.13
@@ -18163,22 +18051,6 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)':
-    dependencies:
-      '@typescript-eslint/experimental-utils': 4.4.0(eslint@7.10.0)(typescript@5.0.4)
-      '@typescript-eslint/parser': 4.4.0(eslint@7.10.0)(typescript@5.0.4)
-      '@typescript-eslint/scope-manager': 4.4.0
-      debug: 4.4.3
-      eslint: 7.10.0
-      functional-red-black-tree: 1.0.1
-      regexpp: 3.2.0
-      semver: 7.8.1
-      tsutils: 3.21.0(typescript@5.0.4)
-    optionalDependencies:
-      typescript: 5.0.4
-    transitivePeerDependencies:
-      - supports-color
-
   '@typescript-eslint/eslint-plugin@4.4.0(@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4))(eslint@7.32.0)(typescript@5.0.4)':
     dependencies:
       '@typescript-eslint/experimental-utils': 4.4.0(eslint@7.32.0)(typescript@5.0.4)
@@ -18210,6 +18082,23 @@ snapshots:
       semver: 7.8.1
       tsutils: 3.21.0(typescript@5.0.4)
     optionalDependencies:
+      typescript: 5.0.4
+    transitivePeerDependencies:
+      - supports-color
+
+  '@typescript-eslint/eslint-plugin@8.32.0(@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4))(eslint@7.10.0)(typescript@5.0.4)':
+    dependencies:
+      '@eslint-community/regexpp': 4.12.2
+      '@typescript-eslint/parser': 8.32.0(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/scope-manager': 8.32.0
+      '@typescript-eslint/type-utils': 8.32.0(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/utils': 8.32.0(eslint@7.10.0)(typescript@5.0.4)
+      '@typescript-eslint/visitor-keys': 8.32.0
+      eslint: 7.10.0
+      graphemer: 1.4.0
+      ignore: 5.3.2
+      natural-compare: 1.4.0
+      ts-api-utils: 2.5.0(typescript@5.0.4)
       typescript: 5.0.4
     transitivePeerDependencies:
       - supports-color
@@ -18248,19 +18137,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@typescript-eslint/experimental-utils@4.4.0(eslint@7.10.0)(typescript@5.0.4)':
-    dependencies:
-      '@types/json-schema': 7.0.15
-      '@typescript-eslint/scope-manager': 4.4.0
-      '@typescript-eslint/types': 4.4.0
-      '@typescript-eslint/typescript-estree': 4.4.0(typescript@5.0.4)
-      eslint: 7.10.0
-      eslint-scope: 5.1.1
-      eslint-utils: 2.1.0
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
-
   '@typescript-eslint/experimental-utils@4.4.0(eslint@7.32.0)(typescript@5.0.4)':
     dependencies:
       '@types/json-schema': 7.0.15
@@ -18273,18 +18149,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
-
-  '@typescript-eslint/parser@4.4.0(eslint@7.10.0)(typescript@5.0.4)':
-    dependencies:
-      '@typescript-eslint/scope-manager': 4.4.0
-      '@typescript-eslint/types': 4.4.0
-      '@typescript-eslint/typescript-estree': 4.4.0(typescript@5.0.4)
-      debug: 4.4.3
-      eslint: 7.10.0
-    optionalDependencies:
-      typescript: 5.0.4
-    transitivePeerDependencies:
-      - supports-color
 
   '@typescript-eslint/parser@4.4.0(eslint@7.32.0)(typescript@5.0.4)':
     dependencies:
@@ -18306,6 +18170,18 @@ snapshots:
       debug: 4.4.3
       eslint: 7.32.0
     optionalDependencies:
+      typescript: 5.0.4
+    transitivePeerDependencies:
+      - supports-color
+
+  '@typescript-eslint/parser@8.32.0(eslint@7.10.0)(typescript@5.0.4)':
+    dependencies:
+      '@typescript-eslint/scope-manager': 8.32.0
+      '@typescript-eslint/types': 8.32.0
+      '@typescript-eslint/typescript-estree': 8.32.0(typescript@5.0.4)
+      '@typescript-eslint/visitor-keys': 8.32.0
+      debug: 4.4.3
+      eslint: 7.10.0
       typescript: 5.0.4
     transitivePeerDependencies:
       - supports-color
@@ -18375,6 +18251,17 @@ snapshots:
       eslint: 7.32.0
       tsutils: 3.21.0(typescript@5.0.4)
     optionalDependencies:
+      typescript: 5.0.4
+    transitivePeerDependencies:
+      - supports-color
+
+  '@typescript-eslint/type-utils@8.32.0(eslint@7.10.0)(typescript@5.0.4)':
+    dependencies:
+      '@typescript-eslint/typescript-estree': 8.32.0(typescript@5.0.4)
+      '@typescript-eslint/utils': 8.32.0(eslint@7.10.0)(typescript@5.0.4)
+      debug: 4.4.3
+      eslint: 7.10.0
+      ts-api-utils: 2.5.0(typescript@5.0.4)
       typescript: 5.0.4
     transitivePeerDependencies:
       - supports-color
@@ -18470,6 +18357,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - typescript
+
+  '@typescript-eslint/utils@8.32.0(eslint@7.10.0)(typescript@5.0.4)':
+    dependencies:
+      '@eslint-community/eslint-utils': 4.9.1(eslint@7.10.0)
+      '@typescript-eslint/scope-manager': 8.32.0
+      '@typescript-eslint/types': 8.32.0
+      '@typescript-eslint/typescript-estree': 8.32.0(typescript@5.0.4)
+      eslint: 7.10.0
+      typescript: 5.0.4
+    transitivePeerDependencies:
+      - supports-color
 
   '@typescript-eslint/utils@8.32.0(eslint@9.39.2)(typescript@5.0.4)':
     dependencies:
@@ -21065,27 +20963,33 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
+  eslint-config-prettier@10.1.8(eslint@7.10.0):
+    dependencies:
+      eslint: 7.10.0
+
   eslint-config-prettier@10.1.8(eslint@9.39.2):
     dependencies:
       eslint: 9.39.2
-
-  eslint-config-prettier@6.12.0(eslint@7.10.0):
-    dependencies:
-      eslint: 7.10.0
-      get-stdin: 6.0.0
 
   eslint-config-prettier@6.12.0(eslint@7.32.0):
     dependencies:
       eslint: 7.32.0
       get-stdin: 6.0.0
 
-  eslint-plugin-react-hooks@4.1.2(eslint@7.10.0):
-    dependencies:
-      eslint: 7.10.0
-
   eslint-plugin-react-hooks@4.1.2(eslint@7.32.0):
     dependencies:
       eslint: 7.32.0
+
+  eslint-plugin-react-hooks@7.0.1(eslint@7.10.0):
+    dependencies:
+      '@babel/core': 7.29.7
+      '@babel/parser': 7.29.7
+      eslint: 7.10.0
+      hermes-parser: 0.25.1
+      zod: 4.4.3
+      zod-validation-error: 4.0.2(zod@4.4.3)
+    transitivePeerDependencies:
+      - supports-color
 
   eslint-plugin-react-hooks@7.0.1(eslint@9.39.2):
     dependencies:
@@ -23045,7 +22949,7 @@ snapshots:
       jest-environment-jsdom: 26.6.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       jest-environment-node: 26.6.2
       jest-get-type: 26.3.0
-      jest-jasmine2: 26.6.3(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(utf-8-validate@5.0.10)
+      jest-jasmine2: 26.6.3
       jest-regex-util: 26.0.0
       jest-resolve: 26.6.2
       jest-util: 26.6.2
@@ -23209,7 +23113,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  jest-jasmine2@26.6.3(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@7.0.5)(typescript@5.0.4))(utf-8-validate@5.0.10):
+  jest-jasmine2@26.6.3:
     dependencies:
       '@babel/traverse': 7.29.7
       '@jest/environment': 26.6.2
@@ -23230,11 +23134,7 @@ snapshots:
       pretty-format: 26.6.2
       throat: 5.0.0
     transitivePeerDependencies:
-      - bufferutil
-      - canvas
       - supports-color
-      - ts-node
-      - utf-8-validate
 
   jest-leak-detector@26.6.2:
     dependencies:
@@ -23620,11 +23520,13 @@ snapshots:
 
   jquery-textcomplete@1.6.1: {}
 
-  jquery-ui@1.13.2:
+  jquery-ui@1.14.2:
     dependencies:
       jquery: 3.5.1
 
   jquery@3.5.1: {}
+
+  jquery@3.7.1: {}
 
   js-tokens@4.0.0: {}
 

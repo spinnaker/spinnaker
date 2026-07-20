@@ -3,6 +3,7 @@
 import { AccountService, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
+import { createAwsServerGroupCommandBuilder } from './serverGroupCommandBuilder.service';
 
 import {
   createMockAmazonServerGroupWithLt,
@@ -13,62 +14,50 @@ import {
 describe('awsServerGroupCommandBuilder', function () {
   const AccountServiceFixture = require('./AccountServiceFixtures');
 
-  beforeEach(window.module(require('./serverGroupCommandBuilder.service').name));
-
-  beforeEach(
-    window.inject(function (awsServerGroupCommandBuilder, $q, $rootScope, instanceTypeService) {
-      this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
-      this.$scope = $rootScope;
-      this.instanceTypeService = instanceTypeService;
-      this.$q = $q;
-      spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue(
-        $q.when(AccountServiceFixture.preferredZonesByAccount),
-      );
-      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
-        $q.when(AccountServiceFixture.credentialsKeyedByAccount),
-      );
-      spyOn(SubnetReader, 'listSubnets').and.returnValue($q.when([]));
-      spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(this.$q.when(['a', 'b', 'c']));
-    }),
-  );
+  beforeEach(function () {
+    this.instanceTypeService = {
+      getCategoryForMultipleInstanceTypes: jasmine.createSpy('getCategoryForMultipleInstanceTypes'),
+    };
+    this.awsServerGroupCommandBuilder = createAwsServerGroupCommandBuilder(this.instanceTypeService);
+    spyOn(AccountService, 'getPreferredZonesByAccount').and.returnValue(
+      Promise.resolve(AccountServiceFixture.preferredZonesByAccount),
+    );
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      Promise.resolve(AccountServiceFixture.credentialsKeyedByAccount),
+    );
+    spyOn(SubnetReader, 'listSubnets').and.returnValue(Promise.resolve([]));
+    spyOn(AccountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(Promise.resolve(['a', 'b', 'c']));
+  });
 
   afterEach(AWSProviderSettings.resetToOriginal);
 
   describe('buildNewServerGroupCommand', function () {
-    it('initializes to default values, setting usePreferredZone flag to true', function () {
-      let command = null;
+    it('initializes to default values, setting usePreferredZone flag to true', async function () {
       AWSProviderSettings.defaults.iamRole = '{{application}}IAMRole';
-      this.awsServerGroupCommandBuilder
-        .buildNewServerGroupCommand({ name: 'appo', defaultCredentials: {}, defaultRegions: {} }, 'aws')
-        .then(function (result) {
-          command = result;
-        });
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildNewServerGroupCommand(
+        { name: 'appo', defaultCredentials: {}, defaultRegions: {} },
+        'aws',
+      );
 
       expect(command.viewState.usePreferredZones).toBe(true);
       expect(command.availabilityZones).toEqual(['a', 'b', 'c']);
       expect(command.iamRole).toBe('appoIAMRole');
     });
 
-    it('sets unlimitedCpuCredits to undefined if not modified by user', function () {
-      let command = null;
+    it('sets unlimitedCpuCredits to undefined if not modified by user', async function () {
       AWSProviderSettings.defaults.iamRole = '{{application}}IAMRole';
-      this.awsServerGroupCommandBuilder
-        .buildNewServerGroupCommand({ name: 'test-app', defaultCredentials: {}, defaultRegions: {} }, 'aws')
-        .then(function (result) {
-          command = result;
-        });
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildNewServerGroupCommand(
+        { name: 'test-app', defaultCredentials: {}, defaultRegions: {} },
+        'aws',
+      );
 
       expect(command.unlimitedCpuCredits).toBe(undefined);
     });
   });
 
   describe('buildServerGroupCommandFromExisting', function () {
-    it('sets usePreferredZones flag based on initial value', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(this.$q.when('custom'));
+    it('sets usePreferredZones flag based on initial value', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('custom'));
       const baseServerGroup = {
         account: 'prod',
         region: 'us-west-1',
@@ -78,37 +67,27 @@ describe('awsServerGroupCommandBuilder', function () {
         },
         launchTemplate: mockLaunchTemplate,
       };
-      let command = null;
-
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(function (result) {
-          command = result;
-        });
-
-      this.$scope.$digest();
+      let command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'appo' },
+        baseServerGroup,
+      );
 
       expect(command.viewState.usePreferredZones).toBe(true);
       expect(command.availabilityZones).toEqual(['g', 'h', 'i']);
 
       baseServerGroup.asg.availabilityZones = ['g'];
 
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(function (result) {
-          command = result;
-        });
-
-      this.$scope.$digest();
+      command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'appo' },
+        baseServerGroup,
+      );
 
       expect(command.viewState.usePreferredZones).toBe(false);
       expect(command.availabilityZones).toEqual(['g']);
     });
 
-    it('sets profile and instance type if available', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
-        this.$q.when('selectedProfile'),
-      );
+    it('sets profile and instance type if available', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('selectedProfile'));
 
       const baseServerGroup = {
         account: 'prod',
@@ -123,24 +102,17 @@ describe('awsServerGroupCommandBuilder', function () {
           securityGroups: [],
         },
       };
-      let command = null;
-
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then(function (result) {
-          command = result;
-        });
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'appo' },
+        baseServerGroup,
+      );
 
       expect(command.viewState.instanceProfile).toBe('selectedProfile');
       expect(command.instanceType).toBe('something-custom');
     });
 
-    it('copies suspended processes unless the mode is "editPipeline"', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
-        this.$q.when('selectedProfile'),
-      );
+    it('copies suspended processes unless the mode is "editPipeline"', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('selectedProfile'));
 
       const baseServerGroup = {
         account: 'prod',
@@ -156,29 +128,24 @@ describe('awsServerGroupCommandBuilder', function () {
           securityGroups: [],
         },
       };
-      let command = null;
-
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then((result) => (command = result));
-
-      this.$scope.$digest();
+      let command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'appo' },
+        baseServerGroup,
+      );
 
       expect(command.suspendedProcesses).toEqual(['x', 'a']);
 
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup, 'editPipeline')
-        .then((result) => (command = result));
-
-      this.$scope.$digest();
+      command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'appo' },
+        baseServerGroup,
+        'editPipeline',
+      );
 
       expect(command.suspendedProcesses).toEqual([]);
     });
 
-    it('copies tags not in the reserved list:', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
-        this.$q.when('selectedProfile'),
-      );
+    it('copies tags not in the reserved list:', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('selectedProfile'));
 
       const baseServerGroup = {
         account: 'prod',
@@ -207,21 +174,16 @@ describe('awsServerGroupCommandBuilder', function () {
           securityGroups: [],
         },
       };
-      let command = null;
-
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'appo' }, baseServerGroup)
-        .then((result) => (command = result));
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'appo' },
+        baseServerGroup,
+      );
 
       expect(command.tags).toEqual({ 'some-key': 'some-value' });
     });
 
-    it('sets unlimitedCpuCredits to false when building from source server group with standard credits', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
-        this.$q.when('selectedProfile'),
-      );
+    it('sets unlimitedCpuCredits to false when building from source server group with standard credits', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('selectedProfile'));
 
       const baseServerGroup = createMockAmazonServerGroupWithLt(
         createCustomMockLaunchTemplate('testLtCpuCredits', {
@@ -231,20 +193,16 @@ describe('awsServerGroupCommandBuilder', function () {
         }),
       );
 
-      let command = null;
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'test' }, baseServerGroup)
-        .then((result) => (command = result));
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'test' },
+        baseServerGroup,
+      );
 
       expect(command.unlimitedCpuCredits).toBe(false);
     });
 
-    it('sets unlimitedCpuCredits to true when building from source server group with unlimited credits', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
-        this.$q.when('selectedProfile'),
-      );
+    it('sets unlimitedCpuCredits to true when building from source server group with unlimited credits', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('selectedProfile'));
 
       const baseServerGroup = createMockAmazonServerGroupWithLt(
         createCustomMockLaunchTemplate('testLtCpuCredits', {
@@ -254,29 +212,23 @@ describe('awsServerGroupCommandBuilder', function () {
         }),
       );
 
-      let command = null;
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'test' }, baseServerGroup)
-        .then((result) => (command = result));
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'test' },
+        baseServerGroup,
+      );
 
       expect(command.unlimitedCpuCredits).toBe(true);
     });
 
-    it('sets unlimitedCpuCredits to undefined when building from source server group with cpu credits unset', function () {
-      spyOn(this.instanceTypeService, 'getCategoryForMultipleInstanceTypes').and.returnValue(
-        this.$q.when('selectedProfile'),
-      );
+    it('sets unlimitedCpuCredits to undefined when building from source server group with cpu credits unset', async function () {
+      this.instanceTypeService.getCategoryForMultipleInstanceTypes.and.returnValue(Promise.resolve('selectedProfile'));
 
       const baseServerGroup = createMockAmazonServerGroupWithLt();
 
-      let command = null;
-      this.awsServerGroupCommandBuilder
-        .buildServerGroupCommandFromExisting({ name: 'test' }, baseServerGroup)
-        .then((result) => (command = result));
-
-      this.$scope.$digest();
+      const command = await this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(
+        { name: 'test' },
+        baseServerGroup,
+      );
 
       expect(command.unlimitedCpuCredits).toBe(undefined);
     });

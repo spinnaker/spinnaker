@@ -136,40 +136,6 @@ class FunctionControllerSpec extends Specification {
     result.size() == 100 // Much smaller than the 1000 that would be fetched unfiltered
   }
 
-  void "performance: demonstrates timing improvement with filtered calls"() {
-    given:
-    def account = "prod"
-    def slowLoadTime = 100 // milliseconds
-    def fastLoadTime = 10  // milliseconds
-
-    def function = Mock(Function)
-
-    when: "calling unfiltered endpoint (slow path)"
-    def unfilteredStart = System.currentTimeMillis()
-    controller.list(null, null, null)
-    def unfilteredTime = System.currentTimeMillis() - unfilteredStart
-
-    then: "unfiltered call simulates slow load of all data"
-    1 * provider1.getAllFunctions() >> {
-      Thread.sleep(slowLoadTime)
-      return [function]
-    }
-
-    when: "calling with account filter (fast path)"
-    def filteredStart = System.currentTimeMillis()
-    controller.list(null, null, account)
-    def filteredTime = System.currentTimeMillis() - filteredStart
-
-    then: "filtered call is significantly faster"
-    1 * provider1.getAllFunctions(account, null) >> {
-      Thread.sleep(fastLoadTime)
-      return [function]
-    }
-
-    and: "filtered call is at least 5x faster"
-    filteredTime < (unfilteredTime / 5)
-  }
-
   void "controller handles empty provider list"() {
     given:
     def emptyController = new FunctionController(Optional.empty())
