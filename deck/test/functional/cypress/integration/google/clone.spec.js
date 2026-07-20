@@ -982,7 +982,7 @@ describe('google: Server Group Wizard', () => {
     submitWizard('Add');
 
     cy.contains('td', 'compute-pipeline-created').should('be.visible');
-    cy.contains('tr', 'compute-pipeline-created').find('[uib-tooltip="Edit"]').click();
+    cy.contains('tr', 'compute-pipeline-created').find('button[title="Edit"]').click();
 
     openWizardPage('Capacity/Distribution');
     cy.get('input[aria-label="Desired capacity"]').should('have.value', '3');

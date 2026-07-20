@@ -1,13 +1,15 @@
-import { module } from 'angular';
 import type { Application } from '../../../../application';
 import type { IExecution, IExecutionStage } from '../../../../domain';
+import { ReactInjector } from '../../../../reactShims';
 
 import type { ExecutionService } from '../../../service/execution.service';
-import { EXECUTION_SERVICE } from '../../../service/execution.service';
 
 export class ManualJudgmentService {
-  public static $inject = ['executionService'];
-  constructor(private executionService: ExecutionService) {}
+  constructor(private executionService?: ExecutionService) {}
+
+  private getExecutionService(): ExecutionService {
+    return this.executionService || ReactInjector.executionService;
+  }
 
   public provideJudgment(
     application: Application,
@@ -16,16 +18,16 @@ export class ManualJudgmentService {
     judgmentStatus: string,
     judgmentInput?: string,
   ): PromiseLike<void> {
+    const executionService = this.getExecutionService();
     const matcher = (result: IExecution) => {
       const match = result.stages.find((test) => test.id === stage.id);
       return match && match.status !== 'RUNNING';
     };
-    return this.executionService
+    return executionService
       .patchExecution(execution.id, stage.id, { judgmentStatus, judgmentInput })
-      .then(() => this.executionService.waitUntilExecutionMatches(execution.id, matcher))
-      .then((updated) => this.executionService.updateExecution(application, updated));
+      .then(() => executionService.waitUntilExecutionMatches(execution.id, matcher))
+      .then((updated) => executionService.updateExecution(application, updated));
   }
 }
 
-export const MANUAL_JUDGMENT_SERVICE = 'spinnaker.core.pipeline.config.stages.manualJudgment.service';
-module(MANUAL_JUDGMENT_SERVICE, [EXECUTION_SERVICE]).service('manualJudgmentService', ManualJudgmentService);
+export const manualJudgmentService = new ManualJudgmentService();

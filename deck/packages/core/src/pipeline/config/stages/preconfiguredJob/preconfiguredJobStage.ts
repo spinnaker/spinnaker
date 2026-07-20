@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { PreconfiguredJobExecutionDetails } from './PreconfiguredJobExecutionDetails';
 import { PreconfiguredJobStageConfig } from './PreconfiguredJobStageConfig';
 import { ExecutionDetailsTasks } from '../common';
@@ -37,8 +35,8 @@ export function makePreconfiguredJobStage(preconfiguredJobType: string): IStageT
 
 export const PRECONFIGUREDJOB_STAGE = 'spinnaker.core.pipeline.stage.preconfiguredJobStage';
 
-module(PRECONFIGUREDJOB_STAGE, []).run(() => {
-  PreconfiguredJobReader.list().then((preconfiguredJobs) => {
+export function registerPreconfiguredJobStages(): PromiseLike<unknown[]> {
+  return PreconfiguredJobReader.list().then((preconfiguredJobs) => {
     const basicPreconfiguredJobs = preconfiguredJobs.filter((job) => job.uiType !== 'CUSTOM');
     return Promise.all(
       basicPreconfiguredJobs.map((job) => {
@@ -47,4 +45,4 @@ module(PRECONFIGUREDJOB_STAGE, []).run(() => {
       }),
     );
   });
-});
+}
