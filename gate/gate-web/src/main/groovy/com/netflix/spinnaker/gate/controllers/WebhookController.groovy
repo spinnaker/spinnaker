@@ -20,7 +20,6 @@ import com.netflix.spinnaker.gate.services.WebhookService
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
@@ -55,8 +54,8 @@ class WebhookController {
 
   @Operation(summary = "Endpoint for posting webhooks to Spinnaker's CDEvents webhook service")
   @RequestMapping(value = "/cdevents/{source}", method = RequestMethod.POST)
-  ResponseEntity<Void> webhooks(@PathVariable String source,
-                                @RequestBody CloudEvent cdEvent)
+  Map webhooks(@PathVariable String source,
+               @RequestBody CloudEvent cdEvent)
   {
     String ceDataJsonString = new String(cdEvent.getData().toBytes(), StandardCharsets.UTF_8);
     webhookService.webhooks(source, cdEvent, ceDataJsonString)
