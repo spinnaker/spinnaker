@@ -19,7 +19,7 @@ apply from: "$rootDir/../kotlin.gradle"
 apply from: "$rootDir/gradle/detekt.gradle"
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.orca.Main'
+application.mainClass = 'com.netflix.spinnaker.orca.Main'
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")

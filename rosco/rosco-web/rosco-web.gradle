@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.rosco.Main'
+application.mainClass = 'com.netflix.spinnaker.rosco.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
@@ -51,7 +51,7 @@ ospackage {
   configurationFile('/opt/rosco/config/packer/install_packages.sh')
 
   from('../docker') {
-    into "/opt/${project.applicationName}/docker"
+    into "/opt/${project.application.applicationName}/docker"
   }
 }
 

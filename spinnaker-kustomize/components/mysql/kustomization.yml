@@ -1,0 +1,155 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+- base
+
+patches:
+# Mount Spring config file per service in a subdirectories so it can be loaded
+# by `spring.config.import`.
+# Paths must match Spring naming conventions.
+# For example: {application}(-{profile}).yml
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: clouddriver.yml
+            path: mysql/clouddriver.yml
+          name: clouddriver-mysql
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: CLOUDDRIVER_MYSQL
+        value: clouddriver
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: clouddriver
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: echo.yml
+            path: mysql/echo.yml
+          name: echo-mysql
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: ECHO_MYSQL
+        value: echo
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: echo
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: fiat.yml
+            path: mysql/fiat.yml
+          name: fiat-mysql
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: FIAT_MYSQL
+        value: fiat
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: fiat
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: front50.yml
+            path: mysql/front50.yml
+          name: front50-mysql
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: FRONT50_MYSQL
+        value: front50
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: front50
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: keel.yml
+            path: mysql/keel.yml
+          name: keel-mysql
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: KEEL_MYSQL
+        value: keel
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: keel
+
+- patch: |-
+    - op: add
+      path: /spec/template/spec/volumes/0/projected/sources/-
+      value:
+        configMap:
+          items:
+          - key: orca.yml
+            path: mysql/orca.yml
+          name: orca-mysql
+    - op: add
+      path: /spec/template/spec/containers/0/env/-
+      value:
+        name: ORCA_MYSQL
+        value: orca
+  target:
+    group: apps
+    version: v1
+    kind: Deployment
+    name: orca
+
+configMapGenerator:
+- behavior: create
+  name: clouddriver-mysql
+  files:
+  - files/clouddriver.yml
+- behavior: create
+  name: echo-mysql
+  files:
+  - files/echo.yml
+- behavior: create
+  name: fiat-mysql
+  files:
+  - files/fiat.yml
+- behavior: create
+  name: front50-mysql
+  files:
+  - files/front50.yml
+- behavior: create
+  name: keel-mysql
+  files:
+  - files/keel.yml
+- behavior: create
+  name: orca-mysql
+  files:
+  - files/orca.yml
