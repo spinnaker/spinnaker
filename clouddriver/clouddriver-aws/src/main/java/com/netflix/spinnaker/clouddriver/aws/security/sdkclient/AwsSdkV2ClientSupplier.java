@@ -316,7 +316,9 @@ public class AwsSdkV2ClientSupplier {
    *
    * <p>Identity is based on: - The client type class (e.g. {@code EcsClient.class}) - The
    * credentials provider identity (same reference == same account/role) - The region string - The
-   * account name (affects rate limiter selection)
+   * account name (affects rate limiter selection) - The per-service {@link
+   * AwsSdkV2ClientConfiguration} (value equality), so callers can obtain distinct clients tuned
+   * differently for the same account, region, and service.
    */
   static final class V2ClientKey {
     /** The v2 client interface class, used as the service type discriminator. */
@@ -328,9 +330,10 @@ public class AwsSdkV2ClientSupplier {
     private final String account;
 
     /**
-     * Per-service tuning applied at build time. Like {@link #builderSupplier}, it is excluded from
-     * {@link #equals}/{@link #hashCode}: {@link #clientType} already discriminates services, and
-     * (matching v1) the config is captured only on first build.
+     * Per-service tuning applied at build time. Included in {@link #equals}/{@link #hashCode} by
+     * value so that different tuning for the same (clientType, credentials, region, account)
+     * resolves to distinct cached clients (e.g. a short-timeout client vs a long-timeout invoke
+     * client). Being a Lombok {@code @Value}, equal field values reuse the same cached instance.
      */
     private final AwsSdkV2ClientConfiguration clientConfiguration;
 
@@ -358,7 +361,9 @@ public class AwsSdkV2ClientSupplier {
           // Identity comparison: same provider reference == same account/role credentials.
           && credentialsProvider == that.credentialsProvider
           && region.equals(that.region)
-          && account.equals(that.account);
+          && account.equals(that.account)
+          // Value comparison: different tuning => different cached client.
+          && Objects.equals(clientConfiguration, that.clientConfiguration);
     }
 
     @Override
@@ -366,7 +371,11 @@ public class AwsSdkV2ClientSupplier {
       // identityHashCode matches the identity (==) comparison used in equals() for
       // credentialsProvider.
       return Objects.hash(
-          clientType, System.identityHashCode(credentialsProvider), region, account);
+          clientType,
+          System.identityHashCode(credentialsProvider),
+          region,
+          account,
+          clientConfiguration);
     }
 
     @Override

@@ -136,20 +136,47 @@ class AwsSdkV2ClientSupplierTest {
   }
 
   @Test
-  void clientConfigurationDoesNotAffectCacheIdentity() {
+  void differentClientConfigurationReturnsDifferentInstance() {
+    // A short-timeout (default) client and a long-timeout invoke client for the same account,
+    // region, and service must be distinct cached instances.
     AwsCredentialsProvider creds = dummyCreds();
-    AwsSdkV2ClientConfiguration config =
-        AwsSdkV2ClientConfiguration.builder().maxErrorRetry(2).tcpKeepAlive(true).build();
+    AwsSdkV2ClientConfiguration shortSocket =
+        AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofSeconds(50)).build();
+    AwsSdkV2ClientConfiguration longSocket =
+        AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofMinutes(15)).build();
 
-    LambdaClient withoutConfig =
+    LambdaClient shortClient =
         supplier.getClient(
-            LambdaClient::builder, LambdaClient.class, creds, "us-east-1", "acct", null);
-    LambdaClient withConfig =
+            LambdaClient::builder, LambdaClient.class, creds, "us-east-1", "acct", shortSocket);
+    LambdaClient longClient =
         supplier.getClient(
-            LambdaClient::builder, LambdaClient.class, creds, "us-east-1", "acct", config);
+            LambdaClient::builder, LambdaClient.class, creds, "us-east-1", "acct", longSocket);
 
-    // Config is excluded from the cache key (captured on first build), so the same instance is
-    // returned regardless of the config passed on later lookups.
-    assertThat(withConfig).isSameAs(withoutConfig);
+    assertThat(shortClient).isNotSameAs(longClient);
+  }
+
+  @Test
+  void equalClientConfigurationReturnsSameInstance() {
+    // Config participates in cache identity by value: equal field values reuse the cached client.
+    AwsCredentialsProvider creds = dummyCreds();
+
+    LambdaClient first =
+        supplier.getClient(
+            LambdaClient::builder,
+            LambdaClient.class,
+            creds,
+            "us-east-1",
+            "acct",
+            AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofSeconds(50)).build());
+    LambdaClient second =
+        supplier.getClient(
+            LambdaClient::builder,
+            LambdaClient.class,
+            creds,
+            "us-east-1",
+            "acct",
+            AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofSeconds(50)).build());
+
+    assertThat(first).isSameAs(second);
   }
 }

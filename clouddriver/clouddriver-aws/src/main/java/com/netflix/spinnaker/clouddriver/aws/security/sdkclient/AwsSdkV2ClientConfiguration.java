@@ -26,8 +26,10 @@ import lombok.Value;
  * pass to {@code AmazonClientProvider}. All fields are optional; {@code null} means "leave the
  * supplier default in place".
  *
- * <p>These settings are captured when the client is first built and cached, matching the v1
- * behavior where the client configuration was only applied on initial creation.
+ * <p>This type participates in the supplier's cache identity (via value-based {@code equals}/{@code
+ * hashCode}), so clients requested with different tuning for the same account, region, and service
+ * resolve to distinct cached instances. This lets a single caller obtain, for example, a
+ * short-timeout client for most calls and a long-timeout client for synchronous invocations.
  */
 @Value
 @Builder

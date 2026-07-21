@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaF
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionOutputDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -72,7 +73,7 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
   void testInvokeLambda() {
 
     LambdaClient lambdaClient = mock(LambdaClient.class);
-    doReturn(lambdaClient).when(invokeOperation).getLambdaClient();
+    doReturn(lambdaClient).when(invokeOperation).getInvokeLambdaClient();
 
     ArgumentCaptor<InvokeRequest> captor = ArgumentCaptor.forClass(InvokeRequest.class);
     InvokeResponse result = InvokeResponse.builder().payload(SdkBytes.fromUtf8String("{}")).build();
@@ -83,7 +84,10 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
     verify(lambdaClient).invoke(captor.capture());
     verify(invokeOperation, atLeastOnce()).updateTaskStatus(anyString());
     assertEquals(fName, captor.getValue().functionName());
+    // With no per-request timeout, the invoke falls back to the configured invokeTimeoutMs default.
     assertThat(captor.getValue().overrideConfiguration()).isPresent();
+    assertThat(captor.getValue().overrideConfiguration().get().apiCallTimeout())
+        .contains(Duration.ofMillis(50000));
   }
 
   @Test
@@ -93,7 +97,7 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
     invokeDesc.setTimeout(55);
 
     LambdaClient lambdaClient = mock(LambdaClient.class);
-    doReturn(lambdaClient).when(invokeOperation).getLambdaClient();
+    doReturn(lambdaClient).when(invokeOperation).getInvokeLambdaClient();
 
     ArgumentCaptor<InvokeRequest> invokeCaptor = ArgumentCaptor.forClass(InvokeRequest.class);
     doReturn(InvokeResponse.builder().payload(SdkBytes.fromUtf8String("{}")).build())
@@ -101,5 +105,8 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
         .invoke(invokeCaptor.capture());
     invokeOperation.operate(null);
     assertThat(invokeCaptor.getValue().overrideConfiguration()).isPresent();
+    // Per-request timeout (55s) overrides the configured invokeTimeoutMs default.
+    assertThat(invokeCaptor.getValue().overrideConfiguration().get().apiCallTimeout())
+        .contains(Duration.ofMillis(55000));
   }
 }

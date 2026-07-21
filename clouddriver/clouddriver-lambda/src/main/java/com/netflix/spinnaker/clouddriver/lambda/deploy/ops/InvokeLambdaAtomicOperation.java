@@ -71,7 +71,7 @@ public class InvokeLambdaAtomicOperation
 
   private InvokeLambdaFunctionOutputDescription invokeFunction(
       String functionName, String payload) {
-    LambdaClient client = getLambdaClient();
+    LambdaClient client = getInvokeLambdaClient();
 
     int timeoutMs;
     if (description.getTimeout() != -1) {
