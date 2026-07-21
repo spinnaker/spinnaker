@@ -5,12 +5,12 @@ import { Dropdown, MenuItem } from 'react-bootstrap';
 import type { Application, IInstanceDetailsProps } from '@spinnaker/core';
 import {
   AccountTag,
+  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   InstanceDetailsHeader,
   InstanceReader,
   InstanceWriter,
-  ReactInjector,
   RecentHistoryService,
   timestamp,
 } from '@spinnaker/core';
@@ -286,7 +286,7 @@ export class AzureInstanceDetails extends React.Component<
       () => {
         if (!this.isUnmounted && requestId === this.activeRequestId) {
           this.setState({ loading: false });
-          ReactInjector.$state.go('^');
+          AngularServices.$state.go('^');
         }
       },
     );
@@ -358,8 +358,8 @@ export function AzureInstanceActions({
 }): JSX.Element {
   const loadBalancerNames = (instance.loadBalancers || []).join(' and ');
   const closeIfCurrentInstance = () => {
-    if (ReactInjector.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
-      ReactInjector.$state.go('^');
+    if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
+      AngularServices.$state.go('^');
     }
   };
   const confirm = (

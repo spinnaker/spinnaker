@@ -1,10 +1,10 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { AngularServices } from '../../../../angular/services';
 
 import type { IExecutionStageLabelProps } from '../../../../domain';
 import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActions';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
-import { ReactInjector } from '../../../../reactShims';
 import { SkipConditionWait } from '../waitForCondition/SkipConditionWait';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
 
@@ -34,7 +34,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
     if (!this.requiresHydration() || !execution) {
       return;
     }
-    ReactInjector.executionService.hydrate(application, execution).then(() => {
+    AngularServices.executionService.hydrate(application, execution).then(() => {
       if (this.mounted && !this.state.hydrated) {
         this.setState({ hydrated: true });
       }
@@ -101,7 +101,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
   private getRenderableStageName(): string {
     const { stage } = this.props;
     let stageName = stage.name ? stage.name : stage.type;
-    const params = ReactInjector.$uiRouter.globals.params;
+    const params = AngularServices.$uiRouter.globals.params;
     if (stage.type === 'group' && stage.groupStages && stage.index === Number(params.stage)) {
       const subStageIndex = Number(params.subStage);
       if (!Number.isNaN(subStageIndex)) {

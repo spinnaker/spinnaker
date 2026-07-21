@@ -1,10 +1,9 @@
 import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { IExpectedArtifact } from '../../domain';
 import { TetheredSelect } from '../../presentation';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 import { UUIDGenerator } from '../../utils';
 
 export interface IExpectedArtifactSourceOption {
@@ -72,7 +71,7 @@ export const EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT =
   'spinnaker.core.artifacts.expected.source.selector.react';
 module(EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT, []).component(
   'expectedArtifactSourceSelectorReact',
-  react2angular(withErrorBoundary(ExpectedArtifactSourceSelector, 'expectedArtifactSourceSelectorReact'), [
+  angularComponentFromReact(ExpectedArtifactSourceSelector, 'expectedArtifactSourceSelectorReact', [
     'sources',
     'className',
     'onChange',

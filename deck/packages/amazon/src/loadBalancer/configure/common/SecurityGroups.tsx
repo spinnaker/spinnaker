@@ -6,7 +6,8 @@ import { combineLatest as observableCombineLatest, Subject } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 
 import type { ISecurityGroup, IWizardPageComponent } from '@spinnaker/core';
-import { FirewallLabels, InfrastructureCaches, ReactInjector, Spinner, timestamp } from '@spinnaker/core';
+import { AngularServices, FirewallLabels, InfrastructureCaches, Spinner, timestamp } from '@spinnaker/core';
+
 import { AWSProviderSettings } from '../../../aws.settings';
 import type { IAmazonLoadBalancerUpsertCommand } from '../../../domain';
 
@@ -104,8 +105,8 @@ export class SecurityGroups
   public componentDidMount(): void {
     const allSecurityGroups$ = this.refresh$.pipe(
       tap(() => this.onRefreshStart()),
-      switchMap(() => ReactInjector.cacheInitializer.refreshCache('securityGroups')),
-      mergeMap(() => ReactInjector.securityGroupReader.getAllSecurityGroups()),
+      switchMap(() => AngularServices.cacheInitializer.refreshCache('securityGroups')),
+      mergeMap(() => AngularServices.securityGroupReader.getAllSecurityGroups()),
       tap(() => this.onRefreshComplete()),
     );
 

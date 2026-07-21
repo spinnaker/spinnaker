@@ -3,6 +3,7 @@ import { Duration } from 'luxon';
 import React from 'react';
 
 import { AccountTag } from '../../../../account/AccountTag';
+import { AngularServices } from '../../../../angular/services';
 import type { Application } from '../../../../application';
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IExecutionDetailsSectionProps } from '../common';
@@ -16,7 +17,6 @@ import { HelpContentsRegistry } from '../../../../help';
 import { NameUtils } from '../../../../naming/nameUtils';
 import { UrlBuilder } from '../../../../navigation/UrlBuilder';
 import { Markdown } from '../../../../presentation/Markdown';
-import { ReactInjector } from '../../../../reactShims/react.injector';
 import { ViewScalingActivitiesLink } from '../../../../serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
 import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
 import { ClusterState } from '../../../../state';
@@ -191,7 +191,7 @@ export class DeployExecutionDetails extends React.Component<
 
   private buildState(props: IExecutionDetailsSectionProps): IDeployExecutionDetailsState {
     const context = props.stage.context || {};
-    const deployed = getDeployedServerGroups(props.stage, ReactInjector.$stateParams.project);
+    const deployed = getDeployedServerGroups(props.stage, AngularServices.$stateParams.project);
     return {
       changeConfig: {
         buildInfo: context.buildInfo || {},
@@ -230,7 +230,7 @@ export class DeployExecutionDetails extends React.Component<
   private getConfigHref(): string {
     const applicationName = this.props.application && this.props.application.name;
     return applicationName
-      ? ReactInjector.$state.href('home.applications.application.config', { application: applicationName })
+      ? AngularServices.$state.href('home.applications.application.config', { application: applicationName })
       : null;
   }
 

@@ -2,22 +2,22 @@ import { UIView, useCurrentStateAndParams } from '@uirouter/react';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
 import { FilterCollapse } from '../filterModel/FilterCollapse';
-import { ReactInjector } from '../reactShims';
 
 export interface IInsightLayoutProps {
   app: Application;
 }
 
 export const InsightLayout = ({ app }: IInsightLayoutProps) => {
-  const [expandFilters, setExpandFilters] = React.useState(ReactInjector.insightFilterStateModel.filtersExpanded);
-  const { filtersHidden } = ReactInjector.insightFilterStateModel;
+  const [expandFilters, setExpandFilters] = React.useState(AngularServices.insightFilterStateModel.filtersExpanded);
+  const { filtersHidden } = AngularServices.insightFilterStateModel;
   const filterClass = expandFilters ? 'filters-expanded' : 'filters-collapsed';
 
   const toggleFilters = (): void => {
-    ReactInjector.insightFilterStateModel.pinFilters(!expandFilters);
+    AngularServices.insightFilterStateModel.pinFilters(!expandFilters);
     setExpandFilters(!expandFilters);
   };
 

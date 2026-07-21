@@ -1,10 +1,9 @@
 import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
+import { angularComponentFromReact } from '../../../../angular/angularComponentFromReact';
 import { ArtifactTypePatterns, ExpectedArtifactModal } from '../../../../artifact';
 import type { IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
-import { withErrorBoundary } from '../../../../presentation/SpinErrorBoundary';
 
 export interface IProducesArtifactsProps {
   pipeline: IPipeline;
@@ -83,9 +82,5 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = (props) => 
 export const PRODUCES_ARTIFACTS_REACT = 'spinnaker.core.pipeline.stages.produces.artifacts.react';
 module(PRODUCES_ARTIFACTS_REACT, []).component(
   'producesArtifactsReact',
-  react2angular(withErrorBoundary(ProducesArtifacts, 'producesArtifactsReact'), [
-    'pipeline',
-    'stage',
-    'onProducesChanged',
-  ]),
+  angularComponentFromReact(ProducesArtifacts, 'producesArtifactsReact', ['pipeline', 'stage', 'onProducesChanged']),
 );

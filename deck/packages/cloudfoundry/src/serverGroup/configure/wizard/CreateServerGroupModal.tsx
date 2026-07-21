@@ -2,7 +2,7 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { Application, IModalComponentProps, IPipeline, IStage } from '@spinnaker/core';
-import { noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import { AngularServices, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
 import type { ICloudFoundryServerGroup } from '../../../domain';
@@ -89,11 +89,11 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else if (command.viewState.mode === 'clone') {
       this.state.taskMonitor.submit(() =>
-        ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     } else {
       this.state.taskMonitor.submit(() =>
-        ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     }
   };

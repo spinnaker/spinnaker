@@ -1,6 +1,6 @@
 import React from 'react';
+import { AngularServices } from '../../../angular/services';
 
-import { ReactInjector } from '../../../reactShims';
 import { CopyToClipboard, logger } from '../../../utils';
 
 export interface IExecutionPermalinkProps {
@@ -13,7 +13,7 @@ export const ExecutionPermalink = ({ standalone }: IExecutionPermalinkProps) => 
   const [url, setUrl] = React.useState(asPermalink(location.href));
 
   React.useEffect(() => {
-    const subscription = ReactInjector.stateEvents.locationChangeSuccess.subscribe((newUrl) => {
+    const subscription = AngularServices.stateEvents.locationChangeSuccess.subscribe((newUrl) => {
       if (url !== newUrl) {
         setUrl(asPermalink(newUrl));
       }

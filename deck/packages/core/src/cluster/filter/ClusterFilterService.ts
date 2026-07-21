@@ -2,6 +2,7 @@ import { each, every, forOwn, groupBy, isEmpty, some, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
+import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../../application/application.model';
 import type { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from '../../domain';
@@ -9,7 +10,6 @@ import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import type { ILabelFilter } from './labelFilterUtils';
 import { trueKeyObjectToLabelFilters } from './labelFilterUtils';
-import { ReactInjector } from '../../reactShims';
 import { ClusterState } from '../../state';
 
 export interface IParentGrouping {
@@ -188,7 +188,7 @@ export class ClusterFilterService {
         category[result.category] = true;
         sortFilter.category = category;
       }
-      if (ReactInjector.$stateParams.application === result.application) {
+      if (AngularServices.$stateParams.application === result.application) {
         this.updateClusterGroups();
       }
     }

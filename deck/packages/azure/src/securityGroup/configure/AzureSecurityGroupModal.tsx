@@ -4,10 +4,10 @@ import { Modal } from 'react-bootstrap';
 import type { Application, IModalComponentProps, ISecurityGroup } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   ModalClose,
   NetworkReader,
   noop,
-  ReactInjector,
   ReactModal,
   SubmitButton,
   TaskMonitor,
@@ -413,8 +413,8 @@ export class AzureSecurityGroupModal extends React.Component<
     const showNewSecurityGroup = (): void => {
       const { securityGroup } = this.state;
       this.props.closeModal();
-      ReactInjector.$state.go(
-        ReactInjector.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
+      AngularServices.$state.go(
+        AngularServices.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
         {
           accountId: securityGroup.credentials || securityGroup.accountId || securityGroup.accountName,
           name: securityGroup.name,

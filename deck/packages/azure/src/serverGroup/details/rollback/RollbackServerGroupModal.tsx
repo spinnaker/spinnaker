@@ -4,9 +4,9 @@ import Select from 'react-select';
 
 import type { IModalComponentProps } from '@spinnaker/core';
 import {
+  AngularServices,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
   TaskMonitorWrapper,
@@ -72,7 +72,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
     const { command, taskMonitor } = this.state;
     const { serverGroup, application } = this.props;
 
-    taskMonitor.submit(() => ReactInjector.serverGroupWriter.rollbackServerGroup(serverGroup, application, command));
+    taskMonitor.submit(() => AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command));
   };
 
   private filterServerGroups = (disabledServerGroups: any[]) => {
