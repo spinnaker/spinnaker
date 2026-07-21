@@ -7,11 +7,11 @@ import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 import { GlobalSearchResults } from './GlobalSearchResults';
+import { AngularServices } from '../../angular/services';
 import type { IChildComponentProps } from '../infrastructure/RecentlyViewedItems';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
 import { Tooltip } from '../../presentation/Tooltip';
-import { ReactInjector } from '../../reactShims';
 import type { ISearchResult } from '../search.service';
 import { searchRank } from '../searchRank.filter';
 import { ClusterState } from '../../state';
@@ -56,7 +56,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     window.addEventListener('keyup', this.handleWindowKeyup);
     window.addEventListener('click', this.handleWindowClick);
 
-    const { infrastructureSearchService } = ReactInjector;
+    const { infrastructureSearchService } = AngularServices;
     const search = infrastructureSearchService.getSearcher();
 
     this.query$
@@ -143,7 +143,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         this.focusFirstSearchResult();
       }
     } else if (key === 'Enter') {
-      const { $state } = ReactInjector;
+      const { $state } = AngularServices;
       if (this.state.categories) {
         const matchingQueryResult = findMatchingApplicationResultToQuery(this.state.categories, this.state.query);
         if (matchingQueryResult) {

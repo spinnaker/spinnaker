@@ -1,12 +1,13 @@
 import React from 'react';
 
 import {
+  AccountRegionClusterSelector,
   AccountService,
   DeploymentStrategySelector,
   NameUtils,
-  NgReact,
   StageConfigField,
   StageConstants,
+  TargetSelect,
 } from '@spinnaker/core';
 
 const h = React.createElement;
@@ -191,7 +192,6 @@ class GceBaseStageConfig extends React.Component {
       return null;
     }
 
-    const { AccountRegionClusterSelector } = NgReact;
     return h(AccountRegionClusterSelector, {
       accounts: this.state.accounts,
       application,
@@ -202,7 +202,6 @@ class GceBaseStageConfig extends React.Component {
   }
 
   renderTargetSelect(options = StageConstants.TARGET_LIST) {
-    const { TargetSelect } = NgReact;
     return h(
       StageConfigField,
       { label: 'Target' },

@@ -1,4 +1,4 @@
-import { ReactInjector } from '@spinnaker/core';
+import { AngularServices } from '@spinnaker/core';
 
 import { AmazonInstanceDetails } from './AmazonInstanceDetails';
 
@@ -7,7 +7,7 @@ describe('AmazonInstanceDetails', () => {
 
   beforeEach(() => {
     $state = { go: jasmine.createSpy('go') };
-    spyOnProperty(ReactInjector, '$state', 'get').and.returnValue($state);
+    spyOnProperty(AngularServices, '$state', 'get').and.returnValue($state);
   });
 
   it('closes details when required data sources fail before instance loading', () => {

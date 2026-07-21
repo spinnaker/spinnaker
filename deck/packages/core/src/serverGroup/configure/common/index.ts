@@ -1,4 +1,6 @@
 export * from './DeployInitializer';
+export * from './InstanceArchetypeSelector';
+export * from './InstanceTypeSelector';
 export * from './deployInitializer.component';
 export * from './serverGroupCommandBuilder.service';
 export * from './serverGroupCommandRegistry.provider';

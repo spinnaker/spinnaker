@@ -5,6 +5,7 @@ import { module } from 'angular';
 import { get, identity, pickBy, uniq } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
+import { AngularServices } from '../../angular/services';
 import { REST } from '../../api/ApiService';
 import type { Application } from '../../application/application.model';
 import type { ApplicationDataSource } from '../../application/service/applicationDataSource';
@@ -15,7 +16,6 @@ import type { IPipeline } from '../../domain/IPipeline';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
 import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
-import { ReactInjector } from '../../reactShims';
 import { ExecutionState } from '../../state';
 import { JsonUtils } from '../../utils';
 import { DebugWindow } from '../../utils/consoleDebug';
@@ -236,7 +236,7 @@ export class ExecutionService {
     pipeline: string,
     trigger: any,
   ): PromiseLike<IRetryablePromise<void>> {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then((triggerResult) =>
       executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
     );

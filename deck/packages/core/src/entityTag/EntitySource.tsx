@@ -3,9 +3,9 @@ import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import * as React from 'react';
 
 import { EntitySourcePopover } from './EntitySourcePopover';
+import { AngularServices } from '../angular/services';
 import type { ICreationMetadataTag, IExecution } from '../domain';
 import { HoverablePopover, useData } from '../presentation';
-import { ReactInjector } from '../reactShims';
 
 export interface IEntitySourceProps {
   metadata: ICreationMetadataTag;
@@ -18,7 +18,7 @@ export const EntitySource = ({ metadata, relativePath = '^.^.^' }: IEntitySource
 
   const fetchExecution = () => {
     if (executionType === 'pipeline') {
-      return ReactInjector.executionService.getExecution(metadata?.value?.executionId);
+      return AngularServices.executionService.getExecution(metadata?.value?.executionId);
     }
 
     return new Promise(() => {});

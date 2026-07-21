@@ -1,11 +1,11 @@
 import { get } from 'lodash';
 import React from 'react';
+import { AngularServices } from '../../../../angular/services';
 
 import type { Application } from '../../../../application/application.model';
 import { ConfirmationModalService } from '../../../../confirmationModal';
 import { DAYS_OF_WEEK } from './daysOfWeek';
 import type { IExecution, IExecutionStage } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
 import { SystemTimezone } from '../../../../utils/SystemTimezone';
 import { timePickerTime } from '../../../../utils/timeFormatters';
 
@@ -46,7 +46,7 @@ export class ExecutionWindowActions extends React.Component<
   }
 
   private finishWaiting = (e: React.MouseEvent<HTMLElement>): void => {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { application, execution, stage } = this.props;
 

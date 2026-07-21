@@ -15,13 +15,14 @@ import type {
   IWizardPageComponent,
 } from '@spinnaker/core';
 import {
+  AngularServices,
   FormikFormField,
   HelpField,
-  ReactInjector,
   ReactSelectInput,
   SubnetReader,
   TetheredSelect,
 } from '@spinnaker/core';
+
 import type { IAmazonFunctionUpsertCommand } from '../../index';
 import { VpcReader } from '../../vpc';
 
@@ -81,7 +82,7 @@ export class Network
   }
 
   private getAvailableSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
-    return ReactInjector.securityGroupReader.getAllSecurityGroups();
+    return AngularServices.securityGroupReader.getAllSecurityGroups();
   }
   private makeSubnetOptions(availableSubnets: ISubnet[]): ISubnetOption[] {
     const subOptions: ISubnetOption[] = availableSubnets.map((s) => ({ subnetId: s.id, vpcId: s.vpcId }));

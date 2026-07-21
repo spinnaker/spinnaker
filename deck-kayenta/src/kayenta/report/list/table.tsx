@@ -15,7 +15,8 @@ import { get, isEqual } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { Application, ReactInjector, relativeTime, Spinner, Tooltip } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
+import { AngularServices, relativeTime, Spinner, Tooltip } from '@spinnaker/core';
 
 import ConfigLink from './configLink';
 import Score from '../detail/score';
@@ -247,7 +248,7 @@ const TableRows = ({
 };
 
 const updateExecutionsCount = (event: React.ChangeEvent<HTMLSelectElement>) => {
-  ReactInjector.$state.go('.', { count: Number(event.target.value) });
+  AngularServices.$state.go('.', { count: Number(event.target.value) });
 };
 
 const ExecutionListTable = ({ executions, application, accounts, executionsCount }: IExecutionListTableStateProps) => {

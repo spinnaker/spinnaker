@@ -3,7 +3,8 @@ import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
 import type { Application } from '@spinnaker/core';
-import { ConfirmationModalService, InstanceWriter, ReactInjector } from '@spinnaker/core';
+import { AngularServices, ConfirmationModalService, InstanceWriter } from '@spinnaker/core';
+
 import type { ICloudFoundryInstance } from '../../domain';
 
 export interface ICloudFoundryInstanceActionsProps {
@@ -21,8 +22,8 @@ export class CloudFoundryInstanceActions extends React.Component<ICloudFoundryIn
       application: application,
       title: 'Terminating ' + instance.name,
       onTaskComplete() {
-        if (ReactInjector.$state.includes('**.serverGroup', { instanceId: instance.name })) {
-          ReactInjector.$state.go('^');
+        if (AngularServices.$state.includes('**.serverGroup', { instanceId: instance.name })) {
+          AngularServices.$state.go('^');
         }
       },
     };

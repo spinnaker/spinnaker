@@ -1,27 +1,13 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { Markdown, ReactInjector } from '@spinnaker/core';
+import { Markdown, AngularServices } from '@spinnaker/core';
 
 import { CanaryExecutionSummary } from './CanaryExecutionSummary';
 
 describe('CanaryExecutionSummary', () => {
-  let originalInjector: any;
-
   beforeEach(() => {
-    originalInjector = (ReactInjector as any).$injector;
-    ReactInjector.initialize({
-      get: (name: string) => {
-        if (name === '$stateParams') {
-          return {};
-        }
-        return originalInjector.get(name);
-      },
-    } as any);
-  });
-
-  afterEach(() => {
-    (ReactInjector as any).$injector = originalInjector;
+    spyOnProperty(AngularServices, '$stateParams', 'get').and.returnValue({});
   });
 
   it('renders comments through sanitized Markdown', () => {

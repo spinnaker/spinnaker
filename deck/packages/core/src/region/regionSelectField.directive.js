@@ -1,8 +1,7 @@
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
 
 import { RegionSelectField } from './RegionSelectField';
-import { withErrorBoundary } from '../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../angular/angularComponentFromReact';
 
 ('use strict');
 
@@ -11,7 +10,7 @@ export const name = CORE_REGION_REGIONSELECTFIELD_DIRECTIVE; // for backwards co
 module(CORE_REGION_REGIONSELECTFIELD_DIRECTIVE, [])
   .component(
     'regionSelectFieldWrapper',
-    react2angular(withErrorBoundary(RegionSelectField, 'regionSelectFieldWrapper'), [
+    angularComponentFromReact(RegionSelectField, 'regionSelectFieldWrapper', [
       'regions',
       'component',
       'field',

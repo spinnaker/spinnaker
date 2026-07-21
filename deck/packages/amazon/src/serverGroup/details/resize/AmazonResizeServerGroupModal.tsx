@@ -6,6 +6,7 @@ import { Modal } from 'react-bootstrap';
 
 import type { Application, ICapacity, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
+  AngularServices,
   CheckboxInput,
   confirmNotManaged,
   FormikFormField,
@@ -15,7 +16,6 @@ import {
   noop,
   NumberInput,
   PlatformHealthOverride,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
@@ -23,6 +23,7 @@ import {
   TaskReason,
   ValidationMessage,
 } from '@spinnaker/core';
+
 import { AwsModalFooter } from '../../../common';
 import type { IAmazonServerGroup } from '../../../domain';
 
@@ -199,7 +200,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
       };
     }
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
+      return AngularServices.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
     });
   };
 

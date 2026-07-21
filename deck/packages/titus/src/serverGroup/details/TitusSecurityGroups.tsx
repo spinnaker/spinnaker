@@ -3,7 +3,8 @@ import { sortBy } from 'lodash';
 import React from 'react';
 
 import type { Application, ISecurityGroup } from '@spinnaker/core';
-import { AccountService, CollapsibleSection, FirewallLabels, ReactInjector } from '@spinnaker/core';
+import { AccountService, AngularServices, CollapsibleSection, FirewallLabels } from '@spinnaker/core';
+
 import type { ITitusServerGroupView } from '../../domain';
 import { TitusSecurityGroupReader } from '../../securityGroup/securityGroup.read.service';
 
@@ -45,7 +46,7 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
       AccountService.listAllAccounts('titus').then((accounts) => {
         const titusAccount = accounts.find((a) => a.name === serverGroup.account);
         if (titusAccount && titusAccount.awsAccount) {
-          ReactInjector.securityGroupReader.getAllSecurityGroups().then((allSecurityGroups) => {
+          AngularServices.securityGroupReader.getAllSecurityGroups().then((allSecurityGroups) => {
             const regionalGroups = allSecurityGroups[titusAccount.awsAccount]['aws'][region];
             const securityGroups = serverGroup.securityGroups
               .map((sgId) => regionalGroups.find((rg) => rg.id === sgId))

@@ -23,8 +23,8 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   NameUtils,
-  ReactInjector,
   REST,
   setMatchingResourceSummary,
   SubnetReader,
@@ -117,7 +117,7 @@ export class TitusServerGroupConfigurationService {
   ) {}
 
   private getCacheInitializer(): CacheInitializerService {
-    return this.cacheInitializer || ReactInjector.cacheInitializer;
+    return this.cacheInitializer || AngularServices.cacheInitializer;
   }
 
   private getLoadBalancerReader(): Pick<LoadBalancerReader, 'listLoadBalancers'> {
@@ -129,7 +129,7 @@ export class TitusServerGroupConfigurationService {
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.securityGroupReader || ReactInjector.securityGroupReader;
+    return this.securityGroupReader || AngularServices.securityGroupReader;
   }
 
   public configureZones(command: ITitusServerGroupCommand) {

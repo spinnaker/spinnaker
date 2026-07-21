@@ -2,7 +2,7 @@ import type { FormikProps } from 'formik';
 import React from 'react';
 
 import type { Application, IAccount, IServerGroup } from '@spinnaker/core';
-import { AccountSelectInput, HelpField, NameUtils, ReactInjector, ServerGroupNamePreview } from '@spinnaker/core';
+import { AccountSelectInput, AngularServices, HelpField, NameUtils, ServerGroupNamePreview } from '@spinnaker/core';
 
 import type { ICloudrunServerGroupCommandData } from '../serverGroupCommandBuilder.service';
 
@@ -56,7 +56,7 @@ export function ServerGroupBasicSettings({
       serverGroup: latestServerGroup.name,
     };
 
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     if ($state.is('home.applications.application.insight.clusters')) {
       $state.go('.serverGroup', params);
     } else {

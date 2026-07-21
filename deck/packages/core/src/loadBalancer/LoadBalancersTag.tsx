@@ -2,12 +2,12 @@ import { sortBy } from 'lodash';
 import React from 'react';
 
 import type { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
+import { AngularServices } from '../angular/services';
 import type { ILoadBalancer } from '../domain';
 import { HealthCounts } from '../healthCounts/HealthCounts';
 import { LoadBalancerDataUtils } from './loadBalancerDataUtils';
 import { HoverablePopover } from '../presentation';
 import { Tooltip } from '../presentation/Tooltip';
-import { ReactInjector } from '../reactShims';
 import { logger } from '../utils';
 import { Spinner } from '../widgets';
 
@@ -69,7 +69,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     };
   }
   private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     const serverGroup = this.props.serverGroup;
     logger.log({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';

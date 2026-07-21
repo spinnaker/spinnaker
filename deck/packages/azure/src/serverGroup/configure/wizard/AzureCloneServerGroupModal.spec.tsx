@@ -3,7 +3,7 @@ import {
   DeployInitializer,
   MapEditor,
   NetworkReader,
-  ReactInjector,
+  AngularServices,
   ReactModal,
   TaskMonitor,
   WizardModal,
@@ -318,7 +318,7 @@ describe('AzureCloneServerGroupModal', () => {
         filtered: { loadBalancers: ['lb-a'] },
       },
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: () => Promise.resolve([{ vnet: 'vnet-a' }]),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
@@ -357,7 +357,7 @@ describe('AzureCloneServerGroupModal', () => {
         filtered: { loadBalancers: ['lb-a'] },
       },
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: () => Promise.resolve([{ vnet: 'vnet-a' }]),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
@@ -393,7 +393,7 @@ describe('AzureCloneServerGroupModal', () => {
       selectedVnetSubnets: ['old-subnet'],
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
@@ -427,7 +427,7 @@ describe('AzureCloneServerGroupModal', () => {
       selectedVnetSubnets: [],
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
@@ -547,7 +547,7 @@ describe('AzureCloneServerGroupModal', () => {
       selectedVnetSubnets: [],
       backingData: { loadBalancers: [], filtered: { loadBalancers: [] } },
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.reject(new Error('boom')));
@@ -572,7 +572,7 @@ describe('AzureCloneServerGroupModal', () => {
       vnet: 'old-vnet',
       vnetResourceGroup: 'old-rg',
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails'),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.reject(new Error('boom')));
@@ -603,7 +603,7 @@ describe('AzureCloneServerGroupModal', () => {
         filtered: { loadBalancers: ['lb-a'] },
       },
     });
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: () => Promise.resolve([]),
     });
     spyOn(NetworkReader, 'listNetworks').and.returnValue(
@@ -636,7 +636,7 @@ describe('AzureCloneServerGroupModal', () => {
       },
     });
     let resolveFirstRequest: (details: any[]) => void;
-    spyOnProperty(ReactInjector as any, 'loadBalancerReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices as any, 'loadBalancerReader', 'get').and.returnValue({
       getLoadBalancerDetails: (_provider: string, _account: string, _region: string, loadBalancerName: string) => {
         if (loadBalancerName === 'lb-a') {
           return new Promise((resolve) => {
