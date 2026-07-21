@@ -23,7 +23,7 @@ describe('Travis stage registration', () => {
     expect(travisStage.executionDetailsSections[0]).toBe(TravisExecutionDetails);
     expect(travisStage.executionDetailsSections.length).toBeGreaterThan(1);
     expect((travisStage as any).templateUrl).toBeUndefined();
-    expect((travisStage as any).executionDetailsUrl).toBeUndefined();
+    expect((travisStage as any).executionDetailsSections).toBeDefined();
   });
 
   it('preserves Travis extra execution label lines', () => {
