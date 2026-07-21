@@ -131,8 +131,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
         "spring.security.saml2.relyingparty.registration."
             + REGISTRATION_ID
             + ".assertingparty.metadata-uri",
-        () ->
-            keycloakBaseUrl + "/realms/" + REALM_NAME + "/protocol/saml/descriptor");
+        () -> keycloakBaseUrl + "/realms/" + REALM_NAME + "/protocol/saml/descriptor");
   }
 
   protected void assertSamlPropertiesLoaded() {
@@ -165,9 +164,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
 
     HttpRequest request =
         HttpRequest.newBuilder()
-            .uri(
-                URI.create(
-                    "http://localhost:" + port + "/saml2/authenticate/" + REGISTRATION_ID))
+            .uri(URI.create("http://localhost:" + port + "/saml2/authenticate/" + REGISTRATION_ID))
             .GET()
             .build();
     response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -217,8 +214,7 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
                                 .setName("test-account")
                                 .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
                     .setRoles(
-                        Set.of(
-                            new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
+                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
 
     WebDriver driver = new HtmlUnitDriver(true);
     driver.get("http://localhost:" + port + "/beans");
