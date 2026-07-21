@@ -4,13 +4,13 @@ import { Dropdown, MenuItem } from 'react-bootstrap';
 import type { Application, IManifest, IMoniker } from '@spinnaker/core';
 import {
   AccountTag,
+  AngularServices,
   CollapsibleSection,
   ConsoleOutputLink,
   InstanceDetailsHeader,
   InstanceLinks,
   InstanceReader,
   ManifestReader,
-  ReactInjector,
   RecentHistoryService,
   robotToHuman,
   SETTINGS,
@@ -169,8 +169,8 @@ export class KubernetesInstanceDetails extends React.Component<
       return;
     }
 
-    ReactInjector.$state.params.allowModalToStayOpen = true;
-    ReactInjector.$state.go('^', null, { location: 'replace' });
+    AngularServices.$state.params.allowModalToStayOpen = true;
+    AngularServices.$state.go('^', null, { location: 'replace' });
   };
 
   private buildConsoleOutputInstance(instance: IKubernetesInstance): IConsoleOutputInstance {

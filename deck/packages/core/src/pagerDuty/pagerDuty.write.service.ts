@@ -1,11 +1,11 @@
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
-import { ModalInjector } from '../reactShims';
 import type { IJob, ITaskCommand } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 
 export class PagerDutyWriter {
   public static pageApplicationOwnerModal(app: Application): void {
-    ModalInjector.modalService
+    AngularServices.modalService
       .open({
         templateUrl: require('./pageApplicationOwner.html'),
         controller: 'PageModalCtrl as ctrl',

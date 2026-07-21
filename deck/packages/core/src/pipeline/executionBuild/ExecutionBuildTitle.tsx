@@ -1,9 +1,8 @@
 import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { IExecutionBuildLinkProps } from './ExecutionBuildLink';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import { timestamp } from '../../utils';
 
 export interface IExecutionBuildTitleProps extends IExecutionBuildLinkProps {
@@ -41,5 +40,5 @@ const ngmodule = module(EXECUTION_BUILD_TITLE, []);
 
 ngmodule.component(
   'executionBuildTitle',
-  react2angular(withErrorBoundary(ExecutionBuildTitle, 'executionBuildTitle'), ['execution', 'defaultToTimestamp']),
+  angularComponentFromReact(ExecutionBuildTitle, 'executionBuildTitle', ['execution', 'defaultToTimestamp']),
 );

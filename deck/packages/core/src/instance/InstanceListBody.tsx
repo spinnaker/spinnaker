@@ -3,10 +3,10 @@ import { isEqual } from 'lodash';
 import React from 'react';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
+import { AngularServices } from '../angular/services';
 
 import type { IInstance, ILoadBalancerHealth, IServerGroup } from '../domain';
 import { Tooltip } from '../presentation';
-import { ReactInjector } from '../reactShims';
 import { ClusterState } from '../state';
 import { timestamp } from '../utils/timeFormatters';
 
@@ -25,8 +25,8 @@ export interface IInstanceListBodyState {
 }
 
 export class InstanceListBody extends React.Component<IInstanceListBodyProps, IInstanceListBodyState> {
-  private $uiRouter = ReactInjector.$uiRouter;
-  private $state = ReactInjector.$state;
+  private $uiRouter = AngularServices.$uiRouter;
+  private $state = AngularServices.$state;
   private destroy$ = new Subject();
 
   constructor(props: IInstanceListBodyProps) {

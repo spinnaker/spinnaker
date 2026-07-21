@@ -1,28 +1,30 @@
-import { ReactInjector } from '@spinnaker/core';
-import { FunctionReader } from '@spinnaker/core';
+import { AngularServices, FunctionReader } from '@spinnaker/core';
 
-import { AwsFunctionTransformer } from '../function';
-import { AwsInstanceTypeService } from '../instance/awsInstanceType.service';
-import { EvaluateCloudFormationChangeSetExecutionService } from '../pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
-import { createAwsServerGroupCommandBuilder } from '../serverGroup/configure/serverGroupCommandBuilder.service';
-import { AwsServerGroupConfigurationService } from '../serverGroup/configure/serverGroupConfiguration.service';
-import { AwsServerGroupTransformer } from '../serverGroup/serverGroup.transformer';
+import { AwsFunctionTransformer } from './function';
+import { AwsInstanceTypeService } from './instance/awsInstanceType.service';
+import { EvaluateCloudFormationChangeSetExecutionService } from './pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
+import { createAwsServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
+import { AwsServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
+import { AwsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 let awsInstanceTypeService: AwsInstanceTypeService;
+let awsServerGroupCommandBuilder: ReturnType<typeof createAwsServerGroupCommandBuilder>;
 let awsServerGroupConfigurationService: AwsServerGroupConfigurationService;
 let awsServerGroupTransformer: AwsServerGroupTransformer;
 let functionReader: FunctionReader;
 let evaluateCloudFormationChangeSetExecutionService: EvaluateCloudFormationChangeSetExecutionService;
 
-export const AwsReactInjector = {
+export const AwsServices = {
   get awsInstanceTypeService() {
     return (awsInstanceTypeService = awsInstanceTypeService || new AwsInstanceTypeService());
   },
   get awsServerGroupCommandBuilder() {
-    return createAwsServerGroupCommandBuilder(
-      ReactInjector.instanceTypeService,
-      AwsReactInjector.awsServerGroupConfigurationService,
-    );
+    return (awsServerGroupCommandBuilder =
+      awsServerGroupCommandBuilder ||
+      createAwsServerGroupCommandBuilder(
+        AngularServices.instanceTypeService,
+        AwsServices.awsServerGroupConfigurationService,
+      ));
   },
   get awsServerGroupConfigurationService() {
     return (
@@ -40,7 +42,7 @@ export const AwsReactInjector = {
     return (
       evaluateCloudFormationChangeSetExecutionService ||
       (evaluateCloudFormationChangeSetExecutionService = new EvaluateCloudFormationChangeSetExecutionService(
-        ReactInjector.executionService,
+        AngularServices.executionService,
       ))
     );
   },

@@ -3,6 +3,7 @@ import React from 'react';
 
 import type { Application, IInstanceDetailsProps } from '@spinnaker/core';
 import {
+  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   ConsoleOutputLink,
@@ -11,7 +12,6 @@ import {
   InstanceInsights,
   InstanceLinks,
   InstanceReader,
-  ReactInjector,
   RecentHistoryService,
   SETTINGS,
 } from '@spinnaker/core';
@@ -301,8 +301,8 @@ export function AmazonInstanceActions({
   }
 
   const closeIfCurrentInstance = () => {
-    if (ReactInjector.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
-      ReactInjector.$state.go('^');
+    if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
+      AngularServices.$state.go('^');
     }
   };
   const confirm = (
@@ -495,7 +495,7 @@ export class AmazonInstanceDetails extends React.Component<
   }
 
   private closeDetails(): void {
-    ReactInjector.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   }
 
   public componentDidUpdate(prevProps: IAmazonInstanceDetailsProps): void {

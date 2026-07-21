@@ -4,7 +4,8 @@ import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { get, has } from 'lodash';
 import * as React from 'react';
 
-import { CopyToClipboard, HoverablePopover, IStage, ReactInjector, timestamp } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { AngularServices, CopyToClipboard, HoverablePopover, timestamp } from '@spinnaker/core';
 
 import './canaryRunSummaries.less';
 
@@ -117,7 +118,7 @@ function ReportLink({ canaryRun }: { canaryRun: IStage }) {
   }
 
   const onClick = () =>
-    ReactInjector.$state.go('home.applications.application.canary.report.reportDetail', {
+    AngularServices.$state.go('home.applications.application.canary.report.reportDetail', {
       configId: canaryRun.context.canaryConfigId,
       runId: canaryRun.context.canaryPipelineExecutionId,
     });

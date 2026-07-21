@@ -1,10 +1,10 @@
 import { get } from 'lodash';
 import React from 'react';
 
+import { AngularServices } from '../../angular/services';
 import type { ICustomBannerConfig } from '../../application/config/customBanner/CustomBannerConfig';
 import { ApplicationReader } from '../../application/service/ApplicationReader';
 import { Markdown } from '../../presentation/Markdown';
-import { ReactInjector } from '../../reactShims';
 import { noop } from '../../utils';
 
 import './CustomBanner.less';
@@ -23,13 +23,13 @@ export class CustomBanner extends React.Component<{}, ICustomBannerState> {
   } as ICustomBannerState;
 
   public componentDidMount(): void {
-    this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () =>
+    this.locationChangeUnsubscribe = AngularServices.$uiRouter.transitionService.onSuccess({}, () =>
       this.updateApplication(),
     );
   }
 
   private updateApplication(): void {
-    const applicationName: string = get(ReactInjector, '$stateParams.application');
+    const applicationName: string = get(AngularServices, '$stateParams.application');
     if (applicationName !== this.state.applicationName) {
       this.setState({
         applicationName,

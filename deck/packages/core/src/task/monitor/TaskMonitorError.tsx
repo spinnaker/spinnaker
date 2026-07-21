@@ -2,9 +2,9 @@ import type { RawParams } from '@uirouter/core';
 import React from 'react';
 
 import { TrafficGuardHelperLink } from '../TrafficGuardHelperLink';
+import { AngularServices } from '../../angular/services';
 import type { ITask } from '../../domain';
 import { Markdown } from '../../presentation';
-import { ReactInjector } from '../../reactShims/react.injector';
 
 export interface ITaskMonitorErrorProps {
   errorMessage: string;
@@ -13,18 +13,18 @@ export interface ITaskMonitorErrorProps {
 
 export class TaskMonitorError extends React.Component<ITaskMonitorErrorProps> {
   private getBaseState() {
-    const { $stateParams } = ReactInjector;
+    const { $stateParams } = AngularServices;
     return `home.${$stateParams.project ? 'project' : 'applications'}.application`;
   }
 
   private getParams(extras: RawParams): RawParams {
-    const { project, application } = ReactInjector.$stateParams;
+    const { project, application } = AngularServices.$stateParams;
     return { project, application, ...extras };
   }
 
   public render() {
     const { errorMessage, task } = this.props;
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     if (!errorMessage) {
       return null;
     }

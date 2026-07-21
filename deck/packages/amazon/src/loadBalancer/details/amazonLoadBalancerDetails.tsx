@@ -15,12 +15,12 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountTag,
+  AngularServices,
   CollapsibleSection,
   CopyToClipboard,
   FirewallLabels,
   HealthCounts,
   ManagedResourceDetailsIndicator,
-  ReactInjector,
   REST,
   SubnetReader,
   timestamp,
@@ -224,7 +224,7 @@ export function useAmazonLoadBalancerDetails({
         autoClose: () => autoCloseRef.current(),
         loadBalancerParams: { accountId, name, provider, region, vpcId },
         loadBalancers,
-        securityGroupReader: ReactInjector.securityGroupReader,
+        securityGroupReader: AngularServices.securityGroupReader,
       });
       if (isMountedRef.current) {
         setData(loadBalancer);

@@ -7,12 +7,12 @@ import type { Application, ISecurityGroup, ISecurityGroupDetail, SecurityGroupRe
 import {
   AccountTag,
   AddEntityTagLinks,
+  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   confirmNotManaged,
   FirewallLabels,
   ManagedResourceDetailsIndicator,
-  ReactInjector,
   RecentHistoryService,
   SecurityGroupWriter,
   SETTINGS,
@@ -243,7 +243,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || ReactInjector.securityGroupReader;
+    return this.props.securityGroupReader || AngularServices.securityGroupReader;
   }
 
   private autoClose = (): void => {
@@ -259,7 +259,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
       this.setState({ loading: false, notFound: true });
       return;
     }
-    ReactInjector.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   };
 
   private loadSecurityGroup = (): void => {
@@ -313,7 +313,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
   };
 
   private closeDetails = (): void => {
-    ReactInjector.$state.go('^');
+    AngularServices.$state.go('^');
   };
 
   public render(): JSX.Element {

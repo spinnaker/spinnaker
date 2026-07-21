@@ -1,13 +1,13 @@
 import * as React from 'react';
 
 import type { IAccountDetails } from '../account';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { ICloudProviderConfig } from '../cloudProvider';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
 import { Tooltip } from '../presentation';
-import { ModalInjector } from '../reactShims';
 import { noop } from '../utils';
 
 const providerFilterFn = (_application: Application, _account: IAccountDetails, provider: ICloudProviderConfig) => {
@@ -71,7 +71,7 @@ export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {
         provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app));
       } else {
         // angular
-        ModalInjector.modalService.open(getAngularModalOptions(provider, selectedProvider, app)).result.catch(noop);
+        AngularServices.modalService.open(getAngularModalOptions(provider, selectedProvider, app)).result.catch(noop);
       }
     }, noop);
   };

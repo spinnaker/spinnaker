@@ -2,10 +2,10 @@ import React from 'react';
 
 import type { ISearchResult, ISearchResultPodData } from './SearchResultPods';
 import { SearchResultPods } from './SearchResultPods';
+import { AngularServices } from '../../angular/services';
 import type { IRecentHistoryEntry } from '../../history';
 import { RecentHistoryService } from '../../history';
 import { useData } from '../../presentation/hooks';
-import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';
 
 export interface IChildComponentProps {
@@ -24,7 +24,7 @@ export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
   const { Component } = props;
   const categoryNames = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
   // useMemo to get a single searcher per mount. The Searcher immediately performs work when instantiated.
-  const search = React.useMemo(() => ReactInjector.infrastructureSearchService.getSearcher(), []);
+  const search = React.useMemo(() => AngularServices.infrastructureSearchService.getSearcher(), []);
 
   /** fetches the displayName and adds it to the history entry */
   function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {
