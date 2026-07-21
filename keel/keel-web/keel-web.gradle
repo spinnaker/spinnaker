@@ -80,5 +80,5 @@ dependencies {
 
 application {
   mainClass.set("com.netflix.spinnaker.keel.MainKt")
-  applicationName("keel")
+  applicationName = "keel"
 }

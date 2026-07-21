@@ -16,19 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ConfigFeatureFlag.ConfigFlag.SERVICE_INSTANCE_SHARING;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.*;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.*;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.MANAGED_SERVICE_INSTANCE;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance.Type.USER_PROVIDED_SERVICE_INSTANCE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.State.*;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.Type.*;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.VcapServiceInstance.Type.MANAGED_SERVICE_INSTANCE;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.VcapServiceInstance.Type.USER_PROVIDED_SERVICE_INSTANCE;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.assertThrows;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -38,8 +35,17 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ConfigService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateSharedServiceInstances;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.FeatureFlag;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Relationship;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceOffering;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServicePlan;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.SharedTo;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ToOneRelationship;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
@@ -69,17 +75,17 @@ class ServiceInstancesTest {
       new ServiceInstances(serviceInstanceService, configService, spaces);
 
   {
-    when(serviceInstanceService.findService(any(), any()))
+    when(serviceInstanceService.findServiceOfferings(any(), any()))
         .thenReturn(
             Calls.response(
-                Response.success(
-                    Page.singleton(new Service().setLabel("service1"), "service-guid"))));
+                Response.success(singletonPagination(offering("service1", "service-guid")))));
 
-    when(serviceInstanceService.findServicePlans(any(), any()))
+    when(serviceInstanceService.findServicePlans(any(), any(), any()))
         .thenReturn(
             Calls.response(
                 Response.success(
-                    Page.singleton(new ServicePlan().setName("ServicePlan1"), "plan-guid"))));
+                    singletonPagination(
+                        servicePlan("ServicePlan1", "plan-guid", "service-guid")))));
   }
 
   @Test
@@ -90,31 +96,13 @@ class ServiceInstancesTest {
             .id("servergroup-id")
             .space(cloudFoundrySpace)
             .build();
+    when(serviceInstanceService.createServiceBinding(any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
 
-    Page<ServiceInstance> serviceMappingPageOne = Page.singleton(null, "service-instance-guid");
-    CreateServiceBinding binding =
-        new CreateServiceBinding(
-            "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
-    serviceMappingPageOne.setTotalResults(0);
-    serviceMappingPageOne.setTotalPages(0);
-    when(serviceInstanceService.all(eq(null), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
-    when(serviceInstanceService.all(eq(1), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
+    serviceInstances.createServiceBinding(
+        "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
 
-    Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne =
-        createEmptyUserProvidedServiceInstancePage();
-    when(serviceInstanceService.allUserProvided(eq(null), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(userProvidedServiceMappingPageOne)));
-    when(serviceInstanceService.allUserProvided(eq(1), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(userProvidedServiceMappingPageOne)));
-    when(serviceInstanceService.createServiceBinding(binding))
-        .thenAnswer(invocation -> Calls.response(Response.success(createServiceBindingResource())));
-
-    serviceInstances.createServiceBinding(binding);
-    verify(serviceInstanceService, atLeastOnce()).createServiceBinding(any());
+    verify(serviceInstanceService).createServiceBinding(any());
   }
 
   @Test
@@ -125,32 +113,13 @@ class ServiceInstancesTest {
             .id("servergroup-id")
             .space(cloudFoundrySpace)
             .build();
+    when(serviceInstanceService.createServiceBinding(any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
 
-    Page<ServiceInstance> serviceMappingPageOne = createEmptyOsbServiceInstancePage();
-    CreateServiceBinding binding =
-        new CreateServiceBinding(
-            "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
-    when(serviceInstanceService.all(eq(null), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
-    when(serviceInstanceService.all(eq(1), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
+    serviceInstances.createServiceBinding(
+        "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
 
-    Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne =
-        Page.singleton(null, "service-instance-guid");
-    userProvidedServiceMappingPageOne.setTotalResults(0);
-    userProvidedServiceMappingPageOne.setTotalPages(0);
-    when(serviceInstanceService.allUserProvided(eq(null), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(userProvidedServiceMappingPageOne)));
-    when(serviceInstanceService.allUserProvided(eq(1), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(userProvidedServiceMappingPageOne)));
-    when(serviceInstanceService.createServiceBinding(binding))
-        .thenAnswer(invocation -> Calls.response(Response.success(createServiceBindingResource())));
-
-    serviceInstances.createServiceBinding(binding);
-
-    verify(serviceInstanceService, atLeastOnce()).createServiceBinding(any());
+    verify(serviceInstanceService).createServiceBinding(any());
   }
 
   @Test
@@ -161,27 +130,7 @@ class ServiceInstancesTest {
             .id("servergroup-id")
             .space(cloudFoundrySpace)
             .build();
-
-    Page<ServiceInstance> serviceMappingPageOne = Page.singleton(null, "service-instance-guid");
-    CreateServiceBinding binding =
-        new CreateServiceBinding(
-            "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
-    serviceMappingPageOne.setTotalResults(0);
-    serviceMappingPageOne.setTotalPages(0);
-    when(serviceInstanceService.all(eq(null), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
-    when(serviceInstanceService.all(eq(1), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceMappingPageOne)));
-
-    Page<UserProvidedServiceInstance> userProvidedServiceMappingPageOne =
-        createEmptyUserProvidedServiceInstancePage();
-    when(serviceInstanceService.allUserProvided(eq(null), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(userProvidedServiceMappingPageOne)));
-    when(serviceInstanceService.allUserProvided(eq(1), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(userProvidedServiceMappingPageOne)));
-    when(serviceInstanceService.createServiceBinding(binding))
+    when(serviceInstanceService.createServiceBinding(any()))
         .thenReturn(
             Calls.response(
                 Response.error(
@@ -190,27 +139,22 @@ class ServiceInstancesTest {
                         MediaType.get("application/json"),
                         "{\"error_code\": \"CF-ServiceBindingAppServiceTaken\", \"description\":\"already bound\"}"))));
 
-    serviceInstances.createServiceBinding(binding);
-    verify(serviceInstanceService, atLeastOnce()).createServiceBinding(any());
+    serviceInstances.createServiceBinding(
+        "service-instance-guid", cloudFoundryServerGroup.getId(), "service-name", emptyMap());
+
+    verify(serviceInstanceService).createServiceBinding(any());
   }
 
   @Test
   void shouldSuccessfullyCreateService() {
-    Resource<ServiceInstance> succeededServiceInstanceResource = createServiceInstanceResource();
-    succeededServiceInstanceResource
-        .getEntity()
-        .setLastOperation(new LastOperation().setType(CREATE).setState(SUCCEEDED));
-
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
     when(serviceInstanceService.createServiceInstance(any()))
         .thenAnswer(
-            invocation -> Calls.response(Response.success(createServiceInstanceResource())));
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        ResponseBody.create(MediaType.get("application/json"), "{}"))));
 
     ServiceInstanceResponse response =
         serviceInstances.createServiceInstance(
@@ -234,14 +178,8 @@ class ServiceInstancesTest {
 
   @Test
   void shouldThrowExceptionWhenCreationReturnsHttpNotFound() {
-
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
     when(serviceInstanceService.createServiceInstance(any()))
         .thenReturn(
             Calls.response(
@@ -269,12 +207,8 @@ class ServiceInstancesTest {
 
   @Test
   void throwExceptionWhenNoServicePlanExistsWithTheNameProvided() {
-    Page<ServicePlan> servicePlansPageOne = new Page<>();
-    servicePlansPageOne.setTotalResults(0);
-    servicePlansPageOne.setTotalPages(1);
-    servicePlansPageOne.setResources(Collections.emptyList());
-    when(serviceInstanceService.findServicePlans(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(servicePlansPageOne)));
+    when(serviceInstanceService.findServicePlans(any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
 
     assertThrows(
         () ->
@@ -292,15 +226,18 @@ class ServiceInstancesTest {
 
   @Test
   void shouldUpdateTheServiceIfAlreadyExists() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "new-service-instance-name",
+                                "service-instance-guid",
+                                "plan-guid")))));
     when(serviceInstanceService.updateServiceInstance(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createServiceInstanceResource())));
+        .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
 
     ServiceInstanceResponse response =
         serviceInstances.createServiceInstance(
@@ -324,15 +261,16 @@ class ServiceInstancesTest {
 
   @Test
   void shouldNotUpdateTheServiceIfAlreadyExists() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
-    when(serviceInstanceService.updateServiceInstance(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createServiceInstanceResource())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "new-service-instance-name",
+                                "service-instance-guid",
+                                "plan-guid")))));
 
     ServiceInstanceResponse response =
         serviceInstances.createServiceInstance(
@@ -356,12 +294,16 @@ class ServiceInstancesTest {
 
   @Test
   void shouldThrowExceptionIfServiceExistsAndNeedsChangingButUpdateFails() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "new-service-instance-name",
+                                "service-instance-guid",
+                                "plan-guid")))));
     when(serviceInstanceService.updateServiceInstance(any(), any()))
         .thenReturn(
             Calls.response(
@@ -389,25 +331,14 @@ class ServiceInstancesTest {
 
   @Test
   void shouldThrowCloudFoundryApiErrorWhenMoreThanOneServiceInstanceWithTheSameNameExists() {
-    ServiceInstance serviceInstance = new ServiceInstance();
-    serviceInstance.setServicePlanGuid("plan-guid").setName("new-service-instance-name");
-    Page<ServiceInstance> serviceInstancePage = new Page<>();
-    Resource<ServiceInstance> serviceInstanceResource = new Resource<>();
-    Resource.Metadata serviceInstanceMetadata = new Resource.Metadata();
-    serviceInstanceMetadata.setGuid("service-instance-guid");
-    serviceInstanceResource.setMetadata(serviceInstanceMetadata);
-    serviceInstanceResource.setEntity(serviceInstance);
-    serviceInstancePage.setTotalResults(2);
-    serviceInstancePage.setTotalPages(1);
-    serviceInstancePage.setResources(
-        Arrays.asList(serviceInstanceResource, serviceInstanceResource));
+    ServiceInstance serviceInstance =
+        managedServiceInstance("new-service-instance-name", "service-instance-guid", "plan-guid");
 
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceInstancePage)));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+                Calls.response(
+                    Response.success(pagination(Arrays.asList(serviceInstance, serviceInstance)))));
 
     assertThrows(
         () ->
@@ -425,17 +356,15 @@ class ServiceInstancesTest {
 
   @Test
   void shouldSuccessfullyCreateUserProvidedService() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("user-provided")))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
     when(serviceInstanceService.createUserProvidedServiceInstance(any()))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstanceResource())));
+                Calls.response(
+                    Response.success(
+                        userProvidedServiceInstance(
+                            "new-up-service-instance-name", "up-service-instance-guid"))));
 
     ServiceInstanceResponse response =
         serviceInstances.createUserProvidedServiceInstance(
@@ -459,17 +388,21 @@ class ServiceInstancesTest {
 
   @Test
   void shouldUpdateUserProvidedServiceInstanceIfAlreadyExists() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("user-provided")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            userProvidedServiceInstance(
+                                "up-service-instance-name", "up-service-instance-guid")))));
     when(serviceInstanceService.updateUserProvidedServiceInstance(any(), any()))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstanceResource())));
+                Calls.response(
+                    Response.success(
+                        userProvidedServiceInstance(
+                            "new-up-service-instance-name", "up-service-instance-guid"))));
 
     ServiceInstanceResponse response =
         serviceInstances.createUserProvidedServiceInstance(
@@ -493,17 +426,14 @@ class ServiceInstancesTest {
 
   @Test
   void shouldNotUpdateUserProvidedServiceInstanceIfAlreadyExists() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("user-provided")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
-    when(serviceInstanceService.updateUserProvidedServiceInstance(any(), any()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstanceResource())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            userProvidedServiceInstance(
+                                "up-service-instance-name", "up-service-instance-guid")))));
 
     ServiceInstanceResponse response =
         serviceInstances.createUserProvidedServiceInstance(
@@ -540,18 +470,8 @@ class ServiceInstancesTest {
       vetShareServiceArgumentsAndGetSharingRegionIdsShouldThrowExceptionWhenServiceSharingShareToSpaceIsTheSourceSpace() {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    when(serviceInstanceService.all(any(), any()))
-        .thenReturn(
-            Calls.response(
-                Response.success(createOsbServiceInstancePage(USER_PROVIDED_SERVICE_INSTANCE))));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
 
     assertThrows(
         () ->
@@ -566,9 +486,8 @@ class ServiceInstancesTest {
       getOsbCloudFoundryServiceInstanceShouldThrowExceptionWhenServiceSharingServiceInstanceDoesNotExist() {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
 
     assertThrows(
         () ->
@@ -581,9 +500,8 @@ class ServiceInstancesTest {
   void getOsbCloudFoundryServiceInstanceShouldThrowExceptionWhenServiceSharingSpaceDoesNotExist() {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
 
     assertThrows(
         () ->
@@ -594,8 +512,8 @@ class ServiceInstancesTest {
 
   @Test
   void checkServiceShareableShouldThrowExceptionWhenManagedServiceSharingFlagIsNotPresent() {
-    when(configService.getConfigFeatureFlags())
-        .thenAnswer(invocation -> Calls.response(Response.success(Collections.emptySet())));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenAnswer(invocation -> Calls.response(Response.success(null)));
 
     assertThrows(
         () -> serviceInstances.checkServiceShareable("service-instance-name", null),
@@ -605,11 +523,8 @@ class ServiceInstancesTest {
 
   @Test
   void checkServiceShareableShouldThrowExceptionWhenManagedServiceSharingFlagIsSetToFalse() {
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(new ConfigFeatureFlag().setName(SERVICE_INSTANCE_SHARING)))));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(disabledFeatureFlag())));
 
     assertThrows(
         () -> serviceInstances.checkServiceShareable("service-instance-name", null),
@@ -619,16 +534,8 @@ class ServiceInstancesTest {
 
   @Test
   void checkServiceShareableShouldThrowExceptionIfServicePlanNotFound() {
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
     when(serviceInstanceService.findServicePlanByServicePlanId(any()))
         .thenAnswer(invocation -> Calls.response(Response.success(null)));
 
@@ -643,19 +550,14 @@ class ServiceInstancesTest {
 
   @Test
   void checkServiceShareableShouldThrowExceptionWhenManagedServiceDoesNotExist() {
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    Resource<ServicePlan> rsp = new Resource<>();
-    rsp.setEntity(new ServicePlan().setServiceGuid("service-guid"));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
     when(serviceInstanceService.findServicePlanByServicePlanId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(rsp)));
-    when(serviceInstanceService.findServiceByServiceId(any()))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(servicePlan("plan1", "some-plan", "service-guid"))));
+    when(serviceInstanceService.findServiceOfferingByGuid(any()))
         .thenReturn(Calls.response(Response.success(null)));
 
     assertThrows(
@@ -671,24 +573,17 @@ class ServiceInstancesTest {
   void checkServiceShareableShouldThrowExceptionWhenManagedServiceDoesNotSupportSharing() {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    Resource<ServicePlan> rsp = new Resource<>();
-    rsp.setEntity(new ServicePlan().setServiceGuid("service-guid"));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
     when(serviceInstanceService.findServicePlanByServicePlanId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(rsp)));
-    Resource<Service> r = new Resource<>();
-    r.setEntity(new Service().setExtra("{\"shareable\": false}"));
-    when(serviceInstanceService.findServiceByServiceId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(r)));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(servicePlan("plan1", "some-plan", "service-guid"))));
+    ServiceOffering unshareableOffering = offering("service1", "service-guid");
+    unshareableOffering.setShareable(false);
+    when(serviceInstanceService.findServiceOfferingByGuid(any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(unshareableOffering)));
 
     assertThrows(
         () ->
@@ -719,10 +614,14 @@ class ServiceInstancesTest {
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2))
         .thenReturn(Optional.of(cloudFoundrySpace));
-    when(serviceInstanceService.all(any(), any()))
-        .thenReturn(
-            Calls.response(
-                Response.success(createOsbServiceInstancePage(USER_PROVIDED_SERVICE_INSTANCE))));
+    when(serviceInstanceService.all(any(), any(), any(), eq(null)))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            userProvidedServiceInstance(
+                                "service-instance-name", "service-instance-guid")))));
     when(serviceInstanceService.getShareServiceInstanceSpaceIdsByServiceInstanceId(any()))
         .thenReturn(
             Calls.response(Response.success(new SharedTo().setData(Collections.emptySet()))));
@@ -776,16 +675,16 @@ class ServiceInstancesTest {
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2))
         .thenReturn(Optional.of(cloudFoundrySpace));
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
+    when(serviceInstanceService.all(any(), any(), any(), any()))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "service-instance-name", "service-instance-guid", "plan-guid")))));
     Set<Map<String, String>> alreadySharedTo = new HashSet<>();
     alreadySharedTo.add(Collections.singletonMap("guid", "space-guid-1"));
     alreadySharedTo.add(Collections.singletonMap("guid", "space-guid-3"));
@@ -794,15 +693,15 @@ class ServiceInstancesTest {
             invocation ->
                 Calls.response(Response.success(new SharedTo().setData(alreadySharedTo))));
     ArgumentCaptor<String> servicePlanIdCaptor = ArgumentCaptor.forClass(String.class);
-    Resource<ServicePlan> rsp = new Resource<>();
-    rsp.setEntity(new ServicePlan().setServiceGuid("service-guid"));
     when(serviceInstanceService.findServicePlanByServicePlanId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(rsp)));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(servicePlan("plan1", "plan-guid", "service-guid"))));
     ArgumentCaptor<String> serviceIdCaptor = ArgumentCaptor.forClass(String.class);
-    Resource<Service> r = new Resource<>();
-    r.setEntity(new Service().setExtra("{\"shareable\": true}"));
-    when(serviceInstanceService.findServiceByServiceId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(r)));
+    when(serviceInstanceService.findServiceOfferingByGuid(any()))
+        .thenAnswer(
+            invocation -> Calls.response(Response.success(offering("service1", "service-guid"))));
     when(serviceInstanceService.shareServiceInstanceToSpaceIds(any(), any()))
         .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
     ArgumentCaptor<String> serviceInstanceIdCaptor = ArgumentCaptor.forClass(String.class);
@@ -825,7 +724,7 @@ class ServiceInstancesTest {
 
     verify(serviceInstanceService).findServicePlanByServicePlanId(servicePlanIdCaptor.capture());
     assertThat(servicePlanIdCaptor.getValue()).isEqualTo("plan-guid");
-    verify(serviceInstanceService).findServiceByServiceId(serviceIdCaptor.capture());
+    verify(serviceInstanceService).findServiceOfferingByGuid(serviceIdCaptor.capture());
     assertThat(serviceIdCaptor.getValue()).isEqualTo("service-guid");
     verify(serviceInstanceService)
         .shareServiceInstanceToSpaceIds(serviceInstanceIdCaptor.capture(), shareToCaptor.capture());
@@ -855,16 +754,16 @@ class ServiceInstancesTest {
         .thenReturn(Optional.of(space1))
         .thenReturn(Optional.of(space2))
         .thenReturn(Optional.of(cloudFoundrySpace));
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
+    when(serviceInstanceService.all(any(), any(), any(), any()))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "service-instance-name", "service-instance-guid", "plan-guid")))));
     Set<Map<String, String>> alreadySharedTo = new HashSet<>();
     alreadySharedTo.add(Collections.singletonMap("guid", "space-guid-1"));
     alreadySharedTo.add(Collections.singletonMap("guid", "space-guid-2"));
@@ -872,14 +771,14 @@ class ServiceInstancesTest {
         .thenAnswer(
             invocation ->
                 Calls.response(Response.success(new SharedTo().setData(alreadySharedTo))));
-    Resource<ServicePlan> rsp = new Resource<>();
-    rsp.setEntity(new ServicePlan().setServiceGuid("service-guid"));
     when(serviceInstanceService.findServicePlanByServicePlanId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(rsp)));
-    Resource<Service> r = new Resource<>();
-    r.setEntity(new Service().setExtra("{\"shareable\": true}"));
-    when(serviceInstanceService.findServiceByServiceId(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(r)));
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(servicePlan("plan1", "plan-guid", "service-guid"))));
+    when(serviceInstanceService.findServiceOfferingByGuid(any()))
+        .thenAnswer(
+            invocation -> Calls.response(Response.success(offering("service1", "service-guid"))));
     Set<Map<String, String>> s = singleton(Collections.singletonMap("guid", "space-guid-2"));
     ServiceInstanceResponse expectedResult =
         new ServiceInstanceResponse()
@@ -938,19 +837,8 @@ class ServiceInstancesTest {
       vetUnshareServiceArgumentsAndGetSharingRegionIdsShouldThrowExceptionWhenServiceSharingShareToSpaceDoesNotExist() {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.empty());
-    when(configService.getConfigFeatureFlags())
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    singleton(
-                        new ConfigFeatureFlag()
-                            .setName(SERVICE_INSTANCE_SHARING)
-                            .setEnabled(true)))));
-    when(serviceInstanceService.all(any(), any()))
-        .thenReturn(
-            Calls.response(
-                Response.success(createOsbServiceInstancePage(USER_PROVIDED_SERVICE_INSTANCE))));
-
+    when(configService.getFeatureFlag("service_instance_sharing"))
+        .thenReturn(Calls.response(Response.success(enabledFeatureFlag())));
     assertThrows(
         () ->
             serviceInstances.vetUnshareServiceArgumentsAndGetSharingSpaces(
@@ -1040,8 +928,16 @@ class ServiceInstancesTest {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "new-service-instance-name",
+                                "service-instance-guid",
+                                "plan-guid")))));
 
     CloudFoundryServiceInstance results =
         serviceInstances.getServiceInstance("org > space", "new-service-instance-name");
@@ -1062,13 +958,16 @@ class ServiceInstancesTest {
     when(organizations.findByName(any())).thenReturn(Optional.ofNullable(cloudFoundryOrganization));
     when(spaces.findSpaceByRegion(any())).thenReturn(Optional.of(cloudFoundrySpace));
 
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), any()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("user-provided")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            userProvidedServiceInstance(
+                                "up-service-instance-name", "up-service-instance-guid")))));
 
     CloudFoundryServiceInstance results =
         serviceInstances.getServiceInstance("org > space", "up-service-instance-name");
@@ -1085,8 +984,16 @@ class ServiceInstancesTest {
 
   @Test
   void getOsbServiceInstanceShouldReturnAServiceInstanceWhenExactlyOneIsReturnedFromApi() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "new-service-instance-name",
+                                "service-instance-guid",
+                                "plan-guid")))));
 
     CloudFoundryServiceInstance service =
         serviceInstances.getOsbServiceInstance(cloudFoundrySpace, "service-instance-name");
@@ -1105,10 +1012,14 @@ class ServiceInstancesTest {
 
   @Test
   void getUserProvidedServiceInstanceShouldReturnAServiceInstanceWhenExactlyOneIsReturnedFromApi() {
-    when(serviceInstanceService.allUserProvided(any(), any()))
+    when(serviceInstanceService.all(any(), any(), any(), eq("user-provided")))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            userProvidedServiceInstance(
+                                "up-service-instance-name", "up-service-instance-guid")))));
 
     CloudFoundryServiceInstance service =
         serviceInstances.getUserProvidedServiceInstance(
@@ -1127,8 +1038,13 @@ class ServiceInstancesTest {
 
   @Test
   void getServiceInstanceShouldReturnAServiceInstanceWithStatusWhenExactlyOneIsReturnedFromApi() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createServiceInstancePage())));
+    ServiceInstance failedInstance =
+        managedServiceInstance("up-service-instance-name", "up-service-instance-guid", "plan-guid");
+    failedInstance.getLastOperation().setState("FAILED");
+    failedInstance.getLastOperation().setDescription("Custom description");
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(
+            invocation -> Calls.response(Response.success(singletonPagination(failedInstance))));
 
     CloudFoundryServiceInstance service =
         serviceInstances.getOsbServiceInstance(cloudFoundrySpace, "up-service-instance-name");
@@ -1137,6 +1053,7 @@ class ServiceInstancesTest {
     CloudFoundryServiceInstance expected =
         CloudFoundryServiceInstance.builder()
             .id("up-service-instance-guid")
+            .planId("plan-guid")
             .type(MANAGED_SERVICE_INSTANCE.toString())
             .serviceInstanceName("up-service-instance-name")
             .status(FAILED.toString())
@@ -1147,9 +1064,8 @@ class ServiceInstancesTest {
 
   @Test
   void getOsbServiceInstanceShouldThrowAnExceptionWhenMultipleServicesAreReturnedFromApi() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
 
     assertThat(
             serviceInstances.getOsbServiceInstance(cloudFoundrySpace, "new-service-instance-name"))
@@ -1158,13 +1074,13 @@ class ServiceInstancesTest {
 
   @Test
   void getOsbServiceInstanceShouldThrowAnExceptionWhenNoServicesAreReturnedFromApi() {
-    Page<ServiceInstance> page = new Page<>();
-    page.setTotalResults(2);
-    page.setTotalPages(1);
-    page.setResources(
-        Arrays.asList(createServiceInstanceResource(), createServiceInstanceResource()));
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(page)));
+    ServiceInstance serviceInstance =
+        managedServiceInstance("new-service-instance-name", "service-instance-guid", "plan-guid");
+    when(serviceInstanceService.all(any(), any(), any(), eq("managed")))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(pagination(Arrays.asList(serviceInstance, serviceInstance)))));
 
     assertThrows(
         () ->
@@ -1183,10 +1099,19 @@ class ServiceInstancesTest {
 
   @Test
   void destroyServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null, null))
-        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
+    when(serviceInstanceService.all(any(), any(), any(), eq(null)))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "new-service-instance-name",
+                                "service-instance-guid",
+                                "plan-guid")))));
+    when(serviceInstanceService.getServiceBindings(
+            any(), eq("service-instance-guid"), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
     when(serviceInstanceService.destroyServiceInstance(any()))
         .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
 
@@ -1199,21 +1124,22 @@ class ServiceInstancesTest {
                 .setServiceInstanceName("new-service-instance-name")
                 .setType(DELETE)
                 .setState(IN_PROGRESS));
-    verify(serviceInstanceService, times(1)).all(any(), anyList());
+    verify(serviceInstanceService, times(1)).all(any(), any(), any(), eq(null));
     verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
-    verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
   @Test
   void destroyServiceInstanceShouldThrowExceptionWhenDeleteServiceInstanceFails() {
-    Page<ServiceBinding> serviceBindingPage = new Page<>();
-    serviceBindingPage.setTotalResults(0);
-    serviceBindingPage.setTotalPages(1);
-
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    when(serviceInstanceService.getBindingsForServiceInstance(any(), any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceBindingPage)));
+    when(serviceInstanceService.all(any(), any(), any(), eq(null)))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "service-instance-name", "service-instance-guid", "plan-guid")))));
+    when(serviceInstanceService.getServiceBindings(any(), any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
     when(serviceInstanceService.destroyServiceInstance(any()))
         .thenReturn(
             Calls.response(
@@ -1225,18 +1151,12 @@ class ServiceInstancesTest {
         "Cloud Foundry API returned with error(s): ");
 
     verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
-    verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
   @Test
   void destroyServiceInstanceShouldReturnSuccessWhenServiceInstanceDoesNotExist() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createEmptyUserProvidedServiceInstancePage())));
+    when(serviceInstanceService.all(any(), any(), any(), eq(null)))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
 
     ServiceInstanceResponse response =
         serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name");
@@ -1252,12 +1172,20 @@ class ServiceInstancesTest {
 
   @Test
   void destroyServiceInstanceShouldFailIfServiceBindingsExists() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
-    when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null, null))
+    when(serviceInstanceService.all(any(), any(), any(), eq(null)))
+        .thenAnswer(
+            invocation ->
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            managedServiceInstance(
+                                "service-instance-name", "service-instance-guid", "plan-guid")))));
+    when(serviceInstanceService.getServiceBindings(
+            any(), eq("service-instance-guid"), any(), any()))
         .thenReturn(
             Calls.response(
-                Response.success(Page.singleton(new ServiceBinding(), "service-binding-guid"))));
+                Response.success(
+                    singletonPagination(serviceCredentialBinding("service-binding-guid")))));
 
     assertThrows(
         () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
@@ -1265,22 +1193,26 @@ class ServiceInstancesTest {
         "Cloud Foundry API returned with error(s): Unable to destroy service instance while 1 service binding(s) exist");
 
     verify(serviceInstanceService, never()).destroyServiceInstance(any());
-    verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
+  // Note: in v3, destroy is unified for managed and user-provided instances behind a single
+  // 'all(..., type=null)' + 'destroyServiceInstance(guid)' code path, so this covers the same
+  // destroy logic exercised above but against a user-provided instance.
   @Test
-  void destroyUserProvidedServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
+  void destroyServiceInstanceShouldSucceedForUserProvidedInstanceWithNoServiceBindings() {
+    when(serviceInstanceService.all(any(), any(), any(), eq(null)))
         .thenAnswer(
             invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
-    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(
-            "up-service-instance-guid", null, null))
-        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
-    when(serviceInstanceService.destroyUserProvidedServiceInstance(any()))
-        .thenAnswer(invocation -> Calls.response(Response.success("")));
+                Calls.response(
+                    Response.success(
+                        singletonPagination(
+                            userProvidedServiceInstance(
+                                "new-service-instance-name", "up-service-instance-guid")))));
+    when(serviceInstanceService.getServiceBindings(
+            any(), eq("up-service-instance-guid"), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(emptyPagination())));
+    when(serviceInstanceService.destroyServiceInstance(any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
 
     ServiceInstanceResponse response =
         serviceInstances.destroyServiceInstance(cloudFoundrySpace, "new-service-instance-name");
@@ -1291,151 +1223,87 @@ class ServiceInstancesTest {
                 .setServiceInstanceName("new-service-instance-name")
                 .setType(DELETE)
                 .setState(IN_PROGRESS));
-    verify(serviceInstanceService, times(1)).all(any(), anyList());
-    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
-    verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
-    verify(serviceInstanceService, times(1))
-        .getBindingsForUserProvidedServiceInstance(any(), any(), any());
-    verify(serviceInstanceService, never()).destroyServiceInstance(any());
+    verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
   }
 
-  @Test
-  void destroyUserProvidedServiceInstanceShouldThrowExceptionWhenDeleteServiceInstanceFails() {
-    Page<ServiceBinding> serviceBindingPage = new Page<>();
-    serviceBindingPage.setTotalResults(0);
-    serviceBindingPage.setTotalPages(1);
-
-    when(serviceInstanceService.all(any(), anyList()))
-        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
-    when(serviceInstanceService.allUserProvided(any(), anyList()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
-    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(any(), any(), any()))
-        .thenAnswer(invocation -> Calls.response(Response.success(serviceBindingPage)));
-    when(serviceInstanceService.destroyUserProvidedServiceInstance(any()))
-        .thenReturn(
-            Calls.response(
-                Response.error(
-                    418,
-                    ResponseBody.create(
-                        MediaType.get("application/json"),
-                        "{\"error_code\": \"CF-ServiceBindingAppServiceTaken\", \"description\":\"i'm a teapod\"}"))));
-
-    assertThrows(
-        () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
-        CloudFoundryApiException.class,
-        "Cloud Foundry API returned with error(s): i'm a teapod");
-
-    verify(serviceInstanceService, times(1)).all(any(), anyList());
-    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
-    verify(serviceInstanceService, times(1))
-        .getBindingsForUserProvidedServiceInstance(any(), any(), any());
-    verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
-    verify(serviceInstanceService, never()).destroyServiceInstance(any());
+  private ServiceOffering offering(String name, String guid) {
+    ServiceOffering offering = new ServiceOffering();
+    offering.setGuid(guid);
+    offering.setName(name);
+    offering.setShareable(true);
+    return offering;
   }
 
-  @Test
-  void destroyUserProvidedServiceInstanceShouldFailIfServiceBindingsExists() {
-    when(serviceInstanceService.all(any(), any()))
-        .thenAnswer(
-            invocation -> Calls.response(Response.success(createEmptyOsbServiceInstancePage())));
-    when(serviceInstanceService.allUserProvided(any(), any()))
-        .thenAnswer(
-            invocation ->
-                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
-    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(
-            "up-service-instance-guid", null, null))
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    Page.singleton(new ServiceBinding(), "up-service-instance-guid"))));
-
-    assertThrows(
-        () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
-        CloudFoundryApiException.class,
-        "Cloud Foundry API returned with error(s): Unable to destroy service instance while 1 service binding(s) exist");
-
-    verify(serviceInstanceService, times(1)).all(any(), any());
-    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
-    verify(serviceInstanceService, never()).destroyUserProvidedServiceInstance(any());
-    verify(serviceInstanceService, never()).destroyServiceInstance(any());
+  private ServicePlan servicePlan(String name, String guid, String serviceOfferingGuid) {
+    ServicePlan plan = new ServicePlan();
+    plan.setGuid(guid);
+    plan.setName(name);
+    plan.setRelationships(
+        Collections.singletonMap(
+            "service_offering", new ToOneRelationship(new Relationship(serviceOfferingGuid))));
+    return plan;
   }
 
-  private Resource<ServiceInstance> createServiceInstanceResource() {
-    ServiceInstance serviceInstance = new ServiceInstance();
-    serviceInstance.setServicePlanGuid("plan-guid").setName("new-service-instance-name");
-    Resource<ServiceInstance> serviceInstanceResource = new Resource<>();
-    serviceInstanceResource.setMetadata(new Resource.Metadata().setGuid("service-instance-guid"));
-    serviceInstanceResource.setEntity(serviceInstance);
-    return serviceInstanceResource;
+  private ServiceInstance managedServiceInstance(String name, String guid, String planGuid) {
+    ServiceInstance instance = new ServiceInstance();
+    instance.setGuid(guid);
+    instance.setName(name);
+    instance.setType("managed");
+    instance.setTags(Collections.singletonList("spinnakerVersion-v001"));
+    ServiceInstance.LastOperation lastOperation = new ServiceInstance.LastOperation();
+    lastOperation.setType("create");
+    lastOperation.setState("SUCCEEDED");
+    instance.setLastOperation(lastOperation);
+    instance.setRelationships(
+        Collections.singletonMap(
+            "service_plan", new ToOneRelationship(new Relationship(planGuid))));
+    return instance;
   }
 
-  private Resource<ServiceBinding> createServiceBindingResource() {
-    ServiceBinding serviceBinding = new ServiceBinding();
-    serviceBinding.setAppGuid("servergroup-id");
-    serviceBinding.setName("");
-    serviceBinding.setServiceInstanceGuid("service-instance-guid");
-    Resource<ServiceBinding> serviceBindingResource = new Resource<>();
-    serviceBindingResource.setEntity(serviceBinding);
-    serviceBindingResource.setMetadata(new Resource.Metadata().setGuid("service-binding-guid"));
-    return serviceBindingResource;
+  private ServiceInstance userProvidedServiceInstance(String name, String guid) {
+    ServiceInstance instance = new ServiceInstance();
+    instance.setGuid(guid);
+    instance.setName(name);
+    instance.setType("user-provided");
+    instance.setTags(Collections.singletonList("spinnakerVersion-v000"));
+    return instance;
   }
 
-  private Resource<UserProvidedServiceInstance> createUserProvidedServiceInstanceResource() {
-    UserProvidedServiceInstance userProvidedServiceInstance = new UserProvidedServiceInstance();
-    userProvidedServiceInstance.setName("new-service-instance-name");
-    Resource<UserProvidedServiceInstance> userProvidedServiceInstanceResource = new Resource<>();
-    userProvidedServiceInstanceResource.setMetadata(
-        new Resource.Metadata().setGuid("up-service-instance-guid"));
-    userProvidedServiceInstanceResource.setEntity(userProvidedServiceInstance);
-    return userProvidedServiceInstanceResource;
+  private ServiceCredentialBinding serviceCredentialBinding(String guid) {
+    ServiceCredentialBinding binding = new ServiceCredentialBinding();
+    binding.setGuid(guid);
+    binding.setType("app");
+    return binding;
   }
 
-  private Page<ServiceInstance> createOsbServiceInstancePage() {
-    return createOsbServiceInstancePage(MANAGED_SERVICE_INSTANCE);
+  private <R> Pagination<R> pagination(List<R> resources) {
+    Pagination<R> pagination = new Pagination<>();
+    Pagination.Details details = new Pagination.Details();
+    details.setTotalPages(1);
+    pagination.setPagination(details);
+    pagination.setResources(resources);
+    return pagination;
   }
 
-  private Page<ServiceInstance> createOsbServiceInstancePage(ServiceInstance.Type type) {
-    ServiceInstance serviceInstance = new ServiceInstance();
-    serviceInstance
-        .setLastOperation(new LastOperation().setType(CREATE).setState(SUCCEEDED))
-        .setServicePlanGuid("plan-guid")
-        .setType(type)
-        .setName("new-service-instance-name")
-        .setTags(singleton("spinnakerVersion-v001"));
-    return Page.singleton(serviceInstance, "service-instance-guid");
+  private <R> Pagination<R> singletonPagination(R resource) {
+    return pagination(Collections.singletonList(resource));
   }
 
-  private Page<ServiceInstance> createEmptyOsbServiceInstancePage() {
-    Page<ServiceInstance> serviceInstancePage = new Page<>();
-    serviceInstancePage.setTotalResults(0).setTotalPages(1);
-    return serviceInstancePage;
+  private <R> Pagination<R> emptyPagination() {
+    return pagination(Collections.emptyList());
   }
 
-  private Page<UserProvidedServiceInstance> createUserProvidedServiceInstancePage() {
-    UserProvidedServiceInstance serviceInstance = new UserProvidedServiceInstance();
-    serviceInstance.setName("up-service-instance-name").setTags(singleton("spinnakerVersion-v000"));
-    return Page.singleton(serviceInstance, "up-service-instance-guid");
+  private FeatureFlag enabledFeatureFlag() {
+    FeatureFlag flag = new FeatureFlag();
+    flag.setName("service_instance_sharing");
+    flag.setEnabled(true);
+    return flag;
   }
 
-  private Page<ServiceInstance> createServiceInstancePage() {
-    ServiceInstance serviceInstance = new ServiceInstance();
-    serviceInstance.setName("up-service-instance-name").setTags(singleton("spinnakerVersion-v000"));
-
-    LastOperation lastOperation = new LastOperation();
-    lastOperation.setState(FAILED);
-    lastOperation.setDescription("Custom description");
-
-    serviceInstance.setLastOperation(lastOperation);
-    serviceInstance.setType(MANAGED_SERVICE_INSTANCE);
-
-    return Page.singleton(serviceInstance, "up-service-instance-guid");
-  }
-
-  private Page<UserProvidedServiceInstance> createEmptyUserProvidedServiceInstancePage() {
-    Page<UserProvidedServiceInstance> userProvidedServiceInstancePage = new Page<>();
-    userProvidedServiceInstancePage.setTotalResults(0).setTotalPages(1);
-    return userProvidedServiceInstancePage;
+  private FeatureFlag disabledFeatureFlag() {
+    FeatureFlag flag = new FeatureFlag();
+    flag.setName("service_instance_sharing");
+    flag.setEnabled(false);
+    return flag;
   }
 }

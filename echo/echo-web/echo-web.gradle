@@ -16,7 +16,7 @@
 
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.echo.Application'
+application.mainClass = 'com.netflix.spinnaker.echo.Application'
 
 dependencies {
     implementation project(':echo-artifacts')

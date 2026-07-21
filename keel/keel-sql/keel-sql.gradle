@@ -1,5 +1,8 @@
+import javax.inject.Inject
+import org.gradle.process.ExecOperations
+
 plugins {
-  id("nu.studer.jooq") version "6.0.1"
+  id("nu.studer.jooq") version "9.0"
 }
 
 configurations {
@@ -7,6 +10,12 @@ configurations {
 }
 
 def buildingInDocker = Boolean.parseBoolean(project.properties["buildingInDocker"]?.toString() ?: "false")
+
+// Gradle 9 removed Project.exec(). Use the injected ExecOperations service instead.
+abstract class ExecOperationsHolder {
+  @Inject abstract ExecOperations getExecOps()
+}
+def execOps = objects.newInstance(ExecOperationsHolder).execOps
 
 sourceSets {
   main {
@@ -45,7 +54,7 @@ dependencies {
 
   jooqGenerator(platform("io.spinnaker.kork:kork-bom"))
   jooqGenerator("com.mysql:mysql-connector-j")
-  jooqGenerator("org.jooq:jooq-meta-extensions")
+  jooqGenerator("org.jooq:jooq-meta-extensions:3.19.35")
   jooqGenerator("ch.qos.logback:logback-classic:1.2.3")
 
   liquibaseRuntime(platform("io.spinnaker.kork:kork-bom"))
@@ -65,10 +74,10 @@ task liquibaseUpdate(type: JavaExec) {
 
   doFirst {
     if (!buildingInDocker) {
-      exec {
+      execOps.exec {
         commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
       }
-      exec {
+      execOps.exec {
         commandLine("sh", "-c", "docker run --name mysqlJooq --platform linux/x86_64 --health-cmd='mysqladmin ping -s' -d --rm -e MYSQL_ROOT_PASSWORD=sa -e MYSQL_DATABASE=keel -p 6603:3306 mysql:5.7 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci >/dev/null 2>&1; while STATUS=\$(docker inspect --format \"{{.State.Health.Status}}\" mysqlJooq); [ \$STATUS != \"healthy\" ]; do if [ \$STATUS = \"unhealthy\" ]; then echo \"Docker failed to start\"; exit -1; fi; sleep 1; done")
       }
     }
@@ -98,8 +107,8 @@ afterEvaluate {
 }
 
 jooq {
-  // get the version of JOOQ from Spring Boot
-  version = "3.17.16"
+  // Match the jOOQ version provided by kork-bom so code generation and runtime stay aligned
+  version = "3.19.35"
 
   configurations {
     main {
@@ -281,7 +290,7 @@ tasks.named("generateJooq").configure {
   // shut down database container after JOOQ generation completes
   doLast {
     if (!buildingInDocker) {
-      exec {
+      execOps.exec {
         commandLine("sh", "-c", "docker stop mysqlJooq >/dev/null 2>&1 || true")
       }
     }
