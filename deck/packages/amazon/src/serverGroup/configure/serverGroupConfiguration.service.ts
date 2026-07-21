@@ -34,8 +34,8 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   NameUtils,
-  ReactInjector,
   REST,
   setMatchingResourceSummary,
   SubnetReader,
@@ -188,7 +188,7 @@ export class AwsServerGroupConfigurationService {
     if (typeof securityGroupReader?.getAllSecurityGroups === 'function') {
       this.securityGroupReader = securityGroupReader;
     } else if (securityGroupReader) {
-      this.securityGroupReader = ReactInjector.securityGroupReader;
+      this.securityGroupReader = AngularServices.securityGroupReader;
     }
     this.awsInstanceTypeService =
       typeof awsInstanceTypeService?.getAllTypesByRegion === 'function'
@@ -198,11 +198,11 @@ export class AwsServerGroupConfigurationService {
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return (this.securityGroupReader = this.securityGroupReader || ReactInjector.securityGroupReader);
+    return (this.securityGroupReader = this.securityGroupReader || AngularServices.securityGroupReader);
   }
 
   private getCacheInitializer(): CacheInitializerService {
-    return (this.cacheInitializer = this.cacheInitializer || ReactInjector.cacheInitializer);
+    return (this.cacheInitializer = this.cacheInitializer || AngularServices.cacheInitializer);
   }
 
   public configureUpdateCommand(command: IAmazonServerGroupCommand): void {

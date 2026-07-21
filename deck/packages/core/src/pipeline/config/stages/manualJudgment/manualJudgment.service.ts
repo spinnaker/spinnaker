@@ -1,14 +1,13 @@
+import { AngularServices } from '../../../../angular/services';
 import type { Application } from '../../../../application';
 import type { IExecution, IExecutionStage } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
-
 import type { ExecutionService } from '../../../service/execution.service';
 
 export class ManualJudgmentService {
   constructor(private executionService?: ExecutionService) {}
 
   private getExecutionService(): ExecutionService {
-    return this.executionService || ReactInjector.executionService;
+    return this.executionService || AngularServices.executionService;
   }
 
   public provideJudgment(

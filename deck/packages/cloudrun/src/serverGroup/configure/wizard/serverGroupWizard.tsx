@@ -1,6 +1,8 @@
 import React from 'react';
+
 import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
-import { noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import { AngularServices, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+
 import { WizardServerGroupBasicSettings } from './BasicSettings';
 import { WizardServerGroupConfigFilesSettings } from './ConfigFiles';
 import type { ICloudrunServerGroupCommandData } from '../serverGroupCommandBuilder.service';
@@ -83,19 +85,19 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
           provider: 'cloudrun',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (ReactInjector.$state.includes('**.clusters.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters')) {
+        if (AngularServices.$state.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        ReactInjector.$state.go(transitionTo, newStateParams);
+        AngularServices.$state.go(transitionTo, newStateParams);
       }
     }
   };
@@ -107,7 +109,7 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
       this.props.closeModal && this.props.closeModal(command);
     } else {
       //command.viewState.mode = 'create';
-      const submitMethod = () => ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application);
+      const submitMethod = () => AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application);
       this.state.taskMonitor.submit(submitMethod);
       return null;
     }

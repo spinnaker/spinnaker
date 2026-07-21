@@ -5,20 +5,20 @@ import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
+  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
   ManagedMenuItem,
   Overridable,
-  ReactInjector,
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
 
+import { AwsServices } from '../../aws.services';
 import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../configure';
 import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
 import type { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
-import { AwsReactInjector } from '../../reactShims';
 import type { IAmazonResizeServerGroupModalProps } from './resize/AmazonResizeServerGroupModal';
 import { AmazonResizeServerGroupModal } from './resize/AmazonResizeServerGroupModal';
 
@@ -82,14 +82,14 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       application: app,
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
-        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-          ReactInjector.$state.go('^');
+        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
+          AngularServices.$state.go('^');
         }
       },
     };
 
     const submitMethod = (params: IServerGroupJob) =>
-      ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
     const stateParams = {
       name: serverGroup.name,
@@ -127,7 +127,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     const submitMethod = (params: IServerGroupJob) => {
-      return ReactInjector.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+      return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
     };
 
     const confirmationModalParams = {
@@ -184,7 +184,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     const submitMethod = (params: IServerGroupJob) => {
-      return ReactInjector.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
@@ -208,7 +208,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
-    AwsReactInjector.awsServerGroupCommandBuilder
+    AwsServices.awsServerGroupCommandBuilder
       .buildServerGroupCommandFromExisting(app, serverGroup)
       .then((command: IAmazonServerGroupCommand) => {
         const title = `Clone ${serverGroup.name}`;

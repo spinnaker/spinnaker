@@ -1,7 +1,7 @@
 import { cloneDeep, forOwn, includes, isNil, pick, reduce, size, some } from 'lodash';
 
 import type { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
-import { ReactInjector } from '../reactShims';
+import { AngularServices } from '../angular/services';
 
 export class FilterModelService {
   public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
@@ -33,7 +33,7 @@ export class FilterModelService {
     // Apply any mutations to the current sortFilter values as ui-router state params
     filterModel.applyParamsToUrl = () => {
       const toParams = FilterModelService.mapSortFilterToRouterParams(filterModel);
-      ReactInjector.$state.go('.', toParams, { location: 'replace' });
+      AngularServices.$state.go('.', toParams, { location: 'replace' });
     };
 
     return filterModel;
@@ -66,7 +66,11 @@ export class FilterModelService {
   }
 
   public static registerRouterHooks(filterModel: IFilterModel, stateGlob: string) {
-    const { transitionService } = ReactInjector.$uiRouter;
+    if (!AngularServices.has('$uiRouter')) {
+      return;
+    }
+
+    const { transitionService } = AngularServices.$uiRouter;
     const filterParams = filterModel.config.map((cfg) => cfg.param);
     let savedParamsForScreen: any = {};
 

@@ -4,12 +4,12 @@ import { Modal } from 'react-bootstrap';
 import type { Application, IModalComponentProps } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   LoadBalancerWriter,
   ModalClose,
   NameUtils,
   NetworkReader,
   noop,
-  ReactInjector,
   ReactModal,
   SubmitButton,
   TaskMonitor,
@@ -453,10 +453,10 @@ export class AzureLoadBalancerModal extends React.Component<
       provider: 'azure',
     };
 
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
+      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
     }
   };
 

@@ -5,10 +5,10 @@ import { Modal, ModalFooter } from 'react-bootstrap';
 
 import type { Application, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
+  AngularServices,
   FormikFormField,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   ReactSelectInput,
   SpinFormik,
@@ -16,6 +16,7 @@ import {
   TaskMonitorWrapper,
   TaskReason,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../../domain';
 
 export interface ICloudFoundryRollbackServerGroupModalProps extends IModalComponentProps {
@@ -98,7 +99,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.rollbackServerGroup(serverGroup, application, command);
+      return AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command);
     });
   };
 

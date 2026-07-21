@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import type { Application, IExecution, IExecutionStage } from '@spinnaker/core';
 import { Spinner } from '@spinnaker/core';
-import { AwsReactInjector } from '../../../reactShims';
+import { AwsServices } from '../../../aws.services';
 
 export interface IEvaluateCloudFormationChangeSetExecutionApprovalProps {
   execution: IExecution;
@@ -28,7 +28,7 @@ export const EvaluateCloudFormationChangeSetExecutionApproval = (
     setSubmitting(true);
     setJudgmentDecision(judgmentDecision);
     setError(false);
-    AwsReactInjector.evaluateCloudFormationChangeSetExecutionService.evaluateExecution(
+    AwsServices.evaluateCloudFormationChangeSetExecutionService.evaluateExecution(
       application,
       execution,
       stage,

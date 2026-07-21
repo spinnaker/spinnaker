@@ -1,9 +1,9 @@
 import React from 'react';
+import { AngularServices } from '../../../../angular/services';
 
 import type { Application } from '../../../../application/application.model';
 import { ConfirmationModalService } from '../../../../confirmationModal';
 import type { IExecution, IExecutionStage } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
 import { duration } from '../../../../utils/timeFormatters';
 
 export const DEFAULT_SKIP_WAIT_TEXT = 'The pipeline will proceed immediately, marking this stage completed.';
@@ -20,7 +20,7 @@ const skipRemainingWait = (
   execution: IExecution,
   application: Application,
 ): void => {
-  const { executionService } = ReactInjector;
+  const { executionService } = AngularServices;
   (event.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
   const matcher = ({ stages }: IExecution) => {
     const match = stages.find((test) => test.id === stage.id);

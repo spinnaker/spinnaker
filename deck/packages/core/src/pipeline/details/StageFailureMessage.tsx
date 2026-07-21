@@ -2,12 +2,12 @@ import { UISref } from '@uirouter/react';
 import { UIRouterContext } from '@uirouter/react-hybrid';
 import { get } from 'lodash';
 import React from 'react';
+import { AngularServices } from '../../angular/services';
 
 import type { IExecutionStage, ITaskStep } from '../../domain';
 import { EventBus } from '../../event/EventBus';
 import { Overridable } from '../../overrideRegistry';
 import { Markdown, robotToHuman } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
 import { TrafficGuardHelperLink } from '../../task/TrafficGuardHelperLink';
 
 export interface IStageFailureMessageProps {
@@ -106,7 +106,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
       }
 
       if (failedStageId !== undefined) {
-        const currentState = ReactInjector.$state.current;
+        const currentState = AngularServices.$state.current;
         const params: any = {
           stageId: failedStageId,
         };
@@ -131,7 +131,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
         );
       }
 
-      EventBus.publish('stage-failure-message:no-reason', { params: { ...ReactInjector.$state.params } });
+      EventBus.publish('stage-failure-message:no-reason', { params: { ...AngularServices.$state.params } });
     }
 
     return null;

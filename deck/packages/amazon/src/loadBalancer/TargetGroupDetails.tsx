@@ -4,11 +4,11 @@ import React from 'react';
 import type { Application } from '@spinnaker/core';
 import {
   AccountTag,
+  AngularServices,
   CollapsibleSection,
   CopyToClipboard,
   HealthCounts,
   ManagedResourceDetailsIndicator,
-  ReactInjector,
   Spinner,
 } from '@spinnaker/core';
 
@@ -101,12 +101,12 @@ export class TargetGroupDetails extends React.Component<ITargetGroupDetailsProps
       return;
     }
 
-    ReactInjector.$state.params.allowModalToStayOpen = true;
-    ReactInjector.$state.go('^', null, { location: 'replace' });
+    AngularServices.$state.params.allowModalToStayOpen = true;
+    AngularServices.$state.go('^', null, { location: 'replace' });
   };
 
   private closeDetails = (): void => {
-    ReactInjector.$state.go('^');
+    AngularServices.$state.go('^');
   };
 
   private renderHeader(): JSX.Element {

@@ -3,7 +3,7 @@ import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { BehaviorSubject } from 'rxjs';
 
-import { ReactInjector } from '@spinnaker/core';
+import { AngularServices } from '@spinnaker/core';
 
 import { useAmazonLoadBalancerDetails } from './amazonLoadBalancerDetails';
 import { RequestBuilder } from '../../../../core/src/api/ApiService';
@@ -44,7 +44,7 @@ describe('useAmazonLoadBalancerDetails', () => {
     } as any;
     const get = jasmine.createSpy('get').and.returnValue(new Promise(() => undefined));
     RequestBuilder.defaultHttpClient = { get } as any;
-    spyOnProperty(ReactInjector, 'securityGroupReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
       getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup'),
     } as any);
 
@@ -99,7 +99,7 @@ describe('useAmazonLoadBalancerDetails', () => {
     const get = jasmine.createSpy('get').and.returnValue(detailsRequest);
     const consoleError = spyOn(console, 'error');
     RequestBuilder.defaultHttpClient = { get } as any;
-    spyOnProperty(ReactInjector, 'securityGroupReader', 'get').and.returnValue({
+    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
       getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup'),
     } as any);
 
