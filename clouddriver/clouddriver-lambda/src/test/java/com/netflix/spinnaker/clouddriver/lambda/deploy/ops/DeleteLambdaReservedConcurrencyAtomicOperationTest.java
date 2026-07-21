@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.DeleteFunctionConcurrencyRequest;
-import com.amazonaws.services.lambda.model.DeleteFunctionConcurrencyResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeleteLambdaReservedConcurrencyDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionConcurrencyRequest;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionConcurrencyResponse;
 
 public class DeleteLambdaReservedConcurrencyAtomicOperationTest implements LambdaTestingDefaults {
   @Test
@@ -40,7 +40,7 @@ public class DeleteLambdaReservedConcurrencyAtomicOperationTest implements Lambd
         spy(new DeleteLambdaReservedConcurrencyAtomicOperation(deleteDesc));
     doNothing().when(deleteOperation).updateTaskStatus(anyString());
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     LambdaFunction cachedFunction = getMockedFunctionDefintion();
 
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
@@ -51,12 +51,13 @@ public class DeleteLambdaReservedConcurrencyAtomicOperationTest implements Lambd
         .when(lambdaFunctionProvider)
         .getFunction(anyString(), anyString(), anyString());
 
-    DeleteFunctionConcurrencyRequest deleteRequest = new DeleteFunctionConcurrencyRequest();
-    deleteRequest.withFunctionName(fName);
-    DeleteFunctionConcurrencyResult mockDeleteResult = new DeleteFunctionConcurrencyResult();
+    DeleteFunctionConcurrencyRequest deleteRequest =
+        DeleteFunctionConcurrencyRequest.builder().functionName(fName).build();
+    DeleteFunctionConcurrencyResponse mockDeleteResult =
+        DeleteFunctionConcurrencyResponse.builder().build();
     doReturn(mockDeleteResult).when(lambdaClient).deleteFunctionConcurrency(deleteRequest);
 
-    DeleteFunctionConcurrencyResult output = deleteOperation.operate(null);
+    DeleteFunctionConcurrencyResponse output = deleteOperation.operate(null);
     verify(deleteOperation, atLeastOnce()).updateTaskStatus(anyString());
     assertThat(output).isEqualTo(mockDeleteResult);
   }

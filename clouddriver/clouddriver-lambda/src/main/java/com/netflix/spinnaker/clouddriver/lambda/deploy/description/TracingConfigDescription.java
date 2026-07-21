@@ -1,7 +1,7 @@
 /*
- * Copyright 2018 Amazon.com, Inc. or its affiliates.
+ * Copyright 2026 Harness, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -17,12 +17,8 @@
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class InvokeLambdaFunctionOutputDescription {
-  InvokeResponse invokeResult;
-  private String responseString;
+public class TracingConfigDescription {
+  private String mode;
 }

@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.ClientConfiguration;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionDescription;
@@ -31,14 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 class AbstractLambdaAtomicOperationTest {
 
   @Test
-  public void verifyLambdaClientGetsDefaultConfigPassed() {
+  public void verifyLambdaClientUsesV2Provider() {
     InvokeLambdaFunctionDescription desc = new InvokeLambdaFunctionDescription();
     desc.setRegion("someplace");
     NetflixAmazonCredentials creds = mock(NetflixAmazonCredentials.class);
@@ -55,24 +54,22 @@ class AbstractLambdaAtomicOperationTest {
                 return null;
               }
             };
-    operation.operationsConfig = new LambdaServiceConfig();
     operation.amazonClientProvider = mock(AmazonClientProvider.class);
-    ArgumentCaptor<ClientConfiguration> captureclientConfig =
-        ArgumentCaptor.forClass(ClientConfiguration.class);
-    operation.getLambdaClient();
-    verify(operation.amazonClientProvider)
-        .getAmazonLambda(any(), captureclientConfig.capture(), eq("someplace"));
-    assertEquals(3, captureclientConfig.getValue().getMaxErrorRetry());
-    assertEquals(50000, captureclientConfig.getValue().getSocketTimeout());
-    assertEquals(false, captureclientConfig.getValue().useTcpKeepAlive());
+    operation.operationsConfig = new LambdaServiceConfig();
+    when(operation.amazonClientProvider.getLambdaV2(eq(creds), eq("someplace"), any()))
+        .thenReturn(mock(LambdaClient.class));
+
+    LambdaClient client = operation.getLambdaClient();
+    assertNotNull(client);
+    verify(operation.amazonClientProvider).getLambdaV2(eq(creds), eq("someplace"), any());
   }
 
   @Test
-  public void verifyLambdaClientSetsTimeouts() {
+  public void verifyLambdaClientDisabledAccountThrows() {
     InvokeLambdaFunctionDescription desc = new InvokeLambdaFunctionDescription();
     desc.setRegion("someplace");
     NetflixAmazonCredentials creds = mock(NetflixAmazonCredentials.class);
-    when(creds.isLambdaEnabled()).thenReturn(true);
+    when(creds.isLambdaEnabled()).thenReturn(false);
     desc.setCredentials(creds);
     AbstractLambdaAtomicOperation<
             InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
@@ -85,47 +82,8 @@ class AbstractLambdaAtomicOperationTest {
                 return null;
               }
             };
-    operation.operationsConfig = new LambdaServiceConfig();
-    operation.operationsConfig.setInvokeTimeoutMs(300 * 1000);
-    operation.operationsConfig.getRetry().setRetries(0);
-    operation.amazonClientProvider = mock(AmazonClientProvider.class);
-    ArgumentCaptor<ClientConfiguration> captureclientConfig =
-        ArgumentCaptor.forClass(ClientConfiguration.class);
-    operation.getLambdaClient();
-    verify(operation.amazonClientProvider)
-        .getAmazonLambda(any(), captureclientConfig.capture(), eq("someplace"));
-    //    assertEquals(4, captureclientConfig.getValue().getMaxErrorRetry());
-    assertEquals(0, captureclientConfig.getValue().getMaxErrorRetry());
-    assertEquals(300000, captureclientConfig.getValue().getSocketTimeout());
-  }
 
-  @Test
-  public void verifyLambdaClientSetsTcpKeepAlive() {
-    InvokeLambdaFunctionDescription desc = new InvokeLambdaFunctionDescription();
-    desc.setRegion("someplace");
-    NetflixAmazonCredentials creds = mock(NetflixAmazonCredentials.class);
-    when(creds.isLambdaEnabled()).thenReturn(true);
-    desc.setCredentials(creds);
-    AbstractLambdaAtomicOperation<
-            InvokeLambdaFunctionDescription, InvokeLambdaFunctionOutputDescription>
-        operation =
-            new AbstractLambdaAtomicOperation<>(desc, null) {
-
-              @Override
-              public InvokeLambdaFunctionOutputDescription operate(
-                  List<InvokeLambdaFunctionOutputDescription> priorOutputs) {
-                return null;
-              }
-            };
-    operation.operationsConfig = new LambdaServiceConfig();
-    operation.operationsConfig.setTcpKeepAlive(true);
-    operation.amazonClientProvider = mock(AmazonClientProvider.class);
-    ArgumentCaptor<ClientConfiguration> captureclientConfig =
-        ArgumentCaptor.forClass(ClientConfiguration.class);
-    operation.getLambdaClient();
-    verify(operation.amazonClientProvider)
-        .getAmazonLambda(any(), captureclientConfig.capture(), eq("someplace"));
-    assertEquals(true, captureclientConfig.getValue().useTcpKeepAlive());
+    assertThrows(RuntimeException.class, operation::getLambdaClient);
   }
 
   @Test

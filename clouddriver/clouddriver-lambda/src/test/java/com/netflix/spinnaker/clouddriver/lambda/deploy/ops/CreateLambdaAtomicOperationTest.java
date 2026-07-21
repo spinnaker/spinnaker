@@ -19,12 +19,8 @@ package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.CreateFunctionRequest;
-import com.amazonaws.services.lambda.model.CreateFunctionResult;
-import com.amazonaws.services.lambda.model.DeadLetterConfig;
-import com.amazonaws.services.lambda.model.FunctionCode;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
+import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeadLetterConfigDescription;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
 import com.netflix.spinnaker.config.LambdaConfiguration;
 import java.util.HashMap;
@@ -32,6 +28,9 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.CreateFunctionRequest;
+import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
 
 class CreateLambdaAtomicOperationTest {
 
@@ -50,24 +49,23 @@ class CreateLambdaAtomicOperationTest {
             .setS3bucket("s3://bucket")
             .setS3key("key/key/path")
             .setFunctionName("funcName")
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     b.setAppName("appName");
     config.setSetMonikerTags(false);
     CreateLambdaAtomicOperation clao = spy(new CreateLambdaAtomicOperation(b, config));
     doNothing().when(clao).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(clao).getLambdaClient();
-    CreateFunctionRequest createRequest =
-        new CreateFunctionRequest()
-            .withFunctionName("appName-funcName")
-            .withCode(new FunctionCode().withS3Bucket("s3://bucket").withS3Key("key/key/path"));
-    CreateFunctionResult createLambdaResult =
-        new CreateFunctionResult()
-            .withFunctionName("appName-funcName")
-            .withCodeSha256("abc123def456");
-    doReturn(createLambdaResult).when(lambdaClient).createFunction(createRequest);
+    CreateFunctionResponse createLambdaResult =
+        CreateFunctionResponse.builder()
+            .functionName("appName-funcName")
+            .codeSha256("abc123def456")
+            .build();
+    doReturn(createLambdaResult)
+        .when(lambdaClient)
+        .createFunction(any(CreateFunctionRequest.class));
     // when
-    CreateFunctionResult output = clao.operate(null);
+    CreateFunctionResponse output = clao.operate(null);
     // then
     verify(clao, atLeastOnce()).updateTaskStatus(anyString());
     assertThat(output).isEqualTo(createLambdaResult);
@@ -82,20 +80,21 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("function-stack-detail-v001")
             .setTags(new HashMap<>()) // Initialize empty tags map
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
     config.setSetMonikerTags(true);
     config.setPrefixApplicationNameToFunction(false);
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result =
-        new CreateFunctionResult()
-            .withFunctionName("function-stack-detail-v001")
-            .withCodeSha256("sha256");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder()
+            .functionName("function-stack-detail-v001")
+            .codeSha256("sha256")
+            .build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -106,8 +105,8 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
-    assertThat(requestCaptor.getValue().getFunctionName()).isEqualTo("function-stack-detail-v001");
+    Map<String, String> tags = requestCaptor.getValue().tags();
+    assertThat(requestCaptor.getValue().functionName()).isEqualTo("function-stack-detail-v001");
     assertThat(tags)
         .containsEntry(LambdaTagNamer.APPLICATION, "myapp")
         .containsEntry(LambdaTagNamer.CLUSTER, "function-stack-detail")
@@ -125,19 +124,20 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("myapp-stack-detail-v001")
             .setTags(new HashMap<>()) // Initialize empty tags map
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
 
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result =
-        new CreateFunctionResult()
-            .withFunctionName("myapp-stack-detail-v001")
-            .withCodeSha256("sha256");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder()
+            .functionName("myapp-stack-detail-v001")
+            .codeSha256("sha256")
+            .build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -148,7 +148,7 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
+    Map<String, String> tags = requestCaptor.getValue().tags();
     assertThat(tags)
         .containsEntry(LambdaTagNamer.APPLICATION, "myapp")
         .containsEntry(LambdaTagNamer.CLUSTER, "myapp-stack-detail")
@@ -165,18 +165,18 @@ class CreateLambdaAtomicOperationTest {
             .setS3bucket("s3://bucket")
             .setS3key("key/path")
             .setFunctionName("stack-detail-v001")
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
 
     config.setSetMonikerTags(false);
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result =
-        new CreateFunctionResult().withFunctionName("myapp-stack-detail-v001");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder().functionName("myapp-stack-detail-v001").build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -187,7 +187,7 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
+    Map<String, String> tags = requestCaptor.getValue().tags();
     assertThat(tags).isEmpty();
   }
 
@@ -204,17 +204,18 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("myapp-stack-v001")
             .setTags(existingTags)
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
 
     config.setSetMonikerTags(true);
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result = new CreateFunctionResult().withFunctionName("myapp-stack-v001");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder().functionName("myapp-stack-v001").build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -225,7 +226,7 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
+    Map<String, String> tags = requestCaptor.getValue().tags();
     assertThat(tags)
         .containsEntry("Environment", "production")
         .containsEntry("Team", "platform")
@@ -247,17 +248,18 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("myapp-stack-v001")
             .setTags(existingTags)
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
 
     config.setSetMonikerTags(true);
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result = new CreateFunctionResult().withFunctionName("myapp-stack-v001");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder().functionName("myapp-stack-v001").build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -268,7 +270,7 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
+    Map<String, String> tags = requestCaptor.getValue().tags();
     assertThat(tags)
         .containsEntry("Environment", "production")
         .containsEntry("Team", "platform")
@@ -290,17 +292,17 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("oldapp-oldstack-v001")
             .setTags(existingTags)
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
     config.setSetMonikerTags(true);
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result =
-        new CreateFunctionResult().withFunctionName("myapp-oldstack-v001");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder().functionName("myapp-oldstack-v001").build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -311,7 +313,7 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
+    Map<String, String> tags = requestCaptor.getValue().tags();
     // Existing tags should be preserved
     assertThat(tags).containsEntry(LambdaTagNamer.APPLICATION, "tagapp");
     assertThat(tags).containsEntry(LambdaTagNamer.STACK, "tagstack");
@@ -328,16 +330,17 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("randomname")
             .setTags(new HashMap<>()) // Initialize empty tags map
-            .setDeadLetterConfig(new DeadLetterConfig().withTargetArn(""));
+            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
     description.setAppName("myapp");
 
     CreateLambdaAtomicOperation operation =
         spy(new CreateLambdaAtomicOperation(description, config));
     doNothing().when(operation).updateTaskStatus(anyString());
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(operation).getLambdaClient();
 
-    CreateFunctionResult result = new CreateFunctionResult().withFunctionName("myapp-randomname");
+    CreateFunctionResponse result =
+        CreateFunctionResponse.builder().functionName("myapp-randomname").build();
     doReturn(result).when(lambdaClient).createFunction(any(CreateFunctionRequest.class));
 
     // when
@@ -348,7 +351,7 @@ class CreateLambdaAtomicOperationTest {
         ArgumentCaptor.forClass(CreateFunctionRequest.class);
     verify(lambdaClient).createFunction(requestCaptor.capture());
 
-    Map<String, String> tags = requestCaptor.getValue().getTags();
+    Map<String, String> tags = requestCaptor.getValue().tags();
     // Application tag should always be set
     assertThat(tags).containsEntry(LambdaTagNamer.APPLICATION, "myapp");
   }

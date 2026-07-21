@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
-import com.amazonaws.services.elasticloadbalancingv2.model.*;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.*;
+import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest;
+import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsResult;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest;
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult;
+import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest;
+import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsResult;
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription;
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionConfigurationDescription;
@@ -30,11 +34,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.Environment;
+import software.amazon.awssdk.services.lambda.model.ListTagsRequest;
+import software.amazon.awssdk.services.lambda.model.ListTagsResponse;
+import software.amazon.awssdk.services.lambda.model.TagResourceRequest;
+import software.amazon.awssdk.services.lambda.model.UntagResourceRequest;
+import software.amazon.awssdk.services.lambda.model.UpdateFunctionConfigurationRequest;
+import software.amazon.awssdk.services.lambda.model.UpdateFunctionConfigurationResponse;
+import software.amazon.awssdk.services.lambda.model.VpcConfig;
 
 public class UpdateLambdaConfigurationAtomicOperation
     extends AbstractLambdaAtomicOperation<
-        CreateLambdaFunctionConfigurationDescription, UpdateFunctionConfigurationResult>
-    implements AtomicOperation<UpdateFunctionConfigurationResult> {
+        CreateLambdaFunctionConfigurationDescription, UpdateFunctionConfigurationResponse>
+    implements AtomicOperation<UpdateFunctionConfigurationResponse> {
 
   private boolean autoApplyTags;
 
@@ -45,44 +58,62 @@ public class UpdateLambdaConfigurationAtomicOperation
   }
 
   @Override
-  public UpdateFunctionConfigurationResult operate(List priorOutputs) {
+  public UpdateFunctionConfigurationResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Updating of AWS Lambda Function Configuration Operation...");
     return updateFunctionConfigurationResult();
   }
 
-  private UpdateFunctionConfigurationResult updateFunctionConfigurationResult() {
+  private UpdateFunctionConfigurationResponse updateFunctionConfigurationResult() {
     LambdaFunction cache =
         (LambdaFunction)
             lambdaFunctionProvider.getFunction(
                 description.getAccount(), description.getRegion(), description.getFunctionName());
 
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
 
-    UpdateFunctionConfigurationRequest request =
-        new UpdateFunctionConfigurationRequest()
-            .withFunctionName(cache.getFunctionArn())
-            .withDescription(description.getDescription())
-            .withHandler(description.getHandler())
-            .withMemorySize(description.getMemorySize())
-            .withRole(description.getRole())
-            .withTimeout(description.getTimeout())
-            .withDeadLetterConfig(description.getDeadLetterConfig())
-            .withLayers(description.getLayers())
-            .withVpcConfig(
-                new VpcConfig()
-                    .withSecurityGroupIds(description.getSecurityGroupIds())
-                    .withSubnetIds(description.getSubnetIds()))
-            .withKMSKeyArn(description.getKmskeyArn())
-            .withTracingConfig(description.getTracingConfig())
-            .withRuntime(description.getRuntime());
+    UpdateFunctionConfigurationRequest.Builder requestBuilder =
+        UpdateFunctionConfigurationRequest.builder()
+            .functionName(cache.getFunctionArn())
+            .description(description.getDescription())
+            .handler(description.getHandler())
+            .memorySize(description.getMemorySize())
+            .role(description.getRole())
+            .timeout(description.getTimeout())
+            .layers(description.getLayers())
+            .kmsKeyArn(description.getKmskeyArn())
+            .runtime(description.getRuntime());
+
+    if (description.getDeadLetterConfig() != null) {
+      requestBuilder.deadLetterConfig(
+          software.amazon.awssdk.services.lambda.model.DeadLetterConfig.builder()
+              .targetArn(description.getDeadLetterConfig().getTargetArn())
+              .build());
+    }
+
+    if (description.getSecurityGroupIds() != null || description.getSubnetIds() != null) {
+      requestBuilder.vpcConfig(
+          VpcConfig.builder()
+              .securityGroupIds(description.getSecurityGroupIds())
+              .subnetIds(description.getSubnetIds())
+              .build());
+    }
+
+    if (description.getTracingConfig() != null
+        && description.getTracingConfig().getMode() != null) {
+      requestBuilder.tracingConfig(
+          software.amazon.awssdk.services.lambda.model.TracingConfig.builder()
+              .mode(description.getTracingConfig().getMode())
+              .build());
+    }
 
     if (null != description.getEnvVariables()) {
-      request.setEnvironment(new Environment().withVariables(description.getEnvVariables()));
+      requestBuilder.environment(
+          Environment.builder().variables(description.getEnvVariables()).build());
     }
     LambdaTagNamer.applyIfNeeded(description, description.getAppName(), autoApplyTags);
 
-    UpdateFunctionConfigurationResult result = client.updateFunctionConfiguration(request);
-    TagResourceRequest tagResourceRequest = new TagResourceRequest();
+    UpdateFunctionConfigurationResponse result =
+        client.updateFunctionConfiguration(requestBuilder.build());
 
     Map<String, String> objTag = new HashMap<>();
     if (null != description.getTags()) {
@@ -93,21 +124,19 @@ public class UpdateLambdaConfigurationAtomicOperation
     }
     if (!objTag.isEmpty()) {
 
-      UntagResourceRequest untagResourceRequest =
-          new UntagResourceRequest().withResource(result.getFunctionArn());
-      ListTagsResult existingTags =
-          client.listTags(new ListTagsRequest().withResource(result.getFunctionArn()));
-      for (Map.Entry<String, String> entry : existingTags.getTags().entrySet()) {
-        untagResourceRequest.getTagKeys().add(entry.getKey());
+      ListTagsResponse existingTags =
+          client.listTags(ListTagsRequest.builder().resource(result.functionArn()).build());
+
+      List<String> existingTagKeys = List.copyOf(existingTags.tags().keySet());
+      if (!existingTagKeys.isEmpty()) {
+        client.untagResource(
+            UntagResourceRequest.builder()
+                .resource(result.functionArn())
+                .tagKeys(existingTagKeys)
+                .build());
       }
-      if (!untagResourceRequest.getTagKeys().isEmpty()) {
-        client.untagResource(untagResourceRequest);
-      }
-      for (Map.Entry<String, String> entry : objTag.entrySet()) {
-        tagResourceRequest.addTagsEntry(entry.getKey(), entry.getValue());
-      }
-      tagResourceRequest.setResource(result.getFunctionArn());
-      client.tagResource(tagResourceRequest);
+      client.tagResource(
+          TagResourceRequest.builder().resource(result.functionArn()).tags(objTag).build());
     }
     updateTaskStatus("Finished Updating of AWS Lambda Function Configuration Operation...");
     if (StringUtils.isEmpty(description.getTargetGroups())) {
@@ -124,7 +153,8 @@ public class UpdateLambdaConfigurationAtomicOperation
 
     } else {
       AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
-      if (cache.getTargetGroups().isEmpty()) {
+      List<String> cacheTargetGroups = cache.getTargetGroups();
+      if (cacheTargetGroups == null || cacheTargetGroups.isEmpty()) {
         registerTarget(
             loadBalancingV2,
             cache.getFunctionArn(),
@@ -132,7 +162,7 @@ public class UpdateLambdaConfigurationAtomicOperation
                 .getTargetGroupArn());
         updateTaskStatus("Registered the target group...");
       } else {
-        for (String groupName : cache.getTargetGroups()) {
+        for (String groupName : cacheTargetGroups) {
           if (!groupName.equals(description.getTargetGroups())) {
             registerTarget(
                 loadBalancingV2,
@@ -167,7 +197,6 @@ public class UpdateLambdaConfigurationAtomicOperation
   }
 
   private AmazonElasticLoadBalancing getAmazonElasticLoadBalancingClient() {
-    AWSCredentialsProvider credentialsProvider = getCredentials().getCredentialsProvider();
     NetflixAmazonCredentials credentialAccount = description.getCredentials();
 
     return getAmazonClientProvider()

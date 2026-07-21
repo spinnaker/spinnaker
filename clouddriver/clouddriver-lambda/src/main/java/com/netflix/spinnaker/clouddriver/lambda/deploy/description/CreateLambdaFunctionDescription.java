@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
-import com.amazonaws.services.lambda.model.DeadLetterConfig;
-import com.amazonaws.services.lambda.model.TracingConfig;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +48,8 @@ public class CreateLambdaFunctionDescription extends AbstractLambdaFunctionDescr
 
   String targetGroups;
 
-  DeadLetterConfig deadLetterConfig;
-  TracingConfig tracingConfig;
+  DeadLetterConfigDescription deadLetterConfig;
+  TracingConfigDescription tracingConfig;
   String kmskeyArn;
 
   @Override

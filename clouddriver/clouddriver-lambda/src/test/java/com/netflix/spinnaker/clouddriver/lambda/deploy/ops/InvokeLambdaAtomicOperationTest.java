@@ -16,22 +16,24 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.InvokeRequest;
-import com.amazonaws.services.lambda.model.InvokeResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.InvokeLambdaFunctionOutputDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
+import com.netflix.spinnaker.config.LambdaServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 /*
 * To test against clouddriver, you can verify results using the following example CURL. Note this
@@ -53,6 +55,10 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
     invokeDesc.setPayload("example");
     invokeOperation = spy(new InvokeLambdaAtomicOperation(invokeDesc));
 
+    LambdaServiceConfig lambdaServiceConfig = new LambdaServiceConfig();
+    lambdaServiceConfig.setInvokeTimeoutMs(50000);
+    ReflectionTestUtils.setField(invokeOperation, "lambdaServiceConfig", lambdaServiceConfig);
+
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
     ReflectionTestUtils.setField(invokeOperation, "lambdaFunctionProvider", lambdaFunctionProvider);
     LambdaFunction cachedFunction = getMockedFunctionDefintion();
@@ -65,19 +71,19 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
   @Test
   void testInvokeLambda() {
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(invokeOperation).getLambdaClient();
 
     ArgumentCaptor<InvokeRequest> captor = ArgumentCaptor.forClass(InvokeRequest.class);
-    InvokeResult result = new InvokeResult();
+    InvokeResponse result = InvokeResponse.builder().payload(SdkBytes.fromUtf8String("{}")).build();
     doReturn(result).when(lambdaClient).invoke(any(InvokeRequest.class));
 
     InvokeLambdaFunctionOutputDescription output = invokeOperation.operate(null);
     assertEquals(result, output.getInvokeResult());
     verify(lambdaClient).invoke(captor.capture());
     verify(invokeOperation, atLeastOnce()).updateTaskStatus(anyString());
-    assertEquals(fName, captor.getValue().getFunctionName());
-    assertNull(captor.getValue().getSdkRequestTimeout());
+    assertEquals(fName, captor.getValue().functionName());
+    assertThat(captor.getValue().overrideConfiguration()).isPresent();
   }
 
   @Test
@@ -86,12 +92,14 @@ public class InvokeLambdaAtomicOperationTest implements LambdaTestingDefaults {
     // specific request per invoked request
     invokeDesc.setTimeout(55);
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     doReturn(lambdaClient).when(invokeOperation).getLambdaClient();
 
     ArgumentCaptor<InvokeRequest> invokeCaptor = ArgumentCaptor.forClass(InvokeRequest.class);
-    doReturn(new InvokeResult()).when(lambdaClient).invoke(invokeCaptor.capture());
+    doReturn(InvokeResponse.builder().payload(SdkBytes.fromUtf8String("{}")).build())
+        .when(lambdaClient)
+        .invoke(invokeCaptor.capture());
     invokeOperation.operate(null);
-    assertEquals(55000, invokeCaptor.getValue().getSdkRequestTimeout().intValue());
+    assertThat(invokeCaptor.getValue().overrideConfiguration()).isPresent();
   }
 }
