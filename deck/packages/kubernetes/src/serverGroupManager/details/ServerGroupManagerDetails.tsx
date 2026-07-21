@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { Application, IServerGroupManagerDetailsProps, IServerGroupManagerStateParams } from '@spinnaker/core';
-import { CloudProviderLogo, Details, EntityNotifications, IfFeatureEnabled, ReactInjector } from '@spinnaker/core';
+import { AngularServices, CloudProviderLogo, Details, EntityNotifications, IfFeatureEnabled } from '@spinnaker/core';
 
 import { ServerGroupManagerActions } from './ServerGroupManagerActions';
 import {
@@ -22,8 +22,8 @@ export interface IKubernetesServerGroupManagerDetailsProps extends IServerGroupM
 
 export function ServerGroupManagerDetails(props: IKubernetesServerGroupManagerDetailsProps) {
   const autoClose = () => {
-    ReactInjector.$state.params.allowModalToStayOpen = true;
-    ReactInjector.$state.go('^', null, { location: 'replace' });
+    AngularServices.$state.params.allowModalToStayOpen = true;
+    AngularServices.$state.go('^', null, { location: 'replace' });
   };
   const [serverGroupManager, manifest, loading] = useKubernetesServerGroupManagerDetails(props, autoClose);
 

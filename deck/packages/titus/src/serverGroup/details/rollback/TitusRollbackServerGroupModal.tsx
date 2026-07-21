@@ -4,11 +4,11 @@ import { Modal, ModalFooter } from 'react-bootstrap';
 
 import type { Application, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
+  AngularServices,
   FormikFormField,
   ModalClose,
   noop,
   PlatformHealthOverride,
-  ReactInjector,
   ReactModal,
   ReactSelectInput,
   SpinFormik,
@@ -177,7 +177,7 @@ export class TitusRollbackServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() =>
-      ReactInjector.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
+      AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
     );
   };
 

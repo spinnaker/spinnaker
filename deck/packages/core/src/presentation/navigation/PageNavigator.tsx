@@ -1,7 +1,6 @@
 import { isFunction, throttle } from 'lodash';
 import React from 'react';
 
-import type { CoreReactInject } from '../../reactShims/react.injector';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 import { UUIDGenerator } from '../../utils/uuid.service';
 
@@ -16,7 +15,10 @@ export interface IPageNavigatorProps {
   scrollableContainer: string;
   deepLinkParam?: string;
   hideNavigation?: boolean;
-  reactInjector: CoreReactInject;
+  reactInjector: {
+    $state: { go: (...args: any[]) => void };
+    $stateParams: Record<string, any>;
+  };
 }
 
 export interface IPageNavigatorState {

@@ -3,7 +3,7 @@ import type { Option } from 'react-select';
 import VirtualizedSelect from 'react-virtualized-select';
 
 import type { ISecurityGroup } from '@spinnaker/core';
-import { FirewallLabels, HelpField, InfrastructureCaches, ReactInjector, timestamp } from '@spinnaker/core';
+import { AngularServices, FirewallLabels, HelpField, InfrastructureCaches, timestamp } from '@spinnaker/core';
 
 import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -36,7 +36,7 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
     if (this.props.refresh) {
       this.props.refresh().then(() => this.setState({ refreshing: false }));
     } else {
-      (ReactInjector.providerServiceDelegate.getDelegate(
+      (AngularServices.providerServiceDelegate.getDelegate(
         this.props.command.selectedProvider,
         'serverGroup.configurationService',
       ) as any)

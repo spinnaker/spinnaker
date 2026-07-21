@@ -2,9 +2,9 @@ import { uniqBy } from 'lodash';
 import React from 'react';
 import type { Observable } from 'rxjs';
 import { filter, first, map } from 'rxjs/operators';
+import { AngularServices } from '../angular/services';
 
 import type { IQueryParams } from '../navigation';
-import { ReactInjector } from '../reactShims';
 import { Registry } from '../registry';
 import type { ISearchColumn, ISearchResult, ISearchResults, ISearchResultSet } from '../search';
 import {
@@ -69,7 +69,7 @@ class ClustersSearchResultType extends SearchResultType<IClusterSearchResult> {
     const type = this.id;
     const urlBuilder = Registry.urlBuilder.getBuilder(type);
     const input = { type, ...serverGroup };
-    const href = urlBuilder.build(input, ReactInjector.$state);
+    const href = urlBuilder.build(input, AngularServices.$state);
 
     const { account, application, cluster, provider, stack } = serverGroup;
     return { account, application, cluster, provider, stack, displayName: cluster, href, type };

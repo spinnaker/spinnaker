@@ -7,9 +7,9 @@ import type { Option } from 'react-select';
 
 import type { IFormikStageConfigInjectedProps, IFormInputProps, ISecurityGroup, ISubnet, IVpc } from '@spinnaker/core';
 import {
+  AngularServices,
   FormikFormField,
   NetworkReader,
-  ReactInjector,
   ReactSelectInput,
   SubnetReader,
   TetheredSelect,
@@ -48,7 +48,7 @@ export function NetworkForm(props: IFormikStageConfigInjectedProps) {
   const { result: fetchSubnetsResult } = useData(() => SubnetReader.listSubnetsByProvider('aws'), [], []);
 
   const { result: fetchSGsResult } = useData(
-    () => ReactInjector.securityGroupReader.getAllSecurityGroups(),
+    () => AngularServices.securityGroupReader.getAllSecurityGroups(),
     undefined,
     [],
   );

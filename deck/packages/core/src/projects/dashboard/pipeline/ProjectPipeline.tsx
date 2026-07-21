@@ -1,11 +1,11 @@
 import { has } from 'lodash';
 import React from 'react';
+import { AngularServices } from '../../../angular/services';
 
 import type { Application } from '../../../application/application.model';
 import type { IExecution } from '../../../domain';
 import { ExecutionBuildLink } from '../../../pipeline/executionBuild/ExecutionBuildLink';
 import { ExecutionMarker } from '../../../pipeline/executions/execution/ExecutionMarker';
-import { ReactInjector } from '../../../reactShims';
 import { timestamp } from '../../../utils/timeFormatters';
 
 import './projectPipeline.less';
@@ -35,14 +35,14 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
   }
 
   private handleExecutionTitleClick = (): void => {
-    ReactInjector.$state.go('^.application.pipelines.executions.execution', {
+    AngularServices.$state.go('^.application.pipelines.executions.execution', {
       application: this.props.execution.application,
       executionId: this.props.execution.id,
     });
   };
 
   private handleStageClick = (stageIndex: number) => {
-    ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', {
+    AngularServices.$state.go('^.application.pipelines.executionDetails.execution', {
       application: this.props.execution.application,
       executionId: this.props.execution.id,
       stage: stageIndex,

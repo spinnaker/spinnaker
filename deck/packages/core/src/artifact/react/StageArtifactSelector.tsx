@@ -1,7 +1,6 @@
 import { module } from 'angular';
 import React from 'react';
 import Select from 'react-select';
-import { react2angular } from 'react2angular';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -9,9 +8,9 @@ import { ArtifactEditor } from './ArtifactEditor';
 import { ArtifactIcon } from './ArtifactIcon';
 import type { IArtifactAccount } from '../../account';
 import { AccountService } from '../../account';
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { IArtifact, IExpectedArtifact, IPipeline, IStage } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IStageArtifactSelectorProps {
   pipeline: IPipeline;
@@ -155,7 +154,7 @@ export class StageArtifactSelector extends React.Component<IStageArtifactSelecto
 export const STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT = 'spinnaker.core.artifacts.stage.artifact.selector.react';
 module(STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT, []).component(
   'stageArtifactSelectorReact',
-  react2angular(withErrorBoundary(StageArtifactSelector, 'stageArtifactSelectorReact'), [
+  angularComponentFromReact(StageArtifactSelector, 'stageArtifactSelectorReact', [
     'pipeline',
     'stage',
     'expectedArtifactId',

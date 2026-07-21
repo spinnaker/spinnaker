@@ -3,13 +3,13 @@ import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
 import type { IPageButtonProps } from './PageButton';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { ApplicationModelBuilder } from '../application';
 import { SETTINGS } from '../config';
 import { SubmitButton } from '../modal';
 import type { IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyWriter } from './pagerDuty.write.service';
-import { ReactInjector } from '../reactShims';
 import { TaskMonitor, TaskMonitorWrapper } from '../task';
 
 export interface IPageModalProps {
@@ -47,7 +47,7 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
           params: { subject, details },
         },
       },
-    } = ReactInjector;
+    } = AngularServices;
     const defaultSubject = subject || get(SETTINGS, 'pagerDuty.defaultSubject', 'Urgent Issue');
     const defaultDetails = details || get(SETTINGS, 'pagerDuty.defaultDetails', '');
 
@@ -69,13 +69,13 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
   private handleSubjectChanged = (event: any): void => {
     const value = event.target.value;
-    ReactInjector.$state.go('.', { subject: value }, { location: 'replace' });
+    AngularServices.$state.go('.', { subject: value }, { location: 'replace' });
     this.setState({ subject: value });
   };
 
   private handleDetailsChanged = (event: any): void => {
     const value = event.target.value;
-    ReactInjector.$state.go('.', { details: value }, { location: 'replace' });
+    AngularServices.$state.go('.', { details: value }, { location: 'replace' });
     this.setState({ details: value });
   };
 

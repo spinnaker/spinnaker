@@ -9,12 +9,12 @@ import type { IAccountDetails, IStageConfigProps } from '@spinnaker/core';
 import {
   AccountService,
   AccountTag,
+  AngularServices,
   AppListExtractor,
   CloudProviderRegistry,
   logger,
   MapEditor,
   ProviderSelectionService,
-  ReactInjector,
   StageConfigField,
 } from '@spinnaker/core';
 
@@ -833,14 +833,13 @@ export function KayentaCanaryStageConfig({ application, stage, updateStage }: IS
   }
 
   function modalDependencies() {
-    const injector = ReactInjector as any;
     return {
       application,
       cloudProviderRegistry: CloudProviderRegistry,
       providerSelectionService: ProviderSelectionService,
-      serverGroupCommandBuilder: injector.serverGroupCommandBuilder,
-      serverGroupTransformer: injector.serverGroupTransformer,
-      $uibModal: injector.$uibModal,
+      serverGroupCommandBuilder: AngularServices.serverGroupCommandBuilder,
+      serverGroupTransformer: AngularServices.serverGroupTransformer,
+      $uibModal: AngularServices.$uibModal,
     };
   }
 

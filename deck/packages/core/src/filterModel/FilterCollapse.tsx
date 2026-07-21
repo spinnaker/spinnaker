@@ -1,20 +1,20 @@
 import { $rootScope } from 'ngimport';
 import React from 'react';
 
+import { AngularServices } from '../angular/services';
 import { Tooltip } from '../presentation';
-import { ReactInjector } from '../reactShims';
 
 import './FilterCollapse.less';
 
 export class FilterCollapse extends React.Component<{}> {
   private onClick = (pin: boolean) => {
-    ReactInjector.insightFilterStateModel.pinFilters(pin);
+    AngularServices.insightFilterStateModel.pinFilters(pin);
     $rootScope.$apply(); // insight layout needs to change
     this.setState({}); // force re-render since we are using insight filter state model to show the collapse button
   };
 
   public render() {
-    const { filtersExpanded } = ReactInjector.insightFilterStateModel;
+    const { filtersExpanded } = AngularServices.insightFilterStateModel;
 
     return (
       <div className="filters-toggle layer-medium">

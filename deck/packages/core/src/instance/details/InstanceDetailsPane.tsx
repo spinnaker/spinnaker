@@ -1,10 +1,9 @@
 import { UISref } from '@uirouter/react';
 import React from 'react';
-
-import { ReactInjector } from '../../reactShims';
+import { AngularServices } from '../../angular/services';
 
 export const InstanceDetailsPane = (props: { children: React.ReactNode }) => {
-  const isStandalone = ReactInjector.$uiRouter.globals.current.name === 'instanceDetails';
+  const isStandalone = AngularServices.$uiRouter.globals.current.name === 'instanceDetails';
 
   return (
     <div className="details-panel">

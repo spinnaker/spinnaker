@@ -4,9 +4,9 @@ import { catchError } from 'rxjs/operators';
 
 import {
   AccountTag,
+  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
-  ReactInjector,
   ServerGroupReader,
   timestamp,
 } from '@spinnaker/core';
@@ -42,7 +42,7 @@ export function OracleServerGroupActions({ app, serverGroup }: any) {
       buttonText: `Destroy ${serverGroup.name}`,
       account: serverGroup.account,
       taskMonitorConfig: { application: app, title: `Destroying ${serverGroup.name}` },
-      submitMethod: () => ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app),
+      submitMethod: () => AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app),
     });
   };
 

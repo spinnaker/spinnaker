@@ -2,7 +2,14 @@ import { cloneDeep, difference, uniq } from 'lodash';
 import React from 'react';
 
 import type { ILoadBalancerModalProps } from '@spinnaker/core';
-import { HelpField, LoadBalancerWriter, ReactInjector, ReactModal, StageConstants, TaskMonitor } from '@spinnaker/core';
+import {
+  AngularServices,
+  HelpField,
+  LoadBalancerWriter,
+  ReactModal,
+  StageConstants,
+  TaskMonitor,
+} from '@spinnaker/core';
 
 import { LoadBalancerMessage } from '../../../common/LoadBalancerMessage';
 import type { ICloudrunLoadBalancer } from '../../../common/domain';
@@ -101,10 +108,10 @@ export class CloudrunLoadBalancerModal extends React.Component<
       region: loadBalancer.region,
       provider: 'cloudrun',
     };
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
+      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
     }
   };
 

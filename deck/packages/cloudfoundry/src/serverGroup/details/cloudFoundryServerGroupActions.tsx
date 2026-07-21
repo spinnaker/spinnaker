@@ -5,9 +5,9 @@ import { Dropdown, Tooltip } from 'react-bootstrap';
 import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
+  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
-  ReactInjector,
   ServerGroupWarningMessageService,
   SETTINGS,
 } from '@spinnaker/core';
@@ -79,15 +79,15 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       application: app,
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
-        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-          ReactInjector.$state.go('^');
+        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
+          AngularServices.$state.go('^');
         }
       },
     };
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
-      return ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      return AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
@@ -120,7 +120,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
-      return ReactInjector.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+      return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
     };
 
     const confirmationModalParams = {
@@ -178,7 +178,7 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
-      return ReactInjector.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
