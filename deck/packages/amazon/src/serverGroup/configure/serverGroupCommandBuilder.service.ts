@@ -1,7 +1,7 @@
 import _ from 'lodash';
 
 import type { Application, InstanceTypeService } from '@spinnaker/core';
-import { AccountService, DeploymentStrategyRegistry, NameUtils, ReactInjector, SubnetReader } from '@spinnaker/core';
+import { AccountService, AngularServices, DeploymentStrategyRegistry, NameUtils, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonLaunchTemplateOverrides, ILaunchTemplateData } from '../../domain';
@@ -41,7 +41,7 @@ export interface AwsServerGroupCommandBuilder {
 }
 
 export function createAwsServerGroupCommandBuilder(
-  instanceTypeService: InstanceTypeService = ReactInjector.instanceTypeService,
+  instanceTypeService: InstanceTypeService = AngularServices.instanceTypeService,
   awsServerGroupConfigurationService: AwsServerGroupConfigurationService = new AwsServerGroupConfigurationService(),
 ): AwsServerGroupCommandBuilder {
   function buildNewServerGroupCommand(

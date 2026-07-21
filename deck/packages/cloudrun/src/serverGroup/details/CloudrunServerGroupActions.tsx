@@ -2,7 +2,7 @@ import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import type { IServerGroupActionsProps } from '@spinnaker/core';
-import { ConfirmationModalService, ReactInjector } from '@spinnaker/core';
+import { AngularServices, ConfirmationModalService } from '@spinnaker/core';
 
 import { CloudrunHealth } from '../../common/cloudrunHealth';
 import type { ICloudrunServerGroup } from '../../interfaces';
@@ -22,8 +22,8 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
       application: app,
       title: `Destroying ${cloudrunServerGroup.name}`,
       onTaskComplete: () => {
-        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-          ReactInjector.$state.go('^');
+        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
+          AngularServices.$state.go('^');
         }
       },
     };
@@ -33,7 +33,7 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
       account: cloudrunServerGroup.account,
       taskMonitorConfig: taskMonitor,
       submitMethod: (params: any) =>
-        ReactInjector.serverGroupWriter.destroyServerGroup(cloudrunServerGroup, app, params),
+        AngularServices.serverGroupWriter.destroyServerGroup(cloudrunServerGroup, app, params),
       askForReason: true,
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: CloudrunHealth.PLATFORM,

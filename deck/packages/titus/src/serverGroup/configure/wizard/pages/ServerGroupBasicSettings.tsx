@@ -7,11 +7,11 @@ import type { Application, IServerGroup, IWizardPageComponent } from '@spinnaker
 import {
   AccountSelectInput,
   AccountTag,
+  AngularServices,
   DeployingIntoManagedClusterWarning,
   DeploymentStrategySelector,
   HelpField,
   NameUtils,
-  ReactInjector,
   RegionSelectField,
   ServerGroupDetailsField,
   ServerGroupNamePreview,
@@ -142,7 +142,7 @@ export class ServerGroupBasicSettings
       serverGroup: latestServerGroup.name,
     };
 
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     if ($state.is('home.applications.application.insight.clusters')) {
       $state.go('.serverGroup', params);
     } else {

@@ -14,7 +14,6 @@ import ngNoRequireAngularJS from './rules/ng-no-require-angularjs';
 import ngNoRequireModuleDeps from './rules/ng-no-require-module-deps';
 import ngStrictDI from './rules/ng-strictdi';
 import preferPromiseLike from './rules/prefer-promise-like';
-import react2angularWithErrorBoundary from './rules/react2angular-with-error-boundary';
 import restPreferStaticStringsInInitializer from './rules/rest-prefer-static-strings-in-initializer';
 
 const rules = {
@@ -34,7 +33,6 @@ const rules = {
   'ng-no-require-module-deps': ngNoRequireModuleDeps,
   'ng-strictdi': ngStrictDI,
   'prefer-promise-like': preferPromiseLike,
-  'react2angular-with-error-boundary': react2angularWithErrorBoundary,
   'rest-prefer-static-strings-in-initializer': restPreferStaticStringsInInitializer,
 };
 

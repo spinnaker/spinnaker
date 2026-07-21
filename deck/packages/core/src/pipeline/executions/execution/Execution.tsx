@@ -10,6 +10,7 @@ import { ExecutionMarker } from './ExecutionMarker';
 import { ExecutionPermalink } from './ExecutionPermalink';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { AccountTag } from '../../../account';
+import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application/application.model';
 import { CancelModal } from '../../../cancelModal/CancelModal';
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
@@ -21,7 +22,6 @@ import type { IExecution, IExecutionStageSummary, IPipeline, IRestartDetails } f
 import type { ISortFilter } from '../../../filterModel';
 import { Overridable } from '../../../overrideRegistry';
 import { Tooltip } from '../../../presentation/Tooltip';
-import { ReactInjector } from '../../../reactShims';
 import { ExecutionState } from '../../../state';
 import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
 import { ExecutionStatus } from '../../status/ExecutionStatus';
@@ -79,7 +79,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   constructor(props: IExecutionProps) {
     super(props);
     const { execution, standalone } = this.props;
-    const { $stateParams } = ReactInjector;
+    const { $stateParams } = AngularServices;
 
     const initialViewState = {
       activeStageId: Number($stateParams.stage),
@@ -135,7 +135,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   private invalidateShowingDetails(props = this.props, forceScroll = false): boolean {
-    const { $state, $stateParams, executionService } = ReactInjector;
+    const { $state, $stateParams, executionService } = AngularServices;
     const { execution, application, standalone } = props;
     const showing =
       standalone === true || (execution.id === $stateParams.executionId && $state.includes('**.execution.**'));
@@ -157,7 +157,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     }
 
     // When execution.id doesn't match, we're' rendering the ancestors in <SingleExecutionDetails>
-    if (this.props.execution.id !== ReactInjector.$stateParams.executionId) {
+    if (this.props.execution.id !== AngularServices.$stateParams.executionId) {
       return (
         this.props.descendantExecutionId &&
         stage &&
@@ -165,11 +165,11 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
         stage.masterStage?.context?.executionId === this.props.descendantExecutionId
       );
     }
-    return this.state.showingDetails && Number(ReactInjector.$stateParams.stage) === stage.index;
+    return this.state.showingDetails && Number(AngularServices.$stateParams.stage) === stage.index;
   }
 
   public toggleDetails = (stageIndex?: number, subIndex?: number): void => {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     const { execution, application } = this.props;
     executionService.hydrate(application, execution).then(() => {
       executionService.toggleDetails(execution, stageIndex, subIndex);
@@ -185,7 +185,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   public deleteExecution(): void {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     ConfirmationModalService.confirm({
       header: 'Really delete execution?',
       buttonText: 'Delete',
@@ -193,7 +193,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       submitMethod: () =>
         executionService.deleteExecution(this.props.application, this.props.execution.id).then(() => {
           if (this.props.standalone) {
-            ReactInjector.$state.go('^');
+            AngularServices.$state.go('^');
           }
         }),
     });
@@ -201,7 +201,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
 
   public cancelExecution(): void {
     const { application, execution, cancelConfirmationText } = this.props;
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     const hasDeployStage =
       execution.stages &&
       execution.stages.some((stage) => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
@@ -217,7 +217,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   public pauseExecution(): void {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     ConfirmationModalService.confirm({
       header: 'Really pause execution?',
       buttonText: 'Pause',
@@ -226,7 +226,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   }
 
   public resumeExecution(): void {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     ConfirmationModalService.confirm({
       header: 'Really resume execution?',
       buttonText: 'Resume',
@@ -239,7 +239,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     this.runningTime = new OrchestratedItemRunningTime(execution, (time: number) =>
       this.setState({ runningTimeInMs: time }),
     );
-    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(
+    this.stateChangeSuccessSubscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(
       ({ toParams, fromParams }) => {
         this.updateViewStateDetails(toParams, fromParams);
       },
@@ -307,7 +307,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
     const { application, execution } = this.props;
     logger.log({ category: 'Execution', action: 'Configuration' });
-    ReactInjector.$state.go('^.pipelineConfig', {
+    AngularServices.$state.go('^.pipelineConfig', {
       application: application.name,
       pipelineId: execution.pipelineConfigId,
     });
@@ -343,7 +343,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       pipelineConfig,
     } = this.props;
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
-    const { $state, $stateParams } = ReactInjector;
+    const { $state, $stateParams } = AngularServices;
 
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account} />

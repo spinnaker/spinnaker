@@ -1,9 +1,9 @@
 import React from 'react';
+import { AngularServices } from '../angular/services';
 
 import type { Application } from '../application';
 import type { IServerGroup, IServerGroupManager } from '../domain';
 import { Tooltip } from '../presentation/Tooltip';
-import { ReactInjector } from '../reactShims';
 
 import type { IServerGroupManagerStateParams } from './serverGroupManager.states';
 
@@ -48,7 +48,7 @@ export class ServerGroupManagerTag extends React.Component<IServerGroupManagerTa
 
   private openDetails = (event: React.MouseEvent<HTMLElement>): void => {
     event.preventDefault();
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     const nextState = $state.current.name.endsWith('.clusters') ? '.serverGroupManager' : '^.serverGroupManager';
     $state.go(nextState, this.buildStateParams());
   };

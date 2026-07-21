@@ -4,9 +4,9 @@ import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 
 import { InstanceListBody } from './InstanceListBody';
+import { AngularServices } from '../angular/services';
 import type { IInstance, IServerGroup } from '../domain';
 import { SortToggle } from '../presentation/sortToggle/SortToggle';
-import { ReactInjector } from '../reactShims';
 import { ClusterState } from '../state';
 
 export interface IInstanceListProps {
@@ -34,8 +34,8 @@ interface IColumnWidths {
 export class InstanceList extends React.Component<IInstanceListProps, IInstanceListState> {
   private instanceGroup: any;
   private clusterFilterModel = ClusterState.filterModel.asFilterModel;
-  private $state = ReactInjector.$state;
-  private $uiRouter = ReactInjector.$uiRouter;
+  private $state = AngularServices.$state;
+  private $uiRouter = AngularServices.$uiRouter;
   private destroy$ = new Subject();
 
   constructor(props: IInstanceListProps) {

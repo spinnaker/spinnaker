@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { InfrastructureCaches, NetworkReader, ReactInjector } from '@spinnaker/core';
+import { AngularServices, InfrastructureCaches, NetworkReader } from '@spinnaker/core';
 
 import { AzureWizardPage } from './common';
 import Utility from '../../../../utility';
@@ -35,7 +35,7 @@ function matchesSelectedVnet(candidate: any, selectedVnet: any): boolean {
 }
 
 function getLoadBalancerReader(): any {
-  return (ReactInjector as any).loadBalancerReader;
+  return (AngularServices as any).loadBalancerReader;
 }
 
 export class ServerGroupLoadBalancers extends AzureWizardPage {

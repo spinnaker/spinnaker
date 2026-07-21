@@ -2,10 +2,10 @@ import React from 'react';
 
 import type { IStageSummaryProps } from '@spinnaker/core';
 import {
+  AngularServices,
   ConfirmationModalService,
   duration,
   Markdown,
-  ReactInjector,
   Registry,
   REST,
   timestamp,
@@ -25,21 +25,21 @@ export function CanaryExecutionSummary({ application, execution, stage, stageSum
     const stageConfig = Registry.pipeline.getStageConfig(summaryStage);
     return !!stageConfig && summaryStage.isRestarting !== true && !!stageConfig.restartable;
   };
-  const getCurrentStep = () => parseInt(ReactInjector.$stateParams.step, 10);
+  const getCurrentStep = () => parseInt(AngularServices.$stateParams.step, 10);
   const isStepCurrent = (index: number) => index === getCurrentStep();
   const toggleDetails = (index: number) => {
     const newStepDetails = getCurrentStep() === index ? null : index;
     if (newStepDetails !== null) {
       const newState = { step: newStepDetails } as any;
-      const selectedStage = parseInt(ReactInjector.$stateParams.stage, 10);
+      const selectedStage = parseInt(AngularServices.$stateParams.stage, 10);
       if (selectedStage) {
         newState.stage = selectedStage;
       }
-      const subStage = parseInt(ReactInjector.$stateParams.subStage, 10);
+      const subStage = parseInt(AngularServices.$stateParams.subStage, 10);
       if (subStage) {
         newState.subStage = subStage;
       }
-      ReactInjector.$state.go('.', newState);
+      AngularServices.$state.go('.', newState);
     }
   };
   const restartStage = () => {

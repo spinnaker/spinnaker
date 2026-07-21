@@ -4,6 +4,7 @@ import type { Subscription } from 'rxjs';
 
 import { CreateLoadBalancerButton } from './CreateLoadBalancerButton';
 import { LoadBalancerPod } from './LoadBalancerPod';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application/application.model';
 import { BannerContainer } from '../banner';
 import type { ILoadBalancerGroup } from '../domain';
@@ -11,7 +12,6 @@ import type { IFilterTag } from '../filterModel/FilterTags';
 import { FilterTags } from '../filterModel/FilterTags';
 import type { ISortFilter } from '../filterModel/IFilterModel';
 import { HelpField } from '../help';
-import { ReactInjector } from '../reactShims';
 import { LoadBalancerState } from '../state';
 import { Spinner } from '../widgets/spinners/Spinner';
 
@@ -33,7 +33,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
 
   constructor(props: ILoadBalancersProps) {
     super(props);
-    const { $stateParams } = ReactInjector;
+    const { $stateParams } = AngularServices;
     this.state = {
       initialized: false,
       groups: [],
@@ -96,7 +96,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     if (state.showInstances) {
       params.showInstances = true;
     }
-    ReactInjector.$state.go('.', params);
+    AngularServices.$state.go('.', params);
   }
 
   private handleInputChange = (event: any): void => {

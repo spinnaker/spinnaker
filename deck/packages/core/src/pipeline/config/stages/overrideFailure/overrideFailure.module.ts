@@ -1,13 +1,12 @@
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
 
 import { OverrideFailure } from './OverrideFailure';
-import { withErrorBoundary } from '../../../../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../../../../angular/angularComponentFromReact';
 
 export const OVERRRIDE_FAILURE = 'spinnaker.core.pipeline.stage.overrideFailure';
 module(OVERRRIDE_FAILURE, []).component(
   'overrideFailure',
-  react2angular(withErrorBoundary(OverrideFailure, 'overrideFailure'), [
+  angularComponentFromReact(OverrideFailure, 'overrideFailure', [
     'failPipeline',
     'continuePipeline',
     'completeOtherBranchesThenFail',

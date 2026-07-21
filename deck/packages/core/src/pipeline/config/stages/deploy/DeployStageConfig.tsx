@@ -5,6 +5,7 @@ import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'r
 
 import { AccountService } from '../../../../account/AccountService';
 import { AccountTag } from '../../../../account/AccountTag';
+import { AngularServices } from '../../../../angular/services';
 import { CloudProviderLogo } from '../../../../cloudProvider/CloudProviderLogo';
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IProviderSelectionFilter } from '../../../../cloudProvider/providerSelection/ProviderSelectionService';
@@ -13,7 +14,6 @@ import type { IStageConfigProps } from '../common';
 import { StageConfigField } from '../common';
 import { NameUtils } from '../../../../naming/nameUtils';
 import { Markdown } from '../../../../presentation/Markdown';
-import { ReactInjector } from '../../../../reactShims/react.injector';
 import { StageConstants } from '../stageConstants';
 
 export interface IDeployStageConfigState {
@@ -136,12 +136,12 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
     ProviderSelectionService.selectProvider(this.props.application, 'serverGroup', this.providerFilterFn)
       .then((selectedProvider) => {
         const serverGroupConfig = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
-        return ReactInjector.serverGroupCommandBuilder
+        return AngularServices.serverGroupCommandBuilder
           .buildNewServerGroupCommandForPipeline(selectedProvider, this.props.stage, this.props.pipeline)
           .then((command: any) => this.showCloneServerGroupModal(selectedProvider, serverGroupConfig, command))
           .then((command: any) => {
             command.provider = selectedProvider;
-            const stageCluster = ReactInjector.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+            const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
               command,
             );
             delete stageCluster.credentials;
@@ -156,13 +156,13 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
     cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
     const providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
 
-    ReactInjector.serverGroupCommandBuilder
+    AngularServices.serverGroupCommandBuilder
       .buildServerGroupCommandFromPipeline(this.props.application, cluster, this.props.stage, this.props.pipeline)
       .then((command: any) =>
         this.showCloneServerGroupModal(cluster.provider, providerConfig && providerConfig.serverGroup, command),
       )
       .then((command: any) => {
-        const stageCluster = ReactInjector.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+        const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
           command,
         );
         delete stageCluster.credentials;

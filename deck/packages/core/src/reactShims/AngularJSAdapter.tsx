@@ -22,7 +22,8 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
 
   public componentWillReceiveProps(nextProps: IRenderAngularJSProps) {
     if (this.$scope) {
-      this.$scope.props = nextProps;
+      this.$scope.props = this.scopeProps(nextProps);
+      this.$scope.$evalAsync();
     }
   }
 
@@ -54,11 +55,16 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
   ) {
     const $element = element(ref);
     const parentScope = $element.scope();
+    if (!parentScope) {
+      return;
+    }
+
     const $scope = (this.$scope = parentScope.$new());
-    $scope.props = this.props;
+    $scope.props = this.scopeProps(this.props);
 
     $element.html(templateString);
     $compile(ref)($scope);
+    $scope.$evalAsync();
 
     if (controller) {
       const controllerStr = controllerAs ? `${controller} as ${controllerAs}` : controller;
@@ -68,7 +74,11 @@ export class AngularJSAdapter extends React.Component<IRenderAngularJSProps> {
   }
 
   public componentWillUnmount() {
-    this.$scope.$destroy();
+    this.$scope?.$destroy();
+  }
+
+  private scopeProps(props: IRenderAngularJSProps) {
+    return { ...props, ...props.locals };
   }
 
   public render() {

@@ -1,12 +1,12 @@
 import { isEqual, keyBy } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
+import { AngularServices } from '../../../../angular/services';
 
 import { SETTINGS } from '../../../../config';
 import type { IExecution, IPipeline, IStage } from '../../../../domain';
 import type { IStageForSpelPreview } from '../../../../presentation';
 import { FormField, ReactSelectInput, useData } from '../../../../presentation';
-import { ReactInjector } from '../../../../reactShims';
 import { ExecutionStatus } from '../../../status/ExecutionStatus';
 import { relativeTime, timestamp } from '../../../../utils';
 
@@ -18,7 +18,7 @@ export interface IExecutionAndStagePickerProps {
 
 export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
   const { pipeline, pipelineStage, onChange } = props;
-  const { executionService } = ReactInjector;
+  const { executionService } = AngularServices;
   const [execution, setExecution] = React.useState<IExecution>(null);
   const [stageId, setStageId] = React.useState<string>(null);
   const [showStageSelector, setShowStageSelector] = React.useState(false);

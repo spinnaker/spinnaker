@@ -5,9 +5,9 @@ import { Dropdown } from 'react-bootstrap';
 import type { IServerGroupActionsProps } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
+  AngularServices,
   ConfirmationModalService,
   confirmNotManaged,
-  ReactInjector,
   ReactModal,
   ServerGroupWarningMessageService,
   SETTINGS,
@@ -26,8 +26,8 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
         const stateParams = { name: serverGroup.name, accountId: serverGroup.account, region: serverGroup.region };
-        if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-          ReactInjector.$state.go('^');
+        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
+          AngularServices.$state.go('^');
         }
       },
     };
@@ -39,7 +39,7 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app, {
+        AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -61,7 +61,7 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        ReactInjector.serverGroupWriter.disableServerGroup(serverGroup, app.name, {
+        AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -84,7 +84,7 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        ReactInjector.serverGroupWriter.enableServerGroup(serverGroup, app, {
+        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,

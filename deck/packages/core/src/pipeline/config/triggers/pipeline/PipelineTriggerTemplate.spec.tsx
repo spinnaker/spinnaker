@@ -2,9 +2,9 @@ import { mount, shallow } from 'enzyme';
 import React from 'react';
 
 import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
+import { AngularServices } from '../../../../angular/services';
 import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 
 /**
@@ -75,8 +75,8 @@ describe('<PipelineTriggerTemplate />', () => {
 
   beforeEach(() => {
     getExecutionsForConfigIdsSpy = jasmine.createSpy('getExecutionsForConfigIds');
-    // ReactInjector.executionService is a getter, not a method - use spyOnProperty
-    spyOnProperty(ReactInjector, 'executionService', 'get').and.returnValue({
+    // AngularServices.executionService is a getter, not a method - use spyOnProperty
+    spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({
       getExecutionsForConfigIds: getExecutionsForConfigIdsSpy,
     });
     addBuildInfoSpy = spyOn(ExecutionsTransformer, 'addBuildInfo');

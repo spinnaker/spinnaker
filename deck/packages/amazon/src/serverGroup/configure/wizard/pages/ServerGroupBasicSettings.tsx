@@ -5,12 +5,12 @@ import React from 'react';
 import type { Application, IServerGroup, IWizardPageComponent } from '@spinnaker/core';
 import {
   AccountSelectInput,
+  AngularServices,
   DeployingIntoManagedClusterWarning,
   DeploymentStrategySelector,
   HelpField,
   Markdown,
   NameUtils,
-  ReactInjector,
   RegionSelectField,
   ServerGroupDetailsField,
   ServerGroupNamePreview,
@@ -184,7 +184,7 @@ export class ServerGroupBasicSettings
       serverGroup: latestServerGroup.name,
     };
 
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     if ($state.is('home.applications.application.insight.clusters')) {
       $state.go('.serverGroup', params);
     } else {
