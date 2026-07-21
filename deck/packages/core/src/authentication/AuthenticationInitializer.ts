@@ -5,8 +5,8 @@ import { fromEvent as observableFromEvent } from 'rxjs';
 
 import { AuthenticationService } from './AuthenticationService';
 import { LoggedOutModal } from './LoggedOutModal';
+import { AngularServices } from '../angular/services';
 import { SETTINGS } from '../config/settings';
-import { ModalInjector } from '../reactShims/modal.injector';
 
 interface IAuthResponse {
   username: string;
@@ -31,7 +31,7 @@ export class AuthenticationInitializer {
             canMintApiTokens: response.data.canMintApiTokens,
             isAdmin: response.data.isAdmin,
           });
-          ModalInjector.modalStackService.dismissAll();
+          AngularServices.modalStackService.dismissAll();
           this.visibilityWatch.unsubscribe();
         }
       })

@@ -3,9 +3,9 @@ import { Observable } from 'rxjs';
 
 import type { IServerGroupDetailsProps, ISubnet } from '@spinnaker/core';
 import { AccountService, ServerGroupReader, SubnetReader } from '@spinnaker/core';
-import type { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
-import { AwsReactInjector } from '../../reactShims';
 
+import { AwsServices } from '../../aws.services';
+import type { IAmazonLoadBalancer, IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
 import { AutoScalingProcessService } from './scalingProcesses/AutoScalingProcessService';
 
 function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<IAmazonServerGroup> {
@@ -52,7 +52,7 @@ export function amazonServerGroupDetailsGetter(
         // it's possible the summary was not found because the clusters are still loading
         Object.assign(details, summary, { account: serverGroupInfo.accountId });
 
-        const serverGroup = AwsReactInjector.awsServerGroupTransformer.normalizeServerGroupDetails(details);
+        const serverGroup = AwsServices.awsServerGroupTransformer.normalizeServerGroupDetails(details);
 
         AccountService.getAccountDetails(serverGroup.account).then((accountDetails) => {
           serverGroup.accountDetails = accountDetails;

@@ -7,10 +7,10 @@ import {
   AccountService,
   ArtifactTypePatterns,
   excludeAllTypesExcept,
-  NgReact,
   StageArtifactSelectorDelegate,
   StageConfigField,
   StageConstants,
+  TargetSelect,
   TextInput,
 } from '@spinnaker/core';
 
@@ -141,7 +141,6 @@ export class CloudFoundryCreateServiceBindingsStageConfigForm extends React.Comp
     const stage = this.props.formik.values;
     const { accounts, application } = this.state;
     const { target } = stage;
-    const { TargetSelect } = NgReact;
 
     return (
       <>

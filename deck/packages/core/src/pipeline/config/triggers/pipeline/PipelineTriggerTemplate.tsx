@@ -2,12 +2,12 @@ import { get, has } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
+import { AngularServices } from '../../../../angular/services';
 import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipeline, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
 import type { ITriggerTemplateComponentProps } from '../../../manualExecution/TriggerTemplate';
 import { TetheredSelect } from '../../../../presentation/TetheredSelect';
-import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 import { timestamp } from '../../../../utils/timeFormatters';
@@ -76,7 +76,7 @@ export class PipelineTriggerTemplate extends React.Component<
       return;
     }
 
-    ReactInjector.executionService
+    AngularServices.executionService
       .getExecutionsForConfigIds([trigger.pipeline], { limit: SETTINGS.maxPipelineTriggerExecutionOptions })
       .then(this.executionLoadSuccess, this.executionLoadFailure);
   };

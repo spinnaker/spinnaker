@@ -6,13 +6,13 @@ import type { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { SETTINGS } from '../config';
 import type { IInstance, IServerGroup } from '../domain';
 import type { ISortFilter } from '../filterModel';
 import { InstanceList } from '../instance/InstanceList';
 import { Instances } from '../instance/Instances';
-import { ReactInjector } from '../reactShims';
 import { ClusterState } from '../state';
 import { logger, ScrollToService } from '../utils';
 
@@ -124,7 +124,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       provider: serverGroup.type,
     };
 
-    return ReactInjector.$state.includes('**.serverGroup', params);
+    return AngularServices.$state.includes('**.serverGroup', params);
   }
 
   private isMultiSelected(multiselect: boolean, serverGroup: IServerGroup) {
@@ -135,7 +135,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     const isMultiSelected = this.isMultiSelected(this.props.sortFilter.multiselect, this.props.serverGroup);
     this.setState({ isMultiSelected });
     // Enables the (angular) details pane to detect the changes
-    ReactInjector.$rootScope.$applyAsync(() => false);
+    AngularServices.$rootScope.$applyAsync(() => false);
   };
 
   private onStateChanged = () => {
@@ -148,7 +148,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     this.serverGroupsSubscription = serverGroupsStream
       .pipe(merge(instancesStream))
       .subscribe(this.onServerGroupsChanged);
-    this.stateChangeSubscription = ReactInjector.$uiRouter.globals.success$.subscribe(this.onStateChanged);
+    this.stateChangeSubscription = AngularServices.$uiRouter.globals.success$.subscribe(this.onStateChanged);
     this.onStateChanged();
   }
 

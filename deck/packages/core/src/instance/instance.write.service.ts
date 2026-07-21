@@ -1,6 +1,6 @@
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application/application.model';
 import type { IInstance, IServerGroup, ITask } from '../domain';
-import { ReactInjector } from '../reactShims';
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import type { IJob } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
@@ -330,7 +330,7 @@ export class InstanceWriter {
 
   private static transform(instanceGroup: IMultiInstanceGroup, job: IMultiInstanceJob) {
     const serviceKey = 'instance.multiInstanceTaskTransformer';
-    const { providerServiceDelegate } = ReactInjector;
+    const { providerServiceDelegate } = AngularServices;
     if (providerServiceDelegate.hasDelegate(instanceGroup.cloudProvider, serviceKey)) {
       const transformer: any = providerServiceDelegate.getDelegate(instanceGroup.cloudProvider, serviceKey);
       transformer.transform(instanceGroup, job);

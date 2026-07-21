@@ -2,7 +2,15 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import type { IFunctionModalProps } from '@spinnaker/core';
-import { FunctionWriter, noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import {
+  AngularServices,
+  FunctionWriter,
+  noop,
+  ReactModal,
+  TaskMonitor,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
 import { ExecutionRole } from './configure/ExecutionRole';
 import { FunctionBasicInformation } from './configure/FunctionBasicInformation';
@@ -73,10 +81,10 @@ export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionP
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.functionDetails')) {
-      ReactInjector.$state.go('.functionDetails', newStateParams);
+    if (!AngularServices.$state.includes('**.functionDetails')) {
+      AngularServices.$state.go('.functionDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.functionDetails', newStateParams);
+      AngularServices.$state.go('^.functionDetails', newStateParams);
     }
   }
 

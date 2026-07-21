@@ -1,4 +1,4 @@
-import { ReactInjector } from '@spinnaker/core';
+import { AngularServices } from '@spinnaker/core';
 
 import { TargetGroupDetails } from './TargetGroupDetails';
 
@@ -7,7 +7,7 @@ describe('TargetGroupDetails', () => {
 
   beforeEach(() => {
     $state = { params: {}, go: jasmine.createSpy('go') };
-    spyOnProperty(ReactInjector, '$state', 'get').and.returnValue($state);
+    spyOnProperty(AngularServices, '$state', 'get').and.returnValue($state);
   });
 
   function buildComponent(loadBalancers: any[]): TargetGroupDetails {

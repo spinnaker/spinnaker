@@ -1,4 +1,5 @@
 export * from './ApplicationsPickerInput';
+export * from './AccountRegionClusterSelector';
 export * from './Keys';
 export * from './ScopeClusterSelector';
 export * from './cluster/ClusterMatches';

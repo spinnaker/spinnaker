@@ -4,14 +4,13 @@ import React from 'react';
 import type { IStageConfigProps } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   AppListExtractor,
   AuthenticationService,
   CloudProviderRegistry,
   HelpField,
-  ModalInjector,
   NameUtils,
   ProviderSelectionService,
-  ReactInjector,
 } from '@spinnaker/core';
 
 import { CanaryAnalysisNameSelector } from './CanaryAnalysisNameSelector';
@@ -181,7 +180,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
     ProviderSelectionService.selectProvider(application, 'serverGroup').then((selectedProvider: string) => {
       const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
       const title = 'Add Cluster Pair';
-      ReactInjector.serverGroupCommandBuilder
+      AngularServices.serverGroupCommandBuilder
         .buildNewServerGroupCommandForPipeline(selectedProvider, stage, pipeline)
         .then((command: any) => {
           configureServerGroupCommandForEditing(command);
@@ -192,7 +191,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
           if (config.CloneServerGroupModal) {
             return config.CloneServerGroupModal.show({ title, application, command });
           }
-          return ModalInjector.modalService.open({
+          return AngularServices.$uibModal.open({
             templateUrl: config.cloneServerGroupTemplateUrl,
             controller: `${config.cloneServerGroupController} as ctrl`,
             size: 'lg',
@@ -200,7 +199,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
           }).result;
         })
         .then((command: any) => {
-          const baselineCluster = ReactInjector.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+          const baselineCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
             command,
           );
           const canaryCluster = cloneDeep(baselineCluster);
@@ -217,7 +216,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
     cluster.provider = cluster.provider || getCloudProvider() || 'aws';
     const config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
     const title = `Configure ${type} Cluster`;
-    ReactInjector.serverGroupCommandBuilder
+    AngularServices.serverGroupCommandBuilder
       .buildServerGroupCommandFromPipeline(application, cluster, stage, pipeline)
       .then((command: any) => {
         configureServerGroupCommandForEditing(command);
@@ -232,7 +231,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
         if (config.CloneServerGroupModal) {
           return config.CloneServerGroupModal.show({ title, application, command });
         }
-        return ModalInjector.modalService.open({
+        return AngularServices.$uibModal.open({
           templateUrl: config.cloneServerGroupTemplateUrl,
           controller: `${config.cloneServerGroupController} as ctrl`,
           size: 'lg',
@@ -240,7 +239,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
         }).result;
       })
       .then((command: any) => {
-        const stageCluster = ReactInjector.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+        const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
           command,
         );
         cleanupClusterConfig(stageCluster, type);
