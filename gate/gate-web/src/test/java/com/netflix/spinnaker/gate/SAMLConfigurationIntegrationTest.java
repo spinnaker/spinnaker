@@ -20,28 +20,25 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * Integration test for SAML configuration using Keycloak testcontainer. Tests that a metadata IS
- * loaded AND actually sets up a keycloak realm & user to validate this. TODO: The FULL Auth flow
- * requires a REAL browser. Work on the selenium tests to actually LOGIN.
+ * Integration test for SAML configuration using a Keycloak testcontainer.
  *
- * <p>This DOES create ALL the scaffolding the the realm, the client for spinnaker, then a user,
- * which lets spinnaker load the remote metadata. This then validates that the login flow would work
- * IF we wanted to go the extra step of using a selenium browser or such and work around...
- * headaches of trying to figure out the networking for ALL of these pieces to work appropriately
- * together
+ * <p>SAML connection properties (IdP metadata URI, entity ID, signing credentials) are configured
+ * via {@code spring.security.saml2.relyingparty.registration.*}. The IdP metadata URI is injected
+ * dynamically via {@link AbstractSAMLConfigurationIntegrationTest#configureProperties} once the
+ * Keycloak container has started.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
       "spring.config.location=classpath:gate-test.yml",
       "saml.enabled=true",
-      "saml.issuer-id=spinnaker-test", // MUST match client-id in keycloak
-      "saml.sign-requests=true", // Keycloak forces spring to sign requests even if keycloak doesn't
-      // validate the signature.
-      "saml.signing-credentials[0].privateKeyLocation=private_key.pem",
-      "saml.signing-credentials[0].certificateLocation=certificate.pem",
-      "management.endpoints.web.exposure.include=beans" // used as an authenticated endpoint to
-      // validate auth stuff
+      // Entity ID for this relying party — must match the clientId registered in Keycloak.
+      "spring.security.saml2.relyingparty.registration.SSO.entity-id=spinnaker-test",
+      // Sign AuthnRequests — Keycloak requires a signed request even when it does not validate it.
+      "spring.security.saml2.relyingparty.registration.SSO.assertingparty.singlesignon.sign-request=true",
+      "spring.security.saml2.relyingparty.registration.SSO.signing.credentials[0].private-key-location=classpath:private_key.pem",
+      "spring.security.saml2.relyingparty.registration.SSO.signing.credentials[0].certificate-location=classpath:certificate.pem",
+      "management.endpoints.web.exposure.include=beans"
     },
     classes = Main.class)
 class SAMLConfigurationIntegrationTest extends AbstractSAMLConfigurationIntegrationTest {
