@@ -1,5 +1,6 @@
 import { extend } from 'lodash';
 import { Subject } from 'rxjs';
+import { AngularServices } from '../../angular/services';
 
 import type { ICache } from '../../cache';
 import { ViewStateCache } from '../../cache';
@@ -7,7 +8,6 @@ import { SETTINGS } from '../../config/settings';
 import type { IExecutionGroup } from '../../domain';
 import { FilterModelService } from '../../filterModel';
 import type { IFilterConfig, IFilterModel } from '../../filterModel/IFilterModel';
-import { ReactInjector } from '../../reactShims';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'awaitingJudgement', type: 'boolean', clearValue: false },
@@ -38,7 +38,7 @@ export class ExecutionFilterModel {
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
   constructor() {
-    const { transitionService } = ReactInjector.$uiRouter;
+    const { transitionService } = AngularServices.$uiRouter;
 
     this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
       version: 2,

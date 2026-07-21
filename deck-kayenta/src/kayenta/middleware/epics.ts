@@ -25,7 +25,7 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mapTo';
 
-import { ReactInjector } from '@spinnaker/core';
+import { AngularServices } from '@spinnaker/core';
 
 import { getCanaryRun, getMetricSetPair } from '../service/canaryRun.service';
 
@@ -57,7 +57,7 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
     return Observable.fromPromise(saveAction)
       .concatMap(({ canaryConfigId }) =>
         Observable.forkJoin(
-          ReactInjector.$state.go('^.configDetail', { id: canaryConfigId, copy: false, new: false }),
+          AngularServices.$state.go('^.configDetail', { id: canaryConfigId, copy: false, new: false }),
           store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
         ).mapTo(Creators.saveConfigSuccess({ id: canaryConfigId })),
       )
@@ -76,7 +76,7 @@ const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: Middl
     .filter(typeMatches(Actions.DELETE_CONFIG_SUCCESS))
     .concatMap(() =>
       Observable.forkJoin(
-        ReactInjector.$state.go('^.configDefault'),
+        AngularServices.$state.go('^.configDefault'),
         // TODO: handle config summary load failure (in general, not just here).
         store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
       ),

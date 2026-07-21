@@ -1,13 +1,12 @@
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
 
 import { ExecutionWindows } from './ExecutionWindows';
-import { withErrorBoundary } from '../../../../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../../../../angular/angularComponentFromReact';
 
 export const EXECUTION_WINDOWS = 'spinnaker.core.pipeline.stage.executionWindows.directive';
 module(EXECUTION_WINDOWS, []).component(
   'executionWindows',
-  react2angular(withErrorBoundary(ExecutionWindows, 'executionWindows'), [
+  angularComponentFromReact(ExecutionWindows, 'executionWindows', [
     'restrictExecutionDuringTimeWindow',
     'restrictedExecutionWindow',
     'skipWindowText',

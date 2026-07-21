@@ -5,12 +5,12 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import ApplicationSelector from '../ApplicationSelector';
+import { AngularServices } from '../../../../../angular/services';
 import type { Application, IApplicationSummary } from '../../../../../application';
 import { ApplicationReader } from '../../../../../application';
 import { CreatePipelineModal } from '../../../../create';
 import type { IPipelineTemplateV2 } from '../../../../../domain/IPipelineTemplateV2';
 import { SubmitButton } from '../../../../../modal/buttons/SubmitButton';
-import { ReactInjector } from '../../../../../reactShims';
 import { Spinner } from '../../../../../widgets/spinners/Spinner';
 
 import './createPipelineFromTemplate.less';
@@ -101,7 +101,7 @@ export class CreatePipelineFromTemplate extends React.Component<
   };
 
   private goToPipelineConfig = (application: string, id: string) => {
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     $state.go('home.applications.application.pipelines.pipelineConfig', { application, pipelineId: id, new: 1 });
   };
 

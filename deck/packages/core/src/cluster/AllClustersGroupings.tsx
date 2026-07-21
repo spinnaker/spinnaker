@@ -6,11 +6,11 @@ import type { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 import { ClusterPod } from './ClusterPod';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';
 import type { ISortFilter } from '../filterModel';
 import type { IStateChange } from '../reactShims';
-import { ReactInjector } from '../reactShims';
 import { ClusterState } from '../state';
 
 export interface IAllClustersGroupingsProps {
@@ -94,7 +94,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
       );
     };
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
-    this.routeChangedSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(this.handleRouteChange);
+    this.routeChangedSubscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(this.handleRouteChange);
 
     const getSortFilter = () => this.clusterFilterModel.asFilterModel.sortFilter;
     const onFilterChanged = ({ ...sortFilter }: any) => {
@@ -103,7 +103,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     };
     // TODO: Remove $rootScope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
-    this.unwatchSortFilter = ReactInjector.$rootScope.$watch(getSortFilter, onFilterChanged, true);
+    this.unwatchSortFilter = AngularServices.$rootScope.$watch(getSortFilter, onFilterChanged, true);
 
     this.scrollToRow();
   }
@@ -116,7 +116,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
   }
 
   private scrollToRow = () => {
-    const { $stateParams } = ReactInjector;
+    const { $stateParams } = AngularServices;
     // Automatically scroll server group into view if deep linkedif ($stateParams.serverGroup) {
     this.clusterFilterService.groupsUpdatedStream.pipe(take(1)).subscribe(() => {
       const scrollToRow = this.state.groups.findIndex((group) =>

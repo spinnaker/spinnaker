@@ -3,10 +3,10 @@ import React from 'react';
 
 import type { Application, IModalComponentProps, IStage, ITemplateSelectionText } from '@spinnaker/core';
 import {
+  AngularServices,
   DeployInitializer,
   FirewallLabels,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
   WizardModal,
@@ -128,16 +128,16 @@ export class AzureCloneServerGroupModal extends React.Component<
       const newServerGroupName = cloneStage.context['deploy.server.groups'][command.region];
       if (newServerGroupName) {
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (ReactInjector.$state.includes('**.clusters.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
           transitionTo = '^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
           transitionTo = '^.^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters')) {
+        if (AngularServices.$state.includes('**.clusters')) {
           transitionTo = '.serverGroup';
         }
-        ReactInjector.$state.go(transitionTo, {
+        AngularServices.$state.go(transitionTo, {
           accountId: command.credentials,
           provider: 'azure',
           region: command.region,
@@ -216,7 +216,7 @@ export class AzureCloneServerGroupModal extends React.Component<
       return this.props.closeModal(command);
     }
     return this.state.taskMonitor.submit(() =>
-      ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application),
+      AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
     );
   };
 

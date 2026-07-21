@@ -2,7 +2,7 @@ import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import type { Application, IOverridableProps, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
-import { AccountTag, CollapsibleSection, ConfirmationModalService, ReactInjector } from '@spinnaker/core';
+import { AccountTag, AngularServices, CollapsibleSection, ConfirmationModalService } from '@spinnaker/core';
 
 import { AzureSecurityGroupModal } from '../configure/AzureSecurityGroupModal';
 import { AzureSecurityGroupWriter } from '../securityGroup.write.service';
@@ -76,7 +76,7 @@ export class AzureSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || ReactInjector.securityGroupReader;
+    return this.props.securityGroupReader || AngularServices.securityGroupReader;
   }
 
   private loadSecurityGroup = (): void => {
@@ -117,11 +117,11 @@ export class AzureSecurityGroupDetails extends React.Component<
       this.props.autoClose();
       return;
     }
-    ReactInjector.$state.go('^');
+    AngularServices.$state.go('^');
   };
 
   private closeDetails = (): void => {
-    ReactInjector.$state.go('^');
+    AngularServices.$state.go('^');
   };
 
   public render(): JSX.Element {

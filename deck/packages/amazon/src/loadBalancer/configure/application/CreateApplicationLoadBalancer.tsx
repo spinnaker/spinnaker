@@ -4,10 +4,10 @@ import React from 'react';
 import type { ILoadBalancerModalProps } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   FirewallLabels,
   LoadBalancerWriter,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
   WizardModal,
@@ -186,10 +186,10 @@ export class CreateApplicationLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
+      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
     }
   }
 

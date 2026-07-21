@@ -1,9 +1,9 @@
 import { formatDistance } from 'date-fns';
 import { get, isNil } from 'lodash';
 import { $log } from 'ngimport';
+import { AngularServices } from '../angular/services';
 
 import type { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from '../domain';
-import { ReactInjector } from '../reactShims/react.injector';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {
@@ -179,13 +179,13 @@ export class OrchestratedItemTransformer {
 
         if (details.currentLockValue.type === 'orchestration') {
           typeDisplay = 'task';
-          linkUrl = ReactInjector.$state.href('home.applications.application.tasks.taskDetails', {
+          linkUrl = AngularServices.$state.href('home.applications.application.tasks.taskDetails', {
             application: details.currentLockValue.application,
             taskId: details.currentLockValue.id,
           });
         } else {
           typeDisplay = 'pipeline';
-          linkUrl = ReactInjector.$state.href('home.applications.application.pipelines.executionDetails.execution', {
+          linkUrl = AngularServices.$state.href('home.applications.application.pipelines.executionDetails.execution', {
             application: details.currentLockValue.application,
             executionId: details.currentLockValue.id,
           });

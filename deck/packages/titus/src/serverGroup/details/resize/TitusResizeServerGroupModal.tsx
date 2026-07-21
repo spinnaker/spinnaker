@@ -5,18 +5,19 @@ import { Modal } from 'react-bootstrap';
 
 import type { Application, ICapacity, IModalComponentProps } from '@spinnaker/core';
 import {
+  AngularServices,
   FormikFormField,
   MinMaxDesiredChanges,
   ModalClose,
   NumberInput,
   PlatformHealthOverride,
-  ReactInjector,
   SpinFormik,
   TaskMonitorWrapper,
   UserVerification,
   useTaskMonitor,
   ValidationMessage,
 } from '@spinnaker/core';
+
 import type { ITitusServerGroup } from '../../../domain';
 
 const { useState, useEffect, useMemo } = React;
@@ -235,7 +236,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
     dismissModal,
   );
   const submit = (command: ITitusResizeServerGroupCommand) =>
-    taskMonitor.submit(() => ReactInjector.serverGroupWriter.resizeServerGroup(serverGroup, application, command));
+    taskMonitor.submit(() => AngularServices.serverGroupWriter.resizeServerGroup(serverGroup, application, command));
 
   const initialValues = { capacity: serverGroup.capacity } as ITitusResizeServerGroupCommand;
 

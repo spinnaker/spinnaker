@@ -1,10 +1,10 @@
 import { isEqual } from 'lodash';
 import React from 'react';
+import { AngularServices } from '../../../../angular/services';
 
 import { ExecutionDetailsSectionNav } from '../../../details';
 import type { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
 import { SpinErrorBoundary } from '../../../../presentation';
-import { ReactInjector } from '../../../../reactShims';
 
 export class StepExecutionDetails extends React.Component<IExecutionDetailsProps, IExecutionDetailsState> {
   constructor(props: IExecutionDetailsProps) {
@@ -20,14 +20,16 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
   }
 
   public updateCurrentSection(): void {
-    const currentSection = ReactInjector.$stateParams.details;
+    const currentSection = AngularServices.$stateParams.details;
     if (this.state.currentSection !== currentSection) {
       this.setState({ currentSection });
     }
   }
 
   public syncDetails(configSections: string[]): void {
-    ReactInjector.executionDetailsSectionService.synchronizeSection(configSections, () => this.updateCurrentSection());
+    AngularServices.executionDetailsSectionService.synchronizeSection(configSections, () =>
+      this.updateCurrentSection(),
+    );
   }
 
   public componentDidMount(): void {

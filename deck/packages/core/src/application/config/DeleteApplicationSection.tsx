@@ -1,8 +1,8 @@
 import React from 'react';
+import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../application.model';
 import { ConfirmationModalService } from '../../confirmationModal';
-import { ReactInjector } from '../../reactShims';
 import { FirewallLabel } from '../../securityGroup/label';
 import { ApplicationWriter } from '../service/ApplicationWriter';
 
@@ -17,7 +17,7 @@ export function DeleteApplicationSection(props: IDeleteApplicationSection) {
       application,
       title: `Deleting ${application.name}`,
       onTaskComplete: () => {
-        ReactInjector.$state.go('home.infrastructure');
+        AngularServices.$state.go('home.infrastructure');
       },
     };
 

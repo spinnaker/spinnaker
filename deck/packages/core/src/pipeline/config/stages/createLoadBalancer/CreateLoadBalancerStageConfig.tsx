@@ -2,11 +2,11 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../../../account/AccountTag';
+import { AngularServices } from '../../../../angular/services';
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
 import type { IStageConfigProps } from '../common';
 import type { ILoadBalancer } from '../../../../domain';
 import { openLoadBalancerModal } from './openLoadBalancerModal';
-import { ModalInjector } from '../../../../reactShims';
 
 export interface ICreateLoadBalancerStageConfigState {
   loadBalancers: ILoadBalancer[];
@@ -42,7 +42,7 @@ export class CreateLoadBalancerStageConfig extends React.Component<
   private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): PromiseLike<ILoadBalancer | ILoadBalancer[]> {
     return ProviderSelectionService.selectProvider(this.props.application, 'loadBalancer').then((selectedProvider) => {
       const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-      return openLoadBalancerModal(config, ModalInjector.modalService, {
+      return openLoadBalancerModal(config, AngularServices.modalService, {
         application: this.props.application,
         loadBalancer,
         isNew,

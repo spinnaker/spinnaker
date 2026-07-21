@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps } from '@spinnaker/core';
-import { ClusterState, ExecutionDetailsSection, ReactInjector, timestamp, UrlBuilder } from '@spinnaker/core';
+import { AngularServices, ClusterState, ExecutionDetailsSection, timestamp, UrlBuilder } from '@spinnaker/core';
 
 import { CanaryScore } from '../CanaryScore';
 import { HistoryTable } from '../../acaTask/AcaTaskExecutionDetails';
@@ -13,7 +13,7 @@ function buildClusterUrl(stage: any, cluster: any) {
     application: stage.context.application,
     cluster: cluster.name,
     account: cluster.accountName,
-    project: ReactInjector.$stateParams.project,
+    project: AngularServices.$stateParams.project,
   };
   metadata.href = UrlBuilder.buildFromMetadata(metadata);
   return metadata;

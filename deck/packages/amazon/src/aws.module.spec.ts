@@ -1,4 +1,4 @@
-import { CloudProviderRegistry, ReactInjector, Registry } from '@spinnaker/core';
+import { CloudProviderRegistry, AngularServices, Registry } from '@spinnaker/core';
 
 import * as amazonPackage from './index';
 import { AwsFunctionTransformer } from './function/function.transformer';
@@ -113,8 +113,8 @@ describe('Amazon package registration', () => {
 
   it('constructs the server group configuration delegate with usable defaults when Core passes the deferred compatibility argument', () => {
     const securityGroupReader = { getAllSecurityGroups: jasmine.createSpy('getAllSecurityGroups') };
-    spyOnProperty(ReactInjector, 'securityGroupReader', 'get').and.returnValue(securityGroupReader as any);
-    spyOnProperty(ReactInjector, 'cacheInitializer', 'get').and.returnValue({
+    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue(securityGroupReader as any);
+    spyOnProperty(AngularServices, 'cacheInitializer', 'get').and.returnValue({
       refreshCache: jasmine.createSpy('refreshCache'),
     } as any);
 

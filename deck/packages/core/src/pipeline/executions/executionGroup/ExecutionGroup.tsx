@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { MigrationTag } from './MigrationTag';
 import { AccountTag } from '../../../account';
+import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application/application.model';
 import { CollapsibleSectionStateCache } from '../../../cache';
 import { PipelineConfigService } from '../../config/services/PipelineConfigService';
@@ -27,7 +28,6 @@ import { ManualExecutionModal } from '../../manualExecution';
 import { Overridable } from '../../../overrideRegistry';
 import type { Placement } from '../../../presentation/Placement';
 import { Popover } from '../../../presentation/Popover';
-import { ReactInjector } from '../../../reactShims';
 import { ExecutionState } from '../../../state';
 import { NextRunTag } from '../../triggers/NextRunTag';
 import { TriggersTag } from '../../triggers/TriggersTag';
@@ -95,14 +95,14 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   private isShowingDetails(): boolean {
-    const { $state, $stateParams } = ReactInjector;
+    const { $state, $stateParams } = AngularServices;
     return this.props.group.executions.some(
       (execution: IExecution) => execution.id === $stateParams.executionId && $state.includes('**.execution.**'),
     );
   }
 
   public configure(id: string): void {
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     if (!$state.current.name.includes('.executions.execution')) {
       $state.go('^.pipelineConfig', { pipelineId: id });
     } else {
@@ -111,11 +111,11 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   private hideDetails(): void {
-    ReactInjector.$state.go('.^');
+    AngularServices.$state.go('.^');
   }
 
   private getSectionCacheKey(): string {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     return executionService.getSectionCacheKey(
       ExecutionState.filterModel.asFilterModel.sortFilter.groupBy,
       this.props.application.name,
@@ -133,7 +133,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   };
 
   private startPipeline(command: IPipelineCommand): PromiseLike<void> {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     this.setState({ triggeringExecution: true });
     return executionService
       .startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger)
@@ -174,7 +174,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   }
 
   public componentDidMount(): void {
-    const { stateEvents } = ReactInjector;
+    const { stateEvents } = AngularServices;
     this.expandUpdatedSubscription = ExecutionState.filterModel.expandSubject.subscribe((expanded) => {
       if (this.state.open !== expanded) {
         this.toggle();

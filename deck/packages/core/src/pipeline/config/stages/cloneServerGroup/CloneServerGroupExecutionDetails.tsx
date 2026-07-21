@@ -2,11 +2,11 @@ import { find, get } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../../../account';
+import { AngularServices } from '../../../../angular/services';
 import type { IExecutionDetailsSectionProps } from '../common';
 import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details';
 import { UrlBuilder } from '../../../../navigation';
-import { ReactInjector } from '../../../../reactShims';
 import { ClusterState } from '../../../../state';
 
 export interface IDeployResult {
@@ -60,7 +60,7 @@ export class CloneServerGroupExecutionDetails extends React.Component<
           account: context.credentials,
           region,
           provider: context.cloudProvider ?? 'aws',
-          project: ReactInjector.$stateParams.project,
+          project: AngularServices.$stateParams.project,
         };
         result.href = UrlBuilder.buildFromMetadata(result);
         return result;

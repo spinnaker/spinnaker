@@ -1,8 +1,8 @@
 import React from 'react';
 import type { Subscription } from 'rxjs';
+import { AngularServices } from '../../angular/services';
 
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
-import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';
 
 export interface IExecutionDetailsSectionNavProps {
@@ -25,13 +25,13 @@ export class ExecutionDetailsSectionNav extends React.Component<
   }
 
   public componentDidMount(): void {
-    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() =>
+    this.stateChangeSuccessSubscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(() =>
       this.setState(this.getState(this.props)),
     );
   }
 
   private getState(props: IExecutionDetailsSectionNavProps): IExecutionDetailsSectionNavState {
-    const { $stateParams } = ReactInjector;
+    const { $stateParams } = AngularServices;
     const activeSection = $stateParams.details || props.sections[0];
     return { activeSection };
   }
@@ -58,7 +58,7 @@ export class ExecutionDetailsSectionNav extends React.Component<
 const Section = (props: { section: string; active: boolean }): JSX.Element => {
   const clicked = () => {
     logger.log({ category: 'Pipeline', action: 'Execution details section selected', data: { label: props.section } });
-    ReactInjector.$state.go('.', { details: props.section });
+    AngularServices.$state.go('.', { details: props.section });
   };
   return (
     <li>
