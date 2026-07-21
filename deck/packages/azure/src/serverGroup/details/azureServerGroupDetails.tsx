@@ -10,12 +10,12 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountTag,
+  AngularServices,
   CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
   FirewallLabels,
   HealthCounts,
-  ReactInjector,
   ServerGroupReader,
   ServerGroupWarningMessageService,
   timestamp,
@@ -146,12 +146,12 @@ export function AzureServerGroupActions({ app, serverGroup }: IServerGroupAction
         application: app,
         title: `Destroying ${serverGroup.name}`,
         onTaskComplete: () => {
-          if (ReactInjector.$state.includes('**.serverGroup', stateParams)) {
-            ReactInjector.$state.go('^');
+          if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
+            AngularServices.$state.go('^');
           }
         },
       },
-      submitMethod: (params: any) => ReactInjector.serverGroupWriter.destroyServerGroup(serverGroup, app, params),
+      submitMethod: (params: any) => AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params),
     };
 
     ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
@@ -167,7 +167,8 @@ export function AzureServerGroupActions({ app, serverGroup }: IServerGroupAction
         application: app,
         title: `Disabling ${serverGroup.name}`,
       },
-      submitMethod: (params: any) => ReactInjector.serverGroupWriter.disableServerGroup(serverGroup, app.name, params),
+      submitMethod: (params: any) =>
+        AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params),
     };
 
     ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
@@ -184,7 +185,7 @@ export function AzureServerGroupActions({ app, serverGroup }: IServerGroupAction
         title: `Enabling ${serverGroup.name}`,
       },
       submitMethod: (params: any) =>
-        ReactInjector.serverGroupWriter.enableServerGroup(serverGroup, app, {
+        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, {
           ...params,
           interestingHealthProviderNames: [],
         }),

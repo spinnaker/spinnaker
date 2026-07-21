@@ -1,4 +1,4 @@
-import { AccountService, NetworkReader, ReactInjector, TaskMonitor } from '@spinnaker/core';
+import { AccountService, NetworkReader, AngularServices, TaskMonitor } from '@spinnaker/core';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
@@ -506,7 +506,7 @@ describe('AzureSecurityGroupModal', () => {
       result: Promise.resolve(),
     } as any);
     const state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(false) };
-    spyOnProperty(ReactInjector, '$state', 'get').and.returnValue(state as any);
+    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
     const onNextRefresh = jasmine
       .createSpy('onNextRefresh')
       .and.callFake((_scope: any, callback: () => void) => callback());

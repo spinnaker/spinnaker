@@ -3,10 +3,10 @@ import { Button, Modal } from 'react-bootstrap';
 
 import type { Application, IModalComponentProps, ISecurityGroup } from '@spinnaker/core';
 import {
+  AngularServices,
   FirewallLabels,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   SecurityGroupWriter,
   SubmitButton,
@@ -211,8 +211,8 @@ export class AmazonSecurityGroupModal extends React.Component<
     }
 
     const { securityGroup } = this.state;
-    ReactInjector.$state.go(
-      ReactInjector.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
+    AngularServices.$state.go(
+      AngularServices.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
       {
         accountId: accountFor(securityGroup),
         name: securityGroup.name,

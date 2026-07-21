@@ -2,9 +2,9 @@ import React from 'react';
 
 import { StatusGlyph } from '../StatusGlyph';
 import type { TaskMonitor } from './TaskMonitor';
+import { AngularServices } from '../../angular/services';
 import { displayableTasks } from '../displayableTasks.filter';
 import { robotToHuman, useForceUpdate, useObservable } from '../../presentation';
-import { ReactInjector } from '../../reactShims/react.injector';
 import { duration } from '../../utils';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
@@ -43,7 +43,7 @@ export const TaskMonitorStatus = ({ monitor }: { monitor: TaskMonitor }) => {
         <p>
           You can{' '}
           <a
-            href={ReactInjector.$state.href('home.applications.application.tasks.taskDetails', {
+            href={AngularServices.$state.href('home.applications.application.tasks.taskDetails', {
               application: monitor.application.name,
               taskId: monitor.task.id,
             })}

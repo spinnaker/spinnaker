@@ -1,11 +1,10 @@
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
 
 import LabelFilter from './LabelFilter';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 
 export const LABEL_FILTER_COMPONENT = 'spinnaker.core.labelFilter.component';
 module(LABEL_FILTER_COMPONENT, []).component(
   'labelFilter',
-  react2angular(withErrorBoundary(LabelFilter, 'labelFilter'), ['labelsMap', 'labelFilters', 'updateLabelFilters']),
+  angularComponentFromReact(LabelFilter, 'labelFilter', ['labelsMap', 'labelFilters', 'updateLabelFilters']),
 );

@@ -1,6 +1,6 @@
 import { MultiselectModel } from './MultiselectModel';
-import { ReactInjector } from '../../reactShims';
 import * as State from '../../state';
+import { AngularServices } from '../../angular/services';
 
 const { ClusterState } = State;
 
@@ -16,10 +16,10 @@ describe('Multiselect Model', () => {
       currentStates = [];
       currentParams = {};
 
-      spyOn(ReactInjector.$state, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
-      spyOn(ReactInjector.$state, 'go').and.callFake((newState: any) => (result = newState));
-      spyOnProperty(ReactInjector.$state, 'params', 'get').and.callFake(() => currentParams);
-      spyOnProperty(ReactInjector.$state, '$current', 'get').and.callFake(() => {
+      spyOn(AngularServices.$state, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
+      spyOn(AngularServices.$state, 'go').and.callFake((newState: any) => (result = newState));
+      spyOnProperty(AngularServices.$state, 'params', 'get').and.callFake(() => currentParams);
+      spyOnProperty(AngularServices.$state, '$current', 'get').and.callFake(() => {
         if (currentStates.length) {
           return { name: currentStates[currentStates.length - 1] };
         }

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { NgReact } from '@spinnaker/core';
+import { InstanceArchetypeSelector, InstanceTypeSelector } from '@spinnaker/core';
 
 import { CpuCreditsToggle } from '../CpuCreditsToggle';
 import { InstanceTypeWarning } from '../InstanceTypeWarning';
@@ -16,7 +16,6 @@ export interface ISimpleModeSelectorProps {
 
 export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
   const { command } = props;
-  const { InstanceArchetypeSelector, InstanceTypeSelector } = NgReact;
   const isLaunchTemplatesEnabled = AWSProviderSettings.serverGroups?.enableLaunchTemplates;
   const isCpuCreditsEnabled = AWSProviderSettings.serverGroups?.enableCpuCredits;
 

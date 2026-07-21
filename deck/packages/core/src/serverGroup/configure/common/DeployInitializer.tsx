@@ -4,12 +4,12 @@ import { Modal } from 'react-bootstrap';
 import type { Option } from 'react-select';
 
 import { AccountTag } from '../../../account';
+import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application';
 import type { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
 import type { IServerGroup } from '../../../domain';
 import { ModalClose } from '../../../modal';
 import { TetheredSelect } from '../../../presentation/TetheredSelect';
-import { ReactInjector } from '../../../reactShims';
 import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 import { ServerGroupReader } from '../../serverGroupReader.service';
 
@@ -95,7 +95,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
   private buildCommandFromTemplate(serverGroup: IServerGroup): PromiseLike<any> {
     const { application, cloudProvider } = this.props;
 
-    const commandBuilder: any = ReactInjector.providerServiceDelegate.getDelegate(
+    const commandBuilder: any = AngularServices.providerServiceDelegate.getDelegate(
       cloudProvider,
       'serverGroup.commandBuilder',
     );
@@ -112,7 +112,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
 
   private buildEmptyCommand = (): PromiseLike<any> => {
     const { application, cloudProvider } = this.props;
-    const commandBuilder: any = ReactInjector.providerServiceDelegate.getDelegate(
+    const commandBuilder: any = AngularServices.providerServiceDelegate.getDelegate(
       cloudProvider,
       'serverGroup.commandBuilder',
     );
