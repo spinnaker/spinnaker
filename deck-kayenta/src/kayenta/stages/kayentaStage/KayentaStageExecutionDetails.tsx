@@ -4,7 +4,13 @@ import { get } from 'lodash';
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps, IExecutionStage } from '@spinnaker/core';
-import { ExecutionDetailsSection, ReactInjector, robotToHuman, StageFailureMessage, timestamp } from '@spinnaker/core';
+import {
+  AngularServices,
+  ExecutionDetailsSection,
+  robotToHuman,
+  StageFailureMessage,
+  timestamp,
+} from '@spinnaker/core';
 
 import CanaryRunSummaries from './canaryRunSummaries';
 import { KAYENTA_CANARY, RUN_CANARY } from './stageTypes';
@@ -183,7 +189,7 @@ function resolveControlAndExperimentNames(
 }
 
 function canaryConfigHref(id: string) {
-  return ReactInjector.$state.href('home.applications.application.canary.canaryConfig.configDetail', { id });
+  return AngularServices.$state.href('home.applications.application.canary.canaryConfig.configDetail', { id });
 }
 
 KayentaStageExecutionDetails.title = 'canarySummary';

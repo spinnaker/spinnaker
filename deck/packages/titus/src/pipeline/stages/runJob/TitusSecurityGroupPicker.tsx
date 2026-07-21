@@ -3,7 +3,7 @@ import React from 'react';
 
 import { SecurityGroupSelector, ServerGroupSecurityGroupsRemoved, VpcReader } from '@spinnaker/amazon';
 import type { IAccountDetails, IAggregatedAccounts, ISecurityGroup, IVpc } from '@spinnaker/core';
-import { AccountService, AccountTag, FirewallLabels, ReactInjector } from '@spinnaker/core';
+import { AccountService, AccountTag, AngularServices, FirewallLabels } from '@spinnaker/core';
 
 export interface ITitusSecurityGroupPickerProps {
   account: string;
@@ -72,8 +72,8 @@ export class TitusSecurityGroupPicker extends React.Component<
   }
 
   public refreshSecurityGroups(skipCommandReconfiguration?: boolean) {
-    return ReactInjector.cacheInitializer.refreshCache('securityGroups').then(() => {
-      return ReactInjector.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
+    return AngularServices.cacheInitializer.refreshCache('securityGroups').then(() => {
+      return AngularServices.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
         this.securityGroups = securityGroups;
         if (!skipCommandReconfiguration) {
           this.configureSecurityGroupOptions();
@@ -122,7 +122,7 @@ export class TitusSecurityGroupPicker extends React.Component<
         this.credentials = credentials;
       },
     );
-    const groupLoader = ReactInjector.securityGroupReader.getAllSecurityGroups().then((groups) => {
+    const groupLoader = AngularServices.securityGroupReader.getAllSecurityGroups().then((groups) => {
       this.securityGroups = groups;
     });
     const vpcLoader = VpcReader.listVpcs().then((vpcs: IVpc[]) => (this.vpcs = vpcs));

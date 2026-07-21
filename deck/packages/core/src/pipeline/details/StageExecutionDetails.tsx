@@ -3,11 +3,11 @@ import type { Subscription } from 'rxjs';
 
 import { StageSummary } from './StageSummary';
 import { StepDetails } from './StepDetails';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import type { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
 import { SpinErrorBoundary } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
 import { Registry } from '../../registry';
 
 import './stageExecutionDetails.less';
@@ -127,7 +127,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   }
 
   private getCurrentStage(summaries: IExecutionStageSummary[]): { stage: number; subStage: number } {
-    const { $state, $stateParams } = ReactInjector;
+    const { $state, $stateParams } = AngularServices;
     if ($stateParams.stageId) {
       const params = this.getStageParamsFromStageId($stateParams.stageId, summaries);
       if (params) {
@@ -154,7 +154,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   }
 
   private getCurrentStep() {
-    return parseInt(ReactInjector.$stateParams.step, 10);
+    return parseInt(AngularServices.$stateParams.step, 10);
   }
 
   private getStageSummary() {
@@ -171,7 +171,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   }
 
   private getDetailsStageConfig(stageSummary: IExecutionStageSummary): IStageTypeConfig {
-    if (stageSummary && ReactInjector.$stateParams.step !== undefined) {
+    if (stageSummary && AngularServices.$stateParams.step !== undefined) {
       const step = stageSummary.stages[this.getCurrentStep()] || stageSummary.masterStage;
       return Registry.pipeline.getStageConfig(step);
     }
@@ -179,7 +179,7 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   }
 
   private getSummaryStageConfig(stageSummary: IExecutionStageSummary): IStageTypeConfig {
-    if (stageSummary && ReactInjector.$stateParams.stage !== undefined) {
+    if (stageSummary && AngularServices.$stateParams.stage !== undefined) {
       return Registry.pipeline.getStageConfig(stageSummary);
     }
     return {} as IStageTypeConfig;
@@ -201,7 +201,9 @@ export class StageExecutionDetails extends React.Component<IStageExecutionDetail
   }
 
   public componentDidMount(): void {
-    this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => this.updateStage());
+    this.locationChangeUnsubscribe = AngularServices.$uiRouter.transitionService.onSuccess({}, () =>
+      this.updateStage(),
+    );
     // Since stages and tasks can get updated without the reference to the execution changing, subscribe to the execution updated stream here too
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() => this.updateStage());
 

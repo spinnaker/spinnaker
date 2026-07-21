@@ -10,6 +10,7 @@ import { AutoSizer, CellMeasurer, CellMeasurerCache, Column, SortDirection, Tabl
 import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
 import { PageButton } from './PageButton';
+import { AngularServices } from '../angular/services';
 import type { IApplicationSummary } from '../application';
 import { ApplicationReader } from '../application';
 import { SETTINGS } from '../config';
@@ -17,7 +18,6 @@ import { Overridable } from '../overrideRegistry';
 import type { IOnCall, IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyReader } from './pagerDuty.read.service';
 import { Markdown } from '../presentation';
-import { ReactInjector } from '../reactShims';
 import { relativeTime } from '../utils/timeFormatters';
 
 import './pager.less';
@@ -96,7 +96,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   constructor(props: IPagerProps) {
     super(props);
 
-    const { $stateParams } = ReactInjector;
+    const { $stateParams } = AngularServices;
     this.state = {
       accountName: (SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName) || '',
       app: $stateParams.app || '',
@@ -147,7 +147,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     const { sortedData } = this.state;
 
     if (sortBy !== this.state.sortBy || sortDirection !== this.state.sortDirection) {
-      ReactInjector.$state.go('.', { by: sortBy, direction: sortDirection });
+      AngularServices.$state.go('.', { by: sortBy, direction: sortDirection });
       this.sortList(sortedData, sortBy, sortDirection);
       this.cache.clearAll();
       this.setState({ sortedData, sortBy, sortDirection });
@@ -210,7 +210,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       this.setState({ selectedKeys });
     }
 
-    ReactInjector.$state.go('.', {
+    AngularServices.$state.go('.', {
       app,
       q: filterString,
       by: sortBy,
@@ -293,7 +293,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   private selectedChanged = (service: IPagerDutyService, value: boolean): void => {
     const { selectedKeys } = this.state;
     value ? selectedKeys.set(service.integration_key, service) : selectedKeys.delete(service.integration_key);
-    ReactInjector.$state.go('.', { keys: Array.from(selectedKeys.keys()) });
+    AngularServices.$state.go('.', { keys: Array.from(selectedKeys.keys()) });
     this.setState({ selectedKeys });
   };
 
@@ -459,7 +459,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   private handleHideNoAppsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const hideNoApps = event.target.checked;
     this.setState({ hideNoApps });
-    ReactInjector.$state.go('.', { hideNoApps });
+    AngularServices.$state.go('.', { hideNoApps });
   };
 
   private rowClicked = (info: RowMouseEventHandlerParams): void => {
