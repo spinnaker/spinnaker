@@ -32,10 +32,10 @@ import org.springframework.security.web.SecurityFilterChain;
     properties = {
       "spring.config.location=classpath:gate-test.yml",
       "saml.enabled=true",
-      "saml.issuer-id=spinnaker-test",
-      "saml.sign-requests=true",
-      "saml.signing-credentials[0].privateKeyLocation=private_key.pem",
-      "saml.signing-credentials[0].certificateLocation=certificate.pem",
+      "spring.security.saml2.relyingparty.registration.SSO.entity-id=spinnaker-test",
+      "spring.security.saml2.relyingparty.registration.SSO.assertingparty.singlesignon.sign-request=true",
+      "spring.security.saml2.relyingparty.registration.SSO.signing.credentials[0].private-key-location=classpath:private_key.pem",
+      "spring.security.saml2.relyingparty.registration.SSO.signing.credentials[0].certificate-location=classpath:certificate.pem",
       "x509.enabled=true",
       "management.endpoints.web.exposure.include=beans"
     },
