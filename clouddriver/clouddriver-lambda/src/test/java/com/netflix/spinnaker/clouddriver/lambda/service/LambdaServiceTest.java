@@ -119,7 +119,12 @@ class LambdaServiceTest {
     when(serviceLimitConfiguration.getLimit(any(), any(), any(), any(), any())).thenReturn(1.0);
 
     FunctionConfiguration functionConfiguration =
-        FunctionConfiguration.builder().functionName("testFunction").build();
+        FunctionConfiguration.builder()
+            .functionName("testFunction")
+            .runtime("java17")
+            .memorySize(512)
+            .timeout(30)
+            .build();
     ListFunctionsResponse functionsResult =
         ListFunctionsResponse.builder().functions(List.of(functionConfiguration)).build();
 
@@ -195,7 +200,12 @@ class LambdaServiceTest {
 
     assertEquals(1, allFunctions.size());
     Map<String, Object> function = allFunctions.get(0);
+    // Verifies the AwsSdkV2Module/SdkPojoSerializer converts v2 model objects (which are not
+    // standard Jackson beans) into a populated Map rather than emitting empty/incorrect output.
     assertEquals("testFunction", function.get("functionName"));
+    assertEquals("java17", function.get("runtime"));
+    assertEquals(512, function.get("memorySize"));
+    assertEquals(30, function.get("timeout"));
   }
 
   @SuppressWarnings("unchecked")
