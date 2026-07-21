@@ -1,6 +1,8 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
+import { HelpField } from '@spinnaker/core';
+
 import {
   GceInstanceFlexibilityConfigurer,
   hasValidFlexibilityPolicy,
@@ -13,6 +15,18 @@ describe('GceInstanceFlexibilityConfigurer', () => {
       preferred: { rank: 1, machineTypes: ['n2-standard-8'] },
     },
   };
+
+  it('links the flexibility editor to its help content', () => {
+    const wrapper = shallow(
+      <GceInstanceFlexibilityConfigurer
+        regional={true}
+        targetShape="BALANCED"
+        setInstanceFlexibilityPolicy={jasmine.createSpy('setPolicy')}
+      />,
+    );
+
+    expect(wrapper.find(HelpField).prop('id')).toBe('gce.serverGroup.instanceFlexibilityPolicy');
+  });
 
   it('allows EVEN when flexibility is absent', () => {
     expect(

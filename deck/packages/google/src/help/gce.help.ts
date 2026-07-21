@@ -135,7 +135,9 @@ const helpContents: { [key: string]: string } = {
   'gce.serverGroup.labels.spinnaker-region': 'This label can be used to group instances when querying for metrics.',
   'gce.serverGroup.labels.spinnaker-server-group':
     'This label can be used to group instances when querying for metrics.',
-  'gce.serverGroup.shieldedVmConfig':
+  'gce.serverGroup.instanceFlexibilityPolicy':
+    'Defines named sets of acceptable machine types for a regional managed instance group. Lower ranks are preferred; Google Compute Engine selects an available type when creating each VM.',
+  'gce.serverGroup.shieldedInstanceConfig':
     'Shielded VM features include trusted UEFI firmware and come with options for Secure Boot, Virtual Trusted Platform Module (vTPM), and Integrity Monitoring.',
   'gce.serverGroup.shieldedVmSecureBoot':
     'Secure boot helps protect your VM instances against boot-level and kernel-level malware and rootkits.',

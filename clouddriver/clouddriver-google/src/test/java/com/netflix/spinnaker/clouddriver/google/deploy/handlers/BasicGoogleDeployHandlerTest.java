@@ -1808,19 +1808,19 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void addShieldedVmConfigToInstanceProperties_shieldedVmCompatible_configAdded() {
+  void addShieldedInstanceConfigToInstanceProperties_shieldedVmCompatible_configAdded() {
     InstanceProperties instanceProperties = new InstanceProperties();
     Image bootImage = new Image();
-    ShieldedInstanceConfig shieldedVmConfig = new ShieldedInstanceConfig();
+    ShieldedInstanceConfig shieldedInstanceConfig = new ShieldedInstanceConfig();
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(true);
     mockedGCEUtil
         .when(() -> GCEUtil.buildShieldedInstanceConfig(mockDescription))
-        .thenReturn(shieldedVmConfig);
+        .thenReturn(shieldedInstanceConfig);
 
-    basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
+    basicGoogleDeployHandler.addShieldedInstanceConfigToInstanceProperties(
         mockDescription, instanceProperties, bootImage);
-    assertEquals(shieldedVmConfig, instanceProperties.getShieldedInstanceConfig());
+    assertEquals(shieldedInstanceConfig, instanceProperties.getShieldedInstanceConfig());
   }
 
   @Test
@@ -1837,7 +1837,7 @@ public class BasicGoogleDeployHandlerTest {
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(true);
     mockedGCEUtil.when(() -> GCEUtil.buildShieldedInstanceConfig(description)).thenCallRealMethod();
-    basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
+    basicGoogleDeployHandler.addShieldedInstanceConfigToInstanceProperties(
         description, instanceProperties, bootImage);
 
     InstanceTemplate template =
@@ -1868,13 +1868,13 @@ public class BasicGoogleDeployHandlerTest {
   }
 
   @Test
-  void addShieldedVmConfigToInstanceProperties_notShieldedVmCompatible_noConfigAdded() {
+  void addShieldedInstanceConfigToInstanceProperties_notShieldedVmCompatible_noConfigAdded() {
     InstanceProperties instanceProperties = new InstanceProperties();
     Image bootImage = new Image();
 
     mockedGCEUtil.when(() -> GCEUtil.isShieldedVmCompatible(bootImage)).thenReturn(false);
 
-    basicGoogleDeployHandler.addShieldedVmConfigToInstanceProperties(
+    basicGoogleDeployHandler.addShieldedInstanceConfigToInstanceProperties(
         mockDescription, instanceProperties, bootImage);
     assertNull(instanceProperties.getShieldedInstanceConfig());
   }

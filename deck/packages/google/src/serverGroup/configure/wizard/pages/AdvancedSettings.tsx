@@ -647,7 +647,7 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
 
         <fieldset className="form-group">
           <legend className="sm-label-left">
-            Shielded VM <HelpField id="gce.serverGroup.shieldedVmConfig" />
+            Shielded VM <HelpField id="gce.serverGroup.shieldedInstanceConfig" />
           </legend>
           <div className="col-md-9 checkbox">
             <label>

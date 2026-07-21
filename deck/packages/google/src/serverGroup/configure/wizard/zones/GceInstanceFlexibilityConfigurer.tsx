@@ -1,6 +1,8 @@
 import { isEmpty } from 'lodash';
 import React from 'react';
 
+import { HelpField } from '@spinnaker/core';
+
 import type { IGceInstanceFlexibilityPolicy, IGceInstanceSelection } from '../../../../domain/serverGroup';
 
 export interface IGceInstanceFlexibilityConfigurerProps {
@@ -156,7 +158,7 @@ export function GceInstanceFlexibilityConfigurer({
   return (
     <div className="form-group">
       <div className="col-md-3 sm-label-right">
-        <b>Instance Flexibility</b>
+        <b>Instance Flexibility</b> <HelpField id="gce.serverGroup.instanceFlexibilityPolicy" />
       </div>
       <div className="col-md-9">
         {validationError && (

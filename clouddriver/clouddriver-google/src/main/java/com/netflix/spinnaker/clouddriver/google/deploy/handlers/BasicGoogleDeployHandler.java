@@ -226,7 +226,7 @@ public class BasicGoogleDeployHandler
               serviceAccounts,
               scheduling,
               labels);
-      addShieldedVmConfigToInstanceProperties(description, instanceProperties, bootImage);
+      addShieldedInstanceConfigToInstanceProperties(description, instanceProperties, bootImage);
       addMinCpuPlatformToInstanceProperties(description, instanceProperties);
       InstanceTemplate instanceTemplate =
           buildInstanceTemplate(instanceTemplateName, instanceProperties);
@@ -858,7 +858,7 @@ public class BasicGoogleDeployHandler
         .setResourceManagerTags(description.getResourceManagerTags());
   }
 
-  protected void addShieldedVmConfigToInstanceProperties(
+  protected void addShieldedInstanceConfigToInstanceProperties(
       BasicGoogleDeployDescription description,
       InstanceProperties instanceProperties,
       Image bootImage) {

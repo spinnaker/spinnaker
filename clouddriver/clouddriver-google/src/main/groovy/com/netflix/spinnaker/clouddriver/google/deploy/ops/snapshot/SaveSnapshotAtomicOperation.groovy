@@ -264,7 +264,7 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
       }
     }
     if (instanceTemplate.properties.shieldedInstanceConfig) {
-      addShieldedVmConfigToInstanceTemplateMap(instanceTemplate.properties.shieldedInstanceConfig as ShieldedInstanceConfig, instanceTemplateMap)
+      addShieldedInstanceConfigToInstanceTemplateMap(instanceTemplate.properties.shieldedInstanceConfig as ShieldedInstanceConfig, instanceTemplateMap)
     }
     numInstanceTemplates++
     resourceMap.google_compute_instance_template[instanceTemplate.name as String] = instanceTemplateMap
@@ -290,16 +290,16 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
   // The restore path (RestoreSnapshotAtomicOperation) feeds this map directly to
   // `terraform apply`, which expects snake_case -- there is no Java round-trip
   // deserialization on restore, so camelCase keys are not needed here.
-  private Void addShieldedVmConfigToInstanceTemplateMap(ShieldedInstanceConfig shieldedVmConfig, Map instanceTemplateMap) {
+  private Void addShieldedInstanceConfigToInstanceTemplateMap(ShieldedInstanceConfig shieldedInstanceConfig, Map instanceTemplateMap) {
     instanceTemplateMap.shielded_vm_config = [:]
-    if (shieldedVmConfig.enableSecureBoot != null) {
-      instanceTemplateMap.shielded_vm_config.enable_secure_boot = shieldedVmConfig.enableSecureBoot
+    if (shieldedInstanceConfig.enableSecureBoot != null) {
+      instanceTemplateMap.shielded_vm_config.enable_secure_boot = shieldedInstanceConfig.enableSecureBoot
     }
-    if (shieldedVmConfig.enableVtpm != null) {
-      instanceTemplateMap.shielded_vm_config.enable_vtpm = shieldedVmConfig.enableVtpm
+    if (shieldedInstanceConfig.enableVtpm != null) {
+      instanceTemplateMap.shielded_vm_config.enable_vtpm = shieldedInstanceConfig.enableVtpm
     }
-    if (shieldedVmConfig.enableIntegrityMonitoring != null) {
-      instanceTemplateMap.shielded_vm_config.enable_integrity_monitoring = shieldedVmConfig.enableIntegrityMonitoring
+    if (shieldedInstanceConfig.enableIntegrityMonitoring != null) {
+      instanceTemplateMap.shielded_vm_config.enable_integrity_monitoring = shieldedInstanceConfig.enableIntegrityMonitoring
     }
     return null
   }
@@ -681,7 +681,7 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     Map shieldedConfigMap =
       (instancePropertiesMap.shieldedInstanceConfig ?: instancePropertiesMap.shieldedVmConfig) as Map
     if (shieldedConfigMap) {
-      instanceProperties.shieldedInstanceConfig = convertMapToShieldedVmConfig(shieldedConfigMap)
+      instanceProperties.shieldedInstanceConfig = convertMapToShieldedInstanceConfig(shieldedConfigMap)
     }
     return instanceProperties
   }
@@ -718,14 +718,14 @@ class SaveSnapshotAtomicOperation implements AtomicOperation<Void> {
     return scheduling
   }
 
-  private ShieldedInstanceConfig convertMapToShieldedVmConfig(Map shieldedVmConfigMap) {
+  private ShieldedInstanceConfig convertMapToShieldedInstanceConfig(Map shieldedInstanceConfigMap) {
 
-    ShieldedInstanceConfig shieldedVmConfig = new ShieldedInstanceConfig()
+    ShieldedInstanceConfig shieldedInstanceConfig = new ShieldedInstanceConfig()
 
-    shieldedVmConfig.enableSecureBoot = shieldedVmConfigMap.enableSecureBoot as Boolean
-    shieldedVmConfig.enableVtpm = shieldedVmConfigMap.enableVtpm as Boolean
-    shieldedVmConfig.enableIntegrityMonitoring = shieldedVmConfigMap.enableIntegrityMonitoring as Boolean
-    return shieldedVmConfig
+    shieldedInstanceConfig.enableSecureBoot = shieldedInstanceConfigMap.enableSecureBoot as Boolean
+    shieldedInstanceConfig.enableVtpm = shieldedInstanceConfigMap.enableVtpm as Boolean
+    shieldedInstanceConfig.enableIntegrityMonitoring = shieldedInstanceConfigMap.enableIntegrityMonitoring as Boolean
+    return shieldedInstanceConfig
   }
 
   private NetworkInterface convertMapToNetworkInterface(Map networkInterfaceMap) {
