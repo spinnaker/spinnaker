@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { ReactInjector } from '../reactShims/react.injector';
+import { AngularServices } from '../angular/services';
 
 export interface ITrafficGuardHelperLinkProps {
   errorMessage: string;
@@ -12,7 +11,7 @@ export class TrafficGuardHelperLink extends React.Component<ITrafficGuardHelperL
     if (!errorMessage.includes('has traffic guards enabled')) {
       return null;
     }
-    const { $state, $stateParams } = ReactInjector;
+    const { $state, $stateParams } = AngularServices;
     const { project, application } = $stateParams;
     const nextState = `home.${project ? 'project' : 'applications'}.application.config`;
     const params = { project, application, section: 'traffic-guards' };

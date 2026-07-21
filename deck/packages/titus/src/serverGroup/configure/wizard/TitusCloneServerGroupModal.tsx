@@ -5,10 +5,10 @@ import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroup
 import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
 import {
   AccountTag,
+  AngularServices,
   DeployInitializer,
   FirewallLabels,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
   WizardModal,
@@ -102,19 +102,19 @@ export class TitusCloneServerGroupModal extends React.Component<
           provider: 'titus',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (ReactInjector.$state.includes('**.clusters.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters')) {
+        if (AngularServices.$state.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        ReactInjector.$state.go(transitionTo, newStateParams);
+        AngularServices.$state.go(transitionTo, newStateParams);
       }
     }
   };
@@ -154,7 +154,7 @@ export class TitusCloneServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(toSubmit);
     } else {
       this.state.taskMonitor.submit(() =>
-        ReactInjector.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
+        AngularServices.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
       );
     }
   };

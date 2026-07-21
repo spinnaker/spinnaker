@@ -1,10 +1,10 @@
 import React from 'react';
 
 import { GroupExecutionPopover } from './GroupExecutionPopover';
+import { AngularServices } from '../../../../angular/services';
 import type { Application } from '../../../../application/application.model';
 import { ExecutionBarLabel } from '../common/ExecutionBarLabel';
 import type { IExecution, IExecutionStageSummary } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
 
 import './groupStage.less';
 
@@ -18,7 +18,7 @@ export interface IGroupExecutionLabelProps {
 
 export class GroupExecutionLabel extends React.Component<IGroupExecutionLabelProps> {
   private subStageClicked = (groupStage: IExecutionStageSummary, stage: IExecutionStageSummary): void => {
-    const { executionService } = ReactInjector;
+    const { executionService } = AngularServices;
     executionService.toggleDetails(this.props.execution, groupStage.index, stage.index);
   };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ToggleButtonGroup, ToggleSize } from '@spinnaker/core';
-import { AwsReactInjector } from '../../../../reactShims';
+import { AwsServices } from '../../../../aws.services';
 
 export interface ICpuCreditsToggleProps {
   unlimitedCpuCredits?: boolean;
@@ -11,10 +11,10 @@ export interface ICpuCreditsToggleProps {
 
 export function CpuCreditsToggle(props: ICpuCreditsToggleProps) {
   const { selectedInstanceTypes, currentProfile } = props;
-  const isBurstingSupportedForAllTypes = AwsReactInjector.awsInstanceTypeService.isBurstingSupportedForAllTypes(
+  const isBurstingSupportedForAllTypes = AwsServices.awsInstanceTypeService.isBurstingSupportedForAllTypes(
     selectedInstanceTypes,
   );
-  const isAtleastOneTypeInProfile = AwsReactInjector.awsInstanceTypeService.getInstanceTypesInCategory(
+  const isAtleastOneTypeInProfile = AwsServices.awsInstanceTypeService.getInstanceTypesInCategory(
     selectedInstanceTypes,
     currentProfile,
   ).length

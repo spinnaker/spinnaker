@@ -16,10 +16,9 @@ import { module } from 'angular';
  * limitations under the License.
  */
 import React from 'react';
-import { react2angular } from 'react2angular';
 
+import { angularComponentFromReact } from '../../../angular/angularComponentFromReact';
 import type { IStage } from '../../../domain';
-import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
 
 export interface IStageNameProps {
   stages: IStage[];
@@ -40,7 +39,4 @@ export const StageName: React.SFC<IStageNameProps> = (props) => {
 
 export const STAGE_NAME = 'spinnaker.core.artifact.stageName.component';
 
-module(STAGE_NAME, []).component(
-  'stageName',
-  react2angular(withErrorBoundary(StageName, 'stageName'), ['stages', 'refId']),
-);
+module(STAGE_NAME, []).component('stageName', angularComponentFromReact(StageName, 'stageName', ['stages', 'refId']));

@@ -1,9 +1,9 @@
 import type { StateService } from '@uirouter/core';
 import { isDate, isObject, isUndefined } from 'lodash';
+import { AngularServices } from '../angular/services';
 
 import type { ITask } from '../domain';
 import { NameUtils } from '../naming';
-import { ReactInjector } from '../reactShims';
 import { Registry } from '../registry';
 
 // TODO: refactor to marker interface and have input types declare expected fields
@@ -349,7 +349,7 @@ export class UrlBuilder {
     const builder: IUrlBuilder = Registry.urlBuilder.getBuilder(input.type);
     let result: string;
     if (builder) {
-      result = builder.build(input, ReactInjector.$state);
+      result = builder.build(input, AngularServices.$state);
     } else {
       result = '/';
     }

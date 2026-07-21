@@ -2,11 +2,11 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { IClusterSubgroup } from '../cluster';
 import type { IInstanceCounts, IServerGroup } from '../domain';
 import type { ISortFilter } from '../filterModel';
-import { ReactInjector } from '../reactShims';
 import { ServerGroup } from '../serverGroup';
 
 interface IServerGroupManagerProps {
@@ -27,18 +27,18 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       serverGroupManager: manager,
       name: manager,
     };
-    return ReactInjector.$state.includes('**.serverGroupManager', params);
+    return AngularServices.$state.includes('**.serverGroupManager', params);
   };
 
   private handleClick = (e: React.MouseEvent<HTMLElement>): void => {
     const { manager, serverGroups } = this.props;
-    const nextState = ReactInjector.$state.current.name.endsWith('.clusters')
+    const nextState = AngularServices.$state.current.name.endsWith('.clusters')
       ? '.serverGroupManager'
       : '^.serverGroupManager';
 
     e.preventDefault();
     e.stopPropagation();
-    ReactInjector.$state.go(nextState, {
+    AngularServices.$state.go(nextState, {
       accountId: serverGroups[0].account,
       region: serverGroups[0].region,
       provider: serverGroups[0].cloudProvider,

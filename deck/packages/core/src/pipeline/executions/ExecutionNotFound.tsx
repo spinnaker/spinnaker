@@ -1,9 +1,9 @@
 import React from 'react';
+import { AngularServices } from '../../angular/services';
 
 import { NotFound } from '../../notfound/NotFound';
-import { ReactInjector } from '../../reactShims';
 
 export function ExecutionNotFound() {
-  const { params } = ReactInjector.$state;
+  const { params } = AngularServices.$state;
   return <NotFound type="Execution" entityId={params.executionId} />;
 }
