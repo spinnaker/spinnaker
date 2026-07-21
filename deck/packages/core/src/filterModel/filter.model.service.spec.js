@@ -1,7 +1,8 @@
 'use strict';
 import { FilterModelService } from './FilterModelService';
-import { REACT_MODULE, ReactInjector } from '../reactShims';
+import { REACT_MODULE } from '../reactShims';
 import { StateConfigProvider } from '../navigation';
+import { AngularServices } from '../angular/services';
 
 describe('Service: FilterModelService', function () {
   var filterModel;
@@ -473,7 +474,7 @@ describe('Service: FilterModelService', function () {
 
     describe('applyParamsToUrl', function () {
       it('should start a transition with params for all configured fields', function () {
-        const spy = spyOn(ReactInjector.$state, 'go');
+        const spy = spyOn(AngularServices.$state, 'go');
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string', param: 'q' },

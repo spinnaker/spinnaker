@@ -1,15 +1,14 @@
 import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT } from './ArtifactAccountSelector';
 import { ArtifactIcon } from './ArtifactIcon';
 import { EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactKindSelector';
 import { EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT } from './ExpectedArtifactSourceSelector';
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { IArtifact, IExpectedArtifact } from '../../domain';
 import { ExpectedArtifactService } from '../expectedArtifact.service';
 import { TetheredSelect } from '../../presentation';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IExpectedArtifactSelectorProps {
   expectedArtifacts: IExpectedArtifact[];
@@ -119,7 +118,7 @@ module(EXPECTED_ARTIFACT_SELECTOR_COMPONENT_REACT, [
   ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT,
 ]).component(
   'expectedArtifactSelectorReact',
-  react2angular(withErrorBoundary(ExpectedArtifactSelector, 'expectedArtifactSelectorReact'), [
+  angularComponentFromReact(ExpectedArtifactSelector, 'expectedArtifactSelectorReact', [
     'expectedArtifacts',
     'selected',
     'requestingNew',

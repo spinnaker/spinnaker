@@ -3,9 +3,9 @@ import * as React from 'react';
 import { ChangesModal } from './ChangesModal';
 import type { ICommit } from './CommitHistory';
 import type { IJarDiff } from './JarDiffs';
+import { AngularServices } from '../angular/services';
 import type { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from '../domain';
 import { LabeledValue, showModal, useData } from '../presentation';
-import { ReactInjector } from '../reactShims';
 
 export interface IViewChangesConfig {
   buildInfo?: IBuildDiffInfo;
@@ -27,7 +27,7 @@ export const ViewChangesLink = ({ changeConfig, linkText, nameItem, viewType }: 
   const fetchExecution = () => {
     const isExecution = changeConfigValue.executionType === 'pipeline';
     if (isExecution) {
-      return ReactInjector.executionService.getExecution(changeConfigValue.executionId);
+      return AngularServices.executionService.getExecution(changeConfigValue.executionId);
     }
     /** A noop promise so `useData` can be utilized */
     return (Promise.resolve({}) as unknown) as PromiseLike<IExecution>;

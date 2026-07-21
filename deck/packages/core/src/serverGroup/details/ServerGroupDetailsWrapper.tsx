@@ -3,10 +3,11 @@ import React from 'react';
 import type { Observable } from 'rxjs';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IServerGroup } from '../../domain';
-import { AngularJSAdapter, ReactInjector } from '../../reactShims';
+import { AngularJSAdapter } from '../../reactShims';
 
 export interface IServerGroupDetailsWrapperProps {
   app: Application;
@@ -69,7 +70,7 @@ export class ServerGroupDetailsWrapper extends React.Component<
   }
 
   private getServerGroupDetailsTemplate(): void {
-    const { provider } = ReactInjector.$stateParams;
+    const { provider } = AngularServices.$stateParams;
     $q.all([
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsActions'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsGetter'),

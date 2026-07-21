@@ -1,13 +1,12 @@
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
 
 import { TriggersWrapper } from './TriggersWrapper';
-import { withErrorBoundary } from '../../../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../../../angular/angularComponentFromReact';
 
 export const TRIGGERS = 'spinnaker.core.pipeline.config.trigger.triggersDirective';
 module(TRIGGERS, []).component(
   'triggers',
-  react2angular(withErrorBoundary(TriggersWrapper, 'triggers'), [
+  angularComponentFromReact(TriggersWrapper, 'triggers', [
     'application',
     'pipeline',
     'pipelineConfig',
