@@ -38,6 +38,13 @@ export class PipelineRegistry {
     );
   }
 
+  private clearStageConfigCache(): void {
+    const getStageConfig = this.getStageConfig as typeof this.getStageConfig & {
+      cache?: { clear?: () => void };
+    };
+    getStageConfig.cache?.clear?.();
+  }
+
   private normalizeStageTypes(): void {
     this.stageTypes
       .filter((stageType) => {
@@ -94,6 +101,7 @@ export class PipelineRegistry {
     }
     this.stageTypes.push(stageConfig);
     this.normalizeStageTypes();
+    this.clearStageConfigCache();
   }
 
   /**
@@ -332,11 +340,19 @@ export class PipelineRegistry {
         // More than one stage definition matched the stage's 'type' field.
         // Try to narrow it down by cloud provider.
         const provider = PipelineRegistry.resolveCloudProvider(stage);
-        const matchesThisCloudProvider = matches.find((stageType) => stageType.cloudProvider === provider);
-        const matchesAnyCloudProvider = matches.find((stageType) => !!stageType.cloudProvider);
+        const matchesThisCloudProvider = matches.find((stageType) =>
+          PipelineRegistry.providesForCloudProvider(stageType, provider),
+        );
+        const matchesAnyCloudProvider = matches.find(
+          (stageType) => !!stageType.cloudProvider || !!stageType.providesFor?.length,
+        );
         return matchesThisCloudProvider ?? matchesAnyCloudProvider ?? matches[0];
       }
     }
+  }
+
+  private static providesForCloudProvider(stage: IStageTypeConfig, provider: string): boolean {
+    return stage.cloudProvider === provider || stage.providesFor?.includes(provider) === true;
   }
 
   // IStage doesn't have a cloudProvider field yet many stage configs are setting it.

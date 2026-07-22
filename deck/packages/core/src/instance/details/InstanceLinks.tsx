@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import { $interpolate } from 'ngimport';
 import React from 'react';
 
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { SETTINGS } from '../../config/settings';
 import type { IInstance } from '../../domain';
@@ -46,7 +46,7 @@ export const InstanceLinks = ({ address, application, instance, moniker, environ
       let url = link.path;
       // handle interpolated variables
       if (url.includes('{{')) {
-        url = $interpolate(url)(
+        url = AngularServices.$interpolate(url)(
           Object.assign({}, instance, moniker, {
             ipAddress: address,
             environment: environment,

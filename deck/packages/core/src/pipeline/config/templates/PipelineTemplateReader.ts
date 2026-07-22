@@ -1,5 +1,4 @@
 import { flatten } from 'lodash';
-import { $q } from 'ngimport';
 
 import { REST } from '../../../api/ApiService';
 import type { IPipelineTemplateConfigV2 } from '../../../domain';
@@ -109,8 +108,7 @@ export class PipelineTemplateReader {
   };
 
   public static getPipelineTemplatesByScopes(scopes: string[]): PromiseLike<IPipelineTemplate[]> {
-    return $q
-      .all(scopes.map(this.getPipelineTemplatesByScope))
+    return Promise.all(scopes.map(this.getPipelineTemplatesByScope))
       .then((templates) => flatten(templates))
       .then((templates) => {
         templates.forEach((template) => (template.selfLink = `spinnaker://${template.id}`));

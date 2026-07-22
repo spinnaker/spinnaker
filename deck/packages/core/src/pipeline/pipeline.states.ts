@@ -1,16 +1,31 @@
 import type { Transition } from '@uirouter/core';
+import { UIView } from '@uirouter/react';
 import { module } from 'angular';
+import React from 'react';
 
+import { AngularServices } from '../angular/services';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
+import { PipelineConfigPage } from './config/PipelineConfigPage';
 import { SingleExecutionDetails } from './details/SingleExecutionDetails';
 import { ExecutionNotFound } from './executions/ExecutionNotFound';
 import { Executions } from './executions/Executions';
 import { filterModelConfig } from './filter/ExecutionFilterModel';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import type { ExecutionService } from './service/execution.service';
 
 export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';
+
+const PipelineInsightView = ({ className }: { className?: string }) =>
+  React.createElement(
+    'div',
+    { className: ['flex-fill', className].filter(Boolean).join(' ') },
+    React.createElement(
+      'div',
+      { className: 'flex-container-h flex-grow' },
+      React.createElement(UIView, { name: 'pipelines', className: 'flex-fill' }),
+    ),
+  );
+
 module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
   'applicationStateProvider',
   'stateConfigProvider',
@@ -20,9 +35,8 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
       url: '/configure/:pipelineId?executionId&new',
       views: {
         pipelines: {
-          templateUrl: require('../pipeline/config/pipelineConfig.html'),
-          controller: 'PipelineConfigCtrl',
-          controllerAs: 'vm',
+          component: PipelineConfigPage,
+          $type: 'react',
         },
       },
       data: {
@@ -88,7 +102,8 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
       redirectTo: (trans: Transition) => `${trans.to().name}.executions`,
       views: {
         insight: {
-          template: '<div ui-view="pipelines" sticky-headers class="flex-fill"></div>',
+          component: PipelineInsightView,
+          $type: 'react',
         },
       },
       children: [executions, pipelineConfig, singleExecutionDetails],
@@ -104,7 +119,7 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
       },
       redirectTo: (transition) => {
         const { executionId, refId, stage, subStage, step, details, stageId } = transition.params();
-        const executionService: ExecutionService = transition.injector().get('executionService');
+        const executionService = AngularServices.executionService;
 
         if (!executionId) {
           return undefined;

@@ -1,4 +1,6 @@
 import { mock } from 'angular';
+import * as ngimport from 'ngimport';
+
 import { RetryService } from './retry.service';
 
 describe('Service: Retry', function () {
@@ -78,6 +80,32 @@ describe('Service: Retry', function () {
         expect(callCount).toEqual(2);
       });
       $timeout.flush();
+    });
+
+    it('should use direct fallbacks when Angular services are unavailable', async () => {
+      const originalInjector = ngimport.$injector;
+      const originalQ = ngimport.$q;
+      const originalTimeout = ngimport.$timeout;
+      (ngimport as any).$injector = undefined;
+      (ngimport as any).$q = undefined;
+      (ngimport as any).$timeout = undefined;
+      let callCount = 0;
+
+      try {
+        const result = await RetryService.buildRetrySequence<boolean>(
+          () => ++callCount > 1,
+          (value) => value,
+          1,
+          0,
+        );
+
+        expect(result).toBe(true);
+        expect(callCount).toBe(2);
+      } finally {
+        (ngimport as any).$injector = originalInjector;
+        (ngimport as any).$q = originalQ;
+        (ngimport as any).$timeout = originalTimeout;
+      }
     });
   });
 });

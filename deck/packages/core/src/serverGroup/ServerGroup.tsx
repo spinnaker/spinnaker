@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import { has } from 'lodash';
-import { $interpolate } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
@@ -87,7 +86,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
         tag: dockerConfig.tag,
         image: dockerConfig.image,
         href:
-          $interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
+          AngularServices.$interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
           'images/' +
           encodeURIComponent(dockerConfig.image) +
           '/' +

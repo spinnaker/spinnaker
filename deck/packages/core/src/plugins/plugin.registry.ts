@@ -1,9 +1,12 @@
-import { $http } from 'ngimport';
-
 import { REST } from '../api/ApiService';
 import { SETTINGS } from '../config/settings';
 import type { IDeckPlugin } from './deck.plugin';
 import { registerPluginExtensions } from './deck.plugin';
+
+export interface IPluginModule {
+  plugin: IDeckPlugin;
+  [key: string]: unknown;
+}
 
 /** The shape of plugin metadata objects in plugin-manifest.json */
 export interface IPluginMetaData {
@@ -14,7 +17,7 @@ export interface IPluginMetaData {
   url?: string;
   /** @deprecated if using a plugin-manifest.json baked into a deck instance, use `url` instead */
   devUrl?: string;
-  module?: any;
+  module?: IPluginModule;
 }
 
 type ISource = 'gate' | 'deck';
@@ -24,7 +27,32 @@ export interface INormalizedPluginMetaData {
   source: ISource;
   version: string;
   url?: string;
-  module?: any;
+  module?: IPluginModule;
+}
+
+function getSafePluginId(pluginMetaData: IPluginMetaData): string {
+  const id = pluginMetaData.id ?? pluginMetaData.name;
+  if (typeof id !== 'string') {
+    return '<unknown>';
+  }
+  const safeId = Array.from(id)
+    .filter((character) => character.charCodeAt(0) >= 32 && character.charCodeAt(0) !== 127)
+    .join('')
+    .slice(0, 128);
+  return safeId || '<unknown>';
+}
+
+function getSafePluginUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url, window.location.origin);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      return `<${parsedUrl.protocol.replace(':', '')} plugin URL>`;
+    }
+    const isRelative = !/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(url);
+    return isRelative ? parsedUrl.pathname : `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
+  } catch {
+    return '<invalid plugin URL>';
+  }
 }
 
 export class PluginRegistry {
@@ -41,12 +69,14 @@ export class PluginRegistry {
     // Handle duplicate plugin ids
     if (duplicateMetaData) {
       if (metaData.source === duplicateMetaData.source) {
-        console.error(`Attempted to load two copies of the same plugin from ${source}`, metaData, duplicateMetaData);
+        console.error(`Attempted to load two copies of the same plugin from ${source}`);
         throw new Error(`Attempted to load two copies of the same plugin from ${source}`);
       } else {
         // If gate and deck both register the same plugin id, deck wins
         // eslint-disable-next-line no-console
-        console.log(`Attempted to load plugin ${pluginMetaData.id} from gate and deck.   Using plugin from deck.`);
+        console.log(
+          `Attempted to load plugin ${getSafePluginId(pluginMetaData)} from gate and deck.   Using plugin from deck.`,
+        );
         if (source === 'deck') {
           this.pluginManifests = this.pluginManifests.filter((x) => x !== duplicateMetaData);
         } else if (source === 'gate') {
@@ -62,13 +92,13 @@ export class PluginRegistry {
 
   // Temporary backwards compat, remove in 2020 after armory has migrated
   normalize(source: ISource, pluginMetaData: IPluginMetaData): INormalizedPluginMetaData {
-    const { devUrl, url, id, name, ...rest } = pluginMetaData;
+    const { devUrl, url, id, name, version } = pluginMetaData;
 
     return {
+      version,
       id: id ?? name,
       url: url ?? devUrl,
       source,
-      ...rest,
     };
   }
 
@@ -87,11 +117,11 @@ export class PluginRegistry {
   public loadPluginManifestFromDeck() {
     const source = 'deck';
     const uri = '/plugin-manifest.json';
-    const loadPromise = Promise.resolve($http.get<IPluginMetaData[]>(uri))
-      .then((response) => response.data)
-      .catch((error: any) => {
+    const loadPromise = fetch(uri, { credentials: 'include' })
+      .then((response) => (response.ok ? response.json() : []))
+      .catch((): IPluginMetaData[] => {
         console.error(`Failed to load ${uri} from ${source}`);
-        throw error;
+        return [];
       });
 
     return this.loadPluginManifest(source, uri, loadPromise);
@@ -103,14 +133,10 @@ export class PluginRegistry {
     const uri = '/plugins/deck/plugin-manifest.json';
     const loadPromise: PromiseLike<IPluginMetaData[]> = REST(uri)
       .get()
-      .catch((error: any) => {
+      .catch((): IPluginMetaData[] => {
         console.error(`Failed to load ${uri} from ${source}`);
-        // If we cannot hit the Gate URL, ignore it
-        if (error.data.status === 404) {
-          console.error(error);
-          return Promise.resolve([]);
-        }
-        throw error;
+        // If the Gate plugin manifest cannot be loaded, ignore and continue
+        return [];
       });
 
     return this.loadPluginManifest(source, uri, loadPromise);
@@ -126,46 +152,55 @@ export class PluginRegistry {
     source: ISource,
     location: string,
     pluginsMetaDataPromise: PromiseLike<IPluginMetaData[]>,
-  ): Promise<IPluginMetaData[]> {
+  ): Promise<Array<INormalizedPluginMetaData | undefined>> {
     try {
       const plugins = await pluginsMetaDataPromise;
-      return plugins.map((pluginMetaData) => this.registerPluginMetaData(source, pluginMetaData));
-    } catch (error) {
+      return (plugins || []).map((pluginMetaData) => this.registerPluginMetaData(source, pluginMetaData));
+    } catch {
       console.error(`Error loading plugin manifest from ${location}`);
-      throw error;
+      return [];
     }
   }
 
-  public loadPlugins(): Promise<any[]> {
-    return Promise.all(this.pluginManifests.map((plugin) => this.load(plugin)));
+  public loadPlugins(): Promise<Array<IPluginModule | undefined>> {
+    return Promise.all(
+      this.pluginManifests.map((plugin) =>
+        Promise.resolve()
+          .then(() => this.load(plugin))
+          .catch(() => {
+            console.error(
+              `Failed to load plugin ${getSafePluginId(plugin)} code from ${getSafePluginUrl(
+                this.getPluginUrl(plugin),
+              )}`,
+            );
+            return undefined;
+          }),
+      ),
+    );
   }
 
-  private async load(pluginMetaData: IPluginMetaData) {
+  private async load(pluginMetaData: INormalizedPluginMetaData): Promise<IPluginModule> {
     this.validateMetaData(pluginMetaData);
 
+    const pluginUrl = this.getPluginUrl(pluginMetaData);
+    const module = await this.loadModuleFromUrl(pluginUrl);
+    if (!module || !module.plugin) {
+      throw new Error(`Successfully loaded plugin module, but it doesn't export an object called 'plugin'`);
+    }
+
+    await registerPluginExtensions(module.plugin);
+    pluginMetaData.module = module;
+    return module;
+  }
+
+  private getPluginUrl(pluginMetaData: IPluginMetaData): string {
     // Use `url` from the manifest, if it exists. This will be the case during local development.
     const { devUrl, url } = pluginMetaData;
     const gateUrl = `${SETTINGS.gateUrl}/plugins/deck/${pluginMetaData.id}/${pluginMetaData.version}/index.js`;
-    const pluginUrl = url ?? devUrl ?? gateUrl;
-
-    try {
-      const module = await this.loadModuleFromUrl(pluginUrl);
-      Object.assign(pluginMetaData, { module });
-
-      if (!module || !module.plugin) {
-        throw new Error(
-          `Successfully loaded plugin module from ${pluginUrl}, but it doesn't export an object called 'plugin'`,
-        );
-      }
-
-      return registerPluginExtensions(module.plugin as IDeckPlugin).then(() => module);
-    } catch (error) {
-      console.error(`Failed to load plugin code from ${pluginUrl}`);
-      throw error;
-    }
+    return url ?? devUrl ?? gateUrl;
   }
 
-  private loadModuleFromUrl(url: string) {
+  private loadModuleFromUrl(url: string): Promise<IPluginModule> {
     // This inline comment is used by webpack to emit a native import() (instead of doing a webpack import)
     // See: https://webpack.js.org/api/module-methods/
     return import(/* webpackIgnore: true */ /* @vite-ignore */ url);

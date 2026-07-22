@@ -10,14 +10,15 @@ import { EcsTargetGroupDetails } from './loadBalancer/details/targetGroupDetails
 import { EcsLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
 import './loadBalancer/targetGroup.states';
 import ecsLogo from './logo/ecs.logo.svg';
+import { registerEcsCloneServerGroupStage } from './pipeline/stages/cloneServerGroup/ecsCloneServerGroupStage';
 import { registerEcsDestroyServerGroupStage } from './pipeline/stages/destroyAsg/ecsDestroyAsgStage';
-import './pipeline/stages/disableAsg/ecsDisableAsgStage';
-import './pipeline/stages/disableCluster/ecsDisableClusterStage';
-import './pipeline/stages/enableAsg/ecsEnableAsgStage';
-import './pipeline/stages/findImageFromTags/ecsFindImageFromTagStage';
+import { registerEcsDisableServerGroupStage } from './pipeline/stages/disableAsg/ecsDisableAsgStage';
+import { registerEcsDisableClusterStage } from './pipeline/stages/disableCluster/ecsDisableClusterStage';
+import { registerEcsEnableServerGroupStage } from './pipeline/stages/enableAsg/ecsEnableAsgStage';
+import { registerEcsFindImageFromTagsStage } from './pipeline/stages/findImageFromTags/ecsFindImageFromTagStage';
 import { registerEcsResizeServerGroupStage } from './pipeline/stages/resizeAsg/ecsResizeAsgStage';
-import './pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage';
-import './pipeline/stages/shrinkCluster/ecsShrinkClusterStage';
+import { registerEcsScaleDownClusterStage } from './pipeline/stages/scaleDownCluster/ecsScaleDownClusterStage';
+import { registerEcsShrinkClusterStage } from './pipeline/stages/shrinkCluster/ecsShrinkClusterStage';
 import { EcsSecurityGroupDetails } from './securityGroup/details/EcsSecurityGroupDetails';
 import { EcsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { EcsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
@@ -83,8 +84,15 @@ export function registerEcsProvider(): void {
 }
 
 export function registerEcsPipelineStages(): void {
+  registerEcsCloneServerGroupStage();
   registerEcsDestroyServerGroupStage();
+  registerEcsDisableServerGroupStage();
+  registerEcsDisableClusterStage();
+  registerEcsEnableServerGroupStage();
+  registerEcsFindImageFromTagsStage();
   registerEcsResizeServerGroupStage();
+  registerEcsScaleDownClusterStage();
+  registerEcsShrinkClusterStage();
 }
 
 registerEcsProvider();

@@ -1,8 +1,8 @@
 import type { IDeferred } from 'angular';
 import type { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { $q, $timeout } from 'ngimport';
 import { Subject } from 'rxjs';
 
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import type { ITask } from '../../domain';
 
@@ -20,6 +20,10 @@ export interface ITaskMonitorConfig {
 
 export interface IModalServiceInstanceEmulation<T = any> extends IModalServiceInstance {
   deferred: IDeferred<T>;
+}
+
+function createDeferred<T = any>(): IDeferred<T> {
+  return AngularServices.$q.defer<T>();
 }
 
 export class TaskMonitor {
@@ -41,7 +45,7 @@ export class TaskMonitor {
     onClose: (result: T) => void,
     onDismiss?: (result: T) => void,
   ): IModalServiceInstanceEmulation {
-    const deferred = $q.defer();
+    const deferred = createDeferred<T>();
     // handle when modal was closed
     deferred.promise.catch(() => {});
     return {
@@ -77,7 +81,7 @@ export class TaskMonitor {
 
   public onModalClose(): void {
     if (this.task && this.task.poller) {
-      $timeout.cancel(this.task.poller);
+      AngularServices.$timeout.cancel(this.task.poller);
     }
   }
 
