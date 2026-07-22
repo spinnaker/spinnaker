@@ -3,9 +3,11 @@ import React from 'react';
 import { CollapsibleSection, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 import { ScheduledAction } from '../scheduledAction/ScheduledAction';
+import { EditScheduledActionsModal } from '../scheduledActions';
 
 export interface IScheduledActionsDetailsSectionState {
   scheduledActionsDisabled: boolean;
@@ -38,6 +40,11 @@ export class ScheduledActionsDetailsSection extends React.Component<
     this.setState(this.getState(nextProps));
   }
 
+  private editScheduledActions = (): void => {
+    const { app: application, serverGroup } = this.props;
+    EditScheduledActionsModal.show({ application, serverGroup });
+  };
+
   public render(): JSX.Element {
     const { serverGroup } = this.props;
     const { scheduledActionsDisabled } = this.state;
@@ -69,6 +76,11 @@ export class ScheduledActionsDetailsSection extends React.Component<
           </p>
         )}
         {serverGroup.scheduledActions.length === 0 && <p>No Scheduled Actions are configured for this server group.</p>}
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
+          <a className="clickable" onClick={this.editScheduledActions}>
+            Edit Scheduled Actions
+          </a>
+        )}
       </CollapsibleSection>
     );
   }
