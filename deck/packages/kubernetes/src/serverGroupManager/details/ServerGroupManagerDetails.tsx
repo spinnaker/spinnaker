@@ -27,7 +27,7 @@ export function ServerGroupManagerDetails(props: IKubernetesServerGroupManagerDe
   };
   const [serverGroupManager, manifest, loading] = useKubernetesServerGroupManagerDetails(props, autoClose);
 
-  if (loading) return <Details loading={loading} />;
+  if (loading || !serverGroupManager || !manifest) return <Details loading={true} />;
 
   return (
     <Details loading={loading}>

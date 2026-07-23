@@ -1,15 +1,17 @@
 import { chain, compact, forOwn, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { DateTime, Duration } from 'luxon';
-import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import type { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from '../../domain';
 import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import { Registry } from '../../registry';
 import { ExecutionState } from '../../state';
+
+const debugLog = (...args: any[]) => AngularServices.$log.debug(...args);
 
 const boundaries = [
   {
@@ -378,11 +380,11 @@ export class ExecutionFilterService {
       const newExecution = newGroup.executions.find((g) => g.id === execution.id);
       if (!newExecution) {
         changeDetected = true;
-        $log.debug('execution no longer found, removing:', execution.id);
+        debugLog('execution no longer found, removing:', execution.id);
       } else {
         if (execution.stringVal !== newExecution.stringVal) {
           changeDetected = true;
-          $log.debug('change detected, updating execution:', execution.id);
+          debugLog('change detected, updating execution:', execution.id);
         }
       }
     });
@@ -392,7 +394,7 @@ export class ExecutionFilterService {
     newGroup.executions.forEach((execution) => {
       if (!existingExecutionIds.has(execution.id)) {
         changeDetected = true;
-        $log.debug('new execution found, adding', execution.id);
+        debugLog('new execution found, adding', execution.id);
         oldGroup.executions.push(execution);
         existingExecutionIds.add(execution.id);
       }

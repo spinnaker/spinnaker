@@ -22,7 +22,6 @@ const SHARED_PACKAGE_ALIASES = [
   '@uirouter/angularjs',
   '@uirouter/core',
   '@uirouter/react',
-  '@uirouter/react-hybrid',
   'angular',
   'react',
   'react-dom',

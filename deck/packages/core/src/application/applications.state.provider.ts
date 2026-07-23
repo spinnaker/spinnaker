@@ -1,34 +1,28 @@
-import { module } from 'angular';
-
-import type { ApplicationStateProvider } from './application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from './application.state.provider';
+import { ApplicationStateProvider } from './application.state.provider';
+import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { Applications } from './search/Applications';
 
 export const APPLICATIONS_STATE_PROVIDER = 'spinnaker.core.application.applications.state';
-module(APPLICATIONS_STATE_PROVIDER, [STATE_CONFIG_PROVIDER, APPLICATION_STATE_PROVIDER]).config([
-  'stateConfigProvider',
-  'applicationStateProvider',
-  (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
-    const applicationsState: INestedState = {
-      name: 'applications',
-      url: '/applications?create',
-      views: {
-        'main@': {
-          component: Applications,
-          $type: 'react',
-        },
+registerRootState((stateConfigProvider: StateConfigProvider) => {
+  const applicationStateProvider = new ApplicationStateProvider(stateConfigProvider);
+  const applicationsState: INestedState = {
+    name: 'applications',
+    url: '/applications?create',
+    views: {
+      'main@': {
+        component: Applications,
+        $type: 'react',
       },
-      data: {
-        pageTitleMain: {
-          label: 'Applications',
-        },
+    },
+    data: {
+      pageTitleMain: {
+        label: 'Applications',
       },
-      children: [],
-    };
+    },
+    children: [],
+  };
 
-    applicationStateProvider.addParentState(applicationsState, 'main@');
-    stateConfigProvider.addToRootState(applicationsState);
-  },
-]);
+  applicationStateProvider.addParentState(applicationsState, 'main@');
+  stateConfigProvider.addToRootState(applicationsState);
+});

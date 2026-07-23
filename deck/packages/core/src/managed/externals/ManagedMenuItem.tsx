@@ -1,4 +1,3 @@
-import { $q } from 'ngimport';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
 
@@ -23,7 +22,7 @@ export const ManagedMenuItem = ({ resource, application, onClick, children }: IM
   const appIsPaused = application.isManagementPaused;
   const showInterstitial = resource.isManaged && !resourceIsPaused && !appIsPaused;
   const interstitial: () => PromiseLike<boolean> = () =>
-    showInterstitial ? confirmNotManaged(resource, application) : $q.when(true);
+    showInterstitial ? confirmNotManaged(resource, application) : Promise.resolve(true);
   const handleClick: () => void = () =>
     interstitial().then((isNotManaged) => {
       isNotManaged && onClick?.();

@@ -37,7 +37,42 @@ describe('Application Model', function () {
     }),
   );
 
-  function configureApplication(serverGroups: any[], loadBalancers: any[], securityGroupsByApplicationName: any[]) {
+  async function digestPromises<T>(promise: PromiseLike<T>): Promise<T> {
+    let isResolved = false;
+    let result: T;
+    let error: any;
+
+    promise.then(
+      (value) => {
+        isResolved = true;
+        result = value;
+      },
+      (reason) => {
+        isResolved = true;
+        error = reason;
+      },
+    );
+
+    for (let i = 0; i < 10 && !isResolved; i++) {
+      $scope.$digest();
+      await Promise.resolve();
+    }
+
+    if (!isResolved) {
+      result = await promise;
+      $scope.$digest();
+    }
+    if (error) {
+      throw error;
+    }
+    return result;
+  }
+
+  async function configureApplication(
+    serverGroups: any[],
+    loadBalancers: any[],
+    securityGroupsByApplicationName: any[],
+  ) {
     spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue(
       $q.when(securityGroupsByApplicationName),
     );
@@ -54,8 +89,7 @@ describe('Application Model', function () {
       'app',
       ...ApplicationDataSourceRegistry.getDataSources(),
     );
-    application.refresh();
-    $scope.$digest();
+    await digestPromises(application.refresh());
   }
 
   describe('lazy dataSources', function () {
@@ -70,12 +104,12 @@ describe('Application Model', function () {
     });
 
     describe('activate', function () {
-      it('refreshes section if not already active and not already loaded', function () {
-        configureApplication([], [], []);
+      it('refreshes section if not already active and not already loaded', async function () {
+        await configureApplication([], [], []);
         spyOn(application.getDataSource('lazySource'), 'refresh').and.callThrough();
 
         application.getDataSource('lazySource').activate();
-        $scope.$digest();
+        await digestPromises(application.getDataSource('lazySource').ready());
         expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(1);
         expect(application.getDataSource('lazySource').active).toBe(true);
         expect(application.getDataSource('lazySource').loaded).toBe(true);
@@ -90,31 +124,31 @@ describe('Application Model', function () {
         application.getDataSource('lazySource').deactivate();
         application.getDataSource('lazySource').loaded = false;
         application.getDataSource('lazySource').activate();
+        await digestPromises(application.getDataSource('lazySource').ready());
         expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(2);
       });
     });
 
     describe('refresh behavior', function () {
-      it('clears data on inactive lazy dataSources and sets loaded flag to false', function () {
-        configureApplication([], [], []);
+      it('clears data on inactive lazy dataSources and sets loaded flag to false', async function () {
+        await configureApplication([], [], []);
 
         expect(application.getDataSource('lazySource').active).toBeFalsy();
 
         application.getDataSource('lazySource').activate();
-        $scope.$digest();
+        await digestPromises(application.getDataSource('lazySource').ready());
         expect(application.getDataSource('lazySource').active).toBe(true);
         expect(application.getDataSource('lazySource').loaded).toBe(true);
         expect(application.getDataSource('lazySource').data.length).toBe(1);
 
         application.getDataSource('lazySource').deactivate();
-        application.refresh();
-        $scope.$digest();
+        await digestPromises(application.refresh());
 
         expect(application.getDataSource('lazySource').data).toEqual([]);
         expect(application.getDataSource('lazySource').loaded).toBe(false);
       });
 
-      it('adds entityTags that contain alerts if found on data', function () {
+      it('adds entityTags that contain alerts if found on data', async function () {
         const alertTag: IEntityTag = { name: 'spinnaker_ui_alert:alert1', value: { message: 'an alert' } };
         const tags: IEntityTags = {
           id: 'zzzz',
@@ -166,25 +200,25 @@ describe('Application Model', function () {
             type: 'aws',
           },
         ];
-        configureApplication(serverGroups, [], []);
+        await configureApplication(serverGroups, [], []);
         expect(application.getDataSource('serverGroups').alerts).toEqual([tags]);
       });
     });
 
     describe('application ready', function () {
-      it('ignores lazy dataSources when determining if application is ready', function () {
+      it('ignores lazy dataSources when determining if application is ready', async function () {
         let isReady = false;
-        configureApplication([], [], []);
+        await configureApplication([], [], []);
 
         application.ready().then(() => (isReady = true));
-        $scope.$digest();
+        await digestPromises(application.ready());
         expect(isReady).toBe(true);
       });
     });
   });
 
   describe('setting default credentials and regions', function () {
-    it('sets default credentials and region from server group when only one account/region found', function () {
+    it('sets default credentials and region from server group when only one account/region found', async function () {
       const serverGroups: IServerGroup[] = [
         {
           name: 'deck-test-v001',
@@ -200,36 +234,36 @@ describe('Application Model', function () {
       const loadBalancers: ILoadBalancer[] = [];
       const securityGroupsByApplicationName: any[] = [];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBe('test');
       expect(application.defaultRegions.aws).toBe('us-west-2');
     });
 
-    it('sets default credentials and region from load balancer when only one account/region found', function () {
+    it('sets default credentials and region from load balancer when only one account/region found', async function () {
       const serverGroups: IServerGroup[] = [];
       const loadBalancers: ILoadBalancer[] = [
         { name: 'deck-frontend', cloudProvider: 'gce', vpcId: 'vpc0', region: 'us-central-1', account: 'prod' },
       ];
       const securityGroupsByApplicationName: any[] = [];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.gce).toBe('prod');
       expect(application.defaultRegions.gce).toBe('us-central-1');
     });
 
-    it('sets default credentials and region from firewall', function () {
+    it('sets default credentials and region from firewall', async function () {
       const serverGroups: any[] = [];
       const loadBalancers: ILoadBalancer[] = [];
       const securityGroupsByApplicationName: any[] = [
         { name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7' },
       ];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.cf).toBe('test');
       expect(application.defaultRegions.cf).toBe('us-south-7');
     });
 
-    it('does not set defaults when multiple values found for the same provider', function () {
+    it('does not set defaults when multiple values found for the same provider', async function () {
       const serverGroups: IServerGroup[] = [];
       const loadBalancers: ILoadBalancer[] = [
         { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-west-1', account: 'prod' },
@@ -238,12 +272,12 @@ describe('Application Model', function () {
         { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' },
       ];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBeUndefined();
       expect(application.defaultRegions.aws).toBeUndefined();
     });
 
-    it('sets default region or default credentials if possible', function () {
+    it('sets default region or default credentials if possible', async function () {
       const serverGroups: IServerGroup[] = [];
       const loadBalancers: ILoadBalancer[] = [
         { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-east-1', account: 'prod' },
@@ -252,12 +286,12 @@ describe('Application Model', function () {
         { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1' },
       ];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBeUndefined();
       expect(application.defaultRegions.aws).toBe('us-east-1');
     });
 
-    it('sets default credentials, even if region cannot be set', function () {
+    it('sets default credentials, even if region cannot be set', async function () {
       const serverGroups: IServerGroup[] = [];
       const loadBalancers: ILoadBalancer[] = [
         { name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpc0', region: 'us-east-1', account: 'test' },
@@ -266,12 +300,12 @@ describe('Application Model', function () {
         { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1' },
       ];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBe('test');
       expect(application.defaultRegions.aws).toBeUndefined();
     });
 
-    it('should set defaults for multiple providers', function () {
+    it('should set defaults for multiple providers', async function () {
       const serverGroups: any[] = [
         {
           name: 'deck-test-v001',
@@ -303,7 +337,7 @@ describe('Application Model', function () {
         { name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-2' },
       ];
 
-      configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
+      await configureApplication(serverGroups, loadBalancers, securityGroupsByApplicationName);
       expect(application.defaultCredentials.aws).toBe('test');
       expect(application.defaultRegions.aws).toBe('us-west-2');
       expect(application.defaultCredentials.gce).toBe('gce-test');

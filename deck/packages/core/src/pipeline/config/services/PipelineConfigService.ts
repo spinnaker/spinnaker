@@ -1,5 +1,4 @@
 import { cloneDeep, sortBy, uniq } from 'lodash';
-import { $q } from 'ngimport';
 
 import { REST } from '../../../api/ApiService';
 import { AuthenticationService } from '../../../authentication/AuthenticationService';
@@ -8,6 +7,14 @@ import type { IPipeline } from '../../../domain/IPipeline';
 import type { IStage } from '../../../domain/IStage';
 
 import { PipelineTemplateV2Service } from '../templates/v2/pipelineTemplateV2.service';
+
+function allPromises<T>(promises: Array<PromiseLike<T>>): PromiseLike<T[]> {
+  return Promise.all(promises);
+}
+
+function resolvePromise<T>(value: T): PromiseLike<T> {
+  return Promise.resolve(value);
+}
 
 export interface ITriggerPipelineResponse {
   eventId: string;
@@ -190,9 +197,9 @@ export class PipelineConfigService {
         }
       });
       if (toReindex.length) {
-        return $q.all(toReindex).then(() => sorted);
+        return allPromises(toReindex).then(() => sorted);
       }
     }
-    return $q.resolve(sorted);
+    return resolvePromise(sorted);
   }
 }

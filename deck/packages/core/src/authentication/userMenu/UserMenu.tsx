@@ -14,7 +14,7 @@ export const UserMenu = () => {
   const canMintApiTokens = authenticatedUser.canMintApiTokens ?? false;
   const isAdmin = authenticatedUser.isAdmin ?? false;
 
-  if (!SETTINGS.authEnabled) {
+  if (!SETTINGS.authEnabled || !showLogOutDropdown) {
     return null;
   }
 

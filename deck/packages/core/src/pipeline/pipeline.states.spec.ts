@@ -1,0 +1,117 @@
+import type { Transition } from '@uirouter/core';
+import { UIRouterReact, UIView } from '@uirouter/react';
+import { shallow } from 'enzyme';
+import React from 'react';
+
+import { AngularServices } from '../angular/services';
+import { setDirectRouter } from '../navigation/directRouter';
+import { configureRouter } from '../navigation/router';
+
+import './pipeline.states';
+
+describe('pipeline states', () => {
+  const routers: UIRouterReact[] = [];
+
+  function createRouter(): UIRouterReact {
+    const router = configureRouter();
+    routers.push(router);
+    return router;
+  }
+
+  afterEach(() => {
+    routers.splice(0).forEach((router) => router.dispose());
+    setDirectRouter(null);
+  });
+
+  it('registers the pipelines parent view with a direct React component', () => {
+    const router = createRouter();
+    const pipelinesState = router.stateRegistry.get('home.applications.application.pipelines');
+
+    expect(pipelinesState.views.insight.component).toBeDefined();
+    expect(pipelinesState.views.insight.template).toBeUndefined();
+  });
+
+  it('preserves the application secondary panel wrapper for direct React pipeline routes', () => {
+    const router = createRouter();
+    const pipelinesState = router.stateRegistry.get('home.applications.application.pipelines');
+    const PipelineInsightView = pipelinesState.views.insight.component;
+
+    const wrapper = shallow(React.createElement(PipelineInsightView, { className: 'secondary-panel' }));
+
+    expect(wrapper.hasClass('secondary-panel')).toBe(true);
+    expect(wrapper.find(UIView).prop('name')).toBe('pipelines');
+    expect(wrapper.find(UIView).prop('className')).toBe('flex-fill');
+  });
+
+  describe('executionLookup', () => {
+    const params = {
+      application: 'ignored-application',
+      executionId: 'execution-id',
+      refId: 'ref-id',
+      stage: '2',
+      subStage: '3',
+      step: '4',
+      details: 'details',
+      stageId: 'stage-id',
+    };
+
+    function getRedirectTo() {
+      const router = createRouter();
+      const executionLookup = router.stateRegistry.get('home.executionLookup');
+      return executionLookup.redirectTo;
+    }
+
+    function createTransition(transitionParams: Record<string, string | undefined>, target: jasmine.Spy): Transition {
+      return ({
+        params: () => transitionParams,
+        router: { stateService: { target } },
+      } as unknown) as Transition;
+    }
+
+    it('resolves an execution permalink without a transition injector and preserves all target parameters', async () => {
+      const execution = { application: 'resolved-application', id: params.executionId };
+      const getExecution = jasmine.createSpy('getExecution').and.resolveTo(execution);
+      spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({ getExecution } as any);
+      const targetResult = { redirected: true };
+      const target = jasmine.createSpy('target').and.returnValue(targetResult);
+
+      const result = await getRedirectTo()(createTransition(params, target));
+
+      expect(getExecution).toHaveBeenCalledOnceWith(params.executionId);
+      expect(target).toHaveBeenCalledOnceWith('home.applications.application.pipelines.executionDetails.execution', {
+        application: execution.application,
+        executionId: execution.id,
+        refId: params.refId,
+        stage: params.stage,
+        subStage: params.subStage,
+        step: params.step,
+        details: params.details,
+        stageId: params.stageId,
+      });
+      expect(result).toBe(targetResult);
+    });
+
+    it('returns undefined without looking up an execution when the execution ID is missing', () => {
+      const getExecution = jasmine.createSpy('getExecution');
+      spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({ getExecution } as any);
+      const target = jasmine.createSpy('target');
+
+      const result = getRedirectTo()(createTransition({ ...params, executionId: undefined }, target));
+
+      expect(result).toBeUndefined();
+      expect(getExecution).not.toHaveBeenCalled();
+      expect(target).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined when the execution lookup is rejected', async () => {
+      const getExecution = jasmine.createSpy('getExecution').and.rejectWith(new Error('not found'));
+      spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({ getExecution } as any);
+      const target = jasmine.createSpy('target');
+
+      const result = await getRedirectTo()(createTransition(params, target));
+
+      expect(result).toBeUndefined();
+      expect(target).not.toHaveBeenCalled();
+    });
+  });
+});

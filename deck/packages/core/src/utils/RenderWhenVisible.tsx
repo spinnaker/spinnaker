@@ -23,11 +23,21 @@ export const RenderWhenVisible = ({
   container,
   disableHide,
 }: IRenderWhenVisibleProps) => {
-  const [isVisible, setIsVisible] = React.useState(!!initiallyVisible);
+  const [isVisible, setIsVisible] = React.useState(!!initiallyVisible || placeholderHeight === 0);
   const [height, setHeight] = React.useState(placeholderHeight);
   let observer: IntersectionObserver;
 
   const nodeRef = React.useRef<HTMLDivElement>();
+
+  React.useEffect(() => {
+    if (!isVisible) {
+      if (height === 0 && placeholderHeight > 0) {
+        setIsVisible(true);
+        return;
+      }
+      setHeight(placeholderHeight);
+    }
+  }, [height, isVisible, placeholderHeight]);
 
   React.useEffect(() => {
     let visible = isVisible;

@@ -1,5 +1,4 @@
 import { get } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 import { AngularServices } from '../../angular/services';
@@ -248,7 +247,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
     this.loadDefaultFilters();
 
-    $q.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
+    Promise.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
       const nameOrIdToStart = AngularServices.$stateParams.startManualExecution;
       if (nameOrIdToStart) {
