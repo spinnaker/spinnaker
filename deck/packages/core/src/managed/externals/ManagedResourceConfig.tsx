@@ -103,7 +103,7 @@ const ManagedResourceConfigInternal = ({ application }: IManagedResourceConfigPr
   );
 };
 
-const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
+export const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
   const { client } = React.useMemo(createApolloClient, []);
 
   return (
