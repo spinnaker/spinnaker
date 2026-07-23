@@ -1,5 +1,4 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import type { Application } from '../application';
@@ -15,11 +14,7 @@ export interface IBannerContainerProps {
 @Overridable('core.insight.banners')
 export class BannerContainer extends React.Component<IBannerContainerProps> {
   public render(): React.ReactElement<BannerContainer> {
-    return (
-      <UIRouterContextComponent>
-        <BannerContainerContent app={this.props.app} />
-      </UIRouterContextComponent>
-    );
+    return <BannerContainerContent app={this.props.app} />;
   }
 }
 

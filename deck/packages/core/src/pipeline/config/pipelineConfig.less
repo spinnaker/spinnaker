@@ -16,7 +16,18 @@
   }
 }
 
-pipeline-configurer {
+.pipeline-stage-dependency-select.Select--multi {
+  width: 100%;
+
+  .Select-control,
+  .Select-multi-value-wrapper,
+  .Select-input {
+    height: auto;
+    min-height: 30px;
+  }
+}
+
+.pipeline-configurer {
   margin-top: 15px;
   display: block;
   background-color: transparent;
@@ -54,7 +65,7 @@ pipeline-configurer {
     }
   }
 
-  pipeline-config-view {
+  .pipeline-config-view {
     display: block;
     margin-left: -15px;
     margin-right: -15px;

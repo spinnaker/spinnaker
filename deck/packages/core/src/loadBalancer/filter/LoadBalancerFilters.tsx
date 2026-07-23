@@ -1,8 +1,8 @@
 import { chain, cloneDeep, compact, debounce, map, uniq } from 'lodash';
-import { $rootScope } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { FilterSearch } from '../../cluster/filter/FilterSearch';
 import { FilterSection } from '../../cluster/filter/FilterSection';
@@ -111,10 +111,11 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
 
     this.loadBalancersRefreshUnsubscribe = app.loadBalancers.onRefresh(null, () => this.updateLoadBalancerGroups());
 
-    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
+    const locationChangeSubscription = AngularServices.stateEvents.locationChangeSuccess.subscribe(() => {
       LoadBalancerState.filterModel.asFilterModel.activate();
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
     });
+    this.locationChangeUnsubscribe = () => locationChangeSubscription.unsubscribe();
   }
 
   public componentWillUnmount(): void {

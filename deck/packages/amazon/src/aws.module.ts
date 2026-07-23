@@ -82,6 +82,13 @@ export function registerAmazonProvider(): void {
     logo: {
       path: amazonLogo,
     },
+    applicationProviderFields: [
+      {
+        field: 'useAmiBlockDeviceMappings',
+        label: 'Prefer AMI Block Device Mappings',
+        type: 'boolean',
+      },
+    ],
     image: {
       reader: AwsImageReader,
     },

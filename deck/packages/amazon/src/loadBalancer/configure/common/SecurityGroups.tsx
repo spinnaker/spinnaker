@@ -43,9 +43,11 @@ export class SecurityGroups
       loaded: false,
       refreshing: false,
       removed: [],
-      refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+      refreshTime: this.getRefreshTime(),
     };
   }
+
+  private getRefreshTime = () => InfrastructureCaches.get('securityGroups')?.getStats().ageMax || 0;
 
   public validate(): FormikErrors<IAmazonLoadBalancerUpsertCommand> {
     const { removed } = this.state;
@@ -98,7 +100,7 @@ export class SecurityGroups
 
   private onRefreshComplete() {
     this.props.onLoadingChanged(false);
-    const refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
+    const refreshTime = this.getRefreshTime();
     this.setState({ refreshing: false, loaded: true, refreshTime });
   }
 

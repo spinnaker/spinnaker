@@ -1,3 +1,4 @@
+import { NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_RUNJOB_RUNJOBSTAGE = 'spinnaker.core.pipeline.stage.runJobStage';
@@ -8,6 +9,7 @@ export const runJobStage = {
   key: 'runJob',
   label: 'Run Job',
   description: 'Runs a container',
+  component: NoConfigurationStageConfig,
   restartable: true,
 };
 

@@ -2,13 +2,14 @@ import React from 'react';
 import { Registry } from '@spinnaker/core';
 
 import { EcsServerGroupStepLabel } from '../common/EcsServerGroupStepLabel';
+import { EcsResizeAsgStageConfig } from '../common/EcsStageConfigs';
 
 export function registerEcsResizeServerGroupStage() {
   Registry.pipeline.registerStage({
     provides: 'resizeServerGroup',
     alias: 'resizeAsg',
     cloudProvider: 'ecs',
-    templateUrl: require('./resizeAsgStage.html'),
+    component: EcsResizeAsgStageConfig,
     executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
     executionStepLabelComponent: (props) =>
       React.createElement(EcsServerGroupStepLabel, { action: 'Resize Server Group', ...props }),

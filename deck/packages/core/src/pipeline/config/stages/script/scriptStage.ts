@@ -7,7 +7,12 @@ import { ExecutionDetailsTasks } from '../common';
 import { Registry } from '../../../../registry';
 
 export const SCRIPT_STAGE = 'spinnaker.core.pipeline.stage.scriptStage';
-module(SCRIPT_STAGE, []).config(() => {
+
+export function registerScriptStage(): void {
+  if (Registry.pipeline.getStageTypes().some(({ key }) => key === 'script')) {
+    return;
+  }
+
   Registry.pipeline.registerStage({
     label: 'Script',
     description: 'Runs a script',
@@ -26,4 +31,8 @@ module(SCRIPT_STAGE, []).config(() => {
     strategy: true,
     validateFn: validate,
   });
+}
+
+module(SCRIPT_STAGE, []).config(() => {
+  registerScriptStage();
 });

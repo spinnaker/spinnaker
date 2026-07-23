@@ -281,6 +281,7 @@ export class ClusterService {
 
   private addProvidersAndServerGroupsToInstances(serverGroups: IServerGroup[]) {
     serverGroups.forEach((serverGroup) => {
+      serverGroup.instances = serverGroup.instances || [];
       serverGroup.instances.forEach((instance) => {
         instance.provider = serverGroup.type || serverGroup.provider;
         instance.serverGroup = instance.serverGroup || serverGroup.name;
@@ -303,6 +304,7 @@ export class ClusterService {
   }
 
   private addHealthStatusCheck(serverGroup: IServerGroup): void {
+    serverGroup.instances = serverGroup.instances || [];
     serverGroup.instances.forEach((instance) => {
       instance.hasHealthStatus = (instance.health || []).some((h) => h.state !== 'Unknown');
     });
