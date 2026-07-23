@@ -3,12 +3,21 @@ import React from 'react';
 
 import type {
   Application,
+  DeckRuntimeServices,
   IModalComponentProps,
   IRouterInjectedProps,
   IStage,
   IWizardPageInjectedProps,
 } from '@spinnaker/core';
-import { AngularServices, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
+import {
+  DeckRuntimeContext,
+  noop,
+  ReactModal,
+  TaskMonitor,
+  withRouter,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
 import { validateGceServerGroupCommand } from './GceServerGroupWizard.helpers';
 import type {
@@ -207,6 +216,9 @@ export class GceCloneServerGroupModalComponent extends React.Component<
   IGceCloneServerGroupModalProps & IRouterInjectedProps,
   IGceCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IGceCloneServerGroupModalProps & IRouterInjectedProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -220,13 +232,25 @@ export class GceCloneServerGroupModalComponent extends React.Component<
   private formik: IWizardPageInjectedProps<IGceServerGroupCommand>['formik'] = null;
   private unmounted = false;
 
-  public static show(props: IGceCloneServerGroupModalProps): Promise<any> {
-    return ReactModal.show(GceCloneServerGroupModal, props, { dialogClassName: 'wizard-modal modal-lg' });
+  public static show(props: IGceCloneServerGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
+    return ReactModal.show(
+      GceCloneServerGroupModal,
+      props,
+      { dialogClassName: 'wizard-modal modal-lg' },
+      runtimeServices,
+    );
   }
 
-  public constructor(props: IGceCloneServerGroupModalProps & IRouterInjectedProps) {
-    super(props);
-    this.adapter = props.adapter || new GceServerGroupWizardAdapter();
+  public constructor(
+    props: IGceCloneServerGroupModalProps & IRouterInjectedProps,
+    context: React.ContextType<typeof DeckRuntimeContext>,
+  ) {
+    super(props, context);
+    this.adapter =
+      props.adapter ||
+      (context?.services
+        ? GceServerGroupWizardAdapter.fromRuntimeServices(context.services)
+        : new GceServerGroupWizardAdapter());
     this.command = cloneDeep(props.command);
     this.commandState = createGceServerGroupWizardCommandState(this.command);
     this.state = {
@@ -300,7 +324,7 @@ export class GceCloneServerGroupModalComponent extends React.Component<
       return this.props.closeModal(transformed);
     }
     return this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.cloneServerGroup(transformed as any, this.props.application),
+      this.context.services.serverGroupWriter.cloneServerGroup(transformed as any, this.props.application),
     );
   };
 

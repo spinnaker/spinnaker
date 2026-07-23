@@ -1,7 +1,8 @@
 import { isEqual } from 'lodash';
 import React from 'react';
 
-import { AngularServices } from '../../../../angular/services';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 import { ExecutionDetailsSectionNav } from '../../../details';
 import type { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
 import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
@@ -9,10 +10,10 @@ import { withRouter } from '../../../../navigation/routerContext';
 import { SpinErrorBoundary } from '../../../../presentation';
 
 export class StepExecutionDetailsComponent extends React.Component<
-  IExecutionDetailsProps & IRouterInjectedProps,
+  IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
   IExecutionDetailsState
 > {
-  constructor(props: IExecutionDetailsProps & IRouterInjectedProps) {
+  constructor(props: IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {
       configSections: this.getDetailsSections(props).map((s) => s.title),
@@ -33,9 +34,9 @@ export class StepExecutionDetailsComponent extends React.Component<
 
   public syncDetails(
     configSections: string[],
-    props: IExecutionDetailsProps & IRouterInjectedProps = this.props,
+    props: IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps = this.props,
   ): void {
-    AngularServices.executionDetailsSectionService.synchronizeSection(configSections, () =>
+    props.deckRuntimeServices.executionDetailsSectionService.synchronizeSection(configSections, () =>
       this.updateCurrentSection(props),
     );
   }
@@ -44,7 +45,9 @@ export class StepExecutionDetailsComponent extends React.Component<
     this.syncDetails(this.state.configSections);
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionDetailsProps & IRouterInjectedProps): void {
+  public componentWillReceiveProps(
+    nextProps: IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  ): void {
     const configSections = this.getDetailsSections(nextProps).map((s) => s.title);
     if (!isEqual(this.state.configSections, configSections)) {
       this.setState({ configSections });
@@ -69,4 +72,4 @@ export class StepExecutionDetailsComponent extends React.Component<
   }
 }
 
-export const StepExecutionDetails = withRouter(StepExecutionDetailsComponent);
+export const StepExecutionDetails = withDeckRuntimeServices(withRouter(StepExecutionDetailsComponent));

@@ -2,9 +2,9 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import Select from 'react-select';
 
-import type { IModalComponentProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, IModalComponentProps } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   ModalClose,
   noop,
   ReactModal,
@@ -31,14 +31,17 @@ export class AzureRollbackServerGroupModal extends React.Component<
   IAzureRollbackServerGroupModalProps,
   IAzureRollbackServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IAzureRollbackServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: IAzureRollbackServerGroupModalProps) {
+  public static show(props: IAzureRollbackServerGroupModalProps, runtimeServices: DeckRuntimeServices) {
     const modalProps = {};
-    return ReactModal.show(AzureRollbackServerGroupModal, props, modalProps);
+    return ReactModal.show(AzureRollbackServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: IAzureRollbackServerGroupModalProps) {
@@ -72,7 +75,9 @@ export class AzureRollbackServerGroupModal extends React.Component<
     const { command, taskMonitor } = this.state;
     const { serverGroup, application } = this.props;
 
-    taskMonitor.submit(() => AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command));
+    taskMonitor.submit(() =>
+      this.context.services.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
+    );
   };
 
   private filterServerGroups = (disabledServerGroups: any[]) => {

@@ -5,6 +5,7 @@ import React from 'react';
 
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { ApplicationReader } from '../application/service/ApplicationReader';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { RecentHistoryService } from '../history';
 import { PageTitleService } from '../pageTitle';
 import { SpinErrorBoundary } from '../presentation';
@@ -26,7 +27,10 @@ describe('configureRouter', () => {
   let originalRegistrations: ReturnType<typeof getRootStateRegistrationsForTests>;
 
   function createRouter(): UIRouterReact {
-    const router = configureRouter();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    router.disposable(runtime);
+    configureRouter(router, runtime.services);
     routers.push(router);
     return router;
   }
@@ -325,7 +329,10 @@ describe('configureRouter', () => {
     const listen = spyOn(UrlService.prototype, 'listen');
     const sync = spyOn(UrlService.prototype, 'sync');
 
-    expect(() => configureRouter()).toThrow(failure);
+    const failedRouter = new UIRouterReact();
+    const runtime = createDeckRuntime(failedRouter);
+    failedRouter.disposable(runtime);
+    expect(() => configureRouter(failedRouter, runtime.services)).toThrow(failure);
 
     expect(getDirectRouter()).toBe(previousRouter);
     const ownershipDisposals = dispose.calls.all().filter(({ args }) => args.length === 0);

@@ -1,7 +1,7 @@
 import { isEqual, keyBy } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
-import { AngularServices } from '../../../../angular/services';
+import { useDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 
 import { SETTINGS } from '../../../../config';
 import type { IExecution, IPipeline, IStage } from '../../../../domain';
@@ -18,7 +18,7 @@ export interface IExecutionAndStagePickerProps {
 
 export function ExecutionAndStagePicker(props: IExecutionAndStagePickerProps) {
   const { pipeline, pipelineStage, onChange } = props;
-  const { executionService } = AngularServices;
+  const { executionService } = useDeckRuntimeServices();
   const [execution, setExecution] = React.useState<IExecution>(null);
   const [stageId, setStageId] = React.useState<string>(null);
   const [showStageSelector, setShowStageSelector] = React.useState(false);

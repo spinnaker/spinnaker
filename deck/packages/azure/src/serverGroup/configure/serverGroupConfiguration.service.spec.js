@@ -6,7 +6,11 @@ describe('Service: azureServerGroupConfiguration', function () {
   var service;
 
   beforeEach(function () {
-    service = new AzureServerGroupConfigurationService(Promise);
+    service = new AzureServerGroupConfigurationService(Promise, {
+      cacheInitializer: {},
+      loadBalancerReader: {},
+      securityGroupReader: {},
+    });
 
     this.allLoadBalancers = [
       {

@@ -6,7 +6,7 @@ import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 import { GlobalSearchResults } from './GlobalSearchResults';
-import { AngularServices } from '../../angular/services';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import type { IChildComponentProps } from '../infrastructure/RecentlyViewedItems';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
@@ -34,6 +34,9 @@ export interface IGlobalSearchState {
 }
 
 class GlobalSearchComponent extends React.Component<IRouterInjectedProps, IGlobalSearchState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private container: HTMLElement;
   private searchField: HTMLInputElement;
   private resultRefs: HTMLElement[][];
@@ -56,7 +59,7 @@ class GlobalSearchComponent extends React.Component<IRouterInjectedProps, IGloba
     window.addEventListener('keyup', this.handleWindowKeyup);
     window.addEventListener('click', this.handleWindowClick);
 
-    const { infrastructureSearchService } = AngularServices;
+    const { infrastructureSearchService } = this.context.services;
     const search = infrastructureSearchService.getSearcher();
 
     this.query$

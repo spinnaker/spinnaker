@@ -7,6 +7,7 @@ import {
   AddEntityTagLinks,
   ApplicationReader,
   ConfirmationModalService,
+  DeckRuntimeContext,
   HelpField,
   LoadBalancerWriter,
   ManagedMenuItem,
@@ -34,6 +35,9 @@ export interface ILoadBalancerActionsState {
 }
 
 export class LoadBalancerActions extends React.Component<ILoadBalancerActionsProps, ILoadBalancerActionsState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ILoadBalancerActionsProps) {
     super(props);
 
@@ -68,7 +72,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     const { loadBalancer } = this.props;
     const { application } = this.state;
     const LoadBalancerModal = LoadBalancerTypes.find((t) => t.type === loadBalancer.loadBalancerType).component;
-    LoadBalancerModal.show({ app: application, loadBalancer });
+    LoadBalancerModal.show({ app: application, loadBalancer }, this.context.services);
   };
 
   public deleteLoadBalancer = (): void => {

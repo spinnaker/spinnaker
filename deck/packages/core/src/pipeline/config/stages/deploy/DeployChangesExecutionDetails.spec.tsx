@@ -2,6 +2,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 
+import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import type { IExecutionStage } from '../../../../domain';
 import { ViewChangesLink } from '../../../../diffs/ViewChangesLink';
 import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
@@ -44,11 +45,18 @@ const createProps = (stage: IExecutionStage) =>
   } as any);
 
 describe('DeployChangesExecutionDetails', () => {
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: { executionService: {} } } as any}>
+      {children}
+    </DeckRuntimeContext.Provider>
+  );
+  const mountDetails = (component: React.ReactElement) => mount(component, { wrappingComponent: RuntimeWrapper });
+
   it('merges Jenkins metadata from the source server group into the changes config', async () => {
     const sourceServerGroup = deferred<any>();
     const getServerGroup = spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(sourceServerGroup.promise);
     const stage = createStage('stage-1', 'app-v001');
-    const wrapper = mount(<DeployChangesExecutionDetails {...createProps(stage)} />);
+    const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(stage)} />);
 
     expect(getServerGroup).toHaveBeenCalledWith('app', 'test', 'us-east-1', 'app-v001');
 
@@ -76,7 +84,7 @@ describe('DeployChangesExecutionDetails', () => {
     const firstStage = createStage('stage-1', 'app-v001');
     const secondStage = createStage('stage-2', 'app-v002');
     secondStage.context.buildInfo = { ancestor: '20', target: '21' };
-    const wrapper = mount(<DeployChangesExecutionDetails {...createProps(firstStage)} />);
+    const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(firstStage)} />);
 
     wrapper.setProps(createProps(secondStage));
     await act(async () =>
@@ -103,7 +111,7 @@ describe('DeployChangesExecutionDetails', () => {
       secondRequest.promise,
     );
     const stage = createStage('stage-1', 'app-v001');
-    const wrapper = mount(<DeployChangesExecutionDetails {...createProps(stage)} />);
+    const wrapper = mountDetails(<DeployChangesExecutionDetails {...createProps(stage)} />);
 
     stage.context = {
       ...stage.context,
@@ -143,7 +151,9 @@ describe('DeployChangesExecutionDetails', () => {
     const sourceServerGroup = deferred<any>();
     spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(sourceServerGroup.promise);
     const consoleError = spyOn(console, 'error');
-    const wrapper = mount(<DeployChangesExecutionDetails {...createProps(createStage('stage-1', 'app-v001'))} />);
+    const wrapper = mountDetails(
+      <DeployChangesExecutionDetails {...createProps(createStage('stage-1', 'app-v001'))} />,
+    );
 
     wrapper.unmount();
     await act(async () =>

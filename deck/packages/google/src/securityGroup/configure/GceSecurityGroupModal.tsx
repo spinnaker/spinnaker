@@ -1,8 +1,8 @@
 import React from 'react';
 
-import type { IRouterInjectedProps, ISecurityGroupsByAccountSourceData } from '@spinnaker/core';
+import type { DeckRuntimeServices, IRouterInjectedProps, ISecurityGroupsByAccountSourceData } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FirewallLabels,
   ModalClose,
   ReactModal,
@@ -186,10 +186,13 @@ export class GceSecurityGroupModalComponent extends React.Component<
   IGceSecurityGroupModalProps & IRouterInjectedProps,
   IGceSecurityGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private mounted = false;
 
-  public static show(props: IGceSecurityGroupModalProps): Promise<any> {
-    return ReactModal.show(GceSecurityGroupModal, props, { dialogClassName: 'modal-lg' });
+  public static show(props: IGceSecurityGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
+    return ReactModal.show(GceSecurityGroupModal, props, { dialogClassName: 'modal-lg' }, runtimeServices);
   }
 
   public constructor(props: IGceSecurityGroupModalProps & IRouterInjectedProps) {
@@ -217,7 +220,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
       return;
     }
 
-    AngularServices.securityGroupReader.getAllSecurityGroups().then(
+    this.context.services.securityGroupReader.getAllSecurityGroups().then(
       (securityGroupInventory) => {
         if (this.mounted) {
           this.setState({ securityGroupInventory, securityGroupInventoryLoaded: true });

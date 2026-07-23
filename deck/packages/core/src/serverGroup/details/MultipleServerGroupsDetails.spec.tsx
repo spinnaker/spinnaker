@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 
 import { AccountService } from '../../account';
-import { AngularServices } from '../../angular/services';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { REACT_MODULE } from '../../reactShims';
@@ -51,7 +51,23 @@ describe('<MultipleServerGroupsDetails />', () => {
             context: $uiRouter.stateRegistry.get('application.insight.multipleServerGroups') as any,
           }}
         >
-          <MultipleServerGroupsDetails app={app} />
+          <DeckRuntimeContext.Provider
+            value={
+              {
+                services: {
+                  providerServiceDelegate: {
+                    getDelegate: () => ({
+                      destroyServerGroup: (serverGroup: any) => ({ mixinName: serverGroup.name }),
+                    }),
+                    hasDelegate: () => true,
+                  },
+                  serverGroupWriter,
+                },
+              } as any
+            }
+          >
+            <MultipleServerGroupsDetails app={app} />
+          </DeckRuntimeContext.Provider>
         </UIViewContext.Provider>
       </UIRouterContext.Provider>,
     );
@@ -83,13 +99,6 @@ describe('<MultipleServerGroupsDetails />', () => {
     spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
     spyOn(ProviderSelectionService, 'isDisabled').and.returnValue(Promise.resolve(false));
     spyOn(ConfirmationModalService, 'confirm').and.stub();
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(serverGroupWriter);
-    spyOnProperty(AngularServices, 'providerServiceDelegate', 'get').and.returnValue({
-      getDelegate: () => ({
-        destroyServerGroup: (serverGroup: any) => ({ mixinName: serverGroup.name }),
-      }),
-      hasDelegate: () => true,
-    } as any);
     spyOn(ClusterState.multiselectModel.serverGroupsStream, 'subscribe').and.callFake((callback: any) => {
       callback();
       return { unsubscribe: jasmine.createSpy('unsubscribe') } as any;

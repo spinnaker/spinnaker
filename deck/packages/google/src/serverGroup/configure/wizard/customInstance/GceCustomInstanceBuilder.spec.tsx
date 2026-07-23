@@ -1,13 +1,23 @@
-import { mount } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
 
-import { AngularServices } from '@spinnaker/core';
+import { DeckRuntimeContext } from '@spinnaker/core';
 import { CustomInstanceConfigurer } from './CustomInstanceConfigurer';
 import { GceCustomInstanceBuilder } from './GceCustomInstanceBuilder';
 
 describe('GceCustomInstanceBuilder', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {};
+  });
+
   it('parses the current instance type and provides valid custom instance choices', () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    runtimeServices.instanceTypeService = instanceTypeService();
     const command = commandWithCustomInstance('n2-custom-4-16384-ext');
 
     const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={jasmine.createSpy()} />);
@@ -24,9 +34,7 @@ describe('GceCustomInstanceBuilder', () => {
 
   it('updates command.instanceType, notifies, and loads details when custom choices change', async () => {
     const instanceTypeDetails = { name: 'n2-custom-8-32768' };
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(
-      instanceTypeService(instanceTypeDetails) as any,
-    );
+    runtimeServices.instanceTypeService = instanceTypeService(instanceTypeDetails);
     const onTypeChanged = jasmine.createSpy('onTypeChanged');
     const command = commandWithCustomInstance('n2-custom-4-16384');
 
@@ -46,7 +54,7 @@ describe('GceCustomInstanceBuilder', () => {
   });
 
   it('initializes missing custom values from valid lists', () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    runtimeServices.instanceTypeService = instanceTypeService();
     const command = commandWithCustomInstance(null);
 
     const component = mount(<GceCustomInstanceBuilder command={command as any} onTypeChanged={jasmine.createSpy()} />);
@@ -64,7 +72,7 @@ describe('GceCustomInstanceBuilder', () => {
   });
 
   it('keeps valid defaults when memory changes before cores', async () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    runtimeServices.instanceTypeService = instanceTypeService();
     const onTypeChanged = jasmine.createSpy('onTypeChanged');
     const command = commandWithCustomInstance(null);
 

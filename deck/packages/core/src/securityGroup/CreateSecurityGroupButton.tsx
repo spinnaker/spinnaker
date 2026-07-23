@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import type { IAccountDetails } from '../account';
 import type { Application } from '../application';
+import { useDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { ICloudProviderConfig } from '../cloudProvider';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
@@ -29,11 +30,13 @@ const getReactModalOptions = (selectedProvider: string, app: Application) => ({
 });
 
 export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {
+  const runtimeServices = useDeckRuntimeServices();
+
   const createSecurityGroup = (): void => {
     ProviderSelectionService.selectProvider(app, 'securityGroup', providerFilterFn).then((selectedProvider) => {
       const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
 
-      provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app));
+      provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app), runtimeServices);
     }, noop);
   };
 

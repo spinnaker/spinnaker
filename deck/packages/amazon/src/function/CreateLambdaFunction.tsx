@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import type { IFunctionModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, IFunctionModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import { FunctionWriter, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ExecutionRole } from './configure/ExecutionRole';
@@ -48,9 +48,12 @@ export class CreateLambdaFunctionComponent extends React.Component<
   private _isUnmounted = false;
   private refreshUnsubscribe: () => void;
 
-  public static show(props: IAmazonCreateFunctionProps): Promise<IAmazonFunctionUpsertCommand> {
+  public static show(
+    props: IAmazonCreateFunctionProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonFunctionUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateLambdaFunction, props, modalProps);
+    return ReactModal.show(CreateLambdaFunction, props, modalProps, runtimeServices);
   }
 
   public componentWillUnmount(): void {

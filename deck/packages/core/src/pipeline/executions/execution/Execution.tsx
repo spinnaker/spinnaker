@@ -9,8 +9,9 @@ import { ExecutionMarker } from './ExecutionMarker';
 import { ExecutionPermalink } from './ExecutionPermalink';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { AccountTag } from '../../../account';
-import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application/application.model';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
 import { CancelModal } from '../../../cancelModal/CancelModal';
 import { PipelineGraph } from '../../config/graph/PipelineGraph';
 import type { IExecutionViewState, IPipelineGraphNode } from '../../config/graph/pipelineGraph.service';
@@ -67,7 +68,10 @@ const findChildIndex = (child: string, execution: IExecution) => {
   return result;
 };
 
-export class ExecutionComponent extends React.PureComponent<IExecutionProps & IRouterInjectedProps, IExecutionState> {
+export class ExecutionComponent extends React.PureComponent<
+  IExecutionProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  IExecutionState
+> {
   public static defaultProps: Partial<IExecutionProps> = {
     dataSourceKey: 'executions',
     cancelHelpText: 'Cancel execution',
@@ -77,7 +81,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
   private runningTime: OrchestratedItemRunningTime;
   private wrapperRef = React.createRef<HTMLDivElement>();
 
-  constructor(props: IExecutionProps & IRouterInjectedProps) {
+  constructor(props: IExecutionProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     const { execution, standalone } = this.props;
     const { stateParams } = this.props;
@@ -136,7 +140,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
   }
 
   private invalidateShowingDetails(props = this.props, forceScroll = false, stateParams = props.stateParams): boolean {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     const { stateService } = props;
     const { execution, application, standalone } = props;
     const showing =
@@ -171,7 +175,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
   }
 
   public toggleDetails = (stageIndex?: number, subIndex?: number): void => {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     const { execution, application } = this.props;
     executionService.hydrate(application, execution).then(() => {
       executionService.toggleDetails(execution, stageIndex, subIndex);
@@ -187,7 +191,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
   }
 
   public deleteExecution(): void {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     ConfirmationModalService.confirm({
       header: 'Really delete execution?',
       buttonText: 'Delete',
@@ -203,7 +207,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
 
   public cancelExecution(): void {
     const { application, execution, cancelConfirmationText } = this.props;
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     const hasDeployStage =
       execution.stages &&
       execution.stages.some((stage) => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
@@ -219,7 +223,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
   }
 
   public pauseExecution(): void {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     ConfirmationModalService.confirm({
       header: 'Really pause execution?',
       buttonText: 'Pause',
@@ -228,7 +232,7 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
   }
 
   public resumeExecution(): void {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     ConfirmationModalService.confirm({
       header: 'Really resume execution?',
       buttonText: 'Resume',
@@ -246,7 +250,9 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
     );
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionProps & IRouterInjectedProps): void {
+  public componentWillReceiveProps(
+    nextProps: IExecutionProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  ): void {
     if (nextProps.execution !== this.props.execution) {
       this.runningTime.checkStatus(nextProps.execution);
       this.setState({
@@ -544,4 +550,6 @@ export class ExecutionComponent extends React.PureComponent<IExecutionProps & IR
 }
 
 const OverridableExecution = overridableComponent(ExecutionComponent, 'PipelineExecution');
-export const Execution = withRouter<IExecutionProps & IRouterInjectedProps>(OverridableExecution);
+export const Execution = withDeckRuntimeServices(
+  withRouter<IExecutionProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps>(OverridableExecution),
+);

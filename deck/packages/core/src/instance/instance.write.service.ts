@@ -1,5 +1,5 @@
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application/application.model';
+import type { DirectProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import type { IInstance, IServerGroup, ITask } from '../domain';
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import type { IJob } from '../task/taskExecutor';
@@ -49,19 +49,32 @@ export class InstanceWriter {
   public static terminateInstances(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
-    return InstanceWriter.executeMultiInstanceTask(instanceGroups, application, 'terminateInstances', 'Terminate');
+    return InstanceWriter.executeMultiInstanceTask(
+      instanceGroups,
+      application,
+      providerServiceDelegate,
+      'terminateInstances',
+      'Terminate',
+    );
   }
 
   private static executeMultiInstanceTask(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
+    providerServiceDelegate: DirectProviderServiceDelegate,
     type: string,
     baseDescriptor: string,
     descriptorSuffix?: string,
     additionalJobProperties: any = {},
   ): PromiseLike<ITask> {
-    const jobs = InstanceWriter.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
+    const jobs = InstanceWriter.buildMultiInstanceJob(
+      instanceGroups,
+      providerServiceDelegate,
+      type,
+      additionalJobProperties,
+    );
     const descriptor = InstanceWriter.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -70,8 +83,18 @@ export class InstanceWriter {
     });
   }
 
-  public static rebootInstances(instanceGroups: IMultiInstanceGroup[], application: Application): PromiseLike<ITask> {
-    return InstanceWriter.executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
+  public static rebootInstances(
+    instanceGroups: IMultiInstanceGroup[],
+    application: Application,
+    providerServiceDelegate: DirectProviderServiceDelegate,
+  ): PromiseLike<ITask> {
+    return InstanceWriter.executeMultiInstanceTask(
+      instanceGroups,
+      application,
+      providerServiceDelegate,
+      'rebootInstances',
+      'Reboot',
+    );
   }
 
   public static rebootInstance(instance: IInstance, application: Application, params: any = {}): PromiseLike<ITask> {
@@ -94,8 +117,13 @@ export class InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
-    const jobs = InstanceWriter.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
+    const jobs = InstanceWriter.buildMultiInstanceJob(
+      instanceGroups,
+      providerServiceDelegate,
+      'deregisterInstancesFromLoadBalancer',
+    );
     jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = InstanceWriter.buildMultiInstanceDescriptor(
       jobs,
@@ -131,8 +159,13 @@ export class InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
-    const jobs = InstanceWriter.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
+    const jobs = InstanceWriter.buildMultiInstanceJob(
+      instanceGroups,
+      providerServiceDelegate,
+      'registerInstancesWithLoadBalancer',
+    );
     jobs.forEach((job) => (job.loadBalancerNames = loadBalancerNames));
     const descriptor = InstanceWriter.buildMultiInstanceDescriptor(
       jobs,
@@ -167,10 +200,12 @@ export class InstanceWriter {
   public static enableInstancesInDiscovery(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
+      providerServiceDelegate,
       'enableInstancesInDiscovery',
       'Enable',
       'in discovery',
@@ -203,10 +238,12 @@ export class InstanceWriter {
   public static disableInstancesInDiscovery(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
+      providerServiceDelegate,
       'disableInstancesInDiscovery',
       'Disable',
       'in discovery',
@@ -239,10 +276,12 @@ export class InstanceWriter {
   public static terminateInstancesAndShrinkServerGroups(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
+      providerServiceDelegate,
       'detachInstances',
       'Terminate',
       'and shrink server groups',
@@ -285,12 +324,15 @@ export class InstanceWriter {
 
   protected static buildMultiInstanceJob(
     instanceGroups: IMultiInstanceGroup[],
+    providerServiceDelegate: DirectProviderServiceDelegate,
     type: string,
     additionalJobProperties = {},
   ) {
     return instanceGroups
       .filter((instanceGroup) => instanceGroup.instances.length > 0)
-      .map((instanceGroup) => InstanceWriter.convertGroupToJob(instanceGroup, type, additionalJobProperties));
+      .map((instanceGroup) =>
+        InstanceWriter.convertGroupToJob(instanceGroup, providerServiceDelegate, type, additionalJobProperties),
+      );
   }
 
   protected static buildMultiInstanceDescriptor(jobs: IMultiInstanceJob[], base: string, suffix: string): string {
@@ -308,6 +350,7 @@ export class InstanceWriter {
 
   private static convertGroupToJob(
     instanceGroup: IMultiInstanceGroup,
+    providerServiceDelegate: DirectProviderServiceDelegate,
     type: string,
     additionalJobProperties: any = {},
   ): IMultiInstanceJob {
@@ -323,14 +366,17 @@ export class InstanceWriter {
 
     Object.assign(job, additionalJobProperties);
 
-    InstanceWriter.transform(instanceGroup, job);
+    InstanceWriter.transform(instanceGroup, job, providerServiceDelegate);
 
     return job;
   }
 
-  private static transform(instanceGroup: IMultiInstanceGroup, job: IMultiInstanceJob) {
+  private static transform(
+    instanceGroup: IMultiInstanceGroup,
+    job: IMultiInstanceJob,
+    providerServiceDelegate: DirectProviderServiceDelegate,
+  ) {
     const serviceKey = 'instance.multiInstanceTaskTransformer';
-    const { providerServiceDelegate } = AngularServices;
     if (providerServiceDelegate.hasDelegate(instanceGroup.cloudProvider, serviceKey)) {
       const transformer: any = providerServiceDelegate.getDelegate(instanceGroup.cloudProvider, serviceKey);
       transformer.transform(instanceGroup, job);

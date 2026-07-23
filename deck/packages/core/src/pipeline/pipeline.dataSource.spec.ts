@@ -8,6 +8,10 @@ import { registerPipelineDataSources } from './pipeline.dataSource';
 import { EXECUTION_SERVICE } from './service/execution.service';
 
 describe('Pipeline Data Source', function () {
+  const promiseService = {
+    all: (promises: PromiseLike<any>[]) => Promise.all(promises),
+    when: <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
+  };
   let application: Application, executionService: any, $scope: ng.IScope;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
@@ -19,7 +23,7 @@ describe('Pipeline Data Source', function () {
       $scope = $rootScope.$new();
       executionService = _executionService_;
       ApplicationDataSourceRegistry.clearDataSources();
-      registerPipelineDataSources(undefined, executionService, _clusterService_);
+      registerPipelineDataSources(promiseService, executionService, _clusterService_);
     }),
   );
 

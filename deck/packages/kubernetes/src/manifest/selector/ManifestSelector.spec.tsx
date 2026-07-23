@@ -312,6 +312,26 @@ describe('<ManifestSelector />', () => {
       expect(searchService).toHaveBeenCalledWith('configMap', 'default', 'my-other-account');
     });
 
+    it('waits for complete manifest search criteria', async () => {
+      const wrapper = await component({ mode: SelectorMode.Static });
+      wrapper.setState({
+        accounts: [{ name: 'my-account', namespaces: ['default'] }],
+      } as IManifestSelectorState);
+      searchService.calls.reset();
+
+      const account = wrapper.find(AccountSelectInput).first();
+      account.props().onChange(createFakeReactSyntheticEvent({ value: 'my-account' }));
+      expect(searchService).not.toHaveBeenCalled();
+
+      const namespace = wrapper.find({ label: 'Namespace' }).find(Creatable).first();
+      namespace.props().onChange({ value: 'default', label: 'default' });
+      expect(searchService).not.toHaveBeenCalled();
+
+      const kind = wrapper.find({ label: 'Kind' }).find(Creatable).first();
+      kind.props().onChange({ value: 'deployment', label: 'deployment' });
+      expect(searchService).toHaveBeenCalledOnceWith('deployment', 'default', 'my-account');
+    });
+
     it('clears namespace when changing account if account does not have selected namespace', async () => {
       const wrapper = await component({
         manifestName: 'configMap my-config-map',

@@ -3,7 +3,7 @@ import { chain, find, sortBy } from 'lodash';
 import React from 'react';
 
 import type { ISecurityGroup, ISecurityGroupsByAccount } from '@spinnaker/core';
-import { CollapsibleSection, FirewallLabels } from '@spinnaker/core';
+import { CollapsibleSection, DeckRuntimeContext, FirewallLabels } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AWSProviderSettings } from '../../../aws.settings';
@@ -18,6 +18,9 @@ export class SecurityGroupsDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   ISecurityGroupsDetailsSectionState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -68,7 +71,10 @@ export class SecurityGroupsDetailsSection extends React.Component<
 
   private editSecurityGroups = (): void => {
     const { app: application, serverGroup } = this.props;
-    EditSecurityGroupsModal.show({ application, securityGroups: this.state.securityGroups, serverGroup });
+    EditSecurityGroupsModal.show(
+      { application, securityGroups: this.state.securityGroups, serverGroup },
+      this.context.services,
+    );
   };
 
   public render(): JSX.Element {

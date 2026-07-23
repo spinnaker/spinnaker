@@ -1,17 +1,25 @@
 import _ from 'lodash';
 
-import { AccountService, AngularServices } from '@spinnaker/core';
+import { AccountService } from '@spinnaker/core';
 import { AzureInstanceTypeService } from '../../instance/azureInstanceType.service';
 
 export class AzureServerGroupConfigurationService {
-  constructor($q) {
+  static requiresDeckRuntimeServices = true;
+
+  constructor($q, runtimeServices) {
     this.$q = $q;
     this.azureInstanceTypeService = new AzureInstanceTypeService($q);
+    this.cacheInitializer = runtimeServices.cacheInitializer;
+    this.loadBalancerReader = runtimeServices.loadBalancerReader;
+    this.securityGroupReader = runtimeServices.securityGroupReader;
   }
 
   createDelegate() {
     const all = this.$q && this.$q.all ? this.$q.all.bind(this.$q) : Promise.all.bind(Promise);
     const azureInstanceTypeService = this.azureInstanceTypeService;
+    const cacheInitializer = this.cacheInitializer;
+    const loadBalancerReader = this.loadBalancerReader;
+    const securityGroupReader = this.securityGroupReader;
     const dataDiskTypes = ['Standard_LRS', 'StandardSSD_LRS', 'Premium_LRS'];
     const dataDiskCachingTypes = ['None', 'ReadOnly', 'ReadWrite'];
 
@@ -32,8 +40,6 @@ export class AzureServerGroupConfigurationService {
     }
 
     function configureCommand(application, command) {
-      const securityGroupReader = AngularServices.securityGroupReader;
-      const loadBalancerReader = AngularServices.loadBalancerReader;
       return all([
         AccountService.getCredentialsKeyedByAccount('azure'),
         securityGroupReader.loadSecurityGroups(),
@@ -200,8 +206,6 @@ export class AzureServerGroupConfigurationService {
     }
 
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
-      const cacheInitializer = AngularServices.cacheInitializer;
-      const securityGroupReader = AngularServices.securityGroupReader;
       return cacheInitializer.refreshCache('securityGroups').then(function () {
         return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
           command.backingData.securityGroups = securityGroups;
@@ -236,7 +240,6 @@ export class AzureServerGroupConfigurationService {
     }
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
-      const loadBalancerReader = AngularServices.loadBalancerReader;
       return loadBalancerReader.listLoadBalancers('azure').then(function (loadBalancers) {
         command.backingData.loadBalancers = loadBalancers;
         if (!skipCommandReconfiguration) {
@@ -326,7 +329,6 @@ export class AzureServerGroupConfigurationService {
     }
 
     function refreshInstanceTypes(command) {
-      const cacheInitializer = AngularServices.cacheInitializer;
       return cacheInitializer.refreshCache('instanceTypes').then(function () {
         return azureInstanceTypeService.getAllTypesByRegion().then(function (instanceTypes) {
           command.backingData.instanceTypes = instanceTypes;

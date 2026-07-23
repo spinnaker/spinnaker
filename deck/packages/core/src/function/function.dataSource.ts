@@ -1,21 +1,20 @@
 import type { IQService } from 'angular';
 import { module } from 'angular';
-import { AngularServices } from '../angular/services';
+
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import type { DirectProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
 import type { IFunction, IFunctionSourceData } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
-
 import { FunctionReader } from './function.read.service';
 import { FUNCTION_READ_SERVICE } from './function.read.service';
 import type { IFunctionTransformer } from './function.transformer';
 
 export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';
 
-function createDirectFunctionReader(): FunctionReader {
-  const providerServiceDelegate = AngularServices.providerServiceDelegate;
+export function createDirectFunctionReader(providerServiceDelegate: DirectProviderServiceDelegate): FunctionReader {
   const functionTransformer: IFunctionTransformer = {
     normalizeFunction: (functionDef: IFunctionSourceData) =>
       providerServiceDelegate
@@ -50,9 +49,8 @@ function createDirectFunctionReader(): FunctionReader {
 }
 
 export function registerFunctionDataSource(
-  functionReader?: FunctionReader,
-  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T> = <T>(value: T | PromiseLike<T>) =>
-    AngularServices.$q.when(value),
+  functionReader: FunctionReader,
+  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T>,
 ): void {
   if (
     !SETTINGS.feature.functions ||
@@ -60,9 +58,8 @@ export function registerFunctionDataSource(
   ) {
     return;
   }
-  const reader = functionReader || createDirectFunctionReader();
   const functions = (application: Application) => {
-    return reader.loadFunctions(application.name);
+    return functionReader.loadFunctions(application.name);
   };
 
   const addFunctions = (_application: Application, functionList: IFunction[]) => {

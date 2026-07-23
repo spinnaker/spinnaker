@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { DirtyInstanceTypeWarning } from './InstanceTypeSelector';
-import { AngularServices } from '../../../angular/services';
+import { useDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
 import { CloudProviderRegistry } from '../../../cloudProvider';
 import type { IInstanceTypeCategory } from '../../../instance';
 import { ModalWizard } from '../../../modal/wizard/ModalWizard';
@@ -19,6 +19,7 @@ export interface IInstanceArchetypeSelectorProps {
 }
 
 export function InstanceArchetypeSelector(props: IInstanceArchetypeSelectorProps) {
+  const { instanceTypeService } = useDeckRuntimeServices();
   const { command, onProfileChanged, onTypeChanged } = props;
   const [instanceProfiles, setInstanceProfiles] = React.useState<IInstanceTypeCategory[]>([]);
   const [selectedInstanceProfile, setSelectedInstanceProfile] = React.useState<IInstanceTypeCategory | null>(null);
@@ -56,7 +57,7 @@ export function InstanceArchetypeSelector(props: IInstanceArchetypeSelectorProps
   };
 
   React.useEffect(() => {
-    AngularServices.instanceTypeService.getCategories(command.selectedProvider).then((categories) => {
+    instanceTypeService.getCategories(command.selectedProvider).then((categories) => {
       setInstanceProfiles(categories);
       if (command.region && command.instanceType && !command.viewState.instanceProfile) {
         selectInstanceType('custom', categories, false);
@@ -67,7 +68,7 @@ export function InstanceArchetypeSelector(props: IInstanceArchetypeSelectorProps
   }, [command]);
 
   const updateInstanceTypeDetails = () => {
-    AngularServices.instanceTypeService
+    instanceTypeService
       .getInstanceTypeDetails(command.selectedProvider, command.instanceType)
       .then((instanceTypeDetails) => {
         command.viewState.instanceTypeDetails = instanceTypeDetails;

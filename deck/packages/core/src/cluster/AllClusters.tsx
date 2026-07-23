@@ -2,9 +2,9 @@ import React from 'react';
 
 import { AllClustersGroupings } from './AllClustersGroupings';
 import type { IAccountDetails } from '../account';
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { BannerContainer } from '../banner';
+import { useDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { ICloudProviderConfig } from '../cloudProvider';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import type { IFilterTag, ISortFilter } from '../filterModel';
@@ -126,6 +126,8 @@ export function ClusterControls({ showInstancesToggle, sortFilter, updateCluster
 }
 
 export function CreateServerGroupButton({ app }: { app: Application }) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupCommandBuilder } = runtimeServices;
   const [disabled, setDisabled] = React.useState(true);
   const [createServerGroupError, setCreateServerGroupError] = React.useState<string | null>(null);
 
@@ -142,23 +144,24 @@ export function CreateServerGroupButton({ app }: { app: Application }) {
     setCreateServerGroupError(null);
     ProviderSelectionService.selectProvider(app, 'serverGroup', hasReactCloneServerGroupModal)
       .then((provider) => {
-        return AngularServices.serverGroupCommandBuilder
-          .buildNewServerGroupCommand(app, provider, null)
-          .then((command: any) => {
-            const providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup');
-            if (!providerConfig.CloneServerGroupModal) {
-              throw new Error(`No React clone server group modal is registered for provider "${provider}".`);
-            }
+        return serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null).then((command: any) => {
+          const providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup');
+          if (!providerConfig.CloneServerGroupModal) {
+            throw new Error(`No React clone server group modal is registered for provider "${provider}".`);
+          }
 
-            providerConfig.CloneServerGroupModal.show({
+          providerConfig.CloneServerGroupModal.show(
+            {
               title: 'Create New Server Group',
               application: app,
               serverGroup: null,
               command,
               provider,
               isNew: true,
-            });
-          });
+            },
+            runtimeServices,
+          );
+        });
       })
       .catch((error) => {
         if (error instanceof Error) {

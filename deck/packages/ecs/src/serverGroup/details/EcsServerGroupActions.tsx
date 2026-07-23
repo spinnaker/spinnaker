@@ -5,12 +5,12 @@ import { AWSProviderSettings } from '@spinnaker/amazon';
 import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
   ManagedMenuItem,
   ServerGroupWarningMessageService,
   SETTINGS,
+  useDeckRuntimeServices,
   withRouter,
 } from '@spinnaker/core';
 
@@ -30,6 +30,8 @@ export function EcsServerGroupActionsComponent({
   serverGroup,
   stateService,
 }: IServerGroupActionsProps & IRouterInjectedProps) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupWriter } = runtimeServices;
   if (!AWSProviderSettings.adHocInfraWritesEnabled) {
     return null;
   }
@@ -68,12 +70,12 @@ export function EcsServerGroupActionsComponent({
         app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly ? ['Ecs'] : undefined,
       submitMethod: (params: IServerGroupJob) => {
         if (action === 'destroy') {
-          return AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+          return serverGroupWriter.destroyServerGroup(serverGroup, app, params);
         }
         if (action === 'disable') {
-          return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+          return serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
         }
-        return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+        return serverGroupWriter.enableServerGroup(serverGroup, app, params);
       },
       askForReason: true,
     };
@@ -95,7 +97,7 @@ export function EcsServerGroupActionsComponent({
           <ManagedMenuItem
             resource={serverGroup}
             application={app}
-            onClick={() => EcsRollbackServerGroupModal.show({ application: app, serverGroup })}
+            onClick={() => EcsRollbackServerGroupModal.show({ application: app, serverGroup }, runtimeServices)}
           >
             Rollback
           </ManagedMenuItem>
@@ -103,7 +105,7 @@ export function EcsServerGroupActionsComponent({
         <ManagedMenuItem
           resource={serverGroup}
           application={app}
-          onClick={() => EcsResizeServerGroupModal.show({ application: app, serverGroup })}
+          onClick={() => EcsResizeServerGroupModal.show({ application: app, serverGroup }, runtimeServices)}
         >
           Resize
         </ManagedMenuItem>

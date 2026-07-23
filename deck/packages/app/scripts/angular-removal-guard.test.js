@@ -12,6 +12,21 @@ const bridgePath = path.join(coreSourceRoot, 'navigation/legacyStateConfig.bridg
 const legacyImportPackage = ['ng', 'import'].join('');
 const routeProvider = /['"](?:stateConfigProvider|applicationStateProvider)['"]/;
 const routerFacadeMembers = ['$' + 'state', '$' + 'stateParams', '$' + 'uiRouter', 'state' + 'Events', 'h' + 'as'];
+const runtimeServiceFacadeMembers = [
+  'cacheInitializer',
+  'clusterService',
+  'executionDetailsSectionService',
+  'executionService',
+  'infrastructureSearchService',
+  'instanceTypeService',
+  'loadBalancerReader',
+  'pageTitleService',
+  'providerServiceDelegate',
+  'securityGroupReader',
+  'serverGroupCommandBuilder',
+  'serverGroupTransformer',
+  'serverGroupWriter',
+];
 const angularServicesName = 'Angular' + 'Services';
 
 function productionSourceFiles(directory) {
@@ -45,7 +60,7 @@ function workspaceSourceFiles(directory) {
   });
 }
 
-function usesRouterFacadeMember(source, member) {
+function usesAngularServicesMember(source, member) {
   if (source.includes(`${angularServicesName}.${member}`)) {
     return true;
   }
@@ -53,7 +68,9 @@ function usesRouterFacadeMember(source, member) {
   const escapedMember = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const indirectPropertyAccess = new RegExp(
     `${angularServicesName}\\s*\\[\\s*['"]${escapedMember}['"]\\s*\\]|` +
-      `spyOnProperty\\(\\s*${angularServicesName}\\s*,\\s*['"]${escapedMember}['"]`,
+      `spyOnProperty\\(\\s*${angularServicesName}\\s*,\\s*['"]${escapedMember}['"]|` +
+      `\\(\\s*${angularServicesName}\\s+as\\s+[^)]+\\)\\s*(?:\\.${escapedMember}|` +
+      `\\[\\s*['"]${escapedMember}['"]\\s*\\])`,
   );
   if (indirectPropertyAccess.test(source)) {
     return true;
@@ -120,7 +137,20 @@ test('Deck and Deck-Kayenta source and tests do not use AngularServices router f
     .flatMap((file) => {
       const source = readFileSync(file, 'utf8');
       return routerFacadeMembers
-        .filter((member) => usesRouterFacadeMember(source, member))
+        .filter((member) => usesAngularServicesMember(source, member))
+        .map((member) => `${path.relative(repositoryRoot, file)}: ${member}`);
+    });
+
+  assert.deepEqual(references, []);
+});
+
+test('Deck and Deck-Kayenta source and tests do not use AngularServices runtime service facade members', () => {
+  const references = routerConsumerRoots
+    .flatMap((root) => workspaceSourceFiles(root))
+    .flatMap((file) => {
+      const source = readFileSync(file, 'utf8');
+      return runtimeServiceFacadeMembers
+        .filter((member) => usesAngularServicesMember(source, member))
         .map((member) => `${path.relative(repositoryRoot, file)}: ${member}`);
     });
 

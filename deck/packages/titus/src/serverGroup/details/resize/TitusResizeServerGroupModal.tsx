@@ -5,7 +5,6 @@ import { Modal } from 'react-bootstrap';
 
 import type { Application, ICapacity, IModalComponentProps } from '@spinnaker/core';
 import {
-  AngularServices,
   FormikFormField,
   MinMaxDesiredChanges,
   ModalClose,
@@ -13,6 +12,7 @@ import {
   PlatformHealthOverride,
   SpinFormik,
   TaskMonitorWrapper,
+  useDeckRuntimeServices,
   UserVerification,
   useTaskMonitor,
   ValidationMessage,
@@ -215,6 +215,7 @@ function validateResizeCommand(values: ITitusResizeServerGroupCommand) {
 }
 
 export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalProps) {
+  const { serverGroupWriter } = useDeckRuntimeServices();
   const { serverGroup, application, dismissModal } = props;
 
   const initialAdvancedMode = useMemo(() => {
@@ -236,7 +237,7 @@ export function TitusResizeServerGroupModal(props: ITitusResizeServerGroupModalP
     dismissModal,
   );
   const submit = (command: ITitusResizeServerGroupCommand) =>
-    taskMonitor.submit(() => AngularServices.serverGroupWriter.resizeServerGroup(serverGroup, application, command));
+    taskMonitor.submit(() => serverGroupWriter.resizeServerGroup(serverGroup, application, command));
 
   const initialValues = { capacity: serverGroup.capacity } as ITitusResizeServerGroupCommand;
 

@@ -4,6 +4,7 @@ import type { Application } from '@spinnaker/core';
 import {
   confirmNotManaged,
   CurrentCapacity,
+  DeckRuntimeContext,
   DesiredCapacity,
   Overridable,
   ReactModal,
@@ -22,6 +23,9 @@ interface ICapacityDetailsSectionProps {
 
 @Overridable('titus.serverGroup.CapacityDetailsSection')
 export class TitusCapacityDetailsSection extends React.Component<ICapacityDetailsSectionProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public render(): JSX.Element {
     const { serverGroup, app: application } = this.props;
     const { capacity } = serverGroup;
@@ -31,7 +35,12 @@ export class TitusCapacityDetailsSection extends React.Component<ICapacityDetail
     const resizeServerGroup = () =>
       confirmNotManaged(serverGroup, application).then((notManaged) => {
         notManaged &&
-          ReactModal.show<ITitusResizeServerGroupModalProps>(TitusResizeServerGroupModal, { serverGroup, application });
+          ReactModal.show<ITitusResizeServerGroupModalProps>(
+            TitusResizeServerGroupModal,
+            { serverGroup, application },
+            undefined,
+            this.context.services,
+          );
       });
 
     return (

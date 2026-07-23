@@ -16,6 +16,7 @@ import type { ITriggerTemplateComponentProps } from './TriggerTemplate';
 import { Triggers } from './Triggers';
 import type { Application } from '../../application';
 import { AuthenticationService } from '../../authentication';
+import type { DeckRuntimeServices } from '../../bootstrap/DeckRuntimeServices';
 import { SETTINGS } from '../../config/settings';
 import type { IPipelineTemplateConfig } from '../config/templates';
 import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
@@ -157,11 +158,11 @@ export class ManualExecutionModal extends React.Component<IManualExecutionModalP
     this.destroy$.next();
   }
 
-  public static show(props: any): Promise<IPipelineCommand> {
+  public static show(props: any, runtimeServices: DeckRuntimeServices): Promise<IPipelineCommand> {
     const modalProps = {
       dialogClassName: 'manual-execution-dialog ' + 'modal-md',
     };
-    return ReactModal.show(ManualExecutionModal, props, modalProps);
+    return ReactModal.show(ManualExecutionModal, props, modalProps, runtimeServices);
   }
 
   private submit = (values: IPipelineCommand): void => {

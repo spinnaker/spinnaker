@@ -1,7 +1,6 @@
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import { AngularServices } from '../../angular/services';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { setDirectRouter } from '../../navigation/directRouter';
 import { Registry } from '../../registry/Registry';
@@ -16,6 +15,7 @@ import { ExecutionStepDetails } from '../config/stages/common/ExecutionStepDetai
 
 describe('pipeline details bridge wrappers', () => {
   const routerProps = { router: {} as any, stateParams: {}, stateService: {} as any };
+  const deckRuntimeServices = { executionService: {} } as any;
 
   afterEach(() => setDirectRouter(null));
 
@@ -44,6 +44,7 @@ describe('pipeline details bridge wrappers', () => {
     const component = mount(
       <StageSummaryWrapperComponent
         {...routerProps}
+        deckRuntimeServices={deckRuntimeServices}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
         sourceUrl="template.html"
@@ -73,6 +74,7 @@ describe('pipeline details bridge wrappers', () => {
     const component = mount(
       <StageSummaryWrapperComponent
         {...routerProps}
+        deckRuntimeServices={deckRuntimeServices}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
         sourceUrl="template.html"
@@ -239,6 +241,7 @@ describe('pipeline details bridge wrappers', () => {
     const component = mount(
       <StageSummaryWrapperComponent
         {...routerProps}
+        deckRuntimeServices={deckRuntimeServices}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
         sourceUrl="template.html"
@@ -271,11 +274,11 @@ describe('pipeline details bridge wrappers', () => {
         .and.returnValue(Promise.resolve(updatedExecution)),
     };
     spyOn(ConfirmationModalService, 'confirm').and.callFake((config: any) => config.submitMethod('operator reason'));
-    spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue(executionService as any);
 
     const component = mount(
       <StageSummaryWrapperComponent
         {...routerProps}
+        deckRuntimeServices={{ executionService } as any}
         application={{ attributes: {} } as any}
         execution={
           {

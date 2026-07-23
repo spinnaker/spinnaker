@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { IStageConfigProps } from '@spinnaker/core';
-import { StageConstants } from '@spinnaker/core';
+import { DeckRuntimeContext, StageConstants } from '@spinnaker/core';
 import { CloudFoundryServerGroupCommandBuilder } from '../../../serverGroup/configure';
 import { CloudFoundryCreateServerGroupModal } from '../../../serverGroup/configure/wizard/CreateServerGroupModal';
 
@@ -13,6 +13,9 @@ export class CloudFoundryCloneServerGroupStageConfig extends React.Component<
   IStageConfigProps,
   ICloudFoundryCloneServerGroupStageConfigState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IStageConfigProps) {
     super(props);
     this.props.updateStageField({
@@ -48,12 +51,15 @@ export class CloudFoundryCloneServerGroupStageConfig extends React.Component<
     const { application, stage, pipeline } = this.props;
     const title = 'Clone Cluster';
     const command = CloudFoundryServerGroupCommandBuilder.buildCloneServerGroupCommandFromPipeline(stage, pipeline);
-    CloudFoundryCreateServerGroupModal.show({
-      application,
-      command,
-      isSourceConstant: false,
-      title,
-    })
+    CloudFoundryCreateServerGroupModal.show(
+      {
+        application,
+        command,
+        isSourceConstant: false,
+        title,
+      },
+      this.context.services,
+    )
       .then(this.handleResult)
       .catch(() => {});
   };

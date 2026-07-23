@@ -1,9 +1,10 @@
 import React from 'react';
-import { AngularServices } from '../../../../angular/services';
 
 import type { Application } from '../../../../application/application.model';
+import { useDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 import { ConfirmationModalService } from '../../../../confirmationModal';
 import type { IExecution, IExecutionStage } from '../../../../domain';
+import type { ExecutionService } from '../../../service/execution.service';
 import { duration } from '../../../../utils/timeFormatters';
 
 export const DEFAULT_SKIP_WAIT_TEXT = 'The pipeline will proceed immediately, marking this stage completed.';
@@ -19,8 +20,8 @@ const skipRemainingWait = (
   stage: IExecutionStage,
   execution: IExecution,
   application: Application,
+  executionService: ExecutionService,
 ): void => {
-  const { executionService } = AngularServices;
   (event.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
   const matcher = ({ stages }: IExecution) => {
     const match = stages.find((test) => test.id === stage.id);
@@ -42,6 +43,7 @@ const skipRemainingWait = (
 };
 
 export const SkipConditionWait = ({ stage, execution, application }: ISkipConditionWaitProps) => {
+  const { executionService } = useDeckRuntimeServices();
   const { conditions } = stage.outputs;
   return (
     <div>
@@ -61,7 +63,7 @@ export const SkipConditionWait = ({ stage, execution, application }: ISkipCondit
         <div className="action-buttons">
           <button
             className="btn btn-xs btn-primary"
-            onClick={(event) => skipRemainingWait(event, stage, execution, application)}
+            onClick={(event) => skipRemainingWait(event, stage, execution, application, executionService)}
           >
             <span style={{ marginRight: '5px' }} className="small glyphicon glyphicon-fast-forward" />
             Skip remaining wait

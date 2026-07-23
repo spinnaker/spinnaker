@@ -34,6 +34,7 @@ describe('<InsightMenu />', () => {
         createApp={mergedParams.createApp}
         createProject={mergedParams.createProject}
         refreshCaches={mergedParams.refreshCaches}
+        deckRuntimeServices={{ cacheInitializer: {} as CacheInitializerService } as any}
         router={{} as any}
         stateParams={{}}
         stateService={{ go } as any}

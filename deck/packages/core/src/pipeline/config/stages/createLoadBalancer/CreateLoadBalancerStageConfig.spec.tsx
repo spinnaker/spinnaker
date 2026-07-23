@@ -2,9 +2,12 @@ import { mount } from 'enzyme';
 import React from 'react';
 
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
+import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import { CreateLoadBalancerStageConfig } from './CreateLoadBalancerStageConfig';
 
 describe('<CreateLoadBalancerStageConfig />', () => {
+  const runtimeServices = {} as any;
+
   function createProps(loadBalancers: any[] = []) {
     const stage = {
       loadBalancers,
@@ -41,13 +44,21 @@ describe('<CreateLoadBalancerStageConfig />', () => {
     await Promise.resolve();
   }
 
+  function mountConfig(props: ReturnType<typeof createProps>) {
+    return mount(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
+        <CreateLoadBalancerStageConfig {...props} />
+      </DeckRuntimeContext.Provider>,
+    );
+  }
+
   it('appends every operation returned when creating a load balancer', async () => {
     const existing = { name: 'existing' };
     const originalLoadBalancers = [existing];
     const created = [{ name: 'listener-1' }, { name: 'listener-2' }];
     const props = createProps(originalLoadBalancers);
     resolveModalWith(created);
-    const component = mount(<CreateLoadBalancerStageConfig {...props} />);
+    const component = mountConfig(props);
 
     component.find('button.add-new').simulate('click');
     await flushModalResult();
@@ -63,7 +74,7 @@ describe('<CreateLoadBalancerStageConfig />', () => {
     const created = { name: 'created' };
     const props = createProps([existing]);
     resolveModalWith(created);
-    const component = mount(<CreateLoadBalancerStageConfig {...props} />);
+    const component = mountConfig(props);
 
     component.find('button.add-new').simulate('click');
     await flushModalResult();
@@ -80,7 +91,7 @@ describe('<CreateLoadBalancerStageConfig />', () => {
     const replacements = [{ name: 'listener-1' }, { name: 'listener-2' }];
     const props = createProps(originalLoadBalancers);
     resolveModalWith(replacements);
-    const component = mount(<CreateLoadBalancerStageConfig {...props} />);
+    const component = mountConfig(props);
 
     component
       .find('button')
@@ -102,7 +113,7 @@ describe('<CreateLoadBalancerStageConfig />', () => {
     const replacement = { name: 'replacement' };
     const props = createProps([before, edited, after]);
     resolveModalWith(replacement);
-    const component = mount(<CreateLoadBalancerStageConfig {...props} />);
+    const component = mountConfig(props);
 
     component
       .find('button')

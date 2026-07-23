@@ -5,6 +5,7 @@ import type { Subscription } from 'rxjs';
 import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import type { IDefaultTagFilterConfig } from '../../application/config/defaultTagFilter/DefaultTagFilterConfig';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 import type { IExecution, IPipeline, IPipelineCommand } from '../../domain';
@@ -49,6 +50,9 @@ const forwardedExecutions = new Set();
 let disableForwarding = false;
 
 export class ExecutionsComponent extends React.Component<IExecutionsProps & IRouterInjectedProps, IExecutionsState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
   private insightFilterStateModel = AngularServices.insightFilterStateModel;
@@ -158,7 +162,7 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
   };
 
   private startPipeline(command: IPipelineCommand): PromiseLike<void> {
-    const { executionService } = AngularServices;
+    const { executionService } = this.context.services;
     this.setState({ triggeringExecution: true });
     return executionService
       .startAndMonitorPipeline(this.props.app, command.pipelineName, command.trigger)
@@ -177,10 +181,13 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
 
   private triggerPipeline(pipeline: IPipeline = null): void {
     logger.log({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
-    ManualExecutionModal.show({
-      pipeline: pipeline,
-      application: this.props.app,
-    })
+    ManualExecutionModal.show(
+      {
+        pipeline: pipeline,
+        application: this.props.app,
+      },
+      this.context.services,
+    )
       .then((command) => {
         this.startPipeline(command);
         this.clearManualExecutionParam();
@@ -193,7 +200,7 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
   }
 
   private handleAgedOutExecutions(executionId: string, forwardToPermalink: boolean): void {
-    const { executionService } = AngularServices;
+    const { executionService } = this.context.services;
     const { stateParams, stateService } = this.props;
     if (forwardToPermalink && executionId && !forwardedExecutions.has(executionId)) {
       // We only want to forward to permalink on initial load

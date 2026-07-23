@@ -2,10 +2,16 @@ import { get, isEqual } from 'lodash';
 import React from 'react';
 
 import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
-import type { Application, IModalComponentProps, IRouterInjectedProps, IStage } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+} from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
+  DeckRuntimeContext,
   DeployInitializer,
   FirewallLabels,
   noop,
@@ -19,10 +25,8 @@ import {
 import { ServerGroupBasicSettings, ServerGroupParameters, ServerGroupResources } from './pages';
 import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
 import type { ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
-import {
-  getDefaultJobDisruptionBudgetForApp,
-  getTitusServerGroupConfigurationService,
-} from '../serverGroupConfiguration.service';
+import { getDefaultJobDisruptionBudgetForApp } from '../serverGroupConfiguration.service';
+import type { TitusServerGroupConfigurationService } from '../serverGroupConfiguration.service';
 
 export interface ITitusCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
@@ -41,6 +45,9 @@ export class TitusCloneServerGroupModalComponent extends React.Component<
   ITitusCloneServerGroupModalProps & IRouterInjectedProps,
   ITitusCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ITitusCloneServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -49,19 +56,18 @@ export class TitusCloneServerGroupModalComponent extends React.Component<
   private _isUnmounted = false;
   private refreshUnsubscribe: () => void;
 
-  public static show(props: ITitusCloneServerGroupModalProps): Promise<ITitusServerGroupCommand> {
+  public static show(
+    props: ITitusCloneServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ITitusServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(TitusCloneServerGroupModal, props, modalProps);
+    return ReactModal.show(TitusCloneServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: ITitusCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
-    if (!requiresTemplateSelection) {
-      this.configureCommand();
-    }
-
     this.state = {
       firewallsLabel: FirewallLabels.get('Firewalls'),
       loaded: false,
@@ -73,6 +79,12 @@ export class TitusCloneServerGroupModalComponent extends React.Component<
         onTaskComplete: this.onTaskComplete,
       }),
     };
+  }
+
+  public componentDidMount(): void {
+    if (!this.state.requiresTemplateSelection) {
+      this.configureCommand();
+    }
   }
 
   private templateSelected = () => {
@@ -122,7 +134,9 @@ export class TitusCloneServerGroupModalComponent extends React.Component<
 
   private configureCommand = () => {
     const { command } = this.props;
-    const configurationService = getTitusServerGroupConfigurationService();
+    const configurationService = this.context.services.providerServiceDelegate.getDelegate<
+      TitusServerGroupConfigurationService
+    >('titus', 'serverGroup.configurationService');
     configurationService.configureCommand(command).then(() => {
       configurationService.configureSubnets(command);
       if (!command.credentials.includes('${')) {
@@ -155,7 +169,7 @@ export class TitusCloneServerGroupModalComponent extends React.Component<
       this.props.closeModal && this.props.closeModal(toSubmit);
     } else {
       this.state.taskMonitor.submit(() =>
-        AngularServices.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
+        this.context.services.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
       );
     }
   };

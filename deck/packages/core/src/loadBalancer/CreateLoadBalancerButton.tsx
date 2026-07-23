@@ -2,6 +2,7 @@ import React from 'react';
 
 import type { IAccountDetails } from '../account';
 import type { Application } from '../application';
+import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import type { ICloudProviderConfig } from '../cloudProvider';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import type { ILoadBalancer } from '../domain';
@@ -25,6 +26,9 @@ export interface ICreateLoadBalancerButtonProps {
 }
 
 export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalancerButtonProps, { isDisabled: boolean }> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ICreateLoadBalancerButtonProps) {
     super(props);
 
@@ -52,13 +56,16 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
       (selectedProvider) => {
         const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
 
-        provider.CreateLoadBalancerModal.show({
-          app: app,
-          application: app,
-          forPipelineConfig: false,
-          loadBalancer: null,
-          isNew: true,
-        });
+        provider.CreateLoadBalancerModal.show(
+          {
+            app: app,
+            application: app,
+            forPipelineConfig: false,
+            loadBalancer: null,
+            isNew: true,
+          },
+          this.context.services,
+        );
       },
       () => {},
     );

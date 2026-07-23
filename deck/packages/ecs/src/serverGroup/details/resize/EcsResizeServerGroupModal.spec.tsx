@@ -2,7 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import {
-  AngularServices,
   PlatformHealthOverride,
   ReactModal,
   SpinFormik,
@@ -56,8 +55,8 @@ describe('EcsResizeServerGroupModal', () => {
   it('submits the exact shared resize writer contract through its task monitor', () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
     const writer = { resizeServerGroup: jasmine.createSpy('resizeServerGroup').and.returnValue(Promise.resolve()) };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
     const component = new EcsResizeServerGroupModal(props(app));
+    (component as any).context = { services: { serverGroupWriter: writer } };
     component.setState = ((update: any) => {
       component.state = { ...component.state, ...(typeof update === 'function' ? update(component.state) : update) };
     }) as any;
@@ -80,8 +79,8 @@ describe('EcsResizeServerGroupModal', () => {
 
   it('does not submit invalid or unverified resize commands', () => {
     const writer = { resizeServerGroup: jasmine.createSpy('resizeServerGroup') };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
     const component = new EcsResizeServerGroupModal(props());
+    (component as any).context = { services: { serverGroupWriter: writer } };
     spyOn(component.state.taskMonitor, 'submit');
 
     (component as any).submit({ capacity: { desired: 9, max: 8, min: 2 } });
@@ -122,9 +121,10 @@ describe('EcsResizeServerGroupModal', () => {
   it('exports a show primitive for later actions integration', () => {
     const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
     const modalProps = props();
+    const runtimeServices = {} as any;
 
-    EcsResizeServerGroupModal.show(modalProps);
+    EcsResizeServerGroupModal.show(modalProps, runtimeServices);
 
-    expect(show).toHaveBeenCalledOnceWith(EcsResizeServerGroupModal, modalProps);
+    expect(show).toHaveBeenCalledOnceWith(EcsResizeServerGroupModal, modalProps, undefined, runtimeServices);
   });
 });

@@ -1,7 +1,6 @@
 import React from 'react';
-import { AngularServices } from '../../../../angular/services';
-
 import type { Application } from '../../../../application/application.model';
+import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import { ConfirmationModalService } from '../../../../confirmationModal';
 import type { IExecution, IExecutionStage } from '../../../../domain';
 import { OrchestratedItemRunningTime } from '../../../executions/execution/OrchestratedItemRunningTime';
@@ -20,6 +19,9 @@ export interface ISkipWaitState {
 }
 
 export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private runningTime: OrchestratedItemRunningTime;
 
   constructor(props: ISkipWaitProps) {
@@ -34,7 +36,7 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
   };
 
   private skipRemainingWait = (e: React.MouseEvent<HTMLElement>): void => {
-    const { executionService } = AngularServices;
+    const { executionService } = this.context.services;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const { stage, application } = this.props;
     const matcher = (execution: IExecution) => {

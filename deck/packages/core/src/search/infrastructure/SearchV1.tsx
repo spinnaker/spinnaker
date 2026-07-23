@@ -6,7 +6,8 @@ import { ProjectSummaryPod } from './ProjectSummaryPod';
 import { RecentlyViewedItems } from './RecentlyViewedItems';
 import { SearchResult } from './SearchResult';
 import { SearchResultPods } from './SearchResultPods';
-import { AngularServices } from '../../angular/services';
+import type { IDeckRuntimeServicesInjectedProps } from '../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import type { ISearchResultSet } from './infrastructureSearch.service';
 import { InsightMenu } from '../../insight/InsightMenu';
 import type { IRouterInjectedProps } from '../../navigation/routerContext';
@@ -30,8 +31,11 @@ export interface ISearchV1State {
   showMinLengthWarning: boolean;
 }
 
-export class SearchV1Component extends React.Component<IRouterInjectedProps, ISearchV1State> {
-  private search = AngularServices.infrastructureSearchService.getSearcher();
+export class SearchV1Component extends React.Component<
+  IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  ISearchV1State
+> {
+  private search = this.props.deckRuntimeServices.infrastructureSearchService.getSearcher();
   private autoNavigateQuery: string | null = this.props.stateParams.route ? this.props.stateParams.q || '' : null;
   private destroy$ = new Subject<void>();
   private query$ = new Subject<string>();
@@ -146,7 +150,7 @@ export class SearchV1Component extends React.Component<IRouterInjectedProps, ISe
   }
 
   private updatePageTitle(query: string): void {
-    AngularServices.pageTitleService.handleRoutingSuccess({
+    this.props.deckRuntimeServices.pageTitleService.handleRoutingSuccess({
       pageTitleMain: { field: undefined, label: query ? ` search results for "${query}"` : 'Infrastructure' },
     });
   }
@@ -282,4 +286,4 @@ export class SearchV1Component extends React.Component<IRouterInjectedProps, ISe
   }
 }
 
-export const SearchV1 = withRouter(SearchV1Component);
+export const SearchV1 = withDeckRuntimeServices(withRouter(SearchV1Component));

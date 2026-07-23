@@ -10,6 +10,7 @@ import { VpcReader } from '@spinnaker/amazon';
 import type {
   Application,
   CacheInitializerService,
+  DeckRuntimeServices,
   IAccountDetails,
   ICluster,
   IDeploymentStrategy,
@@ -21,14 +22,7 @@ import type {
   LoadBalancerReader,
   SecurityGroupReader,
 } from '@spinnaker/core';
-import {
-  AccountService,
-  AngularServices,
-  NameUtils,
-  REST,
-  setMatchingResourceSummary,
-  SubnetReader,
-} from '@spinnaker/core';
+import { AccountService, NameUtils, REST, setMatchingResourceSummary, SubnetReader } from '@spinnaker/core';
 
 import type { IJobDisruptionBudget, ITitusResources } from '../../domain';
 import type { ITitusServiceJobProcesses } from '../../domain/ITitusServiceJobProcesses';
@@ -117,7 +111,7 @@ export class TitusServerGroupConfigurationService {
   ) {}
 
   private getCacheInitializer(): CacheInitializerService {
-    return this.cacheInitializer || AngularServices.cacheInitializer;
+    return this.cacheInitializer;
   }
 
   private getLoadBalancerReader(): Pick<LoadBalancerReader, 'listLoadBalancers'> {
@@ -129,7 +123,7 @@ export class TitusServerGroupConfigurationService {
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.securityGroupReader || AngularServices.securityGroupReader;
+    return this.securityGroupReader;
   }
 
   public configureZones(command: ITitusServerGroupCommand) {
@@ -420,11 +414,17 @@ export class TitusServerGroupConfigurationService {
 }
 
 export class TitusServerGroupConfigurationServiceFactory extends TitusServerGroupConfigurationService {
-  constructor() {
-    super(null, null, null);
+  public static readonly requiresDeckRuntimeServices = true;
+
+  constructor(_promiseService: unknown, runtimeServices: DeckRuntimeServices) {
+    super(runtimeServices.cacheInitializer, runtimeServices.loadBalancerReader, runtimeServices.securityGroupReader);
   }
 }
 
-export function getTitusServerGroupConfigurationService(): TitusServerGroupConfigurationService {
-  return new TitusServerGroupConfigurationService(null, null, null);
+export function getTitusServerGroupConfigurationService(
+  cacheInitializer: CacheInitializerService,
+  loadBalancerReader: LoadBalancerReader,
+  securityGroupReader: SecurityGroupReader,
+): TitusServerGroupConfigurationService {
+  return new TitusServerGroupConfigurationService(cacheInitializer, loadBalancerReader, securityGroupReader);
 }

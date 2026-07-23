@@ -5,7 +5,6 @@ import React from 'react';
 import {
   AccountService,
   AccountSelectInput,
-  AngularServices,
   DeploymentStrategySelector,
   RegionSelectInput,
   RequestBuilder,
@@ -94,9 +93,6 @@ const renderCapacityProvider = (command: IEcsServerGroupCommand): ShallowWrapper
 
 describe('EcsCloneServerGroupModal', () => {
   beforeEach(() => {
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue({
-      cloneServerGroup: () => Promise.resolve(),
-    } as any);
     spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
       dismiss: jasmine.createSpy('dismiss'),
       result: Promise.resolve(),
@@ -565,7 +561,7 @@ describe('EcsCloneServerGroupModal', () => {
     it(`returns the transformed command without executing infrastructure in ${mode} mode`, () => {
       const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode } as any });
       const modal = buildUnrenderedModal(command) as any;
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup');
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup');
 
       modal.submit();
 
@@ -731,9 +727,8 @@ describe('EcsCloneServerGroupModal', () => {
       const props = buildProps(command);
       const modal = new EcsCloneServerGroupModal(props) as any;
       const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup').and.returnValue(
-        task as any,
-      );
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup').and.returnValue(task as any);
+      modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
       const monitorSubmit = spyOn(
         modal.state.taskMonitor,
         'submit',
@@ -792,9 +787,10 @@ describe('EcsCloneServerGroupModal', () => {
     const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode: 'create' } as any });
     const props = buildProps(command);
     const modal = new EcsCloneServerGroupModal(props) as any;
-    spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup').and.callFake(
-      () => Promise.reject({ failureMessage: 'create failed' }) as any,
-    );
+    const cloneServerGroup = jasmine
+      .createSpy('cloneServerGroup')
+      .and.callFake(() => Promise.reject({ failureMessage: 'create failed' }) as any);
+    modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
 
     modal.submit();
     await Promise.resolve();

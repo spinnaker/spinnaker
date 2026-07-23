@@ -1,8 +1,8 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IPipeline, IStage } from '@spinnaker/core';
-import { AngularServices, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps, IPipeline, IStage } from '@spinnaker/core';
+import { DeckRuntimeContext, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
 import type { ICloudFoundryServerGroup } from '../../../domain';
@@ -36,14 +36,20 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
   ICloudFoundryCreateServerGroupProps,
   ICloudFoundryCreateServerGroupState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryCreateServerGroupProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: ICloudFoundryCreateServerGroupProps): Promise<ICloudFoundryCreateServerGroupCommand> {
+  public static show(
+    props: ICloudFoundryCreateServerGroupProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudFoundryCreateServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CloudFoundryCreateServerGroupModal, props, modalProps);
+    return ReactModal.show(CloudFoundryCreateServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICloudFoundryCreateServerGroupProps) {
@@ -89,11 +95,11 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else if (command.viewState.mode === 'clone') {
       this.state.taskMonitor.submit(() =>
-        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     } else {
       this.state.taskMonitor.submit(() =>
-        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     }
   };

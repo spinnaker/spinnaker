@@ -4,8 +4,8 @@ import React from 'react';
 import { getAvailableProjectClusterRegions, ProjectCluster } from './ProjectCluster';
 import type { IProjectDashboardCluster, IRegionSelection } from './ProjectClusterModel';
 import { RegionFilter } from './RegionFilter';
-import { AngularServices } from '../../angular/services';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import type { IExecution, IProject } from '../../domain';
 import { RecentHistoryService } from '../../history/recentHistory.service';
 import { ProjectPipeline } from './pipeline/ProjectPipeline';
@@ -80,6 +80,7 @@ const RefreshControl = ({ onRefresh, refreshing }: { onRefresh: () => void; refr
 );
 
 export const ProjectDashboard = ({ projectConfiguration: project, transition }: IProjectDashboardProps) => {
+  const { executionService } = useDeckRuntimeServices();
   const [clusters, setClusters] = React.useState<IProjectDashboardCluster[]>([]);
   const [executions, setExecutions] = React.useState<IExecution[]>([]);
   const [clusterState, setClusterState] = React.useState<ILoadState>(initialLoadState());
@@ -120,7 +121,7 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
 
   const loadExecutions = () => {
     setExecutionState((state) => ({ ...state, refreshing: true, error: false }));
-    return AngularServices.executionService
+    return executionService
       .getProjectExecutions(project.name)
       .then((nextExecutions: IExecution[]) => {
         setExecutions(nextExecutions);

@@ -1,10 +1,11 @@
 import type { FormikProps } from 'formik';
 import React from 'react';
 
-import type { Application, IModalComponentProps } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps } from '@spinnaker/core';
 import {
   CheckboxInput,
   confirmNotManaged,
+  DeckRuntimeContext,
   FormikFormField,
   HelpField,
   NumberInput,
@@ -13,7 +14,7 @@ import {
   TaskMonitorModal,
 } from '@spinnaker/core';
 
-import { AwsServices } from '../../../aws.services';
+import type { AwsServerGroupCommandBuilder } from '../../configure/serverGroupCommandBuilder.service';
 import type { IAmazonServerGroupCommand } from '../../configure/serverGroupConfiguration.service';
 import type { IAmazonServerGroup } from '../../../domain';
 
@@ -29,14 +30,24 @@ function validateRequiredNonNegativeNumber(value: unknown): string | undefined {
 }
 
 export class EditAsgAdvancedSettingsModal extends React.Component<IEditAsgAdvancedSettingsModalProps> {
-  public static show(props: IEditAsgAdvancedSettingsModalProps) {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+  private directCommand: Partial<IAmazonServerGroupCommand>;
+
+  public static show(props: IEditAsgAdvancedSettingsModalProps, runtimeServices: DeckRuntimeServices) {
     return confirmNotManaged(props.serverGroup, props.application).then(
       (notManaged) =>
-        notManaged && ReactModal.show(EditAsgAdvancedSettingsModal, props, { dialogClassName: 'modal-lg' }),
+        notManaged &&
+        ReactModal.show(EditAsgAdvancedSettingsModal, props, { dialogClassName: 'modal-lg' }, runtimeServices),
     );
   }
 
-  private command = AwsServices.awsServerGroupCommandBuilder.buildUpdateServerGroupCommand(this.props.serverGroup);
+  private get command(): Partial<IAmazonServerGroupCommand> {
+    return (this.directCommand ||= this.context.services.providerServiceDelegate
+      .getDelegate<AwsServerGroupCommandBuilder>('aws', 'serverGroup.commandBuilder')
+      .buildUpdateServerGroupCommand(this.props.serverGroup));
+  }
 
   private renderFields = (formik: FormikProps<IAmazonServerGroupCommand>) => {
     const { backingData } = formik.values;

@@ -1,14 +1,16 @@
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
 import React from 'react';
 
 import type { IQService, IRootScopeService } from 'angular';
 import { mock } from 'angular';
 
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
+import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import { SETTINGS } from '../config/settings';
 import { CreateSecurityGroupButton } from './CreateSecurityGroupButton';
 
 describe('<CreateSecurityGroupButton />', () => {
+  const runtimeServices = {} as any;
   let $q: IQService;
   let $rootScope: IRootScopeService;
 
@@ -41,18 +43,25 @@ describe('<CreateSecurityGroupButton />', () => {
       CreateSecurityGroupModal: modal,
     });
 
-    shallow(<CreateSecurityGroupButton app={app} />)
+    mount(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
+        <CreateSecurityGroupButton app={app} />
+      </DeckRuntimeContext.Provider>,
+    )
       .find('button')
       .simulate('click');
     await settle();
     $rootScope.$digest();
 
-    expect(modal.show).toHaveBeenCalledWith({
-      application: app,
-      credentials: 'button-test-account',
-      isNew: true,
-      region: 'dev',
-    });
+    expect(modal.show).toHaveBeenCalledWith(
+      {
+        application: app,
+        credentials: 'button-test-account',
+        isNew: true,
+        region: 'dev',
+      },
+      runtimeServices,
+    );
   });
 
   it('opens a React security group modal for providers without configured defaults', async () => {
@@ -67,18 +76,25 @@ describe('<CreateSecurityGroupButton />', () => {
       CreateSecurityGroupModal: modal,
     });
 
-    shallow(<CreateSecurityGroupButton app={app} />)
+    mount(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
+        <CreateSecurityGroupButton app={app} />
+      </DeckRuntimeContext.Provider>,
+    )
       .find('button')
       .simulate('click');
     await settle();
     $rootScope.$digest();
 
-    expect(modal.show).toHaveBeenCalledWith({
-      application: app,
-      credentials: undefined,
-      isNew: true,
-      region: undefined,
-    });
+    expect(modal.show).toHaveBeenCalledWith(
+      {
+        application: app,
+        credentials: undefined,
+        isNew: true,
+        region: undefined,
+      },
+      runtimeServices,
+    );
   });
 });
 
