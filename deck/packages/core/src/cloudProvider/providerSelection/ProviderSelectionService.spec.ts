@@ -1,6 +1,3 @@
-import type { IQService, IRootScopeService, IScope } from 'angular';
-import { mock } from 'angular';
-
 import { CloudProviderRegistry } from '..';
 import { ProviderSelectionModal } from './ProviderSelectionModal';
 import { ProviderSelectionService } from './ProviderSelectionService';
@@ -27,21 +24,11 @@ function fakeAccount(provider: string): IAccountDetails {
 }
 
 describe('ProviderSelectionService: API', () => {
-  // required to ensure registry provider is available
-  let $q: IQService, $scope: IScope;
-
-  beforeEach(
-    mock.inject((_$q_: IQService, $rootScope: IRootScopeService) => {
-      $q = _$q_;
-      $scope = $rootScope.$new();
-    }),
-  );
-
   let hasValue: boolean, accounts: IAccountDetails[];
   beforeEach(() => {
-    spyOn(AccountService, 'applicationAccounts').and.callFake(() => $q.when(accounts));
+    spyOn(AccountService, 'applicationAccounts').and.callFake(() => Promise.resolve(accounts));
     spyOn(CloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
-    spyOn(ProviderSelectionModal, 'show').and.returnValue($q.when('modalProvider') as any);
+    spyOn(ProviderSelectionModal, 'show').and.returnValue(Promise.resolve('modalProvider'));
   });
 
   beforeEach(() => {
@@ -70,55 +57,51 @@ describe('ProviderSelectionService: API', () => {
     };
   });
 
-  it('should use the specified, default provider if the requested provider cannot be found', () => {
+  it('should use the specified, default provider if the requested provider cannot be found', async () => {
     let provider = '';
     SETTINGS.defaultProvider = 'defaultProvider';
 
     CloudProviderRegistry.registerProvider('fakeProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('defaultProvider');
   });
 
-  it('should use "aws" as the default provider if the requested provider cannot be found and there is no default set', () => {
+  it('should use "aws" as the default provider if the requested provider cannot be found and there is no default set', async () => {
     let provider = '';
     CloudProviderRegistry.registerProvider('fakeProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('aws');
   });
 
-  it('should return the specified provider if that provider is registered', () => {
+  it('should return the specified provider if that provider is registered', async () => {
     let provider = '';
     hasValue = true;
     accounts = [fakeAccount('testProvider')];
     CloudProviderRegistry.registerProvider('testProvider', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('testProvider');
   });
 
-  it('should return the "use provider" value instead of the configured one if one is specified', () => {
+  it('should return the "use provider" value instead of the configured one if one is specified', async () => {
     let provider = '';
     hasValue = true;
     accounts = [fakeAccount('testProvider')];
     config.securityGroup.useProvider = 'titus';
     CloudProviderRegistry.registerProvider('testProvider', config);
     CloudProviderRegistry.registerProvider('titus', { securityGroup: {} } as any);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('titus');
   });
 
-  it('rejects filtered useProvider options when the effective provider is not registered', () => {
+  it('rejects filtered useProvider options when the effective provider is not registered', async () => {
     let rejection: Error;
     hasValue = true;
     accounts = [fakeAccount('testProvider')];
@@ -128,29 +111,27 @@ describe('ProviderSelectionService: API', () => {
 
     const filterFn = (_app: Application, _acc: IAccountDetails, prov: any) =>
       Boolean(prov.securityGroup.CreateSecurityGroupModal);
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(
+    await ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(
       null,
       (error) => (rejection = error),
     );
-    $scope.$digest();
     expect(rejection.message).toBe('No providers support securityGroup for this action.');
   });
 
-  it('should use the specified provider from the configuration', () => {
+  it('should use the specified provider from the configuration', async () => {
     let provider = '';
     hasValue = true;
     accounts = [fakeAccount('aws'), fakeAccount('titus')];
     CloudProviderRegistry.registerProvider('aws', { securityGroup: {} } as any);
     CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
 
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('aws');
   });
 
-  it('should use the provider "selected" from the "modal"', () => {
+  it('should use the provider "selected" from the "modal"', async () => {
     let provider = '';
     hasValue = true;
     accounts = [fakeAccount('aws'), fakeAccount('titus'), fakeAccount('testProvider')];
@@ -158,14 +139,13 @@ describe('ProviderSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
     CloudProviderRegistry.registerProvider('testProvider', config);
 
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('modalProvider');
   });
 
-  it('filters against the effective provider when useProvider is configured', () => {
+  it('filters against the effective provider when useProvider is configured', async () => {
     let provider = '';
     hasValue = true;
     accounts = [fakeAccount('titus')];
@@ -174,14 +154,13 @@ describe('ProviderSelectionService: API', () => {
 
     const filterFn = (_app: Application, _acc: IAccountDetails, prov: any) =>
       Boolean(prov.securityGroup.CreateSecurityGroupModal);
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('aws');
   });
 
-  it('rejects when every provider is filtered out', () => {
+  it('rejects when every provider is filtered out', async () => {
     let rejection: Error;
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
@@ -190,15 +169,14 @@ describe('ProviderSelectionService: API', () => {
     SETTINGS.defaultProvider = 'defaultProvider';
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(
+    await ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(
       null,
       (error) => (rejection = error),
     );
-    $scope.$digest();
     expect(rejection.message).toBe('No providers support securityGroup for this action.');
   });
 
-  it('should not launch a modal if one of two providers is filtered out by filter function', () => {
+  it('should not launch a modal if one of two providers is filtered out by filter function', async () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
@@ -207,14 +185,13 @@ describe('ProviderSelectionService: API', () => {
     CloudProviderRegistry.registerProvider('kubernetes', config);
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('titus');
   });
 
-  it('should return k8s provider in case the adHocInfrastructureWritesEnabled is set to true and is the only provider configured', () => {
+  it('should return k8s provider in case the adHocInfrastructureWritesEnabled is set to true and is the only provider configured', async () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
@@ -225,14 +202,13 @@ describe('ProviderSelectionService: API', () => {
       adHocInfrastructureWritesEnabled: true,
     };
     CloudProviderRegistry.registerProvider('kubernetes', configuration);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('kubernetes');
   });
 
-  it('should use "aws" as the default provider in case the only provider is k8s and the adHocInfrastructureWritesEnabled is set to false', () => {
+  it('should use "aws" as the default provider in case the only provider is k8s and the adHocInfrastructureWritesEnabled is set to false', async () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
@@ -243,14 +219,13 @@ describe('ProviderSelectionService: API', () => {
       adHocInfrastructureWritesEnabled: false,
     };
     CloudProviderRegistry.registerProvider('kubernetes', configuration);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('aws');
   });
 
-  it('should use "gce" as the default provider in case the only provider is gce and the adHocInfrastructureWritesEnabled is not specified', () => {
+  it('should use "gce" as the default provider in case the only provider is gce and the adHocInfrastructureWritesEnabled is not specified', async () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('gce');
@@ -260,14 +235,13 @@ describe('ProviderSelectionService: API', () => {
       name: 'Kubernetes',
     };
     CloudProviderRegistry.registerProvider('gce', configuration);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('gce');
   });
 
-  it('should not use "k8s" as an option for the modal when the k8s adHocInfrastructureWritesEnabled is set to false and there are others providers', () => {
+  it('should not use "k8s" as an option for the modal when the k8s adHocInfrastructureWritesEnabled is set to false and there are others providers', async () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
@@ -279,14 +253,13 @@ describe('ProviderSelectionService: API', () => {
     };
     CloudProviderRegistry.registerProvider('kubernetes', configuration);
     CloudProviderRegistry.registerProvider('gce', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('gce');
   });
 
-  it('should use "modalProvider" when the k8s adHocInfrastructureWritesEnabled is set to true and there are others providers', () => {
+  it('should use "modalProvider" when the k8s adHocInfrastructureWritesEnabled is set to true and there are others providers', async () => {
     let provider = '';
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
@@ -298,10 +271,9 @@ describe('ProviderSelectionService: API', () => {
     };
     CloudProviderRegistry.registerProvider('kubernetes', configuration);
     CloudProviderRegistry.registerProvider('gce', config);
-    ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+    await ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
-    $scope.$digest();
     expect(provider).toBe('modalProvider');
   });
 
@@ -310,7 +282,7 @@ describe('ProviderSelectionService: API', () => {
   describe('Toggle Infrastructure Ad-hoc Operations', function () {
     // If an application is configured to only have kubernetes as a cloud provider and only one account exists, which is a kubernetes account,
     // then show the create infrastructure buttons if adHocInfrastructureWritesEnabled is set to true
-    it('create infrastructure buttons are enabled for applications with kubernetes cloud provider when adHocInfrastructureWritesEnabled is set to true', () => {
+    it('create infrastructure buttons are enabled for applications with kubernetes cloud provider when adHocInfrastructureWritesEnabled is set to true', async () => {
       let isDisabled_result = false;
       hasValue = true;
       const k8s_account = fakeAccount('kubernetes');
@@ -322,16 +294,15 @@ describe('ProviderSelectionService: API', () => {
         adHocInfrastructureWritesEnabled: true,
       };
       CloudProviderRegistry.registerProvider('kubernetes', configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
+      await ProviderSelectionService.isDisabled(application).then((isDisable) => {
         isDisabled_result = isDisable;
       });
-      $scope.$digest();
       expect(isDisabled_result).toBe(false);
     });
 
     // If an application is configured to only have kubernetes as a cloud provider and only one account exists, which is a kubernetes account,
     // then disable the create infrastructure buttons when adHocInfrastructureWritesEnabled is set to false
-    it('disable create infrastructure buttons for kubernetes applications when adHocInfrastructureWritesEnabled is false', () => {
+    it('disable create infrastructure buttons for kubernetes applications when adHocInfrastructureWritesEnabled is false', async () => {
       let isDisabled_result = false;
       hasValue = true;
       const k8s_account = fakeAccount('kubernetes');
@@ -343,17 +314,16 @@ describe('ProviderSelectionService: API', () => {
         adHocInfrastructureWritesEnabled: false,
       };
       CloudProviderRegistry.registerProvider('kubernetes', configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
+      await ProviderSelectionService.isDisabled(application).then((isDisable) => {
         isDisabled_result = isDisable;
       });
-      $scope.$digest();
       expect(isDisabled_result).toBe(true);
     });
 
     // If the application is configured to have multiple cloud providers (kuberentes and gce) and different accounts exist with
     // different cloud providers (kuberentes and gce), then create infrastructure buttons appear even though adHocInfrastructureWritesEnabled is false.
     // This is because the buttons allow for ad-hoc operations for the non-kubernetes provider (GCE in this case)
-    it('create infrastructure buttons are enabled for apps with a cloud provider that does not have its ad-hoc operation disabled', () => {
+    it('create infrastructure buttons are enabled for apps with a cloud provider that does not have its ad-hoc operation disabled', async () => {
       let provider = '';
       hasValue = true;
       let isDisabled_result = false;
@@ -366,20 +336,21 @@ describe('ProviderSelectionService: API', () => {
       };
       CloudProviderRegistry.registerProvider('kubernetes', kubernetes_configuration);
       CloudProviderRegistry.registerProvider('gce', config);
-      ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
-        provider = _provider;
-      });
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
-        isDisabled_result = isDisable;
-      });
-      $scope.$digest();
+      await Promise.all([
+        ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+          provider = _provider;
+        }),
+        ProviderSelectionService.isDisabled(application).then((isDisable) => {
+          isDisabled_result = isDisable;
+        }),
+      ]);
       expect(isDisabled_result).toBe(false);
       expect(provider).toBe('gce');
     });
 
     // If an application is configured to have kubernetes as a cloud provider, and there are multiple kubernetes accounts, then the create
     // infrastructure buttons are disabled if adHocInfrastructureWritesEnabled is false
-    it('create infrastructure buttons are disabled when all accounts have cloud providers with ad-hoc operations disabled', () => {
+    it('create infrastructure buttons are disabled when all accounts have cloud providers with ad-hoc operations disabled', async () => {
       let isDisabled_result = false;
       hasValue = true;
       const k8s_account_1 = fakeAccount('kubernetes');
@@ -393,16 +364,15 @@ describe('ProviderSelectionService: API', () => {
         adHocInfrastructureWritesEnabled: false,
       };
       CloudProviderRegistry.registerProvider('kubernetes', configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
+      await ProviderSelectionService.isDisabled(application).then((isDisable) => {
         isDisabled_result = isDisable;
       });
-      $scope.$digest();
       expect(isDisabled_result).toBe(true);
     });
 
     // If an application is configured to only have aws as a cloud provider and only one account exists, which is an aws account,
     // then disable the create infrastructure buttons if adHocInfrastructureWritesEnabled is set to false
-    it('create infrastructure buttons are enabled for applications with aws cloud provider when adHocInfrastructureWritesEnabled is set to false', () => {
+    it('create infrastructure buttons are enabled for applications with aws cloud provider when adHocInfrastructureWritesEnabled is set to false', async () => {
       let isDisabled_result = false;
       hasValue = true;
       const aws_account = fakeAccount('aws');
@@ -414,16 +384,15 @@ describe('ProviderSelectionService: API', () => {
         adHocInfrastructureWritesEnabled: false,
       };
       CloudProviderRegistry.registerProvider('aws', configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
+      await ProviderSelectionService.isDisabled(application).then((isDisable) => {
         isDisabled_result = isDisable;
       });
-      $scope.$digest();
       expect(isDisabled_result).toBe(true);
     });
 
     // If an application is configured to only have aws as a cloud provider and only one account exists, which is an aws account,
     // then enable the create infrastructure buttons if adHocInfrastructureWritesEnabled is set to true
-    it('create infrastructure buttons are enabled for applications with aws cloud provider when adHocInfrastructureWritesEnabled is set to true', () => {
+    it('create infrastructure buttons are enabled for applications with aws cloud provider when adHocInfrastructureWritesEnabled is set to true', async () => {
       let isDisabled_result = false;
       hasValue = true;
       const aws_account = fakeAccount('aws');
@@ -435,16 +404,15 @@ describe('ProviderSelectionService: API', () => {
         adHocInfrastructureWritesEnabled: false,
       };
       CloudProviderRegistry.registerProvider('aws', configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
+      await ProviderSelectionService.isDisabled(application).then((isDisable) => {
         isDisabled_result = isDisable;
       });
-      $scope.$digest();
       expect(isDisabled_result).toBe(true);
     });
 
     // If an application is configured to have kubernetes and aws as cloud providers, and there are multiple kubernetes and aws accounts,
     // then the create infrastructure buttons are disabled if both aws and kubernetes providers have ad-hoc operations disabled
-    it('create infrastructure buttons are disabled when all accounts have different cloud providers with ad-hoc operations disabled', () => {
+    it('create infrastructure buttons are disabled when all accounts have different cloud providers with ad-hoc operations disabled', async () => {
       let isDisabled_result = false;
       hasValue = true;
       const k8s_account = fakeAccount('kubernetes');
@@ -463,17 +431,16 @@ describe('ProviderSelectionService: API', () => {
       };
       CloudProviderRegistry.registerProvider('kubernetes', k8s_configuration);
       CloudProviderRegistry.registerProvider('aws', aws_configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
+      await ProviderSelectionService.isDisabled(application).then((isDisable) => {
         isDisabled_result = isDisable;
       });
-      $scope.$digest();
       expect(isDisabled_result).toBe(true);
     });
 
     // If an application is configured to have kubernetes and aws as cloud providers, and there are multiple kubernetes and aws accounts,
     // then the create infrastructure buttons are enabled if both aws and kubernetes providers have ad-hoc operations enabled the resulting
     // element shown when the buttons are clicked is modalProvider (used to allow infrastructure creation for multiple providers, aws and k8s)
-    it('create infrastructure buttons are disabled when all accounts have different cloud providers with ad-hoc operations disabled', () => {
+    it('create infrastructure buttons are disabled when all accounts have different cloud providers with ad-hoc operations disabled', async () => {
       let isDisabled_result = false;
       let provider = '';
       hasValue = true;
@@ -493,13 +460,14 @@ describe('ProviderSelectionService: API', () => {
       };
       CloudProviderRegistry.registerProvider('kubernetes', k8s_configuration);
       CloudProviderRegistry.registerProvider('aws', aws_configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
-        isDisabled_result = isDisable;
-      });
-      ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
-        provider = _provider;
-      });
-      $scope.$digest();
+      await Promise.all([
+        ProviderSelectionService.isDisabled(application).then((isDisable) => {
+          isDisabled_result = isDisable;
+        }),
+        ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+          provider = _provider;
+        }),
+      ]);
       expect(isDisabled_result).toBe(false);
       expect(provider).toBe('modalProvider');
     });
@@ -507,7 +475,7 @@ describe('ProviderSelectionService: API', () => {
     // If an application is configured to have kubernetes and aws as cloud providers, and there are multiple kubernetes and aws accounts,
     // then the create infrastructure buttons are enabled if one of aws or kubernetes provider has ad-hoc operations enabled
     // the selected provider seen in the modal opened is for aws providers
-    it('create infrastructure buttons are enabled when accounts have different providers, but one providers has ad-hoc operations enabled', () => {
+    it('create infrastructure buttons are enabled when accounts have different providers, but one providers has ad-hoc operations enabled', async () => {
       let isDisabled_result = false;
       let provider = '';
 
@@ -528,13 +496,14 @@ describe('ProviderSelectionService: API', () => {
       };
       CloudProviderRegistry.registerProvider('kubernetes', k8s_configuration);
       CloudProviderRegistry.registerProvider('aws', aws_configuration);
-      ProviderSelectionService.isDisabled(application).then((isDisable) => {
-        isDisabled_result = isDisable;
-      });
-      ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
-        provider = _provider;
-      });
-      $scope.$digest();
+      await Promise.all([
+        ProviderSelectionService.isDisabled(application).then((isDisable) => {
+          isDisabled_result = isDisable;
+        }),
+        ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
+          provider = _provider;
+        }),
+      ]);
       expect(isDisabled_result).toBe(false);
       expect(provider).toBe('aws');
     });

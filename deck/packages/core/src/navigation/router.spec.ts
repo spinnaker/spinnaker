@@ -1,7 +1,6 @@
 import { HashLocationService, UIRouterReact } from '@uirouter/react';
 import { UrlService } from '@uirouter/core';
 import { shallow } from 'enzyme';
-import * as ngimport from 'ngimport';
 import React from 'react';
 
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
@@ -190,8 +189,6 @@ describe('configureRouter', () => {
   });
 
   it('provides state change events without an Angular injector', async () => {
-    const originalInjector = ngimport.$injector;
-    (ngimport as any).$injector = undefined;
     window.location.hash = '';
     registerRootState((stateConfig) => stateConfig.addToRootState({ name: 'registeredRoot', url: '/registered-root' }));
 
@@ -207,7 +204,6 @@ describe('configureRouter', () => {
       expect(stateChanges).toContain('home.registeredRoot');
     } finally {
       subscription.unsubscribe();
-      (ngimport as any).$injector = originalInjector;
     }
   });
 
@@ -219,13 +215,21 @@ describe('configureRouter', () => {
     spyOn(ProjectReader, 'getProjectConfig').and.resolveTo(projectConfiguration);
     const router = createRouter();
 
-    await router.stateService.go('home.applications.application.tasks', { application: 'payments' });
+    await router.stateService.go(
+      'home.applications.application.tasks',
+      { application: 'payments' },
+      { location: false },
+    );
     expect(router.stateService.current.name).toBe('home.applications.application.tasks');
 
-    await router.stateService.go('home.project.application.tasks', {
-      application: 'transfers',
-      project: 'delivery',
-    });
+    await router.stateService.go(
+      'home.project.application.tasks',
+      {
+        application: 'transfers',
+        project: 'delivery',
+      },
+      { location: false },
+    );
     expect(router.stateService.current.name).toBe('home.project.application.tasks');
     const projectTransition = router.globals.successfulTransitions.peekTail();
     expect(getApplication).toHaveBeenCalledWith('payments', false);

@@ -4,6 +4,11 @@ describe('Controller: PipelineConfigCtrl', function () {
   var controller;
   var scope;
 
+  async function flushPromises() {
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
   beforeEach(window.module(require('./pipelineConfig.controller').name));
 
   beforeEach(
@@ -13,7 +18,7 @@ describe('Controller: PipelineConfigCtrl', function () {
     }),
   );
 
-  it('should reload pipeline configs even if are already loaded before initializing', function () {
+  it('should reload pipeline configs even if are already loaded before initializing', async function () {
     const application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'pipelineConfigs',
       lazy: true,
@@ -34,11 +39,11 @@ describe('Controller: PipelineConfigCtrl', function () {
     application.pipelineConfigs.data.push({ id: 'a' });
     application.pipelineConfigs.dataUpdated();
 
-    scope.$digest();
+    await flushPromises();
     expect(vm.state.pipelinesLoaded).toBe(true);
   });
 
-  it('should wait until pipeline configs are loaded before initializing', function () {
+  it('should wait until pipeline configs are loaded before initializing', async function () {
     const application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'pipelineConfigs',
       lazy: true,
@@ -55,7 +60,7 @@ describe('Controller: PipelineConfigCtrl', function () {
 
     application.pipelineConfigs.data.push({ id: 'a' });
     application.pipelineConfigs.dataUpdated();
-    scope.$digest();
+    await flushPromises();
 
     expect(vm.state.pipelinesLoaded).toBe(true);
     expect(application.pipelineConfigs.activate.calls.count()).toBe(1);

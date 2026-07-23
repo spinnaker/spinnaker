@@ -3,9 +3,14 @@
 import type { IScope } from 'angular';
 import { mock } from 'angular';
 import { FindArtifactFromExecutionCtrl } from './findArtifactFromExecution.controller';
+import { ApplicationReader } from '../../../../application';
 
 describe('Find Artifact From Execution Controller:', function () {
   let ctrl: FindArtifactFromExecutionCtrl, $scope: IScope, initializeController: (stage: any) => void;
+
+  beforeEach(() => {
+    spyOn(ApplicationReader, 'listApplications').and.returnValue(Promise.resolve([]));
+  });
 
   beforeEach(
     mock.inject(($rootScope: IScope) => {

@@ -448,9 +448,12 @@ describe('<ApplicationConfig />', () => {
     expect(ApplicationWriter.updateApplication).toHaveBeenCalled();
   });
 
-  it('preserves batched application attribute updates when saving', () => {
+  it('preserves batched application attribute updates when saving', async () => {
     const application = buildApplication({ attributes: { appGroup: '', email: 'old@example.com' } });
     spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
+    const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(
+      Promise.resolve({}) as any,
+    );
     const form = shallow(
       <ApplicationAttributesForm
         application={application as any}
@@ -463,10 +466,12 @@ describe('<ApplicationConfig />', () => {
     form.find('TextField[label="App Group"]').prop('onChange')('payments');
     form.update();
     form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    await Promise.resolve();
 
     expect(ApplicationWriter.updateApplication).toHaveBeenCalledWith(
       jasmine.objectContaining({ appGroup: 'payments', email: 'new@example.com' }),
     );
+    expect(waitUntilTaskCompletes).toHaveBeenCalled();
   });
 
   it('rejects fractional instance ports', () => {
