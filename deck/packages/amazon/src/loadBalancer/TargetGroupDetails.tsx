@@ -1,15 +1,15 @@
 import { UISref } from '@uirouter/react';
 import React from 'react';
 
-import type { Application } from '@spinnaker/core';
+import type { Application, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   CopyToClipboard,
   HealthCounts,
   ManagedResourceDetailsIndicator,
   Spinner,
+  withRouter,
 } from '@spinnaker/core';
 
 import type { IAmazonApplicationLoadBalancer, ITargetGroup } from '../domain';
@@ -42,7 +42,10 @@ function elbProtocol(loadBalancer: IAmazonApplicationLoadBalancer): string {
   return loadBalancer.listeners?.some((listener) => listener.protocol === 'HTTPS') ? 'https:' : 'http:';
 }
 
-export class TargetGroupDetails extends React.Component<ITargetGroupDetailsProps, IAmazonTargetGroupDetailsState> {
+export class TargetGroupDetailsComponent extends React.Component<
+  ITargetGroupDetailsProps & IRouterInjectedProps,
+  IAmazonTargetGroupDetailsState
+> {
   public state: IAmazonTargetGroupDetailsState = { loading: true };
 
   private unsubscribeFromRefresh: () => void;
@@ -101,12 +104,12 @@ export class TargetGroupDetails extends React.Component<ITargetGroupDetailsProps
       return;
     }
 
-    AngularServices.$state.params.allowModalToStayOpen = true;
-    AngularServices.$state.go('^', null, { location: 'replace' });
+    this.props.stateService.params.allowModalToStayOpen = true;
+    this.props.stateService.go('^', null, { location: 'replace' });
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   private renderHeader(): JSX.Element {
@@ -288,3 +291,5 @@ export class TargetGroupDetails extends React.Component<ITargetGroupDetailsProps
     );
   }
 }
+
+export const TargetGroupDetails = withRouter(TargetGroupDetailsComponent);

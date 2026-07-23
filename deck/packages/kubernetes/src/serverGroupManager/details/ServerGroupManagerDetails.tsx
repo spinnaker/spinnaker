@@ -1,7 +1,12 @@
 import React from 'react';
 
-import type { Application, IServerGroupManagerDetailsProps, IServerGroupManagerStateParams } from '@spinnaker/core';
-import { AngularServices, CloudProviderLogo, Details, EntityNotifications, IfFeatureEnabled } from '@spinnaker/core';
+import type {
+  Application,
+  IRouterInjectedProps,
+  IServerGroupManagerDetailsProps,
+  IServerGroupManagerStateParams,
+} from '@spinnaker/core';
+import { CloudProviderLogo, Details, EntityNotifications, IfFeatureEnabled, withRouter } from '@spinnaker/core';
 
 import { ServerGroupManagerActions } from './ServerGroupManagerActions';
 import {
@@ -20,11 +25,15 @@ export interface IKubernetesServerGroupManagerDetailsProps extends IServerGroupM
   serverGroupManager: IServerGroupManagerStateParams;
 }
 
-export function ServerGroupManagerDetails(props: IKubernetesServerGroupManagerDetailsProps) {
-  const autoClose = () => {
-    AngularServices.$state.params.allowModalToStayOpen = true;
-    AngularServices.$state.go('^', null, { location: 'replace' });
-  };
+export function closeServerGroupManagerDetails(stateService: IRouterInjectedProps['stateService']): void {
+  stateService.params.allowModalToStayOpen = true;
+  stateService.go('^', null, { location: 'replace' });
+}
+
+export function ServerGroupManagerDetailsComponent(
+  props: IKubernetesServerGroupManagerDetailsProps & IRouterInjectedProps,
+) {
+  const autoClose = () => closeServerGroupManagerDetails(props.stateService);
   const [serverGroupManager, manifest, loading] = useKubernetesServerGroupManagerDetails(props, autoClose);
 
   if (loading || !serverGroupManager || !manifest) return <Details loading={true} />;
@@ -70,3 +79,5 @@ export function ServerGroupManagerDetails(props: IKubernetesServerGroupManagerDe
     </Details>
   );
 }
+
+export const ServerGroupManagerDetails = withRouter(ServerGroupManagerDetailsComponent);

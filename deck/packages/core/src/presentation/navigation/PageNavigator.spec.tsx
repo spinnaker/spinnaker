@@ -1,3 +1,4 @@
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import $ from 'jquery';
 import React from 'react';
@@ -7,33 +8,35 @@ import { PageSection } from './PageSection';
 
 describe('PageNavigator', () => {
   let host: HTMLElement;
+  let router: UIRouterReact;
 
   beforeEach(() => {
+    router = new UIRouterReact();
     host = document.createElement('div');
     document.body.appendChild(host);
   });
 
   afterEach(() => {
     $.fx.off = false;
+    router.dispose();
     host.remove();
   });
 
   it('scrolls to the selected section in direct React usage', () => {
     $.fx.off = true;
     const wrapper = mount(
-      <div className="container" style={{ height: 60, overflowY: 'scroll' }}>
-        <PageNavigator
-          scrollableContainer=".container"
-          reactInjector={{ $state: { go: () => undefined }, $stateParams: {} }}
-        >
-          <PageSection pageKey="one" label="One">
-            <div style={{ height: 100 }} />
-          </PageSection>
-          <PageSection pageKey="two" label="Two">
-            <div style={{ height: 100 }} />
-          </PageSection>
-        </PageNavigator>
-      </div>,
+      <UIRouterContext.Provider value={router}>
+        <div className="container" style={{ height: 60, overflowY: 'scroll' }}>
+          <PageNavigator scrollableContainer=".container">
+            <PageSection pageKey="one" label="One">
+              <div style={{ height: 100 }} />
+            </PageSection>
+            <PageSection pageKey="two" label="Two">
+              <div style={{ height: 100 }} />
+            </PageSection>
+          </PageNavigator>
+        </div>
+      </UIRouterContext.Provider>,
       { attachTo: host },
     );
     wrapper.update();
@@ -48,16 +51,15 @@ describe('PageNavigator', () => {
 
   it('loads navigation styles for direct React usage', () => {
     const wrapper = mount(
-      <div className="container" style={{ height: 60, overflowY: 'scroll' }}>
-        <PageNavigator
-          scrollableContainer=".container"
-          reactInjector={{ $state: { go: () => undefined }, $stateParams: {} }}
-        >
-          <PageSection pageKey="one" label="One">
-            <div style={{ height: 100 }} />
-          </PageSection>
-        </PageNavigator>
-      </div>,
+      <UIRouterContext.Provider value={router}>
+        <div className="container" style={{ height: 60, overflowY: 'scroll' }}>
+          <PageNavigator scrollableContainer=".container">
+            <PageSection pageKey="one" label="One">
+              <div style={{ height: 100 }} />
+            </PageSection>
+          </PageNavigator>
+        </div>
+      </UIRouterContext.Provider>,
       { attachTo: host },
     );
     wrapper.update();

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { ISecurityGroupsByAccountSourceData } from '@spinnaker/core';
+import type { IRouterInjectedProps, ISecurityGroupsByAccountSourceData } from '@spinnaker/core';
 import {
   AngularServices,
   FirewallLabels,
@@ -10,6 +10,7 @@ import {
   SubmitButton,
   TaskMonitor,
   TaskMonitorWrapper,
+  withRouter,
 } from '@spinnaker/core';
 
 export type GceSecurityGroupModalMode = 'create' | 'edit' | 'clone';
@@ -181,14 +182,17 @@ export function initializeGceSecurityGroupForModal(props: IGceSecurityGroupModal
   return securityGroup;
 }
 
-export class GceSecurityGroupModal extends React.Component<IGceSecurityGroupModalProps, IGceSecurityGroupModalState> {
+export class GceSecurityGroupModalComponent extends React.Component<
+  IGceSecurityGroupModalProps & IRouterInjectedProps,
+  IGceSecurityGroupModalState
+> {
   private mounted = false;
 
   public static show(props: IGceSecurityGroupModalProps): Promise<any> {
     return ReactModal.show(GceSecurityGroupModal, props, { dialogClassName: 'modal-lg' });
   }
 
-  public constructor(props: IGceSecurityGroupModalProps) {
+  public constructor(props: IGceSecurityGroupModalProps & IRouterInjectedProps) {
     super(props);
     const application = this.getApplication(props);
     const mode = props.mode || 'create';
@@ -250,8 +254,8 @@ export class GceSecurityGroupModal extends React.Component<IGceSecurityGroupModa
     const showNewSecurityGroup = (): void => {
       const { securityGroup } = this.state;
       this.props.closeModal?.();
-      AngularServices.$state.go(
-        AngularServices.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
+      this.props.stateService.go(
+        this.props.stateService.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
         {
           accountId: accountFor(securityGroup),
           name: securityGroup.name.trim(),
@@ -521,3 +525,7 @@ export class GceSecurityGroupModal extends React.Component<IGceSecurityGroupModa
     );
   }
 }
+
+export const GceSecurityGroupModal = Object.assign(withRouter(GceSecurityGroupModalComponent), {
+  show: GceSecurityGroupModalComponent.show,
+});

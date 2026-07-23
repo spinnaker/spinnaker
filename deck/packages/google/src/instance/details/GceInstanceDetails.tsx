@@ -1,8 +1,8 @@
 import React, { useLayoutEffect, useState } from 'react';
 
+import type { IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   Details,
@@ -10,11 +10,12 @@ import {
   InstanceReader,
   InstanceWriter,
   RecentHistoryService,
+  withRouter,
 } from '@spinnaker/core';
 
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
 
-interface IGceInstanceDetailsProps {
+interface IGceInstanceDetailsProps extends IRouterInjectedProps {
   app: any;
   instance?: any;
   initialInstance?: any;
@@ -22,7 +23,7 @@ interface IGceInstanceDetailsProps {
 }
 
 function getInstanceParams(props: IGceInstanceDetailsProps): any {
-  const stateParams = props.$stateParams || AngularServices.$stateParams || {};
+  const stateParams = props.$stateParams || props.stateParams || {};
   const instance = props.instance || props.initialInstance || {};
   return {
     account: instance.account || stateParams.account || stateParams.accountId,
@@ -150,10 +151,17 @@ function canRegisterWithDiscovery(instance: any): boolean {
   return discoveryHealth[0]?.state === 'OutOfService';
 }
 
-export function GceInstanceActions({ app, instance }: { app: any; instance: any }): JSX.Element {
+export function GceInstanceActionsComponent({
+  app,
+  instance,
+  stateService,
+}: {
+  app: any;
+  instance: any;
+} & IRouterInjectedProps): JSX.Element {
   const closeIfCurrentInstance = () => {
-    if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
-      AngularServices.$state.go('^');
+    if (stateService.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
+      stateService.go('^');
     }
   };
   const confirm = (
@@ -287,7 +295,7 @@ export function GceInstanceActions({ app, instance }: { app: any; instance: any 
   return <InstanceActions actions={actions} />;
 }
 
-export function GceInstanceDetails(props: IGceInstanceDetailsProps): JSX.Element {
+export function GceInstanceDetailsComponent(props: IGceInstanceDetailsProps): JSX.Element {
   const [instance, setInstance] = useState<any>(props.initialInstance || null);
   const [loading, setLoading] = useState<boolean>(true);
   const [notFound, setNotFound] = useState<boolean>(false);
@@ -331,7 +339,7 @@ export function GceInstanceDetails(props: IGceInstanceDetailsProps): JSX.Element
     return () => {
       cancelled = true;
     };
-  }, [props.app, props.instance, props.initialInstance, props.$stateParams]);
+  }, [props.app, props.instance, props.initialInstance, props.$stateParams, props.stateParams]);
 
   if (notFound) {
     return <div className="alert alert-warning">Instance not found.</div>;
@@ -344,7 +352,15 @@ export function GceInstanceDetails(props: IGceInstanceDetailsProps): JSX.Element
           <Details.Header
             icon={<span className="icon-gce" />}
             name={instance.name || instance.instanceId}
-            actions={<GceInstanceActions app={props.app} instance={instance} />}
+            actions={
+              <GceInstanceActionsComponent
+                app={props.app}
+                instance={instance}
+                router={props.router}
+                stateParams={props.stateParams}
+                stateService={props.stateService}
+              />
+            }
           />
           <Details.Content loading={loading}>
             <CollapsibleSection heading="Instance Information" defaultExpanded={true}>
@@ -398,3 +414,6 @@ export function GceInstanceDetails(props: IGceInstanceDetailsProps): JSX.Element
     </Details>
   );
 }
+
+export const GceInstanceActions = withRouter(GceInstanceActionsComponent);
+export const GceInstanceDetails = withRouter(GceInstanceDetailsComponent);

@@ -13,12 +13,15 @@ import { registerAzureProvider } from '../../azure.module';
 import { AzureServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
 import { AzureCloneServerGroupModal } from '../configure/wizard/AzureCloneServerGroupModal';
 import {
-  AzureServerGroupActions,
+  AzureServerGroupActions as RoutedAzureServerGroupActions,
+  AzureServerGroupActionsComponent as AzureServerGroupActions,
   azureServerGroupDetailsGetter,
   azureServerGroupDetailsSections,
 } from './azureServerGroupDetails';
 
 describe('Azure server group details', () => {
+  const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+  const routerProps = { router: {} as any, stateParams: {}, stateService: stateService as any };
   const serverGroupParams = {
     name: 'azure-v001',
     accountId: 'test-account',
@@ -135,7 +138,9 @@ describe('Azure server group details', () => {
     registerAzureProvider();
 
     expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsGetter')).toBe(azureServerGroupDetailsGetter);
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsActions')).toBe(AzureServerGroupActions);
+    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsActions').render).toBe(
+      (RoutedAzureServerGroupActions as any).render,
+    );
     expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsSections')).toEqual(
       azureServerGroupDetailsSections,
     );
@@ -150,7 +155,7 @@ describe('Azure server group details', () => {
     spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
     spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
 
-    const wrapper = mount(<AzureServerGroupActions app={app} serverGroup={serverGroup as any} />);
+    const wrapper = mount(<AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup as any} />);
     wrapper
       .find('a')
       .filterWhere((node) => node.text() === 'Destroy')
@@ -169,6 +174,8 @@ describe('Azure server group details', () => {
     expect(
       (ConfirmationModalService.confirm as jasmine.Spy).calls.allArgs().map(([params]) => params.buttonText),
     ).toEqual(['Destroy azure-v001', 'Disable azure-v001', 'Enable azure-v001']);
+    (ConfirmationModalService.confirm as jasmine.Spy).calls.first().args[0].taskMonitorConfig.onTaskComplete();
+    expect(stateService.go).toHaveBeenCalledWith('^');
   });
 
   it('builds a clone command before opening the clone wizard', async () => {
@@ -181,7 +188,7 @@ describe('Azure server group details', () => {
     );
     spyOn(AzureCloneServerGroupModal, 'show').and.returnValue(Promise.resolve());
 
-    const wrapper = mount(<AzureServerGroupActions app={app} serverGroup={serverGroup as any} />);
+    const wrapper = mount(<AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup as any} />);
     wrapper
       .find('a')
       .filterWhere((node) => node.text() === 'Clone')
@@ -220,7 +227,7 @@ describe('Azure server group details', () => {
     spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
     spyOn(AzureCloneServerGroupModal, 'show').and.returnValue(Promise.resolve());
 
-    const wrapper = mount(<AzureServerGroupActions app={app} serverGroup={serverGroup as any} />);
+    const wrapper = mount(<AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup as any} />);
     wrapper
       .find('a')
       .filterWhere((node) => node.text() === 'Clone')

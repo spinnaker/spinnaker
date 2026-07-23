@@ -1,11 +1,11 @@
-import { AccountService, NetworkReader, AngularServices, TaskMonitor } from '@spinnaker/core';
+import { AccountService, NetworkReader, TaskMonitor } from '@spinnaker/core';
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
 import {
   addSecurityRule,
-  AzureSecurityGroupModal,
+  AzureSecurityGroupModalComponent as AzureSecurityGroupModal,
   getAzureVnetSelectValue,
   initializeAzureSecurityGroupForModal,
   isAzureSecurityGroupValid,
@@ -506,7 +506,6 @@ describe('AzureSecurityGroupModal', () => {
       result: Promise.resolve(),
     } as any);
     const state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(false) };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
     const onNextRefresh = jasmine
       .createSpy('onNextRefresh')
       .and.callFake((_scope: any, callback: () => void) => callback());
@@ -518,6 +517,7 @@ describe('AzureSecurityGroupModal', () => {
       dismissModal: jasmine.createSpy('dismissModal'),
       mode: 'clone',
       securityGroup: { accountId: 'test-account', name: 'fnord-sg', region: 'westus', vpcId: 'vnet-1' },
+      stateService: state,
     } as any) as any;
 
     modal.onTaskComplete();

@@ -6,6 +6,8 @@ import type { Application } from '../../application';
 import { ConfirmationModalService } from '../../confirmationModal';
 import type { IExecution, IExecutionStage, IExecutionStageSummary } from '../../domain';
 import type { IStage } from '../../domain';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Markdown } from '../../presentation/Markdown';
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { Registry } from '../../registry/Registry';
@@ -19,8 +21,8 @@ export interface IStageSummaryWrapperProps {
   stageSummary: IExecutionStageSummary;
 }
 
-export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
-  const { application, execution, stage, stageSummary } = props;
+export function StageSummaryWrapperComponent(props: IStageSummaryWrapperProps & IRouterInjectedProps) {
+  const { application, execution, stage, stageSummary, stateParams, stateService } = props;
 
   const renderStepLabel = (step: IStage) => {
     const StepLabelComponent = Registry.pipeline.getStageConfig(step)?.executionStepLabelComponent;
@@ -31,7 +33,7 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     );
   };
 
-  const getCurrentStep = () => parseInt(AngularServices.$stateParams.step, 10);
+  const getCurrentStep = () => parseInt(stateParams.step, 10);
   const getTopLevelStage = (): IExecutionStage => {
     let parentStageId = stage.parentStageId;
     let topLevelStage = stage;
@@ -132,15 +134,15 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     }
 
     const newState = { step: index } as any;
-    const stageIndex = parseInt(AngularServices.$stateParams.stage, 10);
+    const stageIndex = parseInt(stateParams.stage, 10);
     if (stageIndex) {
       newState.stage = stageIndex;
     }
-    const subStage = parseInt(AngularServices.$stateParams.subStage, 10);
+    const subStage = parseInt(stateParams.subStage, 10);
     if (subStage) {
       newState.subStage = subStage;
     }
-    AngularServices.$state.go('.', newState);
+    stateService.go('.', newState);
   };
 
   const topLevelStage = getTopLevelStage();
@@ -217,3 +219,5 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     </div>
   );
 }
+
+export const StageSummaryWrapper = withRouter(StageSummaryWrapperComponent);

@@ -2,10 +2,9 @@ import { UISref } from '@uirouter/react';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { Application, IInstanceDetailsProps } from '@spinnaker/core';
+import type { Application, IInstanceDetailsProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   InstanceDetailsHeader,
@@ -13,6 +12,7 @@ import {
   InstanceWriter,
   RecentHistoryService,
   timestamp,
+  withRouter,
 } from '@spinnaker/core';
 
 interface IAzureInstanceParams {
@@ -213,8 +213,8 @@ export async function loadAzureInstanceDetails({
   return loadedInstance;
 }
 
-export class AzureInstanceDetails extends React.Component<
-  IAzureInstanceDetailsProps,
+export class AzureInstanceDetailsComponent extends React.Component<
+  IAzureInstanceDetailsProps & IRouterInjectedProps,
   { instance?: IAzureLoadedInstance; loading: boolean }
 > {
   public state = { instance: this.props.initialInstance, loading: !this.props.initialInstance };
@@ -263,8 +263,10 @@ export class AzureInstanceDetails extends React.Component<
     }
   }
 
-  private getInstanceParams(props: IAzureInstanceDetailsProps = this.props): IAzureInstanceParams {
-    const params = props.instance || props.$stateParams;
+  private getInstanceParams(
+    props: IAzureInstanceDetailsProps & Partial<IRouterInjectedProps> = this.props,
+  ): IAzureInstanceParams {
+    const params = props.instance || props.$stateParams || props.stateParams;
     return {
       account: params?.account,
       instanceId: params?.instanceId,
@@ -286,7 +288,7 @@ export class AzureInstanceDetails extends React.Component<
       () => {
         if (!this.isUnmounted && requestId === this.activeRequestId) {
           this.setState({ loading: false });
-          AngularServices.$state.go('^');
+          this.props.stateService.go('^');
         }
       },
     );
@@ -308,7 +310,13 @@ export class AzureInstanceDetails extends React.Component<
           />
           {!loading && instance && !instance.instanceIdNotFound && (
             <div className="actions">
-              <AzureInstanceActions app={app} instance={instance} />
+              <AzureInstanceActionsComponent
+                app={app}
+                instance={instance}
+                router={this.props.router}
+                stateParams={this.props.stateParams}
+                stateService={this.props.stateService}
+              />
             </div>
           )}
         </div>
@@ -349,17 +357,18 @@ function canRegisterWithDiscovery(instance: IAzureLoadedInstance): boolean {
   return hasHealthState(instance, 'Discovery', 'OutOfService');
 }
 
-export function AzureInstanceActions({
+export function AzureInstanceActionsComponent({
   app,
   instance,
+  stateService,
 }: {
   app: Application;
   instance: IAzureLoadedInstance;
-}): JSX.Element {
+} & IRouterInjectedProps): JSX.Element {
   const loadBalancerNames = (instance.loadBalancers || []).join(' and ');
   const closeIfCurrentInstance = () => {
-    if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
-      AngularServices.$state.go('^');
+    if (stateService.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
+      stateService.go('^');
     }
   };
   const confirm = (
@@ -486,6 +495,9 @@ export function AzureInstanceActions({
     </Dropdown>
   );
 }
+
+export const AzureInstanceActions = withRouter(AzureInstanceActionsComponent);
+export const AzureInstanceDetails = withRouter(AzureInstanceDetailsComponent);
 
 export function AzureInstanceInformationSection({ instance }: { instance: IAzureLoadedInstance }): JSX.Element {
   return (

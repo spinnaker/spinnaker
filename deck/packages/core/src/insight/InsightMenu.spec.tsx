@@ -6,14 +6,14 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 
 import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
-import { InsightMenu } from './InsightMenu';
+import { InsightMenuComponent } from './InsightMenu';
 import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
-import { AngularServices } from '../angular/services';
 import type { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 
 describe('<InsightMenu />', () => {
   let component: ReactWrapper<IInsightMenuProps, IInsightMenuState>;
+  let go: jasmine.Spy;
 
   beforeEach(() => {
     mock.module(($provide: any) => {
@@ -24,15 +24,19 @@ describe('<InsightMenu />', () => {
     });
   });
   beforeEach(mock.inject());
+  beforeEach(() => (go = jasmine.createSpy('go')));
 
   function getNewMenu(params: object): ReactWrapper<IInsightMenuProps, any> {
     // Set defaults to zero so we only need to pass in the prop we want rendered
     const mergedParams = { ...{ createApp: false, createProject: false, refreshCaches: false }, ...params };
     return mount(
-      <InsightMenu
+      <InsightMenuComponent
         createApp={mergedParams.createApp}
         createProject={mergedParams.createProject}
         refreshCaches={mergedParams.refreshCaches}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{ go } as any}
       />,
     );
   }
@@ -90,8 +94,6 @@ describe('<InsightMenu />', () => {
   });
 
   it('opens the direct application modal and routes after creation', async () => {
-    const go = jasmine.createSpy('go');
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue({ go } as any);
     spyOn(CreateApplicationModal, 'show').and.returnValue(Promise.resolve({ name: 'myapp' }) as any);
     component = getNewMenu({ createApp: true });
 
