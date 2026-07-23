@@ -1,12 +1,14 @@
 import { Registry } from '@spinnaker/core';
 
-import { AmazonStageConfig } from '../AmazonStageConfig';
+import { AwsResizeAsgStageConfig, validateAwsResizeAsgStage } from './AwsResizeAsgStageConfig';
 
 export const awsResizeAsgStage = {
+  key: 'resizeServerGroup',
   provides: 'resizeServerGroup',
   alias: 'resizeAsg',
   cloudProvider: 'aws',
-  component: AmazonStageConfig,
+  component: AwsResizeAsgStageConfig,
+  executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
   accountExtractor: (stage) => [stage.context.credentials],
   configAccountExtractor: (stage) => [stage.credentials],
   validators: [
@@ -20,6 +22,11 @@ export const awsResizeAsgStage = {
     { type: 'requiredField', fieldName: 'regions' },
     { type: 'requiredField', fieldName: 'cluster' },
     { type: 'requiredField', fieldName: 'credentials', fieldLabel: 'account' },
+    {
+      type: 'custom',
+      preventSave: true,
+      validate: (_pipeline, stage) => validateAwsResizeAsgStage(stage),
+    },
   ],
 };
 
