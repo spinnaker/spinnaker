@@ -694,6 +694,38 @@ describe('Azure package registration', () => {
     expect(wrapper.find(Spinner).exists()).toBe(false);
   });
 
+  it('clears the Azure bake scalar region when that region is deselected', () => {
+    const stage = { account: 'bakery', region: 'eastus', regions: ['eastus', 'westus'] } as any;
+    const updateStage = jasmine.createSpy('updateStage');
+    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)), {
+      disableLifecycleMethods: true,
+    });
+    wrapper.setState({ loading: false, regions: ['eastus', 'westus'] });
+
+    wrapper
+      .find('input[type="checkbox"]')
+      .at(0)
+      .simulate('change', { target: { checked: false } });
+
+    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ region: undefined, regions: ['westus'] }));
+  });
+
+  it('preserves the Azure bake scalar region when a different region is deselected', () => {
+    const stage = { account: 'bakery', region: 'eastus', regions: ['eastus', 'westus'] } as any;
+    const updateStage = jasmine.createSpy('updateStage');
+    const wrapper = shallow(React.createElement(AzureBakeStageConfig, bakeStageProps(stage, updateStage)), {
+      disableLifecycleMethods: true,
+    });
+    wrapper.setState({ loading: false, regions: ['eastus', 'westus'] });
+
+    wrapper
+      .find('input[type="checkbox"]')
+      .at(1)
+      .simulate('change', { target: { checked: false } });
+
+    expect(updateStage).toHaveBeenCalledWith(jasmine.objectContaining({ region: 'eastus', regions: ['eastus'] }));
+  });
+
   it('preserves Azure bake source-image mode field clearing and managed image behavior', async () => {
     spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ name: 'user@example.com' } as any);
     spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
