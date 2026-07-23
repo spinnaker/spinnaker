@@ -21,10 +21,10 @@ plugins {
 
 allprojects {
   apply plugin: "io.spinnaker.project"
+  group = "io.spinnaker.halyard"
 }
 
 subprojects {
-  group = "io.spinnaker.halyard"
   apply plugin: 'java-library'
   apply plugin: 'groovy'
 
