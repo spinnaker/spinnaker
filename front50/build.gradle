@@ -22,11 +22,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.front50"
 }
 
 subprojects { project ->
-  group = "io.spinnaker.front50"
-
   if (name != "front50-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
