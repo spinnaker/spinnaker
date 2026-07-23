@@ -1,51 +1,45 @@
-import { mock } from 'angular';
-
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InfrastructureCaches } from '../cache';
 import type { ISecurityGroup } from '../domain';
+import { nativePromiseService } from '../utils/nativePromiseService';
 import type {
   ISecurityGroupDetail,
   ISecurityGroupsByAccountSourceData,
   SecurityGroupReader,
 } from './securityGroupReader.service';
-import { SECURITY_GROUP_READER } from './securityGroupReader.service';
+import { SecurityGroupReader as DirectSecurityGroupReader } from './securityGroupReader.service';
 import type { SecurityGroupTransformerService } from './securityGroupTransformer.service';
-import { SECURITY_GROUP_TRANSFORMER_SERVICE } from './securityGroupTransformer.service';
 
 describe('Service: securityGroupReader', function () {
-  let $q: ng.IQService, $scope: ng.IRootScopeService, reader: SecurityGroupReader;
+  let reader: SecurityGroupReader;
 
-  beforeEach(mock.module(SECURITY_GROUP_TRANSFORMER_SERVICE, SECURITY_GROUP_READER));
-  beforeEach(
-    mock.inject(function (
-      _$q_: ng.IQService,
-      $rootScope: ng.IRootScopeService,
-      _providerServiceDelegate_: any,
-      securityGroupTransformer: SecurityGroupTransformerService,
-      _securityGroupReader_: SecurityGroupReader,
-    ) {
-      reader = _securityGroupReader_;
-      $q = _$q_;
-      $scope = $rootScope.$new();
+  beforeEach(() => {
+    const cacheStub: any = {
+      get: () => null as any,
+      put: () => {},
+    };
+    spyOn(InfrastructureCaches, 'get').and.returnValue(cacheStub);
 
-      const cacheStub: any = {
-        get: () => null as any,
-        put: () => {},
-      };
-      spyOn(InfrastructureCaches, 'get').and.returnValue(cacheStub);
-
-      spyOn(securityGroupTransformer, 'normalizeSecurityGroup').and.callFake((securityGroup: ISecurityGroup) => {
-        return $q.when(securityGroup);
-      });
-      spyOn(_providerServiceDelegate_, 'getDelegate').and.returnValue({
+    const securityGroupTransformer = {
+      normalizeSecurityGroup: (securityGroup: ISecurityGroup) => Promise.resolve(securityGroup),
+    } as SecurityGroupTransformerService;
+    const providerServiceDelegate = {
+      hasDelegate: () => false,
+      getDelegate: () => ({
         resolveIndexedSecurityGroup: (idx: any, container: ISecurityGroup, id: string) => {
           return idx[container.account][container.region][id];
         },
-      });
-    }),
-  );
+      }),
+    };
+    reader = new DirectSecurityGroupReader(
+      { warn: () => undefined } as any,
+      nativePromiseService,
+      securityGroupTransformer,
+      providerServiceDelegate as any,
+    );
+  });
 
   it('attaches load balancer to firewall usages', async function () {
     const http = mockHttpClient();
@@ -55,20 +49,20 @@ describe('Service: securityGroupReader', function () {
       'app',
       {
         key: 'securityGroups',
-        loader: () => $q.resolve([]),
-        onLoad: (_app, _data) => $q.resolve(_data),
+        loader: () => Promise.resolve([]),
+        onLoad: (_app, _data) => Promise.resolve(_data),
         defaultData: [],
       },
       {
         key: 'serverGroups',
-        loader: () => $q.resolve([]),
-        onLoad: (_app, _data) => $q.resolve(_data),
+        loader: () => Promise.resolve([]),
+        onLoad: (_app, _data) => Promise.resolve(_data),
         defaultData: [],
       },
       {
         key: 'loadBalancers',
         loader: () =>
-          $q.resolve([
+          Promise.resolve([
             {
               name: 'my-elb',
               account: 'test',
@@ -76,14 +70,12 @@ describe('Service: securityGroupReader', function () {
               securityGroups: ['not-cached'],
             },
           ]),
-        onLoad: (_app, _data) => $q.resolve(_data),
+        onLoad: (_app, _data) => Promise.resolve(_data),
         defaultData: [],
       },
     );
 
-    application.serverGroups.refresh();
-    application.loadBalancers.refresh();
-    $scope.$digest();
+    await Promise.all([application.serverGroups.refresh(), application.loadBalancers.refresh()]);
 
     http.expectGET(`/securityGroups`).respond(200, {
       test: {
@@ -92,9 +84,9 @@ describe('Service: securityGroupReader', function () {
         },
       },
     });
-    reader.getApplicationSecurityGroups(application, null).then((results: any[]) => (data = results));
+    const securityGroupsPromise = reader.getApplicationSecurityGroups(application, null);
     await http.flush();
-    $scope.$digest();
+    data = await securityGroupsPromise;
     const group: ISecurityGroup = data[0];
     expect(group.name).toBe('not-cached');
     expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
@@ -143,14 +135,14 @@ describe('Service: securityGroupReader', function () {
       },
       {
         key: 'serverGroups',
-        loader: () => $q.resolve([]),
-        onLoad: (_app, _data) => $q.resolve(_data),
+        loader: () => Promise.resolve([]),
+        onLoad: (_app, _data) => Promise.resolve(_data),
         defaultData: [],
       },
       {
         key: 'loadBalancers',
         loader: () =>
-          $q.resolve([
+          Promise.resolve([
             {
               name: 'my-elb',
               account: 'test',
@@ -158,15 +150,16 @@ describe('Service: securityGroupReader', function () {
               securityGroups: ['not-cached'],
             },
           ]),
-        onLoad: (_app, _data) => $q.resolve(_data),
+        onLoad: (_app, _data) => Promise.resolve(_data),
         defaultData: [],
       },
     );
 
-    application.getDataSource('securityGroups').refresh();
-    application.getDataSource('serverGroups').refresh();
-    application.getDataSource('loadBalancers').refresh();
-    $scope.$digest();
+    await Promise.all([
+      application.getDataSource('securityGroups').refresh(),
+      application.getDataSource('serverGroups').refresh(),
+      application.getDataSource('loadBalancers').refresh(),
+    ]);
 
     http.expectGET('/securityGroups').respond(200, {
       test: {
@@ -176,8 +169,9 @@ describe('Service: securityGroupReader', function () {
       },
     });
 
-    reader.getApplicationSecurityGroups(application, []).then((results) => (data = results));
+    const securityGroupsPromise = reader.getApplicationSecurityGroups(application, []);
     await http.flush();
+    data = await securityGroupsPromise;
     const group: ISecurityGroup = data[0];
     expect(group.name).toBe('not-cached');
     expect(group.usages.loadBalancers[0]).toEqual({ name: application.getDataSource('loadBalancers').data[0].name });
@@ -187,8 +181,8 @@ describe('Service: securityGroupReader', function () {
     const http = mockHttpClient();
     const application: Application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'securityGroups',
-      loader: () => $q.resolve([]),
-      onLoad: (_app, _data) => $q.resolve(_data),
+      loader: () => Promise.resolve([]),
+      onLoad: (_app, _data) => Promise.resolve(_data),
       defaultData: [],
     });
 

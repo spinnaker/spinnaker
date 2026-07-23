@@ -1,5 +1,4 @@
 import type { IHttpPromiseCallbackArg } from 'angular';
-import { $http } from 'ngimport';
 import type { Subscription } from 'rxjs';
 import { fromEvent as observableFromEvent } from 'rxjs';
 
@@ -15,24 +14,36 @@ interface IAuthResponse {
   isAdmin?: boolean;
 }
 
+export interface IAuthenticationHttpClient {
+  get<T>(config: { url: string; headers?: Record<string, string> }): PromiseLike<T>;
+}
+
+const fetchAuthenticationHttpClient: IAuthenticationHttpClient = {
+  get: async <T>({ url, headers }: { url: string; headers?: Record<string, string> }) => {
+    const response = await fetch(url, { credentials: 'include', headers });
+    if (!response.ok) {
+      throw response;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    return (contentType.includes('json') ? await response.json() : await response.text()) as T;
+  },
+};
+
+let authenticationHttpClient = fetchAuthenticationHttpClient;
+
+export function setAuthenticationHttpClient(client: IAuthenticationHttpClient = fetchAuthenticationHttpClient): void {
+  authenticationHttpClient = client;
+}
+
 export class AuthenticationInitializer {
   private static userLoggedOut = false;
   private static visibilityWatch: Subscription = null;
 
   private static get<T = IAuthResponse>(url: string, config?: any): PromiseLike<IHttpPromiseCallbackArg<T>> {
-    if (typeof $http === 'function') {
-      return $http.get<T>(url, config);
-    }
-
-    return fetch(url, { credentials: 'include', headers: config?.headers }).then(async (response) => {
-      if (!response.ok) {
-        throw response;
-      }
-
-      const contentType = response.headers.get('content-type') || '';
-      const data = (contentType.includes('json') ? await response.json() : await response.text()) as T;
-      return ({ data } as unknown) as IHttpPromiseCallbackArg<T>;
-    });
+    return Promise.resolve(
+      authenticationHttpClient.get<T>({ url, headers: config?.headers }),
+    ).then((data) => (({ data } as unknown) as IHttpPromiseCallbackArg<T>));
   }
 
   private static checkForReauthentication(): void {

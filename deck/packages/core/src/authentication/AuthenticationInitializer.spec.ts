@@ -6,8 +6,9 @@ import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE, initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
 import { AngularServices } from '../angular/services';
+import { RequestBuilder } from '../api/ApiService';
+import { FailClosedHttpClient, mockHttpClient } from '../api/mock/jasmine';
 import { SETTINGS } from '../config/settings';
-import type { IDeckRootScope } from '../domain';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 
@@ -32,26 +33,45 @@ describe('AuthenticationInitializer', function () {
   beforeEach(() => AuthenticationService.reset());
   beforeEach(mock.module(AUTHENTICATION_MODULE));
 
-  let $httpBackend: ng.IHttpBackendService, $rootScope: IDeckRootScope;
-
-  beforeEach(
-    mock.inject((_$httpBackend_: ng.IHttpBackendService, _$rootScope_: IDeckRootScope) => {
-      $httpBackend = _$httpBackend_;
-      $rootScope = _$rootScope_;
-    }),
-  );
-
   afterEach(() => {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
     authenticationUnsubscribes.splice(0).forEach((unsubscribe) => unsubscribe());
     AuthenticationService.reset();
     SETTINGS.resetToOriginal();
   });
 
   describe('authenticateUser', () => {
+    it('keeps an unstubbed authentication request fail-closed without using fetch', async () => {
+      const client = RequestBuilder.defaultHttpClient as FailClosedHttpClient;
+      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      const fetchRequest = spyOn(window, 'fetch');
+
+      const result = await AuthenticationInitializer.authenticateUser();
+
+      expect(result).toBe(false);
+      expect(loginRedirect).toHaveBeenCalledTimes(1);
+      expect(fetchRequest).not.toHaveBeenCalled();
+      expect(client.requests).toEqual([{ method: 'GET', url: SETTINGS.authEndpoint }]);
+      client.requests.length = 0;
+    });
+
+    it('uses the controlled HTTP client configured by the test harness', async () => {
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'controlled-user', roles: ['controlled-role'] });
+      const fetchRequest = spyOn(window, 'fetch');
+
+      const authentication = AuthenticationInitializer.authenticateUser();
+      await http.flush();
+
+      expect(await authentication).toBe(true);
+      expect(fetchRequest).not.toHaveBeenCalled();
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+        jasmine.objectContaining({ name: 'controlled-user', roles: ['controlled-role'], authenticated: true }),
+      );
+    });
+
     it('resolves true after updating the authenticated user', async function () {
-      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, {
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(200, {
         username: 'joe!',
         roles: ['role-a'],
         canMintApiTokens: true,
@@ -60,13 +80,12 @@ describe('AuthenticationInitializer', function () {
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      expect($rootScope.authenticating).toBe(true);
-      await Promise.resolve();
-      $httpBackend.flush();
+      expect((AngularServices.$rootScope as any).authenticating).toBe(true);
+      await http.flush();
       const result = await authentication;
 
       expect(result).toBe(true);
-      expect($rootScope.authenticating).toBe(false);
+      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
         jasmine.objectContaining({
           name: 'joe!',
@@ -79,12 +98,12 @@ describe('AuthenticationInitializer', function () {
     });
 
     it('defaults API-token and admin permissions when the auth response omits them', async function () {
-      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      await Promise.resolve();
-      $httpBackend.flush();
+      await http.flush();
       await authentication;
 
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
@@ -99,17 +118,17 @@ describe('AuthenticationInitializer', function () {
         authenticated: false,
         roles: ['stale-role'],
       });
-      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, {});
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(200, {});
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      await Promise.resolve();
-      $httpBackend.flush();
+      await http.flush();
       const result = await authentication;
 
       expect(result).toBe(false);
       expect(loginRedirect).toHaveBeenCalledTimes(1);
-      expect($rootScope.authenticating).toBe(false);
+      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual({
         name: '[anonymous]',
         authenticated: false,
@@ -126,17 +145,17 @@ describe('AuthenticationInitializer', function () {
         authenticated: false,
         roles: ['stale-role'],
       });
-      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(500);
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(500, null);
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      await Promise.resolve();
-      $httpBackend.flush();
+      await http.flush();
       const result = await authentication;
 
       expect(result).toBe(false);
       expect(loginRedirect).toHaveBeenCalledTimes(1);
-      expect($rootScope.authenticating).toBe(false);
+      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual({
         name: '[anonymous]',
         authenticated: false,
@@ -153,17 +172,17 @@ describe('AuthenticationInitializer', function () {
         authenticated: false,
         roles: ['stale-role'],
       });
-      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, null);
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(200, null);
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      await Promise.resolve();
-      $httpBackend.flush();
+      await http.flush();
       const result = await authentication;
 
       expect(result).toBe(false);
       expect(loginRedirect).toHaveBeenCalledTimes(1);
-      expect($rootScope.authenticating).toBe(false);
+      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual({
         name: '[anonymous]',
         authenticated: false,
@@ -184,17 +203,17 @@ describe('AuthenticationInitializer', function () {
         }),
         AuthenticationService.onAuthentication(nextListener),
       );
-      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!', roles: ['role-a'] });
+      const http = mockHttpClient();
+      http.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!', roles: ['role-a'] });
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      await Promise.resolve();
-      $httpBackend.flush();
+      await http.flush();
       const result = await authentication;
 
       expect(result).toBe(true);
       expect(loginRedirect).not.toHaveBeenCalled();
-      expect($rootScope.authenticating).toBe(false);
+      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(nextListener).toHaveBeenCalledTimes(1);
       expect(reportError).toHaveBeenCalledOnceWith('Authentication listener failed', listenerError);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(

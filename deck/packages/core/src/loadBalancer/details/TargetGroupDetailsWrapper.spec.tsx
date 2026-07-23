@@ -1,4 +1,3 @@
-import { $templateCache } from 'ngimport';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -26,7 +25,6 @@ describe('TargetGroupDetails', () => {
 
   afterEach(() => {
     (CloudProviderRegistry.getValue as any).and?.callThrough?.();
-    ($templateCache.get as any).and?.callThrough?.();
   });
 
   it('renders provider React target group details when configured', () => {
@@ -49,8 +47,6 @@ describe('TargetGroupDetails', () => {
       };
       return values[key] || null;
     });
-    spyOn($templateCache, 'get').and.returnValue('<legacy-target-group-details />');
-
     const component = shallow(<TargetGroupDetails {...props} />);
 
     expect(component.text()).toContain('Target group details for aws must be migrated to React.');
