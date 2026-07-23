@@ -9,7 +9,8 @@ import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';
 import type { ISortFilter } from '../filterModel';
-import type { IStateChange } from '../reactShims';
+import type { IRouterInjectedProps, IRouterStateChange } from '../navigation/routerContext';
+import { stateChangeSuccess$, withRouter } from '../navigation/routerContext';
 import { ClusterState } from '../state';
 
 export interface IAllClustersGroupingsProps {
@@ -22,7 +23,10 @@ export interface IAllClustersGroupingsState {
   sortFilter: ISortFilter;
 }
 
-export class AllClustersGroupings extends React.Component<IAllClustersGroupingsProps, IAllClustersGroupingsState> {
+export class AllClustersGroupingsComponent extends React.Component<
+  IAllClustersGroupingsProps & IRouterInjectedProps,
+  IAllClustersGroupingsState
+> {
   private clusterFilterService = ClusterState.filterService;
   private clusterFilterModel = ClusterState.filterModel;
 
@@ -34,7 +38,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
 
   private listRef: List;
 
-  constructor(props: IAllClustersGroupingsProps) {
+  constructor(props: IAllClustersGroupingsProps & IRouterInjectedProps) {
     super(props);
     this.cellCache = new CellMeasurerCache({
       fixedWidth: true,
@@ -73,7 +77,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     this.cellCache.clearAll();
   };
 
-  private handleRouteChange = (stateChange: IStateChange) => {
+  private handleRouteChange = (stateChange: IRouterStateChange) => {
     const { to } = stateChange;
     if (
       to.name === 'home.applications.application.insight.clusters.instanceDetails' ||
@@ -95,7 +99,7 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
       );
     };
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
-    this.routeChangedSubscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(this.handleRouteChange);
+    this.routeChangedSubscription = stateChangeSuccess$(this.props.router).subscribe(this.handleRouteChange);
 
     const getSortFilter = () => this.clusterFilterModel.asFilterModel.sortFilter;
     const onFilterChanged = ({ ...sortFilter }: any) => {
@@ -117,16 +121,16 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
   }
 
   private scrollToRow = () => {
-    const { $stateParams } = AngularServices;
-    // Automatically scroll server group into view if deep linkedif ($stateParams.serverGroup) {
+    const { stateParams } = this.props;
+    // Automatically scroll server group into view if deep linkedif (stateParams.serverGroup) {
     this.clusterFilterService.groupsUpdatedStream.pipe(take(1)).subscribe(() => {
       const scrollToRow = this.state.groups.findIndex((group) =>
         group.subgroups.some((subgroup) =>
           subgroup.serverGroups.some(
             (sg) =>
-              sg.account === $stateParams.accountId &&
-              sg.name === $stateParams.serverGroup &&
-              sg.region === $stateParams.region,
+              sg.account === stateParams.accountId &&
+              sg.name === stateParams.serverGroup &&
+              sg.region === stateParams.region,
           ),
         ),
       );
@@ -203,3 +207,6 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     );
   }
 }
+
+export const AllClustersGroupings = withRouter(AllClustersGroupingsComponent);
+AllClustersGroupings.displayName = 'AllClustersGroupings';

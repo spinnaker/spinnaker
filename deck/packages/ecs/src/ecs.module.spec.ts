@@ -11,7 +11,9 @@ describe('ECS package registration', () => {
   it('registers ECS through React components', () => {
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.transformer')).toBe(EcsServerGroupTransformer);
     expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.commandBuilder')).toBe(EcsServerGroupCommandBuilder);
-    expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsActions')).toBe(EcsServerGroupActions);
+    expect(CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsActions').displayName).toBe(
+      EcsServerGroupActions.displayName,
+    );
     expect(CloudProviderRegistry.getValue('ecs', 'adHocInfrastructureWritesEnabled')).toBeTrue();
     const detailsSections = CloudProviderRegistry.getValue('ecs', 'serverGroup.detailsSections');
     expect(detailsSections.length).toBe(9);

@@ -2,11 +2,16 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService, ManagedMenuItem } from '@spinnaker/core';
+import {
+  AngularServices,
+  ConfirmationModalService,
+  ManagedMenuItem,
+  ServerGroupWarningMessageService,
+} from '@spinnaker/core';
 
 import type { IAmazonServerGroupView } from '../../domain';
 import { AWSProviderSettings } from '../../aws.settings';
-import { AmazonServerGroupActions } from './AmazonServerGroupActions';
+import { AmazonServerGroupActionsComponent as AmazonServerGroupActions } from './AmazonServerGroupActions';
 import { AmazonRollbackServerGroupModal } from './rollback';
 
 describe('<AmazonServerGroupActions /> rollback integration', () => {
@@ -139,6 +144,32 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     expect(confirm).toHaveBeenCalledTimes(1);
     expect(show).not.toHaveBeenCalled();
     expect(enable).not.toHaveBeenCalled();
+  });
+
+  it('closes destroyed server group details through the injected state service', () => {
+    const selected = buildServerGroup();
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+    const confirm = spyOn(ConfirmationModalService, 'confirm');
+    spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
+    const wrapper = shallow(
+      <AmazonServerGroupActions
+        app={buildApplication([selected])}
+        router={{} as any}
+        serverGroup={selected}
+        stateParams={{}}
+        stateService={stateService as any}
+      />,
+    );
+
+    action(wrapper, 'Destroy').prop('onClick')();
+    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+
+    expect(stateService.includes).toHaveBeenCalledWith('**.serverGroup', {
+      accountId: 'test-account',
+      name: 'test-app-main-v002',
+      region: 'us-east-1',
+    });
+    expect(stateService.go).toHaveBeenCalledWith('^');
   });
 });
 

@@ -3,12 +3,16 @@ const { readdirSync, readFileSync } = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const workspaceRoot = path.resolve(__dirname, '../../..');
+const deckRoot = path.resolve(__dirname, '../../..');
+const repositoryRoot = path.resolve(deckRoot, '..');
 const coreSourceRoot = path.resolve(__dirname, '../../core/src');
+const routerConsumerRoots = [deckRoot, path.join(repositoryRoot, 'deck-kayenta/src')];
 const angularServicesPath = path.join(coreSourceRoot, 'angular/services.ts');
 const bridgePath = path.join(coreSourceRoot, 'navigation/legacyStateConfig.bridge.ts');
 const legacyImportPackage = ['ng', 'import'].join('');
 const routeProvider = /['"](?:stateConfigProvider|applicationStateProvider)['"]/;
+const routerFacadeMembers = ['$' + 'state', '$' + 'stateParams', '$' + 'uiRouter', 'state' + 'Events', 'h' + 'as'];
+const angularServicesName = 'Angular' + 'Services';
 
 function productionSourceFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -39,6 +43,26 @@ function workspaceSourceFiles(directory) {
     }
     return /\.(?:js|jsx|json|ts|tsx)$/.test(entry.name) ? [entryPath] : [];
   });
+}
+
+function usesRouterFacadeMember(source, member) {
+  if (source.includes(`${angularServicesName}.${member}`)) {
+    return true;
+  }
+
+  const escapedMember = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const indirectPropertyAccess = new RegExp(
+    `${angularServicesName}\\s*\\[\\s*['"]${escapedMember}['"]\\s*\\]|` +
+      `spyOnProperty\\(\\s*${angularServicesName}\\s*,\\s*['"]${escapedMember}['"]`,
+  );
+  if (indirectPropertyAccess.test(source)) {
+    return true;
+  }
+  const memberBinding = new RegExp(`(?:^|,)\\s*${escapedMember}(?:\\s*:|\\s*(?:,|$))`);
+  const destructuring = new RegExp(`(?:const|let|var)\\s*\\{([^{}]*)\\}\\s*=\\s*${angularServicesName}\\b`, 'g');
+  return Array.from(source.matchAll(destructuring), (match) => match[1]).some((bindings) =>
+    memberBinding.test(bindings),
+  );
 }
 
 test('Core routes do not depend on the legacy Angular state config bridge', () => {
@@ -73,10 +97,40 @@ test('AngularServices does not depend on the Angular global injector', () => {
   assert.doesNotMatch(source, /\$injector/);
 });
 
+test('AngularServices does not expose router facade members', () => {
+  const source = readFileSync(angularServicesPath, 'utf8');
+
+  routerFacadeMembers.forEach((member) => {
+    const escapedMember = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.doesNotMatch(source, new RegExp(`(?:get\\s+)?${escapedMember}\\s*(?:\\(|\\{|:)`));
+  });
+});
+
 test('workspace source and dependency metadata do not reference the legacy Angular import bridge', () => {
-  const references = workspaceSourceFiles(workspaceRoot)
+  const references = workspaceSourceFiles(deckRoot)
     .filter((file) => readFileSync(file, 'utf8').includes(legacyImportPackage))
-    .map((file) => path.relative(workspaceRoot, file));
+    .map((file) => path.relative(deckRoot, file));
 
   assert.deepEqual(references, []);
+});
+
+test('Deck and Deck-Kayenta source and tests do not use AngularServices router facade members', () => {
+  const references = routerConsumerRoots
+    .flatMap((root) => workspaceSourceFiles(root))
+    .flatMap((file) => {
+      const source = readFileSync(file, 'utf8');
+      return routerFacadeMembers
+        .filter((member) => usesRouterFacadeMember(source, member))
+        .map((member) => `${path.relative(repositoryRoot, file)}: ${member}`);
+    });
+
+  assert.deepEqual(references, []);
+});
+
+test('router facade scan includes Deck functional tests', () => {
+  const scannedFiles = routerConsumerRoots
+    .flatMap((root) => workspaceSourceFiles(root))
+    .map((file) => path.relative(deckRoot, file));
+
+  assert.ok(scannedFiles.includes('test/functional/cypress/integration/core/bootstrap.spec.js'));
 });

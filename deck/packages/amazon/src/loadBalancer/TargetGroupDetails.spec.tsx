@@ -1,13 +1,10 @@
-import { AngularServices } from '@spinnaker/core';
-
-import { TargetGroupDetails } from './TargetGroupDetails';
+import { TargetGroupDetailsComponent as TargetGroupDetails } from './TargetGroupDetails';
 
 describe('TargetGroupDetails', () => {
-  let $state: any;
+  let stateService: any;
 
   beforeEach(() => {
-    $state = { params: {}, go: jasmine.createSpy('go') };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue($state);
+    stateService = { params: {}, go: jasmine.createSpy('go') };
   });
 
   function buildComponent(loadBalancers: any[]): TargetGroupDetails {
@@ -20,6 +17,9 @@ describe('TargetGroupDetails', () => {
       app,
       name: 'test-target-group',
       provider: 'aws',
+      router: {},
+      stateParams: {},
+      stateService,
       targetGroup: {
         accountId: 'test-account',
         loadBalancerName: 'test-load-balancer',
@@ -35,8 +35,8 @@ describe('TargetGroupDetails', () => {
 
     (component as any).extractTargetGroup();
 
-    expect($state.params.allowModalToStayOpen).toBe(true);
-    expect($state.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
+    expect(stateService.params.allowModalToStayOpen).toBe(true);
+    expect(stateService.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
   });
 
   it('auto-closes when the target group disappears', () => {
@@ -51,8 +51,8 @@ describe('TargetGroupDetails', () => {
 
     (component as any).extractTargetGroup();
 
-    expect($state.params.allowModalToStayOpen).toBe(true);
-    expect($state.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
+    expect(stateService.params.allowModalToStayOpen).toBe(true);
+    expect(stateService.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
   });
 
   it('does not update state after unmount when the target group still exists', () => {
@@ -93,6 +93,9 @@ describe('TargetGroupDetails', () => {
       app,
       name: 'test-target-group',
       provider: 'aws',
+      router: {},
+      stateParams: {},
+      stateService,
       targetGroup: {
         accountId: 'test-account',
         loadBalancerName: 'test-load-balancer',

@@ -1,15 +1,15 @@
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
   FirewallLabels,
   LoadBalancerWriter,
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -36,8 +36,8 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateApplicationLoadBalancer extends React.Component<
-  ICreateApplicationLoadBalancerProps,
+export class CreateApplicationLoadBalancerComponent extends React.Component<
+  ICreateApplicationLoadBalancerProps & IRouterInjectedProps,
   ICreateApplicationLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateApplicationLoadBalancerProps> = {
@@ -54,7 +54,7 @@ export class CreateApplicationLoadBalancer extends React.Component<
     return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps);
   }
 
-  constructor(props: ICreateApplicationLoadBalancerProps) {
+  constructor(props: ICreateApplicationLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.command
@@ -186,10 +186,10 @@ export class CreateApplicationLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
-      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
@@ -335,3 +335,8 @@ export class CreateApplicationLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateApplicationLoadBalancer = Object.assign(
+  withRouter<ICreateApplicationLoadBalancerProps & IRouterInjectedProps>(CreateApplicationLoadBalancerComponent),
+  { show: CreateApplicationLoadBalancerComponent.show },
+);

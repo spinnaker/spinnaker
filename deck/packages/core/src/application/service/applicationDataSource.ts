@@ -25,6 +25,7 @@ import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../application.model';
 import type { IEntityTags } from '../../domain';
+import { getDirectRouter } from '../../navigation/directRouter';
 import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
 import { FirewallLabels } from '../../securityGroup';
@@ -384,8 +385,9 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     }
 
     if (config.autoActivate) {
-      AngularServices.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
-      AngularServices.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
+      const transitionService = getDirectRouter()?.transitionService;
+      transitionService?.onSuccess({ entering: this.activeState }, () => this.activate());
+      transitionService?.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
 
     // While we can initialize these fields directly on the class to give them private/public

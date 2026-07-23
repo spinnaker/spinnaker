@@ -1,7 +1,7 @@
 import React from 'react';
 
-import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
-import { AngularServices, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import type { Application, IModalComponentProps, IRouterInjectedProps, IStage } from '@spinnaker/core';
+import { AngularServices, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { WizardServerGroupBasicSettings } from './BasicSettings';
 import { WizardServerGroupConfigFilesSettings } from './ConfigFiles';
@@ -23,8 +23,11 @@ export interface ICloudrunServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModalProps, ICloudrunServerGroupModalState> {
-  public static defaultProps: Partial<ICloudrunServerGroupModalProps> = {
+export class ServerGroupWizardComponent extends React.Component<
+  ICloudrunServerGroupModalProps & IRouterInjectedProps,
+  ICloudrunServerGroupModalState
+> {
+  public static defaultProps: Partial<ICloudrunServerGroupModalProps & IRouterInjectedProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
@@ -37,7 +40,7 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
     return ReactModal.show(ServerGroupWizard, props, modalProps);
   }
 
-  constructor(props: ICloudrunServerGroupModalProps) {
+  constructor(props: ICloudrunServerGroupModalProps & IRouterInjectedProps) {
     super(props);
     if (!props.command) {
       CloudrunServerGroupCommandBuilder.buildNewServerGroupCommand(props.application, 'cloudrun', 'create').then(
@@ -85,19 +88,19 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
           provider: 'cloudrun',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        AngularServices.$state.go(transitionTo, newStateParams);
+        this.props.stateService.go(transitionTo, newStateParams);
       }
     }
   };
@@ -151,3 +154,7 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
     );
   }
 }
+
+export const ServerGroupWizard = Object.assign(withRouter(ServerGroupWizardComponent), {
+  show: ServerGroupWizardComponent.show,
+});

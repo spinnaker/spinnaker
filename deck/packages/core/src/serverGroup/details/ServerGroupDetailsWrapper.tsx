@@ -2,7 +2,6 @@ import React from 'react';
 import type { Observable } from 'rxjs';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IServerGroup } from '../../domain';
@@ -12,6 +11,7 @@ export interface IServerGroupDetailsWrapperProps {
   serverGroup: {
     name: string;
     accountId: string;
+    provider: string;
     region: string;
   };
 }
@@ -50,6 +50,8 @@ export class ServerGroupDetailsWrapper extends React.Component<
   IServerGroupDetailsWrapperProps,
   IServerGroupDetailsWrapperState
 > {
+  private configurationRequestId = 0;
+
   constructor(props: IServerGroupDetailsWrapperProps) {
     super(props);
 
@@ -61,8 +63,9 @@ export class ServerGroupDetailsWrapper extends React.Component<
     };
   }
 
-  private getServerGroupDetailsTemplate(): void {
-    const { provider } = AngularServices.$stateParams;
+  private getServerGroupDetailsTemplate(serverGroup: IServerGroupDetailsWrapperProps['serverGroup']): void {
+    const requestId = ++this.configurationRequestId;
+    const { provider } = serverGroup;
     Promise.all([
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsActions'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsGetter'),
@@ -80,17 +83,22 @@ export class ServerGroupDetailsWrapper extends React.Component<
         ],
       ) => {
         const [Actions, detailsGetter, sections, templateUrl, controller] = values;
-        this.setState({ Actions, detailsGetter, legacyDetailsConfigured: !!(templateUrl && controller), sections });
+        if (requestId === this.configurationRequestId) {
+          this.setState({ Actions, detailsGetter, legacyDetailsConfigured: !!(templateUrl && controller), sections });
+        }
       },
     );
   }
 
   public componentDidMount(): void {
-    this.getServerGroupDetailsTemplate();
+    this.getServerGroupDetailsTemplate(this.props.serverGroup);
   }
 
-  public componentWillReceiveProps(): void {
-    this.getServerGroupDetailsTemplate();
+  public componentWillReceiveProps(nextProps: IServerGroupDetailsWrapperProps): void {
+    if (nextProps.serverGroup.provider !== this.props.serverGroup.provider) {
+      this.setState({ Actions: undefined, detailsGetter: undefined, legacyDetailsConfigured: false, sections: [] });
+      this.getServerGroupDetailsTemplate(nextProps.serverGroup);
+    }
   }
 
   public render() {

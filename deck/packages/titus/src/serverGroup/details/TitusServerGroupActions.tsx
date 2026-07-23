@@ -2,7 +2,7 @@ import { orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import type { IServerGroupActionsProps } from '@spinnaker/core';
+import type { IRouterInjectedProps, IServerGroupActionsProps } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
   AngularServices,
@@ -11,6 +11,7 @@ import {
   ReactModal,
   ServerGroupWarningMessageService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
 import { TitusServerGroupCommandBuilder } from '../configure/ServerGroupCommandBuilder';
@@ -18,7 +19,7 @@ import { TitusCloneServerGroupModal } from '../configure/wizard/TitusCloneServer
 import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModal';
 import { TitusRollbackServerGroupModal } from './rollback/TitusRollbackServerGroupModal';
 
-export class TitusServerGroupActions extends React.Component<IServerGroupActionsProps> {
+export class TitusServerGroupActionsComponent extends React.Component<IServerGroupActionsProps & IRouterInjectedProps> {
   private destroyServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     const taskMonitorConfig = {
@@ -26,8 +27,8 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
         const stateParams = { name: serverGroup.name, accountId: serverGroup.account, region: serverGroup.region };
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (this.props.stateService.includes('**.serverGroup', stateParams)) {
+          this.props.stateService.go('^');
         }
       },
     };
@@ -255,3 +256,5 @@ export class TitusServerGroupActions extends React.Component<IServerGroupActions
     );
   }
 }
+
+export const TitusServerGroupActions = withRouter(TitusServerGroupActionsComponent);
