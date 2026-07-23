@@ -4,6 +4,7 @@ export const mockOrchestratedItem: IOrchestratedItem = {
   getValueFor: () => {},
   originalStatus: 'SUCCEEDED',
   status: 'SUCCEEDED',
+  failureMessages: [],
   failureMessage: '',
   isBuffered: true,
   isCompleted: true,

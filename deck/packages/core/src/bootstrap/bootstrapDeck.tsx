@@ -3,6 +3,8 @@ import { UIRouterContext } from '@uirouter/react';
 import * as React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
+import type { DeckRuntime } from './DeckRuntime';
+import { createDeckRuntime, DeckRuntimeContext } from './DeckRuntime';
 import { SpinnakerContainer } from './SpinnakerContainer';
 import { AngularServices } from '../angular/services';
 import { initializeAuthentication } from '../authentication/authentication.module';
@@ -22,21 +24,26 @@ import '../search/global/globalSearch.less';
 
 let bootstrapRoot: HTMLElement | null = null;
 let bootstrapAttempt: Promise<void> | null = null;
+let activeRuntime: DeckRuntime | null = null;
 let activeRouter: UIRouterReact | null = null;
 let renderedRoot: HTMLElement | null = null;
 let cacheInitializationAttempt: Promise<void> | null = null;
 
-export function createDeckRoot(router: UIRouterReact): React.ReactElement {
+export function createDeckRoot(router: UIRouterReact, runtime: DeckRuntime): React.ReactElement {
   return (
-    <UIRouterContext.Provider value={router}>
-      <SpinnakerContainer authenticating={false} routing={false} />
-    </UIRouterContext.Provider>
+    <DeckRuntimeContext.Provider value={runtime}>
+      <UIRouterContext.Provider value={router}>
+        <SpinnakerContainer authenticating={false} routing={false} />
+      </UIRouterContext.Provider>
+    </DeckRuntimeContext.Provider>
   );
 }
 
 function cleanupRuntime(): void {
+  const runtime = activeRuntime;
   const router = activeRouter;
   const root = renderedRoot;
+  activeRuntime = null;
   activeRouter = null;
   renderedRoot = null;
 
@@ -53,7 +60,17 @@ function cleanupRuntime(): void {
     try {
       router?.dispose();
     } catch (error) {
-      console.error('Failed to dispose Deck runtime', error);
+      console.error('Failed to dispose Deck router', error);
+    } finally {
+      try {
+        runtime?.dispose();
+      } catch (error) {
+        console.error('Failed to dispose Deck runtime', error);
+      } finally {
+        if (runtime) {
+          AngularServices.releaseRuntime(runtime);
+        }
+      }
     }
   }
 }
@@ -73,11 +90,15 @@ async function runBootstrap(root: HTMLElement): Promise<void> {
   initializeRuntimeMetadata();
   const authenticated = await initializeAuthentication();
   if (!authenticated) {
+    cleanupRuntime();
     return;
   }
 
   void initializeDynamicRuntimeMetadata();
   await initializePlugins();
+  const runtime = createDeckRuntime();
+  AngularServices.bindRuntime(runtime);
+  activeRuntime = runtime;
   const router = configureRouter();
   activeRouter = router;
   initializeState();
@@ -85,7 +106,7 @@ async function runBootstrap(root: HTMLElement): Promise<void> {
   await Promise.resolve();
 
   renderedRoot = root;
-  render(createDeckRoot(router), root);
+  render(createDeckRoot(router, runtime), root);
   document.querySelector('.loading-placeholder')?.remove();
   startRouter(router);
 }
