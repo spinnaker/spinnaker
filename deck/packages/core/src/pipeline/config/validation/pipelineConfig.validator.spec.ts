@@ -53,7 +53,7 @@ describe('pipelineConfigValidator', () => {
       description: null,
       key: null,
       templateUrl: null,
-      executionDetailsUrl: null,
+      executionDetailsSections: null,
       controller: null,
       controllerAs: null,
       validators,

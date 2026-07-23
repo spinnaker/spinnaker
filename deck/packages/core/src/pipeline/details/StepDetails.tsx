@@ -41,8 +41,7 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
         // React execution details
         executionDetailsSections = stageConfig.executionDetailsSections;
       } else {
-        // Angular execution details
-        sourceUrl = stageConfig.executionDetailsUrl || require('./defaultExecutionDetails.html');
+        sourceUrl = require('./defaultExecutionDetails.html');
       }
       provider = stageConfig.cloudProvider;
     }

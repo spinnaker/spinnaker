@@ -2,6 +2,7 @@
 
 import { module } from 'angular';
 
+import { WaitForParentTasksExecutionDetails } from './WaitForParentTasksExecutionDetails';
 import { Registry } from '../../../../registry';
 import { CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS_TRANSFORMER } from './waitForParentTasks.transformer';
 
@@ -15,7 +16,7 @@ module(CORE_PIPELINE_CONFIG_STAGES_WAITFORPARENTTASKS_WAITFORPARENTTASKS, [
     Registry.pipeline.registerStage({
       key: 'waitForRequisiteCompletion',
       synthetic: true,
-      executionDetailsUrl: require('./waitForParentTasksExecutionDetails.html'),
+      executionDetailsSections: [WaitForParentTasksExecutionDetails],
     });
   })
   .run([

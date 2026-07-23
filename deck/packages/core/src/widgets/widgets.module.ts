@@ -1,7 +1,6 @@
 import { module } from 'angular';
 
 import { CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT } from './accountRegionClusterSelector.component';
-import { ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER } from './accountRegionClusterSelectorWrapper.component';
 import { CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE } from './scopeClusterSelector.directive';
 import { CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT } from './spelText/spelSelect.component';
 import { CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR } from './spelText/spelText.decorator';
@@ -9,7 +8,6 @@ import { CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR } from './spelText/spelText.de
 export const WIDGETS_MODULE = 'spinnaker.core.widgets';
 module(WIDGETS_MODULE, [
   CORE_WIDGETS_ACCOUNTREGIONCLUSTERSELECTOR_COMPONENT,
-  ACCOUNT_REGION_CLUSTER_SELECTOR_WRAPPER,
   CORE_WIDGETS_SCOPECLUSTERSELECTOR_DIRECTIVE,
   CORE_WIDGETS_SPELTEXT_SPELTEXT_DECORATOR,
   CORE_WIDGETS_SPELTEXT_SPELSELECT_COMPONENT,
