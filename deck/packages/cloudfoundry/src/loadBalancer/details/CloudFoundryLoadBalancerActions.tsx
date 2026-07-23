@@ -1,9 +1,8 @@
 import React from 'react';
-
 import { Dropdown } from 'react-bootstrap';
 
 import type { Application, ILoadBalancer, ILoadBalancerDeleteCommand } from '@spinnaker/core';
-import { ConfirmationModalService, LoadBalancerWriter, ReactInjector } from '@spinnaker/core';
+import { AngularServices, ConfirmationModalService, LoadBalancerWriter } from '@spinnaker/core';
 
 export interface ICloudFoundryLoadBalancerActionsProps {
   application: Application;
@@ -17,8 +16,8 @@ export class CloudFoundryLoadBalancerActions extends React.Component<ICloudFound
       application: application,
       title: 'Deleting ' + loadBalancer.name,
       onTaskComplete() {
-        if (ReactInjector.$state.includes('**.serverGroup', { instanceId: loadBalancer.name })) {
-          ReactInjector.$state.go('^');
+        if (AngularServices.$state.includes('**.serverGroup', { instanceId: loadBalancer.name })) {
+          AngularServices.$state.go('^');
         }
       },
     };

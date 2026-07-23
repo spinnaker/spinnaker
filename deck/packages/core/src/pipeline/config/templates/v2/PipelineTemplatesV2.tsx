@@ -8,6 +8,7 @@ import type { Subscription } from 'rxjs';
 import { DeletePipelineTemplateV2Modal } from './DeletePipelineTemplateV2Modal';
 import { PipelineTemplateReader } from '../PipelineTemplateReader';
 import { ShowPipelineTemplateJsonModal } from '../../actions/templateJson/ShowPipelineTemplateJsonModal';
+import { AngularServices } from '../../../../angular/services';
 import { CreatePipelineFromTemplate } from './createPipelineFromTemplate';
 import type {
   IPipelineTemplateV2,
@@ -17,7 +18,6 @@ import type {
 import { PipelineTemplateV2Service } from './pipelineTemplateV2.service';
 import { ReactSelectInput } from '../../../../presentation';
 import type { IStateChange } from '../../../../reactShims';
-import { ReactInjector } from '../../../../reactShims';
 
 import './PipelineTemplatesV2.less';
 
@@ -50,13 +50,13 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
     searchValue: '',
     selectedTemplate: null,
     templates: {},
-    viewTemplateVersion: ReactInjector.$stateParams.templateId,
+    viewTemplateVersion: AngularServices.$stateParams.templateId,
     templateVersionSelections: {},
   };
 
   public componentDidMount() {
     this.fetchTemplates();
-    this.routeChangedSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(this.onRouteChanged);
+    this.routeChangedSubscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(this.onRouteChanged);
   }
 
   public componentWillUnmount() {
@@ -112,7 +112,7 @@ export class PipelineTemplatesV2 extends React.Component<{}, IPipelineTemplatesV
   };
 
   private dismissDetailsModal = () => {
-    ReactInjector.$state.go('home.pipeline-templates');
+    AngularServices.$state.go('home.pipeline-templates');
   };
 
   private onSearchFieldChanged = (event: React.SyntheticEvent<HTMLInputElement>) => {

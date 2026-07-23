@@ -6,11 +6,11 @@ import React from 'react';
 
 import type { ILoadBalancer, ILoadBalancersTagProps } from '@spinnaker/core';
 import {
+  AngularServices,
   HealthCounts,
   HoverablePopover,
   LoadBalancerDataUtils,
   logger,
-  ReactInjector,
   Spinner,
   Tooltip,
 } from '@spinnaker/core';
@@ -84,7 +84,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   }
 
   private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     const serverGroup = this.props.serverGroup;
     logger.log({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
@@ -97,7 +97,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   };
 
   private showTargetGroupDetails = (targetGroup: ITargetGroup): void => {
-    const { $state } = ReactInjector;
+    const { $state } = AngularServices;
     logger.log({ category: 'Cluster Pod', action: `Load Target Group Details (multiple menu)` });
     const nextState = $state.current.name.endsWith('.clusters') ? '.targetGroupDetails' : '^.targetGroupDetails';
     $state.go(nextState, {

@@ -1,15 +1,13 @@
 import * as angular from 'angular';
 import _ from 'lodash';
-import { react2angular } from 'react2angular';
 
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import { PROJECT_SUMMARY_POD_COMPONENT } from '../infrastructure/projectSummaryPod.component';
 import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewedItems.component';
 import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
 import { INFRASTRUCTURE_SEARCH_SERVICE } from './infrastructureSearch.service';
 import { InsightMenu as SearchInsightMenu } from '../../insight/InsightMenu';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from '../../pageTitle/pageTitle.service';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 import { ConfigureProjectModal } from '../../projects';
 import { SearchService } from '../search.service';
 import { SEARCH_RANK_FILTER } from '../searchRank.filter';
@@ -28,37 +26,22 @@ angular
     PAGE_TITLE_SERVICE,
     PROJECT_SUMMARY_POD_COMPONENT,
     SEARCH_RANK_FILTER,
-    OVERRIDE_REGISTRY,
     RECENTLY_VIEWED_ITEMS_COMPONENT,
     SPINNER_COMPONENT,
   ])
   .component(
     'searchInsightMenu',
-    react2angular(withErrorBoundary(SearchInsightMenu, 'searchInsightMenu'), [
-      'createApp',
-      'createProject',
-      'refreshCaches',
-    ]),
+    angularComponentFromReact(SearchInsightMenu, 'searchInsightMenu', ['createApp', 'createProject', 'refreshCaches']),
   )
   .controller('InfrastructureCtrl', [
     '$scope',
     'infrastructureSearchService',
     '$stateParams',
     '$location',
-    'overrideRegistry',
     'pageTitleService',
     '$uibModal',
     '$state',
-    function (
-      $scope,
-      infrastructureSearchService,
-      $stateParams,
-      $location,
-      overrideRegistry,
-      pageTitleService,
-      $uibModal,
-      $state,
-    ) {
+    function ($scope, infrastructureSearchService, $stateParams, $location, pageTitleService, $uibModal, $state) {
       const search = infrastructureSearchService.getSearcher();
 
       $scope.firewallsLabel = FirewallLabels.get('firewalls');
@@ -132,14 +115,11 @@ angular
         $uibModal
           .open({
             scope: $scope,
-            templateUrl: overrideRegistry.getTemplate(
-              'createApplicationModal',
-              require('../../application/modal/newapplication.html'),
-            ),
+            templateUrl: require('../../application/modal/newapplication.html'),
             resolve: {
               name: () => '',
             },
-            controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
+            controller: 'CreateApplicationModalCtrl',
             controllerAs: 'newAppModal',
           })
           .result.then(routeToApplication)

@@ -7,7 +7,7 @@ import {
   IMetricSetPair,
 } from 'kayenta/domain';
 
-import { ReactInjector, REST } from '@spinnaker/core';
+import { AngularServices, REST } from '@spinnaker/core';
 
 export const getCanaryRun = (configId: string, canaryExecutionId: string): PromiseLike<ICanaryExecutionStatusResult> =>
   REST('/v2/canaries/canary')
@@ -43,7 +43,7 @@ export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: s
     .then((list: IMetricSetPair[]) => list.find((pair) => pair.id === metricSetPairId));
 
 export const listCanaryExecutions = (application: string): PromiseLike<ICanaryExecutionStatusResult[]> => {
-  const limit = ReactInjector.$stateParams.count || 20;
+  const limit = AngularServices.$stateParams.count || 20;
   return REST('/v2/canaries').path(application, 'executions').query({ limit }).get();
 };
 

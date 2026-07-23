@@ -1,10 +1,10 @@
 import React from 'react';
 
+import { StepExecutionDetailsWrapper } from './StepExecutionDetailsWrapper';
 import type { Application } from '../../application';
 import { StepExecutionDetails } from '../config/stages/common/StepExecutionDetails';
 import type { IExecution, IExecutionDetailsSection, IExecutionStage, IStageTypeConfig } from '../../domain';
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
-import { NgReact } from '../../reactShims';
 import { StatusGlyph } from '../../task/StatusGlyph';
 
 export interface IStepDetailsProps {
@@ -41,8 +41,7 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
         // React execution details
         executionDetailsSections = stageConfig.executionDetailsSections;
       } else {
-        // Angular execution details
-        sourceUrl = stageConfig.executionDetailsUrl || require('./defaultExecutionDetails.html');
+        sourceUrl = require('./defaultExecutionDetails.html');
       }
       provider = stageConfig.cloudProvider;
     }
@@ -52,7 +51,6 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
   public render(): React.ReactElement<StepDetails> {
     const { application, config, execution, stage } = this.props;
     const { executionDetailsSections, provider, sourceUrl, configSections } = this.deriveSectionsFromProps();
-    const { StepExecutionDetailsWrapper } = NgReact;
     const detailsProps = { application, config, execution, provider, stage };
 
     return (

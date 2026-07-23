@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { AccountService, ReactInjector } from '@spinnaker/core';
+import { AccountService, AngularServices } from '@spinnaker/core';
 import { AzureInstanceTypeService } from '../../instance/azureInstanceType.service';
 
 export class AzureServerGroupConfigurationService {
@@ -32,8 +32,8 @@ export class AzureServerGroupConfigurationService {
     }
 
     function configureCommand(application, command) {
-      const securityGroupReader = ReactInjector.securityGroupReader;
-      const loadBalancerReader = ReactInjector.loadBalancerReader;
+      const securityGroupReader = AngularServices.securityGroupReader;
+      const loadBalancerReader = AngularServices.loadBalancerReader;
       return all([
         AccountService.getCredentialsKeyedByAccount('azure'),
         securityGroupReader.loadSecurityGroups(),
@@ -200,8 +200,8 @@ export class AzureServerGroupConfigurationService {
     }
 
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
-      const cacheInitializer = ReactInjector.cacheInitializer;
-      const securityGroupReader = ReactInjector.securityGroupReader;
+      const cacheInitializer = AngularServices.cacheInitializer;
+      const securityGroupReader = AngularServices.securityGroupReader;
       return cacheInitializer.refreshCache('securityGroups').then(function () {
         return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
           command.backingData.securityGroups = securityGroups;
@@ -236,7 +236,7 @@ export class AzureServerGroupConfigurationService {
     }
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
-      const loadBalancerReader = ReactInjector.loadBalancerReader;
+      const loadBalancerReader = AngularServices.loadBalancerReader;
       return loadBalancerReader.listLoadBalancers('azure').then(function (loadBalancers) {
         command.backingData.loadBalancers = loadBalancers;
         if (!skipCommandReconfiguration) {
@@ -326,7 +326,7 @@ export class AzureServerGroupConfigurationService {
     }
 
     function refreshInstanceTypes(command) {
-      const cacheInitializer = ReactInjector.cacheInitializer;
+      const cacheInitializer = AngularServices.cacheInitializer;
       return cacheInitializer.refreshCache('instanceTypes').then(function () {
         return azureInstanceTypeService.getAllTypesByRegion().then(function (instanceTypes) {
           command.backingData.instanceTypes = instanceTypes;

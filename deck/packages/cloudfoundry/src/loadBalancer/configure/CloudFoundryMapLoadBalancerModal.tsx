@@ -14,14 +14,15 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
+  AngularServices,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../domain';
 import { AccountRegionClusterSelector, Routes } from '../../presentation';
 
@@ -125,7 +126,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
+      return AngularServices.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
         serverGroupName: serverGroup.name,
       });
     });

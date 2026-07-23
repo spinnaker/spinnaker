@@ -1,12 +1,12 @@
-import { $q, $templateCache } from 'ngimport';
+import { $q } from 'ngimport';
 import React from 'react';
 import type { Observable } from 'rxjs';
 
 import { ServerGroupDetails } from './ServerGroupDetails';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IServerGroup } from '../../domain';
-import { AngularJSAdapter, ReactInjector } from '../../reactShims';
 
 export interface IServerGroupDetailsWrapperProps {
   app: Application;
@@ -20,11 +20,8 @@ export interface IServerGroupDetailsWrapperProps {
 export type DetailsGetter = (props: IServerGroupDetailsProps, autoClose: () => void) => Observable<IServerGroup>;
 
 export interface IServerGroupDetailsWrapperState {
-  angular: {
-    template: string;
-    controller: string;
-  };
   detailsGetter: DetailsGetter;
+  legacyDetailsConfigured: boolean;
   sections: Array<React.ComponentType<IServerGroupDetailsSectionProps>>;
   Actions: React.ComponentType<IServerGroupActionsProps>;
 }
@@ -58,18 +55,15 @@ export class ServerGroupDetailsWrapper extends React.Component<
     super(props);
 
     this.state = {
-      angular: {
-        template: undefined,
-        controller: undefined,
-      },
       Actions: undefined,
       detailsGetter: undefined,
+      legacyDetailsConfigured: false,
       sections: [],
     };
   }
 
   private getServerGroupDetailsTemplate(): void {
-    const { provider } = ReactInjector.$stateParams;
+    const { provider } = AngularServices.$stateParams;
     $q.all([
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsActions'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsGetter'),
@@ -87,8 +81,7 @@ export class ServerGroupDetailsWrapper extends React.Component<
         ],
       ) => {
         const [Actions, detailsGetter, sections, templateUrl, controller] = values;
-        const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
-        this.setState({ angular: { template, controller }, Actions, detailsGetter, sections });
+        this.setState({ Actions, detailsGetter, legacyDetailsConfigured: !!(templateUrl && controller), sections });
       },
     );
   }
@@ -103,12 +96,7 @@ export class ServerGroupDetailsWrapper extends React.Component<
 
   public render() {
     const { app, serverGroup } = this.props;
-    const {
-      angular: { template, controller },
-      Actions,
-      detailsGetter,
-      sections,
-    } = this.state;
+    const { Actions, detailsGetter, legacyDetailsConfigured, sections } = this.state;
 
     if (Actions && detailsGetter && sections) {
       // react
@@ -123,15 +111,11 @@ export class ServerGroupDetailsWrapper extends React.Component<
       );
     }
 
-    // angular
-    if (template && controller) {
+    if (legacyDetailsConfigured) {
       return (
-        <AngularJSAdapter
-          className="detail-content flex-container-h"
-          template={template}
-          controller={`${controller} as ctrl`}
-          locals={{ app, serverGroup }}
-        />
+        <div className="alert alert-warning">
+          Server group details must be migrated to React. AngularJS templates/controllers are no longer supported.
+        </div>
       );
     }
 

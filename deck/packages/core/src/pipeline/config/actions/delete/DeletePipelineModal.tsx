@@ -2,12 +2,12 @@ import { get, isEmpty, set } from 'lodash';
 import { $log } from 'ngimport';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
+import { AngularServices } from '../../../../angular/services';
 
 import type { Application } from '../../../../application';
 import type { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
 import type { IModalComponentProps } from '../../../../presentation';
-import { ReactInjector } from '../../../../reactShims';
 
 import { PipelineConfigService } from '../../services/PipelineConfigService';
 
@@ -43,7 +43,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         if (!isEmpty(idsToUpdatedIndices)) {
           PipelineConfigService.reorderPipelines(application.name, idsToUpdatedIndices, isPipelineStrategy);
         }
-        ReactInjector.$state.go('^.executions', null, { location: 'replace' });
+        AngularServices.$state.go('^.executions', null, { location: 'replace' });
         closeModal();
       },
       (response) => {

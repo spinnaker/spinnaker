@@ -1,15 +1,14 @@
 import { module } from 'angular';
-import { react2angular } from 'react2angular';
 
 import { EntityNotifications } from './EntityNotifications';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
+import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 
 export const ENTITY_NOTIFICATIONS = 'spinnaker.core.entityTag.alerts.entitynotifications';
 const ngmodule = module(ENTITY_NOTIFICATIONS, []);
 
 ngmodule.component(
   'entityNotificationsWrapper',
-  react2angular(withErrorBoundary(EntityNotifications, 'entityNotificationsWrapper'), [
+  angularComponentFromReact(EntityNotifications, 'entityNotificationsWrapper', [
     'entity',
     'application',
     'placement',

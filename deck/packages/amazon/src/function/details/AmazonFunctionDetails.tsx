@@ -7,8 +7,8 @@ import type { Application, IFunction, IOverridableProps } from '@spinnaker/core'
 import { AccountTag, CollapsibleSection, Details, Overrides } from '@spinnaker/core';
 
 import { FunctionActions } from './FunctionActions';
+import { AwsServices } from '../../aws.services';
 import type { IAmazonFunction, IAmazonFunctionSourceData } from '../../domain';
-import { AwsReactInjector } from '../../reactShims';
 
 export interface IFunctionFromStateParams {
   account: string;
@@ -43,7 +43,7 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
 
     if (functionDef) {
       observableFrom(
-        AwsReactInjector.functionReader.getFunctionDetails(
+        AwsServices.functionReader.getFunctionDetails(
           'aws',
           functionFromProps.account,
           functionFromProps.region,

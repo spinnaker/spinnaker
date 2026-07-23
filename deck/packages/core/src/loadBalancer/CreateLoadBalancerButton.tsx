@@ -8,7 +8,6 @@ import type { ILoadBalancer } from '../domain';
 import type { ILoadBalancerUpsertCommand } from './loadBalancer.write.service';
 import type { IModalComponentProps } from '../presentation';
 import { Tooltip } from '../presentation';
-import { ModalInjector } from '../reactShims';
 
 export interface ILoadBalancerModalProps extends IModalComponentProps {
   className?: string;
@@ -44,11 +43,7 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
     provider: ICloudProviderConfig,
   ): boolean => {
     const lbConfig = provider.loadBalancer;
-    return (
-      lbConfig &&
-      (lbConfig.CreateLoadBalancerModal ||
-        (lbConfig.createLoadBalancerTemplateUrl && lbConfig.createLoadBalancerController))
-    );
+    return Boolean(lbConfig && lbConfig.CreateLoadBalancerModal);
   };
 
   private createLoadBalancer = (): void => {
@@ -57,32 +52,15 @@ export class CreateLoadBalancerButton extends React.Component<ICreateLoadBalance
       (selectedProvider) => {
         const provider = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
 
-        if (provider.CreateLoadBalancerModal) {
-          provider.CreateLoadBalancerModal.show({
-            app: app,
-            application: app,
-            forPipelineConfig: false,
-            loadBalancer: null,
-            isNew: true,
-          });
-        } else {
-          // angular
-          ModalInjector.modalService
-            .open({
-              templateUrl: provider.createLoadBalancerTemplateUrl,
-              controller: `${provider.createLoadBalancerController} as ctrl`,
-              size: 'lg',
-              windowClass: 'modal-z-index',
-              resolve: {
-                application: () => this.props.app,
-                loadBalancer: (): ILoadBalancer => null,
-                isNew: () => true,
-                forPipelineConfig: () => false,
-              },
-            })
-            .result.catch(() => {});
-        }
+        provider.CreateLoadBalancerModal.show({
+          app: app,
+          application: app,
+          forPipelineConfig: false,
+          loadBalancer: null,
+          isNew: true,
+        });
       },
+      () => {},
     );
   };
 

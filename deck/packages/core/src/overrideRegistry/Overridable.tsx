@@ -5,9 +5,8 @@ import { map, switchMap, takeUntil } from 'rxjs/operators';
 
 import type { IAccountDetails } from '../account/AccountService';
 import { AccountService } from '../account/AccountService';
+import { AngularServices } from '../angular/services';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
-import { AngularJSAdapter } from '../reactShims/AngularJSAdapter';
-import { ReactInjector } from '../reactShims/react.injector';
 import { Spinner } from '../widgets/spinners/Spinner';
 
 export interface IOverridableProps {
@@ -116,47 +115,15 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
         return CloudProviderComponentOverride as T;
       }
 
-      const cloudProviderTemplateOverride = CloudProviderRegistry.getValue(cloudProvider, key + 'TemplateUrl');
-      if (cloudProviderTemplateOverride) {
-        const cloudProviderController = CloudProviderRegistry.getValue(cloudProvider, key + 'Controller');
-        const controllerAs = cloudProviderController && cloudProviderController.includes(' as ') ? undefined : 'ctrl';
-        const Component = (props: any) => (
-          <AngularJSAdapter
-            {...props}
-            templateUrl={cloudProviderTemplateOverride}
-            controller={cloudProviderController}
-            controllerAs={controllerAs}
-          />
-        );
-
-        return (Component as any) as T;
-      }
-
       return null;
     }
 
     private getComponentFromOverrideRegistry(): T {
-      const { overrideRegistry } = ReactInjector;
+      const { overrideRegistry } = AngularServices;
 
       const ComponentOverride = overrideRegistry.getComponent(key);
       if (ComponentOverride) {
         return ComponentOverride as T;
-      }
-
-      const templateOverride: string = overrideRegistry.getTemplate(key, null);
-      if (templateOverride) {
-        const controllerOverride: string = overrideRegistry.getController(key, null);
-        const controllerAs = controllerOverride && controllerOverride.includes(' as ') ? undefined : 'ctrl';
-        const Component = (props: any) => (
-          <AngularJSAdapter
-            {...props}
-            templateUrl={templateOverride}
-            controller={controllerOverride}
-            controllerAs={controllerAs}
-          />
-        );
-
-        return (Component as any) as T;
       }
 
       return null;

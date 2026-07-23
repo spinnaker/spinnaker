@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { StageSummaryWrapper } from './StageSummaryWrapper';
 import type { Application } from '../../application';
 import type { IExecution, IExecutionStage, IExecutionStageSummary, IStageTypeConfig } from '../../domain';
-import { NgReact } from '../../reactShims';
 
 export interface IStageSummaryProps {
   application: Application;
@@ -28,7 +28,6 @@ export function StageSummary(props: IStageSummaryProps) {
     );
   }
 
-  const { StageSummaryWrapper } = NgReact;
   return (
     <div className="stage-summary">
       <StageSummaryWrapper

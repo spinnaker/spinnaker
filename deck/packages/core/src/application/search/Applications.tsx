@@ -8,11 +8,11 @@ import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 import { ApplicationTable } from './ApplicationsTable';
 import { PaginationControls } from './PaginationControls';
 import type { IAccount } from '../../account';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import type { ICache } from '../../cache';
 import { ViewStateCache } from '../../cache';
 import { InsightMenu } from '../../insight/InsightMenu';
-import { ModalInjector, ReactInjector } from '../../reactShims';
 import type { IApplicationSummary } from '../service/ApplicationReader';
 import { ApplicationReader } from '../service/ApplicationReader';
 import { Spinner } from '../../widgets';
@@ -120,7 +120,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         },
       );
 
-    const { $stateParams, $state, $rootScope, overrideRegistry } = ReactInjector;
+    const { $stateParams, $state, $rootScope } = AngularServices;
     const { create } = $stateParams as IApplicationsStateParams;
     applicationSummaries$.subscribe((applications: IApplicationSummary[]) => {
       if (create) {
@@ -135,17 +135,14 @@ export class Applications extends React.Component<{}, IApplicationsState> {
           }
         } else {
           // Nonexistant application - open create modal
-          ModalInjector.modalService
+          AngularServices.modalService
             .open({
               scope: $rootScope.$new(),
-              templateUrl: overrideRegistry.getTemplate(
-                'createApplicationModal',
-                require('../modal/newapplication.html'),
-              ),
+              templateUrl: require('../modal/newapplication.html'),
               resolve: {
                 name: () => create,
               },
-              controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
+              controller: 'CreateApplicationModalCtrl',
               controllerAs: 'newAppModal',
             })
             .result.then(

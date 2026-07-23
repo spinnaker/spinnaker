@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName='com.netflix.kayenta.Main'
+application.mainClass = 'com.netflix.kayenta.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'

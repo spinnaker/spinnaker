@@ -3,16 +3,16 @@ import React from 'react';
 
 import type { IAccount, IStageConfigProps } from '@spinnaker/core';
 import {
+  AccountRegionClusterSelector,
   AccountService,
   DeploymentStrategySelector,
   HelpField,
-  NgReact,
   PlatformHealthOverride,
   StageConfigField,
   StageConstants,
+  TargetSelect,
 } from '@spinnaker/core';
 
-const { AccountRegionClusterSelector, TargetSelect } = NgReact;
 const TITUS_HEALTH_PROVIDER = 'Titus';
 const ADD_TO_LOAD_BALANCER = 'AddToLoadBalancer';
 

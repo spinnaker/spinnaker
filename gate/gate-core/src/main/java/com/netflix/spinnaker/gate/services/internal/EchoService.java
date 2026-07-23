@@ -4,7 +4,6 @@ import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import io.cloudevents.CloudEvent;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.ResponseEntity;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -22,7 +21,7 @@ public interface EchoService {
 
   @Headers("Accept: application/json")
   @POST("webhooks/cdevents/{source}")
-  Call<ResponseEntity<Void>> webhooks(
+  Call<Map> webhooks(
       @Path("source") String source,
       @Body CloudEvent cdevent,
       @Header("Ce-Data") String ceDataJsonString,
