@@ -7,6 +7,7 @@ import type { IAccountDetails, IAggregatedAccounts } from '../../account/Account
 import { AccountService } from '../../account/AccountService';
 import { AngularServices } from '../../angular/services';
 import type { Application } from '../application.model';
+import { ClusterMatcher } from '../../cluster';
 import { SETTINGS } from '../../config/settings';
 import { ConfirmationModalService } from '../../confirmationModal';
 import type { ICustomBannerConfig } from './customBanner/CustomBannerConfig';
@@ -34,6 +35,9 @@ import { SnapshotWriter } from '../../snapshot/SnapshotWriter';
 import { TaskReader } from '../../task';
 import { DiffView } from '../../utils/json/DiffView';
 import { JsonUtils } from '../../utils/json/JsonUtils';
+import { UUIDGenerator } from '../../utils/uuid.service';
+import type { IClusterMatch } from '../../widgets';
+import { ClusterMatches } from '../../widgets';
 
 export interface IApplicationConfigDetailsProps extends IOverridableProps {
   app: Application;
@@ -889,10 +893,18 @@ interface IChaosConfig {
   exceptions: any[];
 }
 
+type ChaosMatchesStatus = 'loading' | 'ready' | 'unavailable';
+
 function ChaosMonkeyConfigSection({ application }: { application: Application }) {
   const initial = React.useMemo(() => getInitialChaosConfig(application), [application]);
   const [config, setConfig] = React.useState<IChaosConfig>(initial);
   const [original, setOriginal] = React.useState(JSON.stringify(initial));
+  const [exceptionKeys, setExceptionKeys] = React.useState<string[]>(() =>
+    initial.exceptions.map(() => UUIDGenerator.generateUuid()),
+  );
+  const [accounts, setAccounts] = React.useState<IAccountDetails[]>([]);
+  const [regionsByAccount, setRegionsByAccount] = React.useState<{ [account: string]: string[] }>({});
+  const [matchesStatus, setMatchesStatus] = React.useState<ChaosMatchesStatus>('loading');
   const [saving, setSaving] = React.useState(false);
   const [saveError, setSaveError] = React.useState(false);
   const update = (updates: Partial<IChaosConfig>) => setConfig((prev) => ({ ...prev, ...updates }));
@@ -901,6 +913,38 @@ function ChaosMonkeyConfigSection({ application }: { application: Application })
       ...prev,
       exceptions: prev.exceptions.map((ex, i) => (i === index ? { ...ex, ...updates } : ex)),
     }));
+  React.useEffect(() => {
+    let mounted = true;
+    setMatchesStatus('loading');
+    AccountService.getCredentialsKeyedByAccount()
+      .then((aggregated: IAggregatedAccounts) => {
+        if (!mounted) {
+          return Promise.resolve();
+        }
+        const regionAccounts = Object.keys(aggregated)
+          .map((name) => aggregated[name])
+          .filter((details: any) => details.regions);
+        const nextRegionsByAccount: { [account: string]: string[] } = {};
+        regionAccounts.forEach((details: any) => {
+          nextRegionsByAccount[details.name] = ['*'].concat(details.regions.map((region: any) => region.name));
+        });
+        setAccounts(regionAccounts);
+        setRegionsByAccount(nextRegionsByAccount);
+        return application.getDataSource('serverGroups').ready();
+      })
+      .then(() => mounted && setMatchesStatus('ready'))
+      .catch(() => mounted && setMatchesStatus('unavailable'));
+    return () => {
+      mounted = false;
+    };
+  }, [application]);
+  const clusterMatches = React.useMemo(
+    () =>
+      config.exceptions.map((exception) =>
+        matchesStatus === 'ready' ? getChaosExceptionClusterMatches(application, exception) : [],
+      ),
+    [application, config.exceptions, matchesStatus],
+  );
   const isValid = isChaosConfigValid(config);
   const save = () => {
     if (!isChaosConfigValid(config)) {
@@ -943,25 +987,110 @@ function ChaosMonkeyConfigSection({ application }: { application: Application })
         onChange={(value) => update({ regionsAreIndependent: value })}
       />
       <h5>Exceptions</h5>
-      {config.exceptions.map((exception, index) => (
-        <RuleEditor
-          key={index}
-          rule={exception}
-          onChange={(updates) => updateException(index, updates)}
-          onRemove={() =>
-            setConfig((prev) => ({ ...prev, exceptions: prev.exceptions.filter((_ex, i) => i !== index) }))
-          }
-          locationField="region"
-        />
-      ))}
+      <table className="table table-condensed">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Region</th>
+            <th>Stack</th>
+            <th>Detail</th>
+            <th>Matched Clusters</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {config.exceptions.map((exception, index) => {
+            const accountNames = accounts.map((account) => account.name);
+            const accountOptions = addSelectedOption(accountNames, exception.account);
+            const regionOptions = addSelectedOption(regionsByAccount[exception.account] || ['*'], exception.region);
+            return (
+              <tr key={exceptionKeys[index]}>
+                <td>
+                  <select
+                    className="form-control input-sm"
+                    name="chaosExceptionAccount"
+                    value={exception.account || ''}
+                    onChange={(event) => updateException(index, { account: event.target.value, region: '*' })}
+                  >
+                    <option value="">(select account)</option>
+                    {accountOptions.map((account) => (
+                      <option key={account} value={account}>
+                        {account}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  {exception.account ? (
+                    <select
+                      className="form-control input-sm"
+                      name="chaosExceptionRegion"
+                      value={exception.region || '*'}
+                      onChange={(event) => updateException(index, { region: event.target.value })}
+                    >
+                      {regionOptions.map((region) => (
+                        <option key={region} value={region}>
+                          {region}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span>(select account)</span>
+                  )}
+                </td>
+                <td>
+                  <input
+                    className="form-control input-sm"
+                    name="chaosExceptionStack"
+                    value={exception.stack || ''}
+                    onChange={(event) => updateException(index, { stack: event.target.value })}
+                  />
+                </td>
+                <td>
+                  <input
+                    className="form-control input-sm"
+                    name="chaosExceptionDetail"
+                    value={exception.detail || ''}
+                    onChange={(event) => updateException(index, { detail: event.target.value })}
+                  />
+                </td>
+                <td>
+                  {matchesStatus === 'unavailable' ? (
+                    <span className="chaos-matches-unavailable">(matches unavailable)</span>
+                  ) : matchesStatus === 'ready' ? (
+                    <ClusterMatches matches={clusterMatches[index]} />
+                  ) : (
+                    <span>(loading matches)</span>
+                  )}
+                </td>
+                <td>
+                  <button
+                    className="btn btn-link"
+                    onClick={() => {
+                      setConfig((prev) => ({
+                        ...prev,
+                        exceptions: prev.exceptions.filter((_ex, i) => i !== index),
+                      }));
+                      setExceptionKeys((prev) => prev.filter((_key, i) => i !== index));
+                    }}
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
       <button
         className="btn btn-block btn-add-trigger add-new"
-        onClick={() =>
+        onClick={() => {
           setConfig((prev) => ({
             ...prev,
             exceptions: prev.exceptions.concat({ account: '', region: '*', stack: '', detail: '' }),
-          }))
-        }
+          }));
+          setExceptionKeys((prev) => prev.concat(UUIDGenerator.generateUuid()));
+        }}
       >
         <span className="glyphicon glyphicon-plus-sign" /> Add Exception
       </button>
@@ -970,7 +1099,11 @@ function ChaosMonkeyConfigSection({ application }: { application: Application })
         isValid={isValid}
         isSaving={saving}
         saveError={saveError}
-        onRevertClicked={() => setConfig(JSON.parse(original))}
+        onRevertClicked={() => {
+          const reverted = JSON.parse(original);
+          setConfig(reverted);
+          setExceptionKeys(reverted.exceptions.map(() => UUIDGenerator.generateUuid()));
+        }}
         onSaveClicked={save}
       />
     </div>
@@ -1359,60 +1492,6 @@ function AccountSelect({
   );
 }
 
-function RuleEditor({
-  locationField,
-  onChange,
-  onRemove,
-  rule,
-}: {
-  locationField: 'location' | 'region';
-  onChange: (updates: any) => void;
-  onRemove: () => void;
-  rule: any;
-}) {
-  return (
-    <div className="row sp-margin-xs-bottom">
-      <div className="col-md-2">
-        <input
-          className="form-control input-sm"
-          value={rule.account || ''}
-          onChange={(e) => onChange({ account: e.target.value })}
-          placeholder="account"
-        />
-      </div>
-      <div className="col-md-2">
-        <input
-          className="form-control input-sm"
-          value={rule[locationField] || ''}
-          onChange={(e) => onChange({ [locationField]: e.target.value })}
-          placeholder="region"
-        />
-      </div>
-      <div className="col-md-3">
-        <input
-          className="form-control input-sm"
-          value={rule.stack || ''}
-          onChange={(e) => onChange({ stack: e.target.value })}
-          placeholder="stack"
-        />
-      </div>
-      <div className="col-md-3">
-        <input
-          className="form-control input-sm"
-          value={rule.detail || ''}
-          onChange={(e) => onChange({ detail: e.target.value })}
-          placeholder="detail"
-        />
-      </div>
-      <div className="col-md-2">
-        <button className="btn btn-link" onClick={onRemove}>
-          Remove
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function saveApplicationConfig(
   application: Application,
   field: string,
@@ -1456,7 +1535,7 @@ function getInitialLinkSections(application: Application): LinkSection[] {
 }
 
 function getInitialChaosConfig(application: Application): IChaosConfig {
-  return {
+  const config = {
     enabled: false,
     meanTimeBetweenKillsInWorkDays: 2,
     minTimeBetweenKillsInWorkDays: 1,
@@ -1465,6 +1544,7 @@ function getInitialChaosConfig(application: Application): IChaosConfig {
     exceptions: [],
     ...(application.attributes.chaosMonkey || {}),
   };
+  return { ...config, exceptions: (config.exceptions || []).map(normalizeChaosException) };
 }
 
 function isChaosConfigValid(config: IChaosConfig): boolean {
@@ -1479,7 +1559,38 @@ function normalizeChaosConfig(config: IChaosConfig): IChaosConfig {
     ...config,
     meanTimeBetweenKillsInWorkDays: Number(config.meanTimeBetweenKillsInWorkDays),
     minTimeBetweenKillsInWorkDays: Number(config.minTimeBetweenKillsInWorkDays),
+    exceptions: config.exceptions.map(normalizeChaosException),
   };
+}
+
+function getChaosExceptionClusterMatches(application: Application, exception: any): IClusterMatch[] {
+  const normalizedException = normalizeChaosException(exception);
+  const { region: location, ...clusterMatchRule } = normalizedException;
+  const rule = { ...clusterMatchRule, location };
+  return application.clusters
+    .filter((cluster) =>
+      cluster.serverGroups.some(
+        (serverGroup) =>
+          ClusterMatcher.getMatchingRule(cluster.account, serverGroup.region, cluster.name, [rule]) !== null,
+      ),
+    )
+    .map((cluster) => ({
+      account: normalizedException.account,
+      name: cluster.name,
+      regions:
+        normalizedException.region === '*'
+          ? Array.from(new Set(cluster.serverGroups.map((serverGroup) => serverGroup.region))).sort()
+          : [normalizedException.region],
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function normalizeChaosException(exception: any): any {
+  return { ...exception, region: exception.region || '*' };
+}
+
+function addSelectedOption(options: string[], selected: string): string[] {
+  return selected && !options.includes(selected) ? options.concat(selected) : options;
 }
 
 function attributesToDraft(attributes: any, applicationName: string): any {
@@ -1568,6 +1679,15 @@ function initializeProviderSettings(attributes: any): void {
 function validateApplicationAttributesDraft(draft: any, availableCloudProviders: string[]): string | null {
   if (!draft.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)) {
     return 'Please enter a valid email address.';
+  }
+  if (SETTINGS.feature.fiatEnabled) {
+    const permissions = normalizePermissions(draft.permissions);
+    if ([...permissions.READ, ...permissions.WRITE, ...permissions.EXECUTE].some((group) => !group)) {
+      return 'Permission groups cannot be empty.';
+    }
+    if (permissions.READ.length && !permissions.WRITE.length) {
+      return 'Write permission is required when read permission is configured.';
+    }
   }
   if (draft.repoSlug && draft.repoSlug.includes('://')) {
     return 'Enter your source repository name (not the URL).';

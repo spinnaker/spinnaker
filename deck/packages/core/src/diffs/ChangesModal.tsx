@@ -9,19 +9,19 @@ import type { IModalComponentProps } from '../presentation';
 import { ModalBody, ModalFooter, ModalHeader } from '../presentation';
 
 export interface IChangesModalProps extends IModalComponentProps {
-  buildInfo: IBuildDiffInfo;
-  commits: ICommit[];
-  jarDiffs: IJarDiff;
+  buildInfo?: IBuildDiffInfo;
+  commits?: ICommit[];
+  jarDiffs?: IJarDiff;
   nameItem: { name: string };
 }
 
 const buildJenkinsLink = (jenkins: IJenkinsInfo, build: string): string =>
-  build ? `${jenkins.host}job/${jenkins.name}/${build}` : undefined;
+  jenkins && build ? `${jenkins.host}job/${jenkins.name}/${build}` : undefined;
 
 export const ChangesModal = ({ buildInfo, commits, dismissModal, jarDiffs, nameItem }: IChangesModalProps) => {
-  const previousBuildLink = buildJenkinsLink(buildInfo.jenkins, buildInfo.ancestor);
-  const currentBuildLink = buildJenkinsLink(buildInfo.jenkins, buildInfo.target);
-  const hasJarChanges = Object.keys(jarDiffs).some((key: string) => jarDiffs[key].length > 0);
+  const previousBuildLink = buildJenkinsLink(buildInfo?.jenkins, buildInfo?.ancestor);
+  const currentBuildLink = buildJenkinsLink(buildInfo?.jenkins, buildInfo?.target);
+  const hasJarChanges = Object.keys(jarDiffs || {}).some((key: string) => jarDiffs[key]?.length > 0);
 
   return (
     <>
@@ -60,7 +60,7 @@ export const ChangesModal = ({ buildInfo, commits, dismissModal, jarDiffs, nameI
               </div>
             </div>
           )}
-          {hasJarChanges && (
+          {hasJarChanges && jarDiffs && (
             <div>
               <div className="component-heading sticky-header">
                 <h4>JAR Changes</h4>

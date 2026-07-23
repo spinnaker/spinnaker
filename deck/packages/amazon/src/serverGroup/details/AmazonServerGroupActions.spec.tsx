@@ -1,0 +1,145 @@
+import { shallow } from 'enzyme';
+import React from 'react';
+
+import type { Application } from '@spinnaker/core';
+import { AngularServices, ConfirmationModalService, ManagedMenuItem } from '@spinnaker/core';
+
+import type { IAmazonServerGroupView } from '../../domain';
+import { AWSProviderSettings } from '../../aws.settings';
+import { AmazonServerGroupActions } from './AmazonServerGroupActions';
+import { AmazonRollbackServerGroupModal } from './rollback';
+
+describe('<AmazonServerGroupActions /> rollback integration', () => {
+  const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
+
+  const buildServerGroup = (overrides: Partial<IAmazonServerGroupView> = {}): IAmazonServerGroupView =>
+    ({
+      account: 'test-account',
+      app: 'test-app',
+      capacity: { desired: 2, max: 2, min: 0 },
+      cloudProvider: 'aws',
+      cluster: 'test-app-main',
+      createdTime: 2,
+      instanceCounts: { total: 2 },
+      isDisabled: false,
+      name: 'test-app-main-v002',
+      moniker: { app: 'test-app', cluster: 'test-app-main' },
+      region: 'us-east-1',
+      ...overrides,
+    } as IAmazonServerGroupView);
+
+  const buildApplication = (serverGroups: IAmazonServerGroupView[]): Application =>
+    ({
+      attributes: {},
+      getDataSource: (key: string) => (key === 'serverGroups' ? { data: serverGroups } : undefined),
+      isManagementPaused: false,
+      name: 'test-app',
+      serverGroups: { refresh: jasmine.createSpy('refresh') },
+    } as any);
+
+  const action = (wrapper: ReturnType<typeof shallow>, label: string) =>
+    wrapper.find(ManagedMenuItem).filterWhere((item) => item.prop('children') === label);
+
+  beforeEach(() => {
+    AWSProviderSettings.adHocInfraWritesEnabled = true;
+  });
+
+  afterEach(() => {
+    AWSProviderSettings.adHocInfraWritesEnabled = originalAdHocInfraWritesEnabled;
+  });
+
+  it('renders standalone Rollback as a managed action and opens the modal with exact enriched state', () => {
+    const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
+    const rollbackSource = buildServerGroup();
+    const unrelated = buildServerGroup({ app: 'other-app', cluster: 'other-app-main', name: 'other-app-main-v001' });
+    const application = buildApplication([selected, rollbackSource, unrelated]);
+    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+
+    const rollback = action(wrapper, 'Rollback');
+    expect(rollback.length).toBe(1);
+    expect(rollback.props()).toEqual(
+      jasmine.objectContaining({ application, resource: selected, onClick: jasmine.any(Function) }),
+    );
+
+    rollback.prop('onClick')();
+
+    expect(show).toHaveBeenCalledOnceWith({
+      allServerGroups: [selected],
+      application,
+      previousServerGroup: selected,
+      serverGroup: rollbackSource,
+    });
+  });
+
+  it('does not render Rollback when a disabled server group has no enabled rollback source', () => {
+    const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
+    const wrapper = shallow(<AmazonServerGroupActions app={buildApplication([selected])} serverGroup={selected} />);
+
+    expect(action(wrapper, 'Rollback').length).toBe(0);
+  });
+
+  it('opens rollback settings when orchestrated rollback is accepted from Enable', async () => {
+    const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
+    const rollbackSource = buildServerGroup();
+    const application = buildApplication([selected, rollbackSource]);
+    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve() as any);
+    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+
+    action(wrapper, 'Enable').prop('onClick')();
+    await settle();
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(show).toHaveBeenCalledOnceWith({
+      allServerGroups: [selected],
+      application,
+      previousServerGroup: selected,
+      serverGroup: rollbackSource,
+    });
+  });
+
+  it('continues to the ordinary Enable confirmation when orchestrated rollback is declined', async () => {
+    const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
+    const rollbackSource = buildServerGroup();
+    const application = buildApplication([selected, rollbackSource]);
+    const confirm = spyOn(ConfirmationModalService, 'confirm').and.callFake((params: any) =>
+      params.header === 'Rolling back?' ? (Promise.reject({ source: 'footer' }) as any) : (Promise.resolve() as any),
+    );
+    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+
+    action(wrapper, 'Enable').prop('onClick')();
+    await settle();
+
+    expect(show).not.toHaveBeenCalled();
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(confirm.calls.mostRecent().args[0]).toEqual(
+      jasmine.objectContaining({
+        header: `Really enable ${selected.name}?`,
+        submitMethod: jasmine.any(Function),
+      }),
+    );
+  });
+
+  it('does nothing when the orchestrated rollback prompt is dismissed', async () => {
+    const selected = buildServerGroup({ isDisabled: true, name: 'test-app-main-v001' });
+    const rollbackSource = buildServerGroup();
+    const application = buildApplication([selected, rollbackSource]);
+    const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(
+      Promise.reject({ source: 'header' }) as any,
+    );
+    const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const enable = spyOn(AngularServices.serverGroupWriter, 'enableServerGroup');
+    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+
+    action(wrapper, 'Enable').prop('onClick')();
+    await settle();
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(show).not.toHaveBeenCalled();
+    expect(enable).not.toHaveBeenCalled();
+  });
+});
+
+const settle = () => new Promise((resolve) => setTimeout(resolve));
