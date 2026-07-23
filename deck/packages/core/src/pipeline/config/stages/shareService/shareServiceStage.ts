@@ -1,12 +1,15 @@
 import { ShareServiceExecutionDetails } from './ShareServiceExecutionDetails';
-import { ExecutionDetailsTasks } from '../common';
+import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
-Registry.pipeline.registerStage({
+export const shareServiceStage = {
   executionDetailsSections: [ShareServiceExecutionDetails, ExecutionDetailsTasks],
   useBaseProvider: true,
   key: 'shareService',
   label: 'Share Service',
   description: 'Share a service',
+  component: NoConfigurationStageConfig,
   strategy: true,
-});
+};
+
+Registry.pipeline.registerStage(shareServiceStage);

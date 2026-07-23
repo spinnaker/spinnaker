@@ -18,6 +18,18 @@ interface IServerGroupManagerProps {
 }
 
 export class ServerGroupManager extends React.Component<IServerGroupManagerProps> {
+  private getDetailsHref(): string {
+    const { application, manager, serverGroups } = this.props;
+    const currentHash = window.location.hash || `#/applications/${application.name}`;
+    const clustersPath = currentHash.includes('/clusters')
+      ? currentHash.split('/clusters')[0]
+      : `#/applications/${application.name}`;
+
+    return `${clustersPath}/clusters/serverGroupManagerDetails/${serverGroups[0].cloudProvider}/${
+      serverGroups[0].account
+    }/${serverGroups[0].region}/${encodeURIComponent(manager)}`;
+  }
+
   private isSelected = (): boolean => {
     const { manager, serverGroups } = this.props;
     const params = {
@@ -31,20 +43,11 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
   };
 
   private handleClick = (e: React.MouseEvent<HTMLElement>): void => {
-    const { manager, serverGroups } = this.props;
-    const nextState = AngularServices.$state.current.name.endsWith('.clusters')
-      ? '.serverGroupManager'
-      : '^.serverGroupManager';
-
-    e.preventDefault();
     e.stopPropagation();
-    AngularServices.$state.go(nextState, {
-      accountId: serverGroups[0].account,
-      region: serverGroups[0].region,
-      provider: serverGroups[0].cloudProvider,
-      serverGroupManager: manager,
-      name: manager,
-    });
+    if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      window.location.hash = this.getDetailsHref();
+    }
   };
 
   private buildHealthCounts = (): IInstanceCounts => {
@@ -76,6 +79,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       <div className={classNames(classes)}>
         <ServerGroupManagerHeading
           onClick={this.handleClick}
+          detailsHref={this.getDetailsHref()}
           health={this.buildHealthCounts()}
           provider={serverGroups[0].type}
           heading={manager}

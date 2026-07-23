@@ -17,11 +17,14 @@ const injectables: string[] = [];
 export class ConsoleDebugWindow {
   public application: Application;
   public $injector: IInjectorService;
-  public api = REST;
   public plugins = {
     sharedLibraries: {} as { [libraryName: string]: any },
   };
   [key: string]: any;
+
+  public get api() {
+    return REST;
+  }
 
   public addInjectable(key: string): void {
     injectables.push(key);

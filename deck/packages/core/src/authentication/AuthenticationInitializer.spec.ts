@@ -1,75 +1,443 @@
 /* eslint-disable @spinnaker/migrate-to-mock-http-client */
 import { mock } from 'angular';
+import { Subscription } from 'rxjs';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
-import { AUTHENTICATION_MODULE } from './authentication.module';
+import { AUTHENTICATION_MODULE, initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
+import { AngularServices } from '../angular/services';
 import { SETTINGS } from '../config/settings';
 import type { IDeckRootScope } from '../domain';
+import type { IScheduler } from '../scheduler/SchedulerFactory';
+import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 
 declare const window: any;
-describe('authenticationProvider: application startup', function () {
-  beforeEach(() => (SETTINGS.authEnabled = true));
-  beforeEach(() => (window.spinnakerSettings.authEnabled = true));
+
+const createDeferred = <T>() => {
+  let resolve: (value: T | PromiseLike<T>) => void;
+  let reject: (reason?: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+
+  return { promise, reject, resolve };
+};
+
+describe('AuthenticationInitializer', function () {
+  const authenticationUnsubscribes: Array<() => void> = [];
+
+  beforeEach(() => (SETTINGS.authEnabled = false));
+  beforeEach(() => (window.spinnakerSettings.authEnabled = false));
   beforeEach(() => AuthenticationService.reset());
   beforeEach(mock.module(AUTHENTICATION_MODULE));
 
-  let loginRedirect: any;
-  beforeAll(() => {
-    loginRedirect = AuthenticationInitializer.loginRedirect;
-    AuthenticationInitializer.loginRedirect = (): any => undefined;
-  });
-  afterAll(() => (AuthenticationInitializer.loginRedirect = loginRedirect));
-
-  let $timeout: ng.ITimeoutService, $httpBackend: ng.IHttpBackendService, $rootScope: IDeckRootScope;
+  let $httpBackend: ng.IHttpBackendService, $rootScope: IDeckRootScope;
 
   beforeEach(
-    mock.inject(
-      (_$timeout_: ng.ITimeoutService, _$httpBackend_: ng.IHttpBackendService, _$rootScope_: IDeckRootScope) => {
-        $timeout = _$timeout_;
-        $httpBackend = _$httpBackend_;
-        $rootScope = _$rootScope_;
-      },
-    ),
+    mock.inject((_$httpBackend_: ng.IHttpBackendService, _$rootScope_: IDeckRootScope) => {
+      $httpBackend = _$httpBackend_;
+      $rootScope = _$rootScope_;
+    }),
   );
 
-  afterEach(SETTINGS.resetToOriginal);
+  afterEach(() => {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+    authenticationUnsubscribes.splice(0).forEach((unsubscribe) => unsubscribe());
+    AuthenticationService.reset();
+    SETTINGS.resetToOriginal();
+  });
 
   describe('authenticateUser', () => {
-    it('requests authentication from gate, then sets authentication name field', function () {
-      $httpBackend.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
-      $timeout.flush();
-      $httpBackend.flush();
+    it('resolves true after updating the authenticated user', async function () {
+      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, {
+        username: 'joe!',
+        roles: ['role-a'],
+        canMintApiTokens: true,
+        isAdmin: true,
+      });
 
-      expect($rootScope.authenticating).toBe(false);
-      expect(AuthenticationService.getAuthenticatedUser().name).toBe('joe!');
-      expect(AuthenticationService.getAuthenticatedUser().authenticated).toBe(true);
-    });
-
-    it('threads canMintApiTokens from the auth response onto the authenticated user', function () {
-      $httpBackend.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!', canMintApiTokens: true });
-      $timeout.flush();
-      $httpBackend.flush();
-
-      expect(AuthenticationService.getAuthenticatedUser().canMintApiTokens).toBe(true);
-    });
-
-    it('defaults canMintApiTokens to false when the auth response omits it', function () {
-      $httpBackend.whenGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
-      $timeout.flush();
-      $httpBackend.flush();
-
-      expect(AuthenticationService.getAuthenticatedUser().canMintApiTokens).toBe(false);
-    });
-
-    it('requests authentication from gate, then opens modal and redirects on 401', function () {
-      $httpBackend.whenGET(SETTINGS.authEndpoint).respond(401, null, { 'X-AUTH-REDIRECT-URL': '/authUp' });
-      $rootScope.$digest();
-      $httpBackend.flush();
+      const authentication = AuthenticationInitializer.authenticateUser();
 
       expect($rootScope.authenticating).toBe(true);
-      expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
-      expect(AuthenticationService.getAuthenticatedUser().authenticated).toBe(false);
+      await Promise.resolve();
+      $httpBackend.flush();
+      const result = await authentication;
+
+      expect(result).toBe(true);
+      expect($rootScope.authenticating).toBe(false);
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+        jasmine.objectContaining({
+          name: 'joe!',
+          roles: ['role-a'],
+          authenticated: true,
+          canMintApiTokens: true,
+          isAdmin: true,
+        }),
+      );
     });
+
+    it('defaults API-token and admin permissions when the auth response omits them', async function () {
+      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!' });
+
+      const authentication = AuthenticationInitializer.authenticateUser();
+
+      await Promise.resolve();
+      $httpBackend.flush();
+      await authentication;
+
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+        jasmine.objectContaining({ canMintApiTokens: false, isAdmin: false }),
+      );
+    });
+
+    it('resolves false and redirects once when the response has no username', async function () {
+      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      AuthenticationService.setAuthenticatedUser({
+        name: 'stale-user',
+        authenticated: false,
+        roles: ['stale-role'],
+      });
+      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, {});
+
+      const authentication = AuthenticationInitializer.authenticateUser();
+
+      await Promise.resolve();
+      $httpBackend.flush();
+      const result = await authentication;
+
+      expect(result).toBe(false);
+      expect(loginRedirect).toHaveBeenCalledTimes(1);
+      expect($rootScope.authenticating).toBe(false);
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual({
+        name: '[anonymous]',
+        authenticated: false,
+        roles: [],
+        canMintApiTokens: false,
+        isAdmin: false,
+      });
+    });
+
+    it('resolves false and redirects once when the authentication request fails', async function () {
+      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      AuthenticationService.setAuthenticatedUser({
+        name: 'stale-user',
+        authenticated: false,
+        roles: ['stale-role'],
+      });
+      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(500);
+
+      const authentication = AuthenticationInitializer.authenticateUser();
+
+      await Promise.resolve();
+      $httpBackend.flush();
+      const result = await authentication;
+
+      expect(result).toBe(false);
+      expect(loginRedirect).toHaveBeenCalledTimes(1);
+      expect($rootScope.authenticating).toBe(false);
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual({
+        name: '[anonymous]',
+        authenticated: false,
+        roles: [],
+        canMintApiTokens: false,
+        isAdmin: false,
+      });
+    });
+
+    it('resolves false and redirects once when a successful response is malformed', async function () {
+      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      AuthenticationService.setAuthenticatedUser({
+        name: 'stale-user',
+        authenticated: false,
+        roles: ['stale-role'],
+      });
+      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, null);
+
+      const authentication = AuthenticationInitializer.authenticateUser();
+
+      await Promise.resolve();
+      $httpBackend.flush();
+      const result = await authentication;
+
+      expect(result).toBe(false);
+      expect(loginRedirect).toHaveBeenCalledTimes(1);
+      expect($rootScope.authenticating).toBe(false);
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual({
+        name: '[anonymous]',
+        authenticated: false,
+        roles: [],
+        canMintApiTokens: false,
+        isAdmin: false,
+      });
+    });
+
+    it('keeps valid authentication successful when one listener throws', async function () {
+      const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+      const reportError = spyOn(console, 'error');
+      const nextListener = jasmine.createSpy('nextListener');
+      const listenerError = new Error('listener failed');
+      authenticationUnsubscribes.push(
+        AuthenticationService.onAuthentication(() => {
+          throw listenerError;
+        }),
+        AuthenticationService.onAuthentication(nextListener),
+      );
+      $httpBackend.expectGET(SETTINGS.authEndpoint).respond(200, { username: 'joe!', roles: ['role-a'] });
+
+      const authentication = AuthenticationInitializer.authenticateUser();
+
+      await Promise.resolve();
+      $httpBackend.flush();
+      const result = await authentication;
+
+      expect(result).toBe(true);
+      expect(loginRedirect).not.toHaveBeenCalled();
+      expect($rootScope.authenticating).toBe(false);
+      expect(nextListener).toHaveBeenCalledTimes(1);
+      expect(reportError).toHaveBeenCalledOnceWith('Authentication listener failed', listenerError);
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+        jasmine.objectContaining({ name: 'joe!', authenticated: true, roles: ['role-a'] }),
+      );
+    });
+  });
+});
+
+describe('initializeAuthentication', () => {
+  let scheduledReauthentication: () => void;
+
+  const createTestScheduler = (): IScheduler => ({
+    subscribe: jasmine.createSpy('subscribe').and.callFake((next?: () => void) => {
+      scheduledReauthentication = next;
+      return new Subscription();
+    }),
+    scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
+    unsubscribe: jasmine.createSpy('unsubscribe'),
+  });
+
+  beforeEach(() => {
+    SETTINGS.authEnabled = true;
+    SETTINGS.authTtl = 1234;
+    AuthenticationService.reset();
+  });
+
+  afterEach(() => {
+    resetAuthenticationRuntime();
+    AuthenticationService.reset();
+    SETTINGS.resetToOriginal();
+    scheduledReauthentication = null;
+  });
+
+  it('resolves true without authenticating or creating a scheduler when auth is disabled', async () => {
+    SETTINGS.authEnabled = false;
+    const authenticateUser = spyOn(AuthenticationInitializer, 'authenticateUser');
+    const createScheduler = spyOn(SchedulerFactory, 'createScheduler');
+
+    const result = await initializeAuthentication();
+
+    expect(result).toBe(true);
+    expect(authenticateUser).not.toHaveBeenCalled();
+    expect(createScheduler).not.toHaveBeenCalled();
+  });
+
+  it('shares one authentication request and scheduler between concurrent successful initializations', async () => {
+    const request = createDeferred<any>();
+    const scheduler = createTestScheduler();
+    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+    const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValue(request.promise);
+
+    const firstInitialization = initializeAuthentication();
+    const secondInitialization = initializeAuthentication();
+
+    expect(secondInitialization).toBe(firstInitialization);
+    expect(get).toHaveBeenCalledOnceWith(SETTINGS.authEndpoint);
+    expect(createScheduler).toHaveBeenCalledOnceWith(1234);
+    expect(scheduler.subscribe).toHaveBeenCalledTimes(1);
+
+    request.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+
+    expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([true, true]);
+    expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+      jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
+    );
+    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
+  });
+
+  it('shares one failed authentication result and redirect between concurrent initializations', async () => {
+    const request = createDeferred<any>();
+    const scheduler = createTestScheduler();
+    spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+    const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValue(request.promise);
+    const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+    AuthenticationService.setAuthenticatedUser({
+      name: 'stale-user',
+      authenticated: false,
+      roles: ['stale-role'],
+    });
+
+    const firstInitialization = initializeAuthentication();
+    const secondInitialization = initializeAuthentication();
+    request.resolve({ data: {} });
+
+    expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([false, false]);
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(loginRedirect).toHaveBeenCalledTimes(1);
+    expect(AuthenticationService.getAuthenticatedUser()).toEqual({
+      name: '[anonymous]',
+      authenticated: false,
+      roles: [],
+      canMintApiTokens: false,
+      isAdmin: false,
+    });
+    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
+  });
+
+  it('authenticates again after the previous initialization settles', async () => {
+    const scheduler = createTestScheduler();
+    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+    const authenticateUser = spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValues(
+      Promise.resolve(true),
+      Promise.resolve(false),
+    );
+    const reauthenticateUser = spyOn(AuthenticationInitializer, 'reauthenticateUser');
+
+    expect(await initializeAuthentication()).toBe(true);
+    expect(await initializeAuthentication()).toBe(false);
+    scheduledReauthentication();
+
+    expect(createScheduler).toHaveBeenCalledOnceWith(1234);
+    expect(scheduler.subscribe).toHaveBeenCalledTimes(1);
+    expect(authenticateUser).toHaveBeenCalledTimes(2);
+    expect(reauthenticateUser).toHaveBeenCalledTimes(1);
+  });
+
+  [
+    { description: 'missing', value: undefined },
+    { description: 'zero', value: 0 },
+    { description: 'negative', value: -1 },
+    { description: 'NaN', value: Number.NaN },
+    { description: 'infinite', value: Number.POSITIVE_INFINITY },
+  ].forEach(({ description, value }) => {
+    it(`uses the default authentication interval when authTtl is ${description}`, async () => {
+      SETTINGS.authTtl = value as number;
+      const scheduler = createTestScheduler();
+      const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+      spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
+
+      await initializeAuthentication();
+
+      expect(createScheduler).toHaveBeenCalledOnceWith(600000);
+    });
+  });
+
+  it('unsubscribes the scheduler and creates a new one after reset', async () => {
+    const firstScheduler = createTestScheduler();
+    const secondScheduler = createTestScheduler();
+    const createScheduler = spyOn(SchedulerFactory, 'createScheduler').and.returnValues(
+      firstScheduler,
+      secondScheduler,
+    );
+    spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
+
+    await initializeAuthentication();
+    resetAuthenticationRuntime();
+    await initializeAuthentication();
+
+    expect(firstScheduler.unsubscribe).toHaveBeenCalledTimes(1);
+    expect(secondScheduler.subscribe).toHaveBeenCalledTimes(1);
+    expect(createScheduler).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not let a successful stale generation overwrite a new initialization', async () => {
+    const firstRequest = createDeferred<any>();
+    const secondRequest = createDeferred<any>();
+    const firstScheduler = createTestScheduler();
+    const secondScheduler = createTestScheduler();
+    spyOn(SchedulerFactory, 'createScheduler').and.returnValues(firstScheduler, secondScheduler);
+    spyOn(AuthenticationInitializer as any, 'get').and.returnValues(firstRequest.promise, secondRequest.promise);
+    const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+
+    const firstInitialization = initializeAuthentication();
+    resetAuthenticationRuntime();
+    const secondInitialization = initializeAuthentication();
+
+    firstRequest.resolve({ data: { username: 'stale-user', roles: ['stale-role'] } });
+
+    expect(await firstInitialization).toBe(false);
+    expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
+    expect((AngularServices.$rootScope as any).authenticating).toBe(true);
+    expect(initializeAuthentication()).toBe(secondInitialization);
+
+    secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+
+    expect(await secondInitialization).toBe(true);
+    expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+      jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
+    );
+    expect(loginRedirect).not.toHaveBeenCalled();
+    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
+  });
+
+  it('does not let a failed stale generation clear a new initialization or redirect', async () => {
+    const firstRequest = createDeferred<any>();
+    const secondRequest = createDeferred<any>();
+    const firstScheduler = createTestScheduler();
+    const secondScheduler = createTestScheduler();
+    spyOn(SchedulerFactory, 'createScheduler').and.returnValues(firstScheduler, secondScheduler);
+    spyOn(AuthenticationInitializer as any, 'get').and.returnValues(firstRequest.promise, secondRequest.promise);
+    const loginRedirect = spyOn(AuthenticationInitializer, 'loginRedirect');
+
+    const firstInitialization = initializeAuthentication();
+    resetAuthenticationRuntime();
+    const secondInitialization = initializeAuthentication();
+
+    firstRequest.reject(new Error('stale request failed'));
+
+    expect(await firstInitialization).toBe(false);
+    expect(loginRedirect).not.toHaveBeenCalled();
+    expect((AngularServices.$rootScope as any).authenticating).toBe(true);
+    expect(initializeAuthentication()).toBe(secondInitialization);
+
+    secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+
+    expect(await secondInitialization).toBe(true);
+    expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+      jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
+    );
+    expect(loginRedirect).not.toHaveBeenCalled();
+    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
+  });
+});
+
+describe('authentication module startup', () => {
+  const initializationError = new Error('initialization failed');
+  const reportError = jasmine.createSpy('reportError');
+
+  beforeEach(() => {
+    SETTINGS.authEnabled = true;
+    SETTINGS.authTtl = 1234;
+    const scheduler: IScheduler = {
+      subscribe: () => new Subscription(),
+      scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
+      unsubscribe: jasmine.createSpy('unsubscribe'),
+    };
+    spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
+    spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.reject(initializationError));
+    spyOnProperty(AngularServices, '$log', 'get').and.returnValue({ error: reportError } as any);
+  });
+  beforeEach(mock.module(AUTHENTICATION_MODULE));
+  beforeEach(mock.inject(() => undefined));
+
+  afterEach(() => {
+    resetAuthenticationRuntime();
+    SETTINGS.resetToOriginal();
+    reportError.calls.reset();
+  });
+
+  it('reports unexpected initializeAuthentication rejections', async () => {
+    await new Promise((resolve) => setTimeout(resolve));
+
+    expect(reportError).toHaveBeenCalledOnceWith('Failed to initialize authentication', initializationError);
   });
 });

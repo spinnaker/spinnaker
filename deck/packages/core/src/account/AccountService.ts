@@ -1,6 +1,4 @@
-import type { IQResolveReject } from 'angular';
 import { chain, intersection, uniq, zipObject } from 'lodash';
-import { $log, $q } from 'ngimport';
 import type { Observable } from 'rxjs';
 import { defer as observableDefer, from as observableFrom } from 'rxjs';
 import { map, publishReplay, refCount } from 'rxjs/operators';
@@ -10,6 +8,11 @@ import type { Application } from '../application/application.model';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
 import type { ILoadBalancer, IServerGroup } from '../domain';
+
+const all = <T extends any[]>(promises: { [K in keyof T]: PromiseLike<T[K]> }): PromiseLike<T> =>
+  (Promise.all(promises as any) as unknown) as PromiseLike<T>;
+
+const when = <T>(promise: PromiseLike<T>): PromiseLike<T> => Promise.resolve(promise) as PromiseLike<T>;
 
 export interface IRegion {
   account?: string;
@@ -81,7 +84,7 @@ export class AccountService {
   }
 
   public static challengeDestructiveActions(account: string): PromiseLike<boolean> {
-    return $q((resolve: IQResolveReject<boolean>) => {
+    const run = (resolve: (value: boolean) => void) => {
       if (account) {
         this.getAccountDetails(account)
           .then((details: IAccountDetails) => {
@@ -95,7 +98,8 @@ export class AccountService {
       } else {
         resolve(false);
       }
-    });
+    };
+    return new Promise<boolean>(run);
   }
 
   public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
@@ -108,7 +112,7 @@ export class AccountService {
 
   public static getAllAccountDetailsForProvider(provider: string): PromiseLike<IAccountDetails[]> {
     return this.listAccounts(provider).catch((error: any) => {
-      $log.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
+      console.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
       return [];
     });
   }
@@ -166,9 +170,9 @@ export class AccountService {
   }
 
   public static listAllAccounts(provider: string = null): PromiseLike<IAccountDetails[]> {
-    return $q
-      .when(this.accounts$.toPromise())
-      .then((accounts: IAccountDetails[]) => accounts.filter((account) => !provider || account.type === provider));
+    return when(this.accounts$.toPromise()).then((accounts: IAccountDetails[]) =>
+      accounts.filter((account) => !provider || account.type === provider),
+    );
   }
 
   public static listAccounts(provider: string = null): PromiseLike<IAccountDetails[]> {
@@ -178,11 +182,13 @@ export class AccountService {
   }
 
   public static applicationAccounts(application: Application = null): PromiseLike<IAccountDetails[]> {
-    return $q.all([this.listProviders(application), this.listAccounts()]).then(([providers, accounts]) => {
-      return providers.reduce((memo, p) => {
-        return memo.concat(accounts.filter((acc) => acc.cloudProvider === p));
-      }, [] as IAccountDetails[]);
-    });
+    return all<[string[], IAccountDetails[]]>([this.listProviders(application), this.listAccounts()]).then(
+      ([providers, accounts]) => {
+        return providers.reduce((memo, p) => {
+          return memo.concat(accounts.filter((acc) => acc.cloudProvider === p));
+        }, [] as IAccountDetails[]);
+      },
+    );
   }
 
   public static listProviders$(application: Application = null): Observable<string[]> {
@@ -203,7 +209,7 @@ export class AccountService {
   }
 
   public static listProviders(application: Application = null): PromiseLike<string[]> {
-    return $q.when(this.listProviders$(application).toPromise());
+    return when(this.listProviders$(application).toPromise());
   }
 
   public static getAccountForInstance(

@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import * as React from 'react';
 
 import { EntitySourcePopover } from './EntitySourcePopover';
@@ -57,11 +56,9 @@ export const EntitySource = ({ metadata, relativePath = '^.^.^' }: IEntitySource
         <HoverablePopover Component={PopoverContent}>
           {error && <span>pipeline (not found)</span>}
           {!error && (
-            <UIRouterContextComponent>
-              <UISref to={srefPath} params={srefParams}>
-                <a className="clickable">{executionType}</a>
-              </UISref>
-            </UIRouterContextComponent>
+            <UISref to={srefPath} params={srefParams}>
+              <a className="clickable">{executionType}</a>
+            </UISref>
           )}
         </HoverablePopover>
       </dd>

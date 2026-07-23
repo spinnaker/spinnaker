@@ -5,6 +5,10 @@ describe('core: Home page', () => {
 
   it('shows a search input field on load', function () {
     cy.visit('');
-    cy.get('.header-section input[type="search"]');
+    cy.get('[data-purpose="search-v1-input"]').should(
+      'have.attr',
+      'placeholder',
+      'projects, applications, clusters, load balancers, server groups, firewalls',
+    );
   });
 });

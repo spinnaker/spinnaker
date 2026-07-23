@@ -1,13 +1,9 @@
-import { $q } from 'ngimport';
-
 import { REST } from '../../../api/ApiService';
 import type { IPipelineTemplateV2 } from '../../../domain/IPipelineTemplateV2';
 
 export class PipelineTemplateWriter {
   public static savePipelineTemplateV2(template: IPipelineTemplateV2): PromiseLike<any> {
-    return $q((resolve, reject) => {
-      REST('/v2/pipelineTemplates/create').post(template).then(resolve, reject);
-    });
+    return REST('/v2/pipelineTemplates/create').post(template);
   }
 
   public static deleteTemplate(template: { id: string; digest?: string; tag?: string }): PromiseLike<any> {

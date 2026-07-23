@@ -1,7 +1,6 @@
-import { $q } from 'ngimport';
-
 import type { IConfirmModalProps } from './ConfirmModal';
 import { ConfirmModal } from './ConfirmModal';
+import { AngularServices } from '../angular/services';
 import { toMarkdown } from '../presentation/Markdown';
 import { ReactModal } from '../presentation/ReactModal';
 import type { ITaskMonitorConfig } from '../task';
@@ -52,7 +51,7 @@ export class ConfirmationModalService {
       extendedParams.taskMonitors = taskMonitorConfigs.map((m) => new TaskMonitor(m));
     }
 
-    const { promise, resolve, reject } = $q.defer();
+    const { promise, resolve, reject } = AngularServices.$q.defer();
     ReactModal.show(ConfirmModal, extendedParams).then(resolve, reject);
 
     // modal was dismissed

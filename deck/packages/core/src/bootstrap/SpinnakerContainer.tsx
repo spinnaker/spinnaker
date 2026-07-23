@@ -1,5 +1,4 @@
 import { UIView } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import * as React from 'react';
 import { RecoilRoot } from 'recoil';
 
@@ -25,11 +24,15 @@ export const SpinnakerContainer = ({ authenticating, routing }: ISpinnakerContai
         )}
         <div className="navbar-inverse grid-header">
           <CustomBanner />
-          <UIRouterContextComponent>
-            <SpinnakerHeader />
-          </UIRouterContextComponent>
+          <SpinnakerHeader />
         </div>
-        <div className="spinnaker-content grid-contents">{!authenticating && <UIView name="main" />}</div>
+        <div className="spinnaker-content grid-contents">
+          {!authenticating && (
+            <div className="spinnaker-main-view">
+              <UIView name="main" />
+            </div>
+          )}
+        </div>
       </div>
       <Notifier />
     </RecoilRoot>

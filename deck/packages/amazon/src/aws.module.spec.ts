@@ -62,6 +62,13 @@ describe('Amazon package registration', () => {
     expect(CloudProviderRegistry.getValue('aws', 'function.setTransformer')).toBe(AwsFunctionTransformer);
     expect(CloudProviderRegistry.getValue('aws', 'securityGroup.reader')).toBe(AwsSecurityGroupReader);
     expect(CloudProviderRegistry.getValue('aws', 'securityGroup.transformer')).toBe(AwsSecurityGroupTransformer);
+    expect(CloudProviderRegistry.getValue('aws', 'applicationProviderFields')).toEqual([
+      {
+        field: 'useAmiBlockDeviceMappings',
+        label: 'Prefer AMI Block Device Mappings',
+        type: 'boolean',
+      },
+    ]);
 
     expectRegistered('serverGroup.CloneServerGroupModal');
     expectRegistered('serverGroup.detailsGetter');

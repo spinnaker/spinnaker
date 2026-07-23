@@ -1,11 +1,9 @@
 import type { StateService } from '@uirouter/core';
-import type { IScope } from 'angular';
-import type { IModalService } from 'angular-ui-bootstrap';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 import { AngularServices } from '../angular/services';
 
-import type { Application } from '../application';
+import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
 import type { CacheInitializerService } from '../cache';
 import { Overridable } from '../overrideRegistry';
 import { ConfigureProjectModal } from '../projects';
@@ -24,8 +22,6 @@ export interface IInsightMenuState {
 export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenuState> {
   public static defaultProps: IInsightMenuProps = { createApp: true, createProject: true, refreshCaches: true };
 
-  private $rootScope: IScope;
-  private $uibModal: IModalService;
   private $state: StateService;
   private cacheInitializer: CacheInitializerService;
 
@@ -33,8 +29,6 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     super(props);
     this.state = {} as IInsightMenuState;
     this.$state = AngularServices.$state;
-    this.$uibModal = AngularServices.modalService;
-    this.$rootScope = AngularServices.$rootScope;
     this.cacheInitializer = AngularServices.cacheInitializer;
   }
 
@@ -45,22 +39,12 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
       })
       .catch(() => {});
 
-  private createApplication = () => {
-    this.$uibModal
-      .open({
-        scope: this.$rootScope.$new(),
-        templateUrl: require('../application/modal/newapplication.html'),
-        resolve: {
-          name: () => '',
-        },
-        controller: 'CreateApplicationModalCtrl',
-        controllerAs: 'newAppModal',
-      })
-      .result.then(this.routeToApplication)
+  private createApplication = () =>
+    CreateApplicationModal.show()
+      .then(this.routeToApplication)
       .catch(() => {});
-  };
 
-  private routeToApplication = (app: Application) => {
+  private routeToApplication = (app: { name: string }) => {
     this.$state.go('home.applications.application', { application: app.name });
   };
 

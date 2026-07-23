@@ -11,7 +11,8 @@ if (typeof process === 'undefined') {
 // API_HOST=https://gate.spinnaker.mycompany.com pnpm start
 const apiHost = import.meta.env.VITE_API_HOST || process.env.API_HOST || 'http://localhost:8084';
 const atlasWebComponentsUrl = import.meta.env.VITE_ATLAS_WEB_COMPONENTS_URL || process.env.ATLAS_WEB_COMPONENTS_URL;
-const authEndpoint = import.meta.env.VITE_AUTH_ENDPOINT || process.env.AUTH_ENDPOINT || apiHost + '/auth/user';
+const authEndpoint =
+  import.meta.env.VITE_AUTH_ENDPOINT || process.env.AUTH_ENDPOINT || apiHost.replace(/\/$/, '') + '/auth/user';
 const authEnabled = import.meta.env.VITE_AUTH_ENABLED === 'true' || process.env.AUTH_ENABLED === 'true';
 const bakeryDetailUrl =
   import.meta.env.VITE_BAKERY_DETAIL_URL ||

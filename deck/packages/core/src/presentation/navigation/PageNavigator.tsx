@@ -4,6 +4,8 @@ import React from 'react';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 import { UUIDGenerator } from '../../utils/uuid.service';
 
+import './pageNavigation.less';
+
 export interface INavigationPage {
   key: string;
   label: string;

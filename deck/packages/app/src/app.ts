@@ -1,9 +1,6 @@
 /* eslint-disable @spinnaker/import-sort */
 import 'rxjs-compat';
-import { module } from 'angular';
-import './strictDi';
 
-import { CORE_MODULE } from '@spinnaker/core';
 import '@spinnaker/docker';
 import '@spinnaker/amazon';
 import '@spinnaker/appengine';
@@ -19,4 +16,10 @@ import '@spinnaker/ecs';
 import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
 
-module('netflix.spinnaker', [CORE_MODULE]);
+import { bootstrapDeck, registerPreconfiguredJobStages, registerPreconfiguredWebhookStages } from '@spinnaker/core';
+
+void registerPreconfiguredJobStages();
+void registerPreconfiguredWebhookStages();
+void bootstrapDeck(document.getElementById('spinnaker-root')).catch((error) => {
+  console.error('Deck bootstrap failed', error);
+});
