@@ -3,16 +3,22 @@ import React from 'react';
 
 import { AngularServices } from '../../angular/services';
 import { ConfirmationModalService } from '../../confirmationModal';
+import { setDirectRouter } from '../../navigation/directRouter';
 import { Registry } from '../../registry/Registry';
-import { ExecutionDetailsSectionNav } from './ExecutionDetailsSectionNav';
+import { ExecutionDetailsSectionNav, ExecutionDetailsSectionNavComponent } from './ExecutionDetailsSectionNav';
+import { StageExecutionDetailsComponent } from './StageExecutionDetails';
 import { StageFailureMessage } from './StageFailureMessage';
 import { StageSummary } from './StageSummary';
-import { StageSummaryWrapper } from './StageSummaryWrapper';
+import { StageSummaryWrapper, StageSummaryWrapperComponent } from './StageSummaryWrapper';
 import { StepDetails } from './StepDetails';
-import { StepExecutionDetailsWrapper } from './StepExecutionDetailsWrapper';
+import { StepExecutionDetailsWrapper, StepExecutionDetailsWrapperComponent } from './StepExecutionDetailsWrapper';
 import { ExecutionStepDetails } from '../config/stages/common/ExecutionStepDetails';
 
 describe('pipeline details bridge wrappers', () => {
+  const routerProps = { router: {} as any, stateParams: {}, stateService: {} as any };
+
+  afterEach(() => setDirectRouter(null));
+
   it('renders the direct StageSummaryWrapper for Angular summary templates', () => {
     const props = {
       application: {} as any,
@@ -35,14 +41,14 @@ describe('pipeline details bridge wrappers', () => {
     spyOn(Registry.pipeline, 'getStageConfig').and.returnValue({
       executionStepLabelComponent: CustomStepLabel,
     } as any);
-    spyOnProperty(AngularServices, '$stateParams', 'get').and.returnValue({ step: '1' } as any);
-
     const component = mount(
-      <StageSummaryWrapper
+      <StageSummaryWrapperComponent
+        {...routerProps}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
         sourceUrl="template.html"
         stage={{ context: {}, type: 'deploy' } as any}
+        stateParams={{ step: '1' }}
         stageSummary={
           {
             comments: '**approved**',
@@ -64,10 +70,9 @@ describe('pipeline details bridge wrappers', () => {
   });
 
   it('sanitizes stage summary markdown comments', () => {
-    spyOnProperty(AngularServices, '$stateParams', 'get').and.returnValue({} as any);
-
     const component = mount(
-      <StageSummaryWrapper
+      <StageSummaryWrapperComponent
+        {...routerProps}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
         sourceUrl="template.html"
@@ -88,17 +93,152 @@ describe('pipeline details bridge wrappers', () => {
     expect(comments).not.toContain('<script>');
   });
 
-  it('toggles stage summary details through UI Router params and preserves stage indices', () => {
-    const go = jasmine.createSpy('go');
-    spyOnProperty(AngularServices, '$stateParams', 'get').and.returnValue({
-      stage: '2',
-      subStage: '3',
-      step: '0',
-    } as any);
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue({ go } as any);
+  it('tracks the active execution details section from injected route params', () => {
+    const component = shallow(
+      <ExecutionDetailsSectionNavComponent
+        {...({
+          router: {},
+          sections: ['firstSection', 'secondSection'],
+          stateParams: { details: 'firstSection' },
+          stateService: {},
+        } as any)}
+      />,
+    );
+
+    const activeSection = () =>
+      component
+        .find('Section')
+        .filterWhere((section) => section.prop('active'))
+        .prop('section');
+
+    expect(activeSection()).toBe('firstSection');
+
+    component.setProps({ stateParams: { details: 'secondSection' } } as any);
+
+    expect(activeSection()).toBe('secondSection');
+  });
+
+  it('navigates execution details sections through the injected state service', () => {
+    const injectedGo = jasmine.createSpy('injectedGo');
+
+    const component = shallow(
+      <ExecutionDetailsSectionNavComponent
+        {...({
+          router: {},
+          sections: ['firstSection', 'secondSection'],
+          stateParams: {},
+          stateService: { go: injectedGo },
+        } as any)}
+      />,
+    );
+
+    component.find('Section').at(1).dive().find('a').simulate('click');
+
+    expect(injectedGo).toHaveBeenCalledWith('.', { details: 'secondSection' });
+  });
+
+  it('resolves deep-linked stages through injected route params and state service', () => {
+    const injectedGo = jasmine.createSpy('injectedGo');
+    const firstSummary = { stages: [], type: 'wait' } as any;
+    const secondSummary = {
+      masterStage: { id: 'master-stage', type: 'deploy' },
+      stages: [{ id: 'task-stage', type: 'deploy' }],
+      type: 'deploy',
+    } as any;
+
+    const component = shallow(
+      <StageExecutionDetailsComponent
+        {...({ router: {}, stateParams: { stageId: 'task-stage' }, stateService: { go: injectedGo } } as any)}
+        application={{} as any}
+        execution={{ stageSummaries: [firstSummary, secondSummary] } as any}
+      />,
+      { disableLifecycleMethods: true },
+    );
+
+    expect(injectedGo).toHaveBeenCalledWith(
+      '.',
+      { stage: 1, subStage: undefined, step: 0, stageId: null },
+      { location: 'replace' },
+    );
+    expect(component.find(StageSummary).prop('stageSummary')).toBe(secondSummary);
+  });
+
+  it('selects the next routed stage immediately when route props change', () => {
+    const firstSummary = {
+      masterStage: { id: 'first-master', type: 'deploy' },
+      stages: [{ id: 'first-task', type: 'deploy' }],
+      type: 'deploy',
+    } as any;
+    const secondSummary = {
+      masterStage: { id: 'second-master', type: 'deploy' },
+      stages: [{ id: 'second-task', type: 'deploy' }],
+      type: 'deploy',
+    } as any;
+    const component = shallow(
+      <StageExecutionDetailsComponent
+        {...({
+          router: {},
+          stateParams: { stageId: 'first-task' },
+          stateService: { go: jasmine.createSpy('go') },
+        } as any)}
+        application={{} as any}
+        execution={{ stageSummaries: [{ stages: [] }, firstSummary, secondSummary] } as any}
+      />,
+      { disableLifecycleMethods: true },
+    );
+
+    component.setProps({ stateParams: { stageId: 'second-task' } } as any);
+
+    expect(component.find(StageSummary).prop('stageSummary')).toBe(secondSummary);
+  });
+
+  it('waits for routed props before selecting a stage from a different execution', () => {
+    const injectedGo = jasmine.createSpy('injectedGo');
+    const firstSummary = {
+      masterStage: { id: 'first-master', type: 'deploy' },
+      stages: [{ id: 'first-task', type: 'deploy' }],
+      type: 'deploy',
+    } as any;
+    const secondSummary = {
+      masterStage: { id: 'second-master', type: 'deploy' },
+      stages: [{ id: 'second-task', type: 'deploy' }],
+      type: 'deploy',
+    } as any;
+    const firstExecution = { id: 'first-execution', stageSummaries: [firstSummary] } as any;
+    const secondExecution = { id: 'second-execution', stageSummaries: [{ stages: [] }, secondSummary] } as any;
+    const initialProps = {
+      application: {} as any,
+      execution: firstExecution,
+      router: {},
+      stateParams: { executionId: 'first-execution', stage: '0', step: '0' },
+      stateService: { go: injectedGo },
+    } as any;
+
+    const component = shallow(<StageExecutionDetailsComponent {...initialProps} />, { disableLifecycleMethods: true });
+    const instance = component.instance() as StageExecutionDetailsComponent;
+
+    injectedGo.calls.reset();
+    instance.componentWillReceiveProps({
+      ...initialProps,
+      stateParams: { executionId: 'second-execution', stage: '1', step: '0' },
+    });
+
+    expect(injectedGo).not.toHaveBeenCalled();
+
+    component.setProps({
+      execution: secondExecution,
+      stateParams: { executionId: 'second-execution', stage: '1', step: '0' },
+    });
+
+    expect(component.find(StageSummary).prop('stageSummary')).toBe(secondSummary);
+  });
+
+  it('toggles stage summary details through the injected router and preserves stage indices', () => {
+    const injectedGo = jasmine.createSpy('injectedGo');
 
     const component = mount(
-      <StageSummaryWrapper
+      <StageSummaryWrapperComponent
+        {...routerProps}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
         sourceUrl="template.html"
@@ -111,12 +251,14 @@ describe('pipeline details bridge wrappers', () => {
             ],
           } as any
         }
+        stateParams={{ stage: '2', subStage: '3', step: '0' }}
+        stateService={{ go: injectedGo } as any}
       />,
     );
 
     component.find('tr.clickable').at(1).simulate('click');
 
-    expect(go).toHaveBeenCalledWith('.', { stage: 2, step: 1, subStage: 3 });
+    expect(injectedGo).toHaveBeenCalledWith('.', { stage: 2, step: 1, subStage: 3 });
   });
 
   it('confirms manual skip against the top-level stage', async () => {
@@ -132,7 +274,8 @@ describe('pipeline details bridge wrappers', () => {
     spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue(executionService as any);
 
     const component = mount(
-      <StageSummaryWrapper
+      <StageSummaryWrapperComponent
+        {...routerProps}
         application={{ attributes: {} } as any}
         execution={
           {
@@ -172,7 +315,8 @@ describe('pipeline details bridge wrappers', () => {
 
   it('renders StepExecutionDetailsWrapper default execution details without section nav', () => {
     const component = shallow(
-      <StepExecutionDetailsWrapper
+      <StepExecutionDetailsWrapperComponent
+        {...routerProps}
         application={{} as any}
         configSections={['Task Status']}
         execution={{} as any}
@@ -195,7 +339,8 @@ describe('pipeline details bridge wrappers', () => {
     );
 
     const component = shallow(
-      <StepExecutionDetailsWrapper
+      <StepExecutionDetailsWrapperComponent
+        {...routerProps}
         application={{} as any}
         config={{ executionDetailsComponent: CustomExecutionDetails } as any}
         configSections={['Custom']}
@@ -214,13 +359,37 @@ describe('pipeline details bridge wrappers', () => {
     expect(component.find(ExecutionStepDetails).exists()).toBe(false);
   });
 
+  it('passes the injected details route param to custom step execution details', () => {
+    const params = { details: 'facade-details' };
+    setDirectRouter({ globals: { params }, stateService: { params } } as any);
+    const CustomExecutionDetails = () => null;
+
+    const component = shallow(
+      <StepExecutionDetailsWrapperComponent
+        {...routerProps}
+        {...({
+          application: {},
+          config: { executionDetailsComponent: CustomExecutionDetails },
+          configSections: ['Custom'],
+          execution: {},
+          sourceUrl: 'template.html',
+          stage: {},
+          stateParams: { details: 'injected-details' },
+        } as any)}
+      />,
+    );
+
+    expect(component.find(CustomExecutionDetails).prop('currentSection')).toBe('injected-details');
+  });
+
   it('passes config sections to custom StepExecutionDetailsWrapper components so they can render section nav', () => {
     const CustomExecutionDetails = ({ configSections }: any) => (
       <ExecutionDetailsSectionNav sections={configSections} />
     );
 
     const component = shallow(
-      <StepExecutionDetailsWrapper
+      <StepExecutionDetailsWrapperComponent
+        {...routerProps}
         application={{} as any}
         config={{ executionDetailsComponent: CustomExecutionDetails } as any}
         configSections={['Custom', 'Tasks']}

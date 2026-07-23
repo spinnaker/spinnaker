@@ -1,16 +1,8 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import type { IFunctionModalProps } from '@spinnaker/core';
-import {
-  AngularServices,
-  FunctionWriter,
-  noop,
-  ReactModal,
-  TaskMonitor,
-  WizardModal,
-  WizardPage,
-} from '@spinnaker/core';
+import type { IFunctionModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import { FunctionWriter, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ExecutionRole } from './configure/ExecutionRole';
 import { FunctionBasicInformation } from './configure/FunctionBasicInformation';
@@ -31,13 +23,16 @@ export interface IAmazonCreateFunctionState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionProps, IAmazonCreateFunctionState> {
+export class CreateLambdaFunctionComponent extends React.Component<
+  IAmazonCreateFunctionProps & IRouterInjectedProps,
+  IAmazonCreateFunctionState
+> {
   public static defaultProps: Partial<IAmazonCreateFunctionProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  constructor(props: IAmazonCreateFunctionProps) {
+  constructor(props: IAmazonCreateFunctionProps & IRouterInjectedProps) {
     super(props);
     const functionTransformer = new AwsFunctionTransformer();
     const funcCommand = props.functionDef
@@ -81,10 +76,10 @@ export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionP
       provider: 'aws',
     };
 
-    if (!AngularServices.$state.includes('**.functionDetails')) {
-      AngularServices.$state.go('.functionDetails', newStateParams);
+    if (!this.props.stateService.includes('**.functionDetails')) {
+      this.props.stateService.go('.functionDetails', newStateParams);
     } else {
-      AngularServices.$state.go('^.functionDetails', newStateParams);
+      this.props.stateService.go('^.functionDetails', newStateParams);
     }
   }
 
@@ -234,3 +229,8 @@ export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionP
     );
   }
 }
+
+export const CreateLambdaFunction = Object.assign(
+  withRouter<IAmazonCreateFunctionProps & IRouterInjectedProps>(CreateLambdaFunctionComponent),
+  { show: CreateLambdaFunctionComponent.show },
+);

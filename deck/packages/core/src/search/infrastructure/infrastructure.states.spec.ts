@@ -24,7 +24,7 @@ describe('infrastructure states', () => {
     const errorBoundary = shallow(React.createElement(view.component));
 
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
-    expect(errorBoundary.prop('children').type).toBe(SearchV1);
+    expect(errorBoundary.prop('children').type.displayName).toBe(SearchV1.displayName);
     expect(view.$type).toBe('react');
     expect(view.controller).toBeUndefined();
     expect(view.template).toBeUndefined();
@@ -41,7 +41,7 @@ describe('infrastructure states', () => {
     const errorBoundary = shallow(React.createElement(view.component));
 
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
-    expect(errorBoundary.prop('children').type).toBe(SearchV2);
+    expect(errorBoundary.prop('children').type.displayName).toBe(SearchV2.displayName);
     expect(view.$type).toBe('react');
     expect(view.controller).toBeUndefined();
     expect(view.template).toBeUndefined();

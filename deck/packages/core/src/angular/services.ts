@@ -1,4 +1,3 @@
-import type { StateParams, StateService, UIRouter } from '@uirouter/core';
 import type { IDeferred, IQService, IRootScopeService, ITimeoutService } from 'angular';
 import type { IModalService, IModalStackService } from 'angular-ui-bootstrap';
 import { of as observableOf, Subject } from 'rxjs';
@@ -19,7 +18,6 @@ import { overrideRegistry } from '../overrideRegistry/override.registry';
 import type { PageTitleService } from '../pageTitle';
 import { ExecutionDetailsSectionService } from '../pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
-import type { StateEvents } from '../reactShims/state.events';
 import type {
   IProviderResultFormatter,
   ISearchResultFormatter,
@@ -164,30 +162,6 @@ class DirectPageTitleService {
   }
 }
 
-const noopSubscription = { unsubscribe: (): void => undefined };
-type NoopObservable = {
-  subscribe: () => typeof noopSubscription;
-  pipe: (...operators: unknown[]) => NoopObservable;
-};
-const noopObservable: NoopObservable = {
-  subscribe: () => noopSubscription,
-  pipe: () => noopObservable,
-};
-const directUiRouterFallback = ({
-  globals: {
-    current: { name: '' },
-    params: {},
-    params$: noopObservable,
-    start$: noopObservable,
-    success$: noopObservable,
-  },
-  transitionService: {
-    onBefore: () => (): void => undefined,
-    onStart: () => (): void => undefined,
-    onSuccess: () => (): void => undefined,
-  },
-} as unknown) as UIRouter;
-
 class AngularServiceAccessors {
   private runtime = createDeckRuntime();
   private directCacheInitializer: CacheInitializerService;
@@ -201,8 +175,6 @@ class AngularServiceAccessors {
   private directPageTitleService = new DirectPageTitleService();
   private directSecurityGroupReader: SecurityGroupReader;
   private directServerGroupWriter: ServerGroupWriter;
-  private directStateEvents: StateEvents;
-  private directStateEventsDeregister: Function;
 
   public bindRuntime(runtime: DeckRuntime): void {
     if (this.runtime === runtime) {
@@ -235,25 +207,11 @@ class AngularServiceAccessors {
   public get $timeout() {
     return (this.runtime.timeoutService as unknown) as ITimeoutService;
   }
-  public get $state() {
-    const directRouter = getDirectRouter();
-    if (!directRouter) {
-      throw new Error('Cannot access $state before the direct UI Router is initialized');
-    }
-
-    return directRouter.stateService as StateService;
-  }
-  public get $stateParams() {
-    return (getDirectRouter()?.globals.params || {}) as StateParams;
-  }
   public get $interpolate() {
     return this.runtime.interpolate;
   }
   public get $uibModal() {
     return directModalService;
-  }
-  public get $uiRouter() {
-    return ((getDirectRouter() as unknown) as UIRouter) || directUiRouterFallback;
   }
   public get cacheInitializer() {
     return this.getDirectCacheInitializer();
@@ -306,14 +264,6 @@ class AngularServiceAccessors {
   public get serverGroupWriter() {
     return this.getDirectServerGroupWriter();
   }
-  public get stateEvents() {
-    return this.getDirectStateEvents();
-  }
-
-  public has(serviceName: string): boolean {
-    return serviceName === '$uiRouter' && getDirectRouter() !== null;
-  }
-
   private getDirectCacheInitializer(): CacheInitializerService {
     if (!this.directCacheInitializer) {
       this.directCacheInitializer = new CacheInitializerService(
@@ -348,27 +298,6 @@ class AngularServiceAccessors {
     return this.directLoadBalancerReader;
   }
 
-  private getDirectStateEvents(): StateEvents {
-    if (!this.directStateEvents) {
-      const stateChangeSuccess = new Subject();
-      const locationChangeSuccess = new Subject<string>();
-      this.directStateEvents = ({ stateChangeSuccess, locationChangeSuccess } as unknown) as StateEvents;
-
-      const directRouter = getDirectRouter();
-      this.directStateEventsDeregister = directRouter?.transitionService.onSuccess({}, (transition: any) => {
-        stateChangeSuccess.next({
-          to: transition.to(),
-          toParams: transition.params('to'),
-          from: transition.from(),
-          fromParams: transition.params('from'),
-        });
-        locationChangeSuccess.next(window.location.href);
-      });
-    }
-
-    return this.directStateEvents;
-  }
-
   private getDirectClusterService(): ClusterService {
     if (!this.directClusterService) {
       this.directClusterService = new ClusterService(
@@ -383,7 +312,11 @@ class AngularServiceAccessors {
 
   private getDirectExecutionService(): ExecutionService {
     if (!this.directExecutionService) {
-      this.directExecutionService = new ExecutionService(this.$q, this.$state, this.$timeout);
+      const router = getDirectRouter();
+      if (!router) {
+        throw new Error('Cannot create ExecutionService before the direct UI Router is initialized');
+      }
+      this.directExecutionService = new ExecutionService(this.$q, router.stateService, this.$timeout);
     }
 
     return this.directExecutionService;
@@ -391,9 +324,13 @@ class AngularServiceAccessors {
 
   private getDirectExecutionDetailsSectionService(): ExecutionDetailsSectionService {
     if (!this.directExecutionDetailsSectionService) {
+      const router = getDirectRouter();
+      if (!router) {
+        throw new Error('Cannot create ExecutionDetailsSectionService before the direct UI Router is initialized');
+      }
       this.directExecutionDetailsSectionService = new ExecutionDetailsSectionService(
-        this.$stateParams,
-        this.$state as any,
+        router.globals.params,
+        router.stateService as any,
         this.$timeout,
       );
     }
@@ -439,8 +376,6 @@ class AngularServiceAccessors {
   }
 
   private resetRuntimeServices(): void {
-    this.directStateEventsDeregister?.();
-    this.directStateEventsDeregister = null;
     this.directCacheInitializer = null;
     this.directClusterService = null;
     this.directExecutionDetailsSectionService = null;
@@ -450,7 +385,6 @@ class AngularServiceAccessors {
     this.directLoadBalancerReader = null;
     this.directSecurityGroupReader = null;
     this.directServerGroupWriter = null;
-    this.directStateEvents = null;
   }
 }
 

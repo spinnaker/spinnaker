@@ -8,7 +8,7 @@ import { AzureSecurityGroupModal } from '../configure/AzureSecurityGroupModal';
 import { AzureSecurityGroupWriter } from '../securityGroup.write.service';
 import {
   AzureSecurityGroupActions,
-  AzureSecurityGroupDetails,
+  AzureSecurityGroupDetailsComponent as AzureSecurityGroupDetails,
   AzureSecurityGroupInformationSection,
   AzureSecurityGroupRulesSection,
 } from './AzureSecurityGroupDetails';
@@ -52,6 +52,21 @@ describe('AzureSecurityGroupDetails', () => {
       vpcId: 'vnet-1',
     } as any;
   }
+
+  it('closes missing details through the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go') };
+    const component = new AzureSecurityGroupDetails({
+      app: app(),
+      resolvedSecurityGroup,
+      router: {},
+      stateParams: {},
+      stateService,
+    } as any);
+
+    (component as any).autoClose();
+
+    expect(stateService.go).toHaveBeenCalledWith('^');
+  });
 
   it('loads details with the core security group reader and renders basic sections', async () => {
     const securityGroupReader = {

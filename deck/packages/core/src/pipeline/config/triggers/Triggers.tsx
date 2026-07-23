@@ -5,7 +5,6 @@ import { MetadataPageContent } from './MetadataPageContent';
 import { NotificationsPageContent } from './NotificationsPageContent';
 import { ParametersPageContent } from './ParametersPageContent';
 import { TriggersPageContent } from './TriggersPageContent';
-import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application';
 import type { IPipeline } from '../../../domain';
 import { PageNavigator, PageSection } from '../../../presentation';
@@ -26,7 +25,7 @@ export function Triggers(props: ITriggersProps) {
   const revertCountKLUDGE = props.revertCount;
 
   return (
-    <PageNavigator scrollableContainer=".pipeline-config-page" reactInjector={AngularServices}>
+    <PageNavigator scrollableContainer=".pipeline-config-page">
       <PageSection pageKey="concurrent" label="Execution Options" visible={!pipeline.strategy}>
         <ExecutionOptionsPageContent {...props} />
       </PageSection>

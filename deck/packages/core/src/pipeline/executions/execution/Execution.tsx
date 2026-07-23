@@ -19,7 +19,10 @@ import { ConfirmationModalService } from '../../../confirmationModal';
 import { StageExecutionDetails } from '../../details/StageExecutionDetails';
 import type { IExecution, IExecutionStageSummary, IPipeline, IRestartDetails } from '../../../domain';
 import type { ISortFilter } from '../../../filterModel';
-import { Overridable } from '../../../overrideRegistry';
+import type { IRouterInjectedProps } from '../../../navigation/routerContext';
+import { stateChangeSuccess$, withRouter } from '../../../navigation/routerContext';
+import type { IOverridableProps } from '../../../overrideRegistry';
+import { overridableComponent } from '../../../overrideRegistry';
 import { Tooltip } from '../../../presentation/Tooltip';
 import { ExecutionState } from '../../../state';
 import { ExecutionCancellationReason } from '../../status/ExecutionCancellationReason';
@@ -30,7 +33,7 @@ import { duration, timestamp } from '../../../utils/timeFormatters';
 
 import './execution.less';
 
-export interface IExecutionProps {
+export interface IExecutionProps extends IOverridableProps {
   application: Application;
   execution: IExecution;
   descendantExecutionId?: string;
@@ -64,8 +67,7 @@ const findChildIndex = (child: string, execution: IExecution) => {
   return result;
 };
 
-@Overridable('PipelineExecution')
-export class Execution extends React.PureComponent<IExecutionProps, IExecutionState> {
+export class ExecutionComponent extends React.PureComponent<IExecutionProps & IRouterInjectedProps, IExecutionState> {
   public static defaultProps: Partial<IExecutionProps> = {
     dataSourceKey: 'executions',
     cancelHelpText: 'Cancel execution',
@@ -75,21 +77,21 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   private runningTime: OrchestratedItemRunningTime;
   private wrapperRef = React.createRef<HTMLDivElement>();
 
-  constructor(props: IExecutionProps) {
+  constructor(props: IExecutionProps & IRouterInjectedProps) {
     super(props);
     const { execution, standalone } = this.props;
-    const { $stateParams } = AngularServices;
+    const { stateParams } = this.props;
 
     const initialViewState = {
-      activeStageId: Number($stateParams.stage),
-      activeSubStageId: Number($stateParams.subStage),
-      executionId: $stateParams.executionId,
+      activeStageId: Number(stateParams.stage),
+      activeSubStageId: Number(stateParams.subStage),
+      executionId: stateParams.executionId,
       canTriggerPipelineManually: false,
       canConfigure: false,
     };
 
     // Used when rendering ancestors in SingleExecutionView to mark descendents as "selected"
-    if ($stateParams.executionId !== props.execution.id && props.descendantExecutionId) {
+    if (stateParams.executionId !== props.execution.id && props.descendantExecutionId) {
       initialViewState.activeStageId = findChildIndex(props.descendantExecutionId, props.execution);
     }
 
@@ -123,7 +125,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
 
     if (this.state.showingDetails !== shouldShowDetails) {
       this.setState({
-        showingDetails: this.invalidateShowingDetails(this.props, shouldScroll),
+        showingDetails: this.invalidateShowingDetails(this.props, shouldScroll, toParams),
         viewState: newViewState,
       });
     } else {
@@ -133,11 +135,12 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     }
   }
 
-  private invalidateShowingDetails(props = this.props, forceScroll = false): boolean {
-    const { $state, $stateParams, executionService } = AngularServices;
+  private invalidateShowingDetails(props = this.props, forceScroll = false, stateParams = props.stateParams): boolean {
+    const { executionService } = AngularServices;
+    const { stateService } = props;
     const { execution, application, standalone } = props;
     const showing =
-      standalone === true || (execution.id === $stateParams.executionId && $state.includes('**.execution.**'));
+      standalone === true || (execution.id === stateParams.executionId && stateService.includes('**.execution.**'));
     if (showing && !execution.hydrated) {
       executionService.hydrate(application, execution).then(() => {
         this.setState({ showingDetails: true }, () => this.scrollIntoView(forceScroll));
@@ -156,7 +159,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     }
 
     // When execution.id doesn't match, we're' rendering the ancestors in <SingleExecutionDetails>
-    if (this.props.execution.id !== AngularServices.$stateParams.executionId) {
+    if (this.props.execution.id !== this.props.stateParams.executionId) {
       return (
         this.props.descendantExecutionId &&
         stage &&
@@ -164,7 +167,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
         stage.masterStage?.context?.executionId === this.props.descendantExecutionId
       );
     }
-    return this.state.showingDetails && Number(AngularServices.$stateParams.stage) === stage.index;
+    return this.state.showingDetails && Number(this.props.stateParams.stage) === stage.index;
   }
 
   public toggleDetails = (stageIndex?: number, subIndex?: number): void => {
@@ -192,7 +195,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       submitMethod: () =>
         executionService.deleteExecution(this.props.application, this.props.execution.id).then(() => {
           if (this.props.standalone) {
-            AngularServices.$state.go('^');
+            this.props.stateService.go('^');
           }
         }),
     });
@@ -238,14 +241,12 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     this.runningTime = new OrchestratedItemRunningTime(execution, (time: number) =>
       this.setState({ runningTimeInMs: time }),
     );
-    this.stateChangeSuccessSubscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(
-      ({ toParams, fromParams }) => {
-        this.updateViewStateDetails(toParams, fromParams);
-      },
+    this.stateChangeSuccessSubscription = stateChangeSuccess$(this.props.router).subscribe(({ toParams, fromParams }) =>
+      this.updateViewStateDetails(toParams, fromParams),
     );
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionProps): void {
+  public componentWillReceiveProps(nextProps: IExecutionProps & IRouterInjectedProps): void {
     if (nextProps.execution !== this.props.execution) {
       this.runningTime.checkStatus(nextProps.execution);
       this.setState({
@@ -306,7 +307,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>): void => {
     const { application, execution } = this.props;
     logger.log({ category: 'Execution', action: 'Configuration' });
-    AngularServices.$state.go('^.pipelineConfig', {
+    this.props.stateService.go('^.pipelineConfig', {
       application: application.name,
       pipelineId: execution.pipelineConfigId,
     });
@@ -342,7 +343,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
       pipelineConfig,
     } = this.props;
     const { pipelinesUrl, restartDetails, showingDetails, sortFilter, viewState } = this.state;
-    const { $state, $stateParams } = AngularServices;
+    const { stateParams, stateService } = this.props;
 
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account} />
@@ -429,7 +430,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
                     {' ('}
                     waiting on{' '}
                     <UISref
-                      to={`${$state.current.name.endsWith('.execution') ? '^' : ''}.^.executions`}
+                      to={`${stateService.current.name.endsWith('.execution') ? '^' : ''}.^.executions`}
                       params={{ pipeline: execution.name, status: 'RUNNING' }}
                     >
                       <a>RUNNING</a>
@@ -523,7 +524,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
             <PipelineGraph execution={execution} onNodeClick={this.handleNodeClick} viewState={viewState} />
           </div>
         )}
-        {showingDetails && (!standalone || execution.id === $stateParams.executionId) && (
+        {showingDetails && (!standalone || execution.id === stateParams.executionId) && (
           <div className="execution-details-container">
             <StageExecutionDetails execution={execution} application={application} standalone={standalone} />
             <div className="permalinks">
@@ -541,3 +542,6 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
     );
   }
 }
+
+const OverridableExecution = overridableComponent(ExecutionComponent, 'PipelineExecution');
+export const Execution = withRouter<IExecutionProps & IRouterInjectedProps>(OverridableExecution);

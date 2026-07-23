@@ -4,6 +4,7 @@ import { cloneDeep, filter } from 'lodash';
 import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { CLUSTER_SERVICE } from '../cluster.service';
+import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
 import { REACT_MODULE } from '../../reactShims';
 import * as State from '../../state';
 
@@ -17,8 +18,10 @@ describe('Service: clusterFilterService', function () {
   let applicationJSON: any;
   let groupedJSON: any;
   let application: Application;
+  let previousRouter: ReturnType<typeof getDirectRouter>;
 
   beforeEach(function () {
+    previousRouter = getDirectRouter();
     mock.module(CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router', REACT_MODULE);
     mock.inject(function (_applicationJSON_: any, _groupedJSON_: any, _clusterService_: any) {
       clusterService = _clusterService_;
@@ -59,6 +62,8 @@ describe('Service: clusterFilterService', function () {
     application = this.buildApplication(applicationJSON);
     State.initialize();
   });
+
+  afterEach(() => setDirectRouter(previousRouter));
 
   describe('Updating the cluster group', function () {
     it('no filter: should be transformed', function (done) {
@@ -739,6 +744,26 @@ describe('Service: clusterFilterService', function () {
       ClusterState.filterService.clearFilters();
       expect(ClusterState.filterModel.asFilterModel.sortFilter.providerType).toBeUndefined();
       this.verifyTags([]);
+    });
+  });
+
+  describe('overriding filters from a URL', function () {
+    it('does not update cluster groups before the direct router is available', function () {
+      setDirectRouter(null);
+      const updateClusterGroups = spyOn(ClusterState.filterService, 'updateClusterGroups');
+
+      ClusterState.filterService.overrideFiltersForUrl({ href: '/clusters', application: 'app' });
+
+      expect(updateClusterGroups).not.toHaveBeenCalled();
+    });
+
+    it('updates cluster groups when the URL targets the direct router application', function () {
+      setDirectRouter({ stateService: { params: { application: 'app' } } } as any);
+      const updateClusterGroups = spyOn(ClusterState.filterService, 'updateClusterGroups');
+
+      ClusterState.filterService.overrideFiltersForUrl({ href: '/clusters', application: 'app' });
+
+      expect(updateClusterGroups).toHaveBeenCalled();
     });
   });
 

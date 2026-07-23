@@ -12,7 +12,7 @@ import {
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
 
-import { EcsServerGroupActions } from './EcsServerGroupActions';
+import { EcsServerGroupActionsComponent as EcsServerGroupActions } from './EcsServerGroupActions';
 import { EcsResizeServerGroupModal } from './resize/EcsResizeServerGroupModal';
 import { EcsRollbackServerGroupModal } from './rollback/EcsRollbackServerGroupModal';
 
@@ -152,9 +152,21 @@ describe('<EcsServerGroupActions />', () => {
       const writer = AngularServices.serverGroupWriter as any;
       const write = spyOn(writer, writerMethod).and.returnValue(Promise.resolve());
       const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve());
+      const stateService = {
+        go: jasmine.createSpy('go'),
+        includes: jasmine.createSpy('includes').and.returnValue(true),
+      };
       spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
       spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
-      const wrapper = shallow(<EcsServerGroupActions app={app} serverGroup={serverGroup} />);
+      const wrapper = shallow(
+        <EcsServerGroupActions
+          app={app}
+          router={{} as any}
+          serverGroup={serverGroup}
+          stateParams={{}}
+          stateService={stateService as any}
+        />,
+      );
 
       action(wrapper, label).prop('onClick')();
 
@@ -164,6 +176,10 @@ describe('<EcsServerGroupActions />', () => {
       const command = { interestingHealthProviderNames: ['Ecs'], reason: 'because it is safe' };
       params.submitMethod(command);
       expect(write).toHaveBeenCalledOnceWith(serverGroup, label === 'Disable' ? app.name : app, command);
+      if (label === 'Destroy') {
+        params.taskMonitorConfig.onTaskComplete();
+        expect(stateService.go).toHaveBeenCalledWith('^');
+      }
     });
   });
 
