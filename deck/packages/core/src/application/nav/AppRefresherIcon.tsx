@@ -1,4 +1,3 @@
-import { $window } from 'ngimport';
 import React from 'react';
 
 import { Illustration } from '@spinnaker/presentation';
@@ -55,7 +54,7 @@ export const AppRefresherIcon = ({ appName, lastRefresh, refresh, refreshing }: 
   const isRefreshing = iconPulsing || refreshing;
 
   return (
-    <Tooltip template={RefresherTooltip} placement={$window.innerWidth < 1100 ? 'bottom' : 'right'}>
+    <Tooltip template={RefresherTooltip} placement={window.innerWidth < 1100 ? 'bottom' : 'right'}>
       <div className={`application-header-icon${isRefreshing ? ' header-icon-pulsing' : ''}`} onClick={refreshApp}>
         {!isStale && !isRefreshing && <ApplicationFreshIcon />}
         {(isStale || isRefreshing) && <Illustration className="app-fresh-icon horizontal middle" name="appUnsynced" />}

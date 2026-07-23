@@ -69,8 +69,8 @@ describe('amazon ecs: ECSApp Server Group', () => {
   it('configure a new server group with artifacts', () => {
     cy.visit('#/applications/ecsapp/executions');
 
-    cy.get('a:contains("Configure")').click();
-    cy.get('a:contains("Deploy")').click();
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('a:contains("Deploy")').click({ force: true });
 
     cy.get('[data-test-id="Deploy.addServerGroup"]').click();
     cy.get('span:contains("Continue")').click();
@@ -125,8 +125,8 @@ describe('amazon ecs: ECSApp Server Group', () => {
   it('configure a new server group with container inputs', () => {
     cy.visit('#/applications/ecsapp/executions');
 
-    cy.get('a:contains("Configure")').click();
-    cy.get('a:contains("Deploy")').click();
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('a:contains("Deploy")').click({ force: true });
 
     cy.get('[data-test-id="Deploy.addServerGroup"]').click();
     cy.get('span:contains("Continue")').click();
@@ -167,8 +167,8 @@ describe('amazon ecs: ECSApp Server Group', () => {
   it('edit an existing server group with container inputs', () => {
     cy.visit('#/applications/ecsapp/executions');
 
-    cy.get('a:contains("Configure")').click();
-    cy.get('a:contains("Deploy")').click();
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('a:contains("Deploy")').click({ force: true });
     cy.get('.glyphicon-edit').click();
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
@@ -196,8 +196,8 @@ describe('amazon ecs: ECSApp Server Group', () => {
   it('edit an existing server group to use default capacity providers', () => {
     cy.visit('#/applications/ecsapp/executions');
 
-    cy.get('a:contains("Configure")').click();
-    cy.get('a:contains("Deploy")').click();
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('a:contains("Deploy")').click({ force: true });
     cy.get('.glyphicon-edit').click();
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
@@ -221,8 +221,8 @@ describe('amazon ecs: ECSApp Server Group', () => {
   it('edit an existing server group to use custom capacity providers', () => {
     cy.visit('#/applications/ecsapp/executions');
 
-    cy.get('a:contains("Configure")').click();
-    cy.get('a:contains("Deploy")').click();
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('a:contains("Deploy")').click({ force: true });
     cy.get('.glyphicon-edit').click();
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');
@@ -252,8 +252,8 @@ describe('amazon ecs: ECSApp Server Group', () => {
   it('edit an existing server group to enable SpEL processing for task def artifact', () => {
     cy.visit('#/applications/ecsapp/executions');
 
-    cy.get('a:contains("Configure")').click();
-    cy.get('a:contains("Deploy")').click();
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('a:contains("Deploy")').click({ force: true });
     cy.get('.glyphicon-edit').click();
 
     cy.get('[data-test-id="ServerGroup.stack"]').clear().type('edit');

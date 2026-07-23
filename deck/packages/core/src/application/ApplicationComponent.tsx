@@ -29,6 +29,10 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   public componentWillReceiveProps(nextProps: IApplicationComponentProps): void {
+    if (nextProps.app === this.props.app) {
+      return;
+    }
+
     this.unmountApplication(this.props.app);
     this.mountApplication(nextProps.app);
   }
@@ -82,7 +86,9 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
         <ApplicationContextProvider app={app}>
           <ApolloProvider client={this.apolloClient.client}>
             <div className="container scrollable-columns">
-              <UIView className="secondary-panel" name="insight" />
+              <div className="secondary-panel">
+                <UIView name="insight" />
+              </div>
             </div>
           </ApolloProvider>
         </ApplicationContextProvider>

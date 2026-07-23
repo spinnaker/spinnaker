@@ -22,23 +22,51 @@ export interface IDeckPlugin {
   /** Custom global search types */
   search?: SearchResultType[];
 
-  initialize?(plugin: IDeckPlugin): void;
+  initialize?(plugin: IDeckPlugin): void | PromiseLike<void>;
 }
 
 /** Given a plugin, registers the plugin's extensions with Deck registries */
-export function registerPluginExtensions(plugin: IDeckPlugin): PromiseLike<any> {
-  plugin.stages?.forEach((stage) => Registry.pipeline.registerStage(stage));
-  plugin.preconfiguredJobStages?.forEach((stage) => Registry.pipeline.registerPreconfiguredJobStage(stage));
-  toPairs(plugin.help ?? {}).forEach(([key, value]) => HelpContentsRegistry.register(key, value));
-  plugin.search?.forEach((search) => searchResultTypeRegistry.register(search));
+export async function registerPluginExtensions(plugin: IDeckPlugin): Promise<void> {
+  const attempts: Array<() => unknown | PromiseLike<unknown>> = [
+    ...(plugin.stages ?? []).map((stage) => () => Registry.pipeline.registerStage(stage)),
+    ...(plugin.preconfiguredJobStages ?? []).map((stage) => () =>
+      Registry.pipeline.registerPreconfiguredJobStage(stage),
+    ),
+    ...toPairs(plugin.help ?? {}).map(([key, value]) => () => HelpContentsRegistry.register(key, value)),
+    ...(plugin.search ?? []).map((search) => () => searchResultTypeRegistry.register(search)),
+  ];
 
   if (plugin.managedDelivery || plugin.resourceKinds) {
-    const managedDeliveryPlugin: IManagedDeliveryPlugin = {
-      ...plugin.managedDelivery,
-      resources: plugin.resourceKinds || plugin.managedDelivery?.resources,
-    };
-    registerManagedDeliveryPlugin(managedDeliveryPlugin);
+    attempts.push(() => {
+      const managedDeliveryPlugin: IManagedDeliveryPlugin = {
+        ...plugin.managedDelivery,
+        resources: plugin.resourceKinds || plugin.managedDelivery?.resources,
+      };
+      registerManagedDeliveryPlugin(managedDeliveryPlugin);
+    });
   }
-  // Run arbitrary plugin initialization code
-  return Promise.resolve(plugin.initialize?.(plugin));
+  attempts.push(() => plugin.initialize?.(plugin));
+
+  const work = attempts.map((attempt) => {
+    try {
+      return Promise.resolve(attempt());
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  });
+  let rejected = false;
+  let rejectionReason: unknown;
+  await Promise.all(
+    work.map((promise) =>
+      promise.catch((error) => {
+        if (!rejected) {
+          rejected = true;
+          rejectionReason = error;
+        }
+      }),
+    ),
+  );
+  if (rejected) {
+    throw rejectionReason;
+  }
 }

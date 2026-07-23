@@ -1,5 +1,4 @@
 import type { IScope } from 'angular';
-import { $log, $q } from 'ngimport';
 import type { Observable } from 'rxjs';
 import {
   BehaviorSubject,
@@ -30,6 +29,10 @@ import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
 import { FirewallLabels } from '../../securityGroup';
 import { toIPromise } from '../../utils';
+
+function resolvePromise<T>(value?: T): PromiseLike<T> {
+  return AngularServices.$q.resolve(value);
+}
 
 export interface IFetchStatus {
   status: 'NOT_INITIALIZED' | 'FETCHING' | 'FETCHED' | 'ERROR';
@@ -432,7 +435,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     // Some data sources expect other data sources to exist on the application
     // Wait one tick before processing the stream so all data sources are registered
-    const nextTick$ = observableFrom($q.resolve());
+    const nextTick$ = observableFrom(resolvePromise());
 
     fetchStream$.pipe(withLatestFrom(nextTick$)).subscribe(([fetchStatus, _void]) => {
       // Update mutable flags
@@ -510,7 +513,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    */
   public ready(): PromiseLike<T> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
-      return $q.resolve(this.data);
+      return resolvePromise(this.data);
     }
 
     return toIPromise(this.nextRefresh$);
@@ -562,13 +565,13 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;
       this.updateData(this.defaultData);
-      return $q.resolve(this.data);
+      return resolvePromise(this.data);
     }
 
     const promise = toIPromise(this.data$.pipe(skip(1), take(1)));
 
     if (this.loading && !forceRefresh) {
-      $log.info(`${this.key} still loading, skipping refresh`);
+      AngularServices.$log.info(`${this.key} still loading, skipping refresh`);
     } else {
       this.fetchRequest$.next();
     }

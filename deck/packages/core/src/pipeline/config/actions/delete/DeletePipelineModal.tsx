@@ -1,5 +1,4 @@
 import { get, isEmpty, set } from 'lodash';
-import { $log } from 'ngimport';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 import { AngularServices } from '../../../../angular/services';
@@ -47,7 +46,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         closeModal();
       },
       (response) => {
-        $log.warn(response);
+        AngularServices.$log.warn(response);
         setDeleting(false);
         setDeleteError(true);
         setErrorMessage(get(response, 'data.message', 'No message provided'));

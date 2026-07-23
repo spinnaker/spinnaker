@@ -1,5 +1,6 @@
+import { MultipleInstancesDetails } from './details/MultipleInstancesDetails';
 import { StandaloneInstanceDetails } from './details/StandaloneInstanceDetails';
-import { getStandaloneInstanceState } from './instance.states';
+import { getMultipleInstancesState, getStandaloneInstanceState } from './instance.states';
 
 describe('instance states', () => {
   it('uses the React standalone instance details wrapper for standalone instance routes', () => {
@@ -34,5 +35,15 @@ describe('instance states', () => {
       provider: 'aws',
       region: 'us-west-2',
     });
+  });
+
+  it('uses React for the multiple instances detail route', () => {
+    const state = getMultipleInstancesState();
+    const view = state.views['detail@../insight'];
+
+    expect(view).toEqual(jasmine.objectContaining({ component: MultipleInstancesDetails, $type: 'react' }));
+    expect(view.templateUrl).toBeUndefined();
+    expect(view.controller).toBeUndefined();
+    expect(view.controllerAs).toBeUndefined();
   });
 });

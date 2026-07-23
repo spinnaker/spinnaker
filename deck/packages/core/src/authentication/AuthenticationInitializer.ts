@@ -1,5 +1,5 @@
 import type { IHttpPromiseCallbackArg } from 'angular';
-import { $http, $location, $rootScope } from 'ngimport';
+import { $http } from 'ngimport';
 import type { Subscription } from 'rxjs';
 import { fromEvent as observableFromEvent } from 'rxjs';
 
@@ -19,9 +19,24 @@ export class AuthenticationInitializer {
   private static userLoggedOut = false;
   private static visibilityWatch: Subscription = null;
 
+  private static get<T = IAuthResponse>(url: string, config?: any): PromiseLike<IHttpPromiseCallbackArg<T>> {
+    if (typeof $http === 'function') {
+      return $http.get<T>(url, config);
+    }
+
+    return fetch(url, { credentials: 'include', headers: config?.headers }).then(async (response) => {
+      if (!response.ok) {
+        throw response;
+      }
+
+      const contentType = response.headers.get('content-type') || '';
+      const data = (contentType.includes('json') ? await response.json() : await response.text()) as T;
+      return ({ data } as unknown) as IHttpPromiseCallbackArg<T>;
+    });
+  }
+
   private static checkForReauthentication(): void {
-    $http
-      .get(SETTINGS.authEndpoint)
+    this.get(SETTINGS.authEndpoint)
       .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (response.data.username) {
           AuthenticationService.setAuthenticatedUser({
@@ -55,36 +70,52 @@ export class AuthenticationInitializer {
   }
 
   public static loginRedirect(): void {
-    const callback: string = encodeURIComponent($location.absUrl());
+    const callback: string = encodeURIComponent(window.location.href);
     window.location.href = `${SETTINGS.gateUrl}/auth/redirect?to=${callback}`;
   }
 
-  public static authenticateUser() {
-    $rootScope.authenticating = true;
-    $http
-      .get(SETTINGS.authEndpoint)
+  public static authenticateUser(isCurrent: () => boolean = () => true): Promise<boolean> {
+    if (isCurrent()) {
+      (AngularServices.$rootScope as any).authenticating = true;
+    }
+
+    return Promise.resolve(this.get(SETTINGS.authEndpoint))
       .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-        if (response.data.username) {
-          AuthenticationService.setAuthenticatedUser({
-            name: response.data.username,
-            authenticated: false,
-            roles: response.data.roles,
-            canMintApiTokens: response.data.canMintApiTokens,
-            isAdmin: response.data.isAdmin,
-          });
-          $rootScope.authenticating = false;
-        } else {
+        if (!response.data.username) {
+          throw new Error('Authentication response did not include a username');
+        }
+
+        if (!isCurrent()) {
+          return false;
+        }
+
+        AuthenticationService.setAuthenticatedUser({
+          name: response.data.username,
+          authenticated: false,
+          roles: response.data.roles,
+          canMintApiTokens: response.data.canMintApiTokens,
+          isAdmin: response.data.isAdmin,
+        });
+        return true;
+      })
+      .catch(() => {
+        if (isCurrent()) {
+          AuthenticationService.reset();
           this.loginRedirect();
         }
+        return false;
       })
-      .catch(() => this.loginRedirect());
+      .finally(() => {
+        if (isCurrent()) {
+          (AngularServices.$rootScope as any).authenticating = false;
+        }
+      });
   }
 
   public static reauthenticateUser(): void {
     if (!this.userLoggedOut) {
       this.userLoggedOut = true;
-      $http
-        .get(SETTINGS.authEndpoint)
+      this.get(SETTINGS.authEndpoint)
         .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
             AuthenticationService.setAuthenticatedUser({
@@ -94,7 +125,7 @@ export class AuthenticationInitializer {
               canMintApiTokens: response.data.canMintApiTokens,
               isAdmin: response.data.isAdmin,
             });
-            $rootScope.authenticating = false;
+            (AngularServices.$rootScope as any).authenticating = false;
             this.userLoggedOut = false;
           } else {
             this.loginNotification();
@@ -111,7 +142,7 @@ export class AuthenticationInitializer {
         transformResponse: (response: string) => response,
       };
 
-      $http.get(`${SETTINGS.gateUrl}/auth/logout`, config).then(
+      this.get(`${SETTINGS.gateUrl}/auth/logout`, config).then(
         () => this.loggedOutSequence(),
         () => this.loggedOutSequence(),
       );

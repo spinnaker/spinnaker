@@ -8,6 +8,7 @@ import type { IAccountSelectInputProps, IAccountSelectInputState } from './Accou
 import { AccountSelectInput } from './AccountSelectInput';
 import type { IAccountDetails } from './AccountService';
 import { AccountService } from './AccountService';
+import { AngularServices } from '../angular/services';
 import Spy = jasmine.Spy;
 
 const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolean): IAccountDetails => {
@@ -102,6 +103,22 @@ describe('<AccountSelectInput/>', () => {
     expect(state.primaryAccounts).toEqual(['prod', 'test']);
     expect(state.secondaryAccounts).toEqual([]);
     expect(AccountServiceSpy.calls.count()).toBe(0);
+  });
+
+  it('uses AngularServices $q so direct React mode has a promise fallback', (done) => {
+    const directQ = {
+      when: jasmine.createSpy('when').and.callFake((value: any) => Promise.resolve(value)),
+      all: jasmine.createSpy('all').and.callFake((promises: Array<PromiseLike<unknown>>) => Promise.all(promises)),
+    };
+    spyOnProperty(AngularServices, '$q', 'get').and.returnValue(directQ as any);
+
+    component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
+
+    setImmediate(() => {
+      expect(directQ.when).toHaveBeenCalledWith([]);
+      expect(component.state().primaryAccounts).toEqual(['prod', 'test']);
+      done();
+    });
   });
 
   it('re-groups accounts when they change', () => {
