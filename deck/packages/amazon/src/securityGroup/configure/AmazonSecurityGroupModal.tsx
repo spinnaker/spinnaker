@@ -27,9 +27,13 @@ interface IAmazonSecurityGroupModalProps extends IModalComponentProps {
 }
 
 interface IIngressRule {
+  account?: string;
+  accountId?: string;
   accountName?: string;
   cidr?: string;
   endPort: number;
+  existing?: boolean;
+  id?: string;
   name?: string;
   startPort: number;
   type: string;
@@ -63,19 +67,28 @@ function ipIngressFromInboundRules(securityGroup: any): IIngressRule[] {
     }, []);
 }
 
-function securityGroupIngressFromInboundRules(securityGroup: any, includeCoordinates: boolean): IIngressRule[] {
+function securityGroupIngressFromInboundRules(securityGroup: any, mode: AmazonSecurityGroupModalMode): IIngressRule[] {
   return (securityGroup.inboundRules || [])
     .filter((rule: any) => rule.securityGroup)
     .reduce((rules: IIngressRule[], rule: any) => {
       (rule.portRanges || []).forEach((portRange: any) => {
         const referencedGroup = rule.securityGroup;
+        const existing = mode === 'edit';
         rules.push({
-          accountName: referencedGroup.accountName || referencedGroup.accountId,
+          ...(existing
+            ? {
+                account: referencedGroup.account,
+                accountId: referencedGroup.accountId,
+                accountName: referencedGroup.accountName || referencedGroup.accountId,
+                existing: true,
+                id: referencedGroup.id,
+                vpcId: referencedGroup.vpcId !== securityGroup.vpcId ? referencedGroup.vpcId : null,
+              }
+            : {}),
           name: referencedGroup.inferredName ? null : referencedGroup.name,
           type: rule.protocol,
           startPort: portRange.startPort,
           endPort: portRange.endPort,
-          vpcId: includeCoordinates && referencedGroup.vpcId !== securityGroup.vpcId ? referencedGroup.vpcId : null,
         });
       });
       return rules;
@@ -99,7 +112,7 @@ export function initializeAmazonSecurityGroupForModal(props: IAmazonSecurityGrou
     name,
     region,
     regions: [region].filter(Boolean),
-    securityGroupIngress: source.securityGroupIngress || securityGroupIngressFromInboundRules(source, mode === 'edit'),
+    securityGroupIngress: source.securityGroupIngress || securityGroupIngressFromInboundRules(source, mode),
     vpcId: source.vpcId || '',
   };
 
@@ -120,7 +133,9 @@ export function isAmazonSecurityGroupValid(securityGroup: any): boolean {
     !!accountFor(securityGroup) &&
     !!securityGroup.region &&
     (securityGroup.ipIngress || []).every((rule: IIngressRule) => !!rule.cidr && isValidRule(rule)) &&
-    (securityGroup.securityGroupIngress || []).every((rule: IIngressRule) => !!rule.name && isValidRule(rule))
+    (securityGroup.securityGroupIngress || []).every(
+      (rule: IIngressRule) => !!(rule.name || rule.id) && isValidRule(rule),
+    )
   );
 }
 
@@ -315,11 +330,15 @@ export class AmazonSecurityGroupModal extends React.Component<
         {rules.map((rule: IIngressRule, index: number) => (
           <div className="row" key={`sg-${index}`}>
             <div className="col-md-3">
-              <input
-                className="form-control input-sm"
-                value={rule.name || ''}
-                onChange={(event) => this.updateRule('securityGroupIngress', index, { name: event.target.value })}
-              />
+              {rule.existing ? (
+                <span className="form-control-static">{rule.name || rule.id}</span>
+              ) : (
+                <input
+                  className="form-control input-sm"
+                  value={rule.name || ''}
+                  onChange={(event) => this.updateRule('securityGroupIngress', index, { name: event.target.value })}
+                />
+              )}
             </div>
             <div className="col-md-2">
               <input

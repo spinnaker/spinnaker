@@ -1,7 +1,7 @@
 import type { IStage } from '@spinnaker/core';
 import { ArtifactReferenceService, ExpectedArtifactService, Registry } from '@spinnaker/core';
 
-import { AmazonStageConfig } from '../AmazonStageConfig';
+import { DeployCloudFormationStackStageConfig } from './DeployCloudFormationStackStageConfig';
 import { DeployExecutionDetails } from './deployCloudFormationExecutionDetails';
 import { EvaluateCloudFormationChangeSetExecutionDetails } from './evaluateCloudFormationChangeSetExecutionDetails';
 import { EvaluateCloudFormationChangeSetExecutionLabel } from './evaluateCloudFormationChangeSetExecutionLabel';
@@ -13,7 +13,7 @@ export function registerDeployCloudFormationStackStage(): void {
     description: 'Deploy a CloudFormation Stack',
     key: 'deployCloudFormation',
     cloudProvider: 'aws',
-    component: AmazonStageConfig,
+    component: DeployCloudFormationStackStageConfig,
     useCustomTooltip: true,
     executionDetailsSections: [DeployExecutionDetails, EvaluateCloudFormationChangeSetExecutionDetails],
     executionLabelComponent: EvaluateCloudFormationChangeSetExecutionLabel,
