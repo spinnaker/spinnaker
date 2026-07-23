@@ -54,14 +54,17 @@ export class PipelineRegistry {
           stageType.manualExecutionComponent = stageType.manualExecutionComponent || parent.manualExecutionComponent;
 
           // Optional parameters
-          if (parent.executionDetailsUrl && !stageType.executionDetailsUrl) {
-            stageType.executionDetailsUrl = parent.executionDetailsUrl;
-          }
           if (parent.executionConfigSections && !stageType.executionConfigSections) {
             stageType.executionConfigSections = parent.executionConfigSections;
           }
           if (parent.executionDetailsSections && !stageType.executionDetailsSections) {
             stageType.executionDetailsSections = parent.executionDetailsSections;
+          }
+          if (parent.executionDetailsComponent && !stageType.executionDetailsComponent) {
+            stageType.executionDetailsComponent = parent.executionDetailsComponent;
+          }
+          if (parent.executionStepLabelComponent && !stageType.executionStepLabelComponent) {
+            stageType.executionStepLabelComponent = parent.executionStepLabelComponent;
           }
         }
       });

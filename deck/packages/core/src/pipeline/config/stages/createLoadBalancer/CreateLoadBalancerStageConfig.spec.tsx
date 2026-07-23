@@ -25,10 +25,12 @@ describe('<CreateLoadBalancerStageConfig />', () => {
 
   function resolveModalWith(result: any): void {
     spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(Promise.resolve('test'));
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue({
-      CreateLoadBalancerModal: {
-        supportsPipelineConfig: true,
-        show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+    spyOn(CloudProviderRegistry, 'getProvider').and.returnValue({
+      loadBalancer: {
+        CreateLoadBalancerModal: {
+          supportsPipelineConfig: true,
+          show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
+        },
       },
     } as any);
   }

@@ -148,7 +148,11 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
             this.updateClusters(this.state.clusters.concat(stageCluster));
           });
       })
-      .catch(() => {});
+      .catch((error: Error) => {
+        if (error instanceof Error) {
+          this.setState({ modalError: error.message });
+        }
+      });
   };
 
   private editCluster = (cluster: any, index: number): void => {

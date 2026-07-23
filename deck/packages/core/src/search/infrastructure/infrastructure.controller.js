@@ -7,7 +7,6 @@ import { RECENTLY_VIEWED_ITEMS_COMPONENT } from '../infrastructure/recentlyViewe
 import { SEARCH_RESULT_COMPONENT } from '../infrastructure/searchResult.component';
 import { INFRASTRUCTURE_SEARCH_SERVICE } from './infrastructureSearch.service';
 import { InsightMenu as SearchInsightMenu } from '../../insight/InsightMenu';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry/override.registry';
 import { PAGE_TITLE_SERVICE } from '../../pageTitle/pageTitle.service';
 import { ConfigureProjectModal } from '../../projects';
 import { SearchService } from '../search.service';
@@ -27,7 +26,6 @@ angular
     PAGE_TITLE_SERVICE,
     PROJECT_SUMMARY_POD_COMPONENT,
     SEARCH_RANK_FILTER,
-    OVERRIDE_REGISTRY,
     RECENTLY_VIEWED_ITEMS_COMPONENT,
     SPINNER_COMPONENT,
   ])
@@ -40,20 +38,10 @@ angular
     'infrastructureSearchService',
     '$stateParams',
     '$location',
-    'overrideRegistry',
     'pageTitleService',
     '$uibModal',
     '$state',
-    function (
-      $scope,
-      infrastructureSearchService,
-      $stateParams,
-      $location,
-      overrideRegistry,
-      pageTitleService,
-      $uibModal,
-      $state,
-    ) {
+    function ($scope, infrastructureSearchService, $stateParams, $location, pageTitleService, $uibModal, $state) {
       const search = infrastructureSearchService.getSearcher();
 
       $scope.firewallsLabel = FirewallLabels.get('firewalls');
@@ -127,14 +115,11 @@ angular
         $uibModal
           .open({
             scope: $scope,
-            templateUrl: overrideRegistry.getTemplate(
-              'createApplicationModal',
-              require('../../application/modal/newapplication.html'),
-            ),
+            templateUrl: require('../../application/modal/newapplication.html'),
             resolve: {
               name: () => '',
             },
-            controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
+            controller: 'CreateApplicationModalCtrl',
             controllerAs: 'newAppModal',
           })
           .result.then(routeToApplication)

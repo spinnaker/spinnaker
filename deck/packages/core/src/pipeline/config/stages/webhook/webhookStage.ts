@@ -1,6 +1,8 @@
 import type { IController } from 'angular';
 import { module } from 'angular';
 import type { IModalService } from 'angular-ui-bootstrap';
+
+import { webhookExecutionDetailsSections } from './WebhookExecutionDetails';
 import { REST } from '../../../../api/ApiService';
 import { Registry } from '../../../../registry';
 import { JsonUtils } from '../../../../utils';
@@ -201,7 +203,7 @@ module(WEBHOOK_STAGE, [])
       producesArtifacts: true,
       controllerAs: '$ctrl',
       templateUrl: require('./webhookStage.html'),
-      executionDetailsUrl: require('./webhookExecutionDetails.html'),
+      executionDetailsSections: webhookExecutionDetailsSections,
       supportsCustomTimeout: true,
       validators: [
         { type: 'requiredField', fieldName: 'url' },
@@ -225,7 +227,7 @@ module(WEBHOOK_STAGE, [])
             controller: 'WebhookStageCtrl',
             controllerAs: '$ctrl',
             templateUrl: require('./webhookStage.html'),
-            executionDetailsUrl: require('./webhookExecutionDetails.html'),
+            executionDetailsSections: webhookExecutionDetailsSections,
             validators: [],
             configuration: {
               preconfiguredProperties: preconfiguredWebhook.preconfiguredProperties,
