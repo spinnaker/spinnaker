@@ -1,16 +1,26 @@
 'use strict';
+import { AngularServices } from '../angular/services';
 import { mockHttpClient } from '../api/mock/jasmine';
 import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function () {
-  let scope, timeout;
+  let runNextPoll;
 
-  beforeEach(
-    window.inject(function ($rootScope, $timeout) {
-      timeout = $timeout;
-      scope = $rootScope.$new();
-    }),
-  );
+  beforeEach(() => {
+    const pollCallbacks = [];
+    const timeout = (callback) => {
+      pollCallbacks.push(callback);
+      return Promise.resolve();
+    };
+    runNextPoll = () => {
+      const callback = pollCallbacks.shift();
+      if (!callback) {
+        throw new Error('No pending task poll');
+      }
+      callback();
+    };
+    spyOnProperty(AngularServices, '$timeout', 'get').and.returnValue(timeout);
+  });
 
   async function getTask(http, taskDef) {
     http.expectGET(`/tasks/${taskDef.id}`).respond(200, taskDef);
@@ -25,8 +35,7 @@ describe('Service: taskReader', function () {
       const task = await getTask(http, { id: 1, foo: 3, status: 'SUCCEEDED' });
 
       let completed = false;
-      TaskReader.waitUntilTaskMatches(task, (task) => task.foo === 3).then(() => (completed = true));
-      scope.$digest();
+      await TaskReader.waitUntilTaskMatches(task, (task) => task.foo === 3).then(() => (completed = true));
 
       expect(completed).toBe(true);
     });
@@ -38,7 +47,7 @@ describe('Service: taskReader', function () {
       let completed = false,
         failed = false;
 
-      TaskReader.waitUntilTaskMatches(
+      await TaskReader.waitUntilTaskMatches(
         task,
         (task) => task.foo === 4,
         (task) => task.foo === 3,
@@ -46,8 +55,6 @@ describe('Service: taskReader', function () {
         () => (completed = true),
         () => (failed = true),
       );
-      scope.$digest();
-
       expect(completed).toBe(false);
       expect(failed).toBe(true);
     });
@@ -59,7 +66,7 @@ describe('Service: taskReader', function () {
       let completed = false,
         failed = false;
 
-      TaskReader.waitUntilTaskMatches(
+      const waitForMatch = TaskReader.waitUntilTaskMatches(
         task,
         (task) => task.isCompleted,
         (task) => task.isFailed,
@@ -74,7 +81,7 @@ describe('Service: taskReader', function () {
 
       // still running
       http.expectGET('/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
-      timeout.flush();
+      runNextPoll();
       await http.flush();
 
       expect(completed).toBe(false);
@@ -82,8 +89,9 @@ describe('Service: taskReader', function () {
 
       // succeeds
       http.expectGET('/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
-      timeout.flush();
+      runNextPoll();
       await http.flush();
+      await waitForMatch;
 
       expect(completed).toBe(true);
       expect(failed).toBe(false);
@@ -96,7 +104,7 @@ describe('Service: taskReader', function () {
       let completed = false,
         failed = false;
 
-      TaskReader.waitUntilTaskMatches(
+      const waitForMatch = TaskReader.waitUntilTaskMatches(
         task,
         (task) => task.isCompleted,
         (task) => task.isFailed,
@@ -104,23 +112,22 @@ describe('Service: taskReader', function () {
         () => (completed = true),
         () => (failed = true),
       );
-      scope.$digest();
-
       // still running
       expect(completed).toBe(false);
       expect(failed).toBe(false);
 
       // still running
       http.expectGET('/tasks/1').respond(200, { id: 1, status: 'RUNNING' });
-      timeout.flush();
+      runNextPoll();
       await http.flush();
       expect(completed).toBe(false);
       expect(failed).toBe(false);
 
       // succeeds
       http.expectGET('/tasks/1').respond(200, { id: 1, status: 'TERMINAL' });
-      timeout.flush();
+      runNextPoll();
       await http.flush();
+      await waitForMatch.catch(() => undefined);
       expect(completed).toBe(false);
       expect(failed).toBe(true);
     });
@@ -133,7 +140,7 @@ describe('Service: taskReader', function () {
       let completed = false,
         failed = false;
 
-      TaskReader.waitUntilTaskMatches(
+      await TaskReader.waitUntilTaskMatches(
         task,
         (task) => task.isCompleted,
         (task) => task.isFailed,
@@ -141,8 +148,6 @@ describe('Service: taskReader', function () {
         () => (completed = true),
         () => (failed = true),
       );
-      scope.$digest();
-
       expect(completed).toBe(false);
       expect(failed).toBe(true);
     });

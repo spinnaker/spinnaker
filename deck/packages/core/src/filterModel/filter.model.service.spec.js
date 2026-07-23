@@ -2,6 +2,7 @@
 import { FilterModelService } from './FilterModelService';
 import { REACT_MODULE } from '../reactShims';
 import { StateConfigProvider } from '../navigation';
+import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { AngularServices } from '../angular/services';
 
 describe('Service: FilterModelService', function () {
@@ -369,12 +370,16 @@ describe('Service: FilterModelService', function () {
   });
 
   describe('parameter router hooks', function () {
+    let testRouter;
+
     function go(state, params) {
       $uiRouter.stateService.go(state, params);
       $rootScope.$digest();
     }
 
     beforeEach(function () {
+      testRouter = getDirectRouter();
+      setDirectRouter($uiRouter);
       filterModelConfig = [
         { model: 'region', type: 'string' },
         { model: 'account', type: 'string' },
@@ -391,6 +396,10 @@ describe('Service: FilterModelService', function () {
       $uiRouter.stateRegistry.register({ name: 'application.otherchild' });
 
       FilterModelService.registerRouterHooks(filterModel, 'application.filtered');
+    });
+
+    afterEach(function () {
+      setDirectRouter(testRouter);
     });
 
     it('should restore the latest filters when reactivating a filter state in the same application', function () {

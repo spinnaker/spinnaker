@@ -247,7 +247,7 @@ export class ExecutionService {
     triggeredPipelineId: string,
   ): IRetryablePromise<any> {
     const closure = () => this.getExecution(triggeredPipelineId).then(() => application.executions.refresh());
-    return retryablePromise(closure, 1000, 10);
+    return retryablePromise(closure, 1000, 10, this.$timeout);
   }
 
   private waitUntilPipelineIsCancelled(application: Application, executionId: string): PromiseLike<any> {

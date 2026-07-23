@@ -1,4 +1,3 @@
-import { $templateCache } from 'ngimport';
 import { mount } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -23,7 +22,6 @@ describe('LoadBalancerDetailsWrapper', () => {
 
   afterEach(() => {
     (CloudProviderRegistry.getValue as any).and?.callThrough?.();
-    ($templateCache.get as any).and?.callThrough?.();
   });
 
   it('renders React load balancer details when provider React config is available', async () => {
@@ -65,8 +63,6 @@ describe('LoadBalancerDetailsWrapper', () => {
       };
       return values[key] || null;
     });
-    spyOn($templateCache, 'get').and.returnValue('<legacy-load-balancer-details />');
-
     const component = mount(wrapWithRouter(<LoadBalancerDetailsWrapper app={app} loadBalancer={loadBalancer} />));
     await act(async () => {
       await flush();

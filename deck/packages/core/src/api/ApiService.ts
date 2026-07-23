@@ -1,5 +1,4 @@
 import { isNil } from 'lodash';
-import { $http } from 'ngimport';
 
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import type { ICache } from '../cache/deckCacheFactory';
@@ -47,7 +46,7 @@ export interface IRequestBuilder {
   query(queryParams: IParams): this;
 
   /** Enables or disables caching of the response */
-  useCache(useCache?: boolean): this;
+  useCache(useCache?: boolean | ICache): this;
 
   /** issues a GET request */
   get<T = any>(): PromiseLike<T>;
@@ -72,7 +71,7 @@ interface IRequestBuilderConfig {
   /** @deprecated used for AngularJS backwards compat */
   data?: any;
   params?: object;
-  cache?: boolean;
+  cache?: boolean | ICache;
 }
 
 /**
@@ -123,12 +122,10 @@ export class InvalidAPIResponse extends Error {
   }
 }
 
-/**
- * An HTTP client that uses the AngularJS $http service
- * This client also handles non-data responses from Gate which is used to indicate the user is not authenticated
- * TODO: Can the re-authentication logic be moved somewhere else?
- */
-class AngularJSHttpClient implements IHttpClientImplementation {
+export class XhrHttpClient implements IHttpClientImplementation {
+  private readonly defaultCache = new Map<string, unknown>();
+  private readonly inFlightRequests = new WeakMap<object, Map<string, Promise<unknown>>>();
+
   delete = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('DELETE', requestConfig);
   get = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('GET', requestConfig);
   post = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('POST', requestConfig);
@@ -136,28 +133,51 @@ class AngularJSHttpClient implements IHttpClientImplementation {
   patch = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PATCH', requestConfig);
 
   private request<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): PromiseLike<T> {
-    if (typeof $http !== 'function') {
-      return this.xhrRequest<T>(method, requestConfig);
+    const preparedRequest = this.prepareXhrRequest(method, requestConfig);
+    if (method !== 'GET' || !requestConfig.cache) {
+      return this.sendXhrRequest<T>(preparedRequest, false);
     }
 
-    return $http<T>({ ...requestConfig, method }).then((response) => {
-      const contentType = response.headers('content-type');
+    const cache = requestConfig.cache === true ? this.defaultCache : requestConfig.cache;
+    const cached = cache.get(preparedRequest.url);
+    if (cached !== undefined) {
+      return typeof (cached as PromiseLike<T>)?.then === 'function'
+        ? (cached as PromiseLike<T>)
+        : Promise.resolve(cached as T);
+    }
 
-      if (contentType) {
-        // e.g application/json, application/hal+json
-        const isJson = contentType.match(/application\/(.+\+)?json/);
-        // e.g. application/yaml, application/x-yaml; it's regex, let's not get too fancy
-        const isYaml = contentType.match(/application\/(.+-)?yaml/);
-        const isZeroLengthHtml = contentType.includes('text/html') && (response as any).data === '';
-        const isZeroLengthText = contentType.includes('text/plain') && (response as any).data === '';
-        if (!(isJson || isYaml || isZeroLengthHtml || isZeroLengthText)) {
-          AuthenticationInitializer.reauthenticateUser();
-          throw new InvalidAPIResponse(invalidContentMessage, response);
-        }
+    let inFlightForCache = this.inFlightRequests.get(cache);
+    const inFlight = inFlightForCache?.get(preparedRequest.url);
+    if (inFlight) {
+      return inFlight as Promise<T>;
+    }
+
+    if (!inFlightForCache) {
+      inFlightForCache = new Map();
+      this.inFlightRequests.set(cache, inFlightForCache);
+    }
+    const request = this.sendXhrRequest<T>(preparedRequest, false);
+    inFlightForCache.set(preparedRequest.url, request);
+    const clearInFlight = () => {
+      inFlightForCache.delete(preparedRequest.url);
+      if (inFlightForCache.size === 0) {
+        this.inFlightRequests.delete(cache);
       }
-
-      return response.data;
-    });
+    };
+    request.then(
+      (response) => {
+        clearInFlight();
+        if (cache instanceof Map) {
+          cache.set(preparedRequest.url, response);
+        } else {
+          cache.put(preparedRequest.url, response);
+        }
+      },
+      () => {
+        clearInFlight();
+      },
+    );
+    return request;
   }
 
   private xhrRequest<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): PromiseLike<T> {
@@ -219,6 +239,17 @@ class AngularJSHttpClient implements IHttpClientImplementation {
       }
       return (responseText as unknown) as T;
     };
+    const isValidContent = (contentType: string, responseText: string): boolean => {
+      if (!contentType) {
+        return true;
+      }
+
+      const mediaType = contentType.split(';', 1)[0].trim();
+      const isJson = /^application\/(?:[^+]+\+)?json$/i.test(mediaType);
+      const isYaml = /^application\/(?:.+-)?yaml$/i.test(mediaType);
+      const isEmptyHtmlOrText = /^(?:text\/html|text\/plain)$/i.test(mediaType) && responseText === '';
+      return isJson || isYaml || isEmptyHtmlOrText;
+    };
 
     return new Promise<T>((resolve, reject) => {
       const request = new XMLHttpRequest();
@@ -252,9 +283,15 @@ class AngularJSHttpClient implements IHttpClientImplementation {
             return;
           }
 
-          if (contentType.includes('text/html') && responseText.match(/^\s*</)) {
-            reject(new Error(`${invalidContentMessage}: ${preparedRequest.url}`));
+          if (!isValidContent(contentType, responseText)) {
             AuthenticationInitializer.reauthenticateUser();
+            reject(
+              new InvalidAPIResponse(invalidContentMessage, {
+                status: request.status,
+                statusText: request.statusText,
+                data,
+              }),
+            );
             return;
           }
 
@@ -284,7 +321,7 @@ function joinPaths(...paths: IPrimitive[]) {
 
 /** The base request builder implementation */
 export class RequestBuilder implements IRequestBuilder {
-  static defaultHttpClient: IHttpClientImplementation = new AngularJSHttpClient();
+  static defaultHttpClient: IHttpClientImplementation = new XhrHttpClient();
 
   public constructor(
     protected config: IRequestBuilderConfig = makeRequestBuilderConfig(),
@@ -349,8 +386,8 @@ export class RequestBuilder implements IRequestBuilder {
     return this.httpClient.delete<T>({ ...this.config, url, data });
   }
 
-  useCache(cache = true) {
-    return this.builder({ ...this.config, cache: cache as boolean });
+  useCache(cache: boolean | ICache = true) {
+    return this.builder({ ...this.config, cache });
   }
 
   query(queryParams: IParams) {
@@ -379,7 +416,7 @@ export class DeprecatedRequestBuilder extends RequestBuilder implements IDepreca
   remove = this.delete.bind(this).bind(this);
   data = (data: any) => this.builder({ ...this.config, data });
   withParams = this.query.bind(this);
-  useCache = (cache: boolean | ICache = true) => this.builder({ ...this.config, cache: cache as boolean });
+  useCache = (cache: boolean | ICache = true) => this.builder({ ...this.config, cache });
 }
 
 class DeprecatedRequestBuilderRoot extends DeprecatedRequestBuilder {

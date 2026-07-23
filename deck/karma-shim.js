@@ -13,11 +13,24 @@ Error.stackTraceLimit = Infinity;
 
 import './packages/app/src/settings';
 import { jasmineMockHttpSupport } from './packages/core/src/api/mock/jasmine';
+import { getDirectRouter, setDirectRouter } from './packages/core/src/navigation/directRouter';
+import { UIRouterReact } from '@uirouter/react';
 
 // angular 1 test harness
 import 'angular';
 import 'angular-mocks';
-beforeEach(angular.mock.module('bcherny/ngimport'));
+
+let directTestRouter;
+beforeEach(() => {
+  directTestRouter = new UIRouterReact();
+  setDirectRouter(directTestRouter);
+});
+afterEach(() => {
+  if (getDirectRouter() === directTestRouter) {
+    setDirectRouter(null);
+  }
+  directTestRouter.dispose();
+});
 
 jasmineMockHttpSupport();
 
