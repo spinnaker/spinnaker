@@ -3,46 +3,27 @@ import { module } from 'angular';
 import type { IModalService } from 'angular-ui-bootstrap';
 
 import { webhookExecutionDetailsSections } from './WebhookExecutionDetails';
+import { WebhookStageConfig } from './WebhookStageConfig';
+import type {
+  ICustomHeader,
+  IPreconfiguredWebhook,
+  IWebhookParameter,
+  IWebhookStageCommand,
+  IWebhookStageViewState,
+} from './WebhookStageConfig';
 import { REST } from '../../../../api/ApiService';
+import type { IStageTypeConfig } from '../../../../domain';
 import { Registry } from '../../../../registry';
 import { JsonUtils } from '../../../../utils';
 
-export interface IWebhookStageViewState {
-  waitForCompletion?: boolean;
-  statusUrlResolution: string;
-  failFastStatusCodes: string;
-  retryStatusCodes: string;
-  signalCancellation?: boolean;
-}
-
-export interface IWebhookStageCommand {
-  errorMessage?: string;
-  invalid?: boolean;
-  payloadJSON: string;
-}
-
-export interface ICustomHeader {
-  key: string;
-  value: string;
-}
-
-export interface IWebhookParameter {
-  name: string;
-  label: string;
-  description?: string;
-  type: string;
-  defaultValue?: string;
-}
-
-interface IPreconfiguredWebhook {
-  type: string;
-  label: string;
-  noUserConfigurableFields: boolean;
-  description?: string;
-  waitForCompletion?: boolean;
-  preconfiguredProperties?: string[];
-  parameters?: IWebhookParameter[];
-}
+export { WebhookStageConfig } from './WebhookStageConfig';
+export type {
+  ICustomHeader,
+  IPreconfiguredWebhook,
+  IWebhookParameter,
+  IWebhookStageCommand,
+  IWebhookStageViewState,
+} from './WebhookStageConfig';
 
 export class WebhookStage implements IController {
   public command: IWebhookStageCommand;
@@ -192,51 +173,54 @@ export class WebhookStage implements IController {
 
 export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
 
-module(WEBHOOK_STAGE, [])
-  .config(() => {
-    Registry.pipeline.registerStage({
-      label: 'Webhook',
-      description: 'Runs a Webhook job',
-      key: 'webhook',
-      restartable: true,
-      controller: 'WebhookStageCtrl',
-      producesArtifacts: true,
-      controllerAs: '$ctrl',
-      templateUrl: require('./webhookStage.html'),
-      executionDetailsSections: webhookExecutionDetailsSections,
-      supportsCustomTimeout: true,
-      validators: [
-        { type: 'requiredField', fieldName: 'url' },
-        { type: 'requiredField', fieldName: 'method' },
-      ],
+export const webhookStage: IStageTypeConfig = {
+  label: 'Webhook',
+  description: 'Runs a Webhook job',
+  key: 'webhook',
+  restartable: true,
+  producesArtifacts: true,
+  component: WebhookStageConfig,
+  executionDetailsSections: webhookExecutionDetailsSections,
+  supportsCustomTimeout: true,
+  validators: [
+    { type: 'requiredField', fieldName: 'url' },
+    { type: 'requiredField', fieldName: 'method' },
+  ],
+};
+
+export function makePreconfiguredWebhookStage(preconfiguredWebhook: IPreconfiguredWebhook): IStageTypeConfig {
+  return {
+    label: preconfiguredWebhook.label,
+    description: preconfiguredWebhook.description,
+    key: preconfiguredWebhook.type,
+    alias: 'preconfiguredWebhook',
+    addAliasToConfig: true,
+    producesArtifacts: true,
+    restartable: true,
+    component: WebhookStageConfig,
+    executionDetailsSections: webhookExecutionDetailsSections,
+    validators: [],
+    configuration: {
+      preconfiguredProperties: preconfiguredWebhook.preconfiguredProperties,
+      waitForCompletion: preconfiguredWebhook.waitForCompletion,
+      noUserConfigurableFields: preconfiguredWebhook.noUserConfigurableFields,
+      parameters: preconfiguredWebhook.parameters,
+    },
+  };
+}
+
+export function registerPreconfiguredWebhookStages(): PromiseLike<void> {
+  return REST('/webhooks/preconfigured')
+    .get<IPreconfiguredWebhook[]>()
+    .then((preconfiguredWebhooks) => {
+      preconfiguredWebhooks.forEach((preconfiguredWebhook) =>
+        Registry.pipeline.registerStage(makePreconfiguredWebhookStage(preconfiguredWebhook)),
+      );
     });
-  })
-  .run(() => {
-    REST('/webhooks/preconfigured')
-      .get()
-      .then((preconfiguredWebhooks: IPreconfiguredWebhook[]) => {
-        preconfiguredWebhooks.forEach((preconfiguredWebhook: IPreconfiguredWebhook) =>
-          Registry.pipeline.registerStage({
-            label: preconfiguredWebhook.label,
-            description: preconfiguredWebhook.description,
-            key: preconfiguredWebhook.type,
-            alias: 'preconfiguredWebhook',
-            addAliasToConfig: true,
-            producesArtifacts: true,
-            restartable: true,
-            controller: 'WebhookStageCtrl',
-            controllerAs: '$ctrl',
-            templateUrl: require('./webhookStage.html'),
-            executionDetailsSections: webhookExecutionDetailsSections,
-            validators: [],
-            configuration: {
-              preconfiguredProperties: preconfiguredWebhook.preconfiguredProperties,
-              waitForCompletion: preconfiguredWebhook.waitForCompletion,
-              noUserConfigurableFields: preconfiguredWebhook.noUserConfigurableFields,
-              parameters: preconfiguredWebhook.parameters,
-            },
-          }),
-        );
-      });
-  })
+}
+
+Registry.pipeline.registerStage(webhookStage);
+
+module(WEBHOOK_STAGE, [])
+  .run(() => registerPreconfiguredWebhookStages())
   .controller('WebhookStageCtrl', WebhookStage);

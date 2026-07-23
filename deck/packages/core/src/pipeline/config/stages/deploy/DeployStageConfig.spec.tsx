@@ -39,4 +39,34 @@ describe('<DeployStageConfig />', () => {
 
     expect(component.find('.alert-danger').text()).toBe('No providers support serverGroup for this action.');
   });
+
+  it('only offers providers with React clone server group modals when adding a cluster', () => {
+    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve(['aws']) as any);
+    let filterFn: any;
+    spyOn(ProviderSelectionService, 'selectProvider').and.callFake((_application, _feature, providerFilter) => {
+      filterFn = providerFilter;
+      return Promise.reject(new Error('cancelled')) as any;
+    });
+    const props = createProps();
+    const component = mount(<DeployStageConfig {...props} />);
+
+    component.find('button.add-new').simulate('click');
+
+    expect(ProviderSelectionService.selectProvider).toHaveBeenCalledWith(
+      props.application,
+      'serverGroup',
+      jasmine.any(Function),
+    );
+    expect(filterFn(props.application, {}, { serverGroup: { CloneServerGroupModal: { show: () => null } } })).toBe(
+      true,
+    );
+    expect(
+      filterFn(
+        props.application,
+        {},
+        { serverGroup: { CloneServerGroupModal: { show: () => null } }, unsupportedStageTypes: ['deploy'] },
+      ),
+    ).toBe(false);
+    expect(filterFn(props.application, {}, { serverGroup: {} })).toBe(false);
+  });
 });

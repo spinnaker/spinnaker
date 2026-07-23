@@ -34,11 +34,20 @@ export class AuthenticationService {
       this.user.isAdmin = authenticatedUser.isAdmin ?? false;
     }
 
-    this.authEvents.forEach((event: Function) => event());
+    this.authEvents.forEach((event: Function) => {
+      try {
+        event();
+      } catch (error) {
+        console.error('Authentication listener failed', error);
+      }
+    });
   }
 
-  public static onAuthentication(event: Function): void {
+  public static onAuthentication(event: Function): () => void {
     this.authEvents.push(event);
+    return () => {
+      this.authEvents = this.authEvents.filter((registeredEvent) => registeredEvent !== event);
+    };
   }
 
   public static authenticationExpired(): void {

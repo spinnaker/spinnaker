@@ -96,5 +96,6 @@ export * from './widgets';
 
 export * from './yamlEditor';
 
+export * from './bootstrap/bootstrapDeck';
 export * from './core.module';
 export * from './angular/services';

@@ -5,7 +5,7 @@ import { ProjectHeader } from './ProjectHeader';
 import { Projects } from './Projects';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
-import { CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER } from './dashboard/dashboard.controller';
+import { ProjectDashboard } from './dashboard/ProjectDashboard';
 import type { IProject } from '../domain/IProject';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
@@ -16,11 +16,7 @@ export interface IProjectStateParms extends StateParams {
 }
 
 export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
-module(PROJECTS_STATES_CONFIG, [
-  CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER,
-  APPLICATION_STATE_PROVIDER,
-  STATE_CONFIG_PROVIDER,
-]).config([
+module(PROJECTS_STATES_CONFIG, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
   'stateConfigProvider',
   'applicationStateProvider',
   (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
@@ -29,9 +25,8 @@ module(PROJECTS_STATES_CONFIG, [
       url: '/dashboard',
       views: {
         detail: {
-          templateUrl: require('../projects/dashboard/dashboard.html'),
-          controller: 'ProjectDashboardCtrl',
-          controllerAs: 'vm',
+          component: ProjectDashboard,
+          $type: 'react',
         },
       },
       data: {

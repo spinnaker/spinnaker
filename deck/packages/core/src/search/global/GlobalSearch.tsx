@@ -1,4 +1,3 @@
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import { flatten } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
@@ -32,7 +31,6 @@ export interface IGlobalSearchState {
   categories: ISearchResultSet[];
 }
 
-@UIRouterContext
 export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   private container: HTMLElement;
   private searchField: HTMLInputElement;

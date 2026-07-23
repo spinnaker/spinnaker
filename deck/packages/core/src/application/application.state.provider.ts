@@ -1,18 +1,13 @@
-import type { StateParams } from '@uirouter/angularjs';
-import type { IServiceProvider } from 'angular';
-import { module } from 'angular';
-
 import { ApplicationComponent } from './ApplicationComponent';
 import type { Application } from './application.model';
 import { ApplicationModelBuilder } from './applicationModel.builder';
 import { applyApplicationStateRegistrations } from './applicationState.registration';
 import { InsightLayout } from '../insight/InsightLayout';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { ApplicationReader } from './service/ApplicationReader';
 import { InferredApplicationWarningService } from './service/InferredApplicationWarningService';
 
-export class ApplicationStateProvider implements IServiceProvider {
+export class ApplicationStateProvider {
   private childStates: INestedState[] = [];
   private detailStates: INestedState[] = [];
   private insightStates: INestedState[] = [];
@@ -31,8 +26,7 @@ export class ApplicationStateProvider implements IServiceProvider {
     children: this.insightStates,
   };
 
-  public static $inject = ['stateConfigProvider'];
-  constructor(private stateConfigProvider: StateConfigProvider) {
+  constructor(public stateConfigProvider: StateConfigProvider) {
     this.childStates.push(this.insightState);
     applyApplicationStateRegistrations(this);
   }
@@ -63,6 +57,10 @@ export class ApplicationStateProvider implements IServiceProvider {
    * @param state
    */
   public addInsightDetailState(state: INestedState): void {
+    if (this.detailStates.some((detailState) => detailState.name === state.name)) {
+      return;
+    }
+
     this.detailStates.push(state);
     this.insightState.children.forEach((c) => {
       c.children = c.children || [];
@@ -100,7 +98,7 @@ export class ApplicationStateProvider implements IServiceProvider {
       resolve: {
         app: [
           '$stateParams',
-          ($stateParams: StateParams) => {
+          ($stateParams: any) => {
             return ApplicationReader.getApplication($stateParams.application, false)
               .then(
                 (app: Application): Application => {
@@ -140,11 +138,6 @@ export class ApplicationStateProvider implements IServiceProvider {
     parentState.children.push(applicationConfig);
     this.stateConfigProvider.setStates();
   }
-
-  public $get() {
-    return this;
-  }
 }
 
 export const APPLICATION_STATE_PROVIDER = 'spinnaker.core.application.state.provider';
-module(APPLICATION_STATE_PROVIDER, [STATE_CONFIG_PROVIDER]).provider('applicationState', ApplicationStateProvider);

@@ -26,7 +26,7 @@ export function Triggers(props: ITriggersProps) {
   const revertCountKLUDGE = props.revertCount;
 
   return (
-    <PageNavigator scrollableContainer="[ui-view]" reactInjector={AngularServices}>
+    <PageNavigator scrollableContainer=".pipeline-config-page" reactInjector={AngularServices}>
       <PageSection pageKey="concurrent" label="Execution Options" visible={!pipeline.strategy}>
         <ExecutionOptionsPageContent {...props} />
       </PageSection>
