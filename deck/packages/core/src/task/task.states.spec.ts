@@ -33,7 +33,7 @@ describe('task states', () => {
     const router = configureRouter();
     routers.push(router);
 
-    await router.stateService.go('home.taskLookup', { taskId: 'task-123' });
+    await router.stateService.go('home.taskLookup', { taskId: 'task-123' }, { location: false });
 
     expect(TaskReader.getTask).toHaveBeenCalledOnceWith('task-123');
     expect(router.stateService.current.name).toBe('home.applications.application.tasks.taskDetails');

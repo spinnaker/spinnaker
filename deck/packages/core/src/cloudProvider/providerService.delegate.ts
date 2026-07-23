@@ -6,6 +6,25 @@ import { CloudProviderRegistry } from './CloudProviderRegistry';
 
 import IInjectorService = angular.auto.IInjectorService;
 
+type DirectServiceConstructor<T> = new (promiseService: IQService) => T;
+
+export class DirectProviderServiceDelegate {
+  constructor(private promiseService: IQService) {}
+
+  public hasDelegate(provider: string, serviceKey: string): boolean {
+    return isFunction(CloudProviderRegistry.getValue(provider, serviceKey));
+  }
+
+  public getDelegate<T>(provider: string, serviceKey: string): T {
+    const ServiceClass = CloudProviderRegistry.getValue(provider, serviceKey) as DirectServiceConstructor<T>;
+    if (isFunction(ServiceClass)) {
+      return new ServiceClass(this.promiseService);
+    }
+
+    throw new Error('No "' + serviceKey + '" service found for provider "' + provider + '"');
+  }
+}
+
 export class ProviderServiceDelegate {
   public static $inject = ['$injector', '$q'];
   constructor(private $injector: IInjectorService, private $q: IQService) {}

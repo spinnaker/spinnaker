@@ -40,10 +40,12 @@ export class ExecutionFilterModel {
   constructor() {
     const { transitionService } = AngularServices.$uiRouter;
 
-    this.configViewStateCache = ViewStateCache.createCache('executionFilters', {
-      version: 2,
-      maxAge: SETTINGS.maxPipelineAgeDays * 24 * 60 * 60 * 1000,
-    });
+    this.configViewStateCache =
+      ViewStateCache.get('executionFilters') ||
+      ViewStateCache.createCache('executionFilters', {
+        version: 2,
+        maxAge: SETTINGS.maxPipelineAgeDays * 24 * 60 * 60 * 1000,
+      });
 
     this.asFilterModel = FilterModelService.configureFilterModel(this as any, filterModelConfig);
     FilterModelService.registerRouterHooks(this.asFilterModel, '**.application.pipelines.executions.**');

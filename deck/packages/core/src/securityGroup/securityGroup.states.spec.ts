@@ -34,13 +34,17 @@ describe('security group states', () => {
     const router = configureRouter();
     routers.push(router);
 
-    await router.stateService.go('home.firewallDetails', {
-      accountId: 'prod',
-      name: 'web',
-      provider: 'aws',
-      region: 'eu-west-1',
-      vpcId: 'vpc-1',
-    });
+    await router.stateService.go(
+      'home.firewallDetails',
+      {
+        accountId: 'prod',
+        name: 'web',
+        provider: 'aws',
+        region: 'eu-west-1',
+        vpcId: 'vpc-1',
+      },
+      { location: false },
+    );
 
     const app = router.globals.successfulTransitions.peekTail().injector().get('app') as any;
     expect(router.stateService.current.name).toBe('home.firewallDetails');

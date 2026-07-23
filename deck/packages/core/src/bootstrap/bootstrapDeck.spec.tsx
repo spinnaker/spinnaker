@@ -1,7 +1,6 @@
 import { UrlService } from '@uirouter/core';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
-import * as ngimport from 'ngimport';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -12,6 +11,8 @@ import { ApplicationReader } from '../application/service/ApplicationReader';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { AuthenticationService } from '../authentication';
 import { resetAuthenticationRuntime } from '../authentication/authentication.module';
+import { GlobalBannerService } from '../banner/global/GlobalBannerService';
+import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { SETTINGS } from '../config/settings';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter } from '../navigation/router';
@@ -19,6 +20,8 @@ import { NotificationService } from '../notification/NotificationService';
 import { PluginRegistry } from '../plugins/plugin.registry';
 import { resetPluginInitializationForTests } from '../plugins/plugin.module';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
+import type { DeckRuntime } from './DeckRuntime';
+import { DeckRuntimeContext, createDeckRuntime } from './DeckRuntime';
 import { SpinnakerContainer } from './SpinnakerContainer';
 import * as State from '../state';
 
@@ -99,6 +102,7 @@ describe('bootstrapDeck', () => {
     SETTINGS.authEnabled = true;
     SETTINGS.checkForUpdates = true;
     authenticationSpy = spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
+    spyOn(GlobalBannerService, 'getActiveBanners').and.returnValue(Promise.resolve([]));
     notificationMetadataSpy = spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
       Promise.resolve([]),
     );
@@ -108,7 +112,7 @@ describe('bootstrapDeck', () => {
     spyOn(PluginRegistry.prototype, 'loadPluginManifestFromGate').and.returnValue(Promise.resolve([]));
     pluginLoadsSpy = spyOn(PluginRegistry.prototype, 'loadPlugins').and.returnValue(Promise.resolve([]));
     runtimeDataSourceSpy = spyOn(ApplicationDataSourceRegistry, 'registerDataSource').and.callThrough();
-    cacheInitializeSpy = spyOn(AngularServices.cacheInitializer, 'initialize').and.returnValue(Promise.resolve([]));
+    cacheInitializeSpy = spyOn(CacheInitializerService.prototype, 'initialize').and.returnValue(Promise.resolve([]));
     renderSpy = spyOn(ReactDOM, 'render').and.callThrough();
     unmountSpy = spyOn(ReactDOM, 'unmountComponentAtNode').and.callThrough();
     schedulerCreateSpy = spyOn(SchedulerFactory, 'createScheduler').and.callThrough();
@@ -196,7 +200,8 @@ describe('bootstrapDeck', () => {
   it('creates an explicit scroll container for the direct main view without rewriting routed children', () => {
     const host = createRoot(true);
     const router = createConfiguredRouter();
-    const wrapper = mount(createDeckRoot(router), { attachTo: host });
+    const runtime = createDeckRuntime();
+    const wrapper = mount(createDeckRoot(router, runtime), { attachTo: host });
 
     const mainView = host.querySelector('.spinnaker-main-view') as HTMLElement;
     expect(mainView).not.toBeNull();
@@ -209,6 +214,7 @@ describe('bootstrapDeck', () => {
     expect(window.getComputedStyle(routedChild).overflowY).toBe('visible');
 
     wrapper.unmount();
+    runtime.dispose();
   });
 
   it('removes the static loading placeholder only after rendering', async () => {
@@ -228,23 +234,34 @@ describe('bootstrapDeck', () => {
 
   it('creates a pure direct UI Router and Spinnaker container tree for the supplied router', () => {
     const router = createConfiguredRouter();
+    const runtime = createDeckRuntime();
     routerPluginSpy.calls.reset();
     (State.ExecutionState as any).filterModel = null;
 
-    const app = createDeckRoot(router);
+    const app = createDeckRoot(router, runtime);
+    const routerProvider = app.props.children;
 
-    expect(app.type).toBe(UIRouterContext.Provider);
-    expect(app.props.value).toBe(router);
-    expect(app.props.children.type).toBe(SpinnakerContainer);
-    expect(app.props.children.props).toEqual(jasmine.objectContaining({ authenticating: false, routing: false }));
+    expect(app.type).toBe(DeckRuntimeContext.Provider);
+    expect(app.props.value).toBe(runtime);
+    expect(routerProvider.type).toBe(UIRouterContext.Provider);
+    expect(routerProvider.props.value).toBe(router);
+    expect(routerProvider.props.children.type).toBe(SpinnakerContainer);
+    expect(routerProvider.props.children.props).toEqual(
+      jasmine.objectContaining({ authenticating: false, routing: false }),
+    );
     expect(routerPluginSpy).not.toHaveBeenCalled();
     expect(State.ExecutionState.filterModel).toBeNull();
+
+    runtime.dispose();
   });
 
   it('does not use the AngularJS React hybrid router', () => {
     const router = createConfiguredRouter();
+    const runtime = createDeckRuntime();
 
-    expect(createDeckRoot(router).type).toBe(UIRouterContext.Provider);
+    expect(createDeckRoot(router, runtime).props.children.type).toBe(UIRouterContext.Provider);
+
+    runtime.dispose();
   });
 
   it('mounts React before removing the placeholder and starts URL handling exactly once', async () => {
@@ -284,9 +301,7 @@ describe('bootstrapDeck', () => {
 
   it('hydrates cluster filter permalinks during direct bootstrap without an Angular injector', async () => {
     const root = createRoot();
-    const originalInjector = ngimport.$injector;
     const clusterKey = 'main-euc1-se-main01:deployment payments';
-    (ngimport as any).$injector = undefined;
     window.location.hash = `#/applications/payments/clusters?clusters=${encodeURIComponent(
       clusterKey,
     )}&acct=main-euc1-se-main01&q=payments`;
@@ -310,7 +325,6 @@ describe('bootstrapDeck', () => {
       expect(State.ClusterState.filterModel.asFilterModel.sortFilter.filter).toBe('payments');
     } finally {
       resetBootstrapDeckForTests();
-      (ngimport as any).$injector = originalInjector;
     }
   });
 
@@ -443,6 +457,28 @@ describe('bootstrapDeck', () => {
     plugins.resolve([]);
     await bootstrap;
     expect(routerPluginSpy).toHaveBeenCalled();
+  });
+
+  it('waits for plugin initialization before binding direct runtime services', async () => {
+    const root = createRoot();
+    const plugins = deferred<any[]>();
+    const pluginsStarted = deferred<void>();
+    deckManifestSpy.and.callFake(() => {
+      pluginsStarted.resolve(undefined);
+      return plugins.promise;
+    });
+    const bindRuntime = spyOn(AngularServices, 'bindRuntime').and.callThrough();
+
+    const bootstrap = bootstrapDeck(root);
+    await pluginsStarted.promise;
+
+    expect(deckManifestSpy).toHaveBeenCalledTimes(1);
+    expect(bindRuntime).not.toHaveBeenCalled();
+    expect(routerPluginSpy).not.toHaveBeenCalled();
+    plugins.resolve([]);
+    await bootstrap;
+    expect(bindRuntime).toHaveBeenCalledTimes(1);
+    expect(bindRuntime).toHaveBeenCalledBefore(routerPluginSpy);
   });
 
   it('continues startup after initializePlugins settles plugin attempt failures', async () => {
@@ -689,5 +725,51 @@ describe('bootstrapDeck', () => {
 
     expect(cacheInitializeSpy).toHaveBeenCalledTimes(2);
     expect(versionSchedulerCount()).toBe(2);
+  });
+
+  it('disposes the bootstrap-owned runtime during explicit reset', async () => {
+    const root = createRoot();
+    let runtime: DeckRuntime;
+    renderSpy.and.callFake((element: React.ReactElement) => {
+      runtime = element.props.value;
+      return null;
+    });
+
+    await bootstrapDeck(root);
+    const dispose = spyOn(runtime, 'dispose').and.callThrough();
+
+    resetBootstrapDeckForTests();
+
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('binds public runtime services and clears their scheduled and router-bound work on rebootstrap', async () => {
+    jasmine.clock().install();
+    try {
+      const firstRoot = createRoot();
+      const secondRoot = createRoot();
+      let firstRuntime: DeckRuntime;
+      renderSpy.and.callFake((element: React.ReactElement) => {
+        firstRuntime = element.props.value;
+        return null;
+      });
+
+      await bootstrapDeck(firstRoot);
+      const firstStateEvents = AngularServices.stateEvents;
+      const scheduled = jasmine.createSpy('scheduled');
+      AngularServices.$timeout(scheduled, 100);
+
+      expect(AngularServices.$timeout as any).toBe(firstRuntime.timeoutService as any);
+      expect(AngularServices.providerServiceDelegate).toBe(firstRuntime.providerServiceDelegate as any);
+
+      resetBootstrapDeckForTests();
+      jasmine.clock().tick(100);
+      await bootstrapDeck(secondRoot);
+
+      expect(scheduled).not.toHaveBeenCalled();
+      expect(AngularServices.stateEvents).not.toBe(firstStateEvents);
+    } finally {
+      jasmine.clock().uninstall();
+    }
   });
 });
