@@ -23,7 +23,7 @@ dependencies {
   implementation 'org.apache.commons:commons-lang3'
 
   testImplementation "cglib:cglib-nodep"
-  testImplementation "commons-fileupload:commons-fileupload:1.4"
+  testImplementation "commons-fileupload:commons-fileupload"
   testImplementation "org.apache.httpcomponents.core5:httpcore5"
   testImplementation "org.assertj:assertj-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"
