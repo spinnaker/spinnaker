@@ -1,7 +1,7 @@
 import { module } from 'angular';
 
 import type { ApplicationStateProvider } from '../application';
-import { APPLICATION_STATE_PROVIDER } from '../application';
+import { registerApplicationState } from '../application';
 import { Builds } from './components/Builds';
 import { SETTINGS } from '../config/settings';
 import type { INestedState } from '../navigation';
@@ -9,40 +9,39 @@ import type { INestedState } from '../navigation';
 export const CI_STATES = 'spinnaker.ci.states';
 export const name = CI_STATES;
 
-module(CI_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  (applicationStateProvider: ApplicationStateProvider) => {
-    if (!SETTINGS.feature.ci) {
-      return;
-    }
-    const buildDetailTab: INestedState = {
-      name: 'buildTab',
-      url: '/:tab',
-    };
+module(CI_STATES, []);
 
-    const buildDetail: INestedState = {
-      name: 'build',
-      url: '/:buildId',
-      children: [buildDetailTab],
-    };
+registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
+  if (!SETTINGS.feature.ci) {
+    return;
+  }
+  const buildDetailTab: INestedState = {
+    name: 'buildTab',
+    url: '/:tab',
+  };
 
-    const builds: INestedState = {
-      name: 'builds',
-      url: '/builds',
-      views: {
-        insight: {
-          component: Builds,
-          $type: 'react',
-        },
+  const buildDetail: INestedState = {
+    name: 'build',
+    url: '/:buildId',
+    children: [buildDetailTab],
+  };
+
+  const builds: INestedState = {
+    name: 'builds',
+    url: '/builds',
+    views: {
+      insight: {
+        component: Builds,
+        $type: 'react',
       },
-      data: {
-        pageTitleSection: {
-          title: 'Builds',
-        },
+    },
+    data: {
+      pageTitleSection: {
+        title: 'Builds',
       },
-      children: [buildDetail],
-    };
+    },
+    children: [buildDetail],
+  };
 
-    applicationStateProvider.addChildState(builds);
-  },
-]);
+  applicationStateProvider.addChildState(builds);
+});

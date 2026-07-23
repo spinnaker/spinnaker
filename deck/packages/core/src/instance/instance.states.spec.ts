@@ -1,8 +1,19 @@
+import { UIRouterReact } from '@uirouter/react';
+
 import { MultipleInstancesDetails } from './details/MultipleInstancesDetails';
 import { StandaloneInstanceDetails } from './details/StandaloneInstanceDetails';
 import { getMultipleInstancesState, getStandaloneInstanceState } from './instance.states';
+import { setDirectRouter } from '../navigation/directRouter';
+import { configureRouter } from '../navigation/router';
 
 describe('instance states', () => {
+  const routers: UIRouterReact[] = [];
+
+  afterEach(() => {
+    routers.splice(0).forEach((router) => router.dispose());
+    setDirectRouter(null);
+  });
+
   it('uses the React standalone instance details wrapper for standalone instance routes', () => {
     const state = getStandaloneInstanceState();
 
@@ -45,5 +56,28 @@ describe('instance states', () => {
     expect(view.templateUrl).toBeUndefined();
     expect(view.controller).toBeUndefined();
     expect(view.controllerAs).toBeUndefined();
+  });
+
+  it('resolves a standalone instance during a direct transition', async () => {
+    const router = configureRouter();
+    routers.push(router);
+
+    await router.stateService.go('home.instanceDetails', {
+      account: 'prod',
+      instanceId: 'i-abc',
+      provider: 'aws',
+      region: 'us-west-2',
+    });
+
+    const transition = router.globals.successfulTransitions.peekTail();
+    expect(router.stateService.current.name).toBe('home.instanceDetails');
+    expect(transition.injector().get('instance')).toEqual({
+      account: 'prod',
+      instanceId: 'i-abc',
+      noApplication: true,
+      provider: 'aws',
+      region: 'us-west-2',
+    });
+    expect(transition.injector().get('app').name).toBe('(standalone instance)');
   });
 });
