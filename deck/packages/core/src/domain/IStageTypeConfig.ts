@@ -9,6 +9,22 @@ import type { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 import type { IExecutionDetailsSectionProps } from '../pipeline/config/stages/common';
 import type { IStageSummaryProps } from '../pipeline/details/StageSummary';
 
+export interface IExecutionDetailsComponentProps {
+  application: IExecutionDetailsProps['application'];
+  config: IStageTypeConfig;
+  configSections: string[];
+  currentSection?: string;
+  execution: IExecutionDetailsProps['execution'];
+  provider: string;
+  stage: IExecutionDetailsProps['stage'];
+}
+
+export interface IExecutionStepLabelComponentProps {
+  application?: IStageSummaryProps['application'];
+  execution?: IStageSummaryProps['execution'];
+  step: IStage;
+}
+
 export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & {
   title: string;
   shouldShow?: (props: IExecutionDetailsProps) => boolean;
@@ -27,10 +43,10 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   defaults?: any;
   disableNotifications?: boolean;
   executionConfigSections?: string[]; // angular only
+  executionDetailsComponent?: React.ComponentType<IExecutionDetailsComponentProps>;
   executionDetailsSections?: IExecutionDetailsSection[]; // react only
-  executionDetailsUrl?: string; // angular only
   executionLabelComponent?: React.ComponentType<IExecutionStageLabelProps>;
-  executionStepLabelUrl?: string;
+  executionStepLabelComponent?: React.ComponentType<IExecutionStepLabelComponentProps>;
   executionSummaryUrl?: string;
   executionSummaryComponent?: React.ComponentType<IStageSummaryProps>;
   extraLabelLines?: (stage: IStage) => number;
