@@ -1,4 +1,3 @@
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Observable } from 'rxjs';
 
@@ -64,7 +63,7 @@ export class ServerGroupDetailsWrapper extends React.Component<
 
   private getServerGroupDetailsTemplate(): void {
     const { provider } = AngularServices.$stateParams;
-    $q.all([
+    Promise.all([
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsActions'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsGetter'),
       CloudProviderRegistry.getValue(provider, 'serverGroup.detailsSections'),

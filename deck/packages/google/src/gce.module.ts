@@ -42,6 +42,7 @@ import {
 } from './serverGroup/details/gceServerGroupDetails';
 import { GceServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 import { GceSubnetRenderer } from './subnet/subnet.renderer';
+import './validation/ApplicationNameValidator';
 
 import './logo/gce.logo.less';
 
@@ -51,6 +52,14 @@ export function registerGoogleProvider(): void {
     logo: {
       path: logo,
     },
+    applicationProviderFields: [
+      {
+        field: 'associatePublicIpAddress',
+        helpKey: 'gce.serverGroup.associatePublicIpAddress.providerField',
+        label: 'Associate Public IP Address',
+        type: 'boolean',
+      },
+    ],
     cache: {
       configurer: GceCacheConfigurer,
     },

@@ -1,5 +1,3 @@
-import { $q } from 'ngimport';
-
 import { REST } from '../api/ApiService';
 import type { Application } from '../application/application.model';
 import { SETTINGS } from '../config/settings';
@@ -145,7 +143,7 @@ export class EntityTagsReader {
 
   public static getEntityTagsForId(entityType: string, entityId: string): PromiseLike<IEntityTags[]> {
     if (!entityId) {
-      return $q.when([]);
+      return Promise.resolve([]);
     }
     return REST('/tags')
       .query({
@@ -157,7 +155,7 @@ export class EntityTagsReader {
         return this.flattenTagsAndAddMetadata(entityTagGroups);
       })
       .catch(() => {
-        return $q.when([]);
+        return Promise.resolve([]);
       });
   }
 

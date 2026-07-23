@@ -1,6 +1,5 @@
 import type { IScope } from 'angular';
 import { map, union, uniq } from 'lodash';
-import { $log, $q } from 'ngimport';
 import type { Observable, Subscription } from 'rxjs';
 import { combineLatest as observableCombineLatest, ReplaySubject, Subject } from 'rxjs';
 import { map as rxMap } from 'rxjs/operators';
@@ -8,6 +7,14 @@ import { map as rxMap } from 'rxjs/operators';
 import type { ICluster } from '../domain/ICluster';
 import type { IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
 import { ApplicationDataSource } from './service/applicationDataSource';
+
+function allPromises<T>(promises: Array<PromiseLike<T>>): PromiseLike<T[]> {
+  return Promise.all(promises);
+}
+
+function logError(...args: any[]): void {
+  console.error(...args);
+}
 
 export class Application {
   [k: string]: any;
@@ -167,7 +174,7 @@ export class Application {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter((ds) => !ds.visible).forEach((ds) => ds.refresh(forceRefresh));
     this.refreshListeners.forEach((cb) => cb());
-    return $q.all(this.dataSources.filter((ds) => ds.visible).map((source) => source.refresh(forceRefresh))).then(
+    return allPromises(this.dataSources.filter((ds) => ds.visible).map((source) => source.refresh(forceRefresh))).then(
       () => this.applicationLoadSuccess(),
       (error) => this.applicationLoadError(error),
     );
@@ -180,7 +187,7 @@ export class Application {
    * not useful - it's only useful to watch the promise itself
    */
   public ready(): PromiseLike<any> {
-    return $q.all(
+    return allPromises(
       this.dataSources.filter((ds) => ds.onLoad !== undefined && ds.visible).map((dataSource) => dataSource.ready()),
     );
   }
@@ -233,7 +240,7 @@ export class Application {
   }
 
   private applicationLoadError(err: Error): void {
-    $log.error(err, 'Failed to load application, will retry on next scheduler execution.');
+    logError(err, 'Failed to load application, will retry on next scheduler execution.');
     this.refreshFailureStream.next(err);
   }
 

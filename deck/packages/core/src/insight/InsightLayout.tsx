@@ -1,8 +1,8 @@
 import { UIView, useCurrentStateAndParams } from '@uirouter/react';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
-
 import { AngularServices } from '../angular/services';
+
 import type { Application } from '../application';
 import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
 import { FilterCollapse } from '../filterModel/FilterCollapse';
@@ -11,9 +11,29 @@ export interface IInsightLayoutProps {
   app: Application;
 }
 
+interface IInsightState {
+  name?: string;
+  views?: { [key: string]: unknown };
+}
+
+export const shouldShowDetailsView = (currentState: IInsightState): boolean => {
+  if (Object.keys(currentState.views || {}).some((v) => v.indexOf('detail@') !== -1)) {
+    return true;
+  }
+
+  const insightStateName = currentState.name?.split('.insight.')[1];
+  return Boolean(insightStateName && insightStateName.split('.').length > 1);
+};
+
+export const isInsightDetailUrl = (href: string): boolean => {
+  return /\/(?:instanceDetails|serverGroupDetails|loadBalancerDetails|targetGroupDetails|firewallDetails|functionDetails|multipleInstances|multipleServerGroups)(?:\/|$)/.test(
+    href,
+  );
+};
+
 export const InsightLayout = ({ app }: IInsightLayoutProps) => {
   const [expandFilters, setExpandFilters] = React.useState(AngularServices.insightFilterStateModel.filtersExpanded);
-  const { filtersHidden } = AngularServices.insightFilterStateModel;
+  const [currentLocation, setCurrentLocation] = React.useState(window.location.href);
   const filterClass = expandFilters ? 'filters-expanded' : 'filters-collapsed';
 
   const toggleFilters = (): void => {
@@ -23,8 +43,32 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
 
   const navClass = useRecoilValue(verticalNavExpandedAtom) ? 'nav-expanded' : 'nav-collapsed';
 
-  const { state: currentState } = useCurrentStateAndParams();
-  const showDetailsView = Boolean(Object.keys(currentState.views).find((v) => v.indexOf('detail@') !== -1));
+  const { state: hookState } = useCurrentStateAndParams();
+  const getCurrentState = (): IInsightState => AngularServices.$uiRouter.globals.current || hookState || {};
+  const [currentState, setCurrentState] = React.useState<IInsightState>(() => getCurrentState());
+
+  React.useEffect(() => {
+    setCurrentState(AngularServices.$uiRouter.globals.current || hookState || {});
+  }, [hookState]);
+
+  React.useEffect(() => {
+    const removeTransitionHook = AngularServices.$uiRouter.transitionService.onSuccess({}, (transition: any) => {
+      setCurrentState(transition.to() || {});
+      setCurrentLocation(window.location.href);
+    });
+
+    return () => removeTransitionHook();
+  }, []);
+
+  React.useEffect(() => {
+    const handleLocationChange = () => setCurrentLocation(window.location.href);
+    window.addEventListener('hashchange', handleLocationChange);
+
+    return () => window.removeEventListener('hashchange', handleLocationChange);
+  }, []);
+
+  const { filtersHidden } = AngularServices.insightFilterStateModel;
+  const showDetailsView = shouldShowDetailsView(currentState) || isInsightDetailUrl(currentLocation);
   const detailsClass = showDetailsView ? 'details-open' : 'details-closed';
 
   if (app.notFound || app.hasError) {
@@ -39,17 +83,17 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
         </div>
       )}
       {!filtersHidden && expandFilters && (
-        <div>
-          <UIView name="nav" className="nav ng-scope" />
+        <div className="nav ng-scope">
+          <UIView name="nav" />
         </div>
       )}
       <div className="flex-1">
-        <UIView name="master" className="nav-content ng-scope" data-scroll-id="nav-content" />
-        {showDetailsView && (
-          <div>
-            <UIView name="detail" className="detail-content" />
-          </div>
-        )}
+        <div className="nav-content ng-scope" data-scroll-id="nav-content">
+          <UIView name="master" />
+        </div>
+        <div className="detail-content" style={{ display: showDetailsView ? undefined : 'none' }}>
+          <UIView name="detail" />
+        </div>
       </div>
     </div>
   );

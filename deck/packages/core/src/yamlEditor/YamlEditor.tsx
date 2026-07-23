@@ -1,11 +1,11 @@
 import 'brace/mode/yaml';
 import 'brace/theme/textmate';
 import { loadAll, YAMLException } from 'js-yaml';
-import { $log } from 'ngimport';
 import React from 'react';
 import type { Annotation } from 'react-ace';
 import AceEditor from 'react-ace';
 
+import { AngularServices } from '../angular/services';
 import { yamlStringToDocuments } from './yamlEditorUtils';
 
 export interface IYamlEditorProps {
@@ -28,7 +28,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
     const yamlDocuments = yamlStringToDocuments(raw);
     this.props.onChange
       ? this.props.onChange(raw, yamlDocuments)
-      : $log.warn('No `onChange` handler provided for YAML editor.');
+      : AngularServices.$log.warn('No `onChange` handler provided for YAML editor.');
   };
 
   public calculateErrors = (value: string): Annotation[] => {
