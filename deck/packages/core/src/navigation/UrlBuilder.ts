@@ -1,7 +1,7 @@
 import type { StateService } from '@uirouter/core';
 import { isDate, isObject, isUndefined } from 'lodash';
-import { AngularServices } from '../angular/services';
 
+import { AngularServices } from '../angular/services';
 import type { ITask } from '../domain';
 import { NameUtils } from '../naming';
 import { Registry } from '../registry';
@@ -39,6 +39,10 @@ interface IClusterFilter {
   q?: string;
   reg?: string;
   stack?: string;
+}
+
+function getStateService(): StateService {
+  return AngularServices.$state as StateService;
 }
 
 class UrlBuilderUtils {
@@ -349,7 +353,7 @@ export class UrlBuilder {
     const builder: IUrlBuilder = Registry.urlBuilder.getBuilder(input.type);
     let result: string;
     if (builder) {
-      result = builder.build(input, AngularServices.$state);
+      result = builder.build(input, getStateService());
     } else {
       result = '/';
     }

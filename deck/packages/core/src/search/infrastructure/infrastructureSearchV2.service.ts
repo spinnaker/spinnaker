@@ -6,20 +6,16 @@ import { catchError, finalize, map, mergeMap, tap } from 'rxjs/operators';
 
 import type { ISearchResultSet } from './infrastructureSearch.service';
 import type { IQueryParams } from '../../navigation';
-import { UrlBuilder } from '../../navigation';
+import { UrlBuilder } from '../../navigation/UrlBuilder';
 import type { ISearchResult, ISearchResults } from '../search.service';
 import { SearchStatus } from '../searchResult/SearchStatus';
 import type { SearchResultType } from '../searchResult/searchResultType';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
 
 export class InfrastructureSearchServiceV2 {
-  private static EMPTY_RESULTS: ISearchResultSet[] = searchResultTypeRegistry
-    .getAll()
-    .map((type) => ({ type, results: [], status: SearchStatus.FINISHED }));
-
   public static search(apiParams: IQueryParams): Observable<ISearchResultSet> {
     if (isEmpty(apiParams)) {
-      return observableFrom(this.EMPTY_RESULTS);
+      return observableFrom(this.getEmptyResults());
     }
 
     const params = { ...apiParams };
@@ -59,5 +55,9 @@ export class InfrastructureSearchServiceV2 {
       tap((result: ISearchResultSet<any>) => otherResults$.next(result)),
       finalize(() => otherResults$.complete()),
     );
+  }
+
+  private static getEmptyResults(): ISearchResultSet[] {
+    return searchResultTypeRegistry.getAll().map((type) => ({ type, results: [], status: SearchStatus.FINISHED }));
   }
 }

@@ -1,9 +1,9 @@
 import type { FormikErrors } from 'formik';
 import { flatten, isEmpty, isNumber, values } from 'lodash';
-import { $log, $q } from 'ngimport';
 import type { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
 
+import { AngularServices } from '../../../angular/services';
 import type {
   IPipeline,
   IStage,
@@ -72,6 +72,8 @@ export class PipelineConfigValidator {
     const validations: Array<PromiseLike<void>> = [];
     const pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline);
     const stageValidations: Map<IStage, string[]> = new Map();
+    const $log = AngularServices.$log;
+    const $q = AngularServices.$q;
     let preventSave = false;
 
     triggers.forEach((trigger, index) => {

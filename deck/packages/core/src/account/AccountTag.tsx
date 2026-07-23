@@ -2,7 +2,7 @@ import React from 'react';
 import { AccountService } from './AccountService';
 
 export interface IAccountTagProps {
-  account: string;
+  account: string | null;
   className?: string;
 }
 
@@ -30,7 +30,11 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
     this.updateAccount(nextProps.account);
   }
 
-  private updateAccount(account: string) {
+  private updateAccount(account: string | null) {
+    if (!account) {
+      return;
+    }
+
     const { cache } = AccountTag;
     if (!cache.hasOwnProperty(account)) {
       cache[account] = AccountService.challengeDestructiveActions(account).then(
@@ -51,6 +55,9 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
     const { account, className } = this.props;
     const { isProdAccount } = this.state;
     const shouldShowTitle = className === 'account-tag-wrapper';
+    if (!account) {
+      return null;
+    }
     return (
       <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'} ${className || ''}`}>
         <span className="account-tag-name" title={shouldShowTitle ? account : null}>

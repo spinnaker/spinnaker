@@ -1,4 +1,4 @@
-import { $q, $timeout } from 'ngimport';
+import { AngularServices } from '../angular/services';
 
 export class RetryService {
   // interval is in milliseconds
@@ -8,6 +8,8 @@ export class RetryService {
     limit: number,
     interval: number,
   ): PromiseLike<T> {
+    const $q = AngularServices.$q;
+    const $timeout = AngularServices.$timeout;
     const call: T | PromiseLike<T> = func();
     const promise: PromiseLike<T> = call.hasOwnProperty('then') ? (call as PromiseLike<T>) : $q.resolve(call);
     if (limit === 0) {

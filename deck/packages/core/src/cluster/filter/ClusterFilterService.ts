@@ -1,6 +1,5 @@
 import { each, every, forOwn, groupBy, isEmpty, some, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 import { AngularServices } from '../../angular/services';
 
@@ -502,7 +501,7 @@ export class ClusterFilterService {
       );
 
       if (!newServerGroup) {
-        $log.debug(
+        AngularServices.$log.debug(
           'server group no longer found, removing:',
           serverGroup.name,
           serverGroup.account,
@@ -512,7 +511,7 @@ export class ClusterFilterService {
         toRemove.push(idx);
       } else {
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          $log.debug(
+          AngularServices.$log.debug(
             'change detected, updating server group:',
             serverGroup.name,
             serverGroup.account,
@@ -539,7 +538,12 @@ export class ClusterFilterService {
       );
 
       if (!oldServerGroup) {
-        $log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
+        AngularServices.$log.debug(
+          'new server group found, adding',
+          serverGroup.name,
+          serverGroup.account,
+          serverGroup.region,
+        );
         oldGroup.serverGroups.push(serverGroup);
       }
     });

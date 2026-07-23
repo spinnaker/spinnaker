@@ -4,12 +4,31 @@ import { $http } from 'ngimport';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import type { ICache } from '../cache/deckCacheFactory';
 import { SETTINGS } from '../config/settings';
+import {
+  captureIapSessionRefreshGeneration,
+  hasIapSessionRefreshedSince,
+  IAP_SESSION_REFRESH_URL,
+  refreshIapSession,
+  shouldRefreshIapSession,
+} from './iapSessionRefresh';
 
 type IPrimitive = string | boolean | number;
 type IParams = Record<string, IPrimitive | IPrimitive[]>;
 
 interface Headers {
   [headerName: string]: string;
+}
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+interface IPreparedXhrRequest {
+  method: HttpMethod;
+  url: string;
+  headers: Array<[string, string]>;
+  body: unknown;
+  timeout: number;
+  withCredentials: boolean;
+  iapSessionRefreshGeneration: number;
 }
 
 /**
@@ -116,10 +135,11 @@ class AngularJSHttpClient implements IHttpClientImplementation {
   put = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PUT', requestConfig);
   patch = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PATCH', requestConfig);
 
-  private request<T>(
-    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-    requestConfig: IRequestBuilderConfig,
-  ): PromiseLike<T> {
+  private request<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): PromiseLike<T> {
+    if (typeof $http !== 'function') {
+      return this.xhrRequest<T>(method, requestConfig);
+    }
+
     return $http<T>({ ...requestConfig, method }).then((response) => {
       const contentType = response.headers('content-type');
 
@@ -137,6 +157,116 @@ class AngularJSHttpClient implements IHttpClientImplementation {
       }
 
       return response.data;
+    });
+  }
+
+  private xhrRequest<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): PromiseLike<T> {
+    return this.sendXhrRequest<T>(this.prepareXhrRequest(method, requestConfig), false);
+  }
+
+  private prepareXhrRequest(method: HttpMethod, requestConfig: IRequestBuilderConfig): IPreparedXhrRequest {
+    const url = new URL(requestConfig.url, window.location.origin);
+    Object.entries(requestConfig.params || {}).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((item) => url.searchParams.append(key, String(item)));
+      } else if (!isNil(value)) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    const data = requestConfig.data;
+    const dataType = Object.prototype.toString.call(data);
+    const isArrayBufferView = typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(data);
+    const isSupportedXhrBody =
+      typeof data === 'string' ||
+      isArrayBufferView ||
+      [
+        '[object ArrayBuffer]',
+        '[object Blob]',
+        '[object File]',
+        '[object FormData]',
+        '[object URLSearchParams]',
+        '[object Document]',
+        '[object HTMLDocument]',
+        '[object XMLDocument]',
+      ].includes(dataType);
+    const serializesAsJson = !isNil(data) && !isSupportedXhrBody;
+    const body = isNil(data) ? undefined : serializesAsJson ? JSON.stringify(data) : data;
+    const configuredHeaders = Object.entries(requestConfig.headers || {});
+    const hasContentType = configuredHeaders.some(([key]) => key.toLowerCase() === 'content-type');
+    const headers: Array<[string, string]> = [];
+    if (serializesAsJson && !hasContentType) {
+      headers.push(['Content-Type', 'application/json;charset=utf-8']);
+    }
+    headers.push(...configuredHeaders);
+
+    return {
+      method,
+      url: url.toString(),
+      headers,
+      body,
+      timeout: requestConfig.timeout ?? 0,
+      withCredentials: true,
+      iapSessionRefreshGeneration: captureIapSessionRefreshGeneration(),
+    };
+  }
+
+  private sendXhrRequest<T>(preparedRequest: IPreparedXhrRequest, iapSessionRefreshAttempted: boolean): Promise<T> {
+    const parseResponse = (contentType: string, responseText: string): T => {
+      const isJson = /^\s*application\/(?:[^;\s]+\+)?json(?:\s*;|$)/i.test(contentType);
+      if (isJson || /^\s*(?:\[|{)/.test(responseText)) {
+        return responseText ? JSON.parse(responseText) : (null as T);
+      }
+      return (responseText as unknown) as T;
+    };
+
+    return new Promise<T>((resolve, reject) => {
+      const request = new XMLHttpRequest();
+      request.open(preparedRequest.method, preparedRequest.url);
+      preparedRequest.headers.forEach(([key, value]) => request.setRequestHeader(key, value));
+      request.timeout = preparedRequest.timeout;
+      request.withCredentials = preparedRequest.withCredentials;
+      request.onload = () => {
+        const contentType = request.getResponseHeader('content-type') || '';
+        const responseText = request.responseText || '';
+        try {
+          const data = parseResponse(contentType, responseText);
+          if (request.status >= 400) {
+            const rejection = {
+              status: request.status,
+              statusText: request.statusText,
+              data,
+            };
+            if (shouldRefreshIapSession(request.status, preparedRequest, iapSessionRefreshAttempted)) {
+              if (hasIapSessionRefreshedSince(preparedRequest.iapSessionRefreshGeneration)) {
+                this.sendXhrRequest<T>(preparedRequest, true).then(resolve, reject);
+              } else {
+                refreshIapSession(() => this.xhrRequest('GET', { url: IAP_SESSION_REFRESH_URL })).then(
+                  () => this.sendXhrRequest<T>(preparedRequest, true).then(resolve, reject),
+                  () => reject(rejection),
+                );
+              }
+            } else {
+              reject(rejection);
+            }
+            return;
+          }
+
+          if (contentType.includes('text/html') && responseText.match(/^\s*</)) {
+            reject(new Error(`${invalidContentMessage}: ${preparedRequest.url}`));
+            AuthenticationInitializer.reauthenticateUser();
+            return;
+          }
+
+          resolve(data);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      request.onerror = () =>
+        reject(new Error(`Failed to load resource: ${preparedRequest.method} ${preparedRequest.url}`));
+      request.ontimeout = () => reject({ status: -1, statusText: '', xhrStatus: 'timeout', data: null });
+      request.send(preparedRequest.body as any);
     });
   }
 }
