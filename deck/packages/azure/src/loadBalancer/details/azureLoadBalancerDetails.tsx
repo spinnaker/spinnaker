@@ -140,9 +140,27 @@ export function useAzureLoadBalancerDetails({
   const [data, setData] = React.useState<ILoadBalancer>();
   const [loadingDetails, setLoadingDetails] = React.useState(false);
   const [detailsError, setDetailsError] = React.useState<string | null>(null);
+  const autoCloseRef = React.useRef(autoClose);
+  const isMountedRef = React.useRef(true);
+  const requestGenerationRef = React.useRef(0);
+  const { accountId, name, provider, region } = azureLoadBalancerParams;
+
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    autoCloseRef.current = autoClose;
+  }, [autoClose]);
 
   const loadDetails = React.useCallback(async () => {
+    const requestGeneration = ++requestGenerationRef.current;
     if (!loaded || error) {
+      if (isMountedRef.current) {
+        setLoadingDetails(false);
+      }
       return;
     }
 
@@ -151,18 +169,24 @@ export function useAzureLoadBalancerDetails({
     try {
       const loadBalancer = await loadAzureLoadBalancerDetails({
         app,
-        loadBalancerParams: azureLoadBalancerParams,
+        loadBalancerParams: { accountId, name, provider, region },
         loadBalancers,
-        autoClose,
+        autoClose: () => autoCloseRef.current(),
         loadBalancerReader,
       });
-      setData(loadBalancer);
+      if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+        setData(loadBalancer);
+      }
     } catch (e) {
-      setDetailsError(e?.message || String(e));
+      if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+        setDetailsError(e?.message || String(e));
+      }
     } finally {
-      setLoadingDetails(false);
+      if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+        setLoadingDetails(false);
+      }
     }
-  }, [app, autoClose, azureLoadBalancerParams, error, loadBalancers, loaded]);
+  }, [accountId, app, error, loadBalancers, loaded, name, provider, region]);
 
   React.useEffect(() => {
     loadDetails();

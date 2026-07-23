@@ -1,11 +1,12 @@
 import { Registry } from '@spinnaker/core';
 
-import { AmazonStageConfig } from '../AmazonStageConfig';
+import { AwsFindImageFromTagsStageConfig } from './AwsFindImageFromTagsStageConfig';
 
 export const awsFindImageFromTagsStage = {
+  key: 'findImageFromTags',
   provides: 'findImageFromTags',
   cloudProvider: 'aws',
-  component: AmazonStageConfig,
+  component: AwsFindImageFromTagsStageConfig,
   executionConfigSections: ['findImageConfig', 'taskStatus'],
   validators: [
     { type: 'requiredField', fieldName: 'packageName' },
