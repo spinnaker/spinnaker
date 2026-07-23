@@ -65,6 +65,34 @@ page-navigator,
   }
 }
 
+.application-config-page,
+.application-config-page > .page-navigator {
+  width: 100%;
+}
+
+.application-config-page {
+  .page-navigator > .row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .page-navigator > .row > .hidden-sm.hidden-xs {
+    max-width: 240px;
+    padding-left: 0;
+    padding-right: 5px;
+    width: 240px;
+  }
+
+  .page-navigator > .row > .col-sm-12 {
+    max-width: none;
+    width: calc(100% - 240px);
+  }
+
+  .application-feature-description {
+    margin-left: 20px;
+  }
+}
+
 @keyframes highlighted {
   0% {
     opacity: 0.25;

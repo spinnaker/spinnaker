@@ -34,6 +34,7 @@ import { GceSecurityGroupTransformer } from './securityGroup/securityGroup.trans
 import { GceServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
 import { GceServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
 import { GceCloneServerGroupModal } from './serverGroup/configure/wizard/GceCloneServerGroupModal';
+import { GceCustomInstanceBuilder } from './serverGroup/configure/wizard/customInstance/GceCustomInstanceBuilder';
 import {
   GceServerGroupActions,
   gceServerGroupDetailsGetter,
@@ -66,6 +67,7 @@ export function registerGoogleProvider(): void {
       detailsSections: gceServerGroupDetailsSections,
     },
     instance: {
+      CustomInstanceBuilder: GceCustomInstanceBuilder,
       details: GceInstanceDetails,
       instanceTypeService: GceInstanceTypeService,
       multiInstanceTaskTransformer: GceMultiInstanceTaskTransformer,

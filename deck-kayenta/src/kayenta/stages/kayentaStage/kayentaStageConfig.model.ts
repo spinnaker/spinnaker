@@ -65,7 +65,9 @@ export interface IKayentaLocationChoices {
 export interface IKayentaServerGroupModalDependencies {
   application: any;
   cloudProviderRegistry: { getValue(provider: string, category: string): any };
-  providerSelectionService: { selectProvider(application: any, category: string): Promise<string> | string };
+  providerSelectionService: {
+    selectProvider(application: any, category: string, filterFn?: any): Promise<string> | string;
+  };
   serverGroupCommandBuilder: {
     buildNewServerGroupCommandForPipeline(provider: string, cluster: any, credentials: any): Promise<any>;
     buildServerGroupCommandFromPipeline(
@@ -288,9 +290,16 @@ export async function addPair(stage: IKayentaStage, deps: IKayentaServerGroupMod
   stage.deployments.serverGroupPairs = stage.deployments.serverGroupPairs || [];
   const provider = has(stage, 'deployments.baseline.cloudProvider')
     ? stage.deployments.baseline.cloudProvider
-    : await deps.providerSelectionService.selectProvider(deps.application, 'serverGroup');
+    : await deps.providerSelectionService.selectProvider(
+        deps.application,
+        'serverGroup',
+        hasReactCloneServerGroupModal,
+      );
   stage.deployments.baseline.cloudProvider = provider;
   const config = deps.cloudProviderRegistry.getValue(provider, 'serverGroup');
+  if (!config.CloneServerGroupModal) {
+    throw new Error(`No React clone server group modal is registered for provider "${provider}".`);
+  }
 
   const command = await deps.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(provider, null, null);
   command.viewState = {
@@ -321,6 +330,10 @@ export async function addPair(stage: IKayentaStage, deps: IKayentaServerGroupMod
   cleanupServerGroup(control, 'baseline');
   cleanupServerGroup(experiment, 'canary');
   stage.deployments.serverGroupPairs = [{ control, experiment }];
+}
+
+function hasReactCloneServerGroupModal(_application: any, _account: any, provider: any): boolean {
+  return Boolean(provider?.serverGroup?.CloneServerGroupModal);
 }
 
 export async function editServerGroup(
@@ -523,10 +536,5 @@ function showServerGroupModal(
   if (config.CloneServerGroupModal) {
     return config.CloneServerGroupModal.show({ title, application: deps.application, command });
   }
-  return deps.$uibModal.open({
-    templateUrl: config.cloneServerGroupTemplateUrl,
-    controller: `${config.cloneServerGroupController} as ctrl`,
-    size: 'lg',
-    resolve: { title: () => title, application: () => deps.application, serverGroupCommand: () => command },
-  }).result;
+  return Promise.reject(new Error('No React clone server group modal is registered.'));
 }

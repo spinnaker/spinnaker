@@ -1,4 +1,7 @@
+import React from 'react';
 import { Registry } from '@spinnaker/core';
+
+import { EcsServerGroupStepLabel } from '../common/EcsServerGroupStepLabel';
 
 export function registerEcsResizeServerGroupStage() {
   Registry.pipeline.registerStage({
@@ -7,7 +10,8 @@ export function registerEcsResizeServerGroupStage() {
     cloudProvider: 'ecs',
     templateUrl: require('./resizeAsgStage.html'),
     executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
-    executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
+    executionStepLabelComponent: (props) =>
+      React.createElement(EcsServerGroupStepLabel, { action: 'Resize Server Group', ...props }),
     accountExtractor: (stage) => [stage.context.credentials],
     configAccountExtractor: (stage) => [stage.credentials],
     validators: [

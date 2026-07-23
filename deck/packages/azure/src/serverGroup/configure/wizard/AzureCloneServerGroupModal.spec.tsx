@@ -85,14 +85,12 @@ describe('AzureCloneServerGroupModal', () => {
     };
   }
 
-  it('registers as the Azure clone server group modal without Angular modal keys', () => {
+  it('registers as the Azure clone server group modal', () => {
     registerAzureProvider();
 
     expect(CloudProviderRegistry.getValue('azure', 'serverGroup.CloneServerGroupModal')).toBe(
       AzureCloneServerGroupModal,
     );
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.cloneServerGroupTemplateUrl')).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.cloneServerGroupController')).toBeNull();
   });
 
   it('show opens the React wizard and resolves with the submitted pipeline command', async () => {
