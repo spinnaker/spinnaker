@@ -4,11 +4,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.rosco"
 }
 
 subprojects {
-  group = "io.spinnaker.rosco"
-
   if (name != "rosco-bom") {
     apply plugin: 'java-library'
     apply plugin: "groovy"
