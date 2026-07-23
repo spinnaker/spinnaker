@@ -4,8 +4,10 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import { AngularServices } from '../angular/services';
+import { ApplicationReader } from '../application/service/ApplicationReader';
 import { setDirectRouter } from '../navigation/directRouter';
 import { configureRouter } from '../navigation/router';
+import { SpinErrorBoundary } from '../presentation';
 
 import './pipeline.states';
 
@@ -34,7 +36,9 @@ describe('pipeline states', () => {
   it('preserves the application secondary panel wrapper for direct React pipeline routes', () => {
     const router = createRouter();
     const pipelinesState = router.stateRegistry.get('home.applications.application.pipelines');
-    const PipelineInsightView = pipelinesState.views.insight.component;
+    const RoutedPipelineInsight = pipelinesState.views.insight.component;
+    const errorBoundary = shallow(React.createElement(RoutedPipelineInsight, { className: 'secondary-panel' }));
+    const PipelineInsightView = errorBoundary.find(SpinErrorBoundary).prop('children').type;
 
     const wrapper = shallow(React.createElement(PipelineInsightView, { className: 'secondary-panel' }));
 
@@ -89,6 +93,26 @@ describe('pipeline states', () => {
         stageId: params.stageId,
       });
       expect(result).toBe(targetResult);
+    });
+
+    it('resolves an execution permalink through a real direct transition', async () => {
+      const execution = { application: 'resolved-application', id: params.executionId };
+      const getExecution = jasmine.createSpy('getExecution').and.resolveTo(execution);
+      spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({ getExecution } as any);
+      spyOn(ApplicationReader, 'getApplication').and.resolveTo({
+        name: execution.application,
+        dataSources: [],
+      } as any);
+      const router = createRouter();
+
+      await router.stateService.go('home.executionLookup', params, { location: false });
+
+      expect(router.stateService.current.name).toBe(
+        'home.applications.application.pipelines.executionDetails.execution',
+      );
+      expect(router.globals.params).toEqual(
+        jasmine.objectContaining({ application: execution.application, executionId: execution.id }),
+      );
     });
 
     it('returns undefined without looking up an execution when the execution ID is missing', () => {

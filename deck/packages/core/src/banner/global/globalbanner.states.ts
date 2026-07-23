@@ -15,29 +15,29 @@
 import { module } from 'angular';
 
 import { GlobalBannerAdminPageContainer } from './GlobalBannerAdminPageContainer';
-import type { INestedState, StateConfigProvider } from '../../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../../navigation/state.provider';
+import { registerRootState } from '../../navigation/rootState.registration';
+import type { INestedState } from '../../navigation/state.provider';
 
 export const GLOBALBANNER_STATES = 'spinnaker.core.globalbanner.states';
-module(GLOBALBANNER_STATES, [STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  (stateConfigProvider: StateConfigProvider) => {
-    const globalBanners: INestedState = {
-      name: 'globalBanners',
-      url: '/global-banners',
-      views: {
-        'main@': {
-          component: GlobalBannerAdminPageContainer,
-          $type: 'react',
-        },
-      },
-      data: {
-        pageTitleMain: {
-          label: 'Global Banners',
-        },
-      },
-    };
 
-    stateConfigProvider.addToRootState(globalBanners);
-  },
-]);
+module(GLOBALBANNER_STATES, []);
+
+registerRootState((stateConfigProvider) => {
+  const globalBanners: INestedState = {
+    name: 'globalBanners',
+    url: '/global-banners',
+    views: {
+      'main@': {
+        component: GlobalBannerAdminPageContainer,
+        $type: 'react',
+      },
+    },
+    data: {
+      pageTitleMain: {
+        label: 'Global Banners',
+      },
+    },
+  };
+
+  stateConfigProvider.addToRootState(globalBanners);
+});

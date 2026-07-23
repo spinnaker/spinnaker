@@ -1,5 +1,7 @@
 import { mount } from 'enzyme';
+import type { ReactWrapper } from 'enzyme';
 import React from 'react';
+import { act } from 'react-dom/test-utils';
 import type { Option } from 'react-select';
 import Select, { Creatable } from 'react-select';
 
@@ -21,16 +23,40 @@ import LabelEditor from './labelEditor/LabelEditor';
 import Spy = jasmine.Spy;
 
 describe('<ManifestSelector />', () => {
+  let accountService: Spy;
+  let mountedComponents: Array<ReactWrapper<ManifestSelector>>;
   let searchService: Spy;
 
   beforeEach(() => {
+    mountedComponents = [];
     searchService = spyOn(ManifestKindSearchService, 'search').and.returnValue(Promise.resolve([]));
-    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]));
+    accountService = spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]));
   });
 
+  afterEach(async () => {
+    await act(async () => {
+      await Promise.all(searchService.calls.all().map(({ returnValue }) => returnValue));
+      mountedComponents.splice(0).forEach((wrapper) => wrapper.unmount());
+    });
+  });
+
+  const component = async (selector: any, props: any = {}) => {
+    const wrapper = mount<ManifestSelector>(
+      (<ManifestSelector onChange={noop} selector={selector} {...props} />) as any,
+    );
+    mountedComponents.push(wrapper);
+
+    await act(async () => {
+      await accountService.calls.mostRecent().returnValue;
+      await Promise.resolve();
+    });
+    wrapper.update();
+    return wrapper;
+  };
+
   describe('initialization', () => {
-    it('renders namespace from input props', () => {
-      const wrapper = component({
+    it('renders namespace from input props', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -40,8 +66,8 @@ describe('<ManifestSelector />', () => {
       expect((namespace.props().value as Option).value).toEqual('default');
     });
 
-    it('renders kind from input props', () => {
-      const wrapper = component({
+    it('renders kind from input props', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -51,8 +77,8 @@ describe('<ManifestSelector />', () => {
       expect((kind.props().value as Option).value).toEqual('configMap');
     });
 
-    it('renders name from input props', () => {
-      const wrapper = component({
+    it('renders name from input props', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -62,8 +88,8 @@ describe('<ManifestSelector />', () => {
       expect((name.props().value as Option).value).toEqual('my-config-map');
     });
 
-    it('renders kinds from input props', () => {
-      const wrapper = component({
+    it('renders kinds from input props', async () => {
+      const wrapper = await component({
         account: 'my-account',
         kinds: ['configMap', 'deployment'],
         location: 'default',
@@ -74,7 +100,7 @@ describe('<ManifestSelector />', () => {
       expect(kinds.props().value).toEqual(['configMap', 'deployment']);
     });
 
-    it('renders labels from input props', () => {
+    it('renders labels from input props', async () => {
       const labelSelectors: IManifestLabelSelector[] = [
         {
           key: 'label-key',
@@ -82,7 +108,7 @@ describe('<ManifestSelector />', () => {
           values: ['label-value'],
         },
       ];
-      const wrapper = component({
+      const wrapper = await component({
         account: 'my-account',
         kinds: ['configMap', 'deployment'],
         labelSelectors: {
@@ -102,8 +128,8 @@ describe('<ManifestSelector />', () => {
         application: { getDataSource: () => ({ data }) },
       });
 
-      it("includes cluster if selected kind matches the cluster's server groups' kind", () => {
-        const wrapper = component(
+      it("includes cluster if selected kind matches the cluster's server groups' kind", async () => {
+        const wrapper = await component(
           {
             kind: 'replicaSet',
             account: 'my-account',
@@ -124,8 +150,8 @@ describe('<ManifestSelector />', () => {
         expect(cluster.props().clusters).toEqual(['replicaSet my-replica-set']);
       });
 
-      it("does not include cluster if selected kind does not match cluster's server groups' kind", () => {
-        const wrapper = component(
+      it("does not include cluster if selected kind does not match cluster's server groups' kind", async () => {
+        const wrapper = await component(
           {
             kind: 'statefulSet',
             account: 'my-account',
@@ -146,8 +172,8 @@ describe('<ManifestSelector />', () => {
         expect(cluster.props().clusters).toEqual([]);
       });
 
-      it('handles case in which a cluster has two different kinds of server groups', () => {
-        const wrapper = component(
+      it('handles case in which a cluster has two different kinds of server groups', async () => {
+        const wrapper = await component(
           {
             kind: 'statefulSet',
             account: 'my-account',
@@ -174,8 +200,8 @@ describe('<ManifestSelector />', () => {
         expect(cluster.props().clusters).toEqual(['my-cluster']);
       });
 
-      it("does not include cluster if the cluster's server groups are managed", () => {
-        const wrapper = component(
+      it("does not include cluster if the cluster's server groups are managed", async () => {
+        const wrapper = await component(
           {
             kind: 'replicaSet',
             account: 'my-account',
@@ -197,8 +223,8 @@ describe('<ManifestSelector />', () => {
         expect(cluster.props().clusters).toEqual([]);
       });
 
-      it('filters clusters by account', () => {
-        const wrapper = component(
+      it('filters clusters by account', async () => {
+        const wrapper = await component(
           {
             kind: 'replicaSet',
             account: 'my-other-account',
@@ -219,8 +245,8 @@ describe('<ManifestSelector />', () => {
         expect(cluster.props().clusters).toEqual([]);
       });
 
-      it('filters clusters by namespace', () => {
-        const wrapper = component(
+      it('filters clusters by namespace', async () => {
+        const wrapper = await component(
           {
             kind: 'replicaSet',
             account: 'my-account',
@@ -244,8 +270,8 @@ describe('<ManifestSelector />', () => {
   });
 
   describe('change handlers', () => {
-    it('calls the search service after updating the `Kind` field', () => {
-      const wrapper = component({
+    it('calls the search service after updating the `Kind` field', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -256,8 +282,8 @@ describe('<ManifestSelector />', () => {
       expect(searchService).toHaveBeenCalledWith('deployment', 'default', 'my-account');
     });
 
-    it('calls the search service after updating the `Namespace` field', () => {
-      const wrapper = component({
+    it('calls the search service after updating the `Namespace` field', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -268,8 +294,8 @@ describe('<ManifestSelector />', () => {
       expect(searchService).toHaveBeenCalledWith('configMap', 'kube-system', 'my-account');
     });
 
-    it('calls the search service after updating the `Account` field', () => {
-      const wrapper = component({
+    it('calls the search service after updating the `Account` field', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -286,8 +312,8 @@ describe('<ManifestSelector />', () => {
       expect(searchService).toHaveBeenCalledWith('configMap', 'default', 'my-other-account');
     });
 
-    it('clears namespace when changing account if account does not have selected namespace', () => {
-      const wrapper = component({
+    it('clears namespace when changing account if account does not have selected namespace', async () => {
+      const wrapper = await component({
         manifestName: 'configMap my-config-map',
         account: 'my-account',
         location: 'default',
@@ -306,8 +332,8 @@ describe('<ManifestSelector />', () => {
   });
 
   describe('mode change', () => {
-    it('handles kind during static -> dynamic mode transition', () => {
-      const wrapper = component(
+    it('handles kind during static -> dynamic mode transition', async () => {
+      const wrapper = await component(
         {
           manifestName: 'configMap my-config-map',
           account: 'my-account',
@@ -320,8 +346,8 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.state().selector.kind).toEqual('configMap');
     });
 
-    it('handles kind during static -> label mode transition', () => {
-      const wrapper = component(
+    it('handles kind during static -> label mode transition', async () => {
+      const wrapper = await component(
         {
           manifestName: 'configMap my-config-map',
           account: 'my-account',
@@ -336,8 +362,8 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.state().selector.manifestName).toBeNull();
     });
 
-    it('handles kind during dynamic -> static mode transition', () => {
-      const wrapper = component(
+    it('handles kind during dynamic -> static mode transition', async () => {
+      const wrapper = await component(
         {
           account: 'my-account',
           location: 'default',
@@ -352,8 +378,8 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.state().selector.manifestName).toEqual('configMap');
     });
 
-    it('handles kind during dynamic -> label mode transition', () => {
-      const wrapper = component(
+    it('handles kind during dynamic -> label mode transition', async () => {
+      const wrapper = await component(
         {
           account: 'my-account',
           location: 'default',
@@ -369,8 +395,8 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.state().selector.manifestName).toBeNull();
     });
 
-    it('handles kind during label -> static mode transition', () => {
-      const wrapper = component(
+    it('handles kind during label -> static mode transition', async () => {
+      const wrapper = await component(
         {
           account: 'my-account',
           location: 'default',
@@ -388,8 +414,8 @@ describe('<ManifestSelector />', () => {
       expect(wrapper.state().selector.kinds).toBeNull();
     });
 
-    it('handles kind during label -> dynamic mode transition', () => {
-      const wrapper = component(
+    it('handles kind during label -> dynamic mode transition', async () => {
+      const wrapper = await component(
         {
           account: 'my-account',
           location: 'default',
@@ -408,6 +434,3 @@ describe('<ManifestSelector />', () => {
     });
   });
 });
-
-const component = (selector: any, props: any = {}) =>
-  mount<ManifestSelector>((<ManifestSelector onChange={noop} selector={selector} {...props} />) as any);

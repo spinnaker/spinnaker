@@ -2,11 +2,12 @@ import classNames from 'classnames';
 import React from 'react';
 
 import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { IClusterSubgroup } from '../cluster';
 import type { IInstanceCounts, IServerGroup } from '../domain';
 import type { ISortFilter } from '../filterModel';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { ServerGroup } from '../serverGroup';
 
 interface IServerGroupManagerProps {
@@ -17,7 +18,7 @@ interface IServerGroupManagerProps {
   serverGroups: IServerGroup[];
 }
 
-export class ServerGroupManager extends React.Component<IServerGroupManagerProps> {
+export class ServerGroupManagerComponent extends React.Component<IServerGroupManagerProps & IRouterInjectedProps> {
   private getDetailsHref(): string {
     const { application, manager, serverGroups } = this.props;
     const currentHash = window.location.hash || `#/applications/${application.name}`;
@@ -39,7 +40,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       serverGroupManager: manager,
       name: manager,
     };
-    return AngularServices.$state.includes('**.serverGroupManager', params);
+    return this.props.stateService.includes('**.serverGroupManager', params);
   };
 
   private handleClick = (e: React.MouseEvent<HTMLElement>): void => {
@@ -103,3 +104,6 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
     );
   }
 }
+
+export const ServerGroupManager = withRouter(ServerGroupManagerComponent);
+ServerGroupManager.displayName = 'ServerGroupManager';

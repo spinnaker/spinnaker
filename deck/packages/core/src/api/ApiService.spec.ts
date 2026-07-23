@@ -1,8 +1,12 @@
 import type { IHttpClientImplementation } from './ApiService';
-import { invalidContentMessage, makeRequestBuilderConfig, RequestBuilder } from './ApiService';
+import { InvalidAPIResponse, invalidContentMessage, makeRequestBuilderConfig, RequestBuilder } from './ApiService';
+import { CacheFactory } from 'cachefactory';
+
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
+import type { ICache } from '../cache/deckCacheFactory';
 import { SETTINGS } from '../config/settings';
 import { resetIapSessionRefreshState } from './iapSessionRefresh';
+import { useRealHttpClient } from './mock/jasmine';
 
 describe('RequestBuilder backend', () => {
   const createBackend = (): IHttpClientImplementation => jasmine.createSpyObj(['get', 'post', 'put', 'delete']);
@@ -255,6 +259,7 @@ describe('REST Service', function () {
     ];
 
     beforeEach(() => {
+      useRealHttpClient();
       FakeXMLHttpRequest.instances = [];
       window.XMLHttpRequest = FakeXMLHttpRequest as any;
       reauthenticateUser = spyOn(AuthenticationInitializer, 'reauthenticateUser');
@@ -280,8 +285,122 @@ describe('REST Service', function () {
       expect(request.timeout).toBe(0);
       expect(request.withCredentials).toBe(true);
 
-      request.respond({ body: 'ok', headers: { 'Content-Type': 'text/plain' } });
+      request.respond({ body: 'ok', headers: { 'Content-Type': 'application/yaml' } });
       await expectAsync(promise).toBeResolvedTo('ok');
+    });
+
+    it('deduplicates in-flight cacheable GET requests', async () => {
+      const request = builder('cache-deduplication').useCache();
+
+      const first = request.get<{ value: string }>();
+      const second = request.get<{ value: string }>();
+
+      expect(second).toBe(first);
+      expect(FakeXMLHttpRequest.instances.length).toBe(1);
+      FakeXMLHttpRequest.instances[0].respond({
+        body: '{"value":"cached"}',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      await expectAsync(first).toBeResolvedTo({ value: 'cached' });
+      await expectAsync(second).toBeResolvedTo({ value: 'cached' });
+    });
+
+    it('reuses a successful default-cache response without another GET', async () => {
+      const request = builder('cache-success').useCache();
+      const first = request.get<{ value: string }>();
+      FakeXMLHttpRequest.instances[0].respond({
+        body: '{"value":"cached"}',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await first;
+
+      await expectAsync(request.get()).toBeResolvedTo(result);
+      expect(FakeXMLHttpRequest.instances.length).toBe(1);
+    });
+
+    it('uses a caller-provided cache for in-flight and successful GET responses', async () => {
+      const values = new Map<string, unknown>();
+      const cache = ({
+        get: jasmine.createSpy('get').and.callFake((key: string) => values.get(key)),
+        put: jasmine.createSpy('put').and.callFake((key: string, value: unknown) => values.set(key, value)),
+        remove: jasmine.createSpy('remove').and.callFake((key: string) => values.delete(key)),
+      } as unknown) as ICache;
+      const request = builder('custom-cache').useCache(cache);
+
+      const first = request.get<{ value: string }>();
+      const second = request.get<{ value: string }>();
+      expect(second).toBe(first);
+      expect(cache.put).not.toHaveBeenCalled();
+      FakeXMLHttpRequest.instances[0].respond({
+        body: '{"value":"custom"}',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await first;
+
+      await expectAsync(request.get()).toBeResolvedTo(result);
+      expect(FakeXMLHttpRequest.instances.length).toBe(1);
+      expect(cache.get).toHaveBeenCalledTimes(3);
+      expect(cache.put).toHaveBeenCalledWith(jasmine.any(String), result);
+      expect(cache.remove).not.toHaveBeenCalled();
+    });
+
+    it('does not create an unhandled rejection for a failed GET using a real cache', async () => {
+      const cache = new CacheFactory().createCache('failed-xhr-cache') as ICache;
+      let unhandledReason: unknown;
+      let observeUnhandled: (event: PromiseRejectionEvent) => void;
+      const unhandled = new Promise<'unhandled'>((resolve) => {
+        observeUnhandled = (event) => {
+          event.preventDefault();
+          unhandledReason = event.reason;
+          resolve('unhandled');
+        };
+        window.addEventListener('unhandledrejection', observeUnhandled);
+      });
+
+      try {
+        const request = builder('real-cache-rejection').useCache(cache).get();
+        const settlement = expectAsync(request).toBeRejectedWith({ status: 500, statusText: 'Failed', data: 'failed' });
+        FakeXMLHttpRequest.instances[0].respond({ status: 500, statusText: 'Failed', body: 'failed' });
+
+        await settlement;
+        const checkpoint = new Promise<'checkpoint'>((resolve) =>
+          window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve('checkpoint'))),
+        );
+
+        expect(await Promise.race([unhandled, checkpoint])).toBe('checkpoint');
+        expect(unhandledReason).toBeUndefined();
+        expect(cache.get(FakeXMLHttpRequest.instances[0].url)).toBeUndefined();
+      } finally {
+        window.removeEventListener('unhandledrejection', observeUnhandled);
+        cache.destroy();
+      }
+    });
+
+    it('evicts a rejected GET so the next request retries', async () => {
+      const request = builder('cache-rejection').useCache();
+      const first = request.get();
+      FakeXMLHttpRequest.instances[0].respond({ status: 500, statusText: 'Failed', body: 'failed' });
+      await expectAsync(first).toBeRejectedWith({ status: 500, statusText: 'Failed', data: 'failed' });
+
+      const retry = request.get();
+      expect(FakeXMLHttpRequest.instances.length).toBe(2);
+      FakeXMLHttpRequest.instances[1].respond({
+        body: '{"value":"retried"}',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      await expectAsync(retry).toBeResolvedTo({ value: 'retried' });
+    });
+
+    it('does not cache non-GET requests', async () => {
+      const request = builder('cache-post').useCache();
+      const first = request.post({ value: 'first' });
+      const second = request.post({ value: 'second' });
+
+      expect(FakeXMLHttpRequest.instances.length).toBe(2);
+      FakeXMLHttpRequest.instances[0].respond({ body: '{}', headers: { 'Content-Type': 'application/json' } });
+      FakeXMLHttpRequest.instances[1].respond({ body: '{}', headers: { 'Content-Type': 'application/json' } });
+      await expectAsync(first).toBeResolvedTo({});
+      await expectAsync(second).toBeResolvedTo({});
     });
 
     (['POST', 'PUT', 'PATCH', 'DELETE'] as const).forEach((method) => {
@@ -315,7 +434,7 @@ describe('REST Service', function () {
         expect(request.requestBody).toBe(JSON.stringify(data));
         expect(request.explicitHeaderValues('Content-Type')).toEqual(['application/json;charset=utf-8']);
 
-        request.respond({ body: 'ok', headers: { 'Content-Type': 'text/plain' } });
+        request.respond({ body: 'ok', headers: { 'Content-Type': 'application/yaml' } });
         await expectAsync(promise).toBeResolvedTo('ok');
       } finally {
         iframe.remove();
@@ -332,7 +451,7 @@ describe('REST Service', function () {
           expect(request.requestBody).toBe(data);
           expect(request.explicitHeaderValues('Content-Type')).toEqual([]);
 
-          request.respond({ body: 'ok', headers: { 'Content-Type': 'text/plain' } });
+          request.respond({ body: 'ok', headers: { 'Content-Type': 'application/yaml' } });
           await expectAsync(promise).toBeResolvedTo('ok');
         });
       });
@@ -347,7 +466,7 @@ describe('REST Service', function () {
           expect(request.requestBody).toBe(JSON.stringify(data));
           expect(request.explicitHeaderValues('Content-Type')).toEqual(['application/json;charset=utf-8']);
 
-          request.respond({ body: 'ok', headers: { 'Content-Type': 'text/plain' } });
+          request.respond({ body: 'ok', headers: { 'Content-Type': 'application/yaml' } });
           await expectAsync(promise).toBeResolvedTo('ok');
         });
       });
@@ -364,7 +483,7 @@ describe('REST Service', function () {
         expect(request.requestBody).toBe(serializesAsJson ? JSON.stringify(data) : data);
         expect(request.explicitHeaderValues('Content-Type')).toEqual(['application/custom']);
 
-        request.respond({ body: 'ok', headers: { 'Content-Type': 'text/plain' } });
+        request.respond({ body: 'ok', headers: { 'Content-Type': 'application/yaml' } });
         await expectAsync(promise).toBeResolvedTo('ok');
       });
     });
@@ -397,16 +516,16 @@ describe('REST Service', function () {
         expected: { message: 'problem' },
       },
       {
-        name: 'object-looking text',
-        contentType: 'text/plain',
-        body: '  \n {"value":"object"}',
-        expected: { value: 'object' },
+        name: 'application/yaml',
+        contentType: 'application/yaml',
+        body: 'value: yaml',
+        expected: 'value: yaml',
       },
       {
-        name: 'array-looking text',
-        contentType: 'text/plain',
-        body: '\t["array"]',
-        expected: ['array'],
+        name: 'application/x-yaml',
+        contentType: 'application/x-yaml',
+        body: 'value: x-yaml',
+        expected: 'value: x-yaml',
       },
       {
         name: 'an empty JSON response',
@@ -415,10 +534,16 @@ describe('REST Service', function () {
         expected: null,
       },
       {
-        name: 'plain text',
+        name: 'empty HTML',
+        contentType: 'text/html;charset=utf-8',
+        body: '',
+        expected: '',
+      },
+      {
+        name: 'empty plain text',
         contentType: 'text/plain',
-        body: 'plain response',
-        expected: 'plain response',
+        body: '',
+        expected: '',
       },
     ].forEach(({ name, contentType, body, expected }) => {
       it(`parses ${name}`, async () => {
@@ -428,6 +553,15 @@ describe('REST Service', function () {
 
         await expectAsync(promise).toBeResolvedTo(expected);
       });
+    });
+
+    it('accepts a response without a content type', async () => {
+      const { promise, request } = xhrRequest('GET', { url: '/example' });
+
+      request.respond({ body: 'untyped response' });
+
+      await expectAsync(promise).toBeResolvedTo('untyped response');
+      expect(reauthenticateUser).not.toHaveBeenCalled();
     });
 
     it('rejects HTTP failures with parsed response data', async () => {
@@ -513,7 +647,7 @@ describe('REST Service', function () {
       expect(retry.explicitRequestHeaders).toEqual(original.request.explicitRequestHeaders);
       expect(retry.timeout).toBe(original.request.timeout);
       expect(retry.withCredentials).toBe(original.request.withCredentials);
-      retry.respond({ body: 'retried', headers: { 'Content-Type': 'text/plain' } });
+      retry.respond({ body: 'retried', headers: { 'Content-Type': 'application/yaml' } });
 
       await expectAsync(original.promise).toBeResolvedTo('retried');
     });
@@ -530,7 +664,7 @@ describe('REST Service', function () {
       const retry = await waitForRequest(2);
       expect(original.request.requestBody).toBe(data);
       expect(retry.requestBody).toBe(data);
-      retry.respond({ body: 'retried', headers: { 'Content-Type': 'text/plain' } });
+      retry.respond({ body: 'retried', headers: { 'Content-Type': 'application/yaml' } });
 
       await expectAsync(original.promise).toBeResolvedTo('retried');
     });
@@ -581,7 +715,7 @@ describe('REST Service', function () {
       const refresh = await waitForRequest(2);
       refresh.respond({ status: 204 });
       const firstRetry = await waitForRequest(3);
-      firstRetry.respond({ body: 'first retried', headers: { 'Content-Type': 'text/plain' } });
+      firstRetry.respond({ body: 'first retried', headers: { 'Content-Type': 'application/yaml' } });
       await expectAsync(first.promise).toBeResolvedTo('first retried');
 
       second.request.respond({ status: 401 });
@@ -590,7 +724,7 @@ describe('REST Service', function () {
       expect(
         FakeXMLHttpRequest.instances.filter(({ url }) => url.endsWith('/_gcp_iap/do_session_refresh')).length,
       ).toBe(1);
-      secondRetry.respond({ body: 'second retried', headers: { 'Content-Type': 'text/plain' } });
+      secondRetry.respond({ body: 'second retried', headers: { 'Content-Type': 'application/yaml' } });
 
       await expectAsync(second.promise).toBeResolvedTo('second retried');
     });
@@ -644,7 +778,7 @@ describe('REST Service', function () {
       expect(successfulRefresh.url).toBe(`${window.location.origin}/_gcp_iap/do_session_refresh`);
       successfulRefresh.respond({ status: 204 });
       const retry = await waitForRequest(4);
-      retry.respond({ body: 'retried', headers: { 'Content-Type': 'text/plain' } });
+      retry.respond({ body: 'retried', headers: { 'Content-Type': 'application/yaml' } });
 
       await expectAsync(second.promise).toBeResolvedTo('retried');
       expect(reauthenticateUser).not.toHaveBeenCalled();
@@ -705,14 +839,46 @@ describe('REST Service', function () {
       expect(reauthenticateUser).not.toHaveBeenCalled();
     });
 
-    it('reauthenticates once before preserving invalid HTML content rejection', async () => {
-      const { promise, request } = xhrRequest('GET', { url: '/example' });
-      request.respond({ body: '  <html>Sign in</html>', headers: { 'Content-Type': 'text/html' } });
+    [
+      { name: 'an unsupported content type', contentType: 'application/xml', body: '<value>unsupported</value>' },
+      { name: 'non-empty HTML', contentType: 'text/html', body: 'Sign in' },
+      { name: 'non-empty plain text', contentType: 'text/plain', body: 'plain response' },
+    ].forEach(({ name, contentType, body }) => {
+      it(`reauthenticates once and rejects ${name} with the compatible response shape`, async () => {
+        const { promise, request } = xhrRequest('GET', { url: '/example' });
+        request.respond({ statusText: 'OK', body, headers: { 'Content-Type': contentType } });
 
-      await expectAsync(promise).toBeRejectedWithError(
-        Error,
-        `${invalidContentMessage}: ${window.location.origin}/example`,
-      );
+        try {
+          await promise;
+          fail(`Expected ${name} to reject`);
+        } catch (error) {
+          expect(error).toEqual(jasmine.any(InvalidAPIResponse));
+          expect((error as InvalidAPIResponse).message).toBe(invalidContentMessage);
+          expect((error as InvalidAPIResponse).data).toEqual({ message: invalidContentMessage });
+          expect((error as InvalidAPIResponse).originalResult).toEqual({ status: 200, statusText: 'OK', data: body });
+        }
+        expect(reauthenticateUser).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('preserves parsed JSON-looking data when rejecting an unsupported content type', async () => {
+      const { promise, request } = xhrRequest('GET', { url: '/example' });
+      const data = { message: 'unsupported response', nested: { value: true } };
+      request.respond({
+        statusText: 'OK',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'foobar/json' },
+      });
+
+      try {
+        await promise;
+        fail('Expected the unsupported content type to reject');
+      } catch (error) {
+        expect(error).toEqual(jasmine.any(InvalidAPIResponse));
+        expect((error as InvalidAPIResponse).message).toBe(invalidContentMessage);
+        expect((error as InvalidAPIResponse).data).toEqual({ message: invalidContentMessage });
+        expect((error as InvalidAPIResponse).originalResult).toEqual({ status: 200, statusText: 'OK', data });
+      }
       expect(reauthenticateUser).toHaveBeenCalledTimes(1);
     });
 
@@ -723,8 +889,8 @@ describe('REST Service', function () {
       first.request.respond({ body: '<html>Sign in</html>', headers: { 'Content-Type': 'text/html' } });
       second.request.respond({ body: '<html>Sign in</html>', headers: { 'Content-Type': 'text/html' } });
 
-      await expectAsync(first.promise).toBeRejected();
-      await expectAsync(second.promise).toBeRejected();
+      await expectAsync(first.promise).toBeRejectedWith(jasmine.any(InvalidAPIResponse));
+      await expectAsync(second.promise).toBeRejectedWith(jasmine.any(InvalidAPIResponse));
       expect(reauthenticateUser).toHaveBeenCalledTimes(2);
     });
 

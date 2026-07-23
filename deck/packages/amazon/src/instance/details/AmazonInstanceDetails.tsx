@@ -1,9 +1,8 @@
 import { flatMap } from 'lodash';
 import React from 'react';
 
-import type { Application, IInstanceDetailsProps } from '@spinnaker/core';
+import type { Application, IInstanceDetailsProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   ConsoleOutputLink,
@@ -14,6 +13,7 @@ import {
   InstanceReader,
   RecentHistoryService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AmazonInstanceInformation } from './AmazonInstanceInformation';
@@ -289,20 +289,21 @@ function canDeregisterFromTargetGroup(instance: IAmazonLoadedInstance): boolean 
   );
 }
 
-export function AmazonInstanceActions({
+export function AmazonInstanceActionsComponent({
   app,
   instance,
+  stateService,
 }: {
   app: Application;
   instance: IAmazonLoadedInstance;
-}): JSX.Element | null {
+} & IRouterInjectedProps): JSX.Element | null {
   if (!AWSProviderSettings.adHocInfraWritesEnabled) {
     return null;
   }
 
   const closeIfCurrentInstance = () => {
-    if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
-      AngularServices.$state.go('^');
+    if (stateService.includes('**.instanceDetails', { instanceId: instance.instanceId })) {
+      stateService.go('^');
     }
   };
   const confirm = (
@@ -458,8 +459,8 @@ export function AmazonInstanceActions({
   return <InstanceActions actions={actions} />;
 }
 
-export class AmazonInstanceDetails extends React.Component<
-  IAmazonInstanceDetailsProps,
+export class AmazonInstanceDetailsComponent extends React.Component<
+  IAmazonInstanceDetailsProps & IRouterInjectedProps,
   { instance?: IAmazonLoadedInstance; loading: boolean }
 > {
   public state = { instance: this.props.initialInstance, loading: !this.props.initialInstance };
@@ -495,7 +496,7 @@ export class AmazonInstanceDetails extends React.Component<
   }
 
   private closeDetails(): void {
-    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    this.props.stateService.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   }
 
   public componentDidUpdate(prevProps: IAmazonInstanceDetailsProps): void {
@@ -517,8 +518,10 @@ export class AmazonInstanceDetails extends React.Component<
     }
   }
 
-  private getInstanceParams(props: IAmazonInstanceDetailsProps = this.props): IAmazonInstanceParams {
-    const params = props.instance || props.$stateParams;
+  private getInstanceParams(
+    props: IAmazonInstanceDetailsProps & Partial<IRouterInjectedProps> = this.props,
+  ): IAmazonInstanceParams {
+    const params = props.instance || props.$stateParams || props.stateParams;
     return {
       account: params?.account,
       instanceId: params?.instanceId,
@@ -572,7 +575,13 @@ export class AmazonInstanceDetails extends React.Component<
           />
           {!loading && instance && !instance.instanceIdNotFound && instance.placement && (
             <div className="actions">
-              <AmazonInstanceActions app={app} instance={instance} />
+              <AmazonInstanceActionsComponent
+                app={app}
+                instance={instance}
+                router={this.props.router}
+                stateParams={this.props.stateParams}
+                stateService={this.props.stateService}
+              />
               <InstanceInsights insights={instance.insightActions} instance={instance} />
             </div>
           )}
@@ -630,3 +639,6 @@ export class AmazonInstanceDetails extends React.Component<
     );
   }
 }
+
+export const AmazonInstanceActions = withRouter(AmazonInstanceActionsComponent);
+export const AmazonInstanceDetails = withRouter(AmazonInstanceDetailsComponent);

@@ -4,12 +4,13 @@ import { find } from 'lodash';
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import type { ClusterService } from './cluster.service';
-import { CLUSTER_SERVICE } from './cluster.service';
+import { ClusterService, CLUSTER_SERVICE } from './cluster.service';
+import type { ProviderServiceDelegate } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import type { IInstanceCounts, IServerGroup } from '../domain';
 import { REACT_MODULE } from '../reactShims';
 import * as State from '../state';
+import { nativePromiseService } from '../utils/nativePromiseService';
 
 const ClusterState = State.ClusterState;
 
@@ -30,9 +31,9 @@ describe('Service: Cluster', function () {
   }
 
   beforeEach(
-    mock.inject((_clusterService_: ClusterService, _serverGroupTransformer_: any) => {
-      clusterService = _clusterService_;
+    mock.inject((_serverGroupTransformer_: any, _providerServiceDelegate_: ProviderServiceDelegate) => {
       serverGroupTransformer = _serverGroupTransformer_;
+      clusterService = new ClusterService(nativePromiseService, serverGroupTransformer, _providerServiceDelegate_);
 
       application = ApplicationModelBuilder.createApplicationForTests(
         'app',

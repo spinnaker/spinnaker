@@ -1,56 +1,75 @@
-import type { IQProvider, IQService, ITimeoutService } from 'angular';
-import { mock, noop } from 'angular';
+import type { StateService } from '@uirouter/core';
+import type { ITimeoutService } from 'angular';
+import { noop } from 'angular';
 
 import { mockHttpClient } from '../../api/mock/jasmine';
 import type { Application } from '../../application';
 import type { IExecution } from '../../domain';
-import type { ExecutionService } from './execution.service';
-import { EXECUTION_SERVICE } from './execution.service';
-import { REACT_MODULE } from '../../reactShims';
+import { ExecutionService } from './execution.service';
 import * as State from '../../state';
+import { nativePromiseService } from '../../utils/nativePromiseService';
+
+type ControlledTimeout = ITimeoutService & { flush: () => void };
+
+function createControlledTimeout(): ControlledTimeout {
+  const pending: Array<{ promise: PromiseLike<unknown>; run: () => void }> = [];
+  const timeout = (<T>(callback: () => T | PromiseLike<T>) => {
+    let run: () => void;
+    const promise = new Promise<T>((resolve, reject) => {
+      run = () => Promise.resolve().then(callback).then(resolve, reject);
+    });
+    pending.push({ promise, run });
+    return promise;
+  }) as ControlledTimeout;
+
+  timeout.cancel = (promise) => {
+    const index = pending.findIndex((scheduled) => scheduled.promise === promise);
+    if (index === -1) {
+      return false;
+    }
+    pending.splice(index, 1);
+    return true;
+  };
+  timeout.flush = () => {
+    if (!pending.length) {
+      throw new Error('No pending timeouts');
+    }
+    pending.splice(0).forEach(({ run }) => run());
+  };
+
+  return timeout;
+}
 
 describe('Service: executionService', () => {
   let executionService: ExecutionService;
-  let timeout: ITimeoutService;
-  let $q: IQService;
+  let timeout: ControlledTimeout;
 
-  beforeEach(mock.module(REACT_MODULE, EXECUTION_SERVICE, 'ui.router'));
-
-  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
-  beforeEach(
-    mock.module(($qProvider: IQProvider) => {
-      $qProvider.errorOnUnhandledRejections(false);
-    }),
-  );
-
-  beforeEach(
-    mock.inject((_executionService_: ExecutionService, _$timeout_: ITimeoutService, _$q_: IQService) => {
-      executionService = _executionService_;
-      timeout = _$timeout_;
-      $q = _$q_;
-      State.initialize();
-      State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
-    }),
-  );
+  beforeEach(() => {
+    timeout = createControlledTimeout();
+    executionService = new ExecutionService(nativePromiseService, {} as StateService, timeout);
+    State.initialize();
+    State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
+  });
 
   describe('cancelling pipeline', () => {
     it('should wait until pipeline is not running, then resolve', async () => {
       const http = mockHttpClient();
       const executionId = 'abc';
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => Promise.resolve(null) } } as any;
 
       let completed = false;
 
       http.expectPUT(`/pipelines/${executionId}/cancel`).respond(200, []);
       http.expectGET(`/pipelines/${executionId}`).respond(200, { id: executionId, status: 'RUNNING' });
 
-      executionService.cancelExecution(application, executionId).then(() => (completed = true));
+      const cancellation = executionService.cancelExecution(application, executionId).then(() => (completed = true));
       await http.flush();
       expect(completed).toBe(false);
 
       http.expectGET(`/pipelines/${executionId}`).respond(200, { id: executionId, status: 'CANCELED' });
       timeout.flush();
       await http.flush();
+      await cancellation;
       expect(completed).toBe(true);
     });
 
@@ -58,7 +77,7 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let failed = false;
       const executionId = 'abc';
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => Promise.resolve(null) } } as any;
 
       http.expectPUT(`/pipelines/${executionId}/cancel`).respond(500, []);
 
@@ -73,18 +92,19 @@ describe('Service: executionService', () => {
       const http = mockHttpClient();
       let completed = false;
       const executionId = 'abc';
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => Promise.resolve(null) } } as any;
 
       http.expectDELETE(`/pipelines/${executionId}`).respond(200, []);
       http.expectGET(`/pipelines/${executionId}`).respond(200, { id: executionId });
 
-      executionService.deleteExecution(application, executionId).then(() => (completed = true));
+      const deletion = executionService.deleteExecution(application, executionId).then(() => (completed = true));
       await http.flush();
       expect(completed).toBe(false);
 
       http.expectGET(`/pipelines/${executionId}`).respond(404, null);
       timeout.flush();
       await http.flush();
+      await deletion;
       expect(completed).toBe(true);
     });
 
@@ -93,7 +113,7 @@ describe('Service: executionService', () => {
       let failed = false;
       const executionId = 'abc';
       const deleteUrl = `/pipelines/${executionId}`;
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => Promise.resolve(null) } } as any;
 
       http.expectDELETE(deleteUrl).respond(500, []);
 
@@ -110,18 +130,19 @@ describe('Service: executionService', () => {
       const executionId = 'abc';
       const pauseUrl = `/pipelines/${executionId}/pause`;
       const singleExecutionUrl = `/pipelines/${executionId}`;
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => Promise.resolve(null) } } as any;
 
       http.expectPUT(pauseUrl).respond(200, []);
       http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
 
-      executionService.pauseExecution(application, executionId).then(() => (completed = true));
+      const pause = executionService.pauseExecution(application, executionId).then(() => (completed = true));
       await http.flush();
       expect(completed).toBe(false);
 
       http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
       timeout.flush();
       await http.flush();
+      await pause;
 
       expect(completed).toBe(true);
     });
@@ -134,18 +155,19 @@ describe('Service: executionService', () => {
       const executionId = 'abc';
       const pauseUrl = `/pipelines/${executionId}/resume`;
       const singleExecutionUrl = `/pipelines/${executionId}`;
-      const application: Application = { name: 'deck', executions: { refresh: () => $q.when(null) } } as any;
+      const application: Application = { name: 'deck', executions: { refresh: () => Promise.resolve(null) } } as any;
 
       http.expectPUT(pauseUrl).respond(200, []);
       http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'PAUSED' });
 
-      executionService.resumeExecution(application, executionId).then(() => (completed = true));
+      const resume = executionService.resumeExecution(application, executionId).then(() => (completed = true));
       await http.flush();
       expect(completed).toBe(false);
 
       http.expectGET(singleExecutionUrl).respond(200, { id: executionId, status: 'RUNNING' });
       timeout.flush();
       await http.flush();
+      await resume;
 
       expect(completed).toBe(true);
     });
@@ -184,13 +206,14 @@ describe('Service: executionService', () => {
 
       http.expectGET(url).respond(200, { thingToMatch: true });
 
-      executionService
+      const match = executionService
         .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
         .then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
       await http.flush();
+      await match;
       expect(succeeded).toBe(true);
     });
 
@@ -202,7 +225,7 @@ describe('Service: executionService', () => {
 
       http.expectGET(url).respond(200, { thingToMatch: false });
 
-      executionService
+      const match = executionService
         .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
         .then(() => (succeeded = true));
 
@@ -222,6 +245,7 @@ describe('Service: executionService', () => {
       http.expectGET(url).respond(200, { thingToMatch: true });
       timeout.flush();
       await http.flush();
+      await match;
 
       expect(succeeded).toBe(true);
     });
@@ -235,7 +259,7 @@ describe('Service: executionService', () => {
 
       http.expectGET(url).respond(200, { thingToMatch: false });
 
-      executionService
+      const match = executionService
         .waitUntilExecutionMatches(executionId, (execution) => (execution as any).thingToMatch)
         .then(
           () => (succeeded = true),
@@ -253,6 +277,7 @@ describe('Service: executionService', () => {
       http.expectGET(url).respond(500, '');
       timeout.flush();
       await http.flush();
+      await match;
       expect(succeeded).toBe(false);
       expect(failed).toBe(true);
     });
@@ -427,7 +452,10 @@ describe('Service: executionService', () => {
 
   describe('waitUntilTriggeredPipelineAppears', () => {
     const applicationName = 'deck';
-    const application: Application = { name: applicationName, executions: { refresh: () => $q.when(null) } } as any;
+    const application: Application = {
+      name: applicationName,
+      executions: { refresh: () => Promise.resolve(null) },
+    } as any;
     const pipelineId = '01DC2VMFBZ5PFW5G6SMKWW5CZC';
     const url = `/pipelines/${pipelineId}`;
     const execution: any = {}; // Stub execution
@@ -438,13 +466,13 @@ describe('Service: executionService', () => {
 
       http.expectGET(url).respond(200, execution);
 
-      executionService
-        .waitUntilTriggeredPipelineAppears(application, pipelineId)
-        .promise.then(() => (succeeded = true));
+      const pipelineAppeared = executionService.waitUntilTriggeredPipelineAppears(application, pipelineId);
+      pipelineAppeared.promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
       await http.flush();
+      await pipelineAppeared.promise;
       expect(succeeded).toBe(true);
     });
 
@@ -454,14 +482,14 @@ describe('Service: executionService', () => {
 
       http.expectGET(url).respond(404, null);
 
-      executionService
-        .waitUntilTriggeredPipelineAppears(application, pipelineId)
-        .promise.then(() => (succeeded = true));
+      const pipelineAppeared = executionService.waitUntilTriggeredPipelineAppears(application, pipelineId);
+      pipelineAppeared.promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
       await http.flush();
       expect(succeeded).toBe(false);
+      pipelineAppeared.cancel();
     });
 
     it('resolves when the pipeline exists on a later poll', async () => {
@@ -470,9 +498,8 @@ describe('Service: executionService', () => {
 
       http.expectGET(url).respond(404, null);
 
-      executionService
-        .waitUntilTriggeredPipelineAppears(application, pipelineId)
-        .promise.then(() => (succeeded = true));
+      const pipelineAppeared = executionService.waitUntilTriggeredPipelineAppears(application, pipelineId);
+      pipelineAppeared.promise.then(() => (succeeded = true));
 
       expect(succeeded).toBe(false);
 
@@ -484,6 +511,7 @@ describe('Service: executionService', () => {
       http.expectGET(url).respond(200, execution);
       timeout.flush();
       await http.flush();
+      await pipelineAppeared.promise;
 
       expect(succeeded).toBe(true);
     });

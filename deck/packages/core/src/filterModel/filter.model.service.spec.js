@@ -2,7 +2,7 @@
 import { FilterModelService } from './FilterModelService';
 import { REACT_MODULE } from '../reactShims';
 import { StateConfigProvider } from '../navigation';
-import { AngularServices } from '../angular/services';
+import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 
 describe('Service: FilterModelService', function () {
   var filterModel;
@@ -369,12 +369,16 @@ describe('Service: FilterModelService', function () {
   });
 
   describe('parameter router hooks', function () {
+    let testRouter;
+
     function go(state, params) {
       $uiRouter.stateService.go(state, params);
       $rootScope.$digest();
     }
 
     beforeEach(function () {
+      testRouter = getDirectRouter();
+      setDirectRouter($uiRouter);
       filterModelConfig = [
         { model: 'region', type: 'string' },
         { model: 'account', type: 'string' },
@@ -391,6 +395,10 @@ describe('Service: FilterModelService', function () {
       $uiRouter.stateRegistry.register({ name: 'application.otherchild' });
 
       FilterModelService.registerRouterHooks(filterModel, 'application.filtered');
+    });
+
+    afterEach(function () {
+      setDirectRouter(testRouter);
     });
 
     it('should restore the latest filters when reactivating a filter state in the same application', function () {
@@ -474,7 +482,9 @@ describe('Service: FilterModelService', function () {
 
     describe('applyParamsToUrl', function () {
       it('should start a transition with params for all configured fields', function () {
-        const spy = spyOn(AngularServices.$state, 'go');
+        const previousRouter = getDirectRouter();
+        setDirectRouter($uiRouter);
+        const spy = spyOn($uiRouter.stateService, 'go');
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string', param: 'q' },
@@ -484,6 +494,7 @@ describe('Service: FilterModelService', function () {
         filterModel.sortFilter.showInstances = true;
         filterModel.applyParamsToUrl();
         expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true }, jasmine.anything());
+        setDirectRouter(previousRouter);
       });
     });
   });

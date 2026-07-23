@@ -1,28 +1,23 @@
-import type { StateParams, StateService, UIRouter } from '@uirouter/core';
-import type { IDeferred, ILogService, IQService, IRootScopeService, ITimeoutService } from 'angular';
+import type { IDeferred, IQService, IRootScopeService, ITimeoutService } from 'angular';
 import type { IModalService, IModalStackService } from 'angular-ui-bootstrap';
-import { $injector, $log, $q, $rootScope, $timeout } from 'ngimport';
 import { of as observableOf, Subject } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
 
 import type { Application } from '../application';
+import type { DeckRuntime } from '../bootstrap/DeckRuntime';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
-import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { ClusterService } from '../cluster/cluster.service';
-import type { ImageReader } from '../image/image.reader';
 import { InsightFilterStateModel } from '../insight/insightFilterState.model';
 import { InstanceTypeService } from '../instance';
-import type { InstanceWriter } from '../instance';
 import { LoadBalancerReader } from '../loadBalancer/loadBalancer.read.service';
 import { createLoadBalancerTransformer } from '../loadBalancer/loadBalancer.transformer';
 import { getDirectRouter } from '../navigation/directRouter';
-import type { OverrideRegistry } from '../overrideRegistry/override.registry';
 import { overrideRegistry } from '../overrideRegistry/override.registry';
 import type { PageTitleService } from '../pageTitle';
 import { ExecutionDetailsSectionService } from '../pipeline/details/executionDetailsSection.service';
 import { ExecutionService } from '../pipeline/service/execution.service';
-import type { StateEvents } from '../reactShims/state.events';
 import type {
   IProviderResultFormatter,
   ISearchResultFormatter,
@@ -38,87 +33,19 @@ import { SecurityGroupTransformerService } from '../securityGroup/securityGroupT
 import type { ServerGroupCommandBuilderService } from '../serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
 
-const directQ = Object.assign(
-  ((<T>(resolver: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void) => {
-    return new Promise<T>(resolver);
-  }) as unknown) as IQService,
-  {
-    defer: () => {
-      let resolve: (value: unknown) => void;
-      let reject: (reason?: unknown) => void;
-      const promise = new Promise((promiseResolve, promiseReject) => {
-        resolve = promiseResolve;
-        reject = promiseReject;
-      });
-
-      return { promise, resolve, reject, notify: () => undefined };
-    },
-    all: (promises: Array<PromiseLike<unknown>>) => Promise.all(promises),
-    reject: (reason?: unknown) => Promise.reject(reason),
-    resolve: (value?: unknown) => Promise.resolve(value),
-    when: (value: unknown) => Promise.resolve(value),
-  },
-) as IQService;
-
-const directTimeout = Object.assign(
-  (((fnOrDelay?: (() => unknown) | number, delay?: number) => {
-    const hasCallback = typeof fnOrDelay === 'function';
-    const timeoutDelay = hasCallback ? delay : fnOrDelay;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    const promise = new Promise((resolve) => {
-      timeoutId = setTimeout(() => resolve(hasCallback ? fnOrDelay() : undefined), timeoutDelay || 0);
-    });
-    if (timeoutId) {
-      (promise as any).timeoutId = timeoutId;
-    }
-    return promise;
-  }) as unknown) as ITimeoutService,
-  {
-    cancel: (promise?: PromiseLike<unknown> & { timeoutId?: ReturnType<typeof setTimeout> }) => {
-      if (promise?.timeoutId) {
-        clearTimeout(promise.timeoutId);
-      }
-      return true;
-    },
-  },
-);
-
-const noopLog = (): void => undefined;
-
-const directLog = ({
-  debug: noopLog,
-  error: (...args: unknown[]) => console.error(...args),
-  info: noopLog,
-  log: noopLog,
-  warn: (...args: unknown[]) => console.warn(...args),
-} as unknown) as ILogService;
-
-const directProviderServiceDelegate = ({
-  hasDelegate: (provider: string, serviceKey: string): boolean => {
-    return typeof CloudProviderRegistry.getValue(provider, serviceKey) === 'function';
-  },
-  getDelegate: <T>(provider: string, serviceKey: string): T => {
-    const ServiceClass = CloudProviderRegistry.getValue(provider, serviceKey);
-    if (typeof ServiceClass !== 'function') {
-      throw new Error('No "' + serviceKey + '" service found for provider "' + provider + '"');
-    }
-    return new ServiceClass(directQ) as T;
-  },
-} as unknown) as ProviderServiceDelegate;
-
 const directServerGroupTransformer = {
   normalizeServerGroup: (serverGroup: any, application: Application) => {
     const provider = serverGroup.provider || serverGroup.type;
-    if (!directProviderServiceDelegate.hasDelegate(provider, 'serverGroup.transformer')) {
+    if (!AngularServices.providerServiceDelegate.hasDelegate(provider, 'serverGroup.transformer')) {
       return Promise.resolve(serverGroup);
     }
 
-    return directProviderServiceDelegate
+    return AngularServices.providerServiceDelegate
       .getDelegate<any>(provider, 'serverGroup.transformer')
       .normalizeServerGroup(serverGroup, application);
   },
   convertServerGroupCommandToDeployConfiguration: (base: any) => {
-    return directProviderServiceDelegate
+    return AngularServices.providerServiceDelegate
       .getDelegate<any>(base.selectedProvider, 'serverGroup.transformer')
       .convertServerGroupCommandToDeployConfiguration(base);
   },
@@ -126,22 +53,22 @@ const directServerGroupTransformer = {
 
 const directServerGroupCommandBuilder = ({
   buildNewServerGroupCommand: (application: Application, provider: string, options: any) => {
-    return directProviderServiceDelegate
+    return AngularServices.providerServiceDelegate
       .getDelegate<any>(provider, 'serverGroup.commandBuilder')
       .buildNewServerGroupCommand(application, options);
   },
   buildServerGroupCommandFromExisting: (application: Application, serverGroup: any, mode?: string) => {
-    return directProviderServiceDelegate
+    return AngularServices.providerServiceDelegate
       .getDelegate<any>(serverGroup.type, 'serverGroup.commandBuilder')
       .buildServerGroupCommandFromExisting(application, serverGroup, mode);
   },
   buildNewServerGroupCommandForPipeline: (provider: string, currentStage: any, pipeline: any) => {
-    return directProviderServiceDelegate
+    return AngularServices.providerServiceDelegate
       .getDelegate<any>(provider, 'serverGroup.commandBuilder')
       .buildNewServerGroupCommandForPipeline(currentStage, pipeline);
   },
   buildServerGroupCommandFromPipeline: (application: Application, cluster: any, currentStage: any, pipeline: any) => {
-    return directProviderServiceDelegate
+    return AngularServices.providerServiceDelegate
       .getDelegate<any>(cluster.provider, 'serverGroup.commandBuilder')
       .buildServerGroupCommandFromPipeline(application, cluster, currentStage, pipeline);
   },
@@ -150,23 +77,12 @@ const directServerGroupCommandBuilder = ({
 const directRootScope = ({
   routing: false,
   $apply: (fn?: () => void) => fn?.(),
-  $applyAsync: (fn: () => void) => setTimeout(fn, 0),
+  $applyAsync: (fn: () => void) => AngularServices.$timeout(fn, 0),
   $broadcast: () => ({ defaultPrevented: false, preventDefault: (): void => undefined }),
   $new: () => directRootScope,
   $on: () => (): void => undefined,
   $watch: () => (): void => undefined,
 } as unknown) as IRootScopeService;
-
-const directInterpolate = (template: string) => (context: Record<string, any>): string => {
-  return template.replace(/{{\s*([^}]+?)\s*}}/g, (_match, expression: string) => {
-    const value = expression
-      .split('.')
-      .map((part) => part.trim())
-      .reduce((current, part) => current?.[part], context);
-
-    return value === undefined || value === null ? '' : String(value);
-  });
-};
 
 const directModalService = ({
   open: () => ({ result: Promise.reject() }),
@@ -247,7 +163,7 @@ class DirectPageTitleService {
 }
 
 class AngularServiceAccessors {
-  private wrappedState: StateService;
+  private runtime = createDeckRuntime();
   private directCacheInitializer: CacheInitializerService;
   private directClusterService: ClusterService;
   private directExecutionDetailsSectionService: ExecutionDetailsSectionService;
@@ -259,271 +175,101 @@ class AngularServiceAccessors {
   private directPageTitleService = new DirectPageTitleService();
   private directSecurityGroupReader: SecurityGroupReader;
   private directServerGroupWriter: ServerGroupWriter;
-  private directStateEvents: StateEvents;
+
+  public bindRuntime(runtime: DeckRuntime): void {
+    if (this.runtime === runtime) {
+      return;
+    }
+
+    this.runtime.dispose();
+    this.resetRuntimeServices();
+    this.runtime = runtime;
+  }
+
+  public releaseRuntime(runtime: DeckRuntime): void {
+    if (this.runtime !== runtime) {
+      return;
+    }
+
+    this.resetRuntimeServices();
+    this.runtime = createDeckRuntime();
+  }
 
   public get $q() {
-    return ($q || directQ) as IQService;
+    return this.runtime.promiseService;
   }
   public get $log() {
-    try {
-      return ($log || $injector.get('$log') || directLog) as ILogService;
-    } catch (_error) {
-      return directLog;
-    }
+    return this.runtime.logger;
   }
   public get $rootScope() {
-    try {
-      return ($rootScope || directRootScope) as IRootScopeService;
-    } catch (_error) {
-      return directRootScope;
-    }
+    return directRootScope;
   }
   public get $timeout() {
-    try {
-      return ($timeout || $injector.get('$timeout') || directTimeout) as ITimeoutService;
-    } catch (_error) {
-      return directTimeout;
-    }
-  }
-  public get $state() {
-    if (!this.wrappedState) {
-      try {
-        this.wrappedState = this.createStateService();
-      } catch (error) {
-        const directRouter = getDirectRouter();
-        if (directRouter) {
-          return directRouter.stateService as StateService;
-        }
-        throw error;
-      }
-    }
-    return this.wrappedState;
-  }
-  public get $stateParams() {
-    try {
-      return $injector.get('$stateParams') as StateParams;
-    } catch (_error) {
-      const directRouter = getDirectRouter();
-      return (directRouter?.globals.params || {}) as StateParams;
-    }
+    return (this.runtime.timeoutService as unknown) as ITimeoutService;
   }
   public get $interpolate() {
-    try {
-      return $injector.get('$interpolate') as typeof directInterpolate;
-    } catch (_error) {
-      return directInterpolate;
-    }
+    return this.runtime.interpolate;
   }
   public get $uibModal() {
-    try {
-      const modalService = $injector.get('$uibModal') as IModalService;
-      return modalService?.open ? modalService : directModalService;
-    } catch (_error) {
-      return directModalService;
-    }
-  }
-  public get $uiRouter() {
-    try {
-      return $injector.get('$uiRouter') as UIRouter;
-    } catch (_error) {
-      const directRouter = getDirectRouter();
-      if (directRouter) {
-        return (directRouter as unknown) as UIRouter;
-      }
-
-      const noopSubscription = { unsubscribe: () => {} };
-      type NoopObservable = {
-        subscribe: () => typeof noopSubscription;
-        pipe: (..._operators: unknown[]) => NoopObservable;
-      };
-      const noopObservable: NoopObservable = {
-        subscribe: () => noopSubscription,
-        pipe: () => noopObservable,
-      };
-
-      return ({
-        globals: {
-          current: { name: '' },
-          params: {},
-          params$: noopObservable,
-          start$: noopObservable,
-          success$: noopObservable,
-        },
-        transitionService: {
-          onBefore: () => () => {},
-          onStart: () => () => {},
-          onSuccess: () => () => {},
-        },
-      } as unknown) as UIRouter;
-    }
+    return directModalService;
   }
   public get cacheInitializer() {
-    if (!$injector || !$injector.has('cacheInitializer')) {
-      return this.getDirectCacheInitializer();
-    }
-
-    return $injector.get('cacheInitializer') as CacheInitializerService;
+    return this.getDirectCacheInitializer();
   }
   public get clusterService() {
-    try {
-      return $injector.get('clusterService') as ClusterService;
-    } catch (_error) {
-      return this.getDirectClusterService();
-    }
+    return this.getDirectClusterService();
   }
   public get executionDetailsSectionService() {
-    try {
-      return $injector.get('executionDetailsSectionService') as ExecutionDetailsSectionService;
-    } catch (_error) {
-      return this.getDirectExecutionDetailsSectionService();
-    }
+    return this.getDirectExecutionDetailsSectionService();
   }
   public get executionService() {
-    try {
-      return $injector.get('executionService') as ExecutionService;
-    } catch (_error) {
-      return this.getDirectExecutionService();
-    }
-  }
-  public get imageReader() {
-    return $injector.get('imageReader') as ImageReader;
+    return this.getDirectExecutionService();
   }
   public get infrastructureSearchService(): DirectInfrastructureSearchService {
-    try {
-      return $injector.get('infrastructureSearchService') as DirectInfrastructureSearchService;
-    } catch (_error) {
-      return this.getDirectInfrastructureSearchService();
-    }
+    return this.getDirectInfrastructureSearchService();
   }
   public get insightFilterStateModel() {
-    try {
-      return $injector.get('insightFilterStateModel') as InsightFilterStateModel;
-    } catch (_error) {
-      return this.getDirectInsightFilterStateModel();
-    }
+    return this.getDirectInsightFilterStateModel();
   }
   public get instanceTypeService() {
-    try {
-      return $injector.get('instanceTypeService') as InstanceTypeService;
-    } catch (_error) {
-      return this.getDirectInstanceTypeService();
-    }
-  }
-  public get instanceWriter() {
-    return $injector.get('instanceWriter') as InstanceWriter;
+    return this.getDirectInstanceTypeService();
   }
   public get loadBalancerReader() {
-    if (!$injector || !$injector.has('loadBalancerReader')) {
-      return this.getDirectLoadBalancerReader();
-    }
-
-    return $injector.get('loadBalancerReader') as LoadBalancerReader;
+    return this.getDirectLoadBalancerReader();
   }
   public get modalService() {
     return this.$uibModal;
   }
   public get modalStackService() {
-    try {
-      return $injector.get('$uibModalStack') as IModalStackService;
-    } catch (_error) {
-      return directModalStackService;
-    }
+    return directModalStackService;
   }
   public get overrideRegistry() {
-    try {
-      return $injector.get('overrideRegistry') as OverrideRegistry;
-    } catch (_error) {
-      return overrideRegistry;
-    }
+    return overrideRegistry;
   }
   public get pageTitleService() {
-    try {
-      return $injector.get('pageTitleService') as PageTitleService;
-    } catch (_error) {
-      return this.directPageTitleService as PageTitleService;
-    }
+    return this.directPageTitleService as PageTitleService;
   }
   public get providerServiceDelegate() {
-    try {
-      return $injector.get('providerServiceDelegate') as ProviderServiceDelegate;
-    } catch (_error) {
-      return directProviderServiceDelegate;
-    }
+    return (this.runtime.providerServiceDelegate as unknown) as ProviderServiceDelegate;
   }
   public get securityGroupReader() {
-    try {
-      return $injector.get('securityGroupReader') as SecurityGroupReader;
-    } catch (_error) {
-      return this.getDirectSecurityGroupReader();
-    }
+    return this.getDirectSecurityGroupReader();
   }
   public get serverGroupCommandBuilder() {
-    try {
-      return $injector.get('serverGroupCommandBuilder') as ServerGroupCommandBuilderService;
-    } catch (_error) {
-      return directServerGroupCommandBuilder;
-    }
+    return directServerGroupCommandBuilder;
   }
   public get serverGroupTransformer() {
-    try {
-      return $injector.get('serverGroupTransformer') as any;
-    } catch (_error) {
-      return directServerGroupTransformer;
-    }
+    return directServerGroupTransformer;
   }
   public get serverGroupWriter() {
-    if (!$injector || !$injector.has('serverGroupWriter')) {
-      return this.getDirectServerGroupWriter();
-    }
-
-    return $injector.get('serverGroupWriter') as ServerGroupWriter;
+    return this.getDirectServerGroupWriter();
   }
-  public get stateEvents() {
-    try {
-      return $injector.get('stateEvents') as StateEvents;
-    } catch (_error) {
-      return this.getDirectStateEvents();
-    }
-  }
-
-  public has(serviceName: string): boolean {
-    try {
-      if ($injector.has(serviceName)) {
-        return true;
-      }
-    } catch (_error) {
-      // Fall through to direct runtime services.
-    }
-
-    return serviceName === '$uiRouter' && getDirectRouter() !== null;
-  }
-
-  private createStateService(): StateService {
-    const wrappedState = Object.create($injector.get('$state')) as StateService;
-    const originalGo = wrappedState.go;
-
-    wrappedState.go = function () {
-      const args = arguments;
-      const deferred = Object.create($q.defer());
-      const { promise } = deferred;
-      promise.transition = null;
-      promise.catch(() => {});
-      $rootScope.$applyAsync(() => {
-        const originalPromise = originalGo.apply(this, args);
-        promise.transition = originalPromise.transition;
-        originalPromise.then(deferred.resolve, deferred.reject);
-      });
-      return promise;
-    };
-    return wrappedState;
-  }
-
   private getDirectCacheInitializer(): CacheInitializerService {
     if (!this.directCacheInitializer) {
       this.directCacheInitializer = new CacheInitializerService(
-        directQ,
+        this.$q,
         this.getDirectSecurityGroupReader(),
-        directProviderServiceDelegate,
+        this.providerServiceDelegate,
       );
     }
 
@@ -533,8 +279,8 @@ class AngularServiceAccessors {
   private getDirectInfrastructureSearchService(): DirectInfrastructureSearchService {
     if (!this.directInfrastructureSearchService) {
       this.directInfrastructureSearchService = new DirectInfrastructureSearchService(
-        directQ,
-        directProviderServiceDelegate,
+        this.$q,
+        this.providerServiceDelegate,
       );
     }
 
@@ -544,41 +290,20 @@ class AngularServiceAccessors {
   private getDirectLoadBalancerReader(): LoadBalancerReader {
     if (!this.directLoadBalancerReader) {
       this.directLoadBalancerReader = new LoadBalancerReader(
-        directQ,
-        createLoadBalancerTransformer(directProviderServiceDelegate),
+        this.$q,
+        createLoadBalancerTransformer(this.providerServiceDelegate),
       );
     }
 
     return this.directLoadBalancerReader;
   }
 
-  private getDirectStateEvents(): StateEvents {
-    if (!this.directStateEvents) {
-      const stateChangeSuccess = new Subject();
-      const locationChangeSuccess = new Subject<string>();
-      this.directStateEvents = ({ stateChangeSuccess, locationChangeSuccess } as unknown) as StateEvents;
-
-      const directRouter = getDirectRouter();
-      directRouter?.transitionService.onSuccess({}, (transition: any) => {
-        stateChangeSuccess.next({
-          to: transition.to(),
-          toParams: transition.params('to'),
-          from: transition.from(),
-          fromParams: transition.params('from'),
-        });
-        locationChangeSuccess.next(window.location.href);
-      });
-    }
-
-    return this.directStateEvents;
-  }
-
   private getDirectClusterService(): ClusterService {
     if (!this.directClusterService) {
       this.directClusterService = new ClusterService(
-        directQ,
+        this.$q,
         directServerGroupTransformer,
-        directProviderServiceDelegate,
+        this.providerServiceDelegate,
       );
     }
 
@@ -587,7 +312,11 @@ class AngularServiceAccessors {
 
   private getDirectExecutionService(): ExecutionService {
     if (!this.directExecutionService) {
-      this.directExecutionService = new ExecutionService(directQ, this.$state, directTimeout);
+      const router = getDirectRouter();
+      if (!router) {
+        throw new Error('Cannot create ExecutionService before the direct UI Router is initialized');
+      }
+      this.directExecutionService = new ExecutionService(this.$q, router.stateService, this.$timeout);
     }
 
     return this.directExecutionService;
@@ -595,9 +324,13 @@ class AngularServiceAccessors {
 
   private getDirectExecutionDetailsSectionService(): ExecutionDetailsSectionService {
     if (!this.directExecutionDetailsSectionService) {
+      const router = getDirectRouter();
+      if (!router) {
+        throw new Error('Cannot create ExecutionDetailsSectionService before the direct UI Router is initialized');
+      }
       this.directExecutionDetailsSectionService = new ExecutionDetailsSectionService(
-        this.$stateParams,
-        this.$state as any,
+        router.globals.params,
+        router.stateService as any,
         this.$timeout,
       );
     }
@@ -608,10 +341,10 @@ class AngularServiceAccessors {
   private getDirectSecurityGroupReader(): SecurityGroupReader {
     if (!this.directSecurityGroupReader) {
       this.directSecurityGroupReader = new SecurityGroupReader(
-        directLog,
-        directQ,
-        new SecurityGroupTransformerService(directProviderServiceDelegate),
-        directProviderServiceDelegate,
+        this.$log,
+        this.$q,
+        new SecurityGroupTransformerService(this.providerServiceDelegate),
+        this.providerServiceDelegate,
       );
     }
 
@@ -628,7 +361,7 @@ class AngularServiceAccessors {
 
   private getDirectInstanceTypeService(): InstanceTypeService {
     if (!this.directInstanceTypeService) {
-      this.directInstanceTypeService = new InstanceTypeService(directProviderServiceDelegate);
+      this.directInstanceTypeService = new InstanceTypeService(this.providerServiceDelegate);
     }
 
     return this.directInstanceTypeService;
@@ -640,6 +373,18 @@ class AngularServiceAccessors {
     }
 
     return this.directInsightFilterStateModel;
+  }
+
+  private resetRuntimeServices(): void {
+    this.directCacheInitializer = null;
+    this.directClusterService = null;
+    this.directExecutionDetailsSectionService = null;
+    this.directExecutionService = null;
+    this.directInfrastructureSearchService = null;
+    this.directInstanceTypeService = null;
+    this.directLoadBalancerReader = null;
+    this.directSecurityGroupReader = null;
+    this.directServerGroupWriter = null;
   }
 }
 

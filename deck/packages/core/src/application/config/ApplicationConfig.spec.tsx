@@ -25,6 +25,8 @@ import { ClusterMatcher } from '../../cluster';
 import { ClusterMatches } from '../../widgets';
 import { ConfigSectionFooter } from './footer/ConfigSectionFooter';
 
+const routerProps = { stateService: { go: () => undefined } as any };
+
 describe('<ApplicationConfig />', () => {
   let originalFeatures: typeof SETTINGS.feature;
   let originalSlack: typeof SETTINGS.slack;
@@ -52,7 +54,7 @@ describe('<ApplicationConfig />', () => {
   it('renders application config sections directly in React without the Angular adapter', () => {
     const application = buildApplication();
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     wrapper.setState({ hasManagedResources: true });
 
     expect(wrapper.find(['Angular', 'JS', 'Adapter'].join('')).exists()).toBe(false);
@@ -90,11 +92,24 @@ describe('<ApplicationConfig />', () => {
     ).toBe(true);
   });
 
+  it('redirects missing applications using the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go') };
+
+    shallow(
+      <ApplicationConfigComponent
+        app={buildApplication({ notFound: true }) as any}
+        stateService={stateService as any}
+      />,
+    );
+
+    expect(stateService.go).toHaveBeenCalledWith('home.infrastructure', null, { location: 'replace' });
+  });
+
   it('renders NotificationsList with application notification props', () => {
     const notifications = [{ level: 'application', type: 'email', when: ['pipeline.failed'] }];
     const application = buildApplication({ attributes: { notifications } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const notificationList = wrapper.find(NotificationsList);
 
     expect(
@@ -115,7 +130,7 @@ describe('<ApplicationConfig />', () => {
       attributes: { appGroup: 'payments', aliases: 'pay', email: 'user@example.com' },
     });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).toContain('Owner');
@@ -134,7 +149,7 @@ describe('<ApplicationConfig />', () => {
   it('renders only application attributes before the application is configured', () => {
     const application = buildApplication({ attributes: { email: null } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(wrapper.find(PageSection).map((section) => section.prop('label'))).toEqual(['Application Attributes']);
@@ -153,7 +168,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes));
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     attributes
@@ -172,7 +187,7 @@ describe('<ApplicationConfig />', () => {
   it('renders configured sections after application attributes are saved', () => {
     const application = buildApplication({ attributes: { email: null } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
 
     expect(wrapper.find(PageSection).map((section) => section.prop('label'))).toEqual(['Application Attributes']);
 
@@ -448,9 +463,12 @@ describe('<ApplicationConfig />', () => {
     expect(ApplicationWriter.updateApplication).toHaveBeenCalled();
   });
 
-  it('preserves batched application attribute updates when saving', () => {
+  it('preserves batched application attribute updates when saving', async () => {
     const application = buildApplication({ attributes: { appGroup: '', email: 'old@example.com' } });
     spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
+    const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(
+      Promise.resolve({}) as any,
+    );
     const form = shallow(
       <ApplicationAttributesForm
         application={application as any}
@@ -463,10 +481,12 @@ describe('<ApplicationConfig />', () => {
     form.find('TextField[label="App Group"]').prop('onChange')('payments');
     form.update();
     form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    await Promise.resolve();
 
     expect(ApplicationWriter.updateApplication).toHaveBeenCalledWith(
       jasmine.objectContaining({ appGroup: 'payments', email: 'new@example.com' }),
     );
+    expect(waitUntilTaskCompletes).toHaveBeenCalled();
   });
 
   it('rejects fractional instance ports', () => {
@@ -523,7 +543,7 @@ describe('<ApplicationConfig />', () => {
       },
     });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).toContain('Pager Duty');
@@ -537,7 +557,7 @@ describe('<ApplicationConfig />', () => {
   it('hides permissions when fiat is disabled', () => {
     const application = buildApplication({ attributes: { permissions: { READ: ['readers'] } } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).not.toContain('Permissions');
@@ -548,7 +568,7 @@ describe('<ApplicationConfig />', () => {
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
     const application = buildApplication({ attributes: { permissions: { READ: ['readers'] } } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).toContain('Permissions');
@@ -558,7 +578,7 @@ describe('<ApplicationConfig />', () => {
   it('renders functional React sections instead of migration blockers', () => {
     const application = buildApplication();
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
 
     expect(wrapper.text()).not.toContain('still backed by');
     expect(wrapper.find('ApplicationLinksConfig').exists()).toBe(true);
@@ -824,7 +844,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes.instanceLinks));
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
 
     links
@@ -843,7 +863,7 @@ describe('<ApplicationConfig />', () => {
   it('renders application links in the same horizontal form layout as other config sections', () => {
     const application = buildApplication();
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
 
     expect(links.find('.application-links-config.form-horizontal').exists()).toBe(true);
@@ -858,7 +878,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes.instanceLinks));
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
     links
       .find('button')
@@ -904,9 +924,9 @@ function buildApplication(overrides: any = {}) {
 }
 
 function mountChaosMonkeyConfig(application: any) {
-  const config = shallow(<ApplicationConfigComponent app={application} />, { disableLifecycleMethods: true }).find(
-    'ChaosMonkeyConfigSection',
-  );
+  const config = shallow(<ApplicationConfigComponent {...routerProps} app={application} />, {
+    disableLifecycleMethods: true,
+  }).find('ChaosMonkeyConfigSection');
   const ChaosMonkeyConfigSection = config.type() as React.ComponentType<{ application: any }>;
   return mount(<ChaosMonkeyConfigSection application={application} />);
 }

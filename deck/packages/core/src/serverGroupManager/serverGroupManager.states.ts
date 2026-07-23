@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { ServerGroupManagerDetails } from './ServerGroupManagerDetails';
 import type { ApplicationStateProvider } from '../application';
-import { APPLICATION_STATE_PROVIDER, registerApplicationState } from '../application';
+import { registerApplicationState } from '../application';
 import type { INestedState } from '../navigation';
 
 export interface IServerGroupManagerStateParams {
@@ -13,6 +13,8 @@ export interface IServerGroupManagerStateParams {
 }
 
 export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
+module(SERVER_GROUP_MANAGER_STATES, []);
+
 const serverGroupManagerDetails: INestedState = {
   name: 'serverGroupManager',
   url: '/serverGroupManagerDetails/:provider/:accountId/:region/:name',
@@ -46,10 +48,3 @@ function addServerGroupManagerDetailsState(applicationStateProvider: Application
 registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
   addServerGroupManagerDetailsState(applicationStateProvider);
 });
-
-module(SERVER_GROUP_MANAGER_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  (applicationStateProvider: ApplicationStateProvider) => {
-    addServerGroupManagerDetailsState(applicationStateProvider);
-  },
-]);

@@ -1,5 +1,9 @@
+import { shallow } from 'enzyme';
+import React from 'react';
+
 import { SETTINGS } from '../../config/settings';
 import { configureRouter } from '../../navigation/router';
+import { SpinErrorBoundary } from '../../presentation';
 import { SearchV1 } from './SearchV1';
 import { SearchV2 } from './SearchV2';
 
@@ -16,12 +20,15 @@ describe('infrastructure states', () => {
     SETTINGS.searchVersion = 1;
     const router = configureRouter();
     const searchState = router.stateRegistry.get('home.search');
+    const view = searchState.views['main@'];
+    const errorBoundary = shallow(React.createElement(view.component));
 
-    expect(searchState.views['main@'].component).toBe(SearchV1);
-    expect(searchState.views['main@'].$type).toBe('react');
-    expect(searchState.views['main@'].controller).toBeUndefined();
-    expect(searchState.views['main@'].template).toBeUndefined();
-    expect(searchState.views['main@'].templateUrl).toBeUndefined();
+    expect(errorBoundary.type()).toBe(SpinErrorBoundary);
+    expect(errorBoundary.prop('children').type.displayName).toBe(SearchV1.displayName);
+    expect(view.$type).toBe('react');
+    expect(view.controller).toBeUndefined();
+    expect(view.template).toBeUndefined();
+    expect(view.templateUrl).toBeUndefined();
     expect(searchState.url).toContain('&route');
     expect(searchState.params.route.dynamic).toBe(true);
   });
@@ -30,11 +37,14 @@ describe('infrastructure states', () => {
     SETTINGS.searchVersion = 2;
     const router = configureRouter();
     const searchState = router.stateRegistry.get('home.search');
+    const view = searchState.views['main@'];
+    const errorBoundary = shallow(React.createElement(view.component));
 
-    expect(searchState.views['main@'].component).toBe(SearchV2);
-    expect(searchState.views['main@'].$type).toBe('react');
-    expect(searchState.views['main@'].controller).toBeUndefined();
-    expect(searchState.views['main@'].template).toBeUndefined();
-    expect(searchState.views['main@'].templateUrl).toBeUndefined();
+    expect(errorBoundary.type()).toBe(SpinErrorBoundary);
+    expect(errorBoundary.prop('children').type.displayName).toBe(SearchV2.displayName);
+    expect(view.$type).toBe('react');
+    expect(view.controller).toBeUndefined();
+    expect(view.template).toBeUndefined();
+    expect(view.templateUrl).toBeUndefined();
   });
 });

@@ -5,9 +5,9 @@ import { CreateClassicLoadBalancer } from './classic/CreateClassicLoadBalancer';
 import type { IAmazonLoadBalancerUpsertCommand } from '../../domain';
 import { CreateNetworkLoadBalancer } from './network/CreateNetworkLoadBalancer';
 
-export interface ICloseableLoadBalancerModal extends React.ComponentClass<ILoadBalancerModalProps> {
+export type ICloseableLoadBalancerModal = React.ComponentType<ILoadBalancerModalProps> & {
   show: (props: ILoadBalancerModalProps) => Promise<IAmazonLoadBalancerUpsertCommand>;
-}
+};
 
 export interface IAmazonLoadBalancerConfig {
   type: 'network' | 'application' | 'classic';

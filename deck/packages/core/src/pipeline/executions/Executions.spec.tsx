@@ -1,25 +1,37 @@
-import type { IScope } from 'angular';
 import { mock, noop } from 'angular';
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import { set } from 'lodash';
-import * as ngimport from 'ngimport';
 import React from 'react';
+import { act } from 'react-dom/test-utils';
 
 import type { IExecutionsProps, IExecutionsState } from './Executions';
-import { Executions } from './Executions';
+import { ExecutionsComponent } from './Executions';
 import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { ViewStateCache } from '../../cache';
 import { INSIGHT_FILTER_STATE_MODEL } from '../../insight/insightFilterState.model';
 import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
 import { REACT_MODULE } from '../../reactShims';
 import * as State from '../../state';
 import { Spinner } from '../../widgets/spinners/Spinner';
+import { ManualExecutionModal } from '../manualExecution';
 
 describe('<Executions/>', () => {
   let component: ReactWrapper<IExecutionsProps, IExecutionsState>;
   let application: Application;
-  let scope: IScope;
+  let router: UIRouterReact;
+  let routerProps: any;
+
+  async function settleInitialization() {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    act(() => jasmine.clock().tick(50));
+    component.update();
+  }
 
   function initializeApplication(data?: any) {
     set(application, 'executions.activate', noop);
@@ -33,14 +45,24 @@ describe('<Executions/>', () => {
       application.pipelineConfigs.loaded = true;
     }
 
-    component = mount(<Executions app={application} />);
+    component = mount(
+      <UIRouterContext.Provider value={router}>
+        <ExecutionsComponent {...routerProps} app={application} />
+      </UIRouterContext.Provider>,
+    );
   }
 
+  beforeEach(() => {
+    component = null;
+    router = new UIRouterReact();
+    routerProps = { router, stateParams: {}, stateService: { go: jasmine.createSpy('injectedGo') } };
+  });
   beforeEach(mock.module(INSIGHT_FILTER_STATE_MODEL, REACT_MODULE, OVERRIDE_REGISTRY));
+  beforeEach(() => jasmine.clock().install());
   beforeEach(
-    mock.inject(($rootScope: IScope) => {
+    mock.inject(() => {
+      spyOn(ViewStateCache, 'createCache').and.returnValue({ get: noop, put: noop, touch: noop } as any);
       State.initialize();
-      scope = $rootScope.$new();
       application = ApplicationModelBuilder.createApplicationForTests(
         'app',
         { key: 'executions', lazy: true, defaultData: [] },
@@ -49,21 +71,62 @@ describe('<Executions/>', () => {
       );
     }),
   );
+  afterEach(async () => {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    component?.unmount();
+    router.dispose();
+    jasmine.clock().uninstall();
+  });
 
-  it('should not set loading flag to false until executions and pipeline configs have been loaded', (done) => {
-    const originalQ = ngimport.$q;
-    (ngimport as any).$q = undefined;
-
+  it('should not set loading flag to false until executions and pipeline configs have been loaded', async () => {
     initializeApplication();
     expect(component.find(Spinner).length).toBe(1);
     application.executions.dataUpdated();
     application.pipelineConfigs.dataUpdated();
-    scope.$digest();
-    setTimeout(() => {
-      component.setProps({});
-      expect(component.find(Spinner).length).toBe(0);
-      (ngimport as any).$q = originalQ;
-      done();
-    }, 100);
+    await settleInitialization();
+
+    expect(component.find(Spinner).length).toBe(0);
+  });
+
+  it('clears the manual execution param through the injected state service', () => {
+    const executionComponent = shallow(<ExecutionsComponent {...routerProps} app={application} />, {
+      disableLifecycleMethods: true,
+    });
+
+    (executionComponent.instance() as any).clearManualExecutionParam();
+
+    expect(routerProps.stateService.go).toHaveBeenCalledWith(
+      '.',
+      { startManualExecution: null },
+      { inherit: true, location: 'replace' },
+    );
+  });
+
+  it('starts a deep-linked manual execution from injected route params', async () => {
+    const pipeline = { id: 'pipeline-id', name: 'Test Pipeline' };
+    routerProps.stateParams = { startManualExecution: pipeline.id };
+    const showModal = spyOn(ManualExecutionModal, 'show').and.returnValue(Promise.reject());
+    set(application, 'executions.activate', noop);
+    set(application, 'pipelineConfigs.activate', noop);
+    application.executions.data = [];
+    application.executions.loaded = true;
+    application.pipelineConfigs.data = [pipeline] as any;
+    application.pipelineConfigs.loaded = true;
+    const executionComponent = shallow(<ExecutionsComponent {...routerProps} app={application} />, {
+      disableLifecycleMethods: true,
+    });
+    const instance = executionComponent.instance() as ExecutionsComponent;
+
+    instance.componentDidMount();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    instance.componentWillUnmount();
+
+    expect(showModal).toHaveBeenCalledWith(jasmine.objectContaining({ application, pipeline }));
   });
 });

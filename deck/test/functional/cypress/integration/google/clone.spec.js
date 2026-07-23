@@ -573,13 +573,14 @@ function installGceTestHarness() {
 
     const CloneServerGroupModal = core.CloudProviderRegistry.getValue('gce', 'serverGroup.CloneServerGroupModal');
     const showModal = CloneServerGroupModal.show.bind(CloneServerGroupModal);
-    CloneServerGroupModal.show = (props) => showModal({ ...props, adapter });
-    win.__gceFunctionalHarness = { adapter, commandBuilder, core, lifecycle, showModal: CloneServerGroupModal.show };
+    const showModalWithAdapter = (props) => showModal({ ...props, adapter });
+    core.CloudProviderRegistry.overrideValue('gce', 'serverGroup.CloneServerGroupModal.show', showModalWithAdapter);
+    win.__gceFunctionalHarness = { adapter, commandBuilder, core, lifecycle, showModal: showModalWithAdapter };
   });
 }
 
 function resolvedApplication(harness) {
-  const globals = harness.core.AngularServices.$uiRouter.globals;
+  const globals = harness.core.getDirectRouter().globals;
   const transition = globals.transition || globals.successfulTransitions?.peekTail();
   return transition.injector().get('app');
 }

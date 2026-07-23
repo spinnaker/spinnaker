@@ -7,7 +7,7 @@ import type {
 } from '@spinnaker/amazon';
 import { getAllTargetGroups } from '@spinnaker/amazon';
 import type { Action, Application, IInstance, IJob } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService, InstanceWriter } from '@spinnaker/core';
+import { ConfirmationModalService, getDirectRouter, InstanceWriter } from '@spinnaker/core';
 
 export const applyTargetGroupInfoToHealthMetric = (
   metricGroups: IAmazonTargetGroupHealth[],
@@ -54,8 +54,9 @@ const terminateInstance = (instance: IInstance, app: Application) => {
       application: app,
       title: `Terminating ${instance.id}`,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.instanceDetails', { id: instance.id })) {
-          AngularServices.$state.go('^');
+        const stateService = getDirectRouter()?.stateService;
+        if (stateService?.includes('**.instanceDetails', { id: instance.id })) {
+          stateService.go('^');
         }
       },
     };
@@ -84,8 +85,9 @@ const terminateInstanceAndShrinkServerGroup = (instance: IInstance, app: Applica
       application: app,
       title: `Terminating ${instance.id} and shrinking server group`,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.id })) {
-          AngularServices.$state.go('^');
+        const stateService = getDirectRouter()?.stateService;
+        if (stateService?.includes('**.instanceDetails', { instanceId: instance.id })) {
+          stateService.go('^');
         }
       },
     };

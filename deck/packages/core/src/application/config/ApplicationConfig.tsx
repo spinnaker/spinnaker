@@ -1,3 +1,5 @@
+import type { StateService } from '@uirouter/core';
+import { useRouter } from '@uirouter/react';
 import { cloneDeep, get, has, set } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
@@ -5,7 +7,6 @@ import { Modal } from 'react-bootstrap';
 import { DeleteApplicationSection } from './DeleteApplicationSection';
 import type { IAccountDetails, IAggregatedAccounts } from '../../account/AccountService';
 import { AccountService } from '../../account/AccountService';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../application.model';
 import { ClusterMatcher } from '../../cluster';
 import { SETTINGS } from '../../config/settings';
@@ -43,6 +44,10 @@ export interface IApplicationConfigDetailsProps extends IOverridableProps {
   app: Application;
 }
 
+interface IApplicationConfigComponentProps extends IApplicationConfigDetailsProps {
+  stateService: StateService;
+}
+
 interface ISaveState {
   isSaving: boolean;
   saveError: boolean;
@@ -57,7 +62,7 @@ interface IApplicationConfigState {
 }
 
 export class ApplicationConfigComponent extends React.Component<
-  IApplicationConfigDetailsProps,
+  IApplicationConfigComponentProps,
   IApplicationConfigState
 > {
   public state: IApplicationConfigState = {
@@ -78,7 +83,7 @@ export class ApplicationConfigComponent extends React.Component<
     const { app } = this.props;
 
     if (app.notFound || app.hasError) {
-      AngularServices.$state.go('home.infrastructure', null, { location: 'replace' });
+      this.props.stateService.go('home.infrastructure', null, { location: 'replace' });
       return;
     }
 
@@ -139,11 +144,7 @@ export class ApplicationConfigComponent extends React.Component<
         }}
         data-sticky-headers={true}
       >
-        <PageNavigator
-          scrollableContainer="[data-sticky-headers]"
-          deepLinkParam="section"
-          reactInjector={AngularServices}
-        >
+        <PageNavigator scrollableContainer="[data-sticky-headers]" deepLinkParam="section">
           {this.renderSections()}
         </PageNavigator>
       </div>
@@ -221,7 +222,12 @@ export class ApplicationConfigComponent extends React.Component<
   }
 }
 
-export const ApplicationConfig = overridableComponent(ApplicationConfigComponent, 'applicationConfigView');
+const OverridableApplicationConfig = overridableComponent(ApplicationConfigComponent, 'applicationConfigView');
+
+export function ApplicationConfig(props: IApplicationConfigDetailsProps) {
+  const { stateService } = useRouter();
+  return <OverridableApplicationConfig {...props} stateService={stateService} />;
+}
 
 function getInitialNotifications(application: Application): INotification[] {
   const notifications = get(application, 'attributes.notifications', []);

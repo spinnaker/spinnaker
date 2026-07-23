@@ -1,9 +1,11 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { AngularServices } from '../../../../angular/services';
 
+import { AngularServices } from '../../../../angular/services';
 import type { IExecutionStageLabelProps } from '../../../../domain';
 import { ExecutionWindowActions } from '../executionWindows/ExecutionWindowActions';
+import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
+import { withRouter } from '../../../../navigation/routerContext';
 import { HoverablePopover } from '../../../../presentation/HoverablePopover';
 import { SkipConditionWait } from '../waitForCondition/SkipConditionWait';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
@@ -19,10 +21,13 @@ export interface IExecutionBarLabelState {
   hydrated: boolean;
 }
 
-export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, IExecutionBarLabelState> {
+export class ExecutionBarLabelComponent extends React.Component<
+  IExecutionBarLabelProps & IRouterInjectedProps,
+  IExecutionBarLabelState
+> {
   private mounted = false;
 
-  constructor(props: IExecutionBarLabelProps) {
+  constructor(props: IExecutionBarLabelProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       hydrated: props.execution && props.execution.hydrated,
@@ -99,11 +104,10 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
   };
 
   private getRenderableStageName(): string {
-    const { stage } = this.props;
+    const { stage, stateParams } = this.props;
     let stageName = stage.name ? stage.name : stage.type;
-    const params = AngularServices.$uiRouter.globals.params;
-    if (stage.type === 'group' && stage.groupStages && stage.index === Number(params.stage)) {
-      const subStageIndex = Number(params.subStage);
+    if (stage.type === 'group' && stage.groupStages && stage.index === Number(stateParams.stage)) {
+      const subStageIndex = Number(stateParams.subStage);
       if (!Number.isNaN(subStageIndex)) {
         const activeStage = stage.groupStages[subStageIndex];
         if (activeStage) {
@@ -142,3 +146,6 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
     return <span>{this.getRenderableStageName()}</span>;
   }
 }
+
+export const ExecutionBarLabel = withRouter(ExecutionBarLabelComponent);
+ExecutionBarLabel.displayName = 'ExecutionBarLabel';
