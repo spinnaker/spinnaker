@@ -22,11 +22,10 @@ plugins {
 
 allprojects {
   apply plugin: "io.spinnaker.project"
+  group = "io.spinnaker.kayenta"
 }
 
 subprojects { project ->
-  group = "io.spinnaker.kayenta"
-
   if (name != "kayenta-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"

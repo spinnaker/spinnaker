@@ -20,11 +20,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.igor"
 }
 
 subprojects {
-  group = "io.spinnaker.igor"
-
   if (name != "igor-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
