@@ -32,6 +32,8 @@ import org.springframework.boot.test.context.SpringBootTest;
     properties = {
       "spring.config.location=classpath:gate-test.yml",
       "saml.enabled=true",
+      "saml.login-processing-url=/saml/SSO",
+      "spring.security.saml2.relyingparty.registration.SSO.acs.location={baseUrl}/saml/{registrationId}",
       // Entity ID for this relying party — must match the clientId registered in Keycloak.
       "spring.security.saml2.relyingparty.registration.SSO.entity-id=spinnaker-test",
       // Sign AuthnRequests — Keycloak requires a signed request even when it does not validate it.
