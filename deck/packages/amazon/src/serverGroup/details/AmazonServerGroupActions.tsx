@@ -21,6 +21,11 @@ import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServ
 import type { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
 import type { IAmazonResizeServerGroupModalProps } from './resize/AmazonResizeServerGroupModal';
 import { AmazonResizeServerGroupModal } from './resize/AmazonResizeServerGroupModal';
+import {
+  AmazonRollbackServerGroupModal,
+  isAmazonRollbackAvailable,
+  selectAmazonRollbackServerGroups,
+} from './rollback';
 
 export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: IAmazonServerGroupView;
@@ -52,22 +57,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
   private isRollbackEnabled(): boolean {
     const { app, serverGroup } = this.props;
-
-    if (!serverGroup.isDisabled) {
-      // enabled server groups are always a candidate for rollback
-      return true;
-    }
-
-    // if the server group selected for rollback is disabled, ensure that at least one enabled server group exists
-    return app
-      .getDataSource('serverGroups')
-      .data.some(
-        (g: IAmazonServerGroup) =>
-          g.cluster === serverGroup.cluster &&
-          g.region === serverGroup.region &&
-          g.account === serverGroup.account &&
-          !g.isDisabled,
-      );
+    return isAmazonRollbackAvailable(app.name, serverGroup, app.getDataSource('serverGroups').data);
   }
 
   private hasDisabledInstances(): boolean {
@@ -166,7 +156,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     ConfirmationModalService.confirm(confirmationModalParams)
-      .then(() => this.showEnableServerGroupModal())
+      .then(() => this.rollbackServerGroup())
       .catch((error) => {
         // don't show the enable modal if the user cancels with the header button
         if (error?.source === 'footer') {
@@ -206,6 +196,19 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     ConfirmationModalService.confirm(confirmationModalParams);
   }
 
+  private rollbackServerGroup = (): void => {
+    const { app, serverGroup } = this.props;
+    const selection = selectAmazonRollbackServerGroups(
+      app.name,
+      serverGroup,
+      app.getDataSource('serverGroups').data as IAmazonServerGroup[],
+    );
+
+    if (selection) {
+      AmazonRollbackServerGroupModal.show({ application: app, ...selection });
+    }
+  };
+
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     AwsServices.awsServerGroupCommandBuilder
@@ -228,6 +231,12 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           <Dropdown className="dropdown" id="server-group-actions-dropdown">
             <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
             <Dropdown.Menu className="dropdown-menu">
+              {this.isRollbackEnabled() && (
+                <ManagedMenuItem resource={serverGroup} application={app} onClick={this.rollbackServerGroup}>
+                  Rollback
+                </ManagedMenuItem>
+              )}
+              {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
               <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
               {!serverGroup.isDisabled && (
                 <ManagedMenuItem resource={serverGroup} application={app} onClick={this.disableServerGroup}>
