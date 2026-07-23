@@ -1,9 +1,11 @@
 'use strict';
 
 import { JsonUtils } from '../../utils';
+import { SnapshotReader } from '../SnapshotReader';
 
 describe('Controller: SnapshotDiffModalCtrl', function () {
   beforeEach(window.module(require('./snapshotDiff.modal.controller').name));
+  beforeEach(() => spyOn(SnapshotReader, 'getSnapshotHistory').and.returnValue(Promise.resolve([])));
 
   beforeEach(
     window.inject(function ($controller, $filter) {
