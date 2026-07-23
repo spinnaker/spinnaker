@@ -44,6 +44,7 @@ export function getServerGroupDetailsState(): INestedState {
           return {
             name: $stateParams.serverGroup,
             accountId: $stateParams.accountId,
+            provider: $stateParams.provider,
             region: $stateParams.region,
           };
         },

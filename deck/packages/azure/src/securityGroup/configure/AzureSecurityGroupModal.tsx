@@ -1,10 +1,9 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, ISecurityGroup } from '@spinnaker/core';
+import type { Application, IModalComponentProps, IRouterInjectedProps, ISecurityGroup } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
   ModalClose,
   NetworkReader,
   noop,
@@ -12,6 +11,7 @@ import {
   SubmitButton,
   TaskMonitor,
   TaskMonitorWrapper,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AzureSecurityGroupWriter } from '../securityGroup.write.service';
@@ -353,8 +353,8 @@ export function initializeAzureSecurityGroupForModal(
   return securityGroup;
 }
 
-export class AzureSecurityGroupModal extends React.Component<
-  IAzureSecurityGroupModalProps,
+export class AzureSecurityGroupModalComponent extends React.Component<
+  IAzureSecurityGroupModalProps & IRouterInjectedProps,
   IAzureSecurityGroupModalState
 > {
   public static defaultProps: Partial<IAzureSecurityGroupModalProps> = {
@@ -367,7 +367,7 @@ export class AzureSecurityGroupModal extends React.Component<
     return ReactModal.show(AzureSecurityGroupModal, props, { dialogClassName: 'modal-lg' });
   }
 
-  constructor(props: IAzureSecurityGroupModalProps) {
+  constructor(props: IAzureSecurityGroupModalProps & IRouterInjectedProps) {
     super(props);
     const application = this.getApplication(props);
     this.state = {
@@ -413,8 +413,8 @@ export class AzureSecurityGroupModal extends React.Component<
     const showNewSecurityGroup = (): void => {
       const { securityGroup } = this.state;
       this.props.closeModal();
-      AngularServices.$state.go(
-        AngularServices.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
+      this.props.stateService.go(
+        this.props.stateService.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
         {
           accountId: securityGroup.credentials || securityGroup.accountId || securityGroup.accountName,
           name: securityGroup.name,
@@ -757,3 +757,8 @@ export class AzureSecurityGroupModal extends React.Component<
     );
   }
 }
+
+export const AzureSecurityGroupModal = Object.assign(
+  withRouter<IAzureSecurityGroupModalProps & IRouterInjectedProps>(AzureSecurityGroupModalComponent),
+  { show: AzureSecurityGroupModalComponent.show },
+);

@@ -2,7 +2,7 @@ import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import { AWSProviderSettings } from '@spinnaker/amazon';
-import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
+import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
   AngularServices,
@@ -11,6 +11,7 @@ import {
   ManagedMenuItem,
   ServerGroupWarningMessageService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
 import { EcsResizeServerGroupModal } from './resize/EcsResizeServerGroupModal';
@@ -24,7 +25,11 @@ const actionLabels: Record<ConfirmedAction, { present: string; progressive: stri
   enable: { present: 'Enable', progressive: 'Enabling' },
 };
 
-export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsProps) {
+export function EcsServerGroupActionsComponent({
+  app,
+  serverGroup,
+  stateService,
+}: IServerGroupActionsProps & IRouterInjectedProps) {
   if (!AWSProviderSettings.adHocInfraWritesEnabled) {
     return null;
   }
@@ -50,8 +55,8 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
         ...(action === 'destroy'
           ? {
               onTaskComplete: () => {
-                if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-                  AngularServices.$state.go('^');
+                if (stateService.includes('**.serverGroup', stateParams)) {
+                  stateService.go('^');
                 }
               },
             }
@@ -141,3 +146,5 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
     </Dropdown>
   );
 }
+
+export const EcsServerGroupActions = withRouter(EcsServerGroupActionsComponent);

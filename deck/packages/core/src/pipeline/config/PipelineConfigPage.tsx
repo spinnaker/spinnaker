@@ -25,6 +25,8 @@ import { CopyStageModal } from './copyStage/CopyStageModal';
 import type { IExpectedArtifact, INotification, IPipeline, IStage, IStageTypeConfig } from '../../domain';
 import { PipelineGraph } from './graph/PipelineGraph';
 import type { IPipelineGraphNode } from './graph/pipelineGraph.service';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { NotificationsList } from '../../notification';
 import { Markdown, PageNavigator, PageSection, ReactModal, ReactSelectInput } from '../../presentation';
 import { Registry } from '../../registry';
@@ -205,9 +207,9 @@ function buildStageRoleOptions(permissions: any): any[] {
   }));
 }
 
-function useUnsavedChangeGuard(isDirty: boolean): void {
+function useUnsavedChangeGuard(router: IRouterInjectedProps['router'], isDirty: boolean): void {
   React.useEffect(() => {
-    const removeTransitionGuard = AngularServices.$uiRouter.transitionService.onBefore({}, () => {
+    const removeTransitionGuard = router.transitionService.onBefore({}, () => {
       if (isDirty && !window.confirm(warningMessage)) {
         return false;
       }
@@ -225,7 +227,7 @@ function useUnsavedChangeGuard(isDirty: boolean): void {
       removeTransitionGuard();
       window.onbeforeunload = undefined;
     };
-  }, [isDirty]);
+  }, [router, isDirty]);
 }
 
 async function refreshDataSource(dataSource: any, force?: boolean): Promise<void> {
@@ -660,7 +662,7 @@ function PipelineStageConfig({
           </button>
         </div>
       </div>
-      <PageNavigator scrollableContainer=".pipeline-config-page" hideNavigation={true} reactInjector={AngularServices}>
+      <PageNavigator scrollableContainer=".pipeline-config-page" hideNavigation={true}>
         <PageSection pageKey="stage" label={`${label} Configuration`}>
           <div className="stage-details">{renderStageDetails()}</div>
         </PageSection>
@@ -755,8 +757,13 @@ function PipelineStageConfig({
   );
 }
 
-export function PipelineConfigPage({ app, className }: IPipelineConfigPageProps) {
-  const params = AngularServices.$stateParams;
+export function PipelineConfigPageComponent({
+  app,
+  className,
+  router,
+  stateParams: params,
+  stateService,
+}: IPipelineConfigPageProps & IRouterInjectedProps) {
   const pipelineId = params.pipelineId as string;
   const executionId = params.executionId as string;
   const isNew = params.new as string;
@@ -945,7 +952,7 @@ export function PipelineConfigPage({ app, className }: IPipelineConfigPageProps)
     }
   }, [app.name, model?.pipeline?.id, viewState?.section, viewState?.stageIndex]);
 
-  useUnsavedChangeGuard(!!viewState?.isDirty);
+  useUnsavedChangeGuard(router, !!viewState?.isDirty);
 
   const markDirty = (pipeline = model?.pipeline) => {
     if (!pipeline || !viewState?.original) {
@@ -1223,7 +1230,7 @@ export function PipelineConfigPage({ app, className }: IPipelineConfigPageProps)
   const saveTemplate = (template: any) => {
     return PipelineTemplateWriter.savePipelineTemplateV2(template).then((response) => {
       const id = response.variables.find((variable: any) => variable.key === 'pipelineTemplate.id').value;
-      AngularServices.$state.go('home.pipeline-templates.pipeline-templates-detail', {
+      stateService.go('home.pipeline-templates.pipeline-templates-detail', {
         templateId: PipelineTemplateV2Service.idForTemplate({ id }),
       });
       return true;
@@ -1274,7 +1281,7 @@ export function PipelineConfigPage({ app, className }: IPipelineConfigPageProps)
             <div className="pipeline-config-heading">
               <div className="config-heading-row">
                 <h3>
-                  <a className="btn btn-configure" onClick={() => AngularServices.$state.go('^.executions')}>
+                  <a className="btn btn-configure" onClick={() => stateService.go('^.executions')}>
                     <span className="glyphicon glyphicon glyphicon-circle-arrow-left" />
                   </a>{' '}
                   <a className="nav-popover">{pipeline.name}</a>
@@ -1460,3 +1467,5 @@ export function PipelineConfigPage({ app, className }: IPipelineConfigPageProps)
     </div>
   );
 }
+
+export const PipelineConfigPage = withRouter(PipelineConfigPageComponent);

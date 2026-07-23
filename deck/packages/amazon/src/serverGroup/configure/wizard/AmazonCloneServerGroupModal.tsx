@@ -1,13 +1,14 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
+import type { Application, IModalComponentProps, IRouterInjectedProps, IStage } from '@spinnaker/core';
 import {
   AngularServices,
   FirewallLabels,
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -38,8 +39,8 @@ export interface IAmazonCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class AmazonCloneServerGroupModal extends React.Component<
-  IAmazonCloneServerGroupModalProps,
+export class AmazonCloneServerGroupModalComponent extends React.Component<
+  IAmazonCloneServerGroupModalProps & IRouterInjectedProps,
   IAmazonCloneServerGroupModalState
 > {
   public static defaultProps: Partial<IAmazonCloneServerGroupModalProps> = {
@@ -55,7 +56,7 @@ export class AmazonCloneServerGroupModal extends React.Component<
     return ReactModal.show(AmazonCloneServerGroupModal, props, modalProps);
   }
 
-  constructor(props: IAmazonCloneServerGroupModalProps) {
+  constructor(props: IAmazonCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
@@ -104,19 +105,19 @@ export class AmazonCloneServerGroupModal extends React.Component<
           provider: 'aws',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        AngularServices.$state.go(transitionTo, newStateParams);
+        this.props.stateService.go(transitionTo, newStateParams);
       }
     }
   };
@@ -249,3 +250,8 @@ export class AmazonCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const AmazonCloneServerGroupModal = Object.assign(
+  withRouter<IAmazonCloneServerGroupModalProps & IRouterInjectedProps>(AmazonCloneServerGroupModalComponent),
+  { show: AmazonCloneServerGroupModalComponent.show },
+);

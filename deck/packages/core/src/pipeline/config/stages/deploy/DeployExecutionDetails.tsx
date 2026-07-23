@@ -3,7 +3,6 @@ import { Duration } from 'luxon';
 import React from 'react';
 
 import { AccountTag } from '../../../../account/AccountTag';
-import { AngularServices } from '../../../../angular/services';
 import type { Application } from '../../../../application';
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IExecutionDetailsSectionProps } from '../common';
@@ -16,6 +15,8 @@ import { HealthCounts } from '../../../../healthCounts/HealthCounts';
 import { HelpContentsRegistry } from '../../../../help';
 import { NameUtils } from '../../../../naming/nameUtils';
 import { UrlBuilder } from '../../../../navigation/UrlBuilder';
+import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
+import { withRouter } from '../../../../navigation/routerContext';
 import { Markdown } from '../../../../presentation/Markdown';
 import { ViewScalingActivitiesLink } from '../../../../serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
 import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
@@ -161,26 +162,26 @@ export function getDeployWaitingMessages(
   return waitingMessages;
 }
 
-export class DeployExecutionDetails extends React.Component<
-  IExecutionDetailsSectionProps,
+export class DeployExecutionDetailsComponent extends React.Component<
+  IExecutionDetailsSectionProps & IRouterInjectedProps,
   IDeployExecutionDetailsState
 > {
   public static title = 'deploymentConfig';
 
-  constructor(props: IExecutionDetailsSectionProps) {
+  constructor(props: IExecutionDetailsSectionProps & IRouterInjectedProps) {
     super(props);
     this.state = this.buildState(props);
   }
 
-  public componentDidUpdate(prevProps: IExecutionDetailsSectionProps): void {
+  public componentDidUpdate(prevProps: IExecutionDetailsSectionProps & IRouterInjectedProps): void {
     if (prevProps.stage !== this.props.stage) {
       this.setState(this.buildState(this.props));
     }
   }
 
-  private buildState(props: IExecutionDetailsSectionProps): IDeployExecutionDetailsState {
+  private buildState(props: IExecutionDetailsSectionProps & IRouterInjectedProps): IDeployExecutionDetailsState {
     const context = props.stage.context || {};
-    const deployed = getDeployedServerGroups(props.stage, AngularServices.$stateParams.project);
+    const deployed = getDeployedServerGroups(props.stage, props.stateParams.project);
     return {
       customStuckDeployGuide: HelpContentsRegistry.getHelpField('execution.stuckDeploy.guide'),
       deployed,
@@ -192,7 +193,7 @@ export class DeployExecutionDetails extends React.Component<
   private getConfigHref(): string {
     const applicationName = this.props.application && this.props.application.name;
     return applicationName
-      ? AngularServices.$state.href('home.applications.application.config', { application: applicationName })
+      ? this.props.stateService.href('home.applications.application.config', { application: applicationName })
       : null;
   }
 
@@ -315,6 +316,10 @@ export class DeployExecutionDetails extends React.Component<
     );
   }
 }
+
+export const DeployExecutionDetails = Object.assign(withRouter(DeployExecutionDetailsComponent), {
+  title: DeployExecutionDetailsComponent.title,
+});
 
 export class DeployChangesExecutionDetails extends React.Component<
   IExecutionDetailsSectionProps,

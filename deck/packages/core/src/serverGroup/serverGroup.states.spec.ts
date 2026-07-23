@@ -68,6 +68,7 @@ describe('server group states', () => {
     expect(transition.injector().get('serverGroup')).toEqual({
       accountId: 'prod',
       name: 'payments-v001',
+      provider: 'aws',
       region: 'eu-west-1',
     });
   });

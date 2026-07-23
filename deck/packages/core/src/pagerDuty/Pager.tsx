@@ -10,10 +10,11 @@ import { AutoSizer, CellMeasurer, CellMeasurerCache, Column, SortDirection, Tabl
 import { forkJoin as observableForkJoin, from as observableFrom } from 'rxjs';
 
 import { PageButton } from './PageButton';
-import { AngularServices } from '../angular/services';
 import type { IApplicationSummary } from '../application';
 import { ApplicationReader } from '../application';
 import { SETTINGS } from '../config';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { Overridable } from '../overrideRegistry';
 import type { IOnCall, IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyReader } from './pagerDuty.read.service';
@@ -85,7 +86,7 @@ class PagerBanner extends React.Component {
   }
 }
 
-export class Pager extends React.Component<IPagerProps, IPagerState> {
+export class PagerComponent extends React.Component<IPagerProps & IRouterInjectedProps, IPagerState> {
   private cache = new CellMeasurerCache({
     defaultHeight: 50,
     fixedWidth: true,
@@ -93,19 +94,19 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   private allData: IOnCallsByService[] = [];
   private searchApi = new SearchApi();
 
-  constructor(props: IPagerProps) {
+  constructor(props: IPagerProps & IRouterInjectedProps) {
     super(props);
 
-    const { $stateParams } = AngularServices;
+    const { stateParams } = props;
     this.state = {
       accountName: (SETTINGS.pagerDuty && SETTINGS.pagerDuty.accountName) || '',
-      app: $stateParams.app || '',
-      filterString: $stateParams.q || '',
-      hideNoApps: $stateParams.hideNoApps || false,
+      app: stateParams.app || '',
+      filterString: stateParams.q || '',
+      hideNoApps: stateParams.hideNoApps || false,
       notFoundApps: [],
-      initialKeys: $stateParams.keys || [],
-      sortBy: $stateParams.by || 'service',
-      sortDirection: $stateParams.direction || SortDirection.ASC,
+      initialKeys: stateParams.keys || [],
+      sortBy: stateParams.by || 'service',
+      sortDirection: stateParams.direction || SortDirection.ASC,
       sortedData: [],
       selectedKeys: new Map(),
     };
@@ -147,7 +148,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     const { sortedData } = this.state;
 
     if (sortBy !== this.state.sortBy || sortDirection !== this.state.sortDirection) {
-      AngularServices.$state.go('.', { by: sortBy, direction: sortDirection });
+      this.props.stateService.go('.', { by: sortBy, direction: sortDirection });
       this.sortList(sortedData, sortBy, sortDirection);
       this.cache.clearAll();
       this.setState({ sortedData, sortBy, sortDirection });
@@ -210,7 +211,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
       this.setState({ selectedKeys });
     }
 
-    AngularServices.$state.go('.', {
+    this.props.stateService.go('.', {
       app,
       q: filterString,
       by: sortBy,
@@ -293,7 +294,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   private selectedChanged = (service: IPagerDutyService, value: boolean): void => {
     const { selectedKeys } = this.state;
     value ? selectedKeys.set(service.integration_key, service) : selectedKeys.delete(service.integration_key);
-    AngularServices.$state.go('.', { keys: Array.from(selectedKeys.keys()) });
+    this.props.stateService.go('.', { keys: Array.from(selectedKeys.keys()) });
     this.setState({ selectedKeys });
   };
 
@@ -459,7 +460,7 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
   private handleHideNoAppsChanged = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const hideNoApps = event.target.checked;
     this.setState({ hideNoApps });
-    AngularServices.$state.go('.', { hideNoApps });
+    this.props.stateService.go('.', { hideNoApps });
   };
 
   private rowClicked = (info: RowMouseEventHandlerParams): void => {
@@ -629,3 +630,5 @@ export class Pager extends React.Component<IPagerProps, IPagerState> {
     );
   }
 }
+
+export const Pager = withRouter(PagerComponent);

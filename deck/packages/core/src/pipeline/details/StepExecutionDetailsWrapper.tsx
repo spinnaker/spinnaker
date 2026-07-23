@@ -1,10 +1,11 @@
 import React from 'react';
 
 import { StageFailureMessage } from './StageFailureMessage';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { ExecutionStepDetails } from '../config/stages/common/ExecutionStepDetails';
 import type { IExecution, IExecutionStage, IStageTypeConfig } from '../../domain';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 
 export interface IStepExecutionDetailsWrapperProps {
   application: Application;
@@ -16,7 +17,7 @@ export interface IStepExecutionDetailsWrapperProps {
   sourceUrl: string;
 }
 
-export function StepExecutionDetailsWrapper(props: IStepExecutionDetailsWrapperProps) {
+export function StepExecutionDetailsWrapperComponent(props: IStepExecutionDetailsWrapperProps & IRouterInjectedProps) {
   const { application, config, configSections, execution, provider, stage } = props;
   const ExecutionDetailsComponent = config?.executionDetailsComponent;
 
@@ -26,7 +27,7 @@ export function StepExecutionDetailsWrapper(props: IStepExecutionDetailsWrapperP
         application={application}
         config={config}
         configSections={configSections}
-        currentSection={AngularServices.$stateParams.details}
+        currentSection={props.stateParams.details}
         execution={execution}
         provider={provider || ''}
         stage={stage}
@@ -45,3 +46,5 @@ export function StepExecutionDetailsWrapper(props: IStepExecutionDetailsWrapperP
     </div>
   );
 }
+
+export const StepExecutionDetailsWrapper = withRouter(StepExecutionDetailsWrapperComponent);
