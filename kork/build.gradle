@@ -23,11 +23,10 @@ plugins {
 
 allprojects {
   apply plugin: "io.spinnaker.project"
+  group = "io.spinnaker.kork"
 }
 
 subprojects {
-  group = "io.spinnaker.kork"
-
   // This is required for some SpEL expressions to evaluate properly with java
   // 17.  It works with java 11 as well, but isn't required there.
   tasks.withType(Test).configureEach {
