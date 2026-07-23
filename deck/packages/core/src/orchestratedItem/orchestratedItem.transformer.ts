@@ -3,6 +3,7 @@ import { get, isNil } from 'lodash';
 import { AngularServices } from '../angular/services';
 
 import type { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from '../domain';
+import { getDirectRouter } from '../navigation/directRouter';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {
@@ -173,18 +174,19 @@ export class OrchestratedItemTransformer {
     if (generalException) {
       const details: any = generalException.details;
       if (details && details.currentLockValue) {
+        const stateService = getDirectRouter()!.stateService;
         let typeDisplay: string;
         let linkUrl: string;
 
         if (details.currentLockValue.type === 'orchestration') {
           typeDisplay = 'task';
-          linkUrl = AngularServices.$state.href('home.applications.application.tasks.taskDetails', {
+          linkUrl = stateService.href('home.applications.application.tasks.taskDetails', {
             application: details.currentLockValue.application,
             taskId: details.currentLockValue.id,
           });
         } else {
           typeDisplay = 'pipeline';
-          linkUrl = AngularServices.$state.href('home.applications.application.pipelines.executionDetails.execution', {
+          linkUrl = stateService.href('home.applications.application.pipelines.executionDetails.execution', {
             application: details.currentLockValue.application,
             executionId: details.currentLockValue.id,
           });

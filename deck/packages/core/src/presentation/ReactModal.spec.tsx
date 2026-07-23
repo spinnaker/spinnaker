@@ -1,6 +1,10 @@
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { setDirectRouter } from '../navigation/directRouter';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import type { IModalComponentProps } from './modal';
 import { ReactModal } from './ReactModal';
 
@@ -12,6 +16,9 @@ const getLastRender = (renders: React.ReactElement[]): React.ReactElement =>
 const flushPromises = (): Promise<void> => Promise.resolve();
 
 describe('ReactModal', () => {
+  beforeEach(() => setDirectRouter(null));
+  afterEach(() => setDirectRouter(null));
+
   it('resolves after the modal exit completes', async () => {
     const renders: React.ReactElement[] = [];
     spyOn(ReactDOM, 'render').and.callFake((element) => {
@@ -68,5 +75,42 @@ describe('ReactModal', () => {
     await flushPromises();
     expect(rejectedValue).toBe('cancelled');
     expect(unmountSpy).toHaveBeenCalled();
+  });
+});
+
+describe('ReactModal router context', () => {
+  let router: UIRouterReact;
+
+  beforeEach(() => {
+    router = new UIRouterReact();
+    setDirectRouter(router);
+  });
+
+  afterEach(() => {
+    setDirectRouter(null);
+    router.dispose();
+  });
+
+  it('provides the direct router to routed modal components', () => {
+    const renders: React.ReactElement[] = [];
+    spyOn(ReactDOM, 'render').and.callFake((element) => {
+      renders.push(element as React.ReactElement);
+      return null;
+    });
+
+    const RoutedModalComponent = withRouter(
+      class extends React.Component<IModalComponentProps & IRouterInjectedProps> {
+        public render(): React.ReactNode {
+          return null;
+        }
+      },
+    );
+
+    ReactModal.show(RoutedModalComponent, {} as any, { animation: false });
+
+    const provider = getLastRender(renders);
+    expect(provider.type).toBe(UIRouterContext.Provider);
+    expect(provider.props.value).toBe(router);
+    expect(provider.props.children.props.children.type).toBe(RoutedModalComponent);
   });
 });

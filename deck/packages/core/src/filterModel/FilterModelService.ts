@@ -1,7 +1,7 @@
 import { cloneDeep, forOwn, includes, isNil, pick, reduce, size, some } from 'lodash';
 
 import type { IFilterConfig, IFilterModel, ITrueKeyModel } from './IFilterModel';
-import { AngularServices } from '../angular/services';
+import { getDirectRouter } from '../navigation/directRouter';
 
 export class FilterModelService {
   public static configureFilterModel(filterModel: IFilterModel, filterModelConfig: IFilterConfig[]) {
@@ -33,7 +33,7 @@ export class FilterModelService {
     // Apply any mutations to the current sortFilter values as ui-router state params
     filterModel.applyParamsToUrl = () => {
       const toParams = FilterModelService.mapSortFilterToRouterParams(filterModel);
-      AngularServices.$state.go('.', toParams, { location: 'replace' });
+      getDirectRouter()?.stateService.go('.', toParams, { location: 'replace' });
     };
 
     return filterModel;
@@ -66,11 +66,12 @@ export class FilterModelService {
   }
 
   public static registerRouterHooks(filterModel: IFilterModel, stateGlob: string) {
-    if (!AngularServices.has('$uiRouter')) {
+    const router = getDirectRouter();
+    if (!router) {
       return;
     }
 
-    const { transitionService } = AngularServices.$uiRouter;
+    const { transitionService } = router;
     const filterParams = filterModel.config.map((cfg) => cfg.param);
     let savedParamsForScreen: any = {};
 

@@ -5,13 +5,13 @@ import React from 'react';
 
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { ApplicationReader } from '../application/service/ApplicationReader';
-import { AngularServices } from '../angular/services';
 import { RecentHistoryService } from '../history';
 import { PageTitleService } from '../pageTitle';
 import { SpinErrorBoundary } from '../presentation';
 import { ProjectReader } from '../projects/service/ProjectReader';
 import './coreRoutes';
 import { getDirectRouter, setDirectRouter } from './directRouter';
+import { stateChangeSuccess$ } from './routerContext';
 import { registerRouteLifecycles } from './routeLifecycles';
 import { configureRouter, startRouter } from './router';
 import {
@@ -194,9 +194,7 @@ describe('configureRouter', () => {
 
     const router = createRouter();
     const stateChanges: string[] = [];
-    const subscription = AngularServices.stateEvents.stateChangeSuccess.subscribe(({ to }) =>
-      stateChanges.push(to.name),
-    );
+    const subscription = stateChangeSuccess$(router).subscribe(({ to }) => stateChanges.push(to.name));
 
     try {
       await router.stateService.go('home.registeredRoot');

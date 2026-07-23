@@ -4,15 +4,15 @@
 import { sortBy } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancer, ILoadBalancersTagProps } from '@spinnaker/core';
+import type { ILoadBalancer, ILoadBalancersTagProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
-  AngularServices,
   HealthCounts,
   HoverablePopover,
   LoadBalancerDataUtils,
   logger,
   Spinner,
   Tooltip,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AmazonLoadBalancerDataUtils } from './amazonLoadBalancerDataUtils';
@@ -70,11 +70,14 @@ export interface IAmazonLoadBalancersTagState {
   isLoading: boolean;
 }
 
-export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagProps, IAmazonLoadBalancersTagState> {
+export class AmazonLoadBalancersTagComponent extends React.Component<
+  ILoadBalancersTagProps & IRouterInjectedProps,
+  IAmazonLoadBalancersTagState
+> {
   private loadBalancersRefreshUnsubscribe: () => void;
   private mounted = false;
 
-  constructor(props: ILoadBalancersTagProps) {
+  constructor(props: ILoadBalancersTagProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       loadBalancers: [],
@@ -84,11 +87,13 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   }
 
   private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
-    const { $state } = AngularServices;
+    const { stateService } = this.props;
     const serverGroup = this.props.serverGroup;
     logger.log({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
-    const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
-    $state.go(nextState, {
+    const nextState = stateService.current.name.endsWith('.clusters')
+      ? '.loadBalancerDetails'
+      : '^.loadBalancerDetails';
+    stateService.go(nextState, {
       region: serverGroup.region,
       accountId: serverGroup.account,
       name: loadBalancer.name,
@@ -97,10 +102,10 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
   };
 
   private showTargetGroupDetails = (targetGroup: ITargetGroup): void => {
-    const { $state } = AngularServices;
+    const { stateService } = this.props;
     logger.log({ category: 'Cluster Pod', action: `Load Target Group Details (multiple menu)` });
-    const nextState = $state.current.name.endsWith('.clusters') ? '.targetGroupDetails' : '^.targetGroupDetails';
-    $state.go(nextState, {
+    const nextState = stateService.current.name.endsWith('.clusters') ? '.targetGroupDetails' : '^.targetGroupDetails';
+    stateService.go(nextState, {
       region: targetGroup.region,
       accountId: targetGroup.account,
       name: targetGroup.name,
@@ -146,7 +151,7 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     this.loadBalancersRefreshUnsubscribe();
   }
 
-  public render(): React.ReactElement<AmazonLoadBalancersTag> {
+  public render(): React.ReactElement {
     const { loadBalancers, targetGroups, isLoading } = this.state;
 
     const targetGroupCount = (targetGroups && targetGroups.length) || 0;
@@ -229,3 +234,5 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
     );
   }
 }
+
+export const AmazonLoadBalancersTag = withRouter(AmazonLoadBalancersTagComponent);

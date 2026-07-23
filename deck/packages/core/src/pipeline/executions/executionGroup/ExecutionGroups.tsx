@@ -2,11 +2,12 @@ import React from 'react';
 import type { Subscription } from 'rxjs';
 
 import { ExecutionGroup } from './ExecutionGroup';
-import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application/application.model';
 import { BannerContainer } from '../../../banner';
 import type { IExecutionGroup } from '../../../domain';
 import { ExecutionFilterService } from '../../filter/executionFilter.service';
+import type { IRouterInjectedProps } from '../../../navigation/routerContext';
+import { stateChangeSuccess$, withRouter } from '../../../navigation/routerContext';
 import { ExecutionState } from '../../../state';
 
 import './executionGroups.less';
@@ -21,17 +22,19 @@ export interface IExecutionGroupsState {
   container?: HTMLDivElement; // need to pass the container down to children to use as root for IntersectionObserver
 }
 
-export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExecutionGroupsState> {
+export class ExecutionGroupsComponent extends React.Component<
+  IExecutionGroupsProps & IRouterInjectedProps,
+  IExecutionGroupsState
+> {
   private applicationRefreshUnsubscribe: () => void;
   private groupsUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
 
-  constructor(props: IExecutionGroupsProps) {
+  constructor(props: IExecutionGroupsProps & IRouterInjectedProps) {
     super(props);
-    const { stateEvents } = AngularServices;
     this.state = {
       groups: ExecutionState.filterModel.asFilterModel.groups,
-      showingDetails: AngularServices.$state.includes('**.execution'),
+      showingDetails: props.stateService.includes('**.execution'),
     };
 
     this.applicationRefreshUnsubscribe = props.application.executions.onRefresh(null, () => {
@@ -45,16 +48,16 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
         this.setState({ groups: newGroups });
       }
     });
-    this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
-      const detailsShown = this.showingDetails();
+    this.stateChangeSuccessSubscription = stateChangeSuccess$(props.router).subscribe(({ toParams }) => {
+      const detailsShown = this.showingDetails(toParams);
       if (detailsShown !== this.state.showingDetails) {
         this.setState({ showingDetails: detailsShown });
       }
     });
   }
 
-  private showingDetails(): boolean {
-    const { executionId } = AngularServices.$stateParams;
+  private showingDetails(routeParams = this.props.stateParams): boolean {
+    const { executionId } = routeParams;
     // showingDetails() is just used to set a class ('.showing-details') on the wrapper around the execution groups.
     // the effect of this class is that, when an execution is deep linked, all the other execution groups have a partial
     // opacity (except when hovering over them).
@@ -63,7 +66,7 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     if (!executionId || this.state.groups.every((g) => g.executions.every((e) => e.id !== executionId))) {
       return false;
     }
-    return AngularServices.$state.includes('**.execution');
+    return this.props.stateService.includes('**.execution');
   }
 
   private setContainer = (container: HTMLDivElement) => {
@@ -85,7 +88,7 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     }
   }
 
-  public render(): React.ReactElement<ExecutionGroups> {
+  public render(): React.ReactElement {
     const { groups = [], container, showingDetails } = this.state;
     const hasGroups = groups.length > 0;
     const className = `row pipelines executions ${showingDetails ? 'showing-details' : ''}`;
@@ -149,3 +152,5 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
     );
   }
 }
+
+export const ExecutionGroups = withRouter(ExecutionGroupsComponent);

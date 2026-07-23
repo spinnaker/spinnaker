@@ -1,9 +1,11 @@
+import { UIRouterContext } from '@uirouter/react';
 import React from 'react';
 import type { ModalProps } from 'react-bootstrap';
 import { Modal } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 
 import type { IModalComponentProps } from './modal';
+import { getDirectRouter } from '../navigation/directRouter';
 
 /** An imperative service for showing a react component as a modal */
 export class ReactModal {
@@ -70,10 +72,14 @@ export class ReactModal {
       const handleDismiss = destroy(reject);
 
       function render() {
-        ReactDOM.render(
+        const router = getDirectRouter();
+        const modal = (
           <Modal show={show} {...(modalProps as ModalProps)} onExited={onExited}>
             <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
-          </Modal>,
+          </Modal>
+        );
+        ReactDOM.render(
+          router ? <UIRouterContext.Provider value={router}>{modal}</UIRouterContext.Provider> : modal,
           mountNode,
         );
       }

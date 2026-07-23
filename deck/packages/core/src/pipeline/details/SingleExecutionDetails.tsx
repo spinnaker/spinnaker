@@ -1,4 +1,4 @@
-import { UISref, useCurrentStateAndParams } from '@uirouter/react';
+import { UISref, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { set } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { AngularServices } from '../../angular/services';
@@ -59,6 +59,7 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
   const scheduler = SchedulerFactory.createScheduler(5000);
   const { sortFilter } = ExecutionState.filterModel.asFilterModel;
   const { app } = props;
+  const { stateService } = useRouter();
 
   const [showDurations, setShowDurations] = useState(sortFilter.showDurations);
   const { params } = useCurrentStateAndParams();
@@ -136,7 +137,7 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
     }).then((command) => {
       const { executionService } = AngularServices;
       executionService.startAndMonitorPipeline(application, command.pipelineName, command.trigger);
-      AngularServices.$state.go('^.^.executions');
+      stateService.go('^.^.executions');
     });
   };
 

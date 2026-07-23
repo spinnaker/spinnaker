@@ -30,8 +30,8 @@ export function bridgeKayentaDataSourceToReduxStore() {
     );
   };
 
-  stub.loadCanaryExecutions = (application: Application) => {
-    const listExecutionsRequest = listCanaryExecutions(application.name);
+  stub.loadCanaryExecutions = (application: Application, stateService) => {
+    const listExecutionsRequest = listCanaryExecutions(application.name, stateService);
 
     listExecutionsRequest.catch((error) => {
       canaryStore.dispatch(Creators.loadExecutionsFailure({ error }));

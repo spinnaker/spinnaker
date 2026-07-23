@@ -1,9 +1,8 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, ISecurityGroup } from '@spinnaker/core';
+import type { Application, IModalComponentProps, IRouterInjectedProps, ISecurityGroup } from '@spinnaker/core';
 import {
-  AngularServices,
   FirewallLabels,
   ModalClose,
   noop,
@@ -12,6 +11,7 @@ import {
   SubmitButton,
   TaskMonitor,
   TaskMonitorWrapper,
+  withRouter,
 } from '@spinnaker/core';
 
 export type AmazonSecurityGroupModalMode = 'create' | 'edit' | 'clone';
@@ -139,8 +139,8 @@ export function isAmazonSecurityGroupValid(securityGroup: any): boolean {
   );
 }
 
-export class AmazonSecurityGroupModal extends React.Component<
-  IAmazonSecurityGroupModalProps,
+export class AmazonSecurityGroupModalComponent extends React.Component<
+  IAmazonSecurityGroupModalProps & IRouterInjectedProps,
   IAmazonSecurityGroupModalState
 > {
   public static defaultProps: Partial<IAmazonSecurityGroupModalProps> = {
@@ -153,7 +153,7 @@ export class AmazonSecurityGroupModal extends React.Component<
     return ReactModal.show(AmazonSecurityGroupModal, props, { dialogClassName: 'modal-lg' });
   }
 
-  constructor(props: IAmazonSecurityGroupModalProps) {
+  constructor(props: IAmazonSecurityGroupModalProps & IRouterInjectedProps) {
     super(props);
     const app = this.getApplication(props);
     this.state = {
@@ -226,8 +226,8 @@ export class AmazonSecurityGroupModal extends React.Component<
     }
 
     const { securityGroup } = this.state;
-    AngularServices.$state.go(
-      AngularServices.$state.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
+    this.props.stateService.go(
+      this.props.stateService.includes('**.firewallDetails') ? '^.firewallDetails' : '.firewallDetails',
       {
         accountId: accountFor(securityGroup),
         name: securityGroup.name,
@@ -436,3 +436,8 @@ export class AmazonSecurityGroupModal extends React.Component<
     );
   }
 }
+
+export const AmazonSecurityGroupModal = Object.assign(
+  withRouter<IAmazonSecurityGroupModalProps & IRouterInjectedProps>(AmazonSecurityGroupModalComponent),
+  { show: AmazonSecurityGroupModalComponent.show },
+);

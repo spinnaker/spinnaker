@@ -1,9 +1,10 @@
 import { has } from 'lodash';
 import React from 'react';
-import { AngularServices } from '../../../angular/services';
 
 import type { Application } from '../../../application/application.model';
 import type { IExecution } from '../../../domain';
+import type { IRouterInjectedProps } from '../../../navigation/routerContext';
+import { withRouter } from '../../../navigation/routerContext';
 import { ExecutionBuildLink } from '../../../pipeline/executionBuild/ExecutionBuildLink';
 import { ExecutionMarker } from '../../../pipeline/executions/execution/ExecutionMarker';
 import { timestamp } from '../../../utils/timeFormatters';
@@ -21,8 +22,11 @@ export interface IProjectPipelineState {
   stageWidth: string;
 }
 
-export class ProjectPipeline extends React.Component<IProjectPipelineProps, IProjectPipelineState> {
-  constructor(props: IProjectPipelineProps) {
+class ProjectPipelineComponent extends React.Component<
+  IProjectPipelineProps & IRouterInjectedProps,
+  IProjectPipelineState
+> {
+  constructor(props: IProjectPipelineProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       hasBuildInfo:
@@ -35,14 +39,14 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
   }
 
   private handleExecutionTitleClick = (): void => {
-    AngularServices.$state.go('^.application.pipelines.executions.execution', {
+    this.props.stateService.go('^.application.pipelines.executions.execution', {
       application: this.props.execution.application,
       executionId: this.props.execution.id,
     });
   };
 
   private handleStageClick = (stageIndex: number) => {
-    AngularServices.$state.go('^.application.pipelines.executionDetails.execution', {
+    this.props.stateService.go('^.application.pipelines.executionDetails.execution', {
       application: this.props.execution.application,
       executionId: this.props.execution.id,
       stage: stageIndex,
@@ -74,3 +78,6 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
     );
   }
 }
+
+export const ProjectPipeline = withRouter(ProjectPipelineComponent);
+ProjectPipeline.displayName = 'ProjectPipeline';

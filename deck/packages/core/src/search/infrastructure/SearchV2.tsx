@@ -11,6 +11,8 @@ import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.se
 import { InfrastructureSearchServiceV2 } from '../infrastructure/infrastructureSearchV2.service';
 import { InsightMenu } from '../../insight/InsightMenu';
 import type { IQueryParams } from '../../navigation';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { SearchResults, searchResultTypeRegistry, SearchStatus } from '../searchResult';
 import type { ITag } from '../../widgets';
 import { Search } from '../widgets';
@@ -26,10 +28,7 @@ export interface ISearchV2State {
   refreshingCache: boolean;
 }
 
-export class SearchV2 extends React.Component<{}, ISearchV2State> {
-  private $state = AngularServices.$state;
-  private $uiRouter = AngularServices.$uiRouter;
-
+export class SearchV2Component extends React.Component<IRouterInjectedProps, ISearchV2State> {
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
   private INITIAL_RESULTS: ISearchResultSet[] = this.searchResultTypes.map((type) => ({
@@ -40,11 +39,11 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
 
   private destroy$ = new Subject();
 
-  constructor(props: {}) {
+  constructor(props: IRouterInjectedProps) {
     super(props);
 
     this.state = {
-      selectedTab: this.$state.params.tab,
+      selectedTab: props.stateParams.tab,
       params: {},
       resultSets: this.INITIAL_RESULTS,
       isSearching: false,
@@ -70,7 +69,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     // auto-navigation only happens via shortcut links, and we only do it if there is exactly one result, e.g
     // when searching for an instance ID
     const autoNavigate = window.location.href.endsWith('route=true');
-    this.$uiRouter.globals.params$
+    this.props.router.globals.params$
       .pipe(
         map((stateParams) => this.getApiFilterParams(stateParams)),
         tap((params: IQueryParams) => this.setState({ params })),
@@ -117,7 +116,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
         () => this.setState({ isSearching: false }),
       );
 
-    this.$uiRouter.globals.params$
+    this.props.router.globals.params$
       .pipe(
         map((params) => params.tab),
         distinctUntilChanged(),
@@ -144,7 +143,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     );
 
     if (found.tabId) {
-      this.$state.go('.', { tab: found.tabId });
+      this.props.stateService.go('.', { tab: found.tabId });
     }
   }
 
@@ -155,7 +154,7 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
   public handleFilterChange = (filters: ITag[]) => {
     const blankApiParams = API_PARAMS.reduce((acc, key) => ({ ...acc, [key]: undefined }), {});
     const newParams = filters.reduce((params, filter) => ({ ...params, [filter.key]: filter.text }), blankApiParams);
-    this.$state.go('.', newParams, { location: 'replace' });
+    this.props.stateService.go('.', newParams, { location: 'replace' });
   };
 
   public render() {
@@ -193,3 +192,5 @@ export class SearchV2 extends React.Component<{}, ISearchV2State> {
     );
   }
 }
+
+export const SearchV2 = withRouter(SearchV2Component);

@@ -2,14 +2,14 @@ import type { FormikErrors } from 'formik';
 import { cloneDeep, every, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
   LoadBalancerWriter,
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -34,8 +34,8 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateNetworkLoadBalancer extends React.Component<
-  ICreateNetworkLoadBalancerProps,
+export class CreateNetworkLoadBalancerComponent extends React.Component<
+  ICreateNetworkLoadBalancerProps & IRouterInjectedProps,
   ICreateApplicationLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateNetworkLoadBalancerProps> = {
@@ -52,7 +52,7 @@ export class CreateNetworkLoadBalancer extends React.Component<
     return ReactModal.show(CreateNetworkLoadBalancer, props, modalProps);
   }
 
-  constructor(props: ICreateNetworkLoadBalancerProps) {
+  constructor(props: ICreateNetworkLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.loadBalancer
@@ -169,10 +169,10 @@ export class CreateNetworkLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
-      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
@@ -301,3 +301,8 @@ export class CreateNetworkLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateNetworkLoadBalancer = Object.assign(
+  withRouter<ICreateNetworkLoadBalancerProps & IRouterInjectedProps>(CreateNetworkLoadBalancerComponent),
+  { show: CreateNetworkLoadBalancerComponent.show },
+);
