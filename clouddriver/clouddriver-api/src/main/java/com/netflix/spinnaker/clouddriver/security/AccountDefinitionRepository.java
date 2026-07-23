@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.kork.annotations.Beta;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.List;
 import javax.annotation.Nullable;
 
 /** Provides CRUD persistence operations for account {@link CredentialsDefinition} instances. */
-@Beta
 @NonnullByDefault
 public interface AccountDefinitionRepository {
   /**

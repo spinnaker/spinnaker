@@ -25,6 +25,7 @@ import { RECENT_HISTORY_SERVICE } from './history/recentHistory.service';
 
 import './analytics/GoogleAnalyticsInitializer';
 import { UI_ROUTER_REACT_ERROR_BOUNDARY } from './presentation/SpinErrorBoundary';
+import { ACCOUNT_MANAGEMENT_MODULE } from './account/management/accountmanagement.module';
 import { ANALYTICS_MODULE } from './analytics/angulartics.module';
 import { APITOKEN_MODULE } from './apitoken/apitoken.module';
 import { GLOBALBANNER_MODULE } from './banner/global/globalbanner.module';
@@ -107,6 +108,7 @@ module(CORE_MODULE, [
   UI_SELECT,
   angularSpinner.name,
 
+  ACCOUNT_MANAGEMENT_MODULE,
   ANALYTICS_MODULE,
   APITOKEN_MODULE,
   GLOBALBANNER_MODULE,

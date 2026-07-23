@@ -22,17 +22,20 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.azure.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.azure.enabled"},
+    matchIfMissing = true)
 public class AzureAccountDefinitionSourceConfiguration {
   @Bean
   public CredentialsDefinitionSource<AzureConfigurationProperties.ManagedAccount>
       azureAccountSource(
-          AccountDefinitionRepository repository,
+          @Nullable AccountDefinitionRepository repository,
           Optional<List<CredentialsDefinitionSource<AzureConfigurationProperties.ManagedAccount>>>
               additionalSources,
           AzureConfigurationProperties accountProperties) {

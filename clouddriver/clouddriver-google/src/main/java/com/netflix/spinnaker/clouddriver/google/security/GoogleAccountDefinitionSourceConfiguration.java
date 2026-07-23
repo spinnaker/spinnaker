@@ -22,17 +22,20 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.google.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.google.enabled"},
+    matchIfMissing = true)
 public class GoogleAccountDefinitionSourceConfiguration {
   @Bean
   public CredentialsDefinitionSource<GoogleConfigurationProperties.ManagedAccount>
       googleAccountSource(
-          AccountDefinitionRepository repository,
+          @Nullable AccountDefinitionRepository repository,
           Optional<List<CredentialsDefinitionSource<GoogleConfigurationProperties.ManagedAccount>>>
               additionalSources,
           GoogleConfigurationProperties accountProperties) {
