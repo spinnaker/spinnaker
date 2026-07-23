@@ -1,3 +1,4 @@
+import type { IStageTypeConfig } from '@spinnaker/core';
 import { CloudProviderRegistry, AngularServices, Registry } from '@spinnaker/core';
 
 import * as amazonPackage from './index';
@@ -5,8 +6,13 @@ import { AwsFunctionTransformer } from './function/function.transformer';
 import { AwsImageReader } from './image';
 import { AwsInstanceTypeService } from './instance/awsInstanceType.service';
 import { AwsLoadBalancerTransformer } from './loadBalancer';
+import { AmazonStageConfig, getAmazonStageFields } from './pipeline/stages/AmazonStageConfig';
+import { DeployCloudFormationStackStageConfig } from './pipeline/stages/deployCloudFormation/DeployCloudFormationStackStageConfig';
 import { EvaluateCloudFormationChangeSetExecutionService } from './pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
-import { getAmazonStageFields } from './pipeline/stages/AmazonStageConfig';
+import { AwsFindImageFromTagsStageConfig } from './pipeline/stages/findImageFromTags/AwsFindImageFromTagsStageConfig';
+import { ModifyScalingProcessStageConfig } from './pipeline/stages/modifyScalingProcess/ModifyScalingProcessStageConfig';
+import { AwsResizeAsgStageConfig } from './pipeline/stages/resizeAsg/AwsResizeAsgStageConfig';
+import { AwsTagImageStageConfig } from './pipeline/stages/tagImage/awsTagImageStage';
 import { registerAmazonPipelineStages } from './aws.module';
 import { AwsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { AwsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
@@ -169,12 +175,14 @@ describe('Amazon package registration', () => {
       const expectedStages = [
         'bake',
         'cloneServerGroup',
+        'deployCloudFormation',
         'destroyServerGroup',
         'disableCluster',
         'disableServerGroup',
         'enableServerGroup',
         'findImage',
         'findImageFromTags',
+        'modifyAwsScalingProcess',
         'resizeServerGroup',
         'rollbackCluster',
         'scaleDownCluster',
@@ -183,10 +191,67 @@ describe('Amazon package registration', () => {
       ];
 
       expectedStages.forEach((provides) => {
-        const stage = awsStages.find((candidate) => candidate.provides === provides);
+        const stage = awsStages.find((candidate) => (candidate.provides || candidate.key) === provides);
         expect(stage).withContext(`aws ${provides} stage`).toBeDefined();
         expect(stage?.component).withContext(`aws ${provides} stage component`).toBeDefined();
         expectNoAngularStageRegistration(stage);
+      });
+
+      const structuredStages: Array<{
+        component: IStageTypeConfig['component'];
+        executionSections: 'executionConfigSections' | 'executionDetailsSections';
+        key: string;
+      }> = [
+        {
+          key: 'deployCloudFormation',
+          component: DeployCloudFormationStackStageConfig,
+          executionSections: 'executionDetailsSections',
+        },
+        {
+          key: 'upsertImageTags',
+          component: AwsTagImageStageConfig,
+          executionSections: 'executionConfigSections',
+        },
+        {
+          key: 'findImageFromTags',
+          component: AwsFindImageFromTagsStageConfig,
+          executionSections: 'executionConfigSections',
+        },
+        {
+          key: 'resizeServerGroup',
+          component: AwsResizeAsgStageConfig,
+          executionSections: 'executionConfigSections',
+        },
+        {
+          key: 'modifyAwsScalingProcess',
+          component: ModifyScalingProcessStageConfig,
+          executionSections: 'executionConfigSections',
+        },
+      ];
+
+      structuredStages.forEach(({ component, executionSections, key }) => {
+        const stage = awsStages.find((candidate) => (candidate.key || candidate.provides) === key);
+        expect(stage).withContext(`aws ${key} structured stage`).toBeDefined();
+        expect(stage?.key).withContext(`aws ${key} stage key`).toBe(key);
+        expect(stage?.cloudProvider).withContext(`aws ${key} cloud provider`).toBe('aws');
+        expect(stage?.component).withContext(`aws ${key} config component`).toBe(component);
+        expect(stage?.[executionSections]?.length).withContext(`aws ${key} execution sections`).toBeGreaterThan(0);
+      });
+
+      [
+        'bake',
+        'cloneServerGroup',
+        'destroyServerGroup',
+        'disableCluster',
+        'disableServerGroup',
+        'enableServerGroup',
+        'findImage',
+        'rollbackCluster',
+        'scaleDownCluster',
+        'shrinkCluster',
+      ].forEach((key) => {
+        const stage = awsStages.find((candidate) => (candidate.key || candidate.provides) === key);
+        expect(stage?.component).withContext(`aws ${key} generic stage component`).toBe(AmazonStageConfig);
       });
     } finally {
       Registry.pipeline = previousPipeline;
@@ -199,12 +264,14 @@ describe('Amazon package registration', () => {
     const expectedStages = [
       'bake',
       'cloneServerGroup',
+      'deployCloudFormation',
       'destroyServerGroup',
       'disableCluster',
       'disableServerGroup',
       'enableServerGroup',
       'findImage',
       'findImageFromTags',
+      'modifyAwsScalingProcess',
       'resizeServerGroup',
       'rollbackCluster',
       'scaleDownCluster',
@@ -213,7 +280,7 @@ describe('Amazon package registration', () => {
     ];
 
     expectedStages.forEach((provides) => {
-      const registrations = awsStages.filter((stage) => stage.provides === provides);
+      const registrations = awsStages.filter((stage) => (stage.provides || stage.key) === provides);
       expect(registrations.length).withContext(`aws ${provides} registration count`).toBe(1);
     });
   });

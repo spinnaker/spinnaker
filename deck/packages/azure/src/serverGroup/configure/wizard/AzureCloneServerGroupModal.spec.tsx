@@ -1,6 +1,7 @@
 import {
   CloudProviderRegistry,
   DeployInitializer,
+  DeploymentStrategySelector,
   MapEditor,
   NetworkReader,
   AngularServices,
@@ -17,6 +18,7 @@ import { AzureServerGroupTransformer } from '../../serverGroup.transformer';
 import { AzureCloneServerGroupModal } from './AzureCloneServerGroupModal';
 import {
   ServerGroupAdvancedSettings,
+  ServerGroupBasicSettings,
   ServerGroupHealthSettings,
   ServerGroupImageSettings,
   ServerGroupLoadBalancers,
@@ -199,6 +201,27 @@ describe('AzureCloneServerGroupModal', () => {
       'Advanced Settings',
       'Tags',
     ]);
+  });
+
+  it('renders the deployment strategy selector and forwards strategy changes through Formik without a provider callback', () => {
+    const serverGroupCommand = command({
+      viewState: { mode: 'createPipeline', disableStrategySelection: false },
+    });
+    const formikProps = formik(serverGroupCommand);
+    const wrapper = shallow(<ServerGroupBasicSettings app={application} formik={formikProps} />);
+    const selector = wrapper.find(DeploymentStrategySelector);
+
+    expect(selector.exists()).toBe(true);
+
+    const onFieldChange = selector.exists() ? selector.prop('onFieldChange') : undefined;
+    const onSelectorStrategyChange = selector.exists() ? selector.prop('onStrategyChange') : undefined;
+    const strategy = { key: 'redblack' } as any;
+    onFieldChange?.('scaleDown', true);
+
+    expect(serverGroupCommand.onStrategyChange).toBeUndefined();
+    expect(() => onSelectorStrategyChange?.(serverGroupCommand, strategy)).not.toThrow();
+    expect(formikProps.setFieldValue).toHaveBeenCalledWith('scaleDown', true);
+    expect(formikProps.setFieldValue).toHaveBeenCalledWith('strategy', 'redblack');
   });
 
   it('renders template selection before configuring deploy-stage commands', () => {
