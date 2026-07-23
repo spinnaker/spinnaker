@@ -11,6 +11,12 @@ import { SETTINGS } from '../../config';
 
 export type IProviderSelectionFilter = (app: Application, acc: IAccountDetails, prov: ICloudProviderConfig) => boolean;
 
+interface IProviderOption {
+  account: IAccountDetails;
+  provider: string;
+  providerConfig: ICloudProviderConfig;
+}
+
 export class ProviderSelectionService {
   public static selectProvider(
     application: Application,
@@ -23,21 +29,33 @@ export class ProviderSelectionService {
         reducedAccounts = accounts.filter((a) => CloudProviderRegistry.hasValue(a.cloudProvider, feature));
       }
 
-      if (filterFn) {
-        reducedAccounts = reducedAccounts.filter((acc: IAccountDetails) => {
-          return filterFn(application, acc, CloudProviderRegistry.getProvider(acc.cloudProvider));
-        });
-      }
+      const effectiveProviderOptions: IProviderOption[] = reducedAccounts.reduce((options, account) => {
+        const accountProvider = CloudProviderRegistry.getProvider(account.cloudProvider);
+        if (!accountProvider) {
+          return options;
+        }
+        const providerFeature = accountProvider[feature] || {};
+        const provider = providerFeature.useProvider || account.cloudProvider;
+        const providerConfig = CloudProviderRegistry.getProvider(provider);
+        if (providerConfig) {
+          options.push({ account, provider, providerConfig });
+        } else if (!providerFeature.useProvider) {
+          options.push({ account, provider: account.cloudProvider, providerConfig: accountProvider });
+        }
+        return options;
+      }, [] as IProviderOption[]);
+
+      const filteredProviderOptions = filterFn
+        ? effectiveProviderOptions.filter((option) => filterFn(application, option.account, option.providerConfig))
+        : effectiveProviderOptions;
+
       // reduce the accounts to the smallest, unique collection taking into consideration the useProvider values
       const providerOptions = uniq(
-        reducedAccounts
-          .filter((a) => {
-            return !CloudProviderRegistry.isDisabled(a.cloudProvider);
+        filteredProviderOptions
+          .filter((option) => {
+            return !CloudProviderRegistry.isDisabled(option.provider);
           })
-          .map((a) => {
-            const providerFeature = CloudProviderRegistry.getProvider(a.cloudProvider)[feature] || {};
-            return providerFeature.useProvider || a.cloudProvider;
-          }),
+          .map((option) => option.provider),
       );
 
       let provider;
@@ -45,6 +63,8 @@ export class ProviderSelectionService {
         return ProviderSelectionModal.show({ providerOptions });
       } else if (providerOptions.length === 1) {
         provider = $q.when(providerOptions[0]);
+      } else if (filterFn) {
+        provider = $q.reject(new Error(`No providers support ${feature} for this action.`));
       } else {
         provider = $q.when(SETTINGS.defaultProvider || 'aws');
       }

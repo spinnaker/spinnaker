@@ -1,10 +1,8 @@
-import { $templateCache } from 'ngimport';
 import type { ComponentType } from 'react';
 import React from 'react';
 
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
-import { AngularJSAdapter } from '../../reactShims';
 
 export interface ITargetGroupStateParams {
   accountId: string;
@@ -37,10 +35,14 @@ export function TargetGroupDetails(props: ITargetGroupDetailsProps): JSX.Element
 
   const templateUrl = CloudProviderRegistry.getValue(props.provider, 'loadBalancer.targetGroupDetailsTemplateUrl');
   const controller = CloudProviderRegistry.getValue(props.provider, 'loadBalancer.targetGroupDetailsController');
-  const template = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
 
-  if (template && controller) {
-    return <AngularJSAdapter template={template} controller={`${controller} as ctrl`} locals={props} />;
+  if (templateUrl && controller) {
+    return (
+      <div className="alert alert-warning">
+        Target group details for {props.provider} must be migrated to React. AngularJS templates/controllers are no
+        longer supported.
+      </div>
+    );
   }
 
   return null;

@@ -1,4 +1,7 @@
+import React from 'react';
 import { Registry } from '@spinnaker/core';
+
+import { EcsServerGroupStepLabel } from '../common/EcsServerGroupStepLabel';
 
 export function registerEcsDestroyServerGroupStage() {
   Registry.pipeline.registerStage({
@@ -6,7 +9,8 @@ export function registerEcsDestroyServerGroupStage() {
     alias: 'destroyAsg',
     cloudProvider: 'ecs',
     templateUrl: require('./destroyAsgStage.html'),
-    executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
+    executionStepLabelComponent: (props) =>
+      React.createElement(EcsServerGroupStepLabel, { action: 'Destroy Server Group', ...props }),
     accountExtractor: (stage) => [stage.context.credentials],
     configAccountExtractor: (stage) => [stage.credentials],
     validators: [
