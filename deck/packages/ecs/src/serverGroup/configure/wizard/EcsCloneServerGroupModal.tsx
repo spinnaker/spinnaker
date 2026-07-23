@@ -1,7 +1,13 @@
 import { get, uniq, uniqBy } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, ISubnet, IWizardPageInjectedProps } from '@spinnaker/core';
+import type {
+  Application,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  ISubnet,
+  IWizardPageInjectedProps,
+} from '@spinnaker/core';
 import {
   AccountService,
   AngularServices,
@@ -11,6 +17,7 @@ import {
   ReactModal,
   REST,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -60,8 +67,8 @@ interface IEcsCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class EcsCloneServerGroupModal extends React.Component<
-  IEcsCloneServerGroupModalProps,
+export class EcsCloneServerGroupModalComponent extends React.Component<
+  IEcsCloneServerGroupModalProps & IRouterInjectedProps,
   IEcsCloneServerGroupModalState
 > {
   private command: IEcsServerGroupCommand;
@@ -85,7 +92,7 @@ export class EcsCloneServerGroupModal extends React.Component<
     return ReactModal.show(EcsCloneServerGroupModal, props, modalProps);
   }
 
-  constructor(props: IEcsCloneServerGroupModalProps) {
+  constructor(props: IEcsCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
     this.ensureCommandShape(props.command);
     this.command = props.command;
@@ -132,16 +139,16 @@ export class EcsCloneServerGroupModal extends React.Component<
     }
 
     let transitionTo = '^.^.^.clusters.serverGroup';
-    if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.serverGroup')) {
       transitionTo = '^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
       transitionTo = '^.^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters')) {
+    if (this.props.stateService.includes('**.clusters')) {
       transitionTo = '.serverGroup';
     }
-    AngularServices.$state.go(transitionTo, {
+    this.props.stateService.go(transitionTo, {
       accountId: command.credentials,
       provider: 'ecs',
       region: command.region,
@@ -710,3 +717,8 @@ export class EcsCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const EcsCloneServerGroupModal = Object.assign(
+  withRouter<IEcsCloneServerGroupModalProps & IRouterInjectedProps>(EcsCloneServerGroupModalComponent),
+  { show: EcsCloneServerGroupModalComponent.show },
+);

@@ -1,4 +1,4 @@
-import { UIView, useCurrentStateAndParams } from '@uirouter/react';
+import { UIView, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import { AngularServices } from '../angular/services';
@@ -32,6 +32,7 @@ export const isInsightDetailUrl = (href: string): boolean => {
 };
 
 export const InsightLayout = ({ app }: IInsightLayoutProps) => {
+  const router = useRouter();
   const [expandFilters, setExpandFilters] = React.useState(AngularServices.insightFilterStateModel.filtersExpanded);
   const [currentLocation, setCurrentLocation] = React.useState(window.location.href);
   const filterClass = expandFilters ? 'filters-expanded' : 'filters-collapsed';
@@ -44,21 +45,22 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
   const navClass = useRecoilValue(verticalNavExpandedAtom) ? 'nav-expanded' : 'nav-collapsed';
 
   const { state: hookState } = useCurrentStateAndParams();
-  const getCurrentState = (): IInsightState => AngularServices.$uiRouter.globals.current || hookState || {};
-  const [currentState, setCurrentState] = React.useState<IInsightState>(() => getCurrentState());
+  const [currentState, setCurrentState] = React.useState<IInsightState>(
+    () => hookState || router.globals.current || {},
+  );
 
   React.useEffect(() => {
-    setCurrentState(AngularServices.$uiRouter.globals.current || hookState || {});
+    setCurrentState(hookState || router.globals.current || {});
   }, [hookState]);
 
   React.useEffect(() => {
-    const removeTransitionHook = AngularServices.$uiRouter.transitionService.onSuccess({}, (transition: any) => {
+    const removeTransitionHook = router.transitionService.onSuccess({}, (transition: any) => {
       setCurrentState(transition.to() || {});
       setCurrentLocation(window.location.href);
     });
 
     return () => removeTransitionHook();
-  }, []);
+  }, [router]);
 
   React.useEffect(() => {
     const handleLocationChange = () => setCurrentLocation(window.location.href);

@@ -14,14 +14,17 @@ import {
 } from '@spinnaker/core';
 
 import {
-  AzureInstanceActions,
-  AzureInstanceDetails,
+  AzureInstanceActionsComponent as AzureInstanceActions,
+  AzureInstanceDetails as RoutedAzureInstanceDetails,
+  AzureInstanceDetailsComponent as AzureInstanceDetails,
   AzureInstanceInformationSection,
   loadAzureInstanceDetails,
 } from './AzureInstanceDetails';
 import { registerAzureProvider } from '../../azure.module';
 
 describe('AzureInstanceDetails', () => {
+  const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+  const routerProps = { router: {} as any, stateParams: {}, stateService: stateService as any };
   const instanceParams = {
     account: 'test-account',
     instanceId: 'i-123',
@@ -82,7 +85,7 @@ describe('AzureInstanceDetails', () => {
   }
 
   function actionLabels(instance: any): string[] {
-    return shallow(<AzureInstanceActions app={app()} instance={instance} />)
+    return shallow(<AzureInstanceActions {...routerProps} app={app()} instance={instance} />)
       .find(MenuItem)
       .map((item) => String(item.prop('children')).trim());
   }
@@ -216,9 +219,12 @@ describe('AzureInstanceDetails', () => {
   });
 
   it('renders the instance header and not-found state', () => {
-    const loaded = shallow(<AzureInstanceDetails app={app()} instance={instanceParams} initialInstance={details()} />);
+    const loaded = shallow(
+      <AzureInstanceDetails {...routerProps} app={app()} instance={instanceParams} initialInstance={details()} />,
+    );
     const notFound = shallow(
       <AzureInstanceDetails
+        {...routerProps}
         app={app()}
         instance={instanceParams}
         initialInstance={{ instanceIdNotFound: 'i-missing' } as any}
@@ -244,6 +250,7 @@ describe('AzureInstanceDetails', () => {
     );
     const wrapper = shallow(
       <AzureInstanceDetails
+        {...routerProps}
         app={application}
         instance={instanceParams}
         initialInstance={details({ instanceId: 'i-123', instanceType: 'old-type' })}
@@ -283,7 +290,7 @@ describe('AzureInstanceDetails', () => {
       loadBalancers: ['lb-1'],
       serverGroup: 'fnord-v001',
     } as any;
-    const wrapper = shallow(<AzureInstanceActions app={application} instance={instance} />);
+    const wrapper = shallow(<AzureInstanceActions {...routerProps} app={application} instance={instance} />);
 
     wrapper.find(MenuItem).forEach((item) => item.prop('onClick')({} as any));
 
@@ -296,6 +303,9 @@ describe('AzureInstanceDetails', () => {
     expect(InstanceWriter.deregisterInstanceFromLoadBalancer).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.enableInstanceInDiscovery).toHaveBeenCalledWith(instance, application);
     expect(InstanceWriter.disableInstanceInDiscovery).toHaveBeenCalledWith(instance, application);
+    (ConfirmationModalService.confirm as jasmine.Spy).calls.first().args[0].taskMonitorConfig.onTaskComplete();
+    expect(stateService.includes).toHaveBeenCalledWith('**.instanceDetails', { instanceId: 'i-123' });
+    expect(stateService.go).toHaveBeenCalledWith('^');
   });
 
   it('renders load balancer actions based on load balancer health', () => {
@@ -345,7 +355,9 @@ describe('AzureInstanceDetails', () => {
   it('registers Azure React instance details with the provider registry', () => {
     registerAzureProvider();
 
-    expect(CloudProviderRegistry.getValue('azure', 'instance.details')).toBe(AzureInstanceDetails);
+    expect(CloudProviderRegistry.getValue('azure', 'instance.details').render).toBe(
+      (RoutedAzureInstanceDetails as any).render,
+    );
     expect(CloudProviderRegistry.getValue('azure', 'instance.detailsController')).toBeNull();
     expect(CloudProviderRegistry.getValue('azure', 'instance.detailsTemplateUrl')).toBeNull();
   });

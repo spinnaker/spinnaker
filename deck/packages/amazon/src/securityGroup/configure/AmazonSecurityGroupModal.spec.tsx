@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import {
-  AmazonSecurityGroupModal,
+  AmazonSecurityGroupModalComponent as AmazonSecurityGroupModal,
   initializeAmazonSecurityGroupForModal,
   isAmazonSecurityGroupValid,
 } from './AmazonSecurityGroupModal';
