@@ -22,11 +22,11 @@ settings (user attribute mapping, required roles, role processing) remain under 
 | `saml.key-store` | `spring.security.saml2.relyingparty.registration.<id>.decryption.credentials[*].private-key-location` (PEM — see below) |
 | `saml.key-store-password` | _(no equivalent — use PEM-based decryption credentials)_ |
 | `saml.key-store-alias-name` | _(no equivalent — use PEM-based decryption credentials)_ |
-| `saml.login-processing-url` | `spring.security.saml2.relyingparty.registration.<id>.acs.location` (see ACS URL section) |
 
 ### Unchanged `saml.*` properties
 
 - `saml.enabled`
+- `saml.login-processing-url`
 - `saml.required-roles`
 - `saml.sort-roles`
 - `saml.force-lowercase-roles`
@@ -88,10 +88,15 @@ Spring Boot's default assertion consumer service (ACS) URL path is:
 /login/saml2/sso/{registrationId}    # e.g. /login/saml2/sso/SSO
 ```
 
-The previous Spinnaker default was `/saml/{registrationId}`. **Update your IdP redirect-URI
-configuration** to the new path, or explicitly keep the old path using the native ACS property:
+The previous Spinnaker default was `/saml/{registrationId}`. **Long term, it's
+recommended that you update your IdP redirect-URI configuration** to the new path.
+For backwards compliance, spinnaker sets an override for this which enables the old path functionally.  YOU MUST
+set both of these configuration properties to have this work.  To use the new default paths remove both of these
+configuration properties.
 
 ```yaml
+saml:
+  login-processing-url: /saml/SSO
 spring:
   security:
     saml2:
@@ -102,13 +107,8 @@ spring:
               location: "{baseUrl}/saml/SSO"   # keeps the legacy path
 ```
 
-When using the legacy ACS path, also configure `loginProcessingUrl` on the SAML2 login in your
-own `SecurityFilterChain` bean if you override the auto-configuration, or note that the default
-Spring Security filter chain will not match the non-standard path without this additional
-configuration.
-
-The easiest upgrade path is to update the IdP redirect URI to the Spring Boot default
-(`/login/saml2/sso/SSO`) and remove any ACS override.
+The best long term path is to update your IdP redirect URI to the Spring Boot default
+(`/login/saml2/sso/SSO`) and remove these values.
 
 ---
 
