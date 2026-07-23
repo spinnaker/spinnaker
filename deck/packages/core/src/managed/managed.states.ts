@@ -2,7 +2,7 @@ import { module } from 'angular';
 
 import { Environments } from './Environments';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
+import { registerApplicationState } from '../application/applicationState.registration';
 import { SETTINGS } from '../config';
 import { Configuration } from './config/Configuration';
 import type { INestedState } from '../navigation/state.provider';
@@ -55,43 +55,42 @@ const routes: Array<INestedState & { name: Routes }> = [
 ];
 
 export const MANAGED_STATES = 'spinnaker.core.managed.states';
-module(MANAGED_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  (applicationStateProvider: ApplicationStateProvider) => {
-    if (SETTINGS.feature.managedDelivery) {
-      const artifactVersion: INestedState = {
-        name: 'artifactVersion',
-        url: `/{reference}/{version}`,
-        params: {
-          reference: { dynamic: true },
-          version: { dynamic: true },
-        },
-        children: [],
-        redirectTo: (transition) => {
-          // This is needed for links to the old UI
-          return transition.targetState().withState('home.applications.application.environments.history');
-        },
-      };
+module(MANAGED_STATES, []);
 
-      const environments: INestedState = {
-        name: 'environments',
-        url: `/environments?{md_debug:query}`,
-        views: {
-          insight: { component: Environments, $type: 'react' },
-        },
-        data: {
-          pageTitleSection: {
-            title: 'Environments',
-          },
-        },
-        children: [artifactVersion, ...routes],
-        redirectTo: (transition) => {
-          // This is needed for links to the old UI
-          return transition.targetState().withState('home.applications.application.environments.overview');
-        },
-      };
+registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
+  if (SETTINGS.feature.managedDelivery) {
+    const artifactVersion: INestedState = {
+      name: 'artifactVersion',
+      url: `/{reference}/{version}`,
+      params: {
+        reference: { dynamic: true },
+        version: { dynamic: true },
+      },
+      children: [],
+      redirectTo: (transition) => {
+        // This is needed for links to the old UI
+        return transition.targetState().withState('home.applications.application.environments.history');
+      },
+    };
 
-      applicationStateProvider.addChildState(environments);
-    }
-  },
-]);
+    const environments: INestedState = {
+      name: 'environments',
+      url: `/environments?{md_debug:query}`,
+      views: {
+        insight: { component: Environments, $type: 'react' },
+      },
+      data: {
+        pageTitleSection: {
+          title: 'Environments',
+        },
+      },
+      children: [artifactVersion, ...routes],
+      redirectTo: (transition) => {
+        // This is needed for links to the old UI
+        return transition.targetState().withState('home.applications.application.environments.overview');
+      },
+    };
+
+    applicationStateProvider.addChildState(environments);
+  }
+});

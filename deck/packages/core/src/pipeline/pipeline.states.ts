@@ -5,12 +5,13 @@ import React from 'react';
 
 import { AngularServices } from '../angular/services';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
+import { registerApplicationState } from '../application/applicationState.registration';
 import { PipelineConfigPage } from './config/PipelineConfigPage';
 import { SingleExecutionDetails } from './details/SingleExecutionDetails';
 import { ExecutionNotFound } from './executions/ExecutionNotFound';
 import { Executions } from './executions/Executions';
 import { filterModelConfig } from './filter/ExecutionFilterModel';
+import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 
 export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';
@@ -26,9 +27,9 @@ const PipelineInsightView = ({ className }: { className?: string }) =>
     ),
   );
 
-module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
+module(PIPELINE_STATES, []);
+
+registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const pipelineConfig: INestedState = {
       name: 'pipelineConfig',
@@ -110,44 +111,43 @@ module(PIPELINE_STATES, [APPLICATION_STATE_PROVIDER]).config([
     };
 
     applicationStateProvider.addChildState(pipelines);
-
-    const executionsLookup: INestedState = {
-      name: 'executionLookup',
-      url: '/executions/:executionId?refId&stage&subStage&step&details&stageId',
-      params: {
-        executionId: { dynamic: true },
-      },
-      redirectTo: (transition) => {
-        const { executionId, refId, stage, subStage, step, details, stageId } = transition.params();
-        const executionService = AngularServices.executionService;
-
-        if (!executionId) {
-          return undefined;
-        }
-
-        return Promise.resolve(executionService.getExecution(executionId))
-          .then((execution) =>
-            transition.router.stateService.target(
-              'home.applications.application.pipelines.executionDetails.execution',
-              {
-                application: execution.application,
-                executionId: execution.id,
-                refId,
-                stage,
-                subStage,
-                step,
-                details,
-                stageId,
-              },
-            ),
-          )
-          .catch(() => {});
-      },
-      views: {
-        'main@': { component: ExecutionNotFound, $type: 'react' },
-      },
-    };
-
-    stateConfigProvider.addToRootState(executionsLookup);
   },
-]);
+);
+
+registerRootState((stateConfigProvider) => {
+  const executionsLookup: INestedState = {
+    name: 'executionLookup',
+    url: '/executions/:executionId?refId&stage&subStage&step&details&stageId',
+    params: {
+      executionId: { dynamic: true },
+    },
+    redirectTo: (transition) => {
+      const { executionId, refId, stage, subStage, step, details, stageId } = transition.params();
+      const executionService = AngularServices.executionService;
+
+      if (!executionId) {
+        return undefined;
+      }
+
+      return Promise.resolve(executionService.getExecution(executionId))
+        .then((execution) =>
+          transition.router.stateService.target('home.applications.application.pipelines.executionDetails.execution', {
+            application: execution.application,
+            executionId: execution.id,
+            refId,
+            stage,
+            subStage,
+            step,
+            details,
+            stageId,
+          }),
+        )
+        .catch(() => {});
+    },
+    views: {
+      'main@': { component: ExecutionNotFound, $type: 'react' },
+    },
+  };
+
+  stateConfigProvider.addToRootState(executionsLookup);
+});

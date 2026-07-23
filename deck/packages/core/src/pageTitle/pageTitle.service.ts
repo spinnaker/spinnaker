@@ -33,18 +33,24 @@ export interface IPageDataParts {
 }
 
 export class PageTitleService {
+  private deregisterTransitionHook: () => void;
   private previousPageTitle = 'Spinnaker';
   private routeCount = 0;
 
   public static $inject = ['$rootScope', '$stateParams', '$transitions'];
   constructor(private $rootScope: IScope, private $stateParams: StateParams, $transitions: TransitionService) {
     document.title = 'Spinnaker: Loading...';
-    $transitions.onStart({}, (transition) => {
+    this.deregisterTransitionHook = $transitions.onStart({}, (transition) => {
       this.handleRoutingStart();
       const onSuccess = () => this.handleRoutingSuccess(transition.to().data);
       const onReject = (err: Rejection) => this.handleRoutingError(err);
       transition.promise.then(onSuccess, onReject);
-    });
+    }) as () => void;
+  }
+
+  public dispose(): void {
+    this.deregisterTransitionHook?.();
+    this.deregisterTransitionHook = null;
   }
 
   public handleRoutingStart(): void {
