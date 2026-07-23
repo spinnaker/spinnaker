@@ -54,8 +54,6 @@ import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.modul
 import { PIPELINE_TEMPLATES_V2_STATES_CONFIG } from './config/templates/v2/pipelineTemplateV2.states';
 import { EXECUTION_DETAILS_SECTION_NAV } from './details/executionDetailsSectionNav.component';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './details/stageFailureMessage.component';
-import { STAGE_SUMMARY_COMPONENT } from './details/stageSummary.component';
-import { STEP_EXECUTION_DETAILS_COMPONENT } from './details/stepExecutionDetails.component';
 import { BUILD_DISPLAY_NAME_FILTER } from './executionBuild/buildDisplayName.filter';
 import { CORE_PIPELINE_PIPELINE_DATASOURCE } from './pipeline.dataSource';
 import { PIPELINE_STATES } from './pipeline.states';
@@ -71,8 +69,6 @@ module(PIPELINE_MODULE, [
   BUILD_DISPLAY_NAME_FILTER,
 
   STAGE_FAILURE_MESSAGE_COMPONENT,
-  STEP_EXECUTION_DETAILS_COMPONENT,
-  STAGE_SUMMARY_COMPONENT,
 
   CORE_PIPELINE_PIPELINE_DATASOURCE,
   ARTIFACT_LIST,

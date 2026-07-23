@@ -2,7 +2,6 @@ import React from 'react';
 
 import type { Application } from '../application';
 import { CloudProviderRegistry } from '../cloudProvider';
-import { AngularJSAdapter } from '../reactShims';
 
 export interface IStandaloneResolvedSecurityGroup {
   accountId: string;
@@ -48,7 +47,10 @@ export function StandaloneSecurityGroupDetails(props: IStandaloneSecurityGroupDe
   if (templateUrl && controller) {
     return (
       <StandaloneDetailsLayout>
-        <AngularJSAdapter templateUrl={templateUrl} controller={`${controller} as ctrl`} locals={props} />
+        <div className="alert alert-warning">
+          Security group details for {provider} must be migrated to React. AngularJS templates/controllers are no longer
+          supported.
+        </div>
       </StandaloneDetailsLayout>
     );
   }

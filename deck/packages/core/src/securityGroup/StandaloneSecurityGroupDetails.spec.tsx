@@ -3,7 +3,6 @@ import React from 'react';
 
 import type { Application } from '../application';
 import { CloudProviderRegistry } from '../cloudProvider';
-import { AngularJSAdapter } from '../reactShims';
 import { StandaloneSecurityGroupDetails } from './StandaloneSecurityGroupDetails';
 
 describe('StandaloneSecurityGroupDetails', () => {
@@ -32,10 +31,9 @@ describe('StandaloneSecurityGroupDetails', () => {
 
     expect(component.find(ReactSecurityGroupDetails).prop('app')).toBe(app);
     expect(component.find(ReactSecurityGroupDetails).prop('resolvedSecurityGroup')).toBe(resolvedSecurityGroup);
-    expect(component.find(AngularJSAdapter).exists()).toBe(false);
   });
 
-  it('falls back to legacy Angular security group details when no React details are configured', () => {
+  it('renders a migration-required message for legacy template/controller-only security group details', () => {
     spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
       const values: { [key: string]: any } = {
         'securityGroup.details': null,
@@ -48,10 +46,17 @@ describe('StandaloneSecurityGroupDetails', () => {
     const component = shallow(
       <StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />,
     );
-    const adapter = component.find(AngularJSAdapter);
 
-    expect(adapter.prop('templateUrl')).toBe('legacy-security-group-details.html');
-    expect(adapter.prop('controller')).toBe('legacySecurityGroupDetailsCtrl as ctrl');
-    expect(adapter.prop('locals')).toEqual(jasmine.objectContaining({ app, resolvedSecurityGroup }));
+    expect(component.dive().text()).toContain('Security group details for kubernetes must be migrated to React.');
+  });
+
+  it('renders nothing when provider security group details config is missing', () => {
+    spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+
+    const component = shallow(
+      <StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />,
+    );
+
+    expect(component.isEmptyRender()).toBe(true);
   });
 });
