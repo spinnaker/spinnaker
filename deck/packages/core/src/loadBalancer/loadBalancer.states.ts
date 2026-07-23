@@ -3,7 +3,7 @@ import { module } from 'angular';
 
 import { LoadBalancers } from './LoadBalancers';
 import type { ApplicationStateProvider } from '../application';
-import { APPLICATION_STATE_PROVIDER } from '../application';
+import { registerApplicationState } from '../application';
 import { LoadBalancerDetails } from './details';
 import { TargetGroupDetails } from './details/TargetGroupDetailsWrapper';
 import { filterModelConfig } from './filter/LoadBalancerFilterModel';
@@ -19,9 +19,9 @@ export interface ILoadBalancerStateParams {
 }
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
-module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
+module(LOAD_BALANCER_STATES, []);
+
+registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const loadBalancerDetails: INestedState = {
       name: 'loadBalancerDetails',
@@ -127,4 +127,4 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
     applicationStateProvider.addInsightDetailState(loadBalancerDetails);
     applicationStateProvider.addInsightDetailState(targetGroupDetails);
   },
-]);
+);

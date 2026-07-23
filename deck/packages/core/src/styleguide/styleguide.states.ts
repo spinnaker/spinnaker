@@ -1,8 +1,8 @@
 import { module } from 'angular';
 
 import { StyleguideRoute } from './StyleguideRoute';
-import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
+import { registerRootState } from '../navigation/rootState.registration';
+import type { INestedState } from '../navigation/state.provider';
 
 export const STYLEGUIDE_STATES = 'spinnaker.core.styleguide.states';
 
@@ -24,9 +24,6 @@ export function getStyleguideState(): INestedState {
   };
 }
 
-module(STYLEGUIDE_STATES, [STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  (stateConfigProvider: StateConfigProvider) => {
-    stateConfigProvider.addToRootState(getStyleguideState());
-  },
-]);
+module(STYLEGUIDE_STATES, []);
+
+registerRootState((stateConfigProvider) => stateConfigProvider.addToRootState(getStyleguideState()));
