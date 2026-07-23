@@ -60,6 +60,19 @@ export class GceServerGroupTransformer {
       delete command.enableTraffic;
       delete command.providerType;
       delete command.enableAutoHealing;
+      delete command.partnerMetadata;
+
+      if (command.autoHealingPolicy) {
+        command.autoHealingPolicy = ['healthCheck', 'healthCheckKind', 'healthCheckUrl', 'initialDelaySec'].reduce(
+          (supportedPolicy, field) => {
+            if (command.autoHealingPolicy[field] !== undefined) {
+              supportedPolicy[field] = command.autoHealingPolicy[field];
+            }
+            return supportedPolicy;
+          },
+          {},
+        );
+      }
 
       return command;
     }

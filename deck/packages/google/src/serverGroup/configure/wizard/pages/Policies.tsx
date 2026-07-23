@@ -91,20 +91,6 @@ function hasValidScaleInControl(policy: IGceAutoscalingPolicy): boolean {
     : isIntegerInRange(maxScaledInReplicas?.fixed, 0);
 }
 
-function hasValidMaxUnavailable(policy: IGceAutoHealingPolicy): boolean {
-  if (!policy.maxUnavailable || Object.keys(policy.maxUnavailable).length === 0) {
-    return true;
-  }
-  const hasFixed = Object.prototype.hasOwnProperty.call(policy.maxUnavailable, 'fixed');
-  const hasPercent = Object.prototype.hasOwnProperty.call(policy.maxUnavailable, 'percent');
-  if (hasFixed === hasPercent) {
-    return false;
-  }
-  return hasPercent
-    ? isIntegerInRange(policy.maxUnavailable.percent, 0, 100)
-    : isIntegerInRange(policy.maxUnavailable.fixed, 0);
-}
-
 export class Policies extends GceServerGroupWizardPage {
   public validate(values: IGceServerGroupCommand): { [key: string]: any } {
     const errors: { [key: string]: any } = {};
@@ -154,9 +140,6 @@ export class Policies extends GceServerGroupWizardPage {
       }
       if (!isIntegerInRange(policy.initialDelaySec, 0)) {
         policyErrors.initialDelaySec = 'Initial delay must be an integer between 0 and 2147483647 seconds.';
-      }
-      if (!hasValidMaxUnavailable(policy)) {
-        policyErrors.maxUnavailable = 'Max unavailable must contain one valid fixed or percent value.';
       }
       if (Object.keys(policyErrors).length) {
         errors.autoHealingPolicy = policyErrors;

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.google
 
 enum ComputeVersion {
-  DEFAULT("compute/beta/projects/", "batch/compute/beta"),
+  DEFAULT("compute/v1/projects/", "batch/compute/v1"),
   ALPHA("compute/alpha/projects/", "batch/compute/alpha")
 
   String servicePath

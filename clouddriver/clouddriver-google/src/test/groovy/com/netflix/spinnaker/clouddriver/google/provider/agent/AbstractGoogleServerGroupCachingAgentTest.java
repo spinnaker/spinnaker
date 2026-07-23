@@ -41,6 +41,8 @@ import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
 import com.google.api.services.compute.model.InstanceGroupManagerActionsSummary;
 import com.google.api.services.compute.model.InstanceGroupManagerAutoHealingPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata;
@@ -76,6 +78,7 @@ import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCrede
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -220,6 +223,173 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(serverGroup.getZones())
         .containsExactlyInAnyOrder("fakezone1", "fakezone2", "fakezone3");
     assertThat(serverGroup.getDistributionPolicy().getTargetShape()).isEqualTo("ANY");
+  }
+
+  @Test
+  void regionalServerGroup_restoresSelectZonesAndProjectsFlexAndAutoscalerFieldsOnView() {
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> instanceSelections =
+        new HashMap<>();
+    instanceSelections.put(
+        "preferred",
+        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+            .setMachineTypes(ImmutableList.of("n2-standard-8")));
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myServerGroup")
+            .setRegion(REGION_URL)
+            .setInstanceTemplate("http://compute/global/instanceTemplates/myInstanceTemplate")
+            .setDistributionPolicy(
+                new DistributionPolicy()
+                    .setZones(
+                        ImmutableList.of(
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/fakezone1"),
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/fakezone2")))
+                    .setTargetShape("BALANCED"))
+            .setInstanceFlexibilityPolicy(
+                new InstanceGroupManagerInstanceFlexibilityPolicy()
+                    .setInstanceSelections(instanceSelections));
+    InstanceTemplate instanceTemplate =
+        new InstanceTemplate()
+            .setName("myInstanceTemplate")
+            .setProperties(
+                new InstanceProperties()
+                    .setMetadata(
+                        new Metadata()
+                            .setItems(
+                                ImmutableList.of(
+                                    new Items().setKey("select-zones").setValue("true")))));
+    Autoscaler autoscaler =
+        new Autoscaler()
+            .setRegion(REGION_URL)
+            .setTarget("myServerGroup")
+            .setStatus("ACTIVE")
+            .setRecommendedSize(4);
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setInstanceTemplates(instanceTemplate)
+            .setAutoscalers(autoscaler)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(
+            compute, ImmutableList.of(instanceGroupManager), ImmutableList.of(autoscaler));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+    GoogleServerGroup.View view = serverGroup.getView();
+
+    assertThat(serverGroup.getSelectZones()).isTrue();
+    assertThat(view.getSelectZones()).isTrue();
+    assertThat(view.getDistributionPolicy().getZones())
+        .containsExactlyInAnyOrder("fakezone1", "fakezone2");
+    assertThat(view.getDistributionPolicy().getTargetShape()).isEqualTo("BALANCED");
+    assertThat(view.getInstanceFlexibilityPolicy().getInstanceSelections())
+        .containsOnlyKeys("preferred");
+    assertThat(view.getAutoscalerStatus()).isEqualTo("ACTIVE");
+    assertThat(view.getRecommendedSize()).isEqualTo(4);
+  }
+
+  @Test
+  void regionalServerGroup_withoutSelectZonesMarker_keepsObservedZonesWithoutExplicitIntent() {
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("example-server-group")
+            .setRegion(REGION_URL)
+            .setInstanceTemplate("http://compute/global/instanceTemplates/example-template")
+            .setDistributionPolicy(
+                new DistributionPolicy()
+                    .setZones(
+                        ImmutableList.of(
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/example-zone-a"),
+                            new DistributionPolicyZoneConfiguration()
+                                .setZone("http://compute/zones/example-zone-b"))));
+    InstanceTemplate instanceTemplate =
+        new InstanceTemplate()
+            .setName("example-template")
+            .setProperties(
+                new InstanceProperties()
+                    .setMetadata(
+                        new Metadata()
+                            .setItems(
+                                ImmutableList.of(
+                                    new Items()
+                                        .setKey("unrelated-key")
+                                        .setValue("unrelated-value")))));
+
+    Compute compute =
+        new StubComputeFactory()
+            .setInstanceGroupManagers(instanceGroupManager)
+            .setInstanceTemplates(instanceTemplate)
+            .create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(compute, ImmutableList.of(instanceGroupManager));
+
+    GoogleServerGroup serverGroup =
+        getOnlyServerGroup(cachingAgent.loadData(inMemoryProviderCache()));
+    GoogleServerGroup.View view = serverGroup.getView();
+
+    assertThat(serverGroup.getSelectZones()).isNotEqualTo(true);
+    assertThat(view.getSelectZones()).isNotEqualTo(true);
+    assertThat(serverGroup.getZones())
+        .containsExactlyInAnyOrder("example-zone-a", "example-zone-b");
+    assertThat(view.getDistributionPolicy().getZones())
+        .containsExactlyInAnyOrder("example-zone-a", "example-zone-b");
+  }
+
+  @Test
+  void serverGroupProperties_mapInstanceFlexibilityPolicyAndIgnoreMalformedEntries() {
+    Map<String, InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection> instanceSelections =
+        new HashMap<>();
+    instanceSelections.put(
+        "preferred",
+        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+            .setRank(1)
+            .setMachineTypes(ImmutableList.of("n2-standard-8")));
+    instanceSelections.put("malformed", null);
+    instanceSelections.put(
+        "emptyMachineTypes",
+        new InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection()
+            .setRank(2)
+            .setMachineTypes(ImmutableList.of()));
+
+    InstanceGroupManager instanceGroupManager =
+        new InstanceGroupManager()
+            .setName("myServerGroup")
+            .setRegion(REGION_URL)
+            .setInstanceFlexibilityPolicy(
+                new InstanceGroupManagerInstanceFlexibilityPolicy()
+                    .setInstanceSelections(instanceSelections));
+
+    Compute compute =
+        new StubComputeFactory().setInstanceGroupManagers(instanceGroupManager).create();
+    AbstractGoogleServerGroupCachingAgent cachingAgent =
+        createCachingAgent(compute, ImmutableList.of(instanceGroupManager));
+
+    CacheResult cacheResult = cachingAgent.loadData(inMemoryProviderCache());
+    GoogleServerGroup serverGroup = getOnlyServerGroup(cacheResult);
+
+    assertThat(serverGroup.getInstanceFlexibilityPolicy()).isNotNull();
+    assertThat(serverGroup.getInstanceFlexibilityPolicy().getInstanceSelections())
+        .containsOnlyKeys("preferred");
+    assertThat(
+            serverGroup
+                .getInstanceFlexibilityPolicy()
+                .getInstanceSelections()
+                .get("preferred")
+                .getRank())
+        .isEqualTo(1);
+    assertThat(
+            serverGroup
+                .getInstanceFlexibilityPolicy()
+                .getInstanceSelections()
+                .get("preferred")
+                .getMachineTypes())
+        .containsExactly("n2-standard-8");
   }
 
   @Test
@@ -699,6 +869,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
             .setTarget("myServerGroup")
             .setAutoscalingPolicy(
                 new AutoscalingPolicy().setMinNumReplicas(101).setMaxNumReplicas(202))
+            .setStatus("ACTIVE")
+            .setRecommendedSize(181)
             .setStatusDetails(
                 ImmutableList.of(
                     new AutoscalerStatusDetails().setMessage("message1"),
@@ -719,6 +891,8 @@ class AbstractGoogleServerGroupCachingAgentTest {
     assertThat(serverGroup.getAsg())
         .containsOnly(entry("minSize", 101), entry("maxSize", 202), entry("desiredCapacity", 303));
     assertThat(serverGroup.getAutoscalingMessages()).containsExactly("message1", "message2");
+    assertThat(serverGroup.getAutoscalerStatus()).isEqualTo("ACTIVE");
+    assertThat(serverGroup.getRecommendedSize()).isEqualTo(181);
   }
 
   @Test

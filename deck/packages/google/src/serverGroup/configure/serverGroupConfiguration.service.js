@@ -18,6 +18,8 @@ import { GceTagManager } from './wizard/securityGroups/tagManager.service';
 export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
   'spinnaker.serverGroup.configure.gce.configuration.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
+// EVEN remains for non-flex regional MIGs. Flexibility requires BALANCED, ANY, or ANY_SINGLE_ZONE.
+export const GCE_DISTRIBUTION_POLICY_TARGET_SHAPES = ['ANY', 'EVEN', 'BALANCED', 'ANY_SINGLE_ZONE'];
 export class GceServerGroupConfigurationService {
   constructor($q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) }) {
     const securityGroupReader = () => AngularServices.securityGroupReader;
@@ -142,7 +144,9 @@ export class GceServerGroupConfigurationService {
     }
 
     function getDistributionPolicyTargetShapes() {
-      return ['ANY', 'EVEN'];
+      // EVEN remains for non-flex regional MIGs. Flexibility requires BALANCED, ANY, or
+      // ANY_SINGLE_ZONE (enforced in the configurer and clone validation).
+      return GCE_DISTRIBUTION_POLICY_TARGET_SHAPES.slice();
     }
 
     function configureDistributionPolicyTargetShape(command) {

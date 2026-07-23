@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.description
 
-import com.google.api.services.compute.model.StructuredEntries
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDisk
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
@@ -70,7 +69,11 @@ class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription
   String accountName
 
   Map<String, String> resourceManagerTags
-  Map<String, StructuredEntries> partnerMetadata
+  // Retained for deserialization compatibility with saved pipelines that still include
+  // partnerMetadata in their deploy payloads. The deploy/clone converters strip this field before
+  // the request reaches instanceTemplates.insert because this path should not propagate
+  // partner-provided payload metadata to the stable Compute v1 insert body.
+  Map<String, Object> partnerMetadata
 
   // The source of the image to deploy
   // ARTIFACT: An artifact of type gce/image stored in imageArtifact

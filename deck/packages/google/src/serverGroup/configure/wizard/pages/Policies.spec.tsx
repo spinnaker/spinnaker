@@ -159,7 +159,7 @@ describe('GCE server group Policies page', () => {
           healthCheckUrl: 'https://compute/healthChecks/web',
           initialDelaySec: -1,
           maxUnavailable: { fixed: 1, percent: 1 },
-        },
+        } as any,
       }),
     ).toEqual({
       autoscalingPolicy: {
@@ -171,7 +171,6 @@ describe('GCE server group Policies page', () => {
         healthCheck: 'Health check required.',
         healthCheckKind: 'Health check kind required.',
         initialDelaySec: 'Initial delay must be an integer between 0 and 2147483647 seconds.',
-        maxUnavailable: 'Max unavailable must contain one valid fixed or percent value.',
       },
     });
     expect(
@@ -291,7 +290,7 @@ describe('GCE server group Policies page', () => {
             healthCheckKind: 'healthCheck',
             initialDelaySec: 0,
             maxUnavailable: { percent: 100 },
-          },
+          } as any,
         }),
       ),
     ).toEqual({});

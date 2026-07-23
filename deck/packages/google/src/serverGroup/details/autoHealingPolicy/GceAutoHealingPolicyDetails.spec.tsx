@@ -19,9 +19,9 @@ describe('GceAutoHealingPolicyDetails', () => {
       locations: { account: 'my-account', regions: [] },
     },
   } as any;
-  const policy = { healthCheck: 'web', initialDelaySec: 0, maxUnavailable: { fixed: 0 } };
+  const policy = { healthCheck: 'web', initialDelaySec: 0, maxUnavailable: { fixed: 0 } } as any;
 
-  it('summarizes zero-valued delay and max unavailable', () => {
+  it('summarizes zero-valued delay without rendering legacy max unavailable data', () => {
     const wrapper = shallow(
       <GceAutoHealingPolicyDetails
         application={application}
@@ -33,7 +33,8 @@ describe('GceAutoHealingPolicyDetails', () => {
 
     expect(wrapper.text()).toContain('web');
     expect(wrapper.text()).toContain('0 seconds');
-    expect(wrapper.text()).toContain('0 fixed');
+    expect(wrapper.text()).not.toContain('Max Unavailable');
+    expect(wrapper.text()).not.toContain('0 fixed');
   });
 
   it('opens edit after managed-resource confirmation proceeds', async () => {

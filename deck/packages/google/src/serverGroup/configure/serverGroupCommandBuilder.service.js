@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { AccountService, ExpectedArtifactService } from '@spinnaker/core';
+import { AccountService, ExpectedArtifactService, InstanceTypeService } from '@spinnaker/core';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
 import { GCEProviderSettings } from '../../gce.settings';
 import { parseHealthCheckUrl } from '../../healthCheck/healthCheckUtils';
@@ -15,11 +15,15 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
   'spinnaker.gce.serverGroupCommandBuilder.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
 export class GceServerGroupCommandBuilder {
-  constructor($q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) }) {
-    const instanceTypeService = new GceInstanceTypeService($q);
-    const gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService();
-    const gceServerGroupHiddenMetadataKeys = GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS;
-    const gceXpnNamingService = new GceXpnNamingService();
+  constructor(
+    $q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) },
+    instanceTypeService = new InstanceTypeService({
+      getDelegate: () => new GceInstanceTypeService($q),
+    }),
+    gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService(),
+    gceXpnNamingService = new GceXpnNamingService(),
+    gceServerGroupHiddenMetadataKeys = GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS,
+  ) {
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
     //   2) Each machine type appears in exactly one category.
@@ -206,34 +210,42 @@ export class GceServerGroupCommandBuilder {
     }
 
     function populateAutoHealingPolicy(serverGroup, command) {
+      // Always clear first: pipeline edit copies cluster JSON onto the command before this
+      // runs, and legacy payloads may carry unsupported maxUnavailable alone or alongside
+      // a health check. Rebuild from supported fields only so Deck cannot resubmit it.
+      delete command.autoHealingPolicy;
       const autoHealingPolicy = serverGroup.autoHealingPolicy;
-      if (autoHealingPolicy) {
-        const healthCheckUrl = autoHealingPolicy.healthCheckUrl
-          ? autoHealingPolicy.healthCheckUrl
-          : autoHealingPolicy.healthCheck;
-
-        if (healthCheckUrl) {
-          const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
-          command.autoHealingPolicy = {
-            healthCheck: healthCheckName,
-            healthCheckKind: healthCheckKind,
-            healthCheckUrl: healthCheckUrl,
-            initialDelaySec: autoHealingPolicy.initialDelaySec,
-          };
-        }
-
-        const maxUnavailable = autoHealingPolicy.maxUnavailable;
-        if (maxUnavailable) {
-          command.autoHealingPolicy.maxUnavailable = maxUnavailable;
-          command.viewState.maxUnavailableMetric = typeof maxUnavailable.percent === 'number' ? 'percent' : 'fixed';
-        }
+      if (!autoHealingPolicy) {
+        return;
       }
+      const healthCheckUrl = autoHealingPolicy.healthCheckUrl
+        ? autoHealingPolicy.healthCheckUrl
+        : autoHealingPolicy.healthCheck;
+      if (!healthCheckUrl) {
+        return;
+      }
+      const { healthCheckName, healthCheckKind } = parseHealthCheckUrl(healthCheckUrl);
+      command.autoHealingPolicy = {
+        healthCheck: healthCheckName,
+        healthCheckKind,
+        healthCheckUrl: healthCheckUrl,
+        initialDelaySec: autoHealingPolicy.initialDelaySec,
+      };
     }
 
-    function populateShieldedVmConfig(serverGroup, command) {
-      command.enableSecureBoot = serverGroup.enableSecureBoot;
-      command.enableVtpm = serverGroup.enableVtpm;
-      command.enableIntegrityMonitoring = serverGroup.enableIntegrityMonitoring;
+    // Dual-key fallback: try v1 key (shieldedInstanceConfig) first, then legacy beta key
+    // (shieldedVmConfig) for backward compat with server groups created before the v1 migration.
+    // Ref: https://cloud.google.com/compute/docs/reference/rest/v1/instanceTemplates
+    function populateShieldedVmConfig(source, command) {
+      const shieldedInstanceConfig = _.get(source, 'launchConfig.instanceTemplate.properties.shieldedInstanceConfig');
+      const shieldedVmConfig = _.get(source, 'launchConfig.instanceTemplate.properties.shieldedVmConfig');
+      ['enableSecureBoot', 'enableVtpm', 'enableIntegrityMonitoring'].forEach((field) => {
+        command[field] = _.has(shieldedInstanceConfig, field)
+          ? shieldedInstanceConfig[field]
+          : _.has(shieldedVmConfig, field)
+          ? shieldedVmConfig[field]
+          : _.get(source, field, false);
+      });
     }
 
     function populateCustomMetadata(metadataItems, command) {
@@ -292,12 +304,6 @@ export class GceServerGroupCommandBuilder {
     function populateResourceManagerTags(instanceTemplateResourceManagerTags, command) {
       if (instanceTemplateResourceManagerTags) {
         Object.assign(command.resourceManagerTags, instanceTemplateResourceManagerTags);
-      }
-    }
-
-    function populatePartnerMetadata(instanceTemplatePartnerMetadata, command) {
-      if (instanceTemplatePartnerMetadata) {
-        Object.assign(command.partnerMetadata, instanceTemplatePartnerMetadata);
       }
     }
 
@@ -380,7 +386,6 @@ export class GceServerGroupCommandBuilder {
         tags: [],
         labels: {},
         resourceManagerTags: {},
-        partnerMetadata: {},
         enableSecureBoot: false,
         enableVtpm: false,
         enableIntegrityMonitoring: false,
@@ -461,11 +466,10 @@ export class GceServerGroupCommandBuilder {
         tags: [],
         labels: {},
         resourceManagerTags: {},
-        partnerMetadata: {},
         availabilityZones: [],
-        enableSecureBoot: serverGroup.enableSecureBoot,
-        enableVtpm: serverGroup.enableVtpm,
-        enableIntegrityMonitoring: serverGroup.enableIntegrityMonitoring,
+        enableSecureBoot: false,
+        enableVtpm: false,
+        enableIntegrityMonitoring: false,
         enableTraffic: true,
         cloudProvider: 'gce',
         selectedProvider: 'gce',
@@ -473,6 +477,11 @@ export class GceServerGroupCommandBuilder {
           zones: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.zones : [],
           targetShape: serverGroup.distributionPolicy ? serverGroup.distributionPolicy.targetShape : null,
         },
+        // Preserve explicit empty policies while keeping absence distinct.
+        instanceFlexibilityPolicy:
+          serverGroup.instanceFlexibilityPolicy === undefined
+            ? undefined
+            : _.cloneDeep(serverGroup.instanceFlexibilityPolicy),
         selectZones: serverGroup.selectZones,
         source: {
           account: serverGroup.account,
@@ -488,6 +497,8 @@ export class GceServerGroupCommandBuilder {
           mode: mode,
         },
       };
+
+      populateShieldedVmConfig(serverGroup, command);
 
       if (!command.regional) {
         command.zone = serverGroup.zones[0];
@@ -526,7 +537,6 @@ export class GceServerGroupCommandBuilder {
             serverGroup.launchConfig.instanceTemplate.properties.resourceManagerTags,
             command,
           );
-          populatePartnerMetadata(serverGroup.launchConfig.instanceTemplate.properties.partnerMetadata, command);
 
           return populateDisksFromExisting(serverGroup.launchConfig.instanceTemplate.properties.disks, command).then(
             function () {
@@ -583,6 +593,9 @@ export class GceServerGroupCommandBuilder {
           pipelineCluster.strategy = pipelineCluster.strategy || '';
 
           const extendedCommand = Object.assign({}, command, pipelineCluster, viewOverrides);
+          // Older saved pipeline payloads may still include partnerMetadata. Do not propagate it
+          // into deploy/clone commands that eventually create stable Compute v1 instance templates.
+          delete extendedCommand.partnerMetadata;
 
           return populateDisksFromPipeline(extendedCommand).then(function () {
             const instanceMetadata = extendedCommand.instanceMetadata;
@@ -603,9 +616,6 @@ export class GceServerGroupCommandBuilder {
 
             const resourceManagerTags = extendedCommand.resourceManagerTags;
             populateResourceManagerTags(resourceManagerTags, extendedCommand);
-
-            const partnerMetadata = extendedCommand.partnerMetadata;
-            populatePartnerMetadata(partnerMetadata, extendedCommand);
 
             return extendedCommand;
           });

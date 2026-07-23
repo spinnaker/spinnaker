@@ -33,6 +33,7 @@ import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.GLOBAL_LOA
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.LOAD_BALANCING_POLICY;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGIONAL_LOAD_BALANCER_NAMES;
 import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.REGION_BACKEND_SERVICE_NAMES;
+import static com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil.SELECT_ZONES;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +50,8 @@ import com.google.api.services.compute.model.AutoscalingPolicyScalingSchedule;
 import com.google.api.services.compute.model.DistributionPolicy;
 import com.google.api.services.compute.model.Instance;
 import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicy;
+import com.google.api.services.compute.model.InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection;
 import com.google.api.services.compute.model.InstanceProperties;
 import com.google.api.services.compute.model.InstanceTemplate;
 import com.google.api.services.compute.model.Metadata.Items;
@@ -93,6 +96,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.Sc
 import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy.ScalingSchedule;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDistributionPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstance;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceFlexibilityPolicy;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstances;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleLabeledResource;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup;
@@ -674,6 +678,46 @@ public abstract class AbstractGoogleServerGroupCachingAgent
       serverGroup.setZones(ImmutableSet.of(zone));
       serverGroup.setRegion(credentials.regionFromZone(zone));
     }
+    GoogleInstanceFlexibilityPolicy flexPolicy =
+        convertInstanceFlexibilityPolicy(manager.getInstanceFlexibilityPolicy());
+    if (flexPolicy != null) {
+      serverGroup.setInstanceFlexibilityPolicy(flexPolicy);
+    }
+  }
+
+  @Nullable
+  private static GoogleInstanceFlexibilityPolicy convertInstanceFlexibilityPolicy(
+      @Nullable InstanceGroupManagerInstanceFlexibilityPolicy gcePolicy) {
+    if (gcePolicy == null || gcePolicy.getInstanceSelections() == null) {
+      return null;
+    }
+    // Mirror deploy-handler hardening: skip malformed entries so cache decode remains resilient
+    // to partially invalid payloads and mixed-version data.
+    Map<String, GoogleInstanceFlexibilityPolicy.InstanceSelection> selections =
+        gcePolicy.getInstanceSelections().entrySet().stream()
+            .filter(entry -> entry.getKey() != null)
+            .filter(entry -> entry.getValue() != null)
+            .filter(
+                entry ->
+                    entry.getValue().getMachineTypes() != null
+                        && !entry.getValue().getMachineTypes().isEmpty())
+            .collect(
+                toImmutableMap(
+                    Map.Entry::getKey,
+                    entry -> {
+                      InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection gceSel =
+                          entry.getValue();
+                      GoogleInstanceFlexibilityPolicy.InstanceSelection sel =
+                          new GoogleInstanceFlexibilityPolicy.InstanceSelection();
+                      sel.setRank(gceSel.getRank());
+                      sel.setMachineTypes(gceSel.getMachineTypes());
+                      return sel;
+                    }));
+    // Keep model semantics consistent: an empty/fully filtered policy is treated as absent.
+    if (selections.isEmpty()) {
+      return null;
+    }
+    return new GoogleInstanceFlexibilityPolicy(selections);
   }
 
   private static ImmutableList<String> getZones(@Nullable DistributionPolicy distributionPolicy) {
@@ -899,6 +943,13 @@ public abstract class AbstractGoogleServerGroupCachingAgent
           log.warn("Error parsing load balancing policy", e);
         }
       }
+
+      // Deploy writes select-zones=true into template metadata when the caller chose explicit
+      // regional zones. Restore that intent so clone/edit can emit the same
+      // distributionPolicy.zones.
+      if ("true".equalsIgnoreCase(metadata.get(SELECT_ZONES))) {
+        serverGroup.setSelectZones(true);
+      }
     }
 
     serverGroup.setAsg(copyToImmutableMapWithoutNullValues(autoscalerGroup));
@@ -926,6 +977,12 @@ public abstract class AbstractGoogleServerGroupCachingAgent
               .map(AutoscalerStatusDetails::getMessage)
               .filter(Objects::nonNull)
               .collect(toImmutableList()));
+    }
+    if (autoscaler.getStatus() != null) {
+      serverGroup.setAutoscalerStatus(autoscaler.getStatus());
+    }
+    if (autoscaler.getRecommendedSize() != null) {
+      serverGroup.setRecommendedSize(autoscaler.getRecommendedSize());
     }
   }
 

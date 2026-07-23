@@ -104,13 +104,6 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
     if ((values.authScopes || []).some((scope: string) => !scope.trim())) {
       errors.authScopes = 'Auth scopes cannot be empty.';
     }
-    if (
-      typeof values.partnerMetadata === 'string' ||
-      Array.isArray(values.partnerMetadata) ||
-      (values.partnerMetadata != null && typeof values.partnerMetadata !== 'object')
-    ) {
-      errors.partnerMetadata = 'Partner metadata must be a JSON object.';
-    }
     if (values.enableConfidentialCompute && 'confidentialInstanceType' in values && !values.confidentialInstanceType) {
       errors.confidentialInstanceType = 'Confidential instance type required.';
     }
@@ -192,15 +185,6 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
       'authScopes',
       (this.props.formik.values.authScopes || []).filter((_scope: string, scopeIndex: number) => scopeIndex !== index),
     );
-  };
-
-  private updatePartnerMetadata = (value: string): void => {
-    try {
-      const parsed = JSON.parse(value);
-      this.setField('partnerMetadata', parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : value);
-    } catch (_error) {
-      this.setField('partnerMetadata', value);
-    }
   };
 
   private setPreemptible = (preemptible: boolean): void => {
@@ -611,27 +595,6 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
           {renderValidationError(errors.resourceManagerTags, 'gce-advanced-resource-manager-tags-error')}
         </div>
         <div className="form-group">
-          <label className="sm-label-left" htmlFor="gce-partner-metadata">
-            <b>Partner Metadata</b>
-          </label>
-          <textarea
-            aria-describedby={errors.partnerMetadata ? 'gce-advanced-partner-metadata-error' : undefined}
-            aria-invalid={Boolean(errors.partnerMetadata)}
-            className="form-control"
-            data-testid="partner-metadata"
-            id="gce-partner-metadata"
-            onChange={(event) => this.updatePartnerMetadata(event.target.value)}
-            rows={5}
-            value={
-              typeof values.partnerMetadata === 'string'
-                ? values.partnerMetadata
-                : JSON.stringify(values.partnerMetadata || {}, null, 2)
-            }
-          />
-          {renderValidationError(errors.partnerMetadata, 'gce-advanced-partner-metadata-error')}
-        </div>
-
-        <div className="form-group">
           <div className="sm-label-left">
             <b>Network Tags</b>
           </div>
@@ -684,7 +647,7 @@ export class AdvancedSettings extends GceServerGroupWizardPage {
 
         <fieldset className="form-group">
           <legend className="sm-label-left">
-            Shielded VM <HelpField id="gce.serverGroup.shieldedVmConfig" />
+            Shielded VM <HelpField id="gce.serverGroup.shieldedInstanceConfig" />
           </legend>
           <div className="col-md-9 checkbox">
             <label>
