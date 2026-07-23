@@ -1,6 +1,21 @@
-import type { ExecutionFilterModel } from './ExecutionFilterModel';
+import { ExecutionFilterModel } from './ExecutionFilterModel';
+import { ViewStateCache } from '../../cache';
+import type { IPipeline } from '../../domain';
 import { ExecutionFilterService } from './executionFilter.service';
 import { ExecutionState } from '../../state';
+
+describe('ExecutionFilterModel', () => {
+  it('reuses the execution filter cache across model instances', () => {
+    const existingCache =
+      ViewStateCache.get('executionFilters') || ViewStateCache.createCache('executionFilters', { version: 2 });
+    const createCache = spyOn(ViewStateCache, 'createCache').and.callThrough();
+
+    const secondModel = new ExecutionFilterModel();
+
+    expect(createCache).not.toHaveBeenCalled();
+    expect((secondModel as any).configViewStateCache).toBe(existingCache);
+  });
+});
 
 describe('ExecutionFilterService', function () {
   let model: ExecutionFilterModel;

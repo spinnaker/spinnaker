@@ -105,7 +105,7 @@ describe('pipeline states', () => {
       } as any);
       const router = createRouter();
 
-      await router.stateService.go('home.executionLookup', params);
+      await router.stateService.go('home.executionLookup', params, { location: false });
 
       expect(router.stateService.current.name).toBe(
         'home.applications.application.pipelines.executionDetails.execution',

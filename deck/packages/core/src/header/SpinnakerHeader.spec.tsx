@@ -4,12 +4,14 @@ import React from 'react';
 import { RecoilRoot } from 'recoil';
 
 import { AuthenticationService } from '../authentication/AuthenticationService';
+import { GlobalBannerService } from '../banner/global/GlobalBannerService';
 import { configureRouter } from '../navigation/router';
 import { SpinnakerHeaderContent } from './SpinnakerHeader';
 
 describe('SpinnakerHeader', () => {
   beforeEach(() => {
     spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ roles: [] } as any);
+    spyOn(GlobalBannerService, 'getActiveBanners').and.returnValue(Promise.resolve([]));
   });
 
   it('renders primary navigation with the legacy navbar class contract', () => {
