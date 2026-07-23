@@ -9,6 +9,7 @@ import { HelpField } from '../../../help';
 import type { IPrecondition } from './preconditionTypes';
 import { listPreconditionTypes } from './preconditionTypes';
 import { StageStatusPreconditionConfig } from './types/stageStatus/StageStatusPreconditionConfig';
+import { ScopeClusterSelector } from '../../../widgets/ScopeClusterSelector';
 
 export interface IPreconditionSelectorProps {
   application: Application;
@@ -127,8 +128,7 @@ export class PreconditionSelector extends React.Component<IPreconditionSelectorP
     });
   };
 
-  private updateClusterSizeCluster = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const cluster = event.target.value;
+  private updateClusterSizeCluster = ({ clusterName: cluster }: { clusterName: string }) => {
     const context = this.props.precondition.context || {};
     const clusterFilter = AppListExtractor.monikerClusterNameFilter(cluster);
     const moniker = AppListExtractor.getMonikers([this.props.application], clusterFilter)[0];
@@ -205,19 +205,11 @@ export class PreconditionSelector extends React.Component<IPreconditionSelectorP
             <div className="form-group row">
               <div className="col-sm-3 sm-label-right">Cluster</div>
               <div className="col-sm-9">
-                <select
-                  className="form-control input-sm"
-                  name="cluster"
-                  value={context.cluster || ''}
+                <ScopeClusterSelector
+                  clusters={this.getClusterSizeClusters()}
+                  model={context.cluster || ''}
                   onChange={this.updateClusterSizeCluster}
-                >
-                  <option value="">Select...</option>
-                  {this.getClusterSizeClusters().map((cluster) => (
-                    <option key={cluster} value={cluster}>
-                      {cluster}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
           </>

@@ -32,6 +32,7 @@ export interface IFormInputValidation {
 
 /** These props are used by Form Input components, such as TextInput */
 export interface IFormInputProps extends Partial<IControlledInputProps> {
+  'aria-label'?: string;
   validation?: IFormInputValidation;
   inputClassName?: string;
 }

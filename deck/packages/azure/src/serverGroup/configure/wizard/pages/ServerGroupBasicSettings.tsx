@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { NameUtils } from '@spinnaker/core';
+import { DeploymentStrategySelector, NameUtils } from '@spinnaker/core';
 
 import { AzureWizardPage } from './common';
 
@@ -46,6 +46,14 @@ export class ServerGroupBasicSettings extends AzureWizardPage {
     const result = values.regionChanged?.(values);
     this.props.formik.setFieldValue('region', region);
     values.processCommandUpdateResult?.(result);
+  };
+
+  private strategyChanged = (_values: any, strategy: any) => {
+    this.props.formik.setFieldValue('strategy', strategy.key);
+  };
+
+  private onStrategyFieldChange = (key: string, value: any) => {
+    this.props.formik.setFieldValue(key, value);
   };
 
   public render() {
@@ -96,6 +104,13 @@ export class ServerGroupBasicSettings extends AzureWizardPage {
         </div>
         {this.textField('Stack', 'stack')}
         {this.textField('Detail', 'freeFormDetails')}
+        {!values.viewState?.disableStrategySelection && values.selectedProvider && (
+          <DeploymentStrategySelector
+            command={values}
+            onFieldChange={this.onStrategyFieldChange}
+            onStrategyChange={this.strategyChanged}
+          />
+        )}
         {!values.viewState?.hideClusterNamePreview && (
           <div className="well text-center">
             Your server group will be in the cluster: <strong>{clusterName}</strong>
