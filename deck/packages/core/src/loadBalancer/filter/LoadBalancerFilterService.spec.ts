@@ -1,7 +1,9 @@
 import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import type { ILoadBalancer, ILoadBalancerGroup, IManagedResourceSummary, IServerGroup } from '../../domain';
-import { LoadBalancerState } from '../../state';
+import * as State from '../../state';
+
+const LoadBalancerState = State.LoadBalancerState;
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests
 describe('Service: loadBalancerFilterService', function () {
@@ -10,6 +12,7 @@ describe('Service: loadBalancerFilterService', function () {
   let app: Application, resultJson: any;
 
   beforeEach(() => {
+    State.initialize();
     LoadBalancerState.filterModel.asFilterModel.groups = [];
   });
 

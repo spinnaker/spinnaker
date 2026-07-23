@@ -1,8 +1,8 @@
 import type { IDeferred } from 'angular';
-import { $q } from 'ngimport';
 
 import type { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
 import { PipelineConfigValidator } from './PipelineConfigValidator';
+import { AngularServices } from '../../../angular/services';
 import type { IPipeline, IPipelineTrigger, IStage, IStageOrTriggerTypeConfig, ITrigger } from '../../../domain';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 
@@ -32,7 +32,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     stagesToTest.push(...pipeline.triggers);
 
     const parentTriggersToCheck = validator.checkParentTriggers ? this.addPipelineTriggers(pipeline, stagesToTest) : [];
-    return $q.all(parentTriggersToCheck).then(() => {
+    return AngularServices.$q.all(parentTriggersToCheck).then(() => {
       if (stagesToTest.every((test) => !stageTypes.includes(test.type))) {
         return validator.getMessage ? validator.getMessage() : validator.message;
       }
@@ -65,7 +65,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     ) as IPipelineTrigger[];
     const parentTriggersToCheck: Array<PromiseLike<any>> = [];
     pipelineTriggers.forEach((trigger) => {
-      const deferred: IDeferred<any> = $q.defer();
+      const deferred: IDeferred<any> = AngularServices.$q.defer();
       if (this.pipelineCache.has(trigger.application)) {
         this.addTriggers(this.pipelineCache.get(trigger.application), trigger.pipeline, stagesToTest);
       } else {

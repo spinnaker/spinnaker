@@ -76,6 +76,24 @@ describe('ApplicationNavigation', () => {
     expect(pagerDutyButton.length).toEqual(0);
   });
 
+  it('renders nav routes with shared flex row classes', () => {
+    const app = ApplicationModelBuilder.createApplicationForTests('testapp', mockServerGroupDataSourceConfig);
+    app.attributes.dataSources = app.dataSources;
+
+    const wrapper = mount(
+      <RecoilRoot>
+        <UIRouterContext.Provider value={$uiRouter}>
+          <ApplicationNavigation app={app} />
+        </UIRouterContext.Provider>
+      </RecoilRoot>,
+    );
+
+    const firstNavRoute = wrapper.find('a.nav-category').first();
+
+    expect(firstNavRoute.hasClass('flex-container-h')).toBe(true);
+    expect(firstNavRoute.hasClass('middle')).toBe(true);
+  });
+
   it('should render pager button', () => {
     SETTINGS.feature.pagerDuty = true;
     const app = ApplicationModelBuilder.createApplicationForTests('testapp');

@@ -27,9 +27,11 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
     super(props);
     this.state = {
       refreshing: false,
-      refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+      refreshTime: this.getRefreshTime(),
     };
   }
+
+  private getRefreshTime = () => InfrastructureCaches.get('securityGroups')?.getStats().ageMax || 0;
 
   private refreshSecurityGroups = () => {
     this.setState({ refreshing: true });
@@ -44,7 +46,7 @@ export class SecurityGroupSelector extends React.Component<ISecurityGroupSelecto
         .then(() => {
           this.setState({
             refreshing: false,
-            refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+            refreshTime: this.getRefreshTime(),
           });
         });
     }

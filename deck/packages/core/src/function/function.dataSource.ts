@@ -1,51 +1,100 @@
 import type { IQService } from 'angular';
 import { module } from 'angular';
+import { AngularServices } from '../angular/services';
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { SETTINGS } from '../config/settings';
-import type { IFunction } from '../domain';
+import type { IFunction, IFunctionSourceData } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 
-import type { FunctionReader } from './function.read.service';
+import { FunctionReader } from './function.read.service';
 import { FUNCTION_READ_SERVICE } from './function.read.service';
+import type { IFunctionTransformer } from './function.transformer';
 
 export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';
+
+function createDirectFunctionReader(): FunctionReader {
+  const providerServiceDelegate = AngularServices.providerServiceDelegate;
+  const functionTransformer: IFunctionTransformer = {
+    normalizeFunction: (functionDef: IFunctionSourceData) =>
+      providerServiceDelegate
+        .getDelegate<IFunctionTransformer>(functionDef.provider ? functionDef.provider : 'aws', 'function.transformer')
+        .normalizeFunction(functionDef),
+    normalizeFunctionSet: (functions: IFunctionSourceData[]) => {
+      const setTransformers = functions
+        .filter((fn) =>
+          providerServiceDelegate.hasDelegate(fn.provider ? fn.provider : 'aws', 'function.setTransformer'),
+        )
+        .map((fn) =>
+          providerServiceDelegate.getDelegate<IFunctionTransformer>(
+            fn.provider ? fn.provider : 'aws',
+            'function.setTransformer',
+          ),
+        )
+        .filter(
+          (transformer, index, transformers) =>
+            transformers.findIndex(
+              (candidate) => candidate.normalizeFunctionSet === transformer.normalizeFunctionSet,
+            ) === index,
+        );
+
+      return setTransformers.reduce(
+        (result, transformer) => transformer.normalizeFunctionSet.call(transformer, result),
+        functions,
+      );
+    },
+  };
+
+  return new FunctionReader(functionTransformer);
+}
+
+export function registerFunctionDataSource(
+  functionReader?: FunctionReader,
+  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T> = <T>(value: T | PromiseLike<T>) =>
+    AngularServices.$q.when(value),
+): void {
+  if (
+    !SETTINGS.feature.functions ||
+    ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'functions')
+  ) {
+    return;
+  }
+  const reader = functionReader || createDirectFunctionReader();
+  const functions = (application: Application) => {
+    return reader.loadFunctions(application.name);
+  };
+
+  const addFunctions = (_application: Application, functionList: IFunction[]) => {
+    return when(functionList);
+  };
+
+  const addTags = (application: Application) => {
+    EntityTagsReader.addTagsToFunctions(application);
+  };
+
+  ApplicationDataSourceRegistry.registerDataSource({
+    key: 'functions',
+    label: 'functions',
+    sref: '.insight.functions',
+    category: INFRASTRUCTURE_KEY,
+    optional: true,
+    icon: 'fa fa-xs fa-fw fa-asterisk',
+    iconName: 'spMenuFunctions',
+    loader: functions,
+    onLoad: addFunctions,
+    afterLoad: addTags,
+    providerField: 'cloudProvider',
+    credentialsField: 'account',
+    regionField: 'region',
+    description: 'Serverless Compute Service.',
+    defaultData: [],
+  });
+}
+
 module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
   '$q',
   'functionReader',
-  ($q: IQService, functionReader: FunctionReader) => {
-    if (!SETTINGS.feature.functions) {
-      return;
-    }
-    const functions = (application: Application) => {
-      return functionReader.loadFunctions(application.name);
-    };
-
-    const addFunctions = (_application: Application, functionList: IFunction[]) => {
-      return $q.when(functionList);
-    };
-
-    const addTags = (application: Application) => {
-      EntityTagsReader.addTagsToFunctions(application);
-    };
-
-    ApplicationDataSourceRegistry.registerDataSource({
-      key: 'functions',
-      label: 'functions',
-      sref: '.insight.functions',
-      category: INFRASTRUCTURE_KEY,
-      optional: true,
-      icon: 'fa fa-xs fa-fw fa-asterisk',
-      iconName: 'spMenuFunctions',
-      loader: functions,
-      onLoad: addFunctions,
-      afterLoad: addTags,
-      providerField: 'cloudProvider',
-      credentialsField: 'account',
-      regionField: 'region',
-      description: 'Serverless Compute Service.',
-      defaultData: [],
-    });
-  },
+  ($q: IQService, functionReader: FunctionReader) =>
+    registerFunctionDataSource(functionReader, <T>(value: T | PromiseLike<T>) => $q.when(value)),
 ]);

@@ -1,4 +1,3 @@
-import { $rootScope } from 'ngimport';
 import React from 'react';
 
 import { AngularServices } from '../angular/services';
@@ -9,7 +8,7 @@ import './FilterCollapse.less';
 export class FilterCollapse extends React.Component<{}> {
   private onClick = (pin: boolean) => {
     AngularServices.insightFilterStateModel.pinFilters(pin);
-    $rootScope.$apply(); // insight layout needs to change
+    AngularServices.$rootScope.$apply(); // insight layout needs to change
     this.setState({}); // force re-render since we are using insight filter state model to show the collapse button
   };
 
