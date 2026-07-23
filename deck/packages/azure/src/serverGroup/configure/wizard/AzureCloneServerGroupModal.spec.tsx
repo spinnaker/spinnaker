@@ -318,6 +318,7 @@ describe('AzureCloneServerGroupModal', () => {
   });
 
   it('renders account and region filtered load balancers from the command', () => {
+    spyOn(NetworkReader, 'listNetworks').and.returnValue(Promise.resolve({ azure: [] }) as any);
     const serverGroupCommand = command({
       loadBalancers: ['lb-a'],
       loadBalancerName: null,

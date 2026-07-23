@@ -1,20 +1,10 @@
-import * as ngimport from 'ngimport';
-
 import { setDirectRouter } from '../navigation/directRouter';
 import { FilterModelService } from './FilterModelService';
 import type { IFilterConfig, IFilterModel } from './IFilterModel';
 
 describe('FilterModelService direct router integration', () => {
-  let originalInjector: typeof ngimport.$injector;
-
-  beforeEach(() => {
-    originalInjector = ngimport.$injector;
-    (ngimport as any).$injector = undefined;
-  });
-
   afterEach(() => {
     setDirectRouter(null);
-    (ngimport as any).$injector = originalInjector;
   });
 
   it('registers shared filter hooks and hydrates permalink params without an Angular injector', () => {

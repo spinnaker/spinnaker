@@ -23,6 +23,7 @@ import { registerDeployCloudFormationStackStage } from './deployCloudFormationSt
 describe('Deploy CloudFormation stack stage', () => {
   beforeEach(() => {
     spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]));
+    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(Promise.resolve([]));
     spyOn(AccountService, 'getUniqueAttributeForAllAccounts').and.returnValue(Promise.resolve([]));
   });
 
