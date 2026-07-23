@@ -120,7 +120,7 @@ export class Applications extends React.Component<{}, IApplicationsState> {
         },
       );
 
-    const { $stateParams, $state, $rootScope, overrideRegistry } = AngularServices;
+    const { $stateParams, $state, $rootScope } = AngularServices;
     const { create } = $stateParams as IApplicationsStateParams;
     applicationSummaries$.subscribe((applications: IApplicationSummary[]) => {
       if (create) {
@@ -138,14 +138,11 @@ export class Applications extends React.Component<{}, IApplicationsState> {
           AngularServices.modalService
             .open({
               scope: $rootScope.$new(),
-              templateUrl: overrideRegistry.getTemplate(
-                'createApplicationModal',
-                require('../modal/newapplication.html'),
-              ),
+              templateUrl: require('../modal/newapplication.html'),
               resolve: {
                 name: () => create,
               },
-              controller: overrideRegistry.getController('CreateApplicationModalCtrl'),
+              controller: 'CreateApplicationModalCtrl',
               controllerAs: 'newAppModal',
             })
             .result.then(

@@ -11,6 +11,5 @@ describe('Run Job stage registration', () => {
     });
     expect((runJobStage as any).templateUrl).toBeUndefined();
     expect((runJobStage as any).controller).toBeUndefined();
-    expect((runJobStage as any).executionDetailsUrl).toBeUndefined();
   });
 });

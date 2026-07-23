@@ -1,4 +1,3 @@
-import { $templateCache } from 'ngimport';
 import type { FunctionComponent } from 'react';
 import React from 'react';
 
@@ -10,7 +9,6 @@ import type { ILoadBalancerStateParams } from '../loadBalancer.states';
 import type { IOverridableProps } from '../../overrideRegistry';
 import { overridableComponent } from '../../overrideRegistry';
 import { useData } from '../../presentation';
-import { AngularJSAdapter } from '../../reactShims';
 
 export interface ILoadBalancerDetailsWrapperProps extends IOverridableProps {
   app: Application;
@@ -49,11 +47,10 @@ export interface ILoadBalancerDetailsProps extends ILoadBalancerDetailsWrapperPr
 }
 
 interface IDetailsTemplateState {
-  detailsTemplateUrl?: string;
-  detailsController?: string;
   useDetailsHook?: UseDetailsHook<ILoadBalancer>;
   detailsActions?: FunctionComponent<ILoadBalancerActionsProps>;
   detailsSections?: Array<FunctionComponent<ILoadBalancerDetailsSectionProps>>;
+  legacyDetailsConfigured?: boolean;
 }
 
 const getDetailsTemplate = (provider: string): Promise<IDetailsTemplateState> =>
@@ -64,30 +61,22 @@ const getDetailsTemplate = (provider: string): Promise<IDetailsTemplateState> =>
     CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsTemplateUrl'),
     CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsController'),
   ]).then(([useDetailsHook, detailsActions, detailsSections, templateUrl, detailsController]) => {
-    const detailsTemplateUrl = templateUrl ? $templateCache.get<string>(templateUrl) : undefined;
     return {
       useDetailsHook,
       detailsActions,
       detailsSections,
-      detailsTemplateUrl,
-      detailsController,
+      legacyDetailsConfigured: !!(templateUrl && detailsController),
     };
   });
 
-function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerDetailsWrapperProps) {
+export function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerDetailsWrapperProps) {
   const { provider } = loadBalancer;
 
   const { result: detailsTemplate } = useData<IDetailsTemplateState>(() => getDetailsTemplate(provider), {}, [
     provider,
   ]);
 
-  const {
-    useDetailsHook,
-    detailsActions: DetailsActions,
-    detailsSections,
-    detailsTemplateUrl,
-    detailsController,
-  } = detailsTemplate;
+  const { useDetailsHook, detailsActions: DetailsActions, detailsSections, legacyDetailsConfigured } = detailsTemplate;
 
   if (useDetailsHook && DetailsActions && detailsSections) {
     // React rendering
@@ -102,15 +91,12 @@ function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerDetailsW
     );
   }
 
-  if (detailsTemplateUrl && detailsController) {
-    // Angular rendering
+  if (legacyDetailsConfigured) {
     return (
-      <AngularJSAdapter
-        className="detail-content flex-container-h"
-        template={detailsTemplateUrl}
-        controller={`${detailsController} as ctrl`}
-        locals={{ app, loadBalancer }}
-      />
+      <div className="alert alert-warning">
+        Load balancer details for {provider} must be migrated to React. AngularJS templates/controllers are no longer
+        supported.
+      </div>
     );
   }
 

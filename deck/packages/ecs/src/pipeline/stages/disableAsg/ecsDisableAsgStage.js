@@ -1,12 +1,15 @@
-import { PipelineTemplates, Registry } from '@spinnaker/core';
+import React from 'react';
+import { Registry } from '@spinnaker/core';
+
+import { EcsServerGroupStepLabel } from '../common/EcsServerGroupStepLabel';
 
 Registry.pipeline.registerStage({
   provides: 'disableServerGroup',
   alias: 'disableAsg',
   cloudProvider: 'ecs',
   templateUrl: require('./disableAsgStage.html'),
-  executionDetailsUrl: PipelineTemplates.disableAsgExecutionDetails,
-  executionStepLabelUrl: require('./disableAsgStepLabel.html'),
+  executionStepLabelComponent: (props) =>
+    React.createElement(EcsServerGroupStepLabel, { action: 'Disable Server Group', ...props }),
   validators: [
     {
       type: 'targetImpedance',

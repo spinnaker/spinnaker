@@ -16,7 +16,6 @@ import { UnlockPipelineModal } from './actions/unlock/UnlockPipelineModal';
 import { ViewStateCache } from '../../cache';
 import { CopyStageModal } from './copyStage/CopyStageModal';
 import { EXECUTION_BUILD_TITLE } from '../executionBuild/ExecutionBuildTitle';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry/override.registry';
 import { ReactModal } from '../../presentation';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
 import { PipelineConfigService } from './services/PipelineConfigService';
@@ -27,7 +26,7 @@ import { PipelineConfigValidator } from './validation/PipelineConfigValidator';
 export const CORE_PIPELINE_CONFIG_PIPELINECONFIGURER = 'spinnaker.core.pipeline.config.pipelineConfigurer';
 export const name = CORE_PIPELINE_CONFIG_PIPELINECONFIGURER; // for backwards compatibility
 angular
-  .module(CORE_PIPELINE_CONFIG_PIPELINECONFIGURER, [OVERRIDE_REGISTRY, PIPELINE_CONFIG_ACTIONS, EXECUTION_BUILD_TITLE])
+  .module(CORE_PIPELINE_CONFIG_PIPELINECONFIGURER, [PIPELINE_CONFIG_ACTIONS, EXECUTION_BUILD_TITLE])
   .directive('pipelineConfigurer', function () {
     return {
       restrict: 'E',
@@ -52,9 +51,8 @@ angular
     '$q',
     '$state',
     'executionService',
-    'overrideRegistry',
     '$location',
-    function ($scope, $uibModal, $timeout, $window, $q, $state, executionService, overrideRegistry, $location) {
+    function ($scope, $uibModal, $timeout, $window, $q, $state, executionService, $location) {
       const ctrl = this;
       const markDirty = () => {
         if (!$scope.viewState.original) {
@@ -328,7 +326,7 @@ angular
       };
 
       this.configureTemplate = () => {
-        const controller = PipelineTemplateV2Service.isV2PipelineConfig($scope.pipeline)
+        const modalConfig = PipelineTemplateV2Service.isV2PipelineConfig($scope.pipeline)
           ? {
               name: 'ConfigurePipelineTemplateModalV2Ctrl',
               template: require('./templates/v2/configurePipelineTemplateModalV2.html'),
@@ -342,8 +340,8 @@ angular
         $uibModal
           .open({
             size: 'lg',
-            templateUrl: controller.template,
-            controller: `${controller.name} as ctrl`,
+            templateUrl: modalConfig.template,
+            controller: `${modalConfig.name} as ctrl`,
             resolve: {
               application: () => $scope.application,
               pipelineTemplateConfig: () => _.cloneDeep($scope.pipeline),
