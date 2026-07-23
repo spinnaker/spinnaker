@@ -1,6 +1,10 @@
-import { $timeout } from 'ngimport';
+import { cancellableTimeout } from './cancellableTimeout';
 
-type CancellableTimeout = PromiseLike<unknown> & { timeoutId?: ReturnType<typeof setTimeout> };
+type ScheduledTimeout = PromiseLike<unknown>;
+type RetryTimeout = {
+  <T>(callback: () => T | PromiseLike<T>, delay?: number): PromiseLike<T>;
+  cancel(promise?: any): boolean;
+};
 
 export interface IRetryablePromise<T> {
   cancel: () => void;
@@ -11,28 +15,15 @@ export const retryablePromise = <T>(
   closure: () => PromiseLike<T>,
   interval = 1000,
   maxTries = 0,
+  timeout: RetryTimeout = cancellableTimeout,
 ): IRetryablePromise<T> => {
-  let currentTimeout: CancellableTimeout;
+  let currentTimeout: ScheduledTimeout;
   let currentTries = 0;
-  const scheduleTimeout = (fn: () => PromiseLike<T>, delay: number): CancellableTimeout => {
-    if ($timeout) {
-      return ($timeout(fn, delay) as unknown) as CancellableTimeout;
-    }
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    const promise = new Promise((resolve) => {
-      timeoutId = setTimeout(() => resolve(fn()), delay);
-    }) as CancellableTimeout;
-    if (timeoutId) {
-      promise.timeoutId = timeoutId;
-    }
-    return promise;
+  const scheduleTimeout = (fn: () => PromiseLike<T>, delay: number): ScheduledTimeout => {
+    return timeout(fn, delay);
   };
-  const cancelTimeout = (timeout: CancellableTimeout): void => {
-    if ($timeout) {
-      $timeout.cancel(timeout as any);
-    } else if (timeout.timeoutId) {
-      clearTimeout(timeout.timeoutId);
-    }
+  const cancelTimeout = (scheduledTimeout: ScheduledTimeout): void => {
+    timeout.cancel(scheduledTimeout);
   };
   const retryPromise: () => PromiseLike<T> = () => {
     currentTries++;

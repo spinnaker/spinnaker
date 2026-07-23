@@ -14,8 +14,7 @@ describe('Application Model', function () {
     securityGroupReader: SecurityGroupReader,
     loadBalancerReader: any,
     clusterService: any,
-    $q: ng.IQService,
-    $scope: ng.IScope;
+    $rootScope: ng.IRootScopeService;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
@@ -25,47 +24,21 @@ describe('Application Model', function () {
     mock.inject(function (
       _securityGroupReader_: SecurityGroupReader,
       _clusterService_: any,
-      _$q_: ng.IQService,
       _loadBalancerReader_: any,
-      $rootScope: any,
+      _$rootScope_: ng.IRootScopeService,
     ) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
-      $q = _$q_;
-      $scope = $rootScope.$new();
+      $rootScope = _$rootScope_;
     }),
   );
 
-  async function digestPromises<T>(promise: PromiseLike<T>): Promise<T> {
-    let isResolved = false;
-    let result: T;
-    let error: any;
-
-    promise.then(
-      (value) => {
-        isResolved = true;
-        result = value;
-      },
-      (reason) => {
-        isResolved = true;
-        error = reason;
-      },
-    );
-
-    for (let i = 0; i < 10 && !isResolved; i++) {
-      $scope.$digest();
-      await Promise.resolve();
-    }
-
-    if (!isResolved) {
-      result = await promise;
-      $scope.$digest();
-    }
-    if (error) {
-      throw error;
-    }
-    return result;
+  async function flushPromise<T>(promise: PromiseLike<T>): Promise<T> {
+    const nativePromise = Promise.resolve(promise);
+    await Promise.resolve();
+    $rootScope.$digest();
+    return nativePromise;
   }
 
   async function configureApplication(
@@ -74,22 +47,22 @@ describe('Application Model', function () {
     securityGroupsByApplicationName: any[],
   ) {
     spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue(
-      $q.when(securityGroupsByApplicationName),
+      Promise.resolve(securityGroupsByApplicationName),
     );
-    spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when(loadBalancers));
-    spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when(serverGroups));
-    spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([] as any));
+    spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue(Promise.resolve(loadBalancers));
+    spyOn(clusterService, 'loadServerGroups').and.returnValue(Promise.resolve(serverGroups));
+    spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue(Promise.resolve([] as any));
     spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function (
       _app: Application,
       groupsByName: any[],
     ) {
-      return $q.when(groupsByName || []);
+      return Promise.resolve(groupsByName || []);
     });
     application = ApplicationModelBuilder.createApplicationForTests(
       'app',
       ...ApplicationDataSourceRegistry.getDataSources(),
     );
-    await digestPromises(application.refresh());
+    await flushPromise(application.refresh());
   }
 
   describe('lazy dataSources', function () {
@@ -98,8 +71,8 @@ describe('Application Model', function () {
         key: 'lazySource',
         lazy: true,
         defaultData: [],
-        loader: () => $q.resolve(['a']),
-        onLoad: (_app, data) => $q.resolve(data),
+        loader: () => Promise.resolve(['a']),
+        onLoad: (_app, data) => Promise.resolve(data),
       });
     });
 
@@ -109,7 +82,7 @@ describe('Application Model', function () {
         spyOn(application.getDataSource('lazySource'), 'refresh').and.callThrough();
 
         application.getDataSource('lazySource').activate();
-        await digestPromises(application.getDataSource('lazySource').ready());
+        await flushPromise(application.getDataSource('lazySource').ready());
         expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(1);
         expect(application.getDataSource('lazySource').active).toBe(true);
         expect(application.getDataSource('lazySource').loaded).toBe(true);
@@ -124,7 +97,7 @@ describe('Application Model', function () {
         application.getDataSource('lazySource').deactivate();
         application.getDataSource('lazySource').loaded = false;
         application.getDataSource('lazySource').activate();
-        await digestPromises(application.getDataSource('lazySource').ready());
+        await flushPromise(application.getDataSource('lazySource').ready());
         expect((application.getDataSource('lazySource').refresh as any).calls.count()).toBe(2);
       });
     });
@@ -136,13 +109,13 @@ describe('Application Model', function () {
         expect(application.getDataSource('lazySource').active).toBeFalsy();
 
         application.getDataSource('lazySource').activate();
-        await digestPromises(application.getDataSource('lazySource').ready());
+        await flushPromise(application.getDataSource('lazySource').ready());
         expect(application.getDataSource('lazySource').active).toBe(true);
         expect(application.getDataSource('lazySource').loaded).toBe(true);
         expect(application.getDataSource('lazySource').data.length).toBe(1);
 
         application.getDataSource('lazySource').deactivate();
-        await digestPromises(application.refresh());
+        await flushPromise(application.refresh());
 
         expect(application.getDataSource('lazySource').data).toEqual([]);
         expect(application.getDataSource('lazySource').loaded).toBe(false);
@@ -211,7 +184,7 @@ describe('Application Model', function () {
         await configureApplication([], [], []);
 
         application.ready().then(() => (isReady = true));
-        await digestPromises(application.ready());
+        await flushPromise(application.ready());
         expect(isReady).toBe(true);
       });
     });

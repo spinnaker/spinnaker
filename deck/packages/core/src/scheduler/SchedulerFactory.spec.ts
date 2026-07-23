@@ -1,10 +1,10 @@
-import * as angular from 'angular';
 import type { ITimeoutService } from 'angular';
-import { mock } from 'angular';
+
+import { AngularServices } from '../angular/services';
 import { SchedulerFactory } from './SchedulerFactory';
 
 describe('SchedulerFactory without Angular injection', function () {
-  it('uses browser globals when ngimport services are unavailable', function () {
+  it('uses browser globals without Angular services', function () {
     const addEventListener = spyOn(window, 'addEventListener').and.callThrough();
     const removeEventListener = spyOn(window, 'removeEventListener').and.callThrough();
 
@@ -46,21 +46,43 @@ describe('SchedulerFactory without Angular injection', function () {
   });
 });
 
-describe('SchedulerFactory with Angular services', function () {
-  let $timeout: ITimeoutService;
+describe('SchedulerFactory with direct services', function () {
+  interface PendingTimeout {
+    callback: () => void;
+    cancelled: boolean;
+  }
+
+  let pendingTimeouts: PendingTimeout[];
+  let flushTimeout: () => void;
 
   beforeEach(function () {
-    const pollSchedule = 25;
+    pendingTimeouts = [];
+    const timeout = (((callback: () => void) => {
+      const pending = { callback, cancelled: false };
+      pendingTimeouts.push(pending);
+      return pending;
+    }) as any) as ITimeoutService;
+    timeout.cancel = (pending: PendingTimeout) => {
+      if (!pending) {
+        return false;
+      }
+      pending.cancelled = true;
+      return true;
+    };
+    flushTimeout = () => {
+      const activeTimeouts = pendingTimeouts.filter(({ cancelled }) => !cancelled);
+      pendingTimeouts = [];
+      if (!activeTimeouts.length) {
+        throw new Error('No pending timeouts');
+      }
+      activeTimeouts.forEach(({ callback }) => callback());
+    };
+    spyOnProperty(AngularServices, '$timeout', 'get').and.returnValue(timeout);
 
-    this.pollSchedule = pollSchedule;
-
-    mock.inject(function (_$timeout_: ITimeoutService) {
-      this.scheduler = SchedulerFactory.createScheduler();
-      $timeout = _$timeout_;
-    });
+    this.scheduler = SchedulerFactory.createScheduler(60000);
 
     this.test = {
-      call: angular.noop,
+      call: () => undefined,
     };
   });
 
@@ -90,11 +112,11 @@ describe('SchedulerFactory with Angular services', function () {
       this.scheduler.scheduleImmediate();
       expect(this.test.call.calls.count()).toBe(4);
 
-      $timeout.flush();
+      flushTimeout();
       expect(this.test.call.calls.count()).toBe(5);
 
       // verify no outstanding timeouts
-      expect($timeout.flush).toThrow();
+      expect(flushTimeout).toThrow();
     });
 
     it('does not schedule another run when a subscriber unsubscribes during immediate notification', function () {
@@ -105,7 +127,7 @@ describe('SchedulerFactory with Angular services', function () {
       scheduler.scheduleImmediate();
 
       expect(subscriber).toHaveBeenCalledTimes(1);
-      expect(() => $timeout.flush()).toThrowError(/No deferred tasks to be flushed/);
+      expect(flushTimeout).toThrowError('No pending timeouts');
       expect(() => scheduler.scheduleImmediate()).not.toThrow();
       expect(subscriber).toHaveBeenCalledTimes(1);
     });
@@ -121,7 +143,7 @@ describe('SchedulerFactory with Angular services', function () {
 
       expect(firstSubscriber).toHaveBeenCalledTimes(1);
       expect(secondSubscriber).not.toHaveBeenCalled();
-      expect(() => $timeout.flush()).toThrowError(/No deferred tasks to be flushed/);
+      expect(flushTimeout).toThrowError('No pending timeouts');
       scheduler.scheduleImmediate();
       expect(firstSubscriber).toHaveBeenCalledTimes(1);
       expect(secondSubscriber).not.toHaveBeenCalled();

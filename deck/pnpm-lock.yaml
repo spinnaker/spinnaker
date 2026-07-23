@@ -690,9 +690,6 @@ importers:
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -978,9 +975,6 @@ importers:
       lodash:
         specifier: 4.18.1
         version: 4.18.1
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       react:
         specifier: ^16.14.0
         version: 16.14.0
@@ -1247,9 +1241,6 @@ importers:
       memoize-one:
         specifier: 6.0.0
         version: 6.0.0
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
       prop-types:
         specifier: 15.6.1
         version: 15.6.1
@@ -1831,10 +1822,6 @@ importers:
         version: 5.0.4
 
   packages/mocks:
-    dependencies:
-      ngimport:
-        specifier: 0.6.1
-        version: 0.6.1
     devDependencies:
       '@spinnaker/amazon':
         specifier: workspace:*

@@ -94,9 +94,9 @@ describe('<AccountSelectInput/>', () => {
     expect(AccountServiceSpy.calls.count()).toBe(0);
   });
 
-  it('sets all accounts as primary when only names are supplied and provider is not set', () => {
+  it('sets all accounts as primary when only names are supplied and provider is not set', async () => {
     component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
-    $scope.$digest();
+    await Promise.resolve();
     const state = component.state();
 
     expect(state.mergedAccounts).toEqual(['prod', 'test']);
@@ -121,9 +121,9 @@ describe('<AccountSelectInput/>', () => {
     });
   });
 
-  it('re-groups accounts when they change', () => {
+  it('re-groups accounts when they change', async () => {
     component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
-    $scope.$digest();
+    await Promise.resolve();
     let state = component.state();
 
     expect(state.mergedAccounts).toEqual(['prod', 'test']);
@@ -132,7 +132,7 @@ describe('<AccountSelectInput/>', () => {
     expect(AccountServiceSpy.calls.count()).toBe(0);
 
     component.setProps({ accounts: ['prod', 'test', 'staging'] });
-    $scope.$digest();
+    await Promise.resolve();
     state = component.state();
 
     expect(state.mergedAccounts).toEqual(['prod', 'staging', 'test']);
@@ -141,13 +141,13 @@ describe('<AccountSelectInput/>', () => {
     expect(AccountServiceSpy.calls.count()).toBe(0);
   });
 
-  it('unselects nonexistent account', function () {
+  it('unselects nonexistent account', async function () {
     let updatedVal: string = null;
     const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
     component = shallow(
       <AccountSelectInput accounts={['prod', 'test']} provider={null} value="nonexistent" onChange={onChange} />,
     );
-    $scope.$digest();
+    await Promise.resolve();
     expect(updatedVal).toBe('');
   });
   //

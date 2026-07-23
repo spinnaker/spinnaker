@@ -1,6 +1,6 @@
 import type { ExpectedRequest } from './expectedRequest';
 import type { Verb } from './mockHttpUtils';
-import { deferred, isSuccessStatus, tick } from './mockHttpUtils';
+import { deferred, isSuccessStatus } from './mockHttpUtils';
 
 export class ReceivedRequest {
   constructor(
@@ -28,6 +28,6 @@ export class ReceivedRequest {
       this.responseDeferred.reject({ status, data });
     }
 
-    return tick();
+    return Promise.resolve();
   }
 }
