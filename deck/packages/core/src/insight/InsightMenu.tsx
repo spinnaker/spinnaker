@@ -5,6 +5,8 @@ import { AngularServices } from '../angular/services';
 
 import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
 import type { CacheInitializerService } from '../cache';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { Overridable } from '../overrideRegistry';
 import { ConfigureProjectModal } from '../projects';
 
@@ -18,17 +20,16 @@ export interface IInsightMenuState {
   refreshingCache: boolean;
 }
 
-@Overridable('createInsightMenu')
-export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenuState> {
+export class InsightMenuComponent extends React.Component<IInsightMenuProps & IRouterInjectedProps, IInsightMenuState> {
   public static defaultProps: IInsightMenuProps = { createApp: true, createProject: true, refreshCaches: true };
 
   private $state: StateService;
   private cacheInitializer: CacheInitializerService;
 
-  constructor(props: IInsightMenuProps) {
+  constructor(props: IInsightMenuProps & IRouterInjectedProps) {
     super(props);
     this.state = {} as IInsightMenuState;
-    this.$state = AngularServices.$state;
+    this.$state = props.stateService;
     this.cacheInitializer = AngularServices.cacheInitializer;
   }
 
@@ -102,3 +103,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     );
   }
 }
+
+const OverridableInsightMenu = Overridable('createInsightMenu')(InsightMenuComponent);
+export const InsightMenu = withRouter(OverridableInsightMenu);
+InsightMenu.displayName = 'InsightMenu';

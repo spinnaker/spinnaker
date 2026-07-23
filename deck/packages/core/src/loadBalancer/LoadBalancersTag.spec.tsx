@@ -1,3 +1,4 @@
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -14,9 +15,10 @@ describe('<LoadBalancersTag />', () => {
   const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' };
   const lb2 = { name: 'lb2', account: 'prod', region: 'us-east-1' };
 
-  let application: Application, component: ReactWrapper<ILoadBalancersTagProps, any>;
+  let application: Application, component: ReactWrapper<any, any>, router: UIRouterReact;
 
   beforeEach(async () => {
+    router = new UIRouterReact();
     application = ApplicationModelBuilder.createApplicationForTests('app', {
       key: 'loadBalancers',
       loader: () => Promise.resolve(application.loadBalancers.data),
@@ -25,6 +27,18 @@ describe('<LoadBalancersTag />', () => {
     });
     await application.loadBalancers.refresh();
   });
+
+  afterEach(() => {
+    component?.unmount();
+    router.dispose();
+  });
+
+  const mountTag = (props: ILoadBalancersTagProps) =>
+    mount(
+      <UIRouterContext.Provider value={router}>
+        <LoadBalancersTag {...props} />
+      </UIRouterContext.Provider>,
+    );
 
   it('extracts single load balancer from data', async () => {
     const serverGroup = {
@@ -38,7 +52,7 @@ describe('<LoadBalancersTag />', () => {
     application.getDataSource('loadBalancers').data = [lb1, lb2];
 
     const props: ILoadBalancersTagProps = { application, serverGroup };
-    component = mount(<LoadBalancersTag {...props} />);
+    component = mountTag(props);
 
     await Promise.resolve();
     await Promise.resolve();
@@ -59,7 +73,7 @@ describe('<LoadBalancersTag />', () => {
 
     const props: ILoadBalancersTagProps = { application, serverGroup };
     const popoverContainerEl = document.createElement('div');
-    component = mount(<LoadBalancersTag {...props} container={popoverContainerEl} />);
+    component = mountTag({ ...props, container: popoverContainerEl });
 
     await act(async () => {
       await Promise.resolve();

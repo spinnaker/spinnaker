@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import { BehaviorSubject } from 'rxjs';
 
-import { SearchV1 } from './SearchV1';
+import { SearchV1Component as SearchV1 } from './SearchV1';
 import { SearchResult } from './SearchResult';
 import type { ISearchResultSet } from './infrastructureSearch.service';
 import { AngularServices } from '../../angular/services';
@@ -31,12 +31,15 @@ describe('SearchV1', () => {
   let go: jasmine.Spy;
   let wrapper: ShallowWrapper | undefined;
 
+  const renderSearch = () =>
+    shallow(
+      <SearchV1 router={{ globals: { params$ } } as any} stateParams={params$.value} stateService={{ go } as any} />,
+    );
+
   beforeEach(() => {
     params$ = new BehaviorSubject({ q: null, route: null });
     query = jasmine.createSpy('query').and.returnValue(Promise.resolve([]));
     go = jasmine.createSpy('go');
-    spyOnProperty(AngularServices, '$state', 'get').and.callFake(() => ({ go, params: params$.value } as any));
-    spyOnProperty(AngularServices, '$uiRouter', 'get').and.returnValue({ globals: { params$ } } as any);
     spyOnProperty(AngularServices, 'infrastructureSearchService', 'get').and.returnValue({
       getSearcher: () => ({ query }),
     } as any);
@@ -58,7 +61,7 @@ describe('SearchV1', () => {
         resultSet('serverGroups', [{ href: '#/server', displayName: 'Server', provider: 'aws', type: 'serverGroups' }]),
       ]),
     );
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('ab');
@@ -85,7 +88,7 @@ describe('SearchV1', () => {
       new Promise((resolve) => (resolveSecond = resolve)),
       new Promise((resolve) => (resolveThird = resolve)),
     );
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('first');
@@ -111,7 +114,7 @@ describe('SearchV1', () => {
   it('ignores an in-flight result after the query becomes too short', async () => {
     let resolveSearch: (value: ISearchResultSet[]) => void;
     query.and.returnValue(new Promise((resolve) => (resolveSearch = resolve)));
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
 
     instance.handleQueryChange('first');
@@ -136,7 +139,7 @@ describe('SearchV1', () => {
         ]),
       ]),
     );
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     instance.handleQueryChange('app');
     jasmine.clock().tick(301);
@@ -150,7 +153,7 @@ describe('SearchV1', () => {
   });
 
   it('shows recent history for a blank query', () => {
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
 
     expect(wrapper.find(RecentlyViewedItems).exists()).toBe(true);
     expect(query).not.toHaveBeenCalled();
@@ -162,7 +165,7 @@ describe('SearchV1', () => {
       Promise.resolve([resultSet('applications', [{ displayName: 'initial', href: '#/one-shot-result' }])]),
       Promise.resolve([resultSet('applications', [{ displayName: 'later', href: '#/unexpected-result' }])]),
     );
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
 
@@ -184,7 +187,7 @@ describe('SearchV1', () => {
       new Promise((resolve) => (resolveLater = resolve)),
     );
     params$.next({ q: 'initial', route: true });
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
     jasmine.clock().tick(301);
@@ -211,7 +214,7 @@ describe('SearchV1', () => {
       new Promise((resolve) => (resolveLater = resolve)),
     );
     params$.next({ q: 'initial', route: true });
-    wrapper = shallow(<SearchV1 />);
+    wrapper = renderSearch();
     const instance = wrapper.instance() as SearchV1;
     const navigateToResult = spyOn<any>(instance, 'navigateToResult');
     jasmine.clock().tick(301);

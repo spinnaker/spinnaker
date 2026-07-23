@@ -3,7 +3,13 @@ import { groupBy, isEmpty } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { Application, ISecurityGroup, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
+import type {
+  Application,
+  IRouterInjectedProps,
+  ISecurityGroup,
+  ISecurityGroupDetail,
+  SecurityGroupReader,
+} from '@spinnaker/core';
 import {
   AccountTag,
   AddEntityTagLinks,
@@ -17,6 +23,7 @@ import {
   SecurityGroupWriter,
   SETTINGS,
   Spinner,
+  withRouter,
 } from '@spinnaker/core';
 
 import { IPRangeRules } from './IPRangeRules';
@@ -198,8 +205,8 @@ export function AmazonSecurityGroupActions({
   );
 }
 
-export class AmazonSecurityGroupDetails extends React.Component<
-  IAmazonSecurityGroupDetailsProps,
+export class AmazonSecurityGroupDetailsComponent extends React.Component<
+  IAmazonSecurityGroupDetailsProps & IRouterInjectedProps,
   IAmazonSecurityGroupDetailsState
 > {
   public state: IAmazonSecurityGroupDetailsState = { loading: true };
@@ -259,7 +266,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
       this.setState({ loading: false, notFound: true });
       return;
     }
-    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    this.props.stateService.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   };
 
   private loadSecurityGroup = (): void => {
@@ -313,7 +320,7 @@ export class AmazonSecurityGroupDetails extends React.Component<
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -430,3 +437,5 @@ export class AmazonSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const AmazonSecurityGroupDetails = withRouter(AmazonSecurityGroupDetailsComponent);
