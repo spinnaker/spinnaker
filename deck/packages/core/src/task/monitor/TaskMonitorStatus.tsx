@@ -1,14 +1,15 @@
+import { useRouter } from '@uirouter/react';
 import React from 'react';
 
 import { StatusGlyph } from '../StatusGlyph';
 import type { TaskMonitor } from './TaskMonitor';
-import { AngularServices } from '../../angular/services';
 import { displayableTasks } from '../displayableTasks.filter';
 import { robotToHuman, useForceUpdate, useObservable } from '../../presentation';
 import { duration } from '../../utils';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 export const TaskMonitorStatus = ({ monitor }: { monitor: TaskMonitor }) => {
+  const { stateService } = useRouter();
   const forceUpdate = useForceUpdate();
   useObservable(monitor.statusUpdatedStream, () => forceUpdate());
 
@@ -43,7 +44,7 @@ export const TaskMonitorStatus = ({ monitor }: { monitor: TaskMonitor }) => {
         <p>
           You can{' '}
           <a
-            href={AngularServices.$state.href('home.applications.application.tasks.taskDetails', {
+            href={stateService.href('home.applications.application.tasks.taskDetails', {
               application: monitor.application.name,
               taskId: monitor.task.id,
             })}

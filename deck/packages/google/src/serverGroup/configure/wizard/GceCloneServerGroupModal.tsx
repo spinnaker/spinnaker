@@ -1,8 +1,14 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IStage, IWizardPageInjectedProps } from '@spinnaker/core';
-import { AngularServices, noop, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import type {
+  Application,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+  IWizardPageInjectedProps,
+} from '@spinnaker/core';
+import { AngularServices, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { validateGceServerGroupCommand } from './GceServerGroupWizard.helpers';
 import type {
@@ -197,11 +203,11 @@ export function transformGceServerGroupCommand(command: IGceServerGroupCommand):
   return transformed;
 }
 
-export class GceCloneServerGroupModal extends React.Component<
-  IGceCloneServerGroupModalProps,
+export class GceCloneServerGroupModalComponent extends React.Component<
+  IGceCloneServerGroupModalProps & IRouterInjectedProps,
   IGceCloneServerGroupModalState
 > {
-  public static defaultProps: Partial<IGceCloneServerGroupModalProps> = {
+  public static defaultProps: Partial<IGceCloneServerGroupModalProps & IRouterInjectedProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
@@ -218,7 +224,7 @@ export class GceCloneServerGroupModal extends React.Component<
     return ReactModal.show(GceCloneServerGroupModal, props, { dialogClassName: 'wizard-modal modal-lg' });
   }
 
-  public constructor(props: IGceCloneServerGroupModalProps) {
+  public constructor(props: IGceCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
     this.adapter = props.adapter || new GceServerGroupWizardAdapter();
     this.command = cloneDeep(props.command);
@@ -322,16 +328,16 @@ export class GceCloneServerGroupModal extends React.Component<
     }
 
     let transitionTo = '^.^.^.clusters.serverGroup';
-    if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.serverGroup')) {
       transitionTo = '^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
       transitionTo = '^.^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters')) {
+    if (this.props.stateService.includes('**.clusters')) {
       transitionTo = '.serverGroup';
     }
-    AngularServices.$state.go(transitionTo, {
+    this.props.stateService.go(transitionTo, {
       accountId: command.credentials,
       provider: 'gce',
       region: command.region,
@@ -466,6 +472,10 @@ export class GceCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const GceCloneServerGroupModal = Object.assign(withRouter(GceCloneServerGroupModalComponent), {
+  show: GceCloneServerGroupModalComponent.show,
+});
 
 function initializeCommand(command: IGceServerGroupCommand, snapshot: IPersistedSelectionSnapshot): void {
   const accountAvailable =

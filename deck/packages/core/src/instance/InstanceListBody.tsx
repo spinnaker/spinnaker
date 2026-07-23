@@ -3,9 +3,10 @@ import { isEqual } from 'lodash';
 import React from 'react';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
-import { AngularServices } from '../angular/services';
 
 import type { IInstance, ILoadBalancerHealth, IServerGroup } from '../domain';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { Tooltip } from '../presentation';
 import { ClusterState } from '../state';
 import { timestamp } from '../utils/timeFormatters';
@@ -24,45 +25,49 @@ export interface IInstanceListBodyState {
   instanceSort?: string;
 }
 
-export class InstanceListBody extends React.Component<IInstanceListBodyProps, IInstanceListBodyState> {
-  private $uiRouter = AngularServices.$uiRouter;
-  private $state = AngularServices.$state;
+export class InstanceListBodyComponent extends React.Component<
+  IInstanceListBodyProps & IRouterInjectedProps,
+  IInstanceListBodyState
+> {
   private destroy$ = new Subject();
 
-  constructor(props: IInstanceListBodyProps) {
+  constructor(props: IInstanceListBodyProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       selectedInstanceIds: this.getSelectedInstanceIds(),
-      activeInstanceId: this.$state.params.instanceId,
-      multiselect: this.$state.params.multiselect,
-      instanceSort: this.$state.params.instanceSort,
+      activeInstanceId: props.stateParams.instanceId,
+      multiselect: props.stateParams.multiselect,
+      instanceSort: props.stateParams.instanceSort,
     };
   }
 
   public componentDidMount() {
     ClusterState.multiselectModel.instancesStream.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      this.setState({ selectedInstanceIds: this.getSelectedInstanceIds() });
+      this.setState({ selectedInstanceIds: this.getSelectedInstanceIds(this.state.multiselect) });
     });
 
-    this.$uiRouter.globals.params$
+    this.props.router.globals.params$
       .pipe(
-        map((params) => [params.instanceId, params.multiselect, params.instanceSort]),
+        map((params) => ({
+          instanceId: params.instanceId,
+          multiselect: params.multiselect,
+          instanceSort: params.instanceSort,
+        })),
         distinctUntilChanged(isEqual),
         takeUntil(this.destroy$),
       )
-      .subscribe(() => {
-        const { params } = this.$state;
+      .subscribe(({ instanceId, multiselect, instanceSort }) => {
         this.setState({
-          activeInstanceId: params.instanceId,
-          multiselect: params.multiselect,
-          instanceSort: params.instanceSort,
+          activeInstanceId: instanceId,
+          multiselect,
+          instanceSort,
         });
       });
   }
 
-  private getSelectedInstanceIds(): string[] {
+  private getSelectedInstanceIds(multiselect = this.props.stateParams.multiselect): string[] {
     const { instances, serverGroup } = this.props;
-    if (this.$state.params.multiselect) {
+    if (multiselect) {
       return instances
         .filter((i) => ClusterState.multiselectModel.instanceIsSelected(serverGroup, i.id))
         .map((i) => i.id);
@@ -185,7 +190,7 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
 
     return (
       <tr key={instance.id} data-instance-id={instance.id} className={rowClass}>
-        {this.$state.params.multiselect && (
+        {this.state.multiselect && (
           <td className="no-hover">
             <input type="checkbox" checked={this.state.selectedInstanceIds.includes(instance.id)} />
           </td>
@@ -246,3 +251,6 @@ export class InstanceListBody extends React.Component<IInstanceListBodyProps, II
     );
   }
 }
+
+export const InstanceListBody = withRouter(InstanceListBodyComponent);
+InstanceListBody.displayName = 'InstanceListBody';

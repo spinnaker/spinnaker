@@ -2,9 +2,8 @@ import React from 'react';
 
 import type { IAmazonHealth } from '@spinnaker/amazon';
 import { InstanceInformation, InstanceStatus, VpcTag } from '@spinnaker/amazon';
-import type { Application, IInstanceDetailsProps, IMoniker } from '@spinnaker/core';
+import type { Application, IInstanceDetailsProps, IMoniker, IRouterInjectedProps } from '@spinnaker/core';
 import {
-  AngularServices,
   CollapsibleSection,
   ConsoleOutputLink,
   CopyToClipboard,
@@ -14,6 +13,7 @@ import {
   LabeledValue,
   RecentHistoryService,
   SubnetTag,
+  withRouter,
 } from '@spinnaker/core';
 
 interface IEcsInstanceParams {
@@ -291,7 +291,10 @@ function NetworkAddress({ address, label }: { address?: string; label: string })
   );
 }
 
-export class EcsInstanceDetails extends React.Component<IEcsInstanceDetailsProps, IEcsInstanceDetailsState> {
+export class EcsInstanceDetailsComponent extends React.Component<
+  IEcsInstanceDetailsProps & IRouterInjectedProps,
+  IEcsInstanceDetailsState
+> {
   public state: IEcsInstanceDetailsState = {
     instance: undefined,
     instanceIdNotFound: undefined,
@@ -347,8 +350,10 @@ export class EcsInstanceDetails extends React.Component<IEcsInstanceDetailsProps
     this.unsubscribeFromRefresh?.();
   }
 
-  private getInstanceParams(props: IEcsInstanceDetailsProps = this.props): IEcsInstanceParams {
-    const params = props.instance || props.$stateParams || ({} as IEcsInstanceParams);
+  private getInstanceParams(
+    props: IEcsInstanceDetailsProps & Partial<IRouterInjectedProps> = this.props,
+  ): IEcsInstanceParams {
+    const params = props.instance || props.$stateParams || props.stateParams || ({} as IEcsInstanceParams);
     return {
       ...params,
       account: params.account || params.accountId || props.accountId,
@@ -357,7 +362,7 @@ export class EcsInstanceDetails extends React.Component<IEcsInstanceDetailsProps
   }
 
   private closeDetails(): void {
-    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    this.props.stateService.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   }
 
   private retrieveInstance(clearInstance = false): void {
@@ -465,3 +470,5 @@ export class EcsInstanceDetails extends React.Component<IEcsInstanceDetailsProps
     );
   }
 }
+
+export const EcsInstanceDetails = withRouter(EcsInstanceDetailsComponent);

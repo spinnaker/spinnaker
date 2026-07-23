@@ -1,9 +1,8 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 
-import { ServerGroupManager } from './ServerGroupManager';
+import { ServerGroupManagerComponent } from './ServerGroupManager';
 import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
-import { AngularServices } from '../angular/services';
 
 describe('<ServerGroupManager />', () => {
   const serverGroup = {
@@ -26,18 +25,20 @@ describe('<ServerGroupManager />', () => {
   } as any;
 
   it('links grouped server group managers to manager details', () => {
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue({ includes: () => false } as any);
     const originalUrl = window.location.href;
     window.history.replaceState(null, '', '#/applications/kubernetesapp/clusters');
 
     try {
       const component = shallow(
-        <ServerGroupManager
+        <ServerGroupManagerComponent
           application={{ name: 'kubernetesapp' } as any}
           grouping={{} as any}
           manager="deployment backend"
           serverGroups={[serverGroup]}
           sortFilter={{} as any}
+          router={{} as any}
+          stateParams={{}}
+          stateService={{ includes: () => false } as any}
         />,
       );
 

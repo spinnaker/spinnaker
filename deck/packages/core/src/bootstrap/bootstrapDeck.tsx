@@ -1,5 +1,4 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react';
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import * as React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
@@ -96,10 +95,11 @@ async function runBootstrap(root: HTMLElement): Promise<void> {
 
   void initializeDynamicRuntimeMetadata();
   await initializePlugins();
-  const runtime = createDeckRuntime();
+  const router = new UIRouterReact();
+  const runtime = createDeckRuntime(router);
   AngularServices.bindRuntime(runtime);
   activeRuntime = runtime;
-  const router = configureRouter();
+  configureRouter(router);
   activeRouter = router;
   initializeState();
   initializeInfrastructureCaches();

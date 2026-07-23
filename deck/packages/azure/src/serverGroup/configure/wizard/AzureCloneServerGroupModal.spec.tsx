@@ -15,7 +15,10 @@ import React from 'react';
 
 import { registerAzureProvider } from '../../../azure.module';
 import { AzureServerGroupTransformer } from '../../serverGroup.transformer';
-import { AzureCloneServerGroupModal } from './AzureCloneServerGroupModal';
+import {
+  AzureCloneServerGroupModal as RoutedAzureCloneServerGroupModal,
+  AzureCloneServerGroupModalComponent as AzureCloneServerGroupModal,
+} from './AzureCloneServerGroupModal';
 import {
   ServerGroupAdvancedSettings,
   ServerGroupBasicSettings,
@@ -90,23 +93,16 @@ describe('AzureCloneServerGroupModal', () => {
   it('registers as the Azure clone server group modal', () => {
     registerAzureProvider();
 
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.CloneServerGroupModal')).toBe(
-      AzureCloneServerGroupModal,
+    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.CloneServerGroupModal').render).toBe(
+      (RoutedAzureCloneServerGroupModal as any).render,
     );
   });
 
   it('show opens the React wizard and resolves with the submitted pipeline command', async () => {
     const serverGroupCommand = command();
-    spyOn(ReactModal, 'show').and.callFake((Component: any, props: any) => {
-      const modal = new Component({
-        ...props,
-        closeModal: (result: any) => Promise.resolve(result),
-        dismissModal: () => null,
-      });
-      return Promise.resolve((modal as any).submit(serverGroupCommand));
-    });
+    spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(serverGroupCommand));
 
-    const result = await AzureCloneServerGroupModal.show({
+    const result = await RoutedAzureCloneServerGroupModal.show({
       title: 'Configure',
       application,
       command: serverGroupCommand,
@@ -114,7 +110,7 @@ describe('AzureCloneServerGroupModal', () => {
 
     expect(result).toBe(serverGroupCommand);
     expect(ReactModal.show).toHaveBeenCalledWith(
-      AzureCloneServerGroupModal,
+      RoutedAzureCloneServerGroupModal,
       jasmine.objectContaining({ title: 'Configure', application, command: serverGroupCommand }),
       { dialogClassName: 'wizard-modal modal-lg' },
     );
@@ -123,17 +119,10 @@ describe('AzureCloneServerGroupModal', () => {
   it('cancel and dismiss reject without submitting or mutating the command', async () => {
     const serverGroupCommand = command({ viewState: { mode: 'clone' } });
     const original = JSON.stringify(serverGroupCommand);
-    spyOn(ReactModal, 'show').and.callFake((Component: any, props: any) => {
-      const modal = new Component({
-        ...props,
-        closeModal: () => Promise.resolve(),
-        dismissModal: () => Promise.reject('cancelled'),
-      });
-      return (modal.props as any).dismissModal();
-    });
+    spyOn(ReactModal, 'show').and.returnValue(Promise.reject('cancelled'));
 
     await expectAsync(
-      AzureCloneServerGroupModal.show({ title: 'Clone', application, command: serverGroupCommand } as any),
+      RoutedAzureCloneServerGroupModal.show({ title: 'Clone', application, command: serverGroupCommand } as any),
     ).toBeRejectedWith('cancelled');
 
     expect(JSON.stringify(serverGroupCommand)).toBe(original);

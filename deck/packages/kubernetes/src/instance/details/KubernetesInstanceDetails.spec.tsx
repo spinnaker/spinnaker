@@ -13,7 +13,10 @@ import {
 } from '@spinnaker/core';
 
 import type { IKubernetesInstanceDetailsProps } from './KubernetesInstanceDetails';
-import { KubernetesInstanceActions, KubernetesInstanceDetails } from './KubernetesInstanceDetails';
+import {
+  KubernetesInstanceActions,
+  KubernetesInstanceDetailsComponent as KubernetesInstanceDetails,
+} from './KubernetesInstanceDetails';
 import { findKubernetesInstanceIdentifier } from './kubernetesInstanceDetails.utils';
 import { AnnotationCustomSections } from '../../manifest/AnnotationCustomSections';
 import { ManifestLabels } from '../../manifest/ManifestLabels';
@@ -221,6 +224,21 @@ describe('<KubernetesInstanceDetails />', () => {
     expect(autoClose).toHaveBeenCalled();
     expect(InstanceReader.getInstanceDetails).not.toHaveBeenCalled();
     expect(ManifestReader.getManifest).not.toHaveBeenCalled();
+  });
+
+  it('replaces missing instance details through the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go'), params: {} };
+    const component = new KubernetesInstanceDetails({
+      ...props,
+      router: {},
+      stateParams: {},
+      stateService,
+    } as any);
+
+    (component as any).autoClose();
+
+    expect(stateService.params.allowModalToStayOpen).toBe(true);
+    expect(stateService.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
   });
 
   it('waits for application data before loading changed instance props', async () => {

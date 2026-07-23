@@ -1,31 +1,45 @@
 import { MultiselectModel } from './MultiselectModel';
 import * as State from '../../state';
-import { AngularServices } from '../../angular/services';
+import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
 
 const { ClusterState } = State;
 
 describe('Multiselect Model', () => {
   let multiselectModel: MultiselectModel;
-  beforeEach(() => (multiselectModel = new MultiselectModel()));
+  let previousFilterModel: any;
+
+  beforeEach(() => {
+    previousFilterModel = ClusterState.filterModel;
+    ClusterState.filterModel = { asFilterModel: { sortFilter: {} } } as any;
+    multiselectModel = new MultiselectModel();
+  });
+
+  afterEach(() => (ClusterState.filterModel = previousFilterModel));
 
   describe('navigation management', () => {
-    let result: any, currentStates: any[], currentParams: any;
+    let result: any, currentStates: any[], currentParams: any, previousRouter: any;
     beforeEach(() => {
+      previousRouter = getDirectRouter();
       ClusterState.filterModel.asFilterModel.sortFilter.multiselect = true;
       result = null;
       currentStates = [];
       currentParams = {};
 
-      spyOn(AngularServices.$state, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
-      spyOn(AngularServices.$state, 'go').and.callFake((newState: any) => (result = newState));
-      spyOnProperty(AngularServices.$state, 'params', 'get').and.callFake(() => currentParams);
-      spyOnProperty(AngularServices.$state, '$current', 'get').and.callFake(() => {
-        if (currentStates.length) {
-          return { name: currentStates[currentStates.length - 1] };
-        }
-        return { name: '' };
-      });
+      setDirectRouter({
+        stateService: {
+          includes: (substate: any) => currentStates.includes(substate),
+          go: (newState: any) => (result = newState),
+          get params() {
+            return currentParams;
+          },
+          get $current() {
+            return { name: currentStates.length ? currentStates[currentStates.length - 1] : '' };
+          },
+        },
+      } as any);
     });
+
+    afterEach(() => setDirectRouter(previousRouter));
 
     describe('syncNavigation', () => {
       describe('instance selection', () => {

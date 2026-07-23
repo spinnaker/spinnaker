@@ -4,7 +4,7 @@ import { AzureLoadBalancerTypes } from '../../utility';
 import { AzureLoadBalancerTransformer } from '../loadBalancer.transformer';
 import {
   applyAzureLoadBalancerTypeDefaults,
-  AzureLoadBalancerModal,
+  AzureLoadBalancerModalComponent as AzureLoadBalancerModal,
   findAzureVnetBySelectValue,
   formatInputValue,
   getAzureLoadBalancerTypeChoice,

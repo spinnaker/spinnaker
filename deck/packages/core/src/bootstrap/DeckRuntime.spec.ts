@@ -1,3 +1,5 @@
+import { UIRouterReact } from '@uirouter/react';
+
 import { DeckRuntimeContext, createDeckRuntime } from './DeckRuntime';
 
 describe('createDeckRuntime', () => {
@@ -5,14 +7,17 @@ describe('createDeckRuntime', () => {
   afterEach(() => jasmine.clock().uninstall());
 
   it('assembles direct runtime dependencies', () => {
-    const runtime = createDeckRuntime();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
 
+    expect(runtime.router).toBe(router);
     expect(runtime.promiseService).toEqual(jasmine.any(Function));
     expect(runtime.timeoutService).toEqual(jasmine.any(Function));
     expect(runtime.logger.error).toEqual(jasmine.any(Function));
     expect(runtime.interpolate).toEqual(jasmine.any(Function));
     expect(runtime.providerServiceDelegate).toBeDefined();
     expect(DeckRuntimeContext._currentValue).toBeNull();
+    router.dispose();
   });
 
   it('cancels pending runtime work when disposed', () => {
