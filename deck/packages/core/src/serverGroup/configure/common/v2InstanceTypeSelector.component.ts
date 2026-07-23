@@ -1,108 +1,84 @@
-import type { IComponentController, IComponentOptions, IScope } from 'angular';
+import type { IComponentController, IComponentOptions, IOnChangesObject, IRootElementService } from 'angular';
 import { module } from 'angular';
-import type { InstanceTypeService, IPreferredInstanceType } from '../../../instance';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
+import { InstanceTypeSelector } from './InstanceTypeSelector';
 import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 import './instanceTypeSelector.directive.less';
 
-class V2InstanceTypeSelectorController implements IComponentController {
-  private command: IServerGroupCommand;
-  private onTypeChanged: any;
+export class V2InstanceTypeSelectorController implements IComponentController {
+  public static $inject = ['$element'];
 
+  public command: IServerGroupCommand;
+  public onTypeChanged: (type: string) => void;
+
+  private linked = false;
   private instanceProfile: string;
-  private instanceTypes: any;
+  private instanceTypes: string[];
+  private virtualizationType: string;
 
-  public static $inject = ['$scope', 'instanceTypeService'];
-  constructor(private $scope: IScope, private instanceTypeService: InstanceTypeService) {}
+  public constructor(private $element: IRootElementService) {}
 
-  public $onInit(): void {
-    this.instanceProfile = this.command.viewState.instanceProfile;
-    this.instanceTypes =
-      this.command.backingData && this.command.backingData.filtered
-        ? this.command.backingData.filtered.instanceTypes
-        : [];
-    this.updateFamilies();
+  public $postLink(): void {
+    this.linked = true;
+    this.captureWatchedValues();
+    this.renderReactComponent();
+  }
+
+  public $onChanges(_changes: IOnChangesObject): void {
+    if (this.linked) {
+      this.captureWatchedValues();
+      this.renderReactComponent();
+    }
   }
 
   public $doCheck(): void {
-    let updateProfiles = false;
-    if (this.command.viewState.instanceProfile !== this.instanceProfile) {
-      this.instanceProfile = this.command.viewState.instanceProfile;
-      updateProfiles = true;
-    }
-    const hasFilteredBackingData = this.command.backingData && this.command.backingData.filtered;
-    if (hasFilteredBackingData && this.command.backingData.filtered.instanceTypes !== this.instanceTypes) {
-      this.instanceTypes = this.command.backingData.filtered.instanceTypes;
-      updateProfiles = true;
-    }
-    if (updateProfiles) {
-      this.updateFamilies();
-    }
-  }
-
-  private updateFamilies() {
-    let availableTypes: string[] = [];
-    if (this.command.backingData && this.command.backingData.filtered) {
-      availableTypes = this.command.backingData.filtered.instanceTypes || [];
-    }
-    this.instanceTypeService.getCategories(this.command.selectedProvider).then((categories) => {
-      categories.forEach((profile) => {
-        if (profile.type === this.command.viewState.instanceProfile) {
-          if (!this.command.viewState.disableImageSelection) {
-            profile.families.forEach((family) => {
-              family.instanceTypes.forEach((instanceType) => {
-                instanceType.unavailable = availableTypes.every((available) => available !== instanceType.name);
-              });
-            });
-          }
-          this.$scope.selectedInstanceProfile = profile;
-        }
-      });
-    });
-  }
-
-  public selectInstanceType = (type: IPreferredInstanceType) => {
-    if (type.unavailable) {
+    if (!this.linked) {
       return;
     }
-    this.command.instanceType = type.name;
-    if (this.command.viewState.dirty && this.command.viewState.dirty.instanceType) {
-      delete this.command.viewState.dirty.instanceType;
+
+    const nextInstanceProfile = this.command?.viewState?.instanceProfile;
+    const nextInstanceTypes = this.command?.backingData?.filtered?.instanceTypes;
+    const nextVirtualizationType = this.command?.virtualizationType;
+    if (
+      nextInstanceProfile !== this.instanceProfile ||
+      nextInstanceTypes !== this.instanceTypes ||
+      nextVirtualizationType !== this.virtualizationType
+    ) {
+      this.captureWatchedValues();
+      this.renderReactComponent();
     }
+  }
 
-    this.instanceTypeService
-      .getInstanceTypeDetails(this.command.selectedProvider, type.name)
-      .then((instanceTypeDetails) => {
-        this.command.viewState.instanceTypeDetails = instanceTypeDetails;
-      });
+  public $onDestroy(): void {
+    ReactDOM.unmountComponentAtNode(this.$element[0]);
+  }
 
-    this.onTypeChanged && this.onTypeChanged(this.command.instanceType);
-  };
+  private captureWatchedValues(): void {
+    this.instanceProfile = this.command?.viewState?.instanceProfile;
+    this.instanceTypes = this.command?.backingData?.filtered?.instanceTypes;
+    this.virtualizationType = this.command?.virtualizationType;
+  }
 
-  public getStorageDescription = (instanceType: IPreferredInstanceType) => {
-    if (this.command.instanceType === instanceType.name && this.command.viewState.overriddenStorageDescription) {
-      return this.command.viewState.overriddenStorageDescription;
-    } else {
-      return instanceType.storage.count + 'x' + instanceType.storage.size;
-    }
-  };
-
-  public getStorageDescriptionHelpKey = (instanceType: IPreferredInstanceType) => {
-    return this.command.instanceType === instanceType.name && this.command.viewState.overriddenStorageDescription
-      ? 'instanceType.storageOverridden'
-      : null;
-  };
+  private renderReactComponent(): void {
+    ReactDOM.render(
+      React.createElement(InstanceTypeSelector, {
+        command: this.command,
+        onTypeChanged: this.onTypeChanged,
+      }),
+      this.$element[0],
+    );
+  }
 }
 
 export const v2InstanceTypeSelector: IComponentOptions = {
   bindings: {
     command: '<',
-    onTypeChanged: '=',
+    onTypeChanged: '<',
   },
   controller: V2InstanceTypeSelectorController,
-  controllerAs: 'instanceTypeCtrl',
-  templateUrl: require('./instanceTypeDirective.html'),
 };
 
 export const V2_INSTANCE_TYPE_SELECTOR = 'spinnaker.core.serverGroup.configure.common.v2instanceTypeSelector';

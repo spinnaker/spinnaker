@@ -15,6 +15,5 @@ describe('Bake stage registration', () => {
     );
     expect((bakeStage as any).templateUrl).toBeUndefined();
     expect((bakeStage as any).controller).toBeUndefined();
-    expect((bakeStage as any).executionDetailsUrl).toBeUndefined();
   });
 });

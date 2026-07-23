@@ -110,11 +110,30 @@ describe('ProviderSelectionService: API', () => {
     accounts = [fakeAccount('testProvider')];
     config.securityGroup.useProvider = 'titus';
     CloudProviderRegistry.registerProvider('testProvider', config);
+    CloudProviderRegistry.registerProvider('titus', { securityGroup: {} } as any);
     ProviderSelectionService.selectProvider(application, 'securityGroup').then((_provider) => {
       provider = _provider;
     });
     $scope.$digest();
     expect(provider).toBe('titus');
+  });
+
+  it('rejects filtered useProvider options when the effective provider is not registered', () => {
+    let rejection: Error;
+    hasValue = true;
+    accounts = [fakeAccount('testProvider')];
+    config.securityGroup.useProvider = 'unregisteredProvider';
+    config.securityGroup.CreateSecurityGroupModal = {};
+    CloudProviderRegistry.registerProvider('testProvider', config);
+
+    const filterFn = (_app: Application, _acc: IAccountDetails, prov: any) =>
+      Boolean(prov.securityGroup.CreateSecurityGroupModal);
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(
+      null,
+      (error) => (rejection = error),
+    );
+    $scope.$digest();
+    expect(rejection.message).toBe('No providers support securityGroup for this action.');
   });
 
   it('should use the specified provider from the configuration', () => {
@@ -146,8 +165,24 @@ describe('ProviderSelectionService: API', () => {
     expect(provider).toBe('modalProvider');
   });
 
-  it('should not return a filtered provider', () => {
+  it('filters against the effective provider when useProvider is configured', () => {
     let provider = '';
+    hasValue = true;
+    accounts = [fakeAccount('titus')];
+    CloudProviderRegistry.registerProvider('aws', { securityGroup: { CreateSecurityGroupModal: {} } } as any);
+    CloudProviderRegistry.registerProvider('titus', { securityGroup: { useProvider: 'aws' } } as any);
+
+    const filterFn = (_app: Application, _acc: IAccountDetails, prov: any) =>
+      Boolean(prov.securityGroup.CreateSecurityGroupModal);
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
+      provider = _provider;
+    });
+    $scope.$digest();
+    expect(provider).toBe('aws');
+  });
+
+  it('rejects when every provider is filtered out', () => {
+    let rejection: Error;
     hasValue = true;
     const k8s = fakeAccount('kubernetes');
     accounts = [k8s];
@@ -155,11 +190,12 @@ describe('ProviderSelectionService: API', () => {
     SETTINGS.defaultProvider = 'defaultProvider';
 
     const filterFn = (_app: Application, acc: IAccountDetails) => acc.cloudProvider !== 'kubernetes';
-    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then((_provider) => {
-      provider = _provider;
-    });
+    ProviderSelectionService.selectProvider(application, 'securityGroup', filterFn).then(
+      null,
+      (error) => (rejection = error),
+    );
     $scope.$digest();
-    expect(provider).toBe('defaultProvider');
+    expect(rejection.message).toBe('No providers support securityGroup for this action.');
   });
 
   it('should not launch a modal if one of two providers is filtered out by filter function', () => {
