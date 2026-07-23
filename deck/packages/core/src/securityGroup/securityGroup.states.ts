@@ -4,14 +4,14 @@ import { module } from 'angular';
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 import { SecurityGroups } from './SecurityGroups';
 import { StandaloneSecurityGroupDetails } from './StandaloneSecurityGroupDetails';
+import { AngularServices } from '../angular/services';
 import type { Application, ApplicationStateProvider } from '../application';
-import { APPLICATION_STATE_PROVIDER, ApplicationModelBuilder } from '../application';
+import { ApplicationModelBuilder, registerApplicationState } from '../application';
 import { filterModelConfig } from './filter/SecurityGroupFilterModel';
 import { SecurityGroupFilters } from './filter/SecurityGroupFilters';
 import { FirewallLabels } from './label';
 import type { INestedState, StateConfigProvider } from '../navigation';
-import { STATE_CONFIG_PROVIDER } from '../navigation';
-import type { SecurityGroupReader } from './securityGroupReader.service';
+import { registerRootState } from '../navigation/rootState.registration';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 
@@ -46,11 +46,10 @@ export function getStandaloneFirewallState(): INestedState {
       ],
       app: [
         '$stateParams',
-        'securityGroupReader',
-        ($stateParams: StateParams, securityGroupReader: SecurityGroupReader): PromiseLike<Application> => {
+        ($stateParams: StateParams): PromiseLike<Application> => {
           // we need the application to have a firewall index (so rules get attached and linked properly)
           // and its name should just be the name of the firewall (so cloning works as expected)
-          return securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
+          return AngularServices.securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
             const application: Application = ApplicationModelBuilder.createStandaloneApplication($stateParams.name);
             application['securityGroupsIndex'] = securityGroupsIndex; // TODO: refactor the securityGroupsIndex out
             return application;
@@ -72,9 +71,9 @@ export function getStandaloneFirewallState(): INestedState {
   };
 }
 
-module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
+module(SECURITY_GROUP_STATES, []);
+
+registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const firewallDetails: INestedState = {
       name: 'firewallDetails',
@@ -137,11 +136,8 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
       },
     };
 
-    const standaloneFirewall = getStandaloneFirewallState();
-
     applicationStateProvider.addInsightState(securityGroupSummary);
     applicationStateProvider.addInsightDetailState(firewallDetails);
-    stateConfigProvider.addToRootState(standaloneFirewall);
     stateConfigProvider.addRewriteRule(
       '/applications/{application}/securityGroups',
       '/applications/{application}/firewalls',
@@ -150,4 +146,6 @@ module(SECURITY_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER
       return `${$match[1]}/firewallDetails/${$match[2]}`;
     });
   },
-]);
+);
+
+registerRootState((stateConfigProvider) => stateConfigProvider.addToRootState(getStandaloneFirewallState()));

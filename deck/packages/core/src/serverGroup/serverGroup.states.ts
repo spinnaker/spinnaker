@@ -2,14 +2,13 @@ import type { StateParams } from '@uirouter/angularjs';
 import { module } from 'angular';
 
 import type { ApplicationStateProvider } from '../application/application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
+import { registerApplicationState } from '../application/applicationState.registration';
 import { ClusterMaster } from '../cluster/ClusterMaster';
 import { filterModelConfig } from '../cluster/filter/ClusterFilterModel';
 import { ClusterFilters } from '../cluster/filter/ClusterFilters';
 import { MultipleServerGroupsDetails } from './details/MultipleServerGroupsDetails';
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 
@@ -82,9 +81,9 @@ export function getMultipleServerGroupsState(): INestedState {
   };
 }
 
-module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
+module(SERVER_GROUP_STATES, []);
+
+registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const clusters = getClustersState(stateConfigProvider);
     const serverGroupDetails = getServerGroupDetailsState();
@@ -94,4 +93,4 @@ module(SERVER_GROUP_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER])
     applicationStateProvider.addInsightDetailState(serverGroupDetails);
     applicationStateProvider.addInsightDetailState(multipleServerGroups);
   },
-]);
+);
