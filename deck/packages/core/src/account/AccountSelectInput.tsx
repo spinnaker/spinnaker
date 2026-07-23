@@ -1,10 +1,10 @@
 import { flatten, isEqual, map, uniq, xor } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Option } from 'react-select';
 
 import type { IAccount } from './AccountService';
 import { AccountService } from './AccountService';
+import { AngularServices } from '../angular/services';
 import type { IFormInputProps } from '../presentation/forms/inputs';
 import { ReactSelectInput } from '../presentation/forms/inputs/ReactSelectInput';
 import { SelectInput } from '../presentation/forms/inputs/SelectInput';
@@ -48,6 +48,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     }
 
     const accountsAreObjects = Boolean((accounts[0] as IAccount).name);
+    const $q = AngularServices.$q;
     let getAccountDetails = $q.when([]);
     if (provider) {
       getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);

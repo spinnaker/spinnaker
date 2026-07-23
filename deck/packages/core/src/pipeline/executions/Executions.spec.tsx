@@ -3,6 +3,7 @@ import { mock, noop } from 'angular';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
 import { set } from 'lodash';
+import * as ngimport from 'ngimport';
 import React from 'react';
 
 import type { IExecutionsProps, IExecutionsState } from './Executions';
@@ -23,11 +24,11 @@ describe('<Executions/>', () => {
   function initializeApplication(data?: any) {
     set(application, 'executions.activate', noop);
     set(application, 'pipelineConfigs.activate', noop);
-    if (data && data.executions) {
+    if (data && 'executions' in data) {
       application.executions.data = data.executions;
       application.executions.loaded = true;
     }
-    if (data && data.pipelineConfigs) {
+    if (data && 'pipelineConfigs' in data) {
       application.pipelineConfigs.data = data.pipelineConfigs;
       application.pipelineConfigs.loaded = true;
     }
@@ -50,6 +51,9 @@ describe('<Executions/>', () => {
   );
 
   it('should not set loading flag to false until executions and pipeline configs have been loaded', (done) => {
+    const originalQ = ngimport.$q;
+    (ngimport as any).$q = undefined;
+
     initializeApplication();
     expect(component.find(Spinner).length).toBe(1);
     application.executions.dataUpdated();
@@ -58,6 +62,7 @@ describe('<Executions/>', () => {
     setTimeout(() => {
       component.setProps({});
       expect(component.find(Spinner).length).toBe(0);
+      (ngimport as any).$q = originalQ;
       done();
     }, 100);
   });

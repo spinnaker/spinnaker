@@ -35,7 +35,7 @@ export class SearchResultPods extends React.Component<ISearchResultPodsProps> {
       .sort((a, b) => a.category.localeCompare(b.category));
 
     return (
-      <div className="infrastructure-section container">
+      <div className="infrastructure-section">
         <div className="recent-items">
           <h3>Recently viewed</h3>
 

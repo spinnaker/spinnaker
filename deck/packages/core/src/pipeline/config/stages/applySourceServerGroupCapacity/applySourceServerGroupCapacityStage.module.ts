@@ -1,16 +1,19 @@
 import { module } from 'angular';
 
 import { ApplySourceServerGroupCapacityDetails } from './ApplySourceServerGroupCapacityDetails';
-import { ExecutionDetailsTasks } from '../common';
+import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
+import type { IStageTypeConfig } from '../../../../domain';
 import { Registry } from '../../../../registry';
 
 export const APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE =
   'spinnaker.core.pipeline.stage.applySourceServerGroupCapacityStage';
 
-module(APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE, []).config(() => {
-  Registry.pipeline.registerStage({
-    synthetic: true,
-    key: 'applySourceServerGroupCapacity',
-    executionDetailsSections: [ApplySourceServerGroupCapacityDetails, ExecutionDetailsTasks],
-  });
-});
+export const applySourceServerGroupCapacityStage: IStageTypeConfig = {
+  synthetic: true,
+  key: 'applySourceServerGroupCapacity',
+  component: NoConfigurationStageConfig,
+  executionDetailsSections: [ApplySourceServerGroupCapacityDetails, ExecutionDetailsTasks],
+};
+
+Registry.pipeline.registerStage(applySourceServerGroupCapacityStage);
+module(APPLY_SOURCE_SERVER_GROUP_CAPACITY_STAGE, []);

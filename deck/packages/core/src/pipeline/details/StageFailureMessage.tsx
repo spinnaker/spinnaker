@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import { get } from 'lodash';
 import React from 'react';
 import { AngularServices } from '../../angular/services';
@@ -29,7 +28,6 @@ export enum StageFailureMessages {
 }
 
 @Overridable('stageFailureMessage')
-@UIRouterContext
 export class StageFailureMessage extends React.Component<IStageFailureMessageProps, IStageFailureMessageState> {
   public static defaultProps: Partial<IStageFailureMessageProps> = {
     messages: [],

@@ -7,19 +7,23 @@ import { Button } from 'react-bootstrap';
 
 import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
 import { InsightMenu } from './InsightMenu';
+import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
+import { AngularServices } from '../angular/services';
 import type { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 
-beforeEach(() => {
-  mock.module(($provide: any) => {
-    $provide.value('$uibModal', {} as IModalService);
-    $provide.value('overrideRegistry', new OverrideRegistry());
-    $provide.value('cacheInitializer', {} as CacheInitializerService);
-  });
-});
-
 describe('<InsightMenu />', () => {
   let component: ReactWrapper<IInsightMenuProps, IInsightMenuState>;
+
+  beforeEach(() => {
+    mock.module(($provide: any) => {
+      $provide.value('$state', {});
+      $provide.value('$uibModal', {} as IModalService);
+      $provide.value('overrideRegistry', new OverrideRegistry());
+      $provide.value('cacheInitializer', {} as CacheInitializerService);
+    });
+  });
+  beforeEach(mock.inject());
 
   function getNewMenu(params: object): ReactWrapper<IInsightMenuProps, any> {
     // Set defaults to zero so we only need to pass in the prop we want rendered
@@ -83,5 +87,18 @@ describe('<InsightMenu />', () => {
     expect(app.text()).toEqual('Create Application');
     // FIXME: when this project moves to v1+ of react-bootstrap this prop will need to change.
     expect(app.prop('bsStyle')).toEqual('primary');
+  });
+
+  it('opens the direct application modal and routes after creation', async () => {
+    const go = jasmine.createSpy('go');
+    spyOnProperty(AngularServices, '$state', 'get').and.returnValue({ go } as any);
+    spyOn(CreateApplicationModal, 'show').and.returnValue(Promise.resolve({ name: 'myapp' }) as any);
+    component = getNewMenu({ createApp: true });
+
+    component.find(Button).simulate('click');
+    await Promise.resolve();
+
+    expect(CreateApplicationModal.show).toHaveBeenCalledWith();
+    expect(go).toHaveBeenCalledWith('home.applications.application', { application: 'myapp' });
   });
 });

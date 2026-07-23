@@ -1,48 +1,53 @@
 import { module } from 'angular';
 
 import { TaskNotFound } from './TaskNotFound';
+import { Tasks } from './Tasks';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { TaskReader } from './task.read.service';
 
 export const TASK_STATES = 'spinnaker.core.task.states';
+
+export function getTasksState(): INestedState {
+  const taskDetails: INestedState = {
+    name: 'taskDetails',
+    url: '/:taskId',
+    views: {},
+    data: {
+      pageTitleDetails: {
+        title: 'Task Details',
+        nameParam: 'taskId',
+      },
+    },
+  };
+
+  return {
+    name: 'tasks',
+    url: '/tasks?q',
+    views: {
+      insight: {
+        component: Tasks,
+        $type: 'react',
+      },
+    },
+    params: {
+      q: { dynamic: true, value: null },
+    },
+    data: {
+      pageTitleSection: {
+        title: 'Tasks',
+      },
+    },
+    children: [taskDetails],
+  };
+}
+
 module(TASK_STATES, [APPLICATION_STATE_PROVIDER]).config([
   'applicationStateProvider',
   'stateConfigProvider',
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
-    const taskDetails: INestedState = {
-      name: 'taskDetails',
-      url: '/:taskId',
-      views: {},
-      data: {
-        pageTitleDetails: {
-          title: 'Task Details',
-          nameParam: 'taskId',
-        },
-      },
-    };
-
-    const tasks: INestedState = {
-      name: 'tasks',
-      url: '/tasks?q',
-      views: {
-        insight: {
-          templateUrl: require('../task/tasks.html'),
-          controller: 'TasksCtrl',
-          controllerAs: 'tasks',
-        },
-      },
-      params: {
-        q: { dynamic: true, value: null },
-      },
-      data: {
-        pageTitleSection: {
-          title: 'Tasks',
-        },
-      },
-      children: [taskDetails],
-    };
+    const tasks = getTasksState();
 
     const taskLookup: INestedState = {
       name: 'taskLookup',

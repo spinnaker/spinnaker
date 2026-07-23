@@ -1,36 +1,28 @@
-import type {
-  Ng1StateDeclaration,
-  Ng1ViewDeclaration,
-  ParamDeclaration,
-  UrlRouterProvider,
-  UrlService,
-} from '@uirouter/angularjs';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
+import type { ParamDeclaration, StateDeclaration, UrlRouter } from '@uirouter/core';
 import type { ParamTypeDefinition, ReactViewDeclaration } from '@uirouter/react';
-import type { IServiceProvider } from 'angular';
-import { module } from 'angular';
 import { isEqual, isPlainObject } from 'lodash';
 
 import type { IFilterConfig } from '../filterModel/IFilterModel';
+import { applyRootStateRegistrations } from './rootState.registration';
 import type { StateHelper } from './stateHelper.provider';
-import { STATE_HELPER } from './stateHelper.provider';
 
 import './navigation.less';
 
 // Typescript kludge to widen interfaces so INestedState can support both react and angular views
-export interface IReactHybridIntermediate extends Ng1StateDeclaration {
+export interface IReactHybridIntermediate extends StateDeclaration {
   children?: INestedState[];
   component?: any;
+  $type?: string;
   views?: { [key: string]: any };
 }
 
 export interface INestedState extends IReactHybridIntermediate {
   children?: INestedState[];
   component?: React.ComponentType | string;
-  views?: { [key: string]: ReactViewDeclaration | Ng1ViewDeclaration };
+  views?: { [key: string]: ReactViewDeclaration | any };
 }
 
-export class StateConfigProvider implements IServiceProvider {
+export class StateConfigProvider {
   private root: INestedState = {
     name: 'home',
     abstract: true,
@@ -42,8 +34,11 @@ export class StateConfigProvider implements IServiceProvider {
     children: [],
   };
 
-  public static $inject = ['$urlRouterProvider', 'stateHelperProvider'];
-  constructor(private $urlRouterProvider: UrlRouterProvider, private stateHelperProvider: StateHelper) {}
+  constructor(private $urlRouterProvider: UrlRouter, private stateHelperProvider: StateHelper) {
+    if (stateHelperProvider) {
+      applyRootStateRegistrations(this);
+    }
+  }
 
   /**
    * Adds a root state, e.g. /applications, /projects, /infrastructure
@@ -71,7 +66,7 @@ export class StateConfigProvider implements IServiceProvider {
    * @param replacement, e.g. "/applications/{application}/clusters"
    */
   public addRewriteRule(base: string | RegExp, replacement: string | Function) {
-    this.$urlRouterProvider.when(base, replacement);
+    this.$urlRouterProvider.when(base, replacement as any);
   }
 
   public buildDynamicParams(paramConfig: IFilterConfig[]): { [key: string]: ParamDeclaration | any } {
@@ -90,10 +85,6 @@ export class StateConfigProvider implements IServiceProvider {
 
   public paramsToQuery(paramConfig: IFilterConfig[]): string {
     return paramConfig.map((p) => p.param || p.model).join('&');
-  }
-
-  public $get(): StateConfigProvider {
-    return this;
   }
 }
 
@@ -169,27 +160,3 @@ export const sortKeyParamType: ParamTypeDefinition = {
 };
 
 export const STATE_CONFIG_PROVIDER = 'spinnaker.core.navigation.state.config.provider';
-module(STATE_CONFIG_PROVIDER, [UIROUTER_ANGULARJS, STATE_HELPER])
-  .provider('stateConfig', StateConfigProvider)
-  .config([
-    '$urlRouterProvider',
-    ($urlRouterProvider: UrlRouterProvider) => {
-      $urlRouterProvider.otherwise('/');
-      // Don't crash on trailing slashes
-      $urlRouterProvider.when('/{path:.*}/', [
-        '$match',
-        ($match: any) => {
-          return '/' + $match.path;
-        },
-      ]);
-    },
-  ])
-  .config([
-    '$urlServiceProvider',
-    ($urlServiceProvider: UrlService) => {
-      $urlServiceProvider.config.type('trueKeyObject', trueKeyObjectParamType);
-      $urlServiceProvider.config.type('inverse-boolean', inverseBooleanParamType);
-      $urlServiceProvider.config.type('boolean', booleanParamType);
-      $urlServiceProvider.config.type('sortKey', sortKeyParamType);
-    },
-  ]);

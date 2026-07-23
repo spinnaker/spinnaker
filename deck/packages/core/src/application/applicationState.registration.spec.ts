@@ -57,6 +57,17 @@ describe('applicationState registration', () => {
     expect(addChildState).toHaveBeenCalledWith(childState);
   });
 
+  it('passes the state config provider to registrations', () => {
+    const stateConfigProvider = { setStates: jasmine.createSpy('setStates') } as any;
+    const registration = jasmine.createSpy('registration');
+
+    registerApplicationState(registration);
+
+    const provider = new ApplicationStateProvider(stateConfigProvider);
+
+    expect(registration).toHaveBeenCalledWith(provider, stateConfigProvider);
+  });
+
   it('does not replay queued registrations for the same application state provider', () => {
     const registration = jasmine.createSpy('registration');
 
@@ -66,5 +77,17 @@ describe('applicationState registration', () => {
     applyApplicationStateRegistrations(provider);
 
     expect(registration).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not add duplicate insight detail states by name', () => {
+    const provider = createProvider();
+    const detailState: INestedState = { name: 'serverGroupManager' };
+    const insightState: INestedState = { name: 'clusters' };
+
+    provider.addInsightDetailState(detailState);
+    provider.addInsightDetailState(detailState);
+    provider.addInsightState(insightState);
+
+    expect(insightState.children).toEqual([detailState]);
   });
 });

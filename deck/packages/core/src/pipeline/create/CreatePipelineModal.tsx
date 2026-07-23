@@ -2,7 +2,6 @@ import { UISref } from '@uirouter/react';
 import type { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { $log } from 'ngimport';
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import type { Option } from 'react-select';
@@ -10,6 +9,7 @@ import Select from 'react-select';
 
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
 import { TemplateDescription } from './TemplateDescription';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { SETTINGS } from '../../config/settings';
@@ -188,7 +188,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       const newPipeline = configs.find((_config) => _config.name === config.name);
 
       if (!newPipeline) {
-        $log.warn('Could not find new pipeline after save succeeded.');
+        AngularServices.$log.warn('Could not find new pipeline after save succeeded.');
         this.setState({
           saveError: true,
           saveErrorMessage: 'Sorry, there was an error retrieving your new pipeline. Please refresh the browser.',
@@ -203,7 +203,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   private onSaveFailure = (response: IHttpPromiseCallbackArg<{ message: string }>): void => {
-    $log.warn(response);
+    AngularServices.$log.warn(response);
     this.setState({
       submitting: false,
       saveError: true,
