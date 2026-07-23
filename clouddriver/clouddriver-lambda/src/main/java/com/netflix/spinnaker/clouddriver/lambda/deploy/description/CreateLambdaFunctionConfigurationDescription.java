@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import software.amazon.awssdk.services.lambda.model.DeadLetterConfig;
+import software.amazon.awssdk.services.lambda.model.TracingConfig;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -38,9 +40,9 @@ public class CreateLambdaFunctionConfigurationDescription extends AbstractLambda
   List<String> layers;
   Map<String, String> envVariables;
   Map<String, String> tags;
-  DeadLetterConfigDescription deadLetterConfig;
+  DeadLetterConfig deadLetterConfig;
   String kmskeyArn;
-  TracingConfigDescription tracingConfig;
+  TracingConfig tracingConfig;
   String targetGroups;
   String runTime;
 

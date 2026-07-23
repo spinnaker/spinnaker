@@ -25,5 +25,6 @@ public class AwsSdkV2Module extends SimpleModule {
   public AwsSdkV2Module() {
     super("AwsSdkV2Module", Version.unknownVersion());
     addSerializer(SdkPojo.class, new SdkPojoSerializer());
+    setDeserializerModifier(new SdkPojoDeserializerModifier());
   }
 }

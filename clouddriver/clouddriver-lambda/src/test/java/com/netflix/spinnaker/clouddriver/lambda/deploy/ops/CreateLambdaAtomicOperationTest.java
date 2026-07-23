@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
-import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeadLetterConfigDescription;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
 import com.netflix.spinnaker.config.LambdaConfiguration;
 import java.util.HashMap;
@@ -31,6 +30,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionRequest;
 import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
+import software.amazon.awssdk.services.lambda.model.DeadLetterConfig;
 
 class CreateLambdaAtomicOperationTest {
 
@@ -49,7 +49,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3bucket("s3://bucket")
             .setS3key("key/key/path")
             .setFunctionName("funcName")
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     b.setAppName("appName");
     config.setSetMonikerTags(false);
     CreateLambdaAtomicOperation clao = spy(new CreateLambdaAtomicOperation(b, config));
@@ -80,7 +80,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("function-stack-detail-v001")
             .setTags(new HashMap<>()) // Initialize empty tags map
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
     config.setSetMonikerTags(true);
     config.setPrefixApplicationNameToFunction(false);
@@ -124,7 +124,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("myapp-stack-detail-v001")
             .setTags(new HashMap<>()) // Initialize empty tags map
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
 
     CreateLambdaAtomicOperation operation =
@@ -165,7 +165,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3bucket("s3://bucket")
             .setS3key("key/path")
             .setFunctionName("stack-detail-v001")
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
 
     config.setSetMonikerTags(false);
@@ -204,7 +204,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("myapp-stack-v001")
             .setTags(existingTags)
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
 
     config.setSetMonikerTags(true);
@@ -248,7 +248,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("myapp-stack-v001")
             .setTags(existingTags)
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
 
     config.setSetMonikerTags(true);
@@ -292,7 +292,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("oldapp-oldstack-v001")
             .setTags(existingTags)
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
     config.setSetMonikerTags(true);
     CreateLambdaAtomicOperation operation =
@@ -330,7 +330,7 @@ class CreateLambdaAtomicOperationTest {
             .setS3key("key/path")
             .setFunctionName("randomname")
             .setTags(new HashMap<>()) // Initialize empty tags map
-            .setDeadLetterConfig(new DeadLetterConfigDescription().setTargetArn(""));
+            .setDeadLetterConfig(DeadLetterConfig.builder().targetArn("").build());
     description.setAppName("myapp");
 
     CreateLambdaAtomicOperation operation =

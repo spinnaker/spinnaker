@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.clouddriver.lambda.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.FunctionCodeLocation;
 import software.amazon.awssdk.services.lambda.model.FunctionConfiguration;
 import software.amazon.awssdk.services.lambda.model.GetFunctionRequest;
 import software.amazon.awssdk.services.lambda.model.GetFunctionResponse;
@@ -134,7 +136,15 @@ class LambdaServiceTest {
     when(lambda.listFunctionsPaginator()).thenReturn(listFunctionsPaginator);
 
     GetFunctionResponse functionResult =
-        GetFunctionResponse.builder().configuration(functionConfiguration).build();
+        GetFunctionResponse.builder()
+            .configuration(functionConfiguration)
+            .code(
+                FunctionCodeLocation.builder()
+                    .repositoryType("S3")
+                    .location("https://example/code")
+                    .build())
+            .tags(Map.of("app", "myapp", "stack", "prod"))
+            .build();
     when(lambda.getFunction(any(GetFunctionRequest.class))).thenReturn(functionResult);
 
     GetPolicyResponse getPolicyResult =
@@ -177,7 +187,10 @@ class LambdaServiceTest {
 
     ListVersionsByFunctionIterable versionsPaginator =
         forEachOf(
-            ListVersionsByFunctionIterable.class, ListVersionsByFunctionResponse.builder().build());
+            ListVersionsByFunctionIterable.class,
+            ListVersionsByFunctionResponse.builder()
+                .versions(FunctionConfiguration.builder().revisionId("rev-1").version("1").build())
+                .build());
     when(lambda.listVersionsByFunctionPaginator(any(ListVersionsByFunctionRequest.class)))
         .thenReturn(versionsPaginator);
     ListAliasesIterable aliasesPaginator =
@@ -206,6 +219,10 @@ class LambdaServiceTest {
     assertEquals("java17", function.get("runtime"));
     assertEquals(512, function.get("memorySize"));
     assertEquals(30, function.get("timeout"));
+    // Parity with the v1 implementation: revisions, code, and tags are hydrated on the function.
+    assertEquals(Map.of("rev-1", "1"), function.get("revisions"));
+    assertEquals(Map.of("app", "myapp", "stack", "prod"), function.get("tags"));
+    assertThat(function.get("code")).isNotNull();
   }
 
   @SuppressWarnings("unchecked")

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
-import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DestinationConfigDescription;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionEventMappingDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
@@ -26,9 +25,6 @@ import org.pf4j.util.StringUtils;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.CreateEventSourceMappingResponse;
-import software.amazon.awssdk.services.lambda.model.DestinationConfig;
-import software.amazon.awssdk.services.lambda.model.OnFailure;
-import software.amazon.awssdk.services.lambda.model.OnSuccess;
 import software.amazon.awssdk.services.lambda.model.UpdateEventSourceMappingRequest;
 import software.amazon.awssdk.services.lambda.model.UpdateEventSourceMappingResponse;
 
@@ -79,7 +75,7 @@ public class UpsertLambdaEventSourceAtomicOperation
             .maximumRetryAttempts(description.getMaxRetryAttempts())
             .parallelizationFactor(description.getParallelizationFactor())
             .tumblingWindowInSeconds(description.getTumblingWindowSecs())
-            .destinationConfig(toV2DestinationConfig(description.getDestinationConfig()))
+            .destinationConfig(description.getDestinationConfig())
             .enabled(description.getEnabled())
             .uuid(description.getUuid());
 
@@ -110,7 +106,7 @@ public class UpsertLambdaEventSourceAtomicOperation
             .maximumRetryAttempts(description.getMaxRetryAttempts())
             .parallelizationFactor(description.getParallelizationFactor())
             .tumblingWindowInSeconds(description.getTumblingWindowSecs())
-            .destinationConfig(toV2DestinationConfig(description.getDestinationConfig()))
+            .destinationConfig(description.getDestinationConfig())
             .enabled(description.getEnabled())
             .startingPosition(description.getStartingPosition())
             .eventSourceArn(description.getEventSourceArn());
@@ -126,21 +122,5 @@ public class UpsertLambdaEventSourceAtomicOperation
     updateTaskStatus("Finished Creation of AWS Lambda Function Event Mapping Operation...");
 
     return result;
-  }
-
-  private DestinationConfig toV2DestinationConfig(DestinationConfigDescription config) {
-    if (config == null) {
-      return null;
-    }
-    DestinationConfig.Builder builder = DestinationConfig.builder();
-    if (config.getOnSuccess() != null && config.getOnSuccess().getDestination() != null) {
-      builder.onSuccess(
-          OnSuccess.builder().destination(config.getOnSuccess().getDestination()).build());
-    }
-    if (config.getOnFailure() != null && config.getOnFailure().getDestination() != null) {
-      builder.onFailure(
-          OnFailure.builder().destination(config.getOnFailure().getDestination()).build());
-    }
-    return builder.build();
   }
 }

@@ -79,4 +79,31 @@ public class LambdaFunction implements Function {
   public void setTargetGroups(List<String> targetGroups) {
     attributes.put("targetGroups", targetGroups);
   }
+
+  @SuppressWarnings("unchecked")
+  public Map<String, String> getRevisions() {
+    return (Map<String, String>) attributes.get("revisions");
+  }
+
+  public void setRevisions(Map<String, String> revisions) {
+    attributes.put("revisions", revisions);
+  }
+
+  @SuppressWarnings("unchecked")
+  public Map<String, Object> getCode() {
+    return (Map<String, Object>) attributes.get("code");
+  }
+
+  public void setCode(Map<String, Object> code) {
+    attributes.put("code", code);
+  }
+
+  @SuppressWarnings("unchecked")
+  public Map<String, String> getTags() {
+    return (Map<String, String>) attributes.get("tags");
+  }
+
+  public void setTags(Map<String, String> tags) {
+    attributes.put("tags", tags);
+  }
 }

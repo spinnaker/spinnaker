@@ -105,19 +105,13 @@ public class CreateLambdaAtomicOperation
               .build());
     }
     if (description.getDeadLetterConfig() != null
-        && !description.getDeadLetterConfig().getTargetArn().isEmpty()) {
-      requestBuilder.deadLetterConfig(
-          software.amazon.awssdk.services.lambda.model.DeadLetterConfig.builder()
-              .targetArn(description.getDeadLetterConfig().getTargetArn())
-              .build());
+        && description.getDeadLetterConfig().targetArn() != null
+        && !description.getDeadLetterConfig().targetArn().isEmpty()) {
+      requestBuilder.deadLetterConfig(description.getDeadLetterConfig());
     }
     requestBuilder.kmsKeyArn(description.getKmskeyArn());
-    if (description.getTracingConfig() != null
-        && description.getTracingConfig().getMode() != null) {
-      requestBuilder.tracingConfig(
-          software.amazon.awssdk.services.lambda.model.TracingConfig.builder()
-              .mode(description.getTracingConfig().getMode())
-              .build());
+    if (description.getTracingConfig() != null && description.getTracingConfig().mode() != null) {
+      requestBuilder.tracingConfig(description.getTracingConfig());
     }
 
     CreateFunctionResponse result = client.createFunction(requestBuilder.build());
