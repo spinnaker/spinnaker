@@ -2,14 +2,14 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../../../account/AccountTag';
-import { AngularServices } from '../../../../angular/services';
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
 import type { IStageConfigProps } from '../common';
 import type { ILoadBalancer } from '../../../../domain';
-import { openLoadBalancerModal } from './openLoadBalancerModal';
+import { hasPipelineLoadBalancerModal, openLoadBalancerModal } from './openLoadBalancerModal';
 
 export interface ICreateLoadBalancerStageConfigState {
   loadBalancers: ILoadBalancer[];
+  modalError?: string | null;
 }
 
 export class CreateLoadBalancerStageConfig extends React.Component<
@@ -40,9 +40,21 @@ export class CreateLoadBalancerStageConfig extends React.Component<
   }
 
   private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): PromiseLike<ILoadBalancer | ILoadBalancer[]> {
-    return ProviderSelectionService.selectProvider(this.props.application, 'loadBalancer').then((selectedProvider) => {
-      const config = CloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-      return openLoadBalancerModal(config, AngularServices.modalService, {
+    this.setState({ modalError: null });
+    return ProviderSelectionService.selectProvider(
+      this.props.application,
+      'loadBalancer',
+      (_application, _account, provider) => hasPipelineLoadBalancerModal(provider),
+    ).then((selectedProvider) => {
+      const provider = CloudProviderRegistry.getProvider(selectedProvider);
+      if (!hasPipelineLoadBalancerModal(provider)) {
+        return Promise.reject(
+          new Error(
+            `No pipeline-capable React create load balancer modal is registered for provider "${selectedProvider}".`,
+          ),
+        );
+      }
+      return openLoadBalancerModal(provider.loadBalancer, {
         application: this.props.application,
         loadBalancer,
         isNew,
@@ -51,13 +63,19 @@ export class CreateLoadBalancerStageConfig extends React.Component<
     });
   }
 
+  private handleModalError = (error: Error | undefined): void => {
+    if (error instanceof Error) {
+      this.setState({ modalError: error.message });
+    }
+  };
+
   private addLoadBalancer = (): void => {
     this.openProviderModal(null, true)
       .then((newLoadBalancer) => {
         const newLoadBalancers = Array.isArray(newLoadBalancer) ? newLoadBalancer : [newLoadBalancer];
         this.updateLoadBalancers([...this.state.loadBalancers, ...newLoadBalancers]);
       })
-      .catch(() => {});
+      .catch(this.handleModalError);
   };
 
   private editLoadBalancer = (loadBalancer: ILoadBalancer, index: number): void => {
@@ -70,7 +88,7 @@ export class CreateLoadBalancerStageConfig extends React.Component<
           ...this.state.loadBalancers.slice(index + 1),
         ]);
       })
-      .catch(() => {});
+      .catch(this.handleModalError);
   };
 
   private copyLoadBalancer = (index: number): void => {
@@ -93,6 +111,7 @@ export class CreateLoadBalancerStageConfig extends React.Component<
         <div className="row">
           <div className="col-md-12">
             <h4 className="text-left">Load Balancers</h4>
+            {this.state.modalError && <div className="alert alert-warning">{this.state.modalError}</div>}
           </div>
         </div>
         <div className="row">

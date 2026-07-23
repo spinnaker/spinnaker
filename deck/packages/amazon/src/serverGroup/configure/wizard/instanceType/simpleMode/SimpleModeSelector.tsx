@@ -16,10 +16,16 @@ export interface ISimpleModeSelectorProps {
 
 export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
   const { command } = props;
+  const [selectedInstanceProfile, setSelectedInstanceProfile] = React.useState(command.viewState.instanceProfile);
   const isLaunchTemplatesEnabled = AWSProviderSettings.serverGroups?.enableLaunchTemplates;
   const isCpuCreditsEnabled = AWSProviderSettings.serverGroups?.enableCpuCredits;
 
+  React.useEffect(() => {
+    setSelectedInstanceProfile(command.viewState.instanceProfile);
+  }, [command.viewState.instanceProfile]);
+
   const instanceProfileChanged = (newProfile: string) => {
+    setSelectedInstanceProfile(newProfile);
     // Instance profile is already set on values.viewState, so just use that value.
     // Once this component tree is fully standalone, we can move all the viewState stuff
     // into react state
@@ -30,8 +36,17 @@ export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
   };
 
   const instanceTypeChanged = (type: string) => {
+    command.instanceType = type;
     command.instanceTypeChanged(command);
     props.setFieldValue('instanceType', type);
+  };
+
+  const commandForSelectedProfile = {
+    ...command,
+    viewState: {
+      ...command.viewState,
+      instanceProfile: selectedInstanceProfile,
+    },
   };
 
   return (
@@ -44,8 +59,8 @@ export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
         />
         <InstanceTypeWarning dirty={command.viewState.dirty} clearWarnings={props.clearWarnings} />
         <div style={{ padding: '0 15px' }}>
-          {command.viewState.instanceProfile && command.viewState.instanceProfile !== 'custom' && (
-            <InstanceTypeSelector command={command} onTypeChanged={instanceTypeChanged} />
+          {selectedInstanceProfile && selectedInstanceProfile !== 'custom' && (
+            <InstanceTypeSelector command={commandForSelectedProfile} onTypeChanged={instanceTypeChanged} />
           )}
         </div>
       </div>
@@ -54,7 +69,7 @@ export function SimpleModeSelector(props: ISimpleModeSelectorProps) {
           <CpuCreditsToggle
             unlimitedCpuCredits={command.unlimitedCpuCredits}
             selectedInstanceTypes={[command.instanceType]}
-            currentProfile={command.viewState.instanceProfile}
+            currentProfile={selectedInstanceProfile}
             setUnlimitedCpuCredits={props.setUnlimitedCpuCredits}
           />
         </div>

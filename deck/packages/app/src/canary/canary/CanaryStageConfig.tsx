@@ -175,41 +175,44 @@ export function CanaryStageConfig(props: IStageConfigProps) {
 
   const terminateAction = (cc.actionsForUnhealthyCanary || []).find((action: any) => action.action === 'TERMINATE');
 
+  const hasReactCloneServerGroupModal = (_application: any, _account: any, provider: any): boolean =>
+    Boolean(provider?.serverGroup?.CloneServerGroupModal);
+
   const addClusterPair = () => {
     stage.clusterPairs = stage.clusterPairs || [];
-    ProviderSelectionService.selectProvider(application, 'serverGroup').then((selectedProvider: string) => {
-      const config = CloudProviderRegistry.getValue(getCloudProvider(), 'serverGroup');
-      const title = 'Add Cluster Pair';
-      AngularServices.serverGroupCommandBuilder
-        .buildNewServerGroupCommandForPipeline(selectedProvider, stage, pipeline)
-        .then((command: any) => {
-          configureServerGroupCommandForEditing(command);
-          command.viewState.overrides = { capacity: { min: 1, max: 1, desired: 1 }, useSourceCapacity: false };
-          command.viewState.disableNoTemplateSelection = true;
-          command.viewState.customTemplateMessage =
-            'Select a template to configure the canary and baseline cluster pair. If you want to configure the server groups differently, you can do so by clicking "Edit" after adding the pair.';
-          if (config.CloneServerGroupModal) {
+    ProviderSelectionService.selectProvider(application, 'serverGroup', hasReactCloneServerGroupModal).then(
+      (selectedProvider: string) => {
+        const config = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
+        const title = 'Add Cluster Pair';
+        AngularServices.serverGroupCommandBuilder
+          .buildNewServerGroupCommandForPipeline(selectedProvider, stage, pipeline)
+          .then((command: any) => {
+            configureServerGroupCommandForEditing(command);
+            command.viewState.overrides = { capacity: { min: 1, max: 1, desired: 1 }, useSourceCapacity: false };
+            command.viewState.disableNoTemplateSelection = true;
+            command.viewState.customTemplateMessage =
+              'Select a template to configure the canary and baseline cluster pair. If you want to configure the server groups differently, you can do so by clicking "Edit" after adding the pair.';
+            if (!config.CloneServerGroupModal) {
+              return Promise.reject(
+                new Error(`No React clone server group modal is registered for provider "${selectedProvider}".`),
+              );
+            }
             return config.CloneServerGroupModal.show({ title, application, command });
-          }
-          return AngularServices.$uibModal.open({
-            templateUrl: config.cloneServerGroupTemplateUrl,
-            controller: `${config.cloneServerGroupController} as ctrl`,
-            size: 'lg',
-            resolve: { title: () => title, application: () => application, serverGroupCommand: () => command },
-          }).result;
-        })
-        .then((command: any) => {
-          const baselineCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
-            command,
-          );
-          const canaryCluster = cloneDeep(baselineCluster);
-          cleanupClusterConfig(baselineCluster, 'baseline');
-          cleanupClusterConfig(canaryCluster, 'canary');
-          stage.clusterPairs.push({ baseline: baselineCluster, canary: canaryCluster });
-          stageFieldUpdated();
-        })
-        .catch(() => {});
-    });
+          })
+          .then((command: any) => {
+            const baselineCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+              command,
+            );
+            const canaryCluster = cloneDeep(baselineCluster);
+            cleanupClusterConfig(baselineCluster, 'baseline');
+            cleanupClusterConfig(canaryCluster, 'canary');
+            stage.clusterPairs.push({ baseline: baselineCluster, canary: canaryCluster });
+            stageFieldUpdated();
+          })
+          .catch(() => {});
+      },
+      () => {},
+    );
   };
 
   const editCluster = (cluster: any, index: number, type: string) => {
@@ -228,15 +231,12 @@ export function CanaryStageConfig(props: IStageConfigProps) {
         return command;
       })
       .then((command: any) => {
-        if (config.CloneServerGroupModal) {
-          return config.CloneServerGroupModal.show({ title, application, command });
+        if (!config.CloneServerGroupModal) {
+          return Promise.reject(
+            new Error(`No React clone server group modal is registered for provider "${cluster.provider}".`),
+          );
         }
-        return AngularServices.$uibModal.open({
-          templateUrl: config.cloneServerGroupTemplateUrl,
-          controller: `${config.cloneServerGroupController} as ctrl`,
-          size: 'lg',
-          resolve: { title: () => title, application: () => application, serverGroupCommand: () => command },
-        }).result;
+        return config.CloneServerGroupModal.show({ title, application, command });
       })
       .then((command: any) => {
         const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(

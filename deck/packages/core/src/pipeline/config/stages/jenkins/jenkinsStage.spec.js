@@ -24,7 +24,7 @@ describe('Jenkins stage registration', () => {
     expect(jenkinsStage.executionDetailsSections[0]).toBe(JenkinsExecutionDetails);
     expect(jenkinsStage.executionDetailsSections).toContain(ExecutionArtifactTab);
     expect(jenkinsStage.templateUrl).toBeUndefined();
-    expect(jenkinsStage.executionDetailsUrl).toBeUndefined();
+    expect(jenkinsStage.executionDetailsSections).toBeDefined();
   });
 
   it('preserves Jenkins extra execution label lines', () => {

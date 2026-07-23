@@ -1,11 +1,13 @@
 import type { IModule } from 'angular';
 import { module } from 'angular';
 
+import { CACHE_INITIALIZER_SERVICE } from '../cache/cacheInitializer.service';
 import { OVERRIDE_REGISTRY } from '../overrideRegistry/override.registry';
 import { SPINNAKER_CONTAINER_COMPONENT } from './spinnakerContainer.component';
 
 export const APPLICATION_BOOTSTRAP_MODULE = 'spinnaker.core.applicationBootstrap';
 export const bootstrapModule = module(APPLICATION_BOOTSTRAP_MODULE, [
+  CACHE_INITIALIZER_SERVICE,
   OVERRIDE_REGISTRY,
   SPINNAKER_CONTAINER_COMPONENT,
 ]) as IModule;

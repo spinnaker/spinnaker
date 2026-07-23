@@ -1,8 +1,10 @@
-export function openLoadBalancerModal(
-  config: any,
-  modalService: any,
-  { application, loadBalancer, isNew, forPipelineConfig }: any,
-) {
+import type { ICloudProviderConfig } from '../../../../cloudProvider';
+
+export const hasPipelineLoadBalancerModal = (provider: ICloudProviderConfig): boolean => {
+  return Boolean(provider?.loadBalancer?.CreateLoadBalancerModal?.supportsPipelineConfig);
+};
+
+export function openLoadBalancerModal(config: any, { application, loadBalancer, isNew, forPipelineConfig }: any) {
   if (config.CreateLoadBalancerModal && config.CreateLoadBalancerModal.supportsPipelineConfig) {
     return config.CreateLoadBalancerModal.show({
       app: application,
@@ -13,15 +15,5 @@ export function openLoadBalancerModal(
     });
   }
 
-  return modalService.open({
-    templateUrl: config.createLoadBalancerTemplateUrl,
-    controller: `${config.createLoadBalancerController} as ctrl`,
-    size: 'lg',
-    resolve: {
-      application: () => application,
-      loadBalancer: () => loadBalancer,
-      isNew: () => isNew,
-      forPipelineConfig: () => forPipelineConfig,
-    },
-  }).result;
+  return Promise.reject(new Error('No React create load balancer modal is registered with pipeline support.'));
 }

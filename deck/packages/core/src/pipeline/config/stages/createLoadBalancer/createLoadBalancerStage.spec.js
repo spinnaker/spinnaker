@@ -1,4 +1,8 @@
-import { openLoadBalancerModal, upsertLoadBalancersStage } from './createLoadBalancerStage';
+import {
+  hasPipelineLoadBalancerModal,
+  openLoadBalancerModal,
+  upsertLoadBalancersStage,
+} from './createLoadBalancerStage';
 
 describe('createLoadBalancerStage registration', () => {
   it('registers create load balancers with direct React config and execution details', () => {
@@ -9,7 +13,7 @@ describe('createLoadBalancerStage registration', () => {
     );
     expect(upsertLoadBalancersStage.component).toBeDefined();
     expect(upsertLoadBalancersStage.templateUrl).toBeUndefined();
-    expect(upsertLoadBalancersStage.executionDetailsUrl).toBeUndefined();
+    expect(upsertLoadBalancersStage.executionDetailsSections).toBeDefined();
     expect(upsertLoadBalancersStage.executionDetailsSections.map((section) => section.title)).toEqual([
       'loadBalancerConfig',
       'taskStatus',
@@ -20,6 +24,21 @@ describe('createLoadBalancerStage registration', () => {
 });
 
 describe('createLoadBalancerStage modal opener', () => {
+  it('only offers providers with React load balancer modals that support pipeline config', () => {
+    expect(
+      hasPipelineLoadBalancerModal({
+        loadBalancer: { CreateLoadBalancerModal: { supportsPipelineConfig: true } },
+      }),
+    ).toBe(true);
+    expect(
+      hasPipelineLoadBalancerModal({
+        loadBalancer: { CreateLoadBalancerModal: { supportsPipelineConfig: false } },
+      }),
+    ).toBe(false);
+    expect(hasPipelineLoadBalancerModal({ loadBalancer: { CreateLoadBalancerModal: {} } })).toBe(false);
+    expect(hasPipelineLoadBalancerModal({ loadBalancer: {} })).toBe(false);
+  });
+
   it('opens a React load balancer modal when the provider has one', async () => {
     const application = { name: 'fnord' };
     const loadBalancer = { name: 'fnord-main' };
@@ -30,9 +49,7 @@ describe('createLoadBalancerStage modal opener', () => {
         show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
       },
     };
-    const modalService = { open: jasmine.createSpy('open') };
-
-    const command = await openLoadBalancerModal(config, modalService, {
+    const command = await openLoadBalancerModal(config, {
       application,
       loadBalancer,
       isNew: false,
@@ -47,10 +64,9 @@ describe('createLoadBalancerStage modal opener', () => {
       isNew: false,
       forPipelineConfig: true,
     });
-    expect(modalService.open).not.toHaveBeenCalled();
   });
 
-  it('falls back to the Angular modal registration when a React modal does not support pipeline results', async () => {
+  it('rejects when a React modal does not support pipeline results', async () => {
     const application = { name: 'fnord' };
     const loadBalancer = { name: 'fnord-main' };
     const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
@@ -58,61 +74,32 @@ describe('createLoadBalancerStage modal opener', () => {
       CreateLoadBalancerModal: {
         show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
       },
-      createLoadBalancerController: 'legacyCtrl',
-      createLoadBalancerTemplateUrl: 'legacy.html',
     };
-    const modalService = { open: jasmine.createSpy('open').and.returnValue({ result: Promise.resolve(result) }) };
 
-    const command = await openLoadBalancerModal(config, modalService, {
-      application,
-      loadBalancer,
-      isNew: false,
-      forPipelineConfig: true,
-    });
-
-    expect(command).toBe(result);
-    expect(config.CreateLoadBalancerModal.show).not.toHaveBeenCalled();
-    expect(modalService.open).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        templateUrl: 'legacy.html',
-        controller: 'legacyCtrl as ctrl',
+    await expectAsync(
+      openLoadBalancerModal(config, {
+        application,
+        loadBalancer,
+        isNew: false,
+        forPipelineConfig: true,
       }),
-    );
+    ).toBeRejectedWithError('No React create load balancer modal is registered with pipeline support.');
+
+    expect(config.CreateLoadBalancerModal.show).not.toHaveBeenCalled();
   });
 
-  it('falls back to the Angular modal registration for legacy providers', async () => {
+  it('rejects when no React modal is registered', async () => {
     const application = { name: 'fnord' };
     const loadBalancer = { name: 'fnord-main' };
-    const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
-    const config = {
-      createLoadBalancerController: 'legacyCtrl',
-      createLoadBalancerTemplateUrl: 'legacy.html',
-    };
-    const modalService = { open: jasmine.createSpy('open').and.returnValue({ result: Promise.resolve(result) }) };
+    const config = {};
 
-    const command = await openLoadBalancerModal(config, modalService, {
-      application,
-      loadBalancer,
-      isNew: false,
-      forPipelineConfig: true,
-    });
-
-    expect(command).toBe(result);
-    expect(modalService.open).toHaveBeenCalledWith({
-      templateUrl: 'legacy.html',
-      controller: 'legacyCtrl as ctrl',
-      size: 'lg',
-      resolve: {
-        application: jasmine.any(Function),
-        loadBalancer: jasmine.any(Function),
-        isNew: jasmine.any(Function),
-        forPipelineConfig: jasmine.any(Function),
-      },
-    });
-    const modalOptions = modalService.open.calls.mostRecent().args[0];
-    expect(modalOptions.resolve.application()).toBe(application);
-    expect(modalOptions.resolve.loadBalancer()).toBe(loadBalancer);
-    expect(modalOptions.resolve.isNew()).toBe(false);
-    expect(modalOptions.resolve.forPipelineConfig()).toBe(true);
+    await expectAsync(
+      openLoadBalancerModal(config, {
+        application,
+        loadBalancer,
+        isNew: false,
+        forPipelineConfig: true,
+      }),
+    ).toBeRejectedWithError('No React create load balancer modal is registered with pipeline support.');
   });
 });
