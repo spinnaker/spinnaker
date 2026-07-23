@@ -1,7 +1,6 @@
 import { UISref } from '@uirouter/react';
 import classNames from 'classnames';
 import { isEqual } from 'lodash';
-import { $location } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 
@@ -177,7 +176,7 @@ export class Execution extends React.PureComponent<IExecutionProps, IExecutionSt
   };
 
   public getUrl(): string {
-    let url = $location.absUrl();
+    let url = window.location.href;
     if (!this.props.standalone) {
       url = url.replace('/executions', '/executions/details');
     }

@@ -128,7 +128,10 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
   }
 
   private providerFilterFn: IProviderSelectionFilter = (_application, _account, provider) => {
-    return !provider.unsupportedStageTypes || provider.unsupportedStageTypes.indexOf('deploy') === -1;
+    return (
+      Boolean(provider.serverGroup?.CloneServerGroupModal) &&
+      (!provider.unsupportedStageTypes || provider.unsupportedStageTypes.indexOf('deploy') === -1)
+    );
   };
 
   private addCluster = (): void => {

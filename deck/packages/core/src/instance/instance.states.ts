@@ -5,6 +5,7 @@ import type { Application, ApplicationStateProvider } from '../application';
 import { APPLICATION_STATE_PROVIDER } from '../application';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InstanceDetails } from './details/InstanceDetails';
+import { MultipleInstancesDetails } from './details/MultipleInstancesDetails';
 import { StandaloneInstanceDetails } from './details/StandaloneInstanceDetails';
 import type { INestedState, StateConfigProvider } from '../navigation';
 import { STATE_CONFIG_PROVIDER } from '../navigation';
@@ -57,6 +58,24 @@ export function getStandaloneInstanceState(): INestedState {
   };
 }
 
+export function getMultipleInstancesState(): INestedState {
+  return {
+    name: 'multipleInstances',
+    url: '/multipleInstances',
+    views: {
+      'detail@../insight': {
+        component: MultipleInstancesDetails,
+        $type: 'react',
+      },
+    },
+    data: {
+      pageTitleDetails: {
+        title: 'Multiple Instances',
+      },
+    },
+  };
+}
+
 module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
   'applicationStateProvider',
   'stateConfigProvider',
@@ -94,23 +113,7 @@ module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).con
       },
     };
 
-    const multipleInstances: INestedState = {
-      name: 'multipleInstances',
-      url: '/multipleInstances',
-      views: {
-        'detail@../insight': {
-          templateUrl: require('../instance/details/multipleInstances.view.html'),
-          controller: 'MultipleInstancesCtrl',
-          controllerAs: 'vm',
-        },
-      },
-      data: {
-        pageTitleDetails: {
-          title: 'Multiple Instances',
-        },
-      },
-    };
-
+    const multipleInstances = getMultipleInstancesState();
     const standaloneInstance = getStandaloneInstanceState();
 
     applicationStateProvider.addInsightDetailState(instanceDetails);

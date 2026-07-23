@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import { SearchResult } from './SearchResult';
@@ -13,7 +12,6 @@ export interface ISearchResultPodItemProps {
   onResultClick: (categoryName: string) => void;
 }
 
-@UIRouterContext
 export class SearchResultPodItem extends React.Component<ISearchResultPodItemProps> {
   private handleRemoveClicked(evt: React.MouseEvent<any>, categoryName: string, itemId: string) {
     evt.preventDefault();
