@@ -2,7 +2,7 @@ import { CreateLoadBalancerExecutionDetails } from './CreateLoadBalancerExecutio
 import { CreateLoadBalancerStageConfig } from './CreateLoadBalancerStageConfig';
 import { ExecutionDetailsTasks } from '../common';
 import { Registry } from '../../../../registry';
-export { openLoadBalancerModal } from './openLoadBalancerModal';
+export { hasPipelineLoadBalancerModal, openLoadBalancerModal } from './openLoadBalancerModal';
 
 export const upsertLoadBalancersStage = {
   key: 'upsertLoadBalancers',
