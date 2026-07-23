@@ -66,6 +66,65 @@ describe('Service: instance writer', function () {
     });
   });
 
+  describe('single-instance discovery operations', () => {
+    const instance: IInstance = {
+      account: 'test',
+      cloudProvider: 'gce',
+      health: [],
+      healthState: 'Up',
+      id: 'instance-1',
+      launchTime: 1,
+      name: 'instance-1',
+      region: 'us-central1',
+      serverGroup: 'fnord-v001',
+      zone: 'us-central1-a',
+    };
+    const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
+    let task: ITaskCommand;
+
+    beforeEach(() => {
+      task = null;
+      spyOn(TaskExecutor, 'executeTask').and.callFake((command: ITaskCommand) => {
+        task = command;
+        return undefined;
+      });
+    });
+
+    it('includes confirmation params in the enable task payload', () => {
+      InstanceWriter.enableInstanceInDiscovery(instance, application, { reason: 'operator requested' });
+
+      expect(task.job).toEqual([
+        {
+          asgName: 'fnord-v001',
+          cloudProvider: 'gce',
+          credentials: 'test',
+          instanceIds: ['instance-1'],
+          reason: 'operator requested',
+          region: 'us-central1',
+          serverGroupName: 'fnord-v001',
+          type: 'enableInstancesInDiscovery',
+        },
+      ]);
+    });
+
+    it('includes confirmation params in the disable task payload', () => {
+      InstanceWriter.disableInstanceInDiscovery(instance, application, { reason: 'operator requested' });
+
+      expect(task.job).toEqual([
+        {
+          asgName: 'fnord-v001',
+          cloudProvider: 'gce',
+          credentials: 'test',
+          instanceIds: ['instance-1'],
+          reason: 'operator requested',
+          region: 'us-central1',
+          serverGroupName: 'fnord-v001',
+          type: 'disableInstancesInDiscovery',
+        },
+      ]);
+    });
+  });
+
   describe('multi-instance operations', () => {
     let task: ITaskCommand, serverGroupA: IServerGroup, serverGroupB: IServerGroup;
 

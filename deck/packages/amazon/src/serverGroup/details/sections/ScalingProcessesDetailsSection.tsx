@@ -3,8 +3,9 @@ import React from 'react';
 import { CollapsibleSection, HelpField, timestamp, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
-import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
+import { AutoScalingProcessService, ModifyScalingProcessesModal } from '../scalingProcesses';
 
 export interface IScalingProcessesDetailsSectionState {
   autoScalingProcesses: IScalingProcess[];
@@ -45,6 +46,11 @@ export class ScalingProcessesDetailsSection extends React.Component<
     this.setState(this.getState(nextProps));
   }
 
+  private editScalingProcesses = (): void => {
+    const { app: application, serverGroup } = this.props;
+    ModifyScalingProcessesModal.show({ application, serverGroup });
+  };
+
   public render(): JSX.Element {
     const { autoScalingProcesses, scalingPoliciesDisabled, scheduledActionsDisabled } = this.state;
 
@@ -84,6 +90,11 @@ export class ScalingProcessesDetailsSection extends React.Component<
             </li>
           ))}
         </ul>
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
+          <a className="clickable" onClick={this.editScalingProcesses}>
+            Edit Scaling Processes
+          </a>
+        )}
       </CollapsibleSection>
     );
   }
