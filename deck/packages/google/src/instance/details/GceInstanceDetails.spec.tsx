@@ -3,7 +3,7 @@ import React from 'react';
 
 import type { Action } from '@spinnaker/core';
 import {
-  AngularServices,
+  AccountService,
   ConfirmationModalService,
   Details,
   InstanceActions,
@@ -12,7 +12,7 @@ import {
   RecentHistoryService,
 } from '@spinnaker/core';
 
-import { GceInstanceDetails } from './GceInstanceDetails';
+import { GceInstanceDetailsComponent as GceInstanceDetails } from './GceInstanceDetails';
 
 describe('GceInstanceDetails', () => {
   function application(loadBalancers: any[] = []) {
@@ -57,8 +57,20 @@ describe('GceInstanceDetails', () => {
     };
   }
 
-  function actionsFor(loadedInstance: any, app = application([networkLoadBalancer()])): Action[] {
-    const wrapper = shallow(<GceInstanceDetails app={app} initialInstance={loadedInstance} $stateParams={{}} />);
+  function actionsFor(
+    loadedInstance: any,
+    app = application([networkLoadBalancer()]),
+    stateService = { go: jasmine.createSpy('go'), includes: () => false },
+  ): Action[] {
+    const wrapper = shallow(
+      <GceInstanceDetails
+        app={app}
+        initialInstance={loadedInstance}
+        router={{} as any}
+        stateParams={{}}
+        stateService={stateService as any}
+      />,
+    );
     const renderedActions = shallow(wrapper.find(Details.Header).prop('actions') as React.ReactElement);
     const actionMenu = renderedActions.is(InstanceActions) ? renderedActions : renderedActions.find(InstanceActions);
     const actions = actionMenu.exists() ? actionMenu.prop('actions') : [];
@@ -100,7 +112,9 @@ describe('GceInstanceDetails', () => {
       <GceInstanceDetails
         app={app}
         instance={{ account: 'route-account', instanceId: 'instance-1', region: 'route-region' }}
-        $stateParams={{}}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{} as any}
       />,
     );
 
@@ -109,6 +123,7 @@ describe('GceInstanceDetails', () => {
   });
 
   it('clears actions on instance identity changes and ignores stale responses', async () => {
+    spyOn(AccountService, 'challengeDestructiveActions').and.returnValue(Promise.resolve(false));
     const oldRequest = deferred<any>();
     const newRequest = deferred<any>();
     spyOn(RecentHistoryService, 'addExtraDataToLatest');
@@ -128,7 +143,14 @@ describe('GceInstanceDetails', () => {
     );
     const app = application();
     const RoutedDetails = ({ routedInstance }: { routedInstance: any }) => (
-      <GceInstanceDetails app={app} initialInstance={instance()} instance={routedInstance} $stateParams={{}} />
+      <GceInstanceDetails
+        app={app}
+        initialInstance={instance()}
+        instance={routedInstance}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{} as any}
+      />
     );
     const wrapper = mount(
       <RoutedDetails routedInstance={{ account: 'test-account', instanceId: 'instance-1', region: 'us-central1' }} />,
@@ -258,7 +280,6 @@ describe('GceInstanceDetails', () => {
     spyOn(InstanceWriter, 'enableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
     spyOn(InstanceWriter, 'disableInstanceInDiscovery').and.returnValue(Promise.resolve({} as any));
     const $state = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue($state as any);
     const app = application([networkLoadBalancer()]);
     const loadedInstance = instance({
       health: [
@@ -268,7 +289,7 @@ describe('GceInstanceDetails', () => {
       ],
     });
 
-    const actions = actionsFor(loadedInstance, app);
+    const actions = actionsFor(loadedInstance, app, $state);
     expect(actions.length).toBe(7);
     if (!actions.length) {
       return;

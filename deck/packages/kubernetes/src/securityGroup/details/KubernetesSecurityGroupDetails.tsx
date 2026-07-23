@@ -5,6 +5,7 @@ import type {
   Application,
   IManifest,
   IOverridableProps,
+  IRouterInjectedProps,
   ISecurityGroupDetail,
   SecurityGroupReader,
 } from '@spinnaker/core';
@@ -21,6 +22,7 @@ import {
   SETTINGS,
   timestamp,
   useModal,
+  withRouter,
 } from '@spinnaker/core';
 
 import type { IKubernetesSecurityGroup } from '../../interfaces';
@@ -55,8 +57,8 @@ export interface IKubernetesSecurityGroupActionsProps {
   securityGroup: IKubernetesSecurityGroup;
 }
 
-export class KubernetesSecurityGroupDetails extends React.Component<
-  IKubernetesSecurityGroupDetailsProps,
+export class KubernetesSecurityGroupDetailsComponent extends React.Component<
+  IKubernetesSecurityGroupDetailsProps & IRouterInjectedProps,
   IKubernetesSecurityGroupDetailsState
 > {
   public state: IKubernetesSecurityGroupDetailsState = {
@@ -161,12 +163,12 @@ export class KubernetesSecurityGroupDetails extends React.Component<
       return;
     }
 
-    AngularServices.$state.params.allowModalToStayOpen = true;
-    AngularServices.$state.go('^', null, { location: 'replace' });
+    this.props.stateService.params.allowModalToStayOpen = true;
+    this.props.stateService.go('^', null, { location: 'replace' });
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -246,6 +248,8 @@ export class KubernetesSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const KubernetesSecurityGroupDetails = withRouter(KubernetesSecurityGroupDetailsComponent);
 
 export function KubernetesSecurityGroupActions({ app, manifest, securityGroup }: IKubernetesSecurityGroupActionsProps) {
   const deleteModal = useModal();

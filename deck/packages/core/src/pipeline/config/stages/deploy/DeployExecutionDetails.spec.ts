@@ -1,7 +1,13 @@
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IExecutionStage } from '../../../../domain';
+import { setDirectRouter } from '../../../../navigation/directRouter';
 import { UrlBuilder } from '../../../../navigation/UrlBuilder';
-import { getDeployedServerGroups, getDeployWaitingMessages, hasDeployChanges } from './DeployExecutionDetails';
+import {
+  DeployExecutionDetailsComponent,
+  getDeployedServerGroups,
+  getDeployWaitingMessages,
+  hasDeployChanges,
+} from './DeployExecutionDetails';
 
 describe('DeployExecutionDetails helpers', () => {
   let originalGetValue: typeof CloudProviderRegistry.getValue;
@@ -12,8 +18,12 @@ describe('DeployExecutionDetails helpers', () => {
   });
 
   beforeEach(() => {
+    const params = { project: 'facade-project' };
+    setDirectRouter({ globals: { params }, stateService: { params, href: () => 'facade-config' } } as any);
     spyOn(UrlBuilder, 'buildFromMetadata').and.returnValue('#/server-group');
   });
+
+  afterEach(() => setDirectRouter(null));
 
   afterAll(() => {
     CloudProviderRegistry.getValue = originalGetValue;
@@ -67,6 +77,34 @@ describe('DeployExecutionDetails helpers', () => {
       expect(deployed.length).toBe(2);
       expect(deployed[0].serverGroup).toBe('deployedWest');
       expect(deployed[1].serverGroup).toBe('deployedEast');
+    });
+
+    it('uses the injected project route param for deployed server group links', () => {
+      const component = new DeployExecutionDetailsComponent({
+        application: {},
+        stage: createStage({
+          application: 'fnord',
+          account: 'test',
+          cloudProvider: 'aws',
+          'kato.tasks': [{ resultObjects: [{ serverGroupNameByRegion: { 'us-west-1': 'deployedWest' } }] }],
+        }),
+        stateParams: { project: 'injected-project' },
+      } as any);
+
+      expect(component.state.deployed[0].project).toBe('injected-project');
+    });
+
+    it('uses the injected state service for the application config link', () => {
+      const href = jasmine.createSpy().and.returnValue('injected-config');
+      const component = new DeployExecutionDetailsComponent({
+        application: { name: 'fnord' },
+        stage: createStage(),
+        stateParams: {},
+        stateService: { href },
+      } as any);
+
+      expect((component as any).getConfigHref()).toBe('injected-config');
+      expect(href).toHaveBeenCalledWith('home.applications.application.config', { application: 'fnord' });
     });
   });
 

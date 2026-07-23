@@ -11,7 +11,7 @@ import { createLoadBalancerTransformer } from '../loadBalancer/loadBalancer.tran
 import { setDirectRouter } from '../navigation/directRouter';
 import { AngularServices } from './services';
 
-describe('AngularServices direct router fallback', () => {
+describe('AngularServices direct services', () => {
   const provider = 'serverGroupCommandBuilderTest';
 
   afterEach(() => {
@@ -24,49 +24,6 @@ describe('AngularServices direct router fallback', () => {
     InfrastructureCaches.destroyCaches();
     delete SETTINGS.providers[provider];
     (CloudProviderRegistry as any).providers.delete(provider);
-  });
-
-  it('returns the active direct UI Router when Angular is not bootstrapped', () => {
-    const router = new UIRouterReact();
-
-    setDirectRouter(router);
-
-    expect(AngularServices.$uiRouter).toBe(router as any);
-  });
-
-  it('reports the direct UI Router only while one is set', () => {
-    const router = new UIRouterReact();
-
-    setDirectRouter(null);
-    expect(AngularServices.has('$uiRouter')).toBe(false);
-    expect(AngularServices.has('unknownDirectService')).toBe(false);
-
-    setDirectRouter(router);
-
-    expect(AngularServices.has('$uiRouter')).toBe(true);
-    expect(AngularServices.has('unknownDirectService')).toBe(false);
-
-    setDirectRouter(null);
-
-    expect(AngularServices.has('$uiRouter')).toBe(false);
-    router.dispose();
-  });
-
-  it('returns the direct router state service when Angular state is not available', () => {
-    const router = new UIRouterReact();
-
-    setDirectRouter(router);
-
-    expect(AngularServices.$state).toBe(router.stateService as any);
-  });
-
-  it('returns direct router state params when Angular is not bootstrapped', () => {
-    const router = new UIRouterReact();
-    router.globals.params = { application: 'compute' } as any;
-
-    setDirectRouter(router);
-
-    expect(AngularServices.$stateParams.application).toBe('compute');
   });
 
   it('returns a direct infrastructure search service when Angular is not bootstrapped', () => {

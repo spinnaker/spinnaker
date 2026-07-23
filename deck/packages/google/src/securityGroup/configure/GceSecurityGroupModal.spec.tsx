@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 
 import { AngularServices, SecurityGroupWriter, SubmitButton } from '@spinnaker/core';
 
-import { GceSecurityGroupModal } from './GceSecurityGroupModal';
+import { GceSecurityGroupModalComponent as GceSecurityGroupModal } from './GceSecurityGroupModal';
 
 describe('GceSecurityGroupModal', () => {
   const application = {
@@ -141,13 +141,15 @@ describe('GceSecurityGroupModal', () => {
         go: jasmine.createSpy('go'),
         includes: jasmine.createSpy('includes').and.returnValue(mode === 'clone'),
       };
-      spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
       const modal = new GceSecurityGroupModal({
         application: { name: 'my-app', securityGroups: { onNextRefresh, refresh } },
         closeModal,
         credentials: 'my-account',
         mode,
+        router: {},
         securityGroup: mode === 'clone' ? validSecurityGroup({ name: 'source-firewall' }) : undefined,
+        stateParams: {},
+        stateService: state,
       } as any);
       (modal.state as any).securityGroup = validSecurityGroup({ name: ' new-firewall ', network: ' default ' });
 

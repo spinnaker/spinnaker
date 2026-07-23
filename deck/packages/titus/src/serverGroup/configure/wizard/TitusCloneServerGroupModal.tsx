@@ -2,7 +2,7 @@ import { get, isEqual } from 'lodash';
 import React from 'react';
 
 import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
-import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
+import type { Application, IModalComponentProps, IRouterInjectedProps, IStage } from '@spinnaker/core';
 import {
   AccountTag,
   AngularServices,
@@ -11,6 +11,7 @@ import {
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -36,8 +37,8 @@ export interface ITitusCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class TitusCloneServerGroupModal extends React.Component<
-  ITitusCloneServerGroupModalProps,
+export class TitusCloneServerGroupModalComponent extends React.Component<
+  ITitusCloneServerGroupModalProps & IRouterInjectedProps,
   ITitusCloneServerGroupModalState
 > {
   public static defaultProps: Partial<ITitusCloneServerGroupModalProps> = {
@@ -53,7 +54,7 @@ export class TitusCloneServerGroupModal extends React.Component<
     return ReactModal.show(TitusCloneServerGroupModal, props, modalProps);
   }
 
-  constructor(props: ITitusCloneServerGroupModalProps) {
+  constructor(props: ITitusCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
@@ -102,19 +103,19 @@ export class TitusCloneServerGroupModal extends React.Component<
           provider: 'titus',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        AngularServices.$state.go(transitionTo, newStateParams);
+        this.props.stateService.go(transitionTo, newStateParams);
       }
     }
   };
@@ -294,3 +295,8 @@ export class TitusCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const TitusCloneServerGroupModal = Object.assign(
+  withRouter<ITitusCloneServerGroupModalProps & IRouterInjectedProps>(TitusCloneServerGroupModalComponent),
+  { show: TitusCloneServerGroupModalComponent.show },
+);
