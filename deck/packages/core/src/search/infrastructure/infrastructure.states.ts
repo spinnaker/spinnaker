@@ -5,11 +5,10 @@ import { SearchV2 } from './SearchV2';
 import { SETTINGS } from '../../config/settings';
 import { registerRootState } from '../../navigation/rootState.registration';
 import type { StateConfigProvider } from '../../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../../navigation/state.provider';
 
 export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
 
-function registerSearchStates(stateConfigProvider: StateConfigProvider, directReact = false): void {
+function registerSearchStates(stateConfigProvider: StateConfigProvider): void {
   stateConfigProvider.addToRootState({
     name: 'search',
     url: '/search?q&key&tab&name&account&region&stack&route',
@@ -24,17 +23,10 @@ function registerSearchStates(stateConfigProvider: StateConfigProvider, directRe
       tab: { dynamic: true, value: null },
     },
     views: {
-      'main@': directReact
-        ? {
-            component: SETTINGS.searchVersion === 2 ? SearchV2 : SearchV1,
-            $type: 'react',
-          }
-        : {
-            template: `
-          <infrastructure-search-v1 ng-if="$resolve.version == 1" class="flex-fill"></infrastructure-search-v1>
-          <infrastructure-search-v2 ng-if="$resolve.version == 2" class="flex-fill"></infrastructure-search-v2>
-        `,
-          },
+      'main@': {
+        component: SETTINGS.searchVersion === 2 ? SearchV2 : SearchV1,
+        $type: 'react',
+      },
     },
     data: {
       pageTitleMain: {
@@ -55,11 +47,5 @@ function registerSearchStates(stateConfigProvider: StateConfigProvider, directRe
   stateConfigProvider.addRewriteRule('/', '/search');
 }
 
-registerRootState((stateConfigProvider) => registerSearchStates(stateConfigProvider, true));
-
-module(INFRASTRUCTURE_STATES, [STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  (stateConfigProvider: StateConfigProvider) => {
-    registerSearchStates(stateConfigProvider);
-  },
-]);
+module(INFRASTRUCTURE_STATES, []);
+registerRootState(registerSearchStates);
