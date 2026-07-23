@@ -4,11 +4,10 @@ import { module } from 'angular';
 import { ProjectHeader } from './ProjectHeader';
 import { Projects } from './Projects';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
+import { registerApplicationState } from '../application/applicationState.registration';
 import { ProjectDashboard } from './dashboard/ProjectDashboard';
 import type { IProject } from '../domain/IProject';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { ProjectReader } from './service/ProjectReader';
 
 export interface IProjectStateParms extends StateParams {
@@ -16,10 +15,10 @@ export interface IProjectStateParms extends StateParams {
 }
 
 export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
-module(PROJECTS_STATES_CONFIG, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  'applicationStateProvider',
-  (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
+module(PROJECTS_STATES_CONFIG, []);
+
+registerApplicationState(
+  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const dashboard: INestedState = {
       name: 'dashboard',
       url: '/dashboard',
@@ -99,4 +98,4 @@ module(PROJECTS_STATES_CONFIG, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDE
 
     stateConfigProvider.addRewriteRule('/projects/{project}', '/projects/{project}/dashboard');
   },
-]);
+);

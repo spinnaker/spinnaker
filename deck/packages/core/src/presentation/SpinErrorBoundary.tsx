@@ -1,6 +1,5 @@
 import type { StateObject, UIRouter } from '@uirouter/core';
 import type { ReactViewDeclaration } from '@uirouter/react';
-import { module } from 'angular';
 import type { ErrorInfo } from 'react';
 import React from 'react';
 
@@ -83,26 +82,22 @@ export class SpinErrorBoundary extends React.Component<ISpinErrorBoundaryProps, 
   }
 }
 
-export const UI_ROUTER_REACT_ERROR_BOUNDARY = 'ui.router.react.error.boundary';
-module(UI_ROUTER_REACT_ERROR_BOUNDARY, ['ui.router']).config([
-  '$uiRouterProvider',
-  ($uiRouterProvider: UIRouter) => {
-    $uiRouterProvider.stateRegistry.decorator('views', (state, parent) => {
-      const views: StateObject['views'] = parent(state);
+export function registerRouteErrorBoundary(router: UIRouter): () => void {
+  return router.stateRegistry.decorator('views', (state, parent) => {
+    const views: StateObject['views'] = parent(state);
 
-      Object.values(views)
-        .filter((view) => view.$type === 'react')
-        .forEach((view) => {
-          const reactView = view as ReactViewDeclaration;
-          const RoutedComponent = reactView.component;
-          reactView.component = (props: any) => (
-            <SpinErrorBoundary category={state.name}>
-              <RoutedComponent {...props} />
-            </SpinErrorBoundary>
-          );
-        });
+    Object.values(views)
+      .filter((view) => view.$type === 'react')
+      .forEach((view) => {
+        const reactView = view as ReactViewDeclaration;
+        const RoutedComponent = reactView.component;
+        reactView.component = (props: any) => (
+          <SpinErrorBoundary category={state.name}>
+            <RoutedComponent {...props} />
+          </SpinErrorBoundary>
+        );
+      });
 
-      return views;
-    });
-  },
-]);
+    return views;
+  }) as () => void;
+}
