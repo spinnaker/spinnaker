@@ -49,13 +49,17 @@ describe('server group states', () => {
     const router = configureRouter();
     routers.push(router);
 
-    await router.stateService.go('home.applications.application.insight.clusters.serverGroup', {
-      accountId: 'prod',
-      application: 'payments',
-      provider: 'aws',
-      region: 'eu-west-1',
-      serverGroup: 'payments-v001',
-    });
+    await router.stateService.go(
+      'home.applications.application.insight.clusters.serverGroup',
+      {
+        accountId: 'prod',
+        application: 'payments',
+        provider: 'aws',
+        region: 'eu-west-1',
+        serverGroup: 'payments-v001',
+      },
+      { location: false },
+    );
 
     const state = router.stateRegistry.get('home.applications.application.insight.clusters.serverGroup');
     const transition = router.globals.successfulTransitions.peekTail();

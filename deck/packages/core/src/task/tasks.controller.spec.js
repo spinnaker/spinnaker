@@ -42,16 +42,16 @@ describe('Controller: tasks', function () {
       expect(scope.viewState.loading).toBe(true);
     });
 
-    it('loading flag should be false when tasks reloaded', function () {
-      scope.$digest();
+    it('loading flag should be false when tasks reloaded', async function () {
+      await Promise.resolve();
       expect(scope.viewState.loading).toBe(false);
     });
   });
 
   describe('task reloading', function () {
-    it('should sort tasks whenever a tasksReloaded event occurs', function () {
+    it('should sort tasks whenever a tasksReloaded event occurs', async function () {
       this.initializeController();
-      scope.$digest();
+      await Promise.resolve();
       expect(controller.sortedTasks.length).toBe(0);
 
       controller.application.tasks.data.push({ isActive: true, startTime: 20, name: 'a' });

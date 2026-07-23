@@ -22,8 +22,5 @@
   },
   "peerDependencies": {
     "@spinnaker/core": "*"
-  },
-  "dependencies": {
-    "ngimport": "0.6.1"
   }
 }

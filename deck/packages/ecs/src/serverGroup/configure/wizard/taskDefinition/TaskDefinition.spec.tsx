@@ -48,6 +48,7 @@ describe('TaskDefinition', () => {
     } as any) as IEcsServerGroupCommand;
 
     spyOn(AccountService, 'listAccounts').and.returnValue(Promise.resolve(dockerAccounts));
+    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(Promise.resolve([]));
     spyOn(DockerImageReader, 'findImages').and.returnValue(Promise.resolve(dockerImages));
   });
 

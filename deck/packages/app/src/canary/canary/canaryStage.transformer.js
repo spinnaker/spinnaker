@@ -1,7 +1,6 @@
 import _ from 'lodash';
-import { $log } from 'ngimport';
 
-import { OrchestratedItemTransformer } from '@spinnaker/core';
+import { AngularServices, OrchestratedItemTransformer } from '@spinnaker/core';
 
 // adds "canary" or "baseline" to the deploy stage name when converting it to a task
 function getDeployTaskName(stage) {
@@ -137,7 +136,7 @@ export const canaryStageTransformer = {
           },
         });
         if (!deployParent) {
-          $log.warn('No deployment parent found for canary stage in execution:', execution.id);
+          AngularServices.$log.warn('No deployment parent found for canary stage in execution:', execution.id);
           return;
         }
 
@@ -148,7 +147,7 @@ export const canaryStageTransformer = {
           },
         });
         if (!monitorStage) {
-          $log.warn('No monitorCanary stage found for canary stage in execution:', execution.id);
+          AngularServices.$log.warn('No monitorCanary stage found for canary stage in execution:', execution.id);
           return;
         }
 
