@@ -15,8 +15,6 @@ import 'select2-bootstrap-css/select2-bootstrap.css';
 import 'source-sans/source-sans-3.css';
 import './fonts/icons.css';
 
-import './navigation/legacyStateConfig.bridge';
-
 import './analytics/GoogleAnalyticsInitializer';
 import './apitoken/apitoken.module';
 import './application/application.module';

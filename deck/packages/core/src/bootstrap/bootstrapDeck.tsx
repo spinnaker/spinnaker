@@ -7,6 +7,7 @@ import { SpinnakerContainer } from './SpinnakerContainer';
 import { AngularServices } from '../angular/services';
 import { initializeAuthentication } from '../authentication/authentication.module';
 import { VersionChecker } from '../config/VersionChecker';
+import '../navigation/coreRoutes';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter, startRouter } from '../navigation/router';
 import { initializePlugins } from '../plugins/plugin.module';

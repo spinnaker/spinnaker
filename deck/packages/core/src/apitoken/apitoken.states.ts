@@ -15,29 +15,29 @@
 import { module } from 'angular';
 
 import { ApiTokensPageContainer } from './ApiTokensPageContainer';
-import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
+import { registerRootState } from '../navigation/rootState.registration';
+import type { INestedState } from '../navigation/state.provider';
 
 export const APITOKEN_STATES = 'spinnaker.core.apitoken.states';
-module(APITOKEN_STATES, [STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  (stateConfigProvider: StateConfigProvider) => {
-    const apiTokens: INestedState = {
-      name: 'apiTokens',
-      url: '/api-tokens',
-      views: {
-        'main@': {
-          component: ApiTokensPageContainer,
-          $type: 'react',
-        },
-      },
-      data: {
-        pageTitleMain: {
-          label: 'API Tokens',
-        },
-      },
-    };
 
-    stateConfigProvider.addToRootState(apiTokens);
-  },
-]);
+module(APITOKEN_STATES, []);
+
+registerRootState((stateConfigProvider) => {
+  const apiTokens: INestedState = {
+    name: 'apiTokens',
+    url: '/api-tokens',
+    views: {
+      'main@': {
+        component: ApiTokensPageContainer,
+        $type: 'react',
+      },
+    },
+    data: {
+      pageTitleMain: {
+        label: 'API Tokens',
+      },
+    },
+  };
+
+  stateConfigProvider.addToRootState(apiTokens);
+});
