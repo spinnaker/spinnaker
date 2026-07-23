@@ -3,7 +3,6 @@ import React from 'react';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IMoniker } from '../../naming';
-import { AngularJSAdapter } from '../../reactShims';
 
 export interface IStandaloneInstance {
   account: string;
@@ -52,7 +51,10 @@ export function StandaloneInstanceDetails(props: IStandaloneInstanceDetailsProps
   if (templateUrl && controller) {
     return (
       <StandaloneDetailsLayout>
-        <AngularJSAdapter templateUrl={templateUrl} controller={`${controller} as ctrl`} locals={props} />
+        <div className="alert alert-warning">
+          Instance details for {provider} must be migrated to React. AngularJS templates/controllers are no longer
+          supported.
+        </div>
       </StandaloneDetailsLayout>
     );
   }

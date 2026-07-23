@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import type { IStage, IStageConfigProps } from '@spinnaker/core';
-import { StageConfigField, StageConstants } from '@spinnaker/core';
+import { AccountService, AppListExtractor, ChecklistInput, StageConfigField, StageConstants } from '@spinnaker/core';
+import type { IAccount } from '@spinnaker/core';
 
 type AmazonStageFieldType = 'account' | 'regions' | 'selectionStrategy' | 'target' | 'text';
 
@@ -157,7 +158,8 @@ function getFieldValue(stage: IStage, field: IAmazonStageField): string {
   return stage[field.fieldName] || '';
 }
 
-function renderField(stage: IStage, field: IAmazonStageField, updateStageField: IStageConfigProps['updateStageField']) {
+function renderField(props: IStageConfigProps, field: IAmazonStageField, accounts: IAccount[], regions: string[]) {
+  const { application, stage, updateStageField } = props;
   if (field.type === 'selectionStrategy') {
     return (
       <select
@@ -185,6 +187,59 @@ function renderField(stage: IStage, field: IAmazonStageField, updateStageField: 
         {StageConstants.TARGET_LIST.map((target) => (
           <option key={target.val} title={target.description} value={target.val}>
             {target.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  if (field.type === 'account') {
+    return (
+      <select
+        className="form-control input-sm"
+        name={field.fieldName}
+        onChange={(event) => updateStageField({ [field.fieldName]: event.target.value, account: event.target.value })}
+        value={getFieldValue(stage, field)}
+      >
+        <option value="">Select...</option>
+        {accounts
+          .map((account) => account.name)
+          .sort()
+          .map((account) => (
+            <option key={account} value={account}>
+              {account}
+            </option>
+          ))}
+      </select>
+    );
+  }
+
+  if (field.type === 'regions') {
+    return (
+      <ChecklistInput
+        inline={true}
+        name={field.fieldName}
+        onChange={(event: any) => updateStageField({ [field.fieldName]: event.target.value })}
+        showSelectAll={true}
+        stringOptions={regions}
+        value={stage[field.fieldName] || []}
+      />
+    );
+  }
+
+  if (field.fieldName === 'cluster') {
+    const clusterFilter = AppListExtractor.clusterFilterForCredentialsAndRegion(stage.credentials, stage.regions);
+    const clusters = AppListExtractor.getClusters([application], clusterFilter);
+    return (
+      <select
+        className="form-control input-sm cluster-select"
+        onChange={(event) => updateStageField({ [field.fieldName]: event.target.value })}
+        value={stage[field.fieldName] || ''}
+      >
+        <option value="">Select a cluster...</option>
+        {clusters.map((cluster) => (
+          <option key={cluster} value={cluster}>
+            {cluster}
           </option>
         ))}
       </select>
@@ -219,6 +274,17 @@ function renderField(stage: IStage, field: IAmazonStageField, updateStageField: 
 
 export function AmazonStageConfig({ application, stage, updateStageField }: IStageConfigProps) {
   const fields = getAmazonStageFields(stage);
+  const [accounts, setAccounts] = useState<IAccount[]>([]);
+  const [regions, setRegions] = useState<string[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    AccountService.listAccounts('aws').then((accts) => mounted && setAccounts(accts));
+    AccountService.getUniqueAttributeForAllAccounts('aws', 'regions').then((regs) => mounted && setRegions(regs));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const defaults: any = {};
@@ -263,7 +329,7 @@ export function AmazonStageConfig({ application, stage, updateStageField }: ISta
     <div className="form-horizontal">
       {fields.map((field) => (
         <StageConfigField key={field.fieldName} label={field.label}>
-          {renderField(stage, field, updateStageField)}
+          {renderField({ application, stage, updateStageField } as IStageConfigProps, field, accounts, regions)}
         </StageConfigField>
       ))}
     </div>
