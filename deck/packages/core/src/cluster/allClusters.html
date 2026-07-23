@@ -48,6 +48,7 @@
         ></span>
         <span class="visible-lg-inline">{{ctrl.createLabel}}</span>
       </button>
+      <div class="alert alert-warning" ng-if="ctrl.createServerGroupError">{{ctrl.createServerGroupError}}</div>
     </div>
   </div>
   <filter-tags
