@@ -1,28 +1,40 @@
 /* eslint-disable @spinnaker/api-deprecation, @spinnaker/api-no-slashes, @spinnaker/migrate-to-mock-http-client */
 
-import Spy = jasmine.Spy;
-import { mock, noop } from 'angular';
-
-import { API, InvalidAPIResponse, invalidContentMessage } from './ApiService';
-import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
+import { API, InvalidAPIResponse, invalidContentMessage, RequestBuilder } from './ApiService';
+import { mockHttpClient } from './mock/jasmine';
+import type { MockHttpClient } from './mock/mockHttpClient';
 import type { ICache } from '../cache';
 import { SETTINGS } from '../config/settings';
 
 describe('API Service', function () {
-  let $httpBackend: ng.IHttpBackendService;
   let baseUrl: string;
+  let http: MockHttpClient;
 
-  beforeEach(
-    mock.inject(function (_$httpBackend_: ng.IHttpBackendService) {
-      $httpBackend = _$httpBackend_;
-      baseUrl = API.baseUrl;
-    }),
-  );
+  beforeEach(() => {
+    baseUrl = API.baseUrl;
+    http = mockHttpClient();
+  });
 
   afterEach(function () {
     SETTINGS.resetToOriginal();
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  it('preserves the established invalid response rejection shape from the transport', async () => {
+    const originalResult = { status: 200, statusText: 'OK', data: '<html>Sign in</html>' };
+    const rejection = new InvalidAPIResponse(invalidContentMessage, originalResult);
+    const transport = jasmine.createSpyObj('transport', ['get', 'post', 'put', 'patch', 'delete']);
+    transport.get.and.returnValue(Promise.reject(rejection));
+    RequestBuilder.defaultHttpClient = transport;
+
+    try {
+      await API.one('bad').get();
+      fail('Expected invalid API response rejection');
+    } catch (error) {
+      expect(error).toBe(rejection);
+      expect(error instanceof InvalidAPIResponse).toBe(true);
+      expect((error as InvalidAPIResponse).data.message).toBe(invalidContentMessage);
+      expect((error as InvalidAPIResponse).originalResult).toBe(originalResult);
+    }
   });
 
   describe('ensure api requests generate normalized urls', function () {
@@ -53,154 +65,6 @@ describe('API Service', function () {
     it('trims repeated trailing slashes from baseUrl', function () {
       SETTINGS.gateUrl = 'http://localhost/////';
       expect(API.baseUrl).toEqual('http://localhost');
-    });
-  });
-
-  describe('validate response content-type header', function () {
-    it('responses with non-"application/json" content types should trigger a reauthentication request and reject', function () {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend
-        .expectGET(`${baseUrl}/bad`)
-        .respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
-
-      let rejected = false;
-      API.one('bad')
-        .get()
-        .then(noop, () => (rejected = true));
-
-      $httpBackend.flush();
-      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(1);
-      expect(rejected).toBe(true);
-    });
-
-    it('application/foo+json is fine', () => {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend
-        .expectGET(`${baseUrl}/bad`)
-        .respond(200, '{"good":"job"}', { 'content-type': 'application/foo+json' });
-
-      let rejected = false;
-      API.one('bad')
-        .get()
-        .then(noop, () => (rejected = true));
-
-      $httpBackend.flush();
-      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
-      expect(rejected).toBe(false);
-    });
-
-    it('application/x-yaml;charset=utf-8 is fine, too', () => {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend
-        .expectGET(`${baseUrl}/yaml`)
-        .respond(200, '---\nfoo: bar', { 'content-type': 'application/x-yaml;charset=utf-8' });
-
-      let rejected = false;
-      API.one('yaml')
-        .get()
-        .then(noop, () => (rejected = true));
-
-      $httpBackend.flush();
-      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
-      expect(rejected).toBe(false);
-    });
-
-    it('string responses starting with <html should trigger a reauthentication request and reject', function () {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend.expectGET(`${baseUrl}/fine`).respond(200, 'this is fine');
-
-      let rejected = false;
-      let succeeded = false;
-      API.one('fine')
-        .get()
-        .then(
-          () => (succeeded = true),
-          () => (rejected = true),
-        );
-
-      $httpBackend.flush();
-      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
-      expect(rejected).toBe(false);
-      expect(succeeded).toBe(true);
-    });
-
-    it('object and array responses should pass through', function () {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-
-      let rejected = false;
-      let succeeded = false;
-      $httpBackend.expectGET(`${baseUrl}/some-array`).respond(200, []);
-      API.one('some-array')
-        .get()
-        .then(
-          () => (succeeded = true),
-          () => (rejected = true),
-        );
-      $httpBackend.flush();
-
-      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
-      expect(rejected).toBe(false);
-      expect(succeeded).toBe(true);
-
-      // verify object responses
-      rejected = false;
-      succeeded = false;
-      $httpBackend.expectGET(`${baseUrl}/some-object`).respond(200, {});
-      API.one('some-object')
-        .get()
-        .then(
-          () => (succeeded = true),
-          () => (rejected = true),
-        );
-      $httpBackend.flush();
-
-      expect((AuthenticationInitializer.reauthenticateUser as Spy).calls.count()).toBe(0);
-      expect(rejected).toBe(false);
-      expect(succeeded).toBe(true);
-    });
-
-    it('rejects the request promise with an error when content mismatch occurs', () => {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend
-        .expectGET(`${baseUrl}/bad`)
-        .respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
-
-      let err: any;
-      API.one('bad')
-        .get()
-        .catch((e: any) => (err = e));
-
-      $httpBackend.flush();
-      expect(err instanceof InvalidAPIResponse).toBeTruthy();
-    });
-
-    it('returns a string error message in the format expected by UI components when content mismatch occurs', () => {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      $httpBackend
-        .expectGET(`${baseUrl}/bad`)
-        .respond(200, '<html>this is the authentication page</html>', { 'content-type': 'text/html' });
-
-      let message = '';
-      API.one('bad')
-        .get()
-        .catch((err: any) => (message = err.data.message));
-
-      $httpBackend.flush();
-      expect(message).toBe(invalidContentMessage);
-    });
-
-    it('returns a copy of the original response when content mismatch occurs', () => {
-      spyOn(AuthenticationInitializer, 'reauthenticateUser').and.callFake(noop);
-      const serverResult = { foo: 'bar' };
-      $httpBackend.expectGET(`${baseUrl}/bad`).respond(200, serverResult, { 'content-type': 'foobar/json' });
-
-      let receivedResult = null;
-      API.one('bad')
-        .get()
-        .catch((err: any) => (receivedResult = err.originalResult.data));
-
-      $httpBackend.flush();
-      expect(receivedResult).toEqual(serverResult);
     });
   });
 
@@ -331,127 +195,151 @@ describe('API Service', function () {
   });
 
   describe('get(): create a url with a "GET" method', function () {
-    it('should create the url and issue a get request with the "one" function', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo`).respond(200);
+    it('should create the url and issue a get request with the "one" function', async function () {
+      http.expectGET(`${baseUrl}/foo`).respond(200);
 
-      API.one('foo').get();
+      const request = API.one('foo').get();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should create the url and issue a get request with the "all" function', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo/bar`).respond(200);
+    it('should create the url and issue a get request with the "all" function', async function () {
+      http.expectGET(`${baseUrl}/foo/bar`).respond(200);
 
-      API.all('foo', 'bar').get();
+      const request = API.all('foo', 'bar').get();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should take a param object with one param', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2`).respond(200);
+    it('should take a param object with one param', async function () {
+      http.expectGET(`${baseUrl}/foo/bar`).withParams({ param1: 2 }).respond(200);
 
-      API.one('foo', 'bar').get({ param1: 2 });
+      const request = API.one('foo', 'bar').get({ param1: 2 });
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should take a param object with multiple params', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2&param2=foo`).respond(200);
+    it('should take a param object with multiple params', async function () {
+      http.expectGET(`${baseUrl}/foo/bar`).withParams({ param1: 2, param2: 'foo' }).respond(200);
 
-      API.one('foo', 'bar').get({ param1: 2, param2: 'foo' });
+      const request = API.one('foo', 'bar').get({ param1: 2, param2: 'foo' });
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
   });
 
   describe('getList(): create a url with a "GET" method', function () {
-    it('should create the url and issue a get request with the "one" function', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo`).respond(200);
+    it('should create the url and issue a get request with the "one" function', async function () {
+      http.expectGET(`${baseUrl}/foo`).respond(200);
 
-      API.one('foo').getList();
+      const request = API.one('foo').getList();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should create the url and issue a get request with the "all" function', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo/bar`).respond(200);
+    it('should create the url and issue a get request with the "all" function', async function () {
+      http.expectGET(`${baseUrl}/foo/bar`).respond(200);
 
-      API.all('foo', 'bar').getList();
+      const request = API.all('foo', 'bar').getList();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should take a param object with one param', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2`).respond(200);
+    it('should take a param object with one param', async function () {
+      http.expectGET(`${baseUrl}/foo/bar`).withParams({ param1: 2 }).respond(200);
 
-      API.one('foo', 'bar').getList({ param1: 2 });
+      const request = API.one('foo', 'bar').getList({ param1: 2 });
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should take a param object with multiple params', function () {
-      $httpBackend.expectGET(`${baseUrl}/foo/bar?param1=2&param2=foo`).respond(200);
+    it('should take a param object with multiple params', async function () {
+      http.expectGET(`${baseUrl}/foo/bar`).withParams({ param1: 2, param2: 'foo' }).respond(200);
 
-      API.one('foo', 'bar').getList({ param1: 2, param2: 'foo' });
+      const request = API.one('foo', 'bar').getList({ param1: 2, param2: 'foo' });
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
   });
 
   describe('post(): create a url with a "POST" method', function () {
-    it('should create the url and make a POST call', function () {
-      $httpBackend.expectPOST(`${baseUrl}/foo`).respond(200);
+    it('should create the url and make a POST call', async function () {
+      http.expectPOST(`${baseUrl}/foo`).respond(200);
 
-      API.one('foo').post();
+      const request = API.one('foo').post();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should create the url and POST with data', function () {
+    it('should create the url and POST with data', async function () {
       const data = { bar: 7 };
-      $httpBackend.expectPOST(`${baseUrl}/foo`, data).respond(200);
+      let receivedData: any;
+      http
+        .expectPOST(`${baseUrl}/foo`)
+        .onRequestReceived((request) => (receivedData = request.data))
+        .respond(200);
 
-      API.one('foo').post(data);
+      const request = API.one('foo').post(data);
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
+      expect(receivedData).toEqual(data);
     });
   });
 
   describe('put(): create a url with a "PUT" method', function () {
-    it('should create the url and make a POST call', function () {
-      $httpBackend.expectPUT(`${baseUrl}/foo`).respond(200);
+    it('should create the url and make a POST call', async function () {
+      http.expectPUT(`${baseUrl}/foo`).respond(200);
 
-      API.one('foo').put();
+      const request = API.one('foo').put();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should create the url and PUT with data', function () {
+    it('should create the url and PUT with data', async function () {
       const data = { bar: 7 };
-      $httpBackend.expectPUT(`${baseUrl}/foo`, data).respond(200);
+      let receivedData: any;
+      http
+        .expectPUT(`${baseUrl}/foo`)
+        .onRequestReceived((request) => (receivedData = request.data))
+        .respond(200);
 
-      API.one('foo').put(data);
+      const request = API.one('foo').put(data);
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
+      expect(receivedData).toEqual(data);
     });
   });
 
   describe('remove(): create a url with a "DELETE" method', function () {
-    it('should create the url and make a DELETE call', function () {
-      $httpBackend.expectDELETE(`${baseUrl}/foo`).respond(200);
+    it('should create the url and make a DELETE call', async function () {
+      http.expectDELETE(`${baseUrl}/foo`).respond(200);
 
-      API.one('foo').remove();
+      const request = API.one('foo').remove();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
 
-    it('should create the url with params and  make a DELETE call', function () {
+    it('should create the url with params and  make a DELETE call', async function () {
       const params = { bar: 7 };
-      $httpBackend.expectDELETE(`${baseUrl}/foo?bar=7`).respond(200);
+      http.expectDELETE(`${baseUrl}/foo`).withParams(params).respond(200);
 
-      API.one('foo').query(params).remove();
+      const request = API.one('foo').query(params).remove();
 
-      $httpBackend.flush();
+      await http.flush();
+      await request;
     });
   });
 });

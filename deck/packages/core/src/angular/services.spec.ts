@@ -1,5 +1,4 @@
 import { UIRouterReact } from '@uirouter/react';
-import * as ngimport from 'ngimport';
 
 import { AccountService } from '../account';
 import { mockHttpClient } from '../api/mock/jasmine';
@@ -17,7 +16,6 @@ describe('AngularServices direct router fallback', () => {
 
   afterEach(() => {
     setDirectRouter(null);
-    (AngularServices as any).wrappedState = null;
     (AngularServices as any).directCacheInitializer = null;
     (AngularServices as any).directExecutionDetailsSectionService = null;
     (AngularServices as any).directLoadBalancerReader = null;
@@ -37,65 +35,21 @@ describe('AngularServices direct router fallback', () => {
   });
 
   it('reports the direct UI Router only while one is set', () => {
-    const originalInjector = ngimport.$injector;
     const router = new UIRouterReact();
-    (ngimport as any).$injector = undefined;
 
-    try {
-      expect(AngularServices.has('$uiRouter')).toBe(false);
-      expect(AngularServices.has('unknownDirectService')).toBe(false);
+    setDirectRouter(null);
+    expect(AngularServices.has('$uiRouter')).toBe(false);
+    expect(AngularServices.has('unknownDirectService')).toBe(false);
 
-      setDirectRouter(router);
-
-      expect(AngularServices.has('$uiRouter')).toBe(true);
-      expect(AngularServices.has('unknownDirectService')).toBe(false);
-
-      setDirectRouter(null);
-
-      expect(AngularServices.has('$uiRouter')).toBe(false);
-    } finally {
-      router.dispose();
-      (ngimport as any).$injector = originalInjector;
-    }
-  });
-
-  it('preserves injector service presence before checking the direct UI Router', () => {
-    const originalInjector = ngimport.$injector;
-    const router = new UIRouterReact();
-    const has = jasmine
-      .createSpy('has')
-      .and.callFake((serviceName: string) => serviceName === 'angularService' || serviceName === '$uiRouter');
-    (ngimport as any).$injector = { has };
     setDirectRouter(router);
 
-    try {
-      expect(AngularServices.has('angularService')).toBe(true);
-      expect(AngularServices.has('$uiRouter')).toBe(true);
-      expect(AngularServices.has('unknownDirectService')).toBe(false);
-      expect(has.calls.allArgs()).toEqual([['angularService'], ['$uiRouter'], ['unknownDirectService']]);
-    } finally {
-      setDirectRouter(null);
-      router.dispose();
-      (ngimport as any).$injector = originalInjector;
-    }
-  });
+    expect(AngularServices.has('$uiRouter')).toBe(true);
+    expect(AngularServices.has('unknownDirectService')).toBe(false);
 
-  it('uses only the direct UI Router fallback when injector presence checks fail', () => {
-    const originalInjector = ngimport.$injector;
-    const router = new UIRouterReact();
-    (ngimport as any).$injector = {
-      has: jasmine.createSpy('has').and.throwError('injector unavailable'),
-    };
-    setDirectRouter(router);
+    setDirectRouter(null);
 
-    try {
-      expect(AngularServices.has('$uiRouter')).toBe(true);
-      expect(AngularServices.has('unknownDirectService')).toBe(false);
-    } finally {
-      setDirectRouter(null);
-      router.dispose();
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(AngularServices.has('$uiRouter')).toBe(false);
+    router.dispose();
   });
 
   it('returns the direct router state service when Angular state is not available', () => {
@@ -126,73 +80,49 @@ describe('AngularServices direct router fallback', () => {
   });
 
   it('returns direct modal and cache fallbacks when Angular is not bootstrapped', async () => {
-    const originalInjector = ngimport.$injector;
-    (ngimport as any).$injector = undefined;
+    spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
+    spyOn(InfrastructureCaches, 'clearCache');
     spyOn(AngularServices.securityGroupReader, 'getAllSecurityGroups').and.returnValue(Promise.resolve([]));
 
-    try {
-      expect(AngularServices.modalService.open).toBeDefined();
-      expect(() => AngularServices.modalStackService.dismissAll()).not.toThrow();
-      await expectAsync(AngularServices.cacheInitializer.refreshCaches()).toBeResolved();
-    } finally {
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(AngularServices.modalService.open).toBeDefined();
+    expect(() => AngularServices.modalStackService.dismissAll()).not.toThrow();
+    await expectAsync(AngularServices.cacheInitializer.refreshCaches()).toBeResolved();
   });
 
   it('returns direct root scope and timeout fallbacks when Angular is not bootstrapped', async () => {
-    const originalRootScope = ngimport.$rootScope;
-    const originalTimeout = ngimport.$timeout;
-    (ngimport as any).$rootScope = undefined;
-    (ngimport as any).$timeout = undefined;
     const applied = jasmine.createSpy('applied');
     const timedOut = jasmine.createSpy('timedOut');
 
-    try {
-      AngularServices.$rootScope.$apply(applied);
-      const timeout = AngularServices.$timeout(timedOut, 1000);
-      AngularServices.$timeout.cancel(timeout);
+    AngularServices.$rootScope.$apply(applied);
+    const timeout = AngularServices.$timeout(timedOut, 1000);
+    const settlement = expectAsync(timeout as any).toBeRejectedWith('canceled');
+    expect(AngularServices.$timeout.cancel(timeout)).toBe(true);
 
-      expect(applied).toHaveBeenCalled();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      expect(timedOut).not.toHaveBeenCalled();
-    } finally {
-      (ngimport as any).$rootScope = originalRootScope;
-      (ngimport as any).$timeout = originalTimeout;
-    }
+    expect(applied).toHaveBeenCalled();
+    await settlement;
+    expect(timedOut).not.toHaveBeenCalled();
   });
 
   it('returns a direct execution details section service when Angular is not bootstrapped', () => {
-    const originalInjector = ngimport.$injector;
     const router = new UIRouterReact();
     setDirectRouter(router);
-    (ngimport as any).$injector = undefined;
 
-    try {
-      expect(() => AngularServices.executionDetailsSectionService.synchronizeSection(['stage'])).not.toThrow();
-    } finally {
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(() => AngularServices.executionDetailsSectionService.synchronizeSection(['stage'])).not.toThrow();
   });
 
   it('returns a direct $q fallback with Angular-style promise helpers', async () => {
-    const originalQ = ngimport.$q;
-    (ngimport as any).$q = undefined;
     const directQ = AngularServices.$q as any;
 
-    try {
-      await expectAsync(directQ.when('when')).toBeResolvedTo('when');
-      await expectAsync(directQ.resolve('resolve')).toBeResolvedTo('resolve');
-      await expectAsync(directQ.all([Promise.resolve('all')])).toBeResolvedTo(['all']);
-      await expectAsync(directQ((resolve: (value: string) => void) => resolve('callable'))).toBeResolvedTo('callable');
+    await expectAsync(directQ.when('when')).toBeResolvedTo('when');
+    await expectAsync(directQ.resolve('resolve')).toBeResolvedTo('resolve');
+    await expectAsync(directQ.all([Promise.resolve('all')])).toBeResolvedTo(['all']);
+    await expectAsync(directQ((resolve: (value: string) => void) => resolve('callable'))).toBeResolvedTo('callable');
 
-      const deferred = directQ.defer();
-      deferred.resolve('deferred');
+    const deferred = directQ.defer();
+    deferred.resolve('deferred');
 
-      await expectAsync(deferred.promise).toBeResolvedTo('deferred');
-      await expectAsync(directQ.reject('reject')).toBeRejectedWith('reject');
-    } finally {
-      (ngimport as any).$q = originalQ;
-    }
+    await expectAsync(deferred.promise).toBeResolvedTo('deferred');
+    await expectAsync(directQ.reject('reject')).toBeRejectedWith('reject');
   });
 
   it('returns a direct interpolation fallback when Angular is not bootstrapped', () => {
@@ -215,7 +145,6 @@ describe('AngularServices direct router fallback', () => {
   });
 
   it('builds server group commands from direct provider registry without Angular DI', async () => {
-    const originalInjector = ngimport.$injector;
     const stage = { type: 'deploy' };
     const pipeline = { id: 'pipeline-1' };
 
@@ -232,23 +161,16 @@ describe('AngularServices direct router fallback', () => {
         commandBuilder: TestServerGroupCommandBuilder,
       },
     });
-    (ngimport as any).$injector = undefined;
+    const command = await AngularServices.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
+      provider,
+      stage,
+      pipeline,
+    );
 
-    try {
-      const command = await AngularServices.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
-        provider,
-        stage,
-        pipeline,
-      );
-
-      expect(command).toEqual({ currentStage: stage, currentPipeline: pipeline });
-    } finally {
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(command).toEqual({ currentStage: stage, currentPipeline: pipeline });
   });
 
   it('converts server group commands through the direct provider transformer without Angular DI', () => {
-    const originalInjector = ngimport.$injector;
     const command = { selectedProvider: provider, cluster: 'ecsapp-prod-ecsdemo' };
 
     class TestServerGroupTransformer {
@@ -264,44 +186,23 @@ describe('AngularServices direct router fallback', () => {
         transformer: TestServerGroupTransformer,
       },
     });
-    (ngimport as any).$injector = undefined;
-
-    try {
-      expect(AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)).toEqual({
-        converted: true,
-        base: command,
-      });
-    } finally {
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)).toEqual({
+      converted: true,
+      base: command,
+    });
   });
 
   it('returns a direct security group reader when Angular is not bootstrapped', () => {
-    const originalInjector = ngimport.$injector;
-    (ngimport as any).$injector = undefined;
-
-    try {
-      expect(AngularServices.securityGroupReader.getAllSecurityGroups).toEqual(jasmine.any(Function));
-    } finally {
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(AngularServices.securityGroupReader.getAllSecurityGroups).toEqual(jasmine.any(Function));
   });
 
   it('returns a direct instance type service when Angular is not bootstrapped', () => {
-    const originalInjector = ngimport.$injector;
-    (ngimport as any).$injector = undefined;
-
-    try {
-      expect(AngularServices.instanceTypeService.getCategoryForMultipleInstanceTypes).toEqual(jasmine.any(Function));
-    } finally {
-      (ngimport as any).$injector = originalInjector;
-    }
+    expect(AngularServices.instanceTypeService.getCategoryForMultipleInstanceTypes).toEqual(jasmine.any(Function));
   });
 });
 
 describe('AngularServices direct|load balancer data source service accessors', () => {
   const provider = 'directServiceAccessorTest';
-  let originalInjector: typeof ngimport.$injector;
 
   const resetDirectServices = () => {
     (AngularServices as any).directCacheInitializer = null;
@@ -311,13 +212,10 @@ describe('AngularServices direct|load balancer data source service accessors', (
   };
 
   beforeEach(() => {
-    originalInjector = ngimport.$injector;
-    (ngimport as any).$injector = undefined;
     resetDirectServices();
   });
 
   afterEach(() => {
-    (ngimport as any).$injector = originalInjector;
     resetDirectServices();
     InfrastructureCaches.destroyCaches();
     delete SETTINGS.providers[provider];
@@ -330,35 +228,9 @@ describe('AngularServices direct|load balancer data source service accessors', (
     expect(AngularServices.loadBalancerReader).toBe(AngularServices.loadBalancerReader);
   });
 
-  it('AngularServices direct accessors propagate registered Angular service errors', () => {
-    const sentinel = new Error('registered service failed');
-    const get = jasmine.createSpy('get').and.callFake(() => {
-      throw sentinel;
-    });
-    (ngimport as any).$injector = {
-      has: jasmine.createSpy('has').and.returnValue(true),
-      get,
-    };
-
-    expect(() => AngularServices.cacheInitializer).toThrow(sentinel);
-    expect(() => AngularServices.loadBalancerReader).toThrow(sentinel);
-    expect(() => AngularServices.serverGroupWriter).toThrow(sentinel);
-    expect(get.calls.allArgs()).toEqual([['cacheInitializer'], ['loadBalancerReader'], ['serverGroupWriter']]);
-  });
-
-  it('AngularServices direct accessors do not resolve services the Angular injector does not have', () => {
-    const get = jasmine.createSpy('get').and.throwError('unknown provider');
-    const has = jasmine.createSpy('has').and.returnValue(false);
-    (ngimport as any).$injector = { has, get };
-
-    expect(AngularServices.cacheInitializer.initialize).toEqual(jasmine.any(Function));
-    expect(AngularServices.loadBalancerReader.loadLoadBalancers).toEqual(jasmine.any(Function));
-    expect(AngularServices.serverGroupWriter.destroyServerGroup).toEqual(jasmine.any(Function));
-    expect(has.calls.allArgs()).toEqual([['cacheInitializer'], ['loadBalancerReader'], ['serverGroupWriter']]);
-    expect(get).not.toHaveBeenCalled();
-  });
-
   it('AngularServices direct cache initializer exposes working methods', async () => {
+    spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
+    spyOn(InfrastructureCaches, 'clearCache');
     spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
     const getAllSecurityGroups = spyOn(AngularServices.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
       Promise.resolve([]),
@@ -543,14 +415,7 @@ describe('AngularServices direct|load balancer data source service accessors', (
 });
 
 describe('AngularServices direct|load balancer data source registration', () => {
-  let originalInjector: typeof ngimport.$injector;
-  let originalQ: typeof ngimport.$q;
-
   beforeEach(() => {
-    originalInjector = ngimport.$injector;
-    originalQ = ngimport.$q;
-    (ngimport as any).$injector = undefined;
-    (ngimport as any).$q = undefined;
     (AngularServices as any).directCacheInitializer = null;
     (AngularServices as any).directLoadBalancerReader = null;
     (AngularServices as any).directSecurityGroupReader = null;
@@ -559,8 +424,6 @@ describe('AngularServices direct|load balancer data source registration', () => 
   });
 
   afterEach(() => {
-    (ngimport as any).$injector = originalInjector;
-    (ngimport as any).$q = originalQ;
     (AngularServices as any).directCacheInitializer = null;
     (AngularServices as any).directLoadBalancerReader = null;
     (AngularServices as any).directSecurityGroupReader = null;

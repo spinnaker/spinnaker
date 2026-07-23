@@ -21,7 +21,6 @@ describe('ApplicationReader', function () {
   let securityGroupReader: SecurityGroupReader;
   let loadBalancerReader: any;
   let clusterService: ClusterService;
-  let $q: ng.IQService;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
@@ -40,13 +39,11 @@ describe('ApplicationReader', function () {
     mock.inject(function (
       _securityGroupReader_: SecurityGroupReader,
       _clusterService_: ClusterService,
-      _$q_: ng.IQService,
       _loadBalancerReader_: LoadBalancerReader,
     ) {
       securityGroupReader = _securityGroupReader_;
       clusterService = _clusterService_;
       loadBalancerReader = _loadBalancerReader_;
-      $q = _$q_;
     }),
   );
 
@@ -60,21 +57,20 @@ describe('ApplicationReader', function () {
         response.attributes['dataSources'] = dataSources;
       }
       http.expectGET('/applications/deck').respond(200, response);
-      spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue($q.when([]));
-      spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when([]));
-      spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when([]));
-      spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([] as any));
+      spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue(Promise.resolve([]));
+      spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue(Promise.resolve([]));
+      spyOn(clusterService, 'loadServerGroups').and.returnValue(Promise.resolve([]));
+      spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue(Promise.resolve([] as any));
       spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function (
         _app: Application,
         groupsByName: any,
       ) {
-        return $q.when(groupsByName || []);
+        return Promise.resolve(groupsByName || []);
       });
 
-      ApplicationReader.getApplication('deck').then((app) => {
-        application = app;
-      });
+      const applicationPromise = ApplicationReader.getApplication('deck');
       await http.flush();
+      application = await applicationPromise;
     }
 
     it('loads all data sources if dataSource attribute is missing', async function () {
