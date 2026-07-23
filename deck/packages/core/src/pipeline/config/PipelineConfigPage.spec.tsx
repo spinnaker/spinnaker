@@ -1,3 +1,4 @@
+import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import { cloneDeep } from 'lodash';
 import React from 'react';
@@ -17,7 +18,7 @@ import { PipelineConfigActions } from './actions/PipelineConfigActions';
 import {
   applyStageConfigDefaults,
   COMMON_STAGE_FIELDS,
-  PipelineConfigPage,
+  PipelineConfigPageComponent,
   STAGE_IDENTITY_FIELDS,
 } from './PipelineConfigPage';
 import { PipelineGraph } from './graph/PipelineGraph';
@@ -33,6 +34,21 @@ describe('PipelineConfigPage', () => {
   let $stateParams: { executionId?: string; new?: string; pipelineId?: string };
   let fiatEnabled: boolean;
   let providerRenderStates: boolean[];
+  let router: UIRouterReact;
+  let stateGo: jasmine.Spy;
+  let transitionCleanup: jasmine.Spy;
+  let transitionOnBefore: jasmine.Spy;
+
+  const PipelineConfigPage = (props: any) => (
+    <UIRouterContext.Provider value={router}>
+      <PipelineConfigPageComponent
+        {...props}
+        router={router}
+        stateParams={$stateParams}
+        stateService={{ go: stateGo } as any}
+      />
+    </UIRouterContext.Provider>
+  );
 
   const AwsStageConfig = () => <div className="aws-stage-config">AWS stage config</div>;
   const EcsStageConfig = ({ stage }: { stage: any }) => {
@@ -272,7 +288,10 @@ describe('PipelineConfigPage', () => {
 
   beforeEach(() => {
     $stateParams = {};
-    spyOnProperty(AngularServices, '$stateParams', 'get').and.returnValue($stateParams as any);
+    router = new UIRouterReact();
+    stateGo = jasmine.createSpy('stateGo');
+    transitionCleanup = jasmine.createSpy('transitionCleanup');
+    transitionOnBefore = spyOn(router.transitionService, 'onBefore').and.returnValue(transitionCleanup);
     fiatEnabled = SETTINGS.feature.fiatEnabled;
     providerRenderStates = [];
     Registry.reinitialize();
@@ -283,6 +302,7 @@ describe('PipelineConfigPage', () => {
   });
 
   afterEach(() => {
+    router.dispose();
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled };
     Registry.reinitialize();
     ViewStateCache.get('pipelineConfig').removeAll();
@@ -303,6 +323,23 @@ describe('PipelineConfigPage', () => {
     expect(wrapper.find('.pipeline-config-heading h3').text()).toContain('Requested Pipeline');
 
     wrapper.unmount();
+  });
+
+  it('uses the injected router for transition guarding and back navigation', async () => {
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+
+    const wrapper = mount(<PipelineConfigPage app={app} />);
+    await flush();
+    wrapper.update();
+
+    wrapper.find('.btn-configure').simulate('click');
+    expect(stateGo).toHaveBeenCalledWith('^.executions');
+    expect(transitionOnBefore).toHaveBeenCalledWith({}, jasmine.any(Function));
+
+    wrapper.unmount();
+    expect(transitionCleanup).toHaveBeenCalled();
   });
 
   it('renders the React pipeline config layout wrappers', async () => {
@@ -630,7 +667,6 @@ describe('PipelineConfigPage', () => {
     const plan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);
     $stateParams.pipelineId = requested.id;
-    spyOn(AngularServices, 'has').and.returnValue(false);
     spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(plan));
 
     const wrapper = mount(<PipelineConfigPage app={app} />);

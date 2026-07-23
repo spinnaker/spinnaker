@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import type { Subscriber } from 'rxjs';
 
 import type {
+  IRouterInjectedProps,
   IServerGroupActionsProps,
   IServerGroupDetailsProps,
   IServerGroupDetailsSectionProps,
@@ -19,6 +20,7 @@ import {
   ServerGroupReader,
   ServerGroupWarningMessageService,
   timestamp,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AzureServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
@@ -130,7 +132,11 @@ export function azureServerGroupDetailsGetter(props: IServerGroupDetailsProps, a
   });
 }
 
-export function AzureServerGroupActions({ app, serverGroup }: IServerGroupActionsProps) {
+export function AzureServerGroupActionsComponent({
+  app,
+  serverGroup,
+  stateService,
+}: IServerGroupActionsProps & IRouterInjectedProps) {
   const destroyServerGroup = (): void => {
     const stateParams = {
       name: serverGroup.name,
@@ -146,8 +152,8 @@ export function AzureServerGroupActions({ app, serverGroup }: IServerGroupAction
         application: app,
         title: `Destroying ${serverGroup.name}`,
         onTaskComplete: () => {
-          if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-            AngularServices.$state.go('^');
+          if (stateService.includes('**.serverGroup', stateParams)) {
+            stateService.go('^');
           }
         },
       },
@@ -248,6 +254,8 @@ export function AzureServerGroupActions({ app, serverGroup }: IServerGroupAction
     </Dropdown>
   );
 }
+
+export const AzureServerGroupActions = withRouter(AzureServerGroupActionsComponent);
 
 export function AzureServerGroupInformationSection({ serverGroup }: IServerGroupDetailsSectionProps) {
   return (

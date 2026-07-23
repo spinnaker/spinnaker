@@ -9,6 +9,8 @@ import { SearchResultPods } from './SearchResultPods';
 import { AngularServices } from '../../angular/services';
 import type { ISearchResultSet } from './infrastructureSearch.service';
 import { InsightMenu } from '../../insight/InsightMenu';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import type { ISearchResult } from '../search.service';
 import { SearchService } from '../search.service';
 import { searchRank } from '../searchRank.filter';
@@ -28,11 +30,9 @@ export interface ISearchV1State {
   showMinLengthWarning: boolean;
 }
 
-export class SearchV1 extends React.Component<{}, ISearchV1State> {
-  private $state = AngularServices.$state;
-  private $uiRouter = AngularServices.$uiRouter;
+export class SearchV1Component extends React.Component<IRouterInjectedProps, ISearchV1State> {
   private search = AngularServices.infrastructureSearchService.getSearcher();
-  private autoNavigateQuery: string | null = this.$state.params.route ? this.$state.params.q || '' : null;
+  private autoNavigateQuery: string | null = this.props.stateParams.route ? this.props.stateParams.q || '' : null;
   private destroy$ = new Subject<void>();
   private query$ = new Subject<string>();
 
@@ -40,7 +40,7 @@ export class SearchV1 extends React.Component<{}, ISearchV1State> {
     categories: [],
     moreResults: false,
     projects: [],
-    query: this.$state.params.q || '',
+    query: this.props.stateParams.q || '',
     searching: false,
     showMinLengthWarning: false,
   };
@@ -59,7 +59,7 @@ export class SearchV1 extends React.Component<{}, ISearchV1State> {
       )
       .subscribe(({ query, resultSets }) => this.handleResults(query, resultSets));
 
-    this.$uiRouter.globals.params$
+    this.props.router.globals.params$
       .pipe(
         map((params) => params.q || ''),
         distinctUntilChanged(),
@@ -72,7 +72,7 @@ export class SearchV1 extends React.Component<{}, ISearchV1State> {
       });
 
     if (this.autoNavigateQuery !== null) {
-      this.$state.go('.', { route: null }, { location: 'replace' });
+      this.props.stateService.go('.', { route: null }, { location: 'replace' });
     }
 
     this.updatePageTitle(this.state.query);
@@ -138,7 +138,7 @@ export class SearchV1 extends React.Component<{}, ISearchV1State> {
   }
 
   private updateLocation(query: string): void {
-    this.$state.go('.', { q: query || null, route: null }, { location: 'replace' });
+    this.props.stateService.go('.', { q: query || null, route: null }, { location: 'replace' });
   }
 
   private navigateToResult(href: string): void {
@@ -281,3 +281,5 @@ export class SearchV1 extends React.Component<{}, ISearchV1State> {
     );
   }
 }
+
+export const SearchV1 = withRouter(SearchV1Component);

@@ -4,7 +4,11 @@ import { mount, shallow } from 'enzyme';
 
 import { AngularServices, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
-import { GceCloneServerGroupModal, transformGceServerGroupCommand } from './GceCloneServerGroupModal';
+import {
+  GceCloneServerGroupModal as RoutedGceCloneServerGroupModal,
+  GceCloneServerGroupModalComponent as GceCloneServerGroupModal,
+  transformGceServerGroupCommand,
+} from './GceCloneServerGroupModal';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from './GceServerGroupWizard.types';
 
 const application = {
@@ -34,7 +38,7 @@ describe('GceCloneServerGroupModal', () => {
 
     GceCloneServerGroupModal.show(props);
 
-    expect(ReactModal.show).toHaveBeenCalledWith(GceCloneServerGroupModal, props, {
+    expect(ReactModal.show).toHaveBeenCalledWith(RoutedGceCloneServerGroupModal, props, {
       dialogClassName: 'wizard-modal modal-lg',
     });
   });
@@ -991,7 +995,7 @@ describe('GceCloneServerGroupModal', () => {
       go: jasmine.createSpy('go'),
       includes: jasmine.createSpy('includes').and.callFake((name: string) => name === '**.clusters'),
     };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
+    props.stateService = state;
 
     modal.onTaskComplete();
 
@@ -1080,6 +1084,9 @@ function buildProps(command: IGceServerGroupCommand, adapter?: IGceServerGroupWi
     closeModal: jasmine.createSpy('closeModal'),
     command,
     dismissModal: jasmine.createSpy('dismissModal'),
+    router: {},
+    stateParams: {},
+    stateService: { go: jasmine.createSpy('go'), includes: () => false },
     title: 'Configure GCE server group',
   };
 }

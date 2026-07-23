@@ -1,7 +1,7 @@
 import type { StateService } from '@uirouter/core';
 import { isDate, isObject, isUndefined } from 'lodash';
 
-import { AngularServices } from '../angular/services';
+import { getDirectRouter } from './directRouter';
 import type { ITask } from '../domain';
 import { NameUtils } from '../naming';
 import { Registry } from '../registry';
@@ -42,7 +42,7 @@ interface IClusterFilter {
 }
 
 function getStateService(): StateService {
-  return AngularServices.$state as StateService;
+  return getDirectRouter()!.stateService;
 }
 
 class UrlBuilderUtils {

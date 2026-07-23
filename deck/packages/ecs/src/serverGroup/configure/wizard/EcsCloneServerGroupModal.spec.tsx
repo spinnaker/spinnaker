@@ -18,7 +18,7 @@ import {
 
 import type { IEcsServerGroupCommand } from '../serverGroupConfiguration.service';
 import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
-import { EcsCloneServerGroupModal } from './EcsCloneServerGroupModal';
+import { EcsCloneServerGroupModalComponent as EcsCloneServerGroupModal } from './EcsCloneServerGroupModal';
 import { BasicSettings } from './pages/BasicSettings';
 import { NetworkingSettings } from './pages/NetworkingSettings';
 import { EcsNetworking } from './networking/Networking';
@@ -769,7 +769,7 @@ describe('EcsCloneServerGroupModal', () => {
       go: jasmine.createSpy('go'),
       includes: jasmine.createSpy('includes').and.callFake((name: string) => name === '**.clusters'),
     };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
+    props.stateService = state;
 
     modal.onTaskComplete();
 

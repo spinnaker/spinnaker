@@ -27,7 +27,7 @@ import { GceLoadBalancerTransformer } from './loadBalancer/loadBalancer.transfor
 import { GceLoadBalancerChoiceModal } from './loadBalancer/configure/choice/GceLoadBalancerChoiceModal';
 import { GceLoadBalancerActions, loadGceLoadBalancerDetails } from './loadBalancer/details/gceLoadBalancerDetails';
 import { interpolatedBakeDetailUrl } from './pipeline/stages/bake/gceBakeStage';
-import { GceSecurityGroupModal } from './securityGroup/configure/GceSecurityGroupModal';
+import { GceSecurityGroupModalComponent as GceSecurityGroupModal } from './securityGroup/configure/GceSecurityGroupModal';
 import { GceSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { GceSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { GceServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';

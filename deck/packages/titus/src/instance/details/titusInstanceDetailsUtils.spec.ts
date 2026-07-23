@@ -5,6 +5,7 @@ import type {
   ITargetGroup,
 } from '@spinnaker/amazon';
 import type { Application } from '@spinnaker/core';
+import { ConfirmationModalService, setDirectRouter } from '@spinnaker/core';
 import { mockHealth, mockInstance, mockLoadBalancer, mockLoadBalancerHealth } from '@spinnaker/mocks';
 import {
   applyTargetGroupInfoToHealthMetric,
@@ -100,6 +101,8 @@ describe('extractHealthMetrics', () => {
 });
 
 describe('buildTaskActions', () => {
+  afterEach(() => setDirectRouter(null));
+
   it('should render required actions', () => {
     // Instance has Discovery health
     const actions1 = buildTaskActions(mockInstance, {} as Application);
@@ -120,5 +123,16 @@ describe('buildTaskActions', () => {
     // Instance has no health
     const actions4 = buildTaskActions({ ...mockInstance, health: [] }, {} as Application);
     expect(actions4.length).toEqual(2);
+  });
+
+  it('closes instance details through the direct router after termination', () => {
+    const directGo = jasmine.createSpy('directGo');
+    setDirectRouter({ stateService: { go: directGo, includes: () => true } } as any);
+    const confirm = spyOn(ConfirmationModalService, 'confirm');
+
+    buildTaskActions(mockInstance, {} as Application)[0].triggerAction();
+    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+
+    expect(directGo).toHaveBeenCalledWith('^');
   });
 });

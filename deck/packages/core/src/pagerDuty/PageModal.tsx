@@ -3,11 +3,12 @@ import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
 import type { IPageButtonProps } from './PageButton';
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { ApplicationModelBuilder } from '../application';
 import { SETTINGS } from '../config';
 import { SubmitButton } from '../modal';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import type { IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyWriter } from './pagerDuty.write.service';
 import { TaskMonitor, TaskMonitorWrapper } from '../task';
@@ -28,8 +29,8 @@ export interface IPageModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class PageModal extends React.Component<IPageModalProps, IPageModalState> {
-  constructor(props: IPageModalProps) {
+class PageModalComponent extends React.Component<IPageModalProps & IRouterInjectedProps, IPageModalState> {
+  constructor(props: IPageModalProps & IRouterInjectedProps) {
     super(props);
     this.state = this.getDefaultState(props);
   }
@@ -40,14 +41,8 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
     }
   }
 
-  private getDefaultState(props: IPageModalProps): IPageModalState {
-    const {
-      $uiRouter: {
-        globals: {
-          params: { subject, details },
-        },
-      },
-    } = AngularServices;
+  private getDefaultState(props: IPageModalProps & IRouterInjectedProps): IPageModalState {
+    const { subject, details } = props.stateParams;
     const defaultSubject = subject || get(SETTINGS, 'pagerDuty.defaultSubject', 'Urgent Issue');
     const defaultDetails = details || get(SETTINGS, 'pagerDuty.defaultDetails', '');
 
@@ -69,13 +64,13 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
 
   private handleSubjectChanged = (event: any): void => {
     const value = event.target.value;
-    AngularServices.$state.go('.', { subject: value }, { location: 'replace' });
+    this.props.stateService.go('.', { subject: value }, { location: 'replace' });
     this.setState({ subject: value });
   };
 
   private handleDetailsChanged = (event: any): void => {
     const value = event.target.value;
-    AngularServices.$state.go('.', { details: value }, { location: 'replace' });
+    this.props.stateService.go('.', { details: value }, { location: 'replace' });
     this.setState({ details: value });
   };
 
@@ -180,3 +175,6 @@ export class PageModal extends React.Component<IPageModalProps, IPageModalState>
     );
   }
 }
+
+export const PageModal = withRouter(PageModalComponent);
+PageModal.displayName = 'PageModal';

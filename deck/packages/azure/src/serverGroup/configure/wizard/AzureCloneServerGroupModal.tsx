@@ -1,7 +1,13 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IStage, ITemplateSelectionText } from '@spinnaker/core';
+import type {
+  Application,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+  ITemplateSelectionText,
+} from '@spinnaker/core';
 import {
   AngularServices,
   DeployInitializer,
@@ -9,6 +15,7 @@ import {
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -41,8 +48,8 @@ interface IAzureCloneServerGroupModalState {
   templateSelectionText: ITemplateSelectionText;
 }
 
-export class AzureCloneServerGroupModal extends React.Component<
-  IAzureCloneServerGroupModalProps,
+export class AzureCloneServerGroupModalComponent extends React.Component<
+  IAzureCloneServerGroupModalProps & IRouterInjectedProps,
   IAzureCloneServerGroupModalState
 > {
   public static defaultProps: Partial<IAzureCloneServerGroupModalProps> = {
@@ -57,7 +64,7 @@ export class AzureCloneServerGroupModal extends React.Component<
     return ReactModal.show(AzureCloneServerGroupModal, props, { dialogClassName: 'wizard-modal modal-lg' });
   }
 
-  constructor(props: IAzureCloneServerGroupModalProps) {
+  constructor(props: IAzureCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
     const requiresTemplateSelection = !!props.command.viewState?.requiresTemplateSelection;
     const workingCommand = cloneDeep(props.command);
@@ -128,16 +135,16 @@ export class AzureCloneServerGroupModal extends React.Component<
       const newServerGroupName = cloneStage.context['deploy.server.groups'][command.region];
       if (newServerGroupName) {
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           transitionTo = '^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           transitionTo = '^.^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           transitionTo = '.serverGroup';
         }
-        AngularServices.$state.go(transitionTo, {
+        this.props.stateService.go(transitionTo, {
           accountId: command.credentials,
           provider: 'azure',
           region: command.region,
@@ -313,3 +320,8 @@ export class AzureCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const AzureCloneServerGroupModal = Object.assign(
+  withRouter<IAzureCloneServerGroupModalProps & IRouterInjectedProps>(AzureCloneServerGroupModalComponent),
+  { show: AzureCloneServerGroupModalComponent.show },
+);

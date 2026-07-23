@@ -6,20 +6,26 @@ import { takeUntil } from 'rxjs/operators';
 import { RunningTasks } from './RunningTasks';
 import type { IServerGroupDetailsProps, IServerGroupDetailsState } from './ServerGroupDetailsWrapper';
 import { ServerGroupInsightActions } from './ServerGroupInsightActions';
-import { AngularServices } from '../../angular/services';
 import { CloudProviderLogo } from '../../cloudProvider/CloudProviderLogo';
 import { SETTINGS } from '../../config/settings';
 import type { IServerGroup } from '../../domain';
 import { EntityNotifications } from '../../entityTag/notifications/EntityNotifications';
 import { ManagedResourceDetailsIndicator } from '../../managed';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { timestamp } from '../../utils/timeFormatters';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
-export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps, IServerGroupDetailsState> {
+export class ServerGroupDetailsComponent extends React.Component<
+  IServerGroupDetailsProps & IRouterInjectedProps,
+  IServerGroupDetailsState
+> {
   private destroy$ = new Subject();
+  private detailsRequest$ = new Subject();
+  private detailsRequestGeneration = 0;
   private serverGroupsRefreshUnsubscribe: () => void;
 
-  constructor(props: IServerGroupDetailsProps) {
+  constructor(props: IServerGroupDetailsProps & IRouterInjectedProps) {
     super(props);
 
     this.state = {
@@ -28,38 +34,57 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
     };
   }
 
-  private autoClose(): void {
-    AngularServices.$state.params.allowModalToStayOpen = true;
-    AngularServices.$state.go('^', null, { location: 'replace' });
+  private loadServerGroup(
+    props: IServerGroupDetailsProps & IRouterInjectedProps,
+    clearCurrentServerGroup = false,
+  ): void {
+    const requestGeneration = ++this.detailsRequestGeneration;
+    this.detailsRequest$.next();
+    if (clearCurrentServerGroup) {
+      this.setState({ loading: true, serverGroup: undefined });
+    }
+    props
+      .detailsGetter(props, () => {
+        if (requestGeneration === this.detailsRequestGeneration) {
+          props.stateService.params.allowModalToStayOpen = true;
+          props.stateService.go('^', null, { location: 'replace' });
+        }
+      })
+      .pipe(takeUntil(this.detailsRequest$), takeUntil(this.destroy$))
+      .subscribe((serverGroup: IServerGroup) => {
+        if (requestGeneration === this.detailsRequestGeneration) {
+          this.setState({ serverGroup, loading: false });
+        }
+      });
   }
 
-  private updateServerGroup = (serverGroup: IServerGroup): void => {
-    this.setState({ serverGroup, loading: false });
-  };
+  private serverGroupIdentityChanged(nextProps: IServerGroupDetailsProps): boolean {
+    const current = this.props.serverGroup;
+    const next = nextProps.serverGroup;
+    return (
+      current.name !== next.name ||
+      current.accountId !== next.accountId ||
+      current.provider !== next.provider ||
+      current.region !== next.region
+    );
+  }
 
   public componentDidMount(): void {
-    this.props
-      .detailsGetter(this.props, this.autoClose)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(this.updateServerGroup);
+    this.loadServerGroup(this.props);
     this.serverGroupsRefreshUnsubscribe = this.props.app.serverGroups.onRefresh(null, () => {
-      this.props
-        .detailsGetter(this.props, this.autoClose)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(this.updateServerGroup);
+      this.loadServerGroup(this.props);
     });
   }
 
-  public componentWillReceiveProps(nextProps: IServerGroupDetailsProps): void {
-    if (nextProps.serverGroup !== this.props.serverGroup) {
-      this.props
-        .detailsGetter(nextProps, this.autoClose)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe(this.updateServerGroup);
+  public componentWillReceiveProps(nextProps: IServerGroupDetailsProps & IRouterInjectedProps): void {
+    if (nextProps.detailsGetter !== this.props.detailsGetter || this.serverGroupIdentityChanged(nextProps)) {
+      this.loadServerGroup(nextProps, true);
     }
   }
 
   public componentWillUnmount(): void {
+    this.detailsRequestGeneration++;
+    this.detailsRequest$.next();
     this.destroy$.next();
     this.serverGroupsRefreshUnsubscribe();
   }
@@ -137,3 +162,6 @@ export class ServerGroupDetails extends React.Component<IServerGroupDetailsProps
     );
   }
 }
+
+export const ServerGroupDetails = withRouter(ServerGroupDetailsComponent);
+ServerGroupDetails.displayName = 'ServerGroupDetails';

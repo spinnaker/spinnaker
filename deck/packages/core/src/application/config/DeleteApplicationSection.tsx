@@ -1,5 +1,5 @@
+import { useRouter } from '@uirouter/react';
 import React from 'react';
-import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../application.model';
 import { ConfirmationModalService } from '../../confirmationModal';
@@ -11,13 +11,14 @@ export interface IDeleteApplicationSection {
 }
 
 export function DeleteApplicationSection(props: IDeleteApplicationSection) {
+  const { stateService } = useRouter();
   const { application } = props;
   const deleteApplication = (): void => {
     const taskMonitor = {
       application,
       title: `Deleting ${application.name}`,
       onTaskComplete: () => {
-        AngularServices.$state.go('home.infrastructure');
+        stateService.go('home.infrastructure');
       },
     };
 
