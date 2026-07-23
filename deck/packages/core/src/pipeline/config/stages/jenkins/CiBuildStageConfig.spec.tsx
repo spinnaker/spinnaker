@@ -1,6 +1,7 @@
 import { mock } from 'angular';
 import { mount } from 'enzyme';
 import React from 'react';
+import Select from 'react-select';
 
 import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
 import { HelpField } from '../../../../help';
@@ -46,6 +47,29 @@ describe('<CiBuildStageConfig />', () => {
     };
   };
 
+  const expectFullJobListSearchBeforeLimit = async (buildServiceType: BuildServiceType) => {
+    const jobs = Array.from({ length: 500 }, (_value, index) => `common-job-${index}`);
+    jobs.push('target-job-after-limit');
+    (IgorService.listJobsForMaster as any).and.returnValue(Promise.resolve(jobs));
+    const props = createProps({ master: 'master' });
+
+    const component = mount(<CiBuildStageConfig {...props} buildServiceType={buildServiceType} />);
+    await flushPromises();
+    component.update();
+
+    const jobSelect = component.find(Select).filterWhere((select) => select.prop('placeholder') === 'Start typing...');
+    const options = jobSelect.prop('options') as any[];
+    const filterOptions = jobSelect.prop('filterOptions') as any;
+    const filter = (query: string) => filterOptions(options, query, [], jobSelect.props());
+
+    expect(filterOptions).toBeDefined();
+    expect(filter('')).toHaveSize(100);
+    expect(filter('common-job')).toHaveSize(100);
+    expect(filter('target-job-after-limit')).toEqual([
+      { label: 'target-job-after-limit', value: 'target-job-after-limit' },
+    ]);
+  };
+
   it('sets legacy defaults without marking the stage dirty', () => {
     const props = createProps();
 
@@ -79,6 +103,14 @@ describe('<CiBuildStageConfig />', () => {
     expect(props.stage.job).toBe('');
     expect(props.updateStageField).toHaveBeenCalledWith({ job: '' });
     expect(props.stageFieldUpdated).toHaveBeenCalled();
+  });
+
+  it('searches the full Jenkins job list before limiting results', async () => {
+    await expectFullJobListSearchBeforeLimit(BuildServiceType.Jenkins);
+  });
+
+  it('searches the full Travis job list before limiting results', async () => {
+    await expectFullJobListSearchBeforeLimit(BuildServiceType.Travis);
   });
 
   it('clears master refresh state when Igor rejects', async () => {

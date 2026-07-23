@@ -1,5 +1,6 @@
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IExecutionStage } from '../../../../domain';
+import { UrlBuilder } from '../../../../navigation/UrlBuilder';
 import { getDeployedServerGroups, getDeployWaitingMessages, hasDeployChanges } from './DeployExecutionDetails';
 
 describe('DeployExecutionDetails helpers', () => {
@@ -8,6 +9,10 @@ describe('DeployExecutionDetails helpers', () => {
   beforeAll(() => {
     originalGetValue = CloudProviderRegistry.getValue;
     CloudProviderRegistry.getValue = (cloudProvider: string) => cloudProvider === 'withScalingActivities';
+  });
+
+  beforeEach(() => {
+    spyOn(UrlBuilder, 'buildFromMetadata').and.returnValue('#/server-group');
   });
 
   afterAll(() => {
