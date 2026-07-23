@@ -1,7 +1,9 @@
+import type { UIRouter } from '@uirouter/core';
 import * as Actions from 'kayenta/actions';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryConfigUpdateResponse, KayentaAccountType } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryConfigUpdateResponse } from 'kayenta/domain';
+import { KayentaAccountType } from 'kayenta/domain';
+import type { ICanaryState } from 'kayenta/reducers';
 import { runSelector } from 'kayenta/selectors';
 import {
   createCanaryConfig,
@@ -12,8 +14,9 @@ import {
   updateCanaryConfig,
 } from 'kayenta/service/canaryConfig.service';
 import { listMetricsServiceMetadata } from 'kayenta/service/metricsServiceMetadata.service';
-import { Action, MiddlewareAPI } from 'redux';
-import { combineEpics, createEpicMiddleware, EpicMiddleware } from 'redux-observable';
+import type { Action, MiddlewareAPI } from 'redux';
+import type { EpicMiddleware } from 'redux-observable';
+import { combineEpics, createEpicMiddleware } from 'redux-observable';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/concat';
 import 'rxjs/add/observable/forkJoin';
@@ -24,8 +27,6 @@ import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mapTo';
-
-import { AngularServices } from '@spinnaker/core';
 
 import { getCanaryRun, getMetricSetPair } from '../service/canaryRun.service';
 
@@ -43,7 +44,10 @@ const selectConfigEpic = (action$: Observable<Action & any>) =>
     .filter(typeMatches(Actions.LOAD_CONFIG_SUCCESS))
     .map((action) => Creators.selectConfig({ config: action.payload.config }));
 
-const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const saveConfigEpic = (uiRouter: UIRouter) => (
+  action$: Observable<Action & any>,
+  store: MiddlewareAPI<ICanaryState>,
+) =>
   action$.filter(typeMatches(Actions.SAVE_CONFIG_REQUEST)).concatMap(() => {
     const config = mapStateToConfig(store.getState());
     let saveAction: PromiseLike<ICanaryConfigUpdateResponse>;
@@ -57,7 +61,7 @@ const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<
     return Observable.fromPromise(saveAction)
       .concatMap(({ canaryConfigId }) =>
         Observable.forkJoin(
-          AngularServices.$state.go('^.configDetail', { id: canaryConfigId, copy: false, new: false }),
+          uiRouter.stateService.go('^.configDetail', { id: canaryConfigId, copy: false, new: false }),
           store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
         ).mapTo(Creators.saveConfigSuccess({ id: canaryConfigId })),
       )
@@ -71,12 +75,15 @@ const deleteConfigRequestEpic = (action$: Observable<Action & any>, store: Middl
       .catch((error: Error) => Observable.of(Creators.deleteConfigFailure({ error }))),
   );
 
-const deleteConfigSuccessEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
+const deleteConfigSuccessEpic = (uiRouter: UIRouter) => (
+  action$: Observable<Action & any>,
+  store: MiddlewareAPI<ICanaryState>,
+) =>
   action$
     .filter(typeMatches(Actions.DELETE_CONFIG_SUCCESS))
     .concatMap(() =>
       Observable.forkJoin(
-        AngularServices.$state.go('^.configDefault'),
+        uiRouter.stateService.go('^.configDefault'),
         // TODO: handle config summary load failure (in general, not just here).
         store.getState().data.application.getDataSource('canaryConfigs').refresh(true),
       ),
@@ -192,20 +199,21 @@ const loadKayentaAccountsEpic = (action$: Observable<Action & any>) =>
       .catch((error: Error) => Observable.of(Creators.loadKayentaAccountsFailure({ error }))),
   );
 
-const rootEpic = combineEpics(
-  loadConfigEpic,
-  selectConfigEpic,
-  saveConfigEpic,
-  deleteConfigRequestEpic,
-  deleteConfigSuccessEpic,
-  loadCanaryRunRequestEpic,
-  loadMetricSetPairEpic,
-  updateGraphiteMetricDescriptionFilterEpic,
-  updatePrometheusMetricDescriptionFilterEpic,
-  updateStackdriverMetricDescriptionFilterEpic,
-  updateDatadogMetricDescriptionFilterEpic,
-  loadMetricsServiceMetadataEpic,
-  loadKayentaAccountsEpic,
-);
-
-export const epicMiddleware: EpicMiddleware<Action & any, ICanaryState> = createEpicMiddleware(rootEpic);
+export const createKayentaEpicMiddleware = (uiRouter: UIRouter): EpicMiddleware<Action & any, ICanaryState> =>
+  createEpicMiddleware(
+    combineEpics(
+      loadConfigEpic,
+      selectConfigEpic,
+      saveConfigEpic(uiRouter),
+      deleteConfigRequestEpic,
+      deleteConfigSuccessEpic(uiRouter),
+      loadCanaryRunRequestEpic,
+      loadMetricSetPairEpic,
+      updateGraphiteMetricDescriptionFilterEpic,
+      updatePrometheusMetricDescriptionFilterEpic,
+      updateStackdriverMetricDescriptionFilterEpic,
+      updateDatadogMetricDescriptionFilterEpic,
+      loadMetricsServiceMetadataEpic,
+      loadKayentaAccountsEpic,
+    ),
+  );

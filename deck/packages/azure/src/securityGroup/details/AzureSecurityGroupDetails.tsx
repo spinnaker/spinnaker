@@ -1,8 +1,14 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { Application, IOverridableProps, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
-import { AccountTag, AngularServices, CollapsibleSection, ConfirmationModalService } from '@spinnaker/core';
+import type {
+  Application,
+  IOverridableProps,
+  IRouterInjectedProps,
+  ISecurityGroupDetail,
+  SecurityGroupReader,
+} from '@spinnaker/core';
+import { AccountTag, AngularServices, CollapsibleSection, ConfirmationModalService, withRouter } from '@spinnaker/core';
 
 import { AzureSecurityGroupModal } from '../configure/AzureSecurityGroupModal';
 import { AzureSecurityGroupWriter } from '../securityGroup.write.service';
@@ -31,8 +37,8 @@ interface IAzureSecurityGroupSectionProps {
   securityGroup: ISecurityGroupDetail & Record<string, any>;
 }
 
-export class AzureSecurityGroupDetails extends React.Component<
-  IAzureSecurityGroupDetailsProps,
+export class AzureSecurityGroupDetailsComponent extends React.Component<
+  IAzureSecurityGroupDetailsProps & IRouterInjectedProps,
   IAzureSecurityGroupDetailsState
 > {
   public state: IAzureSecurityGroupDetailsState = { loading: true };
@@ -117,11 +123,11 @@ export class AzureSecurityGroupDetails extends React.Component<
       this.props.autoClose();
       return;
     }
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -170,6 +176,8 @@ export class AzureSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const AzureSecurityGroupDetails = withRouter(AzureSecurityGroupDetailsComponent);
 
 function withResolvedCoordinates(securityGroup: any, resolvedSecurityGroup?: IAzureResolvedSecurityGroup): any {
   if (!resolvedSecurityGroup) {

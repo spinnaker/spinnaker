@@ -1,3 +1,4 @@
+import type { UIRouterReact } from '@uirouter/react';
 import type { ILogService, IQService } from 'angular';
 import * as React from 'react';
 
@@ -9,6 +10,7 @@ import { interpolate } from '../utils/interpolate';
 import { createNativePromiseService } from '../utils/nativePromiseService';
 
 export interface DeckRuntime {
+  router: UIRouterReact | null;
   promiseService: IQService;
   timeoutService: CancellableTimeout;
   logger: ILogService;
@@ -19,11 +21,12 @@ export interface DeckRuntime {
 
 export const DeckRuntimeContext = React.createContext<DeckRuntime | null>(null);
 
-export function createDeckRuntime(): DeckRuntime {
+export function createDeckRuntime(router: UIRouterReact | null = null): DeckRuntime {
   const promiseService = createNativePromiseService();
   const timeoutService = createCancellableTimeout();
 
   return {
+    router,
     promiseService,
     timeoutService,
     logger: createDiagnosticLogger(),

@@ -1,10 +1,12 @@
+import type { StateService } from '@uirouter/core';
 import { UISref } from '@uirouter/react';
 import { get } from 'lodash';
 import React from 'react';
-import { AngularServices } from '../../angular/services';
 
 import type { IExecutionStage, ITaskStep } from '../../domain';
 import { EventBus } from '../../event/EventBus';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Overridable } from '../../overrideRegistry';
 import { Markdown, robotToHuman } from '../../presentation';
 import { TrafficGuardHelperLink } from '../../task/TrafficGuardHelperLink';
@@ -27,13 +29,28 @@ export enum StageFailureMessages {
   NO_REASON_PROVIDED = 'No reason provided.',
 }
 
+export function getStageFailureRoute(
+  stateService: StateService,
+  failedExecutionId: number,
+  failedStageId: number,
+): { state: string; params: { executionId?: number; stageId: number } } {
+  const params: { executionId?: number; stageId: number } = { stageId: failedStageId };
+  if (failedExecutionId !== undefined) {
+    params.executionId = failedExecutionId;
+  }
+  return { state: stateService.current.name, params };
+}
+
 @Overridable('stageFailureMessage')
-export class StageFailureMessage extends React.Component<IStageFailureMessageProps, IStageFailureMessageState> {
+export class StageFailureMessageComponent extends React.Component<
+  IStageFailureMessageProps & IRouterInjectedProps,
+  IStageFailureMessageState
+> {
   public static defaultProps: Partial<IStageFailureMessageProps> = {
     messages: [],
   };
 
-  constructor(props: IStageFailureMessageProps) {
+  constructor(props: IStageFailureMessageProps & IRouterInjectedProps) {
     super(props);
     this.state = this.getState(props);
   }
@@ -104,13 +121,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
       }
 
       if (failedStageId !== undefined) {
-        const currentState = AngularServices.$state.current;
-        const params: any = {
-          stageId: failedStageId,
-        };
-        if (failedExecutionId !== undefined) {
-          params.executionId = failedExecutionId;
-        }
+        const route = getStageFailureRoute(this.props.stateService, failedExecutionId, failedStageId);
 
         return (
           <div className="row">
@@ -118,7 +129,7 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
               <div className="alert alert-danger">
                 <div>
                   Stage{' '}
-                  <UISref to={currentState.name} params={params}>
+                  <UISref to={route.state} params={route.params}>
                     <a>{failedStageName}</a>
                   </UISref>{' '}
                   failed.
@@ -129,9 +140,13 @@ export class StageFailureMessage extends React.Component<IStageFailureMessagePro
         );
       }
 
-      EventBus.publish('stage-failure-message:no-reason', { params: { ...AngularServices.$state.params } });
+      EventBus.publish('stage-failure-message:no-reason', { params: { ...this.props.stateParams } });
     }
 
     return null;
   }
 }
+
+export const StageFailureMessage = withRouter<IStageFailureMessageProps & IRouterInjectedProps>(
+  StageFailureMessageComponent,
+);

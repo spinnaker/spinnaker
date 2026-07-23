@@ -2,15 +2,15 @@ import type { FormikErrors, FormikValues } from 'formik';
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
   FirewallLabels,
   LoadBalancerWriter,
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -36,8 +36,8 @@ export interface ICreateClassicLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateClassicLoadBalancer extends React.Component<
-  ICreateClassicLoadBalancerProps,
+export class CreateClassicLoadBalancerComponent extends React.Component<
+  ICreateClassicLoadBalancerProps & IRouterInjectedProps,
   ICreateClassicLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateClassicLoadBalancerProps> = {
@@ -54,7 +54,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     return ReactModal.show(CreateClassicLoadBalancer, props, modalProps);
   }
 
-  constructor(props: ICreateClassicLoadBalancerProps) {
+  constructor(props: ICreateClassicLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.command
@@ -149,10 +149,10 @@ export class CreateClassicLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!AngularServices.$state.includes('**.loadBalancerDetails')) {
-      AngularServices.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      AngularServices.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
@@ -203,7 +203,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     return errors;
   };
 
-  public render(): React.ReactElement<CreateClassicLoadBalancer> {
+  public render(): React.ReactElement<CreateClassicLoadBalancerComponent> {
     const { app, dismissModal, forPipelineConfig, loadBalancer } = this.props;
     const { isNew, loadBalancerCommand, taskMonitor } = this.state;
 
@@ -280,3 +280,8 @@ export class CreateClassicLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateClassicLoadBalancer = Object.assign(
+  withRouter<ICreateClassicLoadBalancerProps & IRouterInjectedProps>(CreateClassicLoadBalancerComponent),
+  { show: CreateClassicLoadBalancerComponent.show },
+);

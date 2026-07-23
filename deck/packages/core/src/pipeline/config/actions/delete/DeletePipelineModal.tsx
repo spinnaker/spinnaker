@@ -1,3 +1,4 @@
+import { useRouter } from '@uirouter/react';
 import { get, isEmpty, set } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
@@ -16,6 +17,7 @@ export interface IDeletePipelineModalProps extends IModalComponentProps {
 }
 
 export function DeletePipelineModal(props: IDeletePipelineModalProps) {
+  const { stateService } = useRouter();
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [deleteError, setDeleteError] = React.useState<boolean>(false);
   const [deleting, setDeleting] = React.useState<boolean>(false);
@@ -42,7 +44,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         if (!isEmpty(idsToUpdatedIndices)) {
           PipelineConfigService.reorderPipelines(application.name, idsToUpdatedIndices, isPipelineStrategy);
         }
-        AngularServices.$state.go('^.executions', null, { location: 'replace' });
+        stateService.go('^.executions', null, { location: 'replace' });
         closeModal();
       },
       (response) => {

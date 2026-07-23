@@ -1,3 +1,4 @@
+import { useRouter } from '@uirouter/react';
 import { CanarySettings } from 'kayenta/canary.settings';
 import {
   CANARY_EXECUTION_NO_PIPELINE_STATUS,
@@ -16,7 +17,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import type { Application } from '@spinnaker/core';
-import { AngularServices, relativeTime, Spinner, Tooltip } from '@spinnaker/core';
+import { relativeTime, Spinner, Tooltip } from '@spinnaker/core';
 
 import ConfigLink from './configLink';
 import Score from '../detail/score';
@@ -212,6 +213,10 @@ interface IExecutionListTableStateProps {
   executionsCount: number;
 }
 
+interface IExecutionCountNavigator {
+  go(state: string, params: { count: number }): unknown;
+}
+
 const TableRows = ({
   executions,
   application,
@@ -247,11 +252,12 @@ const TableRows = ({
   );
 };
 
-const updateExecutionsCount = (event: React.ChangeEvent<HTMLSelectElement>) => {
-  AngularServices.$state.go('.', { count: Number(event.target.value) });
+const updateExecutionsCount = (event: React.ChangeEvent<HTMLSelectElement>, stateService: IExecutionCountNavigator) => {
+  stateService.go('.', { count: Number(event.target.value) });
 };
 
 const ExecutionListTable = ({ executions, application, accounts, executionsCount }: IExecutionListTableStateProps) => {
+  const { stateService } = useRouter();
   React.useEffect(() => {
     const dataSource = application.getDataSource('canaryExecutions');
     if (!dataSource.active) {
@@ -274,7 +280,10 @@ const ExecutionListTable = ({ executions, application, accounts, executionsCount
           {countOptions.length > 1 && (
             <>
               <span className="sp-margin-s-right">Showing</span>
-              <select className="form-control input-sm" onChange={updateExecutionsCount}>
+              <select
+                className="form-control input-sm"
+                onChange={(event) => updateExecutionsCount(event, stateService)}
+              >
                 {countOptions.map((o) => (
                   <option selected={executionsCount === o} value={o}>
                     {o}
