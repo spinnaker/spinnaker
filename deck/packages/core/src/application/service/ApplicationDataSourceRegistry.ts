@@ -42,6 +42,10 @@ export class ApplicationDataSourceRegistry {
     return cloneDeep(this.dataSources);
   }
 
+  public static hasDataSource(config: IDataSourceConfig<any>): boolean {
+    return this.dataSources.includes(config);
+  }
+
   public static removeDataSource(key: string): void {
     this.dataSources = this.dataSources.filter((data) => {
       return data.key !== key;

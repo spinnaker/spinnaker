@@ -1,5 +1,6 @@
 import { ManualExecutionBake } from './ManualExecutionBake';
 import { bakeStageTransformer } from './bakeStage.transformer';
+import { NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE = 'spinnaker.core.pipeline.stage.bakeStage';
@@ -10,6 +11,7 @@ export const bakeStage = {
   label: 'Bake',
   description: 'Bakes an image',
   key: 'bake',
+  component: NoConfigurationStageConfig,
   restartable: true,
   manualExecutionComponent: ManualExecutionBake,
 };

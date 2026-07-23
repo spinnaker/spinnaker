@@ -57,8 +57,13 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
     loading: false,
   };
   private element: JQuery;
+  private graphResizeObserver: ResizeObserver;
   private graphStatusHash: string;
   private graphVerticalPadding = 11;
+  private lastElementWidth = 0;
+  private layoutRetryFrame: number | null = null;
+  private layoutRetryCount = 0;
+  private maxLayoutRetries = 10;
   private minExecutionGraphHeight = 40;
   private minLabelWidth = 100;
   private pipelineValidations: IPipelineValidationResults = { pipeline: [], stages: [] };
@@ -94,6 +99,35 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
   private handleWindowResize(): void {
     this.updateGraph(this.props);
   }
+
+  private scheduleLayoutRetry(): void {
+    if (this.layoutRetryFrame !== null || this.layoutRetryCount >= this.maxLayoutRetries) {
+      return;
+    }
+
+    this.layoutRetryCount++;
+    this.layoutRetryFrame = window.requestAnimationFrame(() => {
+      this.layoutRetryFrame = null;
+      this.updateGraph(this.props);
+    });
+  }
+
+  private handleElementResize = (entries?: ResizeObserverEntry[]): void => {
+    if (!this.element?.length) {
+      return;
+    }
+    const width = entries?.[0]?.contentRect?.width || this.element.width() || 0;
+    if (!width) {
+      this.scheduleLayoutRetry();
+      return;
+    }
+    if (width === this.lastElementWidth) {
+      return;
+    }
+    this.lastElementWidth = width;
+    this.layoutRetryCount = 0;
+    this.updateGraph(this.props);
+  };
 
   private handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     // track and save the graph scroll position for executions so it doesn't get reset to
@@ -289,7 +323,14 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
    */
   private applyPhaseWidth(props: IPipelineGraphProps, newState: IPipelineGraphState): void {
     const phaseOffset = 2 * newState.nodeRadius + newState.labelOffsetX;
-    newState.maxLabelWidth = this.element.width() - 2 * newState.nodeRadius;
+    const elementWidth = this.element.width() || 0;
+    this.lastElementWidth = elementWidth;
+    if (!elementWidth) {
+      this.scheduleLayoutRetry();
+    } else {
+      this.layoutRetryCount = 0;
+    }
+    newState.maxLabelWidth = elementWidth - 2 * newState.nodeRadius;
 
     if (newState.phaseCount) {
       newState.maxLabelWidth = newState.maxLabelWidth / (newState.phaseCount + 1) - phaseOffset;
@@ -441,6 +482,7 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   public componentDidMount() {
     window.addEventListener('resize', this.windowResize);
+    this.observeElementResize();
     this.validationSubscription = PipelineConfigValidator.subscribe((validations) => {
       this.pipelineValidations = validations;
       this.updateGraph(this.props);
@@ -453,6 +495,14 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
       this.element = $(element);
     }
   };
+
+  private observeElementResize(): void {
+    if (!window.ResizeObserver || !this.element?.length || this.graphResizeObserver) {
+      return;
+    }
+    this.graphResizeObserver = new ResizeObserver(this.handleElementResize);
+    this.graphResizeObserver.observe(this.element[0]);
+  }
 
   @Debounce(300)
   private validatePipeline(pipeline: IPipeline): void {
@@ -506,6 +556,10 @@ export class PipelineGraph extends React.Component<IPipelineGraphProps, IPipelin
 
   public componentWillUnmount() {
     this.validationSubscription.unsubscribe();
+    if (this.layoutRetryFrame !== null) {
+      window.cancelAnimationFrame(this.layoutRetryFrame);
+    }
+    this.graphResizeObserver?.disconnect();
     window.removeEventListener('resize', this.windowResize);
   }
 

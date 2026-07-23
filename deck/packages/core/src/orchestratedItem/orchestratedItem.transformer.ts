@@ -1,6 +1,5 @@
 import { formatDistance } from 'date-fns';
 import { get, isNil } from 'lodash';
-import { $log } from 'ngimport';
 import { AngularServices } from '../angular/services';
 
 import type { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from '../domain';
@@ -265,7 +264,7 @@ export class OrchestratedItemTransformer {
         return 'BUFFERED';
       default:
         if (item.originalStatus) {
-          $log.warn('Unrecognized status:', item.originalStatus);
+          AngularServices.$log.warn('Unrecognized status:', item.originalStatus);
         }
         return item.originalStatus;
     }

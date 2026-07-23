@@ -16,6 +16,7 @@ export interface IAccountRegionClusterSelectorProps {
   singleRegion?: string;
   showAllRegions?: boolean;
   onAccountUpdate?: (account: string) => void;
+  onComponentUpdate?: (component: Record<string, any>) => void;
   disableRegionSelect?: boolean;
   showClusterSelect?: boolean;
 }
@@ -79,6 +80,7 @@ export function AccountRegionClusterSelector(props: IAccountRegionClusterSelecto
     component[clusterField] = undefined;
     refreshLists();
     props.onAccountUpdate && props.onAccountUpdate(account);
+    props.onComponentUpdate && props.onComponentUpdate(component);
   };
 
   const regionChanged = (value: string | string[]) => {
@@ -91,6 +93,7 @@ export function AccountRegionClusterSelector(props: IAccountRegionClusterSelecto
     if (!clusterIsTextInput && !nextClusters.includes(component[clusterField])) {
       component[clusterField] = undefined;
     }
+    props.onComponentUpdate && props.onComponentUpdate(component);
   };
 
   const clusterChanged = (clusterName: string) => {
@@ -98,6 +101,7 @@ export function AccountRegionClusterSelector(props: IAccountRegionClusterSelecto
     const filterByCluster = AppListExtractor.monikerClusterNameFilter(clusterName);
     const clusterMoniker = AppListExtractor.getMonikers([application], filterByCluster)[0];
     component.moniker = clusterMoniker ? { ...clusterMoniker, sequence: null } : undefined;
+    props.onComponentUpdate && props.onComponentUpdate(component);
   };
 
   const toggleClusterTextInput = () => {
@@ -110,6 +114,7 @@ export function AccountRegionClusterSelector(props: IAccountRegionClusterSelecto
     setClusterIsTextInput(false);
     setRegions(deriveRegions(allRegions));
     setClusterList(deriveClusters());
+    props.onComponentUpdate && props.onComponentUpdate(component);
   };
 
   return (

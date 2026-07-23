@@ -9,7 +9,8 @@ import { SETTINGS } from '../config/settings';
 import { REACT_MODULE } from '../reactShims';
 
 import { Overridable } from './Overridable';
-import { OVERRIDE_REGISTRY, OverrideRegistry } from './override.registry';
+import { overridesComponent } from './Overrides';
+import { OVERRIDE_REGISTRY, overrideRegistry, OverrideRegistry } from './override.registry';
 
 class Original extends React.Component<{ accountId?: string }> {
   public render() {
@@ -51,6 +52,15 @@ describe('Overridable', () => {
 
     expect(wrapper.find('.override').text()).toBe('Override');
     expect(wrapper.find('.original').exists()).toBeFalse();
+  });
+
+  it('flushes override registrations into the direct singleton registry without AngularJS run blocks', () => {
+    const key = 'overridable.spec.directSingletonRegistry';
+    const OverrideComponent = () => <div className="override">Override</div>;
+
+    overridesComponent(OverrideComponent, key);
+
+    expect(overrideRegistry.getComponent(key)).toBe(OverrideComponent as any);
   });
 
   it('renders the original component when only a legacy cloud-provider template override is registered', () => {

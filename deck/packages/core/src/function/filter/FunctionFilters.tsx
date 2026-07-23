@@ -1,8 +1,8 @@
 import { chain, compact, debounce, map, uniq } from 'lodash';
-import { $rootScope } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { FilterSearch } from '../../cluster/filter/FilterSearch';
 import { FilterSection } from '../../cluster/filter/FilterSection';
@@ -77,10 +77,11 @@ export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFun
 
     this.functionsRefreshUnsubscribe = app.functions.onRefresh(null, () => this.updateFunctionGroups());
 
-    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
+    const locationChangeSubscription = AngularServices.stateEvents.locationChangeSuccess.subscribe(() => {
       FunctionState.filterModel.asFilterModel.activate();
       FunctionState.filterService.updateFunctionGroups(app);
     });
+    this.locationChangeUnsubscribe = () => locationChangeSubscription.unsubscribe();
   }
 
   public componentWillUnmount(): void {

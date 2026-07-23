@@ -35,6 +35,7 @@ describe('AccountRegionClusterSelector', () => {
   });
 
   it('normalizes fetched regions and clears invalid clusters after region changes', async () => {
+    const onComponentUpdate = jasmine.createSpy('onComponentUpdate');
     const componentModel = {
       cloudProviderType: 'aws',
       credentials: 'test',
@@ -51,6 +52,7 @@ describe('AccountRegionClusterSelector', () => {
         accounts={[]}
         application={application}
         component={componentModel}
+        onComponentUpdate={onComponentUpdate}
         singleRegion={true}
       />,
     );
@@ -61,10 +63,12 @@ describe('AccountRegionClusterSelector', () => {
     component.find('select.region-select').simulate('change', { target: { value: 'us-west-2' } });
 
     expect(componentModel.cluster).toBeUndefined();
+    expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
   });
 
   it('updates moniker from the selected cluster and notifies account changes', async () => {
     const onAccountUpdate = jasmine.createSpy('onAccountUpdate');
+    const onComponentUpdate = jasmine.createSpy('onComponentUpdate');
     const componentModel = { cloudProviderType: 'aws', credentials: 'test', region: 'us-east-1' } as any;
     const application = applicationWithServerGroups([
       { account: 'test', region: 'us-east-1', cluster: 'app-main', moniker: { cluster: 'app-main', sequence: 7 } },
@@ -76,6 +80,7 @@ describe('AccountRegionClusterSelector', () => {
         application={application}
         component={componentModel}
         onAccountUpdate={onAccountUpdate}
+        onComponentUpdate={onComponentUpdate}
         singleRegion={true}
       />,
     );
@@ -83,6 +88,7 @@ describe('AccountRegionClusterSelector', () => {
 
     component.find('select.cluster-select').simulate('change', { target: { value: 'app-main' } });
     expect(componentModel.moniker).toEqual({ cluster: 'app-main', sequence: null });
+    expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
 
     component
       .find('select.SelectInput')
@@ -90,6 +96,7 @@ describe('AccountRegionClusterSelector', () => {
     expect(componentModel.credentials).toBe('prod');
     expect(componentModel.cluster).toBeUndefined();
     expect(onAccountUpdate).toHaveBeenCalled();
+    expect(onComponentUpdate).toHaveBeenCalledWith(componentModel);
   });
 
   it('renders expression credentials as runtime-resolved account text', async () => {
