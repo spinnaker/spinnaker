@@ -7,7 +7,6 @@ import { AngularServices } from '../angular/services';
 
 import type { Application } from '../application';
 import type { CacheInitializerService } from '../cache';
-import type { OverrideRegistry } from '../overrideRegistry';
 import { Overridable } from '../overrideRegistry';
 import { ConfigureProjectModal } from '../projects';
 
@@ -28,7 +27,6 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
   private $rootScope: IScope;
   private $uibModal: IModalService;
   private $state: StateService;
-  private overrideRegistry: OverrideRegistry;
   private cacheInitializer: CacheInitializerService;
 
   constructor(props: IInsightMenuProps) {
@@ -37,7 +35,6 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     this.$state = AngularServices.$state;
     this.$uibModal = AngularServices.modalService;
     this.$rootScope = AngularServices.$rootScope;
-    this.overrideRegistry = AngularServices.overrideRegistry;
     this.cacheInitializer = AngularServices.cacheInitializer;
   }
 
@@ -52,14 +49,11 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     this.$uibModal
       .open({
         scope: this.$rootScope.$new(),
-        templateUrl: this.overrideRegistry.getTemplate(
-          'createApplicationModal',
-          require('../application/modal/newapplication.html'),
-        ),
+        templateUrl: require('../application/modal/newapplication.html'),
         resolve: {
           name: () => '',
         },
-        controller: this.overrideRegistry.getController('CreateApplicationModalCtrl'),
+        controller: 'CreateApplicationModalCtrl',
         controllerAs: 'newAppModal',
       })
       .result.then(this.routeToApplication)

@@ -1,7 +1,6 @@
 'use strict';
 
 import { module } from 'angular';
-import ANGULAR_UI_BOOTSTRAP from 'angular-ui-bootstrap';
 import _ from 'lodash';
 
 import { CORE_ACCOUNT_ACCOUNT_MODULE } from '../account/account.module';
@@ -10,28 +9,30 @@ import { CLUSTER_FILTER } from './filter/clusterFilter.component';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from '../serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { ClusterState } from '../state';
-import { noop } from '../utils';
 import { CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE } from '../utils/waypoints/waypointContainer.directive';
 
 import './rollups.less';
 
 export const CORE_CLUSTER_ALLCLUSTERS_CONTROLLER = 'spinnaker.core.cluster.allClusters.controller';
 export const name = CORE_CLUSTER_ALLCLUSTERS_CONTROLLER; // for backwards compatibility
+
+export function hasReactCloneServerGroupModal(_application, _account, provider) {
+  return Boolean(provider && provider.serverGroup && provider.serverGroup.CloneServerGroupModal);
+}
+
 module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
   CLUSTER_FILTER,
   CORE_ACCOUNT_ACCOUNT_MODULE,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   FILTER_TAGS_COMPONENT,
   CORE_UTILS_WAYPOINTS_WAYPOINTCONTAINER_DIRECTIVE,
-  ANGULAR_UI_BOOTSTRAP,
 ]).controller('AllClustersCtrl', [
   '$scope',
   'app',
-  '$uibModal',
   '$timeout',
   'insightFilterStateModel',
   'serverGroupCommandBuilder',
-  function ($scope, app, $uibModal, $timeout, insightFilterStateModel, serverGroupCommandBuilder) {
+  function ($scope, app, $timeout, insightFilterStateModel, serverGroupCommandBuilder) {
     this.$onInit = () => {
       const groupsUpdatedSubscription = ClusterState.filterService.groupsUpdatedStream.subscribe(() =>
         clusterGroupsUpdated(),
@@ -104,41 +105,31 @@ module(CORE_CLUSTER_ALLCLUSTERS_CONTROLLER, [
     };
 
     this.createServerGroup = function createServerGroup() {
-      ProviderSelectionService.selectProvider(app, 'serverGroup')
+      this.createServerGroupError = null;
+      ProviderSelectionService.selectProvider(app, 'serverGroup', hasReactCloneServerGroupModal)
         .then(function (provider) {
-          serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null).then((command) => {
+          return serverGroupCommandBuilder.buildNewServerGroupCommand(app, provider, null).then((command) => {
             const providerConfig = CloudProviderRegistry.getValue(provider, 'serverGroup');
             const title = 'Create New Server Group';
             const serverGroup = null;
-            if (providerConfig.CloneServerGroupModal) {
-              // React
-              providerConfig.CloneServerGroupModal.show({
-                title,
-                application: app,
-                serverGroup,
-                command,
-                provider,
-                isNew: true,
-              });
-            } else {
-              // angular
-              $uibModal.open({
-                templateUrl: providerConfig.cloneServerGroupTemplateUrl,
-                controller: `${providerConfig.cloneServerGroupController} as ctrl`,
-                windowClass: 'modal-z-index',
-                size: 'lg',
-                resolve: {
-                  title: () => title,
-                  application: () => app,
-                  serverGroup: () => serverGroup,
-                  serverGroupCommand: () => command,
-                  provider: () => provider,
-                },
-              });
+            if (!providerConfig.CloneServerGroupModal) {
+              throw new Error(`No React clone server group modal is registered for provider "${provider}".`);
             }
+            providerConfig.CloneServerGroupModal.show({
+              title,
+              application: app,
+              serverGroup,
+              command,
+              provider,
+              isNew: true,
+            });
           });
         })
-        .catch(noop);
+        .catch((error) => {
+          if (error instanceof Error) {
+            this.createServerGroupError = error.message;
+          }
+        });
     };
 
     this.updateClusterGroups = _.debounce(updateClusterGroups, 200);

@@ -46,6 +46,14 @@ export interface IInstanceTypeCategory {
   label?: string;
   families: IInstanceTypeFamily[];
   icon?: string;
+  description?: string;
+  stats?: {
+    families: string[];
+    cpu: { min: number; max: number };
+    memory: { min: number; max: number };
+    storage: { min: number; max: number };
+    costFactor?: number;
+  };
 }
 
 export interface IInstanceTypeService {
