@@ -19,6 +19,7 @@ import { registerServerGroupManagerDataSource } from '../../serverGroupManager/s
 import { registerTaskDataSources } from '../../task/task.dataSource';
 import { registerPipelineDataSources } from '../../pipeline/pipeline.dataSource';
 import { ExecutionService } from '../../pipeline/service/execution.service';
+import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
 import { Application } from '../application.model';
 
 function getDataSourcesByKey(key: string): any[] {
@@ -288,6 +289,45 @@ describe('direct application data source registration', () => {
     await flushPromise(dataSource.ready());
 
     expect(dataSource.data).toEqual([]);
+  });
+
+  it('registers auto-activation hooks with the direct router', () => {
+    const previousRouter = getDirectRouter();
+    const onSuccess = jasmine.createSpy('onSuccess');
+
+    try {
+      setDirectRouter({ transitionService: { onSuccess } } as any);
+
+      new ApplicationDataSource(
+        { key: 'example', defaultData: [], activeState: '**.example.**', autoActivate: true },
+        {} as any,
+      );
+
+      expect(onSuccess.calls.allArgs()).toEqual([
+        [{ entering: '**.example.**' }, jasmine.any(Function)],
+        [{ exiting: '**.example.**' }, jasmine.any(Function)],
+      ]);
+    } finally {
+      setDirectRouter(previousRouter);
+    }
+  });
+
+  it('allows auto-activated data sources to be created before the direct router', () => {
+    const previousRouter = getDirectRouter();
+
+    try {
+      setDirectRouter(null);
+
+      expect(
+        () =>
+          new ApplicationDataSource(
+            { key: 'example', defaultData: [], activeState: '**.example.**', autoActivate: true },
+            {} as any,
+          ),
+      ).not.toThrow();
+    } finally {
+      setDirectRouter(previousRouter);
+    }
   });
 
   it('refreshes an application without Angular $q injection', async () => {

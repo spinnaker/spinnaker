@@ -755,7 +755,7 @@ describe('bootstrapDeck', () => {
       });
 
       await bootstrapDeck(firstRoot);
-      const firstStateEvents = AngularServices.stateEvents;
+      const firstRouter = getDirectRouter();
       const scheduled = jasmine.createSpy('scheduled');
       AngularServices.$timeout(scheduled, 100);
 
@@ -767,7 +767,7 @@ describe('bootstrapDeck', () => {
       await bootstrapDeck(secondRoot);
 
       expect(scheduled).not.toHaveBeenCalled();
-      expect(AngularServices.stateEvents).not.toBe(firstStateEvents);
+      expect(getDirectRouter()).not.toBe(firstRouter);
     } finally {
       jasmine.clock().uninstall();
     }

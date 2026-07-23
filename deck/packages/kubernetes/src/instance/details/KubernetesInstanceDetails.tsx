@@ -1,10 +1,9 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { Application, IManifest, IMoniker } from '@spinnaker/core';
+import type { Application, IManifest, IMoniker, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   ConsoleOutputLink,
   InstanceDetailsHeader,
@@ -16,6 +15,7 @@ import {
   SETTINGS,
   timestamp,
   useModal,
+  withRouter,
 } from '@spinnaker/core';
 
 import type { IKubernetesInstance } from '../../interfaces';
@@ -68,8 +68,8 @@ export interface IKubernetesInstanceActionsProps {
   manifest: IManifest;
 }
 
-export class KubernetesInstanceDetails extends React.Component<
-  IKubernetesInstanceDetailsProps,
+export class KubernetesInstanceDetailsComponent extends React.Component<
+  IKubernetesInstanceDetailsProps & IRouterInjectedProps,
   IKubernetesInstanceDetailsState
 > {
   protected readonly renderActions: boolean = true;
@@ -169,8 +169,8 @@ export class KubernetesInstanceDetails extends React.Component<
       return;
     }
 
-    AngularServices.$state.params.allowModalToStayOpen = true;
-    AngularServices.$state.go('^', null, { location: 'replace' });
+    this.props.stateService.params.allowModalToStayOpen = true;
+    this.props.stateService.go('^', null, { location: 'replace' });
   };
 
   private buildConsoleOutputInstance(instance: IKubernetesInstance): IConsoleOutputInstance {
@@ -298,6 +298,8 @@ export class KubernetesInstanceDetails extends React.Component<
     );
   }
 }
+
+export const KubernetesInstanceDetails = withRouter(KubernetesInstanceDetailsComponent);
 
 export function KubernetesInstanceActions({ app, instance, manifest }: IKubernetesInstanceActionsProps) {
   const deleteModal = useModal();

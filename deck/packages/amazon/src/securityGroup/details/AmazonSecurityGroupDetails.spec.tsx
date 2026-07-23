@@ -1,9 +1,24 @@
-import { AmazonSecurityGroupDetails } from './AmazonSecurityGroupDetails';
+import { AmazonSecurityGroupDetailsComponent as AmazonSecurityGroupDetails } from './AmazonSecurityGroupDetails';
 import { VpcReader } from '../../vpc/VpcReader';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve));
 
 describe('AmazonSecurityGroupDetails', () => {
+  it('replaces missing details through the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go') };
+    const component = new AmazonSecurityGroupDetails({
+      app: { isStandalone: false },
+      resolvedSecurityGroup: { accountId: 'test-account', name: 'missing', region: 'us-west-2' },
+      router: {},
+      stateParams: {},
+      stateService,
+    } as any);
+
+    (component as any).autoClose();
+
+    expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' });
+  });
+
   it('does not update state when the VPC lookup resolves after unmount', async () => {
     const details = {
       accountId: 'test-account',

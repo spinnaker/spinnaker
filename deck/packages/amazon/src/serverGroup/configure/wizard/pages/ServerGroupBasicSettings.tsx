@@ -2,10 +2,9 @@ import type { FormikErrors, FormikProps } from 'formik';
 import { Field } from 'formik';
 import React from 'react';
 
-import type { Application, IServerGroup, IWizardPageComponent } from '@spinnaker/core';
+import type { Application, IRouterInjectedProps, IServerGroup, IWizardPageComponent } from '@spinnaker/core';
 import {
   AccountSelectInput,
-  AngularServices,
   DeployingIntoManagedClusterWarning,
   DeploymentStrategySelector,
   HelpField,
@@ -16,6 +15,7 @@ import {
   ServerGroupNamePreview,
   SETTINGS,
   TaskReason,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AmazonImageSelectInput } from '../../AmazonImageSelectInput';
@@ -42,10 +42,10 @@ export interface IServerGroupBasicSettingsState {
   latestServerGroup: IServerGroup;
 }
 
-export class ServerGroupBasicSettings
-  extends React.Component<IServerGroupBasicSettingsProps, IServerGroupBasicSettingsState>
+export class ServerGroupBasicSettingsComponent
+  extends React.Component<IServerGroupBasicSettingsProps & IRouterInjectedProps, IServerGroupBasicSettingsState>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
-  constructor(props: IServerGroupBasicSettingsProps) {
+  constructor(props: IServerGroupBasicSettingsProps & IRouterInjectedProps) {
     super(props);
     const {
       amiName,
@@ -184,11 +184,10 @@ export class ServerGroupBasicSettings
       serverGroup: latestServerGroup.name,
     };
 
-    const { $state } = AngularServices;
-    if ($state.is('home.applications.application.insight.clusters')) {
-      $state.go('.serverGroup', params);
+    if (this.props.stateService.is('home.applications.application.insight.clusters')) {
+      this.props.stateService.go('.serverGroup', params);
     } else {
-      $state.go('^.serverGroup', params);
+      this.props.stateService.go('^.serverGroup', params);
     }
   };
 
@@ -352,3 +351,5 @@ export class ServerGroupBasicSettings
     );
   }
 }
+
+export const ServerGroupBasicSettings = withRouter(ServerGroupBasicSettingsComponent);

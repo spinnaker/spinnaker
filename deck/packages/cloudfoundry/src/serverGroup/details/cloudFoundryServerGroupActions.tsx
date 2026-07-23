@@ -2,7 +2,7 @@ import { filter, find, get, orderBy } from 'lodash';
 import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
-import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
+import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
   AngularServices,
@@ -10,6 +10,7 @@ import {
   ConfirmationModalService,
   ServerGroupWarningMessageService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
 import { CloudFoundryServerGroupCommandBuilder } from '../configure';
@@ -28,7 +29,9 @@ export interface ICloudFoundryServerGroupJob extends IServerGroupJob {
   serverGroupId: string;
 }
 
-export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundryServerGroupActionsProps> {
+export class CloudFoundryServerGroupActionsComponent extends React.Component<
+  ICloudFoundryServerGroupActionsProps & IRouterInjectedProps
+> {
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
       const resizeTasks = (this.props.serverGroup.runningTasks || []).filter((task) =>
@@ -79,8 +82,8 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
       application: app,
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (this.props.stateService.includes('**.serverGroup', stateParams)) {
+          this.props.stateService.go('^');
         }
       },
     };
@@ -363,3 +366,5 @@ export class CloudFoundryServerGroupActions extends React.Component<ICloudFoundr
     );
   }
 }
+
+export const CloudFoundryServerGroupActions = withRouter(CloudFoundryServerGroupActionsComponent);

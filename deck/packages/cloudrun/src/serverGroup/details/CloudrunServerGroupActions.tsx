@@ -1,13 +1,17 @@
 import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
-import type { IServerGroupActionsProps } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService } from '@spinnaker/core';
+import type { IRouterInjectedProps, IServerGroupActionsProps } from '@spinnaker/core';
+import { AngularServices, ConfirmationModalService, withRouter } from '@spinnaker/core';
 
 import { CloudrunHealth } from '../../common/cloudrunHealth';
 import type { ICloudrunServerGroup } from '../../interfaces';
 
-export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupActionsProps) {
+export function CloudrunServerGroupActionsComponent({
+  app,
+  serverGroup,
+  stateService,
+}: IServerGroupActionsProps & IRouterInjectedProps) {
   const cloudrunServerGroup = serverGroup as ICloudrunServerGroup;
   const canDestroyServerGroup = Boolean(
     cloudrunServerGroup && !cloudrunServerGroup.tags?.isLatest && cloudrunServerGroup.disabled,
@@ -22,8 +26,8 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
       application: app,
       title: `Destroying ${cloudrunServerGroup.name}`,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (stateService.includes('**.serverGroup', stateParams)) {
+          stateService.go('^');
         }
       },
     };
@@ -72,3 +76,5 @@ export function CloudrunServerGroupActions({ app, serverGroup }: IServerGroupAct
     </Dropdown>
   );
 }
+
+export const CloudrunServerGroupActions = withRouter(CloudrunServerGroupActionsComponent);

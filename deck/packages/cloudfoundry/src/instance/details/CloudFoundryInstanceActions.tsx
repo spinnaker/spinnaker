@@ -2,8 +2,8 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
-import type { Application } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService, InstanceWriter } from '@spinnaker/core';
+import type { Application, IRouterInjectedProps } from '@spinnaker/core';
+import { ConfirmationModalService, InstanceWriter, withRouter } from '@spinnaker/core';
 
 import type { ICloudFoundryInstance } from '../../domain';
 
@@ -12,7 +12,9 @@ export interface ICloudFoundryInstanceActionsProps {
   instance: ICloudFoundryInstance;
 }
 
-export class CloudFoundryInstanceActions extends React.Component<ICloudFoundryInstanceActionsProps> {
+export class CloudFoundryInstanceActionsComponent extends React.Component<
+  ICloudFoundryInstanceActionsProps & IRouterInjectedProps
+> {
   private terminateInstance = () => {
     const { application, instance } = this.props;
     const instanceClone = cloneDeep(instance) as any;
@@ -21,9 +23,9 @@ export class CloudFoundryInstanceActions extends React.Component<ICloudFoundryIn
     const taskMonitor = {
       application: application,
       title: 'Terminating ' + instance.name,
-      onTaskComplete() {
-        if (AngularServices.$state.includes('**.serverGroup', { instanceId: instance.name })) {
-          AngularServices.$state.go('^');
+      onTaskComplete: () => {
+        if (this.props.stateService.includes('**.serverGroup', { instanceId: instance.name })) {
+          this.props.stateService.go('^');
         }
       },
     };
@@ -58,3 +60,5 @@ export class CloudFoundryInstanceActions extends React.Component<ICloudFoundryIn
     );
   }
 }
+
+export const CloudFoundryInstanceActions = withRouter(CloudFoundryInstanceActionsComponent);

@@ -3,7 +3,13 @@ import { isEmpty } from 'lodash';
 import React from 'react';
 
 import { buildIpRulesModel, buildSecurityGroupRulesModel, IPRangeRules, VpcReader } from '@spinnaker/amazon';
-import type { Application, ISecurityGroup, ISecurityGroupDetail, SecurityGroupReader } from '@spinnaker/core';
+import type {
+  Application,
+  IRouterInjectedProps,
+  ISecurityGroup,
+  ISecurityGroupDetail,
+  SecurityGroupReader,
+} from '@spinnaker/core';
 import {
   AccountTag,
   AngularServices,
@@ -12,6 +18,7 @@ import {
   FirewallLabels,
   RecentHistoryService,
   Spinner,
+  withRouter,
 } from '@spinnaker/core';
 
 interface IEcsResolvedSecurityGroup {
@@ -36,8 +43,8 @@ interface IEcsSecurityGroupDetailsState {
   securityGroup?: ISecurityGroupDetail & ISecurityGroup & Record<string, any>;
 }
 
-export class EcsSecurityGroupDetails extends React.Component<
-  IEcsSecurityGroupDetailsProps,
+export class EcsSecurityGroupDetailsComponent extends React.Component<
+  IEcsSecurityGroupDetailsProps & IRouterInjectedProps,
   IEcsSecurityGroupDetailsState
 > {
   public state: IEcsSecurityGroupDetailsState = { loading: true };
@@ -99,7 +106,7 @@ export class EcsSecurityGroupDetails extends React.Component<
       this.setState({ loading: false, notFound: true, securityGroup: undefined });
       return;
     }
-    AngularServices.$state.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    this.props.stateService.go('^', { allowModalToStayOpen: true }, { location: 'replace' });
   };
 
   private loadSecurityGroup = (): void => {
@@ -164,7 +171,7 @@ export class EcsSecurityGroupDetails extends React.Component<
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -271,3 +278,5 @@ export class EcsSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const EcsSecurityGroupDetails = withRouter(EcsSecurityGroupDetailsComponent);

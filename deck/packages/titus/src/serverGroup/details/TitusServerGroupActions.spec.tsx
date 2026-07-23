@@ -5,7 +5,7 @@ import type { IRootScopeService } from 'angular';
 import { mock } from 'angular';
 import * as core from '@spinnaker/core';
 
-import { TitusServerGroupActions } from './TitusServerGroupActions';
+import { TitusServerGroupActionsComponent as TitusServerGroupActions } from './TitusServerGroupActions';
 import { TitusRollbackServerGroupModal } from './rollback/TitusRollbackServerGroupModal';
 
 describe('<TitusServerGroupActions />', () => {
@@ -84,6 +84,32 @@ describe('<TitusServerGroupActions />', () => {
 
     expect(() => (wrapper.instance() as any).rollbackServerGroup()).not.toThrow();
     expect(show).not.toHaveBeenCalled();
+  });
+
+  it('closes destroyed server group details through the injected state service', async () => {
+    const serverGroup = buildServerGroup();
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
+    const confirm = spyOn(core.ConfirmationModalService, 'confirm');
+    spyOn(core.ServerGroupWarningMessageService, 'addDestroyWarningMessage');
+    const wrapper = shallow(
+      <TitusServerGroupActions
+        app={buildApp([serverGroup])}
+        router={{} as any}
+        serverGroup={serverGroup}
+        stateParams={{}}
+        stateService={stateService as any}
+      />,
+    );
+
+    wrapper
+      .find('a')
+      .filterWhere((link: any) => link.text() === 'Destroy')
+      .simulate('click');
+    $rootScope.$digest();
+    await settle();
+    confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
+
+    expect(stateService.go).toHaveBeenCalledWith('^');
   });
 });
 

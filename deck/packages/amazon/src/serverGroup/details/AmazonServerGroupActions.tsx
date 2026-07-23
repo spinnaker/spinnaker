@@ -2,7 +2,7 @@ import { get } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 
-import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
+import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
   AngularServices,
@@ -12,6 +12,7 @@ import {
   Overridable,
   ServerGroupWarningMessageService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
 import { AwsServices } from '../../aws.services';
@@ -42,7 +43,9 @@ export class AmazonServerGroupActionsResize extends React.Component<IAmazonResiz
   }
 }
 
-export class AmazonServerGroupActions extends React.Component<IAmazonServerGroupActionsProps> {
+export class AmazonServerGroupActionsComponent extends React.Component<
+  IAmazonServerGroupActionsProps & IRouterInjectedProps
+> {
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
       const resizeTasks = (this.props.serverGroup.runningTasks || []).filter((task) =>
@@ -72,8 +75,8 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       application: app,
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (this.props.stateService.includes('**.serverGroup', stateParams)) {
+          this.props.stateService.go('^');
         }
       },
     };
@@ -281,3 +284,5 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     );
   }
 }
+
+export const AmazonServerGroupActions = withRouter(AmazonServerGroupActionsComponent);

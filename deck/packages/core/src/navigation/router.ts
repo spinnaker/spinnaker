@@ -16,8 +16,7 @@ import {
 } from './state.provider';
 import { StateHelper } from './stateHelper.provider';
 
-export function configureRouter(): UIRouterReact {
-  const router = new UIRouterReact();
+export function configureRouter(router = new UIRouterReact()): UIRouterReact {
   try {
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);

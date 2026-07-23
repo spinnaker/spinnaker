@@ -3,7 +3,6 @@ import { FilterModelService } from './FilterModelService';
 import { REACT_MODULE } from '../reactShims';
 import { StateConfigProvider } from '../navigation';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
-import { AngularServices } from '../angular/services';
 
 describe('Service: FilterModelService', function () {
   var filterModel;
@@ -483,7 +482,9 @@ describe('Service: FilterModelService', function () {
 
     describe('applyParamsToUrl', function () {
       it('should start a transition with params for all configured fields', function () {
-        const spy = spyOn(AngularServices.$state, 'go');
+        const previousRouter = getDirectRouter();
+        setDirectRouter($uiRouter);
+        const spy = spyOn($uiRouter.stateService, 'go');
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string', param: 'q' },
@@ -493,6 +494,7 @@ describe('Service: FilterModelService', function () {
         filterModel.sortFilter.showInstances = true;
         filterModel.applyParamsToUrl();
         expect(spy).toHaveBeenCalledWith('.', { q: 'deck', showInstances: true }, jasmine.anything());
+        setDirectRouter(previousRouter);
       });
     });
   });

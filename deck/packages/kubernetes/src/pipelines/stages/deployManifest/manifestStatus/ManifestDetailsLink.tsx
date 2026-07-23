@@ -1,8 +1,8 @@
 import { get, trim } from 'lodash';
 import React from 'react';
 
-import type { IManifest } from '@spinnaker/core';
-import { AccountService, AngularServices } from '@spinnaker/core';
+import type { IManifest, IRouterInjectedProps } from '@spinnaker/core';
+import { AccountService, withRouter } from '@spinnaker/core';
 
 const UNMAPPED_K8S_RESOURCE_STATE_KEY = 'kubernetesResource';
 
@@ -16,14 +16,17 @@ export interface IManifestDetailsState {
   url: string;
 }
 
-export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, IManifestDetailsState> {
+export class ManifestDetailsLinkComponent extends React.Component<
+  IManifestDetailsProps & IRouterInjectedProps,
+  IManifestDetailsState
+> {
   private spinnakerKindStateMap: { [k: string]: string } = {
     // keys from clouddriver's KubernetesSpinnakerKindMap
     serverGroupManagers: 'serverGroupManager',
     serverGroups: 'serverGroup',
   };
 
-  constructor(props: IManifestDetailsProps) {
+  constructor(props: IManifestDetailsProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       url: '',
@@ -73,7 +76,7 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, 
       const spinnakerKind = this.spinnakerKindFromKubernetesKind(kind, account.spinnakerKindMap);
       const stateKey = this.spinnakerKindStateMap[spinnakerKind] || UNMAPPED_K8S_RESOURCE_STATE_KEY;
       const params = this.getStateParams(stateKey);
-      const url = AngularServices.$state.href(`home.applications.application.insight.clusters.${stateKey}`, params);
+      const url = this.props.stateService.href(`home.applications.application.insight.clusters.${stateKey}`, params);
       this.setState({ url });
     });
   }
@@ -90,3 +93,5 @@ export class ManifestDetailsLink extends React.Component<IManifestDetailsProps, 
     }
   }
 }
+
+export const ManifestDetailsLink = withRouter(ManifestDetailsLinkComponent);

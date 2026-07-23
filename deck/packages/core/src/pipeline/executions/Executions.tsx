@@ -1,8 +1,8 @@
 import { get } from 'lodash';
 import React from 'react';
 import type { Subscription } from 'rxjs';
-import { AngularServices } from '../../angular/services';
 
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import type { IDefaultTagFilterConfig } from '../../application/config/defaultTagFilter/DefaultTagFilterConfig';
 import { CreatePipeline } from '../config/CreatePipeline';
@@ -14,7 +14,10 @@ import { ExecutionFilterService } from '../filter/executionFilter.service';
 import type { IFilterTag, ISortFilter } from '../../filterModel';
 import { FilterCollapse, FilterTags } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
-import { Overridable } from '../../overrideRegistry';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
+import type { IOverridableProps } from '../../overrideRegistry';
+import { overridableComponent } from '../../overrideRegistry';
 import { Tooltip } from '../../presentation/Tooltip';
 import { SchedulerFactory } from '../../scheduler';
 import type { IScheduler } from '../../scheduler/SchedulerFactory';
@@ -25,7 +28,7 @@ import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './executions.less';
 
-export interface IExecutionsProps {
+export interface IExecutionsProps extends IOverridableProps {
   app: Application;
 }
 
@@ -45,8 +48,7 @@ const forwardedExecutions = new Set();
 // This ensures we only forward to permalink on landing, not on future refreshes
 let disableForwarding = false;
 
-@Overridable('PipelineExecutions')
-export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
+export class ExecutionsComponent extends React.Component<IExecutionsProps & IRouterInjectedProps, IExecutionsState> {
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
   private insightFilterStateModel = AngularServices.insightFilterStateModel;
@@ -54,7 +56,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50, 100, 200];
 
-  constructor(props: IExecutionsProps) {
+  constructor(props: IExecutionsProps & IRouterInjectedProps) {
     super(props);
 
     this.state = {
@@ -187,22 +189,23 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private clearManualExecutionParam(): void {
-    AngularServices.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
+    this.props.stateService.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
   }
 
   private handleAgedOutExecutions(executionId: string, forwardToPermalink: boolean): void {
-    const { $state, executionService } = AngularServices;
+    const { executionService } = AngularServices;
+    const { stateParams, stateService } = this.props;
     if (forwardToPermalink && executionId && !forwardedExecutions.has(executionId)) {
       // We only want to forward to permalink on initial load
       executionService.getExecution(executionId).then(() => {
-        const detailsState = $state.current.name.replace('executions.execution', 'executionDetails.execution');
-        const { stage, step, details } = $state.params;
+        const detailsState = stateService.current.name.replace('executions.execution', 'executionDetails.execution');
+        const { stage, step, details } = stateParams;
         forwardedExecutions.add(executionId);
-        $state.go(detailsState, { executionId, stage, step, details });
+        stateService.go(detailsState, { executionId, stage, step, details });
       });
     } else {
       // Handles the case where we already forwarded once and user navigated back, so do not forward again.
-      $state.go('.^');
+      stateService.go('.^');
     }
   }
 
@@ -232,11 +235,11 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
         this.normalizeExecutionNames();
 
         // if an execution was selected but is no longer present, navigate up
-        const { $state } = AngularServices;
-        if ($state.params.executionId) {
+        const { executionId } = this.props.stateParams;
+        if (executionId) {
           const executions: IExecution[] = app.executions.data;
-          if (executions.every((e) => e.id !== $state.params.executionId)) {
-            this.handleAgedOutExecutions($state.params.executionId, !disableForwarding);
+          if (executions.every((e) => e.id !== executionId)) {
+            this.handleAgedOutExecutions(executionId, !disableForwarding);
           }
         }
         // After the very first refresh interval (landing), we do not want to forward the user to the permalink
@@ -249,7 +252,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
     Promise.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
-      const nameOrIdToStart = AngularServices.$stateParams.startManualExecution;
+      const { startManualExecution: nameOrIdToStart } = this.props.stateParams;
       if (nameOrIdToStart) {
         const toStart = app.pipelineConfigs.data.find((p: IPipeline) => [p.id, p.name].includes(nameOrIdToStart));
         if (toStart) {
@@ -302,7 +305,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     logger.log({ category: 'Pipelines', action: 'Toggle Durations', data: { label: checked.toString() } });
   };
 
-  public render(): React.ReactElement<Executions> {
+  public render(): React.ReactElement {
     const { app } = this.props;
     const { filtersExpanded, loading, sortFilter, tags, triggeringExecution, reloadingForFilters } = this.state;
 
@@ -461,3 +464,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     return null;
   }
 }
+
+const OverridableExecutions = overridableComponent(ExecutionsComponent, 'PipelineExecutions');
+export const Executions = withRouter<IExecutionsProps & IRouterInjectedProps>(OverridableExecutions);
