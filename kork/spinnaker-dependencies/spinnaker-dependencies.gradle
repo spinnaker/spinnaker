@@ -14,7 +14,7 @@ ext {
     groovy           : "4.0.15",
     jsch             : "0.1.54",
     jschAgentProxy   : "0.0.9",
-    log4j            : "2.25.1",
+    log4j            : "2.26.1", // CVEs regularly released, so patch override spring as needed
     log4jKotlin      : "1.5.0",
     protobuf         : "3.25.2",
     retrofit2        : "2.12.0",
@@ -23,7 +23,7 @@ ext {
     elasticsearch    : "8.19.18", // Used by clouddriver, moved here for central dep management
     spek2            : "2.0.9",
     springdocs          : "2.8.17",
-    springBoot       : "3.5.15",
+    springBoot       : "3.5.16",
     springCloud      : "2025.0.3", // CVE-2026-40982: spring-cloud-config-server 4.3.3+ required
     // bring in latest, though it's ahead of deps.  This is due to springdocs
     // https://github.com/springdoc/springdoc-openapi/blob/v2.8.17/springdoc-openapi-starter-common/src/main/java/org/springdoc/core/providers/ObjectMapperProvider.java#L85
@@ -58,6 +58,7 @@ dependencies {
   api(platform("org.spockframework:spock-bom:2.4-groovy-4.0"))
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
+  api(platform("org.apache.logging.log4j:log4j-bom:${versions.log4j}"))
 
   constraints {
     api("cglib:cglib-nodep:3.3.0")
