@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { AccountService } from '@spinnaker/core';
 
-import { AmazonStageConfig } from './AmazonStageConfig';
+import { AmazonStageConfig, getAmazonStageFields } from './AmazonStageConfig';
 
 describe('AmazonStageConfig', () => {
   beforeEach(() => {
@@ -27,6 +27,40 @@ describe('AmazonStageConfig', () => {
       />,
     );
   }
+
+  it('defines generic fields only for simple scalar stages', () => {
+    const simpleStageTypes = [
+      'bake',
+      'cloneServerGroup',
+      'destroyAsg',
+      'destroyServerGroup',
+      'disableAsg',
+      'disableCluster',
+      'disableServerGroup',
+      'enableAsg',
+      'enableServerGroup',
+      'findAmi',
+      'findImage',
+      'rollbackCluster',
+      'scaleDownCluster',
+      'shrinkCluster',
+    ];
+    const dedicatedStageTypes = [
+      'deployCloudFormation',
+      'findImageFromTags',
+      'modifyAwsScalingProcess',
+      'modifyScalingProcess',
+      'resizeAsg',
+      'resizeServerGroup',
+      'upsertImageTags',
+    ];
+    const fallbackFields = getAmazonStageFields({ type: 'unknown' });
+    const genericStageTypes = [...simpleStageTypes, ...dedicatedStageTypes].filter(
+      (type) => getAmazonStageFields({ type }) !== fallbackFields,
+    );
+
+    expect(genericStageTypes).toEqual(simpleStageTypes);
+  });
 
   it('renders account as a selector for target server group stages', () => {
     const wrapper = renderStage({ credentials: 'test' });
