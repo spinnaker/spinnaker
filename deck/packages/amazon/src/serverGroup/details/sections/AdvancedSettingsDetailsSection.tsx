@@ -4,8 +4,15 @@ import { CollapsibleSection } from '@spinnaker/core';
 import { HelpField } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { EditAsgAdvancedSettingsModal } from '../advancedSettings';
+import { AWSProviderSettings } from '../../../aws.settings';
 
 export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
+  private editAdvancedSettings = (): void => {
+    const { app: application, serverGroup } = this.props;
+    EditAsgAdvancedSettingsModal.show({ application, serverGroup });
+  };
+
   public render(): JSX.Element {
     const { serverGroup } = this.props;
 
@@ -33,6 +40,11 @@ export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServe
             <dd>{`${asg.capacityRebalance}`}</dd>,
           ]}
         </dl>
+        {AWSProviderSettings.adHocInfraWritesEnabled && (
+          <a className="clickable" onClick={this.editAdvancedSettings}>
+            Edit Advanced Settings
+          </a>
+        )}
       </CollapsibleSection>
     );
   }
