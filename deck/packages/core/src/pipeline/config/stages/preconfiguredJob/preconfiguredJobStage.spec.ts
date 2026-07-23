@@ -28,7 +28,7 @@ describe('Preconfigured Job stage registration', () => {
       }),
     );
     expect((stage as any).templateUrl).toBeUndefined();
-    expect((stage as any).executionDetailsUrl).toBeUndefined();
+    expect((stage as any).executionDetailsSections).toBeDefined();
   });
 
   it('registers only non-custom preconfigured jobs', async () => {

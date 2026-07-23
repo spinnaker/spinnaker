@@ -1,10 +1,14 @@
+import React from 'react';
 import { Registry } from '@spinnaker/core';
+
+import { EcsServerGroupStepLabel } from '../common/EcsServerGroupStepLabel';
 
 Registry.pipeline.registerStage({
   provides: 'cloneServerGroup',
   cloudProvider: 'ecs',
   templateUrl: require('./cloneServerGroupStage.html'),
-  executionStepLabelUrl: require('./cloneServerGroupStepLabel.html'),
+  executionStepLabelComponent: (props) =>
+    React.createElement(EcsServerGroupStepLabel, { action: 'Clone Server Group', useSource: true, ...props }),
   accountExtractor: (stage) => [stage.context.credentials],
   validators: [
     { type: 'requiredField', fieldName: 'targetCluster', fieldLabel: 'cluster' },

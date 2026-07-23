@@ -58,7 +58,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
     return (
       <div className="container-fluid form-horizontal">
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Cooldown</b>
           </div>
           <div className="col-md-2">
@@ -67,11 +67,11 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           seconds
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Enabled Metrics </b>
             <HelpField id="aws.serverGroup.enabledMetrics" />
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Select
               multi={true}
               value={values.enabledMetrics}
@@ -87,10 +87,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         </div>
 
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Health Check Type</b>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Select
               value={values.healthCheckType}
               clearable={false}
@@ -101,7 +101,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Health Check Grace Period</b>
           </div>
           <div className="col-md-2">
@@ -115,10 +115,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           seconds
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Termination Policies</b>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Select
               multi={true}
               value={values.terminationPolicies}
@@ -134,10 +134,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         </div>
 
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Key Name</b>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Select
               value={values.keyPair}
               required={true}
@@ -148,37 +148,37 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Ramdisk Id (optional)</b>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Field type="text" name="ramdiskId" className="form-control input-sm no-spel" />
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>IAM Instance Profile (optional)</b>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Field type="text" className="form-control input-sm no-spel" name="iamRole" />
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>UserData (optional) </b>
             <HelpField id="aws.serverGroup.base64UserData" />
           </div>
-          <div className="col-md-6">
+          <div className="col-md-7">
             <Field type="text" className="form-control input-sm no-spel" name="base64UserData" />
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Instance Monitoring </b>
             <HelpField id="aws.serverGroup.instanceMonitoring" />
           </div>
 
-          <div className="col-md-6 checkbox">
+          <div className="col-md-7 checkbox">
             <label>
               <input
                 type="checkbox"
@@ -190,10 +190,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>EBS Optimized</b>
           </div>
-          <div className="col-md-6 checkbox">
+          <div className="col-md-7 checkbox">
             <label>
               <input
                 type="checkbox"
@@ -206,11 +206,11 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         </div>
         {asgSettings?.enableIMDSv2 && (
           <div className="form-group">
-            <div className="col-md-5 sm-label-right">
+            <div className="col-md-3 sm-label-right">
               <b>IMDSv2 </b>
               <HelpField id="aws.serverGroup.imdsv2" />
             </div>
-            <div className="col-md-6 checkbox">
+            <div className="col-md-7 checkbox">
               <label>
                 <input
                   type="checkbox"
@@ -224,7 +224,7 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         )}
         {!AWSProviderSettings.disableSpotPricing && values.viewState.useSimpleInstanceTypeSelector && (
           <div className="form-group">
-            <div className="col-md-5 sm-label-right">
+            <div className="col-md-3 sm-label-right">
               <b>Spot Instances Price (optional)</b> <HelpField id="aws.serverGroup.spotMaxPrice" />
             </div>
             <div className="col-md-2">
@@ -233,10 +233,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           </div>
         )}
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>AMI Block Device Mappings</b>
           </div>
-          <div className="col-md-6 radio">
+          <div className="col-md-7 radio">
             <div>
               <label>
                 <input
@@ -273,12 +273,12 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           </div>
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>{`Associate ${asgSettings?.enableIPv6 ? 'IPv6 (Recommended)' : 'Public IPv4'} Address`}</b>
             <HelpField id="serverGroup.ipv6" />
           </div>
           {asgSettings?.enableIPv6 && (
-            <div className="col-md-6 checkbox">
+            <div className="col-md-7 checkbox">
               <label>
                 <input
                   type="checkbox"
@@ -329,10 +329,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           )}
         </div>
         <div className="form-group">
-          <div className="col-md-5 sm-label-right">
+          <div className="col-md-3 sm-label-right">
             <b>Scaling Processes</b>
           </div>
-          <div className="col-md-6 checkbox">
+          <div className="col-md-7 checkbox">
             {values.backingData.scalingProcesses.map((process) => (
               <div key={process.name}>
                 <label>
@@ -349,10 +349,10 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
         </div>
         {app.attributes.platformHealthOnlyShowOverride && (
           <div className="form-group">
-            <div className="col-md-5 sm-label-right">
+            <div className="col-md-3 sm-label-right">
               <b>Task Completion</b>
             </div>
-            <div className="col-md-6">
+            <div className="col-md-7">
               <PlatformHealthOverride
                 interestingHealthProviderNames={values.interestingHealthProviderNames}
                 platformHealthType="Amazon"
@@ -362,11 +362,13 @@ export class ServerGroupAdvancedSettingsCommon extends React.Component<IServerGr
           </div>
         )}
         <div className="form-group">
-          <div className="sm-label-left">
+          <div className="col-md-3 sm-label-right">
             <b>Tags (optional)</b>
             <HelpField id="aws.serverGroup.tags" />
           </div>
-          <MapEditor model={values.tags as any} allowEmpty={true} onChange={this.tagsChanged} />
+          <div className="col-md-7">
+            <MapEditor model={values.tags as any} allowEmpty={true} onChange={this.tagsChanged} />
+          </div>
         </div>
       </div>
     );
