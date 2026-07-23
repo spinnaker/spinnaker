@@ -1,11 +1,11 @@
 import { uniq } from 'lodash';
-import { $q } from 'ngimport';
 
 import type { ICloudProviderConfig } from '../CloudProviderRegistry';
 import { CloudProviderRegistry } from '../CloudProviderRegistry';
 import { ProviderSelectionModal } from './ProviderSelectionModal';
 import type { IAccountDetails } from '../../account';
 import { AccountService } from '../../account';
+import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { SETTINGS } from '../../config';
 
@@ -58,6 +58,7 @@ export class ProviderSelectionService {
           .map((option) => option.provider),
       );
 
+      const $q = AngularServices.$q;
       let provider;
       if (providerOptions.length > 1) {
         return ProviderSelectionModal.show({ providerOptions });

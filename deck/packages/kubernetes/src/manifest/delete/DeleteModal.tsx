@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import type { FormikProps } from 'formik';
 import { Form } from 'formik';
 import React, { useState } from 'react';
@@ -76,77 +75,75 @@ export function DeleteModal({
   };
 
   return (
-    <UIRouterContextComponent>
-      <Modal show={isOpen} onHide={dismissModal}>
-        <TaskMonitorWrapper monitor={taskMonitor} />
-        <SpinFormik<IKubernetesDeleteValues>
-          initialValues={initialValues}
-          onSubmit={submit}
-          render={(formik) => (
-            <>
-              <ModalClose dismiss={dismissModal} />
-              <Modal.Header>
-                <Modal.Title>
-                  Delete {robotToHuman(resource.name)} in {resource.namespace}
-                </Modal.Title>
-              </Modal.Header>
-              {manifestController && (
-                <div className="alert alert-warning">
-                  Manifest is controlled by{' '}
-                  <UISref
-                    to="^.serverGroupManager"
-                    params={{
-                      accountId: resource.account,
-                      region: resource.region,
-                      serverGroupManager: manifestController,
-                      provider: 'kubernetes',
-                    }}
-                  >
-                    <a> {robotToHuman(manifestController)} </a>
-                  </UISref>{' '}
-                  and may be recreated after deletion.
+    <Modal show={isOpen} onHide={dismissModal}>
+      <TaskMonitorWrapper monitor={taskMonitor} />
+      <SpinFormik<IKubernetesDeleteValues>
+        initialValues={initialValues}
+        onSubmit={submit}
+        render={(formik) => (
+          <>
+            <ModalClose dismiss={dismissModal} />
+            <Modal.Header>
+              <Modal.Title>
+                Delete {robotToHuman(resource.name)} in {resource.namespace}
+              </Modal.Title>
+            </Modal.Header>
+            {manifestController && (
+              <div className="alert alert-warning">
+                Manifest is controlled by{' '}
+                <UISref
+                  to="^.serverGroupManager"
+                  params={{
+                    accountId: resource.account,
+                    region: resource.region,
+                    serverGroupManager: manifestController,
+                    provider: 'kubernetes',
+                  }}
+                >
+                  <a> {robotToHuman(manifestController)} </a>
+                </UISref>{' '}
+                and may be recreated after deletion.
+              </div>
+            )}
+            <Modal.Body>
+              <Form className="form-horizontal">
+                <DeleteManifestOptionsForm
+                  onOptionsChange={(options: IDeleteOptions) => onOptionChange(formik, options)}
+                  options={{
+                    gracePeriodSeconds: formik.values.gracePeriodSeconds,
+                    cascading: formik.values.cascading,
+                  }}
+                />
+                <TaskReason reason={formik.values.reason} onChange={(val) => formik.setFieldValue('reason', val)} />
+              </Form>
+              {formik.status?.error && (
+                <div className="sp-margin-xl-top">
+                  <ValidationMessage
+                    type="error"
+                    message={
+                      <span className="flex-container-v">
+                        <span className="text-bold">Something went wrong:</span>
+                        {formik.status.error.message && <span>{formik.status.error.message}</span>}
+                      </span>
+                    }
+                  />
                 </div>
               )}
-              <Modal.Body>
-                <Form className="form-horizontal">
-                  <DeleteManifestOptionsForm
-                    onOptionsChange={(options: IDeleteOptions) => onOptionChange(formik, options)}
-                    options={{
-                      gracePeriodSeconds: formik.values.gracePeriodSeconds,
-                      cascading: formik.values.cascading,
-                    }}
-                  />
-                  <TaskReason reason={formik.values.reason} onChange={(val) => formik.setFieldValue('reason', val)} />
-                </Form>
-                {formik.status?.error && (
-                  <div className="sp-margin-xl-top">
-                    <ValidationMessage
-                      type="error"
-                      message={
-                        <span className="flex-container-v">
-                          <span className="text-bold">Something went wrong:</span>
-                          {formik.status.error.message && <span>{formik.status.error.message}</span>}
-                        </span>
-                      }
-                    />
-                  </div>
-                )}
-              </Modal.Body>
-              <Modal.Footer>
-                <UserVerification account={resource.account} onValidChange={setVerified} />
-                <Button onClick={dismissModal}>Cancel</Button>
-                <SubmitButton
-                  onClick={() => submit(formik.values)}
-                  isDisabled={!formik.isValid || formik.isSubmitting || !verified}
-                  isFormSubmit={true}
-                  submitting={formik.isSubmitting}
-                  label={`Delete ${resource.name}`}
-                />
-              </Modal.Footer>
-            </>
-          )}
-        />
-      </Modal>
-    </UIRouterContextComponent>
+            </Modal.Body>
+            <Modal.Footer>
+              <UserVerification account={resource.account} onValidChange={setVerified} />
+              <Button onClick={dismissModal}>Cancel</Button>
+              <SubmitButton
+                onClick={() => submit(formik.values)}
+                isDisabled={!formik.isValid || formik.isSubmitting || !verified}
+                isFormSubmit={true}
+                submitting={formik.isSubmitting}
+                label={`Delete ${resource.name}`}
+              />
+            </Modal.Footer>
+          </>
+        )}
+      />
+    </Modal>
   );
 }

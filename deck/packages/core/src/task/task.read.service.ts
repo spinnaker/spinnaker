@@ -1,9 +1,17 @@
-import { $log, $q, $timeout } from 'ngimport';
 import type { Subject } from 'rxjs';
 
+import { AngularServices } from '../angular/services';
 import { REST } from '../api/ApiService';
 import type { ITask } from '../domain';
 import { OrchestratedItemTransformer } from '../orchestratedItem/orchestratedItem.transformer';
+
+function createDeferred<T>() {
+  return AngularServices.$q.defer<T>();
+}
+
+function schedule(fn: () => void, interval: number) {
+  return (AngularServices.$timeout(fn, interval) as unknown) as PromiseLike<void>;
+}
 
 export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
@@ -47,7 +55,7 @@ export class TaskReader {
         return task;
       })
       .catch((error: any): undefined => {
-        $log.warn('There was an issue retrieving taskId: ', taskId, error);
+        AngularServices.$log.warn('There was an issue retrieving taskId: ', taskId, error);
         return undefined;
       });
   }
@@ -59,7 +67,7 @@ export class TaskReader {
     interval = 1000,
     notifier?: Subject<void>,
   ): PromiseLike<ITask> {
-    const deferred = $q.defer<ITask>();
+    const deferred = createDeferred<ITask>();
     if (!task) {
       deferred.reject(null);
     } else if (closure(task)) {
@@ -67,7 +75,7 @@ export class TaskReader {
     } else if (failureClosure && failureClosure(task)) {
       deferred.reject(task);
     } else {
-      task.poller = $timeout(() => {
+      task.poller = schedule(() => {
         this.getTask(task.id).then((updated) => {
           this.updateTask(task, updated);
           notifier?.next();

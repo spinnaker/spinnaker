@@ -1,10 +1,11 @@
 import type { IHttpPromiseCallbackArg } from 'angular';
-import { $q } from 'ngimport';
 
 import { AuthenticationService } from '../authentication/AuthenticationService';
 import type { ITask } from '../domain';
 import { TaskReader } from './task.read.service';
 import { TaskWriter } from './task.write.service';
+
+const reject = <T = never>(value: any): PromiseLike<T> => Promise.reject(value);
 
 export interface IJob {
   [attribute: string]: any;
@@ -55,7 +56,7 @@ export class TaskExecutor {
           log: message,
           failureMessage: message,
         };
-        return $q.reject(error);
+        return reject(error);
       },
     );
   }

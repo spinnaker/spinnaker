@@ -1,4 +1,3 @@
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 import type { ListRowProps } from 'react-virtualized';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
@@ -23,7 +22,6 @@ export interface IAllClustersGroupingsState {
   sortFilter: ISortFilter;
 }
 
-@UIRouterContext
 export class AllClustersGroupings extends React.Component<IAllClustersGroupingsProps, IAllClustersGroupingsState> {
   private clusterFilterService = ClusterState.filterService;
   private clusterFilterModel = ClusterState.filterModel;
@@ -89,7 +87,10 @@ export class AllClustersGroupings extends React.Component<IAllClustersGroupingsP
     window.addEventListener('resize', this.handleWindowResize);
     const onGroupsChanged = (groups: IClusterGroup[]) => {
       this.setState(
-        { groups: groups.reduce((a, b) => a.concat(b.subgroups), []) },
+        {
+          groups: groups.reduce((a, b) => a.concat(b.subgroups), []),
+          sortFilter: this.clusterFilterModel.asFilterModel.sortFilter,
+        },
         () => this.listRef && this.listRef.recomputeRowHeights(0),
       );
     };

@@ -109,7 +109,7 @@ export class DockerImageAndTagSelector extends React.Component<
 
   private getAccountMap(images: IDockerImage[]): { [key: string]: string[] } {
     const groupedImages = groupBy(
-      images.filter((image) => image.account),
+      images.filter((image) => image.account && image.repository),
       'account',
     );
     return reduce<IDockerImage[], { [key: string]: string[] }>(

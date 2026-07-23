@@ -12,7 +12,8 @@ export interface ITaskProgressBarProps {
 
 export function TaskProgressBar(props: ITaskProgressBarProps) {
   const { task, className } = props;
-  const { steps, id } = task;
+  const { id } = task;
+  const steps = task.steps || [];
   let tooltip;
 
   if (task.isRunning) {
@@ -49,6 +50,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
   }
 
   const stepsComplete = steps.filter((step) => step.isCompleted);
+  const progress = steps.length ? 10 + (stepsComplete.length / steps.length) * 90 : 100;
 
   const progressBarClassName = classNames({
     'progress-bar': true,
@@ -59,7 +61,7 @@ export function TaskProgressBar(props: ITaskProgressBarProps) {
   });
   const progressBar = (
     <div className={classNames('progress', className)}>
-      <div className={progressBarClassName} style={{ width: `${10 + (stepsComplete.length / steps.length) * 90}%` }} />
+      <div className={progressBarClassName} style={{ width: `${progress}%` }} />
     </div>
   );
 
