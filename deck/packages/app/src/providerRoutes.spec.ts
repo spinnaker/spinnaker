@@ -1,4 +1,4 @@
-import type { UIRouterReact } from '@uirouter/react';
+import { UIRouterReact } from '@uirouter/react';
 
 import '@spinnaker/ecs';
 import '@spinnaker/kubernetes';
@@ -12,6 +12,8 @@ import {
 } from '../../core/src/application/applicationState.registration';
 // eslint-disable-next-line @spinnaker/import-from-npm-not-relative
 import '../../core/src/navigation/coreRoutes';
+// eslint-disable-next-line @spinnaker/import-from-npm-not-relative
+import { createDeckRuntime } from '../../core/src/bootstrap/DeckRuntime';
 // eslint-disable-next-line @spinnaker/import-from-npm-not-relative
 import { setDirectRouter } from '../../core/src/navigation/directRouter';
 // eslint-disable-next-line @spinnaker/import-from-npm-not-relative
@@ -47,7 +49,10 @@ describe('direct provider route registration', () => {
   });
 
   it('loads Kubernetes and ECS states into both application trees', () => {
-    router = configureRouter();
+    router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    router.disposable(runtime);
+    configureRouter(router, runtime.services);
     const stateNames = router.stateRegistry.get().map((state) => state.name);
 
     [

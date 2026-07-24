@@ -2,11 +2,11 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import { ExecutionComponent } from './Execution';
-import { AngularServices } from '../../../angular/services';
 import { setDirectRouter } from '../../../navigation/directRouter';
 import { ExecutionState } from '../../../state';
 
 describe('Execution', () => {
+  const deckRuntimeServices = { executionService: {} } as any;
   const application = { name: 'test-app', pipelineConfigs: { data: [] } } as any;
   const execution = {
     deploymentTargets: [],
@@ -26,7 +26,6 @@ describe('Execution', () => {
       globals: { params: { executionId: 'other-execution', stage: '9', subStage: '8' } },
       stateService: { includes: () => false },
     } as any);
-    spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({} as any);
   });
 
   afterEach(() => {
@@ -37,6 +36,7 @@ describe('Execution', () => {
   it('derives its initial view from the injected route', () => {
     const component = shallow(
       <ExecutionComponent
+        deckRuntimeServices={deckRuntimeServices}
         {...({
           router: {},
           stateParams: { executionId: 'execution-id', stage: '2', subStage: '3' },
@@ -65,6 +65,7 @@ describe('Execution', () => {
     });
     const component = shallow(
       <ExecutionComponent
+        deckRuntimeServices={deckRuntimeServices}
         {...({
           router: { transitionService: { onSuccess } },
           stateParams: { executionId: 'other-execution' },
@@ -99,6 +100,7 @@ describe('Execution', () => {
     const stopPropagation = jasmine.createSpy('stopPropagation');
     const component = shallow(
       <ExecutionComponent
+        deckRuntimeServices={deckRuntimeServices}
         {...({ router: {}, stateParams: {}, stateService: { go, includes: () => false } } as any)}
         application={application}
         execution={{ ...execution, pipelineConfigId: 'pipeline-id' }}

@@ -2,7 +2,7 @@ import { UISref } from '@uirouter/react';
 import * as React from 'react';
 
 import { EntitySourcePopover } from './EntitySourcePopover';
-import { AngularServices } from '../angular/services';
+import { useDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { ICreationMetadataTag, IExecution } from '../domain';
 import { HoverablePopover, useData } from '../presentation';
 
@@ -12,12 +12,13 @@ export interface IEntitySourceProps {
 }
 
 export const EntitySource = ({ metadata, relativePath = '^.^.^' }: IEntitySourceProps) => {
+  const { executionService } = useDeckRuntimeServices();
   const executionType = metadata?.value?.executionType === 'pipeline' ? 'pipeline' : 'task';
   const { application, comments, executionId, stageId } = metadata?.value || {};
 
   const fetchExecution = () => {
     if (executionType === 'pipeline') {
-      return AngularServices.executionService.getExecution(metadata?.value?.executionId);
+      return executionService.getExecution(metadata?.value?.executionId);
     }
 
     return new Promise(() => {});

@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 
 import {
   AccountTag,
-  AngularServices,
   CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
@@ -11,6 +10,7 @@ import {
   ManagedMenuItem,
   ServerGroupReader,
   ServerGroupWarningMessageService,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 import type { Application } from '@spinnaker/core';
 
@@ -18,7 +18,6 @@ import { GceAutoHealingPolicyDetails } from './autoHealingPolicy';
 import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
 import { GceAutoscalingPolicyDetails } from './autoscalingPolicy';
 import { GceXpnNamingService } from '../../common/xpnNaming.gce.service';
-import { GceServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
 import { GceCloneServerGroupModal } from '../configure/wizard/GceCloneServerGroupModal';
 import type { IGceServerGroup } from '../../domain';
 import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
@@ -114,12 +113,13 @@ function withGcePlatformHealthParams(app: any, params: any = {}): any {
 export function cloneGceServerGroup(
   app: any,
   serverGroup: any,
-  commandBuilder: any = new GceServerGroupCommandBuilder(),
+  commandBuilder: any,
+  runtimeServices: ReturnType<typeof useDeckRuntimeServices>,
 ): PromiseLike<void> {
   return commandBuilder
     .buildServerGroupCommandFromExisting(app, serverGroup)
     .then((command: any) => {
-      GceCloneServerGroupModal.show({ application: app, command, title: `Clone ${serverGroup.name}` });
+      GceCloneServerGroupModal.show({ application: app, command, title: `Clone ${serverGroup.name}` }, runtimeServices);
     })
     .catch((error: any) => {
       ErrorModalService.error({
@@ -130,6 +130,8 @@ export function cloneGceServerGroup(
 }
 
 export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGroup: any }): JSX.Element {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupCommandBuilder, serverGroupWriter } = runtimeServices;
   if (CloudProviderRegistry.isDisabled('gce')) {
     return null;
   }
@@ -142,7 +144,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
   };
 
   const cloneServerGroup = () => {
-    cloneGceServerGroup(app, serverGroup);
+    cloneGceServerGroup(app, serverGroup, serverGroupCommandBuilder, runtimeServices);
   };
 
   const rollbackServerGroup = () => {
@@ -151,7 +153,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       application: app,
       serverGroup,
       serverGroups,
-      serverGroupWriter: AngularServices.serverGroupWriter,
+      serverGroupWriter,
     });
   };
 
@@ -160,7 +162,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       application: app,
       autoscalingPolicyWriter: GceAutoscalingPolicyWriter,
       serverGroup,
-      serverGroupWriter: AngularServices.serverGroupWriter,
+      serverGroupWriter,
     });
   };
 
@@ -170,11 +172,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       buttonText: `Destroy ${serverGroup.name}`,
       header: `Really destroy ${serverGroup.name}?`,
       submitMethod: (params: any) =>
-        AngularServices.serverGroupWriter.destroyServerGroup(
-          serverGroup,
-          app,
-          withGcePlatformHealthParams(app, params),
-        ),
+        serverGroupWriter.destroyServerGroup(serverGroup, app, withGcePlatformHealthParams(app, params)),
       taskMonitorConfig: { application: app, title: `Destroying ${serverGroup.name}` },
     };
     ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
@@ -187,11 +185,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       buttonText: `Disable ${serverGroup.name}`,
       header: `Really disable ${serverGroup.name}?`,
       submitMethod: (params: any) =>
-        AngularServices.serverGroupWriter.disableServerGroup(
-          serverGroup,
-          app.name,
-          withGcePlatformHealthParams(app, params),
-        ),
+        serverGroupWriter.disableServerGroup(serverGroup, app.name, withGcePlatformHealthParams(app, params)),
       taskMonitorConfig: { application: app, title: `Disabling ${serverGroup.name}` },
     };
     ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
@@ -204,7 +198,7 @@ export function GceServerGroupActions({ app, serverGroup }: { app: any; serverGr
       buttonText: `Enable ${serverGroup.name}`,
       header: `Really enable ${serverGroup.name}?`,
       submitMethod: (params: any) =>
-        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, withGcePlatformHealthParams(app, params)),
+        serverGroupWriter.enableServerGroup(serverGroup, app, withGcePlatformHealthParams(app, params)),
       taskMonitorConfig: { application: app, title: `Enabling ${serverGroup.name}` },
     });
   };

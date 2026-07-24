@@ -2,7 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import {
-  AngularServices,
   PlatformHealthOverride,
   ReactModal,
   ServerGroupWriter,
@@ -231,8 +230,8 @@ describe('AmazonRollbackServerGroupModal', () => {
   it('submits only after verification and preserves the exact values', () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
     const writer = { rollbackServerGroup: jasmine.createSpy('rollbackServerGroup').and.returnValue(Promise.resolve()) };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
     const component = new AmazonRollbackServerGroupModal(props(app));
+    (component as any).context = { services: { serverGroupWriter: writer } };
     spyOn(component.state.taskMonitor, 'submit').and.callFake((submitMethod: any) => submitMethod());
     const values = {
       delayBeforeDisableSeconds: 30,
@@ -277,9 +276,10 @@ describe('AmazonRollbackServerGroupModal', () => {
   it('exposes a show primitive for later actions integration', () => {
     const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
     const modalProps = props();
+    const runtimeServices = {} as any;
 
-    AmazonRollbackServerGroupModal.show(modalProps);
+    AmazonRollbackServerGroupModal.show(modalProps, runtimeServices);
 
-    expect(show).toHaveBeenCalledOnceWith(AmazonRollbackServerGroupModal, modalProps);
+    expect(show).toHaveBeenCalledOnceWith(AmazonRollbackServerGroupModal, modalProps, undefined, runtimeServices);
   });
 });
