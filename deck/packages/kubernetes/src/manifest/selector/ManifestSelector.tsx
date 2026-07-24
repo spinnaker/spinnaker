@@ -245,7 +245,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   private isExpression = (value: string): boolean => (typeof value === 'string' ? value.includes('${') : false);
 
   private search = (kind: string, namespace: string, account: string): PromiseLike<string[]> => {
-    if (this.isExpression(account)) {
+    if (!kind || !namespace || !account || this.isExpression(account)) {
       return Promise.resolve([]);
     }
     return ManifestKindSearchService.search(kind, namespace, account).then((results) =>

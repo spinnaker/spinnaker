@@ -1,7 +1,21 @@
 import React from 'react';
 
-import type { Application, IModalComponentProps, IRouterInjectedProps, IStage } from '@spinnaker/core';
-import { AngularServices, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+} from '@spinnaker/core';
+import {
+  DeckRuntimeContext,
+  noop,
+  ReactModal,
+  TaskMonitor,
+  withRouter,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
 import { WizardServerGroupBasicSettings } from './BasicSettings';
 import { WizardServerGroupConfigFilesSettings } from './ConfigFiles';
@@ -27,6 +41,9 @@ export class ServerGroupWizardComponent extends React.Component<
   ICloudrunServerGroupModalProps & IRouterInjectedProps,
   ICloudrunServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudrunServerGroupModalProps & IRouterInjectedProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -35,9 +52,12 @@ export class ServerGroupWizardComponent extends React.Component<
   private _isUnmounted = false;
 
   /*     private serverGroupWriter: ServerGroupWriter; */
-  public static show(props: ICloudrunServerGroupModalProps): Promise<ICloudrunServerGroupCommandData> {
+  public static show(
+    props: ICloudrunServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudrunServerGroupCommandData> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(ServerGroupWizard, props, modalProps);
+    return ReactModal.show(ServerGroupWizard, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICloudrunServerGroupModalProps & IRouterInjectedProps) {
@@ -112,7 +132,8 @@ export class ServerGroupWizardComponent extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else {
       //command.viewState.mode = 'create';
-      const submitMethod = () => AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application);
+      const submitMethod = () =>
+        this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application);
       this.state.taskMonitor.submit(submitMethod);
       return null;
     }

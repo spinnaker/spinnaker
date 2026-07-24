@@ -3,7 +3,7 @@ import React from 'react';
 import type { Option } from 'react-select';
 
 import type { IWizardPageComponent } from '@spinnaker/core';
-import { AngularServices, HelpField, TetheredSelect } from '@spinnaker/core';
+import { DeckRuntimeContext, HelpField, TetheredSelect } from '@spinnaker/core';
 
 import type { IAmazonServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -27,6 +27,9 @@ const stringToOption = (value: string): Option<string> => {
 export class ServerGroupLoadBalancers
   extends React.Component<IServerGroupLoadBalancersProps, IServerGroupLoadBalancersState>
   implements IWizardPageComponent<IAmazonServerGroupCommand> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state = {
     refreshing: false,
     refreshed: false,
@@ -49,7 +52,7 @@ export class ServerGroupLoadBalancers
   public refreshLoadBalancers = () => {
     const { values } = this.props.formik;
     this.setState({ refreshing: true });
-    const configurationService: any = AngularServices.providerServiceDelegate.getDelegate(
+    const configurationService: any = this.context.services.providerServiceDelegate.getDelegate(
       values.cloudProvider || values.selectedProvider,
       'serverGroup.configurationService',
     );

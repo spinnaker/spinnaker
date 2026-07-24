@@ -5,9 +5,9 @@ import { Dropdown, Tooltip } from 'react-bootstrap';
 import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ServerGroupWarningMessageService,
   SETTINGS,
   withRouter,
@@ -32,6 +32,9 @@ export interface ICloudFoundryServerGroupJob extends IServerGroupJob {
 export class CloudFoundryServerGroupActionsComponent extends React.Component<
   ICloudFoundryServerGroupActionsProps & IRouterInjectedProps
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
       const resizeTasks = (this.props.serverGroup.runningTasks || []).filter((task) =>
@@ -90,7 +93,7 @@ export class CloudFoundryServerGroupActionsComponent extends React.Component<
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
-      return AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      return this.context.services.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
@@ -123,7 +126,7 @@ export class CloudFoundryServerGroupActionsComponent extends React.Component<
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
-      return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+      return this.context.services.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
     };
 
     const confirmationModalParams = {
@@ -181,7 +184,7 @@ export class CloudFoundryServerGroupActionsComponent extends React.Component<
 
     const submitMethod = (params: ICloudFoundryServerGroupJob) => {
       params.serverGroupName = serverGroup.name;
-      return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      return this.context.services.serverGroupWriter.enableServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
@@ -245,41 +248,47 @@ export class CloudFoundryServerGroupActionsComponent extends React.Component<
       region: serverGroup.region,
     }) as ICloudFoundryServerGroup[];
 
-    CloudFoundryRollbackServerGroupModal.show({
-      serverGroup,
-      previousServerGroup,
-      disabledServerGroups: disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name)),
-      allServerGroups: allServerGroups.sort((a, b) => b.name.localeCompare(a.name)),
-      application: app,
-    });
+    CloudFoundryRollbackServerGroupModal.show(
+      {
+        serverGroup,
+        previousServerGroup,
+        disabledServerGroups: disabledServerGroups.sort((a, b) => b.name.localeCompare(a.name)),
+        allServerGroups: allServerGroups.sort((a, b) => b.name.localeCompare(a.name)),
+        application: app,
+      },
+      this.context.services,
+    );
   };
 
   private resizeServerGroup = (): void => {
     const { app, serverGroup } = this.props;
-    CloudFoundryResizeServerGroupModal.show({ application: app, serverGroup });
+    CloudFoundryResizeServerGroupModal.show({ application: app, serverGroup }, this.context.services);
   };
 
   private mapServerGroupToLoadBalancers = (): void => {
     const { app, serverGroup } = this.props;
-    CloudFoundryMapLoadBalancersModal.show({ application: app, serverGroup });
+    CloudFoundryMapLoadBalancersModal.show({ application: app, serverGroup }, this.context.services);
   };
 
   private unmapServerGroupFromLoadBalancers = (): void => {
     const { app, serverGroup } = this.props;
-    CloudFoundryUnmapLoadBalancersModal.show({ application: app, serverGroup });
+    CloudFoundryUnmapLoadBalancersModal.show({ application: app, serverGroup }, this.context.services);
   };
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     const command = CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup);
     const title = `Clone ${serverGroup.name}`;
-    CloudFoundryCreateServerGroupModal.show({
-      application: app,
-      command,
-      isSourceConstant: true,
-      serverGroup,
-      title,
-    });
+    CloudFoundryCreateServerGroupModal.show(
+      {
+        application: app,
+        command,
+        isSourceConstant: true,
+        serverGroup,
+        title,
+      },
+      this.context.services,
+    );
   };
 
   public render(): JSX.Element {

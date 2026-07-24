@@ -1,7 +1,7 @@
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   FirewallLabels,
@@ -49,9 +49,12 @@ export class CreateApplicationLoadBalancerComponent extends React.Component<
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateApplicationLoadBalancerProps): Promise<IAmazonApplicationLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateApplicationLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonApplicationLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICreateApplicationLoadBalancerProps & IRouterInjectedProps) {

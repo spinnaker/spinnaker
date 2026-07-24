@@ -2,6 +2,8 @@ import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
+import type { DeckRuntimeServices } from '../bootstrap/DeckRuntimeServices';
 import { setDirectRouter } from '../navigation/directRouter';
 import type { IRouterInjectedProps } from '../navigation/routerContext';
 import { withRouter } from '../navigation/routerContext';
@@ -112,5 +114,28 @@ describe('ReactModal router context', () => {
     expect(provider.type).toBe(UIRouterContext.Provider);
     expect(provider.props.value).toBe(router);
     expect(provider.props.children.props.children.type).toBe(RoutedModalComponent);
+  });
+
+  it('provides explicitly supplied runtime services to modal components', () => {
+    const renders: React.ReactElement[] = [];
+    spyOn(ReactDOM, 'render').and.callFake((element) => {
+      renders.push(element as React.ReactElement);
+      return null;
+    });
+    const runtimeServices = {} as DeckRuntimeServices;
+
+    class RuntimeModalComponent extends React.Component<IModalComponentProps> {
+      public render(): React.ReactNode {
+        return null;
+      }
+    }
+
+    ReactModal.show(RuntimeModalComponent, {} as any, { animation: false }, runtimeServices);
+
+    const routerProvider = getLastRender(renders);
+    const runtimeProvider = routerProvider.props.children;
+    expect(runtimeProvider.type).toBe(DeckRuntimeContext.Provider);
+    expect(runtimeProvider.props.value.services).toBe(runtimeServices);
+    expect(runtimeProvider.props.children.props.children.type).toBe(RuntimeModalComponent);
   });
 });

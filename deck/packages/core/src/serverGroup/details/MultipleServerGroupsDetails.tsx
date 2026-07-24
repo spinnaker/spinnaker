@@ -3,10 +3,11 @@ import React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { AccountTag } from '../../account';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import { CloudProviderLogo } from '../../cloudProvider';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
+import type { DirectProviderServiceDelegate } from '../../cloudProvider/providerService.delegate';
 import { ConfirmationModalService } from '../../confirmationModal';
 import type { IServerGroup } from '../../domain';
 import { HealthCounts } from '../../healthCounts';
@@ -55,9 +56,12 @@ function getSelectedServerGroups(app: Application): IServerGroup[] {
   });
 }
 
-function getMixinParams(submitMethodName: ServerGroupAction, serverGroup: IServerGroup): any {
+function getMixinParams(
+  providerServiceDelegate: DirectProviderServiceDelegate,
+  submitMethodName: ServerGroupAction,
+  serverGroup: IServerGroup,
+): any {
   const provider = getProvider(serverGroup);
-  const { providerServiceDelegate } = AngularServices;
   const providerParamsMixin = providerServiceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin')
     ? providerServiceDelegate.getDelegate<any>(provider, 'serverGroup.paramsMixin')
     : {};
@@ -67,6 +71,7 @@ function getMixinParams(submitMethodName: ServerGroupAction, serverGroup: IServe
 }
 
 export function MultipleServerGroupsDetails({ app }: IMultipleServerGroupsDetailsProps): JSX.Element {
+  const { providerServiceDelegate, serverGroupWriter } = useDeckRuntimeServices();
   const [isDisabled, setIsDisabled] = React.useState(false);
   const [serverGroups, setServerGroups] = React.useState<IServerGroup[]>(() => getSelectedServerGroups(app));
 
@@ -93,14 +98,13 @@ export function MultipleServerGroupsDetails({ app }: IMultipleServerGroupsDetail
     const descriptor = getDescriptor(groups);
     const monitorInterval = groups.length * 1000;
     const taskMonitorConfigs = groups.map((serverGroup) => {
-      const mixinParams = getMixinParams(submitMethodName, serverGroup);
-      const serverGroupWriter = AngularServices.serverGroupWriter as any;
+      const mixinParams = getMixinParams(providerServiceDelegate, submitMethodName, serverGroup);
+      const writer = serverGroupWriter as any;
 
       return {
         application: app,
         monitorInterval,
-        submitMethod: (params?: any) =>
-          serverGroupWriter[submitMethodName](serverGroup, app, { ...params, ...mixinParams }),
+        submitMethod: (params?: any) => writer[submitMethodName](serverGroup, app, { ...params, ...mixinParams }),
         title: serverGroup.name,
       };
     });

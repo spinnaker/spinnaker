@@ -1,7 +1,6 @@
 import type { IQService } from 'angular';
 import { module } from 'angular';
 
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
@@ -47,15 +46,13 @@ function createDataSourceConfig(
   };
 }
 
-export function registerLoadBalancerDataSource($q?: IQService, loadBalancerReader?: LoadBalancerReader): void {
+export function registerLoadBalancerDataSource($q: IQService, loadBalancerReader: LoadBalancerReader): void {
   if (ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'loadBalancers')) {
     return;
   }
 
-  const resolvedQ = $q || AngularServices.$q;
-  const resolvedReader = loadBalancerReader || AngularServices.loadBalancerReader;
   ApplicationDataSourceRegistry.registerDataSource(
-    createDataSourceConfig(<T>(value: T | PromiseLike<T>) => resolvedQ.when(value), resolvedReader),
+    createDataSourceConfig(<T>(value: T | PromiseLike<T>) => $q.when(value), loadBalancerReader),
   );
 }
 

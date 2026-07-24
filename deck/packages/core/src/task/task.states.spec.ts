@@ -1,5 +1,6 @@
 import { UIRouterReact } from '@uirouter/react';
 
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { getTasksState } from './task.states';
 import { TaskReader } from './task.read.service';
 import { ApplicationReader } from '../application/service/ApplicationReader';
@@ -30,7 +31,10 @@ describe('task states', () => {
   it('resolves a task permalink through a real direct transition', async () => {
     spyOn(TaskReader, 'getTask').and.resolveTo({ application: 'payments' } as any);
     spyOn(ApplicationReader, 'getApplication').and.resolveTo({ name: 'payments', dataSources: [] } as any);
-    const router = configureRouter();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    router.disposable(runtime);
+    configureRouter(router, runtime.services);
     routers.push(router);
 
     await router.stateService.go('home.taskLookup', { taskId: 'task-123' }, { location: false });

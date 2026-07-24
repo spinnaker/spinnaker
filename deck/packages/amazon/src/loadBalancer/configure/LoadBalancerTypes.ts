@@ -1,4 +1,4 @@
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps } from '@spinnaker/core';
 
 import { CreateApplicationLoadBalancer } from './application/CreateApplicationLoadBalancer';
 import { CreateClassicLoadBalancer } from './classic/CreateClassicLoadBalancer';
@@ -6,7 +6,10 @@ import type { IAmazonLoadBalancerUpsertCommand } from '../../domain';
 import { CreateNetworkLoadBalancer } from './network/CreateNetworkLoadBalancer';
 
 export type ICloseableLoadBalancerModal = React.ComponentType<ILoadBalancerModalProps> & {
-  show: (props: ILoadBalancerModalProps) => Promise<IAmazonLoadBalancerUpsertCommand>;
+  show: (
+    props: ILoadBalancerModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ) => Promise<IAmazonLoadBalancerUpsertCommand>;
 };
 
 export interface IAmazonLoadBalancerConfig {

@@ -1,14 +1,14 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 
 import {
   CloudProviderRegistry,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ErrorModalService,
   InfrastructureCaches,
   LoadBalancerWriter,
   ManagedMenuItem,
-  AngularServices,
   Registry,
   ServerGroupReader,
   ServerGroupWarningMessageService,
@@ -41,6 +41,19 @@ import { GceServerGroupTransformer } from './serverGroup/serverGroup.transformer
 import { GceSubnetRenderer } from './subnet/subnet.renderer';
 
 describe('Google provider registration', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) =>
+    React.createElement(DeckRuntimeContext.Provider, { value: { services: runtimeServices } as any }, children);
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {
+      securityGroupReader: { getAllSecurityGroups: () => Promise.resolve({}) },
+      serverGroupCommandBuilder: {},
+      serverGroupWriter: {},
+    };
+  });
+
   const legacyCtrlKey = ['Cont', 'roller'].join('');
   const legacyViewKey = ['Template', 'Url'].join('');
   const legacyModuleExport = ['GOOGLE', 'MODULE'].join('_');
@@ -168,10 +181,10 @@ describe('Google provider registration', () => {
   });
 
   it('allows GCE firewalls that apply to all target tags', async () => {
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
+    runtimeServices.securityGroupReader = {
       getAllSecurityGroups: () => Promise.resolve({}),
-    } as any);
-    const wrapper = shallow(
+    };
+    const wrapper = mount(
       React.createElement(GceSecurityGroupModal, {
         application: { name: 'fnord', securityGroups: { data: [] } },
         credentials: 'test-account',
@@ -299,7 +312,7 @@ describe('Google provider registration', () => {
       urlMapName: 'frontend-map',
     };
 
-    const wrapper = shallow(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
+    const wrapper = mount(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
     wrapper
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
@@ -418,9 +431,9 @@ describe('Google provider registration', () => {
   it('does not force Google health provider params when platform-health override is disabled', async () => {
     const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
     const writer = { enableServerGroup: jasmine.createSpy('enableServerGroup').and.returnValue(Promise.resolve({})) };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
+    runtimeServices.serverGroupWriter = writer;
 
-    shallow(
+    mount(
       React.createElement(GceServerGroupActions, {
         app: { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: false }, name: 'fnord' },
         serverGroup: { account: 'test-account', isDisabled: true, name: 'fnord-v001', region: 'us-central1' },
@@ -444,11 +457,11 @@ describe('Google provider registration', () => {
       destroyServerGroup: jasmine.createSpy('destroyServerGroup').and.returnValue(Promise.resolve({})),
       disableServerGroup: jasmine.createSpy('disableServerGroup').and.returnValue(Promise.resolve({})),
     };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
+    runtimeServices.serverGroupWriter = writer;
     const app = { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true }, name: 'fnord' };
     const serverGroup = { account: 'test-account', isDisabled: false, name: 'fnord-v001', region: 'us-central1' };
 
-    const wrapper = shallow(React.createElement(GceServerGroupActions, { app, serverGroup }));
+    const wrapper = mount(React.createElement(GceServerGroupActions, { app, serverGroup }));
     wrapper
       .find('a')
       .filterWhere((link) => link.text() === 'Disable')
