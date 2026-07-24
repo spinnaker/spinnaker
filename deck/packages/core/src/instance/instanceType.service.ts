@@ -1,7 +1,5 @@
-import { module } from 'angular';
 import { uniq } from 'lodash';
 import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 
 export interface IInstanceType {
   account: string;
@@ -131,4 +129,3 @@ export class InstanceTypeService {
 }
 
 export const INSTANCE_TYPE_SERVICE = 'spinnaker.core.instanceType.service';
-module(INSTANCE_TYPE_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service('instanceTypeService', InstanceTypeService);

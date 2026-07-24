@@ -18,7 +18,6 @@ describe('google: Create Server Group Modal GPU Accelerators', () => {
 
   it('should not show NVIDIA Tesla K80 initially', () => {
     cy.visit('#/applications/compute/clusters');
-    cy.window().its('angular').should('exist');
     cy.get('button:contains("Create Server Group")', { timeout: 10000 }).should('be.visible').click();
 
     cy.contains('ul.steps-indicator li a', 'Advanced Settings').click();
@@ -32,7 +31,6 @@ describe('google: Create Server Group Modal GPU Accelerators', () => {
 
   it('should show NVIDIA Tesla K80 after selecting us-east1-c zone', () => {
     cy.visit('#/applications/compute/clusters');
-    cy.window().its('angular').should('exist');
     cy.get('button:contains("Create Server Group")', { timeout: 10000 }).should('be.visible').click();
 
     // Select region and zone

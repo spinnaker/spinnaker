@@ -1,5 +1,4 @@
 import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
 
 import { ProjectHeader } from './ProjectHeader';
 import { Projects } from './Projects';
@@ -15,7 +14,6 @@ export interface IProjectStateParms extends StateParams {
 }
 
 export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
-module(PROJECTS_STATES_CONFIG, []);
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {

@@ -1,7 +1,5 @@
 import { StateMatcher } from '@uirouter/core';
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 import { RecoilRoot } from 'recoil';
@@ -18,25 +16,22 @@ import { ApplicationNavigation } from './ApplicationNavigation';
 import { ApplicationModelBuilder } from '../../application';
 import { SETTINGS } from '../../config';
 import type { IPipeline } from '../../domain';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
-import { REACT_MODULE } from '../../reactShims';
 import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 describe('ApplicationNavigation', () => {
   let $uiRouter: UIRouterReact;
   const currentStates = ['**.pipelines.**', '**.tasks.**'];
 
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-    }),
-  );
   beforeEach(() => {
+    $uiRouter = new UIRouterReact();
+    $uiRouter.plugin(servicesPlugin);
+    $uiRouter.plugin(hashLocationPlugin);
     // Initialize current route
     spyOn($uiRouter.stateService, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
     spyOn(StateMatcher.prototype, 'find').and.callFake(() => undefined as any);
   });
+
+  afterEach(() => $uiRouter.dispose());
 
   it('should render header, categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(

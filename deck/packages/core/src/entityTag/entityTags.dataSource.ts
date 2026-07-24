@@ -1,15 +1,9 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
-
 import { EntityTagsReader } from './EntityTagsReader';
 import { ApplicationDataSourceRegistry } from '../application';
 import type { Application } from '../application/application.model';
 import { SETTINGS } from '../config/settings';
 import type { IEntityTags } from '../domain/IEntityTags';
-import { LOAD_BALANCER_READ_SERVICE } from '../loadBalancer/loadBalancer.read.service';
 import { noop } from '../utils';
-
-export const ENTITY_TAGS_DATA_SOURCE = 'spinnaker.core.entityTag.dataSource';
 
 export function registerEntityTagsDataSource(
   when: <T>(value: T | PromiseLike<T>) => PromiseLike<T> = <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
@@ -64,8 +58,3 @@ export function registerEntityTagsDataSource(
     defaultData: [],
   });
 }
-
-module(ENTITY_TAGS_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([
-  '$q',
-  ($q: IQService) => registerEntityTagsDataSource(<T>(value: T | PromiseLike<T>) => $q.when(value)),
-]);

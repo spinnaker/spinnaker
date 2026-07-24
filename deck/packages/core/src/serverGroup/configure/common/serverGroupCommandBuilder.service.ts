@@ -1,8 +1,6 @@
-import { module } from 'angular';
 import type { IAggregatedAccounts, IRegion } from '../../../account/AccountService';
 import type { Application } from '../../../application/application.model';
 import type { ProviderServiceDelegate } from '../../../cloudProvider/providerService.delegate';
-import { PROVIDER_SERVICE_DELEGATE } from '../../../cloudProvider/providerService.delegate';
 import type { IDeploymentStrategy } from '../../../deploymentStrategy';
 import type {
   ILoadBalancer,
@@ -203,7 +201,3 @@ export class ServerGroupCommandBuilderService {
 }
 
 export const SERVER_GROUP_COMMAND_BUILDER_SERVICE = 'spinnaker.core.serverGroup.configure.common.service';
-module(SERVER_GROUP_COMMAND_BUILDER_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service(
-  'serverGroupCommandBuilder',
-  ServerGroupCommandBuilderService,
-);

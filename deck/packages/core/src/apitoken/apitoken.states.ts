@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { module } from 'angular';
-
 import { ApiTokensPageContainer } from './ApiTokensPageContainer';
 import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState } from '../navigation/state.provider';
-
-export const APITOKEN_STATES = 'spinnaker.core.apitoken.states';
-
-module(APITOKEN_STATES, []);
 
 registerRootState((stateConfigProvider) => {
   const apiTokens: INestedState = {

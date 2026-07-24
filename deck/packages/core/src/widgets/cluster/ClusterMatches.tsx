@@ -2,7 +2,11 @@ import React from 'react';
 
 import { AccountTag } from '../../account';
 
-import type { IClusterMatch } from './clusterMatches.component';
+export interface IClusterMatch {
+  name: string;
+  account: string;
+  regions: string[];
+}
 
 export interface IClusterMatchesProps {
   matches: IClusterMatch[];

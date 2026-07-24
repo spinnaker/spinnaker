@@ -12,7 +12,6 @@ export type { ApplicationStateRegistration } from './applicationState.registrati
 export { applyApplicationStateRegistrations, registerApplicationState } from './applicationState.registration';
 export * from './applicationModel.builder';
 export * from './config/footer/ConfigSectionFooter';
-export * from './config/footer/configSectionFooter.component';
 export * from './listExtractor/AppListExtractor';
 export * from './modal/PlatformHealthOverride';
 export * from './modal/ApplicationProviderFields';
