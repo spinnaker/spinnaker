@@ -31,6 +31,8 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalHttpLoadBalancer.InternalHttpLbView;
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalHttpLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleRegionalExternalHttpLoadBalancer.RegionalExternalHttpLbView
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancedBackend
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathMatcher
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GooglePathRule
@@ -277,6 +279,12 @@ class Utils {
   }
 
   static List<GoogleBackendService> getBackendServicesFromInternalHttpLoadBalancerView(InternalHttpLbView googleLoadBalancer) {
+    List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
+    collectBackendServicesFromHostRules(googleLoadBalancer?.hostRules, backendServices)
+    return backendServices
+  }
+
+  static List<GoogleBackendService> getBackendServicesFromRegionalExternalHttpLoadBalancerView(RegionalExternalHttpLbView googleLoadBalancer) {
     List<GoogleBackendService> backendServices = [googleLoadBalancer.defaultService]
     collectBackendServicesFromHostRules(googleLoadBalancer?.hostRules, backendServices)
     return backendServices

@@ -693,6 +693,8 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(1, result.internalHttpLoadBalancers.size());
     assertEquals(1, result.sslLoadBalancers.size());
     assertEquals(1, result.tcpLoadBalancers.size());
+    assertEquals(0, result.regionalExternalTcpLoadBalancers.size());
+    assertEquals(0, result.regionalExternalHttpLoadBalancers.size());
     assertTrue(result.targetPools.isEmpty());
 
     mockedGCEUtil.verify(
@@ -734,6 +736,8 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(1, result.internalHttpLoadBalancers.size());
     assertEquals(1, result.sslLoadBalancers.size());
     assertEquals(1, result.tcpLoadBalancers.size());
+    assertEquals(0, result.regionalExternalTcpLoadBalancers.size());
+    assertEquals(0, result.regionalExternalHttpLoadBalancers.size());
     assertEquals(1, result.targetPools.size());
     assertEquals("target-pool", result.targetPools.get(0));
 
@@ -776,6 +780,8 @@ public class BasicGoogleDeployHandlerTest {
     assertEquals(1, result.internalHttpLoadBalancers.size());
     assertEquals(1, result.sslLoadBalancers.size());
     assertEquals(1, result.tcpLoadBalancers.size());
+    assertEquals(0, result.regionalExternalTcpLoadBalancers.size());
+    assertEquals(0, result.regionalExternalHttpLoadBalancers.size());
     assertEquals(1, result.targetPools.size());
     assertEquals("target-pool", result.targetPools.get(0));
 
@@ -2261,6 +2267,11 @@ public class BasicGoogleDeployHandlerTest {
     GoogleLoadBalancerView mockLB = new GoogleLoadBalancerView() {};
 
     mockLB.setLoadBalancerType(loadBalancerType);
+    // Set region to "global" for TCP and SSL load balancers to match production behavior
+    if (loadBalancerType == GoogleLoadBalancerType.TCP
+        || loadBalancerType == GoogleLoadBalancerType.SSL) {
+      mockLB.setRegion("global");
+    }
     return mockLB;
   }
 

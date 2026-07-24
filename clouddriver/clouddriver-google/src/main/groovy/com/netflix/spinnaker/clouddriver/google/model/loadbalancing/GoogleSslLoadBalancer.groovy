@@ -35,37 +35,16 @@ class GoogleSslLoadBalancer extends GoogleLoadBalancer {
     new View(this)
   }
 
-  class View extends GoogleLoadBalancerView {
-    GoogleLoadBalancerType loadBalancerType
-    GoogleLoadBalancingScheme loadBalancingScheme
-
-    String name
-    String account
-    String region
-    Long createdTime
-    String ipAddress
-    String ipProtocol
-    String portRange
-
+  class View extends GoogleSimpleLoadBalancerView {
     String certificate
     GoogleBackendService backendService
 
-    Set<LoadBalancerServerGroup> serverGroups
-
-    View(GoogleSslLoadBalancer googleSslLoadBalancer){
+    View(GoogleSslLoadBalancer googleSslLoadBalancer) {
       loadBalancerType = googleSslLoadBalancer.type
       loadBalancingScheme = googleSslLoadBalancer.loadBalancingScheme
-      name = googleSslLoadBalancer.name
-      account = googleSslLoadBalancer.account
-      region = googleSslLoadBalancer.region
-      createdTime = googleSslLoadBalancer.createdTime
-      ipAddress = googleSslLoadBalancer.ipAddress
-      ipProtocol = googleSslLoadBalancer.ipProtocol
-      portRange = googleSslLoadBalancer.portRange
+      populateCommonFields(googleSslLoadBalancer)
       certificate = googleSslLoadBalancer.certificate
       backendService = googleSslLoadBalancer.backendService
-      serverGroups = new HashSet<>()
     }
-
   }
 }
