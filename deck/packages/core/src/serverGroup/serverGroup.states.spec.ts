@@ -50,7 +50,7 @@ describe('server group states', () => {
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
-    configureRouter(router, runtime.services);
+    configureRouter(router, runtime.services, runtime.routingState);
     routers.push(router);
 
     await router.stateService.go(

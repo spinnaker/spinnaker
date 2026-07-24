@@ -141,7 +141,7 @@ function serverGroupFromCloneCommand(source, command, name) {
 
 function createInstanceTypeService(core) {
   const InstanceTypeService = core.CloudProviderRegistry.getValue('gce', 'instance.instanceTypeService');
-  const delegate = new InstanceTypeService(core.AngularServices.$q);
+  const delegate = new InstanceTypeService(core.nativePromiseService);
   const findInstanceType = async (instanceType) => {
     const categories = await delegate.getCategories('gce');
     for (const category of categories) {
@@ -180,7 +180,7 @@ function createInstanceTypeService(core) {
 
 function createCommandBuilder(core, instanceTypeService) {
   const CommandBuilder = core.CloudProviderRegistry.getValue('gce', 'serverGroup.commandBuilder');
-  const delegate = new CommandBuilder(core.AngularServices.$q);
+  const delegate = new CommandBuilder(core.nativePromiseService);
 
   const buildServerGroupCommandFromExisting = async (application, serverGroup, mode = 'clone') => {
     const source = copy(serverGroup);

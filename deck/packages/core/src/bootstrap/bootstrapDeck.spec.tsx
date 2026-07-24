@@ -3,9 +3,12 @@ import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
 
-import { bootstrapDeck, createDeckRoot, resetBootstrapDeckForTests } from './bootstrapDeck';
-import { AngularServices } from '../angular/services';
+import type { DeckRuntime } from './DeckRuntime';
+import { createDeckRuntime } from './DeckRuntime';
+import { DeckRuntimeContext } from './DeckRuntimeContext';
+import { SpinnakerContainer } from './SpinnakerContainer';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { ApplicationReader } from '../application/service/ApplicationReader';
 import type { IHttpClientImplementation } from '../api';
@@ -14,19 +17,20 @@ import { AuthenticationService } from '../authentication';
 import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { resetAuthenticationRuntime } from '../authentication/authentication.module';
 import { GlobalBannerService } from '../banner/global/GlobalBannerService';
+import { bootstrapDeck, createDeckRoot, resetBootstrapDeckForTests } from './bootstrapDeck';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { SETTINGS } from '../config/settings';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter } from '../navigation/router';
 import { NotificationService } from '../notification/NotificationService';
-import { PluginRegistry } from '../plugins/plugin.registry';
 import { resetPluginInitializationForTests } from '../plugins/plugin.module';
+import { PluginRegistry } from '../plugins/plugin.registry';
+import type { IModalComponentProps } from '../presentation';
+import { ReactModal } from '../presentation/ReactModal';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
-import type { DeckRuntime } from './DeckRuntime';
-import { createDeckRuntime } from './DeckRuntime';
-import { DeckRuntimeContext } from './DeckRuntimeContext';
-import { SpinnakerContainer } from './SpinnakerContainer';
+import { resetServerGroupDataSourceForTests } from '../serverGroup/serverGroup.dataSource';
 import * as State from '../state';
+import { TaskMonitor, TaskMonitorWrapper } from '../task';
 
 interface IDeferred<T> {
   promise: Promise<T>;
@@ -42,6 +46,55 @@ function deferred<T>(): IDeferred<T> {
   let resolve: (value: T) => void;
   const promise = new Promise<T>((promiseResolve) => (resolve = promiseResolve));
   return { promise, resolve };
+}
+
+function waitForSelector(root: HTMLElement, selector: string, present: boolean): Promise<void> {
+  if (Boolean(root.querySelector(selector)) === present) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let observer: MutationObserver | undefined;
+    let watchdog: ReturnType<typeof window.setTimeout> | undefined;
+    const cleanup = () => {
+      observer?.disconnect();
+      if (watchdog !== undefined) {
+        window.clearTimeout(watchdog);
+        watchdog = undefined;
+      }
+    };
+    const settle = (callback: () => void) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      callback();
+    };
+    const resolveIfMatched = () => {
+      if (Boolean(root.querySelector(selector)) === present) {
+        settle(resolve);
+      }
+    };
+    observer = new MutationObserver(resolveIfMatched);
+    observer.observe(root, { childList: true, subtree: true });
+    watchdog = window.setTimeout(() => {
+      settle(() =>
+        reject(
+          new Error(
+            `Timed out waiting for selector "${selector}" to be ${present ? 'present' : 'absent'}; ` +
+              `currently ${root.querySelector(selector) ? 'present' : 'absent'} in ${root.outerHTML}`,
+          ),
+        ),
+      );
+    }, 500);
+    if (settled) {
+      cleanup();
+      return;
+    }
+    resolveIfMatched();
+  });
 }
 
 describe('bootstrapDeck', () => {
@@ -90,7 +143,7 @@ describe('bootstrapDeck', () => {
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
-    configureRouter(router, runtime.services);
+    configureRouter(router, runtime.services, runtime.routingState);
     configuredRouters.push(router);
     return router;
   }
@@ -259,7 +312,7 @@ describe('bootstrapDeck', () => {
     expect(routerProvider.props.value).toBe(router);
     expect(routerProvider.props.children.type).toBe(SpinnakerContainer);
     expect(routerProvider.props.children.props).toEqual(
-      jasmine.objectContaining({ authenticating: false, routing: false }),
+      jasmine.objectContaining({ authenticating: false, routingState: runtime.routingState }),
     );
     expect(routerPluginSpy).not.toHaveBeenCalled();
     expect(State.ExecutionState.filterModel).toBeNull();
@@ -274,6 +327,30 @@ describe('bootstrapDeck', () => {
     expect(createDeckRoot(router, runtime).props.children.type).toBe(UIRouterContext.Provider);
 
     runtime.dispose();
+  });
+
+  it('shows the transition overlay while a direct router transition is active', async () => {
+    const root = createRoot(true);
+    const pendingTransition = deferred<void>();
+
+    await bootstrapDeck(root);
+    const router = getDirectRouter();
+    router.stateRegistry.register({
+      name: 'transition-overlay-test',
+      url: '/transition-overlay-test',
+      component: () => null,
+      resolve: [{ token: 'pendingTransition', resolveFn: () => pendingTransition.promise }],
+    });
+
+    const transition = router.stateService.go('transition-overlay-test');
+    await waitForSelector(root, '.transition-overlay', true);
+
+    expect(root.querySelector('.transition-overlay')).not.toBeNull();
+
+    pendingTransition.resolve(undefined);
+    await transition;
+    await waitForSelector(root, '.transition-overlay', false);
+    expect(root.querySelector('.transition-overlay')).toBeNull();
   });
 
   it('mounts React before removing the placeholder and starts URL handling exactly once', async () => {
@@ -477,28 +554,6 @@ describe('bootstrapDeck', () => {
     plugins.resolve([]);
     await bootstrap;
     expect(routerPluginSpy).toHaveBeenCalled();
-  });
-
-  it('waits for plugin initialization before binding direct runtime services', async () => {
-    const root = createRoot();
-    const plugins = deferred<any[]>();
-    const pluginsStarted = deferred<void>();
-    deckManifestSpy.and.callFake(() => {
-      pluginsStarted.resolve(undefined);
-      return plugins.promise;
-    });
-    const bindRuntime = spyOn(AngularServices, 'bindRuntime').and.callThrough();
-
-    const bootstrap = bootstrapDeck(root);
-    await pluginsStarted.promise;
-
-    expect(deckManifestSpy).toHaveBeenCalledTimes(1);
-    expect(bindRuntime).not.toHaveBeenCalled();
-    expect(routerPluginSpy).not.toHaveBeenCalled();
-    plugins.resolve([]);
-    await bootstrap;
-    expect(bindRuntime).toHaveBeenCalledTimes(1);
-    expect(bindRuntime).toHaveBeenCalledBefore(routerPluginSpy);
   });
 
   it('continues startup after initializePlugins settles plugin attempt failures', async () => {
@@ -766,7 +821,55 @@ describe('bootstrapDeck', () => {
     expect(dispose).toHaveBeenCalledTimes(1);
   });
 
-  it('clears scheduled and router-bound work on rebootstrap', async () => {
+  it('dismisses all active modals when the bootstrap runtime is disposed', async () => {
+    const root = createRoot();
+    const rejectionReasons: string[] = [];
+    const OpenModal = (_props: IModalComponentProps) => null;
+    ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason));
+    ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason));
+    const dismissAll = spyOn(ReactModal, 'dismissAll').and.callThrough();
+
+    await bootstrapDeck(root);
+
+    resetBootstrapDeckForTests();
+    await Promise.resolve();
+
+    expect(dismissAll).toHaveBeenCalledOnceWith('runtime-disposed');
+    expect(rejectionReasons).toEqual(['runtime-disposed', 'runtime-disposed']);
+  });
+
+  it('dismisses modals before unmounting or disposing the router and runtime', async () => {
+    const root = createRoot();
+
+    await bootstrapDeck(root);
+    const runtime = renderSpy.calls.mostRecent().args[0].props.value as DeckRuntime;
+    const router = getDirectRouter();
+    const monitor = new TaskMonitor({ title: 'Active modal task' });
+    monitor.submitting = true;
+    monitor.task = {} as any;
+    const monitorCleanup = spyOn(monitor, 'onModalClose').and.callThrough();
+    const ActiveTaskModal = () => <TaskMonitorWrapper monitor={monitor} />;
+    act(() => {
+      ReactModal.show(ActiveTaskModal, {} as any).catch(() => undefined);
+    });
+    const modalRoot = renderSpy.calls.mostRecent().args[1] as HTMLElement;
+    document.body.appendChild(modalRoot);
+    const dismissAll = spyOn(ReactModal, 'dismissAll').and.callThrough();
+    const disposeRouter = spyOn(router, 'dispose').and.callThrough();
+    const disposeRuntime = spyOn(runtime, 'dispose').and.callThrough();
+
+    resetBootstrapDeckForTests();
+
+    expect(dismissAll).toHaveBeenCalledOnceWith('runtime-disposed');
+    expect(dismissAll).toHaveBeenCalledBefore(unmountSpy);
+    expect(modalRoot.isConnected).toBe(false);
+    expect(monitorCleanup).toHaveBeenCalledBefore(disposeRouter);
+    expect(monitorCleanup).toHaveBeenCalledBefore(disposeRuntime);
+    expect(dismissAll).toHaveBeenCalledBefore(disposeRouter);
+    expect(dismissAll).toHaveBeenCalledBefore(disposeRuntime);
+  });
+
+  it('clears runtime-scheduled and router-bound work on rebootstrap', async () => {
     jasmine.clock().install();
     try {
       const firstRoot = createRoot();
@@ -780,9 +883,7 @@ describe('bootstrapDeck', () => {
       await bootstrapDeck(firstRoot);
       const firstRouter = getDirectRouter();
       const scheduled = jasmine.createSpy('scheduled');
-      AngularServices.$timeout(scheduled, 100);
-
-      expect(AngularServices.$timeout as any).toBe(firstRuntime.timeoutService as any);
+      firstRuntime.timeoutService(scheduled, 100);
 
       resetBootstrapDeckForTests();
       jasmine.clock().tick(100);

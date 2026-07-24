@@ -1,16 +1,24 @@
 import type { UIRouterReact } from '@uirouter/react';
 
-import { AngularServices } from '../angular/services';
+import type { RoutingState } from './RoutingState';
+import type { RuntimePageTitleService } from '../bootstrap/DeckRuntimeServices';
 import { recordRecentHistory } from '../history/recentHistory.service';
-import { PageTitleService } from '../pageTitle/pageTitle.service';
 
-export function registerRouteLifecycles(router: UIRouterReact): () => void {
-  const pageTitleService = new PageTitleService(
-    AngularServices.$rootScope,
-    router.globals.params,
-    router.transitionService,
-  );
-  const deregisterRecentHistory = router.transitionService.onSuccess({}, (transition) => {
+export function registerRouteLifecycles(
+  router: UIRouterReact,
+  pageTitleService: RuntimePageTitleService,
+  routingState: RoutingState,
+): () => void {
+  const deregisterRoutingState = router.transitionService.onStart({}, (transition) => {
+    const finish = routingState.begin();
+    pageTitleService.handleRoutingStart(transition);
+    transition.promise.then(finish, (error) => {
+      finish();
+      pageTitleService.handleRoutingError(error, transition);
+    });
+  }) as () => void;
+  const deregisterRoutingSuccess = router.transitionService.onSuccess({}, (transition) => {
+    pageTitleService.handleRoutingSuccess(transition.to(), transition);
     recordRecentHistory(transition.to() as any, transition.params('to'));
   }) as () => void;
   let active = true;
@@ -20,7 +28,7 @@ export function registerRouteLifecycles(router: UIRouterReact): () => void {
       return;
     }
     active = false;
-    pageTitleService.dispose();
-    deregisterRecentHistory();
+    deregisterRoutingState();
+    deregisterRoutingSuccess();
   };
 }
