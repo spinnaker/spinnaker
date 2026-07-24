@@ -15,10 +15,8 @@ import '@spinnaker/ecs';
 import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
 
-import { bootstrapDeck, registerPreconfiguredJobStages, registerPreconfiguredWebhookStages } from '@spinnaker/core';
+import { bootstrapDeck } from '@spinnaker/core';
 
-void registerPreconfiguredJobStages();
-void registerPreconfiguredWebhookStages();
 void bootstrapDeck(document.getElementById('spinnaker-root')).catch((error) => {
   console.error('Deck bootstrap failed', error);
 });

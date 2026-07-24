@@ -12,9 +12,9 @@ import type {
 import {
   AccountTag,
   AddEntityTagLinks,
-  AngularServices,
   CloudProviderLogo,
   CollapsibleSection,
+  DeckRuntimeContext,
   EntityNotifications,
   FirewallLabels,
   ManifestReader,
@@ -61,6 +61,9 @@ export class KubernetesSecurityGroupDetailsComponent extends React.Component<
   IKubernetesSecurityGroupDetailsProps & IRouterInjectedProps,
   IKubernetesSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IKubernetesSecurityGroupDetailsState = {
     loading: true,
   };
@@ -107,7 +110,7 @@ export class KubernetesSecurityGroupDetailsComponent extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private getCoordinatesKey(props: IKubernetesSecurityGroupDetailsProps): string {

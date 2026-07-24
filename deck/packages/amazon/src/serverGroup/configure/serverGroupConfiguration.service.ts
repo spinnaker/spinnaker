@@ -18,6 +18,7 @@ import {
 import type {
   Application,
   CacheInitializerService,
+  DeckRuntimeServices,
   IAccountDetails,
   IDeploymentStrategy,
   IRegion,
@@ -32,14 +33,7 @@ import type {
   SecurityGroupReader,
   ServerGroupCommandRegistry,
 } from '@spinnaker/core';
-import {
-  AccountService,
-  AngularServices,
-  NameUtils,
-  REST,
-  setMatchingResourceSummary,
-  SubnetReader,
-} from '@spinnaker/core';
+import { AccountService, NameUtils, REST, setMatchingResourceSummary, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
 import { AutoScalingProcessService } from '../details/scalingProcesses/AutoScalingProcessService';
@@ -173,36 +167,29 @@ export class AwsServerGroupConfigurationService {
     'ClosestToNextInstanceHour',
     'Default',
   ];
-  private securityGroupReader?: SecurityGroupReader;
+  private securityGroupReader: SecurityGroupReader;
   private awsInstanceTypeService: AwsInstanceTypeService;
-  private cacheInitializer?: CacheInitializerService;
+  private cacheInitializer: CacheInitializerService;
 
   constructor(
-    securityGroupReader?: SecurityGroupReader,
-    awsInstanceTypeService: AwsInstanceTypeService = new AwsInstanceTypeService(),
-    cacheInitializer?: CacheInitializerService,
+    securityGroupReader: SecurityGroupReader,
+    awsInstanceTypeService: AwsInstanceTypeService,
+    cacheInitializer: CacheInitializerService,
     private serverGroupCommandRegistry: Pick<ServerGroupCommandRegistry, 'getCommandOverrides'> = {
       getCommandOverrides: () => [],
     },
   ) {
-    if (typeof securityGroupReader?.getAllSecurityGroups === 'function') {
-      this.securityGroupReader = securityGroupReader;
-    } else if (securityGroupReader) {
-      this.securityGroupReader = AngularServices.securityGroupReader;
-    }
-    this.awsInstanceTypeService =
-      typeof awsInstanceTypeService?.getAllTypesByRegion === 'function'
-        ? awsInstanceTypeService
-        : new AwsInstanceTypeService();
+    this.securityGroupReader = securityGroupReader;
+    this.awsInstanceTypeService = awsInstanceTypeService;
     this.cacheInitializer = cacheInitializer;
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return (this.securityGroupReader = this.securityGroupReader || AngularServices.securityGroupReader);
+    return this.securityGroupReader;
   }
 
   private getCacheInitializer(): CacheInitializerService {
-    return (this.cacheInitializer = this.cacheInitializer || AngularServices.cacheInitializer);
+    return this.cacheInitializer;
   }
 
   public configureUpdateCommand(command: IAmazonServerGroupCommand): void {
@@ -751,5 +738,13 @@ export class AwsServerGroupConfigurationService {
     };
 
     this.applyOverrides('attachEventHandlers', cmd);
+  }
+}
+
+export class AwsServerGroupConfigurationServiceDelegate extends AwsServerGroupConfigurationService {
+  public static readonly requiresDeckRuntimeServices = true;
+
+  constructor(_promiseService: unknown, runtimeServices: DeckRuntimeServices) {
+    super(runtimeServices.securityGroupReader, new AwsInstanceTypeService(), runtimeServices.cacheInitializer);
   }
 }

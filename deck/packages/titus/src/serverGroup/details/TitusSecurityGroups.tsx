@@ -3,7 +3,7 @@ import { sortBy } from 'lodash';
 import React from 'react';
 
 import type { Application, ISecurityGroup } from '@spinnaker/core';
-import { AccountService, AngularServices, CollapsibleSection, FirewallLabels } from '@spinnaker/core';
+import { AccountService, CollapsibleSection, DeckRuntimeContext, FirewallLabels } from '@spinnaker/core';
 
 import type { ITitusServerGroupView } from '../../domain';
 import { TitusSecurityGroupReader } from '../../securityGroup/securityGroup.read.service';
@@ -21,6 +21,9 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
   ITitusServerGroupDetailsSectionProps,
   ISecurityGroupsDetailsSectionState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ITitusServerGroupDetailsSectionProps) {
     super(props);
     this.state = {};
@@ -46,7 +49,7 @@ export class TitusSecurityGroupsDetailsSection extends React.Component<
       AccountService.listAllAccounts('titus').then((accounts) => {
         const titusAccount = accounts.find((a) => a.name === serverGroup.account);
         if (titusAccount && titusAccount.awsAccount) {
-          AngularServices.securityGroupReader.getAllSecurityGroups().then((allSecurityGroups) => {
+          this.context.services.securityGroupReader.getAllSecurityGroups().then((allSecurityGroups) => {
             const regionalGroups = allSecurityGroups[titusAccount.awsAccount]['aws'][region];
             const securityGroups = serverGroup.securityGroups
               .map((sgId) => regionalGroups.find((rg) => rg.id === sgId))

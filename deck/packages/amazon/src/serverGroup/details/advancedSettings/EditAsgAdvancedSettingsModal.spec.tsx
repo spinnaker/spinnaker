@@ -1,20 +1,47 @@
-import { shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import { FormikFormField, ReactModal, TaskMonitorModal } from '@spinnaker/core';
+import { DeckRuntimeContext, FormikFormField, ReactModal, TaskMonitorModal } from '@spinnaker/core';
 
 import { EditAsgAdvancedSettingsModal } from './EditAsgAdvancedSettingsModal';
-import { AwsServices } from '../../../aws.services';
 
 describe('EditAsgAdvancedSettingsModal', () => {
   const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
   const serverGroup = { name: 'deck-main-v001', account: 'test', region: 'us-east-1' } as any;
+  let buildUpdateServerGroupCommand: jasmine.Spy;
   const modalProps = {
     application,
     serverGroup,
     closeModal: jasmine.createSpy('closeModal'),
     dismissModal: jasmine.createSpy('dismissModal'),
   };
+
+  function mountModal(command: any) {
+    buildUpdateServerGroupCommand = jasmine.createSpy().and.returnValue(command);
+    const commandBuilder = { buildUpdateServerGroupCommand };
+    const runtime = {
+      services: { providerServiceDelegate: { getDelegate: jasmine.createSpy().and.returnValue(commandBuilder) } },
+    } as any;
+    return mount(
+      <DeckRuntimeContext.Provider value={runtime}>
+        <EditAsgAdvancedSettingsModal {...modalProps} />
+      </DeckRuntimeContext.Provider>,
+    ).find(EditAsgAdvancedSettingsModal);
+  }
+
+  it('builds one update command and preserves it across rerenders', () => {
+    const command = {
+      backingData: { enabledMetrics: [], healthCheckTypes: [], terminationPolicies: [] },
+    } as any;
+    const wrapper = mountModal(command);
+    const initialValues = wrapper.find(TaskMonitorModal).prop('initialValues');
+
+    wrapper.instance().forceUpdate();
+    wrapper.update();
+
+    expect(buildUpdateServerGroupCommand).toHaveBeenCalledTimes(1);
+    expect(wrapper.find(TaskMonitorModal).prop('initialValues')).toBe(initialValues);
+  });
 
   it('uses the update command builder and exposes every advanced setting', () => {
     const command = {
@@ -30,9 +57,7 @@ describe('EditAsgAdvancedSettingsModal', () => {
         terminationPolicies: ['Default'],
       },
     } as any;
-    spyOn(AwsServices.awsServerGroupCommandBuilder, 'buildUpdateServerGroupCommand').and.returnValue(command);
-
-    const wrapper = shallow(<EditAsgAdvancedSettingsModal {...modalProps} />);
+    const wrapper = mountModal(command);
     const taskModal = wrapper.find(TaskMonitorModal);
 
     expect(taskModal.prop('initialValues')).toBe(command);
@@ -55,9 +80,7 @@ describe('EditAsgAdvancedSettingsModal', () => {
       healthCheckGracePeriod: 600,
       backingData: { enabledMetrics: [], healthCheckTypes: [], terminationPolicies: [] },
     } as any;
-    spyOn(AwsServices.awsServerGroupCommandBuilder, 'buildUpdateServerGroupCommand').and.returnValue(command);
-
-    const wrapper = shallow(<EditAsgAdvancedSettingsModal {...modalProps} />);
+    const wrapper = mountModal(command);
     const taskModal = wrapper.find(TaskMonitorModal);
     const fields = shallow(<div>{taskModal.prop('render')({ values: command } as any)}</div>).find(FormikFormField);
 
@@ -73,13 +96,15 @@ describe('EditAsgAdvancedSettingsModal', () => {
 
   it('opens only after managed-resource verification succeeds', async () => {
     const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
+    const runtimeServices = {} as any;
 
-    await EditAsgAdvancedSettingsModal.show({ application, serverGroup });
+    await EditAsgAdvancedSettingsModal.show({ application, serverGroup }, runtimeServices);
 
     expect(show).toHaveBeenCalledWith(
       EditAsgAdvancedSettingsModal,
       { application, serverGroup },
       { dialogClassName: 'modal-lg' },
+      runtimeServices,
     );
   });
 });

@@ -4,8 +4,9 @@ import { Modal } from 'react-bootstrap';
 import type { Option } from 'react-select';
 
 import { AccountTag } from '../../../account';
-import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
 import type { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
 import type { IServerGroup } from '../../../domain';
 import { ModalClose } from '../../../modal';
@@ -27,10 +28,13 @@ export interface IDeployInitializerState {
   templates: IDeployTemplate[];
 }
 
-export class DeployInitializer extends React.Component<IDeployInitializerProps, IDeployInitializerState> {
+export class DeployInitializerComponent extends React.Component<
+  IDeployInitializerProps & IDeckRuntimeServicesInjectedProps,
+  IDeployInitializerState
+> {
   private noTemplate: IDeployTemplate = { label: 'None', serverGroup: null, cluster: null };
 
-  constructor(props: IDeployInitializerProps) {
+  constructor(props: IDeployInitializerProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
 
     const templates: IDeployTemplate[] = [];
@@ -95,7 +99,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
   private buildCommandFromTemplate(serverGroup: IServerGroup): PromiseLike<any> {
     const { application, cloudProvider } = this.props;
 
-    const commandBuilder: any = AngularServices.providerServiceDelegate.getDelegate(
+    const commandBuilder: any = this.props.deckRuntimeServices.providerServiceDelegate.getDelegate(
       cloudProvider,
       'serverGroup.commandBuilder',
     );
@@ -112,7 +116,7 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
 
   private buildEmptyCommand = (): PromiseLike<any> => {
     const { application, cloudProvider } = this.props;
-    const commandBuilder: any = AngularServices.providerServiceDelegate.getDelegate(
+    const commandBuilder: any = this.props.deckRuntimeServices.providerServiceDelegate.getDelegate(
       cloudProvider,
       'serverGroup.commandBuilder',
     );
@@ -252,3 +256,5 @@ export class DeployInitializer extends React.Component<IDeployInitializerProps, 
     );
   };
 }
+
+export const DeployInitializer = withDeckRuntimeServices(DeployInitializerComponent);

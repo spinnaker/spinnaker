@@ -1,8 +1,9 @@
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
 import Select from 'react-select';
+import { of } from 'rxjs';
 
-import { AngularServices, TaskMonitor } from '@spinnaker/core';
+import { AccountService, DeckRuntimeContext, TaskMonitor } from '@spinnaker/core';
 
 import { AwsModalFooter } from '../../../common/AwsModalFooter';
 
@@ -13,6 +14,24 @@ import {
 } from './EditSecurityGroupsModal';
 
 describe('EditSecurityGroupsModal', () => {
+  let originalAccounts: typeof AccountService.accounts$;
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const shallowModal = (props: any) =>
+    enzymeMount(<EditSecurityGroupsModal {...props} />, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    originalAccounts = AccountService.accounts$;
+    AccountService.accounts$ = of([]);
+    runtimeServices = {};
+  });
+
+  afterEach(() => {
+    AccountService.accounts$ = originalAccounts;
+  });
+
   const serverGroup = {
     name: 'deck-main-v001',
     account: 'test',
@@ -73,10 +92,10 @@ describe('EditSecurityGroupsModal', () => {
     const getAllSecurityGroups = jasmine
       .createSpy('getAllSecurityGroups')
       .and.returnValues(Promise.reject(new Error('inventory unavailable')), Promise.resolve(allGroups));
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
     spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
 
-    const wrapper = shallow(<EditSecurityGroupsModal {...modalProps} securityGroups={selected} />);
+    const wrapper = shallowModal({ ...modalProps, securityGroups: selected });
     await flush();
     wrapper.update();
 
@@ -107,9 +126,9 @@ describe('EditSecurityGroupsModal', () => {
         finishLoading = resolve;
       }),
     );
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
     spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
-    const wrapper = shallow(<EditSecurityGroupsModal {...modalProps} />);
+    const wrapper = shallowModal(modalProps);
     const modal = wrapper.instance() as EditSecurityGroupsModal;
     const setState = spyOn(modal, 'setState').and.callThrough();
 
@@ -122,9 +141,7 @@ describe('EditSecurityGroupsModal', () => {
 
   it('submits selected groups through the writer with mixed-instance launch-template state', () => {
     spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
-    const update = spyOn(AngularServices.serverGroupWriter, 'updateSecurityGroups').and.returnValue(
-      Promise.resolve({} as any),
-    );
+    const update = jasmine.createSpy('updateSecurityGroups').and.returnValue(Promise.resolve({} as any));
     const selected = [{ id: 'sg-attached', name: 'attached' }] as any;
     const modal = new EditSecurityGroupsModal({
       application,
@@ -133,6 +150,7 @@ describe('EditSecurityGroupsModal', () => {
       closeModal: jasmine.createSpy('closeModal'),
       dismissModal: jasmine.createSpy('dismissModal'),
     } as any) as any;
+    modal.context = { services: { serverGroupWriter: { updateSecurityGroups: update } } };
     modal.state.taskMonitor = { submit: (method: () => any) => method() };
 
     modal.submit();

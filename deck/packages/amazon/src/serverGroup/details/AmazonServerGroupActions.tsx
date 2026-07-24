@@ -5,9 +5,9 @@ import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ManagedMenuItem,
   Overridable,
   ServerGroupWarningMessageService,
@@ -15,7 +15,6 @@ import {
   withRouter,
 } from '@spinnaker/core';
 
-import { AwsServices } from '../../aws.services';
 import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../configure';
 import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
@@ -34,8 +33,11 @@ export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps
 
 @Overridable('AmazonServerGroupActions.resize')
 export class AmazonServerGroupActionsResize extends React.Component<IAmazonResizeServerGroupModalProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private resizeServerGroup = (): void => {
-    AmazonResizeServerGroupModal.show(this.props);
+    AmazonResizeServerGroupModal.show(this.props, this.context.services);
   };
 
   public render(): JSX.Element {
@@ -46,6 +48,9 @@ export class AmazonServerGroupActionsResize extends React.Component<IAmazonResiz
 export class AmazonServerGroupActionsComponent extends React.Component<
   IAmazonServerGroupActionsProps & IRouterInjectedProps
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
       const resizeTasks = (this.props.serverGroup.runningTasks || []).filter((task) =>
@@ -82,7 +87,7 @@ export class AmazonServerGroupActionsComponent extends React.Component<
     };
 
     const submitMethod = (params: IServerGroupJob) =>
-      AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      this.context.services.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
     const stateParams = {
       name: serverGroup.name,
@@ -120,7 +125,7 @@ export class AmazonServerGroupActionsComponent extends React.Component<
     };
 
     const submitMethod = (params: IServerGroupJob) => {
-      return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+      return this.context.services.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
     };
 
     const confirmationModalParams = {
@@ -177,7 +182,7 @@ export class AmazonServerGroupActionsComponent extends React.Component<
     };
 
     const submitMethod = (params: IServerGroupJob) => {
-      return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      return this.context.services.serverGroupWriter.enableServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
@@ -208,17 +213,17 @@ export class AmazonServerGroupActionsComponent extends React.Component<
     );
 
     if (selection) {
-      AmazonRollbackServerGroupModal.show({ application: app, ...selection });
+      AmazonRollbackServerGroupModal.show({ application: app, ...selection }, this.context.services);
     }
   };
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
-    AwsServices.awsServerGroupCommandBuilder
+    this.context.services.serverGroupCommandBuilder
       .buildServerGroupCommandFromExisting(app, serverGroup)
       .then((command: IAmazonServerGroupCommand) => {
         const title = `Clone ${serverGroup.name}`;
-        AmazonCloneServerGroupModal.show({ title, application: app, command });
+        AmazonCloneServerGroupModal.show({ title, application: app, command }, this.context.services);
       });
   };
 

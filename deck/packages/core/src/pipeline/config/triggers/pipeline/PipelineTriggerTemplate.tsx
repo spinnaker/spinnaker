@@ -1,8 +1,9 @@
 import { get, has } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 
-import { AngularServices } from '../../../../angular/services';
 import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipeline, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
 import { ExecutionBuildTitle } from '../../../executionBuild/ExecutionBuildTitle';
@@ -20,8 +21,8 @@ export interface IPipelineTriggerTemplateState {
   selectedExecution: string;
 }
 
-export class PipelineTriggerTemplate extends React.Component<
-  ITriggerTemplateComponentProps,
+export class PipelineTriggerTemplateComponent extends React.Component<
+  ITriggerTemplateComponentProps & IDeckRuntimeServicesInjectedProps,
   IPipelineTriggerTemplateState
 > {
   public static formatLabel(trigger: IPipelineTrigger): PromiseLike<string> {
@@ -42,7 +43,7 @@ export class PipelineTriggerTemplate extends React.Component<
     return PipelineConfigService.getPipelinesForApplication(application).then(loadSuccess, loadFailure);
   }
 
-  public constructor(props: ITriggerTemplateComponentProps) {
+  public constructor(props: ITriggerTemplateComponentProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {
       executions: [],
@@ -76,7 +77,7 @@ export class PipelineTriggerTemplate extends React.Component<
       return;
     }
 
-    AngularServices.executionService
+    this.props.deckRuntimeServices.executionService
       .getExecutionsForConfigIds([trigger.pipeline], { limit: SETTINGS.maxPipelineTriggerExecutionOptions })
       .then(this.executionLoadSuccess, this.executionLoadFailure);
   };
@@ -212,3 +213,7 @@ export class PipelineTriggerTemplate extends React.Component<
     );
   }
 }
+
+export const PipelineTriggerTemplate = Object.assign(withDeckRuntimeServices(PipelineTriggerTemplateComponent), {
+  formatLabel: PipelineTriggerTemplateComponent.formatLabel,
+});

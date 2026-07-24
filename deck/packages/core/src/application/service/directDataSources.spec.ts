@@ -1,26 +1,71 @@
 import type { IRootScopeService } from 'angular';
 import { mock } from 'angular';
+import { UIRouterReact } from '@uirouter/react';
 
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import { ApplicationDataSource } from './applicationDataSource';
-import { AngularServices } from '../../angular/services';
 import { mockHttpClient } from '../../api/mock/jasmine';
 import { registerApplicationConfigDataSource } from '../config/appConfig.dataSource';
 import { navigationCategoryRegistry } from '../nav/navigationCategory.registry';
 import { SETTINGS } from '../../config/settings';
 import { registerCiDataSources } from '../../ci/ci.dataSource';
 import { registerEntityTagsDataSource } from '../../entityTag/entityTags.dataSource';
-import { registerFunctionDataSource } from '../../function/function.dataSource';
+import {
+  createDirectFunctionReader,
+  registerFunctionDataSource as registerFunctionDataSourceImpl,
+} from '../../function/function.dataSource';
 import { registerManagedResourcesDataSources } from '../../managed/managed.dataSource';
-import * as loadBalancerDataSource from '../../loadBalancer/loadBalancer.dataSource';
-import * as securityGroupDataSource from '../../securityGroup/securityGroup.dataSource';
-import * as serverGroupDataSource from '../../serverGroup/serverGroup.dataSource';
+import * as loadBalancerDataSourceImpl from '../../loadBalancer/loadBalancer.dataSource';
+import * as securityGroupDataSourceImpl from '../../securityGroup/securityGroup.dataSource';
+import * as serverGroupDataSourceImpl from '../../serverGroup/serverGroup.dataSource';
 import { registerServerGroupManagerDataSource } from '../../serverGroupManager/serverGroupManager.dataSource';
-import { registerTaskDataSources } from '../../task/task.dataSource';
-import { registerPipelineDataSources } from '../../pipeline/pipeline.dataSource';
+import { registerTaskDataSources as registerTaskDataSourcesImpl } from '../../task/task.dataSource';
+import { registerPipelineDataSources as registerPipelineDataSourcesImpl } from '../../pipeline/pipeline.dataSource';
 import { ExecutionService } from '../../pipeline/service/execution.service';
 import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
 import { Application } from '../application.model';
+import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
+
+const testRuntime = createDeckRuntime(new UIRouterReact());
+const loadBalancerDataSource = {
+  ...loadBalancerDataSourceImpl,
+  registerLoadBalancerDataSource: ($q = testRuntime.promiseService, reader = testRuntime.services.loadBalancerReader) =>
+    loadBalancerDataSourceImpl.registerLoadBalancerDataSource($q, reader),
+};
+const securityGroupDataSource = {
+  ...securityGroupDataSourceImpl,
+  registerSecurityGroupDataSource: (
+    $q = testRuntime.promiseService,
+    reader = testRuntime.services.securityGroupReader,
+  ) => securityGroupDataSourceImpl.registerSecurityGroupDataSource($q, reader),
+};
+const serverGroupDataSource = {
+  ...serverGroupDataSourceImpl,
+  registerServerGroupDataSource: ($q = testRuntime.promiseService, service = testRuntime.services.clusterService) =>
+    serverGroupDataSourceImpl.registerServerGroupDataSource($q, service),
+};
+
+function registerFunctionDataSource(): void {
+  registerFunctionDataSourceImpl(
+    createDirectFunctionReader(testRuntime.services.providerServiceDelegate),
+    <T>(value: T | PromiseLike<T>) => testRuntime.promiseService.when(value),
+  );
+}
+
+function registerTaskDataSources(
+  $q = testRuntime.promiseService,
+  clusterService = testRuntime.services.clusterService,
+) {
+  return registerTaskDataSourcesImpl($q, clusterService);
+}
+
+function registerPipelineDataSources(
+  $q = testRuntime.promiseService,
+  executionService = testRuntime.services.executionService,
+  clusterService = testRuntime.services.clusterService,
+) {
+  return registerPipelineDataSourcesImpl($q, executionService, clusterService);
+}
 
 function getDataSourcesByKey(key: string): any[] {
   return ApplicationDataSourceRegistry.getDataSources().filter((dataSource) => dataSource.key === key);
@@ -138,10 +183,8 @@ describe('direct application data source registration', () => {
       }
       return transformer;
     });
-    spyOnProperty(AngularServices, 'providerServiceDelegate', 'get').and.returnValue({
-      hasDelegate: () => true,
-      getDelegate,
-    } as any);
+    spyOn(testRuntime.services.providerServiceDelegate, 'hasDelegate').and.returnValue(true);
+    spyOn(testRuntime.services.providerServiceDelegate, 'getDelegate').and.callFake(getDelegate);
     SETTINGS.feature = { ...SETTINGS.feature, functions: true };
     http.expectGET('/applications/app/functions').respond(200, [{ name: 'function-with-default-provider' }]);
 
@@ -180,10 +223,8 @@ describe('direct application data source registration', () => {
       }
       return transformer;
     });
-    spyOnProperty(AngularServices, 'providerServiceDelegate', 'get').and.returnValue({
-      hasDelegate: () => true,
-      getDelegate,
-    } as any);
+    spyOn(testRuntime.services.providerServiceDelegate, 'hasDelegate').and.returnValue(true);
+    spyOn(testRuntime.services.providerServiceDelegate, 'getDelegate').and.callFake(getDelegate);
     SETTINGS.feature = { ...SETTINGS.feature, functions: true };
     http.expectGET('/applications/app/functions').respond(200, [
       { name: 'function-one', provider: 'aws' },
@@ -465,21 +506,14 @@ describe('load balancer Angular-compatible registration', () => {
     };
     const whenResult = {} as PromiseLike<any>;
     const directQ = { when: jasmine.createSpy('directWhen').and.returnValue(whenResult) } as any;
-    const readerAccessor = spyOnProperty(AngularServices, 'loadBalancerReader', 'get').and.returnValue(
-      directReader as any,
-    );
-    const qAccessor = spyOnProperty(AngularServices, '$q', 'get').and.returnValue(directQ);
-
-    loadBalancerDataSource.registerLoadBalancerDataSource();
-    loadBalancerDataSource.registerLoadBalancerDataSource();
+    loadBalancerDataSource.registerLoadBalancerDataSource(directQ, directReader as any);
+    loadBalancerDataSource.registerLoadBalancerDataSource(directQ, directReader as any);
 
     const dataSources = getDataSourcesByKey('loadBalancers');
     expect(dataSources.length).toBe(1);
     expect(dataSources[0].loader({ name: 'app' } as Application)).toBe(directLoadResult);
     expect(dataSources[0].onLoad({ name: 'app' } as Application, [])).toBe(whenResult);
     expect(directReader.loadLoadBalancers).toHaveBeenCalledWith('app');
-    expect(readerAccessor).toHaveBeenCalledTimes(1);
-    expect(qAccessor).toHaveBeenCalledTimes(1);
   });
 
   describe('when direct registration precedes Angular activation', () => {
@@ -496,9 +530,7 @@ describe('load balancer Angular-compatible registration', () => {
       directQ = { when: jasmine.createSpy('directWhen').and.returnValue({ source: 'direct' }) };
       angularQ = { when: jasmine.createSpy('angularWhen').and.returnValue({ source: 'angular' }) };
       selectedQ = directQ;
-      spyOnProperty(AngularServices, 'loadBalancerReader', 'get').and.returnValue(directReader);
-      spyOnProperty(AngularServices, '$q', 'get').and.callFake(() => selectedQ);
-      loadBalancerDataSource.registerLoadBalancerDataSource();
+      loadBalancerDataSource.registerLoadBalancerDataSource(selectedQ, directReader);
       directDataSource = getDataSourcesByKey('loadBalancers')[0];
     });
 
@@ -563,7 +595,7 @@ describe('load balancer Angular-compatible registration', () => {
       const whenResult = {} as PromiseLike<any>;
       const when = spyOn($q, 'when').and.returnValue(whenResult as any);
 
-      loadBalancerDataSource.registerLoadBalancerDataSource();
+      loadBalancerDataSource.registerLoadBalancerDataSource($q, angularReader);
       expect(angularDataSource.loader({ name: 'app' } as Application)).toBe(loadResult);
       expect(angularDataSource.onLoad({ name: 'app' } as Application, [])).toBe(whenResult);
 
@@ -590,14 +622,13 @@ describe('security group Angular-compatible registration', () => {
 
   it('registers one data source across repeated direct calls using direct defaults', () => {
     const directQ = {} as ng.IQService;
-    const providerServiceDelegate = {} as any;
-    const qAccessor = spyOnProperty(AngularServices, '$q', 'get').and.returnValue(directQ);
-    const delegateAccessor = spyOnProperty(AngularServices, 'providerServiceDelegate', 'get').and.returnValue(
-      providerServiceDelegate,
-    );
+    const directReader = {
+      loadSecurityGroupsByApplicationName: jasmine.createSpy('directLoadSecurityGroups'),
+      getApplicationSecurityGroups: jasmine.createSpy('directGetApplicationSecurityGroups'),
+    } as any;
 
-    securityGroupDataSource.registerSecurityGroupDataSource();
-    securityGroupDataSource.registerSecurityGroupDataSource();
+    securityGroupDataSource.registerSecurityGroupDataSource(directQ, directReader);
+    securityGroupDataSource.registerSecurityGroupDataSource(directQ, directReader);
 
     expect(getDataSourcesByKey('securityGroups')).toEqual([
       jasmine.objectContaining({
@@ -609,15 +640,16 @@ describe('security group Angular-compatible registration', () => {
         regionField: 'region',
       }),
     ]);
-    expect(qAccessor).toHaveBeenCalledTimes(1);
-    expect(delegateAccessor).toHaveBeenCalledTimes(2);
   });
 
   describe('when direct registration precedes Angular activation', () => {
     let directDataSource: any;
 
     beforeEach(() => {
-      securityGroupDataSource.registerSecurityGroupDataSource();
+      securityGroupDataSource.registerSecurityGroupDataSource(
+        testRuntime.promiseService,
+        testRuntime.services.securityGroupReader,
+      );
       directDataSource = getDataSourcesByKey('securityGroups')[0];
     });
     beforeEach(
@@ -665,7 +697,7 @@ describe('security group Angular-compatible registration', () => {
 
       expect(angularDataSource.loader(application)).toBe(loadResult);
       expect(angularDataSource.onLoad(application, securityGroups)).toBe(onLoadResult);
-      securityGroupDataSource.registerSecurityGroupDataSource();
+      securityGroupDataSource.registerSecurityGroupDataSource(testRuntime.promiseService, angularReader);
 
       expect(getDataSourcesByKey('securityGroups')).toEqual([angularDataSource]);
       expect(angularReader.loadSecurityGroupsByApplicationName).toHaveBeenCalledWith('app');
