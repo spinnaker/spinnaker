@@ -21,7 +21,7 @@ describe('pipeline states', () => {
       spyOn(runtime.services.executionService, 'getExecution').and.callFake(getExecution);
     }
     router.disposable({ dispose: runtime.dispose });
-    configureRouter(router, runtime.services);
+    configureRouter(router, runtime.services, runtime.routingState);
     routers.push(router);
     return router;
   }

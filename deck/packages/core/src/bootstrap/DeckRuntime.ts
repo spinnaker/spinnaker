@@ -3,6 +3,7 @@ import type { ILogService, IQService } from 'angular';
 
 import { DeckRuntimeServices } from './DeckRuntimeServices';
 import { DirectProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import { RoutingState } from '../navigation/RoutingState';
 import type { CancellableTimeout } from '../utils/cancellableTimeout';
 import { createCancellableTimeout } from '../utils/cancellableTimeout';
 import { createDiagnosticLogger } from '../utils/diagnosticLogger';
@@ -16,6 +17,7 @@ export interface DeckRuntime {
   logger: ILogService;
   interpolate: typeof interpolate;
   services: DeckRuntimeServices;
+  routingState: RoutingState;
   dispose: () => void;
 }
 
@@ -25,6 +27,7 @@ export function createDeckRuntime(router: UIRouterReact | null = null): DeckRunt
   const logger = createDiagnosticLogger();
   const providerServiceDelegate = new DirectProviderServiceDelegate(promiseService);
   const services = new DeckRuntimeServices(router, promiseService, timeoutService, logger, providerServiceDelegate);
+  const routingState = new RoutingState();
 
   return {
     router,
@@ -33,8 +36,10 @@ export function createDeckRuntime(router: UIRouterReact | null = null): DeckRunt
     logger,
     interpolate,
     services,
+    routingState,
     dispose: () => {
       services.dispose();
+      routingState.dispose();
       timeoutService.dispose();
     },
   };

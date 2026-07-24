@@ -16,7 +16,12 @@ export const TaskMonitorWrapper = ({ monitor }: ITaskMonitorProps) => {
 
   useEffect(() => {
     const subscription = monitor?.statusUpdatedStream?.subscribe(() => forceUpdate());
-    return () => subscription?.unsubscribe();
+    return () => {
+      subscription?.unsubscribe();
+      if (monitor && (monitor.submitting || monitor.task || monitor.error)) {
+        monitor.onModalClose();
+      }
+    };
   }, [monitor]);
 
   if (!monitor || (!monitor.submitting && !monitor.error)) {

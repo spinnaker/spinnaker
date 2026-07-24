@@ -1,10 +1,10 @@
 import { UIView, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import React from 'react';
 import { useRecoilValue } from 'recoil';
-import { AngularServices } from '../angular/services';
 
 import type { Application } from '../application';
 import { verticalNavExpandedAtom } from '../application/nav/navAtoms';
+import { CollapsibleSectionStateCache } from '../cache';
 import { FilterCollapse } from '../filterModel/FilterCollapse';
 
 export interface IInsightLayoutProps {
@@ -15,6 +15,16 @@ interface IInsightState {
   name?: string;
   views?: { [key: string]: unknown };
 }
+
+const INSIGHT_FILTERS_CACHE_KEY = 'insightFilters';
+
+export const isClustersInsightState = (currentState: IInsightState): boolean => {
+  return Boolean(currentState.name?.split('.').includes('clusters'));
+};
+
+export const shouldHideInsightFilters = (currentState: IInsightState, serverGroupsFetchOnDemand: boolean): boolean => {
+  return isClustersInsightState(currentState) && serverGroupsFetchOnDemand;
+};
 
 export const shouldShowDetailsView = (currentState: IInsightState): boolean => {
   if (Object.keys(currentState.views || {}).some((v) => v.indexOf('detail@') !== -1)) {
@@ -33,14 +43,29 @@ export const isInsightDetailUrl = (href: string): boolean => {
 
 export const InsightLayout = ({ app }: IInsightLayoutProps) => {
   const router = useRouter();
-  const [expandFilters, setExpandFilters] = React.useState(AngularServices.insightFilterStateModel.filtersExpanded);
+  const [filtersExpanded, setFiltersExpanded] = React.useState(
+    () =>
+      !CollapsibleSectionStateCache.isSet(INSIGHT_FILTERS_CACHE_KEY) ||
+      CollapsibleSectionStateCache.isExpanded(INSIGHT_FILTERS_CACHE_KEY),
+  );
+  const [serverGroupsFetchOnDemand, setServerGroupsFetchOnDemand] = React.useState(() =>
+    Boolean(app.serverGroups?.fetchOnDemand),
+  );
   const [currentLocation, setCurrentLocation] = React.useState(window.location.href);
-  const filterClass = expandFilters ? 'filters-expanded' : 'filters-collapsed';
+  const filtersInitialized = React.useRef(false);
+  const filterClass = filtersExpanded ? 'filters-expanded' : 'filters-collapsed';
 
   const toggleFilters = (): void => {
-    AngularServices.insightFilterStateModel.pinFilters(!expandFilters);
-    setExpandFilters(!expandFilters);
+    setFiltersExpanded((expanded) => !expanded);
   };
+
+  React.useEffect(() => {
+    if (filtersInitialized.current) {
+      CollapsibleSectionStateCache.setExpanded(INSIGHT_FILTERS_CACHE_KEY, filtersExpanded);
+    } else {
+      filtersInitialized.current = true;
+    }
+  }, [filtersExpanded]);
 
   const navClass = useRecoilValue(verticalNavExpandedAtom) ? 'nav-expanded' : 'nav-collapsed';
 
@@ -69,7 +94,14 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
     return () => window.removeEventListener('hashchange', handleLocationChange);
   }, []);
 
-  const { filtersHidden } = AngularServices.insightFilterStateModel;
+  React.useEffect(() => {
+    const serverGroups = app.serverGroups;
+    const updateFetchOnDemand = () => setServerGroupsFetchOnDemand(Boolean(serverGroups?.fetchOnDemand));
+    updateFetchOnDemand();
+    return serverGroups?.onRefresh(null, updateFetchOnDemand);
+  }, [app]);
+
+  const filtersHidden = shouldHideInsightFilters(currentState, serverGroupsFetchOnDemand);
   const showDetailsView = shouldShowDetailsView(currentState) || isInsightDetailUrl(currentLocation);
   const detailsClass = showDetailsView ? 'details-open' : 'details-closed';
 
@@ -80,11 +112,11 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
   return (
     <div className={`insight ${filterClass} ${navClass} ${detailsClass}`}>
       {!filtersHidden && (
-        <div onClick={toggleFilters}>
-          <FilterCollapse />
+        <div>
+          <FilterCollapse filtersExpanded={filtersExpanded} onToggle={toggleFilters} />
         </div>
       )}
-      {!filtersHidden && expandFilters && (
+      {!filtersHidden && filtersExpanded && (
         <div className="nav ng-scope">
           <UIView name="nav" />
         </div>

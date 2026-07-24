@@ -290,6 +290,17 @@ describe('pipelineConfigValidator', () => {
         expect(validationResults.stages.length).toBe(1);
       });
 
+      it('rejects when loading an external parent pipeline fails', async () => {
+        const loadingError = new Error('parent pipeline unavailable');
+        spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(Promise.reject(loadingError));
+        pipeline = buildPipeline(
+          [{ type: 'withValidationIncludingParent', refId: 1 }],
+          [{ type: 'pipeline', application: 'unavailableApp', pipeline: 'abcd' }],
+        );
+
+        await expectAsync(PipelineConfigValidator.validatePipeline(pipeline)).toBeRejectedWith(loadingError);
+      });
+
       it('does not check parent triggers unless specified in validator', async () => {
         spyOn(PipelineConfigService, 'getPipelinesForApplication').and.returnValue(
           Promise.resolve([{ id: 'abcd', triggers: [{ type: 'prereq' }] }] as any),

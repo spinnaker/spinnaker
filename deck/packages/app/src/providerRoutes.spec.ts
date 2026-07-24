@@ -52,7 +52,7 @@ describe('direct provider route registration', () => {
     router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
-    configureRouter(router, runtime.services);
+    configureRouter(router, runtime.services, runtime.routingState);
     const stateNames = router.stateRegistry.get().map((state) => state.name);
 
     [
