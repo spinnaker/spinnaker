@@ -38,6 +38,7 @@ import { registerPreconfiguredJobStages } from './config/stages/preconfiguredJob
 import { RESIZE_ASG_STAGE } from './config/stages/resizeAsg/resizeAsgStage';
 import { ROLLBACK_CLUSTER_STAGE } from './config/stages/rollbackCluster/rollbackClusterStage';
 import './config/stages/runJob/runJobStage';
+import './config/stages/runMultiplePipelines/runMultiplePipelinesStage';
 import './config/stages/savePipelines/savePipelinesStage';
 import { SCALE_DOWN_CLUSTER_STAGE } from './config/stages/scaleDownCluster/scaleDownClusterStage';
 import { SCRIPT_STAGE } from './config/stages/script/scriptStage';
