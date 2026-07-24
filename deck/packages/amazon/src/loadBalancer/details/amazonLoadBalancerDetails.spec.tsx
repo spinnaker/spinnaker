@@ -1,9 +1,9 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { mount as enzymeMount, ReactWrapper } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { BehaviorSubject } from 'rxjs';
 
-import { AngularServices } from '@spinnaker/core';
+import { DeckRuntimeContext } from '@spinnaker/core';
 
 import { useAmazonLoadBalancerDetails } from './amazonLoadBalancerDetails';
 import { RequestBuilder } from '../../../../core/src/api/ApiService';
@@ -12,6 +12,15 @@ describe('useAmazonLoadBalancerDetails', () => {
   const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
   const defaultHttpClient = RequestBuilder.defaultHttpClient;
   let wrapper: ReactWrapper | undefined;
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {};
+  });
 
   afterEach(() => {
     if (wrapper) {
@@ -44,9 +53,9 @@ describe('useAmazonLoadBalancerDetails', () => {
     } as any;
     const get = jasmine.createSpy('get').and.returnValue(new Promise(() => undefined));
     RequestBuilder.defaultHttpClient = { get } as any;
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
+    runtimeServices.securityGroupReader = {
       getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup'),
-    } as any);
+    };
 
     function TestComponent() {
       useAmazonLoadBalancerDetails({
@@ -99,9 +108,9 @@ describe('useAmazonLoadBalancerDetails', () => {
     const get = jasmine.createSpy('get').and.returnValue(detailsRequest);
     const consoleError = spyOn(console, 'error');
     RequestBuilder.defaultHttpClient = { get } as any;
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
+    runtimeServices.securityGroupReader = {
       getApplicationSecurityGroup: jasmine.createSpy('getApplicationSecurityGroup'),
-    } as any);
+    };
 
     function TestComponent() {
       useAmazonLoadBalancerDetails({

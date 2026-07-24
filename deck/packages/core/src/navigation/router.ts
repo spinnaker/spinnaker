@@ -1,8 +1,10 @@
-import { hashLocationPlugin, servicesPlugin, UIRouterReact } from '@uirouter/react';
+import type { UIRouterReact } from '@uirouter/react';
+import { hashLocationPlugin, servicesPlugin } from '@uirouter/react';
 import { UIRouterRxPlugin } from '@uirouter/rx';
 
 import { applyApplicationInitializers } from '../application/application.initializers';
 import { getActiveApplicationStateProvider } from '../application/applicationState.registration';
+import type { DeckRuntimeServices } from '../bootstrap/DeckRuntimeServices';
 import { setDirectRouter } from './directRouter';
 import { registerRouteErrorBoundary } from '../presentation/SpinErrorBoundary';
 import { applyRootStateRegistrations } from './rootState.registration';
@@ -16,7 +18,7 @@ import {
 } from './state.provider';
 import { StateHelper } from './stateHelper.provider';
 
-export function configureRouter(router = new UIRouterReact()): UIRouterReact {
+export function configureRouter(router: UIRouterReact, runtimeServices: DeckRuntimeServices): UIRouterReact {
   try {
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);
@@ -31,7 +33,11 @@ export function configureRouter(router = new UIRouterReact()): UIRouterReact {
     router.urlRouter.otherwise('/');
     router.urlRouter.when('/{path:.*}/', (match: any) => '/' + match.path);
 
-    const stateConfig = new StateConfigProvider(router.urlRouter, new StateHelper(router.stateRegistry));
+    const stateConfig = new StateConfigProvider(
+      router.urlRouter,
+      new StateHelper(router.stateRegistry),
+      runtimeServices,
+    );
     applyRootStateRegistrations(stateConfig);
     const applicationStateProvider = getActiveApplicationStateProvider();
     stateConfig.setStates();

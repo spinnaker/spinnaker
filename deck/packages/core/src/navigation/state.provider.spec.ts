@@ -16,7 +16,7 @@ describe('StateConfigProvider', () => {
     const stateHelper = { setNestedState: jasmine.createSpy('setNestedState') };
 
     return {
-      provider: new StateConfigProvider(urlRouter as any, stateHelper as any),
+      provider: new StateConfigProvider(urlRouter as any, stateHelper as any, {} as any),
       stateHelper,
       urlRouter,
     };

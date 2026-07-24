@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { ISearchResult, ISearchResultPodData } from './SearchResultPods';
 import { SearchResultPods } from './SearchResultPods';
-import { AngularServices } from '../../angular/services';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import type { IRecentHistoryEntry } from '../../history';
 import { RecentHistoryService } from '../../history';
 import { useData } from '../../presentation/hooks';
@@ -21,10 +21,11 @@ export interface IRecentlyViewedItemsProps {
 }
 
 export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
+  const { infrastructureSearchService } = useDeckRuntimeServices();
   const { Component } = props;
   const categoryNames = ['projects', 'applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups'];
   // useMemo to get a single searcher per mount. The Searcher immediately performs work when instantiated.
-  const search = React.useMemo(() => AngularServices.infrastructureSearchService.getSearcher(), []);
+  const search = React.useMemo(() => infrastructureSearchService.getSearcher(), [infrastructureSearchService]);
 
   /** fetches the displayName and adds it to the history entry */
   function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {

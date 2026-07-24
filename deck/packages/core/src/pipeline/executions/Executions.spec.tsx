@@ -10,6 +10,7 @@ import type { IExecutionsProps, IExecutionsState } from './Executions';
 import { ExecutionsComponent } from './Executions';
 import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../../cache';
 import { INSIGHT_FILTER_STATE_MODEL } from '../../insight/insightFilterState.model';
 import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
@@ -23,6 +24,7 @@ describe('<Executions/>', () => {
   let application: Application;
   let router: UIRouterReact;
   let routerProps: any;
+  const runtimeServices = {} as any;
 
   async function settleInitialization() {
     await act(async () => {
@@ -46,9 +48,11 @@ describe('<Executions/>', () => {
     }
 
     component = mount(
-      <UIRouterContext.Provider value={router}>
-        <ExecutionsComponent {...routerProps} app={application} />
-      </UIRouterContext.Provider>,
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
+        <UIRouterContext.Provider value={router}>
+          <ExecutionsComponent {...routerProps} app={application} />
+        </UIRouterContext.Provider>
+      </DeckRuntimeContext.Provider>,
     );
   }
 
@@ -109,24 +113,12 @@ describe('<Executions/>', () => {
     const pipeline = { id: 'pipeline-id', name: 'Test Pipeline' };
     routerProps.stateParams = { startManualExecution: pipeline.id };
     const showModal = spyOn(ManualExecutionModal, 'show').and.returnValue(Promise.reject());
-    set(application, 'executions.activate', noop);
-    set(application, 'pipelineConfigs.activate', noop);
-    application.executions.data = [];
-    application.executions.loaded = true;
-    application.pipelineConfigs.data = [pipeline] as any;
-    application.pipelineConfigs.loaded = true;
-    const executionComponent = shallow(<ExecutionsComponent {...routerProps} app={application} />, {
-      disableLifecycleMethods: true,
-    });
-    const instance = executionComponent.instance() as ExecutionsComponent;
-
-    instance.componentDidMount();
+    initializeApplication({ executions: [], pipelineConfigs: [pipeline] });
     await act(async () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    instance.componentWillUnmount();
 
-    expect(showModal).toHaveBeenCalledWith(jasmine.objectContaining({ application, pipeline }));
+    expect(showModal).toHaveBeenCalledWith(jasmine.objectContaining({ application, pipeline }), runtimeServices);
   });
 });

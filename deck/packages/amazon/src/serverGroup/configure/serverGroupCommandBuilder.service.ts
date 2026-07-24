@@ -1,12 +1,12 @@
 import _ from 'lodash';
 
-import type { Application, InstanceTypeService } from '@spinnaker/core';
-import { AccountService, AngularServices, DeploymentStrategyRegistry, NameUtils, SubnetReader } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, InstanceTypeService } from '@spinnaker/core';
+import { AccountService, DeploymentStrategyRegistry, NameUtils, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonLaunchTemplateOverrides, ILaunchTemplateData } from '../../domain';
 import type { IAmazonServerGroup, IAmazonServerGroupView, INetworkInterface } from '../../domain';
-import { AwsServerGroupConfigurationService } from './serverGroupConfiguration.service';
+import type { AwsServerGroupConfigurationService } from './serverGroupConfiguration.service';
 import type {
   IAmazonInstanceTypeOverride,
   IAmazonServerGroupCommand,
@@ -41,8 +41,8 @@ export interface AwsServerGroupCommandBuilder {
 }
 
 export function createAwsServerGroupCommandBuilder(
-  instanceTypeService: InstanceTypeService = AngularServices.instanceTypeService,
-  awsServerGroupConfigurationService: AwsServerGroupConfigurationService = new AwsServerGroupConfigurationService(),
+  instanceTypeService: InstanceTypeService,
+  awsServerGroupConfigurationService: AwsServerGroupConfigurationService,
 ): AwsServerGroupCommandBuilder {
   function buildNewServerGroupCommand(
     application: Application,
@@ -498,7 +498,16 @@ export function createAwsServerGroupCommandBuilder(
 }
 
 export class AwsServerGroupCommandBuilderDelegate implements AwsServerGroupCommandBuilder {
-  private delegate = createAwsServerGroupCommandBuilder();
+  public static readonly requiresDeckRuntimeServices = true;
+
+  private delegate: AwsServerGroupCommandBuilder;
+
+  constructor(_promiseService: unknown, runtimeServices: DeckRuntimeServices) {
+    const configurationService = runtimeServices.providerServiceDelegate.getDelegate<
+      AwsServerGroupConfigurationService
+    >('aws', 'serverGroup.configurationService');
+    this.delegate = createAwsServerGroupCommandBuilder(runtimeServices.instanceTypeService, configurationService);
+  }
 
   public buildNewServerGroupCommand(
     application: Application,

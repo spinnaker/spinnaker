@@ -1,5 +1,6 @@
 import { UIRouterReact } from '@uirouter/react';
 
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { MultipleInstancesDetails } from './details/MultipleInstancesDetails';
 import { StandaloneInstanceDetails } from './details/StandaloneInstanceDetails';
 import { getMultipleInstancesState, getStandaloneInstanceState } from './instance.states';
@@ -59,7 +60,10 @@ describe('instance states', () => {
   });
 
   it('resolves a standalone instance during a direct transition', async () => {
-    const router = configureRouter();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    router.disposable(runtime);
+    configureRouter(router, runtime.services);
     routers.push(router);
 
     await router.stateService.go('home.instanceDetails', {

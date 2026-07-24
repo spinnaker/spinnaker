@@ -4,6 +4,7 @@ import { Dropdown, MenuItem } from 'react-bootstrap';
 
 import { AccountTag } from '../../account';
 import type { Application } from '../../application';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import { CloudProviderLogo } from '../../cloudProvider';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
@@ -70,6 +71,7 @@ function getDiscoveryState(instance: IInstance): string {
 }
 
 export function MultipleInstancesDetails({ app }: IMultipleInstancesDetailsProps): JSX.Element {
+  const { providerServiceDelegate } = useDeckRuntimeServices();
   const [isDisabled, setIsDisabled] = React.useState(false);
   const [selectedGroups, setSelectedGroups] = React.useState<IMultiInstanceGroup[]>(() => getSelectedGroups(app));
 
@@ -164,14 +166,14 @@ export function MultipleInstancesDetails({ app }: IMultipleInstancesDetailsProps
   };
 
   const registerWithDiscovery = () =>
-    confirm(() => InstanceWriter.enableInstancesInDiscovery(selectedGroups, app), {
+    confirm(() => InstanceWriter.enableInstancesInDiscovery(selectedGroups, app, providerServiceDelegate), {
       futurePerfect: 'Registered',
       presentContinuous: 'Registering',
       simplePresent: 'Register',
     });
 
   const deregisterWithDiscovery = () =>
-    confirm(() => InstanceWriter.disableInstancesInDiscovery(selectedGroups, app), {
+    confirm(() => InstanceWriter.disableInstancesInDiscovery(selectedGroups, app, providerServiceDelegate), {
       futurePerfect: 'Deregistered',
       presentContinuous: 'Deregistering',
       simplePresent: 'Deregister',
@@ -181,7 +183,13 @@ export function MultipleInstancesDetails({ app }: IMultipleInstancesDetailsProps
     const allLoadBalancers = getAllLoadBalancers().slice().sort();
 
     confirmLoadBalancerAction(
-      () => InstanceWriter.registerInstancesWithLoadBalancer(selectedGroups, app, allLoadBalancers),
+      () =>
+        InstanceWriter.registerInstancesWithLoadBalancer(
+          selectedGroups,
+          app,
+          allLoadBalancers,
+          providerServiceDelegate,
+        ),
       {
         futurePerfect: 'Registered',
         presentContinuous: 'Registering',
@@ -195,7 +203,13 @@ export function MultipleInstancesDetails({ app }: IMultipleInstancesDetailsProps
     const allLoadBalancers = getAllLoadBalancers().slice().sort();
 
     confirmLoadBalancerAction(
-      () => InstanceWriter.deregisterInstancesFromLoadBalancer(selectedGroups, app, allLoadBalancers),
+      () =>
+        InstanceWriter.deregisterInstancesFromLoadBalancer(
+          selectedGroups,
+          app,
+          allLoadBalancers,
+          providerServiceDelegate,
+        ),
       {
         futurePerfect: 'Deregistered',
         presentContinuous: 'Deregistering',
@@ -206,25 +220,28 @@ export function MultipleInstancesDetails({ app }: IMultipleInstancesDetailsProps
   };
 
   const rebootInstances = () =>
-    confirm(() => InstanceWriter.rebootInstances(selectedGroups, app), {
+    confirm(() => InstanceWriter.rebootInstances(selectedGroups, app, providerServiceDelegate), {
       futurePerfect: 'Rebooted',
       presentContinuous: 'Rebooting',
       simplePresent: 'Reboot',
     });
 
   const terminateInstances = () =>
-    confirm(() => InstanceWriter.terminateInstances(selectedGroups, app), {
+    confirm(() => InstanceWriter.terminateInstances(selectedGroups, app, providerServiceDelegate), {
       futurePerfect: 'Terminated',
       presentContinuous: 'Terminating',
       simplePresent: 'Terminate',
     });
 
   const terminateInstancesAndShrinkServerGroups = () =>
-    confirm(() => InstanceWriter.terminateInstancesAndShrinkServerGroups(selectedGroups, app), {
-      futurePerfect: 'Terminated',
-      presentContinuous: 'Terminating',
-      simplePresent: 'Terminate',
-    });
+    confirm(
+      () => InstanceWriter.terminateInstancesAndShrinkServerGroups(selectedGroups, app, providerServiceDelegate),
+      {
+        futurePerfect: 'Terminated',
+        presentContinuous: 'Terminating',
+        simplePresent: 'Terminate',
+      },
+    );
 
   const actionLink = (label: string, action: () => void) => (
     <MenuItem key={label} onClick={action}>

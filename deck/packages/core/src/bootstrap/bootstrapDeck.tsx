@@ -3,7 +3,8 @@ import * as React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
 
 import type { DeckRuntime } from './DeckRuntime';
-import { createDeckRuntime, DeckRuntimeContext } from './DeckRuntime';
+import { createDeckRuntime } from './DeckRuntime';
+import { DeckRuntimeContext } from './DeckRuntimeContext';
 import { SpinnakerContainer } from './SpinnakerContainer';
 import { AngularServices } from '../angular/services';
 import { initializeAuthentication } from '../authentication/authentication.module';
@@ -12,7 +13,12 @@ import '../navigation/coreRoutes';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter, startRouter } from '../navigation/router';
 import { initializePlugins } from '../plugins/plugin.module';
-import { initializeDynamicRuntimeMetadata, initializeRuntimeMetadata } from './runtimeInitializers';
+import {
+  disposeRuntimeMetadata,
+  initializeDynamicRuntimeMetadata,
+  initializeRuntimeMetadata,
+  resetDynamicRuntimeMetadataForTests,
+} from './runtimeInitializers';
 import { initialize as initializeState } from '../state';
 
 import '../presentation/details.less';
@@ -45,6 +51,7 @@ function cleanupRuntime(): void {
   activeRuntime = null;
   activeRouter = null;
   renderedRoot = null;
+  cacheInitializationAttempt = null;
 
   if (router && getDirectRouter() === router) {
     setDirectRouter(null);
@@ -62,47 +69,53 @@ function cleanupRuntime(): void {
       console.error('Failed to dispose Deck router', error);
     } finally {
       try {
-        runtime?.dispose();
+        disposeRuntimeMetadata(runtime);
       } catch (error) {
-        console.error('Failed to dispose Deck runtime', error);
+        console.error('Failed to dispose Deck runtime metadata', error);
       } finally {
-        if (runtime) {
-          AngularServices.releaseRuntime(runtime);
+        try {
+          runtime?.dispose();
+        } catch (error) {
+          console.error('Failed to dispose Deck runtime', error);
+        } finally {
+          if (runtime) {
+            AngularServices.releaseRuntime(runtime);
+          }
         }
       }
     }
   }
 }
 
-function initializeInfrastructureCaches(): void {
+function initializeInfrastructureCaches(runtime: DeckRuntime): void {
   if (cacheInitializationAttempt) {
     return;
   }
 
   cacheInitializationAttempt = Promise.resolve()
-    .then(() => AngularServices.cacheInitializer.initialize())
+    .then(() => runtime.services.cacheInitializer.initialize())
     .then(() => undefined)
     .catch((error) => console.error('Failed to initialize infrastructure caches', error));
 }
 
 async function runBootstrap(root: HTMLElement): Promise<void> {
-  initializeRuntimeMetadata();
   const authenticated = await initializeAuthentication();
   if (!authenticated) {
     cleanupRuntime();
     return;
   }
 
-  void initializeDynamicRuntimeMetadata();
   await initializePlugins();
   const router = new UIRouterReact();
   const runtime = createDeckRuntime(router);
-  AngularServices.bindRuntime(runtime);
   activeRuntime = runtime;
-  configureRouter(router);
   activeRouter = router;
+  AngularServices.bindRuntime(runtime);
+  initializeRuntimeMetadata(runtime);
+  void initializeDynamicRuntimeMetadata();
+  configureRouter(router, runtime.services);
   initializeState();
-  initializeInfrastructureCaches();
+  initializeInfrastructureCaches(runtime);
   await Promise.resolve();
 
   renderedRoot = root;
@@ -145,6 +158,7 @@ export function resetBootstrapDeckForTests(): void {
     bootstrapRoot = null;
     bootstrapAttempt = null;
     cacheInitializationAttempt = null;
+    resetDynamicRuntimeMetadataForTests();
     VersionChecker.resetForTests();
   }
 }

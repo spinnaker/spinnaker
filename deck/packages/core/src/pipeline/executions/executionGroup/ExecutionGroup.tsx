@@ -7,8 +7,9 @@ import { takeUntil } from 'rxjs/operators';
 
 import { MigrationTag } from './MigrationTag';
 import { AccountTag } from '../../../account';
-import { AngularServices } from '../../../angular/services';
 import type { Application } from '../../../application/application.model';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
 import { CollapsibleSectionStateCache } from '../../../cache';
 import { PipelineConfigService } from '../../config/services/PipelineConfigService';
 import { SETTINGS } from '../../../config/settings';
@@ -63,7 +64,7 @@ export interface IExecutionGroupState {
 }
 
 export class ExecutionGroupComponent extends React.PureComponent<
-  IExecutionGroupProps & IRouterInjectedProps,
+  IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
   IExecutionGroupState
 > {
   public state: IExecutionGroupState;
@@ -72,7 +73,7 @@ export class ExecutionGroupComponent extends React.PureComponent<
   private destroy$ = new Subject();
   private headerRef = React.createRef<HTMLDivElement>();
 
-  constructor(props: IExecutionGroupProps & IRouterInjectedProps) {
+  constructor(props: IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     const { group, application } = props;
     const strategyConfig = application.strategyConfigs.data.find((c: IPipeline) => c.name === group.heading);
@@ -120,7 +121,7 @@ export class ExecutionGroupComponent extends React.PureComponent<
   }
 
   private getSectionCacheKey(): string {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     return executionService.getSectionCacheKey(
       ExecutionState.filterModel.asFilterModel.sortFilter.groupBy,
       this.props.application.name,
@@ -138,7 +139,7 @@ export class ExecutionGroupComponent extends React.PureComponent<
   };
 
   private startPipeline(command: IPipelineCommand): PromiseLike<void> {
-    const { executionService } = AngularServices;
+    const { executionService } = this.props.deckRuntimeServices;
     this.setState({ triggeringExecution: true });
     return executionService
       .startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger)
@@ -167,12 +168,15 @@ export class ExecutionGroupComponent extends React.PureComponent<
     )
       .pipe(takeUntil(this.destroy$))
       .subscribe((pipeline) =>
-        ManualExecutionModal.show({
-          pipeline,
-          application: this.props.application,
-          trigger: trigger,
-          currentlyRunningExecutions: this.props.group.runningExecutions,
-        })
+        ManualExecutionModal.show(
+          {
+            pipeline,
+            application: this.props.application,
+            trigger: trigger,
+            currentlyRunningExecutions: this.props.group.runningExecutions,
+          },
+          this.props.deckRuntimeServices,
+        )
           .then((command) => this.startPipeline(command))
           .catch(() => {}),
       );
@@ -422,4 +426,8 @@ export class ExecutionGroupComponent extends React.PureComponent<
 }
 
 const OverridableExecutionGroup = overridableComponent(ExecutionGroupComponent, 'PipelineExecutionGroup');
-export const ExecutionGroup = withRouter<IExecutionGroupProps & IRouterInjectedProps>(OverridableExecutionGroup);
+export const ExecutionGroup = withDeckRuntimeServices(
+  withRouter<IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps>(
+    OverridableExecutionGroup,
+  ),
+);

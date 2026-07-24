@@ -11,7 +11,11 @@ describe('rootState registration', () => {
   let originalRegistrations: Array<(provider: StateConfigProvider) => void>;
 
   function createProvider(): StateConfigProvider {
-    return new StateConfigProvider({} as any, { setNestedState: jasmine.createSpy('setNestedState') } as any);
+    return new StateConfigProvider(
+      {} as any,
+      { setNestedState: jasmine.createSpy('setNestedState') } as any,
+      {} as any,
+    );
   }
 
   beforeEach(() => {
@@ -39,7 +43,7 @@ describe('rootState registration', () => {
 
     registerRootState(registration);
 
-    new StateConfigProvider(undefined as any, undefined as any);
+    new StateConfigProvider(undefined as any, undefined as any, {} as any);
 
     expect(registration).not.toHaveBeenCalled();
   });

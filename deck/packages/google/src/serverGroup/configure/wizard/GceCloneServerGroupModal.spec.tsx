@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 import { mount, shallow } from 'enzyme';
 
-import { AngularServices, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import { ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
 
 import {
   GceCloneServerGroupModal as RoutedGceCloneServerGroupModal,
@@ -20,8 +20,6 @@ const application = {
 } as any;
 
 describe('GceCloneServerGroupModal', () => {
-  const serverGroupWriter = { cloneServerGroup: () => Promise.resolve() };
-
   beforeEach(() => {
     application.serverGroups.onNextRefresh.calls.reset();
     application.serverGroups.refresh.calls.reset();
@@ -29,18 +27,21 @@ describe('GceCloneServerGroupModal', () => {
       dismiss: jasmine.createSpy('dismiss'),
       result: Promise.resolve(),
     } as any);
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(serverGroupWriter as any);
   });
 
   it('opens as a wizard modal', () => {
     const props = buildProps(buildCommand());
+    const runtimeServices = {} as any;
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve());
 
-    GceCloneServerGroupModal.show(props);
+    GceCloneServerGroupModal.show(props, runtimeServices);
 
-    expect(ReactModal.show).toHaveBeenCalledWith(RoutedGceCloneServerGroupModal, props, {
-      dialogClassName: 'wizard-modal modal-lg',
-    });
+    expect(ReactModal.show).toHaveBeenCalledWith(
+      RoutedGceCloneServerGroupModal,
+      props,
+      { dialogClassName: 'wizard-modal modal-lg' },
+      runtimeServices,
+    );
   });
 
   it('renders the eight GCE pages in parity order without requiring a source template', () => {
@@ -820,7 +821,7 @@ describe('GceCloneServerGroupModal', () => {
       });
       const props = buildProps(command);
       const modal = new GceCloneServerGroupModal(props) as any;
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup');
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup');
 
       modal.submit(command);
 
@@ -859,9 +860,8 @@ describe('GceCloneServerGroupModal', () => {
       const props = buildProps(command);
       const modal = new GceCloneServerGroupModal(props) as any;
       const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup').and.returnValue(
-        task as any,
-      );
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup').and.returnValue(task as any);
+      modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
       const monitorSubmit = spyOn(
         modal.state.taskMonitor,
         'submit',

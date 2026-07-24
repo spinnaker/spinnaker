@@ -3,7 +3,6 @@ import { UIView } from '@uirouter/react';
 import { module } from 'angular';
 import React from 'react';
 
-import { AngularServices } from '../angular/services';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { registerApplicationState } from '../application/applicationState.registration';
 import { PipelineConfigPage } from './config/PipelineConfigPage';
@@ -115,6 +114,7 @@ registerApplicationState(
 );
 
 registerRootState((stateConfigProvider) => {
+  const { executionService } = stateConfigProvider.runtimeServices;
   const executionsLookup: INestedState = {
     name: 'executionLookup',
     url: '/executions/:executionId?refId&stage&subStage&step&details&stageId',
@@ -123,8 +123,6 @@ registerRootState((stateConfigProvider) => {
     },
     redirectTo: (transition) => {
       const { executionId, refId, stage, subStage, step, details, stageId } = transition.params();
-      const executionService = AngularServices.executionService;
-
       if (!executionId) {
         return undefined;
       }

@@ -2,6 +2,7 @@ import type { ParamDeclaration, StateDeclaration, UrlRouter } from '@uirouter/co
 import type { ParamTypeDefinition, ReactViewDeclaration } from '@uirouter/react';
 import { isEqual, isPlainObject } from 'lodash';
 
+import type { DeckRuntimeServices } from '../bootstrap/DeckRuntimeServices';
 import type { IFilterConfig } from '../filterModel/IFilterModel';
 import { applyRootStateRegistrations } from './rootState.registration';
 import type { StateHelper } from './stateHelper.provider';
@@ -34,7 +35,11 @@ export class StateConfigProvider {
     children: [],
   };
 
-  constructor(private $urlRouterProvider: UrlRouter, private stateHelperProvider: StateHelper) {
+  constructor(
+    private $urlRouterProvider: UrlRouter,
+    private stateHelperProvider: StateHelper,
+    public readonly runtimeServices: DeckRuntimeServices,
+  ) {
     if (stateHelperProvider) {
       applyRootStateRegistrations(this);
     }

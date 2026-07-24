@@ -3,7 +3,8 @@ import React from 'react';
 import type { Observable } from 'rxjs';
 import { empty as observableEmpty, Subject } from 'rxjs';
 import { distinctUntilChanged, map, scan, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { AngularServices } from '../../angular/services';
+import type { IDeckRuntimeServicesInjectedProps } from '../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import { SearchResultPods } from '../infrastructure/SearchResultPods';
@@ -28,7 +29,9 @@ export interface ISearchV2State {
   refreshingCache: boolean;
 }
 
-export class SearchV2Component extends React.Component<IRouterInjectedProps, ISearchV2State> {
+type SearchV2Props = IRouterInjectedProps & IDeckRuntimeServicesInjectedProps;
+
+export class SearchV2Component extends React.Component<SearchV2Props, ISearchV2State> {
   private searchResultTypes = searchResultTypeRegistry.getAll();
 
   private INITIAL_RESULTS: ISearchResultSet[] = this.searchResultTypes.map((type) => ({
@@ -39,7 +42,7 @@ export class SearchV2Component extends React.Component<IRouterInjectedProps, ISe
 
   private destroy$ = new Subject();
 
-  constructor(props: IRouterInjectedProps) {
+  constructor(props: SearchV2Props) {
     super(props);
 
     this.state = {
@@ -51,7 +54,9 @@ export class SearchV2Component extends React.Component<IRouterInjectedProps, ISe
     };
 
     // just set the page title - don't try to get fancy w/ the search terms
-    AngularServices.pageTitleService.handleRoutingSuccess({ pageTitleMain: { field: undefined, label: 'Search' } });
+    props.deckRuntimeServices.pageTitleService.handleRoutingSuccess({
+      pageTitleMain: { field: undefined, label: 'Search' },
+    });
   }
 
   // returns parameter values that are OK to send through to the back end search API as filters
@@ -193,4 +198,4 @@ export class SearchV2Component extends React.Component<IRouterInjectedProps, ISe
   }
 }
 
-export const SearchV2 = withRouter(SearchV2Component);
+export const SearchV2 = withDeckRuntimeServices(withRouter(SearchV2Component));

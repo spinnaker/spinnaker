@@ -5,7 +5,6 @@ import { module } from 'angular';
 import { get, identity, pickBy, uniq } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
-import { AngularServices } from '../../angular/services';
 import { REST } from '../../api/ApiService';
 import type { Application } from '../../application/application.model';
 import type { ApplicationDataSource } from '../../application/service/applicationDataSource';
@@ -236,9 +235,8 @@ export class ExecutionService {
     pipeline: string,
     trigger: any,
   ): PromiseLike<IRetryablePromise<void>> {
-    const { executionService } = AngularServices;
     return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then((triggerResult) =>
-      executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
+      this.waitUntilTriggeredPipelineAppears(app, triggerResult),
     );
   }
 

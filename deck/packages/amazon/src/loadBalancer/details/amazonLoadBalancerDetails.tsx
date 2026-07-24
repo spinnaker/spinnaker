@@ -15,7 +15,6 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   CopyToClipboard,
   FirewallLabels,
@@ -25,6 +24,7 @@ import {
   SubnetReader,
   timestamp,
   useDataSource,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { LoadBalancerActions } from './LoadBalancerActions';
@@ -192,6 +192,7 @@ export function useAmazonLoadBalancerDetails({
   loadBalancerParams,
   autoClose,
 }: IUseDetailsHookProps): UseDetailsResult<ILoadBalancer> {
+  const { securityGroupReader } = useDeckRuntimeServices();
   const dataSource = app.getDataSource('loadBalancers');
   const { data: loadBalancers, loaded, refresh, error } = useDataSource<ILoadBalancer[]>(dataSource);
   const [data, setData] = React.useState<IAmazonLoadBalancer>();
@@ -224,7 +225,7 @@ export function useAmazonLoadBalancerDetails({
         autoClose: () => autoCloseRef.current(),
         loadBalancerParams: { accountId, name, provider, region, vpcId },
         loadBalancers,
-        securityGroupReader: AngularServices.securityGroupReader,
+        securityGroupReader,
       });
       if (isMountedRef.current) {
         setData(loadBalancer);
@@ -238,7 +239,7 @@ export function useAmazonLoadBalancerDetails({
         setLoadingDetails(false);
       }
     }
-  }, [accountId, app, error, loadBalancers, loaded, name, provider, region, vpcId]);
+  }, [accountId, app, error, loadBalancers, loaded, name, provider, region, securityGroupReader, vpcId]);
 
   React.useEffect(() => {
     loadDetails();

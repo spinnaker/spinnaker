@@ -2,7 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import {
-  AngularServices,
   PlatformHealthOverride,
   ReactModal,
   SpinFormik,
@@ -91,8 +90,8 @@ describe('EcsRollbackServerGroupModal', () => {
   it('does not submit a rollback target outside the eligible disabled set', () => {
     const app = application();
     const writer = { rollbackServerGroup: jasmine.createSpy('rollbackServerGroup') };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
     const component = new EcsRollbackServerGroupModal(props(app));
+    (component as any).context = { services: { serverGroupWriter: writer } };
     component.state.verified = true;
     spyOn(component.state.taskMonitor, 'submit');
 
@@ -108,8 +107,8 @@ describe('EcsRollbackServerGroupModal', () => {
   it('submits the exact shared rollback writer contract through its task monitor', () => {
     const app = application({ platformHealthOnly: true, platformHealthOnlyShowOverride: true });
     const writer = { rollbackServerGroup: jasmine.createSpy('rollbackServerGroup').and.returnValue(Promise.resolve()) };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
     const component = new EcsRollbackServerGroupModal(props(app));
+    (component as any).context = { services: { serverGroupWriter: writer } };
     component.setState = ((update: any) => {
       component.state = { ...component.state, ...(typeof update === 'function' ? update(component.state) : update) };
     }) as any;
@@ -165,9 +164,10 @@ describe('EcsRollbackServerGroupModal', () => {
   it('exports a show primitive for later actions integration', () => {
     const show = spyOn(ReactModal, 'show').and.returnValue(Promise.resolve() as any);
     const modalProps = props();
+    const runtimeServices = {} as any;
 
-    EcsRollbackServerGroupModal.show(modalProps);
+    EcsRollbackServerGroupModal.show(modalProps, runtimeServices);
 
-    expect(show).toHaveBeenCalledOnceWith(EcsRollbackServerGroupModal, modalProps);
+    expect(show).toHaveBeenCalledOnceWith(EcsRollbackServerGroupModal, modalProps, undefined, runtimeServices);
   });
 });

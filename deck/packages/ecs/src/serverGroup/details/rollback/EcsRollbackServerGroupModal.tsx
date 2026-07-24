@@ -1,9 +1,15 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroup, IServerGroupJob } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IServerGroup,
+  IServerGroupJob,
+} from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FormikFormField,
   ModalClose,
   noop,
@@ -103,13 +109,19 @@ export class EcsRollbackServerGroupModal extends React.Component<
   IEcsRollbackServerGroupModalProps,
   IEcsRollbackServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IEcsRollbackServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: IEcsRollbackServerGroupModalProps): Promise<IEcsRollbackServerGroupJob> {
-    return ReactModal.show(EcsRollbackServerGroupModal, props);
+  public static show(
+    props: IEcsRollbackServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IEcsRollbackServerGroupJob> {
+    return ReactModal.show(EcsRollbackServerGroupModal, props, undefined, runtimeServices);
   }
 
   public constructor(props: IEcsRollbackServerGroupModalProps) {
@@ -156,7 +168,7 @@ export class EcsRollbackServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
+      this.context.services.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
     );
   };
 

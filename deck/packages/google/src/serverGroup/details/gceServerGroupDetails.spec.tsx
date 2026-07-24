@@ -1,7 +1,7 @@
-import { shallow } from 'enzyme';
+import { mount as enzymeMount, shallow } from 'enzyme';
 import React from 'react';
 
-import { AngularServices, CloudProviderRegistry, CollapsibleSection, ManagedMenuItem } from '@spinnaker/core';
+import { CloudProviderRegistry, CollapsibleSection, DeckRuntimeContext, ManagedMenuItem } from '@spinnaker/core';
 
 import { GceAutoscalingPolicyWriter } from '../../autoscalingPolicy';
 import { registerGoogleProvider } from '../../gce.module';
@@ -12,7 +12,18 @@ import { GceResizeServerGroupModal } from './resize/GceResizeServerGroupModal';
 import { GceRollbackServerGroupModal } from './rollback/GceRollbackServerGroupModal';
 
 describe('GCE server group details integration', () => {
-  const serverGroupWriter = {} as any;
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {
+      serverGroupCommandBuilder: {},
+      serverGroupWriter: {},
+    };
+  });
   const serverGroup = {
     account: 'prod',
     app: 'fnord',
@@ -49,10 +60,6 @@ describe('GCE server group details integration', () => {
 
   const linkAction = (wrapper: any, label: string) =>
     wrapper.find('a').filterWhere((link: any) => link.text() === label);
-
-  beforeEach(() => {
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(serverGroupWriter);
-  });
 
   it('registers autoscaling and auto-healing sections backed by the completed details components', () => {
     registerGoogleProvider();
@@ -123,7 +130,7 @@ describe('GCE server group details integration', () => {
   });
 
   it('adds rollback and resize without changing existing enabled action visibility', () => {
-    const wrapper = shallow(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     expect(managedAction(wrapper, 'Rollback').length).toBe(1);
     expect(managedAction(wrapper, 'Resize').length).toBe(1);
@@ -134,7 +141,7 @@ describe('GCE server group details integration', () => {
   });
 
   it('keeps rollback hidden for a disabled server group without changing existing disabled action visibility', () => {
-    const wrapper = shallow(<GceServerGroupActions app={app} serverGroup={{ ...serverGroup, isDisabled: true }} />);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={{ ...serverGroup, isDisabled: true }} />);
 
     expect(managedAction(wrapper, 'Rollback').length).toBe(0);
     expect(managedAction(wrapper, 'Resize').length).toBe(1);
@@ -144,7 +151,7 @@ describe('GCE server group details integration', () => {
 
   it('opens rollback with filtered candidates and the existing server group writer', () => {
     const show = spyOn(GceRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     managedAction(wrapper, 'Rollback').prop('onClick')();
 
@@ -152,14 +159,14 @@ describe('GCE server group details integration', () => {
       application: app,
       serverGroup,
       serverGroups: [eligibleRollbackCandidate],
-      serverGroupWriter: AngularServices.serverGroupWriter,
+      serverGroupWriter: runtimeServices.serverGroupWriter,
     });
   });
 
   it('keeps rollback available when there are no candidates and delegates empty handling to the modal', () => {
     const appWithoutCandidates = { ...app, serverGroups: { ...app.serverGroups, data: [] } };
     const show = spyOn(GceRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<GceServerGroupActions app={appWithoutCandidates} serverGroup={serverGroup} />);
+    const wrapper = mount(<GceServerGroupActions app={appWithoutCandidates} serverGroup={serverGroup} />);
 
     expect(managedAction(wrapper, 'Rollback').length).toBe(1);
     managedAction(wrapper, 'Rollback').prop('onClick')();
@@ -171,7 +178,7 @@ describe('GCE server group details integration', () => {
 
   it('opens resize with the completed writers', () => {
     const show = spyOn(GceResizeServerGroupModal, 'show').and.returnValue(Promise.resolve());
-    const wrapper = shallow(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     managedAction(wrapper, 'Resize').prop('onClick')();
 
@@ -179,12 +186,12 @@ describe('GCE server group details integration', () => {
       application: app,
       autoscalingPolicyWriter: GceAutoscalingPolicyWriter,
       serverGroup,
-      serverGroupWriter: AngularServices.serverGroupWriter,
+      serverGroupWriter: runtimeServices.serverGroupWriter,
     });
   });
 
   it('protects rollback and resize with the managed-resource interstitial', () => {
-    const wrapper = shallow(<GceServerGroupActions app={app} serverGroup={{ ...serverGroup, isManaged: true }} />);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={{ ...serverGroup, isManaged: true }} />);
 
     ['Rollback', 'Resize'].forEach((label) => {
       expect(managedAction(wrapper, label).props()).toEqual(
@@ -196,7 +203,7 @@ describe('GCE server group details integration', () => {
   it('hides server group actions when GCE ad-hoc infrastructure writes are disabled', () => {
     spyOn(CloudProviderRegistry, 'isDisabled').and.returnValue(true);
 
-    const wrapper = shallow(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
+    const wrapper = mount(<GceServerGroupActions app={app} serverGroup={serverGroup} />);
 
     expect(wrapper.isEmptyRender()).toBe(true);
   });

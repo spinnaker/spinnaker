@@ -4,11 +4,17 @@ import { pickBy } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { Application, ICapacity, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  ICapacity,
+  IModalComponentProps,
+  IServerGroupJob,
+} from '@spinnaker/core';
 import {
-  AngularServices,
   CheckboxInput,
   confirmNotManaged,
+  DeckRuntimeContext,
   FormikFormField,
   HelpField,
   MinMaxDesiredChanges,
@@ -58,6 +64,9 @@ export class AmazonResizeServerGroupModal extends React.Component<
   IAmazonResizeServerGroupModalProps,
   IAmazonResizeServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IAmazonResizeServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -65,11 +74,11 @@ export class AmazonResizeServerGroupModal extends React.Component<
 
   private formikRef = React.createRef<Formik<IAmazonResizeServerGroupValues>>();
 
-  public static show(props: IAmazonResizeServerGroupModalProps) {
+  public static show(props: IAmazonResizeServerGroupModalProps, runtimeServices: DeckRuntimeServices) {
     const modalProps = {};
     const { serverGroup, application } = props;
     return confirmNotManaged(serverGroup, application).then((notManaged) => {
-      notManaged && ReactModal.show(AmazonResizeServerGroupModal, props, modalProps);
+      notManaged && ReactModal.show(AmazonResizeServerGroupModal, props, modalProps, runtimeServices);
     });
   }
 
@@ -200,7 +209,7 @@ export class AmazonResizeServerGroupModal extends React.Component<
       };
     }
     this.state.taskMonitor.submit(() => {
-      return AngularServices.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
+      return this.context.services.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
     });
   };
 

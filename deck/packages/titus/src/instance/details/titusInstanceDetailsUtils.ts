@@ -6,7 +6,7 @@ import type {
   ITargetGroup,
 } from '@spinnaker/amazon';
 import { getAllTargetGroups } from '@spinnaker/amazon';
-import type { Action, Application, IInstance, IJob } from '@spinnaker/core';
+import type { Action, Application, DirectProviderServiceDelegate, IInstance, IJob } from '@spinnaker/core';
 import { ConfirmationModalService, getDirectRouter, InstanceWriter } from '@spinnaker/core';
 
 export const applyTargetGroupInfoToHealthMetric = (
@@ -79,7 +79,11 @@ const terminateInstance = (instance: IInstance, app: Application) => {
   };
 };
 
-const terminateInstanceAndShrinkServerGroup = (instance: IInstance, app: Application) => {
+const terminateInstanceAndShrinkServerGroup = (
+  instance: IInstance,
+  app: Application,
+  providerServiceDelegate: DirectProviderServiceDelegate,
+) => {
   return () => {
     const taskMonitorConfig = {
       application: app,
@@ -105,6 +109,7 @@ const terminateInstanceAndShrinkServerGroup = (instance: IInstance, app: Applica
           },
         ],
         app,
+        providerServiceDelegate,
       );
     };
 
@@ -156,10 +161,17 @@ const disableInstanceInDiscovery = (instance: IInstance, app: Application) => {
   };
 };
 
-export const buildTaskActions = (instance: IInstance, app: Application): Action[] => {
+export const buildTaskActions = (
+  instance: IInstance,
+  app: Application,
+  providerServiceDelegate: DirectProviderServiceDelegate,
+): Action[] => {
   const taskActions = [
     { label: 'Terminate', triggerAction: terminateInstance(instance, app) },
-    { label: 'Terminate and Shrink Server Group', triggerAction: terminateInstanceAndShrinkServerGroup(instance, app) },
+    {
+      label: 'Terminate and Shrink Server Group',
+      triggerAction: terminateInstanceAndShrinkServerGroup(instance, app, providerServiceDelegate),
+    },
   ];
 
   const discoveryHealth = (instance.health || []).filter((h) => h.type === 'Discovery');

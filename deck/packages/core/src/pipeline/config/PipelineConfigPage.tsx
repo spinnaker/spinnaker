@@ -15,9 +15,9 @@ import { EditPipelineJsonModal } from './actions/pipelineJson/EditPipelineJsonMo
 import { RenamePipelineModal } from './actions/rename/RenamePipelineModal';
 import { ShowPipelineTemplateJsonModal } from './actions/templateJson/ShowPipelineTemplateJsonModal';
 import { UnlockPipelineModal } from './actions/unlock/UnlockPipelineModal';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { ApplicationReader } from '../../application/service/ApplicationReader';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../../cache';
 import { CloudProviderLogo } from '../../cloudProvider';
 import { SETTINGS } from '../../config/settings';
@@ -764,6 +764,7 @@ export function PipelineConfigPageComponent({
   stateParams: params,
   stateService,
 }: IPipelineConfigPageProps & IRouterInjectedProps) {
+  const { executionService } = useDeckRuntimeServices();
   const pipelineId = params.pipelineId as string;
   const executionId = params.executionId as string;
   const isNew = params.new as string;
@@ -914,7 +915,7 @@ export function PipelineConfigPageComponent({
       return undefined;
     }
     let cancelled = false;
-    AngularServices.executionService
+    executionService
       .getExecutionsForConfigIds([model.pipeline.id], {
         limit: 5,
         transform: true,
@@ -941,7 +942,7 @@ export function PipelineConfigPageComponent({
     return () => {
       cancelled = true;
     };
-  }, [model?.hasDynamicSource, model?.pipeline?.id]);
+  }, [app, executionId, executionService, model?.hasDynamicSource, model?.pipeline?.id]);
 
   React.useEffect(() => {
     if (model && viewState) {

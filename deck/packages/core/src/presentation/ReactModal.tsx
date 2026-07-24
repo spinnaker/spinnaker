@@ -4,6 +4,8 @@ import type { ModalProps } from 'react-bootstrap';
 import { Modal } from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 
+import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
+import type { DeckRuntimeServices } from '../bootstrap/DeckRuntimeServices';
 import type { IModalComponentProps } from './modal';
 import { getDirectRouter } from '../navigation/directRouter';
 
@@ -27,12 +29,14 @@ export class ReactModal {
    * @param ModalComponent the component to be rendered inside a modal
    * @param componentProps to pass to the ModalComponent
    * @param modalProps to pass to the Modal
+   * @param runtimeServices to provide to modal components that use Deck runtime services
    * @returns {Promise<T>}
    */
   public static show<P extends IModalComponentProps, T = any>(
     ModalComponent: React.ComponentType<P>,
     componentProps?: P,
     modalProps?: Partial<ModalProps>,
+    runtimeServices?: DeckRuntimeServices,
   ): Promise<T> {
     const modalPromise = new Promise<T>((resolve, reject) => {
       let mountNode = document.createElement('div');
@@ -78,8 +82,13 @@ export class ReactModal {
             <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
           </Modal>
         );
+        const runtimeModal = runtimeServices ? (
+          <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>{modal}</DeckRuntimeContext.Provider>
+        ) : (
+          modal
+        );
         ReactDOM.render(
-          router ? <UIRouterContext.Provider value={router}>{modal}</UIRouterContext.Provider> : modal,
+          router ? <UIRouterContext.Provider value={router}>{runtimeModal}</UIRouterContext.Provider> : runtimeModal,
           mountNode,
         );
       }

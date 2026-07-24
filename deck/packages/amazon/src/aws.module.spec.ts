@@ -1,5 +1,5 @@
 import type { IStageTypeConfig } from '@spinnaker/core';
-import { CloudProviderRegistry, AngularServices, Registry } from '@spinnaker/core';
+import { CloudProviderRegistry, Registry } from '@spinnaker/core';
 
 import * as amazonPackage from './index';
 import { AwsFunctionTransformer } from './function/function.transformer';
@@ -17,7 +17,10 @@ import { registerAmazonPipelineStages } from './aws.module';
 import { AwsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { AwsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { AwsServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
-import { AwsServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
+import {
+  AwsServerGroupConfigurationService,
+  AwsServerGroupConfigurationServiceDelegate,
+} from './serverGroup/configure/serverGroupConfiguration.service';
 import { AwsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 describe('Amazon package registration', () => {
@@ -60,7 +63,7 @@ describe('Amazon package registration', () => {
     expect(CloudProviderRegistry.getValue('aws', 'serverGroup.transformer')).toBe(AwsServerGroupTransformer);
     expect(CloudProviderRegistry.getValue('aws', 'serverGroup.commandBuilder')).toBe(AwsServerGroupCommandBuilder);
     expect(CloudProviderRegistry.getValue('aws', 'serverGroup.configurationService')).toBe(
-      AwsServerGroupConfigurationService,
+      AwsServerGroupConfigurationServiceDelegate,
     );
     expect(CloudProviderRegistry.getValue('aws', 'instance.instanceTypeService')).toBe(AwsInstanceTypeService);
     expect(CloudProviderRegistry.getValue('aws', 'loadBalancer.transformer')).toBe(AwsLoadBalancerTransformer);
@@ -124,14 +127,17 @@ describe('Amazon package registration', () => {
     });
   });
 
-  it('constructs the server group configuration delegate with usable defaults when Core passes the deferred compatibility argument', () => {
+  it('constructs the server group configuration service with explicit dependencies', () => {
     const securityGroupReader = { getAllSecurityGroups: jasmine.createSpy('getAllSecurityGroups') };
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue(securityGroupReader as any);
-    spyOnProperty(AngularServices, 'cacheInitializer', 'get').and.returnValue({
+    const cacheInitializer = {
       refreshCache: jasmine.createSpy('refreshCache'),
-    } as any);
+    };
 
-    const service = new AwsServerGroupConfigurationService({ when: jasmine.createSpy('when') } as any);
+    const service = new AwsServerGroupConfigurationService(
+      securityGroupReader as any,
+      new AwsInstanceTypeService(),
+      cacheInitializer as any,
+    );
 
     expect((service as any).securityGroupReader).toBe(securityGroupReader);
     expect(() => service.applyOverrides('beforeConfiguration', {} as any)).not.toThrow();

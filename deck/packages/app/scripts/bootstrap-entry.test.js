@@ -39,6 +39,8 @@ test('app entry renders Deck directly without creating an AngularJS root module'
   assert.doesNotMatch(appEntry, /from 'angular'/);
   assert.doesNotMatch(appEntry, /module\('netflix\.spinnaker'/);
   assert.doesNotMatch(appEntry, /strictDi/);
+  assert.doesNotMatch(appEntry, /registerPreconfiguredJobStages/);
+  assert.doesNotMatch(appEntry, /registerPreconfiguredWebhookStages/);
 });
 
 test('app entry leaves settings ownership to the configured settings bundle', () => {

@@ -2,7 +2,7 @@ import type { FormikErrors } from 'formik';
 import { cloneDeep, every, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   LoadBalancerWriter,
@@ -47,9 +47,12 @@ export class CreateNetworkLoadBalancerComponent extends React.Component<
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateNetworkLoadBalancerProps): Promise<IAmazonNetworkLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateNetworkLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonNetworkLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateNetworkLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateNetworkLoadBalancer, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICreateNetworkLoadBalancerProps & IRouterInjectedProps) {

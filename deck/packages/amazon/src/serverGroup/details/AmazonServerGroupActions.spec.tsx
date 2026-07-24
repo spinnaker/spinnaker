@@ -2,12 +2,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
-import {
-  AngularServices,
-  ConfirmationModalService,
-  ManagedMenuItem,
-  ServerGroupWarningMessageService,
-} from '@spinnaker/core';
+import { ConfirmationModalService, ManagedMenuItem, ServerGroupWarningMessageService } from '@spinnaker/core';
 
 import type { IAmazonServerGroupView } from '../../domain';
 import { AWSProviderSettings } from '../../aws.settings';
@@ -16,6 +11,13 @@ import { AmazonRollbackServerGroupModal } from './rollback';
 
 describe('<AmazonServerGroupActions /> rollback integration', () => {
   const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
+  const runtimeServices = {} as any;
+
+  const shallowActions = (component: React.ReactElement) => {
+    const wrapper = shallow(component);
+    (wrapper.instance() as any).context = { services: runtimeServices };
+    return wrapper;
+  };
 
   const buildServerGroup = (overrides: Partial<IAmazonServerGroupView> = {}): IAmazonServerGroupView =>
     ({
@@ -59,7 +61,7 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const unrelated = buildServerGroup({ app: 'other-app', cluster: 'other-app-main', name: 'other-app-main-v001' });
     const application = buildApplication([selected, rollbackSource, unrelated]);
     const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+    const wrapper = shallowActions(<AmazonServerGroupActions app={application} serverGroup={selected} />);
 
     const rollback = action(wrapper, 'Rollback');
     expect(rollback.length).toBe(1);
@@ -69,12 +71,15 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
 
     rollback.prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({
-      allServerGroups: [selected],
-      application,
-      previousServerGroup: selected,
-      serverGroup: rollbackSource,
-    });
+    expect(show).toHaveBeenCalledOnceWith(
+      {
+        allServerGroups: [selected],
+        application,
+        previousServerGroup: selected,
+        serverGroup: rollbackSource,
+      },
+      runtimeServices,
+    );
   });
 
   it('does not render Rollback when a disabled server group has no enabled rollback source', () => {
@@ -90,18 +95,21 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
     const application = buildApplication([selected, rollbackSource]);
     const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve() as any);
     const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
-    const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+    const wrapper = shallowActions(<AmazonServerGroupActions app={application} serverGroup={selected} />);
 
     action(wrapper, 'Enable').prop('onClick')();
     await settle();
 
     expect(confirm).toHaveBeenCalledTimes(1);
-    expect(show).toHaveBeenCalledOnceWith({
-      allServerGroups: [selected],
-      application,
-      previousServerGroup: selected,
-      serverGroup: rollbackSource,
-    });
+    expect(show).toHaveBeenCalledOnceWith(
+      {
+        allServerGroups: [selected],
+        application,
+        previousServerGroup: selected,
+        serverGroup: rollbackSource,
+      },
+      runtimeServices,
+    );
   });
 
   it('continues to the ordinary Enable confirmation when orchestrated rollback is declined', async () => {
@@ -135,8 +143,10 @@ describe('<AmazonServerGroupActions /> rollback integration', () => {
       Promise.reject({ source: 'header' }) as any,
     );
     const show = spyOn(AmazonRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
-    const enable = spyOn(AngularServices.serverGroupWriter, 'enableServerGroup');
+    const writer = { enableServerGroup: jasmine.createSpy('enableServerGroup') };
+    const enable = writer.enableServerGroup;
     const wrapper = shallow(<AmazonServerGroupActions app={application} serverGroup={selected} />);
+    (wrapper.instance() as any).context = { services: { serverGroupWriter: writer } };
 
     action(wrapper, 'Enable').prop('onClick')();
     await settle();

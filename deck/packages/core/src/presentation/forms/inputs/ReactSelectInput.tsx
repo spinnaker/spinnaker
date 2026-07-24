@@ -89,7 +89,7 @@ export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
 
   const commonProps = { className, style, ignoreAccents, ...fieldProps, ...otherProps } as any;
 
-  const SelectElement = ({ options }: { options: any[] }) =>
+  const renderSelectElement = (options: ReactSelectProps<any>['options']) =>
     mode === 'TETHERED' ? (
       <TetheredSelect {...commonProps} options={options} />
     ) : mode === 'VIRTUALIZED' ? (
@@ -101,11 +101,9 @@ export function ReactSelectInput<T = string>(props: IReactSelectInputProps<T>) {
     );
 
   if (isStringArray(stringOptions)) {
-    return (
-      <StringsAsOptions strings={stringOptions}>{(options) => <SelectElement options={options} />}</StringsAsOptions>
-    );
+    return <StringsAsOptions strings={stringOptions}>{(options) => renderSelectElement(options)}</StringsAsOptions>;
   } else {
-    return <SelectElement options={optionOptions} />;
+    return renderSelectElement(optionOptions);
   }
 }
 

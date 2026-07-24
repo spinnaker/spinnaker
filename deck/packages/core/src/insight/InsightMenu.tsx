@@ -1,9 +1,10 @@
 import type { StateService } from '@uirouter/core';
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import { AngularServices } from '../angular/services';
 
 import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
+import type { IDeckRuntimeServicesInjectedProps } from '../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { CacheInitializerService } from '../cache';
 import type { IRouterInjectedProps } from '../navigation/routerContext';
 import { withRouter } from '../navigation/routerContext';
@@ -20,17 +21,20 @@ export interface IInsightMenuState {
   refreshingCache: boolean;
 }
 
-export class InsightMenuComponent extends React.Component<IInsightMenuProps & IRouterInjectedProps, IInsightMenuState> {
+export class InsightMenuComponent extends React.Component<
+  IInsightMenuProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  IInsightMenuState
+> {
   public static defaultProps: IInsightMenuProps = { createApp: true, createProject: true, refreshCaches: true };
 
   private $state: StateService;
   private cacheInitializer: CacheInitializerService;
 
-  constructor(props: IInsightMenuProps & IRouterInjectedProps) {
+  constructor(props: IInsightMenuProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {} as IInsightMenuState;
     this.$state = props.stateService;
-    this.cacheInitializer = AngularServices.cacheInitializer;
+    this.cacheInitializer = props.deckRuntimeServices.cacheInitializer;
   }
 
   private createProject = () =>
@@ -105,5 +109,5 @@ export class InsightMenuComponent extends React.Component<IInsightMenuProps & IR
 }
 
 const OverridableInsightMenu = Overridable('createInsightMenu')(InsightMenuComponent);
-export const InsightMenu = withRouter(OverridableInsightMenu);
+export const InsightMenu = withDeckRuntimeServices(withRouter(OverridableInsightMenu));
 InsightMenu.displayName = 'InsightMenu';

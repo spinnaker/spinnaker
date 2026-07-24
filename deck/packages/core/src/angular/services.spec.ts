@@ -3,35 +3,36 @@ import { UIRouterReact } from '@uirouter/react';
 import { AccountService } from '../account';
 import { mockHttpClient } from '../api/mock/jasmine';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
+import type { DeckRuntime } from '../bootstrap/DeckRuntime';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { InfrastructureCaches } from '../cache';
 import { CloudProviderRegistry } from '../cloudProvider';
 import { SETTINGS } from '../config';
 import { registerLoadBalancerDataSource } from '../loadBalancer/loadBalancer.dataSource';
 import { createLoadBalancerTransformer } from '../loadBalancer/loadBalancer.transformer';
-import { setDirectRouter } from '../navigation/directRouter';
 import { AngularServices } from './services';
 
-describe('AngularServices direct services', () => {
+describe('Deck runtime services', () => {
   const provider = 'serverGroupCommandBuilderTest';
+  let runtime: DeckRuntime;
+
+  beforeEach(() => {
+    runtime = createDeckRuntime(new UIRouterReact());
+  });
 
   afterEach(() => {
-    setDirectRouter(null);
-    (AngularServices as any).directCacheInitializer = null;
-    (AngularServices as any).directExecutionDetailsSectionService = null;
-    (AngularServices as any).directLoadBalancerReader = null;
-    (AngularServices as any).directSecurityGroupReader = null;
-    (AngularServices as any).directServerGroupWriter = null;
+    runtime.dispose();
     InfrastructureCaches.destroyCaches();
     delete SETTINGS.providers[provider];
     (CloudProviderRegistry as any).providers.delete(provider);
   });
 
   it('returns a direct infrastructure search service when Angular is not bootstrapped', () => {
-    expect(AngularServices.infrastructureSearchService.getSearcher()).toBeDefined();
+    expect(runtime.services.infrastructureSearchService.getSearcher()).toBeDefined();
   });
 
   it('returns a direct page title service when Angular is not bootstrapped', () => {
-    AngularServices.pageTitleService.handleRoutingSuccess({ pageTitleMain: { label: 'Search' } });
+    runtime.services.pageTitleService.handleRoutingSuccess({ pageTitleMain: { label: 'Search' } });
 
     expect(document.title).toBe('Search');
   });
@@ -39,11 +40,11 @@ describe('AngularServices direct services', () => {
   it('returns direct modal and cache fallbacks when Angular is not bootstrapped', async () => {
     spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
     spyOn(InfrastructureCaches, 'clearCache');
-    spyOn(AngularServices.securityGroupReader, 'getAllSecurityGroups').and.returnValue(Promise.resolve([]));
+    spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.returnValue(Promise.resolve([]));
 
     expect(AngularServices.modalService.open).toBeDefined();
     expect(() => AngularServices.modalStackService.dismissAll()).not.toThrow();
-    await expectAsync(AngularServices.cacheInitializer.refreshCaches()).toBeResolved();
+    await expectAsync(runtime.services.cacheInitializer.refreshCaches()).toBeResolved();
   });
 
   it('returns direct root scope and timeout fallbacks when Angular is not bootstrapped', async () => {
@@ -61,10 +62,7 @@ describe('AngularServices direct services', () => {
   });
 
   it('returns a direct execution details section service when Angular is not bootstrapped', () => {
-    const router = new UIRouterReact();
-    setDirectRouter(router);
-
-    expect(() => AngularServices.executionDetailsSectionService.synchronizeSection(['stage'])).not.toThrow();
+    expect(() => runtime.services.executionDetailsSectionService.synchronizeSection(['stage'])).not.toThrow();
   });
 
   it('returns a direct $q fallback with Angular-style promise helpers', async () => {
@@ -118,7 +116,7 @@ describe('AngularServices direct services', () => {
         commandBuilder: TestServerGroupCommandBuilder,
       },
     });
-    const command = await AngularServices.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
+    const command = await runtime.services.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(
       provider,
       stage,
       pipeline,
@@ -143,56 +141,50 @@ describe('AngularServices direct services', () => {
         transformer: TestServerGroupTransformer,
       },
     });
-    expect(AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)).toEqual({
+    expect(runtime.services.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)).toEqual({
       converted: true,
       base: command,
     });
   });
 
   it('returns a direct security group reader when Angular is not bootstrapped', () => {
-    expect(AngularServices.securityGroupReader.getAllSecurityGroups).toEqual(jasmine.any(Function));
+    expect(runtime.services.securityGroupReader.getAllSecurityGroups).toEqual(jasmine.any(Function));
   });
 
   it('returns a direct instance type service when Angular is not bootstrapped', () => {
-    expect(AngularServices.instanceTypeService.getCategoryForMultipleInstanceTypes).toEqual(jasmine.any(Function));
+    expect(runtime.services.instanceTypeService.getCategoryForMultipleInstanceTypes).toEqual(jasmine.any(Function));
   });
 });
 
-describe('AngularServices direct|load balancer data source service accessors', () => {
+describe('Deck runtime service accessors', () => {
   const provider = 'directServiceAccessorTest';
-
-  const resetDirectServices = () => {
-    (AngularServices as any).directCacheInitializer = null;
-    (AngularServices as any).directLoadBalancerReader = null;
-    (AngularServices as any).directSecurityGroupReader = null;
-    (AngularServices as any).directServerGroupWriter = null;
-  };
+  let runtime: DeckRuntime;
 
   beforeEach(() => {
-    resetDirectServices();
+    runtime = createDeckRuntime(new UIRouterReact());
   });
 
   afterEach(() => {
-    resetDirectServices();
+    runtime.dispose();
     InfrastructureCaches.destroyCaches();
     delete SETTINGS.providers[provider];
     (CloudProviderRegistry as any).providers.delete(provider);
   });
 
-  it('AngularServices direct accessors lazily cache service instances', () => {
-    expect(AngularServices.serverGroupWriter).toBe(AngularServices.serverGroupWriter);
-    expect(AngularServices.cacheInitializer).toBe(AngularServices.cacheInitializer);
-    expect(AngularServices.loadBalancerReader).toBe(AngularServices.loadBalancerReader);
+  it('lazily caches service instances', () => {
+    expect(runtime.services.serverGroupWriter).toBe(runtime.services.serverGroupWriter);
+    expect(runtime.services.cacheInitializer).toBe(runtime.services.cacheInitializer);
+    expect(runtime.services.loadBalancerReader).toBe(runtime.services.loadBalancerReader);
   });
 
-  it('AngularServices direct cache initializer exposes working methods', async () => {
+  it('exposes working cache initializer methods', async () => {
     spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
     spyOn(InfrastructureCaches, 'clearCache');
     spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
-    const getAllSecurityGroups = spyOn(AngularServices.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
+    const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
       Promise.resolve([]),
     );
-    const cacheInitializer = AngularServices.cacheInitializer;
+    const cacheInitializer = runtime.services.cacheInitializer;
 
     expect(cacheInitializer.initialize).toEqual(jasmine.any(Function));
     expect(cacheInitializer.refreshCache).toEqual(jasmine.any(Function));
@@ -206,8 +198,8 @@ describe('AngularServices direct|load balancer data source service accessors', (
     expect(getAllSecurityGroups).toHaveBeenCalledTimes(3);
   });
 
-  it('AngularServices direct server group writer submits destroy jobs', async () => {
-    const serverGroupWriter = AngularServices.serverGroupWriter;
+  it('submits destroy jobs through the server group writer', async () => {
+    const serverGroupWriter = runtime.services.serverGroupWriter;
     const http = mockHttpClient();
     let submitted: any;
     http
@@ -239,7 +231,7 @@ describe('AngularServices direct|load balancer data source service accessors', (
     );
   });
 
-  it('AngularServices direct load balancer reader uses a registered provider transformer', async () => {
+  it('uses a registered provider transformer in the load balancer reader', async () => {
     class TestLoadBalancerTransformer {
       public normalizeLoadBalancer(loadBalancer: any) {
         return Promise.resolve({ ...loadBalancer, transformed: true });
@@ -251,7 +243,7 @@ describe('AngularServices direct|load balancer data source service accessors', (
       name: 'Direct Service Accessor Test',
       loadBalancer: { transformer: TestLoadBalancerTransformer },
     });
-    const loadBalancerReader = AngularServices.loadBalancerReader;
+    const loadBalancerReader = runtime.services.loadBalancerReader;
     const http = mockHttpClient();
     http.expectGET('/applications/app/loadBalancers').respond(200, [
       {
@@ -276,7 +268,7 @@ describe('AngularServices direct|load balancer data source service accessors', (
     ]);
   });
 
-  it('AngularServices direct load balancer transformer factory preserves provider and set normalization', async () => {
+  it('preserves provider and set normalization in the load balancer transformer factory', async () => {
     const normalizeLoadBalancerSet = jasmine
       .createSpy('normalizeLoadBalancerSet')
       .and.callFake((loadBalancers: any[]) => loadBalancers.slice().reverse());
@@ -313,7 +305,7 @@ describe('AngularServices direct|load balancer data source service accessors', (
     expect(providerServiceDelegate.getDelegate).toHaveBeenCalledWith(provider, 'loadBalancer.setTransformer');
   });
 
-  it('AngularServices direct load balancer transformer resolves each provider set transformer once', () => {
+  it('resolves each provider set transformer once in the load balancer transformer', () => {
     const secondProvider = `${provider}Second`;
     const resolvedProviders: string[] = [];
     const createdDelegates: any[] = [];
@@ -350,7 +342,7 @@ describe('AngularServices direct|load balancer data source service accessors', (
     expect(invokedDelegates).toEqual(createdDelegates);
   });
 
-  it('AngularServices direct load balancer transformer leaves unregistered providers unchanged', async () => {
+  it('leaves unregistered providers unchanged in the load balancer transformer', async () => {
     const providerServiceDelegate = {
       hasDelegate: jasmine.createSpy('hasDelegate').and.returnValue(false),
       getDelegate: jasmine.createSpy('getDelegate'),
@@ -362,29 +354,25 @@ describe('AngularServices direct|load balancer data source service accessors', (
     expect(providerServiceDelegate.getDelegate).not.toHaveBeenCalled();
   });
 
-  it('AngularServices direct server group conversion throws the contextual missing transformer error', () => {
+  it('throws the contextual missing server group transformer error', () => {
     expect(() =>
-      AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration({
+      runtime.services.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration({
         selectedProvider: provider,
       }),
     ).toThrowError(`No "serverGroup.transformer" service found for provider "${provider}"`);
   });
 });
 
-describe('AngularServices direct|load balancer data source registration', () => {
+describe('Deck runtime load balancer data source registration', () => {
+  let runtime: DeckRuntime;
+
   beforeEach(() => {
-    (AngularServices as any).directCacheInitializer = null;
-    (AngularServices as any).directLoadBalancerReader = null;
-    (AngularServices as any).directSecurityGroupReader = null;
-    (AngularServices as any).directServerGroupWriter = null;
+    runtime = createDeckRuntime(new UIRouterReact());
     ApplicationDataSourceRegistry.clearDataSources();
   });
 
   afterEach(() => {
-    (AngularServices as any).directCacheInitializer = null;
-    (AngularServices as any).directLoadBalancerReader = null;
-    (AngularServices as any).directSecurityGroupReader = null;
-    (AngularServices as any).directServerGroupWriter = null;
+    runtime.dispose();
     ApplicationDataSourceRegistry.clearDataSources();
   });
 
@@ -393,18 +381,13 @@ describe('AngularServices direct|load balancer data source registration', () => 
     const loadBalancerReader = {
       loadLoadBalancers: jasmine.createSpy('loadLoadBalancers').and.returnValue(Promise.resolve(loadBalancers)),
     };
-    const readerAccessor = spyOnProperty(AngularServices, 'loadBalancerReader', 'get').and.returnValue(
-      loadBalancerReader as any,
-    );
-
-    registerLoadBalancerDataSource();
+    registerLoadBalancerDataSource(runtime.promiseService, loadBalancerReader as any);
     const dataSource = ApplicationDataSourceRegistry.getDataSources()[0];
 
     await expectAsync(Promise.resolve(dataSource.loader({ name: 'app' } as any))).toBeResolvedTo(loadBalancers);
     await expectAsync(Promise.resolve(dataSource.onLoad({ name: 'app' } as any, loadBalancers))).toBeResolvedTo(
       loadBalancers,
     );
-    expect(readerAccessor).toHaveBeenCalled();
     expect(loadBalancerReader.loadLoadBalancers).toHaveBeenCalledWith('app');
   });
 });

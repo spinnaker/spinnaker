@@ -1,8 +1,8 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-import type { ILoadBalancerIncompatibility, ILoadBalancerModalProps } from '@spinnaker/core';
-import { CloudProviderRegistry, Markdown, ModalClose, noop, ReactModal } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerIncompatibility, ILoadBalancerModalProps } from '@spinnaker/core';
+import { CloudProviderRegistry, DeckRuntimeContext, Markdown, ModalClose, noop, ReactModal } from '@spinnaker/core';
 
 import type { IAmazonLoadBalancerConfig } from './LoadBalancerTypes';
 import { LoadBalancerTypes } from './LoadBalancerTypes';
@@ -17,6 +17,9 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
   ILoadBalancerModalProps,
   IAmazonLoadBalancerChoiceModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static supportsPipelineConfig = true;
 
   public static defaultProps: Partial<ILoadBalancerModalProps> = {
@@ -24,11 +27,11 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     dismissModal: noop,
   };
 
-  public static show(props: ILoadBalancerModalProps): Promise<any> {
+  public static show(props: ILoadBalancerModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
     if ((props as any).isNew === false && props.loadBalancer?.loadBalancerType) {
       const loadBalancerType = LoadBalancerTypes.find((type) => type.type === props.loadBalancer.loadBalancerType);
       if (loadBalancerType) {
-        return loadBalancerType.component.show(props);
+        return loadBalancerType.component.show(props, runtimeServices);
       }
     }
 
@@ -39,6 +42,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
         className: 'create-pipeline-modal-overflow-visible modal-lg',
       },
       { bsSize: 'lg' },
+      runtimeServices,
     );
   }
 
@@ -58,7 +62,7 @@ export class AmazonLoadBalancerChoiceModal extends React.Component<
     const { children, ...loadBalancerProps } = this.props;
     this.close();
     this.state.selectedChoice.component
-      .show(loadBalancerProps)
+      .show(loadBalancerProps, this.context.services)
       .then((loadBalancer) => {
         this.props.closeModal(loadBalancer);
       })

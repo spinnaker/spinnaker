@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { AccountService, AngularServices, NetworkReader, SubnetReader } from '@spinnaker/core';
+import { AccountService, NetworkReader, SubnetReader } from '@spinnaker/core';
 
 import { OracleImageReader } from '../../image/image.reader';
 import { OracleProviderSettings } from '../../oracle.settings';
@@ -10,13 +10,16 @@ import { OracleProviderSettings } from '../../oracle.settings';
 const oracle = 'oracle';
 
 export class OracleServerGroupConfigurationService {
-  constructor() {
+  static requiresDeckRuntimeServices = true;
+
+  constructor(_promiseService, runtimeServices) {
     this.oracleImageReader = new OracleImageReader();
+    this.securityGroupReader = runtimeServices.securityGroupReader;
   }
 
   configureCommand(application, command) {
     const oracleImageReader = this.oracleImageReader;
-    const securityGroupReader = AngularServices.securityGroupReader;
+    const securityGroupReader = this.securityGroupReader;
 
     const getShapes = (image) => {
       if (!image || !image.compatibleShapes) {

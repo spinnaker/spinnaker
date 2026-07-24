@@ -1,8 +1,8 @@
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import type { FormikProps } from 'formik';
 import React from 'react';
 
-import { AngularServices } from '@spinnaker/core';
+import { DeckRuntimeContext } from '@spinnaker/core';
 
 import type {
   IGceServerGroupCommand,
@@ -12,6 +12,22 @@ import type {
 import { ServerGroupInstanceType } from './ServerGroupInstanceType';
 
 describe('ServerGroupInstanceType', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const shallow = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {
+      instanceTypeService: {
+        getInstanceTypeDetails: jasmine
+          .createSpy('getInstanceTypeDetails')
+          .and.returnValue(new Promise(() => undefined)),
+      },
+    };
+  });
+
   it('renders accessible instance controls and preserves persisted unavailable references', () => {
     const values = command({
       instanceType: 'retired-machine',
@@ -29,9 +45,9 @@ describe('ServerGroupInstanceType', () => {
   });
 
   it('selects standard machine types without mutating current Formik values', () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue({
+    runtimeServices.instanceTypeService = {
       getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(new Promise(() => undefined)),
-    } as any);
+    };
     const values = command({ instanceType: 'n1-standard-1' });
     const testProps = props(values);
     const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);
@@ -56,7 +72,7 @@ describe('ServerGroupInstanceType', () => {
       const instanceTypeService = {
         getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails'),
       };
-      spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+      runtimeServices.instanceTypeService = instanceTypeService;
       const values = command({
         viewState: { mode: 'editPipeline', instanceProfile: 'custom', acceleratorTypes: [] },
       });
@@ -77,7 +93,7 @@ describe('ServerGroupInstanceType', () => {
     const instanceTypeService = {
       getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(detailsRequest.promise),
     };
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    runtimeServices.instanceTypeService = instanceTypeService;
     const values = command({
       disks: [
         { type: 'pd-standard', sizeGb: 100 },
@@ -147,7 +163,7 @@ describe('ServerGroupInstanceType', () => {
           instanceType === 'n2-standard-2' ? oldRequest.promise : newRequest.promise,
         ),
     };
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    runtimeServices.instanceTypeService = instanceTypeService;
     const values = command();
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
@@ -171,9 +187,9 @@ describe('ServerGroupInstanceType', () => {
 
   it('ignores standard machine type details after the user switches to a custom type', async () => {
     const detailsRequest = deferred<any>();
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue({
+    runtimeServices.instanceTypeService = {
       getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(detailsRequest.promise),
-    } as any);
+    };
     const values = command();
     const adapter = adapterForHandlers();
     const testProps = props(values, adapter);
@@ -197,9 +213,9 @@ describe('ServerGroupInstanceType', () => {
 
   it('preserves a disk edit made while machine type details are loading', async () => {
     const detailsRequest = deferred<any>();
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue({
+    runtimeServices.instanceTypeService = {
       getInstanceTypeDetails: jasmine.createSpy('getInstanceTypeDetails').and.returnValue(detailsRequest.promise),
-    } as any);
+    };
     const values = command();
     const testProps = props(values);
     const wrapper = shallow(<ServerGroupInstanceType {...testProps} />);

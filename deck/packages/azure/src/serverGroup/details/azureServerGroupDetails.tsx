@@ -11,7 +11,6 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CloudProviderRegistry,
   CollapsibleSection,
   ConfirmationModalService,
@@ -20,10 +19,10 @@ import {
   ServerGroupReader,
   ServerGroupWarningMessageService,
   timestamp,
+  useDeckRuntimeServices,
   withRouter,
 } from '@spinnaker/core';
 
-import { AzureServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
 import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupModal';
 
 function findServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<any> {
@@ -137,6 +136,8 @@ export function AzureServerGroupActionsComponent({
   serverGroup,
   stateService,
 }: IServerGroupActionsProps & IRouterInjectedProps) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupCommandBuilder, serverGroupWriter } = runtimeServices;
   const destroyServerGroup = (): void => {
     const stateParams = {
       name: serverGroup.name,
@@ -157,7 +158,7 @@ export function AzureServerGroupActionsComponent({
           }
         },
       },
-      submitMethod: (params: any) => AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params),
+      submitMethod: (params: any) => serverGroupWriter.destroyServerGroup(serverGroup, app, params),
     };
 
     ServerGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
@@ -173,8 +174,7 @@ export function AzureServerGroupActionsComponent({
         application: app,
         title: `Disabling ${serverGroup.name}`,
       },
-      submitMethod: (params: any) =>
-        AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params),
+      submitMethod: (params: any) => serverGroupWriter.disableServerGroup(serverGroup, app.name, params),
     };
 
     ServerGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
@@ -191,7 +191,7 @@ export function AzureServerGroupActionsComponent({
         title: `Enabling ${serverGroup.name}`,
       },
       submitMethod: (params: any) =>
-        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, {
+        serverGroupWriter.enableServerGroup(serverGroup, app, {
           ...params,
           interestingHealthProviderNames: [],
         }),
@@ -205,17 +205,15 @@ export function AzureServerGroupActionsComponent({
     const disabledServerGroups = (cluster?.serverGroups || []).filter((candidate: any) => {
       return candidate.isDisabled && candidate.region === serverGroup.region;
     });
-    AzureRollbackServerGroupModal.show({ application: app, serverGroup, disabledServerGroups });
+    AzureRollbackServerGroupModal.show({ application: app, serverGroup, disabledServerGroups }, runtimeServices);
   };
 
   const cloneServerGroup = (): void => {
     const CloneServerGroupModal = CloudProviderRegistry.getValue('azure', 'serverGroup.CloneServerGroupModal');
     if (CloneServerGroupModal?.show) {
-      new AzureServerGroupCommandBuilder(null)
-        .buildServerGroupCommandFromExisting(app, serverGroup)
-        .then((command: any) => {
-          CloneServerGroupModal.show({ application: app, command, title: `Clone ${serverGroup.name}` });
-        });
+      serverGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup).then((command: any) => {
+        CloneServerGroupModal.show({ application: app, command, title: `Clone ${serverGroup.name}` }, runtimeServices);
+      });
     }
   };
 

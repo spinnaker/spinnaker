@@ -12,9 +12,9 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
   CloudProviderLogo,
   CollapsibleSection,
+  DeckRuntimeContext,
   FirewallLabels,
   RecentHistoryService,
   Spinner,
@@ -47,6 +47,9 @@ export class EcsSecurityGroupDetailsComponent extends React.Component<
   IEcsSecurityGroupDetailsProps & IRouterInjectedProps,
   IEcsSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IEcsSecurityGroupDetailsState = { loading: true };
 
   private isUnmounted = false;
@@ -86,7 +89,7 @@ export class EcsSecurityGroupDetailsComponent extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private getVpcReader(): Pick<typeof VpcReader, 'getVpcName'> {

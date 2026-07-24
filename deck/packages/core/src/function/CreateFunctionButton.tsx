@@ -1,6 +1,7 @@
 import React from 'react';
 
 import type { Application } from '../application';
+import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import type { IFunction } from '../domain';
 import type { IFunctionUpsertCommand } from './function.write.service';
@@ -27,6 +28,9 @@ export interface ICreateFunctionButtonState {
 }
 
 export class CreateFunctionButton extends React.Component<ICreateFunctionButtonProps, ICreateFunctionButtonState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ICreateFunctionButtonProps) {
     super(props);
 
@@ -44,13 +48,16 @@ export class CreateFunctionButton extends React.Component<ICreateFunctionButtonP
 
     ProviderSelectionService.selectProvider(app, 'function').then((selectedProvider) => {
       const provider = CloudProviderRegistry.getValue(selectedProvider, 'function');
-      provider.CreateFunctionModal.show({
-        app: app,
-        application: app,
-        forPipelineConfig: false,
-        function: null,
-        isNew: true,
-      });
+      provider.CreateFunctionModal.show(
+        {
+          app: app,
+          application: app,
+          forPipelineConfig: false,
+          function: null,
+          isNew: true,
+        },
+        this.context.services,
+      );
     });
   };
 

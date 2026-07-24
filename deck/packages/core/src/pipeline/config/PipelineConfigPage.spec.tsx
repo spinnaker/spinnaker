@@ -8,7 +8,9 @@ import { AccountService } from '../../account/AccountService';
 import type { IAccountDetails } from '../../account/AccountService';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { ApplicationReader } from '../../application/service/ApplicationReader';
-import { AngularServices } from '../../angular/services';
+import type { DeckRuntime } from '../../bootstrap/DeckRuntime';
+import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../../cache';
 import { SETTINGS } from '../../config';
 import { PageNavigator, ReactSelectInput } from '../../presentation';
@@ -35,18 +37,21 @@ describe('PipelineConfigPage', () => {
   let fiatEnabled: boolean;
   let providerRenderStates: boolean[];
   let router: UIRouterReact;
+  let runtime: DeckRuntime;
   let stateGo: jasmine.Spy;
   let transitionCleanup: jasmine.Spy;
   let transitionOnBefore: jasmine.Spy;
 
   const PipelineConfigPage = (props: any) => (
     <UIRouterContext.Provider value={router}>
-      <PipelineConfigPageComponent
-        {...props}
-        router={router}
-        stateParams={$stateParams}
-        stateService={{ go: stateGo } as any}
-      />
+      <DeckRuntimeContext.Provider value={runtime}>
+        <PipelineConfigPageComponent
+          {...props}
+          router={router}
+          stateParams={$stateParams}
+          stateService={{ go: stateGo } as any}
+        />
+      </DeckRuntimeContext.Provider>
     </UIRouterContext.Provider>
   );
 
@@ -289,6 +294,7 @@ describe('PipelineConfigPage', () => {
   beforeEach(() => {
     $stateParams = {};
     router = new UIRouterReact();
+    runtime = createDeckRuntime(router);
     stateGo = jasmine.createSpy('stateGo');
     transitionCleanup = jasmine.createSpy('transitionCleanup');
     transitionOnBefore = spyOn(router.transitionService, 'onBefore').and.returnValue(transitionCleanup);
@@ -298,11 +304,12 @@ describe('PipelineConfigPage', () => {
     ViewStateCache.get('pipelineConfig').removeAll();
     spyOn(AccountService, 'applicationAccounts').and.callFake(() => Promise.resolve([account('aws')]) as any);
     spyOn(ApplicationReader, 'getApplicationPermissions').and.returnValue(Promise.resolve({}) as any);
-    spyOn(AngularServices.executionService, 'getExecutionsForConfigIds').and.returnValue(Promise.resolve([]));
+    spyOn(runtime.services.executionService, 'getExecutionsForConfigIds').and.returnValue(Promise.resolve([]));
   });
 
   afterEach(() => {
     router.dispose();
+    runtime.dispose();
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled };
     Registry.reinitialize();
     ViewStateCache.get('pipelineConfig').removeAll();
@@ -404,6 +411,45 @@ describe('PipelineConfigPage', () => {
 
     renderedOption.unmount();
     wrapper.unmount();
+  });
+
+  it('keeps focus on a stage field after the new-stage type selector initially autofocuses', async () => {
+    registerStageTypes();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Build', type: 'wait', isNew: true, requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const wrapper = mount(<PipelineConfigPage app={app} />, { attachTo: host });
+
+    try {
+      await flush();
+      wrapper.update();
+
+      const typeInput = host.querySelector('.pipeline-stage-type-select input[role="combobox"]') as HTMLInputElement;
+      const stageNameInput = wrapper
+        .find('.pipeline-stage-config-heading input[type="text"]')
+        .filterWhere((node) => node.prop('value') === 'Build');
+      const stageNameElement = stageNameInput.getDOMNode() as HTMLInputElement;
+
+      expect(document.activeElement).toBe(typeInput);
+
+      stageNameElement.focus();
+      expect(document.activeElement).toBe(stageNameElement);
+
+      await act(async () => {
+        stageNameInput.prop('onChange')({ target: { value: 'Updated Build' } } as any);
+        await flush();
+      });
+      wrapper.update();
+
+      expect(document.activeElement).toBe(stageNameElement);
+    } finally {
+      wrapper.unmount();
+      host.remove();
+    }
   });
 
   it('uses the custom multi selector for stage dependencies', async () => {
@@ -745,7 +791,7 @@ describe('PipelineConfigPage', () => {
     $stateParams.pipelineId = requested.id;
     spyOn(PipelineTemplateReader, 'getPipelinePlan').and.returnValue(Promise.resolve(originalPlan));
     const executionEnrichment = deferred<any[]>();
-    (AngularServices.executionService.getExecutionsForConfigIds as jasmine.Spy).and.returnValue(
+    (runtime.services.executionService.getExecutionsForConfigIds as jasmine.Spy).and.returnValue(
       executionEnrichment.promise,
     );
     const modalResult = deferred<{ plan: IPipeline; config: IPipeline }>();

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AngularServices } from '../../../angular/services';
+import { useDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
 import { HelpField } from '../../../help';
 import type { IInstanceTypeCategory, IPreferredInstanceType } from '../../../instance';
 import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
@@ -11,6 +11,7 @@ export interface IInstanceTypeSelectorProps {
 }
 
 export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
+  const { instanceTypeService } = useDeckRuntimeServices();
   const { command, onTypeChanged } = props;
   const [selectedInstanceProfile, setSelectedInstanceProfile] = React.useState<IInstanceTypeCategory | null>(null);
   const previousInstanceProfile = React.useRef<string>();
@@ -20,7 +21,7 @@ export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
   const updateFamilies = () => {
     const availableTypes =
       command.backingData && command.backingData.filtered ? command.backingData.filtered.instanceTypes || [] : [];
-    AngularServices.instanceTypeService.getCategories(command.selectedProvider).then((categories) => {
+    instanceTypeService.getCategories(command.selectedProvider).then((categories) => {
       const profile = categories.find((category) => category.type === command.viewState.instanceProfile);
       if (profile && !command.viewState.disableImageSelection) {
         setSelectedInstanceProfile({
@@ -62,11 +63,9 @@ export function InstanceTypeSelector(props: IInstanceTypeSelectorProps) {
     if (command.viewState.dirty && command.viewState.dirty.instanceType) {
       delete command.viewState.dirty.instanceType;
     }
-    AngularServices.instanceTypeService
-      .getInstanceTypeDetails(command.selectedProvider, type.name)
-      .then((instanceTypeDetails) => {
-        command.viewState.instanceTypeDetails = instanceTypeDetails;
-      });
+    instanceTypeService.getInstanceTypeDetails(command.selectedProvider, type.name).then((instanceTypeDetails) => {
+      command.viewState.instanceTypeDetails = instanceTypeDetails;
+    });
     onTypeChanged && onTypeChanged(type.name);
   };
 

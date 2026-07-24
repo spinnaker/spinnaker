@@ -8,7 +8,13 @@ import type {
   ISecurityGroupDetail,
   SecurityGroupReader,
 } from '@spinnaker/core';
-import { AccountTag, AngularServices, CollapsibleSection, ConfirmationModalService, withRouter } from '@spinnaker/core';
+import {
+  AccountTag,
+  CollapsibleSection,
+  ConfirmationModalService,
+  DeckRuntimeContext,
+  withRouter,
+} from '@spinnaker/core';
 
 import { AzureSecurityGroupModal } from '../configure/AzureSecurityGroupModal';
 import { AzureSecurityGroupWriter } from '../securityGroup.write.service';
@@ -41,6 +47,9 @@ export class AzureSecurityGroupDetailsComponent extends React.Component<
   IAzureSecurityGroupDetailsProps & IRouterInjectedProps,
   IAzureSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IAzureSecurityGroupDetailsState = { loading: true };
 
   private isUnmounted = false;
@@ -82,7 +91,7 @@ export class AzureSecurityGroupDetailsComponent extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private loadSecurityGroup = (): void => {
