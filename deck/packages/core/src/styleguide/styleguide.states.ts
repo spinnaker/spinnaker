@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { StyleguideRoute } from './StyleguideRoute';
 import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState } from '../navigation/state.provider';
@@ -23,7 +21,5 @@ export function getStyleguideState(): INestedState {
     },
   };
 }
-
-module(STYLEGUIDE_STATES, []);
 
 registerRootState((stateConfigProvider) => stateConfigProvider.addToRootState(getStyleguideState()));

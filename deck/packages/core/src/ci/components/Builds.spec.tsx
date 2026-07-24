@@ -1,12 +1,9 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
 import { ApplicationDataSource } from '../../application/service/applicationDataSource';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { REACT_MODULE } from '../../reactShims';
 import { Builds } from './Builds';
 import type { ICiBuild } from '../domain';
 
@@ -29,12 +26,13 @@ describe('Builds', () => {
     url: 'https://example.test/build/1',
   } as unknown) as ICiBuild;
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-    }),
-  );
+  beforeEach(() => {
+    $uiRouter = new UIRouterReact();
+    $uiRouter.plugin(servicesPlugin);
+    $uiRouter.plugin(hashLocationPlugin);
+  });
+
+  afterEach(() => $uiRouter.dispose());
 
   it('renders loaded builds inside a single page wrapper', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(

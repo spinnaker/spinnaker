@@ -1,7 +1,5 @@
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import type { StateService } from '@uirouter/core';
 import type { IQService, ITimeoutService } from 'angular';
-import { module } from 'angular';
 import { get, identity, pickBy, uniq } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
@@ -17,7 +15,6 @@ import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import { ExecutionState } from '../../state';
 import { JsonUtils } from '../../utils';
-import { DebugWindow } from '../../utils/consoleDebug';
 import type { IRetryablePromise } from '../../utils/retryablePromise';
 import { retryablePromise } from '../../utils/retryablePromise';
 
@@ -555,11 +552,3 @@ export class ExecutionService {
 }
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
-module(EXECUTION_SERVICE, [UIROUTER_ANGULARJS]).factory('executionService', [
-  '$q',
-  '$state',
-  '$timeout',
-  ($q: IQService, $state: StateService, $timeout: ITimeoutService) => new ExecutionService($q, $state, $timeout),
-]);
-
-DebugWindow.addInjectable('executionService');

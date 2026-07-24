@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { ITaskStep } from '../domain';
 
 export function displayableTasks(input: ITaskStep[]): ITaskStep[] {
@@ -17,4 +15,3 @@ export function displayableTaskFilter() {
 }
 
 export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.common.displayableTasks.filter';
-module(DISPLAYABLE_TASKS_FILTER, []).filter('displayableTasks', displayableTaskFilter);

@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -6,8 +5,6 @@ import React from 'react';
 import type { VariableType } from './PipelineTemplateReader';
 import { Variable } from './Variable';
 import type { IVariableError, IVariableProps } from './inputs/variableInput.service';
-import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
-import { REACT_MODULE } from '../../../reactShims/react.module';
 
 describe('Variable component', () => {
   const generateProps = (type: VariableType, value: any) => {
@@ -25,10 +22,6 @@ describe('Variable component', () => {
       onChange: (): void => null,
     };
   };
-
-  beforeEach(mock.module(PIPELINE_TEMPLATE_MODULE, REACT_MODULE));
-
-  beforeEach(mock.inject(() => {})); // Angular is lazy.
 
   describe('input fields', () => {
     let component: ReactWrapper<IVariableProps, null>;
