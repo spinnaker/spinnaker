@@ -1,5 +1,4 @@
 import type { UIRouter } from '@uirouter/core';
-import { module } from 'angular';
 
 import type { ApplicationStateProvider } from './application.state.provider';
 
@@ -30,11 +29,3 @@ export function resetApplicationInitializersForTests(): void {
 }
 
 export const APPLICATION_INITIALIZERS_MODULE = 'spinnaker.core.application.initializers';
-
-module(APPLICATION_INITIALIZERS_MODULE, []).run([
-  'applicationState',
-  '$uiRouter',
-  (applicationState: ApplicationStateProvider, uiRouter: UIRouter) => {
-    applyApplicationInitializers(applicationState, uiRouter);
-  },
-]);

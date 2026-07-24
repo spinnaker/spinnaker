@@ -1,5 +1,4 @@
 import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
 
 import type { Application, ApplicationStateProvider } from '../application';
 import { registerApplicationState } from '../application';
@@ -9,8 +8,6 @@ import { MultipleInstancesDetails } from './details/MultipleInstancesDetails';
 import { StandaloneInstanceDetails } from './details/StandaloneInstanceDetails';
 import type { INestedState } from '../navigation';
 import { registerRootState } from '../navigation/rootState.registration';
-
-export const INSTANCE_STATES = 'spinnaker.core.instance.states';
 
 export function getStandaloneInstanceState(): INestedState {
   return {
@@ -75,8 +72,6 @@ export function getMultipleInstancesState(): INestedState {
     },
   };
 }
-
-module(INSTANCE_STATES, []);
 
 registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
   const instanceDetails: INestedState = {

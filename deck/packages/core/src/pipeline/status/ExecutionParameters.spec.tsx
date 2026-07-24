@@ -1,17 +1,12 @@
-import { mock } from 'angular';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { IDisplayableParameter, IExecutionParametersProps } from './ExecutionParameters';
 import { ExecutionParameters } from './ExecutionParameters';
-import { REACT_MODULE } from '../../reactShims';
 
 describe('<ExecutionParameters/>', () => {
   let component: ShallowWrapper<IExecutionParametersProps>;
-
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject(() => {})); // Angular is lazy.
 
   it(`show only pin params, but there's no pinnedDisplayableParameters should return null`, function () {
     const parameters: IDisplayableParameter[] = [{ key: '1', value: 'a' }];

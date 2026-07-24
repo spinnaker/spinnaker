@@ -1,34 +1,29 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext, UIViewContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ViewStateCache } from '../cache';
-import { REACT_MODULE } from '../reactShims';
 import { getSelectedItemsPerPage, Tasks } from './Tasks';
 import type { ITask } from '../domain';
 
 describe('Tasks', () => {
   let $uiRouter: UIRouterReact;
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-      if (!$uiRouter.stateRegistry.get('tasks')) {
-        $uiRouter.stateRegistry.register({ name: 'tasks', url: '/tasks' } as any);
-      }
-      if (!$uiRouter.stateRegistry.get('tasks.taskDetails')) {
-        $uiRouter.stateRegistry.register({ name: 'tasks.taskDetails', url: '/:taskId' } as any);
-      }
-      spyOn($uiRouter.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
-      ViewStateCache.get('tasks').removeAll();
-    }),
-  );
+  beforeEach(() => {
+    $uiRouter = new UIRouterReact();
+    $uiRouter.plugin(servicesPlugin);
+    $uiRouter.plugin(hashLocationPlugin);
+    $uiRouter.stateRegistry.register({ name: 'tasks', url: '/tasks' } as any);
+    $uiRouter.stateRegistry.register({ name: 'tasks.taskDetails', url: '/:taskId' } as any);
+    spyOn($uiRouter.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
+    ViewStateCache.get('tasks').removeAll();
+  });
 
-  afterEach(() => ViewStateCache.get('tasks').removeAll());
+  afterEach(() => {
+    ViewStateCache.get('tasks').removeAll();
+    $uiRouter.dispose();
+  });
 
   it('updates the per-page count without reading from a pooled event', (done) => {
     const app = ApplicationModelBuilder.createApplicationForTests('app', {

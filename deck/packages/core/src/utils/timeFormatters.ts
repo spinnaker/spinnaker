@@ -1,9 +1,6 @@
-import { module } from 'angular';
 import { formatDistanceToNow } from 'date-fns';
 import { DateTime, Duration } from 'luxon';
 
-import { SystemTimezone } from './SystemTimezone';
-import { angularComponentFromReact } from '../angular/angularComponentFromReact';
 import { SETTINGS } from '../config/settings';
 
 // Luxon supports up to 100 million days after epoch start
@@ -88,9 +85,3 @@ export function timePickerTime(input: any) {
 }
 
 export const TIME_FORMATTERS = 'spinnaker.core.utils.timeFormatters';
-module(TIME_FORMATTERS, [])
-  .filter('timestamp', () => timestamp)
-  .filter('relativeTime', () => relativeTime)
-  .filter('duration', () => duration)
-  .filter('timePickerTime', () => timePickerTime)
-  .component('systemTimezone', angularComponentFromReact(SystemTimezone, 'systemTimezone'));

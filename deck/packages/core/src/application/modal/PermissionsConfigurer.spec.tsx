@@ -1,26 +1,20 @@
-import { mock } from 'angular';
 import { mount } from 'enzyme';
 import React from 'react';
 
 import type { IPermissions, IPermissionsConfigurerProps } from './PermissionsConfigurer';
 import { PermissionsConfigurer } from './PermissionsConfigurer';
 import { AuthenticationService } from '../../authentication';
-import { REACT_MODULE } from '../../reactShims';
 
 describe('PermissionsConfigurer', () => {
   const createComponent = (props: IPermissionsConfigurerProps) => {
     return mount(<PermissionsConfigurer {...props} />).instance() as PermissionsConfigurer;
   };
 
-  beforeEach(mock.module(REACT_MODULE));
-
-  beforeEach(
-    mock.inject(() => {
-      spyOn(AuthenticationService, 'getAuthenticatedUser').and.callFake(() => {
-        return { roles: ['groupA', 'groupB', 'groupC'] } as any;
-      });
-    }),
-  );
+  beforeEach(() => {
+    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({
+      roles: ['groupA', 'groupB', 'groupC'],
+    } as any);
+  });
 
   it('converts legacy requiredGroupMembership list to permissions object', () => {
     let permissions: IPermissions;

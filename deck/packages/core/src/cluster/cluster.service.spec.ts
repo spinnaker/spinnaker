@@ -1,22 +1,18 @@
-import { mock } from 'angular';
 import { find } from 'lodash';
 
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { ClusterService, CLUSTER_SERVICE } from './cluster.service';
-import type { ProviderServiceDelegate } from '../cloudProvider';
+import { ClusterService } from './cluster.service';
+import { DirectProviderServiceDelegate } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import type { IInstanceCounts, IServerGroup } from '../domain';
-import { REACT_MODULE } from '../reactShims';
 import * as State from '../state';
 import { nativePromiseService } from '../utils/nativePromiseService';
 
 const ClusterState = State.ClusterState;
 
 describe('Service: Cluster', function () {
-  beforeEach(mock.module(CLUSTER_SERVICE, REACT_MODULE));
-
   let clusterService: ClusterService;
   let serverGroupTransformer: any;
   let application: Application;
@@ -30,26 +26,30 @@ describe('Service: Cluster', function () {
     };
   }
 
-  beforeEach(
-    mock.inject((_serverGroupTransformer_: any, _providerServiceDelegate_: ProviderServiceDelegate) => {
-      serverGroupTransformer = _serverGroupTransformer_;
-      clusterService = new ClusterService(nativePromiseService, serverGroupTransformer, _providerServiceDelegate_);
+  beforeEach(() => {
+    serverGroupTransformer = {
+      normalizeServerGroup: (serverGroup: IServerGroup) => Promise.resolve(serverGroup),
+    };
+    clusterService = new ClusterService(
+      nativePromiseService,
+      serverGroupTransformer,
+      new DirectProviderServiceDelegate(nativePromiseService) as any,
+    );
 
-      application = ApplicationModelBuilder.createApplicationForTests(
-        'app',
-        { key: 'serverGroups', defaultData: [] },
-        { key: 'runningExecutions', defaultData: [] },
-        { key: 'runningTasks', defaultData: [] },
-      );
-      application.getDataSource('serverGroups').data = [
-        { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
-        { name: 'the-target', account: 'test', region: 'not-the-target' },
-        { name: 'the-target', account: 'test', region: 'us-east-1' },
-        { name: 'not-the-target', account: 'test', region: 'us-east-1' },
-        { name: 'the-source', account: 'test', region: 'us-east-1' },
-      ];
-    }),
-  );
+    application = ApplicationModelBuilder.createApplicationForTests(
+      'app',
+      { key: 'serverGroups', defaultData: [] },
+      { key: 'runningExecutions', defaultData: [] },
+      { key: 'runningTasks', defaultData: [] },
+    );
+    application.getDataSource('serverGroups').data = [
+      { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
+      { name: 'the-target', account: 'test', region: 'not-the-target' },
+      { name: 'the-target', account: 'test', region: 'us-east-1' },
+      { name: 'not-the-target', account: 'test', region: 'us-east-1' },
+      { name: 'the-source', account: 'test', region: 'us-east-1' },
+    ];
+  });
 
   beforeEach(() => State.initialize());
 
