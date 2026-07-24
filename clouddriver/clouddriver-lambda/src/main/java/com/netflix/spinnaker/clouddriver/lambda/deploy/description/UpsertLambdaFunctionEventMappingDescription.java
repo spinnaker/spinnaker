@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
-import com.amazonaws.services.lambda.model.DestinationConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import software.amazon.awssdk.services.lambda.model.DestinationConfig;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

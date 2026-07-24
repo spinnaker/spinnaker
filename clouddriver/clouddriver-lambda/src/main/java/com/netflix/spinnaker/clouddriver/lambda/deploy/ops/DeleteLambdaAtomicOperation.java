@@ -16,29 +16,29 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.DeleteFunctionRequest;
-import com.amazonaws.services.lambda.model.DeleteFunctionResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeleteLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionRequest;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionResponse;
 
 public class DeleteLambdaAtomicOperation
-    extends AbstractLambdaAtomicOperation<DeleteLambdaFunctionDescription, DeleteFunctionResult>
-    implements AtomicOperation<DeleteFunctionResult> {
+    extends AbstractLambdaAtomicOperation<DeleteLambdaFunctionDescription, DeleteFunctionResponse>
+    implements AtomicOperation<DeleteFunctionResponse> {
 
   public DeleteLambdaAtomicOperation(DeleteLambdaFunctionDescription description) {
     super(description, "DELETE_LAMBDA_FUNCTION_CODE");
   }
 
   @Override
-  public DeleteFunctionResult operate(List priorOutputs) {
+  public DeleteFunctionResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing deletion of AWS Lambda Function Operation...");
     return deleteFunctionResult();
   }
 
-  private DeleteFunctionResult deleteFunctionResult() {
+  private DeleteFunctionResponse deleteFunctionResult() {
     String functionName = description.getFunctionName();
     String region = description.getRegion();
     String account = description.getAccount();
@@ -46,15 +46,17 @@ public class DeleteLambdaAtomicOperation
     LambdaFunction cache =
         (LambdaFunction) lambdaFunctionProvider.getFunction(account, region, functionName);
 
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
 
     if (cache != null && client != null) {
-      DeleteFunctionRequest request =
-          new DeleteFunctionRequest().withFunctionName(cache.getFunctionArn());
+      DeleteFunctionRequest.Builder requestBuilder =
+          DeleteFunctionRequest.builder().functionName(cache.getFunctionArn());
 
-      request.withQualifier(description.getQualifier());
+      if (description.getQualifier() != null) {
+        requestBuilder.qualifier(description.getQualifier());
+      }
 
-      DeleteFunctionResult result = client.deleteFunction(request);
+      DeleteFunctionResponse result = client.deleteFunction(requestBuilder.build());
 
       updateTaskStatus("Finished deletion of AWS Lambda Function  Operation...");
 

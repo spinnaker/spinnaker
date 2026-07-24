@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.PublishVersionRequest;
-import com.amazonaws.services.lambda.model.PublishVersionResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.PublishLambdaFunctionVersionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.PublishVersionRequest;
+import software.amazon.awssdk.services.lambda.model.PublishVersionResponse;
 
 public class PublishLambdaAtomicOperationTest implements LambdaTestingDefaults {
 
@@ -47,7 +47,7 @@ public class PublishLambdaAtomicOperationTest implements LambdaTestingDefaults {
         spy(new PublishLambdaAtomicOperation(publishDesc));
     doNothing().when(publishOperation).updateTaskStatus(anyString());
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
 
     ReflectionTestUtils.setField(
@@ -59,15 +59,17 @@ public class PublishLambdaAtomicOperationTest implements LambdaTestingDefaults {
         .when(lambdaFunctionProvider)
         .getFunction(anyString(), anyString(), anyString());
 
-    PublishVersionRequest testRequest = new PublishVersionRequest();
-    testRequest.setFunctionName(fName);
-    testRequest.setRevisionId(revisionId);
-    testRequest.setDescription(revisionDesc);
+    PublishVersionRequest testRequest =
+        PublishVersionRequest.builder()
+            .functionName(fName)
+            .revisionId(revisionId)
+            .description(revisionDesc)
+            .build();
 
-    PublishVersionResult mockPublishResult = new PublishVersionResult();
+    PublishVersionResponse mockPublishResult = PublishVersionResponse.builder().build();
     doReturn(mockPublishResult).when(lambdaClient).publishVersion(testRequest);
 
-    PublishVersionResult output = publishOperation.operate(null);
+    PublishVersionResponse output = publishOperation.operate(null);
     verify(publishOperation, atLeastOnce()).updateTaskStatus(anyString());
     assertThat(output).isEqualTo(mockPublishResult);
   }

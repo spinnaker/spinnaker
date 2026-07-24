@@ -36,6 +36,7 @@ dependencies {
   api "software.amazon.awssdk:ecr"
   api "software.amazon.awssdk:ecs"
   api "software.amazon.awssdk:iam"
+  api "software.amazon.awssdk:lambda"
   api "software.amazon.awssdk:secretsmanager"
   api "software.amazon.awssdk:servicediscovery"
   implementation "software.amazon.awssdk:sts"

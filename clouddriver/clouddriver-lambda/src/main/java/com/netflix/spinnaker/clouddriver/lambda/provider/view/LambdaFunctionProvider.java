@@ -19,11 +19,11 @@ package com.netflix.spinnaker.clouddriver.lambda.provider.view;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_APPLICATIONS;
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 
-import com.amazonaws.services.lambda.model.FunctionConfiguration;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.clouddriver.lambda.cache.Keys;
 import com.netflix.spinnaker.clouddriver.lambda.cache.client.LambdaCacheClient;
+import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.model.Function;
 import com.netflix.spinnaker.clouddriver.model.FunctionProvider;
 import java.util.Collection;
@@ -77,8 +77,8 @@ public class LambdaFunctionProvider implements FunctionProvider {
       }
     } else {
       getAllFunctions().stream()
-          .filter(FunctionConfiguration.class::isInstance)
-          .map(f -> (FunctionConfiguration) f)
+          .filter(LambdaFunction.class::isInstance)
+          .map(f -> (LambdaFunction) f)
           .filter(f -> f.getFunctionName() != null)
           .filter(f -> f.getFunctionName().startsWith(applicationName))
           .forEach(f -> appFunctions.add((Function) f));

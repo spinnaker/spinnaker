@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.model.AliasConfiguration;
-import com.amazonaws.services.lambda.model.EventSourceMappingConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface LambdaTestingDefaults {
 
@@ -48,22 +48,22 @@ public interface LambdaTestingDefaults {
     return cachedFunction;
   }
 
-  default List<AliasConfiguration> getMockAliases() {
-    AliasConfiguration es = new AliasConfiguration();
-    es.setAliasArn(aliasArn);
-    es.setDescription(aliasDesc);
-    es.setName(aliasName);
-    es.setRevisionId(revisionId);
-    List<AliasConfiguration> le = new ArrayList();
-    le.add(es);
-    return le;
+  default List<Map<String, Object>> getMockAliases() {
+    Map<String, Object> alias = new HashMap<>();
+    alias.put("aliasArn", aliasArn);
+    alias.put("description", aliasDesc);
+    alias.put("name", aliasName);
+    alias.put("revisionId", revisionId);
+    List<Map<String, Object>> aliases = new ArrayList<>();
+    aliases.add(alias);
+    return aliases;
   }
 
-  default List<EventSourceMappingConfiguration> getMockEventSourceList() {
-    EventSourceMappingConfiguration es = new EventSourceMappingConfiguration();
-    es.setUUID(eventUuid);
-    es.setEventSourceArn(eventArn);
-    List<EventSourceMappingConfiguration> le = new ArrayList();
+  default List<Map<String, Object>> getMockEventSourceList() {
+    Map<String, Object> es = new HashMap<>();
+    es.put("uuid", eventUuid);
+    es.put("eventSourceArn", eventArn);
+    List<Map<String, Object>> le = new ArrayList<>();
     le.add(es);
     return le;
   }

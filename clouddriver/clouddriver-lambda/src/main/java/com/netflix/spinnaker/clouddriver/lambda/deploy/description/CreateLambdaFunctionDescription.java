@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
 
-import com.amazonaws.services.lambda.model.DeadLetterConfig;
-import com.amazonaws.services.lambda.model.TracingConfig;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaResource;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import software.amazon.awssdk.services.lambda.model.DeadLetterConfig;
+import software.amazon.awssdk.services.lambda.model.TracingConfig;
 
 @Data
 @EqualsAndHashCode(callSuper = false)

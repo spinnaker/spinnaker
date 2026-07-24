@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Amazon.com, Inc. or its affiliates.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -23,13 +23,6 @@ import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsReques
 import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsResult;
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription;
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.AddPermissionRequest;
-import com.amazonaws.services.lambda.model.CreateFunctionRequest;
-import com.amazonaws.services.lambda.model.CreateFunctionResult;
-import com.amazonaws.services.lambda.model.Environment;
-import com.amazonaws.services.lambda.model.FunctionCode;
-import com.amazonaws.services.lambda.model.VpcConfig;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.CreateLambdaFunctionDescription;
 import com.netflix.spinnaker.clouddriver.lambda.names.LambdaTagNamer;
@@ -40,10 +33,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.AddPermissionRequest;
+import software.amazon.awssdk.services.lambda.model.CreateFunctionRequest;
+import software.amazon.awssdk.services.lambda.model.CreateFunctionResponse;
+import software.amazon.awssdk.services.lambda.model.Environment;
+import software.amazon.awssdk.services.lambda.model.FunctionCode;
+import software.amazon.awssdk.services.lambda.model.VpcConfig;
 
 public class CreateLambdaAtomicOperation
-    extends AbstractLambdaAtomicOperation<CreateLambdaFunctionDescription, CreateFunctionResult>
-    implements AtomicOperation<CreateFunctionResult> {
+    extends AbstractLambdaAtomicOperation<CreateLambdaFunctionDescription, CreateFunctionResponse>
+    implements AtomicOperation<CreateFunctionResponse> {
 
   private final LambdaConfiguration config;
 
@@ -54,16 +54,17 @@ public class CreateLambdaAtomicOperation
   }
 
   @Override
-  public CreateFunctionResult operate(List priorOutputs) {
+  public CreateFunctionResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Creation of AWS Lambda Function Operation...");
     return createFunction();
   }
 
-  private CreateFunctionResult createFunction() {
+  private CreateFunctionResponse createFunction() {
     FunctionCode code =
-        new FunctionCode()
-            .withS3Bucket(description.getProperty("s3bucket").toString())
-            .withS3Key(description.getProperty("s3key").toString());
+        FunctionCode.builder()
+            .s3Bucket(description.getS3bucket())
+            .s3Key(description.getS3key())
+            .build();
 
     LambdaTagNamer.applyIfNeeded(description, description.getAppName(), config.isSetMonikerTags());
 
@@ -75,48 +76,52 @@ public class CreateLambdaAtomicOperation
       }
     }
 
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
 
-    CreateFunctionRequest request = new CreateFunctionRequest();
-    request.setFunctionName(
-        combineAppDetail(description.getAppName(), description.getFunctionName()));
-    request.setDescription(description.getDescription());
-    request.setHandler(description.getHandler());
-    request.setMemorySize(description.getMemorySize());
-    request.setPublish(description.getPublish());
-    request.setRole(description.getRole());
-    request.setRuntime(description.getRuntime());
-    request.setTimeout(description.getTimeout());
-    request.setLayers(description.getLayers());
-
-    request.setCode(code);
-    request.setTags(objTag);
+    CreateFunctionRequest.Builder requestBuilder =
+        CreateFunctionRequest.builder()
+            .functionName(combineAppDetail(description.getAppName(), description.getFunctionName()))
+            .description(description.getDescription())
+            .handler(description.getHandler())
+            .memorySize(description.getMemorySize())
+            .publish(description.getPublish())
+            .role(description.getRole())
+            .runtime(description.getRuntime())
+            .timeout(description.getTimeout())
+            .layers(description.getLayers())
+            .code(code)
+            .tags(objTag);
 
     Map<String, String> envVariables = description.getEnvVariables();
     if (null != envVariables) {
-      request.setEnvironment(new Environment().withVariables(envVariables));
+      requestBuilder.environment(Environment.builder().variables(envVariables).build());
     }
 
     if (null != description.getSecurityGroupIds() || null != description.getSubnetIds()) {
-      request.setVpcConfig(
-          new VpcConfig()
-              .withSecurityGroupIds(description.getSecurityGroupIds())
-              .withSubnetIds(description.getSubnetIds()));
+      requestBuilder.vpcConfig(
+          VpcConfig.builder()
+              .securityGroupIds(description.getSecurityGroupIds())
+              .subnetIds(description.getSubnetIds())
+              .build());
     }
-    if (!description.getDeadLetterConfig().getTargetArn().isEmpty()) {
-      request.setDeadLetterConfig(description.getDeadLetterConfig());
+    if (description.getDeadLetterConfig() != null
+        && description.getDeadLetterConfig().targetArn() != null
+        && !description.getDeadLetterConfig().targetArn().isEmpty()) {
+      requestBuilder.deadLetterConfig(description.getDeadLetterConfig());
     }
-    request.setKMSKeyArn(description.getKmskeyArn());
-    request.setTracingConfig(description.getTracingConfig());
+    requestBuilder.kmsKeyArn(description.getKmskeyArn());
+    if (description.getTracingConfig() != null && description.getTracingConfig().mode() != null) {
+      requestBuilder.tracingConfig(description.getTracingConfig());
+    }
 
-    CreateFunctionResult result = client.createFunction(request);
+    CreateFunctionResponse result = client.createFunction(requestBuilder.build());
     updateTaskStatus("Finished Creation of AWS Lambda Function Operation...");
     if (description.getTargetGroups() != null && !description.getTargetGroups().isEmpty()) {
 
       updateTaskStatus(
           String.format(
               "Started registering lambda to targetGroup (%s)", description.getTargetGroups()));
-      String functionArn = result.getFunctionArn();
+      String functionArn = result.functionArn();
       registerTargetGroup(functionArn, client);
     }
 
@@ -138,18 +143,19 @@ public class CreateLambdaAtomicOperation
     }
   }
 
-  private RegisterTargetsResult registerTargetGroup(String functionArn, AWSLambda lambdaClient) {
+  private RegisterTargetsResult registerTargetGroup(String functionArn, LambdaClient lambdaClient) {
 
     AmazonElasticLoadBalancing loadBalancingV2 = getAmazonElasticLoadBalancingClient();
     TargetGroup targetGroup = retrieveTargetGroup(loadBalancingV2);
 
     AddPermissionRequest addPermissionRequest =
-        new AddPermissionRequest()
-            .withFunctionName(functionArn)
-            .withAction("lambda:InvokeFunction")
-            .withSourceArn(targetGroup.getTargetGroupArn())
-            .withPrincipal("elasticloadbalancing.amazonaws.com")
-            .withStatementId(UUID.randomUUID().toString());
+        AddPermissionRequest.builder()
+            .functionName(functionArn)
+            .action("lambda:InvokeFunction")
+            .sourceArn(targetGroup.getTargetGroupArn())
+            .principal("elasticloadbalancing.amazonaws.com")
+            .statementId(UUID.randomUUID().toString())
+            .build();
 
     lambdaClient.addPermission(addPermissionRequest);
 

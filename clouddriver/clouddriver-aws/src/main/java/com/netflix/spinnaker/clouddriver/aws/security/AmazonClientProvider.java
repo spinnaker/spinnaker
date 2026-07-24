@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security;
 
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.retry.PredefinedRetryPolicies;
@@ -39,8 +38,6 @@ import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClientBuilder;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -78,6 +75,7 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
 import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 
@@ -441,64 +439,6 @@ public class AmazonClientProvider {
     // AmazonIdentityManagement.class, accountName, awsCredentialsProvider, region);
   }
 
-  //  public AWSLambda getAmazonLambda(NetflixAmazonCredentials amazonCredentials, String region) {
-  //    return proxyHandlerBuilder.getProxyHandler(
-  //        AWSLambda.class, AWSLambdaClientBuilder.class, amazonCredentials, region);
-  //  }
-
-  /**
-   * It's VERY important that this be called (currently) with only one standardized
-   * ClientConfiguration. That initial client config will be used for the cache for ALL requests
-   * there-after, despite any changes to that clientConfiguration. As such it's recommend to make
-   * use of the AbstractLambdaProvider class which loads the config parameters and timeouts.
-   *
-   * @param amazonCredentials
-   * @param clientConfiguration
-   * @param region
-   * @return
-   */
-  public AWSLambda getAmazonLambda(
-      NetflixAmazonCredentials amazonCredentials,
-      ClientConfiguration clientConfiguration,
-      String region) {
-    return proxyHandlerBuilder.getProxyHandler(
-        AWSLambda.class,
-        AWSLambdaClientBuilder.class,
-        amazonCredentials,
-        region,
-        clientConfiguration);
-  }
-
-  //  public AWSLambda getAmazonLambda(
-  //      String accountName,
-  //      ClientConfiguration clientConfiguration,
-  //      AWSCredentialsProvider awsCredentialsProvider,
-  //      String region) {
-  //    return awsSdkClientSupplier.getClient(
-  //        AWSLambdaClientBuilder.class,
-  //        AWSLambda.class,
-  //        accountName,
-  //        awsCredentialsProvider,
-  //        region,
-  //        clientConfiguration);
-  //  }
-
-  //  public AWSLambdaAsync getAmazonLambdaAsync(
-  //      NetflixAmazonCredentials amazonCredentials, String region) {
-  //    return proxyHandlerBuilder.getProxyHandler(
-  //        AWSLambdaAsync.class, AWSLambdaAsyncClientBuilder.class, amazonCredentials, region);
-  //  }
-  //
-  //  public AWSLambdaAsync getAmazonLambdaAsync(
-  //      String accountName, AWSCredentialsProvider awsCredentialsProvider, String region) {
-  //    return awsSdkClientSupplier.getClient(
-  //        AWSLambdaAsyncClientBuilder.class,
-  //        AWSLambdaAsync.class,
-  //        accountName,
-  //        awsCredentialsProvider,
-  //        region);
-  //  }
-
   public AmazonS3 getAmazonS3(NetflixAmazonCredentials amazonCredentials, String region) {
     return proxyHandlerBuilder.getProxyHandler(
         AmazonS3.class, AmazonS3ClientBuilder.class, amazonCredentials, region, true);
@@ -821,6 +761,34 @@ public class AmazonClientProvider {
         amazonCredentials.getV2CredentialsProvider(),
         region,
         amazonCredentials.getName());
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link LambdaClient} for the given account and region.
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public LambdaClient getLambdaV2(NetflixAmazonCredentials amazonCredentials, String region) {
+    return getLambdaV2(amazonCredentials, region, null);
+  }
+
+  /**
+   * Returns an AWS SDK v2 {@link LambdaClient} for the given account and region, applying
+   * per-service tuning (retry count, socket timeout, TCP keep-alive).
+   *
+   * <p>No {@code skipEdda} parameter: Edda interception is v1-only (see {@link #getAmazonEcsV2}).
+   */
+  public LambdaClient getLambdaV2(
+      NetflixAmazonCredentials amazonCredentials,
+      String region,
+      AwsSdkV2ClientConfiguration clientConfiguration) {
+    return awsSdkV2ClientSupplier.getClient(
+        LambdaClient::builder,
+        LambdaClient.class,
+        amazonCredentials.getV2CredentialsProvider(),
+        region,
+        amazonCredentials.getName(),
+        clientConfiguration);
   }
 
   /**
