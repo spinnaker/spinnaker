@@ -1,8 +1,5 @@
-import type { IComponentOptions } from 'angular';
-import { module } from 'angular';
 import React from 'react';
 
-import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { IStageConstant } from './stages/stageConstants';
 
 export interface ITargetSelectProps {
@@ -80,12 +77,3 @@ export function TargetSelect(props: ITargetSelectProps) {
       : null,
   );
 }
-
-export const targetSelectComponent: IComponentOptions = angularComponentFromReact(TargetSelect, 'targetSelect', [
-  'options',
-  'model',
-  'onChange',
-]);
-
-export const TARGET_SELECT_COMPONENT = 'spinnaker.pipeline.targetSelect.component';
-module(TARGET_SELECT_COMPONENT, []).component('targetSelect', targetSelectComponent);

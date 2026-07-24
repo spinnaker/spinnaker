@@ -7,6 +7,8 @@ import { TaskMonitorError } from './TaskMonitorError';
 import { TaskMonitorStatus } from './TaskMonitorStatus';
 import { useForceUpdate } from '../../presentation/hooks';
 
+import './taskMonitor.directive.less';
+
 export interface ITaskMonitorProps {
   monitor: TaskMonitor;
 }

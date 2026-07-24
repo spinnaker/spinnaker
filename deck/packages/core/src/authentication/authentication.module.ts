@@ -1,11 +1,7 @@
-import { module } from 'angular';
-
 import { AuthenticationInitializer } from './AuthenticationInitializer';
-import { AUTHENTICATION_INTERCEPTOR_SERVICE } from './authentication.interceptor.service';
 import { SETTINGS } from '../config/settings';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
-import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
 
@@ -44,26 +40,3 @@ export function resetAuthenticationRuntime(): void {
   authenticationScheduler?.unsubscribe();
   authenticationScheduler = null;
 }
-
-module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE])
-  .config([
-    '$httpProvider',
-    function ($httpProvider: ng.IHttpProvider) {
-      $httpProvider.interceptors.push('gateRequestInterceptor');
-    },
-  ])
-  .factory('gateRequestInterceptor', function () {
-    return {
-      request(config: ng.IRequestConfig) {
-        if (config.url.indexOf(SETTINGS.gateUrl) === 0) {
-          config.withCredentials = true;
-        }
-        return config;
-      },
-    };
-  })
-  .run(function () {
-    void initializeAuthentication().catch((error) => {
-      diagnosticLogger.error('Failed to initialize authentication', error);
-    });
-  });

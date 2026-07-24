@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { module } from 'angular';
-
 import { GlobalBannerAdminPageContainer } from './GlobalBannerAdminPageContainer';
 import { registerRootState } from '../../navigation/rootState.registration';
 import type { INestedState } from '../../navigation/state.provider';
-
-export const GLOBALBANNER_STATES = 'spinnaker.core.globalbanner.states';
-
-module(GLOBALBANNER_STATES, []);
 
 registerRootState((stateConfigProvider) => {
   const globalBanners: INestedState = {

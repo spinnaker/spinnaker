@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
@@ -7,16 +6,12 @@ import { Artifact } from './Artifact';
 import type { IResolvedArtifactListProps } from './ResolvedArtifactList';
 import { ResolvedArtifactList } from './ResolvedArtifactList';
 import type { IArtifact, IExpectedArtifact } from '../../domain';
-import { REACT_MODULE } from '../../reactShims';
 
 const ARTIFACT_TYPE = 'docker/image';
 const ARTIFACT_NAME = 'example.com/container';
 
 describe('<ResolvedArtifactList/>', () => {
   let component: ShallowWrapper<IResolvedArtifactListProps>;
-
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject(() => {})); // Angular is lazy.
 
   it('renders null when null artifacts are passed in', function () {
     const artifacts: IArtifact[] = null;

@@ -21,7 +21,7 @@ describe('StandaloneInstanceDetails', () => {
 
   it('renders provider React instance details when configured', () => {
     const ReactInstanceDetails = () => <div className="react-instance-details" />;
-    spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
+    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
       key === 'instance.details' ? ReactInstanceDetails : null,
     );
 
@@ -29,28 +29,15 @@ describe('StandaloneInstanceDetails', () => {
 
     expect(component.find(ReactInstanceDetails).prop('app')).toBe(app);
     expect(component.find(ReactInstanceDetails).prop('instance')).toBe(instance);
-  });
-
-  it('renders a migration-required message for legacy template/controller-only instance details', () => {
-    spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
-      const values: { [key: string]: any } = {
-        'instance.details': null,
-        'instance.detailsController': 'legacyInstanceDetailsCtrl',
-        'instance.detailsTemplateUrl': 'legacy-instance-details.html',
-      };
-      return values[key] || null;
-    });
-
-    const component = shallow(<StandaloneInstanceDetails app={app} instance={instance} />);
-
-    expect(component.dive().text()).toContain('Instance details for kubernetes must be migrated to React.');
+    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'instance.details']]);
   });
 
   it('renders nothing when provider instance details config is missing', () => {
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
 
     const component = shallow(<StandaloneInstanceDetails app={app} instance={instance} />);
 
     expect(component.isEmptyRender()).toBe(true);
+    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'instance.details']]);
   });
 });

@@ -41,19 +41,5 @@ export function StandaloneSecurityGroupDetails(props: IStandaloneSecurityGroupDe
     );
   }
 
-  const templateUrl = CloudProviderRegistry.getValue(provider, 'securityGroup.detailsTemplateUrl');
-  const controller = CloudProviderRegistry.getValue(provider, 'securityGroup.detailsController');
-
-  if (templateUrl && controller) {
-    return (
-      <StandaloneDetailsLayout>
-        <div className="alert alert-warning">
-          Security group details for {provider} must be migrated to React. AngularJS templates/controllers are no longer
-          supported.
-        </div>
-      </StandaloneDetailsLayout>
-    );
-  }
-
   return null;
 }

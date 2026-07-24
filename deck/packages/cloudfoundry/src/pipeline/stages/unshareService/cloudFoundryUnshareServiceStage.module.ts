@@ -11,7 +11,6 @@ Registry.pipeline.registerStage({
   key: 'unshareService',
   cloudProvider: 'cloudfoundry',
   component: CloudFoundryUnshareServiceStageConfig,
-  controller: 'cfUnshareServiceStageCtrl',
   executionDetailsSections: [CloudFoundryUnshareServiceExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
   validators: [
