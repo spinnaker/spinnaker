@@ -1,4 +1,10 @@
-import type { Application, IMultiInstanceGroup, IMultiInstanceJob, ITask } from '@spinnaker/core';
+import type {
+  Application,
+  DirectProviderServiceDelegate,
+  IMultiInstanceGroup,
+  IMultiInstanceJob,
+  ITask,
+} from '@spinnaker/core';
 import { InstanceWriter, TaskExecutor } from '@spinnaker/core';
 import type { IAmazonInstance } from '../domain';
 
@@ -15,9 +21,11 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ): PromiseLike<ITask> {
     const jobs = super.buildMultiInstanceJob(
       instanceGroups,
+      providerServiceDelegate,
       'deregisterInstancesFromLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
@@ -51,9 +59,11 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
+    providerServiceDelegate: DirectProviderServiceDelegate,
   ) {
     const jobs = super.buildMultiInstanceJob(
       instanceGroups,
+      providerServiceDelegate,
       'registerInstancesWithLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));

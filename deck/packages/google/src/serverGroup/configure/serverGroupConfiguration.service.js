@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { AccountService, AngularServices, InfrastructureCaches, NetworkReader, SubnetReader } from '@spinnaker/core';
+import { AccountService, InfrastructureCaches, NetworkReader, SubnetReader } from '@spinnaker/core';
 
 import { GCEProviderSettings } from '../../gce.settings';
 import { GceHealthCheckReader } from '../../healthCheck/healthCheck.read.service';
@@ -19,10 +19,12 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
   'spinnaker.serverGroup.configure.gce.configuration.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
 export class GceServerGroupConfigurationService {
-  constructor($q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) }) {
-    const securityGroupReader = () => AngularServices.securityGroupReader;
+  constructor(
+    $q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) },
+    securityGroupReader,
+    loadBalancerReader,
+  ) {
     const gceInstanceTypeService = new GceInstanceTypeService($q);
-    const loadBalancerReader = () => AngularServices.loadBalancerReader;
     const gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService();
     const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
     const gceHealthCheckReader = new GceHealthCheckReader();
@@ -59,10 +61,10 @@ export class GceServerGroupConfigurationService {
       return $q
         .all([
           AccountService.getCredentialsKeyedByAccount('gce'),
-          securityGroupReader().getAllSecurityGroups(),
+          securityGroupReader.getAllSecurityGroups(),
           NetworkReader.listNetworksByProvider('gce'),
           SubnetReader.listSubnetsByProvider('gce'),
-          loadBalancerReader().listLoadBalancers('gce'),
+          loadBalancerReader.listLoadBalancers('gce'),
           loadAllImages(command.credentials),
           gceInstanceTypeService.getAllTypesByRegion(),
           $q.when(_.cloneDeep(persistentDiskTypes)),

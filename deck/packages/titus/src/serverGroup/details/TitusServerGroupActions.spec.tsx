@@ -9,6 +9,7 @@ import { TitusServerGroupActionsComponent as TitusServerGroupActions } from './T
 import { TitusRollbackServerGroupModal } from './rollback/TitusRollbackServerGroupModal';
 
 describe('<TitusServerGroupActions />', () => {
+  const runtimeServices = {} as any;
   let $rootScope: IRootScopeService;
 
   beforeEach(
@@ -63,17 +64,21 @@ describe('<TitusServerGroupActions />', () => {
     const app = buildApp([previousServerGroup, serverGroup]);
     const show = spyOn(TitusRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
     const wrapper = shallow(<TitusServerGroupActions app={app} serverGroup={serverGroup} />);
+    (wrapper.instance() as any).context = { services: runtimeServices };
 
     rollbackLinks(wrapper).simulate('click');
     $rootScope.$digest();
     await settle();
 
-    expect(show).toHaveBeenCalledOnceWith({
-      allServerGroups: [previousServerGroup],
-      application: app,
-      previousServerGroup,
-      serverGroup,
-    } as any);
+    expect(show).toHaveBeenCalledOnceWith(
+      {
+        allServerGroups: [previousServerGroup],
+        application: app,
+        previousServerGroup,
+        serverGroup,
+      } as any,
+      runtimeServices,
+    );
   });
 
   it('does not throw when rollback candidates disappear before click handling', () => {

@@ -3,9 +3,9 @@ import { Form } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FormikFormField,
   ModalClose,
   noop,
@@ -50,6 +50,9 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
   ICloudFoundryRollbackServerGroupModalProps,
   ICloudFoundryRollbackServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryRollbackServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -57,9 +60,12 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
 
   private formikRef = React.createRef<Formik<ICloudFoundryRollbackServerGroupValues>>();
 
-  public static show(props: ICloudFoundryRollbackServerGroupModalProps): Promise<ICloudFoundryRollbackJob> {
+  public static show(
+    props: ICloudFoundryRollbackServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudFoundryRollbackJob> {
     const modalProps = {};
-    return ReactModal.show(CloudFoundryRollbackServerGroupModal, props, modalProps);
+    return ReactModal.show(CloudFoundryRollbackServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICloudFoundryRollbackServerGroupModalProps) {
@@ -99,7 +105,7 @@ export class CloudFoundryRollbackServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command);
+      return this.context.services.serverGroupWriter.rollbackServerGroup(serverGroup, application, command);
     });
   };
 

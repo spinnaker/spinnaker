@@ -3,11 +3,13 @@ import React from 'react';
 import { Subject } from 'rxjs';
 
 import { ExecutionGroupComponent } from './ExecutionGroup';
-import { AngularServices } from '../../../angular/services';
 import { CollapsibleSectionStateCache } from '../../../cache';
 import { ExecutionState } from '../../../state';
 
 describe('ExecutionGroup', () => {
+  const deckRuntimeServices = {
+    executionService: { getSectionCacheKey: () => 'section-key' },
+  } as any;
   const application = {
     name: 'test-app',
     pipelineConfigs: { data: [] },
@@ -24,9 +26,6 @@ describe('ExecutionGroup', () => {
       expandSubject: new Subject<boolean>(),
     } as any;
     spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
-    spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue({
-      getSectionCacheKey: () => 'section-key',
-    } as any);
   });
 
   afterEach(() => {
@@ -38,6 +37,7 @@ describe('ExecutionGroup', () => {
     const stateName = 'home.applications.application.pipelines.executions';
     const component = shallow(
       <ExecutionGroupComponent
+        deckRuntimeServices={deckRuntimeServices}
         {...({
           router: {},
           stateParams: {},
@@ -60,6 +60,7 @@ describe('ExecutionGroup', () => {
     const injectedOnSuccess = jasmine.createSpy('injectedOnSuccess').and.returnValue(injectedUnsubscribe);
     const component = shallow(
       <ExecutionGroupComponent
+        deckRuntimeServices={deckRuntimeServices}
         {...({
           router: { transitionService: { onSuccess: injectedOnSuccess } },
           stateParams: {},
@@ -92,6 +93,7 @@ describe('ExecutionGroup', () => {
     spyOn(CollapsibleSectionStateCache, 'isExpanded').and.returnValue(false);
     const component = shallow(
       <ExecutionGroupComponent
+        deckRuntimeServices={deckRuntimeServices}
         {...({
           router: { transitionService: { onSuccess: injectedOnSuccess } },
           stateParams: {},

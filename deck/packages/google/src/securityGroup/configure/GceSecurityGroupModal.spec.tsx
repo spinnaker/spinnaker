@@ -1,11 +1,21 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 
-import { AngularServices, SecurityGroupWriter, SubmitButton } from '@spinnaker/core';
+import { DeckRuntimeContext, SecurityGroupWriter, SubmitButton } from '@spinnaker/core';
 
 import { GceSecurityGroupModalComponent as GceSecurityGroupModal } from './GceSecurityGroupModal';
 
 describe('GceSecurityGroupModal', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = { securityGroupReader: { getAllSecurityGroups: () => Promise.resolve({}) } };
+  });
+
   const application = {
     name: 'my-app',
     securityGroups: { refresh: jasmine.createSpy('refresh') },
@@ -53,8 +63,8 @@ describe('GceSecurityGroupModal', () => {
         finishLoading = resolve;
       }),
     );
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-    const wrapper = shallow(
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
+    const wrapper = mount(
       <GceSecurityGroupModal
         application={{ ...application, securityGroups: { data: [] } } as any}
         credentials="my-account"
@@ -76,8 +86,8 @@ describe('GceSecurityGroupModal', () => {
       const getAllSecurityGroups = jasmine
         .createSpy('getAllSecurityGroups')
         .and.returnValue(Promise.resolve(globalSecurityGroups()));
-      spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-      const wrapper = shallow(
+      runtimeServices.securityGroupReader = { getAllSecurityGroups };
+      const wrapper = mount(
         <GceSecurityGroupModal
           application={{ ...application, securityGroups: { data: [] } } as any}
           credentials="my-account"
@@ -99,10 +109,10 @@ describe('GceSecurityGroupModal', () => {
     const getAllSecurityGroups = jasmine
       .createSpy('getAllSecurityGroups')
       .and.returnValue(Promise.resolve(globalSecurityGroups()));
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-    const createWrapper = shallow(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
+    const createWrapper = mount(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
     createWrapper.setState({ securityGroup: validSecurityGroup({ name: 'cross-account-firewall' }) } as any);
-    const editWrapper = shallow(
+    const editWrapper = mount(
       <GceSecurityGroupModal application={application as any} mode="edit" securityGroup={validSecurityGroup()} />,
     );
 
@@ -118,8 +128,8 @@ describe('GceSecurityGroupModal', () => {
     const getAllSecurityGroups = jasmine
       .createSpy('getAllSecurityGroups')
       .and.returnValue(Promise.reject(new Error('inventory unavailable')));
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ getAllSecurityGroups } as any);
-    const wrapper = shallow(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
+    runtimeServices.securityGroupReader = { getAllSecurityGroups };
+    const wrapper = mount(<GceSecurityGroupModal application={application as any} credentials="my-account" />);
     wrapper.setState({ securityGroup: validSecurityGroup({ name: 'new-firewall' }) } as any);
 
     await flush();

@@ -1,13 +1,11 @@
 import type { IQService } from 'angular';
 import { module } from 'angular';
 
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import type { ClusterService } from '../cluster/cluster.service';
 import { CLUSTER_SERVICE } from '../cluster/cluster.service';
-import { ClusterService as ClusterServiceImpl } from '../cluster/cluster.service';
 import type { IServerGroup } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToServerGroups } from '../managed';
@@ -63,18 +61,13 @@ function createDataSourceConfig(
   };
 }
 
-export function registerServerGroupDataSource($q?: IQService, clusterService?: ClusterService): void {
+export function registerServerGroupDataSource($q: IQService, clusterService: ClusterService): void {
   if (ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'serverGroups')) {
     return;
   }
 
   const dataSourceConfig = createDataSourceConfig(
-    clusterService ||
-      new ClusterServiceImpl(
-        AngularServices.$q,
-        AngularServices.serverGroupTransformer,
-        AngularServices.providerServiceDelegate,
-      ),
+    clusterService,
     $q ? <T>(value: T | PromiseLike<T>) => $q.when(value) : <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
   );
   ApplicationDataSourceRegistry.registerDataSource(dataSourceConfig);

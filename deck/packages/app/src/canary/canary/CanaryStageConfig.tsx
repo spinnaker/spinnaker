@@ -4,13 +4,13 @@ import React from 'react';
 import type { IStageConfigProps } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
   AppListExtractor,
   AuthenticationService,
   CloudProviderRegistry,
   HelpField,
   NameUtils,
   ProviderSelectionService,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { CanaryAnalysisNameSelector } from './CanaryAnalysisNameSelector';
@@ -82,9 +82,7 @@ function getDefaultCanaryConfig(pipeline: any) {
   };
 }
 
-export function CanaryStageConfig(props: IStageConfigProps) {
-  const { application, pipeline, stage, stageFieldUpdated } = props;
-  const user = AuthenticationService.getAuthenticatedUser();
+export function initializeCanaryStage(stage: any, pipeline: any, user: any): { cc: any; cac: any } {
   stage.baseline = stage.baseline || {};
   stage.scaleUp = stage.scaleUp || { enabled: false };
   stage.canary = stage.canary || {};
@@ -99,8 +97,18 @@ export function CanaryStageConfig(props: IStageConfigProps) {
     stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours ||
     defaultCanaryConfig.canaryAnalysisConfig.notificationHours;
 
-  const cc = stage.canary.canaryConfig;
-  const cac = cc.canaryAnalysisConfig;
+  return {
+    cc: stage.canary.canaryConfig,
+    cac: stage.canary.canaryConfig.canaryAnalysisConfig,
+  };
+}
+
+export function CanaryStageConfig(props: IStageConfigProps) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupCommandBuilder, serverGroupTransformer } = runtimeServices;
+  const { application, pipeline, stage, stageFieldUpdated } = props;
+  const user = AuthenticationService.getAuthenticatedUser();
+  const { cc, cac } = initializeCanaryStage(stage, pipeline, user);
   cc.lifetimeHours = !isExpression(cc.lifetimeHours) ? toInteger(cc.lifetimeHours) || undefined : cc.lifetimeHours;
   cac.lookbackMins = !isExpression(cac.lookbackMins) ? toInteger(cac.lookbackMins) || undefined : cac.lookbackMins;
   cac.canaryAnalysisIntervalMins = !isExpression(cac.canaryAnalysisIntervalMins)
@@ -184,7 +192,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
       (selectedProvider: string) => {
         const config = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         const title = 'Add Cluster Pair';
-        AngularServices.serverGroupCommandBuilder
+        serverGroupCommandBuilder
           .buildNewServerGroupCommandForPipeline(selectedProvider, stage, pipeline)
           .then((command: any) => {
             configureServerGroupCommandForEditing(command);
@@ -197,12 +205,10 @@ export function CanaryStageConfig(props: IStageConfigProps) {
                 new Error(`No React clone server group modal is registered for provider "${selectedProvider}".`),
               );
             }
-            return config.CloneServerGroupModal.show({ title, application, command });
+            return config.CloneServerGroupModal.show({ title, application, command }, runtimeServices);
           })
           .then((command: any) => {
-            const baselineCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
-              command,
-            );
+            const baselineCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
             const canaryCluster = cloneDeep(baselineCluster);
             cleanupClusterConfig(baselineCluster, 'baseline');
             cleanupClusterConfig(canaryCluster, 'canary');
@@ -219,7 +225,7 @@ export function CanaryStageConfig(props: IStageConfigProps) {
     cluster.provider = cluster.provider || getCloudProvider() || 'aws';
     const config = CloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
     const title = `Configure ${type} Cluster`;
-    AngularServices.serverGroupCommandBuilder
+    serverGroupCommandBuilder
       .buildServerGroupCommandFromPipeline(application, cluster, stage, pipeline)
       .then((command: any) => {
         configureServerGroupCommandForEditing(command);
@@ -236,12 +242,10 @@ export function CanaryStageConfig(props: IStageConfigProps) {
             new Error(`No React clone server group modal is registered for provider "${cluster.provider}".`),
           );
         }
-        return config.CloneServerGroupModal.show({ title, application, command });
+        return config.CloneServerGroupModal.show({ title, application, command }, runtimeServices);
       })
       .then((command: any) => {
-        const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
-          command,
-        );
+        const stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
         cleanupClusterConfig(stageCluster, type);
         stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
         stageFieldUpdated();
