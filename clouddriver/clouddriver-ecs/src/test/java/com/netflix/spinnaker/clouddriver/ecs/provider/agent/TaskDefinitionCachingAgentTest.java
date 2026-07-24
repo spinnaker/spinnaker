@@ -24,15 +24,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.ecs.model.DescribeTaskDefinitionRequest;
-import com.amazonaws.services.ecs.model.DescribeTaskDefinitionResult;
-import com.amazonaws.services.ecs.model.TaskDefinition;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionRequest;
+import software.amazon.awssdk.services.ecs.model.DescribeTaskDefinitionResponse;
+import software.amazon.awssdk.services.ecs.model.TaskDefinition;
 import spock.lang.Subject;
 
 public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
@@ -41,7 +41,7 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
   @Subject
   private final TaskDefinitionCachingAgent agent =
       new TaskDefinitionCachingAgent(
-          netflixAmazonCredentials, REGION, clientProvider, credentialsProvider, registry, mapper);
+          netflixAmazonCredentials, REGION, clientProvider, registry, mapper);
 
   @Test
   public void shouldGetListOfTaskDefinitions() {
@@ -62,9 +62,11 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
     when(providerCache.getAll(anyString(), any(Set.class)))
         .thenReturn(Collections.singletonList(serviceCache));
 
-    DescribeTaskDefinitionResult describeTaskDefinitionResult =
-        new DescribeTaskDefinitionResult()
-            .withTaskDefinition(new TaskDefinition().withTaskDefinitionArn(TASK_DEFINITION_ARN_1));
+    DescribeTaskDefinitionResponse describeTaskDefinitionResult =
+        DescribeTaskDefinitionResponse.builder()
+            .taskDefinition(
+                TaskDefinition.builder().taskDefinitionArn(TASK_DEFINITION_ARN_1).build())
+            .build();
     when(ecs.describeTaskDefinition(any(DescribeTaskDefinitionRequest.class)))
         .thenReturn(describeTaskDefinitionResult);
 
@@ -78,12 +80,12 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         "Expected the list to contain 1 ECS task definition, but got " + returnedTaskDefs.size());
     for (TaskDefinition taskDef : returnedTaskDefs) {
       assertEquals(
-          taskDef.getTaskDefinitionArn(),
+          taskDef.taskDefinitionArn(),
           TASK_DEFINITION_ARN_1,
           "Expected the task definition ARN to be  "
               + TASK_DEFINITION_ARN_1
               + " but it was: "
-              + taskDef.getTaskDefinitionArn());
+              + taskDef.taskDefinitionArn());
     }
   }
 
@@ -126,12 +128,12 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
         "Expected the list to contain 1 ECS task definition, but got " + returnedTaskDefs.size());
     for (TaskDefinition taskDef : returnedTaskDefs) {
       assertEquals(
-          taskDef.getTaskDefinitionArn(),
+          taskDef.taskDefinitionArn(),
           TASK_DEFINITION_ARN_1,
           "Expected the task definition ARN to be  "
               + TASK_DEFINITION_ARN_1
               + " but it was: "
-              + taskDef.getTaskDefinitionArn());
+              + taskDef.taskDefinitionArn());
     }
   }
 
@@ -148,9 +150,10 @@ public class TaskDefinitionCachingAgentTest extends CommonCachingAgent {
       keys.add(Keys.getTaskDefinitionKey(ACCOUNT, REGION, taskDefArn));
 
       tasks.add(
-          new TaskDefinition()
-              .withTaskDefinitionArn(taskDefArn)
-              .withContainerDefinitions(Collections.emptyList()));
+          TaskDefinition.builder()
+              .taskDefinitionArn(taskDefArn)
+              .containerDefinitions(Collections.emptyList())
+              .build());
     }
 
     // When

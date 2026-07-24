@@ -19,8 +19,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TARGET_HEALTHS;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthRequest;
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetHealthResult;
@@ -42,6 +40,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ecs.EcsClient;
 
 public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<EcsTargetHealth>
     implements HealthProvidingCachingAgent {
@@ -57,14 +56,13 @@ public class TargetHealthCachingAgent extends AbstractEcsAwsAwareCachingAgent<Ec
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       ObjectMapper objectMapper) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider);
+    super(account, region, amazonClientProvider);
     this.objectMapper = objectMapper;
   }
 
   @Override
-  protected List<EcsTargetHealth> getItems(AmazonECS ecs, ProviderCache providerCache) {
+  protected List<EcsTargetHealth> getItems(EcsClient ecs, ProviderCache providerCache) {
     if (awsProviderCache == null) {
       throw new NullPointerException("awsProviderCache not initialized on " + getAgentType() + ".");
     }

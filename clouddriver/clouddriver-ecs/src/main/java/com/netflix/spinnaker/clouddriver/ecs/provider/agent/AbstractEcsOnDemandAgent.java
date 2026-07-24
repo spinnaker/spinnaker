@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.provider.ProviderCache;
@@ -31,6 +29,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.services.ecs.EcsClient;
 
 abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
     implements OnDemandAgent {
@@ -40,9 +39,8 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       Registry registry) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider);
+    super(account, region, amazonClientProvider);
     this.metricsSupport =
         new OnDemandMetricsSupport(
             registry,
@@ -79,7 +77,7 @@ abstract class AbstractEcsOnDemandAgent<T> extends AbstractEcsCachingAgent<T>
       return null;
     }
 
-    AmazonECS ecs = amazonClientProvider.getAmazonEcs(account, region, false);
+    EcsClient ecs = amazonClientProvider.getAmazonEcsV2(account, region);
 
     List<T> items = metricsSupport.readData(() -> getItems(ecs, providerCache));
 

@@ -20,8 +20,6 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.TASKS;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.ecs.AmazonECS;
 import com.amazonaws.services.ecs.model.Container;
 import com.amazonaws.services.ecs.model.ContainerDefinition;
 import com.amazonaws.services.ecs.model.LoadBalancer;
@@ -52,6 +50,7 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.ecs.EcsClient;
 
 public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
     implements HealthProvidingCachingAgent {
@@ -69,9 +68,8 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
       NetflixAmazonCredentials account,
       String region,
       AmazonClientProvider amazonClientProvider,
-      AWSCredentialsProvider awsCredentialsProvider,
       ObjectMapper objectMapper) {
-    super(account, region, amazonClientProvider, awsCredentialsProvider);
+    super(account, region, amazonClientProvider);
     this.objectMapper = objectMapper;
   }
 
@@ -87,7 +85,7 @@ public class TaskHealthCachingAgent extends AbstractEcsCachingAgent<TaskHealth>
   }
 
   @Override
-  protected List<TaskHealth> getItems(AmazonECS ecs, ProviderCache providerCache) {
+  protected List<TaskHealth> getItems(EcsClient ecs, ProviderCache providerCache) {
     TaskCacheClient taskCacheClient = new TaskCacheClient(providerCache, objectMapper);
     TaskDefinitionCacheClient taskDefinitionCacheClient =
         new TaskDefinitionCacheClient(providerCache, objectMapper);

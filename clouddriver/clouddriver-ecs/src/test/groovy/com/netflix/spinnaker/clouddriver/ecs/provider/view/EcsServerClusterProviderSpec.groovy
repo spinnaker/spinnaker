@@ -20,7 +20,13 @@ import com.amazonaws.services.applicationautoscaling.model.ScalableTarget
 import com.amazonaws.services.ec2.model.GroupIdentifier
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.Placement
-import com.amazonaws.services.ecs.model.*
+import software.amazon.awssdk.services.ecs.model.AwsVpcConfiguration
+import software.amazon.awssdk.services.ecs.model.DeploymentConfiguration
+import software.amazon.awssdk.services.ecs.model.NetworkConfiguration
+import java.time.Instant
+import com.amazonaws.services.ecs.model.TaskDefinition
+import com.amazonaws.services.ecs.model.ContainerDefinition as V1ContainerDefinition
+import com.amazonaws.services.ecs.model.PortMapping as V1PortMapping
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
@@ -73,7 +79,7 @@ class EcsServerClusterProviderSpec extends Specification {
     taskDefinitionCacheClient,
     ecsCloudWatchAlarmCacheClient)
 
-  Service cachedService
+  software.amazon.awssdk.services.ecs.model.Service cachedService
   TaskDefinition cachedTaskDefinition
   Instance ec2Instance
   EcsServerCluster expectedCluster
@@ -89,7 +95,7 @@ class EcsServerClusterProviderSpec extends Specification {
     def region = 'us-west-1'
     def availabilityZone = "${region}a"
     def serviceName = "${FAMILY_NAME}-v007"
-    def startedAt = new Date()
+    def startedAt = Instant.now()
 
     def creds = Mock(NetflixECSCredentials)
     creds.getCloudProvider() >> 'ecs'
@@ -104,23 +110,23 @@ class EcsServerClusterProviderSpec extends Specification {
                            new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
 
 
-    cachedService = new Service(
-      serviceName: serviceName,
-      deploymentConfiguration: new DeploymentConfiguration(minimumHealthyPercent: 0, maximumPercent: 100),
-      createdAt: startedAt,
-      desiredCount: 1
-    )
+    cachedService = software.amazon.awssdk.services.ecs.model.Service.builder()
+      .serviceName(serviceName)
+      .deploymentConfiguration(DeploymentConfiguration.builder().minimumHealthyPercent(0).maximumPercent(100).build())
+      .createdAt(startedAt)
+      .desiredCount(1)
+      .build()
 
-    def task = new Task(
-      taskArn: "task-arn/${taskId}",
-      clusterArn: 'cluster-arn',
-      containerInstanceArn: 'container-instance-arn',
-      group: 'service:' + serviceName,
-      lastStatus: 'RUNNING',
-      desiredStatus: 'RUNNING',
-      startedAt: startedAt,
-      containers: []
-    )
+    def task = software.amazon.awssdk.services.ecs.model.Task.builder()
+      .taskArn("task-arn/${taskId}")
+      .clusterArn('cluster-arn')
+      .containerInstanceArn('container-instance-arn')
+      .group('service:' + serviceName)
+      .lastStatus('RUNNING')
+      .desiredStatus('RUNNING')
+      .startedAt(startedAt)
+      .containers([])
+      .build()
 
     def loadbalancer = new EcsLoadBalancerCache()
 
@@ -142,12 +148,12 @@ class EcsServerClusterProviderSpec extends Specification {
 
     cachedTaskDefinition = new TaskDefinition(
       containerDefinitions: [
-        new ContainerDefinition(
+        new V1ContainerDefinition(
           image: 'my-image',
           memoryReservation: 256,
           cpu: 123,
           environment: [],
-          portMappings: [new PortMapping(containerPort: 1337)]
+          portMappings: [new V1PortMapping(containerPort: 1337)]
         )
       ]
     )
@@ -158,8 +164,8 @@ class EcsServerClusterProviderSpec extends Specification {
       resourceId: "service:/mycluster/${serviceName}"
     )
 
-    def ecsServerGroupEast = makeEcsServerGroup(serviceName, 'us-east-1', startedAt.getTime(), taskId, healthStatus, ip)
-    def ecsServerGroupWest = makeEcsServerGroup(serviceName, 'us-west-1', startedAt.getTime(), taskId, healthStatus, ip)
+    def ecsServerGroupEast = makeEcsServerGroup(serviceName, 'us-east-1', startedAt.toEpochMilli(), taskId, healthStatus, ip)
+    def ecsServerGroupWest = makeEcsServerGroup(serviceName, 'us-west-1', startedAt.toEpochMilli(), taskId, healthStatus, ip)
 
     expectedCluster = new EcsServerCluster()
     expectedCluster.setAccountName(creds.getName())
@@ -216,14 +222,16 @@ class EcsServerClusterProviderSpec extends Specification {
     creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
                            new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
 
-    cachedService.networkConfiguration = new NetworkConfiguration(
-      awsvpcConfiguration: new AwsVpcConfiguration(
-        subnets: ['subnet-1234'],
-        securityGroups: ['sg-1234']
-      )
-    )
+    def serviceWithVpc = cachedService.toBuilder()
+      .networkConfiguration(NetworkConfiguration.builder()
+        .awsvpcConfiguration(AwsVpcConfiguration.builder()
+          .subnets(['subnet-1234'])
+          .securityGroups(['sg-1234'])
+          .build())
+        .build())
+      .build()
 
-    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(cachedService)
+    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(serviceWithVpc)
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
 
     ec2Instance.vpcId = 'vpc-wrong'
@@ -245,13 +253,16 @@ class EcsServerClusterProviderSpec extends Specification {
     creds.getRegions() >> [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1b', 'us-east-1c', 'us-east-1d']),
                            new AmazonCredentials.AWSRegion('us-west-1', ['us-west-1b', 'us-west-1c', 'us-west-1d'])]
 
-    cachedService.networkConfiguration = new NetworkConfiguration(
-      awsvpcConfiguration: new AwsVpcConfiguration(
-        subnets: ['subnet-1234'],
-        securityGroups: ['sg-1234']
-      )
-    )
-    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(cachedService)
+    def serviceWithVpc = cachedService.toBuilder()
+      .networkConfiguration(NetworkConfiguration.builder()
+        .awsvpcConfiguration(AwsVpcConfiguration.builder()
+          .subnets(['subnet-1234'])
+          .securityGroups(['sg-1234'])
+          .build())
+        .build())
+      .build()
+
+    def serviceAttributes = TestServiceCachingAgentFactory.create(creds, creds.getRegions()[0].getName()).convertServiceToAttributes(serviceWithVpc)
     def serviceCacheData = new DefaultCacheData('', serviceAttributes, [:])
 
     when:
@@ -267,10 +278,10 @@ class EcsServerClusterProviderSpec extends Specification {
     given:
     cachedTaskDefinition = new TaskDefinition(
       containerDefinitions: [
-        new ContainerDefinition(
+        new V1ContainerDefinition(
           image: 'my-image',
           environment: [],
-          portMappings: [new PortMapping(containerPort: 1337)],
+          portMappings: [new V1PortMapping(containerPort: 1337)],
           memory: 256,
           cpu: 123
         )
@@ -296,10 +307,10 @@ class EcsServerClusterProviderSpec extends Specification {
       memory: '256',
       cpu: '123',
       containerDefinitions: [
-        new ContainerDefinition(
+        new V1ContainerDefinition(
           image: 'my-image',
           environment: [],
-          portMappings: [new PortMapping(containerPort: 1337)]
+          portMappings: [new V1PortMapping(containerPort: 1337)]
         )
       ]
     )
@@ -321,7 +332,7 @@ class EcsServerClusterProviderSpec extends Specification {
     given:
     cachedTaskDefinition = new TaskDefinition(
       containerDefinitions: [
-        new ContainerDefinition(
+        new V1ContainerDefinition(
           image: 'my-image',
           environment: [],
           memoryReservation: 256,
