@@ -1,6 +1,3 @@
-import type { ITimeoutService } from 'angular';
-
-import { AngularServices } from '../angular/services';
 import { SchedulerFactory } from './SchedulerFactory';
 
 describe('SchedulerFactory without Angular injection', function () {
@@ -50,25 +47,30 @@ describe('SchedulerFactory with direct services', function () {
   interface PendingTimeout {
     callback: () => void;
     cancelled: boolean;
+    handle: number;
   }
 
   let pendingTimeouts: PendingTimeout[];
   let flushTimeout: () => void;
+  let cancelTimeout: jasmine.Spy;
 
   beforeEach(function () {
     pendingTimeouts = [];
-    const timeout = (((callback: () => void) => {
-      const pending = { callback, cancelled: false };
-      pendingTimeouts.push(pending);
-      return pending;
-    }) as any) as ITimeoutService;
-    timeout.cancel = (pending: PendingTimeout) => {
-      if (!pending) {
-        return false;
+    let nextHandle = 1;
+    spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler) => {
+      if (typeof callback !== 'function') {
+        throw new Error('Expected a timeout callback');
       }
-      pending.cancelled = true;
-      return true;
-    };
+      const pending = { callback, cancelled: false, handle: nextHandle++ };
+      pendingTimeouts.push(pending);
+      return pending.handle;
+    });
+    cancelTimeout = spyOn(window, 'clearTimeout').and.callFake((handle?: number) => {
+      const pending = pendingTimeouts.find((candidate) => candidate.handle === handle);
+      if (pending) {
+        pending.cancelled = true;
+      }
+    });
     flushTimeout = () => {
       const activeTimeouts = pendingTimeouts.filter(({ cancelled }) => !cancelled);
       pendingTimeouts = [];
@@ -77,7 +79,6 @@ describe('SchedulerFactory with direct services', function () {
       }
       activeTimeouts.forEach(({ callback }) => callback());
     };
-    spyOnProperty(AngularServices, '$timeout', 'get').and.returnValue(timeout);
 
     this.scheduler = SchedulerFactory.createScheduler(60000);
 
@@ -147,6 +148,35 @@ describe('SchedulerFactory with direct services', function () {
       scheduler.scheduleImmediate();
       expect(firstSubscriber).toHaveBeenCalledTimes(1);
       expect(secondSubscriber).not.toHaveBeenCalled();
+    });
+
+    it('can schedule after a pending timeout fires while the scheduler is suspended', function () {
+      const subscriber = jasmine.createSpy('subscriber');
+      this.scheduler.subscribe(subscriber);
+      this.scheduler.scheduleImmediate();
+      window.dispatchEvent(new Event('offline'));
+
+      flushTimeout();
+      expect(subscriber).toHaveBeenCalledTimes(1);
+
+      window.dispatchEvent(new Event('online'));
+      flushTimeout();
+
+      expect(subscriber).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('#unsubscribe', function () {
+    it('cancels its pending owner timeout once and repeated unsubscribe is harmless', function () {
+      this.scheduler.scheduleImmediate();
+      const pendingOwnerTimeout = pendingTimeouts[0];
+
+      this.scheduler.unsubscribe();
+      this.scheduler.unsubscribe();
+
+      expect(pendingOwnerTimeout.cancelled).toBe(true);
+      expect(cancelTimeout.calls.allArgs().filter(([handle]) => handle === pendingOwnerTimeout.handle).length).toBe(1);
+      expect(flushTimeout).toThrowError('No pending timeouts');
     });
   });
 });
