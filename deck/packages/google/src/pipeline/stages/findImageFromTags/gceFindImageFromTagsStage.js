@@ -11,10 +11,6 @@ import {
 
 const h = React.createElement;
 
-export const GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE =
-  'spinnaker.gce.pipeline.stage..findImageFromTagsStage';
-export const name = GOOGLE_PIPELINE_STAGES_FINDIMAGEFROMTAGS_GCEFINDIMAGEFROMTAGSSTAGE;
-
 function GceFindImageFromTagsStageConfig({ stage, updateStage }) {
   stage.tags = stage.tags || {};
   stage.regions = stage.regions || [];

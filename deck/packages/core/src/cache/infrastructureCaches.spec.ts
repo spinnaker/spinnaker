@@ -81,6 +81,12 @@ describe('spinnaker.core.cache.infrastructure', function () {
       cacheFactory = new TestCacheFactory();
     });
 
+    it('uses a Deck-owned browser storage prefix', function () {
+      expect(DeckCacheFactory.getStoragePrefix('infrastructure:myCache', 2)).toBe(
+        'deck-cache.caches.infrastructure:myCache:2.',
+      );
+    });
+
     it('should remove all keys from previous versions', function () {
       const config: ICacheConfig = {
         version: 2,

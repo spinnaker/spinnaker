@@ -30,9 +30,6 @@ describe('server group states', () => {
     const view = state.views['detail@../insight'];
 
     expect(view).toEqual(jasmine.objectContaining({ component: ServerGroupDetailsWrapper, $type: 'react' }));
-    expect(view.templateUrl).toBeUndefined();
-    expect(view.controller).toBeUndefined();
-    expect(view.controllerAs).toBeUndefined();
   });
 
   it('uses React for the multiple server groups detail route', () => {
@@ -40,9 +37,6 @@ describe('server group states', () => {
     const view = state.views['detail@../insight'];
 
     expect(view).toEqual(jasmine.objectContaining({ component: MultipleServerGroupsDetails, $type: 'react' }));
-    expect(view.templateUrl).toBeUndefined();
-    expect(view.controller).toBeUndefined();
-    expect(view.controllerAs).toBeUndefined();
   });
 
   it('resolves a relative insight detail view during a direct transition', async () => {

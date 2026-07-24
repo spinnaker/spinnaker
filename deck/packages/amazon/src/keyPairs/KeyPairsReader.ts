@@ -2,7 +2,7 @@ import { REST } from '@spinnaker/core';
 import type { IKeyPair } from '../domain';
 
 export class KeyPairsReader {
-  public static listKeyPairs(): PromiseLike<IKeyPair[]> {
+  public static listKeyPairs(): Promise<IKeyPair[]> {
     return REST('/keyPairs')
       .useCache()
       .get()

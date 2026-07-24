@@ -4,7 +4,7 @@ import type { IJob, ITaskCommand } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 
 export class PagerDutyWriter {
-  public static pageApplicationOwnerModal(application: Application): PromiseLike<any> {
+  public static pageApplicationOwnerModal(application: Application): Promise<any> {
     return ConfirmationModalService.confirm({
       header: `Page ${application.name} Owner`,
       buttonText: 'Page Owner',
@@ -26,7 +26,7 @@ export class PagerDutyWriter {
     reason: string,
     ownerApp: Application,
     details?: { [key: string]: any },
-  ): PromiseLike<any> {
+  ): Promise<any> {
     const job = {
       type: 'pageApplicationOwner',
       message: reason,
@@ -50,7 +50,7 @@ export class PagerDutyWriter {
     return TaskExecutor.executeTask(task);
   }
 
-  public static pageApplicationOwner(application: Application, reason: string, details?: string): PromiseLike<any> {
+  public static pageApplicationOwner(application: Application, reason: string, details?: string): Promise<any> {
     return this.sendPage([application], undefined, reason, application, { details });
   }
 }

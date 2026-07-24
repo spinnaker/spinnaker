@@ -11,7 +11,6 @@ export const CLOUDRUN_EDIT_LOAD_BALANCER_STAGE_CONFIG: IStageTypeConfig = {
   cloudProvider: 'cloudrun',
   component: CloudrunEditLoadBalancerStageConfig,
   executionDetailsSections: [CloudrunEditLoadBalancerExecutionDetails, ExecutionDetailsTasks],
-  executionConfigSections: ['editLoadBalancerConfig', 'taskStatus'],
   validators: [],
 };
 

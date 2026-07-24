@@ -418,7 +418,7 @@ export class ClusterFilterService {
 
   private sortGroupsByHeading(groups: IClusterGroup[]): void {
     this.diffSubgroups(ClusterState.filterModel.asFilterModel.groups, groups);
-    // sort groups in place so Angular doesn't try to update the world
+    // Preserve the groups array identity for existing subscribers.
     ClusterState.filterModel.asFilterModel.groups.sort((a: IClusterGroup, b: IClusterGroup) =>
       a.heading.localeCompare(b.heading),
     );

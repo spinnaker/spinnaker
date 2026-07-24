@@ -49,7 +49,7 @@ export class FunctionFilterService {
   }
 
   public sortGroupsByHeading(): void {
-    // sort groups in place so Angular doesn't try to update the world
+    // Preserve the groups array identity for existing subscribers.
     FunctionState.filterModel.asFilterModel.groups.sort((a, b) => {
       return a.heading.localeCompare(b.heading);
     });

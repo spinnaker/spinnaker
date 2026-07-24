@@ -1,11 +1,12 @@
 import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryJudgeGroupScore, ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryJudgeGroupScore, ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
+import type { ICanaryState } from 'kayenta/reducers';
 import { judgeResultSelector, serializedGroupWeightsSelector } from 'kayenta/selectors';
 import { sortBy } from 'lodash';
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
+import type { Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 
 import AllMetricResultsHeader from './allMetricResultsHeader';
 import GroupScores from './groupScores';

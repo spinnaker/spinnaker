@@ -5,14 +5,14 @@ import { AzureImageReader } from '../../image/image.reader';
 import { AzureServerGroupTransformer } from '../serverGroup.transformer';
 
 export class AzureServerGroupCommandBuilder {
-  constructor($q) {
-    this.$q = $q;
+  constructor(promiseService) {
+    this.promiseService = promiseService;
     this.azureImageReader = new AzureImageReader();
     this.azureServerGroupTransformer = new AzureServerGroupTransformer();
   }
 
   resolve(value) {
-    return this.$q && this.$q.when ? this.$q.when(value) : Promise.resolve(value);
+    return this.promiseService.resolve(value);
   }
 
   buildNewServerGroupCommand(application, defaults) {

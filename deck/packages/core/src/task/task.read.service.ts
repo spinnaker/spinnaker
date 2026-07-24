@@ -14,7 +14,7 @@ export class TaskReader {
     statuses: string[] = [],
     limitPerPage: number = null,
     page: number = null,
-  ): PromiseLike<ITask[]> {
+  ): Promise<ITask[]> {
     return REST('/applications')
       .path(applicationName, 'tasks')
       .query({
@@ -29,11 +29,11 @@ export class TaskReader {
       });
   }
 
-  public static getRunningTasks(applicationName: string): PromiseLike<ITask[]> {
+  public static getRunningTasks(applicationName: string): Promise<ITask[]> {
     return this.getTasks(applicationName, this.activeStatuses);
   }
 
-  public static getTask(taskId: string): PromiseLike<ITask> {
+  public static getTask(taskId: string): Promise<ITask> {
     return REST('/tasks')
       .path(taskId)
       .get()
@@ -71,7 +71,7 @@ export class TaskReader {
     failureClosure?: (task: ITask) => boolean,
     interval = 1000,
     notifier?: Subject<void>,
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const deferred = createDeferred<ITask>();
     if (!task) {
       deferred.reject(null);
@@ -115,7 +115,7 @@ export class TaskReader {
     return deferred.promise;
   }
 
-  public static waitUntilTaskCompletes(task: ITask, interval = 1000, notifier?: Subject<void>): PromiseLike<ITask> {
+  public static waitUntilTaskCompletes(task: ITask, interval = 1000, notifier?: Subject<void>): Promise<ITask> {
     return this.waitUntilTaskMatches(
       task,
       (t) => t.isCompleted,

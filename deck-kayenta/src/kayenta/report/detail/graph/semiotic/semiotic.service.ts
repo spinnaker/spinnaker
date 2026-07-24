@@ -1,4 +1,4 @@
-import { IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
+import type { IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
 
 export interface ISemioticChartProps extends IMetricSetPairGraphProps {
   parentWidth: number;

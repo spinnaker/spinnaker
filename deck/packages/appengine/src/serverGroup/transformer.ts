@@ -70,7 +70,7 @@ export class AppengineDeployDescription {
 }
 
 export class AppengineServerGroupTransformer {
-  public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
+  public normalizeServerGroup(serverGroup: IServerGroup): Promise<IServerGroup> {
     return Promise.resolve(serverGroup);
   }
 

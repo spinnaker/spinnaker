@@ -1,5 +1,4 @@
 import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { noop } from 'angular';
 import type { ReactWrapper } from 'enzyme';
 import { mount, shallow } from 'enzyme';
 import { set } from 'lodash';
@@ -16,6 +15,7 @@ import { FilterCollapse } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
 import { ApplicationForbidden } from '../../notfound/ApplicationForbidden';
 import * as State from '../../state';
+import { noop } from '../../utils';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 describe('<Executions/>', () => {

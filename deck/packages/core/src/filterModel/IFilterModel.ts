@@ -8,6 +8,10 @@ export interface IFilterConfig {
   displayOption?: boolean;
   defaultValue?: string;
   array?: boolean;
+  normalizeParamValue?: (
+    paramValue: any,
+    context: { valueIfNil: any; rawValue: any; params: Record<string, any> },
+  ) => any;
 }
 
 export interface ITrueKeyModel {

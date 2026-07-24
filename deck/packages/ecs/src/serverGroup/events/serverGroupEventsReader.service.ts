@@ -9,7 +9,7 @@ export interface IEventDescription {
 }
 
 export class ServerGroupEventsReader {
-  public static getEvents(serverGroup: IServerGroup): PromiseLike<IEventDescription[]> {
+  public static getEvents(serverGroup: IServerGroup): Promise<IEventDescription[]> {
     return REST('/applications')
       .path(serverGroup.app, 'serverGroups', serverGroup.account, serverGroup.name, 'events')
       .query({

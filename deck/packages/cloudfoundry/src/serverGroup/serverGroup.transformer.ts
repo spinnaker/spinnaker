@@ -7,7 +7,7 @@ export class CloudFoundryServerGroupTransformer {
     return serverGroup;
   }
 
-  public normalizeServerGroup(serverGroup: ICloudFoundryServerGroup): PromiseLike<ICloudFoundryServerGroup> {
+  public normalizeServerGroup(serverGroup: ICloudFoundryServerGroup): Promise<ICloudFoundryServerGroup> {
     return Promise.resolve(serverGroup);
   }
 

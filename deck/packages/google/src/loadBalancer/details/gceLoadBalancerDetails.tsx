@@ -233,7 +233,7 @@ export function useGceLoadBalancerDetails({ app, autoClose, loadBalancerParams }
   };
 }
 
-function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}): PromiseLike<any> {
+function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}): Promise<any> {
   const region = loadBalancer.region || 'global';
   const job = {
     cloudProvider: loadBalancer.provider || 'gce',
@@ -258,7 +258,7 @@ function deleteGceHttpLoadBalancer(loadBalancer: any, app: any, params: any = {}
   });
 }
 
-function deleteGceLoadBalancer(loadBalancer: any, app: any, params: any = {}): PromiseLike<any> {
+function deleteGceLoadBalancer(loadBalancer: any, app: any, params: any = {}): Promise<any> {
   if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(loadBalancer)) {
     return deleteGceHttpLoadBalancer(loadBalancer, app, params);
   }

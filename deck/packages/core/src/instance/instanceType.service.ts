@@ -63,23 +63,22 @@ export interface IInstanceTypeService {
 }
 
 export class InstanceTypeService {
-  public static $inject = ['providerServiceDelegate'];
   public constructor(private providerServiceDelegate: ProviderServiceDelegate) {}
 
-  public getCategories(cloudProvider: string): PromiseLike<IInstanceTypeCategory[]> {
-    return this.getDelegate(cloudProvider).getCategories();
+  public getCategories(cloudProvider: string): Promise<IInstanceTypeCategory[]> {
+    return Promise.resolve(this.getDelegate(cloudProvider).getCategories());
   }
 
-  public getAllTypesByRegion(cloudProvider: string): PromiseLike<IInstanceTypesByRegion> {
-    return this.getDelegate(cloudProvider).getAllTypesByRegion();
+  public getAllTypesByRegion(cloudProvider: string): Promise<IInstanceTypesByRegion> {
+    return Promise.resolve(this.getDelegate(cloudProvider).getAllTypesByRegion());
   }
 
   public getAvailableTypesForRegions(
     cloudProvider: string,
     instanceTypes: string[],
     regions: string[],
-  ): PromiseLike<string[]> {
-    return this.getDelegate(cloudProvider).getAvailableTypesForRegions(instanceTypes, regions);
+  ): Promise<string[]> {
+    return Promise.resolve(this.getDelegate(cloudProvider).getAvailableTypesForRegions(instanceTypes, regions));
   }
 
   public getCategoryForInstanceType(cloudProvider: string, instanceType: string) {
@@ -97,7 +96,7 @@ export class InstanceTypeService {
     });
   }
 
-  public getInstanceTypeDetails(cloudProvider: string, instanceType: string): PromiseLike<IPreferredInstanceType> {
+  public getInstanceTypeDetails(cloudProvider: string, instanceType: string): Promise<IPreferredInstanceType> {
     return this.getInstanceTypeCategory(cloudProvider, instanceType).then((category: IInstanceTypeCategory) => {
       if (category && category.families && category.families.length && category.families[0].instanceTypes) {
         return category.families[0].instanceTypes.find((i) => i.name === instanceType);
@@ -110,7 +109,7 @@ export class InstanceTypeService {
     });
   }
 
-  private getInstanceTypeCategory(cloudProvider: string, instanceType: string): PromiseLike<IInstanceTypeCategory> {
+  private getInstanceTypeCategory(cloudProvider: string, instanceType: string): Promise<IInstanceTypeCategory> {
     return this.getCategories(cloudProvider).then((categories: IInstanceTypeCategory[]) => {
       return (categories || []).find((c) =>
         c.families.some((f) =>
@@ -127,5 +126,3 @@ export class InstanceTypeService {
     );
   }
 }
-
-export const INSTANCE_TYPE_SERVICE = 'spinnaker.core.instanceType.service';

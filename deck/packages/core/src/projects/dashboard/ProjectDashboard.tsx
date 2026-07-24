@@ -99,8 +99,8 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
   const loadClusters = () => {
     setClusterState((state) => ({ ...state, refreshing: true, error: false }));
     const configuredClusters = project.config?.clusters?.length;
-    const clustersPromise: PromiseLike<IProjectDashboardCluster[]> = configuredClusters
-      ? ((ProjectReader.getProjectClusters(project.name) as unknown) as PromiseLike<IProjectDashboardCluster[]>)
+    const clustersPromise: Promise<IProjectDashboardCluster[]> = configuredClusters
+      ? ProjectReader.getProjectClusters(project.name)
       : configuredClusters === 0
       ? Promise.resolve([])
       : Promise.reject(null);
@@ -210,9 +210,9 @@ export const ProjectDashboard = ({ projectConfiguration: project, transition }: 
             </div>
           )}
           {executions.map((execution) => (
-            <project-pipeline key={execution.id}>
+            <section className="project-pipeline" key={execution.id}>
               <ProjectPipeline application={application} execution={execution} />
-            </project-pipeline>
+            </section>
           ))}
           {!project.config.pipelineConfigs.length && <h4>No pipelines configured</h4>}
           {executionState.error && <h4>There was a problem loading the executions for this project.</h4>}

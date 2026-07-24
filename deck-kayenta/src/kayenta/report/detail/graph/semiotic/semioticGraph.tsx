@@ -3,7 +3,8 @@ import ContainerDimensions from 'react-container-dimensions';
 
 import BoxPlot from './boxplot';
 import Histogram from './histogram';
-import { GraphType, IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
+import type { IMetricSetPairGraphProps } from '../metricSetPairGraph.service';
+import { GraphType } from '../metricSetPairGraph.service';
 import NoValidDataSign from './noValidDataSign';
 import TimeSeries from './timeSeries';
 

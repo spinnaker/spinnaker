@@ -1,9 +1,9 @@
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
+import type { ICanaryMetricEffectSizeConfig } from 'kayenta/domain';
 import FormRow from 'kayenta/layout/formRow';
 import RadioChoice from 'kayenta/layout/radioChoice';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
 

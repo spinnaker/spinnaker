@@ -4,8 +4,6 @@ import { MonitorPipelineStageExecutionDetails } from './MonitorPipelineStageExec
 import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
-export const CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE =
-  'spinnaker.core.pipeline.stage.monitorPipelineStage';
 export const monitorPipelineStage = {
   label: 'Monitor Pipeline',
   description: 'Monitors pipeline execution',

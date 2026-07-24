@@ -26,8 +26,5 @@ describe('pipelineStage', () => {
         validators: [{ type: 'requiredField', fieldName: 'pipeline' }],
       }),
     );
-    expect(registeredPipelineStage.templateUrl).toBeUndefined();
-    expect(registeredPipelineStage.controller).toBeUndefined();
-    expect(registeredPipelineStage.controllerAs).toBeUndefined();
   });
 });

@@ -5,9 +5,7 @@ import { SETTINGS } from '../config/settings';
 import type { IEntityTags } from '../domain/IEntityTags';
 import { noop } from '../utils';
 
-export function registerEntityTagsDataSource(
-  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T> = <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
-): void {
+export function registerEntityTagsDataSource(): void {
   if (
     !SETTINGS.feature.entityTags ||
     ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'entityTags')
@@ -19,7 +17,7 @@ export function registerEntityTagsDataSource(
   };
 
   const addEntityTags = (_application: Application, data: IEntityTags[]) => {
-    return when(data);
+    return Promise.resolve(data);
   };
 
   const addTagsToEntities = (application: Application) => {

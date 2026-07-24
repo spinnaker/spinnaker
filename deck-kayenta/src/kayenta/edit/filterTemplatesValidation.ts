@@ -1,7 +1,7 @@
 import { get, isEmpty } from 'lodash';
 
-import { ICanaryMetricConfig } from '../domain';
-import { IEditingTemplateState } from '../reducers/editingTemplate';
+import type { ICanaryMetricConfig } from '../domain';
+import type { IEditingTemplateState } from '../reducers/editingTemplate';
 
 export interface ICanaryFilterTemplateValidationMessage {
   message: string;

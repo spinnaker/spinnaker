@@ -1,5 +1,5 @@
-import { MetricClassificationLabel } from './MetricClassificationLabel';
-import { ScoreClassificationLabel } from './ScoreClassificationLabel';
+import type { MetricClassificationLabel } from './MetricClassificationLabel';
+import type { ScoreClassificationLabel } from './ScoreClassificationLabel';
 
 export interface ICanaryJudgeResult {
   judgeName: string;

@@ -1,14 +1,14 @@
-import type { StateParams, StateService } from '@uirouter/angularjs';
-import type { ITimeoutService } from 'angular';
+import type { RawParams, StateService } from '@uirouter/core';
+
+import type { CancellableTimeout, CancellableTimeoutPromise } from '../../utils/cancellableTimeout';
 
 export class ExecutionDetailsSectionService {
-  private pendingOnComplete: PromiseLike<any>;
+  private pendingOnComplete: CancellableTimeoutPromise<any>;
 
-  public static $inject = ['$stateParams', '$state', '$timeout'];
   public constructor(
-    private $stateParams: StateParams,
+    private $stateParams: RawParams,
     private $state: StateService,
-    private $timeout: ITimeoutService,
+    private timeout: CancellableTimeout,
   ) {}
 
   private sectionIsValid(availableSections: string[]): boolean {
@@ -16,7 +16,7 @@ export class ExecutionDetailsSectionService {
   }
 
   public synchronizeSection(availableSections: string[], onComplete?: () => any): void {
-    this.$timeout.cancel(this.pendingOnComplete);
+    this.timeout.cancel(this.pendingOnComplete);
     if (!this.$state.includes('**.execution')) {
       return;
     }
@@ -25,17 +25,14 @@ export class ExecutionDetailsSectionService {
       details = availableSections[0];
     }
     if (!this.sectionIsValid(availableSections)) {
-      // Wrapping in a $timeout because for a React stage, this block is executed during a transitionSuccess hook
-      // meaning there is no location record to replace yet. Otherwise we incorrectly replace the previous record.
-      this.$timeout(() => {
+      // Defer navigation until the transition has created the location record that should be replaced.
+      this.timeout(() => {
         // use { location: 'replace' } to overwrite the invalid browser history state
         this.$state.go('.', { details }, { location: 'replace' });
       });
     }
     if (onComplete) {
-      this.pendingOnComplete = this.$timeout(onComplete);
+      this.pendingOnComplete = this.timeout(onComplete);
     }
   }
 }
-
-export const EXECUTION_DETAILS_SECTION_SERVICE = 'spinnaker.executionDetails.section.service';

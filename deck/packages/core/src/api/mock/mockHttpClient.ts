@@ -44,7 +44,7 @@ export class MockHttpClient implements IHttpClientImplementation {
   expectDELETE = (url?: UrlArg) => this.expect('DELETE', url);
   expectPATCH = (url?: UrlArg) => this.expect('PATCH', url);
 
-  request<T = any>(verb: Verb, iRequest: IRequest): PromiseLike<T> {
+  request<T = any>(verb: Verb, iRequest: IRequest): Promise<T> {
     const { url, params, data } = iRequest;
     const expectedRequest = this.expectedRequests.find((expect) => expect.isMatchAndUnfulfilled(verb, url, params));
     const request = new ReceivedRequest(verb, url, params, data, expectedRequest);
@@ -61,11 +61,11 @@ export class MockHttpClient implements IHttpClientImplementation {
     return request.responseDeferred.promise;
   }
 
-  get = <T = any>(request: IRequest): PromiseLike<T> => this.request('GET', request);
-  put = <T = any>(request: IRequest): PromiseLike<T> => this.request('PUT', request);
-  post = <T = any>(request: IRequest): PromiseLike<T> => this.request('POST', request);
-  patch = <T = any>(request: IRequest): PromiseLike<T> => this.request('PATCH', request);
-  delete = <T = any>(request: IRequest): PromiseLike<T> => this.request('DELETE', request);
+  get = <T = any>(request: IRequest): Promise<T> => this.request('GET', request);
+  put = <T = any>(request: IRequest): Promise<T> => this.request('PUT', request);
+  post = <T = any>(request: IRequest): Promise<T> => this.request('POST', request);
+  patch = <T = any>(request: IRequest): Promise<T> => this.request('PATCH', request);
+  delete = <T = any>(request: IRequest): Promise<T> => this.request('DELETE', request);
 
   private requestListeners: RequestListener[] = [];
   private addRequestListener = (listener: RequestListener) => {

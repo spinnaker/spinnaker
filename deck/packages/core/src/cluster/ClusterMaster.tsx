@@ -26,7 +26,7 @@ export function useClusterMasterState(app: Application): IClusterMasterState {
         ClusterState.filterService.updateClusterGroups(app);
       }
     };
-    const unsubscribe = app.serverGroups.onRefresh(null, updateClusterGroups);
+    const unsubscribe = app.serverGroups.onRefresh(updateClusterGroups);
 
     app.serverGroups.ready().then(
       () => {

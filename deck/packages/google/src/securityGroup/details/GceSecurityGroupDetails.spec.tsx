@@ -57,7 +57,7 @@ describe('GceSecurityGroupDetails', () => {
     let refreshDetails: (() => void) | undefined;
     const app = {
       securityGroups: {
-        onRefresh: jasmine.createSpy('onRefresh').and.callFake((_scope: any, callback: () => void) => {
+        onRefresh: jasmine.createSpy('onRefresh').and.callFake((callback: () => void) => {
           refreshDetails = callback;
           return jasmine.createSpy('unsubscribe');
         }),

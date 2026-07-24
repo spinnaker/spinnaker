@@ -1,12 +1,12 @@
 import * as Creators from 'kayenta/actions/creators';
 import { DISABLE_EDIT_CONFIG, DisableableReactTypeahead } from 'kayenta/layout/disableable';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 
-import { IGraphiteMetricDescriptor } from './domain/IGraphiteMetricDescriptor';
+import type { IGraphiteMetricDescriptor } from './domain/IGraphiteMetricDescriptor';
 
 import './typeahead.less';
 

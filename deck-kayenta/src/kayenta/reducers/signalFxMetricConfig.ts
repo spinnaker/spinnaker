@@ -1,11 +1,12 @@
 import * as Actions from 'kayenta/actions';
-import { ISignalFxCanaryMetricSetQueryConfig } from 'kayenta/metricStore/signalfx/domain/ISignalFxCanaryMetricSetQueryConfig';
-import { Action } from 'redux';
+import type { ISignalFxCanaryMetricSetQueryConfig } from 'kayenta/metricStore/signalfx/domain/ISignalFxCanaryMetricSetQueryConfig';
+import type { Action } from 'redux';
 import { handleActions } from 'redux-actions';
 
-import { IKayentaAction } from '../actions/creators';
-import { ICanaryMetricConfig } from '../domain';
-import { IUpdateKeyValueListPayload, updateListReducer } from '../layout/keyValueList';
+import type { IKayentaAction } from '../actions/creators';
+import type { ICanaryMetricConfig } from '../domain';
+import type { IUpdateKeyValueListPayload } from '../layout/keyValueList';
+import { updateListReducer } from '../layout/keyValueList';
 
 const updateQueryPairsReducer = updateListReducer();
 

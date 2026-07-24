@@ -18,7 +18,7 @@ export interface IBaseOsOptions {
 }
 
 export class BakeryReader {
-  public static getRegions(provider: string): PromiseLike<string[]> {
+  public static getRegions(provider: string): Promise<string[]> {
     if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {
       return Promise.resolve(get(SETTINGS, `providers.${provider}.bakeryRegions`));
     }
@@ -27,17 +27,17 @@ export class BakeryReader {
     );
   }
 
-  public static getBaseOsOptions(provider: string): PromiseLike<IBaseOsOptions> {
+  public static getBaseOsOptions(provider: string): Promise<IBaseOsOptions> {
     return this.getAllBaseOsOptions().then((options) => {
       return options.find((o) => o.cloudProvider === provider);
     });
   }
 
-  private static getAllBaseOsOptions(): PromiseLike<IBaseOsOptions[]> {
+  private static getAllBaseOsOptions(): Promise<IBaseOsOptions[]> {
     return REST('/bakery/options').useCache().get();
   }
 
-  public static getBaseLabelOptions(): PromiseLike<string[]> {
+  public static getBaseLabelOptions(): Promise<string[]> {
     return Promise.resolve(['release', 'candidate', 'previous', 'unstable']);
   }
 }
