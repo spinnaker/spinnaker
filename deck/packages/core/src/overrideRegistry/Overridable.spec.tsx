@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import { mount } from 'enzyme';
 import React from 'react';
 import { of as observableOf } from 'rxjs';
@@ -6,11 +5,10 @@ import { of as observableOf } from 'rxjs';
 import { AccountService } from '../account/AccountService';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
-import { REACT_MODULE } from '../reactShims';
 
 import { Overridable } from './Overridable';
 import { overridesComponent } from './Overrides';
-import { OVERRIDE_REGISTRY, overrideRegistry, OverrideRegistry } from './override.registry';
+import { overrideRegistry, OverrideRegistry } from './override.registry';
 
 class Original extends React.Component<{ accountId?: string }> {
   public render() {
@@ -19,8 +17,6 @@ class Original extends React.Component<{ accountId?: string }> {
 }
 
 describe('Overridable', () => {
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
-
   it('keeps deprecated template override methods as non-rendering compatibility shims', () => {
     const overrideRegistry = new OverrideRegistry();
     const warnSpy = spyOn(console, 'warn');
@@ -44,9 +40,7 @@ describe('Overridable', () => {
     const OriginalComponent = Overridable(key)(Original);
     const OverrideComponent = () => <div className="override">Override</div>;
 
-    mock.inject((overrideRegistry: OverrideRegistry) => {
-      overrideRegistry.overrideComponent(key, OverrideComponent);
-    });
+    overrideRegistry.overrideComponent(key, OverrideComponent);
 
     const wrapper = mount(<OriginalComponent />);
 

@@ -18,23 +18,25 @@ export class DockerImageReader {
       .catch((): IDockerImage => null);
   }
 
-  public static findImages(params: IFindImageParams): PromiseLike<IDockerImage[]> {
+  public static findImages(params: IFindImageParams, signal?: AbortSignal): PromiseLike<IDockerImage[]> {
     return RetryService.buildRetrySequence<IDockerImage[]>(
       () => REST('/images/find').query(params).get(),
       (results: IDockerImage[]) => results.length > 0,
       10,
       1000,
+      signal,
     )
       .then((results: IDockerImage[]) => results)
       .catch((): IDockerImage[] => []);
   }
 
-  public static findTags(params: IFindTagsParams): PromiseLike<string[]> {
+  public static findTags(params: IFindTagsParams, signal?: AbortSignal): PromiseLike<string[]> {
     return RetryService.buildRetrySequence<string[]>(
       () => REST('/images/tags').query(params).get(),
       (results: string[]) => results.length > 0,
       10,
       1000,
+      signal,
     )
       .then((results: string[]) => results)
       .catch((): string[] => []);
@@ -51,23 +53,25 @@ export class DockerChartImageReader {
       .catch((): IDockerImage => null);
   }
 
-  public static findImages(params: IFindImageParams): PromiseLike<IDockerImage[]> {
+  public static findImages(params: IFindImageParams, signal?: AbortSignal): PromiseLike<IDockerImage[]> {
     return RetryService.buildRetrySequence<IDockerImage[]>(
       () => REST('/charts/find').query(params).get(),
       (results: IDockerImage[]) => results.length > 0,
       10,
       1000,
+      signal,
     )
       .then((results: IDockerImage[]) => results)
       .catch((): IDockerImage[] => []);
   }
 
-  public static findTags(params: IFindTagsParams): PromiseLike<string[]> {
+  public static findTags(params: IFindTagsParams, signal?: AbortSignal): PromiseLike<string[]> {
     return RetryService.buildRetrySequence<string[]>(
       () => REST('/charts/tags').query(params).get(),
       (results: string[]) => results.length > 0,
       10,
       1000,
+      signal,
     )
       .then((results: string[]) => results)
       .catch((): string[] => []);

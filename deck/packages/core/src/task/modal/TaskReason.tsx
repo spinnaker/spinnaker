@@ -2,6 +2,7 @@ import React from 'react';
 
 export interface ITaskReasonProps {
   onChange: (reason: string) => void;
+  placeholder?: string;
   reason: string;
 }
 
@@ -17,7 +18,10 @@ export class TaskReason extends React.Component<ITaskReasonProps> {
             onChange={(event) => this.props.onChange(event.target.value)}
             ng-model="vm.command.reason"
             rows={3}
-            placeholder="(Optional) anything that might be helpful to explain the reason for this change; HTML is okay"
+            placeholder={
+              this.props.placeholder ||
+              '(Optional) anything that might be helpful to explain the reason for this change; HTML is okay'
+            }
           />
         </div>
       </div>

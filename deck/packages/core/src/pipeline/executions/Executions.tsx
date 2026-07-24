@@ -2,10 +2,10 @@ import { get } from 'lodash';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import type { IDefaultTagFilterConfig } from '../../application/config/defaultTagFilter/DefaultTagFilterConfig';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
+import { CollapsibleSectionStateCache } from '../../cache';
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 import type { IExecution, IPipeline, IPipelineCommand } from '../../domain';
@@ -48,6 +48,7 @@ export interface IExecutionsState {
 const forwardedExecutions = new Set();
 // This ensures we only forward to permalink on landing, not on future refreshes
 let disableForwarding = false;
+const INSIGHT_FILTERS_CACHE_KEY = 'insightFilters';
 
 export class ExecutionsComponent extends React.Component<IExecutionsProps & IRouterInjectedProps, IExecutionsState> {
   public static contextType = DeckRuntimeContext;
@@ -55,7 +56,6 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
 
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
-  private insightFilterStateModel = AngularServices.insightFilterStateModel;
   private activeRefresher: IScheduler;
 
   private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50, 100, 200];
@@ -64,7 +64,9 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
     super(props);
 
     this.state = {
-      filtersExpanded: this.insightFilterStateModel.filtersExpanded,
+      filtersExpanded:
+        !CollapsibleSectionStateCache.isSet(INSIGHT_FILTERS_CACHE_KEY) ||
+        CollapsibleSectionStateCache.isExpanded(INSIGHT_FILTERS_CACHE_KEY),
       loading: true,
       poll: null,
       sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
@@ -271,6 +273,12 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
     });
   }
 
+  public componentDidUpdate(_prevProps: IExecutionsProps & IRouterInjectedProps, prevState: IExecutionsState): void {
+    if (prevState.filtersExpanded !== this.state.filtersExpanded) {
+      CollapsibleSectionStateCache.setExpanded(INSIGHT_FILTERS_CACHE_KEY, this.state.filtersExpanded);
+    }
+  }
+
   public componentWillUnmount(): void {
     const { app } = this.props;
     app.setActiveState();
@@ -283,9 +291,7 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
   }
 
   private toggleFilters = (): void => {
-    const newState = !this.state.filtersExpanded;
-    this.setState({ filtersExpanded: newState });
-    this.insightFilterStateModel.pinFilters(newState);
+    this.setState(({ filtersExpanded }) => ({ filtersExpanded: !filtersExpanded }));
   };
 
   private groupByChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -332,8 +338,8 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
       return (
         <div className="executions-section">
           {!loading && (
-            <div onClick={this.toggleFilters}>
-              <FilterCollapse />
+            <div>
+              <FilterCollapse filtersExpanded={filtersExpanded} onToggle={this.toggleFilters} />
             </div>
           )}
           <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
