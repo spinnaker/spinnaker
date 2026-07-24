@@ -3,15 +3,15 @@ import { Debounce } from 'lodash-decorators';
 import { DateTime, Duration } from 'luxon';
 import { Subject } from 'rxjs';
 
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import type { IExecution, IExecutionGroup, IPipeline, IPipelineTag } from '../../domain';
 import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import { Registry } from '../../registry';
 import { ExecutionState } from '../../state';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
-const debugLog = (...args: any[]) => AngularServices.$log.debug(...args);
+const debugLog = (...args: any[]) => diagnosticLogger.debug(...args);
 
 const boundaries = [
   {

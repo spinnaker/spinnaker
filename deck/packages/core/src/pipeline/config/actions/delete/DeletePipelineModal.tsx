@@ -2,14 +2,13 @@ import { useRouter } from '@uirouter/react';
 import { get, isEmpty, set } from 'lodash';
 import React from 'react';
 import { Modal } from 'react-bootstrap';
-import { AngularServices } from '../../../../angular/services';
 
 import type { Application } from '../../../../application';
 import type { IPipeline } from '../../../../domain';
 import { ModalClose } from '../../../../modal';
 import type { IModalComponentProps } from '../../../../presentation';
-
 import { PipelineConfigService } from '../../services/PipelineConfigService';
+import { diagnosticLogger } from '../../../../utils/diagnosticLogger';
 
 export interface IDeletePipelineModalProps extends IModalComponentProps {
   application: Application;
@@ -48,7 +47,7 @@ export function DeletePipelineModal(props: IDeletePipelineModalProps) {
         closeModal();
       },
       (response) => {
-        AngularServices.$log.warn(response);
+        diagnosticLogger.warn(response);
         setDeleting(false);
         setDeleteError(true);
         setErrorMessage(get(response, 'data.message', 'No message provided'));
