@@ -413,6 +413,45 @@ describe('PipelineConfigPage', () => {
     wrapper.unmount();
   });
 
+  it('keeps focus on a stage field after the new-stage type selector initially autofocuses', async () => {
+    registerStageTypes();
+    const requested = pipeline('target-id', 'Requested Pipeline');
+    requested.stages = [{ refId: '1', name: 'Build', type: 'wait', isNew: true, requisiteStageRefIds: [] } as any];
+    const app = createApp([requested]);
+    $stateParams.pipelineId = requested.id;
+    showStageConfig(requested.id);
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const wrapper = mount(<PipelineConfigPage app={app} />, { attachTo: host });
+
+    try {
+      await flush();
+      wrapper.update();
+
+      const typeInput = host.querySelector('.pipeline-stage-type-select input[role="combobox"]') as HTMLInputElement;
+      const stageNameInput = wrapper
+        .find('.pipeline-stage-config-heading input[type="text"]')
+        .filterWhere((node) => node.prop('value') === 'Build');
+      const stageNameElement = stageNameInput.getDOMNode() as HTMLInputElement;
+
+      expect(document.activeElement).toBe(typeInput);
+
+      stageNameElement.focus();
+      expect(document.activeElement).toBe(stageNameElement);
+
+      await act(async () => {
+        stageNameInput.prop('onChange')({ target: { value: 'Updated Build' } } as any);
+        await flush();
+      });
+      wrapper.update();
+
+      expect(document.activeElement).toBe(stageNameElement);
+    } finally {
+      wrapper.unmount();
+      host.remove();
+    }
+  });
+
   it('uses the custom multi selector for stage dependencies', async () => {
     registerStageTypes();
     const requested = pipeline('target-id', 'Requested Pipeline');
