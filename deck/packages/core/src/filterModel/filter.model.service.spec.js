@@ -1,6 +1,7 @@
 'use strict';
+import { hashLocationPlugin, servicesPlugin, UIRouterReact } from '@uirouter/react';
+
 import { FilterModelService } from './FilterModelService';
-import { REACT_MODULE } from '../reactShims';
 import { StateConfigProvider } from '../navigation';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 
@@ -8,23 +9,23 @@ describe('Service: FilterModelService', function () {
   var filterModel;
   var filterModelConfig;
   var $uiRouter;
-  var $rootScope;
 
   function configure() {
     FilterModelService.configureFilterModel(filterModel, filterModelConfig);
     filterModel.activate();
   }
 
-  beforeEach(window.module('ui.router', REACT_MODULE));
+  beforeEach(function () {
+    filterModel = {};
+    filterModelConfig = [];
+    $uiRouter = new UIRouterReact();
+    $uiRouter.plugin(servicesPlugin);
+    $uiRouter.plugin(hashLocationPlugin);
+  });
 
-  beforeEach(
-    window.inject(function (_$uiRouter_, _$rootScope_) {
-      filterModel = {};
-      filterModelConfig = [];
-      $uiRouter = _$uiRouter_;
-      $rootScope = _$rootScope_;
-    }),
-  );
+  afterEach(function () {
+    $uiRouter.dispose();
+  });
 
   describe('isFilterable', function () {
     it('returns true if there are any properties with a value of true', function () {
@@ -371,9 +372,8 @@ describe('Service: FilterModelService', function () {
   describe('parameter router hooks', function () {
     let testRouter;
 
-    function go(state, params) {
-      $uiRouter.stateService.go(state, params);
-      $rootScope.$digest();
+    async function go(state, params) {
+      await $uiRouter.stateService.go(state, params);
     }
 
     beforeEach(function () {
@@ -401,30 +401,30 @@ describe('Service: FilterModelService', function () {
       setDirectRouter(testRouter);
     });
 
-    it('should restore the latest filters when reactivating a filter state in the same application', function () {
-      go('application.filtered', { application: 'myapp', region: 'west', account: 'prod' });
+    it('should restore the latest filters when reactivating a filter state in the same application', async function () {
+      await go('application.filtered', { application: 'myapp', region: 'west', account: 'prod' });
       expect($uiRouter.globals.params.region).toBe('west');
       expect($uiRouter.globals.params.account).toBe('prod');
 
-      go('application.otherchild');
+      await go('application.otherchild');
       expect($uiRouter.globals.params.region).toBe(undefined);
       expect($uiRouter.globals.params.account).toBe(undefined);
 
-      go('application.filtered');
+      await go('application.filtered');
       expect($uiRouter.globals.params.region).toBe('west');
       expect($uiRouter.globals.params.account).toBe('prod');
     });
 
-    it('should not restore the latest filters when switching apps', function () {
-      go('application.filtered', { application: 'foo', region: 'west', account: 'prod' });
+    it('should not restore the latest filters when switching apps', async function () {
+      await go('application.filtered', { application: 'foo', region: 'west', account: 'prod' });
       expect($uiRouter.globals.params.region).toBe('west');
       expect($uiRouter.globals.params.account).toBe('prod');
 
-      go('application.otherchild');
+      await go('application.otherchild');
       expect($uiRouter.globals.params.region).toBe(undefined);
       expect($uiRouter.globals.params.account).toBe(undefined);
 
-      go('application.filtered', { application: 'otherapp' });
+      await go('application.filtered', { application: 'otherapp' });
       expect($uiRouter.globals.params.region).toBe(undefined);
       expect($uiRouter.globals.params.account).toBe(undefined);
     });

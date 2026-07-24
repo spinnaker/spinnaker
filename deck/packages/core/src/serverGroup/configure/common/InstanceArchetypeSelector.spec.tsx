@@ -5,7 +5,6 @@ import { DeckRuntimeContext } from '../../../bootstrap/DeckRuntimeContext';
 import { CloudProviderRegistry } from '../../../cloudProvider';
 import { ModalWizard } from '../../../modal/wizard/ModalWizard';
 import { InstanceArchetypeSelector } from './InstanceArchetypeSelector';
-import { v2InstanceArchetypeSelector } from './v2instanceArchetypeSelector.component';
 
 describe('InstanceArchetypeSelector', () => {
   let runtimeServices: any;
@@ -25,12 +24,7 @@ describe('InstanceArchetypeSelector', () => {
     ModalWizard.pageRegistry = [];
   });
 
-  it('registers the Angular v2 component through the React bridge', () => {
-    expect(v2InstanceArchetypeSelector.templateUrl).toBeUndefined();
-    expect(v2InstanceArchetypeSelector.controller).toBeDefined();
-  });
-
-  it('renders without the AngularJS adapter and mutates the selected profile', async () => {
+  it('renders the native selector and mutates the selected profile', async () => {
     spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
     const onProfileChanged = jasmine.createSpy('onProfileChanged');
     const command = { selectedProvider: 'aws', viewState: {}, backingData: { filtered: { instanceTypes: [] } } } as any;
@@ -44,7 +38,6 @@ describe('InstanceArchetypeSelector', () => {
     );
     await settle(component);
 
-    expect(component.find(`.Angular${'JS'}Adapter`).exists()).toBe(false);
     component.find('button.instance-profile').simulate('click');
 
     expect(command.viewState.instanceProfile).toBe('general');

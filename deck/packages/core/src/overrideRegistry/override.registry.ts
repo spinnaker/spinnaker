@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import type React from 'react';
 
 import { overrideRegistrationQueue } from './Overrides';
@@ -49,5 +48,3 @@ export const OVERRIDE_REGISTRY = 'spinnaker.core.override.registry';
 export const overrideRegistry = new OverrideRegistry();
 
 overrideRegistrationQueue.setRegistries(overrideRegistry);
-
-module(OVERRIDE_REGISTRY, []).value('overrideRegistry', overrideRegistry);

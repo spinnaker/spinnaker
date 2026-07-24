@@ -1,3 +1,19 @@
+/* eslint-disable @spinnaker/import-sort */
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/js/bootstrap';
+import '@fortawesome/fontawesome-free/css/solid.css';
+import '@fortawesome/fontawesome-free/css/regular.css';
+import '@fortawesome/fontawesome-free/css/fontawesome.css';
+import 'react-select/dist/react-select.css';
+import 'react-virtualized/styles.css';
+import 'react-virtualized-select/styles.css';
+import 'ui-select/dist/select.css';
+import '@spinnaker/styleguide/public/styleguide.min.css';
+import 'select2/select2.css';
+import 'select2-bootstrap-css/select2-bootstrap.css';
+import 'source-sans/source-sans-3.css';
+import '../fonts/icons.css';
+
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import * as React from 'react';
 import { render, unmountComponentAtNode } from 'react-dom';
@@ -6,12 +22,14 @@ import type { DeckRuntime } from './DeckRuntime';
 import { createDeckRuntime } from './DeckRuntime';
 import { DeckRuntimeContext } from './DeckRuntimeContext';
 import { SpinnakerContainer } from './SpinnakerContainer';
+import { initGoogleAnalytics } from '../analytics/react.ga';
 import { initializeAuthentication } from '../authentication/authentication.module';
 import { VersionChecker } from '../config/VersionChecker';
 import '../navigation/coreRoutes';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter, startRouter } from '../navigation/router';
 import { initializePlugins } from '../plugins/plugin.module';
+import { domPurifyOpenLinksInNewWindow } from '../presentation/domPurifyOpenLinksInNewWindow';
 import { ReactModal } from '../presentation/ReactModal';
 import {
   disposeRuntimeMetadata,
@@ -26,6 +44,10 @@ import '../presentation/flex-layout.less';
 import '../presentation/main.less';
 import '../presentation/navPopover.less';
 import '../search/global/globalSearch.less';
+import '../search/infrastructure/infrastructure.less';
+
+domPurifyOpenLinksInNewWindow();
+initGoogleAnalytics();
 
 let bootstrapRoot: HTMLElement | null = null;
 let bootstrapAttempt: Promise<void> | null = null;

@@ -1,5 +1,4 @@
 import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
 
 import { FunctionDetails } from './FunctionDetails';
 import { Functions } from './Functions';
@@ -9,8 +8,8 @@ import { SETTINGS } from '../config/settings';
 import { filterModelConfig } from './filter/FunctionFilterModel';
 import { FunctionFilters } from './filter/FunctionFilters';
 import type { INestedState, StateConfigProvider } from '../navigation';
+
 export const FUNCTION_STATES = 'spinnaker.core.functions.states';
-module(FUNCTION_STATES, []);
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {

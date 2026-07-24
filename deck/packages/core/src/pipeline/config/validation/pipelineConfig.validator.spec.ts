@@ -1,5 +1,4 @@
-import { mock } from 'angular';
-
+import '../../../bootstrap/runtimeInitializers';
 import type { ICustomValidator, IPipelineValidationResults, IValidatorConfig } from './PipelineConfigValidator';
 import { PipelineConfigValidator } from './PipelineConfigValidator';
 import { SETTINGS } from '../../../config/settings';
@@ -52,29 +51,22 @@ describe('pipelineConfigValidator', () => {
       label: null,
       description: null,
       key: null,
-      templateUrl: null,
       executionDetailsSections: null,
-      controller: null,
-      controllerAs: null,
       validators,
     };
   }
 
   beforeEach(() => Registry.reinitialize());
 
-  beforeEach(mock.module(require('../pipelineConfig.module').name));
-
   beforeEach(function () {
     SETTINGS.feature.fiatEnabled = true;
   });
 
   beforeEach(() => {
-    mock.inject(() => {
-      validate = async () => {
-        validationResults = null;
-        validationResults = await PipelineConfigValidator.validatePipeline(pipeline);
-      };
-    });
+    validate = async () => {
+      validationResults = null;
+      validationResults = await PipelineConfigValidator.validatePipeline(pipeline);
+    };
   });
 
   afterEach(SETTINGS.resetToOriginal);

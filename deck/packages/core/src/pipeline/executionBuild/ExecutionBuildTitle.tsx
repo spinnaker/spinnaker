@@ -1,8 +1,6 @@
-import { module } from 'angular';
 import React from 'react';
 
 import type { IExecutionBuildLinkProps } from './ExecutionBuildLink';
-import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import { timestamp } from '../../utils';
 
 export interface IExecutionBuildTitleProps extends IExecutionBuildLinkProps {
@@ -34,11 +32,3 @@ export class ExecutionBuildTitle extends React.Component<IExecutionBuildTitlePro
     );
   }
 }
-
-export const EXECUTION_BUILD_TITLE = 'spinnaker.core.pipeline.executionbuild.executionbuildtitle';
-const ngmodule = module(EXECUTION_BUILD_TITLE, []);
-
-ngmodule.component(
-  'executionBuildTitle',
-  angularComponentFromReact(ExecutionBuildTitle, 'executionBuildTitle', ['execution', 'defaultToTimestamp']),
-);

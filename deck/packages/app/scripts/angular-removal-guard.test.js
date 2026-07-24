@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const {
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -30,7 +31,33 @@ const angularServicesName = 'Angular' + 'Services';
 const angularServiceAccessorsName = 'Angular' + 'ServiceAccessors';
 const angularServicesImportPath = ['angular', 'services'].join('/');
 const sourceExtensions = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts'];
-const workspaceExtensions = new Set([...sourceExtensions, '.json']);
+const angularRegistrationMethods = [
+  'component',
+  'config',
+  'constant',
+  'controller',
+  'decorator',
+  'directive',
+  'factory',
+  'filter',
+  'provider',
+  'run',
+  'service',
+  'value',
+];
+const angularRuntimePackages = [
+  '@uirouter/angularjs',
+  '@uirouter/react-hybrid',
+  'angular',
+  'angular-messages',
+  'angular-sanitize',
+  'angular-spinner',
+  'angular-ui-bootstrap',
+  'angulartics',
+  'angulartics-google-analytics',
+  'ui-select',
+];
+const workspaceExtensions = new Set([...sourceExtensions, '.html', '.json']);
 const generatedAndDependencyDirectories = new Set(['.cache-loader', 'build', 'dist', 'node_modules']);
 const forbiddenFacadePatterns = [angularServicesName, angularServiceAccessorsName, angularServicesImportPath];
 
@@ -38,6 +65,55 @@ function productionSourceFiles(directory) {
   return workspaceSourceFiles(directory).filter(
     (file) => sourceExtensions.includes(path.extname(file)) && !/\.(?:spec|test)\.[^.]+$/.test(file),
   );
+}
+
+function angularImportStatements(source) {
+  return source.match(/(?:^|\n)\s*import[\s\S]*?;(?=\s*(?:\n|$))/g) || [];
+}
+
+function angularRuntimeImportStatements(source) {
+  const imports = angularImportStatements(source).filter((statement) => {
+    const importsAngular = angularRuntimePackages.some(
+      (packageName) =>
+        statement.includes(`from '${packageName}'`) ||
+        statement.includes(`from "${packageName}"`) ||
+        statement.includes(`import '${packageName}'`) ||
+        statement.includes(`import "${packageName}"`),
+    );
+    const typeOnly = /^\s*import\s+type\b/.test(statement.trim());
+    return importsAngular && !typeOnly;
+  });
+  const requires = angularRuntimePackages.flatMap((packageName) => {
+    const escapedPackageName = packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return source.match(new RegExp(`require\\s*\\(\\s*['"]${escapedPackageName}['"]\\s*\\)`, 'g')) || [];
+  });
+  return imports.concat(requires);
+}
+
+function angularModuleFactoryPatterns(source) {
+  const callableNames = new Set();
+  const namespaceNames = new Set(['angular']);
+
+  angularRuntimeImportStatements(source).forEach((statement) => {
+    const namedModule = statement.match(/\bmodule\s*(?:as\s+([A-Za-z_$][\w$]*))?/);
+    if (namedModule) callableNames.add(namedModule[1] || 'module');
+
+    const namespace = statement.match(/import\s+\*\s+as\s+([A-Za-z_$][\w$]*)/);
+    if (namespace) namespaceNames.add(namespace[1]);
+
+    const defaultImport = statement.match(/import\s+([A-Za-z_$][\w$]*)\s+from\s+['"]angular['"]/);
+    if (defaultImport) namespaceNames.add(defaultImport[1]);
+
+    const requiredNamespace = source.match(
+      /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*require\s*\(\s*['"]angular['"]\s*\)/,
+    );
+    if (requiredNamespace) namespaceNames.add(requiredNamespace[1]);
+  });
+
+  return [
+    ...Array.from(callableNames, (name) => new RegExp(`\\b${name}\\s*\\(`)),
+    ...Array.from(namespaceNames, (name) => new RegExp(`\\b${name}\\s*\\.\\s*module\\s*\\(`)),
+  ];
 }
 
 function angularConfigCallbacks(source) {
@@ -76,6 +152,32 @@ function findLegacyFacadeReferences(files, displayRoot) {
   });
 }
 
+function findProductionAngularGraph(files, displayRoot) {
+  return files.flatMap((file) => {
+    const source = readFileSync(file, 'utf8');
+    const relativePath = path.relative(displayRoot, file);
+    const runtimeImports = angularRuntimeImportStatements(source);
+    const findings = [];
+
+    if (runtimeImports.length) findings.push(`${relativePath}: Angular runtime import`);
+    if (angularModuleFactoryPatterns(source).some((pattern) => pattern.test(source))) {
+      findings.push(`${relativePath}: Angular module factory`);
+    }
+    if (runtimeImports.length) {
+      angularRegistrationMethods.forEach((method) => {
+        if (new RegExp(`\\.${method}\\s*\\(`).test(source)) {
+          findings.push(`${relativePath}: Angular .${method} registration`);
+        }
+      });
+    }
+    ['angularComponentFromReact', 'react2angular', 'angular2react'].forEach((adapter) => {
+      if (source.includes(adapter)) findings.push(`${relativePath}: ${adapter}`);
+    });
+
+    return findings;
+  });
+}
+
 test('Core routes do not depend on the legacy Angular state config bridge', () => {
   assert.throws(() => readFileSync(bridgePath, 'utf8'), { code: 'ENOENT' });
 
@@ -93,6 +195,56 @@ test('production Core source has no Angular route config callbacks', () => {
   );
 
   assert.deepEqual(routeConfigs, []);
+});
+
+test('production Core source has no Angular runtime graph', () => {
+  assert.deepEqual(findProductionAngularGraph(productionSourceFiles(coreSourceRoot), coreSourceRoot), []);
+});
+
+test('Core package root does not load the legacy Angular aggregate', () => {
+  const coreIndex = readFileSync(path.join(coreSourceRoot, 'index.ts'), 'utf8');
+
+  assert.doesNotMatch(coreIndex, /core\.module/);
+});
+
+test('Core and ECS source contain no Angular templates', () => {
+  const ecsSourceRoot = path.resolve(__dirname, '../../ecs/src');
+  const htmlFiles = [coreSourceRoot, ecsSourceRoot]
+    .flatMap((root) => workspaceSourceFiles(root))
+    .filter((file) => path.extname(file) === '.html')
+    .map((file) => path.relative(deckRoot, file));
+
+  assert.deepEqual(htmlFiles, []);
+});
+
+test('production package source has no Angular template requires', () => {
+  const packagesRoot = path.join(deckRoot, 'packages');
+  const packageSourceRoots = readdirSync(packagesRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && entry.name !== 'eslint-plugin')
+    .map((entry) => path.join(packagesRoot, entry.name, 'src'))
+    .filter((sourceRoot) => existsSync(sourceRoot));
+  const templateRequires = packageSourceRoots
+    .flatMap((sourceRoot) => productionSourceFiles(sourceRoot))
+    .filter((file) => /require\s*\([^)]*\.html['"]\s*\)/.test(readFileSync(file, 'utf8')))
+    .map((file) => path.relative(deckRoot, file));
+
+  assert.deepEqual(templateRequires, []);
+});
+
+test('legacy Angular root and React adapter infrastructure is absent', () => {
+  assert.throws(() => readFileSync(path.join(coreSourceRoot, 'angular/angularComponentFromReact.tsx'), 'utf8'), {
+    code: 'ENOENT',
+  });
+  assert.throws(() => readFileSync(path.join(coreSourceRoot, 'angular/angularComponentFromReact.spec.tsx'), 'utf8'), {
+    code: 'ENOENT',
+  });
+  assert.throws(() => readFileSync(path.join(coreSourceRoot, 'bootstrap/spinnakerContainer.component.ts'), 'utf8'), {
+    code: 'ENOENT',
+  });
+  assert.throws(() => readFileSync(path.join(coreSourceRoot, 'core.module.ts'), 'utf8'), { code: 'ENOENT' });
+  assert.throws(() => readFileSync(path.join(coreSourceRoot, 'utils/failedToInstantiateModule.ts'), 'utf8'), {
+    code: 'ENOENT',
+  });
 });
 
 test('direct bootstrap explicitly loads Core routes', () => {
@@ -134,6 +286,105 @@ function withFixtureRoot(assertions) {
     rmSync(fixtureRoot, { recursive: true, force: true });
   }
 }
+
+test('production Angular graph scan detects value imports and module aliases', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const fixtures = new Map([
+      ['default.ts', "import angular from 'angular';\nangular.module('default', []);"],
+      ['named.ts', "import {\n  module as ngModule,\n} from 'angular';\nngModule('named', []);"],
+      ['namespace.ts', "import * as ng from 'angular';\nng.module('namespace', []);"],
+      ['require.cjs', "const angular = require('angular');\nangular.module('required', []);"],
+      ['side-effect.js', "import 'angular';"],
+    ]);
+    fixtures.forEach((source, file) => writeFileSync(path.join(fixtureRoot, file), source));
+
+    assert.deepEqual(findProductionAngularGraph(productionSourceFiles(fixtureRoot), fixtureRoot), [
+      'default.ts: Angular runtime import',
+      'default.ts: Angular module factory',
+      'named.ts: Angular runtime import',
+      'named.ts: Angular module factory',
+      'namespace.ts: Angular runtime import',
+      'namespace.ts: Angular module factory',
+      'require.cjs: Angular runtime import',
+      'require.cjs: Angular module factory',
+      'side-effect.js: Angular runtime import',
+    ]);
+  });
+});
+
+test('production Angular graph scan detects ambient module factories without imports', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const fixtures = new Map([
+      ['ambient.ts', "angular.module('regression', []);"],
+      ['window.ts', "window.angular.module('regression', []);"],
+    ]);
+    fixtures.forEach((source, file) => writeFileSync(path.join(fixtureRoot, file), source));
+
+    assert.deepEqual(findProductionAngularGraph(productionSourceFiles(fixtureRoot), fixtureRoot), [
+      'ambient.ts: Angular module factory',
+      'window.ts: Angular module factory',
+    ]);
+  });
+});
+
+test('production Angular graph scan allows type-only Angular imports', () => {
+  withFixtureRoot((fixtureRoot) => {
+    writeFileSync(
+      path.join(fixtureRoot, 'types.ts'),
+      "import type { IQService } from 'angular';\nexport type Q = IQService;",
+    );
+
+    assert.deepEqual(findProductionAngularGraph(productionSourceFiles(fixtureRoot), fixtureRoot), []);
+  });
+});
+
+test('production Angular graph scan detects every Angular registration method', () => {
+  withFixtureRoot((fixtureRoot) => {
+    angularRegistrationMethods.forEach((method) => {
+      writeFileSync(
+        path.join(fixtureRoot, `${method}.ts`),
+        `import { module } from 'angular';\nconst ngModule = module('fixture', []);\nngModule.${method}('fixture', {});`,
+      );
+    });
+
+    assert.deepEqual(
+      findProductionAngularGraph(productionSourceFiles(fixtureRoot), fixtureRoot),
+      angularRegistrationMethods.flatMap((method) => [
+        `${method}.ts: Angular runtime import`,
+        `${method}.ts: Angular module factory`,
+        `${method}.ts: Angular .${method} registration`,
+      ]),
+    );
+  });
+});
+
+test('production Angular graph scan detects Angular React adapters in every source extension', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const adapters = ['angularComponentFromReact', 'react2angular', 'angular2react'];
+    const fixtureFiles = adapters
+      .flatMap((adapter) => sourceExtensions.map((extension) => `${adapter}${extension}`))
+      .sort();
+    fixtureFiles.forEach((file) => {
+      const adapter = path.basename(file, path.extname(file));
+      writeFileSync(path.join(fixtureRoot, file), `${adapter}(Component);`);
+    });
+
+    assert.deepEqual(
+      findProductionAngularGraph(productionSourceFiles(fixtureRoot), fixtureRoot),
+      fixtureFiles.map((file) => `${file}: ${path.basename(file, path.extname(file))}`),
+    );
+  });
+});
+
+test('production Angular graph scan excludes spec and test source', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const source = "import angular from 'angular';\nangular.module('fixture', []);";
+    writeFileSync(path.join(fixtureRoot, 'fixture.spec.ts'), source);
+    writeFileSync(path.join(fixtureRoot, 'fixture.test.ts'), source);
+
+    assert.deepEqual(findProductionAngularGraph(productionSourceFiles(fixtureRoot), fixtureRoot), []);
+  });
+});
 
 test('legacy facade scan includes and accepts its own source', () => {
   const scannedFiles = workspaceSourceFiles(path.dirname(__filename));
