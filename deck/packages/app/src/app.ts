@@ -7,6 +7,7 @@ import '@spinnaker/appengine';
 import '@spinnaker/azure';
 import '@spinnaker/google';
 import './canary/canary.module';
+import '@spinnaker/haproxy';
 import '@spinnaker/kubernetes';
 import '@spinnaker/oracle';
 import '@spinnaker/kayenta';
