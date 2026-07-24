@@ -1,6 +1,4 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext, UIViewContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -9,7 +7,6 @@ import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { CollapsibleSection } from '../../presentation';
-import { REACT_MODULE } from '../../reactShims';
 import { ClusterState } from '../../state';
 import { InstanceWriter } from '../instance.write.service';
 import { MultipleInstancesDetails } from './MultipleInstancesDetails';
@@ -58,17 +55,14 @@ describe('<MultipleInstancesDetails />', () => {
       </UIRouterContext.Provider>,
     );
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-      ['application', 'application.insight', 'application.insight.multipleInstances'].forEach((name) => {
-        if (!$uiRouter.stateRegistry.get(name)) {
-          $uiRouter.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
-        }
-      });
-    }),
-  );
+  beforeEach(() => {
+    $uiRouter = new UIRouterReact();
+    $uiRouter.plugin(servicesPlugin);
+    $uiRouter.plugin(hashLocationPlugin);
+    ['application', 'application.insight', 'application.insight.multipleInstances'].forEach((name) => {
+      $uiRouter.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
+    });
+  });
 
   beforeEach(() => {
     previousMultiselectModel = ClusterState.multiselectModel;
@@ -100,6 +94,7 @@ describe('<MultipleInstancesDetails />', () => {
 
   afterEach(() => {
     ClusterState.multiselectModel = previousMultiselectModel;
+    $uiRouter.dispose();
   });
 
   it('renders selected instances grouped by server group', () => {

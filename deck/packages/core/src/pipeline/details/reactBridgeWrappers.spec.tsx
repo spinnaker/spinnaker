@@ -12,6 +12,7 @@ import { StageSummaryWrapper, StageSummaryWrapperComponent } from './StageSummar
 import { StepDetails } from './StepDetails';
 import { StepExecutionDetailsWrapper, StepExecutionDetailsWrapperComponent } from './StepExecutionDetailsWrapper';
 import { ExecutionStepDetails } from '../config/stages/common/ExecutionStepDetails';
+import { StepExecutionDetails } from '../config/stages/common/StepExecutionDetails';
 
 describe('pipeline details bridge wrappers', () => {
   const routerProps = { router: {} as any, stateParams: {}, stateService: {} as any };
@@ -19,7 +20,7 @@ describe('pipeline details bridge wrappers', () => {
 
   afterEach(() => setDirectRouter(null));
 
-  it('renders the direct StageSummaryWrapper for Angular summary templates', () => {
+  it('renders the direct StageSummaryWrapper without template compatibility props', () => {
     const props = {
       application: {} as any,
       config: {},
@@ -31,7 +32,6 @@ describe('pipeline details bridge wrappers', () => {
     const component = shallow(<StageSummary {...props} />);
 
     expect(component.find(StageSummaryWrapper).length).toBe(1);
-    expect(component.find(StageSummaryWrapper).prop('sourceUrl')).toBeDefined();
   });
 
   it('renders StageSummaryWrapper directly with step rows, markdown comments, and current step state', () => {
@@ -47,7 +47,6 @@ describe('pipeline details bridge wrappers', () => {
         deckRuntimeServices={deckRuntimeServices}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
-        sourceUrl="template.html"
         stage={{ context: {}, type: 'deploy' } as any}
         stateParams={{ step: '1' }}
         stageSummary={
@@ -77,7 +76,6 @@ describe('pipeline details bridge wrappers', () => {
         deckRuntimeServices={deckRuntimeServices}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
-        sourceUrl="template.html"
         stage={{ context: {}, type: 'deploy' } as any}
         stageSummary={
           {
@@ -244,7 +242,6 @@ describe('pipeline details bridge wrappers', () => {
         deckRuntimeServices={deckRuntimeServices}
         application={{ attributes: {} } as any}
         execution={{ stages: [] } as any}
-        sourceUrl="template.html"
         stage={{ context: {}, type: 'deploy' } as any}
         stageSummary={
           {
@@ -286,7 +283,6 @@ describe('pipeline details bridge wrappers', () => {
             stages: [{ id: 'parent', context: { canManuallySkip: true }, name: 'Parent' }],
           } as any
         }
-        sourceUrl="template.html"
         stage={{ id: 'child', context: {}, isRunning: true, parentStageId: 'parent', type: 'deploy' } as any}
         stageSummary={{ name: 'Child', stages: [] } as any}
       />,
@@ -302,10 +298,10 @@ describe('pipeline details bridge wrappers', () => {
     expect(executionService.updateExecution).toHaveBeenCalledWith({ attributes: {} } as any, updatedExecution);
   });
 
-  it('renders the direct StepExecutionDetailsWrapper for Angular detail templates', () => {
+  it('renders the direct StepExecutionDetailsWrapper with provider and config sections', () => {
     const props = {
       application: {} as any,
-      config: { cloudProvider: 'aws' },
+      config: { cloudProvider: 'aws', executionConfigSections: ['Task Status'] },
       execution: {} as any,
       stage: {} as any,
     };
@@ -313,7 +309,36 @@ describe('pipeline details bridge wrappers', () => {
     const component = shallow(<StepDetails {...props} />);
 
     expect(component.find(StepExecutionDetailsWrapper).length).toBe(1);
-    expect(component.find(StepExecutionDetailsWrapper).prop('sourceUrl')).toBeDefined();
+    expect(component.find(StepExecutionDetailsWrapper).prop('provider')).toBe('aws');
+    expect(component.find(StepExecutionDetailsWrapper).prop('configSections')).toEqual(['Task Status']);
+  });
+
+  it('renders direct execution detail sections instead of the default wrapper', () => {
+    const DirectExecutionDetails = () => <div className="direct-execution-details" />;
+    DirectExecutionDetails.title = 'Direct';
+    const detailsSections = [DirectExecutionDetails];
+
+    const component = shallow(
+      <StepDetails
+        application={{} as any}
+        config={{ cloudProvider: 'aws', executionDetailsSections: detailsSections } as any}
+        execution={{} as any}
+        stage={{} as any}
+      />,
+    );
+
+    expect(component.find(StepExecutionDetailsWrapper).exists()).toBe(false);
+    expect(component.find(StepExecutionDetails).prop('detailsSections')).toBe(detailsSections);
+    expect(component.find(StepExecutionDetails).prop('provider')).toBe('aws');
+  });
+
+  it('preserves the no-details state when no stage config is registered', () => {
+    const component = shallow(
+      <StepDetails application={{} as any} config={null} execution={{} as any} stage={{} as any} />,
+    );
+
+    expect(component.find(StepExecutionDetailsWrapper).exists()).toBe(false);
+    expect(component.find(StepExecutionDetails).exists()).toBe(false);
   });
 
   it('renders StepExecutionDetailsWrapper default execution details without section nav', () => {
@@ -323,7 +348,6 @@ describe('pipeline details bridge wrappers', () => {
         application={{} as any}
         configSections={['Task Status']}
         execution={{} as any}
-        sourceUrl="template.html"
         stage={{ failureMessage: 'it failed', tasks: [{ name: 'deploy', status: 'SUCCEEDED' }] } as any}
       />,
     );
@@ -349,7 +373,6 @@ describe('pipeline details bridge wrappers', () => {
         configSections={['Custom']}
         execution={{} as any}
         provider="aws"
-        sourceUrl="template.html"
         stage={{ context: { serverGroupName: 'my-server-group' }, failureMessage: 'it failed', tasks: [] } as any}
       />,
     );
@@ -375,7 +398,6 @@ describe('pipeline details bridge wrappers', () => {
           config: { executionDetailsComponent: CustomExecutionDetails },
           configSections: ['Custom'],
           execution: {},
-          sourceUrl: 'template.html',
           stage: {},
           stateParams: { details: 'injected-details' },
         } as any)}
@@ -397,7 +419,6 @@ describe('pipeline details bridge wrappers', () => {
         config={{ executionDetailsComponent: CustomExecutionDetails } as any}
         configSections={['Custom', 'Tasks']}
         execution={{} as any}
-        sourceUrl="template.html"
         stage={{ context: {}, tasks: [] } as any}
       />,
     );

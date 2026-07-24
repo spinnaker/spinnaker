@@ -1,7 +1,5 @@
 import type { StateParams, StateService } from '@uirouter/angularjs';
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import type { ITimeoutService } from 'angular';
-import { module } from 'angular';
 
 export class ExecutionDetailsSectionService {
   private pendingOnComplete: PromiseLike<any>;
@@ -41,7 +39,3 @@ export class ExecutionDetailsSectionService {
 }
 
 export const EXECUTION_DETAILS_SECTION_SERVICE = 'spinnaker.executionDetails.section.service';
-module(EXECUTION_DETAILS_SECTION_SERVICE, [UIROUTER_ANGULARJS]).service(
-  'executionDetailsSectionService',
-  ExecutionDetailsSectionService,
-);

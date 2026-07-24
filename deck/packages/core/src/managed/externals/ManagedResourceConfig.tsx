@@ -1,9 +1,7 @@
 import { ApolloProvider } from '@apollo/client';
-import { module } from 'angular';
 import classNames from 'classnames';
 import React from 'react';
 
-import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { Application } from '../../application';
 import { createApolloClient } from '../graphql/client';
 import {
@@ -112,9 +110,3 @@ export const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
     </ApolloProvider>
   );
 };
-
-export const MANAGED_RESOURCE_CONFIG = 'spinnaker.core.managedResourceConfig.component';
-module(MANAGED_RESOURCE_CONFIG, []).component(
-  'managedResourceConfig',
-  angularComponentFromReact(ManagedResourceConfig, 'managedResourceConfig', ['application']),
-);

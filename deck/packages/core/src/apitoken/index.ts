@@ -17,4 +17,3 @@ export * from './ApiTokensPage';
 export * from './ApiTokensPageContainer';
 export * from './CreateApiTokenModal';
 export * from './RevokeApiTokenButton';
-export * from './apitoken.module';

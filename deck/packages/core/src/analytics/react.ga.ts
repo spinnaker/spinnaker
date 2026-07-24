@@ -5,7 +5,7 @@ import { logger } from '../utils';
 
 export const initGoogleAnalytics = () => {
   if (!SETTINGS.analytics.ga) return;
-  ReactGA.initialize(SETTINGS.analytics.ga, {}); // We're loading GA twice - here and in angular - but it shouldn't cause any problems
+  ReactGA.initialize(SETTINGS.analytics.ga, {});
   logger.subscribe({
     key: 'googleAnalytics',
     onEvent: (event) => {

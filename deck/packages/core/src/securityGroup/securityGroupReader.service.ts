@@ -1,5 +1,4 @@
 import type { ILogService, IQService } from 'angular';
-import { module } from 'angular';
 import { filter, forOwn, has, uniq } from 'lodash';
 import { cloneDeep } from 'lodash';
 
@@ -8,7 +7,6 @@ import type { Application } from '../application/application.model';
 import { InfrastructureCaches } from '../cache/infrastructureCaches';
 
 import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
 import type { ILoadBalancer, ISecurityGroup, IServerGroup, IServerGroupUsage } from '../domain';
 import type { IEntityTags } from '../domain/IEntityTags';
@@ -21,7 +19,6 @@ import { SearchService } from '../search/search.service';
 
 import type { ISecurityGroupSearchResult } from './securityGroupSearchResultType';
 import type { SecurityGroupTransformerService } from './securityGroupTransformer.service';
-import { SECURITY_GROUP_TRANSFORMER_SERVICE } from './securityGroupTransformer.service';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {
@@ -484,7 +481,3 @@ export class SecurityGroupReader {
 }
 
 export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
-module(SECURITY_GROUP_READER, [SECURITY_GROUP_TRANSFORMER_SERVICE, PROVIDER_SERVICE_DELEGATE]).service(
-  'securityGroupReader',
-  SecurityGroupReader,
-);

@@ -28,7 +28,7 @@ describe('LoadBalancerDetailsWrapper', () => {
     const Actions = () => <button />;
     const Section = () => <div />;
     const useDetailsHook = () => ({ data: undefined, error: null, loading: true, refetch: () => Promise.resolve() });
-    spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
+    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
       const values: { [key: string]: any } = {
         'loadBalancer.detailsActions': Actions,
         'loadBalancer.detailsSections': [Section],
@@ -48,34 +48,17 @@ describe('LoadBalancerDetailsWrapper', () => {
     expect(component.find(LoadBalancerDetailsContent).prop('Actions')).toBe(Actions);
     expect(component.find(LoadBalancerDetailsContent).prop('sections')).toEqual([Section]);
     expect(component.find(LoadBalancerDetailsContent).prop('useDetails')).toBe(useDetailsHook);
-
-    component.unmount();
-  });
-
-  it('renders a migration-required message for legacy template/controller-only load balancer details', async () => {
-    spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
-      const values: { [key: string]: any } = {
-        'loadBalancer.detailsActions': null,
-        'loadBalancer.detailsController': 'legacyLoadBalancerDetailsCtrl',
-        'loadBalancer.detailsSections': null,
-        'loadBalancer.detailsTemplateUrl': 'legacy-load-balancer-details.html',
-        'loadBalancer.useDetailsHook': null,
-      };
-      return values[key] || null;
-    });
-    const component = mount(wrapWithRouter(<LoadBalancerDetailsWrapper app={app} loadBalancer={loadBalancer} />));
-    await act(async () => {
-      await flush();
-    });
-    component.update();
-
-    expect(component.text()).toContain('Load balancer details for aws must be migrated to React.');
+    expect(getValue.calls.allArgs()).toEqual([
+      ['aws', 'loadBalancer.useDetailsHook'],
+      ['aws', 'loadBalancer.detailsActions'],
+      ['aws', 'loadBalancer.detailsSections'],
+    ]);
 
     component.unmount();
   });
 
   it('renders nothing when provider load balancer details config is missing', async () => {
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
 
     const component = mount(wrapWithRouter(<LoadBalancerDetailsWrapper app={app} loadBalancer={loadBalancer} />));
     await act(async () => {
@@ -84,6 +67,11 @@ describe('LoadBalancerDetailsWrapper', () => {
     component.update();
 
     expect(component.find(LoadBalancerDetailsWrapper).isEmptyRender()).toBe(true);
+    expect(getValue.calls.allArgs()).toEqual([
+      ['aws', 'loadBalancer.useDetailsHook'],
+      ['aws', 'loadBalancer.detailsActions'],
+      ['aws', 'loadBalancer.detailsSections'],
+    ]);
 
     component.unmount();
   });

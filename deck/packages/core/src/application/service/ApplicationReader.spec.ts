@@ -1,51 +1,46 @@
-import { mock } from 'angular';
-
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import type { IApplicationDataSourceAttribute } from './ApplicationReader';
 import { ApplicationReader } from './ApplicationReader';
 import { mockHttpClient } from '../../api/mock/jasmine';
 import type { Application } from '../application.model';
 import type { ClusterService } from '../../cluster/cluster.service';
-import { CLUSTER_SERVICE } from '../../cluster/cluster.service';
-import { LOAD_BALANCER_DATA_SOURCE } from '../../loadBalancer/loadBalancer.dataSource';
+import { registerLoadBalancerDataSource } from '../../loadBalancer/loadBalancer.dataSource';
 import type { LoadBalancerReader } from '../../loadBalancer/loadBalancer.read.service';
-import { LOAD_BALANCER_READ_SERVICE } from '../../loadBalancer/loadBalancer.read.service';
-import { SECURITY_GROUP_DATA_SOURCE } from '../../securityGroup/securityGroup.dataSource';
+import { registerSecurityGroupDataSource } from '../../securityGroup/securityGroup.dataSource';
 import type { SecurityGroupReader } from '../../securityGroup/securityGroupReader.service';
-import { SECURITY_GROUP_READER } from '../../securityGroup/securityGroupReader.service';
-import { SERVER_GROUP_DATA_SOURCE } from '../../serverGroup/serverGroup.dataSource';
+import { registerServerGroupDataSource } from '../../serverGroup/serverGroup.dataSource';
+import { nativePromiseService } from '../../utils/nativePromiseService';
 
 import Spy = jasmine.Spy;
 
 describe('ApplicationReader', function () {
   let securityGroupReader: SecurityGroupReader;
-  let loadBalancerReader: any;
+  let loadBalancerReader: LoadBalancerReader;
   let clusterService: ClusterService;
 
-  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
+  beforeEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+    securityGroupReader = {
+      loadSecurityGroupsByApplicationName: () => Promise.resolve([]),
+      loadSecurityGroups: () => Promise.resolve([]),
+      getApplicationSecurityGroups: () => Promise.resolve([]),
+    } as any;
+    loadBalancerReader = { loadLoadBalancers: () => Promise.resolve([]) } as any;
+    clusterService = {
+      loadServerGroups: () => Promise.resolve([]),
+      createServerGroupClusters: () => [],
+      addServerGroupsToApplication: (_application: Application, serverGroups: any[]) => serverGroups,
+      addTasksToServerGroups: () => undefined,
+      addExecutionsToServerGroups: () => undefined,
+    } as any;
+    registerSecurityGroupDataSource(nativePromiseService, securityGroupReader);
+    registerServerGroupDataSource(nativePromiseService, clusterService);
+    registerLoadBalancerDataSource(nativePromiseService, loadBalancerReader);
+  });
 
-  beforeEach(
-    mock.module(
-      SECURITY_GROUP_DATA_SOURCE,
-      SERVER_GROUP_DATA_SOURCE,
-      LOAD_BALANCER_DATA_SOURCE,
-      SECURITY_GROUP_READER,
-      CLUSTER_SERVICE,
-      LOAD_BALANCER_READ_SERVICE,
-    ),
-  );
-
-  beforeEach(
-    mock.inject(function (
-      _securityGroupReader_: SecurityGroupReader,
-      _clusterService_: ClusterService,
-      _loadBalancerReader_: LoadBalancerReader,
-    ) {
-      securityGroupReader = _securityGroupReader_;
-      clusterService = _clusterService_;
-      loadBalancerReader = _loadBalancerReader_;
-    }),
-  );
+  afterEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+  });
 
   describe('load application', function () {
     let application: Application = null;

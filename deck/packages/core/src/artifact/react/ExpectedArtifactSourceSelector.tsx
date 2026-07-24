@@ -1,7 +1,5 @@
-import { module } from 'angular';
 import React from 'react';
 
-import { angularComponentFromReact } from '../../angular/angularComponentFromReact';
 import type { IExpectedArtifact } from '../../domain';
 import { TetheredSelect } from '../../presentation';
 import { UUIDGenerator } from '../../utils';
@@ -66,15 +64,3 @@ export class ExpectedArtifactSourceSelector extends React.Component<
     );
   }
 }
-
-export const EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT =
-  'spinnaker.core.artifacts.expected.source.selector.react';
-module(EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT, []).component(
-  'expectedArtifactSourceSelectorReact',
-  angularComponentFromReact(ExpectedArtifactSourceSelector, 'expectedArtifactSourceSelectorReact', [
-    'sources',
-    'className',
-    'onChange',
-    'selected',
-  ]),
-);
