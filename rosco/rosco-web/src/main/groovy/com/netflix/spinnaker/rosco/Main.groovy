@@ -33,6 +33,7 @@ import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfigurat
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import com.netflix.spinnaker.rosco.providers.huaweicloud.config.RoscoHuaweiCloudConfiguration
 import com.netflix.spinnaker.rosco.providers.oracle.config.RoscoOracleConfiguration
+import com.netflix.spinnaker.rosco.providers.proxmox.config.RoscoProxmoxConfiguration
 import com.netflix.spinnaker.rosco.providers.tencentcloud.config.RoscoTencentCloudConfiguration
 import com.netflix.spinnaker.rosco.services.ServiceConfig
 import org.springframework.beans.factory.annotation.Qualifier
@@ -74,6 +75,7 @@ import jakarta.servlet.Filter
   RoscoGoogleConfiguration,
   RoscoHuaweiCloudConfiguration,
   RoscoOracleConfiguration,
+  RoscoProxmoxConfiguration,
   RoscoTencentCloudConfiguration,
   RoscoPackerConfigurationProperties,
   RoscoHelmConfigurationProperties,

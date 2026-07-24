@@ -30,6 +30,8 @@ dependencies {
   testImplementation "com.github.tomakehurst:wiremock-jre8-standalone"
   testImplementation "org.apache.commons:commons-compress:1.21"
   testImplementation "org.assertj:assertj-core"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation "org.testcontainers:junit-jupiter"
 }
 
 ospackage {

@@ -100,6 +100,12 @@ var tencentcloud = {
     region: '{%tencentcloud.default.region%}',
   },
 };
+var proxmox = {
+  defaults: {
+    account: 'my-proxmox',
+    region: 'pve01',
+  },
+};
 
 window.spinnakerSettings = {
   authEnabled: authEnabled,
@@ -160,6 +166,7 @@ window.spinnakerSettings = {
     huaweicloud: huaweicloud,
     kubernetes: {},
     oracle: oracle,
+    proxmox: proxmox,
     tencentcloud: tencentcloud,
   },
   version: version,

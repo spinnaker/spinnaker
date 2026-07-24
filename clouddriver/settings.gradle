@@ -30,6 +30,7 @@ def cloudProviderProjects = [
   'huaweicloud': [':clouddriver-huaweicloud'],
   'kubernetes': [':clouddriver-kubernetes'],
   'oracle': [':clouddriver-oracle'],
+  'proxmox': [':clouddriver-proxmox'],
   'tencentcloud': [':clouddriver-tencentcloud'],
   'yandex': [':clouddriver-yandex'],
   'cloudrun':  [':clouddriver-cloudrun', ':clouddriver-google-common']

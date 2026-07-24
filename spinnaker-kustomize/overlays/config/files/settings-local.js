@@ -9,6 +9,11 @@ window.spinnakerSettings.feature.functions = false;
 window.spinnakerSettings.kubernetesAdHocInfraWritesEnabled = true;
 window.spinnakerSettings.authEnabled = true;
 
+// Providers to enable by default for new applications; proxmox must also be
+// present in window.spinnakerSettings.providers for deck to register it.
+window.spinnakerSettings.defaultProviders = ['proxmox', 'kubernetes'];
+window.spinnakerSettings.providers.proxmox = { defaults: { account: 'my-proxmox', region: 'pve01' } };
+
 // service accounts are automatically created as needed.  Turn this on when enabling real RBAC
 // window.spinnakerSettings.feature.managedServiceAccounts = true;
 
