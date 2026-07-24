@@ -105,6 +105,7 @@ window.spinnakerSettings = {
     'huaweicloud',
     'kubernetes',
     'oracle',
+    'proxmox',
     'tencentcloud',
   ],
   defaultTimeZone: process.env.TIMEZONE || 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
@@ -276,6 +277,12 @@ window.spinnakerSettings = {
         account: 'DEFAULT',
         bakeryRegions: ['us-phoenix-1'],
         region: 'us-phoenix-1',
+      },
+    },
+    proxmox: {
+      defaults: {
+        account: 'my-proxmox',
+        region: 'pve01',
       },
     },
     titus: {

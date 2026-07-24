@@ -9,7 +9,7 @@ ENV PACKER_VERSION=1.15.4
 ENV HELMFILE_VERSION=1.7.0
 
 ARG TARGETARCH
-ARG PACKER_PLUGINS="amazon azure googlecompute"
+ARG PACKER_PLUGINS="amazon azure googlecompute proxmox"
 
 WORKDIR /packer
 

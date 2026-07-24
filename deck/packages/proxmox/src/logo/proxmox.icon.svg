@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Stylized dual-arrow mark: two mirrored chevrons around a server node -->
+  <path d="M12 8 L30 26 L24 32 L30 38 L12 56 L4 48 L20 32 L4 16 Z" />
+  <path d="M52 8 L34 26 L40 32 L34 38 L52 56 L60 48 L44 32 L60 16 Z" />
+</svg>

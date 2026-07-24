@@ -94,7 +94,7 @@ class BakeRequest {
   String custom_managed_image_name
 
   static enum CloudProviderType {
-    alicloud, aws, azure, docker, gce, huaweicloud, oracle, tencentcloud
+    alicloud, aws, azure, docker, gce, huaweicloud, oracle, proxmox, tencentcloud
   }
 
   static enum Label {
