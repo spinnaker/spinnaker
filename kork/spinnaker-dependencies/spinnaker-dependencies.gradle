@@ -59,7 +59,7 @@ dependencies {
   api(platform("com.oracle.oci.sdk:oci-java-sdk-bom:3.21.0"))
   api(platform("io.arrow-kt:arrow-stack:${versions.arrow}"))
   api(platform("org.apache.logging.log4j:log4j-bom:${versions.log4j}"))
-
+  api(platform("io.netty:netty-bom:4.1.136.Final"))// 3.5.16 of spring brings in 4.1.135 which has a new CVE.  https://nvd.nist.gov/vuln/detail/CVE-2026-55831.  Remove post upgrade to latest 4 with a fix
   constraints {
     api("cglib:cglib-nodep:3.3.0")
     api("com.amazonaws:aws-java-sdk:${versions.aws}")
