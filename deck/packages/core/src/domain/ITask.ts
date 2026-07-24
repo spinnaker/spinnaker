@@ -11,7 +11,7 @@ export interface ITask extends IOrchestratedItem {
   startTime: number;
   execution: any;
   history: any;
-  poller?: PromiseLike<void>;
+  poller?: ReturnType<typeof setTimeout>;
 }
 
 export interface ITaskVariable {

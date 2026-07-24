@@ -2,9 +2,8 @@ import { flatten, isEqual, map, uniq, xor } from 'lodash';
 import React from 'react';
 import type { Option } from 'react-select';
 
-import type { IAccount } from './AccountService';
+import type { IAccount, IAccountDetails } from './AccountService';
 import { AccountService } from './AccountService';
-import { AngularServices } from '../angular/services';
 import type { IFormInputProps } from '../presentation/forms/inputs';
 import { ReactSelectInput } from '../presentation/forms/inputs/ReactSelectInput';
 import { SelectInput } from '../presentation/forms/inputs/SelectInput';
@@ -48,16 +47,15 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     }
 
     const accountsAreObjects = Boolean((accounts[0] as IAccount).name);
-    const $q = AngularServices.$q;
-    let getAccountDetails = $q.when([]);
+    let getAccountDetails: PromiseLike<IAccountDetails[]> = Promise.resolve([]);
     if (provider) {
       getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);
     }
     if (!provider && accountsAreObjects) {
       const providers = uniq(map(accounts as IAccount[], 'type'));
-      getAccountDetails = $q
-        .all(providers.map((p) => AccountService.getAllAccountDetailsForProvider(p)))
-        .then((details) => flatten(details));
+      getAccountDetails = Promise.all(
+        providers.map((p) => AccountService.getAllAccountDetailsForProvider(p)),
+      ).then((details) => flatten(details));
     }
 
     getAccountDetails.then((details) => {

@@ -1,5 +1,5 @@
-import { mock, noop } from 'angular';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
+import { mock, noop } from 'angular';
 import type { ReactWrapper } from 'enzyme';
 import { mount, shallow } from 'enzyme';
 import { set } from 'lodash';
@@ -11,13 +11,13 @@ import { ExecutionsComponent } from './Executions';
 import type { Application } from '../../application';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
-import { ViewStateCache } from '../../cache';
-import { INSIGHT_FILTER_STATE_MODEL } from '../../insight/insightFilterState.model';
+import { CollapsibleSectionStateCache, ViewStateCache } from '../../cache';
+import { FilterCollapse } from '../../filterModel';
+import { ManualExecutionModal } from '../manualExecution';
 import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
 import { REACT_MODULE } from '../../reactShims';
 import * as State from '../../state';
 import { Spinner } from '../../widgets/spinners/Spinner';
-import { ManualExecutionModal } from '../manualExecution';
 
 describe('<Executions/>', () => {
   let component: ReactWrapper<IExecutionsProps, IExecutionsState>;
@@ -60,21 +60,23 @@ describe('<Executions/>', () => {
     component = null;
     router = new UIRouterReact();
     routerProps = { router, stateParams: {}, stateService: { go: jasmine.createSpy('injectedGo') } };
+    spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
+    spyOn(CollapsibleSectionStateCache, 'isExpanded').and.returnValue(false);
+    spyOn(CollapsibleSectionStateCache, 'setExpanded');
   });
-  beforeEach(mock.module(INSIGHT_FILTER_STATE_MODEL, REACT_MODULE, OVERRIDE_REGISTRY));
+  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
   beforeEach(() => jasmine.clock().install());
-  beforeEach(
-    mock.inject(() => {
-      spyOn(ViewStateCache, 'createCache').and.returnValue({ get: noop, put: noop, touch: noop } as any);
-      State.initialize();
-      application = ApplicationModelBuilder.createApplicationForTests(
-        'app',
-        { key: 'executions', lazy: true, defaultData: [] },
-        { key: 'pipelineConfigs', lazy: true, defaultData: [] },
-        { key: 'runningExecutions', lazy: true, defaultData: [] },
-      );
-    }),
-  );
+  beforeEach(() => {
+    spyOn(ViewStateCache, 'createCache').and.returnValue({ get: noop, put: noop, touch: noop } as any);
+    State.initialize();
+    State.ExecutionState.filterModel.asFilterModel.sortFilter.filter = 'existing filter';
+    application = ApplicationModelBuilder.createApplicationForTests(
+      'app',
+      { key: 'executions', lazy: true, defaultData: [] },
+      { key: 'pipelineConfigs', lazy: true, defaultData: [] },
+      { key: 'runningExecutions', lazy: true, defaultData: [] },
+    );
+  });
   afterEach(async () => {
     await act(async () => {
       await Promise.resolve();
@@ -88,11 +90,46 @@ describe('<Executions/>', () => {
   it('should not set loading flag to false until executions and pipeline configs have been loaded', async () => {
     initializeApplication();
     expect(component.find(Spinner).length).toBe(1);
+    application.executions.loaded = true;
+    application.pipelineConfigs.loaded = true;
     application.executions.dataUpdated();
     application.pipelineConfigs.dataUpdated();
     await settleInitialization();
 
     expect(component.find(Spinner).length).toBe(0);
+  });
+
+  it('controls filter expansion from the cache and persists committed toggles', async () => {
+    (CollapsibleSectionStateCache.isSet as jasmine.Spy).and.returnValue(true);
+    (CollapsibleSectionStateCache.isExpanded as jasmine.Spy).and.returnValue(false);
+    initializeApplication({ executions: [], pipelineConfigs: [{ id: 'pipeline-id' }] });
+    await settleInitialization();
+
+    let filterCollapse = component.find(FilterCollapse);
+    expect(CollapsibleSectionStateCache.isSet).toHaveBeenCalledWith('insightFilters');
+    expect(CollapsibleSectionStateCache.isExpanded).toHaveBeenCalledWith('insightFilters');
+    expect(filterCollapse.prop('filtersExpanded')).toBe(false);
+    expect(CollapsibleSectionStateCache.setExpanded).not.toHaveBeenCalled();
+
+    const onToggle = filterCollapse.prop('onToggle') as () => void;
+    act(() => {
+      onToggle();
+      onToggle();
+    });
+    component.update();
+
+    filterCollapse = component.find(FilterCollapse);
+    expect(filterCollapse.prop('filtersExpanded')).toBe(false);
+    expect(CollapsibleSectionStateCache.setExpanded).not.toHaveBeenCalled();
+
+    act(() => onToggle());
+    component.update();
+
+    filterCollapse = component.find(FilterCollapse);
+    expect(filterCollapse.prop('filtersExpanded')).toBe(true);
+    expect((CollapsibleSectionStateCache.setExpanded as jasmine.Spy).calls.allArgs()).toEqual([
+      ['insightFilters', true],
+    ]);
   });
 
   it('clears the manual execution param through the injected state service', () => {

@@ -5,7 +5,6 @@ import { CloudProviderRegistry } from '../CloudProviderRegistry';
 import { ProviderSelectionModal } from './ProviderSelectionModal';
 import type { IAccountDetails } from '../../account';
 import { AccountService } from '../../account';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { SETTINGS } from '../../config';
 
@@ -58,16 +57,15 @@ export class ProviderSelectionService {
           .map((option) => option.provider),
       );
 
-      const $q = AngularServices.$q;
       let provider;
       if (providerOptions.length > 1) {
         return ProviderSelectionModal.show({ providerOptions });
       } else if (providerOptions.length === 1) {
-        provider = $q.when(providerOptions[0]);
+        provider = Promise.resolve(providerOptions[0]);
       } else if (filterFn) {
-        provider = $q.reject(new Error(`No providers support ${feature} for this action.`));
+        provider = Promise.reject(new Error(`No providers support ${feature} for this action.`));
       } else {
-        provider = $q.when(SETTINGS.defaultProvider || 'aws');
+        provider = Promise.resolve(SETTINGS.defaultProvider || 'aws');
       }
       return provider;
     });

@@ -3,7 +3,6 @@ import { flatten, isEmpty, isNumber, values } from 'lodash';
 import type { Subscription } from 'rxjs';
 import { Subject } from 'rxjs';
 
-import { AngularServices } from '../../../angular/services';
 import type {
   IPipeline,
   IStage,
@@ -13,6 +12,7 @@ import type {
   ITriggerTypeConfig,
 } from '../../../domain';
 import { Registry } from '../../../registry';
+import { diagnosticLogger } from '../../../utils/diagnosticLogger';
 
 export interface IStageValidationResults {
   stage: IStage;
@@ -72,8 +72,6 @@ export class PipelineConfigValidator {
     const validations: Array<PromiseLike<void>> = [];
     const pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline);
     const stageValidations: Map<IStage, string[]> = new Map();
-    const $log = AngularServices.$log;
-    const $q = AngularServices.$q;
     let preventSave = false;
 
     triggers.forEach((trigger, index) => {
@@ -82,14 +80,14 @@ export class PipelineConfigValidator {
         config.validators.forEach((validator) => {
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
-            $log.warn(
+            diagnosticLogger.warn(
               `No validator of type "${validator.type}" found, ignoring validation on trigger "${index + 1}" (${
                 trigger.type
               })`,
             );
           } else {
             validations.push(
-              $q.resolve<string>(typedValidator.validate(pipeline, trigger, validator, config)).then((message) => {
+              Promise.resolve(typedValidator.validate(pipeline, trigger, validator, config)).then((message) => {
                 if (message && !pipelineValidations.includes(message)) {
                   pipelineValidations.push(message);
                   if (validator.preventSave) {
@@ -102,13 +100,13 @@ export class PipelineConfigValidator {
         });
       } else if (config && config.validateFn) {
         validations.push(
-          $q<FormikErrors<IStage>>((resolve, reject) =>
-            Promise.resolve(config.validateFn(trigger, { pipeline })).then(resolve, reject),
-          ).then((errors: FormikErrors<ITrigger>) => {
-            PipelineConfigValidator.flattenValues(errors).forEach((message) => {
-              pipelineValidations.push(message);
-            });
-          }),
+          Promise.resolve()
+            .then(() => config.validateFn(trigger, { pipeline }))
+            .then((errors: FormikErrors<ITrigger>) => {
+              PipelineConfigValidator.flattenValues(errors).forEach((message) => {
+                pipelineValidations.push(message);
+              });
+            }),
         );
       }
     });
@@ -121,39 +119,37 @@ export class PipelineConfigValidator {
           }
           const typedValidator = this.getValidator(validator);
           if (!typedValidator) {
-            $log.warn(
+            diagnosticLogger.warn(
               `No validator of type "${validator.type}" found, ignoring validation on stage "${stage.name}" (${stage.type})`,
             );
           } else {
             validations.push(
-              $q
-                .resolve<string>(typedValidator.validate(pipeline, stage, validator, config))
-                .then((message: string) => {
-                  if (message) {
-                    if (!stageValidations.has(stage)) {
-                      stageValidations.set(stage, [] as string[]);
-                    }
-                    if (!stageValidations.get(stage).includes(message)) {
-                      stageValidations.get(stage).push(message);
-                      if (validator.preventSave) {
-                        preventSave = true;
-                      }
+              Promise.resolve(typedValidator.validate(pipeline, stage, validator, config)).then((message: string) => {
+                if (message) {
+                  if (!stageValidations.has(stage)) {
+                    stageValidations.set(stage, [] as string[]);
+                  }
+                  if (!stageValidations.get(stage).includes(message)) {
+                    stageValidations.get(stage).push(message);
+                    if (validator.preventSave) {
+                      preventSave = true;
                     }
                   }
-                }),
+                }
+              }),
             );
           }
         });
       } else if (config && config.validateFn) {
         validations.push(
-          $q<FormikErrors<IStage>>((resolve, reject) =>
-            Promise.resolve(config.validateFn(stage, { pipeline })).then(resolve, reject),
-          ).then((errors: FormikErrors<IStage>) => {
-            const array: string[] = PipelineConfigValidator.flattenValues(errors);
-            if (array && array.length > 0) {
-              stageValidations.set(stage, array);
-            }
-          }),
+          Promise.resolve()
+            .then(() => config.validateFn(stage, { pipeline }))
+            .then((errors: FormikErrors<IStage>) => {
+              const array: string[] = PipelineConfigValidator.flattenValues(errors);
+              if (array && array.length > 0) {
+                stageValidations.set(stage, array);
+              }
+            }),
         );
       }
 
@@ -165,7 +161,7 @@ export class PipelineConfigValidator {
       }
     });
 
-    return $q.all(validations).then(() => {
+    return Promise.all(validations).then(() => {
       const results = {
         stages: Array.from(stageValidations).map(([stage, messages]) => ({ stage, messages })),
         pipeline: pipelineValidations,

@@ -71,6 +71,7 @@ export class DockerChartAndTagSelector extends React.Component<
   };
 
   private unmounted = false;
+  private imageRequest: AbortController;
   private images: IDockerImage[];
   private accounts: string[];
 
@@ -192,11 +193,12 @@ export class DockerChartAndTagSelector extends React.Component<
   }
 
   public componentWillReceiveProps(nextProps: IDockerChartAndTagSelectorProps) {
+    const requestAccount = this.props.showRegistry ? this.props.account : this.props.registry;
+    const nextRequestAccount = nextProps.showRegistry ? nextProps.account : nextProps.registry;
     if (
-      !this.images ||
-      ['account', 'showRegistry'].some(
-        (key: keyof IDockerChartAndTagSelectorProps) => this.props[key] !== nextProps[key],
-      )
+      (!this.images && !this.imageRequest) ||
+      this.props.showRegistry !== nextProps.showRegistry ||
+      requestAccount !== nextRequestAccount
     ) {
       this.refreshImages(nextProps);
     } else if (
@@ -214,6 +216,7 @@ export class DockerChartAndTagSelector extends React.Component<
 
   componentWillUnmount() {
     this.unmounted = true;
+    this.imageRequest?.abort();
   }
 
   private synchronizeChanges(values: IDockerImageParts, registry: string) {
@@ -315,9 +318,13 @@ export class DockerChartAndTagSelector extends React.Component<
   }
 
   private initializeImages(props: IDockerChartAndTagSelectorProps) {
-    if (this.state.imagesLoading) {
+    if (this.unmounted) {
       return;
     }
+
+    this.imageRequest?.abort();
+    const imageRequest = new AbortController();
+    this.imageRequest = imageRequest;
 
     const { showRegistry, account, registry } = props;
 
@@ -327,8 +334,11 @@ export class DockerChartAndTagSelector extends React.Component<
     };
 
     this.setState({ imagesLoading: true });
-    DockerChartImageReader.findImages(imageConfig)
+    DockerChartImageReader.findImages(imageConfig, imageRequest.signal)
       .then((images: IDockerImage[]) => {
+        if (imageRequest.signal.aborted || this.unmounted) {
+          return;
+        }
         this.images = images;
         this.registryMap = this.getRegistryMap(this.images);
         this.accountMap = this.getAccountMap(this.images);
@@ -337,10 +347,11 @@ export class DockerChartAndTagSelector extends React.Component<
         this.organizationMap = this.getOrganizationMap(this.images);
         this.repositoryMap = this.getRepositoryMap(this.images);
         this.organizations = this.getOrganizationsList(this.accountMap);
-        this.updateThings(props, true);
+        this.updateThings(this.props, true);
       })
       .finally(() => {
-        if (!this.unmounted) {
+        if (!this.unmounted && this.imageRequest === imageRequest) {
+          this.imageRequest = null;
           this.setState({ imagesLoading: false });
         }
       });
@@ -354,9 +365,10 @@ export class DockerChartAndTagSelector extends React.Component<
     this.initializeImages(props);
   }
 
-  private initializeAccounts(props: IDockerChartAndTagSelectorProps) {
-    let { account } = props;
+  private initializeAccounts() {
     AccountService.listAccounts('dockerRegistry').then((allAccounts: IAccount[]) => {
+      const props = this.props;
+      let { account } = props;
       const accounts = allAccounts.map((a: IAccount) => a.name);
       if (this.props.showRegistry && !account) {
         account = accounts[0];
@@ -373,7 +385,7 @@ export class DockerChartAndTagSelector extends React.Component<
 
   public componentDidMount() {
     if (!this.props.deferInitialization && (this.props.registry || this.isNew())) {
-      this.initializeAccounts(this.props);
+      this.initializeAccounts();
     }
   }
 
