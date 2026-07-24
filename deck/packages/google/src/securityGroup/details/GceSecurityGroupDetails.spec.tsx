@@ -1,12 +1,23 @@
 import React from 'react';
-import { mount, shallow } from 'enzyme';
+import { mount as enzymeMount, shallow } from 'enzyme';
 
-import { AngularServices, ConfirmationModalService, SecurityGroupWriter } from '@spinnaker/core';
+import { AccountService, ConfirmationModalService, DeckRuntimeContext, SecurityGroupWriter } from '@spinnaker/core';
 
 import { GceSecurityGroupModal } from '../configure/GceSecurityGroupModal';
 import { GceSecurityGroupActions, GceSecurityGroupDetails } from './GceSecurityGroupDetails';
 
 describe('GceSecurityGroupDetails', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {};
+    spyOn(AccountService, 'challengeDestructiveActions').and.resolveTo(false);
+  });
+
   const firstRoute = {
     accountId: 'my-account',
     name: 'first-firewall',
@@ -60,7 +71,7 @@ describe('GceSecurityGroupDetails', () => {
           Promise.resolve(details('first-firewall', 'after refresh')),
         ),
     };
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue(reader as any);
+    runtimeServices.securityGroupReader = reader;
     const wrapper = mount(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
 
     await flush();
@@ -89,7 +100,7 @@ describe('GceSecurityGroupDetails', () => {
           thirdRequest.promise,
         ),
     };
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue(reader as any);
+    runtimeServices.securityGroupReader = reader;
     const app = { securityGroups: { onRefresh: () => jasmine.createSpy('unsubscribe') } };
     const wrapper = mount(<GceSecurityGroupDetails app={app as any} resolvedSecurityGroup={firstRoute} />);
 
@@ -118,6 +129,12 @@ describe('GceSecurityGroupDetails', () => {
 });
 
 describe('GceSecurityGroupActions', () => {
+  const runtimeServices = {} as any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mountActions = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
   const app = {
     name: 'my-app',
     securityGroups: { refresh: jasmine.createSpy('refresh') },
@@ -142,7 +159,7 @@ describe('GceSecurityGroupActions', () => {
     spyOn(GceSecurityGroupModal, 'show');
     spyOn(ConfirmationModalService, 'confirm');
     spyOn(SecurityGroupWriter, 'deleteSecurityGroup').and.returnValue(Promise.resolve({} as any));
-    const wrapper = shallow(
+    const wrapper = mountActions(
       <GceSecurityGroupActions
         app={app as any}
         resolvedSecurityGroup={resolvedSecurityGroup}
@@ -163,16 +180,22 @@ describe('GceSecurityGroupActions', () => {
       region: 'global',
       vpcId: 'default',
     });
-    expect(GceSecurityGroupModal.show).toHaveBeenCalledWith({
-      application: app as any,
-      mode: 'edit',
-      securityGroup: firewallWithIdentity,
-    });
-    expect(GceSecurityGroupModal.show).toHaveBeenCalledWith({
-      application: app as any,
-      mode: 'clone',
-      securityGroup: firewallWithIdentity,
-    });
+    expect(GceSecurityGroupModal.show).toHaveBeenCalledWith(
+      {
+        application: app as any,
+        mode: 'edit',
+        securityGroup: firewallWithIdentity,
+      },
+      runtimeServices,
+    );
+    expect(GceSecurityGroupModal.show).toHaveBeenCalledWith(
+      {
+        application: app as any,
+        mode: 'clone',
+        securityGroup: firewallWithIdentity,
+      },
+      runtimeServices,
+    );
     expect(ConfirmationModalService.confirm).toHaveBeenCalledWith(
       jasmine.objectContaining({
         account: 'my-account',
@@ -192,7 +215,7 @@ describe('GceSecurityGroupActions', () => {
   });
 
   it('disables host-project shared-VPC actions and explains why they are read-only', () => {
-    const wrapper = shallow(
+    const wrapper = mountActions(
       <GceSecurityGroupActions
         app={app as any}
         resolvedSecurityGroup={resolvedSecurityGroup}

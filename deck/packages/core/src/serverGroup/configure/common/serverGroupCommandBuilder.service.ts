@@ -1,8 +1,8 @@
 import { module } from 'angular';
 import type { IAggregatedAccounts, IRegion } from '../../../account/AccountService';
 import type { Application } from '../../../application/application.model';
-import type { ProviderServiceDelegate } from '../../../cloudProvider';
-import { PROVIDER_SERVICE_DELEGATE } from '../../../cloudProvider';
+import type { ProviderServiceDelegate } from '../../../cloudProvider/providerService.delegate';
+import { PROVIDER_SERVICE_DELEGATE } from '../../../cloudProvider/providerService.delegate';
 import type { IDeploymentStrategy } from '../../../deploymentStrategy';
 import type {
   ILoadBalancer,
@@ -13,7 +13,7 @@ import type {
   ISubnet,
 } from '../../../domain';
 import type { IPreferredInstanceType } from '../../../instance';
-import { getKindName } from '../../../managed';
+import { getKindName } from '../../../managed/ManagedReader';
 import type { IMoniker } from '../../../naming/IMoniker';
 import type { ISecurityGroupsByAccountSourceData } from '../../../securityGroup/securityGroupReader.service';
 

@@ -104,6 +104,11 @@ export class PipelineRegistry {
     this.clearStageConfigCache();
   }
 
+  public unregisterStage(stageConfig: IStageTypeConfig): void {
+    this.stageTypes = this.stageTypes.filter((registeredStage) => registeredStage !== stageConfig);
+    this.clearStageConfigCache();
+  }
+
   /**
    * Registers a custom UI for a preconfigured run job stage.
    *

@@ -3,9 +3,11 @@ import React from 'react';
 
 import { AccountService } from '../../../../account/AccountService';
 import { ProviderSelectionService } from '../../../../cloudProvider/providerSelection/ProviderSelectionService';
-import { DeployStageConfig } from './DeployStageConfig';
+import { DeployStageConfigComponent } from './DeployStageConfig';
 
 describe('<DeployStageConfig />', () => {
+  const deckRuntimeServices = { serverGroupCommandBuilder: {}, serverGroupTransformer: {} } as any;
+
   function createProps(stageOverrides = {}) {
     const stage = {
       clusters: [],
@@ -30,7 +32,9 @@ describe('<DeployStageConfig />', () => {
     spyOn(ProviderSelectionService, 'selectProvider').and.returnValue(
       Promise.reject(new Error('No providers support serverGroup for this action.')),
     );
-    const component = mount(<DeployStageConfig {...createProps()} />);
+    const component = mount(
+      <DeployStageConfigComponent {...createProps()} deckRuntimeServices={deckRuntimeServices} />,
+    );
 
     component.find('button.add-new').simulate('click');
     await Promise.resolve();
@@ -48,7 +52,7 @@ describe('<DeployStageConfig />', () => {
       return Promise.reject(new Error('cancelled')) as any;
     });
     const props = createProps();
-    const component = mount(<DeployStageConfig {...props} />);
+    const component = mount(<DeployStageConfigComponent {...props} deckRuntimeServices={deckRuntimeServices} />);
 
     component.find('button.add-new').simulate('click');
 

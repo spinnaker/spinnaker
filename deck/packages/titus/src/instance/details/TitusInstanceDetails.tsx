@@ -25,6 +25,7 @@ import {
   SETTINGS,
   Spinner,
   useData,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { TitusInstanceDns } from './TitusInstanceDns';
@@ -124,6 +125,7 @@ const OverridableTitusInstanceDetailsContent = overridableComponent<
 >(TitusInstanceDetailsContent, 'titus.instance.details.content');
 
 export const TitusInstanceDetails = ({ app, environment, instance, moniker }: ITitusInstanceDetailsProps) => {
+  const { providerServiceDelegate } = useDeckRuntimeServices();
   const { instanceId } = instance;
   const serverGroup = app.serverGroups.data.find((sg: ITitusServerGroup) =>
     sg.instances.some((possibleMatch) => possibleMatch.id === instanceId),
@@ -172,7 +174,7 @@ export const TitusInstanceDetails = ({ app, environment, instance, moniker }: IT
     [instanceId, serverGroup],
   );
 
-  const taskActions = buildTaskActions(currentInstance, app);
+  const taskActions = buildTaskActions(currentInstance, app, providerServiceDelegate);
   const healthMetrics = extractHealthMetrics(
     currentInstance.health as IAmazonHealth[],
     app.loadBalancers.data,

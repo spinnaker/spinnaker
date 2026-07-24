@@ -5,6 +5,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 
 import { AccountService } from '../../account';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { CollapsibleSection } from '../../presentation';
@@ -14,6 +15,7 @@ import { InstanceWriter } from '../instance.write.service';
 import { MultipleInstancesDetails } from './MultipleInstancesDetails';
 
 describe('<MultipleInstancesDetails />', () => {
+  const providerServiceDelegate = {} as any;
   let previousMultiselectModel: any;
   let $uiRouter: UIRouterReact;
 
@@ -49,7 +51,9 @@ describe('<MultipleInstancesDetails />', () => {
             context: $uiRouter.stateRegistry.get('application.insight.multipleInstances') as any,
           }}
         >
-          <MultipleInstancesDetails app={app} />
+          <DeckRuntimeContext.Provider value={{ services: { providerServiceDelegate } } as any}>
+            <MultipleInstancesDetails app={app} />
+          </DeckRuntimeContext.Provider>
         </UIViewContext.Provider>
       </UIRouterContext.Provider>,
     );
@@ -160,6 +164,7 @@ describe('<MultipleInstancesDetails />', () => {
         }),
       ],
       app,
+      providerServiceDelegate,
     );
 
     wrapper.unmount();

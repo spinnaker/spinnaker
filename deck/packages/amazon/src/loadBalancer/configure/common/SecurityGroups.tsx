@@ -6,7 +6,7 @@ import { combineLatest as observableCombineLatest, Subject } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 
 import type { ISecurityGroup, IWizardPageComponent } from '@spinnaker/core';
-import { AngularServices, FirewallLabels, InfrastructureCaches, Spinner, timestamp } from '@spinnaker/core';
+import { DeckRuntimeContext, FirewallLabels, InfrastructureCaches, Spinner, timestamp } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../../aws.settings';
 import type { IAmazonLoadBalancerUpsertCommand } from '../../../domain';
@@ -29,6 +29,9 @@ export interface ISecurityGroupsState {
 export class SecurityGroups
   extends React.Component<ISecurityGroupsProps, ISecurityGroupsState>
   implements IWizardPageComponent<IAmazonLoadBalancerUpsertCommand> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private destroy$ = new Subject<void>();
   private props$ = new Subject<ISecurityGroupsProps>();
   private refresh$ = new Subject<void>();
@@ -107,8 +110,8 @@ export class SecurityGroups
   public componentDidMount(): void {
     const allSecurityGroups$ = this.refresh$.pipe(
       tap(() => this.onRefreshStart()),
-      switchMap(() => AngularServices.cacheInitializer.refreshCache('securityGroups')),
-      mergeMap(() => AngularServices.securityGroupReader.getAllSecurityGroups()),
+      switchMap(() => this.context.services.cacheInitializer.refreshCache('securityGroups')),
+      mergeMap(() => this.context.services.securityGroupReader.getAllSecurityGroups()),
       tap(() => this.onRefreshComplete()),
     );
 

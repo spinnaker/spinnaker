@@ -8,8 +8,10 @@ import { bootstrapDeck, createDeckRoot, resetBootstrapDeckForTests } from './boo
 import { AngularServices } from '../angular/services';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { ApplicationReader } from '../application/service/ApplicationReader';
-import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
+import type { IHttpClientImplementation } from '../api';
+import { RequestBuilder } from '../api';
 import { AuthenticationService } from '../authentication';
+import { AuthenticationInitializer } from '../authentication/AuthenticationInitializer';
 import { resetAuthenticationRuntime } from '../authentication/authentication.module';
 import { GlobalBannerService } from '../banner/global/GlobalBannerService';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
@@ -21,7 +23,8 @@ import { PluginRegistry } from '../plugins/plugin.registry';
 import { resetPluginInitializationForTests } from '../plugins/plugin.module';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 import type { DeckRuntime } from './DeckRuntime';
-import { DeckRuntimeContext, createDeckRuntime } from './DeckRuntime';
+import { createDeckRuntime } from './DeckRuntime';
+import { DeckRuntimeContext } from './DeckRuntimeContext';
 import { SpinnakerContainer } from './SpinnakerContainer';
 import * as State from '../state';
 
@@ -58,11 +61,13 @@ describe('bootstrapDeck', () => {
   let cacheInitializeSpy: jasmine.Spy;
   let deckManifestSpy: jasmine.Spy;
   let listenSpy: jasmine.Spy;
+  let metadataGet: jasmine.Spy;
   let notificationMetadataSpy: jasmine.Spy;
   let originalAuthEnabled: boolean;
   let originalCheckForUpdates: boolean;
   let originalDataSources: ReturnType<typeof ApplicationDataSourceRegistry.getDataSources>;
   let originalHash: string;
+  let originalHttpClient: IHttpClientImplementation;
   let pluginLoadsSpy: jasmine.Spy;
   let renderSpy: jasmine.Spy;
   let routerPluginSpy: jasmine.Spy;
@@ -82,7 +87,10 @@ describe('bootstrapDeck', () => {
   }
 
   function createConfiguredRouter(): UIRouterReact {
-    const router = configureRouter();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    router.disposable(runtime);
+    configureRouter(router, runtime.services);
     configuredRouters.push(router);
     return router;
   }
@@ -97,10 +105,13 @@ describe('bootstrapDeck', () => {
     originalCheckForUpdates = SETTINGS.checkForUpdates;
     originalDataSources = ApplicationDataSourceRegistry.getDataSources();
     originalHash = window.location.hash;
+    originalHttpClient = RequestBuilder.defaultHttpClient;
     stateSnapshots = stateSingletons.map((state) => ({ state, descriptors: Object.getOwnPropertyDescriptors(state) }));
     ApplicationDataSourceRegistry.clearDataSources();
     SETTINGS.authEnabled = true;
     SETTINGS.checkForUpdates = true;
+    metadataGet = jasmine.createSpy('metadataGet').and.returnValue(Promise.resolve([]));
+    RequestBuilder.defaultHttpClient = { get: metadataGet } as IHttpClientImplementation;
     authenticationSpy = spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.resolve(true));
     spyOn(GlobalBannerService, 'getActiveBanners').and.returnValue(Promise.resolve([]));
     notificationMetadataSpy = spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(
@@ -144,6 +155,7 @@ describe('bootstrapDeck', () => {
     resetPluginInitializationForTests();
     SETTINGS.authEnabled = originalAuthEnabled;
     SETTINGS.checkForUpdates = originalCheckForUpdates;
+    RequestBuilder.defaultHttpClient = originalHttpClient;
     window.location.hash = originalHash;
   });
 
@@ -378,9 +390,9 @@ describe('bootstrapDeck', () => {
     await bootstrapDeck(root);
 
     expect(order.filter((step) => step !== 'state initialized')).toEqual([
-      'runtime metadata',
       'authentication',
       'plugins',
+      'runtime metadata',
       'router constructed',
       'cache started',
       'render',
@@ -388,9 +400,9 @@ describe('bootstrapDeck', () => {
       'sync',
     ]);
     expect(order).toEqual([
-      'runtime metadata',
       'authentication',
       'plugins',
+      'runtime metadata',
       'router constructed',
       'state initialized',
       'cache started',
@@ -408,8 +420,9 @@ describe('bootstrapDeck', () => {
 
     await bootstrapDeck(root);
 
-    expect(runtimeDataSourceSpy).toHaveBeenCalled();
+    expect(runtimeDataSourceSpy).not.toHaveBeenCalled();
     expect(notificationMetadataSpy).not.toHaveBeenCalled();
+    expect(metadataGet).not.toHaveBeenCalled();
     expect(deckManifestSpy).not.toHaveBeenCalled();
     expect(routerPluginSpy).not.toHaveBeenCalled();
     expect(State.ExecutionState.filterModel).toBe(originalFilterModel);
@@ -427,9 +440,16 @@ describe('bootstrapDeck', () => {
     const bootstrap = bootstrapDeck(root);
 
     expect(notificationMetadataSpy).not.toHaveBeenCalled();
+    expect(metadataGet).not.toHaveBeenCalled();
     authentication.resolve(true);
     await bootstrap;
     expect(notificationMetadataSpy).toHaveBeenCalledTimes(1);
+    expect(metadataGet.calls.allArgs().map(([config]) => config.url)).toEqual(
+      jasmine.arrayWithExactContents([
+        jasmine.stringMatching(/jobs\/preconfigured$/),
+        jasmine.stringMatching(/webhooks\/preconfigured$/),
+      ]),
+    );
   });
 
   it('does not wait for dynamic metadata before plugins and router startup', async () => {
@@ -663,7 +683,7 @@ describe('bootstrapDeck', () => {
     await expectAsync(bootstrapDeck(root)).toBeResolved();
     expect(renderSpy).toHaveBeenCalledTimes(2);
     expect(syncSpy).toHaveBeenCalledTimes(1);
-    expect(cacheInitializeSpy).toHaveBeenCalledTimes(1);
+    expect(cacheInitializeSpy).toHaveBeenCalledTimes(2);
     expect(versionSchedulerCount()).toBe(1);
   });
 
@@ -688,9 +708,12 @@ describe('bootstrapDeck', () => {
     await expectAsync(bootstrapDeck(retryRoot)).toBeResolved();
     expect(renderSpy).toHaveBeenCalledTimes(2);
     expect(syncSpy).toHaveBeenCalledTimes(1);
-    expect(cacheInitializeSpy).toHaveBeenCalledTimes(1);
+    expect(cacheInitializeSpy).toHaveBeenCalledTimes(2);
     expect(versionSchedulerCount()).toBe(1);
-    expect(consoleError).toHaveBeenCalledOnceWith('Failed to initialize infrastructure caches', cacheFailure);
+    expect(consoleError.calls.allArgs()).toEqual([
+      ['Failed to initialize infrastructure caches', cacheFailure],
+      ['Failed to initialize infrastructure caches', cacheFailure],
+    ]);
   });
 
   it('preserves the bootstrap error and permits retry when failure cleanup cannot unmount', async () => {
@@ -743,7 +766,7 @@ describe('bootstrapDeck', () => {
     expect(dispose).toHaveBeenCalledTimes(1);
   });
 
-  it('binds public runtime services and clears their scheduled and router-bound work on rebootstrap', async () => {
+  it('clears scheduled and router-bound work on rebootstrap', async () => {
     jasmine.clock().install();
     try {
       const firstRoot = createRoot();
@@ -760,7 +783,6 @@ describe('bootstrapDeck', () => {
       AngularServices.$timeout(scheduled, 100);
 
       expect(AngularServices.$timeout as any).toBe(firstRuntime.timeoutService as any);
-      expect(AngularServices.providerServiceDelegate).toBe(firstRuntime.providerServiceDelegate as any);
 
       resetBootstrapDeckForTests();
       jasmine.clock().tick(100);

@@ -3,13 +3,14 @@ import React from 'react';
 
 import type {
   Application,
+  DeckRuntimeServices,
   IModalComponentProps,
   IRouterInjectedProps,
   IStage,
   ITemplateSelectionText,
 } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   DeployInitializer,
   FirewallLabels,
   noop,
@@ -32,7 +33,7 @@ import {
   ServerGroupSecurityGroups,
   ServerGroupTags,
 } from './pages';
-import { AzureServerGroupConfigurationService } from '../serverGroupConfiguration.service';
+import type { AzureServerGroupConfigurationService } from '../serverGroupConfiguration.service';
 
 export interface IAzureCloneServerGroupModalProps extends IModalComponentProps {
   application: Application;
@@ -52,16 +53,22 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
   IAzureCloneServerGroupModalProps & IRouterInjectedProps,
   IAzureCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IAzureCloneServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
   private _isUnmounted = false;
-  private configurationService = new AzureServerGroupConfigurationService(null);
-
-  public static show(props: IAzureCloneServerGroupModalProps): Promise<any> {
-    return ReactModal.show(AzureCloneServerGroupModal, props, { dialogClassName: 'wizard-modal modal-lg' });
+  public static show(props: IAzureCloneServerGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
+    return ReactModal.show(
+      AzureCloneServerGroupModal,
+      props,
+      { dialogClassName: 'wizard-modal modal-lg' },
+      runtimeServices,
+    );
   }
 
   constructor(props: IAzureCloneServerGroupModalProps & IRouterInjectedProps) {
@@ -101,12 +108,18 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
       }),
       templateSelectionText,
     };
+  }
 
-    if (alreadyConfigured) {
-      this.completeConfiguration(workingCommand);
-    } else if (!requiresTemplateSelection) {
+  public componentDidMount(): void {
+    if (this.state.loaded) {
+      this.completeConfiguration(this.state.command);
+    } else if (!this.state.requiresTemplateSelection) {
       this.prepareCommand();
     }
+  }
+
+  private get configurationService(): AzureServerGroupConfigurationService {
+    return this.context.services.providerServiceDelegate.getDelegate('azure', 'serverGroup.configurationService');
   }
 
   private templateSelected = (): void => {
@@ -223,7 +236,7 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
       return this.props.closeModal(command);
     }
     return this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
+      this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application),
     );
   };
 
