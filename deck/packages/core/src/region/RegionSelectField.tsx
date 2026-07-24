@@ -2,7 +2,6 @@ import React from 'react';
 
 import { RegionSelectInput } from './RegionSelectInput';
 import type { IRegion } from '../account';
-import { AngularServices } from '../angular/services';
 
 export interface IRegionSelectFieldProps {
   account: string;
@@ -20,8 +19,6 @@ export class RegionSelectField extends React.Component<IRegionSelectFieldProps> 
     const { component, onChange, field } = this.props;
     component[field] = event.target.value;
     onChange(event.target.value);
-    AngularServices.$rootScope.$apply(); // force re-digest
-    this.setState({}); // force re-render
   }
 
   public render() {

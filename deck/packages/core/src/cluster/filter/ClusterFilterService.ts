@@ -2,7 +2,6 @@ import { each, every, forOwn, groupBy, isEmpty, some, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import type { ICluster, IEntityTags, IInstance, IManagedResourceSummary, IServerGroup } from '../../domain';
 import type { ISortFilter } from '../../filterModel';
@@ -11,6 +10,7 @@ import type { ILabelFilter } from './labelFilterUtils';
 import { trueKeyObjectToLabelFilters } from './labelFilterUtils';
 import { getDirectRouter } from '../../navigation/directRouter';
 import { ClusterState } from '../../state';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
 export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -502,7 +502,7 @@ export class ClusterFilterService {
       );
 
       if (!newServerGroup) {
-        AngularServices.$log.debug(
+        diagnosticLogger.debug(
           'server group no longer found, removing:',
           serverGroup.name,
           serverGroup.account,
@@ -512,7 +512,7 @@ export class ClusterFilterService {
         toRemove.push(idx);
       } else {
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          AngularServices.$log.debug(
+          diagnosticLogger.debug(
             'change detected, updating server group:',
             serverGroup.name,
             serverGroup.account,
@@ -539,7 +539,7 @@ export class ClusterFilterService {
       );
 
       if (!oldServerGroup) {
-        AngularServices.$log.debug(
+        diagnosticLogger.debug(
           'new server group found, adding',
           serverGroup.name,
           serverGroup.account,

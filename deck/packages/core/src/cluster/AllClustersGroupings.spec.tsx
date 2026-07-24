@@ -1,7 +1,9 @@
+import { shallow } from 'enzyme';
+import React from 'react';
 import { Subject } from 'rxjs';
 
 import { AllClustersGroupingsComponent } from './AllClustersGroupings';
-import { initialize } from '../state';
+import { ClusterState, initialize } from '../state';
 
 describe('AllClustersGroupings', () => {
   beforeEach(() => initialize());
@@ -67,5 +69,34 @@ describe('AllClustersGroupings', () => {
 
     expect(clearAll).toHaveBeenCalled();
     component.componentWillUnmount();
+  });
+
+  it('updates grouping and row heights through groupsUpdatedStream', () => {
+    const groupsUpdatedStream = new Subject<any[]>();
+    const sortFilter = { listInstances: false } as any;
+    ClusterState.filterModel = { asFilterModel: { groups: [], sortFilter } } as any;
+    ClusterState.filterService = { groupsUpdatedStream } as any;
+    const onSuccess = jasmine.createSpy('onSuccess').and.returnValue(() => undefined);
+    const wrapper = shallow(
+      <AllClustersGroupingsComponent
+        app={{ getDataSource: () => ({ loadFailure: false, data: [], fetchOnDemand: false }) } as any}
+        initialized={false}
+        router={{ transitionService: { onSuccess } } as any}
+        stateParams={{}}
+        stateService={{} as any}
+      />,
+    );
+    const updatedGrouping = { key: 'updated-grouping', subgroups: [] } as any;
+
+    const component = wrapper.instance() as AllClustersGroupingsComponent;
+    const recomputeRowHeights = jasmine.createSpy('recomputeRowHeights');
+    (component as any).listRef = { recomputeRowHeights };
+
+    groupsUpdatedStream.next([{ subgroups: [updatedGrouping] }]);
+
+    expect(component.state.groups).toEqual([updatedGrouping]);
+    expect(recomputeRowHeights).toHaveBeenCalledOnceWith(0);
+    wrapper.unmount();
+    expect(groupsUpdatedStream.observers.length).toBe(0);
   });
 });

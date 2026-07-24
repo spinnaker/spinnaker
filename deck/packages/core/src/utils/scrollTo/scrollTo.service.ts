@@ -1,14 +1,12 @@
 import $ from 'jquery';
 
-import { AngularServices } from '../../angular/services';
-
 export class ScrollToService {
   public static toDomId(id: string) {
     return id.replace(/[\W]/g, '-');
   }
 
   public static scrollTo(selector: string, scrollableContainer: string, offset = 0, delay = 0): void {
-    AngularServices.$timeout(() => {
+    setTimeout(() => {
       const elem: JQuery = $(selector);
       if (elem.length) {
         const content: JQuery = scrollableContainer ? elem.closest(scrollableContainer) : $('body');
