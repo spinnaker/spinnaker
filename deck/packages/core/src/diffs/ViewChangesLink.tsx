@@ -3,7 +3,7 @@ import * as React from 'react';
 import { ChangesModal } from './ChangesModal';
 import type { ICommit } from './CommitHistory';
 import type { IJarDiff } from './JarDiffs';
-import { AngularServices } from '../angular/services';
+import { useDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IExecution, IExecutionStage } from '../domain';
 import { LabeledValue, showModal, useData } from '../presentation';
 
@@ -22,12 +22,13 @@ export interface IViewChangesLinkProps {
 }
 
 export const ViewChangesLink = ({ changeConfig, linkText, nameItem, viewType }: IViewChangesLinkProps) => {
+  const { executionService } = useDeckRuntimeServices();
   const changeConfigValue = changeConfig?.metadata?.value || ({} as ICreationMetadata);
 
   const fetchExecution = () => {
     const isExecution = changeConfigValue.executionType === 'pipeline';
     if (isExecution) {
-      return AngularServices.executionService.getExecution(changeConfigValue.executionId);
+      return executionService.getExecution(changeConfigValue.executionId);
     }
     /** A noop promise so `useData` can be utilized */
     return (Promise.resolve({}) as unknown) as PromiseLike<IExecution>;

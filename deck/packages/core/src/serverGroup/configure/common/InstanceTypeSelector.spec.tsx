@@ -1,11 +1,22 @@
-import { mount } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
 
-import { AngularServices } from '../../../angular/services';
+import { DeckRuntimeContext } from '../../../bootstrap/DeckRuntimeContext';
 import { InstanceTypeSelector } from './InstanceTypeSelector';
 import { V2InstanceTypeSelectorController, v2InstanceTypeSelector } from './v2InstanceTypeSelector.component';
 
 describe('InstanceTypeSelector', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {};
+    Object.defineProperty(runtimeServices, 'instanceTypeService', { configurable: true, get: () => undefined });
+  });
+
   it('registers the Angular v2 component with a custom change-checking React controller', () => {
     expect(v2InstanceTypeSelector.templateUrl).toBeUndefined();
     expect(v2InstanceTypeSelector.controller).toBe(V2InstanceTypeSelectorController);
@@ -14,7 +25,7 @@ describe('InstanceTypeSelector', () => {
 
   it('renders without the AngularJS adapter and ignores unavailable instance types', async () => {
     const instanceTypeService = serviceWithCategories();
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
 
     const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
@@ -30,7 +41,7 @@ describe('InstanceTypeSelector', () => {
   it('selects an available instance type, clears dirty state, loads details, and notifies', async () => {
     const instanceTypeDetails = { name: 'm5.large' };
     const instanceTypeService = serviceWithCategories(instanceTypeDetails);
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
     const onTypeChanged = jasmine.createSpy('onTypeChanged');
     const command = commandWithFilteredTypes(['m5.large']);
 
@@ -48,7 +59,7 @@ describe('InstanceTypeSelector', () => {
 
   it('recomputes unavailable types when filtered instance types are replaced', async () => {
     const instanceTypeService = serviceWithCategories();
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
+    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
 
     const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
@@ -65,7 +76,7 @@ describe('InstanceTypeSelector', () => {
   });
 
   it('shows dirty warning, unavailable marker, and storage override display', async () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(serviceWithCategories() as any);
+    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(serviceWithCategories() as any);
     const command = commandWithFilteredTypes(['m5.large']);
     command.instanceType = 'm5.large';
     command.viewState.overriddenStorageDescription = 'Custom storage';
@@ -81,7 +92,7 @@ describe('InstanceTypeSelector', () => {
   });
 
   it('hides the dirty warning immediately when dismissed', async () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(serviceWithCategories() as any);
+    spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(serviceWithCategories() as any);
     const command = commandWithFilteredTypes(['m5.large']);
 
     const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);

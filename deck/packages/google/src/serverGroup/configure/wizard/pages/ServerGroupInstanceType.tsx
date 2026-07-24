@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AngularServices, HelpField, SpelService } from '@spinnaker/core';
+import { DeckRuntimeContext, HelpField, SpelService } from '@spinnaker/core';
 
 import type { IGceServerGroupCommand } from '../GceServerGroupWizard.types';
 import { GceServerGroupWizardPage } from '../GceServerGroupWizardPage';
@@ -39,6 +39,9 @@ interface IGceInstanceTypeValidationErrors {
 }
 
 export class ServerGroupInstanceType extends GceServerGroupWizardPage {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private instanceTypeRequestGeneration = 0;
 
   public validate(values: IGceServerGroupCommand): IGceInstanceTypeValidationErrors {
@@ -93,7 +96,7 @@ export class ServerGroupInstanceType extends GceServerGroupWizardPage {
       return;
     }
     void this.runLatestCommandRequest(nextValues, async (latestCommand) => {
-      const instanceTypeDetails = await AngularServices.instanceTypeService.getInstanceTypeDetails(
+      const instanceTypeDetails = await this.context.services.instanceTypeService.getInstanceTypeDetails(
         latestCommand.selectedProvider || 'gce',
         instanceType,
       );

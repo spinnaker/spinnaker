@@ -1,9 +1,9 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   ModalClose,
   noop,
   PlatformHealthOverride,
@@ -159,14 +159,20 @@ export class AmazonRollbackServerGroupModal extends React.Component<
   IAmazonRollbackServerGroupModalProps,
   IAmazonRollbackServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IAmazonRollbackServerGroupModalProps> = {
     allServerGroups: [],
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: IAmazonRollbackServerGroupModalProps): Promise<IAmazonRollbackJob> {
-    return ReactModal.show(AmazonRollbackServerGroupModal, props);
+  public static show(
+    props: IAmazonRollbackServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonRollbackJob> {
+    return ReactModal.show(AmazonRollbackServerGroupModal, props, undefined, runtimeServices);
   }
 
   public constructor(props: IAmazonRollbackServerGroupModalProps) {
@@ -221,7 +227,7 @@ export class AmazonRollbackServerGroupModal extends React.Component<
 
     const command = buildAmazonRollbackJob(application, serverGroup, this.rollbackType, values);
     this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
+      this.context.services.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
     );
   };
 

@@ -17,6 +17,7 @@ import { SecurityGroupsDetailsSection } from './SecurityGroupsDetailsSection';
 
 describe('Amazon server group maintenance action integration', () => {
   const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
+  const runtimeServices = {} as any;
   const editSecurityGroupsLabel = `Edit ${FirewallLabels.get('Firewalls')}`;
   const resolvedSecurityGroup = {
     accountName: 'test-account',
@@ -52,6 +53,11 @@ describe('Amazon server group maintenance action integration', () => {
   const editLink = (wrapper: ReturnType<typeof shallow>, label: string) =>
     wrapper.find('a.clickable').filterWhere((link) => link.text() === label);
 
+  const withRuntimeServices = <T extends React.Component>(wrapper: ReturnType<typeof shallow>) => {
+    (wrapper.instance() as T).context = { services: runtimeServices };
+    return wrapper;
+  };
+
   beforeEach(() => {
     AWSProviderSettings.adHocInfraWritesEnabled = true;
   });
@@ -62,11 +68,13 @@ describe('Amazon server group maintenance action integration', () => {
 
   it('opens Advanced Settings with the exact application and enriched server group', () => {
     const show = spyOn(EditAsgAdvancedSettingsModal, 'show');
-    const wrapper = shallow(<AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />);
+    const wrapper = withRuntimeServices(
+      shallow(<AdvancedSettingsDetailsSection app={application} serverGroup={serverGroup} />),
+    );
 
     editLink(wrapper, 'Edit Advanced Settings').simulate('click');
 
-    expect(show).toHaveBeenCalledOnceWith({ application, serverGroup });
+    expect(show).toHaveBeenCalledOnceWith({ application, serverGroup }, runtimeServices);
   });
 
   it('opens Scaling Processes with the exact application and enriched server group', () => {
@@ -89,11 +97,16 @@ describe('Amazon server group maintenance action integration', () => {
 
   it('opens Security Groups with resolved groups and exact application and enriched server group', () => {
     const show = spyOn(EditSecurityGroupsModal, 'show');
-    const wrapper = shallow(<SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />);
+    const wrapper = withRuntimeServices(
+      shallow(<SecurityGroupsDetailsSection app={application} serverGroup={serverGroup} />),
+    );
 
     editLink(wrapper, editSecurityGroupsLabel).simulate('click');
 
-    expect(show).toHaveBeenCalledOnceWith({ application, securityGroups: [resolvedSecurityGroup], serverGroup });
+    expect(show).toHaveBeenCalledOnceWith(
+      { application, securityGroups: [resolvedSecurityGroup], serverGroup },
+      runtimeServices,
+    );
   });
 
   it('hides all maintenance links when ad-hoc infrastructure writes are disabled', () => {

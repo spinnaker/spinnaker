@@ -3,6 +3,7 @@ import React from 'react';
 
 import type {
   Application,
+  DeckRuntimeServices,
   IModalComponentProps,
   IRouterInjectedProps,
   ISubnet,
@@ -10,7 +11,7 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
+  DeckRuntimeContext,
   DeployInitializer,
   NameUtils,
   noop,
@@ -71,6 +72,9 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   IEcsCloneServerGroupModalProps & IRouterInjectedProps,
   IEcsCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private command: IEcsServerGroupCommand;
   private configureRequest = 0;
   private formik: EcsFormikProps = null;
@@ -87,9 +91,12 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   private placementStrategyService = new PlacementStrategyService();
   private secretReader = new SecretReader();
 
-  public static show(props: IEcsCloneServerGroupModalProps): Promise<IEcsServerGroupCommand> {
+  public static show(
+    props: IEcsCloneServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IEcsServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(EcsCloneServerGroupModal, props, modalProps);
+    return ReactModal.show(EcsCloneServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: IEcsCloneServerGroupModalProps & IRouterInjectedProps) {
@@ -556,7 +563,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
       return this.props.closeModal(command);
     }
     return taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.cloneServerGroup(command as any, this.props.application),
+      this.context.services.serverGroupWriter.cloneServerGroup(command as any, this.props.application),
     );
   };
 

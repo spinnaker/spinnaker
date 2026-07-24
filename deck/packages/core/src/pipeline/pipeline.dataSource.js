@@ -1,6 +1,5 @@
 import { module } from 'angular';
 
-import { AngularServices } from '../angular/services';
 import { DELIVERY_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { CLUSTER_SERVICE } from '../cluster/cluster.service';
@@ -12,9 +11,7 @@ import { EXECUTION_SERVICE } from './service/execution.service';
 export const CORE_PIPELINE_PIPELINE_DATASOURCE = 'spinnaker.core.pipeline.dataSource';
 export const name = CORE_PIPELINE_PIPELINE_DATASOURCE; // for backwards compatibility
 
-export function registerPipelineDataSources($q = AngularServices.$q, executionService, clusterService) {
-  const getExecutionService = () => executionService || AngularServices.executionService;
-  const getClusterService = () => clusterService || AngularServices.clusterService;
+export function registerPipelineDataSources($q, executionService, clusterService) {
   const registerOnce = (config) => {
     if (!ApplicationDataSourceRegistry.getDataSources().some(({ key }) => key === config.key)) {
       ApplicationDataSourceRegistry.registerDataSource(config);
@@ -22,12 +19,12 @@ export function registerPipelineDataSources($q = AngularServices.$q, executionSe
   };
 
   const addExecutions = (application, executions) => {
-    getExecutionService().transformExecutions(application, executions, application.executions.data);
-    return $q.when(getExecutionService().addExecutionsToApplication(application, executions));
+    executionService.transformExecutions(application, executions, application.executions.data);
+    return $q.when(executionService.addExecutionsToApplication(application, executions));
   };
 
   const loadExecutions = (application) => {
-    return getExecutionService().getExecutions(application.name, application);
+    return executionService.getExecutions(application.name, application);
   };
 
   const loadPipelineConfigs = (application) => {
@@ -44,30 +41,30 @@ export function registerPipelineDataSources($q = AngularServices.$q, executionSe
   };
 
   const loadRunningExecutions = (application) => {
-    return getExecutionService().getRunningExecutions(application.name);
+    return executionService.getRunningExecutions(application.name);
   };
 
   const addRunningExecutions = (application, data) => {
-    getExecutionService().transformExecutions(application, data);
+    executionService.transformExecutions(application, data);
     return $q.when(data);
   };
 
   const runningExecutionsLoaded = (application) => {
-    getExecutionService().mergeRunningExecutionsIntoExecutions(application);
+    executionService.mergeRunningExecutionsIntoExecutions(application);
 
     const serverGroups = application.getDataSource('serverGroups');
     if (!serverGroups) {
       return;
     }
 
-    getClusterService().addExecutionsToServerGroups(application);
+    clusterService.addExecutionsToServerGroups(application);
     serverGroups.dataUpdated();
   };
 
   const executionsLoaded = (application) => {
-    getExecutionService().mergeRunningExecutionsIntoExecutions(application);
+    executionService.mergeRunningExecutionsIntoExecutions(application);
     addExecutionTags(application);
-    getExecutionService().removeCompletedExecutionsFromRunningData(application);
+    executionService.removeCompletedExecutionsFromRunningData(application);
   };
 
   const addExecutionTags = (application) => {

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 import type { Application, IExecution, IExecutionStage } from '@spinnaker/core';
-import { Spinner } from '@spinnaker/core';
-import { AwsServices } from '../../../aws.services';
+import { Spinner, useDeckRuntimeServices } from '@spinnaker/core';
+import { EvaluateCloudFormationChangeSetExecutionService } from './evaluateCloudFormationChangeSetExecution.service';
 
 export interface IEvaluateCloudFormationChangeSetExecutionApprovalProps {
   execution: IExecution;
@@ -20,6 +20,7 @@ export const EvaluateCloudFormationChangeSetExecutionApproval = (
   props: IEvaluateCloudFormationChangeSetExecutionApprovalProps,
 ) => {
   const { execution, stage, application } = props;
+  const { executionService } = useDeckRuntimeServices();
   const [submitting, setSubmitting] = useState(false);
   const [judgmentDecision, setJudgmentDecision] = useState('');
   const [error, setError] = useState(false);
@@ -28,7 +29,7 @@ export const EvaluateCloudFormationChangeSetExecutionApproval = (
     setSubmitting(true);
     setJudgmentDecision(judgmentDecision);
     setError(false);
-    AwsServices.evaluateCloudFormationChangeSetExecutionService.evaluateExecution(
+    new EvaluateCloudFormationChangeSetExecutionService(executionService).evaluateExecution(
       application,
       execution,
       stage,

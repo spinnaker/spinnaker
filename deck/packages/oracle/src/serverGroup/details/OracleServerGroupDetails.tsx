@@ -4,11 +4,11 @@ import { catchError } from 'rxjs/operators';
 
 import {
   AccountTag,
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   ServerGroupReader,
   timestamp,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { OracleImageReader } from '../../image/image.reader';
@@ -36,13 +36,14 @@ export function oracleServerGroupDetailsGetter(props: any, autoClose: () => void
 }
 
 export function OracleServerGroupActions({ app, serverGroup }: any) {
+  const { serverGroupWriter } = useDeckRuntimeServices();
   const destroyServerGroup = () => {
     ConfirmationModalService.confirm({
       header: `Really destroy ${serverGroup.name}?`,
       buttonText: `Destroy ${serverGroup.name}`,
       account: serverGroup.account,
       taskMonitorConfig: { application: app, title: `Destroying ${serverGroup.name}` },
-      submitMethod: () => AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app),
+      submitMethod: () => serverGroupWriter.destroyServerGroup(serverGroup, app),
     });
   };
 

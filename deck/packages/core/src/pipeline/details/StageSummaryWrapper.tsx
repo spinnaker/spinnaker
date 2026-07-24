@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { AngularServices } from '../../angular/services';
 import { REST } from '../../api';
 import type { Application } from '../../application';
+import type { IDeckRuntimeServicesInjectedProps } from '../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import { ConfirmationModalService } from '../../confirmationModal';
 import type { IExecution, IExecutionStage, IExecutionStageSummary } from '../../domain';
 import type { IStage } from '../../domain';
@@ -21,8 +22,11 @@ export interface IStageSummaryWrapperProps {
   stageSummary: IExecutionStageSummary;
 }
 
-export function StageSummaryWrapperComponent(props: IStageSummaryWrapperProps & IRouterInjectedProps) {
-  const { application, execution, stage, stageSummary, stateParams, stateService } = props;
+export function StageSummaryWrapperComponent(
+  props: IStageSummaryWrapperProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+) {
+  const { application, deckRuntimeServices, execution, stage, stageSummary, stateParams, stateService } = props;
+  const { executionService } = deckRuntimeServices;
 
   const renderStepLabel = (step: IStage) => {
     const StepLabelComponent = Registry.pipeline.getStageConfig(step)?.executionStepLabelComponent;
@@ -116,15 +120,15 @@ export function StageSummaryWrapperComponent(props: IStageSummaryWrapperProps & 
         </div>
       `,
       submitMethod: (reason: string) =>
-        AngularServices.executionService
+        executionService
           .patchExecution(execution.id, topLevelStage.id, { manualSkip: true, reason })
           .then(() =>
-            AngularServices.executionService.waitUntilExecutionMatches(execution.id, (updatedExecution) => {
+            executionService.waitUntilExecutionMatches(execution.id, (updatedExecution) => {
               const updatedStage = updatedExecution.stages.find((candidate) => candidate.id === topLevelStage.id);
               return updatedStage && updatedStage.status === 'SKIPPED';
             }),
           )
-          .then((updated) => AngularServices.executionService.updateExecution(application, updated)),
+          .then((updated) => executionService.updateExecution(application, updated)),
     });
   };
 
@@ -220,4 +224,4 @@ export function StageSummaryWrapperComponent(props: IStageSummaryWrapperProps & 
   );
 }
 
-export const StageSummaryWrapper = withRouter(StageSummaryWrapperComponent);
+export const StageSummaryWrapper = withDeckRuntimeServices(withRouter(StageSummaryWrapperComponent));

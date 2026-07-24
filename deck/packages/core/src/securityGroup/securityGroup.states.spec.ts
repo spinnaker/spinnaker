@@ -2,7 +2,7 @@ import { UIRouterReact } from '@uirouter/react';
 
 import { StandaloneSecurityGroupDetails } from './StandaloneSecurityGroupDetails';
 import { getStandaloneFirewallState } from './securityGroup.states';
-import { AngularServices } from '../angular/services';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { setDirectRouter } from '../navigation/directRouter';
 import { configureRouter } from '../navigation/router';
 
@@ -15,7 +15,7 @@ describe('security group states', () => {
   });
 
   it('uses the React standalone security group details wrapper for standalone firewall routes', () => {
-    const state = getStandaloneFirewallState();
+    const state = getStandaloneFirewallState({} as any);
 
     expect(state.views['main@']).toEqual(
       jasmine.objectContaining({
@@ -30,8 +30,11 @@ describe('security group states', () => {
   it('resolves a standalone firewall through the direct security group reader', async () => {
     const securityGroupsIndex = { aws: { prod: {} } };
     const loadSecurityGroups = jasmine.createSpy('loadSecurityGroups').and.resolveTo(securityGroupsIndex);
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({ loadSecurityGroups } as any);
-    const router = configureRouter();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    spyOn(runtime.services.securityGroupReader, 'loadSecurityGroups').and.callFake(loadSecurityGroups);
+    router.disposable({ dispose: runtime.dispose });
+    configureRouter(router, runtime.services);
     routers.push(router);
 
     await router.stateService.go(

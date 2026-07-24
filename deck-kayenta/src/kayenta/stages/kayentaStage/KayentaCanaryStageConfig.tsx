@@ -16,6 +16,7 @@ import {
   MapEditor,
   ProviderSelectionService,
   StageConfigField,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { AnalysisType } from './AnalysisType';
@@ -43,6 +44,7 @@ import {
 import './kayentaStage.less';
 
 export function KayentaCanaryStageConfig({ application, stage, updateStage }: IStageConfigProps) {
+  const { serverGroupCommandBuilder, serverGroupTransformer } = useDeckRuntimeServices();
   const kayentaStage = (stage as unknown) as IKayentaStage;
   const [model, setModel] = useState<IKayentaStageConfigModel>(() => {
     const initialModel = createInitialKayentaStageConfigModel();
@@ -837,8 +839,8 @@ export function KayentaCanaryStageConfig({ application, stage, updateStage }: IS
       application,
       cloudProviderRegistry: CloudProviderRegistry,
       providerSelectionService: ProviderSelectionService,
-      serverGroupCommandBuilder: AngularServices.serverGroupCommandBuilder,
-      serverGroupTransformer: AngularServices.serverGroupTransformer,
+      serverGroupCommandBuilder,
+      serverGroupTransformer,
       $uibModal: AngularServices.$uibModal,
     };
   }
