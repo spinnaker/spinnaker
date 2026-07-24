@@ -18,7 +18,7 @@ describe('infrastructure states', () => {
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
-    return configureRouter(router, runtime.services);
+    return configureRouter(router, runtime.services, runtime.routingState);
   }
 
   afterEach(() => {

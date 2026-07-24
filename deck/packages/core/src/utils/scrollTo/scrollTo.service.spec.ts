@@ -1,6 +1,5 @@
 import $ from 'jquery';
 
-import { AngularServices } from '../../angular/services';
 import { ScrollToService } from './scrollTo.service';
 
 describe('ScrollToService', () => {
@@ -22,13 +21,17 @@ describe('ScrollToService', () => {
     host.remove();
   });
 
-  it('schedules scrolls through the AngularServices timeout fallback', () => {
+  it('schedules scrolls with a local native timeout', () => {
     $.fx.off = true;
-    const timeout = jasmine.createSpy('$timeout').and.callFake((callback: () => void) => callback());
-    spyOnProperty(AngularServices, '$timeout', 'get').and.returnValue(timeout as any);
+    const timeout = spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler) => {
+      if (typeof callback === 'function') {
+        callback();
+      }
+      return 0;
+    });
 
-    ScrollToService.scrollTo('[data-page-id=target]', '.container');
+    ScrollToService.scrollTo('[data-page-id=target]', '.container', 0, 25);
 
-    expect(timeout).toHaveBeenCalled();
+    expect(timeout).toHaveBeenCalledWith(jasmine.any(Function), 25);
   });
 });

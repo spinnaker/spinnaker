@@ -4,6 +4,8 @@ import { flatten } from 'lodash';
 
 import { InfrastructureCaches } from './';
 import { AccountService } from '../account/AccountService';
+import type { DeckRuntime } from '../bootstrap/DeckRuntime';
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import type { CacheInitializerService } from './cacheInitializer.service';
 import { CACHE_INITIALIZER_SERVICE } from './cacheInitializer.service';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
@@ -105,5 +107,40 @@ describe('Service: cacheInitializer', function () {
       $root.$digest();
       expect(initialized).toBeTruthy();
     });
+  });
+});
+
+describe('direct runtime cache initializer', () => {
+  let runtime: DeckRuntime;
+
+  beforeEach(() => {
+    InfrastructureCaches.destroyCaches();
+    runtime = createDeckRuntime();
+  });
+
+  afterEach(() => {
+    runtime.dispose();
+    InfrastructureCaches.destroyCaches();
+  });
+
+  it('initializes and refreshes infrastructure caches with native runtime dependencies', async () => {
+    spyOn(InfrastructureCaches, 'createCache').and.returnValue({} as any);
+    spyOn(InfrastructureCaches, 'clearCache');
+    spyOn(AccountService, 'listProviders').and.returnValue(Promise.resolve([]));
+    const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.returnValue(
+      Promise.resolve([]),
+    );
+    const cacheInitializer = runtime.services.cacheInitializer;
+
+    expect(cacheInitializer.initialize).toEqual(jasmine.any(Function));
+    expect(cacheInitializer.refreshCache).toEqual(jasmine.any(Function));
+    expect(cacheInitializer.refreshCaches).toEqual(jasmine.any(Function));
+
+    await cacheInitializer.initialize();
+    await cacheInitializer.refreshCache('securityGroups');
+    await cacheInitializer.refreshCaches();
+
+    expect(AccountService.listProviders).toHaveBeenCalledWith();
+    expect(getAllSecurityGroups).toHaveBeenCalledTimes(3);
   });
 });

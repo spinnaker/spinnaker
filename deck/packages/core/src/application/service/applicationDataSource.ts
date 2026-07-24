@@ -21,18 +21,17 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
-import { AngularServices } from '../../angular/services';
-
 import type { Application } from '../application.model';
 import type { IEntityTags } from '../../domain';
 import { getDirectRouter } from '../../navigation/directRouter';
 import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
-import { FirewallLabels } from '../../securityGroup';
+import { FirewallLabels } from '../../securityGroup/label/FirewallLabels';
 import { toIPromise } from '../../utils';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
 function resolvePromise<T>(value?: T): PromiseLike<T> {
-  return AngularServices.$q.resolve(value);
+  return Promise.resolve(value);
 }
 
 export interface IFetchStatus {
@@ -573,7 +572,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     const promise = toIPromise(this.data$.pipe(skip(1), take(1)));
 
     if (this.loading && !forceRefresh) {
-      AngularServices.$log.info(`${this.key} still loading, skipping refresh`);
+      diagnosticLogger.info(`${this.key} still loading, skipping refresh`);
     } else {
       this.fetchRequest$.next();
     }
