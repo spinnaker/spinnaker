@@ -43,27 +43,35 @@ describe('createLoadBalancerStage modal opener', () => {
     const application = { name: 'fnord' };
     const loadBalancer = { name: 'fnord-main' };
     const result = { name: 'fnord-main', type: 'upsertLoadBalancer' };
+    const runtimeServices = {};
     const config = {
       CreateLoadBalancerModal: {
         supportsPipelineConfig: true,
         show: jasmine.createSpy('show').and.returnValue(Promise.resolve(result)),
       },
     };
-    const command = await openLoadBalancerModal(config, {
-      application,
-      loadBalancer,
-      isNew: false,
-      forPipelineConfig: true,
-    });
+    const command = await openLoadBalancerModal(
+      config,
+      {
+        application,
+        loadBalancer,
+        isNew: false,
+        forPipelineConfig: true,
+      },
+      runtimeServices,
+    );
 
     expect(command).toBe(result);
-    expect(config.CreateLoadBalancerModal.show).toHaveBeenCalledWith({
-      app: application,
-      application,
-      loadBalancer,
-      isNew: false,
-      forPipelineConfig: true,
-    });
+    expect(config.CreateLoadBalancerModal.show).toHaveBeenCalledWith(
+      {
+        app: application,
+        application,
+        loadBalancer,
+        isNew: false,
+        forPipelineConfig: true,
+      },
+      runtimeServices,
+    );
   });
 
   it('rejects when a React modal does not support pipeline results', async () => {

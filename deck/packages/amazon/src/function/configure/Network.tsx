@@ -15,7 +15,7 @@ import type {
   IWizardPageComponent,
 } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FormikFormField,
   HelpField,
   ReactSelectInput,
@@ -49,6 +49,9 @@ export interface INetworkState {
 export class Network
   extends React.Component<INetworkProps, INetworkState>
   implements IWizardPageComponent<IAmazonFunctionUpsertCommand> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: INetworkProps) {
     super(props);
     this.getAllVpcs();
@@ -82,7 +85,7 @@ export class Network
   }
 
   private getAvailableSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
-    return AngularServices.securityGroupReader.getAllSecurityGroups();
+    return this.context.services.securityGroupReader.getAllSecurityGroups();
   }
   private makeSubnetOptions(availableSubnets: ISubnet[]): ISubnetOption[] {
     const subOptions: ISubnetOption[] = availableSubnets.map((s) => ({ subnetId: s.id, vpcId: s.vpcId }));

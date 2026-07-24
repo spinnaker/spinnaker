@@ -1,5 +1,6 @@
 import { UIRouterReact } from '@uirouter/react';
 
+import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { ApplicationReader } from '../application/service/ApplicationReader';
 import { ClusterMaster } from '../cluster/ClusterMaster';
 import { ClusterFilters } from '../cluster/filter/ClusterFilters';
@@ -46,7 +47,10 @@ describe('server group states', () => {
 
   it('resolves a relative insight detail view during a direct transition', async () => {
     spyOn(ApplicationReader, 'getApplication').and.resolveTo({ name: 'payments', dataSources: [] } as any);
-    const router = configureRouter();
+    const router = new UIRouterReact();
+    const runtime = createDeckRuntime(router);
+    router.disposable(runtime);
+    configureRouter(router, runtime.services);
     routers.push(router);
 
     await router.stateService.go(

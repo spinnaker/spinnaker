@@ -1,6 +1,5 @@
 import * as angular from 'angular';
 
-import { AngularServices } from '../angular/services';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import { SETTINGS } from '../config';
@@ -9,7 +8,7 @@ import { TaskReader } from './task.read.service';
 export const CORE_TASK_TASK_DATASOURCE = 'spinnaker.core.task.dataSource';
 export const name = CORE_TASK_TASK_DATASOURCE; // for backwards compatibility
 
-export function registerTaskDataSources($q = AngularServices.$q, clusterService = AngularServices.clusterService) {
+export function registerTaskDataSources($q, clusterService) {
   const registerOnce = (config) => {
     if (!ApplicationDataSourceRegistry.getDataSources().some(({ key }) => key === config.key)) {
       ApplicationDataSourceRegistry.registerDataSource(config);

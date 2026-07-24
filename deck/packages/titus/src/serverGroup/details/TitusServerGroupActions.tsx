@@ -5,9 +5,9 @@ import { Dropdown } from 'react-bootstrap';
 import type { IRouterInjectedProps, IServerGroupActionsProps } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ConfirmationModalService,
   confirmNotManaged,
+  DeckRuntimeContext,
   ReactModal,
   ServerGroupWarningMessageService,
   SETTINGS,
@@ -20,6 +20,9 @@ import { TitusResizeServerGroupModal } from './resize/TitusResizeServerGroupModa
 import { TitusRollbackServerGroupModal } from './rollback/TitusRollbackServerGroupModal';
 
 export class TitusServerGroupActionsComponent extends React.Component<IServerGroupActionsProps & IRouterInjectedProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private destroyServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     const taskMonitorConfig = {
@@ -40,7 +43,7 @@ export class TitusServerGroupActionsComponent extends React.Component<IServerGro
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, {
+        this.context.services.serverGroupWriter.destroyServerGroup(serverGroup, app, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -62,7 +65,7 @@ export class TitusServerGroupActionsComponent extends React.Component<IServerGro
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, {
+        this.context.services.serverGroupWriter.disableServerGroup(serverGroup, app.name, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -85,7 +88,7 @@ export class TitusServerGroupActionsComponent extends React.Component<IServerGro
       platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
       platformHealthType: 'Titus',
       submitMethod: () =>
-        AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, {
+        this.context.services.serverGroupWriter.enableServerGroup(serverGroup, app, {
           cloudProvider: 'titus',
           serverGroupName: serverGroup.name,
           region: serverGroup.region,
@@ -172,12 +175,15 @@ export class TitusServerGroupActionsComponent extends React.Component<IServerGro
       if (!notManaged) {
         return;
       }
-      TitusRollbackServerGroupModal.show({
-        allServerGroups,
-        application: app,
-        previousServerGroup,
-        serverGroup,
-      } as any);
+      TitusRollbackServerGroupModal.show(
+        {
+          allServerGroups,
+          application: app,
+          previousServerGroup,
+          serverGroup,
+        } as any,
+        this.context.services,
+      );
     });
   };
 
@@ -185,14 +191,23 @@ export class TitusServerGroupActionsComponent extends React.Component<IServerGro
     const { app, serverGroup } = this.props;
     confirmNotManaged(serverGroup, app).then(
       (notManaged) =>
-        notManaged && ReactModal.show(TitusResizeServerGroupModal, { serverGroup, application: app } as any),
+        notManaged &&
+        ReactModal.show(
+          TitusResizeServerGroupModal,
+          { serverGroup, application: app } as any,
+          undefined,
+          this.context.services,
+        ),
     );
   };
 
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
     TitusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup).then((command: any) => {
-      TitusCloneServerGroupModal.show({ title: `Clone ${serverGroup.name}`, application: app, command });
+      TitusCloneServerGroupModal.show(
+        { title: `Clone ${serverGroup.name}`, application: app, command },
+        this.context.services,
+      );
     });
   };
 

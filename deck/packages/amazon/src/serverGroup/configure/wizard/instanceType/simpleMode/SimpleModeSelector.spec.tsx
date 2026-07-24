@@ -1,13 +1,23 @@
-import { mount } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
 
-import { AngularServices } from '@spinnaker/core';
+import { DeckRuntimeContext } from '@spinnaker/core';
 
 import { SimpleModeSelector } from './SimpleModeSelector';
 
 describe('SimpleModeSelector', () => {
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtimeServices = {};
+  });
+
   it('shows instance type rows when an instance profile tile is clicked', async () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    runtimeServices.instanceTypeService = instanceTypeService();
     const command = buildCommand();
     const component = mount(
       <SimpleModeSelector
@@ -28,7 +38,7 @@ describe('SimpleModeSelector', () => {
   });
 
   it('updates derived command fields from the selected instance type', async () => {
-    spyOnProperty(AngularServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService() as any);
+    runtimeServices.instanceTypeService = instanceTypeService();
     const command = buildCommand();
     const component = mount(
       <SimpleModeSelector

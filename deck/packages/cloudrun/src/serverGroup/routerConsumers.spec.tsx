@@ -1,8 +1,8 @@
-import { shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
 
-import { ConfirmationModalService, ServerGroupNamePreview, TaskMonitor } from '@spinnaker/core';
+import { ConfirmationModalService, DeckRuntimeContext, ServerGroupNamePreview, TaskMonitor } from '@spinnaker/core';
 
 import { ServerGroupBasicSettingsComponent } from './configure/wizard/BasicSettings';
 import { ServerGroupWizardComponent } from './configure/wizard/serverGroupWizard';
@@ -57,23 +57,25 @@ describe('Cloud Run server group router consumers', () => {
   it('closes destroyed server group details through the injected state service', () => {
     const go = jasmine.createSpy('go');
     const confirm = spyOn(ConfirmationModalService, 'confirm');
-    const component = shallow(
-      <CloudrunServerGroupActionsComponent
-        {...({ router: {}, stateParams: {}, stateService: { go, includes: () => true } } as any)}
-        app={{ attributes: {} } as any}
-        serverGroup={
-          {
-            account: 'test',
-            disabled: true,
-            name: 'app-v001',
-            region: 'us',
-            tags: { isLatest: false },
-          } as any
-        }
-      />,
+    const component = mount(
+      <DeckRuntimeContext.Provider value={{ services: { serverGroupWriter: {} } } as any}>
+        <CloudrunServerGroupActionsComponent
+          {...({ router: {}, stateParams: {}, stateService: { go, includes: () => true } } as any)}
+          app={{ attributes: {} } as any}
+          serverGroup={
+            {
+              account: 'test',
+              disabled: true,
+              name: 'app-v001',
+              region: 'us',
+              tags: { isLatest: false },
+            } as any
+          }
+        />
+      </DeckRuntimeContext.Provider>,
     );
 
-    component.find(MenuItem).first().simulate('click');
+    component.find(MenuItem).first().prop('onClick')();
     confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
 
     expect(go).toHaveBeenCalledWith('^');

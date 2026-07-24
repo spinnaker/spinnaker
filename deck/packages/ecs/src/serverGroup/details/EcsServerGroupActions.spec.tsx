@@ -1,12 +1,12 @@
-import { shallow } from 'enzyme';
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import { AWSProviderSettings } from '@spinnaker/amazon';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ManagedMenuItem,
   SETTINGS,
   ServerGroupWarningMessageService,
@@ -18,6 +18,11 @@ import { EcsRollbackServerGroupModal } from './rollback/EcsRollbackServerGroupMo
 
 describe('<EcsServerGroupActions />', () => {
   const originalAdHocInfraWritesEnabled = AWSProviderSettings.adHocInfraWritesEnabled;
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={{ services: runtimeServices } as any}>{children}</DeckRuntimeContext.Provider>
+  );
+  const shallow = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
 
   const buildServerGroup = (overrides: any = {}) => ({
     account: 'test-account',
@@ -48,11 +53,13 @@ describe('<EcsServerGroupActions />', () => {
 
   beforeEach(() => {
     AWSProviderSettings.adHocInfraWritesEnabled = true;
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue({
-      destroyServerGroup: () => Promise.resolve(),
-      disableServerGroup: () => Promise.resolve(),
-      enableServerGroup: () => Promise.resolve(),
-    } as any);
+    runtimeServices = {
+      serverGroupWriter: {
+        destroyServerGroup: () => Promise.resolve(),
+        disableServerGroup: () => Promise.resolve(),
+        enableServerGroup: () => Promise.resolve(),
+      },
+    };
   });
 
   afterEach(() => {
@@ -130,7 +137,7 @@ describe('<EcsServerGroupActions />', () => {
 
     action(wrapper, 'Rollback').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup });
+    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup }, runtimeServices);
   });
 
   it('opens the completed resize modal with the enriched server group', () => {
@@ -141,7 +148,7 @@ describe('<EcsServerGroupActions />', () => {
 
     action(wrapper, 'Resize').prop('onClick')();
 
-    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup });
+    expect(show).toHaveBeenCalledOnceWith({ application: app, serverGroup }, runtimeServices);
   });
 
   ['Disable', 'Enable', 'Destroy'].forEach((label) => {
@@ -149,7 +156,7 @@ describe('<EcsServerGroupActions />', () => {
       const app = buildApp();
       const serverGroup = buildServerGroup({ isDisabled: label === 'Enable' });
       const writerMethod = `${label.toLowerCase()}ServerGroup`;
-      const writer = AngularServices.serverGroupWriter as any;
+      const writer = runtimeServices.serverGroupWriter as any;
       const write = spyOn(writer, writerMethod).and.returnValue(Promise.resolve());
       const confirm = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve());
       const stateService = {
