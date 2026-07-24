@@ -1,12 +1,10 @@
 import type { Ng1StateDeclaration } from '@uirouter/angularjs';
-import { module } from 'angular';
 import { find, isUndefined, omit, omitBy, sortBy } from 'lodash';
 import { Duration } from 'luxon';
 
 import type { ICache } from '../cache';
 import { DeckCacheFactory } from '../cache';
 import { UUIDGenerator } from '../utils/uuid.service';
-import IAngularEvent = angular.IAngularEvent;
 
 export interface ICacheEntryStateMigrator {
   // a string literal in the state to be replaced (not a regex)
@@ -132,8 +130,6 @@ export class RecentHistoryService {
   }
 }
 
-export const RECENT_HISTORY_SERVICE = 'spinnaker.core.history.recentHistory.service';
-
 export function recordRecentHistory(toState: Ng1StateDeclaration, toParams: any): void {
   const history = toState.data?.history;
   if (history) {
@@ -142,12 +138,3 @@ export function recordRecentHistory(toState: Ng1StateDeclaration, toParams: any)
     RecentHistoryService.addItem(history.type, state, params, history.keyParams);
   }
 }
-
-module(RECENT_HISTORY_SERVICE, []).run([
-  '$rootScope',
-  ($rootScope: ng.IRootScopeService) => {
-    $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
-      recordRecentHistory(toState, toParams);
-    });
-  },
-]);

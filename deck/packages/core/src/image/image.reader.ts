@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 
 export type IFindImageParams = {
   provider: string;
@@ -42,4 +40,3 @@ export class ImageReader {
 }
 
 export const IMAGE_READER = 'spinnaker.core.image.reader';
-module(IMAGE_READER, [PROVIDER_SERVICE_DELEGATE]).service('imageReader', ImageReader);

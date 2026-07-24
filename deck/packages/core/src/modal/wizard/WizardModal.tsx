@@ -14,6 +14,8 @@ import type { TaskMonitor } from '../../task/monitor/TaskMonitor';
 import { TaskMonitorWrapper } from '../../task/monitor/TaskMonitorWrapper';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
+import './modalWizard.less';
+
 export interface IWizardPageInjectedProps<T> {
   formik: FormikProps<T>;
   /** WizardModal supplies this incrementor fn, which should be used to supply the WizardPage order prop */

@@ -1,5 +1,4 @@
 import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
 
 import { LoadBalancers } from './LoadBalancers';
 import type { ApplicationStateProvider } from '../application';
@@ -17,9 +16,6 @@ export interface ILoadBalancerStateParams {
   vpcId: string;
   provider: string;
 }
-
-export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
-module(LOAD_BALANCER_STATES, []);
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {

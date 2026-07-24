@@ -1,12 +1,9 @@
-import { module } from 'angular';
-
 import type { Application } from '../application/application.model';
 import type { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import type { ISecurityGroup, IServerGroup, ITask } from '../domain';
 import type { IMoniker } from '../naming';
 import { NameUtils } from '../naming';
 import { FirewallLabels } from '../securityGroup/label';
-import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from './serverGroup.transformer';
 import type { IJob } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 
@@ -223,4 +220,3 @@ export class ServerGroupWriter {
 }
 
 export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';
-module(SERVER_GROUP_WRITER, [CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER]).service('serverGroupWriter', ServerGroupWriter);

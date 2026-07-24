@@ -51,7 +51,6 @@ describe('core: Project', () => {
 
   it('should opens configure project and validates content', async () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
-    cy.window().its('angular').should('exist');
 
     // Open modal
     cy.get('.pull-right .configure-project-link').click();
@@ -123,7 +122,6 @@ describe('core: Project', () => {
 
   it('shows application status and interacts with region filters', () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
-    cy.window().its('angular').should('exist');
 
     // Header + filter dropdown
     cy.contains('h3', 'Application Status').within(() => {
@@ -230,7 +228,6 @@ describe('core: Project', () => {
 
   it('should show pipeline status', () => {
     cy.visit('#/projects/kubernetesproject/dashboard');
-    cy.window().its('angular').should('exist');
 
     cy.get('.project-column').eq(1).within(() => {
       cy.contains('h3', 'Pipeline Status').should('exist');

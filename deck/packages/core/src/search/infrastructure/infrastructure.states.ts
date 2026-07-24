@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { SearchV1 } from './SearchV1';
 import { SearchV2 } from './SearchV2';
 import { SETTINGS } from '../../config/settings';
@@ -47,5 +45,4 @@ function registerSearchStates(stateConfigProvider: StateConfigProvider): void {
   stateConfigProvider.addRewriteRule('/', '/search');
 }
 
-module(INFRASTRUCTURE_STATES, []);
 registerRootState(registerSearchStates);

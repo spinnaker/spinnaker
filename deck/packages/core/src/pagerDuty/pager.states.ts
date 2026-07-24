@@ -1,12 +1,8 @@
-import { module } from 'angular';
-
 import { Pager } from './Pager';
 import type { INestedState } from '../navigation';
 import { registerRootState } from '../navigation/rootState.registration';
 
 export const PAGER_STATES = 'spinnaker.core.pager.states';
-
-module(PAGER_STATES, []);
 
 registerRootState((stateConfigProvider) => {
   const pageState: INestedState = {

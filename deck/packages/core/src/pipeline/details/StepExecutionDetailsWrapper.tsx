@@ -14,7 +14,6 @@ export interface IStepExecutionDetailsWrapperProps {
   execution: IExecution;
   provider?: string;
   stage: IExecutionStage;
-  sourceUrl: string;
 }
 
 export function StepExecutionDetailsWrapperComponent(props: IStepExecutionDetailsWrapperProps & IRouterInjectedProps) {

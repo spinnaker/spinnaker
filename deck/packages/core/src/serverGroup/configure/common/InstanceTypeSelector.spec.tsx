@@ -3,7 +3,6 @@ import React from 'react';
 
 import { DeckRuntimeContext } from '../../../bootstrap/DeckRuntimeContext';
 import { InstanceTypeSelector } from './InstanceTypeSelector';
-import { V2InstanceTypeSelectorController, v2InstanceTypeSelector } from './v2InstanceTypeSelector.component';
 
 describe('InstanceTypeSelector', () => {
   let runtimeServices: any;
@@ -17,13 +16,7 @@ describe('InstanceTypeSelector', () => {
     Object.defineProperty(runtimeServices, 'instanceTypeService', { configurable: true, get: () => undefined });
   });
 
-  it('registers the Angular v2 component with a custom change-checking React controller', () => {
-    expect(v2InstanceTypeSelector.templateUrl).toBeUndefined();
-    expect(v2InstanceTypeSelector.controller).toBe(V2InstanceTypeSelectorController);
-    expect(V2InstanceTypeSelectorController.prototype.$doCheck).toBeDefined();
-  });
-
-  it('renders without the AngularJS adapter and ignores unavailable instance types', async () => {
+  it('renders the native selector and ignores unavailable instance types', async () => {
     const instanceTypeService = serviceWithCategories();
     spyOnProperty(runtimeServices, 'instanceTypeService', 'get').and.returnValue(instanceTypeService as any);
     const command = commandWithFilteredTypes(['m5.large']);
@@ -31,7 +24,6 @@ describe('InstanceTypeSelector', () => {
     const component = mount(<InstanceTypeSelector command={command as any} onTypeChanged={jasmine.createSpy()} />);
     await settle(component);
 
-    expect(component.find(`.Angular${'JS'}Adapter`).exists()).toBe(false);
     component.find('tr.instance-type-row').at(1).simulate('click');
 
     expect(command.instanceType).toBeUndefined();

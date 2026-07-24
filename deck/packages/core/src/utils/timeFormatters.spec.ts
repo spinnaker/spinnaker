@@ -1,66 +1,50 @@
-import type { IFilterService } from 'angular';
-import { mock } from 'angular';
 import { DateTime, Settings } from 'luxon';
 
 import { SETTINGS } from '../config/settings';
-import { duration, timeDiffToString } from './timeFormatters';
+import { duration, timeDiffToString, timePickerTime, timestamp } from './timeFormatters';
 
 describe('Filter: timeFormatters', function () {
   beforeEach(function () {
     SETTINGS.defaultTimeZone = 'Etc/GMT+0';
   });
 
-  beforeEach(mock.module('spinnaker.core.utils.timeFormatters'));
-
   afterEach(SETTINGS.resetToOriginal);
 
   describe('timePickerTime', function () {
-    let filter: (input?: any) => any;
-
     describe('timePicker', function () {
-      beforeEach(
-        mock.inject(function ($filter: IFilterService) {
-          filter = $filter('timePickerTime') as any;
-        }),
-      );
       it('returns nothing when invalid values are provided', function () {
-        expect(filter()).toBe('-');
-        expect(filter({})).toBe('-');
-        expect(filter({ invalidField: 2 })).toBe('-');
-        expect(filter({ h: 2 })).toBe('-');
-        expect(filter({ h: 2, m: 1 })).toBe('-');
-        expect(filter({ hours: 2, m: 1 })).toBe('-');
-        expect(filter({ h: 2, minutes: 1 })).toBe('-');
-        expect(filter({ hours: 'pasta', minutes: 1 })).toBe('-');
-        expect(filter({ hours: 11, minutes: 'copy' })).toBe('-');
+        expect(timePickerTime(undefined)).toBe('-');
+        expect(timePickerTime({})).toBe('-');
+        expect(timePickerTime({ invalidField: 2 })).toBe('-');
+        expect(timePickerTime({ h: 2 })).toBe('-');
+        expect(timePickerTime({ h: 2, m: 1 })).toBe('-');
+        expect(timePickerTime({ hours: 2, m: 1 })).toBe('-');
+        expect(timePickerTime({ h: 2, minutes: 1 })).toBe('-');
+        expect(timePickerTime({ hours: 'pasta', minutes: 1 })).toBe('-');
+        expect(timePickerTime({ hours: 11, minutes: 'copy' })).toBe('-');
       });
 
       it('handles string inputs', function () {
-        expect(filter({ hours: '10', minutes: '30' })).toBe('10:30');
-        expect(filter({ hours: '10', minutes: 30 })).toBe('10:30');
-        expect(filter({ hours: 10, minutes: '30' })).toBe('10:30');
+        expect(timePickerTime({ hours: '10', minutes: '30' })).toBe('10:30');
+        expect(timePickerTime({ hours: '10', minutes: 30 })).toBe('10:30');
+        expect(timePickerTime({ hours: 10, minutes: '30' })).toBe('10:30');
       });
 
       it('prefixes hours, minutes with zeros if necessary', function () {
-        expect(filter({ hours: 1, minutes: 30 })).toBe('01:30');
-        expect(filter({ hours: 10, minutes: 5 })).toBe('10:05');
+        expect(timePickerTime({ hours: 1, minutes: 30 })).toBe('01:30');
+        expect(timePickerTime({ hours: 10, minutes: 5 })).toBe('10:05');
       });
     });
 
     describe('timestamp', function () {
-      beforeEach(
-        mock.inject(function ($filter: IFilterService) {
-          filter = $filter('timestamp') as any;
-        }),
-      );
       it('returns nothing when invalid values are provided', function () {
-        expect(filter()).toBe('-');
-        expect(filter(null)).toBe('-');
-        expect(filter(-1)).toBe('-');
-        expect(filter('a')).toBe('-');
+        expect(timestamp(undefined)).toBe('-');
+        expect(timestamp(null)).toBe('-');
+        expect(timestamp(-1)).toBe('-');
+        expect(timestamp('a')).toBe('-');
       });
       it('returns formatted date when valid value is provided', function () {
-        expect(filter(1445707299020)).toBe('2015-10-24 17:21:39 UTC');
+        expect(timestamp(1445707299020)).toBe('2015-10-24 17:21:39 UTC');
       });
       it('returns formatted date in user local time when valid value is provided', function () {
         SETTINGS.feature.displayTimestampsInUserLocalTime = true;
@@ -69,7 +53,7 @@ describe('Filter: timeFormatters', function () {
         // For example, the test originally set the timezone to "Asia/Tokyo", which
         // should output "JST". However, in the US, Chrome output "GMT+9". :(
         Settings.defaultZoneName = 'Atlantic/Reykjavik';
-        expect(filter(1445707299020)).toBe('2015-10-24 17:21:39 GMT');
+        expect(timestamp(1445707299020)).toBe('2015-10-24 17:21:39 GMT');
         Settings.defaultZoneName = baseZone;
       });
     });
@@ -92,17 +76,11 @@ describe('Filter: timeFormatters', function () {
     });
 
     describe('duration', function () {
-      beforeEach(
-        mock.inject(function ($filter: IFilterService) {
-          filter = $filter('duration') as any;
-        }),
-      );
-
       it('returns nothing when invalid values are provided', function () {
-        expect(filter()).toBe('-');
-        expect(filter(null)).toBe('-');
-        expect(filter(-1)).toBe('-');
-        expect(filter('a')).toBe('-');
+        expect(duration(undefined)).toBe('-');
+        expect(duration(null)).toBe('-');
+        expect(duration(-1)).toBe('-');
+        expect(duration('a' as any)).toBe('-');
       });
 
       it('formats durations in ms (less than an hour) as MM:SS', function () {

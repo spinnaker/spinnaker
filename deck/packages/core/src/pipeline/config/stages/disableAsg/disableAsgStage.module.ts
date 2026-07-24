@@ -1,11 +1,7 @@
-import { module } from 'angular';
-
 import { DisableAsgExecutionDetails } from './DisableAsgExecutionDetails';
 import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
 import type { IStageTypeConfig } from '../../../../domain';
 import { Registry } from '../../../../registry';
-
-export const DISABLE_ASG_STAGE_MODULE = 'spinnaker.core.pipeline.stage.disableAsg';
 
 export const disableAsgStage: IStageTypeConfig = {
   useBaseProvider: true,
@@ -18,4 +14,3 @@ export const disableAsgStage: IStageTypeConfig = {
 };
 
 Registry.pipeline.registerStage(disableAsgStage);
-module(DISABLE_ASG_STAGE_MODULE, []);

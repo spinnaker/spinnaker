@@ -1,6 +1,3 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
@@ -9,7 +6,6 @@ import { SETTINGS } from '../config/settings';
 import type { IFunction, IFunctionSourceData } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { FunctionReader } from './function.read.service';
-import { FUNCTION_READ_SERVICE } from './function.read.service';
 import type { IFunctionTransformer } from './function.transformer';
 
 export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';
@@ -88,10 +84,3 @@ export function registerFunctionDataSource(
     defaultData: [],
   });
 }
-
-module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
-  '$q',
-  'functionReader',
-  ($q: IQService, functionReader: FunctionReader) =>
-    registerFunctionDataSource(functionReader, <T>(value: T | PromiseLike<T>) => $q.when(value)),
-]);
