@@ -1,18 +1,29 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import { ExpectedArtifactService } from '..';
+import * as ArtifactExports from '..';
 import { ExpectedArtifactSelector } from './ExpectedArtifactSelector';
 import type { IExpectedArtifact } from '../../domain';
 
 const artifact = (type: string): IExpectedArtifact => {
-  const ea = ExpectedArtifactService.createEmptyArtifact();
+  const ea = ArtifactExports.ExpectedArtifactService.createEmptyArtifact();
   ea.matchArtifact.customKind = false;
   ea.matchArtifact.type = type;
   return ea;
 };
 
 describe('<ExpectedArtifactSelector/>', () => {
+  it('does not expose Angular wrapper constants from the artifact barrel', () => {
+    [
+      'ARTIFACT_ACCOUNT_SELECTOR_COMPONENT_REACT',
+      'EXPECTED_ARTIFACT_EDITOR_COMPONENT_REACT',
+      'EXPECTED_ARTIFACT_KIND_SELECTOR_COMPONENT_REACT',
+      'EXPECTED_ARTIFACT_SELECTOR_COMPONENT_REACT',
+      'EXPECTED_ARTIFACT_SOURCE_SELECTOR_COMPONENT_REACT',
+      'STAGE_ARTIFACT_SELECTOR_COMPONENT_REACT',
+    ].forEach((wrapperExport) => expect(wrapperExport in ArtifactExports).toBe(false));
+  });
+
   describe('filtering offered artifact types', () => {
     it('only includes those artifacts with type matching a single offeredArtifactTypes regex', () => {
       const artifacts = [artifact('gcs/object'), artifact('docker/image')];

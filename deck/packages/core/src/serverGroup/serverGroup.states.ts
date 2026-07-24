@@ -1,5 +1,4 @@
 import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
 
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { registerApplicationState } from '../application/applicationState.registration';
@@ -9,8 +8,6 @@ import { ClusterFilters } from '../cluster/filter/ClusterFilters';
 import { MultipleServerGroupsDetails } from './details/MultipleServerGroupsDetails';
 import { ServerGroupDetailsWrapper } from './details/ServerGroupDetailsWrapper';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-
-export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 
 export function getClustersState(stateConfigProvider: StateConfigProvider): INestedState {
   return {
@@ -81,8 +78,6 @@ export function getMultipleServerGroupsState(): INestedState {
     },
   };
 }
-
-module(SERVER_GROUP_STATES, []);
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {

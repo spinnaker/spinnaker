@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -9,12 +8,8 @@ import { ApplicationModelBuilder } from '../../../../../application';
 import { ExpectedArtifactService } from '../../../../../artifact';
 import type { IExpectedArtifact, IStage } from '../../../../../domain';
 import { SpinFormik } from '../../../../../presentation';
-import { REACT_MODULE } from '../../../../../reactShims';
 
 describe('<BakeHelmfileConfigForm />', () => {
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject());
-
   const helmfileFilePathFieldName = 'Helmfile File Path';
 
   const getProps = () => {

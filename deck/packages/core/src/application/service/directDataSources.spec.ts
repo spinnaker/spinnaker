@@ -453,48 +453,9 @@ describe('direct application data source registration', () => {
   });
 });
 
-describe('server group Angular-compatible registration', () => {
-  const pluginDataSource = {
-    key: 'serverGroups',
-    label: 'Plugin clusters',
-    defaultData: [],
-    pluginMarker: true,
-  } as any;
+describe('load balancer direct registration', () => {
   beforeEach(() => {
     ApplicationDataSourceRegistry.clearDataSources();
-    ApplicationDataSourceRegistry.registerDataSource(pluginDataSource);
-  });
-
-  beforeEach(
-    mock.module(serverGroupDataSource.SERVER_GROUP_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-      $provide.value('clusterService', {});
-    }),
-  );
-
-  beforeEach(mock.inject(() => undefined));
-
-  afterEach(() => {
-    ApplicationDataSourceRegistry.clearDataSources();
-  });
-
-  it('keeps one plugin server-group key when the Angular run block follows', () => {
-    const serverGroupDataSources = ApplicationDataSourceRegistry.getDataSources().filter(
-      ({ key }) => key === 'serverGroups',
-    );
-
-    expect(serverGroupDataSources).toEqual([pluginDataSource]);
-  });
-});
-
-describe('load balancer Angular-compatible registration', () => {
-  const pluginDataSource = { key: 'loadBalancers', pluginMarker: true } as any;
-  let angularReader: any;
-
-  beforeEach(() => {
-    ApplicationDataSourceRegistry.clearDataSources();
-    angularReader = {
-      loadLoadBalancers: jasmine.createSpy('angularLoadLoadBalancers').and.returnValue(Promise.resolve([])),
-    };
   });
 
   afterEach(() => ApplicationDataSourceRegistry.clearDataSources());
@@ -515,107 +476,11 @@ describe('load balancer Angular-compatible registration', () => {
     expect(dataSources[0].onLoad({ name: 'app' } as Application, [])).toBe(whenResult);
     expect(directReader.loadLoadBalancers).toHaveBeenCalledWith('app');
   });
-
-  describe('when direct registration precedes Angular activation', () => {
-    let directDataSource: any;
-    let directReader: any;
-    let directQ: any;
-    let angularQ: any;
-    let selectedQ: any;
-
-    beforeEach(() => {
-      directReader = {
-        loadLoadBalancers: jasmine.createSpy('directLoadLoadBalancers').and.returnValue(Promise.resolve([])),
-      };
-      directQ = { when: jasmine.createSpy('directWhen').and.returnValue({ source: 'direct' }) };
-      angularQ = { when: jasmine.createSpy('angularWhen').and.returnValue({ source: 'angular' }) };
-      selectedQ = directQ;
-      loadBalancerDataSource.registerLoadBalancerDataSource(selectedQ, directReader);
-      directDataSource = getDataSourcesByKey('loadBalancers')[0];
-    });
-
-    beforeEach(
-      mock.module(loadBalancerDataSource.LOAD_BALANCER_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-        $provide.value('loadBalancerReader', angularReader);
-      }),
-    );
-    beforeEach(
-      mock.inject(() => {
-        selectedQ = angularQ;
-      }),
-    );
-
-    it('preserves the direct config and dependencies selected at registration', () => {
-      const dataSources = getDataSourcesByKey('loadBalancers');
-      dataSources[0].loader({ name: 'app' } as Application);
-      const loadBalancers: any[] = [];
-      const onLoadResult = dataSources[0].onLoad({ name: 'app' } as Application, loadBalancers);
-
-      expect(dataSources).toEqual([directDataSource]);
-      expect(directReader.loadLoadBalancers).toHaveBeenCalledWith('app');
-      expect(angularReader.loadLoadBalancers).not.toHaveBeenCalled();
-      expect(onLoadResult).toEqual({ source: 'direct' });
-      expect(directQ.when).toHaveBeenCalledWith(loadBalancers);
-      expect(angularQ.when).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('when plugin registration precedes Angular activation', () => {
-    beforeEach(() => ApplicationDataSourceRegistry.registerDataSource(pluginDataSource));
-    beforeEach(
-      mock.module(loadBalancerDataSource.LOAD_BALANCER_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-        $provide.value('loadBalancerReader', angularReader);
-      }),
-    );
-    beforeEach(mock.inject(() => undefined));
-
-    it('preserves the plugin config', () => {
-      expect(getDataSourcesByKey('loadBalancers')).toEqual([pluginDataSource]);
-    });
-  });
-
-  describe('when Angular activation precedes direct registration', () => {
-    let $q: ng.IQService;
-
-    beforeEach(
-      mock.module(loadBalancerDataSource.LOAD_BALANCER_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-        $provide.value('loadBalancerReader', angularReader);
-      }),
-    );
-    beforeEach(
-      mock.inject((_$q_: ng.IQService) => {
-        $q = _$q_;
-      }),
-    );
-
-    it('preserves the Angular config and its injected dependencies', () => {
-      const angularDataSource = getDataSourcesByKey('loadBalancers')[0];
-      const loadResult = Promise.resolve([]);
-      angularReader.loadLoadBalancers.and.returnValue(loadResult);
-      const whenResult = {} as PromiseLike<any>;
-      const when = spyOn($q, 'when').and.returnValue(whenResult as any);
-
-      loadBalancerDataSource.registerLoadBalancerDataSource($q, angularReader);
-      expect(angularDataSource.loader({ name: 'app' } as Application)).toBe(loadResult);
-      expect(angularDataSource.onLoad({ name: 'app' } as Application, [])).toBe(whenResult);
-
-      expect(getDataSourcesByKey('loadBalancers')).toEqual([angularDataSource]);
-      expect(angularReader.loadLoadBalancers).toHaveBeenCalledWith('app');
-      expect(when).toHaveBeenCalledWith([]);
-    });
-  });
 });
 
-describe('security group Angular-compatible registration', () => {
-  const pluginDataSource = { key: 'securityGroups', pluginMarker: true } as any;
-  let angularReader: any;
-
+describe('security group direct registration', () => {
   beforeEach(() => {
     ApplicationDataSourceRegistry.clearDataSources();
-    angularReader = {
-      loadSecurityGroupsByApplicationName: jasmine.createSpy('angularLoadSecurityGroups'),
-      getApplicationSecurityGroups: jasmine.createSpy('angularGetApplicationSecurityGroups'),
-    };
   });
 
   afterEach(() => ApplicationDataSourceRegistry.clearDataSources());
@@ -640,68 +505,5 @@ describe('security group Angular-compatible registration', () => {
         regionField: 'region',
       }),
     ]);
-  });
-
-  describe('when direct registration precedes Angular activation', () => {
-    let directDataSource: any;
-
-    beforeEach(() => {
-      securityGroupDataSource.registerSecurityGroupDataSource(
-        testRuntime.promiseService,
-        testRuntime.services.securityGroupReader,
-      );
-      directDataSource = getDataSourcesByKey('securityGroups')[0];
-    });
-    beforeEach(
-      mock.module(securityGroupDataSource.SECURITY_GROUP_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-        $provide.value('securityGroupReader', angularReader);
-      }),
-    );
-    beforeEach(mock.inject(() => undefined));
-
-    it('preserves the direct config', () => {
-      expect(getDataSourcesByKey('securityGroups')).toEqual([directDataSource]);
-    });
-  });
-
-  describe('when plugin registration precedes Angular activation', () => {
-    beforeEach(() => ApplicationDataSourceRegistry.registerDataSource(pluginDataSource));
-    beforeEach(
-      mock.module(securityGroupDataSource.SECURITY_GROUP_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-        $provide.value('securityGroupReader', angularReader);
-      }),
-    );
-    beforeEach(mock.inject(() => undefined));
-
-    it('preserves the plugin config', () => {
-      expect(getDataSourcesByKey('securityGroups')).toEqual([pluginDataSource]);
-    });
-  });
-
-  describe('when Angular activation precedes direct registration', () => {
-    beforeEach(
-      mock.module(securityGroupDataSource.SECURITY_GROUP_DATA_SOURCE, ($provide: ng.auto.IProvideService) => {
-        $provide.value('securityGroupReader', angularReader);
-      }),
-    );
-    beforeEach(mock.inject(() => undefined));
-
-    it('preserves the Angular config and its injected reader', () => {
-      const application = { name: 'app' } as Application;
-      const securityGroups = [];
-      const loadResult = {} as PromiseLike<any>;
-      const onLoadResult = {} as PromiseLike<any>;
-      angularReader.loadSecurityGroupsByApplicationName.and.returnValue(loadResult);
-      angularReader.getApplicationSecurityGroups.and.returnValue(onLoadResult);
-      const angularDataSource = getDataSourcesByKey('securityGroups')[0];
-
-      expect(angularDataSource.loader(application)).toBe(loadResult);
-      expect(angularDataSource.onLoad(application, securityGroups)).toBe(onLoadResult);
-      securityGroupDataSource.registerSecurityGroupDataSource(testRuntime.promiseService, angularReader);
-
-      expect(getDataSourcesByKey('securityGroups')).toEqual([angularDataSource]);
-      expect(angularReader.loadSecurityGroupsByApplicationName).toHaveBeenCalledWith('app');
-      expect(angularReader.getApplicationSecurityGroups).toHaveBeenCalledWith(application, securityGroups);
-    });
   });
 });

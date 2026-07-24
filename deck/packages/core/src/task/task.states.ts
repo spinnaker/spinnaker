@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { TaskNotFound } from './TaskNotFound';
 import { Tasks } from './Tasks';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
@@ -43,8 +41,6 @@ export function getTasksState(): INestedState {
     children: [taskDetails],
   };
 }
-
-module(TASK_STATES, []);
 
 registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
   applicationStateProvider.addChildState(getTasksState());
