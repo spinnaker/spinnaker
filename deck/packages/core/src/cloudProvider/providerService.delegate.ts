@@ -1,5 +1,4 @@
 import type { IQService } from 'angular';
-import { module } from 'angular';
 import { isFunction, isString } from 'lodash';
 
 import { CloudProviderRegistry } from './CloudProviderRegistry';
@@ -77,4 +76,3 @@ export class ProviderServiceDelegate {
 }
 
 export const PROVIDER_SERVICE_DELEGATE = 'spinnaker.core.cloudProvider.service.delegate';
-module(PROVIDER_SERVICE_DELEGATE, []).service('providerServiceDelegate', ProviderServiceDelegate);

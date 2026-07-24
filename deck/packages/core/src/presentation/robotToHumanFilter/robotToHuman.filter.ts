@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 export function robotToHuman(input: string): string {
   if (!input) {
     return '';
@@ -33,4 +31,3 @@ export function robotToHumanFilter() {
 }
 
 export const ROBOT_TO_HUMAN_FILTER = 'spinnaker.core.presentation.robotToHuman.filter';
-module(ROBOT_TO_HUMAN_FILTER, []).filter('robotToHuman', robotToHumanFilter);

@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import { mount } from 'enzyme';
 import React from 'react';
 import Select from 'react-select';
@@ -6,13 +5,9 @@ import Select from 'react-select';
 import { BuildServiceType, IgorService } from '../../../../ci/igor.service';
 import { HelpField } from '../../../../help';
 import { ReactModal } from '../../../../presentation';
-import { REACT_MODULE } from '../../../../reactShims';
 import { CiBuildStageConfig } from './CiBuildStageConfig';
 
 describe('<CiBuildStageConfig />', () => {
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(mock.inject());
-
   beforeEach(() => {
     spyOn(IgorService, 'listMasters').and.returnValue(Promise.resolve([]));
     spyOn(IgorService, 'listJobsForMaster').and.returnValue(Promise.resolve([]));

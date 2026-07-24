@@ -1,5 +1,3 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { mock } from 'angular';
 import type { ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -7,8 +5,6 @@ import { act } from 'react-dom/test-utils';
 import { Projects } from './Projects';
 import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../cache';
-import { OVERRIDE_REGISTRY } from '../overrideRegistry';
-import { REACT_MODULE } from '../reactShims';
 import * as ProjectReaderModule from './service/ProjectReader';
 import { timestamp } from '../utils';
 import { mountAndFlush } from '../utils/testUtils';
@@ -38,15 +34,7 @@ export function invokeSort(toggle: ReactWrapper<any>, next: string) {
 }
 
 describe('Projects', () => {
-  let $uiRouter: UIRouterReact;
   let listSpy: jasmine.Spy;
-
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-    }),
-  );
 
   describe('filtering & sorting', () => {
     beforeEach(() => {

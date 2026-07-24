@@ -1,9 +1,7 @@
 import type { IQService } from 'angular';
-import { module } from 'angular';
 
 import { REST } from '../api/ApiService';
 import type { ILoadBalancer, ILoadBalancerSourceData } from '../domain';
-import { CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER } from './loadBalancer.transformer';
 import type { IComponentName } from '../naming';
 import { NameUtils } from '../naming';
 
@@ -57,8 +55,3 @@ export class LoadBalancerReader {
 }
 
 export const LOAD_BALANCER_READ_SERVICE = 'spinnaker.core.loadBalancer.read.service';
-
-module(LOAD_BALANCER_READ_SERVICE, [CORE_LOADBALANCER_LOADBALANCER_TRANSFORMER]).service(
-  'loadBalancerReader',
-  LoadBalancerReader,
-);

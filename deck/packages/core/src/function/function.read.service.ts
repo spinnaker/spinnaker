@@ -1,9 +1,6 @@
-import { module } from 'angular';
-
 import { REST } from '../api/ApiService';
 import type { IFunctionSourceData } from '../domain';
 import type { IFunctionTransformer } from './function.transformer';
-import { CORE_FUNCTION_FUNCTION_TRANSFORMER } from './function.transformer';
 
 export interface IFunctionByAccount {
   name: string;
@@ -56,7 +53,3 @@ export class FunctionReader {
     return fn;
   }
 }
-
-export const FUNCTION_READ_SERVICE = 'spinnaker.core.function.read.service';
-
-module(FUNCTION_READ_SERVICE, [CORE_FUNCTION_FUNCTION_TRANSFORMER]).service('functionReader', FunctionReader);

@@ -6,4 +6,3 @@ export * from './metrics/CloudMetricsReader';
 export * from './resize';
 export * from './serverGroupReader.service';
 export * from './serverGroupWriter.service';
-export * from './templates';

@@ -1,8 +1,7 @@
 import type { StateParams, StateService } from '@uirouter/angularjs';
-import { mock, noop } from 'angular';
+import { noop } from 'lodash';
 
-import type { ExecutionDetailsSectionService } from './executionDetailsSection.service';
-import { EXECUTION_DETAILS_SECTION_SERVICE } from './executionDetailsSection.service';
+import { ExecutionDetailsSectionService } from './executionDetailsSection.service';
 
 describe('executionDetailsSectionService', function () {
   let $state: StateService,
@@ -10,22 +9,26 @@ describe('executionDetailsSectionService', function () {
     $timeout: ng.ITimeoutService,
     service: ExecutionDetailsSectionService;
 
-  beforeEach(mock.module(EXECUTION_DETAILS_SECTION_SERVICE));
-  beforeEach(
-    mock.inject(
-      (
-        executionDetailsSectionService: ExecutionDetailsSectionService,
-        _$state_: StateService,
-        _$stateParams_: StateParams,
-        _$timeout_: ng.ITimeoutService,
-      ) => {
-        service = executionDetailsSectionService;
-        $state = _$state_;
-        $stateParams = _$stateParams_;
-        $timeout = _$timeout_;
-      },
-    ),
-  );
+  beforeEach(() => {
+    const queued: Array<{ callback: () => void }> = [];
+    $state = { includes: () => false, go: () => Promise.resolve() } as any;
+    $stateParams = {};
+    $timeout = ((callback: () => void) => {
+      const handle = { callback };
+      queued.push(handle);
+      return handle;
+    }) as any;
+    $timeout.cancel = (handle: any) => {
+      const index = queued.indexOf(handle);
+      if (index === -1) {
+        return false;
+      }
+      queued.splice(index, 1);
+      return true;
+    };
+    ($timeout as any).flush = () => queued.splice(0).forEach(({ callback }) => callback());
+    service = new ExecutionDetailsSectionService($stateParams, $state, $timeout);
+  });
 
   describe('synchronizeSection', () => {
     it('does nothing when state is not in execution details', function () {

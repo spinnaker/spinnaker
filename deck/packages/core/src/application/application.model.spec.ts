@@ -1,44 +1,47 @@
-import { mock } from 'angular';
-
 import type { Application } from './application.model';
 import { ApplicationModelBuilder } from './applicationModel.builder';
+import type { ClusterService } from '../cluster/cluster.service';
 import type { IEntityTag, IEntityTags, IInstanceCounts, ILoadBalancer, IServerGroup } from '../domain';
-import { LOAD_BALANCER_DATA_SOURCE } from '../loadBalancer/loadBalancer.dataSource';
-import { SECURITY_GROUP_DATA_SOURCE } from '../securityGroup/securityGroup.dataSource';
+import { registerLoadBalancerDataSource } from '../loadBalancer/loadBalancer.dataSource';
+import type { LoadBalancerReader } from '../loadBalancer/loadBalancer.read.service';
+import { registerSecurityGroupDataSource } from '../securityGroup/securityGroup.dataSource';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
-import { SERVER_GROUP_DATA_SOURCE } from '../serverGroup/serverGroup.dataSource';
+import { registerServerGroupDataSource } from '../serverGroup/serverGroup.dataSource';
+import { nativePromiseService } from '../utils/nativePromiseService';
 import { ApplicationDataSourceRegistry } from './service/ApplicationDataSourceRegistry';
 
 describe('Application Model', function () {
   let application: Application,
     securityGroupReader: SecurityGroupReader,
-    loadBalancerReader: any,
-    clusterService: any,
-    $rootScope: ng.IRootScopeService;
+    loadBalancerReader: LoadBalancerReader,
+    clusterService: ClusterService;
 
-  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
+  beforeEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+    securityGroupReader = {
+      loadSecurityGroupsByApplicationName: () => Promise.resolve([]),
+      loadSecurityGroups: () => Promise.resolve([]),
+      getApplicationSecurityGroups: () => Promise.resolve([]),
+    } as any;
+    loadBalancerReader = { loadLoadBalancers: () => Promise.resolve([]) } as any;
+    clusterService = {
+      loadServerGroups: () => Promise.resolve([]),
+      createServerGroupClusters: () => [],
+      addServerGroupsToApplication: (_application: Application, serverGroups: IServerGroup[]) => serverGroups,
+      addTasksToServerGroups: () => undefined,
+      addExecutionsToServerGroups: () => undefined,
+    } as any;
+    registerSecurityGroupDataSource(nativePromiseService, securityGroupReader);
+    registerServerGroupDataSource(nativePromiseService, clusterService);
+    registerLoadBalancerDataSource(nativePromiseService, loadBalancerReader);
+  });
 
-  beforeEach(mock.module(SECURITY_GROUP_DATA_SOURCE, SERVER_GROUP_DATA_SOURCE, LOAD_BALANCER_DATA_SOURCE));
-
-  beforeEach(
-    mock.inject(function (
-      _securityGroupReader_: SecurityGroupReader,
-      _clusterService_: any,
-      _loadBalancerReader_: any,
-      _$rootScope_: ng.IRootScopeService,
-    ) {
-      securityGroupReader = _securityGroupReader_;
-      clusterService = _clusterService_;
-      loadBalancerReader = _loadBalancerReader_;
-      $rootScope = _$rootScope_;
-    }),
-  );
+  afterEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+  });
 
   async function flushPromise<T>(promise: PromiseLike<T>): Promise<T> {
-    const nativePromise = Promise.resolve(promise);
-    await Promise.resolve();
-    $rootScope.$digest();
-    return nativePromise;
+    return Promise.resolve(promise);
   }
 
   async function configureApplication(

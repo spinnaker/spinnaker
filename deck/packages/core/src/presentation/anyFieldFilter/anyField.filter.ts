@@ -8,8 +8,6 @@
  * We want to perform a OR.
  */
 
-import { module } from 'angular';
-
 export function anyFieldFilter() {
   return function (items: any, props: any): any[] {
     let out: any[] = [];
@@ -41,4 +39,3 @@ export function anyFieldFilter() {
 }
 
 export const ANY_FIELD_FILTER = 'spinnaker.core.presentation.anyFieldFilter';
-module(ANY_FIELD_FILTER, []).filter('anyFieldFilter', anyFieldFilter);
