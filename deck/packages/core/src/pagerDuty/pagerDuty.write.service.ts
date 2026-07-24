@@ -1,19 +1,23 @@
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
+import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
 import type { IJob, ITaskCommand } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 
 export class PagerDutyWriter {
-  public static pageApplicationOwnerModal(app: Application): void {
-    AngularServices.modalService
-      .open({
-        templateUrl: require('./pageApplicationOwner.html'),
-        controller: 'PageModalCtrl as ctrl',
-        resolve: {
-          application: () => app,
-        },
-      })
-      .result.catch(() => {});
+  public static pageApplicationOwnerModal(application: Application): PromiseLike<any> {
+    return ConfirmationModalService.confirm({
+      header: `Page ${application.name} Owner`,
+      buttonText: 'Page Owner',
+      askForReason: true,
+      reasonRequired: true,
+      reasonPlaceholder: 'Why is the owner being paged?',
+      taskMonitorConfig: {
+        application,
+        title: `Paging ${application.name} owner`,
+      },
+      submitMethod: ({ reason }: { reason: string }) =>
+        this.pageApplicationOwner(application, `[${application.name.toUpperCase()}] ${reason.trim()}`),
+    });
   }
 
   public static sendPage(

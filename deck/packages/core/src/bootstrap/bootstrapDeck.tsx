@@ -6,13 +6,13 @@ import type { DeckRuntime } from './DeckRuntime';
 import { createDeckRuntime } from './DeckRuntime';
 import { DeckRuntimeContext } from './DeckRuntimeContext';
 import { SpinnakerContainer } from './SpinnakerContainer';
-import { AngularServices } from '../angular/services';
 import { initializeAuthentication } from '../authentication/authentication.module';
 import { VersionChecker } from '../config/VersionChecker';
 import '../navigation/coreRoutes';
 import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 import { configureRouter, startRouter } from '../navigation/router';
 import { initializePlugins } from '../plugins/plugin.module';
+import { ReactModal } from '../presentation/ReactModal';
 import {
   disposeRuntimeMetadata,
   initializeDynamicRuntimeMetadata,
@@ -38,13 +38,14 @@ export function createDeckRoot(router: UIRouterReact, runtime: DeckRuntime): Rea
   return (
     <DeckRuntimeContext.Provider value={runtime}>
       <UIRouterContext.Provider value={router}>
-        <SpinnakerContainer authenticating={false} routing={false} />
+        <SpinnakerContainer authenticating={false} routingState={runtime.routingState} />
       </UIRouterContext.Provider>
     </DeckRuntimeContext.Provider>
   );
 }
 
 function cleanupRuntime(): void {
+  ReactModal.dismissAll('runtime-disposed');
   const runtime = activeRuntime;
   const router = activeRouter;
   const root = renderedRoot;
@@ -77,10 +78,6 @@ function cleanupRuntime(): void {
           runtime?.dispose();
         } catch (error) {
           console.error('Failed to dispose Deck runtime', error);
-        } finally {
-          if (runtime) {
-            AngularServices.releaseRuntime(runtime);
-          }
         }
       }
     }
@@ -110,10 +107,9 @@ async function runBootstrap(root: HTMLElement): Promise<void> {
   const runtime = createDeckRuntime(router);
   activeRuntime = runtime;
   activeRouter = router;
-  AngularServices.bindRuntime(runtime);
   initializeRuntimeMetadata(runtime);
   void initializeDynamicRuntimeMetadata();
-  configureRouter(router, runtime.services);
+  configureRouter(router, runtime.services, runtime.routingState);
   initializeState();
   initializeInfrastructureCaches(runtime);
   await Promise.resolve();

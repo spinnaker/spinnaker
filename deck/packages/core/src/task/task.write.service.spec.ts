@@ -1,24 +1,46 @@
-import { AngularServices } from '../angular/services';
 import { mockHttpClient } from '../api/mock/jasmine';
 import { TaskWriter } from './task.write.service';
 
 describe('Service: TaskWriter', () => {
-  let runNextPoll: () => void;
+  let cancelPoll: jasmine.Spy;
+  let runNextPoll: () => number;
 
   beforeEach(() => {
-    const pollCallbacks: Array<() => void> = [];
-    const timeout = (callback: () => void) => {
-      pollCallbacks.push(callback);
-      return Promise.resolve();
-    };
+    const nativeSetTimeout = window.setTimeout;
+    const nativeClearTimeout = window.clearTimeout;
+    const pollCallbacks: Array<{ callback: () => void; cancelled: boolean; handle: number }> = [];
+    const pollsByHandle = new Map<number, { callback: () => void; cancelled: boolean; handle: number }>();
+    let nextHandle = -1;
+    spyOn(window, 'setTimeout').and.callFake((callback: TimerHandler, delay?: number, ...args: any[]) => {
+      if (delay !== 1000) {
+        return nativeSetTimeout.call(window, callback, delay, ...args);
+      }
+      if (typeof callback !== 'function') {
+        throw new Error('Expected a timeout callback');
+      }
+      const poll = { callback, cancelled: false, handle: nextHandle-- };
+      pollCallbacks.push(poll);
+      pollsByHandle.set(poll.handle, poll);
+      return poll.handle;
+    });
+    cancelPoll = jasmine.createSpy('cancelPoll');
+    spyOn(window, 'clearTimeout').and.callFake((handle) => {
+      const poll = pollsByHandle.get(handle as number);
+      if (poll) {
+        poll.cancelled = true;
+        cancelPoll(handle);
+      } else {
+        nativeClearTimeout.call(window, handle);
+      }
+    });
     runNextPoll = () => {
-      const callback = pollCallbacks.shift();
-      if (!callback) {
+      const poll = pollCallbacks.shift();
+      if (!poll || poll.cancelled) {
         throw new Error('No pending task poll');
       }
-      callback();
+      poll.callback();
+      return poll.handle;
     };
-    spyOnProperty(AngularServices, '$timeout', 'get').and.returnValue(timeout as any);
   });
 
   describe('cancelling task', () => {
@@ -37,14 +59,16 @@ describe('Service: TaskWriter', () => {
       expect(completed).toBe(false);
 
       http.expectGET(checkUrl).respond(200, { id: taskId });
-      runNextPoll();
+      const firstPoll = runNextPoll();
       await http.flush();
 
       http.expectGET(checkUrl).respond(200, { status: 'CANCELED' });
-      runNextPoll();
+      const secondPoll = runNextPoll();
       await http.flush();
       await cancellation;
+
       expect(completed).toBe(true);
+      expect(cancelPoll.calls.allArgs()).toEqual([[firstPoll], [secondPoll]]);
     });
   });
 });

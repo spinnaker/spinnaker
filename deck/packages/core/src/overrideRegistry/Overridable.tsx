@@ -5,8 +5,8 @@ import { map, switchMap, takeUntil } from 'rxjs/operators';
 
 import type { IAccountDetails } from '../account/AccountService';
 import { AccountService } from '../account/AccountService';
-import { AngularServices } from '../angular/services';
 import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
+import { overrideRegistry } from './override.registry';
 import { Spinner } from '../widgets/spinners/Spinner';
 
 export interface IOverridableProps {
@@ -119,8 +119,6 @@ export function overridableComponent<P extends IOverridableProps, T extends Reac
     }
 
     private getComponentFromOverrideRegistry(): T {
-      const { overrideRegistry } = AngularServices;
-
       const ComponentOverride = overrideRegistry.getComponent(key);
       if (ComponentOverride) {
         return ComponentOverride as T;
