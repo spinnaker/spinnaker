@@ -1,8 +1,6 @@
 import type { IScope } from 'angular';
 import { sortBy, throttle } from 'lodash';
 
-import { AngularServices } from '../../angular/services';
-
 interface IViewPlacement {
   top: number;
   elem: string;
@@ -40,7 +38,7 @@ export class WaypointService {
       element.bind(
         'scroll.waypointEvents resize.waypointEvents',
         throttle(() => {
-          AngularServices.$timeout(() => {
+          setTimeout(() => {
             const containerRect = element.get(0).getBoundingClientRect();
             const topThreshold = containerRect.top + registryEntry.offset;
             const waypoints = element.find('[waypoint]');
@@ -58,9 +56,6 @@ export class WaypointService {
               top: newTop,
               direction: lastTop > newTop ? 'up' : 'down',
             };
-            if (this.waypointRegistry[key].lastWindow.length) {
-              AngularServices.$rootScope.$broadcast('waypoints-changed', this.waypointRegistry[key]);
-            }
           });
         }, 200),
       );

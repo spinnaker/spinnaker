@@ -5,7 +5,6 @@ import type { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { SETTINGS } from '../config';
 import type { IInstance, IServerGroup } from '../domain';
@@ -16,6 +15,7 @@ import type { IRouterInjectedProps } from '../navigation/routerContext';
 import { stateChangeSuccess$, withRouter } from '../navigation/routerContext';
 import { ClusterState } from '../state';
 import { logger, ScrollToService } from '../utils';
+import { interpolate } from '../utils/interpolate';
 
 export interface IJenkinsViewModel {
   number: number;
@@ -88,7 +88,7 @@ export class ServerGroupComponent extends React.Component<IServerGroupProps & IR
         tag: dockerConfig.tag,
         image: dockerConfig.image,
         href:
-          AngularServices.$interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
+          interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
           'images/' +
           encodeURIComponent(dockerConfig.image) +
           '/' +
@@ -135,8 +135,6 @@ export class ServerGroupComponent extends React.Component<IServerGroupProps & IR
   private onServerGroupsChanged = () => {
     const isMultiSelected = this.isMultiSelected(this.props.sortFilter.multiselect, this.props.serverGroup);
     this.setState({ isMultiSelected });
-    // Enables the (angular) details pane to detect the changes
-    AngularServices.$rootScope.$applyAsync(() => false);
   };
 
   private onStateChanged = () => {

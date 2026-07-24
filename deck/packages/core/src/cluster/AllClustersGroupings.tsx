@@ -5,7 +5,6 @@ import type { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 import { ClusterPod } from './ClusterPod';
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import type { IClusterGroup, IClusterSubgroup } from './filter/ClusterFilterService';
 import type { ISortFilter } from '../filterModel';
@@ -32,7 +31,6 @@ export class AllClustersGroupingsComponent extends React.Component<
 
   private groupsSubscription: Subscription;
   private routeChangedSubscription: Subscription;
-  private unwatchSortFilter: Function;
 
   private cellCache: CellMeasurerCache;
 
@@ -101,15 +99,6 @@ export class AllClustersGroupingsComponent extends React.Component<
     this.groupsSubscription = this.clusterFilterService.groupsUpdatedStream.subscribe(onGroupsChanged);
     this.routeChangedSubscription = stateChangeSuccess$(this.props.router).subscribe(this.handleRouteChange);
 
-    const getSortFilter = () => this.clusterFilterModel.asFilterModel.sortFilter;
-    const onFilterChanged = ({ ...sortFilter }: any) => {
-      const shouldResetCache = sortFilter.listInstances !== this.state.sortFilter.listInstances;
-      this.setState({ sortFilter }, () => shouldResetCache && this.cellCache.clearAll());
-    };
-    // TODO: Remove $rootScope. Keeping it here so we can use $watch for now.
-    //       Eventually, there should be events fired when filters change.
-    this.unwatchSortFilter = AngularServices.$rootScope.$watch(getSortFilter, onFilterChanged, true);
-
     this.scrollToRow();
   }
 
@@ -117,7 +106,6 @@ export class AllClustersGroupingsComponent extends React.Component<
     window.removeEventListener('resize', this.handleWindowResize);
     this.groupsSubscription.unsubscribe();
     this.routeChangedSubscription.unsubscribe();
-    this.unwatchSortFilter();
   }
 
   private scrollToRow = () => {

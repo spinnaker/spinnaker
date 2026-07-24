@@ -1,3 +1,5 @@
+import type { Rejection } from '@uirouter/core';
+import { RejectType } from '@uirouter/core';
 import type { UIRouterReact } from '@uirouter/react';
 import type { ILogService, IQService, ITimeoutService } from 'angular';
 
@@ -22,13 +24,90 @@ export interface ServerGroupTransformer {
   convertServerGroupCommandToDeployConfiguration(base: any): any;
 }
 
+interface RuntimePageTitleData {
+  pageTitleMain?: { field?: string; label?: string };
+  pageTitleSection?: { title?: string };
+  pageTitleDetails?: { title?: string; nameParam?: string; accountParam?: string; regionParam?: string };
+}
+
+export interface RuntimePageTitleConfig extends RuntimePageTitleData {
+  data?: RuntimePageTitleData;
+}
+
 export interface RuntimePageTitleService {
-  handleRoutingSuccess(config?: { pageTitleMain?: { field?: string; label?: string } }): void;
+  handleRoutingStart(transition: object): void;
+  handleRoutingError(rejection: Pick<Rejection, 'type'>, transition: object): void;
+  handleRoutingSuccess(config?: RuntimePageTitleConfig, transition?: object): void;
+  dispose(): void;
 }
 
 class DirectPageTitleService implements RuntimePageTitleService {
-  public handleRoutingSuccess(config: { pageTitleMain?: { field?: string; label?: string } } = {}): void {
-    document.title = config.pageTitleMain?.label || 'Spinnaker';
+  private activeTransition: object | null = null;
+  private disposed = false;
+  private previousPageTitle = 'Spinnaker';
+
+  constructor(private router: UIRouterReact | null) {}
+
+  public handleRoutingStart(transition: object): void {
+    if (this.disposed) {
+      return;
+    }
+    if (!this.activeTransition) {
+      this.previousPageTitle = document.title;
+    }
+    this.activeTransition = transition;
+    document.title = 'Spinnaker: Loading...';
+  }
+
+  public handleRoutingError(rejection: Pick<Rejection, 'type'>, transition: object): void {
+    if (this.disposed || rejection.type === RejectType.SUPERSEDED || transition !== this.activeTransition) {
+      return;
+    }
+    this.activeTransition = null;
+    document.title = rejection.type === RejectType.ABORTED ? this.previousPageTitle : 'Spinnaker: Error';
+  }
+
+  public handleRoutingSuccess(config: RuntimePageTitleConfig = {}, transition?: object): void {
+    if (this.disposed || (transition ? transition !== this.activeTransition : Boolean(this.activeTransition))) {
+      return;
+    }
+    this.activeTransition = null;
+    const pageData = config.data || config;
+    const params = (this.router?.globals.params || {}) as Record<string, any>;
+    const mainConfig = pageData.pageTitleMain;
+    const main = mainConfig?.label || (mainConfig?.field && params[mainConfig.field]) || 'Spinnaker';
+    const resolveStateParams = (stateConfig?: RuntimePageTitleData['pageTitleDetails']): string => {
+      if (!stateConfig) {
+        return '';
+      }
+
+      const { title, nameParam, accountParam, regionParam } = stateConfig;
+      let result = title;
+      if (nameParam) {
+        result += ': ' + params[nameParam];
+      }
+      if (accountParam || regionParam) {
+        const location =
+          accountParam && regionParam
+            ? `${params[accountParam]}:${params[regionParam]}`
+            : params[accountParam || regionParam];
+        result += ` (${location})`;
+      }
+      return result;
+    };
+
+    document.title = [
+      main,
+      resolveStateParams(pageData.pageTitleSection),
+      resolveStateParams(pageData.pageTitleDetails),
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+
+  public dispose(): void {
+    this.disposed = true;
+    this.activeTransition = null;
   }
 }
 
@@ -117,7 +196,7 @@ export class DeckRuntimeServices {
   }
 
   public get pageTitleService(): RuntimePageTitleService {
-    return (this.directPageTitleService ||= new DirectPageTitleService());
+    return (this.directPageTitleService ||= new DirectPageTitleService(this.router));
   }
 
   public get securityGroupReader(): SecurityGroupReader {
@@ -180,7 +259,7 @@ export class DeckRuntimeServices {
     this.directInfrastructureSearchService = null;
     this.directInstanceTypeService = null;
     this.directLoadBalancerReader = null;
-    this.directPageTitleService = null;
+    this.directPageTitleService?.dispose();
     this.directSecurityGroupReader = null;
     this.directServerGroupCommandBuilder = null;
     this.directServerGroupTransformer = null;

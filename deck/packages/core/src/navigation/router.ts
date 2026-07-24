@@ -2,6 +2,7 @@ import type { UIRouterReact } from '@uirouter/react';
 import { hashLocationPlugin, servicesPlugin } from '@uirouter/react';
 import { UIRouterRxPlugin } from '@uirouter/rx';
 
+import type { RoutingState } from './RoutingState';
 import { applyApplicationInitializers } from '../application/application.initializers';
 import { getActiveApplicationStateProvider } from '../application/applicationState.registration';
 import type { DeckRuntimeServices } from '../bootstrap/DeckRuntimeServices';
@@ -18,7 +19,11 @@ import {
 } from './state.provider';
 import { StateHelper } from './stateHelper.provider';
 
-export function configureRouter(router: UIRouterReact, runtimeServices: DeckRuntimeServices): UIRouterReact {
+export function configureRouter(
+  router: UIRouterReact,
+  runtimeServices: DeckRuntimeServices,
+  routingState: RoutingState,
+): UIRouterReact {
   try {
     router.plugin(servicesPlugin);
     router.plugin(hashLocationPlugin);
@@ -44,7 +49,7 @@ export function configureRouter(router: UIRouterReact, runtimeServices: DeckRunt
     if (applicationStateProvider) {
       applyApplicationInitializers(applicationStateProvider, (router as unknown) as any);
     }
-    const deregisterRouteLifecycles = registerRouteLifecycles(router);
+    const deregisterRouteLifecycles = registerRouteLifecycles(router, runtimeServices.pageTitleService, routingState);
     router.disposable({ dispose: deregisterRouteLifecycles });
     setDirectRouter(router);
     return router;

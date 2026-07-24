@@ -5,7 +5,7 @@ import React from 'react';
 import type { Annotation } from 'react-ace';
 import AceEditor from 'react-ace';
 
-import { AngularServices } from '../angular/services';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 import { yamlStringToDocuments } from './yamlEditorUtils';
 
 export interface IYamlEditorProps {
@@ -28,7 +28,7 @@ export class YamlEditor extends React.Component<IYamlEditorProps> {
     const yamlDocuments = yamlStringToDocuments(raw);
     this.props.onChange
       ? this.props.onChange(raw, yamlDocuments)
-      : AngularServices.$log.warn('No `onChange` handler provided for YAML editor.');
+      : diagnosticLogger.warn('No `onChange` handler provided for YAML editor.');
   };
 
   public calculateErrors = (value: string): Annotation[] => {

@@ -1,11 +1,11 @@
 import { module } from 'angular';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
-import { AngularServices } from '../angular/services';
 import { AUTHENTICATION_INTERCEPTOR_SERVICE } from './authentication.interceptor.service';
 import { SETTINGS } from '../config/settings';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
 
@@ -43,7 +43,6 @@ export function resetAuthenticationRuntime(): void {
   authenticationInFlight = null;
   authenticationScheduler?.unsubscribe();
   authenticationScheduler = null;
-  (AngularServices.$rootScope as any).authenticating = false;
 }
 
 module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE])
@@ -65,6 +64,6 @@ module(AUTHENTICATION_MODULE, [AUTHENTICATION_INTERCEPTOR_SERVICE])
   })
   .run(function () {
     void initializeAuthentication().catch((error) => {
-      AngularServices.$log.error('Failed to initialize authentication', error);
+      diagnosticLogger.error('Failed to initialize authentication', error);
     });
   });
