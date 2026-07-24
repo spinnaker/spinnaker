@@ -7,6 +7,7 @@ import { registerTaskDataSources } from './task.dataSource';
 import { TaskReader } from './task.read.service';
 
 describe('Task Data Source', function () {
+  const promiseService = { when: <T>(value: T | PromiseLike<T>) => Promise.resolve(value) };
   let application: Application, $scope: any;
 
   beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
@@ -17,7 +18,7 @@ describe('Task Data Source', function () {
     mock.inject(function (_clusterService_: any, $rootScope: any) {
       $scope = $rootScope.$new();
       ApplicationDataSourceRegistry.clearDataSources();
-      registerTaskDataSources(undefined, _clusterService_);
+      registerTaskDataSources(promiseService, _clusterService_);
     }),
   );
 

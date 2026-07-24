@@ -4,7 +4,6 @@ import { module } from 'angular';
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 import { SecurityGroups } from './SecurityGroups';
 import { StandaloneSecurityGroupDetails } from './StandaloneSecurityGroupDetails';
-import { AngularServices } from '../angular/services';
 import type { Application, ApplicationStateProvider } from '../application';
 import { ApplicationModelBuilder, registerApplicationState } from '../application';
 import { filterModelConfig } from './filter/SecurityGroupFilterModel';
@@ -12,10 +11,11 @@ import { SecurityGroupFilters } from './filter/SecurityGroupFilters';
 import { FirewallLabels } from './label';
 import type { INestedState, StateConfigProvider } from '../navigation';
 import { registerRootState } from '../navigation/rootState.registration';
+import type { SecurityGroupReader } from './securityGroupReader.service';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 
-export function getStandaloneFirewallState(): INestedState {
+export function getStandaloneFirewallState(securityGroupReader: SecurityGroupReader): INestedState {
   return {
     name: 'firewallDetails',
     url: '/firewallDetails/:provider/:accountId/:region/:vpcId/:name',
@@ -49,7 +49,7 @@ export function getStandaloneFirewallState(): INestedState {
         ($stateParams: StateParams): PromiseLike<Application> => {
           // we need the application to have a firewall index (so rules get attached and linked properly)
           // and its name should just be the name of the firewall (so cloning works as expected)
-          return AngularServices.securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
+          return securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
             const application: Application = ApplicationModelBuilder.createStandaloneApplication($stateParams.name);
             application['securityGroupsIndex'] = securityGroupsIndex; // TODO: refactor the securityGroupsIndex out
             return application;
@@ -148,4 +148,8 @@ registerApplicationState(
   },
 );
 
-registerRootState((stateConfigProvider) => stateConfigProvider.addToRootState(getStandaloneFirewallState()));
+registerRootState((stateConfigProvider) =>
+  stateConfigProvider.addToRootState(
+    getStandaloneFirewallState(stateConfigProvider.runtimeServices.securityGroupReader),
+  ),
+);

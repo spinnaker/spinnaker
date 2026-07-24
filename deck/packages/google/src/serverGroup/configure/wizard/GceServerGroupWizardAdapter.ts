@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 
-import type { Application, IPipeline, IServerGroup, IStage } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IPipeline, IServerGroup, IStage } from '@spinnaker/core';
 
 import type {
   GceCommandHandlerName,
@@ -21,6 +21,19 @@ import { GceServerGroupConfigurationService } from '../serverGroupConfiguration.
 const EMPTY_UPDATE_RESULT: IGceServerGroupCommandUpdateResult = { dirty: {} };
 
 export class GceServerGroupWizardAdapter implements IGceServerGroupWizardAdapter {
+  public static fromRuntimeServices(
+    runtimeServices: Pick<DeckRuntimeServices, 'loadBalancerReader' | 'securityGroupReader'>,
+  ): GceServerGroupWizardAdapter {
+    return new GceServerGroupWizardAdapter(
+      undefined,
+      (new GceServerGroupConfigurationService(
+        undefined,
+        runtimeServices.securityGroupReader,
+        runtimeServices.loadBalancerReader,
+      ) as unknown) as IGceServerGroupConfigurationAdapter,
+    );
+  }
+
   public constructor(
     private commandBuilder = (new GceServerGroupCommandBuilder() as unknown) as IGceServerGroupCommandBuilderAdapter,
     private configurationService = (new GceServerGroupConfigurationService() as unknown) as IGceServerGroupConfigurationAdapter,

@@ -13,10 +13,10 @@ import type {
 import {
   AccountTag,
   AddEntityTagLinks,
-  AngularServices,
   CollapsibleSection,
   ConfirmationModalService,
   confirmNotManaged,
+  DeckRuntimeContext,
   FirewallLabels,
   ManagedResourceDetailsIndicator,
   RecentHistoryService,
@@ -209,6 +209,9 @@ export class AmazonSecurityGroupDetailsComponent extends React.Component<
   IAmazonSecurityGroupDetailsProps & IRouterInjectedProps,
   IAmazonSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IAmazonSecurityGroupDetailsState = { loading: true };
 
   private isUnmounted = false;
@@ -250,7 +253,7 @@ export class AmazonSecurityGroupDetailsComponent extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private autoClose = (): void => {

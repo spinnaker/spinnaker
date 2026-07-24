@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import type {
   Application,
+  DeckRuntimeServices,
   IAccount,
   ILoadBalancerModalProps,
   IModalComponentProps,
@@ -14,7 +15,7 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
+  DeckRuntimeContext,
   ModalClose,
   noop,
   ReactModal,
@@ -49,6 +50,9 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
   ICloudFoundryLoadBalancerModalProps,
   ICreateCloudFoundryMapLoadBalancerState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryLoadBalancerModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -82,7 +86,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
       .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts }));
   }
 
-  public static show(props: ILoadBalancerModalProps): Promise<void> {
+  public static show(props: ILoadBalancerModalProps, runtimeServices: DeckRuntimeServices): Promise<void> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
     return ReactModal.show(
       CloudFoundryMapLoadBalancerModal,
@@ -91,6 +95,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
         // className: 'create-pipeline-modal-overflow-visible',
       },
       modalProps,
+      runtimeServices,
     );
   }
 
@@ -126,7 +131,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return AngularServices.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
+      return this.context.services.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
         serverGroupName: serverGroup.name,
       });
     });
