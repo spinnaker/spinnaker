@@ -9,7 +9,6 @@ import Select from 'react-select';
 
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
 import { TemplateDescription } from './TemplateDescription';
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application/application.model';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { SETTINGS } from '../../config/settings';
@@ -20,6 +19,7 @@ import type { IPipeline } from '../../domain/IPipeline';
 import type { IPipelineTemplateV2 } from '../../domain/IPipelineTemplateV2';
 import { SubmitButton } from '../../modal/buttons/SubmitButton';
 import { Overridable } from '../../overrideRegistry';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './createPipelineModal.less';
@@ -188,7 +188,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       const newPipeline = configs.find((_config) => _config.name === config.name);
 
       if (!newPipeline) {
-        AngularServices.$log.warn('Could not find new pipeline after save succeeded.');
+        diagnosticLogger.warn('Could not find new pipeline after save succeeded.');
         this.setState({
           saveError: true,
           saveErrorMessage: 'Sorry, there was an error retrieving your new pipeline. Please refresh the browser.',
@@ -203,7 +203,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   private onSaveFailure = (response: IHttpPromiseCallbackArg<{ message: string }>): void => {
-    AngularServices.$log.warn(response);
+    diagnosticLogger.warn(response);
     this.setState({
       submitting: false,
       saveError: true,

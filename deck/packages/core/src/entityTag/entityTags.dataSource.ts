@@ -2,7 +2,6 @@ import type { IQService } from 'angular';
 import { module } from 'angular';
 
 import { EntityTagsReader } from './EntityTagsReader';
-import { AngularServices } from '../angular/services';
 import { ApplicationDataSourceRegistry } from '../application';
 import type { Application } from '../application/application.model';
 import { SETTINGS } from '../config/settings';
@@ -13,8 +12,7 @@ import { noop } from '../utils';
 export const ENTITY_TAGS_DATA_SOURCE = 'spinnaker.core.entityTag.dataSource';
 
 export function registerEntityTagsDataSource(
-  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T> = <T>(value: T | PromiseLike<T>) =>
-    AngularServices.$q.when(value),
+  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T> = <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
 ): void {
   if (
     !SETTINGS.feature.entityTags ||

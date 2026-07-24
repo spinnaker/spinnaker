@@ -4,8 +4,8 @@ import { fromEvent as observableFromEvent } from 'rxjs';
 
 import { AuthenticationService } from './AuthenticationService';
 import { LoggedOutModal } from './LoggedOutModal';
-import { AngularServices } from '../angular/services';
 import { SETTINGS } from '../config/settings';
+import { ReactModal } from '../presentation/ReactModal';
 
 interface IAuthResponse {
   username: string;
@@ -46,10 +46,10 @@ export class AuthenticationInitializer {
     ).then((data) => (({ data } as unknown) as IHttpPromiseCallbackArg<T>));
   }
 
-  private static checkForReauthentication(): void {
+  private static checkForReauthentication(visibilityWatch: Subscription): void {
     this.get(SETTINGS.authEndpoint)
       .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-        if (response.data.username) {
+        if (this.visibilityWatch === visibilityWatch && response.data.username) {
           AuthenticationService.setAuthenticatedUser({
             name: response.data.username,
             authenticated: false,
@@ -57,8 +57,10 @@ export class AuthenticationInitializer {
             canMintApiTokens: response.data.canMintApiTokens,
             isAdmin: response.data.isAdmin,
           });
-          AngularServices.modalStackService.dismissAll();
-          this.visibilityWatch.unsubscribe();
+          this.userLoggedOut = false;
+          this.visibilityWatch?.unsubscribe();
+          this.visibilityWatch = null;
+          ReactModal.dismissAll('reauthentication');
         }
       })
       .catch(() => {});
@@ -69,11 +71,13 @@ export class AuthenticationInitializer {
     this.userLoggedOut = true;
     this.openLoggedOutModal();
 
-    this.visibilityWatch = observableFromEvent(document, 'visibilitychange').subscribe(() => {
+    this.visibilityWatch?.unsubscribe();
+    const visibilityWatch = observableFromEvent(document, 'visibilitychange').subscribe(() => {
       if (document.visibilityState === 'visible') {
-        this.checkForReauthentication();
+        this.checkForReauthentication(visibilityWatch);
       }
     });
+    this.visibilityWatch = visibilityWatch;
   }
 
   private static openLoggedOutModal(): void {
@@ -86,10 +90,6 @@ export class AuthenticationInitializer {
   }
 
   public static authenticateUser(isCurrent: () => boolean = () => true): Promise<boolean> {
-    if (isCurrent()) {
-      (AngularServices.$rootScope as any).authenticating = true;
-    }
-
     return Promise.resolve(this.get(SETTINGS.authEndpoint))
       .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
         if (!response.data.username) {
@@ -115,11 +115,6 @@ export class AuthenticationInitializer {
           this.loginRedirect();
         }
         return false;
-      })
-      .finally(() => {
-        if (isCurrent()) {
-          (AngularServices.$rootScope as any).authenticating = false;
-        }
       });
   }
 
@@ -136,7 +131,6 @@ export class AuthenticationInitializer {
               canMintApiTokens: response.data.canMintApiTokens,
               isAdmin: response.data.isAdmin,
             });
-            (AngularServices.$rootScope as any).authenticating = false;
             this.userLoggedOut = false;
           } else {
             this.loginNotification();

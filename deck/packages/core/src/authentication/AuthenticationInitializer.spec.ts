@@ -5,12 +5,14 @@ import { Subscription } from 'rxjs';
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
 import { AUTHENTICATION_MODULE, initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
-import { AngularServices } from '../angular/services';
 import { RequestBuilder } from '../api/ApiService';
 import { FailClosedHttpClient, mockHttpClient } from '../api/mock/jasmine';
 import { SETTINGS } from '../config/settings';
+import type { IModalComponentProps } from '../presentation';
+import { ReactModal } from '../presentation/ReactModal';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 declare const window: any;
 
@@ -80,12 +82,10 @@ describe('AuthenticationInitializer', function () {
 
       const authentication = AuthenticationInitializer.authenticateUser();
 
-      expect((AngularServices.$rootScope as any).authenticating).toBe(true);
       await http.flush();
       const result = await authentication;
 
       expect(result).toBe(true);
-      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
         jasmine.objectContaining({
           name: 'joe!',
@@ -128,7 +128,6 @@ describe('AuthenticationInitializer', function () {
 
       expect(result).toBe(false);
       expect(loginRedirect).toHaveBeenCalledTimes(1);
-      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual({
         name: '[anonymous]',
         authenticated: false,
@@ -155,7 +154,6 @@ describe('AuthenticationInitializer', function () {
 
       expect(result).toBe(false);
       expect(loginRedirect).toHaveBeenCalledTimes(1);
-      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual({
         name: '[anonymous]',
         authenticated: false,
@@ -182,7 +180,6 @@ describe('AuthenticationInitializer', function () {
 
       expect(result).toBe(false);
       expect(loginRedirect).toHaveBeenCalledTimes(1);
-      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual({
         name: '[anonymous]',
         authenticated: false,
@@ -213,13 +210,106 @@ describe('AuthenticationInitializer', function () {
 
       expect(result).toBe(true);
       expect(loginRedirect).not.toHaveBeenCalled();
-      expect((AngularServices.$rootScope as any).authenticating).toBe(false);
       expect(nextListener).toHaveBeenCalledTimes(1);
       expect(reportError).toHaveBeenCalledOnceWith('Authentication listener failed', listenerError);
       expect(AuthenticationService.getAuthenticatedUser()).toEqual(
         jasmine.objectContaining({ name: 'joe!', authenticated: true, roles: ['role-a'] }),
       );
     });
+  });
+
+  it('dismisses all active modals after successful visibility-based reauthentication and allows another logout', async () => {
+    const dismissers: Array<(reason: string) => void> = [];
+    const OpenModal = ({ dismissModal }: IModalComponentProps) => {
+      dismissers.push(dismissModal);
+      return null;
+    };
+    ReactModal.show(OpenModal, {} as any, { animation: false });
+    ReactModal.show(OpenModal, {} as any, { animation: false });
+    expect(dismissers.length).toBe(2);
+
+    const dismissAll = spyOn(ReactModal, 'dismissAll').and.callFake((reason: string) => {
+      dismissers.splice(0).forEach((dismiss) => dismiss(reason));
+    });
+    const openLoggedOutModal = spyOn(AuthenticationInitializer as any, 'openLoggedOutModal');
+    const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValues(
+      Promise.resolve({ data: {} }),
+      Promise.resolve({ data: { username: 'restored-user', roles: [] } }),
+      Promise.resolve({ data: {} }),
+    );
+    spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
+    (AuthenticationInitializer as any).userLoggedOut = false;
+
+    try {
+      AuthenticationInitializer.reauthenticateUser();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(openLoggedOutModal).toHaveBeenCalledTimes(1);
+
+      document.dispatchEvent(new Event('visibilitychange'));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(dismissAll).toHaveBeenCalledOnceWith('reauthentication');
+      document.dispatchEvent(new Event('visibilitychange'));
+      await Promise.resolve();
+      expect(get).toHaveBeenCalledTimes(2);
+
+      AuthenticationInitializer.reauthenticateUser();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(openLoggedOutModal).toHaveBeenCalledTimes(2);
+    } finally {
+      (AuthenticationInitializer as any).visibilityWatch?.unsubscribe();
+      (AuthenticationInitializer as any).visibilityWatch = null;
+      (AuthenticationInitializer as any).userLoggedOut = false;
+      dismissers.splice(0).forEach((dismiss) => dismiss('test cleanup'));
+    }
+  });
+
+  it('ignores a stale visibility response from an older logout cycle', async () => {
+    const firstResponse = createDeferred<any>();
+    const secondResponse = createDeferred<any>();
+    const dismissAll = spyOn(ReactModal, 'dismissAll');
+    spyOn(AuthenticationInitializer as any, 'openLoggedOutModal');
+    spyOn(AuthenticationInitializer as any, 'get').and.returnValues(firstResponse.promise, secondResponse.promise);
+    spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
+    (AuthenticationInitializer as any).userLoggedOut = false;
+
+    try {
+      (AuthenticationInitializer as any).loginNotification();
+      const firstVisibilityWatch = (AuthenticationInitializer as any).visibilityWatch as Subscription;
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      firstVisibilityWatch.unsubscribe();
+      (AuthenticationInitializer as any).loginNotification();
+      const secondVisibilityWatch = (AuthenticationInitializer as any).visibilityWatch as Subscription;
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      firstResponse.resolve({ data: { username: 'stale-user', roles: ['stale-role'] } });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect((AuthenticationInitializer as any).visibilityWatch).toBe(secondVisibilityWatch);
+      expect((AuthenticationInitializer as any).userLoggedOut).toBe(true);
+      expect(dismissAll).not.toHaveBeenCalled();
+      expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
+
+      secondResponse.resolve({ data: { username: 'restored-user', roles: ['restored-role'] } });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect((AuthenticationInitializer as any).visibilityWatch).toBeNull();
+      expect((AuthenticationInitializer as any).userLoggedOut).toBe(false);
+      expect(dismissAll).toHaveBeenCalledOnceWith('reauthentication');
+      expect(AuthenticationService.getAuthenticatedUser()).toEqual(
+        jasmine.objectContaining({ name: 'restored-user', roles: ['restored-role'], authenticated: true }),
+      );
+    } finally {
+      (AuthenticationInitializer as any).visibilityWatch?.unsubscribe();
+      (AuthenticationInitializer as any).visibilityWatch = null;
+      (AuthenticationInitializer as any).userLoggedOut = false;
+    }
   });
 });
 
@@ -280,7 +370,6 @@ describe('initializeAuthentication', () => {
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
       jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
-    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
   });
 
   it('shares one failed authentication result and redirect between concurrent initializations', async () => {
@@ -309,7 +398,6 @@ describe('initializeAuthentication', () => {
       canMintApiTokens: false,
       isAdmin: false,
     });
-    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
   });
 
   it('authenticates again after the previous initialization settles', async () => {
@@ -385,7 +473,6 @@ describe('initializeAuthentication', () => {
 
     expect(await firstInitialization).toBe(false);
     expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
-    expect((AngularServices.$rootScope as any).authenticating).toBe(true);
     expect(initializeAuthentication()).toBe(secondInitialization);
 
     secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
@@ -395,7 +482,6 @@ describe('initializeAuthentication', () => {
       jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
     expect(loginRedirect).not.toHaveBeenCalled();
-    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
   });
 
   it('does not let a failed stale generation clear a new initialization or redirect', async () => {
@@ -415,7 +501,6 @@ describe('initializeAuthentication', () => {
 
     expect(await firstInitialization).toBe(false);
     expect(loginRedirect).not.toHaveBeenCalled();
-    expect((AngularServices.$rootScope as any).authenticating).toBe(true);
     expect(initializeAuthentication()).toBe(secondInitialization);
 
     secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
@@ -425,7 +510,6 @@ describe('initializeAuthentication', () => {
       jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
     expect(loginRedirect).not.toHaveBeenCalled();
-    expect((AngularServices.$rootScope as any).authenticating).toBe(false);
   });
 });
 
@@ -443,7 +527,7 @@ describe('authentication module startup', () => {
     };
     spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
     spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.reject(initializationError));
-    spyOnProperty(AngularServices, '$log', 'get').and.returnValue({ error: reportError } as any);
+    spyOn(diagnosticLogger, 'error').and.callFake(reportError);
   });
   beforeEach(mock.module(AUTHENTICATION_MODULE));
   beforeEach(mock.inject(() => undefined));
