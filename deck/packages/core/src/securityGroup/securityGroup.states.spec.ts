@@ -34,7 +34,7 @@ describe('security group states', () => {
     const runtime = createDeckRuntime(router);
     spyOn(runtime.services.securityGroupReader, 'loadSecurityGroups').and.callFake(loadSecurityGroups);
     router.disposable({ dispose: runtime.dispose });
-    configureRouter(router, runtime.services);
+    configureRouter(router, runtime.services, runtime.routingState);
     routers.push(router);
 
     await router.stateService.go(

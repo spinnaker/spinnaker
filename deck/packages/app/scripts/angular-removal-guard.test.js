@@ -1,45 +1,43 @@
 const assert = require('node:assert/strict');
-const { readdirSync, readFileSync } = require('node:fs');
+const {
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} = require('node:fs');
+const { tmpdir } = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
 const deckRoot = path.resolve(__dirname, '../../..');
 const repositoryRoot = path.resolve(deckRoot, '..');
 const coreSourceRoot = path.resolve(__dirname, '../../core/src');
-const routerConsumerRoots = [deckRoot, path.join(repositoryRoot, 'deck-kayenta/src')];
-const angularServicesPath = path.join(coreSourceRoot, 'angular/services.ts');
+const legacyFacadeConsumerRoots = [
+  path.join(deckRoot, 'packages'),
+  path.join(deckRoot, 'test'),
+  path.join(repositoryRoot, 'deck-kayenta/src'),
+];
+const angularServicesPath = path.join(coreSourceRoot, 'angular', 'services.ts');
+const angularServicesSpecPath = path.join(coreSourceRoot, 'angular', 'services.spec.ts');
 const bridgePath = path.join(coreSourceRoot, 'navigation/legacyStateConfig.bridge.ts');
 const legacyImportPackage = ['ng', 'import'].join('');
 const routeProvider = /['"](?:stateConfigProvider|applicationStateProvider)['"]/;
-const routerFacadeMembers = ['$' + 'state', '$' + 'stateParams', '$' + 'uiRouter', 'state' + 'Events', 'h' + 'as'];
-const runtimeServiceFacadeMembers = [
-  'cacheInitializer',
-  'clusterService',
-  'executionDetailsSectionService',
-  'executionService',
-  'infrastructureSearchService',
-  'instanceTypeService',
-  'loadBalancerReader',
-  'pageTitleService',
-  'providerServiceDelegate',
-  'securityGroupReader',
-  'serverGroupCommandBuilder',
-  'serverGroupTransformer',
-  'serverGroupWriter',
-];
 const angularServicesName = 'Angular' + 'Services';
+const angularServiceAccessorsName = 'Angular' + 'ServiceAccessors';
+const angularServicesImportPath = ['angular', 'services'].join('/');
+const sourceExtensions = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts'];
+const workspaceExtensions = new Set([...sourceExtensions, '.json']);
+const generatedAndDependencyDirectories = new Set(['.cache-loader', 'build', 'dist', 'node_modules']);
+const forbiddenFacadePatterns = [angularServicesName, angularServiceAccessorsName, angularServicesImportPath];
 
 function productionSourceFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      return productionSourceFiles(entryPath);
-    }
-    if (!/\.(?:js|jsx|ts|tsx)$/.test(entry.name) || /\.(?:spec|test)\.[^.]+$/.test(entry.name)) {
-      return [];
-    }
-    return [entryPath];
-  });
+  return workspaceSourceFiles(directory).filter(
+    (file) => sourceExtensions.includes(path.extname(file)) && !/\.(?:spec|test)\.[^.]+$/.test(file),
+  );
 }
 
 function angularConfigCallbacks(source) {
@@ -47,39 +45,35 @@ function angularConfigCallbacks(source) {
 }
 
 function workspaceSourceFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    if (['.cache-loader', 'build', 'dist', 'node_modules'].includes(entry.name)) {
-      return [];
-    }
+  if (lstatSync(directory).isSymbolicLink()) {
+    throw new Error(`Refusing to scan symbolic link: ${directory}`);
+  }
 
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      return workspaceSourceFiles(entryPath);
-    }
-    return /\.(?:js|jsx|json|ts|tsx)$/.test(entry.name) ? [entryPath] : [];
-  });
+  return readdirSync(directory, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) => {
+      const entryPath = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        throw new Error(`Refusing to scan symbolic link: ${entryPath}`);
+      }
+      if (entry.isDirectory()) {
+        if (generatedAndDependencyDirectories.has(entry.name)) {
+          return [];
+        }
+        return workspaceSourceFiles(entryPath);
+      }
+      return workspaceExtensions.has(path.extname(entry.name)) ? [entryPath] : [];
+    });
 }
 
-function usesAngularServicesMember(source, member) {
-  if (source.includes(`${angularServicesName}.${member}`)) {
-    return true;
-  }
-
-  const escapedMember = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const indirectPropertyAccess = new RegExp(
-    `${angularServicesName}\\s*\\[\\s*['"]${escapedMember}['"]\\s*\\]|` +
-      `spyOnProperty\\(\\s*${angularServicesName}\\s*,\\s*['"]${escapedMember}['"]|` +
-      `\\(\\s*${angularServicesName}\\s+as\\s+[^)]+\\)\\s*(?:\\.${escapedMember}|` +
-      `\\[\\s*['"]${escapedMember}['"]\\s*\\])`,
-  );
-  if (indirectPropertyAccess.test(source)) {
-    return true;
-  }
-  const memberBinding = new RegExp(`(?:^|,)\\s*${escapedMember}(?:\\s*:|\\s*(?:,|$))`);
-  const destructuring = new RegExp(`(?:const|let|var)\\s*\\{([^{}]*)\\}\\s*=\\s*${angularServicesName}\\b`, 'g');
-  return Array.from(source.matchAll(destructuring), (match) => match[1]).some((bindings) =>
-    memberBinding.test(bindings),
-  );
+function findLegacyFacadeReferences(files, displayRoot) {
+  return files.flatMap((file) => {
+    const source = readFileSync(file, 'utf8');
+    const relativePath = path.relative(displayRoot, file);
+    return forbiddenFacadePatterns
+      .filter((pattern) => source.includes(pattern))
+      .map((pattern) => `${relativePath}: ${pattern}`);
+  });
 }
 
 test('Core routes do not depend on the legacy Angular state config bridge', () => {
@@ -107,20 +101,12 @@ test('direct bootstrap explicitly loads Core routes', () => {
   assert.match(bootstrapSource, /import ['"]\.\.\/navigation\/coreRoutes['"];?/);
 });
 
-test('AngularServices does not depend on the Angular global injector', () => {
-  const source = readFileSync(angularServicesPath, 'utf8');
-
-  assert.doesNotMatch(source, new RegExp(`from ['"]${legacyImportPackage}['"]`));
-  assert.doesNotMatch(source, /\$injector/);
+test('the legacy Angular service facade implementation is absent', () => {
+  assert.throws(() => readFileSync(angularServicesPath, 'utf8'), { code: 'ENOENT' });
 });
 
-test('AngularServices does not expose router facade members', () => {
-  const source = readFileSync(angularServicesPath, 'utf8');
-
-  routerFacadeMembers.forEach((member) => {
-    const escapedMember = member.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    assert.doesNotMatch(source, new RegExp(`(?:get\\s+)?${escapedMember}\\s*(?:\\(|\\{|:)`));
-  });
+test('the legacy Angular service facade spec is absent', () => {
+  assert.throws(() => readFileSync(angularServicesSpecPath, 'utf8'), { code: 'ENOENT' });
 });
 
 test('workspace source and dependency metadata do not reference the legacy Angular import bridge', () => {
@@ -131,36 +117,88 @@ test('workspace source and dependency metadata do not reference the legacy Angul
   assert.deepEqual(references, []);
 });
 
-test('Deck and Deck-Kayenta source and tests do not use AngularServices router facade members', () => {
-  const references = routerConsumerRoots
-    .flatMap((root) => workspaceSourceFiles(root))
-    .flatMap((file) => {
-      const source = readFileSync(file, 'utf8');
-      return routerFacadeMembers
-        .filter((member) => usesAngularServicesMember(source, member))
-        .map((member) => `${path.relative(repositoryRoot, file)}: ${member}`);
-    });
+test('Deck and Deck-Kayenta source and tests do not use legacy Angular service facades', () => {
+  const references = findLegacyFacadeReferences(
+    legacyFacadeConsumerRoots.flatMap((root) => workspaceSourceFiles(root)),
+    repositoryRoot,
+  );
 
   assert.deepEqual(references, []);
 });
 
-test('Deck and Deck-Kayenta source and tests do not use AngularServices runtime service facade members', () => {
-  const references = routerConsumerRoots
-    .flatMap((root) => workspaceSourceFiles(root))
-    .flatMap((file) => {
-      const source = readFileSync(file, 'utf8');
-      return runtimeServiceFacadeMembers
-        .filter((member) => usesAngularServicesMember(source, member))
-        .map((member) => `${path.relative(repositoryRoot, file)}: ${member}`);
-    });
+function withFixtureRoot(assertions) {
+  const fixtureRoot = mkdtempSync(path.join(tmpdir(), 'angular-removal-guard-'));
+  try {
+    assertions(fixtureRoot);
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
 
-  assert.deepEqual(references, []);
+test('legacy facade scan includes and accepts its own source', () => {
+  const scannedFiles = workspaceSourceFiles(path.dirname(__filename));
+
+  assert.ok(scannedFiles.includes(__filename));
+  assert.deepEqual(findLegacyFacadeReferences([__filename], repositoryRoot), []);
 });
 
-test('router facade scan includes Deck functional tests', () => {
-  const scannedFiles = routerConsumerRoots
-    .flatMap((root) => workspaceSourceFiles(root))
-    .map((file) => path.relative(deckRoot, file));
+test('legacy facade scan detects names and raw paths independent of import formatting', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const relativeImportPath = ['..', angularServicesImportPath].join('/');
+    const fixtureSources = new Map([
+      ['accessor.cts', angularServiceAccessorsName],
+      ['formatted-require.cjs', ['const load = require', '  ', '(', '  `', relativeImportPath, '`', ');'].join('\n')],
+      ['service.ts', angularServicesName],
+      ['template-dynamic.mts', ['const load = import(`', relativeImportPath, '`);'].join('')],
+    ]);
+    fixtureSources.forEach((source, file) => writeFileSync(path.join(fixtureRoot, file), source));
 
-  assert.ok(scannedFiles.includes('test/functional/cypress/integration/core/bootstrap.spec.js'));
+    assert.deepEqual(findLegacyFacadeReferences(workspaceSourceFiles(fixtureRoot), fixtureRoot), [
+      `accessor.cts: ${angularServiceAccessorsName}`,
+      `formatted-require.cjs: ${angularServicesImportPath}`,
+      `service.ts: ${angularServicesName}`,
+      `template-dynamic.mts: ${angularServicesImportPath}`,
+    ]);
+  });
+});
+
+test('legacy facade scan checks every supported JavaScript and TypeScript extension', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const fixtureFiles = sourceExtensions.map((extension) => `fixture${extension}`).sort();
+    fixtureFiles.forEach((file) => writeFileSync(path.join(fixtureRoot, file), angularServicesName));
+
+    assert.deepEqual(
+      findLegacyFacadeReferences(workspaceSourceFiles(fixtureRoot), fixtureRoot),
+      fixtureFiles.map((file) => `${file}: ${angularServicesName}`),
+    );
+  });
+});
+
+test('workspace source scan rejects file and directory symbolic links', () => {
+  withFixtureRoot((fixtureRoot) => {
+    const fileCaseRoot = path.join(fixtureRoot, 'file-case');
+    mkdirSync(fileCaseRoot);
+    const sourceFile = path.join(fileCaseRoot, 'source.ts');
+    const linkedFile = path.join(fileCaseRoot, 'linked.ts');
+    writeFileSync(sourceFile, 'export {};');
+    symlinkSync(sourceFile, linkedFile, 'file');
+
+    assert.throws(() => workspaceSourceFiles(fileCaseRoot), {
+      message: `Refusing to scan symbolic link: ${linkedFile}`,
+    });
+
+    const directoryCaseRoot = path.join(fixtureRoot, 'directory-case');
+    const sourceDirectory = path.join(directoryCaseRoot, 'source');
+    const linkedDirectory = path.join(directoryCaseRoot, 'linked-source');
+    mkdirSync(sourceDirectory, { recursive: true });
+    writeFileSync(path.join(sourceDirectory, 'source.ts'), 'export {};');
+    symlinkSync(sourceDirectory, linkedDirectory, 'dir');
+
+    assert.throws(() => workspaceSourceFiles(directoryCaseRoot), {
+      message: `Refusing to scan symbolic link: ${linkedDirectory}`,
+    });
+    assert.throws(() => workspaceSourceFiles(linkedDirectory), {
+      message: `Refusing to scan symbolic link: ${linkedDirectory}`,
+    });
+  });
 });

@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import React from 'react';
 
-import { AngularServices } from '../../angular/services';
 import type { Application } from '../../application';
 import { SETTINGS } from '../../config/settings';
 import type { IInstance } from '../../domain';
 import type { IMoniker } from '../../naming';
 import { CollapsibleSection } from '../../presentation';
+import { interpolate } from '../../utils/interpolate';
 
 export interface IInstanceLinksProps {
   address: string;
@@ -46,7 +46,7 @@ export const InstanceLinks = ({ address, application, instance, moniker, environ
       let url = link.path;
       // handle interpolated variables
       if (url.includes('{{')) {
-        url = AngularServices.$interpolate(url)(
+        url = interpolate(url)(
           Object.assign({}, instance, moniker, {
             ipAddress: address,
             environment: environment,

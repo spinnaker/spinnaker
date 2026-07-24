@@ -1,25 +1,43 @@
 'use strict';
-import { AngularServices } from '../angular/services';
 import { mockHttpClient } from '../api/mock/jasmine';
 import { TaskReader } from './task.read.service';
 
 describe('Service: taskReader', function () {
   let runNextPoll;
+  let cancelPoll;
 
   beforeEach(() => {
+    const nativeSetTimeout = window.setTimeout;
+    const nativeClearTimeout = window.clearTimeout;
     const pollCallbacks = [];
-    const timeout = (callback) => {
-      pollCallbacks.push(callback);
-      return Promise.resolve();
-    };
+    const pollsByHandle = new Map();
+    let nextHandle = -1;
+    spyOn(window, 'setTimeout').and.callFake((callback, delay, ...args) => {
+      if (delay !== 1000) {
+        return nativeSetTimeout.call(window, callback, delay, ...args);
+      }
+      const poll = { callback, cancelled: false, handle: nextHandle-- };
+      pollCallbacks.push(poll);
+      pollsByHandle.set(poll.handle, poll);
+      return poll.handle;
+    });
+    cancelPoll = jasmine.createSpy('cancelPoll');
+    spyOn(window, 'clearTimeout').and.callFake((handle) => {
+      const poll = pollsByHandle.get(handle);
+      if (poll) {
+        poll.cancelled = true;
+        cancelPoll(handle);
+      } else {
+        nativeClearTimeout.call(window, handle);
+      }
+    });
     runNextPoll = () => {
-      const callback = pollCallbacks.shift();
-      if (!callback) {
+      const poll = pollCallbacks.shift();
+      if (!poll || poll.cancelled) {
         throw new Error('No pending task poll');
       }
-      callback();
+      poll.callback();
     };
-    spyOnProperty(AngularServices, '$timeout', 'get').and.returnValue(timeout);
   });
 
   async function getTask(http, taskDef) {
@@ -150,6 +168,79 @@ describe('Service: taskReader', function () {
       );
       expect(completed).toBe(false);
       expect(failed).toBe(true);
+    });
+
+    it('cancelPolling disposes the timer when polling reaches a terminal state', async function () {
+      const http = mockHttpClient();
+      const task = await getTask(http, { id: 1, status: 'RUNNING' });
+      const completed = TaskReader.waitUntilTaskCompletes(task);
+      const pendingPoll = task.poller;
+      http.expectGET('/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
+
+      runNextPoll();
+      await http.flush();
+      await completed;
+
+      expect(cancelPoll).toHaveBeenCalledOnceWith(pendingPoll);
+    });
+
+    it('cancelPolling stops a pending task poll', async function () {
+      const http = mockHttpClient();
+      const task = await getTask(http, { id: 1, status: 'RUNNING' });
+      cancelPoll.calls.reset();
+      TaskReader.waitUntilTaskCompletes(task);
+      const pendingPoll = task.poller;
+
+      expect(TaskReader.cancelPolling).toEqual(jasmine.any(Function));
+      if (!TaskReader.cancelPolling) {
+        return;
+      }
+
+      TaskReader.cancelPolling(task);
+      TaskReader.cancelPolling(task);
+
+      expect(cancelPoll).toHaveBeenCalledOnceWith(pendingPoll);
+      expect(task.poller).toBeUndefined();
+      expect(runNextPoll).toThrowError('No pending task poll');
+    });
+
+    it('replaces an existing poll for the same task', async function () {
+      const http = mockHttpClient();
+      const task = await getTask(http, { id: 1, status: 'RUNNING' });
+      cancelPoll.calls.reset();
+      TaskReader.waitUntilTaskCompletes(task);
+      const firstPoll = task.poller;
+
+      TaskReader.waitUntilTaskCompletes(task);
+
+      expect(cancelPoll).toHaveBeenCalledOnceWith(firstPoll);
+      expect(task.poller).not.toBe(firstPoll);
+    });
+
+    it('does not apply or restart an in-flight poll after cancellation', async function () {
+      const http = mockHttpClient();
+      const task = await getTask(http, { id: 1, status: 'RUNNING' });
+      const actualRequest = http.request.bind(http);
+      let notifyRequestStarted;
+      const requestStarted = new Promise((resolve) => (notifyRequestStarted = resolve));
+      spyOn(http, 'request').and.callFake((...args) => {
+        const response = actualRequest(...args);
+        notifyRequestStarted();
+        return response;
+      });
+      TaskReader.waitUntilTaskCompletes(task);
+      const pendingPoll = task.poller;
+      http.expectGET('/tasks/1').respond(200, { id: 1, status: 'SUCCEEDED' });
+
+      runNextPoll();
+      await requestStarted;
+      TaskReader.cancelPolling(task);
+      await http.flush();
+
+      expect(cancelPoll).toHaveBeenCalledOnceWith(pendingPoll);
+      expect(task.status).toBe('RUNNING');
+      expect(task.poller).toBeUndefined();
+      expect(runNextPoll).toThrowError('No pending task poll');
     });
   });
 

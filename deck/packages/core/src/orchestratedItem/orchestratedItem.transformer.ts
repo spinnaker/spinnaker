@@ -1,9 +1,9 @@
 import { formatDistance } from 'date-fns';
 import { get, isNil } from 'lodash';
-import { AngularServices } from '../angular/services';
 
 import type { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from '../domain';
 import { getDirectRouter } from '../navigation/directRouter';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 export class OrchestratedItemTransformer {
   public static addRunningTime(item: any): void {
@@ -266,7 +266,7 @@ export class OrchestratedItemTransformer {
         return 'BUFFERED';
       default:
         if (item.originalStatus) {
-          AngularServices.$log.warn('Unrecognized status:', item.originalStatus);
+          diagnosticLogger.warn('Unrecognized status:', item.originalStatus);
         }
         return item.originalStatus;
     }
