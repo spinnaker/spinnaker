@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { FindAmiExecutionDetails } from './FindAmiExecutionDetails';
 import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
 import type { IStageTypeConfig } from '../../../../domain';
@@ -11,8 +9,6 @@ export interface IFindAmiStageContext {
   imageName: string;
 }
 
-export const FIND_AMI_STAGE = 'spinnaker.core.pipeline.stage.findAmiStage';
-
 export const findAmiStage: IStageTypeConfig = {
   executionDetailsSections: [FindAmiExecutionDetails, ExecutionDetailsTasks],
   useBaseProvider: true,
@@ -23,4 +19,3 @@ export const findAmiStage: IStageTypeConfig = {
 };
 
 Registry.pipeline.registerStage(findAmiStage);
-module(FIND_AMI_STAGE, []);

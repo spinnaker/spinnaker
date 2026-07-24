@@ -17,7 +17,6 @@ import { duration, timestamp } from '../../utils/timeFormatters';
 export interface IStageSummaryWrapperProps {
   application: Application;
   execution: IExecution;
-  sourceUrl: string;
   stage: IExecutionStage;
   stageSummary: IExecutionStageSummary;
 }

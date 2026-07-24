@@ -1,14 +1,11 @@
 'use strict';
 
-import { module } from 'angular';
-
 import { MonitorPipelineStageExecutionDetails } from './MonitorPipelineStageExecutionDetails';
 import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
 export const CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE =
   'spinnaker.core.pipeline.stage.monitorPipelineStage';
-export const name = CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE; // for backwards compatibility
 export const monitorPipelineStage = {
   label: 'Monitor Pipeline',
   description: 'Monitors pipeline execution',
@@ -20,4 +17,3 @@ export const monitorPipelineStage = {
 };
 
 Registry.pipeline.registerStage(monitorPipelineStage);
-module(CORE_PIPELINE_CONFIG_STAGES_MONITORPIPELINE_MONITORPIPELINESTAGE, []);

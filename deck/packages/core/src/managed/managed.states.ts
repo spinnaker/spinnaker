@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { Environments } from './Environments';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { registerApplicationState } from '../application/applicationState.registration';
@@ -55,7 +53,6 @@ const routes: Array<INestedState & { name: Routes }> = [
 ];
 
 export const MANAGED_STATES = 'spinnaker.core.managed.states';
-module(MANAGED_STATES, []);
 
 registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
   if (SETTINGS.feature.managedDelivery) {

@@ -33,17 +33,5 @@ export function TargetGroupDetails(props: ITargetGroupDetailsProps): JSX.Element
     return <DetailsComponent {...props} />;
   }
 
-  const templateUrl = CloudProviderRegistry.getValue(props.provider, 'loadBalancer.targetGroupDetailsTemplateUrl');
-  const controller = CloudProviderRegistry.getValue(props.provider, 'loadBalancer.targetGroupDetailsController');
-
-  if (templateUrl && controller) {
-    return (
-      <div className="alert alert-warning">
-        Target group details for {props.provider} must be migrated to React. AngularJS templates/controllers are no
-        longer supported.
-      </div>
-    );
-  }
-
   return null;
 }

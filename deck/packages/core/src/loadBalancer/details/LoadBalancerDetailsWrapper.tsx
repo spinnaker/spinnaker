@@ -50,7 +50,6 @@ interface IDetailsTemplateState {
   useDetailsHook?: UseDetailsHook<ILoadBalancer>;
   detailsActions?: FunctionComponent<ILoadBalancerActionsProps>;
   detailsSections?: Array<FunctionComponent<ILoadBalancerDetailsSectionProps>>;
-  legacyDetailsConfigured?: boolean;
 }
 
 const getDetailsTemplate = (provider: string): Promise<IDetailsTemplateState> =>
@@ -58,14 +57,11 @@ const getDetailsTemplate = (provider: string): Promise<IDetailsTemplateState> =>
     CloudProviderRegistry.getValue(provider, 'loadBalancer.useDetailsHook'),
     CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsActions'),
     CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsSections'),
-    CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsTemplateUrl'),
-    CloudProviderRegistry.getValue(provider, 'loadBalancer.detailsController'),
-  ]).then(([useDetailsHook, detailsActions, detailsSections, templateUrl, detailsController]) => {
+  ]).then(([useDetailsHook, detailsActions, detailsSections]) => {
     return {
       useDetailsHook,
       detailsActions,
       detailsSections,
-      legacyDetailsConfigured: !!(templateUrl && detailsController),
     };
   });
 
@@ -76,7 +72,7 @@ export function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerD
     provider,
   ]);
 
-  const { useDetailsHook, detailsActions: DetailsActions, detailsSections, legacyDetailsConfigured } = detailsTemplate;
+  const { useDetailsHook, detailsActions: DetailsActions, detailsSections } = detailsTemplate;
 
   if (useDetailsHook && DetailsActions && detailsSections) {
     // React rendering
@@ -88,15 +84,6 @@ export function LoadBalancerDetailsWrapper({ app, loadBalancer }: ILoadBalancerD
         Actions={DetailsActions}
         sections={detailsSections}
       />
-    );
-  }
-
-  if (legacyDetailsConfigured) {
-    return (
-      <div className="alert alert-warning">
-        Load balancer details for {provider} must be migrated to React. AngularJS templates/controllers are no longer
-        supported.
-      </div>
     );
   }
 

@@ -47,7 +47,6 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   executionDetailsSections?: IExecutionDetailsSection[]; // react only
   executionLabelComponent?: React.ComponentType<IExecutionStageLabelProps>;
   executionStepLabelComponent?: React.ComponentType<IExecutionStepLabelComponentProps>;
-  executionSummaryUrl?: string;
   executionSummaryComponent?: React.ComponentType<IStageSummaryProps>;
   extraLabelLines?: (stage: IStage) => number;
   markerIcon?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
