@@ -1,9 +1,15 @@
 import React from 'react';
 import { Modal } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroup, IServerGroupJob } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IServerGroup,
+  IServerGroupJob,
+} from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FormikFormField,
   MinMaxDesiredChanges,
   ModalClose,
@@ -85,13 +91,19 @@ export class EcsResizeServerGroupModal extends React.Component<
   IEcsResizeServerGroupModalProps,
   IEcsResizeServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IEcsResizeServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: IEcsResizeServerGroupModalProps): Promise<IEcsResizeServerGroupJob> {
-    return ReactModal.show(EcsResizeServerGroupModal, props);
+  public static show(
+    props: IEcsResizeServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IEcsResizeServerGroupJob> {
+    return ReactModal.show(EcsResizeServerGroupModal, props, undefined, runtimeServices);
   }
 
   public constructor(props: IEcsResizeServerGroupModalProps) {
@@ -132,7 +144,7 @@ export class EcsResizeServerGroupModal extends React.Component<
       reason: values.reason,
     };
     this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.resizeServerGroup(serverGroup, application, command),
+      this.context.services.serverGroupWriter.resizeServerGroup(serverGroup, application, command),
     );
   };
 

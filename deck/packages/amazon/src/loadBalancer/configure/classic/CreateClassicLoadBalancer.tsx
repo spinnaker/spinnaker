@@ -2,7 +2,7 @@ import type { FormikErrors, FormikValues } from 'formik';
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   FirewallLabels,
@@ -49,9 +49,12 @@ export class CreateClassicLoadBalancerComponent extends React.Component<
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateClassicLoadBalancerProps): Promise<IAmazonClassicLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateClassicLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonClassicLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateClassicLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateClassicLoadBalancer, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICreateClassicLoadBalancerProps & IRouterInjectedProps) {

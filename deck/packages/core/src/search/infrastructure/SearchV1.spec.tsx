@@ -6,7 +6,6 @@ import { BehaviorSubject } from 'rxjs';
 import { SearchV1Component as SearchV1 } from './SearchV1';
 import { SearchResult } from './SearchResult';
 import type { ISearchResultSet } from './infrastructureSearch.service';
-import { AngularServices } from '../../angular/services';
 import { RecentlyViewedItems } from './RecentlyViewedItems';
 import { SearchStatus } from '../searchResult';
 
@@ -30,22 +29,25 @@ describe('SearchV1', () => {
   let query: jasmine.Spy;
   let go: jasmine.Spy;
   let wrapper: ShallowWrapper | undefined;
+  const deckRuntimeServices = {
+    infrastructureSearchService: { getSearcher: () => ({ query: (...args: any[]) => query(...args) }) },
+    pageTitleService: { handleRoutingSuccess: jasmine.createSpy('handleRoutingSuccess') },
+  } as any;
 
   const renderSearch = () =>
     shallow(
-      <SearchV1 router={{ globals: { params$ } } as any} stateParams={params$.value} stateService={{ go } as any} />,
+      <SearchV1
+        deckRuntimeServices={deckRuntimeServices}
+        router={{ globals: { params$ } } as any}
+        stateParams={params$.value}
+        stateService={{ go } as any}
+      />,
     );
 
   beforeEach(() => {
     params$ = new BehaviorSubject({ q: null, route: null });
     query = jasmine.createSpy('query').and.returnValue(Promise.resolve([]));
     go = jasmine.createSpy('go');
-    spyOnProperty(AngularServices, 'infrastructureSearchService', 'get').and.returnValue({
-      getSearcher: () => ({ query }),
-    } as any);
-    spyOnProperty(AngularServices, 'pageTitleService', 'get').and.returnValue({
-      handleRoutingSuccess: jasmine.createSpy(),
-    } as any);
     jasmine.clock().install();
   });
 

@@ -1,9 +1,15 @@
 import { get } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, IRouterInjectedProps, IStage } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+} from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FirewallLabels,
   noop,
   ReactModal,
@@ -14,7 +20,6 @@ import {
 } from '@spinnaker/core';
 
 import { ServerGroupTemplateSelection } from './ServerGroupTemplateSelection';
-import { AwsServices } from '../../../aws.services';
 import {
   ServerGroupAdvancedSettings,
   ServerGroupBasicSettings,
@@ -25,6 +30,7 @@ import {
   ServerGroupZones,
 } from './pages';
 import type { IAmazonServerGroupCommand } from '../serverGroupConfiguration.service';
+import type { AwsServerGroupConfigurationService } from '../serverGroupConfiguration.service';
 
 export interface IAmazonCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
@@ -43,6 +49,9 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
   IAmazonCloneServerGroupModalProps & IRouterInjectedProps,
   IAmazonCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<IAmazonCloneServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -51,19 +60,18 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
   private _isUnmounted = false;
   private refreshUnsubscribe: () => void;
 
-  public static show(props: IAmazonCloneServerGroupModalProps): Promise<IAmazonServerGroupCommand> {
+  public static show(
+    props: IAmazonCloneServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(AmazonCloneServerGroupModal, props, modalProps);
+    return ReactModal.show(AmazonCloneServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: IAmazonCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
-    if (!requiresTemplateSelection) {
-      this.configureCommand();
-    }
-
     this.state = {
       firewallsLabel: FirewallLabels.get('Firewalls'),
       loaded: false,
@@ -75,6 +83,19 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
         onTaskComplete: this.onTaskComplete,
       }),
     };
+  }
+
+  public componentDidMount(): void {
+    if (!this.state.requiresTemplateSelection) {
+      this.configureCommand();
+    }
+  }
+
+  private get configurationService(): AwsServerGroupConfigurationService {
+    return this.context.services.providerServiceDelegate.getDelegate(
+      this.props.command.selectedProvider,
+      'serverGroup.configurationService',
+    );
   }
 
   private templateSelected = () => {
@@ -127,12 +148,12 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
 
     command.credentialsChanged(command);
     command.regionChanged(command);
-    AwsServices.awsServerGroupConfigurationService.configureSubnetPurposes(command);
+    this.configurationService.configureSubnetPurposes(command);
   };
 
   private configureCommand = () => {
     const { application, command } = this.props;
-    AwsServices.awsServerGroupConfigurationService.configureCommand(application, command).then(() => {
+    this.configurationService.configureCommand(application, command).then(() => {
       this.initializeCommand();
       this.setState({ loaded: true, requiresTemplateSelection: false });
     });
@@ -163,7 +184,7 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
       this.props.closeModal && this.props.closeModal(command);
     } else {
       this.state.taskMonitor.submit(() =>
-        AngularServices.serverGroupWriter.cloneServerGroup(command, this.props.application),
+        this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application),
       );
     }
   };

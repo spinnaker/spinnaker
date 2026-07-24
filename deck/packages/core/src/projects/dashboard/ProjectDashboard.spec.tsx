@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 
-import { AngularServices } from '../../angular/services';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { RecentHistoryService } from '../../history/recentHistory.service';
 import { UrlBuilder } from '../../navigation';
 import { mountAndFlush } from '../../utils/testUtils';
@@ -71,6 +71,11 @@ const transition = (params: any = {}) =>
 
 describe('<ProjectDashboard />', () => {
   let executionService: { getProjectExecutions: jasmine.Spy };
+  const TestDashboard = (props: React.ComponentProps<typeof ProjectDashboard>) => (
+    <DeckRuntimeContext.Provider value={{ services: { executionService } } as any}>
+      <ProjectDashboard {...props} />
+    </DeckRuntimeContext.Provider>
+  );
 
   beforeEach(() => {
     spyOn(RecentHistoryService, 'addExtraDataToLatest').and.stub();
@@ -83,11 +88,10 @@ describe('<ProjectDashboard />', () => {
     executionService = {
       getProjectExecutions: jasmine.createSpy('getProjectExecutions').and.returnValue(Promise.resolve([execution])),
     };
-    spyOnProperty(AngularServices, 'executionService', 'get').and.returnValue(executionService as any);
   });
 
   it('loads clusters and executions and renders dashboard columns', async () => {
-    const wrapper = await mountAndFlush(<ProjectDashboard projectConfiguration={project} transition={transition()} />);
+    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
 
     expect(RecentHistoryService.addExtraDataToLatest).toHaveBeenCalledWith('projects', {
       config: { applications: ['kubernetesapp'] },
@@ -110,7 +114,7 @@ describe('<ProjectDashboard />', () => {
     };
 
     const wrapper = await mountAndFlush(
-      <ProjectDashboard projectConfiguration={emptyProject} transition={transition()} />,
+      <TestDashboard projectConfiguration={emptyProject} transition={transition()} />,
     );
 
     expect(ProjectReader.getProjectClusters).not.toHaveBeenCalled();
@@ -124,7 +128,7 @@ describe('<ProjectDashboard />', () => {
     (ProjectReader.getProjectClusters as jasmine.Spy).and.returnValue(Promise.reject(new Error('clusters failed')));
     executionService.getProjectExecutions.and.returnValue(Promise.reject(new Error('executions failed')));
 
-    const wrapper = await mountAndFlush(<ProjectDashboard projectConfiguration={project} transition={transition()} />);
+    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={transition()} />);
 
     expect(wrapper.text()).toContain('There was a problem loading the clusters for this project.');
     expect(wrapper.text()).toContain('There was a problem loading the executions for this project.');
@@ -134,7 +138,7 @@ describe('<ProjectDashboard />', () => {
 
   it('toggles region filters and replaces the current route params', async () => {
     const tx = transition({ reg: { dev: true } });
-    const wrapper = await mountAndFlush(<ProjectDashboard projectConfiguration={project} transition={tx} />);
+    const wrapper = await mountAndFlush(<TestDashboard projectConfiguration={project} transition={tx} />);
 
     wrapper.find('RegionFilter h6.dropdown-toggle').simulate('click');
     await act(async () => {
@@ -149,7 +153,7 @@ describe('<ProjectDashboard />', () => {
 
   it('renders nothing for missing projects and removes recent history', () => {
     const wrapper = mount(
-      <ProjectDashboard projectConfiguration={{ ...project, notFound: true }} transition={transition()} />,
+      <TestDashboard projectConfiguration={{ ...project, notFound: true }} transition={transition()} />,
     );
 
     expect(RecentHistoryService.removeLastItem).toHaveBeenCalledWith('projects');

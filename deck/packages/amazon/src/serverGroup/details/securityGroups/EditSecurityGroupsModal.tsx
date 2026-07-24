@@ -2,10 +2,10 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import Select from 'react-select';
 
-import type { Application, IModalComponentProps, ISecurityGroup } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps, ISecurityGroup } from '@spinnaker/core';
 import {
-  AngularServices,
   confirmNotManaged,
+  DeckRuntimeContext,
   FirewallLabels,
   ModalClose,
   ReactModal,
@@ -57,9 +57,12 @@ export class EditSecurityGroupsModal extends React.Component<
   IEditSecurityGroupsModalProps,
   IEditSecurityGroupsModalState
 > {
-  public static show(props: IEditSecurityGroupsModalProps) {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+  public static show(props: IEditSecurityGroupsModalProps, runtimeServices: DeckRuntimeServices) {
     return confirmNotManaged(props.serverGroup, props.application).then(
-      (notManaged) => notManaged && ReactModal.show(EditSecurityGroupsModal, props),
+      (notManaged) => notManaged && ReactModal.show(EditSecurityGroupsModal, props, undefined, runtimeServices),
     );
   }
 
@@ -91,7 +94,7 @@ export class EditSecurityGroupsModal extends React.Component<
 
   private loadSecurityGroups = () => {
     this.setState({ securityGroupsLoaded: false, securityGroupsLoadError: undefined });
-    return AngularServices.securityGroupReader
+    return this.context.services.securityGroupReader
       .getAllSecurityGroups()
       .then((allGroups) => {
         if (!this.isUnmounted) {
@@ -118,7 +121,7 @@ export class EditSecurityGroupsModal extends React.Component<
   private submit = () => {
     const { application, serverGroup } = this.props;
     this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.updateSecurityGroups(
+      this.context.services.serverGroupWriter.updateSecurityGroups(
         serverGroup,
         this.state.securityGroups,
         application,

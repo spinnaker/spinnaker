@@ -4,6 +4,7 @@ import React from 'react';
 import {
   CloudProviderRegistry,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ServerGroupReader,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
@@ -20,6 +21,7 @@ import {
 } from './azureServerGroupDetails';
 
 describe('Azure server group details', () => {
+  let runtimeServices: any;
   const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
   const routerProps = { router: {} as any, stateParams: {}, stateService: stateService as any };
   const serverGroupParams = {
@@ -47,6 +49,22 @@ describe('Azure server group details', () => {
         error: reject,
       });
     });
+  }
+
+  function mountActions(app: any, serverGroup: any) {
+    runtimeServices = {
+      serverGroupCommandBuilder: new AzureServerGroupCommandBuilder(Promise),
+      serverGroupWriter: {
+        destroyServerGroup: jasmine.createSpy('destroyServerGroup'),
+        disableServerGroup: jasmine.createSpy('disableServerGroup'),
+        enableServerGroup: jasmine.createSpy('enableServerGroup'),
+      },
+    };
+    return mount(
+      <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>
+        <AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup} />
+      </DeckRuntimeContext.Provider>,
+    );
   }
 
   beforeEach(() => {
@@ -155,7 +173,7 @@ describe('Azure server group details', () => {
     spyOn(ServerGroupWarningMessageService, 'addDestroyWarningMessage');
     spyOn(ServerGroupWarningMessageService, 'addDisableWarningMessage');
 
-    const wrapper = mount(<AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup as any} />);
+    const wrapper = mountActions(app, serverGroup);
     wrapper
       .find('a')
       .filterWhere((node) => node.text() === 'Destroy')
@@ -188,7 +206,7 @@ describe('Azure server group details', () => {
     );
     spyOn(AzureCloneServerGroupModal, 'show').and.returnValue(Promise.resolve());
 
-    const wrapper = mount(<AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup as any} />);
+    const wrapper = mountActions(app, serverGroup);
     wrapper
       .find('a')
       .filterWhere((node) => node.text() === 'Clone')
@@ -199,11 +217,14 @@ describe('Azure server group details', () => {
       app,
       serverGroup,
     );
-    expect(AzureCloneServerGroupModal.show).toHaveBeenCalledWith({
-      application: app,
-      command,
-      title: 'Clone azure-v001',
-    });
+    expect(AzureCloneServerGroupModal.show).toHaveBeenCalledWith(
+      {
+        application: app,
+        command,
+        title: 'Clone azure-v001',
+      },
+      runtimeServices,
+    );
   });
 
   it('opens the clone wizard with image data seeded on the built command', async () => {
@@ -227,7 +248,7 @@ describe('Azure server group details', () => {
     spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
     spyOn(AzureCloneServerGroupModal, 'show').and.returnValue(Promise.resolve());
 
-    const wrapper = mount(<AzureServerGroupActions {...routerProps} app={app} serverGroup={serverGroup as any} />);
+    const wrapper = mountActions(app, serverGroup);
     wrapper
       .find('a')
       .filterWhere((node) => node.text() === 'Clone')

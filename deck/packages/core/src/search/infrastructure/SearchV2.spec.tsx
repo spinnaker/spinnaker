@@ -3,19 +3,17 @@ import React from 'react';
 import { BehaviorSubject } from 'rxjs';
 
 import { SearchV2Component } from './SearchV2';
-import { AngularServices } from '../../angular/services';
 
 describe('SearchV2', () => {
-  beforeEach(() => {
-    spyOnProperty(AngularServices, 'pageTitleService', 'get').and.returnValue({
-      handleRoutingSuccess: jasmine.createSpy('handleRoutingSuccess'),
-    } as any);
-  });
+  const deckRuntimeServices = {
+    pageTitleService: { handleRoutingSuccess: jasmine.createSpy('handleRoutingSuccess') },
+  } as any;
 
   it('uses injected route state for tab selection and filter navigation', () => {
     const go = jasmine.createSpy('go');
     const component = shallow(
       <SearchV2Component
+        deckRuntimeServices={deckRuntimeServices}
         router={{ globals: { params$: new BehaviorSubject({ tab: 'applications' }) } } as any}
         stateParams={{ tab: 'applications' }}
         stateService={{ go } as any}
