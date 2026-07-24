@@ -20,7 +20,7 @@ export const Spinner = ({
   mode = 'horizontal',
   size = 'small',
 }: ISpinnerProps) => {
-  if (mode === 'circular') {
+  if (mode === 'circular' && LoadingIndicator) {
     const sizeToHeight = {
       nano: 12,
       small: 16,
@@ -31,13 +31,15 @@ export const Spinner = ({
     return <LoadingIndicator className={className} style={{ height: sizeToHeight[size], fill: color }} />;
   }
 
+  const horizontalSize = mode === 'circular' ? 'nano' : size;
+
   const getBarRows = (): React.ReactNode[] => {
     let count = 3;
 
-    if (size) {
-      if (size === 'nano') {
+    if (horizontalSize) {
+      if (horizontalSize === 'nano') {
         count = 1;
-      } else if (size === 'large') {
+      } else if (horizontalSize === 'large') {
         count = 5;
       }
     }
@@ -50,15 +52,15 @@ export const Spinner = ({
     return rows;
   };
 
-  const messageClassNames = `message color-text-accent ${size === 'medium' ? 'heading-4' : 'heading-2'}`;
-  const messageNode = ['medium', 'large'].includes(size) && (
+  const messageClassNames = `message color-text-accent ${horizontalSize === 'medium' ? 'heading-4' : 'heading-2'}`;
+  const messageNode = ['medium', 'large'].includes(horizontalSize) && (
     <div className={messageClassNames}>{message || 'Loading ...'}</div>
   );
 
-  const bars = ['medium', 'large'].includes(size) ? <div className="bars">{getBarRows()}</div> : getBarRows();
+  const bars = ['medium', 'large'].includes(horizontalSize) ? <div className="bars">{getBarRows()}</div> : getBarRows();
 
   return (
-    <div className={classnames('load', size || 'small', className, { 'full-width': fullWidth })}>
+    <div className={classnames('load', horizontalSize || 'small', className, { 'full-width': fullWidth })}>
       {messageNode}
       {bars}
     </div>

@@ -1,5 +1,5 @@
 import { HashLocationService, UIRouterReact } from '@uirouter/react';
-import { UrlService } from '@uirouter/core';
+import { RejectType, UrlService } from '@uirouter/core';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -7,7 +7,6 @@ import { ApplicationDataSourceRegistry } from '../application/service/Applicatio
 import { ApplicationReader } from '../application/service/ApplicationReader';
 import { createDeckRuntime } from '../bootstrap/DeckRuntime';
 import { RecentHistoryService } from '../history';
-import { PageTitleService } from '../pageTitle';
 import { SpinErrorBoundary } from '../presentation';
 import { ProjectReader } from '../projects/service/ProjectReader';
 import './coreRoutes';
@@ -22,17 +21,83 @@ import {
 } from './rootState.registration';
 import { StateConfigProvider } from './state.provider';
 
+interface IDeferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason: unknown) => void;
+}
+
+function deferred<T>(): IDeferred<T> {
+  let resolve: (value: T) => void;
+  let reject: (reason: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, resolve, reject };
+}
+
+async function waitForRoutingState(
+  routingState: ReturnType<typeof createDeckRuntime>['routingState'],
+  expected: boolean,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    let unsubscribe: (() => void) | undefined;
+    let watchdog: ReturnType<typeof window.setTimeout> | undefined;
+    const cleanup = () => {
+      unsubscribe?.();
+      unsubscribe = undefined;
+      if (watchdog !== undefined) {
+        window.clearTimeout(watchdog);
+        watchdog = undefined;
+      }
+    };
+    const settle = (callback: () => void) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      callback();
+    };
+
+    unsubscribe = routingState.subscribe((routing) => {
+      if (routing === expected) {
+        settle(resolve);
+      }
+    });
+    if (settled) {
+      cleanup();
+      return;
+    }
+    watchdog = window.setTimeout(() => {
+      settle(() =>
+        reject(
+          new Error(
+            `Timed out waiting for routing state ${expected}; current routing state is ${routingState.routing}`,
+          ),
+        ),
+      );
+    }, 500);
+  });
+}
+
 describe('configureRouter', () => {
   const routers: UIRouterReact[] = [];
   let originalRegistrations: ReturnType<typeof getRootStateRegistrationsForTests>;
 
-  function createRouter(): UIRouterReact {
+  function createRuntimeRouter(): { router: UIRouterReact; runtime: ReturnType<typeof createDeckRuntime> } {
     const router = new UIRouterReact();
     const runtime = createDeckRuntime(router);
     router.disposable(runtime);
-    configureRouter(router, runtime.services);
+    configureRouter(router, runtime.services, runtime.routingState);
     routers.push(router);
-    return router;
+    return { router, runtime };
+  }
+
+  function createRouter(): UIRouterReact {
+    return createRuntimeRouter().router;
   }
 
   beforeEach(() => {
@@ -260,6 +325,166 @@ describe('configureRouter', () => {
     );
   });
 
+  it('shows a loading title while a direct transition is pending', async () => {
+    const { router, runtime } = createRuntimeRouter();
+    const pending = deferred<void>();
+    router.stateRegistry.register({
+      name: 'route-lifecycle-pending',
+      resolve: [{ token: 'pending', resolveFn: () => pending.promise }],
+    });
+    document.title = 'Before pending transition';
+
+    const settlement = router.stateService.go('route-lifecycle-pending');
+    await waitForRoutingState(runtime.routingState, true);
+
+    expect(document.title).toBe('Spinnaker: Loading...');
+    pending.resolve(undefined);
+    await settlement;
+  });
+
+  it('settles routing without success side effects when a direct transition rejects', async () => {
+    const { router, runtime } = createRuntimeRouter();
+    const handleRoutingStart = spyOn(runtime.services.pageTitleService, 'handleRoutingStart').and.callThrough();
+    const handleRoutingError = spyOn(runtime.services.pageTitleService, 'handleRoutingError').and.callThrough();
+    const handleRoutingSuccess = spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess').and.callThrough();
+    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const routingValues: boolean[] = [];
+    runtime.routingState.subscribe((routing) => routingValues.push(routing));
+    router.stateRegistry.register({
+      name: 'route-lifecycle-rejected',
+      data: {
+        pageTitleMain: { label: 'Rejected transition' },
+        history: { type: 'route-lifecycle-rejected' },
+      },
+      resolve: [{ token: 'failure', resolveFn: () => Promise.reject(new Error('transition failed')) }],
+    });
+    document.title = 'Before rejection';
+
+    const settlement = router.stateService.go('route-lifecycle-rejected').then(
+      () => 'resolved',
+      () => 'rejected',
+    );
+
+    expect(await settlement).toBe('rejected');
+    await Promise.resolve();
+
+    expect(runtime.routingState.routing).toBe(false);
+    expect(routingValues).toEqual([false, true, false]);
+    expect(document.title).toBe('Spinnaker: Error');
+    expect(handleRoutingStart).toHaveBeenCalledTimes(1);
+    expect(handleRoutingError).toHaveBeenCalledTimes(1);
+    expect(handleRoutingSuccess).not.toHaveBeenCalled();
+    expect(addHistory).not.toHaveBeenCalled();
+  });
+
+  it('restores the prior title when a direct transition aborts', async () => {
+    const { router } = createRuntimeRouter();
+    router.stateRegistry.register({ name: 'route-lifecycle-aborted' });
+    const deregisterAbort = router.transitionService.onStart({ to: 'route-lifecycle-aborted' }, () => false, {
+      priority: -1,
+    });
+    document.title = 'Before abort';
+
+    const settlement = router.stateService.go('route-lifecycle-aborted').then(
+      () => ({ status: 'resolved', type: undefined }),
+      (error) => ({ status: 'rejected', type: error.type }),
+    );
+
+    expect(await settlement).toEqual({ status: 'rejected', type: RejectType.ABORTED });
+    expect(document.title).toBe('Before abort');
+    deregisterAbort();
+  });
+
+  it('settles superseded routing and applies success side effects only to the replacement', async () => {
+    const { router, runtime } = createRuntimeRouter();
+    const handleRoutingSuccess = spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess').and.callThrough();
+    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const routingValues: boolean[] = [];
+    runtime.routingState.subscribe((routing) => routingValues.push(routing));
+    router.stateRegistry.register({
+      name: 'route-lifecycle-superseded',
+      data: {
+        pageTitleMain: { label: 'Superseded transition' },
+        history: { type: 'route-lifecycle-superseded' },
+      },
+    });
+    router.stateRegistry.register({
+      name: 'route-lifecycle-replacement',
+      data: {
+        pageTitleMain: { label: 'Replacement transition' },
+        history: { type: 'route-lifecycle-replacement' },
+      },
+    });
+    document.title = 'Before supersession';
+
+    let replacement: ReturnType<typeof router.stateService.go> | undefined;
+    let supersedingHookCalls = 0;
+    const deregisterSupersedingHook = router.transitionService.onStart(
+      { to: 'route-lifecycle-superseded' },
+      () => {
+        supersedingHookCalls++;
+        replacement = router.stateService.go('route-lifecycle-replacement');
+      },
+      { priority: -1 },
+    );
+    const supersededSettlement = router.stateService.go('route-lifecycle-superseded').then(
+      () => ({ status: 'resolved', type: undefined }),
+      (error) => ({ status: 'rejected', type: error.type }),
+    );
+
+    expect(await supersededSettlement).toEqual({ status: 'rejected', type: RejectType.SUPERSEDED });
+    expect(supersedingHookCalls).toBe(1);
+    expect(replacement).toBeDefined();
+    await replacement;
+    deregisterSupersedingHook();
+    await waitForRoutingState(runtime.routingState, false);
+
+    expect(runtime.routingState.routing).toBe(false);
+    expect(routingValues).toEqual([false, true, false]);
+    expect(document.title).toBe('Replacement transition');
+    expect(handleRoutingSuccess).toHaveBeenCalledTimes(1);
+    expect(addHistory).toHaveBeenCalledTimes(1);
+    expect(addHistory.calls.mostRecent().args[1]).toBe('route-lifecycle-replacement');
+  });
+
+  it('does not publish or run success side effects when a transition settles after runtime disposal', async () => {
+    const { router, runtime } = createRuntimeRouter();
+    const pending = deferred<void>();
+    const handleRoutingSuccess = spyOn(runtime.services.pageTitleService, 'handleRoutingSuccess').and.callThrough();
+    const addHistory = spyOn(RecentHistoryService, 'addItem');
+    const routingValues: boolean[] = [];
+    runtime.routingState.subscribe((routing) => routingValues.push(routing));
+    router.stateRegistry.register({
+      name: 'route-lifecycle-disposed',
+      data: {
+        pageTitleMain: { label: 'Disposed transition' },
+        history: { type: 'route-lifecycle-disposed' },
+      },
+      resolve: [{ token: 'pending', resolveFn: () => pending.promise }],
+    });
+    document.title = 'Before disposal';
+
+    const settlement = router.stateService.go('route-lifecycle-disposed').then(
+      () => 'resolved',
+      () => 'rejected',
+    );
+    await waitForRoutingState(runtime.routingState, true);
+    expect(runtime.routingState.routing).toBe(true);
+
+    runtime.dispose();
+    const valuesAfterDisposal = routingValues.slice();
+    pending.reject(new Error('late transition failure'));
+    expect(await settlement).toBe('rejected');
+    await Promise.resolve();
+
+    expect(runtime.routingState.routing).toBe(false);
+    expect(valuesAfterDisposal).toEqual([false, true, false]);
+    expect(routingValues).toEqual(valuesAfterDisposal);
+    expect(document.title).toBe('Spinnaker: Loading...');
+    expect(handleRoutingSuccess).not.toHaveBeenCalled();
+    expect(addHistory).not.toHaveBeenCalled();
+  });
+
   it('wraps every critical direct React route view in a route-level error boundary', () => {
     const router = createRouter();
 
@@ -293,16 +518,22 @@ describe('configureRouter', () => {
   it('cleans up direct route hooks and configures a second router in the same process', async () => {
     const lifecycleRouter = new UIRouterReact();
     routers.push(lifecycleRouter);
+    const lifecycleRuntime = createDeckRuntime(lifecycleRouter);
+    lifecycleRouter.disposable(lifecycleRuntime);
     const initialStartHooks = lifecycleRouter.transitionService.getHooks('onStart').length;
     const initialSuccessHooks = lifecycleRouter.transitionService.getHooks('onSuccess').length;
-    const deregisterLifecycles = registerRouteLifecycles(lifecycleRouter);
+    const deregisterLifecycles = registerRouteLifecycles(
+      lifecycleRouter,
+      lifecycleRuntime.services.pageTitleService,
+      lifecycleRuntime.routingState,
+    );
     expect(lifecycleRouter.transitionService.getHooks('onStart').length).toBe(initialStartHooks + 1);
     expect(lifecycleRouter.transitionService.getHooks('onSuccess').length).toBe(initialSuccessHooks + 1);
+    deregisterLifecycles();
     deregisterLifecycles();
     expect(lifecycleRouter.transitionService.getHooks('onStart').length).toBe(initialStartHooks);
     expect(lifecycleRouter.transitionService.getHooks('onSuccess').length).toBe(initialSuccessHooks);
 
-    const disposePageTitle = spyOn(PageTitleService.prototype, 'dispose').and.callThrough();
     const firstRouter = createRouter();
     const firstStartHooks = firstRouter.transitionService.getHooks('onStart').length;
     const firstSuccessHooks = firstRouter.transitionService.getHooks('onSuccess').length;
@@ -310,7 +541,6 @@ describe('configureRouter', () => {
     expect(firstStartHooks).toBeGreaterThan(0);
     expect(firstSuccessHooks).toBeGreaterThan(0);
     firstRouter.dispose();
-    expect(disposePageTitle).toHaveBeenCalledTimes(1);
 
     const secondRouter = createRouter();
     expect(secondRouter.transitionService.getHooks('onStart').length).toBe(firstStartHooks);
@@ -332,7 +562,7 @@ describe('configureRouter', () => {
     const failedRouter = new UIRouterReact();
     const runtime = createDeckRuntime(failedRouter);
     failedRouter.disposable(runtime);
-    expect(() => configureRouter(failedRouter, runtime.services)).toThrow(failure);
+    expect(() => configureRouter(failedRouter, runtime.services, runtime.routingState)).toThrow(failure);
 
     expect(getDirectRouter()).toBe(previousRouter);
     const ownershipDisposals = dispose.calls.all().filter(({ args }) => args.length === 0);

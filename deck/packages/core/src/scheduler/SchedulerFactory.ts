@@ -1,8 +1,8 @@
 import type { Subscription } from 'rxjs';
 import { Subject, timer as observableTimer } from 'rxjs';
 
-import { AngularServices } from '../angular/services';
 import { SETTINGS } from '../config/settings';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 export interface IScheduler {
   subscribe: (next?: () => void, error?: (error: any) => void, complete?: () => void) => Subscription;
@@ -13,12 +13,10 @@ export interface IScheduler {
 export class SchedulerFactory {
   public static createScheduler(pollSchedule = SETTINGS.pollSchedule || 30000): IScheduler {
     const activeWindow = window;
-    const activeLog = AngularServices.$log;
-    const activeTimeout = AngularServices.$timeout;
     let scheduler = new Subject();
 
     let lastRunTimestamp = new Date().getTime();
-    let pendingRun: PromiseLike<void> = null;
+    let pendingRun: number = null;
     let disposed = false;
     let suspended = false;
 
@@ -26,11 +24,18 @@ export class SchedulerFactory {
     // where the scheduler will fire shortly after being subscribed to, resulting in surprising immediate refreshes
     const source = observableTimer(pollSchedule, pollSchedule);
 
+    const cancelPendingRun = (): void => {
+      if (pendingRun !== null) {
+        activeWindow.clearTimeout(pendingRun);
+        pendingRun = null;
+      }
+    };
+
     const run = (): void => {
       if (disposed || suspended) {
         return;
       }
-      activeTimeout.cancel(pendingRun as any);
+      cancelPendingRun();
       lastRunTimestamp = new Date().getTime();
       if (disposed) {
         return;
@@ -39,7 +44,6 @@ export class SchedulerFactory {
       if (disposed) {
         return;
       }
-      pendingRun = null;
     };
 
     const sourceSubscription = source.subscribe(run);
@@ -48,7 +52,7 @@ export class SchedulerFactory {
       if (disposed) {
         return;
       }
-      activeLog.debug('auto refresh suspended');
+      diagnosticLogger.debug('auto refresh suspended');
       suspended = true;
     };
 
@@ -58,10 +62,16 @@ export class SchedulerFactory {
       }
       // do not schedule another run if a run is pending
       suspended = false;
-      if (!pendingRun) {
-        const nextRun = activeTimeout(run, delay) as any;
+      if (pendingRun === null) {
+        const nextRun = activeWindow.setTimeout(() => {
+          if (pendingRun !== nextRun) {
+            return;
+          }
+          pendingRun = null;
+          run();
+        }, delay);
         if (disposed) {
-          activeTimeout.cancel(nextRun);
+          activeWindow.clearTimeout(nextRun);
           return;
         }
         pendingRun = nextRun;
@@ -74,7 +84,7 @@ export class SchedulerFactory {
       }
       suspended = false;
       const now = new Date().getTime();
-      activeLog.debug('auto refresh resumed');
+      diagnosticLogger.debug('auto refresh resumed');
       if (now - lastRunTimestamp > pollSchedule) {
         run();
       } else {
@@ -86,7 +96,7 @@ export class SchedulerFactory {
       if (disposed) {
         return;
       }
-      activeLog.debug('document visibilityState changed to: ', document.visibilityState);
+      diagnosticLogger.debug('document visibilityState changed to: ', document.visibilityState);
       if (document.visibilityState === 'visible') {
         resumeScheduler();
       } else {
@@ -134,8 +144,7 @@ export class SchedulerFactory {
           scheduler.unsubscribe();
         }
         scheduler = null;
-        activeTimeout.cancel(pendingRun as any);
-        pendingRun = null;
+        cancelPendingRun();
         document.removeEventListener('visibilitychange', watchDocumentVisibility);
         activeWindow.removeEventListener('offline', suspendScheduler);
         activeWindow.removeEventListener('online', resumeScheduler);

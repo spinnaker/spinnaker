@@ -1,8 +1,5 @@
-import type { IDeferred } from 'angular';
-
 import type { IStageOrTriggerValidator, IValidatorConfig } from './PipelineConfigValidator';
 import { PipelineConfigValidator } from './PipelineConfigValidator';
-import { AngularServices } from '../../../angular/services';
 import type { IPipeline, IPipelineTrigger, IStage, IStageOrTriggerTypeConfig, ITrigger } from '../../../domain';
 import { PipelineConfigService } from '../services/PipelineConfigService';
 
@@ -32,7 +29,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     stagesToTest.push(...pipeline.triggers);
 
     const parentTriggersToCheck = validator.checkParentTriggers ? this.addPipelineTriggers(pipeline, stagesToTest) : [];
-    return AngularServices.$q.all(parentTriggersToCheck).then(() => {
+    return Promise.all(parentTriggersToCheck).then(() => {
       if (stagesToTest.every((test) => !stageTypes.includes(test.type))) {
         return validator.getMessage ? validator.getMessage() : validator.message;
       }
@@ -47,30 +44,25 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
     }
   }
 
-  private addExternalTriggers(
-    trigger: IPipelineTrigger,
-    stagesToTest: Array<IStage | ITrigger>,
-    deferred: IDeferred<any>,
-  ): void {
-    PipelineConfigService.getPipelinesForApplication(trigger.application).then((pipelines) => {
-      this.pipelineCache.set(trigger.application, pipelines);
-      this.addTriggers(pipelines, trigger.pipeline, stagesToTest);
-      deferred.resolve();
-    });
+  private addExternalTriggers(trigger: IPipelineTrigger, stagesToTest: Array<IStage | ITrigger>): Promise<void> {
+    return Promise.resolve()
+      .then(() => PipelineConfigService.getPipelinesForApplication(trigger.application))
+      .then((pipelines) => {
+        this.pipelineCache.set(trigger.application, pipelines);
+        this.addTriggers(pipelines, trigger.pipeline, stagesToTest);
+      });
   }
 
   private addPipelineTriggers(pipeline: IPipeline, stagesToTest: Array<IStage | ITrigger>) {
     const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(
       (t) => t.type === 'pipeline',
     ) as IPipelineTrigger[];
-    const parentTriggersToCheck: Array<PromiseLike<any>> = [];
+    const parentTriggersToCheck: Array<PromiseLike<void>> = [];
     pipelineTriggers.forEach((trigger) => {
-      const deferred: IDeferred<any> = AngularServices.$q.defer();
       if (this.pipelineCache.has(trigger.application)) {
         this.addTriggers(this.pipelineCache.get(trigger.application), trigger.pipeline, stagesToTest);
       } else {
-        this.addExternalTriggers(trigger, stagesToTest, deferred);
-        parentTriggersToCheck.push(deferred.promise);
+        parentTriggersToCheck.push(this.addExternalTriggers(trigger, stagesToTest));
       }
     });
     return parentTriggersToCheck;

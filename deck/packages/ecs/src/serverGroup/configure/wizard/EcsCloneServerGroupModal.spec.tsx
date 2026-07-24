@@ -95,7 +95,7 @@ describe('EcsCloneServerGroupModal', () => {
   beforeEach(() => {
     spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
       dismiss: jasmine.createSpy('dismiss'),
-      result: Promise.resolve(),
+      result: new Promise<void>(() => undefined),
     } as any);
   });
 
@@ -791,10 +791,17 @@ describe('EcsCloneServerGroupModal', () => {
       .createSpy('cloneServerGroup')
       .and.callFake(() => Promise.reject({ failureMessage: 'create failed' }) as any);
     modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
+    const errorPublished = new Promise<void>((resolve) => {
+      const subscription = modal.state.taskMonitor.statusUpdatedStream.subscribe(() => {
+        if (modal.state.taskMonitor.error) {
+          subscription.unsubscribe();
+          resolve();
+        }
+      });
+    });
 
     modal.submit();
-    await Promise.resolve();
-    await Promise.resolve();
+    await errorPublished;
 
     expect(modal.state.taskMonitor.error).toBe(true);
     expect(modal.state.taskMonitor.errorMessage).toBe('create failed');
