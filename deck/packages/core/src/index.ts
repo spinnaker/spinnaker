@@ -1,7 +1,5 @@
 /// <reference path="./types/index.d.ts" />
 
-import './utils/failedToInstantiateModule';
-
 export * from './account';
 export * from './api';
 export * from './apitoken';
@@ -62,7 +60,6 @@ export * from './notification';
 export * from './orchestratedItem';
 export * from './overrideRegistry';
 
-export * from './pageTitle';
 export * from './pagerDuty';
 export * from './pipeline';
 export * from './plugins';
@@ -99,4 +96,3 @@ export * from './bootstrap/bootstrapDeck';
 export * from './bootstrap/DeckRuntime';
 export * from './bootstrap/DeckRuntimeContext';
 export * from './bootstrap/DeckRuntimeServices';
-export * from './core.module';

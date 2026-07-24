@@ -7,12 +7,27 @@ import { AccountTag } from '../../../account';
 import type { Application } from '../../../application';
 import type { IDeckRuntimeServicesInjectedProps } from '../../../bootstrap/DeckRuntimeContext';
 import { withDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
-import type { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
 import type { IServerGroup } from '../../../domain';
 import { ModalClose } from '../../../modal';
 import { TetheredSelect } from '../../../presentation/TetheredSelect';
 import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 import { ServerGroupReader } from '../../serverGroupReader.service';
+
+export interface IDeployTemplate {
+  key?: string;
+  label?: string;
+  serverGroup: IServerGroup;
+  cluster: string;
+  account?: string;
+  region?: string;
+  serverGroupName?: string;
+}
+
+export interface ITemplateSelectionText {
+  copied: string[];
+  notCopied: string[];
+  additionalCopyText: string;
+}
 
 export interface IDeployInitializerProps {
   application: Application;

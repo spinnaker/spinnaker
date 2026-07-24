@@ -18,7 +18,6 @@ export interface IStepDetailsSections {
   configSections?: string[];
   executionDetailsSections?: IExecutionDetailsSection[];
   provider: string;
-  sourceUrl?: string;
 }
 
 export class StepDetails extends React.Component<IStepDetailsProps> {
@@ -28,7 +27,6 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
 
   private deriveSectionsFromProps(): IStepDetailsSections {
     let configSections: string[] = [];
-    let sourceUrl: string;
     let executionDetailsSections: IExecutionDetailsSection[];
     let provider: string;
 
@@ -38,19 +36,16 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
         configSections = stageConfig.executionConfigSections;
       }
       if (stageConfig.executionDetailsSections) {
-        // React execution details
         executionDetailsSections = stageConfig.executionDetailsSections;
-      } else {
-        sourceUrl = require('./defaultExecutionDetails.html');
       }
       provider = stageConfig.cloudProvider;
     }
-    return { configSections, executionDetailsSections, provider, sourceUrl };
+    return { configSections, executionDetailsSections, provider };
   }
 
   public render(): React.ReactElement<StepDetails> {
     const { application, config, execution, stage } = this.props;
-    const { executionDetailsSections, provider, sourceUrl, configSections } = this.deriveSectionsFromProps();
+    const { executionDetailsSections, provider, configSections } = this.deriveSectionsFromProps();
     const detailsProps = { application, config, execution, provider, stage };
 
     return (
@@ -63,8 +58,8 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
             </h5>
           )}
         </div>
-        {sourceUrl && (
-          <StepExecutionDetailsWrapper {...detailsProps} sourceUrl={sourceUrl} configSections={configSections} />
+        {config && !executionDetailsSections && (
+          <StepExecutionDetailsWrapper {...detailsProps} configSections={configSections} />
         )}
         {executionDetailsSections && (
           <StepExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />

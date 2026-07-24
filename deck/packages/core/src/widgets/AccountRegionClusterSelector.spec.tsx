@@ -3,7 +3,6 @@ import React from 'react';
 
 import { AccountService } from '../account/AccountService';
 import { AccountRegionClusterSelector } from './AccountRegionClusterSelector';
-import { accountRegionClusterSelectorComponent } from './accountRegionClusterSelector.component';
 
 describe('AccountRegionClusterSelector', () => {
   beforeEach(() => {
@@ -13,12 +12,7 @@ describe('AccountRegionClusterSelector', () => {
     spyOn(AccountService, 'getAllAccountDetailsForProvider').and.returnValue(Promise.resolve([]) as any);
   });
 
-  it('registers the Angular component through a React wrapper', () => {
-    expect(accountRegionClusterSelectorComponent.templateUrl).toBeUndefined();
-    expect(accountRegionClusterSelectorComponent.controller).toBeDefined();
-  });
-
-  it('renders without the AngularJS adapter and defaults the cluster field', async () => {
+  it('renders the native selector and defaults the cluster field', async () => {
     const componentModel = { cloudProviderType: 'aws', credentials: 'test' } as any;
 
     const component = mount(
@@ -30,7 +24,6 @@ describe('AccountRegionClusterSelector', () => {
     );
     await settle(component);
 
-    expect(component.find(`.Angular${'JS'}Adapter`).exists()).toBe(false);
     expect(component.find('select.cluster-select').exists()).toBe(true);
   });
 

@@ -1,32 +1,18 @@
-import { mock } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider';
 import type { IInstance, IServerGroup } from '../domain';
 import type { IMultiInstanceGroup } from './instance.write.service';
 import { InstanceWriter } from './instance.write.service';
-import { REACT_MODULE } from '../reactShims';
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import * as State from '../state';
 import type { IJob, ITaskCommand } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 
 describe('Service: instance writer', function () {
-  let $q: ng.IQService;
-  let $scope: ng.IScope;
-
-  beforeEach(mock.module(REACT_MODULE, PROVIDER_SERVICE_DELEGATE));
-  beforeEach(
-    mock.inject((_$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
-      $q = _$q_;
-      $scope = $rootScope.$new();
-      State.initialize();
-    }),
-  );
+  beforeEach(() => State.initialize());
 
   describe('terminate and decrement server group', () => {
-    it('should set setMaxToNewDesired flag based on current server group capacity', function () {
+    it('should set setMaxToNewDesired flag based on current server group capacity', async function () {
       const serverGroup = {
         asg: {
           minSize: 4,
@@ -55,11 +41,9 @@ describe('Service: instance writer', function () {
         executedTask = task.job[0];
         return undefined;
       });
-      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue($q.when(serverGroup as any));
+      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(Promise.resolve(serverGroup as any));
 
-      InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, application, {});
-      $scope.$digest();
-      $scope.$digest();
+      await InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, application, {});
 
       expect(TaskExecutor.executeTask).toHaveBeenCalled();
       expect(executedTask['setMaxToNewDesired']).toBe(true);

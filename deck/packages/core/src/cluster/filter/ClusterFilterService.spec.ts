@@ -1,12 +1,13 @@
-import { mock } from 'angular';
 import { cloneDeep, filter } from 'lodash';
 
 import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { CLUSTER_SERVICE } from '../cluster.service';
+import { ClusterService } from '../cluster.service';
+import { DirectProviderServiceDelegate } from '../../cloudProvider';
 import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
-import { REACT_MODULE } from '../../reactShims';
 import * as State from '../../state';
+import { nativePromiseService } from '../../utils/nativePromiseService';
+import { applicationJSONFixture, groupedJSONFixture } from './ClusterFilterService.fixture';
 
 const ClusterState = State.ClusterState;
 
@@ -14,7 +15,7 @@ const ClusterState = State.ClusterState;
 describe('Service: clusterFilterService', function () {
   const debounceTimeout = 30;
 
-  let clusterService: any;
+  let clusterService: ClusterService;
   let applicationJSON: any;
   let groupedJSON: any;
   let application: Application;
@@ -22,15 +23,16 @@ describe('Service: clusterFilterService', function () {
 
   beforeEach(function () {
     previousRouter = getDirectRouter();
-    mock.module(CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router', REACT_MODULE);
-    mock.inject(function (_applicationJSON_: any, _groupedJSON_: any, _clusterService_: any) {
-      clusterService = _clusterService_;
+    clusterService = new ClusterService(
+      nativePromiseService,
+      { normalizeServerGroup: (serverGroup: any) => Promise.resolve(serverGroup) },
+      new DirectProviderServiceDelegate(nativePromiseService) as any,
+    );
 
-      applicationJSON = _applicationJSON_;
-      groupedJSON = _groupedJSON_;
-      groupedJSON[0].subgroups[0].cluster = applicationJSON.clusters[0];
-      groupedJSON[1].subgroups[0].cluster = applicationJSON.clusters[1];
-    });
+    applicationJSON = cloneDeep(applicationJSONFixture);
+    groupedJSON = cloneDeep(groupedJSONFixture);
+    groupedJSON[0].subgroups[0].cluster = applicationJSON.clusters[0];
+    groupedJSON[1].subgroups[0].cluster = applicationJSON.clusters[1];
 
     this.buildApplication = (json: any) => {
       const app = ApplicationModelBuilder.createApplicationForTests('app', {

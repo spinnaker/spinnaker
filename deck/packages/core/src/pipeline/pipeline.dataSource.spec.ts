@@ -1,31 +1,33 @@
-import { mock } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import { PipelineConfigService } from './config/services/PipelineConfigService';
 import { registerPipelineDataSources } from './pipeline.dataSource';
-import { EXECUTION_SERVICE } from './service/execution.service';
 
 describe('Pipeline Data Source', function () {
   const promiseService = {
     all: (promises: PromiseLike<any>[]) => Promise.all(promises),
     when: <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
   };
-  let application: Application, executionService: any, $scope: ng.IScope;
+  let application: Application, executionService: any;
 
-  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
+  beforeEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+    executionService = {
+      getExecutions: () => Promise.resolve([]),
+      getRunningExecutions: () => Promise.resolve([]),
+      getLocks: () => Promise.resolve([]),
+      transformExecutions: () => undefined,
+      addExecutionsToApplication: (_application: Application, executions: any[]) => executions,
+      mergeRunningExecutionsIntoExecutions: () => undefined,
+      removeCompletedExecutionsFromRunningData: () => undefined,
+    };
+    registerPipelineDataSources(promiseService, executionService, {
+      addExecutionsToServerGroups: () => undefined,
+    });
+  });
 
-  beforeEach(mock.module(require('./pipeline.dataSource').name, EXECUTION_SERVICE));
-
-  beforeEach(
-    mock.inject(function (_clusterService_: any, _executionService_: any, $rootScope: ng.IRootScopeService) {
-      $scope = $rootScope.$new();
-      executionService = _executionService_;
-      ApplicationDataSourceRegistry.clearDataSources();
-      registerPipelineDataSources(promiseService, executionService, _clusterService_);
-    }),
-  );
+  afterEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
   const waitForRefresh = (dataSource: any) =>
     new Promise<void>((resolve) => dataSource.onNextRefresh(null, resolve, resolve));
@@ -114,7 +116,7 @@ describe('Pipeline Data Source', function () {
       await initialRefresh;
 
       application.getDataSource('executions').onRefresh(
-        $scope,
+        null,
         () => successesHandled++,
         () => errorsHandled++,
       );
@@ -161,7 +163,7 @@ describe('Pipeline Data Source', function () {
       application.getDataSource('pipelineConfigs').activate();
 
       application.getDataSource('pipelineConfigs').onRefresh(
-        $scope,
+        null,
         () => successesHandled++,
         () => errorsHandled++,
       );
