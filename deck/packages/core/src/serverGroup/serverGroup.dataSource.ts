@@ -1,11 +1,9 @@
 import type { IQService } from 'angular';
-import { module } from 'angular';
 
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import type { ClusterService } from '../cluster/cluster.service';
-import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import type { IServerGroup } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToServerGroups } from '../managed';
@@ -72,9 +70,3 @@ export function registerServerGroupDataSource($q: IQService, clusterService: Clu
   );
   ApplicationDataSourceRegistry.registerDataSource(dataSourceConfig);
 }
-
-module(SERVER_GROUP_DATA_SOURCE, [CLUSTER_SERVICE]).run([
-  '$q',
-  'clusterService',
-  ($q: IQService, clusterService: ClusterService) => registerServerGroupDataSource($q, clusterService),
-]);

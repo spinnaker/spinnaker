@@ -1,10 +1,9 @@
 /* eslint-disable @spinnaker/migrate-to-mock-http-client */
-import { mock } from 'angular';
 import { Subscription } from 'rxjs';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
-import { AUTHENTICATION_MODULE, initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
+import { initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
 import { RequestBuilder } from '../api/ApiService';
 import { FailClosedHttpClient, mockHttpClient } from '../api/mock/jasmine';
 import { SETTINGS } from '../config/settings';
@@ -12,7 +11,6 @@ import type { IModalComponentProps } from '../presentation';
 import { ReactModal } from '../presentation/ReactModal';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
-import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 declare const window: any;
 
@@ -33,8 +31,6 @@ describe('AuthenticationInitializer', function () {
   beforeEach(() => (SETTINGS.authEnabled = false));
   beforeEach(() => (window.spinnakerSettings.authEnabled = false));
   beforeEach(() => AuthenticationService.reset());
-  beforeEach(mock.module(AUTHENTICATION_MODULE));
-
   afterEach(() => {
     authenticationUnsubscribes.splice(0).forEach((unsubscribe) => unsubscribe());
     AuthenticationService.reset();
@@ -510,37 +506,5 @@ describe('initializeAuthentication', () => {
       jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
     expect(loginRedirect).not.toHaveBeenCalled();
-  });
-});
-
-describe('authentication module startup', () => {
-  const initializationError = new Error('initialization failed');
-  const reportError = jasmine.createSpy('reportError');
-
-  beforeEach(() => {
-    SETTINGS.authEnabled = true;
-    SETTINGS.authTtl = 1234;
-    const scheduler: IScheduler = {
-      subscribe: () => new Subscription(),
-      scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
-      unsubscribe: jasmine.createSpy('unsubscribe'),
-    };
-    spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
-    spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.reject(initializationError));
-    spyOn(diagnosticLogger, 'error').and.callFake(reportError);
-  });
-  beforeEach(mock.module(AUTHENTICATION_MODULE));
-  beforeEach(mock.inject(() => undefined));
-
-  afterEach(() => {
-    resetAuthenticationRuntime();
-    SETTINGS.resetToOriginal();
-    reportError.calls.reset();
-  });
-
-  it('reports unexpected initializeAuthentication rejections', async () => {
-    await new Promise((resolve) => setTimeout(resolve));
-
-    expect(reportError).toHaveBeenCalledOnceWith('Failed to initialize authentication', initializationError);
   });
 });

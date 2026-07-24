@@ -21,7 +21,7 @@ describe('StandaloneSecurityGroupDetails', () => {
 
   it('renders provider React security group details when configured', () => {
     const ReactSecurityGroupDetails = () => <div className="react-security-group-details" />;
-    spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
+    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) =>
       key === 'securityGroup.details' ? ReactSecurityGroupDetails : null,
     );
 
@@ -31,32 +31,17 @@ describe('StandaloneSecurityGroupDetails', () => {
 
     expect(component.find(ReactSecurityGroupDetails).prop('app')).toBe(app);
     expect(component.find(ReactSecurityGroupDetails).prop('resolvedSecurityGroup')).toBe(resolvedSecurityGroup);
-  });
-
-  it('renders a migration-required message for legacy template/controller-only security group details', () => {
-    spyOn(CloudProviderRegistry, 'getValue').and.callFake((_provider: string, key: string) => {
-      const values: { [key: string]: any } = {
-        'securityGroup.details': null,
-        'securityGroup.detailsController': 'legacySecurityGroupDetailsCtrl',
-        'securityGroup.detailsTemplateUrl': 'legacy-security-group-details.html',
-      };
-      return values[key] || null;
-    });
-
-    const component = shallow(
-      <StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />,
-    );
-
-    expect(component.dive().text()).toContain('Security group details for kubernetes must be migrated to React.');
+    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'securityGroup.details']]);
   });
 
   it('renders nothing when provider security group details config is missing', () => {
-    spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
+    const getValue = spyOn(CloudProviderRegistry, 'getValue').and.returnValue(null);
 
     const component = shallow(
       <StandaloneSecurityGroupDetails app={app} resolvedSecurityGroup={resolvedSecurityGroup} />,
     );
 
     expect(component.isEmptyRender()).toBe(true);
+    expect(getValue.calls.allArgs()).toEqual([['kubernetes', 'securityGroup.details']]);
   });
 });

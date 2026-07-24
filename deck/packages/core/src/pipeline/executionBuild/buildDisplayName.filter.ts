@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { IBuildInfo } from '../../domain';
 
 export function buildDisplayName(input: IBuildInfo): string {
@@ -16,6 +14,3 @@ export function buildDisplayName(input: IBuildInfo): string {
 export function buildDisplayNameFilter() {
   return buildDisplayName;
 }
-
-export const BUILD_DISPLAY_NAME_FILTER = 'spinnaker.core.pipeline.buildDisplayName.filter';
-module(BUILD_DISPLAY_NAME_FILTER, []).filter('buildDisplayName', buildDisplayNameFilter);

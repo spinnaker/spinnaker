@@ -1,6 +1,5 @@
 import type { IQService } from 'angular';
-import { module, noop } from 'angular';
-import { cloneDeep, uniq } from 'lodash';
+import { cloneDeep, noop, uniq } from 'lodash';
 import { Duration } from 'luxon';
 
 import { AccountService } from '../account/AccountService';
@@ -10,7 +9,6 @@ import type { IInfrastructureCacheConfig } from './infrastructureCacheConfig';
 import { INFRASTRUCTURE_CACHE_CONFIG } from './infrastructureCacheConfig';
 import { InfrastructureCaches } from './infrastructureCaches';
 import type { SecurityGroupReader } from '../securityGroup/securityGroupReader.service';
-import { SECURITY_GROUP_READER } from '../securityGroup/securityGroupReader.service';
 
 interface IInitializers {
   [key: string]: any[];
@@ -110,4 +108,3 @@ export class CacheInitializerService {
 }
 
 export const CACHE_INITIALIZER_SERVICE = 'spinnaker.core.cache.initializer';
-module(CACHE_INITIALIZER_SERVICE, [SECURITY_GROUP_READER]).service('cacheInitializer', CacheInitializerService);

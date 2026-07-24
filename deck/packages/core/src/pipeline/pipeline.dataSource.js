@@ -1,15 +1,8 @@
-import { module } from 'angular';
-
 import { DELIVERY_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import { PipelineConfigService } from './config/services/PipelineConfigService';
 import { SETTINGS } from '../config/settings';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
-import { EXECUTION_SERVICE } from './service/execution.service';
-
-export const CORE_PIPELINE_PIPELINE_DATASOURCE = 'spinnaker.core.pipeline.dataSource';
-export const name = CORE_PIPELINE_PIPELINE_DATASOURCE; // for backwards compatibility
 
 export function registerPipelineDataSources($q, executionService, clusterService) {
   const registerOnce = (config) => {
@@ -115,10 +108,3 @@ export function registerPipelineDataSources($q, executionService, clusterService
     });
   }
 }
-
-module(CORE_PIPELINE_PIPELINE_DATASOURCE, [EXECUTION_SERVICE, CLUSTER_SERVICE]).run([
-  '$q',
-  'executionService',
-  'clusterService',
-  registerPipelineDataSources,
-]);

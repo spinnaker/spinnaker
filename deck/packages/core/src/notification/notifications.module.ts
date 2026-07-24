@@ -1,13 +1,10 @@
-import { module } from 'angular';
-
 import { NotificationService } from './NotificationService';
 import { extensionNotificationConfig } from './extensionNotificationConfig';
-import { BUILTIN_NOTIFICATION_KEYS, registerBuiltinNotificationTypes } from './notification.types';
-import { NOTIFICATION_LIST } from './notificationList.module';
+import { BUILTIN_NOTIFICATION_KEYS } from './notification.types';
 import { Registry } from '../registry';
 
 export const CORE_NOTIFICATION_NOTIFICATIONS_MODULE = 'spinnaker.core.notifications';
-export const name = CORE_NOTIFICATION_NOTIFICATIONS_MODULE; // for backwards compatibility
+
 const normalizedBuiltinNotificationKeys = new Set(
   Array.from(BUILTIN_NOTIFICATION_KEYS, (notificationType) => notificationType.toLowerCase()),
 );
@@ -41,8 +38,3 @@ export async function initializeDynamicNotificationTypes(): Promise<void> {
     console.error('Failed to load notification type metadata', error);
   }
 }
-
-module(CORE_NOTIFICATION_NOTIFICATIONS_MODULE, [NOTIFICATION_LIST]).run(() => {
-  registerBuiltinNotificationTypes();
-  void initializeDynamicNotificationTypes();
-});
