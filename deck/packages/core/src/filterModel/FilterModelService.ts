@@ -60,8 +60,11 @@ export class FilterModelService {
       const valueIfNil = filterTypeDefaults[filter.type];
       const rawValue = params[filter.param];
       const paramValue = isNil(rawValue) ? valueIfNil : rawValue;
-      // Clone deep so angularjs mutations happen on a different object reference
-      return { ...acc, [filter.model]: cloneDeep(paramValue) };
+      const normalizedValue = filter.normalizeParamValue
+        ? filter.normalizeParamValue(paramValue, { valueIfNil, rawValue, params })
+        : paramValue;
+      // Isolate the filter model from subsequent mutations to router params.
+      return { ...acc, [filter.model]: cloneDeep(normalizedValue) };
     }, {} as any);
   }
 
@@ -99,8 +102,7 @@ export class FilterModelService {
       savedParamsForScreen = {};
     });
 
-    // Map transition param values to sortFilter values and save on the filterModel before each transition
-    // In the future, we should remove  the AngularJS code that watches for mutations on the sortFilter object
+    // Map transition param values onto the existing sortFilter before each transition.
     transitionService.onBefore({ to: stateGlob }, (trans) => {
       const toParams = trans.params();
       Object.assign(filterModel.sortFilter, FilterModelService.mapRouterParamsToSortFilter(filterModel, toParams));

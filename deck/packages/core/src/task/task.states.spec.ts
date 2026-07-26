@@ -24,8 +24,6 @@ describe('task states', () => {
       }),
     );
     expect(typeof state.views.insight.component).toBe('function');
-    expect(state.views.insight.templateUrl).toBeUndefined();
-    expect(state.views.insight.controller).toBeUndefined();
   });
 
   it('resolves a task permalink through a real direct transition', async () => {

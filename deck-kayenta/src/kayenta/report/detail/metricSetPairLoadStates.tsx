@@ -1,6 +1,6 @@
 import LoadStatesBuilder from 'kayenta/components/loadStates';
-import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
-import { ICanaryState } from 'kayenta/reducers/index';
+import type { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
+import type { ICanaryState } from 'kayenta/reducers/index';
 import * as React from 'react';
 import { connect } from 'react-redux';
 

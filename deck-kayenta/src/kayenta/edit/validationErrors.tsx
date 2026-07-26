@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { HoverablePopover } from '@spinnaker/core';
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 
 interface IConfigValidationErrorsStateProps {
   errors: string[];

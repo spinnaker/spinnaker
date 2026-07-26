@@ -11,7 +11,7 @@ interface IQuietPeriodConfig {
 }
 
 class QuietPeriodService {
-  private static _quietPeriodConfig: PromiseLike<IQuietPeriodConfig>;
+  private static _quietPeriodConfig: Promise<IQuietPeriodConfig>;
   static async quietPeriodConfig(): Promise<IQuietPeriodConfig> {
     this._quietPeriodConfig = this._quietPeriodConfig ?? REST('/capabilities/quietPeriod').get<IQuietPeriodConfig>();
     return await this._quietPeriodConfig;

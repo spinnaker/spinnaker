@@ -68,7 +68,7 @@ export class AwsServerGroupTransformer {
     return view;
   }
 
-  public normalizeServerGroup(serverGroup: IAmazonServerGroup): PromiseLike<IAmazonServerGroup> {
+  public normalizeServerGroup(serverGroup: IAmazonServerGroup): Promise<IAmazonServerGroup> {
     serverGroup.instances.forEach((instance) => {
       instance.vpcId = serverGroup.vpcId;
     });

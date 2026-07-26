@@ -3,8 +3,8 @@ import _ from 'lodash';
 import { AzureProviderSettings } from '../azure.settings';
 
 export class AzureLoadBalancerTransformer {
-  constructor($q) {
-    this.$q = $q;
+  constructor(promiseService) {
+    this.promiseService = promiseService;
   }
 
   normalizeLoadBalancer(loadBalancer) {
@@ -25,7 +25,7 @@ export class AzureLoadBalancerTransformer {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
     loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
-    return this.$q && this.$q.resolve ? this.$q.resolve(loadBalancer) : Promise.resolve(loadBalancer);
+    return this.promiseService.resolve(loadBalancer);
   }
 
   convertLoadBalancerForEditing(loadBalancer) {

@@ -94,7 +94,7 @@ export class KubernetesInstanceDetailsComponent extends React.Component<
 
         this.appReady = true;
         this.loadInstance();
-        this.unsubscribeFromRefresh = this.props.app.onRefresh(null, this.loadInstance);
+        this.unsubscribeFromRefresh = this.props.app.onRefresh(this.loadInstance);
       })
       .catch(this.autoClose);
   }

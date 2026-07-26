@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 
 import { ReactModal } from './ReactModal';
+import { AccountService } from '../account';
+import { ExpectedArtifactModal, ExpectedArtifactService } from '../artifact';
 import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import type { DeckRuntimeServices } from '../bootstrap/DeckRuntimeServices';
 import type { IModalComponentProps } from './modal';
@@ -12,6 +14,7 @@ import type { IRouterInjectedProps } from '../navigation/routerContext';
 import { withRouter } from '../navigation/routerContext';
 import { diagnosticLogger } from '../utils/diagnosticLogger';
 import { TaskMonitor, TaskMonitorWrapper } from '../task';
+import { SpelText } from '../widgets/spelText/SpelText';
 
 const TestModal = (_props: IModalComponentProps): JSX.Element => null;
 
@@ -141,6 +144,86 @@ describe('ReactModal router context', () => {
     expect(runtimeProvider.type).toBe(DeckRuntimeContext.Provider);
     expect(runtimeProvider.props.value.services).toBe(runtimeServices);
     expect(runtimeProvider.props.children.props.children.type).toBe(RuntimeModalComponent);
+  });
+
+  it('provides the active default runtime services when none are explicitly supplied', async () => {
+    const runtimeServices = {} as DeckRuntimeServices;
+
+    class RuntimeModalComponent extends React.Component<IModalComponentProps> {
+      public static contextType = DeckRuntimeContext;
+      public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+      public componentDidMount(): void {
+        this.props.closeModal(this.context?.services === runtimeServices);
+      }
+
+      public render(): React.ReactNode {
+        return null;
+      }
+    }
+
+    try {
+      ReactModal.setDefaultRuntimeServices(runtimeServices);
+
+      const result = await ReactModal.show(RuntimeModalComponent, {} as any, { animation: false });
+
+      expect(result).toBe(true);
+    } finally {
+      ReactModal.setDefaultRuntimeServices(null);
+    }
+  });
+
+  it('prefers explicitly supplied runtime services over the active default', async () => {
+    const defaultServices = {} as DeckRuntimeServices;
+    const explicitServices = {} as DeckRuntimeServices;
+
+    class RuntimeModalComponent extends React.Component<IModalComponentProps> {
+      public static contextType = DeckRuntimeContext;
+      public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+      public componentDidMount(): void {
+        this.props.closeModal(this.context?.services);
+      }
+
+      public render(): React.ReactNode {
+        return null;
+      }
+    }
+
+    try {
+      ReactModal.setDefaultRuntimeServices(defaultServices);
+
+      const result = await ReactModal.show(RuntimeModalComponent, {} as any, { animation: false }, explicitServices);
+
+      expect(result).toBe(explicitServices);
+    } finally {
+      ReactModal.setDefaultRuntimeServices(null);
+    }
+  });
+
+  it('provides default runtime services to SpelText rendered by ExpectedArtifactModal', async () => {
+    const runtimeServices = { executionService: {} } as DeckRuntimeServices;
+    const spelMount = spyOn(SpelText.prototype, 'componentDidMount').and.callThrough();
+    spyOn(AccountService, 'getArtifactAccounts').and.returnValue(
+      Promise.resolve([{ name: 'custom-artifact', types: ['custom/object'] }]),
+    );
+    ReactModal.setDefaultRuntimeServices(runtimeServices);
+    const modal = ExpectedArtifactModal.show({
+      expectedArtifact: ExpectedArtifactService.createEmptyArtifact(),
+      pipeline: { stages: [] } as any,
+    } as any);
+    const settlement = modal.catch((reason) => reason);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(spelMount).toHaveBeenCalled();
+      expect((spelMount.calls.mostRecent().object as SpelText).context?.services).toBe(runtimeServices);
+    } finally {
+      ReactModal.dismissAll('test-cleanup');
+      await settlement;
+      ReactModal.setDefaultRuntimeServices(null);
+    }
   });
 
   it('dismisses all active modals with the supplied reason', async () => {

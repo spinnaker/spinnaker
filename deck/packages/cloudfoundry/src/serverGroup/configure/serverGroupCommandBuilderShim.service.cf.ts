@@ -8,10 +8,7 @@ import type {
 } from './serverGroupConfigurationModel.cf';
 
 export class CloudFoundryServerGroupCommandBuilderShim {
-  public buildNewServerGroupCommand(
-    app: Application,
-    defaults: any,
-  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
+  public buildNewServerGroupCommand(app: Application, defaults: any): Promise<ICloudFoundryCreateServerGroupCommand> {
     return Promise.resolve(CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommand(app, defaults));
   }
 
@@ -19,7 +16,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     app: Application,
     serverGroup: ICloudFoundryServerGroup,
     mode = 'clone',
-  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
+  ): Promise<ICloudFoundryCreateServerGroupCommand> {
     return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup, mode),
     );
@@ -28,7 +25,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
   public buildNewServerGroupCommandForPipeline(
     stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
+  ): Promise<ICloudFoundryCreateServerGroupCommand> {
     return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildNewServerGroupCommandForPipeline(stage, pipeline),
     );
@@ -39,7 +36,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
     originalCluster: ICloudFoundryDeployConfiguration,
     stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
+  ): Promise<ICloudFoundryCreateServerGroupCommand> {
     return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildServerGroupCommandFromPipeline(
         application,
@@ -53,7 +50,7 @@ export class CloudFoundryServerGroupCommandBuilderShim {
   public buildCloneServerGroupCommandFromPipeline(
     stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<ICloudFoundryCreateServerGroupCommand> {
+  ): Promise<ICloudFoundryCreateServerGroupCommand> {
     return Promise.resolve(
       CloudFoundryServerGroupCommandBuilder.buildCloneServerGroupCommandFromPipeline(stage, pipeline),
     );

@@ -6,7 +6,7 @@ import type { INestedState } from './state.provider';
 export class StateHelper {
   private registeredStates: string[] = [];
 
-  constructor(private $stateRegistryProvider: StateRegistry) {}
+  constructor(private stateRegistry: StateRegistry) {}
 
   public setNestedState(state: INestedState, keepOriginalNames = false) {
     const newState: INestedState = cloneDeep(state);
@@ -17,7 +17,7 @@ export class StateHelper {
     }
     if (!this.registeredStates.includes(newState.name)) {
       this.registeredStates.push(newState.name);
-      this.$stateRegistryProvider.register(newState as any);
+      this.stateRegistry.register(newState as any);
     }
 
     if (newState.children && newState.children.length) {
@@ -87,5 +87,3 @@ export class StateHelper {
     return resolved.join('.');
   }
 }
-
-export const STATE_HELPER = 'spinnaker.core.navigation.stateHelper.provider';

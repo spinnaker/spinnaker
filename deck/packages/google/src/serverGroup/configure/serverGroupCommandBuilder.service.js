@@ -11,12 +11,9 @@ import { GceCustomInstanceBuilderService } from './../../instance/custom/customI
 import { GceInstanceTypeService } from '../../instance/gceInstanceType.service';
 import { GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS } from './wizard/hiddenMetadataKeys.value';
 
-export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
-  'spinnaker.gce.serverGroupCommandBuilder.service';
-export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
 export class GceServerGroupCommandBuilder {
-  constructor($q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) }) {
-    const instanceTypeService = new GceInstanceTypeService($q);
+  constructor(promiseService) {
+    const instanceTypeService = new GceInstanceTypeService(promiseService);
     const gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService();
     const gceServerGroupHiddenMetadataKeys = GCE_SERVER_GROUP_HIDDEN_METADATA_KEYS;
     const gceXpnNamingService = new GceXpnNamingService();
@@ -125,7 +122,7 @@ export class GceServerGroupCommandBuilder {
           });
       } else {
         command.disks = [{ type: 'pd-ssd', sizeGb: 10 }].concat(localSSDDisks);
-        return $q.when(null);
+        return promiseService.resolve(null);
       }
     }
 
@@ -146,7 +143,7 @@ export class GceServerGroupCommandBuilder {
           });
       } else {
         command.disks = [{ type: 'pd-ssd', sizeGb: 10 }].concat(localSSDDisks);
-        return $q.when(null);
+        return promiseService.resolve(null);
       }
     }
 
@@ -419,7 +416,7 @@ export class GceServerGroupCommandBuilder {
     // Only used to prepare view requiring template selecting
     function buildNewServerGroupCommandForPipeline(currentStage, pipeline) {
       const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(currentStage, pipeline);
-      return $q.when({
+      return promiseService.resolve({
         viewState: {
           pipeline,
           expectedArtifacts: expectedArtifacts,
@@ -536,7 +533,7 @@ export class GceServerGroupCommandBuilder {
         });
       }
 
-      return $q.when(command);
+      return promiseService.resolve(command);
     }
 
     function buildServerGroupCommandFromPipeline(application, originalCluster, currentStage, pipeline) {
@@ -549,7 +546,7 @@ export class GceServerGroupCommandBuilder {
       );
 
       const commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
-      return $q
+      return promiseService
         .all([buildNewServerGroupCommand(application, commandOptions), instanceTypeCategoryLoader])
         .then(function ([command, instanceProfile]) {
           const expectedArtifacts = ExpectedArtifactService.getExpectedArtifactsAvailableToStage(

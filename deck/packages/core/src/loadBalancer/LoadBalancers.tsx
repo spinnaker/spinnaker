@@ -53,7 +53,7 @@ class LoadBalancersComponent extends React.Component<ILoadBalancersProps & IRout
     LoadBalancerState.filterModel.asFilterModel.activate();
     this.loadBalancersRefreshUnsubscribe = app
       .getDataSource('loadBalancers')
-      .onRefresh(null, () => this.updateLoadBalancerGroups());
+      .onRefresh(() => this.updateLoadBalancerGroups());
     app.setActiveState(app.loadBalancers);
     this.updateLoadBalancerGroups();
   }

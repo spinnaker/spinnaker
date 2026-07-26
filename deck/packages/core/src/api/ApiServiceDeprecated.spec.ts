@@ -1,4 +1,4 @@
-/* eslint-disable @spinnaker/api-deprecation, @spinnaker/api-no-slashes, @spinnaker/migrate-to-mock-http-client */
+/* eslint-disable @spinnaker/api-deprecation, @spinnaker/api-no-slashes */
 
 import { API, InvalidAPIResponse, invalidContentMessage, RequestBuilder } from './ApiService';
 import { mockHttpClient } from './mock/jasmine';

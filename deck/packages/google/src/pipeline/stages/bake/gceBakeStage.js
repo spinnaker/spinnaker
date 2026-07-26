@@ -18,9 +18,6 @@ import {
 
 const h = React.createElement;
 
-export const GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE = 'spinnaker.gce.pipeline.stage..bakeStage';
-export const name = GOOGLE_PIPELINE_STAGES_BAKE_GCEBAKESTAGE;
-
 function updateStage(stage, updateStage, changes) {
   updateStage({ ...stage, ...changes });
 }

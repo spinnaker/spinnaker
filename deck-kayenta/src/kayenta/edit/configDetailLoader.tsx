@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import type { Action } from 'redux';
+import type { Observable } from 'rxjs/Observable';
+import type { Subscription } from 'rxjs/Subscription';
 
 import * as Creators from '../actions/creators';
 import ConfigDetailLoadStates from './configDetailLoadStates';

@@ -80,11 +80,11 @@ export class Network
     return {};
   }
 
-  private getAvailableSubnets(): PromiseLike<ISubnet[]> {
+  private getAvailableSubnets(): Promise<ISubnet[]> {
     return SubnetReader.listSubnetsByProvider('aws');
   }
 
-  private getAvailableSecurityGroups(): PromiseLike<ISecurityGroupsByAccountSourceData> {
+  private getAvailableSecurityGroups(): Promise<ISecurityGroupsByAccountSourceData> {
     return this.context.services.securityGroupReader.getAllSecurityGroups();
   }
   private makeSubnetOptions(availableSubnets: ISubnet[]): ISubnetOption[] {

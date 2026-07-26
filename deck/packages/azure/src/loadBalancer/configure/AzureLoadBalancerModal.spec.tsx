@@ -1,4 +1,4 @@
-import { LoadBalancerWriter, TaskMonitor } from '@spinnaker/core';
+import { LoadBalancerWriter, nativePromiseService } from '@spinnaker/core';
 
 import { AzureLoadBalancerTypes } from '../../utility';
 import { AzureLoadBalancerTransformer } from '../loadBalancer.transformer';
@@ -27,9 +27,73 @@ describe('AzureLoadBalancerModal', () => {
     const modal = Object.create(AzureLoadBalancerModal.prototype);
     modal.props = props;
     modal.state = { existingLoadBalancerNames: [], loadBalancer: null, ...state };
-    modal.transformer = new AzureLoadBalancerTransformer(null);
+    modal.transformer = new AzureLoadBalancerTransformer(nativePromiseService);
     return modal;
   }
+
+  it('owns its refresh subscription and ignores a late refresh after unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const loadBalancers = {
+      onNextRefresh: jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+        callbacks.push(callback);
+        return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+      }),
+      refresh: jasmine.createSpy('refresh'),
+    };
+    const closeModal = jasmine.createSpy('closeModal');
+    const dismissModal = jasmine.createSpy('dismissModal');
+    const stateService = {
+      go: jasmine.createSpy('go'),
+      includes: jasmine.createSpy('includes'),
+    };
+    const application = {
+      defaultCredentials: { azure: 'test' },
+      defaultRegions: { azure: 'westus' },
+      getDataSource: () => null,
+      loadBalancers,
+      name: 'fnord',
+    };
+    const modal = new AzureLoadBalancerModal({
+      app: application,
+      application,
+      closeModal,
+      dismissModal,
+      forPipelineConfig: false,
+      isNew: false,
+      loadBalancer: null,
+      loadBalancerType: AzureLoadBalancerTypes[0],
+      stateService,
+    } as any);
+    modal.componentDidMount();
+    const setState = spyOn(modal, 'setState');
+    const stateBeforeRefresh = modal.state;
+
+    expect((modal as any).mounted).toBe(true);
+
+    (modal as any).onTaskComplete();
+
+    expect(loadBalancers.refresh).toHaveBeenCalledTimes(1);
+    expect(loadBalancers.onNextRefresh).toHaveBeenCalledOnceWith((modal as any).onApplicationRefresh);
+    expect(loadBalancers.onNextRefresh.calls.first().invocationOrder).toBeLessThan(
+      loadBalancers.refresh.calls.first().invocationOrder,
+    );
+
+    (modal as any).onTaskComplete();
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect((modal as any).applicationRefreshUnsubscribe).toBeUndefined();
+    expect(closeModal).not.toHaveBeenCalled();
+    expect(dismissModal).not.toHaveBeenCalled();
+    expect(stateService.go).not.toHaveBeenCalled();
+    expect(setState).not.toHaveBeenCalled();
+    expect(modal.state).toBe(stateBeforeRefresh);
+  });
 
   describe('normalizeAzureLoadBalancerForSubmit', () => {
     it('does not copy selected vnet and subnet for Azure Load Balancer', () => {
@@ -451,10 +515,6 @@ describe('AzureLoadBalancerModal', () => {
         getDataSource: () => null,
         name: 'fnord',
       };
-      spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-        dismiss: () => null,
-        result: Promise.resolve(),
-      } as any);
       const modal = new AzureLoadBalancerModal({
         app: application,
         application,
@@ -505,10 +565,6 @@ describe('AzureLoadBalancerModal', () => {
         },
         name: 'fnord',
       };
-      spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-        dismiss: () => null,
-        result: Promise.resolve(),
-      } as any);
       const modal = new AzureLoadBalancerModal({
         app: application,
         application,

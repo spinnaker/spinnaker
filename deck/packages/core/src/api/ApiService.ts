@@ -18,6 +18,16 @@ interface Headers {
   [headerName: string]: string;
 }
 
+export interface XhrError<T = unknown> {
+  data?: T;
+  message?: string;
+  name?: string;
+  stack?: string;
+  status?: number;
+  statusText?: string;
+  xhrStatus?: string;
+}
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 interface IPreparedXhrRequest {
@@ -49,15 +59,15 @@ export interface IRequestBuilder {
   useCache(useCache?: boolean | ICache): this;
 
   /** issues a GET request */
-  get<T = any>(): PromiseLike<T>;
+  get<T = any>(): Promise<T>;
   /** issues a POST request */
-  post<T = any, P = any>(data?: P): PromiseLike<T>;
+  post<T = any, P = any>(data?: P): Promise<T>;
   /** issues a PUT request */
-  put<T = any, P = any>(data?: P): PromiseLike<T>;
+  put<T = any, P = any>(data?: P): Promise<T>;
   /** issues a PATCH request */
-  patch<T = any, P = any>(data?: P): PromiseLike<T>;
+  patch<T = any, P = any>(data?: P): Promise<T>;
   /** issues a DELETE request */
-  delete<T = any, P = any>(data?: P): PromiseLike<T>;
+  delete<T = any, P = any>(data?: P): Promise<T>;
 }
 
 /**
@@ -68,7 +78,7 @@ interface IRequestBuilderConfig {
   url: string;
   timeout?: number;
   headers?: Headers;
-  /** @deprecated used for AngularJS backwards compat */
+  /** @deprecated retained for legacy request config compatibility */
   data?: any;
   params?: object;
   cache?: boolean | ICache;
@@ -94,11 +104,11 @@ export interface IDeprecatedRequestBuilder extends IRequestBuilder {
   /** @deprecated use put(data) or post(data) instead */
   data(data: any): this;
   // Add overload with params
-  get<T = any>(params?: IParams): PromiseLike<T>;
+  get<T = any>(params?: IParams): Promise<T>;
   /** @deprecated use delete() instead (this is a passthrough to delete) */
-  remove(params?: IParams): PromiseLike<any>;
+  remove(params?: IParams): Promise<any>;
   /** @deprecated use get() instead (this is a passthrough to get) */
-  getList<T = any>(params?: IParams): PromiseLike<T>;
+  getList<T = any>(params?: IParams): Promise<T>;
 }
 
 /**
@@ -106,11 +116,11 @@ export interface IDeprecatedRequestBuilder extends IRequestBuilder {
  * In the future, we should have a TestingHttpClient and a FetchHttpClient (or whatever http client we go with)
  */
 export interface IHttpClientImplementation {
-  get<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  post<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  put<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  patch<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
-  delete<T = any>(config: IRequestBuilderConfig): PromiseLike<T>;
+  get<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  post<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  put<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  patch<T = any>(config: IRequestBuilderConfig): Promise<T>;
+  delete<T = any>(config: IRequestBuilderConfig): Promise<T>;
 }
 
 export class InvalidAPIResponse extends Error {
@@ -132,7 +142,7 @@ export class XhrHttpClient implements IHttpClientImplementation {
   put = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PUT', requestConfig);
   patch = <T = any>(requestConfig: IRequestBuilderConfig) => this.request<T>('PATCH', requestConfig);
 
-  private request<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): PromiseLike<T> {
+  private request<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): Promise<T> {
     const preparedRequest = this.prepareXhrRequest(method, requestConfig);
     if (method !== 'GET' || !requestConfig.cache) {
       return this.sendXhrRequest<T>(preparedRequest, false);
@@ -141,9 +151,7 @@ export class XhrHttpClient implements IHttpClientImplementation {
     const cache = requestConfig.cache === true ? this.defaultCache : requestConfig.cache;
     const cached = cache.get(preparedRequest.url);
     if (cached !== undefined) {
-      return typeof (cached as PromiseLike<T>)?.then === 'function'
-        ? (cached as PromiseLike<T>)
-        : Promise.resolve(cached as T);
+      return Promise.resolve(cached as T | PromiseLike<T>);
     }
 
     let inFlightForCache = this.inFlightRequests.get(cache);
@@ -180,7 +188,7 @@ export class XhrHttpClient implements IHttpClientImplementation {
     return request;
   }
 
-  private xhrRequest<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): PromiseLike<T> {
+  private xhrRequest<T>(method: HttpMethod, requestConfig: IRequestBuilderConfig): Promise<T> {
     return this.sendXhrRequest<T>(this.prepareXhrRequest(method, requestConfig), false);
   }
 
@@ -263,7 +271,7 @@ export class XhrHttpClient implements IHttpClientImplementation {
         try {
           const data = parseResponse(contentType, responseText);
           if (request.status >= 400) {
-            const rejection = {
+            const rejection: XhrError<T> = {
               status: request.status,
               statusText: request.statusText,
               data,
@@ -352,38 +360,48 @@ export class RequestBuilder implements IRequestBuilder {
   }
 
   // queryParams argument for backwards compat
-  get<T>(queryParams: object = {}) {
+  get<T>(queryParams: object = {}): Promise<T> {
     // Merge with existing params
     const params = { ...this.config.params, ...queryParams };
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.get<T>({ ...this.config, url, params });
+    return Promise.resolve(
+      this.httpClient.get<T>({ ...this.config, url, params }),
+    );
   }
 
-  post<T>(postData?: any) {
+  post<T>(postData?: any): Promise<T> {
     // Check this.config.data for backwards compat
     const data = postData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.post<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.post<T>({ ...this.config, url, data }),
+    );
   }
 
-  put<T>(putData?: any) {
+  put<T>(putData?: any): Promise<T> {
     // Check this.config.data for backwards compat
     const data = putData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.put<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.put<T>({ ...this.config, url, data }),
+    );
   }
 
-  patch<T>(putData?: any) {
+  patch<T>(putData?: any): Promise<T> {
     // Check this.config.data for backwards compat
     const data = putData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.patch<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.patch<T>({ ...this.config, url, data }),
+    );
   }
 
-  delete<T>(deleteData?: any) {
+  delete<T>(deleteData?: any): Promise<T> {
     const data = deleteData ?? this.config.data;
     const url = joinPaths(this.baseUrl, this.config.url);
-    return this.httpClient.delete<T>({ ...this.config, url, data });
+    return Promise.resolve(
+      this.httpClient.delete<T>({ ...this.config, url, data }),
+    );
   }
 
   useCache(cache: boolean | ICache = true) {

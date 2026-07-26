@@ -1,6 +1,6 @@
 import type { IPluginMetaData } from './plugin.registry';
 import { PluginRegistry } from './plugin.registry';
-import { initializePlugins, resetPluginInitializationForTests, runPlugins } from './plugin.module';
+import { initializePlugins, resetPluginInitializationForTests } from './plugin.module';
 import { sharedLibraries } from './sharedLibraries';
 
 describe('initializePlugins', () => {
@@ -164,35 +164,5 @@ describe('initializePlugins', () => {
     expect(pluginRegistry.loadPluginManifestFromDeck).toHaveBeenCalledTimes(2);
     expect(pluginRegistry.loadPluginManifestFromGate).toHaveBeenCalledTimes(2);
     expect(pluginRegistry.loadPlugins).toHaveBeenCalledTimes(2);
-  });
-});
-
-describe('plugin Angular run wrapper', () => {
-  afterEach(() => resetPluginInitializationForTests());
-
-  it('reports initialization failure once and always resumes the router', async () => {
-    const calls: string[] = [];
-    const initializationError = new Error('plugin initialization failed');
-    let resolveRouterResumed!: () => void;
-    const routerResumedPromise = new Promise<void>((resolve) => (resolveRouterResumed = resolve));
-    const initializer = jasmine.createSpy('initializer').and.returnValue(Promise.reject(initializationError));
-    const exceptionHandler = jasmine.createSpy('exceptionHandler').and.callFake(() => calls.push('error'));
-    const listen = jasmine.createSpy('listen').and.callFake(() => calls.push('listen'));
-    const sync = jasmine.createSpy('sync').and.callFake(() => {
-      calls.push('sync');
-      resolveRouterResumed();
-    });
-    const rootScope = { $applyAsync: (callback: () => void) => callback() } as any;
-    const uiRouter = { urlService: { listen, sync } } as any;
-
-    const result = runPlugins(rootScope, uiRouter, exceptionHandler, initializer);
-
-    expect(result).toBeUndefined();
-    await routerResumedPromise;
-    expect(initializer).toHaveBeenCalledTimes(1);
-    expect(exceptionHandler).toHaveBeenCalledOnceWith(initializationError);
-    expect(listen).toHaveBeenCalledTimes(1);
-    expect(sync).toHaveBeenCalledTimes(1);
-    expect(calls).toEqual(['error', 'listen', 'sync']);
   });
 });

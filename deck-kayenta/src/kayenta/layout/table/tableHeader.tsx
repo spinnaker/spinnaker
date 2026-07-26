@@ -4,7 +4,7 @@ import * as React from 'react';
 import { ITableColumn } from './tableColumn';
 
 export interface ITableHeaderProps {
-  columns: Array<ITableColumn<any>>;
+  columns: ITableColumn<any>[];
   className: string;
 }
 

@@ -20,7 +20,7 @@ export interface IPreconfiguredJob {
 }
 
 export const PreconfiguredJobReader = {
-  list(): PromiseLike<IPreconfiguredJob[]> {
+  list(): Promise<IPreconfiguredJob[]> {
     return REST('/jobs/preconfigured').useCache().get();
   },
 };

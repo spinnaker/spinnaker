@@ -8,8 +8,5 @@ describe('canaryDeploymentStage', () => {
 
     expect(config).toBeDefined();
     expect(config.component).toBeDefined();
-    expect((config as any).templateUrl).toBeUndefined();
-    expect((config as any).controller).toBeUndefined();
-    expect((config as any).controllerAs).toBeUndefined();
   });
 });

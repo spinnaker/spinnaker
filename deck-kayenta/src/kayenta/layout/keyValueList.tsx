@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { IKayentaAction } from '../actions/creators';
+import type { IKayentaAction } from '../actions/creators';
 import AddNewButton from './addNewButton';
 import DeleteButton from './deleteButton';
 import { DISABLE_EDIT_CONFIG, DisableableInput } from './disableable';

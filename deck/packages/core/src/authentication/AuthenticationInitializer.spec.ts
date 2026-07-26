@@ -1,4 +1,3 @@
-/* eslint-disable @spinnaker/migrate-to-mock-http-client */
 import { Subscription } from 'rxjs';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
@@ -229,9 +228,9 @@ describe('AuthenticationInitializer', function () {
     });
     const openLoggedOutModal = spyOn(AuthenticationInitializer as any, 'openLoggedOutModal');
     const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValues(
-      Promise.resolve({ data: {} }),
-      Promise.resolve({ data: { username: 'restored-user', roles: [] } }),
-      Promise.resolve({ data: {} }),
+      Promise.resolve({}),
+      Promise.resolve({ username: 'restored-user', roles: [] }),
+      Promise.resolve({}),
     );
     spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
     (AuthenticationInitializer as any).userLoggedOut = false;
@@ -282,7 +281,7 @@ describe('AuthenticationInitializer', function () {
       const secondVisibilityWatch = (AuthenticationInitializer as any).visibilityWatch as Subscription;
       document.dispatchEvent(new Event('visibilitychange'));
 
-      firstResponse.resolve({ data: { username: 'stale-user', roles: ['stale-role'] } });
+      firstResponse.resolve({ username: 'stale-user', roles: ['stale-role'] });
       await Promise.resolve();
       await Promise.resolve();
 
@@ -291,7 +290,7 @@ describe('AuthenticationInitializer', function () {
       expect(dismissAll).not.toHaveBeenCalled();
       expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
 
-      secondResponse.resolve({ data: { username: 'restored-user', roles: ['restored-role'] } });
+      secondResponse.resolve({ username: 'restored-user', roles: ['restored-role'] });
       await Promise.resolve();
       await Promise.resolve();
 
@@ -360,7 +359,7 @@ describe('initializeAuthentication', () => {
     expect(createScheduler).toHaveBeenCalledOnceWith(1234);
     expect(scheduler.subscribe).toHaveBeenCalledTimes(1);
 
-    request.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+    request.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([true, true]);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
@@ -382,7 +381,7 @@ describe('initializeAuthentication', () => {
 
     const firstInitialization = initializeAuthentication();
     const secondInitialization = initializeAuthentication();
-    request.resolve({ data: {} });
+    request.resolve({});
 
     expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([false, false]);
     expect(get).toHaveBeenCalledTimes(1);
@@ -465,13 +464,13 @@ describe('initializeAuthentication', () => {
     resetAuthenticationRuntime();
     const secondInitialization = initializeAuthentication();
 
-    firstRequest.resolve({ data: { username: 'stale-user', roles: ['stale-role'] } });
+    firstRequest.resolve({ username: 'stale-user', roles: ['stale-role'] });
 
     expect(await firstInitialization).toBe(false);
     expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
     expect(initializeAuthentication()).toBe(secondInitialization);
 
-    secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+    secondRequest.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await secondInitialization).toBe(true);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
@@ -499,7 +498,7 @@ describe('initializeAuthentication', () => {
     expect(loginRedirect).not.toHaveBeenCalled();
     expect(initializeAuthentication()).toBe(secondInitialization);
 
-    secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+    secondRequest.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await secondInitialization).toBe(true);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(

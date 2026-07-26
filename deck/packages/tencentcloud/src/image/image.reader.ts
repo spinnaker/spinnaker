@@ -30,7 +30,7 @@ export interface ITencentcloudImage {
 }
 
 export class TencentcloudImageReader {
-  public findImages(params: { q: string; region?: string }): PromiseLike<ITencentcloudImage[]> {
+  public findImages(params: { q: string; region?: string }): Promise<ITencentcloudImage[]> {
     if (!params.q || params.q.length < 3) {
       return Promise.resolve([{ message: 'Please enter at least 3 characters...', disabled: true }] as any);
     }
@@ -41,7 +41,7 @@ export class TencentcloudImageReader {
       .catch(() => [] as ITencentcloudImage[]);
   }
 
-  public getImage(name: string, region: string, credentials: string): PromiseLike<ITencentcloudImage> {
+  public getImage(name: string, region: string, credentials: string): Promise<ITencentcloudImage> {
     return REST('/images')
       .path(credentials, region, name)
       .query({ provider: 'tencentcloud' })

@@ -52,10 +52,11 @@ describe('<ProjectCluster />', () => {
     });
   });
 
-  it('renders the legacy project-cluster rollup DOM contract', () => {
+  it('renders the project cluster rollup DOM contract', () => {
     const wrapper = mount(<ProjectCluster project={project} cluster={cluster} selectedRegions={{}} />);
 
-    expect(wrapper.find('project-cluster .rollup-entry').exists()).toBe(true);
+    expect(wrapper.find('.project-cluster .rollup-entry').exists()).toBe(true);
+    expect(wrapper.find('project-cluster').exists()).toBe(false);
     expect(wrapper.find('.cluster-name').text()).toContain('*-*');
     expect(wrapper.find('.cluster-health').at(0).text()).toContain('1 Application');
     expect(wrapper.find('.cluster-health').at(1).text()).toContain('24 Instances');
@@ -118,6 +119,8 @@ describe('<RegionFilter />', () => {
 
     wrapper.find('h6.dropdown-toggle').simulate('click');
 
+    expect(wrapper.find('.region-filter').exists()).toBe(true);
+    expect(wrapper.find('region-filter').exists()).toBe(false);
     expect(wrapper.find('.region-filter-button').text()).toContain('Filter by region / namespace');
     expect(wrapper.find('input[type="checkbox"]').at(0).prop('checked')).toBe(true);
     wrapper.find('li').at(1).simulate('click');

@@ -37,7 +37,7 @@ export class ExecutionGroupsComponent extends React.Component<
       showingDetails: props.stateService.includes('**.execution'),
     };
 
-    this.applicationRefreshUnsubscribe = props.application.executions.onRefresh(null, () => {
+    this.applicationRefreshUnsubscribe = props.application.executions.onRefresh(() => {
       ExecutionFilterService.updateExecutionGroups(props.application);
     });
 

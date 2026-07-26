@@ -48,20 +48,10 @@ describe('stage configs expose React components', () => {
           return `${key}: not registered directly`;
         }
 
-        const problems = [];
         if (!config.component) {
-          problems.push('missing component');
+          return `${key}: missing component`;
         }
-        if ((config as any).templateUrl) {
-          problems.push('has templateUrl');
-        }
-        if ((config as any).controller) {
-          problems.push('has controller');
-        }
-        if ((config as any).controllerAs) {
-          problems.push('has controllerAs');
-        }
-        return problems.length ? `${key}: ${problems.join(', ')}` : null;
+        return null;
       })
       .filter(Boolean);
 

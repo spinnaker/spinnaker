@@ -5,8 +5,6 @@ import { InfrastructureCaches, REST, SearchService } from '@spinnaker/core';
 import { GceCertificateReader } from '../certificate/certificate.reader';
 import { GceHealthCheckReader } from '../healthCheck/healthCheck.read.service';
 
-export const GOOGLE_CACHE_CACHECONFIGURER_SERVICE = 'spinnaker.gce.cache.initializer';
-export const name = GOOGLE_CACHE_CACHECONFIGURER_SERVICE; // for backwards compatibility
 export class GceCacheConfigurer {
   constructor() {
     const gceCertificateReader = new GceCertificateReader();

@@ -1,4 +1,4 @@
-import { UrlService } from '@uirouter/core';
+import { StateRegistry, UrlService } from '@uirouter/core';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -320,15 +320,6 @@ describe('bootstrapDeck', () => {
     runtime.dispose();
   });
 
-  it('does not use the AngularJS React hybrid router', () => {
-    const router = createConfiguredRouter();
-    const runtime = createDeckRuntime();
-
-    expect(createDeckRoot(router, runtime).props.children.type).toBe(UIRouterContext.Provider);
-
-    runtime.dispose();
-  });
-
   it('shows the transition overlay while a direct router transition is active', async () => {
     const root = createRoot(true);
     const pendingTransition = deferred<void>();
@@ -388,7 +379,7 @@ describe('bootstrapDeck', () => {
     expect(syncSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('hydrates cluster filter permalinks during direct bootstrap without an Angular injector', async () => {
+  it('hydrates cluster filter permalinks during bootstrap', async () => {
     const root = createRoot();
     const clusterKey = 'main-euc1-se-main01:deployment payments';
     window.location.hash = `#/applications/payments/clusters?clusters=${encodeURIComponent(
@@ -554,6 +545,21 @@ describe('bootstrapDeck', () => {
     plugins.resolve([]);
     await bootstrap;
     expect(routerPluginSpy).toHaveBeenCalled();
+  });
+
+  it('rejects plugin manifest failures before constructing or starting the router', async () => {
+    const root = createRoot();
+    const failure = new Error('plugin manifest unavailable');
+    const routerConstructionSpy = spyOn(StateRegistry.prototype, 'decorator').and.callThrough();
+    deckManifestSpy.and.returnValue(Promise.reject(failure));
+
+    await expectAsync(bootstrapDeck(root)).toBeRejectedWith(failure);
+
+    expect(deckManifestSpy).toHaveBeenCalledTimes(1);
+    expect(routerConstructionSpy).not.toHaveBeenCalled();
+    expect(renderSpy).not.toHaveBeenCalled();
+    expect(listenSpy).not.toHaveBeenCalled();
+    expect(syncSpy).not.toHaveBeenCalled();
   });
 
   it('continues startup after initializePlugins settles plugin attempt failures', async () => {
@@ -805,6 +811,32 @@ describe('bootstrapDeck', () => {
     expect(versionSchedulerCount()).toBe(2);
   });
 
+  it('provides bootstrap runtime services to detached modals until reset', async () => {
+    const root = createRoot();
+
+    class RuntimeModalComponent extends React.Component<IModalComponentProps> {
+      public static contextType = DeckRuntimeContext;
+      public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+      public componentDidMount(): void {
+        this.props.closeModal(this.context?.services || null);
+      }
+
+      public render(): React.ReactNode {
+        return null;
+      }
+    }
+
+    await bootstrapDeck(root);
+    const runtime = renderSpy.calls.mostRecent().args[0].props.value as DeckRuntime;
+
+    expect(await ReactModal.show(RuntimeModalComponent, {} as any, { animation: false })).toBe(runtime.services);
+
+    resetBootstrapDeckForTests();
+
+    expect(await ReactModal.show(RuntimeModalComponent, {} as any, { animation: false })).toBeNull();
+  });
+
   it('disposes the bootstrap-owned runtime during explicit reset', async () => {
     const root = createRoot();
     let runtime: DeckRuntime;
@@ -825,14 +857,16 @@ describe('bootstrapDeck', () => {
     const root = createRoot();
     const rejectionReasons: string[] = [];
     const OpenModal = (_props: IModalComponentProps) => null;
-    ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason));
-    ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason));
+    const modalSettlements = [
+      ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason)),
+      ReactModal.show(OpenModal, {} as any, { animation: false }).catch((reason) => rejectionReasons.push(reason)),
+    ];
     const dismissAll = spyOn(ReactModal, 'dismissAll').and.callThrough();
 
     await bootstrapDeck(root);
 
     resetBootstrapDeckForTests();
-    await Promise.resolve();
+    await Promise.all(modalSettlements);
 
     expect(dismissAll).toHaveBeenCalledOnceWith('runtime-disposed');
     expect(rejectionReasons).toEqual(['runtime-disposed', 'runtime-disposed']);
@@ -855,6 +889,7 @@ describe('bootstrapDeck', () => {
     const modalRoot = renderSpy.calls.mostRecent().args[1] as HTMLElement;
     document.body.appendChild(modalRoot);
     const dismissAll = spyOn(ReactModal, 'dismissAll').and.callThrough();
+    const setDefaultRuntimeServices = spyOn(ReactModal, 'setDefaultRuntimeServices').and.callThrough();
     const disposeRouter = spyOn(router, 'dispose').and.callThrough();
     const disposeRuntime = spyOn(runtime, 'dispose').and.callThrough();
 
@@ -867,6 +902,8 @@ describe('bootstrapDeck', () => {
     expect(monitorCleanup).toHaveBeenCalledBefore(disposeRuntime);
     expect(dismissAll).toHaveBeenCalledBefore(disposeRouter);
     expect(dismissAll).toHaveBeenCalledBefore(disposeRuntime);
+    expect(dismissAll).toHaveBeenCalledBefore(setDefaultRuntimeServices);
+    expect(setDefaultRuntimeServices).toHaveBeenCalledOnceWith(null);
   });
 
   it('clears runtime-scheduled and router-bound work on rebootstrap', async () => {

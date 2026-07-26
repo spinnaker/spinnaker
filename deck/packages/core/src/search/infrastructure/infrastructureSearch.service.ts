@@ -1,4 +1,3 @@
-import type { IDeferred, IQService } from 'angular';
 import { of as observableOf, Subject } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
 
@@ -8,6 +7,8 @@ import type { ISearchResult } from '../search.service';
 import { SearchStatus } from '../searchResult/SearchStatus';
 import type { SearchResultType } from '../searchResult/searchResultType';
 import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
+import type { Deferred } from '../../utils/deferred';
+import { createDeferred } from '../../utils/deferred';
 
 export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
   type: SearchResultType;
@@ -23,10 +24,10 @@ export interface IProviderResultFormatter {
 }
 
 export class InfrastructureSearcher {
-  private deferred: IDeferred<ISearchResultSet[]>;
+  private deferred: Deferred<ISearchResultSet[]>;
   public querySubject: Subject<string> = new Subject<string>();
 
-  constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate) {
+  constructor(private providerServiceDelegate: ProviderServiceDelegate) {
     this.querySubject
       .pipe(
         switchMap((query: string) => {
@@ -44,8 +45,8 @@ export class InfrastructureSearcher {
       });
   }
 
-  public query(q: string): PromiseLike<ISearchResultSet[]> {
-    this.deferred = this.$q.defer();
+  public query(q: string): Promise<ISearchResultSet[]> {
+    this.deferred = createDeferred<ISearchResultSet[]>();
     this.querySubject.next(q);
     return this.deferred.promise;
   }
@@ -54,14 +55,14 @@ export class InfrastructureSearcher {
     return searchResultTypeRegistry.get(category);
   }
 
-  public formatRouteResult(category: string, entry: ISearchResult): PromiseLike<string> {
+  public formatRouteResult(category: string, entry: ISearchResult): Promise<string> {
     return this.formatResult(category, entry, true);
   }
 
-  private formatResult(category: string, entry: ISearchResult, fromRoute = false): PromiseLike<string> {
+  private formatResult(category: string, entry: ISearchResult, fromRoute = false): Promise<string> {
     const type = searchResultTypeRegistry.get(category);
     if (!type) {
-      return this.$q.when('');
+      return Promise.resolve('');
     }
     let formatter: ISearchResultFormatter = type.displayFormatter;
 
@@ -73,17 +74,14 @@ export class InfrastructureSearcher {
         formatter = providerFormatter[category];
       }
     }
-    return this.$q.when(formatter(entry, fromRoute));
+    return Promise.resolve(formatter(entry, fromRoute));
   }
 }
 
 export class InfrastructureSearchService {
-  public static $inject = ['$q', 'providerServiceDelegate'];
-  constructor(private $q: IQService, private providerServiceDelegate: any) {}
+  constructor(private providerServiceDelegate: any) {}
 
   public getSearcher(): InfrastructureSearcher {
-    return new InfrastructureSearcher(this.$q, this.providerServiceDelegate);
+    return new InfrastructureSearcher(this.providerServiceDelegate);
   }
 }
-
-export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.service';

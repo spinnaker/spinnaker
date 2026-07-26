@@ -19,19 +19,19 @@ import type { IPipeline } from '../../domain';
 import type { ApplicationDataSource } from '../service/applicationDataSource';
 
 describe('ApplicationNavigation', () => {
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
   const currentStates = ['**.pipelines.**', '**.tasks.**'];
 
   beforeEach(() => {
-    $uiRouter = new UIRouterReact();
-    $uiRouter.plugin(servicesPlugin);
-    $uiRouter.plugin(hashLocationPlugin);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
     // Initialize current route
-    spyOn($uiRouter.stateService, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
+    spyOn(router.stateService, 'includes').and.callFake((substate: any) => currentStates.includes(substate));
     spyOn(StateMatcher.prototype, 'find').and.callFake(() => undefined as any);
   });
 
-  afterEach(() => $uiRouter.dispose());
+  afterEach(() => router.dispose());
 
   it('should render header, categories', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(
@@ -55,7 +55,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -77,7 +77,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -96,7 +96,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -111,7 +111,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,
@@ -143,7 +143,7 @@ describe('ApplicationNavigation', () => {
 
     const wrapper = mount(
       <RecoilRoot>
-        <UIRouterContext.Provider value={$uiRouter}>
+        <UIRouterContext.Provider value={router}>
           <ApplicationNavigation app={app} />
         </UIRouterContext.Provider>
       </RecoilRoot>,

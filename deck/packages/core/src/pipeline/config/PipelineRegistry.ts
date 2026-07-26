@@ -61,9 +61,6 @@ export class PipelineRegistry {
           stageType.manualExecutionComponent = stageType.manualExecutionComponent || parent.manualExecutionComponent;
 
           // Optional parameters
-          if (parent.executionConfigSections && !stageType.executionConfigSections) {
-            stageType.executionConfigSections = parent.executionConfigSections;
-          }
           if (parent.executionDetailsSections && !stageType.executionDetailsSections) {
             stageType.executionDetailsSections = parent.executionDetailsSections;
           }

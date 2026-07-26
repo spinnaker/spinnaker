@@ -41,9 +41,8 @@ registerApplicationState(
       },
     };
 
-    // a specific stage can be deep linked by providing either refId or stageId,
-    // which will be resolved to stage or step by the executionDetails controller to stage/step parameters,
-    // replacing the URL
+    // A specific stage can be deep linked by providing either refId or stageId. The execution details view resolves
+    // these to stage and step parameters and replaces the URL.
     const executionDetails: INestedState = {
       name: 'execution',
       url: '/:executionId?refId&stage&subStage&step&details&stageId',
