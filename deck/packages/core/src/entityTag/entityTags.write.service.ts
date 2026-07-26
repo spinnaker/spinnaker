@@ -8,7 +8,7 @@ export class EntityTagWriter {
     tag: IEntityTag,
     entityRef: IEntityRef,
     isNew: boolean,
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: `${isNew ? 'Create' : 'Update'} entity tag on ${entityRef.entityId}`,

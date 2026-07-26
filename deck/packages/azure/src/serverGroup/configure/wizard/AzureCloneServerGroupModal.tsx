@@ -62,6 +62,7 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
   };
 
   private _isUnmounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
   public static show(props: IAzureCloneServerGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
     return ReactModal.show(
       AzureCloneServerGroupModal,
@@ -103,7 +104,7 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
       templateSelectionText,
@@ -129,14 +130,17 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
+    this.clearApplicationRefreshSubscription();
   }
 
   private onTaskComplete = () => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.clearApplicationRefreshSubscription();
     if (this._isUnmounted) {
       return;
     }
@@ -165,6 +169,11 @@ export class AzureCloneServerGroupModalComponent extends React.Component<
         });
       }
     }
+  };
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private prepareCommand = () => {

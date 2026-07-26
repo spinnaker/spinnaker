@@ -5,7 +5,7 @@ ruleTester.run('import-sort', rule, {
   valid: [
     {
       code: `
-import angular from 'angular';
+import axios from 'axios';
 import 'jquery';
 import React, { useCallback, useState } from 'react';
 import * as Select from 'react-select';
@@ -29,11 +29,11 @@ import './styles.less';
     {
       code: `
 import React, {useState, useCallback} from 'react';
-import angular from 'angular';
+import axios from 'axios';
 import * as Select from 'react-select';
       `,
       output: `
-import angular from 'angular';
+import axios from 'axios';
 import React, { useCallback, useState } from 'react';
 import * as Select from 'react-select';
       `,
@@ -47,7 +47,7 @@ const {useState, useCallback} = React;
 
 import { Application } from 'core/application';
 import Bar from "./bar";
-import angular from 'angular';
+import axios from 'axios';
 // Some comment about react-select
 import * as Select from 'react-select';
 import {
@@ -62,7 +62,7 @@ import 'bootstrap.less';
       `,
       // For some strange reason eslint fixer writes additional newline characters
       output: `
-import angular from 'angular';
+import axios from 'axios';
 import 'jquery';
 import React from 'react';
 // Some comment about react-select

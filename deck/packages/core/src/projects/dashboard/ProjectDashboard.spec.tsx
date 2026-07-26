@@ -102,6 +102,8 @@ describe('<ProjectDashboard />', () => {
     expect(wrapper.find('h3').at(0).text()).toContain('Application Status');
     expect(wrapper.find('ProjectCluster').length).toBe(1);
     expect(wrapper.find('ProjectPipeline').length).toBe(1);
+    expect(wrapper.find('.project-pipeline').length).toBe(1);
+    expect(wrapper.find('project-pipeline').exists()).toBe(false);
 
     wrapper.unmount();
   });

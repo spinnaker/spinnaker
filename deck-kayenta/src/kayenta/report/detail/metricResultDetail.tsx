@@ -1,4 +1,4 @@
-import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import type { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import * as React from 'react';
 
 import MetricSetPairLoadStates from './metricSetPairLoadStates';

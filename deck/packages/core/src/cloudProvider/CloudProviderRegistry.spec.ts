@@ -1,5 +1,3 @@
-import { mock } from 'angular';
-
 import { CloudProviderRegistry } from './CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
 
@@ -20,15 +18,12 @@ describe('CloudProviderRegistry: API', function () {
   });
 
   describe('registration', function () {
-    it(
-      'registers providers',
-      mock.inject(function () {
-        expect(CloudProviderRegistry.getProvider(registrationTestProvider)).toBeNull();
-        const config = { name: 'a', key: 'a' };
-        CloudProviderRegistry.registerProvider(registrationTestProvider, config);
-        expect(CloudProviderRegistry.getProvider(registrationTestProvider)).toEqual(config);
-      }),
-    );
+    it('registers providers', function () {
+      expect(CloudProviderRegistry.getProvider(registrationTestProvider)).toBeNull();
+      const config = { name: 'a', key: 'a' };
+      CloudProviderRegistry.registerProvider(registrationTestProvider, config);
+      expect(CloudProviderRegistry.getProvider(registrationTestProvider)).toEqual(config);
+    });
   });
 
   describe('property lookup', function () {
@@ -64,25 +59,19 @@ describe('CloudProviderRegistry: API', function () {
       expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested').good).toBe('nice');
     });
 
-    it(
-      'returns falsy values',
-      mock.inject(function () {
-        CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
-        expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.falsy')).toBe(false);
-        expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.nully')).toBe(null);
-        expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.zero')).toBe(0);
-      }),
-    );
+    it('returns falsy values', function () {
+      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.falsy')).toBe(false);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.nully')).toBe(null);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'nested.zero')).toBe(0);
+    });
 
-    it(
-      'returns null when provider or property is not found',
-      mock.inject(function () {
-        CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
-        expect(CloudProviderRegistry.getValue('gce', 'a')).toBe(null);
-        expect(CloudProviderRegistry.getValue(lookupTestProvider, 'b')).toBe(null);
-        expect(CloudProviderRegistry.getValue(lookupTestProvider, 'a.b')).toBe(null);
-      }),
-    );
+    it('returns null when provider or property is not found', function () {
+      CloudProviderRegistry.registerProvider(lookupTestProvider, this.config);
+      expect(CloudProviderRegistry.getValue('gce', 'a')).toBe(null);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'b')).toBe(null);
+      expect(CloudProviderRegistry.getValue(lookupTestProvider, 'a.b')).toBe(null);
+    });
   });
 
   describe('hasValue', function () {

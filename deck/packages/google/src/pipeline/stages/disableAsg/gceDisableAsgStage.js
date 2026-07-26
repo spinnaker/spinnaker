@@ -2,8 +2,6 @@ import { Registry } from '@spinnaker/core';
 
 import { GceTargetServerGroupStageConfig } from '../googleStageConfig';
 
-export const GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE = 'spinnaker.gce.pipeline.stage..disableAsgStage';
-export const name = GOOGLE_PIPELINE_STAGES_DISABLEASG_GCEDISABLEASGSTAGE;
 export function registerGceDisableAsgStage() {
   Registry.pipeline.registerStage({
     provides: 'disableServerGroup',

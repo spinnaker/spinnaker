@@ -23,8 +23,6 @@ import {
 import { dcosServerGroupTransformer } from './serverGroup/transformer';
 import './validation/applicationName.validator';
 
-import './logo/dcos.logo.less';
-
 function dcosLoadBalancerTransformerFactory() {
   return dcosLoadBalancerTransformer;
 }

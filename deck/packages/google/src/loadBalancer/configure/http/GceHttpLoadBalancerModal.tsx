@@ -105,10 +105,7 @@ export class GceHttpLoadBalancerModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `${mode === 'edit' ? 'Updating' : 'Creating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal(),
-          () => props.dismissModal(),
-        ),
+        onDismiss: () => props.dismissModal(),
         onTaskComplete: () => {
           application.loadBalancers?.refresh?.();
           props.closeModal();

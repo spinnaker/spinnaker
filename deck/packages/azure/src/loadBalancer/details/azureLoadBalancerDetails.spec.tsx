@@ -1,10 +1,11 @@
 import { UISref } from '@uirouter/react';
+import { UIRouterReact } from '@uirouter/react';
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { BehaviorSubject } from 'rxjs';
 
-import { CollapsibleSection, LoadBalancerReader } from '@spinnaker/core';
+import { CollapsibleSection, createDeckRuntime, DeckRuntimeContext, LoadBalancerReader } from '@spinnaker/core';
 
 import {
   AzureLoadBalancerDetailsSection,
@@ -15,6 +16,20 @@ import {
 } from './azureLoadBalancerDetails';
 
 describe('AzureLoadBalancerDetails', () => {
+  let runtime: ReturnType<typeof createDeckRuntime>;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) => (
+    <DeckRuntimeContext.Provider value={runtime}>{children}</DeckRuntimeContext.Provider>
+  );
+  const mountWithRuntime = (component: React.ReactElement) => mount(component, { wrappingComponent: RuntimeWrapper });
+
+  beforeEach(() => {
+    runtime = createDeckRuntime(new UIRouterReact());
+  });
+
+  afterEach(() => {
+    runtime.dispose();
+  });
+
   function buildApp(loadBalancers: any[]) {
     return {
       loadBalancers: {
@@ -72,7 +87,7 @@ describe('AzureLoadBalancerDetails', () => {
 
     let wrapper: any;
     await act(async () => {
-      wrapper = mount(<TestComponent renderCount={0} />);
+      wrapper = mountWithRuntime(<TestComponent renderCount={0} />);
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
@@ -118,7 +133,7 @@ describe('AzureLoadBalancerDetails', () => {
 
     let wrapper: any;
     await act(async () => {
-      wrapper = mount(<TestComponent name="old-lb" />);
+      wrapper = mountWithRuntime(<TestComponent name="old-lb" />);
       await Promise.resolve();
     });
     await act(async () => {
@@ -175,7 +190,7 @@ describe('AzureLoadBalancerDetails', () => {
 
     let wrapper: any;
     await act(async () => {
-      wrapper = mount(<TestComponent />);
+      wrapper = mountWithRuntime(<TestComponent />);
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
     wrapper.update();
@@ -228,7 +243,7 @@ describe('AzureLoadBalancerDetails', () => {
 
     let wrapper: any;
     await act(async () => {
-      wrapper = mount(<TestComponent />);
+      wrapper = mountWithRuntime(<TestComponent />);
       await Promise.resolve();
     });
     const consoleError = spyOn(console, 'error');
@@ -305,6 +320,51 @@ describe('AzureLoadBalancerDetails', () => {
       { id: 'sg-2', name: 'a-firewall', account: 'test-account', region: 'westus' },
       { id: 'sg-1', name: 'z-firewall', account: 'test-account', region: 'westus' },
     ] as any);
+  });
+
+  it('uses the load balancer and security group readers from the runtime provider', async () => {
+    const summary = {
+      account: 'test-account',
+      name: 'fnord-frontend',
+      provider: 'azure',
+      region: 'westus',
+    } as any;
+    const status$ = new BehaviorSubject({
+      status: 'FETCHED',
+      loaded: true,
+      lastRefresh: 1,
+      data: [summary],
+    });
+    const app = {
+      getDataSource: jasmine.createSpy('getDataSource').and.returnValue({
+        status$,
+        refresh: jasmine.createSpy('refresh'),
+      }),
+      loadBalancers: { data: [summary] },
+    } as any;
+    const getLoadBalancerDetails = spyOn(LoadBalancerReader.prototype, 'getLoadBalancerDetails').and.resolveTo([
+      { name: 'fnord-frontend', securityGroups: ['firewall-id'] },
+    ] as any);
+    const getApplicationSecurityGroup = spyOn(
+      runtime.services.securityGroupReader,
+      'getApplicationSecurityGroup',
+    ).and.returnValue({ id: 'firewall-id', name: 'firewall' } as any);
+
+    function TestComponent() {
+      useAzureLoadBalancerDetails({ app, loadBalancerParams: params, autoClose: () => undefined } as any);
+      return null;
+    }
+
+    let wrapper: any;
+    await act(async () => {
+      wrapper = mountWithRuntime(<TestComponent />);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(getLoadBalancerDetails.calls.mostRecent().object).toBe(runtime.services.loadBalancerReader);
+    expect(getApplicationSecurityGroup).toHaveBeenCalledWith(app, 'test-account', 'westus', 'firewall-id');
+    wrapper.unmount();
   });
 
   it('closes the details panel when no matching summary exists', async () => {

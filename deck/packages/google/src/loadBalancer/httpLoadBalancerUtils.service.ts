@@ -37,5 +37,3 @@ export class GceHttpLoadBalancerUtils {
     return uniq(normalizedLoadBalancerNames);
   }
 }
-
-export const GCE_HTTP_LOAD_BALANCER_UTILS = 'spinnaker.gce.httpLoadBalancerUtils.service';

@@ -13,7 +13,7 @@ interface IAppengineServerGroupWriteJob extends IJob {
 }
 
 export class AppengineServerGroupWriter {
-  public cloneServerGroup(command: IAppengineServerGroupCommand, application: Application): PromiseLike<ITask> {
+  public cloneServerGroup(command: IAppengineServerGroupCommand, application: Application): Promise<ITask> {
     command.type = 'createServerGroup';
 
     return TaskExecutor.executeTask({
@@ -23,7 +23,7 @@ export class AppengineServerGroupWriter {
     });
   }
 
-  public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): PromiseLike<ITask> {
+  public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): Promise<ITask> {
     const job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');
 
     const command: ITaskCommand = {
@@ -35,7 +35,7 @@ export class AppengineServerGroupWriter {
     return TaskExecutor.executeTask(command);
   }
 
-  public stopServerGroup(serverGroup: IAppengineServerGroup, application: Application): PromiseLike<ITask> {
+  public stopServerGroup(serverGroup: IAppengineServerGroup, application: Application): Promise<ITask> {
     const job = this.buildJob(serverGroup, application, 'stopAppEngineServerGroup');
 
     const command: ITaskCommand = {
@@ -51,7 +51,7 @@ export class AppengineServerGroupWriter {
     serverGroup: IAppengineServerGroup,
     application: Application,
     params: Partial<IAppengineServerGroupWriteJob> = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const job = { ...params, ...this.buildJob(serverGroup, application, 'enableServerGroup') };
 
     return TaskExecutor.executeTask({
@@ -65,7 +65,7 @@ export class AppengineServerGroupWriter {
     serverGroup: IAppengineServerGroup,
     application: Application,
     params: Partial<IAppengineServerGroupWriteJob> = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const job = { ...params, ...this.buildJob(serverGroup, application, 'disableServerGroup') };
 
     return TaskExecutor.executeTask({
@@ -79,7 +79,7 @@ export class AppengineServerGroupWriter {
     serverGroup: IAppengineServerGroup,
     application: Application,
     params: Partial<IAppengineServerGroupWriteJob> = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const job = { ...params, ...this.buildJob(serverGroup, application, 'destroyServerGroup') };
 
     return TaskExecutor.executeTask({

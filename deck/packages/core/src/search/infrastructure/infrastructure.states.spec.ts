@@ -35,9 +35,6 @@ describe('infrastructure states', () => {
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
     expect(errorBoundary.prop('children').type.displayName).toBe(SearchV1.displayName);
     expect(view.$type).toBe('react');
-    expect(view.controller).toBeUndefined();
-    expect(view.template).toBeUndefined();
-    expect(view.templateUrl).toBeUndefined();
     expect(searchState.url).toContain('&route');
     expect(searchState.params.route.dynamic).toBe(true);
     router.dispose();
@@ -53,9 +50,6 @@ describe('infrastructure states', () => {
     expect(errorBoundary.type()).toBe(SpinErrorBoundary);
     expect(errorBoundary.prop('children').type.displayName).toBe(SearchV2.displayName);
     expect(view.$type).toBe('react');
-    expect(view.controller).toBeUndefined();
-    expect(view.template).toBeUndefined();
-    expect(view.templateUrl).toBeUndefined();
     router.dispose();
   });
 });

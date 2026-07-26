@@ -59,7 +59,7 @@ export class KubernetesManifestCommandBuilder {
     sourceManifest?: any,
     sourceMoniker?: IMoniker,
     sourceAccount?: string,
-  ): PromiseLike<IKubernetesManifestCommandData> {
+  ): Promise<IKubernetesManifestCommandData> {
     if (sourceManifest != null && has(sourceManifest, ['metadata', 'annotations', LAST_APPLIED_CONFIGURATION])) {
       sourceManifest = load(sourceManifest.metadata.annotations[LAST_APPLIED_CONFIGURATION]);
     }

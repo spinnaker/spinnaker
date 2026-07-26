@@ -2,11 +2,11 @@ import classNames from 'classnames';
 import * as React from 'react';
 
 import { NativeTableHeader } from './nativeTableHeader';
-import { ITableColumn } from './tableColumn';
+import type { ITableColumn } from './tableColumn';
 
 export interface INativeTableProps<T> {
   rows: T[];
-  columns: Array<ITableColumn<T>>;
+  columns: ITableColumn<T>[];
   rowKey: (row: T) => string;
   tableBodyClassName?: string;
   headerClassName?: string;

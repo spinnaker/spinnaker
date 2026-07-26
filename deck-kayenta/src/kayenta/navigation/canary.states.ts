@@ -15,7 +15,7 @@ import type { ApplicationStateProvider, INestedState } from '@spinnaker/core';
 import '../canary.dataSource.bridge';
 import { CanarySettings } from '../canary.settings';
 
-export function registerStates($uiRouter: UIRouter, applicationStateProvider: ApplicationStateProvider) {
+export function registerStates(router: UIRouter, applicationStateProvider: ApplicationStateProvider) {
   const configDetail: INestedState = {
     name: 'configDetail',
     url: '/:id?copy&new',
@@ -136,20 +136,9 @@ export function registerStates($uiRouter: UIRouter, applicationStateProvider: Ap
   applicationStateProvider.addChildState(canaryRoot);
 }
 
-export function registerTransitionHooks($uiRouter: UIRouter) {
-  // When leaving a config detail state, clear that config.
-  $uiRouter.transitionService.onBefore(
-    {
-      from: '**.configDetail.**',
-      to: (state) => !state.name.includes('configDetail'),
-    },
-    () => {
-      canaryStore.dispatch(Creators.clearSelectedConfig());
-    },
-  );
-
+export function registerTransitionHooks(router: UIRouter) {
   // Prompts confirmation for page navigation if config hasn't been saved.
-  $uiRouter.transitionService.onBefore(
+  router.transitionService.onBefore(
     {},
     () => {
       const state = canaryStore.getState();
@@ -162,8 +151,19 @@ export function registerTransitionHooks($uiRouter: UIRouter) {
     { priority: 10 },
   );
 
+  // When leaving a config detail state, clear that config.
+  router.transitionService.onBefore(
+    {
+      from: '**.configDetail.**',
+      to: (state) => !state.name.includes('configDetail'),
+    },
+    () => {
+      canaryStore.dispatch(Creators.clearSelectedConfig());
+    },
+  );
+
   // Prompts confirmation for page reload if config hasn't been saved.
-  $uiRouter.transitionService.onEnter({ to: '**.configDetail.**' }, () => {
+  router.transitionService.onEnter({ to: '**.configDetail.**' }, () => {
     window.onbeforeunload = () => {
       const state = canaryStore.getState();
       // Must return `null` if reload should be allowed.
@@ -172,11 +172,11 @@ export function registerTransitionHooks($uiRouter: UIRouter) {
   });
 
   // Clears reload hook when leaving canary config view.
-  $uiRouter.transitionService.onExit({ from: '**.configDetail.**' }, () => {
+  router.transitionService.onExit({ from: '**.configDetail.**' }, () => {
     window.onbeforeunload = null;
   });
 
-  $uiRouter.transitionService.onSuccess({ to: '**.report.**' }, (transition: Transition) => {
+  router.transitionService.onSuccess({ to: '**.report.**' }, (transition: Transition) => {
     if (transition.params('from').count !== transition.params('to').count) {
       canaryStore.dispatch(Creators.setExecutionsCount({ count: transition.params('to').count }));
     }

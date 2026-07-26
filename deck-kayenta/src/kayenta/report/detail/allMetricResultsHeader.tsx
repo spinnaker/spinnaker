@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
+import type { ICanaryJudgeScore, ICanaryScoreThresholds } from 'kayenta/domain';
 import * as React from 'react';
 
 import { mapGroupToColor } from './colors';

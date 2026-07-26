@@ -50,7 +50,7 @@ const saveConfigEpic = (uiRouter: UIRouter) => (
 ) =>
   action$.filter(typeMatches(Actions.SAVE_CONFIG_REQUEST)).concatMap(() => {
     const config = mapStateToConfig(store.getState());
-    let saveAction: PromiseLike<ICanaryConfigUpdateResponse>;
+    let saveAction: Promise<ICanaryConfigUpdateResponse>;
     if (config.isNew) {
       delete config.isNew;
       saveAction = createCanaryConfig(config);

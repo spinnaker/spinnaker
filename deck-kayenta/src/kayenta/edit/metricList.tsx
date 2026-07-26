@@ -1,14 +1,15 @@
 import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryMetricConfig } from 'kayenta/domain';
+import type { ICanaryMetricConfig } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
-import { ITableColumn, NativeTable } from 'kayenta/layout/table';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ITableColumn } from 'kayenta/layout/table';
+import { NativeTable } from 'kayenta/layout/table';
+import type { ICanaryState } from 'kayenta/reducers';
 import { cloneDeep } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import { Tooltip } from '@spinnaker/core';
 
@@ -80,7 +81,7 @@ function MetricList({
   metricStore,
   disableEdit,
 }: IMetricListStateProps & IMetricListDispatchProps) {
-  const columns: Array<ITableColumn<ICanaryMetricConfig>> = [
+  const columns: ITableColumn<ICanaryMetricConfig>[] = [
     {
       label: 'Metric Name',
       getContent: (metric) => <span>{metric.name || '(new)'}</span>,

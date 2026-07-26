@@ -50,6 +50,7 @@ export class ServerGroupWizardComponent extends React.Component<
   };
 
   private _isUnmounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
 
   /*     private serverGroupWriter: ServerGroupWriter; */
   public static show(
@@ -79,18 +80,20 @@ export class ServerGroupWizardComponent extends React.Component<
         title: `${
           props.command.command.viewState.submitButtonLabel === 'Create' ? 'Creating' : 'Updating'
         } your Server Group`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
   }
 
   private onTaskComplete = () => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   protected onApplicationRefresh = (): void => {
+    this.clearApplicationRefreshSubscription();
     if (this._isUnmounted) {
       return;
     }
@@ -123,6 +126,16 @@ export class ServerGroupWizardComponent extends React.Component<
         this.props.stateService.go(transitionTo, newStateParams);
       }
     }
+  };
+
+  public componentWillUnmount(): void {
+    this._isUnmounted = true;
+    this.clearApplicationRefreshSubscription();
+  }
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private submit = (c: ICloudrunServerGroupCommandData): void => {

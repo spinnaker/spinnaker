@@ -14,7 +14,7 @@ export interface IPipelineGraphLink {
   child: IPipelineGraphNode;
   isHighlighted?: boolean;
   line: string;
-  linkClass?: string; // Added after the fact in PipelineGraphDirective
+  linkClass?: string;
   parent: IPipelineGraphNode;
 }
 
@@ -22,7 +22,7 @@ export interface IPipelineGraphNode {
   childLinks: IPipelineGraphLink[];
   children: IPipelineGraphNode[];
   color?: string;
-  height?: number; // Added after the fact in PipelineGraphDirective
+  height?: number;
   id: string | number;
   index?: number;
   leaf?: boolean;
@@ -33,9 +33,9 @@ export interface IPipelineGraphNode {
   placeholder?: boolean;
   root?: boolean;
   graphRowOverride?: number;
-  row?: number; // Added after the fact in PipelineGraphDirective
-  x?: number; // Added after the fact in PipelineGraphDirective
-  y?: number; // Added after the fact in PipelineGraphDirective
+  row?: number;
+  x?: number;
+  y?: number;
 
   // PipelineGraphComponent conflates the two node types, so adding as optional here
   // Config node parameters
@@ -43,7 +43,7 @@ export interface IPipelineGraphNode {
   hasWarnings?: boolean;
   isActive: boolean;
   isHighlighted: boolean;
-  lastPhase?: number; // Added after the fact in PipelineGraphDirective
+  lastPhase?: number;
   phase?: number;
   section?: string;
   warnings?: { messages: string[] };

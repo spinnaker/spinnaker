@@ -6,7 +6,7 @@ import { ServerGroupReader } from '@spinnaker/core';
 
 import type { IAppengineLoadBalancer, IAppengineServerGroup } from '../../domain';
 
-function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<IAppengineServerGroup> {
+function extractServerGroupSummary(props: IServerGroupDetailsProps): Promise<IAppengineServerGroup> {
   const { app, serverGroup } = props;
   return app.ready().then(() => {
     let summary: IAppengineServerGroup = app.serverGroups.data.find((candidate: IAppengineServerGroup) => {

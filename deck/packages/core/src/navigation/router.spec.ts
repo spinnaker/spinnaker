@@ -257,7 +257,7 @@ describe('configureRouter', () => {
     expect(router.stateService.current.name).toBe('home.registeredRoot');
   });
 
-  it('provides state change events without an Angular injector', async () => {
+  it('provides state change events', async () => {
     window.location.hash = '';
     registerRootState((stateConfig) => stateConfig.addToRootState({ name: 'registeredRoot', url: '/registered-root' }));
 

@@ -10,7 +10,7 @@ export class EvaluateCloudFormationChangeSetExecutionService {
     execution: IExecution,
     stage: IExecutionStage,
     changeSetExecutionChoice: string,
-  ): PromiseLike<void> {
+  ): Promise<void> {
     const matcher = (result: IExecution) => {
       const match = result.stages.find((test: { id: any }) => test.id === stage.id);
       return match && match.status !== 'RUNNING';

@@ -16,7 +16,6 @@ export class TaskReason extends React.Component<ITaskReasonProps> {
             className="form-control"
             value={this.props.reason}
             onChange={(event) => this.props.onChange(event.target.value)}
-            ng-model="vm.command.reason"
             rows={3}
             placeholder={
               this.props.placeholder ||

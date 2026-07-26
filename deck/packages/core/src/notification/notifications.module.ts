@@ -3,8 +3,6 @@ import { extensionNotificationConfig } from './extensionNotificationConfig';
 import { BUILTIN_NOTIFICATION_KEYS } from './notification.types';
 import { Registry } from '../registry';
 
-export const CORE_NOTIFICATION_NOTIFICATIONS_MODULE = 'spinnaker.core.notifications';
-
 const normalizedBuiltinNotificationKeys = new Set(
   Array.from(BUILTIN_NOTIFICATION_KEYS, (notificationType) => notificationType.toLowerCase()),
 );

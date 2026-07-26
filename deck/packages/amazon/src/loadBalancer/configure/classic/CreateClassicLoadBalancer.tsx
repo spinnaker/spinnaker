@@ -46,7 +46,7 @@ export class CreateClassicLoadBalancerComponent extends React.Component<
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
   public static show(
@@ -94,7 +94,7 @@ export class CreateClassicLoadBalancerComponent extends React.Component<
     return certificateId;
   }
 
-  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): PromiseLike<void> {
+  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): Promise<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         listener.sslCertificateId = this.certificateIdAsARN(
@@ -137,11 +137,12 @@ export class CreateClassicLoadBalancerComponent extends React.Component<
   }
 
   protected onApplicationRefresh(values: IAmazonClassicLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
     if (this._isUnmounted) {
       return;
     }
 
-    this.refreshUnsubscribe = undefined;
     this.props.dismissModal();
     this.setState({ taskMonitor: undefined });
     const newStateParams = {
@@ -161,14 +162,15 @@ export class CreateClassicLoadBalancerComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
   }
 
   private onTaskComplete(values: IAmazonClassicLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(() => this.onApplicationRefresh(values));
     this.props.app.loadBalancers.refresh();
-    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
   private submit = (values: IAmazonClassicLoadBalancerUpsertCommand): void => {
@@ -186,7 +188,7 @@ export class CreateClassicLoadBalancerComponent extends React.Component<
       const taskMonitor = new TaskMonitor({
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 

@@ -1,4 +1,4 @@
-import type { Ng1StateDeclaration } from '@uirouter/angularjs';
+import type { StateDeclaration } from '@uirouter/core';
 import { find, isUndefined, omit, omitBy, sortBy } from 'lodash';
 import { Duration } from 'luxon';
 
@@ -94,13 +94,7 @@ export class RecentHistoryService {
     }
   }
 
-  /**
-   * Used to include additional fields needed by display formatters that might not be present in $stateParams,
-   * but are resolved in a controller when the view loads
-   * See instanceDetails.controller.js for an example
-   * @param type
-   * @param extraData
-   */
+  /** Adds fields resolved after navigation that are needed by recent-history display formatters. */
   public static addExtraDataToLatest(type: string, extraData: any): void {
     const items: IRecentHistoryEntry[] = this.getItems(type);
     if (items.length) {
@@ -130,7 +124,7 @@ export class RecentHistoryService {
   }
 }
 
-export function recordRecentHistory(toState: Ng1StateDeclaration, toParams: any): void {
+export function recordRecentHistory(toState: StateDeclaration, toParams: any): void {
   const history = toState.data?.history;
   if (history) {
     const params = omit(toParams || {}, ['debug', 'vis', 'trace']);

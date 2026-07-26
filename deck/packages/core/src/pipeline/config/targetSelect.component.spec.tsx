@@ -1,14 +1,9 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import * as TargetSelectExports from './targetSelect.component';
+import * as TargetSelectExports from './TargetSelect';
 
 describe('TargetSelect', () => {
-  it('does not export Angular wrapper metadata', () => {
-    expect('targetSelectComponent' in TargetSelectExports).toBe(false);
-    expect('TARGET_SELECT_COMPONENT' in TargetSelectExports).toBe(false);
-  });
-
   it('renders the native selector and updates the model target', () => {
     const onChange = jasmine.createSpy('onChange');
     const model = { target: 'current_asg_dynamic' };

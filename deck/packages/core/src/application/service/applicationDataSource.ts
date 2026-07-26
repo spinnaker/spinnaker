@@ -1,4 +1,3 @@
-import type { IScope } from 'angular';
 import type { Observable } from 'rxjs';
 import {
   BehaviorSubject,
@@ -27,10 +26,10 @@ import { getDirectRouter } from '../../navigation/directRouter';
 import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
 import { FirewallLabels } from '../../securityGroup/label/FirewallLabels';
-import { toIPromise } from '../../utils';
+import { toPromise } from '../../utils';
 import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
-function resolvePromise<T>(value?: T): PromiseLike<T> {
+function resolvePromise<T>(value?: T): Promise<T> {
   return Promise.resolve(value);
 }
 
@@ -460,33 +459,27 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
   /**
    * A method that allows another method to be called the next time the data source refreshes
    *
-   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
-   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param callback the method to call the next time the data source refreshes
    * @param onError (optional) a method to call if the data source refresh fails
    * @return a method to call to unsubscribe
    */
-  public onNextRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
+  public onNextRefresh(callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
     const subscription = this.nextRefresh$.subscribe(
       (data) => callback(data),
       (error) => onError && onError(error),
     );
 
-    $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();
   }
 
   /**
-   * A method that allows another method to be called the whenever the data source refreshes. The subscription will be
-   * automatically disposed when the $scope is destroyed.
+   * A method that allows another method to be called whenever the data source refreshes.
    *
-   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
-   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param callback the method to call the next time the data source refreshes
    * @param onError (optional) a method to call if the data source refresh fails
    * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: IScope, callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
+  public onRefresh(callback: (data?: any) => void, onError?: (err?: any) => void): () => void {
     const failures$ = this.refreshFailure$.pipe(
       mergeMap(({ error }) => {
         onError && onError(error);
@@ -496,7 +489,6 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     const subscription = observableMerge(this.data$.pipe(skip(1)), failures$).subscribe((data) => callback(data));
 
-    $scope && $scope.$on('$destroy', () => subscription.unsubscribe());
     return () => subscription.unsubscribe();
   }
 
@@ -510,14 +502,14 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    *
    * The promise will reject if the data source has failed to load, or fails to load the next time it tries to load
    *
-   * @returns {PromiseLike<T>}
+   * @returns {Promise<T>}
    */
-  public ready(): PromiseLike<T> {
+  public ready(): Promise<T> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       return resolvePromise(this.data);
     }
 
-    return toIPromise(this.nextRefresh$);
+    return toPromise(this.nextRefresh$);
   }
 
   /**
@@ -561,7 +553,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    * @param forceRefresh
    * @returns {any}
    */
-  public refresh(forceRefresh?: boolean): PromiseLike<any> {
+  public refresh(forceRefresh?: boolean): Promise<any> {
     this.debug(`refresh(${forceRefresh})`);
     if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;
@@ -569,7 +561,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
       return resolvePromise(this.data);
     }
 
-    const promise = toIPromise(this.data$.pipe(skip(1), take(1)));
+    const promise = toPromise(this.data$.pipe(skip(1), take(1)));
 
     if (this.loading && !forceRefresh) {
       diagnosticLogger.info(`${this.key} still loading, skipping refresh`);

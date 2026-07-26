@@ -40,8 +40,6 @@
     "@types/node": "16.4.13",
     "@typescript-eslint/eslint-plugin": "8.32.0",
     "@typescript-eslint/parser": "8.32.0",
-    "angular": "1.8.3",
-    "angular-mocks": "1.8.3",
     "babel-loader": "8.1.0",
     "buffer": "^6.0.3",
     "enzyme": "3.11.0",

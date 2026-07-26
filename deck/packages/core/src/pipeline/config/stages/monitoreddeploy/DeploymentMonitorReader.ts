@@ -7,7 +7,7 @@ export interface IDeploymentMonitorDefinition {
 }
 
 export class DeploymentMonitorReader {
-  public static getDeploymentMonitors(): PromiseLike<IDeploymentMonitorDefinition[]> {
+  public static getDeploymentMonitors(): Promise<IDeploymentMonitorDefinition[]> {
     return REST('/capabilities/deploymentMonitors').useCache(true).get();
   }
 }

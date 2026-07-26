@@ -70,7 +70,7 @@ export class CloudFoundryLoadBalancerDetails extends React.Component<
       this.setState({
         refreshListenerUnsubscribe: this.props.app
           .getDataSource('loadBalancers')
-          .onRefresh(null, () => this.extractLoadBalancer()),
+          .onRefresh(() => this.extractLoadBalancer()),
       });
     } else {
       this.setState({

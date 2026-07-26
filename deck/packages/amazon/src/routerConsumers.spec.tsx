@@ -1,5 +1,3 @@
-import { TaskMonitor } from '@spinnaker/core';
-
 import { CreateApplicationLoadBalancerComponent } from './loadBalancer/configure/application/CreateApplicationLoadBalancer';
 import { CreateClassicLoadBalancerComponent } from './loadBalancer/configure/classic/CreateClassicLoadBalancer';
 import { CreateNetworkLoadBalancerComponent } from './loadBalancer/configure/network/CreateNetworkLoadBalancer';
@@ -8,13 +6,6 @@ import { AmazonSecurityGroupModalComponent } from './securityGroup/configure/Ama
 import { AmazonCloneServerGroupModalComponent } from './serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 
 describe('Amazon routed modal consumers', () => {
-  beforeEach(() => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: jasmine.createSpy('dismiss'),
-      result: Promise.resolve(),
-    } as any);
-  });
-
   function stateService(includedState: string) {
     return {
       go: jasmine.createSpy('go'),
@@ -48,6 +39,48 @@ describe('Amazon routed modal consumers', () => {
         region: 'eu-west-1',
         vpcId: 'vpc-1',
       });
+    });
+  });
+
+  [
+    ['application load balancer', CreateApplicationLoadBalancerComponent, 'loadBalancers'],
+    ['classic load balancer', CreateClassicLoadBalancerComponent, 'loadBalancers'],
+    ['network load balancer', CreateNetworkLoadBalancerComponent, 'loadBalancers'],
+    ['Lambda function', CreateLambdaFunctionComponent, 'functions'],
+  ].forEach(([type, Component, dataSourceName]: [string, any, string]) => {
+    it(`owns the ${type} refresh subscription across replacement and unmount`, () => {
+      const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+      const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+      const callbacks: Array<() => void> = [];
+      const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+        callbacks.push(callback);
+        return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+      });
+      const refresh = jasmine.createSpy('refresh');
+      const state = stateService('');
+      const modal = Object.create(Component.prototype) as any;
+      modal.props = {
+        app: { [dataSourceName]: { onNextRefresh, refresh } },
+        dismissModal: jasmine.createSpy('dismissModal'),
+        stateService: state,
+      };
+      modal.state = {};
+      modal.setState = jasmine.createSpy('setState');
+
+      modal.onTaskComplete({});
+
+      expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+      modal.onTaskComplete({});
+
+      expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+      modal.componentWillUnmount();
+      callbacks[1]();
+
+      expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(modal.refreshUnsubscribe).toBeUndefined();
+      expect(state.go).not.toHaveBeenCalled();
     });
   });
 
@@ -137,5 +170,38 @@ describe('Amazon routed modal consumers', () => {
       region: 'eu-west-1',
       serverGroup: 'fnord-main-v042',
     });
+  });
+
+  it('owns the clone server group refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const state = stateService('**.clusters');
+    const modal = new AmazonCloneServerGroupModalComponent({
+      application: { name: 'fnord', serverGroups: { onNextRefresh, refresh } },
+      command: { credentials: 'test-account', region: 'eu-west-1', viewState: { requiresTemplateSelection: true } },
+      dismissModal: jasmine.createSpy('dismissModal'),
+      stateService: state,
+    } as any) as any;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.refreshUnsubscribe).toBeUndefined();
+    expect(state.go).not.toHaveBeenCalled();
   });
 });

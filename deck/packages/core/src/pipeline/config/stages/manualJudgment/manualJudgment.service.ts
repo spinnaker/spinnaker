@@ -11,7 +11,7 @@ export class ManualJudgmentService {
     stage: IExecutionStage,
     judgmentStatus: string,
     judgmentInput?: string,
-  ): PromiseLike<void> {
+  ): Promise<void> {
     const { executionService } = this;
     const matcher = (result: IExecution) => {
       const match = result.stages.find((test) => test.id === stage.id);

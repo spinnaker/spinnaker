@@ -4,10 +4,8 @@ import _ from 'lodash';
 
 import { GCEProviderSettings } from '../gce.settings';
 
-export const GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.gce.loadBalancer.transformer';
-export const name = GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
 export class GceLoadBalancerTransformer {
-  constructor($q = { when: (value) => Promise.resolve(value) }) {
+  constructor(promiseService) {
     function updateHealthCounts(container) {
       const instances = container.instances;
       const serverGroups = container.serverGroups || [container];
@@ -69,7 +67,7 @@ export class GceLoadBalancerTransformer {
         loadBalancer.backendService.healthCheck.interval = loadBalancer.backendService.healthCheck.checkIntervalSec;
       }
       updateHealthCounts(loadBalancer);
-      return $q.when(loadBalancer);
+      return promiseService.resolve(loadBalancer);
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {

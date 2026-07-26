@@ -2,9 +2,9 @@ import { REST } from '../api/ApiService';
 import type { ISubnet } from '../domain';
 
 export class SubnetReader {
-  private static cache: PromiseLike<ISubnet[]>;
+  private static cache: Promise<ISubnet[]>;
 
-  public static listSubnets(): PromiseLike<ISubnet[]> {
+  public static listSubnets(): Promise<ISubnet[]> {
     if (this.cache) {
       return this.cache;
     }
@@ -23,17 +23,17 @@ export class SubnetReader {
     return this.cache;
   }
 
-  public static listSubnetsByProvider(cloudProvider: string): PromiseLike<ISubnet[]> {
+  public static listSubnetsByProvider(cloudProvider: string): Promise<ISubnet[]> {
     return REST('/subnets').path(cloudProvider).get();
   }
 
-  public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): PromiseLike<ISubnet> {
+  public static getSubnetByIdAndProvider(subnetId: string, cloudProvider = 'aws'): Promise<ISubnet> {
     return this.listSubnetsByProvider(cloudProvider).then((subnets: ISubnet[]) => {
       return subnets.find((subnet) => subnet.id === subnetId);
     });
   }
 
-  public static getSubnetPurpose(subnetId: string): PromiseLike<string> {
+  public static getSubnetPurpose(subnetId: string): Promise<string> {
     return this.listSubnets().then((subnets: ISubnet[]) => {
       const match: ISubnet = subnets.find((test) => test.id === subnetId);
       return match ? match.purpose : null;

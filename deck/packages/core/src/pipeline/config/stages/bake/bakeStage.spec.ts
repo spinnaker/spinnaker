@@ -2,7 +2,7 @@ import { ManualExecutionBake } from './ManualExecutionBake';
 import { bakeStage } from './bakeStage';
 
 describe('Bake stage registration', () => {
-  it('exports the Bake stage config without Angular-only fields', () => {
+  it('exports the Bake stage config', () => {
     expect(bakeStage).toEqual(
       jasmine.objectContaining({
         useBaseProvider: true,
@@ -13,7 +13,5 @@ describe('Bake stage registration', () => {
         manualExecutionComponent: ManualExecutionBake,
       }),
     );
-    expect((bakeStage as any).templateUrl).toBeUndefined();
-    expect((bakeStage as any).controller).toBeUndefined();
   });
 });

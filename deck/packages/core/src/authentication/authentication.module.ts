@@ -3,8 +3,6 @@ import { SETTINGS } from '../config/settings';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
 
-export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
-
 let authenticationScheduler: IScheduler = null;
 let authenticationInFlight: Promise<boolean> = null;
 let authenticationGeneration = 0;
