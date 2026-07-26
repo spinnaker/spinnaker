@@ -11,6 +11,10 @@ export class AwsFunctionTransformer {
     return normalizedFunctionDef;
   }
 
+  public normalizeFunctionSet(functions: IAmazonFunction[]): IAmazonFunction[] {
+    return functions.map((functionDef) => this.normalizeFunction(functionDef));
+  }
+
   public convertFunctionForEditing = (functionDef: IAmazonFunction): IAmazonFunctionUpsertCommand => ({
     ...functionDef,
     envVariables: functionDef.environment ? functionDef.environment.variables : {},

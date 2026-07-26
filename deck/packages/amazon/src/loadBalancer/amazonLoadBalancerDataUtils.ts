@@ -1,5 +1,4 @@
 import { flatten } from 'lodash';
-import { $q } from 'ngimport';
 
 import type { Application, ILoadBalancer } from '@spinnaker/core';
 import { AccountService } from '@spinnaker/core';
@@ -41,24 +40,25 @@ export class AmazonLoadBalancerDataUtils {
     application: Application,
     serverGroup: IAmazonServerGroup,
   ): PromiseLike<ITargetGroup[]> {
-    return $q
-      .all([AccountService.getAccountDetails(serverGroup.account), application.getDataSource('loadBalancers').ready()])
-      .then((data) => {
-        const awsAccount = (data[0] && data[0].awsAccount) || serverGroup.account;
-        const loadBalancers: IAmazonApplicationLoadBalancer[] = (application.loadBalancers
-          .data as ILoadBalancer[]).filter(
-          (lb) => lb.loadBalancerType === 'application' || lb.loadBalancerType === 'network',
-        ) as IAmazonApplicationLoadBalancer[];
-        const targetGroups = serverGroup.targetGroups
-          .map((targetGroupName: string) => {
-            const allTargetGroups = flatten(loadBalancers.map((lb) => lb.targetGroups || []));
-            const targetGroup = allTargetGroups.find(
-              (tg) => tg.name === targetGroupName && tg.region === serverGroup.region && tg.account === awsAccount,
-            );
-            return this.buildTargetGroup(targetGroup, serverGroup);
-          })
-          .filter((tg) => tg);
-        return targetGroups;
-      });
+    return Promise.all([
+      AccountService.getAccountDetails(serverGroup.account),
+      application.getDataSource('loadBalancers').ready(),
+    ]).then((data) => {
+      const awsAccount = (data[0] && data[0].awsAccount) || serverGroup.account;
+      const loadBalancers: IAmazonApplicationLoadBalancer[] = (application.loadBalancers
+        .data as ILoadBalancer[]).filter(
+        (lb) => lb.loadBalancerType === 'application' || lb.loadBalancerType === 'network',
+      ) as IAmazonApplicationLoadBalancer[];
+      const targetGroups = serverGroup.targetGroups
+        .map((targetGroupName: string) => {
+          const allTargetGroups = flatten(loadBalancers.map((lb) => lb.targetGroups || []));
+          const targetGroup = allTargetGroups.find(
+            (tg) => tg.name === targetGroupName && tg.region === serverGroup.region && tg.account === awsAccount,
+          );
+          return this.buildTargetGroup(targetGroup, serverGroup);
+        })
+        .filter((tg) => tg);
+      return targetGroups;
+    });
   }
 }

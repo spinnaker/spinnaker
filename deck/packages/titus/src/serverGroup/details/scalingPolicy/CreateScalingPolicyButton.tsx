@@ -1,10 +1,11 @@
 import React from 'react';
 
 import { PolicyTypeSelectionModal } from '@spinnaker/amazon';
-import type { Application, IServerGroup } from '@spinnaker/core';
+import type { Application } from '@spinnaker/core';
 import { AccountService, ReactModal } from '@spinnaker/core';
 
-import { TitusReactInjector } from '../../../reactShims';
+import type { ITitusServerGroup } from '../../../domain';
+import { TitusServerGroupTransformer } from '../../serverGroup.transformer';
 import type { IUpsertTargetTrackingModalProps } from './targetTracking/UpsertTargetTrackingModal';
 import { UpsertTargetTrackingModal } from './targetTracking/UpsertTargetTrackingModal';
 import type { IUpsertScalingPolicyModalProps } from './upsert/UpsertScalingPolicyModal';
@@ -12,7 +13,7 @@ import { UpsertScalingPolicyModal } from './upsert/UpsertScalingPolicyModal';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;
-  serverGroup: IServerGroup;
+  serverGroup: ITitusServerGroup;
 }
 
 export interface ICreateScalingPolicyButtonState {
@@ -46,22 +47,22 @@ export class CreateScalingPolicyButton extends React.Component<
   public createStepPolicy(): void {
     const { serverGroup, application } = this.props;
 
-    const upsertProps = {
+    const upsertProps: IUpsertScalingPolicyModalProps = {
       app: application,
-      policy: TitusReactInjector.titusServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
+      policy: TitusServerGroupTransformer.constructNewStepScalingPolicyTemplate(serverGroup),
       serverGroup,
-    } as IUpsertScalingPolicyModalProps;
+    };
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
     ReactModal.show(UpsertScalingPolicyModal, upsertProps, modalProps);
   }
 
   public createTargetTrackingPolicy(): void {
     const { serverGroup, application } = this.props;
-    const upsertProps = {
+    const upsertProps: IUpsertTargetTrackingModalProps = {
       app: application,
-      policy: TitusReactInjector.titusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
+      policy: TitusServerGroupTransformer.constructNewTargetTrackingPolicyTemplate(serverGroup),
       serverGroup,
-    } as IUpsertTargetTrackingModalProps;
+    };
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
     ReactModal.show(UpsertTargetTrackingModal, upsertProps, modalProps);
   }

@@ -1,9 +1,9 @@
+import { useCurrentStateAndParams } from '@uirouter/react';
 import React from 'react';
 
 import { NotFound } from '../../notfound/NotFound';
-import { ReactInjector } from '../../reactShims';
 
 export function ExecutionNotFound() {
-  const { params } = ReactInjector.$state;
+  const { params } = useCurrentStateAndParams();
   return <NotFound type="Execution" entityId={params.executionId} />;
 }

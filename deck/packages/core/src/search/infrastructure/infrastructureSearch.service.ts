@@ -1,16 +1,13 @@
 import type { IDeferred, IQService } from 'angular';
-import { module } from 'angular';
 import { of as observableOf, Subject } from 'rxjs';
 import { switchMap, toArray } from 'rxjs/operators';
 
-import type { ProviderServiceDelegate } from '../../cloudProvider';
-import { PROVIDER_SERVICE_DELEGATE } from '../../cloudProvider';
-
+import type { ProviderServiceDelegate } from '../../cloudProvider/providerService.delegate';
 import { InfrastructureSearchServiceV2 } from './infrastructureSearchV2.service';
 import type { ISearchResult } from '../search.service';
-import type { SearchResultType } from '../searchResult';
-import { searchResultTypeRegistry } from '../searchResult';
 import { SearchStatus } from '../searchResult/SearchStatus';
+import type { SearchResultType } from '../searchResult/searchResultType';
+import { searchResultTypeRegistry } from '../searchResult/searchResultType.registry';
 
 export interface ISearchResultSet<T extends ISearchResult = ISearchResult> {
   type: SearchResultType;
@@ -90,7 +87,3 @@ export class InfrastructureSearchService {
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.service';
-module(INFRASTRUCTURE_SEARCH_SERVICE, [PROVIDER_SERVICE_DELEGATE]).service(
-  'infrastructureSearchService',
-  InfrastructureSearchService,
-);

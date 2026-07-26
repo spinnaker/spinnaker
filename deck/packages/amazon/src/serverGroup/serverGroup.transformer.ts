@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { IVpc } from '@spinnaker/core';
 
 import type { IAmazonServerGroupCommand, IAmazonServerGroupDeployConfiguration } from './configure';
@@ -155,6 +153,3 @@ export class AwsServerGroupTransformer {
     };
   }
 }
-
-export const AWS_SERVER_GROUP_TRANSFORMER = 'spinnaker.amazon.serverGroup.transformer';
-module(AWS_SERVER_GROUP_TRANSFORMER, []).service('awsServerGroupTransformer', AwsServerGroupTransformer);

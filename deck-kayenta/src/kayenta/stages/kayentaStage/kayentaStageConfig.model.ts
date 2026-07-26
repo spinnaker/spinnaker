@@ -12,7 +12,7 @@ import type { IDuration } from 'kayenta/utils/duration';
 import { getDurationString, parseDurationString } from 'kayenta/utils/duration';
 import { cloneDeep, first, get, has, isEmpty, isFinite, isString, map, set, uniq, unset } from 'lodash';
 
-import type { IAccountDetails } from '@spinnaker/core';
+import type { DeckRuntimeServices, IAccountDetails } from '@spinnaker/core';
 import { NameUtils } from '@spinnaker/core';
 
 export const REAL_TIME_AUTOMATIC_PROVIDERS = ['gce', 'aws', 'titus'];
@@ -62,10 +62,20 @@ export interface IKayentaLocationChoices {
   hasChoices: boolean;
 }
 
+export interface IKayentaCloneServerGroupModal {
+  show(props: { title: string; application: any; command: any }, runtimeServices: DeckRuntimeServices): Promise<any>;
+}
+
+interface IKayentaServerGroupConfig {
+  CloneServerGroupModal?: IKayentaCloneServerGroupModal | null;
+}
+
 export interface IKayentaServerGroupModalDependencies {
   application: any;
-  cloudProviderRegistry: { getValue(provider: string, category: string): any };
-  providerSelectionService: { selectProvider(application: any, category: string): Promise<string> | string };
+  cloudProviderRegistry: { getValue(provider: string, category: string): IKayentaServerGroupConfig };
+  providerSelectionService: {
+    selectProvider(application: any, category: string, filterFn?: any): PromiseLike<string> | string;
+  };
   serverGroupCommandBuilder: {
     buildNewServerGroupCommandForPipeline(provider: string, cluster: any, credentials: any): Promise<any>;
     buildServerGroupCommandFromPipeline(
@@ -76,7 +86,7 @@ export interface IKayentaServerGroupModalDependencies {
     ): Promise<any>;
   };
   serverGroupTransformer: { convertServerGroupCommandToDeployConfiguration(command: any): any };
-  $uibModal: { open(options: any): { result: Promise<any> } };
+  runtimeServices: DeckRuntimeServices;
 }
 
 export function createInitialKayentaStageConfigModel(): IKayentaStageConfigModel {
@@ -288,9 +298,16 @@ export async function addPair(stage: IKayentaStage, deps: IKayentaServerGroupMod
   stage.deployments.serverGroupPairs = stage.deployments.serverGroupPairs || [];
   const provider = has(stage, 'deployments.baseline.cloudProvider')
     ? stage.deployments.baseline.cloudProvider
-    : await deps.providerSelectionService.selectProvider(deps.application, 'serverGroup');
+    : await deps.providerSelectionService.selectProvider(
+        deps.application,
+        'serverGroup',
+        hasReactCloneServerGroupModal,
+      );
   stage.deployments.baseline.cloudProvider = provider;
   const config = deps.cloudProviderRegistry.getValue(provider, 'serverGroup');
+  if (!config.CloneServerGroupModal) {
+    throw new Error(`No React clone server group modal is registered for provider "${provider}".`);
+  }
 
   const command = await deps.serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(provider, null, null);
   command.viewState = {
@@ -321,6 +338,10 @@ export async function addPair(stage: IKayentaStage, deps: IKayentaServerGroupMod
   cleanupServerGroup(control, 'baseline');
   cleanupServerGroup(experiment, 'canary');
   stage.deployments.serverGroupPairs = [{ control, experiment }];
+}
+
+function hasReactCloneServerGroupModal(_application: any, _account: any, provider: any): boolean {
+  return Boolean(provider?.serverGroup?.CloneServerGroupModal);
 }
 
 export async function editServerGroup(
@@ -515,18 +536,13 @@ function resolveImageSourceText(type: keyof IKayentaServerGroupPair): string {
 }
 
 function showServerGroupModal(
-  config: any,
+  config: IKayentaServerGroupConfig,
   deps: IKayentaServerGroupModalDependencies,
   title: string,
   command: any,
 ): Promise<any> {
   if (config.CloneServerGroupModal) {
-    return config.CloneServerGroupModal.show({ title, application: deps.application, command });
+    return config.CloneServerGroupModal.show({ title, application: deps.application, command }, deps.runtimeServices);
   }
-  return deps.$uibModal.open({
-    templateUrl: config.cloneServerGroupTemplateUrl,
-    controller: `${config.cloneServerGroupController} as ctrl`,
-    size: 'lg',
-    resolve: { title: () => title, application: () => deps.application, serverGroupCommand: () => command },
-  }).result;
+  return Promise.reject(new Error('No React clone server group modal is registered.'));
 }

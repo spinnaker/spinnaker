@@ -61,7 +61,6 @@ module.exports = [
       '@spinnaker/ng-no-require-module-deps': 2,
       '@spinnaker/ng-strictdi': 'off',
       '@spinnaker/prefer-promise-like': 1,
-      '@spinnaker/react2angular-with-error-boundary': 2,
       '@spinnaker/rest-prefer-static-strings-in-initializer': 2,
       indent: 'off',
       'member-ordering': 'off',

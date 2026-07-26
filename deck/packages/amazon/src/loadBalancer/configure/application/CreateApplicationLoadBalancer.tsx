@@ -1,15 +1,15 @@
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   FirewallLabels,
   LoadBalancerWriter,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -36,8 +36,8 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateApplicationLoadBalancer extends React.Component<
-  ICreateApplicationLoadBalancerProps,
+export class CreateApplicationLoadBalancerComponent extends React.Component<
+  ICreateApplicationLoadBalancerProps & IRouterInjectedProps,
   ICreateApplicationLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateApplicationLoadBalancerProps> = {
@@ -49,12 +49,15 @@ export class CreateApplicationLoadBalancer extends React.Component<
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateApplicationLoadBalancerProps): Promise<IAmazonApplicationLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateApplicationLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonApplicationLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateApplicationLoadBalancer, props, modalProps, runtimeServices);
   }
 
-  constructor(props: ICreateApplicationLoadBalancerProps) {
+  constructor(props: ICreateApplicationLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.command
@@ -186,10 +189,10 @@ export class CreateApplicationLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
@@ -335,3 +338,8 @@ export class CreateApplicationLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateApplicationLoadBalancer = Object.assign(
+  withRouter<ICreateApplicationLoadBalancerProps & IRouterInjectedProps>(CreateApplicationLoadBalancerComponent),
+  { show: CreateApplicationLoadBalancerComponent.show },
+);

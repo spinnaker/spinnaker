@@ -1,6 +1,10 @@
 import type { ApplicationStateProvider } from './application.state.provider';
+import type { StateConfigProvider } from '../navigation/state.provider';
 
-export type ApplicationStateRegistration = (provider: ApplicationStateProvider) => void;
+export type ApplicationStateRegistration = (
+  provider: ApplicationStateProvider,
+  stateConfigProvider: StateConfigProvider,
+) => void;
 
 const registrations: ApplicationStateRegistration[] = [];
 let appliedProvider: ApplicationStateProvider | null = null;
@@ -9,7 +13,7 @@ export function registerApplicationState(registration: ApplicationStateRegistrat
   registrations.push(registration);
 
   if (appliedProvider) {
-    registration(appliedProvider);
+    registration(appliedProvider, appliedProvider.stateConfigProvider);
   }
 }
 
@@ -19,7 +23,11 @@ export function applyApplicationStateRegistrations(provider: ApplicationStatePro
   }
 
   appliedProvider = provider;
-  registrations.forEach((registration) => registration(provider));
+  registrations.forEach((registration) => registration(provider, provider.stateConfigProvider));
+}
+
+export function getActiveApplicationStateProvider(): ApplicationStateProvider | null {
+  return appliedProvider;
 }
 
 export function getApplicationStateRegistrationsForTests(): ApplicationStateRegistration[] {

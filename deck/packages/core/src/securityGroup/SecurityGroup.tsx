@@ -1,4 +1,4 @@
-import { UISref } from '@uirouter/react';
+import { UISref, useRouter } from '@uirouter/react';
 import classNames from 'classnames';
 import * as React from 'react';
 
@@ -7,7 +7,6 @@ import { CloudProviderLogo } from '../cloudProvider';
 import type { ILoadBalancerUsage, ISecurityGroup, ISecurityGroupGroup, IServerGroupUsage } from '../domain';
 import { EntityNotifications } from '../entityTag/notifications/EntityNotifications';
 import { ManagedResourceStatusIndicator } from '../managed';
-import { ReactInjector } from '../reactShims';
 import { SecurityGroupState } from '../state';
 
 import './securityGroup.less';
@@ -134,9 +133,10 @@ const LoadBalancers = ({ securityGroup }: { securityGroup: ISecurityGroup }) => 
 };
 
 export const SecurityGroup = (props: ISecurityGroupProps) => {
+  const { stateService } = useRouter();
   const params = getSecurityGroupDetailsParams(props.securityGroup, props.application);
   // don't use <UISrefActive> - it picks up load balancer and server groups details!
-  const active = ReactInjector.$state.includes('**.firewallDetails', params);
+  const active = stateService.includes('**.firewallDetails', params);
   return (
     <UISref to=".firewallDetails" params={params}>
       <div className={classNames('pod-subgroup clickable clickable-row clearfix', { active })}>

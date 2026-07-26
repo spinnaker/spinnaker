@@ -7,6 +7,7 @@ import {
   AddEntityTagLinks,
   ApplicationReader,
   ConfirmationModalService,
+  DeckRuntimeContext,
   HelpField,
   LoadBalancerWriter,
   ManagedMenuItem,
@@ -16,12 +17,17 @@ import {
 import { AWSProviderSettings } from '../../aws.settings';
 import { LoadBalancerTypes } from '../configure/LoadBalancerTypes';
 import type { IAmazonLoadBalancer, IAmazonLoadBalancerDeleteCommand } from '../../domain';
-import type { ILoadBalancerFromStateParams } from './loadBalancerDetails.controller';
+
+export interface ILoadBalancerFromStateParams {
+  accountId: string;
+  region: string;
+  name: string;
+}
 
 export interface ILoadBalancerActionsProps {
   app: Application;
   loadBalancer: IAmazonLoadBalancer;
-  loadBalancerFromParams: ILoadBalancerFromStateParams;
+  loadBalancerFromParams?: ILoadBalancerFromStateParams;
 }
 
 export interface ILoadBalancerActionsState {
@@ -29,6 +35,9 @@ export interface ILoadBalancerActionsState {
 }
 
 export class LoadBalancerActions extends React.Component<ILoadBalancerActionsProps, ILoadBalancerActionsState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: ILoadBalancerActionsProps) {
     super(props);
 
@@ -63,11 +72,16 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     const { loadBalancer } = this.props;
     const { application } = this.state;
     const LoadBalancerModal = LoadBalancerTypes.find((t) => t.type === loadBalancer.loadBalancerType).component;
-    LoadBalancerModal.show({ app: application, loadBalancer });
+    LoadBalancerModal.show({ app: application, loadBalancer }, this.context.services);
   };
 
   public deleteLoadBalancer = (): void => {
-    const { app, loadBalancer, loadBalancerFromParams } = this.props;
+    const { app, loadBalancer } = this.props;
+    const loadBalancerFromParams = this.props.loadBalancerFromParams || {
+      accountId: loadBalancer.account,
+      region: loadBalancer.region,
+      name: loadBalancer.name,
+    };
 
     if (loadBalancer.instances && loadBalancer.instances.length) {
       return;
@@ -106,7 +120,7 @@ export class LoadBalancerActions extends React.Component<ILoadBalancerActionsPro
     const { app, loadBalancer } = this.props;
     const { application } = this.state;
 
-    const { loadBalancerType, instances, instanceCounts } = loadBalancer;
+    const { loadBalancerType, instances = [], instanceCounts } = loadBalancer;
     const loadBalancerAppName = loadBalancer.name.split('-')[0];
 
     const clbInstances =

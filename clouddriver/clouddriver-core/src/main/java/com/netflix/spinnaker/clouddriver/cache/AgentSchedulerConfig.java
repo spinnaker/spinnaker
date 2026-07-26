@@ -38,7 +38,8 @@ import redis.clients.jedis.JedisPool;
 public class AgentSchedulerConfig {
 
   @Bean
-  @ConditionalOnExpression("${redis.enabled:true} && ${redis.scheduler.enabled:true}")
+  @ConditionalOnExpression(
+      "${redis.enabled:true} && ${redis.scheduler.enabled:true} && !${cats.pubsub.enabled:false}")
   AgentScheduler redisAgentScheduler(
       RedisConfigurationProperties redisConfigurationProperties,
       RedisClientDelegate redisClientDelegate,

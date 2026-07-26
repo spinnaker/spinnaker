@@ -1,4 +1,3 @@
-import { $q } from 'ngimport';
 import React from 'react';
 
 import { ManagedWriter } from '../ManagedWriter';
@@ -20,7 +19,7 @@ import './ManagedResourceStatusIndicator.less';
 export const confirmNotManaged = (resource: IManagedResource, application: Application): PromiseLike<boolean> => {
   const { managedResourceSummary, isManaged } = resource;
   if (!isManaged || !managedResourceSummary || managedResourceSummary.isPaused) {
-    return $q.when(true);
+    return Promise.resolve(true);
   }
   const submitMethod = () => {
     return ManagedWriter.pauseResourceManagement(managedResourceSummary.id).then(() =>

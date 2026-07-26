@@ -25,7 +25,6 @@ import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ProcessesService;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Application;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
@@ -107,7 +106,7 @@ class ApplicationsTest {
                 HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid"))
                     .toJavaMap());
 
-    ServiceInstance serviceInstance = new ServiceInstance();
+    VcapServiceInstance serviceInstance = new VcapServiceInstance();
     serviceInstance
         .setPlan("service-plan")
         .setServicePlanGuid("service-plan-guid")
@@ -161,15 +160,16 @@ class ApplicationsTest {
         .thenReturn(Calls.response(applicationEnv));
     when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
     when(processes.findProcessById(any())).thenReturn(Optional.of(process));
-    when(applicationService.instances(anyString()))
+    when(applicationService.findWebProcessStats(anyString()))
         .thenReturn(
             Calls.response(
-                HashMap.of(
-                        "0",
-                        new InstanceStatus()
-                            .setState(InstanceStatus.State.RUNNING)
-                            .setUptime(2405L))
-                    .toJavaMap()));
+                new ProcessResources()
+                    .setResources(
+                        Collections.singletonList(
+                            new ProcessStats()
+                                .setIndex(0)
+                                .setState(ProcessStats.State.RUNNING)
+                                .setUptime(2405L)))));
     when(applicationService.findPackagesByAppId(anyString()))
         .thenReturn(Calls.response(packagePagination));
     when(applicationService.findDropletByApplicationGuid(anyString()))
@@ -190,7 +190,7 @@ class ApplicationsTest {
 
     verify(applicationService).findById(serverGroupId);
     verify(applicationService).findApplicationEnvById(serverGroupId);
-    verify(applicationService).instances(serverGroupId);
+    verify(applicationService).findWebProcessStats(serverGroupId);
     verify(applicationService).findPackagesByAppId(serverGroupId);
     verify(applicationService).findDropletByApplicationGuid(serverGroupId);
   }
@@ -210,7 +210,7 @@ class ApplicationsTest {
                 HashMap.of("space", new Link().setHref("http://capi.io/space/space-guid"))
                     .toJavaMap());
 
-    ServiceInstance serviceInstance = new ServiceInstance();
+    VcapServiceInstance serviceInstance = new VcapServiceInstance();
     serviceInstance
         .setPlan("service-plan")
         .setServicePlanGuid("service-plan-guid")
@@ -268,15 +268,16 @@ class ApplicationsTest {
         .thenReturn(Calls.response(applicationEnv));
     when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
     when(processes.findProcessById(any())).thenReturn(Optional.empty());
-    when(applicationService.instances(anyString()))
+    when(applicationService.findWebProcessStats(anyString()))
         .thenReturn(
             Calls.response(
-                HashMap.of(
-                        "0",
-                        new InstanceStatus()
-                            .setState(InstanceStatus.State.RUNNING)
-                            .setUptime(2405L))
-                    .toJavaMap()));
+                new ProcessResources()
+                    .setResources(
+                        Collections.singletonList(
+                            new ProcessStats()
+                                .setIndex(0)
+                                .setState(ProcessStats.State.RUNNING)
+                                .setUptime(2405L)))));
     when(applicationService.findPackagesByAppId(anyString()))
         .thenReturn(Calls.response(packagePagination));
     when(applicationService.findDropletByApplicationGuid(anyString()))
@@ -352,7 +353,7 @@ class ApplicationsTest {
     verify(applicationService, never()).findApplicationEnvById(guid);
     verify(spaces, never()).findById(guid);
     verify(processesService, never()).findProcessById(guid);
-    verify(applicationService, never()).instances(guid);
+    verify(applicationService, never()).findWebProcessStats(guid);
     verify(applicationService, never()).findPackagesByAppId(guid);
     verify(applicationService, never()).findDropletByApplicationGuid(guid);
   }
@@ -415,45 +416,40 @@ class ApplicationsTest {
   @ParameterizedTest
   @ValueSource(strings = {"myapp-v999", "myapp"})
   void getTakenServerGroups(String existingApp) {
-    when(applicationService.listAppsFiltered(isNull(), any(), any()))
-        .thenReturn(
-            Calls.response(Response.success(Page.singleton(getApplication(existingApp), "123"))));
+    when(applicationService.all(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(singleAppPage(getApplication(existingApp)))));
 
-    List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
-        taken = apps.getTakenSlots("myapp", "space");
-    assertThat(taken).first().extracting(app -> app.getEntity().getName()).isEqualTo(existingApp);
+    List<Application> taken = apps.getTakenSlots("myapp", "space");
+    assertThat(taken).first().extracting(Application::getName).isEqualTo(existingApp);
   }
 
   @ParameterizedTest
   @ValueSource(
       strings = {"myapp-v999", "myapp", "myapp-stack2", "anothername", "myapp-stack-detail"})
   void getTakenServerGroupsWhenNoPriorVersionExists(String similarAppName) {
-    com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application =
-        getApplication(similarAppName);
+    Application application = getApplication(similarAppName);
 
-    when(applicationService.listAppsFiltered(isNull(), any(), any()))
-        .thenReturn(Calls.response(Response.success(Page.singleton(application, "123"))));
+    when(applicationService.all(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(singleAppPage(application))));
 
-    List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
-        taken = apps.getTakenSlots("myapp-stack", "space");
+    List<Application> taken = apps.getTakenSlots("myapp-stack", "space");
     assertThat(taken).isEmpty();
   }
 
   @Test
   void getLatestServerGroupCapiDoesntCorrectlyOrderResults() {
-    when(applicationService.listAppsFiltered(isNull(), any(), any()))
+    when(applicationService.all(any(), any(), any(), any()))
         .thenReturn(
             Calls.response(
                 Response.success(
-                    Page.asPage(
+                    multiAppPage(
                         getApplication("myapp-prod-v046"),
                         getApplication("myapp-v003"),
                         getApplication("myapp")))));
 
-    List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
-        taken = apps.getTakenSlots("myapp", "space");
+    List<Application> taken = apps.getTakenSlots("myapp", "space");
 
-    assertThat(taken).extracting(app -> app.getEntity().getName()).contains("myapp", "myapp-v003");
+    assertThat(taken).extracting(Application::getName).contains("myapp", "myapp-v003");
   }
 
   @Test
@@ -503,7 +499,7 @@ class ApplicationsTest {
         new Pagination<Application>()
             .setPagination(new Pagination.Details().setTotalPages(1))
             .setResources(Collections.singletonList(application));
-    ServiceInstance serviceInstance = new ServiceInstance();
+    VcapServiceInstance serviceInstance = new VcapServiceInstance();
     serviceInstance
         .setPlan("service-plan")
         .setServicePlanGuid("service-plan-guid")
@@ -550,11 +546,19 @@ class ApplicationsTest {
     verify(applicationService, never()).findById(serverGroupId);
   }
 
-  private com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application getApplication(
-      String applicationName) {
-    return new com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application()
-        .setName(applicationName)
-        .setSpaceGuid("space-guid");
+  private Application getApplication(String applicationName) {
+    return new Application().setName(applicationName).setGuid(applicationName + "-guid");
+  }
+
+  private Pagination<Application> singleAppPage(Application application) {
+    return multiAppPage(application);
+  }
+
+  private Pagination<Application> multiAppPage(Application... applications) {
+    Pagination<Application> pagination = new Pagination<>();
+    pagination.setPagination(new Pagination.Details().setTotalPages(1));
+    pagination.setResources(Arrays.asList(applications));
+    return pagination;
   }
 
   private void mockMap(CloudFoundrySpace cloudFoundrySpace, String dropletId) {
@@ -583,8 +587,9 @@ class ApplicationsTest {
     when(spaces.findById(any())).thenReturn(cloudFoundrySpace);
     when(processesService.findProcessById(any()))
         .thenReturn(Calls.response(Response.success(process)));
-    when(applicationService.instances(any()))
-        .thenReturn(Calls.response(Response.success(emptyMap())));
+    when(applicationService.findWebProcessStats(any()))
+        .thenReturn(
+            Calls.response(Response.success(new ProcessResources().setResources(emptyList()))));
     when(applicationService.findPackagesByAppId(any()))
         .thenReturn(Calls.response(Response.success(packagePagination)));
     when(applicationService.findDropletByApplicationGuid(any()))

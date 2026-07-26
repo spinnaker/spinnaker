@@ -1,5 +1,4 @@
 import type { IScope } from 'angular';
-import { $log, $q } from 'ngimport';
 import type { Observable } from 'rxjs';
 import {
   BehaviorSubject,
@@ -22,14 +21,18 @@ import {
   tap,
   withLatestFrom,
 } from 'rxjs/operators';
-
 import type { Application } from '../application.model';
 import type { IEntityTags } from '../../domain';
+import { getDirectRouter } from '../../navigation/directRouter';
 import type { IconNames } from '../../presentation';
 import { robotToHuman } from '../../presentation';
-import { ReactInjector } from '../../reactShims';
-import { FirewallLabels } from '../../securityGroup';
+import { FirewallLabels } from '../../securityGroup/label/FirewallLabels';
 import { toIPromise } from '../../utils';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
+
+function resolvePromise<T>(value?: T): PromiseLike<T> {
+  return Promise.resolve(value);
+}
 
 export interface IFetchStatus {
   status: 'NOT_INITIALIZED' | 'FETCHING' | 'FETCHED' | 'ERROR';
@@ -381,8 +384,9 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     }
 
     if (config.autoActivate) {
-      ReactInjector.$uiRouter.transitionService.onSuccess({ entering: this.activeState }, () => this.activate());
-      ReactInjector.$uiRouter.transitionService.onSuccess({ exiting: this.activeState }, () => this.deactivate());
+      const transitionService = getDirectRouter()?.transitionService;
+      transitionService?.onSuccess({ entering: this.activeState }, () => this.activate());
+      transitionService?.onSuccess({ exiting: this.activeState }, () => this.deactivate());
     }
 
     // While we can initialize these fields directly on the class to give them private/public
@@ -432,7 +436,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
 
     // Some data sources expect other data sources to exist on the application
     // Wait one tick before processing the stream so all data sources are registered
-    const nextTick$ = observableFrom($q.resolve());
+    const nextTick$ = observableFrom(resolvePromise());
 
     fetchStream$.pipe(withLatestFrom(nextTick$)).subscribe(([fetchStatus, _void]) => {
       // Update mutable flags
@@ -510,7 +514,7 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
    */
   public ready(): PromiseLike<T> {
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
-      return $q.resolve(this.data);
+      return resolvePromise(this.data);
     }
 
     return toIPromise(this.nextRefresh$);
@@ -562,13 +566,13 @@ export class ApplicationDataSource<T = any> implements IDataSourceConfig<T> {
     if (!this.loader || this.disabled || (this.lazy && !this.active)) {
       this.loaded = false;
       this.updateData(this.defaultData);
-      return $q.resolve(this.data);
+      return resolvePromise(this.data);
     }
 
     const promise = toIPromise(this.data$.pipe(skip(1), take(1)));
 
     if (this.loading && !forceRefresh) {
-      $log.info(`${this.key} still loading, skipping refresh`);
+      diagnosticLogger.info(`${this.key} still loading, skipping refresh`);
     } else {
       this.fetchRequest$.next();
     }

@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.description.manifest;
 
 import com.google.common.collect.ImmutableList;
-import io.kubernetes.client.openapi.models.V1beta1CustomResourceDefinition;
+import io.kubernetes.client.openapi.models.V1CustomResourceDefinition;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -86,7 +86,7 @@ public class KubernetesKindProperties {
 
   @Nonnull
   public static KubernetesKindProperties fromCustomResourceDefinition(
-      V1beta1CustomResourceDefinition crd) {
+      V1CustomResourceDefinition crd) {
     return create(
         KubernetesKind.fromCustomResourceDefinition(crd),
         crd.getSpec().getScope().equalsIgnoreCase("namespaced"));

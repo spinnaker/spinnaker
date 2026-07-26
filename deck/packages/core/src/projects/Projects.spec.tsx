@@ -1,13 +1,10 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { mock } from 'angular';
 import type { ReactWrapper } from 'enzyme';
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 
 import { Projects } from './Projects';
+import { DeckRuntimeContext } from '../bootstrap/DeckRuntimeContext';
 import { ViewStateCache } from '../cache';
-import { OVERRIDE_REGISTRY } from '../overrideRegistry';
-import { REACT_MODULE } from '../reactShims';
 import * as ProjectReaderModule from './service/ProjectReader';
 import { timestamp } from '../utils';
 import { mountAndFlush } from '../utils/testUtils';
@@ -37,15 +34,7 @@ export function invokeSort(toggle: ReactWrapper<any>, next: string) {
 }
 
 describe('Projects', () => {
-  let $uiRouter: UIRouterReact;
   let listSpy: jasmine.Spy;
-
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-    }),
-  );
 
   describe('filtering & sorting', () => {
     beforeEach(() => {
@@ -57,7 +46,11 @@ describe('Projects', () => {
     });
 
     it('sets loaded flag and renders projects sorted by name asc', async () => {
-      const wrapper = await mountAndFlush(<Projects />);
+      const wrapper = await mountAndFlush(
+        <DeckRuntimeContext.Provider value={{ services: { cacheInitializer: {} } } as any}>
+          <Projects />
+        </DeckRuntimeContext.Provider>,
+      );
 
       const rows = wrapper.find('tbody tr');
       expect(rows.length).toBe(3);
@@ -71,7 +64,11 @@ describe('Projects', () => {
     });
 
     it('filters by name or email as the user types', async () => {
-      const wrapper = await mountAndFlush(<Projects />);
+      const wrapper = await mountAndFlush(
+        <DeckRuntimeContext.Provider value={{ services: { cacheInitializer: {} } } as any}>
+          <Projects />
+        </DeckRuntimeContext.Provider>,
+      );
 
       const input = wrapper.find('input[placeholder="Search projects"]');
       expect(input.exists()).toBeTrue();
@@ -102,7 +99,11 @@ describe('Projects', () => {
     });
 
     it('sorts by -name, -createTs, createTs, and combines with a filter', async () => {
-      const wrapper = await mountAndFlush(<Projects />);
+      const wrapper = await mountAndFlush(
+        <DeckRuntimeContext.Provider value={{ services: { cacheInitializer: {} } } as any}>
+          <Projects />
+        </DeckRuntimeContext.Provider>,
+      );
 
       const sortToggles = wrapper.find('SortToggle');
 

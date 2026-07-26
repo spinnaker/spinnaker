@@ -1,6 +1,22 @@
 import React from 'react';
-import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
-import { noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+} from '@spinnaker/core';
+import {
+  DeckRuntimeContext,
+  noop,
+  ReactModal,
+  TaskMonitor,
+  withRouter,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
+
 import { WizardServerGroupBasicSettings } from './BasicSettings';
 import { WizardServerGroupConfigFilesSettings } from './ConfigFiles';
 import type { ICloudrunServerGroupCommandData } from '../serverGroupCommandBuilder.service';
@@ -21,8 +37,14 @@ export interface ICloudrunServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModalProps, ICloudrunServerGroupModalState> {
-  public static defaultProps: Partial<ICloudrunServerGroupModalProps> = {
+export class ServerGroupWizardComponent extends React.Component<
+  ICloudrunServerGroupModalProps & IRouterInjectedProps,
+  ICloudrunServerGroupModalState
+> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
+  public static defaultProps: Partial<ICloudrunServerGroupModalProps & IRouterInjectedProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
@@ -30,12 +52,15 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
   private _isUnmounted = false;
 
   /*     private serverGroupWriter: ServerGroupWriter; */
-  public static show(props: ICloudrunServerGroupModalProps): Promise<ICloudrunServerGroupCommandData> {
+  public static show(
+    props: ICloudrunServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudrunServerGroupCommandData> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(ServerGroupWizard, props, modalProps);
+    return ReactModal.show(ServerGroupWizard, props, modalProps, runtimeServices);
   }
 
-  constructor(props: ICloudrunServerGroupModalProps) {
+  constructor(props: ICloudrunServerGroupModalProps & IRouterInjectedProps) {
     super(props);
     if (!props.command) {
       CloudrunServerGroupCommandBuilder.buildNewServerGroupCommand(props.application, 'cloudrun', 'create').then(
@@ -83,19 +108,19 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
           provider: 'cloudrun',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (ReactInjector.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (ReactInjector.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        ReactInjector.$state.go(transitionTo, newStateParams);
+        this.props.stateService.go(transitionTo, newStateParams);
       }
     }
   };
@@ -107,7 +132,8 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
       this.props.closeModal && this.props.closeModal(command);
     } else {
       //command.viewState.mode = 'create';
-      const submitMethod = () => ReactInjector.serverGroupWriter.cloneServerGroup(command, this.props.application);
+      const submitMethod = () =>
+        this.context.services.serverGroupWriter.cloneServerGroup(command, this.props.application);
       this.state.taskMonitor.submit(submitMethod);
       return null;
     }
@@ -149,3 +175,7 @@ export class ServerGroupWizard extends React.Component<ICloudrunServerGroupModal
     );
   }
 }
+
+export const ServerGroupWizard = Object.assign(withRouter(ServerGroupWizardComponent), {
+  show: ServerGroupWizardComponent.show,
+});

@@ -2,7 +2,6 @@ import type { StateService } from '@uirouter/core';
 import classNames from 'classnames';
 import $ from 'jquery';
 import 'jquery-textcomplete';
-import { $q, $timeout } from 'ngimport';
 import React from 'react';
 import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -10,6 +9,8 @@ import { takeUntil } from 'rxjs/operators';
 import { SpelAutocompleteService } from './SpelAutocompleteService';
 import type { IPipeline } from '../../domain';
 import { ExecutionService } from '../../pipeline/service/execution.service';
+import { createCancellableTimeout } from '../../utils/cancellableTimeout';
+import { nativePromiseService } from '../../utils/nativePromiseService';
 
 import './spel.less';
 
@@ -32,13 +33,17 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
 
   private autocompleteService: SpelAutocompleteService;
   private readonly spelInputRef: any;
+  private readonly timeoutService = createCancellableTimeout();
   private destroy$ = new Subject();
   private $input: any;
 
   constructor(props: ISpelTextProps) {
     super(props);
     this.state = { textcompleteConfig: [] };
-    this.autocompleteService = new SpelAutocompleteService($q, new ExecutionService($q, {} as StateService, $timeout));
+    this.autocompleteService = new SpelAutocompleteService(
+      nativePromiseService,
+      new ExecutionService(nativePromiseService, {} as StateService, this.timeoutService as any),
+    );
     observableFrom(this.autocompleteService.addPipelineInfo(this.props.pipeline))
       .pipe(takeUntil(this.destroy$))
       .subscribe((textcompleteConfig) => {
@@ -50,6 +55,7 @@ export class SpelText extends React.Component<ISpelTextProps, ISpelTextState> {
   public componentWillUnmount(): void {
     this.$input.off('change', this.onChange);
     this.destroy$.next();
+    this.timeoutService.dispose();
   }
 
   public componentDidMount(): void {

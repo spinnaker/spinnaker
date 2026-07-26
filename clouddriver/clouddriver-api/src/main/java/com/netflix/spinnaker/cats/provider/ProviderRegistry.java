@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.cats.provider;
 
+import com.netflix.spinnaker.cats.agent.Agent;
 import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.kork.annotations.Beta;
 import java.util.Collection;
@@ -31,4 +32,19 @@ public interface ProviderRegistry {
   Collection<Cache> getProviderCaches();
 
   ProviderCache getProviderCache(String providerName);
+
+  default Agent getAgentForProviderName(String agentType) {
+    // agentType is essentially the ID.  IN MOST cases this is tied to the account//cacheType
+    // operation.  E.g. "    "${account.name}/${region}/${this.class.simpleName}""
+    // but a FEW agents are "global" such as the "SqlAccountCleanupAgent".  These run in the "Core"
+    // provider.  FINDING the right provider is a bit of a challenge.  NOTE: deliberately NOT
+    // cached - providers reschedule agents by replacing the instances, and a cached lookup would
+    // hand back stale (unscheduled) agents.  Callers iterating many agent types should build their
+    // own map from getProviders() instead of calling this in a loop.
+    return getProviders().stream()
+        .flatMap(provider -> provider.getAgents().stream())
+        .filter(agent -> agentType.equals(agent.getAgentType()))
+        .findFirst()
+        .orElse(null);
+  }
 }

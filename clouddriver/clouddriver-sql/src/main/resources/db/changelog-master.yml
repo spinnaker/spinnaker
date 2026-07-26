@@ -29,3 +29,6 @@ databaseChangeLog:
 - include:
     file: changelog/20240111-accounts-indexes.yml
     relativeToChangelogFile: true
+- include:
+    file: changelog/20250908-pubsub-scheduler.yml
+    relativeToChangelogFile: true

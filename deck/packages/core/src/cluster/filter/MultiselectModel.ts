@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 import type { IServerGroup } from '../../domain';
 import type { IMultiInstanceGroup } from '../../instance/instance.write.service';
 import type { IMoniker } from '../../naming';
-import { ReactInjector } from '../../reactShims';
+import { getDirectRouter } from '../../navigation/directRouter';
 import { ClusterState } from '../../state';
 
 export interface IMultiselectServerGroup {
@@ -30,7 +30,7 @@ export class MultiselectModel {
   }
 
   public syncNavigation(): void {
-    const { $state } = ReactInjector;
+    const $state = getDirectRouter()!.stateService;
     if (!ClusterState.filterModel.asFilterModel.sortFilter.multiselect && $state.params.multiselect) {
       $state.go('.', { multiselect: null }, { inherit: true });
     }
@@ -112,7 +112,7 @@ export class MultiselectModel {
     );
     if (!result) {
       // when creating a new group, include an instance ID if we're deep-linked into the details view
-      const params = ReactInjector.$state.params;
+      const params = getDirectRouter()!.stateService.params;
       const instanceIds = (serverGroup.instances || [])
         .filter((instance) => instance.provider === params.provider && instance.id === params.instanceId)
         .map((instance) => instance.id);
@@ -145,7 +145,7 @@ export class MultiselectModel {
   }
 
   public toggleServerGroup(serverGroup: IServerGroup): void {
-    const { $state } = ReactInjector;
+    const $state = getDirectRouter()!.stateService;
     if (!ClusterState.filterModel.asFilterModel.sortFilter.multiselect) {
       const params = {
         provider: serverGroup.type,
@@ -184,7 +184,7 @@ export class MultiselectModel {
   }
 
   public toggleInstance(serverGroup: IServerGroup, instanceId: string): void {
-    const { $state } = ReactInjector;
+    const $state = getDirectRouter()!.stateService;
     if (!ClusterState.filterModel.asFilterModel.sortFilter.multiselect) {
       const params = { provider: serverGroup.type, instanceId };
       if (this.isClusterChildState()) {
@@ -226,6 +226,6 @@ export class MultiselectModel {
   }
 
   private isClusterChildState(): boolean {
-    return ReactInjector.$state.$current.name.split('.').pop() !== 'clusters';
+    return getDirectRouter()!.stateService.$current.name.split('.').pop() !== 'clusters';
   }
 }

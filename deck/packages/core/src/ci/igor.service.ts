@@ -1,5 +1,3 @@
-import { $q } from 'ngimport';
-
 import { REST } from '../api/ApiService';
 import type { IBuild, IGcbTrigger, IJobConfig } from '../domain';
 
@@ -13,7 +11,7 @@ export class IgorService {
   public static listMasters(buildType: BuildServiceType = null): PromiseLike<string[]> {
     const allMasters: PromiseLike<string[]> = REST('/v2/builds').query({ type: buildType }).get();
     if (!allMasters) {
-      return $q.reject('An error occurred when retrieving build masters');
+      return Promise.reject('An error occurred when retrieving build masters');
     }
     switch (buildType) {
       case BuildServiceType.Jenkins:

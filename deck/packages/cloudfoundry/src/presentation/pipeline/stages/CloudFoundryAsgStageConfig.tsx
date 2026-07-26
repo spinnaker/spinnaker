@@ -3,7 +3,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { IAccount, IStageConfigProps } from '@spinnaker/core';
-import { AccountService, NgReact, StageConfigField, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConfigField, StageConstants, TargetSelect } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
 
@@ -46,7 +46,6 @@ export class CloudFoundryAsgStageConfig extends React.Component<IStageConfigProp
     const { application, pipeline, stage } = this.props;
     const { target } = stage;
     const { accounts } = this.state;
-    const { TargetSelect } = NgReact;
     return (
       <div className="form-horizontal">
         {!pipeline.strategy && (

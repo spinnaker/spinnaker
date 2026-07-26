@@ -1,105 +1,59 @@
-import type { IDeferred, IQService, IRootScopeService, IScope } from 'angular';
-import { mock } from 'angular';
-
-import { mockHttpClient } from '../../../../api/mock/jasmine';
-import { tick } from '../../../../api/mock/mockHttpUtils';
-import type { ManualJudgmentService } from './manualJudgment.service';
-import { MANUAL_JUDGMENT_SERVICE } from './manualJudgment.service';
+import { ManualJudgmentService } from './manualJudgment.service';
 import type { ExecutionService } from '../../../service/execution.service';
 
 describe('Service: manualJudgment', () => {
-  let $scope: IScope, service: ManualJudgmentService, $q: IQService, executionService: ExecutionService;
+  let service: ManualJudgmentService, executionService: jasmine.SpyObj<ExecutionService>;
 
-  beforeEach(mock.module(MANUAL_JUDGMENT_SERVICE, 'ui.router'));
-
-  beforeEach(
-    mock.inject(
-      (
-        $rootScope: IRootScopeService,
-        manualJudgmentService: ManualJudgmentService,
-        _$q_: IQService,
-        _executionService_: ExecutionService,
-      ) => {
-        $scope = $rootScope.$new();
-        service = manualJudgmentService;
-        $q = _$q_;
-        executionService = _executionService_;
-      },
-    ),
-  );
+  beforeEach(() => {
+    executionService = jasmine.createSpyObj<ExecutionService>('executionService', [
+      'patchExecution',
+      'waitUntilExecutionMatches',
+      'updateExecution',
+    ]);
+    service = new ManualJudgmentService(executionService);
+  });
 
   describe('provideJudgment', () => {
-    let execution: any, stage: any, requestUrl: string;
+    let application: any, execution: any, stage: any, updatedExecution: any;
     beforeEach(() => {
+      application = { name: 'app' };
       execution = { id: 'ex-id' };
       stage = { id: 'stage-id' };
-      requestUrl = `/pipelines/${execution.id}/stages/${stage.id}`;
+      updatedExecution = { stages: [{ id: 'stage-id', status: 'SUCCEEDED' }] };
     });
 
-    it('should resolve when execution status matches request', async () => {
-      const http = mockHttpClient();
-      const deferred: IDeferred<boolean> = $q.defer();
-      let succeeded = false;
+    it('patches the judgment, waits for the stage to finish running, and updates the execution', async () => {
+      executionService.patchExecution.and.returnValue(Promise.resolve(null) as any);
+      executionService.waitUntilExecutionMatches.and.returnValue(Promise.resolve(updatedExecution) as any);
+      executionService.updateExecution.and.returnValue(Promise.resolve(null) as any);
 
-      http.expectPATCH(requestUrl).respond(200, '');
-      spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise as any);
-      spyOn(executionService, 'updateExecution').and.stub();
+      await service.provideJudgment(application, execution, stage, 'continue', 'ship it');
 
-      service.provideJudgment(null, execution, stage, 'continue').then(() => (succeeded = true));
-
-      await http.flush();
-      expect(succeeded).toBe(false);
-
-      // waitForExecutionMatches...
-      deferred.resolve();
-      $scope.$digest();
-      await tick();
-
-      expect(succeeded).toBe(true);
+      expect(executionService.patchExecution).toHaveBeenCalledWith('ex-id', 'stage-id', {
+        judgmentStatus: 'continue',
+        judgmentInput: 'ship it',
+      });
+      const matcher = executionService.waitUntilExecutionMatches.calls.mostRecent().args[1];
+      expect(matcher({ stages: [{ id: 'stage-id', status: 'RUNNING' }] } as any)).toBe(false);
+      expect(matcher(updatedExecution)).toBe(true);
+      expect(executionService.updateExecution).toHaveBeenCalledWith(application, updatedExecution);
     });
 
-    it('should fail when waitUntilExecutionMatches fails', async () => {
-      const http = mockHttpClient();
-      const deferred: IDeferred<boolean> = $q.defer();
-      let succeeded = false;
-      let failed = false;
+    it('fails when waitUntilExecutionMatches fails', async () => {
+      const error = new Error('wait failed');
+      executionService.patchExecution.and.returnValue(Promise.resolve(null) as any);
+      executionService.waitUntilExecutionMatches.and.returnValue(Promise.reject(error) as any);
 
-      http.expectPATCH(requestUrl).respond(200, '');
-      spyOn(executionService, 'waitUntilExecutionMatches').and.returnValue(deferred.promise as any);
-
-      service.provideJudgment(null, execution, stage, 'continue').then(
-        () => (succeeded = true),
-        () => (failed = true),
-      );
-
-      await http.flush();
-      expect(succeeded).toBe(false);
-      expect(failed).toBe(false);
-
-      // waitForExecutionMatches...
-      deferred.reject();
-      $scope.$digest();
-      await tick();
-
-      expect(succeeded).toBe(false);
-      expect(failed).toBe(true);
+      await expectAsync(service.provideJudgment(application, execution, stage, 'continue')).toBeRejectedWith(error);
+      expect(executionService.updateExecution).not.toHaveBeenCalled();
     });
 
-    it('should fail when patch call fails', async () => {
-      const http = mockHttpClient();
-      let succeeded = false;
-      let failed = false;
+    it('fails when patch call fails', async () => {
+      const error = new Error('patch failed');
+      executionService.patchExecution.and.returnValue(Promise.reject(error) as any);
 
-      http.expectPATCH(requestUrl).respond(503, '');
-
-      service.provideJudgment(null, execution, stage, 'continue').then(
-        () => (succeeded = true),
-        () => (failed = true),
-      );
-
-      await http.flush();
-      expect(succeeded).toBe(false);
-      expect(failed).toBe(true);
+      await expectAsync(service.provideJudgment(application, execution, stage, 'continue')).toBeRejectedWith(error);
+      expect(executionService.waitUntilExecutionMatches).not.toHaveBeenCalled();
     });
   });
 });

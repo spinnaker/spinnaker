@@ -22,7 +22,6 @@ import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,15 +33,23 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.saml2.core.Saml2X509Credential;
 import org.springframework.security.saml2.provider.service.authentication.OpenSaml4AuthenticationProvider;
-import org.springframework.security.saml2.provider.service.registration.InMemoryRelyingPartyRegistrationRepository;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistration;
 import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
-import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrations;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.util.StringUtils;
 
+/**
+ * Configures SAML authentication for Spinnaker Gate.
+ *
+ * <p>SAML connection properties (IdP metadata URI, entity ID, ACS location, signing/decryption
+ * credentials) are configured via Spring Boot's native {@code
+ * spring.security.saml2.relyingparty.registration.*} properties. Spinnaker-specific behaviour (user
+ * attribute mapping, required roles) is configured via the {@code saml.*} properties in {@link
+ * SecuritySamlProperties}.
+ *
+ * <p>See {@code gate/gate-saml/docs/saml-migration.md} for migration instructions.
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SecuritySamlProperties.class)
 public class SAMLConfiguration {
@@ -80,46 +87,28 @@ public class SAMLConfiguration {
     }
 
     @Bean
-    @SneakyThrows
-    public RelyingPartyRegistrationRepository relyingPartyRegistrationRepository() {
-      var builder =
-          RelyingPartyRegistrations.fromMetadataLocation(properties.getMetadataUrl())
-              .registrationId(properties.getRegistrationId())
-              .entityId(properties.getIssuerId())
-              .assertionConsumerServiceLocation(properties.getAssertionConsumerServiceLocation());
-      Saml2X509Credential decryptionCredential = properties.getDecryptionCredential();
-      if (decryptionCredential != null) {
-        builder.decryptionX509Credentials(credentials -> credentials.add(decryptionCredential));
-      }
-      // This is used in some identity providers to sign the request.  NOT the response - response
-      // is handled via the certs in metadata or up above.  This is keycloak and some others
-      // TO USE THIS:  The certificate should be uploaded to the IDP to allow it to decrypt these
-      // requests
-      if (properties.isSignRequests()) {
-        builder.signingX509Credentials(c -> c.addAll(properties.getSigningCredentials()));
-      }
-      RelyingPartyRegistration registration = builder.build();
-      return new InMemoryRelyingPartyRegistrationRepository(registration);
-    }
-
-    @Bean
     // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
     @Order(3)
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http, RelyingPartyRegistrationRepository registrations) throws Exception {
       authConfig.configure(http);
+      // Handles redirect in newer spring systems
       HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
       requestCache.setMatchingRequestParameterName(null);
-      // Configure request cache to save original requests
+      http.requestCache(cache -> cache.requestCache(requestCache));
 
-      var authenticationProvider = new OpenSaml4AuthenticationProvider();
-      authenticationProvider.setResponseAuthenticationConverter(responseAuthenticationConverter());
-      return http.saml2Login(
-              saml ->
-                  saml.authenticationManager(new ProviderManager(authenticationProvider))
-                      .loginProcessingUrl(properties.getLoginProcessingUrl())
-                      .relyingPartyRegistrationRepository(relyingPartyRegistrationRepository()))
-          .requestCache(cache -> cache.requestCache(requestCache))
-          .build();
+      http.saml2Login(
+          saml -> {
+            var authenticationProvider = new OpenSaml4AuthenticationProvider();
+            authenticationProvider.setResponseAuthenticationConverter(
+                responseAuthenticationConverter());
+            saml.authenticationManager(new ProviderManager(authenticationProvider));
+            saml.relyingPartyRegistrationRepository(registrations);
+            if (StringUtils.hasLength(properties.getLoginProcessingUrl())) {
+              saml.loginProcessingUrl(properties.getLoginProcessingUrl());
+            }
+          });
+      return http.build();
     }
   }
 }

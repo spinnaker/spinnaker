@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import {
   chain,
   clone,
@@ -15,11 +14,11 @@ import {
   some,
   xor,
 } from 'lodash';
-import { $q } from 'ngimport';
 
 import type {
   Application,
   CacheInitializerService,
+  DeckRuntimeServices,
   IAccountDetails,
   IDeploymentStrategy,
   IRegion,
@@ -31,20 +30,10 @@ import type {
   IServerGroupCommandResult,
   IServerGroupCommandViewState,
   ISubnet,
-  LoadBalancerReader,
   SecurityGroupReader,
   ServerGroupCommandRegistry,
 } from '@spinnaker/core';
-import {
-  AccountService,
-  CACHE_INITIALIZER_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  NameUtils,
-  SECURITY_GROUP_READER,
-  SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
-  setMatchingResourceSummary,
-  SubnetReader,
-} from '@spinnaker/core';
+import { AccountService, NameUtils, REST, setMatchingResourceSummary, SubnetReader } from '@spinnaker/core';
 
 import { AWSProviderSettings } from '../../aws.settings';
 import { AutoScalingProcessService } from '../details/scalingProcesses/AutoScalingProcessService';
@@ -54,8 +43,8 @@ import type {
   IKeyPair,
   IScalingProcess,
 } from '../../domain';
-import { AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE } from '../../instance/awsInstanceType.service';
-import type { IAmazonInstanceType } from '../../instance/awsInstanceType.service';
+import { AwsInstanceTypeService } from '../../instance/awsInstanceType.service';
+import type { IAmazonInstanceType, IAmazonInstanceTypesByRegion } from '../../instance/awsInstanceType.service';
 import { KeyPairsReader } from '../../keyPairs';
 
 export type IBlockDeviceMappingSource = 'source' | 'ami' | 'default';
@@ -81,7 +70,7 @@ export interface IAmazonServerGroupCommandBackingData extends IServerGroupComman
   keyPairs: IKeyPair[];
   targetGroups: string[];
   scalingProcesses: IScalingProcess[];
-  instanceTypesInfo: IAmazonInstanceType[];
+  instanceTypesInfo: IAmazonInstanceTypesByRegion;
 }
 
 export interface IAmazonServerGroupCommandViewState extends IServerGroupCommandViewState {
@@ -178,21 +167,30 @@ export class AwsServerGroupConfigurationService {
     'ClosestToNextInstanceHour',
     'Default',
   ];
+  private securityGroupReader: SecurityGroupReader;
+  private awsInstanceTypeService: AwsInstanceTypeService;
+  private cacheInitializer: CacheInitializerService;
 
-  public static $inject = [
-    'securityGroupReader',
-    'awsInstanceTypeService',
-    'cacheInitializer',
-    'loadBalancerReader',
-    'serverGroupCommandRegistry',
-  ];
   constructor(
-    private securityGroupReader: SecurityGroupReader,
-    private awsInstanceTypeService: any,
-    private cacheInitializer: CacheInitializerService,
-    private loadBalancerReader: LoadBalancerReader,
-    private serverGroupCommandRegistry: ServerGroupCommandRegistry,
-  ) {}
+    securityGroupReader: SecurityGroupReader,
+    awsInstanceTypeService: AwsInstanceTypeService,
+    cacheInitializer: CacheInitializerService,
+    private serverGroupCommandRegistry: Pick<ServerGroupCommandRegistry, 'getCommandOverrides'> = {
+      getCommandOverrides: () => [],
+    },
+  ) {
+    this.securityGroupReader = securityGroupReader;
+    this.awsInstanceTypeService = awsInstanceTypeService;
+    this.cacheInitializer = cacheInitializer;
+  }
+
+  private getSecurityGroupReader(): SecurityGroupReader {
+    return this.securityGroupReader;
+  }
+
+  private getCacheInitializer(): CacheInitializerService {
+    return this.cacheInitializer;
+  }
 
   public configureUpdateCommand(command: IAmazonServerGroupCommand): void {
     command.backingData = {
@@ -260,21 +258,31 @@ export class AwsServerGroupConfigurationService {
         command.backingData.filtered.regions.some((region) => region.name === command.region && region.deprecated)
       );
     };
+    const securityGroupReader = this.getSecurityGroupReader();
 
-    return $q
-      .all([
-        AccountService.getCredentialsKeyedByAccount('aws'),
-        this.securityGroupReader.getAllSecurityGroups(),
-        SubnetReader.listSubnets(),
-        AccountService.getPreferredZonesByAccount('aws'),
-        KeyPairsReader.listKeyPairs(),
-        this.awsInstanceTypeService.getAllTypesByRegion(),
-        $q.when(clone(this.enabledMetrics)),
-        $q.when(clone(this.healthCheckTypes)),
-        $q.when(clone(this.terminationPolicies)),
-      ])
-      .then(
-        ([
+    return Promise.all([
+      AccountService.getCredentialsKeyedByAccount('aws'),
+      securityGroupReader.getAllSecurityGroups(),
+      SubnetReader.listSubnets(),
+      AccountService.getPreferredZonesByAccount('aws'),
+      KeyPairsReader.listKeyPairs(),
+      this.awsInstanceTypeService.getAllTypesByRegion(),
+      Promise.resolve(clone(this.enabledMetrics)),
+      Promise.resolve(clone(this.healthCheckTypes)),
+      Promise.resolve(clone(this.terminationPolicies)),
+    ]).then(
+      ([
+        credentialsKeyedByAccount,
+        securityGroups,
+        subnets,
+        preferredZones,
+        keyPairs,
+        instanceTypesInfo,
+        enabledMetrics,
+        healthCheckTypes,
+        terminationPolicies,
+      ]) => {
+        const backingData: Partial<IAmazonServerGroupCommandBackingData> = {
           credentialsKeyedByAccount,
           securityGroups,
           subnets,
@@ -284,45 +292,34 @@ export class AwsServerGroupConfigurationService {
           enabledMetrics,
           healthCheckTypes,
           terminationPolicies,
-        ]) => {
-          const backingData: Partial<IAmazonServerGroupCommandBackingData> = {
-            credentialsKeyedByAccount,
-            securityGroups,
-            subnets,
-            preferredZones,
-            keyPairs,
-            instanceTypesInfo,
-            enabledMetrics,
-            healthCheckTypes,
-            terminationPolicies,
-          };
+        };
 
-          let securityGroupReloader: PromiseLike<void> = $q.when();
-          backingData.accounts = keys(backingData.credentialsKeyedByAccount);
-          backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
-          backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
-          backingData.appLoadBalancers = application.getDataSource('loadBalancers').data;
-          backingData.managedResources = application.getDataSource('managedResources')?.data?.resources;
-          cmd.backingData = backingData as IAmazonServerGroupCommandBackingData;
-          this.configureVpcId(cmd);
-          backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
-          if (cmd.viewState.disableImageSelection) {
-            this.configureInstanceTypes(cmd);
+        let securityGroupReloader: PromiseLike<void> = Promise.resolve();
+        backingData.accounts = keys(backingData.credentialsKeyedByAccount);
+        backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
+        backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
+        backingData.appLoadBalancers = application.getDataSource('loadBalancers').data;
+        backingData.managedResources = application.getDataSource('managedResources')?.data?.resources;
+        cmd.backingData = backingData as IAmazonServerGroupCommandBackingData;
+        this.configureVpcId(cmd);
+        backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
+        if (cmd.viewState.disableImageSelection) {
+          this.configureInstanceTypes(cmd);
+        }
+
+        if (cmd.securityGroups && cmd.securityGroups.length) {
+          const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(cmd), 'id');
+          if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
+            securityGroupReloader = this.refreshSecurityGroups(cmd, true);
           }
+        }
 
-          if (cmd.securityGroups && cmd.securityGroups.length) {
-            const regionalSecurityGroupIds = map(this.getRegionalSecurityGroups(cmd), 'id');
-            if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
-              securityGroupReloader = this.refreshSecurityGroups(cmd, true);
-            }
-          }
-
-          return securityGroupReloader.then(() => {
-            this.applyOverrides('afterConfiguration', cmd);
-            this.attachEventHandlers(cmd);
-          });
-        },
-      );
+        return securityGroupReloader.then(() => {
+          this.applyOverrides('afterConfiguration', cmd);
+          this.attachEventHandlers(cmd);
+        });
+      },
+    );
   }
 
   public applyOverrides(phase: string, command: IAmazonServerGroupCommand): void {
@@ -515,14 +512,18 @@ export class AwsServerGroupConfigurationService {
     command: IAmazonServerGroupCommand,
     skipCommandReconfiguration?: boolean,
   ): PromiseLike<void> {
-    return this.cacheInitializer.refreshCache('securityGroups').then(() => {
-      return this.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
-        command.backingData.securityGroups = securityGroups;
-        if (!skipCommandReconfiguration) {
-          this.configureSecurityGroupOptions(command);
-        }
+    return this.getCacheInitializer()
+      .refreshCache('securityGroups')
+      .then(() => {
+        return this.getSecurityGroupReader()
+          .getAllSecurityGroups()
+          .then((securityGroups) => {
+            command.backingData.securityGroups = securityGroups;
+            if (!skipCommandReconfiguration) {
+              this.configureSecurityGroupOptions(command);
+            }
+          });
       });
-    });
   }
 
   private getLoadBalancerMap(command: IAmazonServerGroupCommand): IAmazonLoadBalancerSourceData[] {
@@ -613,12 +614,15 @@ export class AwsServerGroupConfigurationService {
   }
 
   public refreshLoadBalancers(command: IAmazonServerGroupCommand, skipCommandReconfiguration?: boolean) {
-    return this.loadBalancerReader.listLoadBalancers('aws').then((loadBalancers) => {
-      command.backingData.loadBalancers = loadBalancers;
-      if (!skipCommandReconfiguration) {
-        this.configureLoadBalancerOptions(command);
-      }
-    });
+    return REST('/loadBalancers')
+      .query({ provider: 'aws' })
+      .get()
+      .then((loadBalancers) => {
+        command.backingData.loadBalancers = loadBalancers;
+        if (!skipCommandReconfiguration) {
+          this.configureLoadBalancerOptions(command);
+        }
+      });
   }
 
   public configureVpcId(command: IAmazonServerGroupCommand): IAmazonServerGroupCommandResult {
@@ -737,11 +741,10 @@ export class AwsServerGroupConfigurationService {
   }
 }
 
-export const AWS_SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.amazon.serverGroup.configure.service';
-module(AWS_SERVER_GROUP_CONFIGURATION_SERVICE, [
-  SECURITY_GROUP_READER,
-  AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE,
-  LOAD_BALANCER_READ_SERVICE,
-  CACHE_INITIALIZER_SERVICE,
-  SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
-]).service('awsServerGroupConfigurationService', AwsServerGroupConfigurationService);
+export class AwsServerGroupConfigurationServiceDelegate extends AwsServerGroupConfigurationService {
+  public static readonly requiresDeckRuntimeServices = true;
+
+  constructor(_promiseService: unknown, runtimeServices: DeckRuntimeServices) {
+    super(runtimeServices.securityGroupReader, new AwsInstanceTypeService(), runtimeServices.cacheInitializer);
+  }
+}

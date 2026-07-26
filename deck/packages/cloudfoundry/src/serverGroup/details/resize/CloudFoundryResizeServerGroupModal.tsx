@@ -3,19 +3,26 @@ import { Form } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 
-import type { Application, ICapacity, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  ICapacity,
+  IModalComponentProps,
+  IServerGroupJob,
+} from '@spinnaker/core';
 import {
+  DeckRuntimeContext,
   FormikFormField,
   ModalClose,
   noop,
   NumberInput,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
   TaskMonitorWrapper,
   TaskReason,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../../domain';
 
 export interface ICloudFoundryResizeServerGroupModalProps extends IModalComponentProps {
@@ -48,6 +55,9 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
   ICloudFoundryResizeServerGroupModalProps,
   ICloudFoundryResizeServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryResizeServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -55,9 +65,12 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
 
   private formikRef = React.createRef<Formik<ICloudFoundryResizeServerGroupValues>>();
 
-  public static show(props: ICloudFoundryResizeServerGroupModalProps): Promise<ICloudFoundryResizeJob> {
+  public static show(
+    props: ICloudFoundryResizeServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudFoundryResizeJob> {
     const modalProps = {};
-    return ReactModal.show(CloudFoundryResizeServerGroupModal, props, modalProps);
+    return ReactModal.show(CloudFoundryResizeServerGroupModal, props, modalProps, runtimeServices);
   }
 
   constructor(props: ICloudFoundryResizeServerGroupModalProps) {
@@ -102,7 +115,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
+      return this.context.services.serverGroupWriter.resizeServerGroup(serverGroup, application, command);
     });
   };
 

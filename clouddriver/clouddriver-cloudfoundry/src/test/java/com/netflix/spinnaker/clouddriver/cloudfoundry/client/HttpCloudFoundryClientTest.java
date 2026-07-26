@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.matching.UrlPattern;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.CreateServiceBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateServiceCredentialBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import java.util.Optional;
@@ -202,9 +202,9 @@ class HttpCloudFoundryClientTest {
     String invalidBindingName = "test-service-binding~123#test";
     String sanitisedBindingName = "test-service-binding-123-test";
 
-    CreateServiceBinding binding =
-        new CreateServiceBinding(
-            UUID.randomUUID().toString(), UUID.randomUUID().toString(), invalidBindingName);
+    CreateServiceCredentialBinding binding =
+        CreateServiceCredentialBinding.forAppBinding(
+            UUID.randomUUID().toString(), UUID.randomUUID().toString(), invalidBindingName, null);
     assertThat(binding.getName()).isEqualTo(sanitisedBindingName);
   }
 

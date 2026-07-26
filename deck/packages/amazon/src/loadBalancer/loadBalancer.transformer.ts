@@ -1,5 +1,4 @@
 import { chain, filter, flatten, map } from 'lodash';
-import { $q } from 'ngimport';
 
 import type { Application, IHealth, IInstance, IServerGroup, IVpc } from '@spinnaker/core';
 import { AccountService, NameUtils, SETTINGS } from '@spinnaker/core';
@@ -112,7 +111,7 @@ export class AwsLoadBalancerTransformer {
     targetGroup.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
     this.updateHealthCounts(targetGroup);
 
-    return $q.all([VpcReader.listVpcs(), AccountService.listAllAccounts()]).then(([vpcs, accounts]) => {
+    return Promise.all([VpcReader.listVpcs(), AccountService.listAllAccounts()]).then(([vpcs, accounts]) => {
       const tg = this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup;
 
       tg.serverGroups = tg.serverGroups.map((serverGroup) => {

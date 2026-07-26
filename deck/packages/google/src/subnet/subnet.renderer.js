@@ -1,24 +1,25 @@
 'use strict';
 
-import { module } from 'angular';
 import _ from 'lodash';
 
 import { NetworkReader } from '@spinnaker/core';
 
 export const GOOGLE_SUBNET_SUBNET_RENDERER = 'spinnaker.gce.subnet.renderer';
 export const name = GOOGLE_SUBNET_SUBNET_RENDERER; // for backwards compatibility
-module(GOOGLE_SUBNET_SUBNET_RENDERER, []).factory('gceSubnetRenderer', function () {
-  let gceNetworks;
+export class GceSubnetRenderer {
+  constructor() {
+    this.gceNetworks = undefined;
 
-  NetworkReader.listNetworksByProvider('gce').then(function (networks) {
-    gceNetworks = networks;
-  });
+    NetworkReader.listNetworksByProvider('gce').then((networks) => {
+      this.gceNetworks = networks;
+    });
+  }
 
-  function render(serverGroup) {
+  render(serverGroup) {
     if (serverGroup.subnet) {
       return serverGroup.subnet;
     } else {
-      const autoCreateSubnets = _.chain(gceNetworks)
+      const autoCreateSubnets = _.chain(this.gceNetworks)
         .filter({ account: serverGroup.account, name: serverGroup.network })
         .map('autoCreateSubnets')
         .head()
@@ -27,8 +28,4 @@ module(GOOGLE_SUBNET_SUBNET_RENDERER, []).factory('gceSubnetRenderer', function 
       return autoCreateSubnets ? '(Auto-select)' : '[none]';
     }
   }
-
-  return {
-    render: render,
-  };
-});
+}

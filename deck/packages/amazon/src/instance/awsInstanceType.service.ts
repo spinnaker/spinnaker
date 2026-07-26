@@ -1,5 +1,3 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
 import _ from 'lodash';
 
 import type {
@@ -69,185 +67,168 @@ export interface IAmazonInstanceTypesByRegion extends IInstanceTypesByRegion {
   [region: string]: IAmazonInstanceType[];
 }
 
-export const AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE = 'spinnaker.amazon.instanceType.service';
-export const name = AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE; // for backwards compatibility
+export class AwsInstanceTypeService {
+  private instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
+  private families: { [key: string]: string[] } = {
+    ec2ClassicSupported: ['m1', 'm3', 't1', 'c1', 'c3', 'cc2', 'cr1', 'm2', 'r3', 'd2', 'hs1', 'i2', 'g2'],
+    ebsOptimized: ['c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'm5', 'p2', 'r4', 'r5', 'x1'],
+    burstablePerf: ['t2', 't3', 't3a', 't4g'],
+  };
 
-module(AMAZON_INSTANCE_AWSINSTANCETYPE_SERVICE, []).factory('awsInstanceTypeService', [
-  '$q',
-  function ($q: IQService) {
-    function getCategories() {
-      return $q.when(categories);
-    }
+  public getCategories(): PromiseLike<IAmazonInstanceTypeCategory[]> {
+    return Promise.resolve(categories);
+  }
 
-    const getAllTypesByRegion = function getAllTypesByRegion(): PromiseLike<IAmazonInstanceTypesByRegion> {
-      return REST('/instanceTypes')
-        .get()
-        .then(function (types) {
-          return _.chain(types)
-            .map(function (type: IAmazonInstanceType) {
-              return {
-                ...type,
-                key: [type.region, type.account, type.name].join(':'),
-              };
-            })
-            .uniqBy('key')
-            .groupBy('region')
-            .value();
-        });
-    };
+  public getAllTypesByRegion(): PromiseLike<IAmazonInstanceTypesByRegion> {
+    return REST('/instanceTypes')
+      .get()
+      .then(function (types) {
+        return _.chain(types)
+          .map(function (type: IAmazonInstanceType) {
+            return {
+              ...type,
+              key: [type.region, type.account, type.name].join(':'),
+            };
+          })
+          .uniqBy('key')
+          .groupBy('region')
+          .value();
+      });
+  }
 
-    const instanceClassOrder = ['xlarge', 'large', 'medium', 'small', 'micro', 'nano'];
+  private sortTypesByFamilyAndSize(o1: string, o2: string) {
+    const type1 = o1.split('.');
+    const type2 = o2.split('.');
 
-    function sortTypesByFamilyAndSize(o1: string, o2: string) {
-      const type1 = o1.split('.');
-      const type2 = o2.split('.');
+    const [family1, class1 = ''] = type1;
+    const [family2, class2 = ''] = type2;
 
-      const [family1, class1 = ''] = type1;
-      const [family2, class2 = ''] = type2;
-
-      if (family1 !== family2) {
-        if (family1 > family2) {
-          return 1;
-        } else if (family1 < family2) {
-          return -1;
-        }
-        return 0;
-      }
-
-      const t1Idx = instanceClassOrder.findIndex((el) => class1.endsWith(el));
-      const t2Idx = instanceClassOrder.findIndex((el) => class2.endsWith(el));
-
-      if (t1Idx === -1 || t2Idx === -1) {
-        return 0;
-      }
-
-      if (t1Idx === 0 && t2Idx === 0) {
-        const size1 = parseInt(class1.replace('xlarge', '')) || 0;
-        const size2 = parseInt(class2.replace('xlarge', '')) || 0;
-
-        if (size2 < size1) {
-          return 1;
-        } else if (size2 > size1) {
-          return -1;
-        }
-        return 0;
-      }
-
-      if (t1Idx > t2Idx) {
-        return -1;
-      } else if (t1Idx < t2Idx) {
+    if (family1 !== family2) {
+      if (family1 > family2) {
         return 1;
+      } else if (family1 < family2) {
+        return -1;
       }
       return 0;
     }
 
-    function getAvailableTypesForRegions(
-      availableInstanceTypes: IAmazonInstanceTypesByRegion,
-      selectedRegions: string[],
-    ): IAmazonInstanceType[] {
-      selectedRegions = selectedRegions || [];
-      let availableTypes: IAmazonInstanceType[] = [];
+    const t1Idx = this.instanceClassOrder.findIndex((el) => class1.endsWith(el));
+    const t2Idx = this.instanceClassOrder.findIndex((el) => class2.endsWith(el));
 
-      // prime the list of available types
-      if (selectedRegions && selectedRegions.length) {
-        availableTypes = availableInstanceTypes[selectedRegions[0]] || [];
-      }
-
-      // this will perform an unnecessary intersection with the first region, which is fine
-      selectedRegions.forEach(function (selectedRegion) {
-        if (availableInstanceTypes[selectedRegion]) {
-          availableTypes = _.intersectionBy(availableTypes, availableInstanceTypes[selectedRegion], 'name');
-        }
-      });
-
-      return availableTypes?.sort((a, b) => sortTypesByFamilyAndSize(a.name, b.name));
+    if (t1Idx === -1 || t2Idx === -1) {
+      return 0;
     }
 
-    const families: { [key: string]: string[] } = {
-      ec2ClassicSupported: ['m1', 'm3', 't1', 'c1', 'c3', 'cc2', 'cr1', 'm2', 'r3', 'd2', 'hs1', 'i2', 'g2'], // https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-classic-platform.html#ec2-classic-instance-types
-      ebsOptimized: ['c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'm5', 'p2', 'r4', 'r5', 'x1'],
-      burstablePerf: ['t2', 't3', 't3a', 't4g'],
-    };
+    if (t1Idx === 0 && t2Idx === 0) {
+      const size1 = parseInt(class1.replace('xlarge', '')) || 0;
+      const size2 = parseInt(class2.replace('xlarge', '')) || 0;
 
-    function filterInstanceTypes(
-      instanceTypes: IAmazonInstanceType[],
-      virtualizationType: string,
-      vpcConfigured: boolean,
-      architecture: string,
-    ): IAmazonInstanceType[] {
-      return _.filter(instanceTypes, function (i) {
-        if (virtualizationType === '*' && architecture === '*') {
-          // show all instance types
-          return true;
-        }
+      if (size2 < size1) {
+        return 1;
+      } else if (size2 > size1) {
+        return -1;
+      }
+      return 0;
+    }
 
-        if (!vpcConfigured && !families.ec2ClassicSupported.includes(i.name.split('.')[0])) {
-          return false;
-        }
+    if (t1Idx > t2Idx) {
+      return -1;
+    } else if (t1Idx < t2Idx) {
+      return 1;
+    }
+    return 0;
+  }
 
-        if (
-          virtualizationType &&
-          i.supportedVirtualizationTypes &&
-          !i.supportedVirtualizationTypes.includes(virtualizationType)
-        ) {
-          return false;
-        }
+  public getAvailableTypesForRegions(
+    availableInstanceTypes: IAmazonInstanceTypesByRegion,
+    selectedRegions: string[],
+  ): IAmazonInstanceType[] {
+    selectedRegions = selectedRegions || [];
+    let availableTypes: IAmazonInstanceType[] = [];
 
-        if (architecture && i.supportedArchitectures && !i.supportedArchitectures.includes(architecture)) {
-          return false;
-        }
+    // prime the list of available types
+    if (selectedRegions && selectedRegions.length) {
+      availableTypes = availableInstanceTypes[selectedRegions[0]] || [];
+    }
 
+    // this will perform an unnecessary intersection with the first region, which is fine
+    selectedRegions.forEach(function (selectedRegion) {
+      if (availableInstanceTypes[selectedRegion]) {
+        availableTypes = _.intersectionBy(availableTypes, availableInstanceTypes[selectedRegion], 'name');
+      }
+    });
+
+    return availableTypes?.sort((a, b) => this.sortTypesByFamilyAndSize(a.name, b.name));
+  }
+
+  public filterInstanceTypes(
+    instanceTypes: IAmazonInstanceType[],
+    virtualizationType: string,
+    vpcConfigured: boolean,
+    architecture: string,
+  ): IAmazonInstanceType[] {
+    return _.filter(instanceTypes, (i) => {
+      if (virtualizationType === '*' && architecture === '*') {
+        // show all instance types
         return true;
-      });
-    }
+      }
 
-    function isEbsOptimized(instanceType: string) {
-      if (!instanceType) {
+      if (!vpcConfigured && !this.families.ec2ClassicSupported.includes(i.name.split('.')[0])) {
         return false;
       }
-      const family = _.split(instanceType, '.', 1)[0];
-      return families.ebsOptimized.includes(family);
-    }
 
-    function isBurstingSupportedForAllTypes(instanceTypes: string[]): boolean {
-      if (!instanceTypes || !instanceTypes.length) {
+      if (
+        virtualizationType &&
+        i.supportedVirtualizationTypes &&
+        !i.supportedVirtualizationTypes.includes(virtualizationType)
+      ) {
         return false;
       }
-      // for multiple instance types case, all instance types must support bursting in order to prevent incompatible configuration.
-      return instanceTypes.every((instanceType) => isBurstingSupported(instanceType));
-    }
 
-    function isBurstingSupported(instanceType: string): boolean {
-      if (!instanceType) {
+      if (architecture && i.supportedArchitectures && !i.supportedArchitectures.includes(architecture)) {
         return false;
       }
-      const family = _.split(instanceType, '.', 1)[0];
-      return families.burstablePerf.includes(family);
+
+      return true;
+    });
+  }
+
+  public isEbsOptimized(instanceType: string) {
+    if (!instanceType) {
+      return false;
+    }
+    const family = _.split(instanceType, '.', 1)[0];
+    return this.families.ebsOptimized.includes(family);
+  }
+
+  public isBurstingSupportedForAllTypes(instanceTypes: string[]): boolean {
+    if (!instanceTypes || !instanceTypes.length) {
+      return false;
+    }
+    // for multiple instance types case, all instance types must support bursting in order to prevent incompatible configuration.
+    return instanceTypes.every((instanceType) => this.isBurstingSupported(instanceType));
+  }
+
+  public isBurstingSupported(instanceType: string): boolean {
+    if (!instanceType) {
+      return false;
+    }
+    const family = _.split(instanceType, '.', 1)[0];
+    return this.families.burstablePerf.includes(family);
+  }
+
+  public getInstanceTypesInCategory(instanceTypesToFilter: string[], category: string): string[] {
+    if (!instanceTypesToFilter || !instanceTypesToFilter.length || !category) {
+      return [];
     }
 
-    function getInstanceTypesInCategory(instanceTypesToFilter: string[], category: string): string[] {
-      if (!instanceTypesToFilter || !instanceTypesToFilter.length || !category) {
-        return [];
-      }
-
-      if (category === 'custom') {
-        return instanceTypesToFilter;
-      }
-
-      const instanceTypesInCategory: string[] = _.flatten(
-        _.find(defaultCategories, { type: category })?.families.map((f) => f.instanceTypes.map((it) => it.name)),
-      );
-      return _.intersection(instanceTypesToFilter, instanceTypesInCategory);
+    if (category === 'custom') {
+      return instanceTypesToFilter;
     }
 
-    return {
-      getCategories,
-      getAvailableTypesForRegions,
-      getAllTypesByRegion,
-      filterInstanceTypes,
-      isEbsOptimized,
-      isBurstingSupportedForAllTypes,
-      getInstanceTypesInCategory,
-    };
-  },
-]);
+    const instanceTypesInCategory: string[] = _.flatten(
+      _.find(defaultCategories, { type: category })?.families.map((f) => f.instanceTypes.map((it) => it.name)),
+    );
+    return _.intersection(instanceTypesToFilter, instanceTypesInCategory);
+  }
+}

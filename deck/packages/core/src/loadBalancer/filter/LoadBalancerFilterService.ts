@@ -1,6 +1,5 @@
 import { chain, find, forOwn, groupBy, includes, intersection, map, some, sortBy, values, without } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { $log } from 'ngimport';
 import { Subject } from 'rxjs';
 
 import type { Application } from '../../application/application.model';
@@ -8,6 +7,7 @@ import type { IInstance, ILoadBalancer, ILoadBalancerGroup, IServerGroup } from 
 import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import { LoadBalancerState } from '../../state';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
 export class LoadBalancerFilterService {
   public groupsUpdatedStream: Subject<ILoadBalancerGroup[]> = new Subject<ILoadBalancerGroup[]>();
@@ -150,7 +150,7 @@ export class LoadBalancerFilterService {
         region: serverGroup.region,
       });
       if (!newServerGroup) {
-        $log.debug(
+        diagnosticLogger.debug(
           'server group no longer found, removing:',
           serverGroup.name,
           serverGroup.account,
@@ -160,7 +160,7 @@ export class LoadBalancerFilterService {
       } else {
         newServerGroup.stringVal = newServerGroup.stringVal || JSON.stringify(newServerGroup, this.jsonReplacer);
         if (serverGroup.stringVal !== newServerGroup.stringVal) {
-          $log.debug(
+          diagnosticLogger.debug(
             'change detected, updating server group:',
             serverGroup.name,
             serverGroup.account,
@@ -180,7 +180,12 @@ export class LoadBalancerFilterService {
         region: serverGroup.region,
       });
       if (!oldServerGroup) {
-        $log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
+        diagnosticLogger.debug(
+          'new server group found, adding',
+          serverGroup.name,
+          serverGroup.account,
+          serverGroup.region,
+        );
         oldGroup.serverGroups.push(serverGroup);
       }
     });

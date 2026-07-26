@@ -1,9 +1,12 @@
 import { isFunction, throttle } from 'lodash';
 import React from 'react';
 
-import type { CoreReactInject } from '../../reactShims/react.injector';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { ScrollToService } from '../../utils/scrollTo/scrollTo.service';
 import { UUIDGenerator } from '../../utils/uuid.service';
+
+import './pageNavigation.less';
 
 export interface INavigationPage {
   key: string;
@@ -16,7 +19,6 @@ export interface IPageNavigatorProps {
   scrollableContainer: string;
   deepLinkParam?: string;
   hideNavigation?: boolean;
-  reactInjector: CoreReactInject;
 }
 
 export interface IPageNavigatorState {
@@ -25,12 +27,12 @@ export interface IPageNavigatorState {
   pages: INavigationPage[];
 }
 
-export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNavigatorState> {
+class PageNavigatorComponent extends React.Component<IPageNavigatorProps & IRouterInjectedProps, IPageNavigatorState> {
   private element: JQuery;
   private container: any;
   private navigator: any;
 
-  constructor(props: IPageNavigatorProps) {
+  constructor(props: IPageNavigatorProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       id: UUIDGenerator.generateUuid(),
@@ -49,8 +51,8 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
       );
     }
     this.navigator = this.element.find('.page-navigation');
-    if (deepLinkParam && this.props.reactInjector.$stateParams[deepLinkParam]) {
-      this.setCurrentSection(this.props.reactInjector.$stateParams[deepLinkParam]);
+    if (deepLinkParam && this.props.stateParams[deepLinkParam]) {
+      this.setCurrentSection(this.props.stateParams[deepLinkParam]);
     }
 
     const pages = React.Children.map(children, (child: any) => {
@@ -124,7 +126,7 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
   private syncLocation(key: string): void {
     const { deepLinkParam } = this.props;
     if (deepLinkParam) {
-      this.props.reactInjector.$state.go('.', { [deepLinkParam]: key }, { notify: false, location: 'replace' });
+      this.props.stateService.go('.', { [deepLinkParam]: key }, { notify: false, location: 'replace' });
     }
   }
 
@@ -184,3 +186,6 @@ export class PageNavigator extends React.Component<IPageNavigatorProps, IPageNav
     );
   }
 }
+
+export const PageNavigator = withRouter(PageNavigatorComponent);
+PageNavigator.displayName = 'PageNavigator';

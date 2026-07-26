@@ -1,5 +1,4 @@
 import type { IQService } from 'angular';
-import { module } from 'angular';
 import { flatten, forOwn, groupBy, has, head, keyBy, keys, values } from 'lodash';
 
 import { REST } from '../api';
@@ -18,7 +17,6 @@ import type {
 } from '../domain';
 import { FilterModelService } from '../filterModel';
 import { NameUtils } from '../naming';
-import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../serverGroup/serverGroup.transformer';
 import { ClusterState } from '../state';
 import { taskMatcher } from './task.matcher';
 
@@ -281,6 +279,7 @@ export class ClusterService {
 
   private addProvidersAndServerGroupsToInstances(serverGroups: IServerGroup[]) {
     serverGroups.forEach((serverGroup) => {
+      serverGroup.instances = serverGroup.instances || [];
       serverGroup.instances.forEach((instance) => {
         instance.provider = serverGroup.type || serverGroup.provider;
         instance.serverGroup = instance.serverGroup || serverGroup.name;
@@ -303,6 +302,7 @@ export class ClusterService {
   }
 
   private addHealthStatusCheck(serverGroup: IServerGroup): void {
+    serverGroup.instances = serverGroup.instances || [];
     serverGroup.instances.forEach((instance) => {
       instance.hasHealthStatus = (instance.health || []).some((h) => h.state !== 'Unknown');
     });
@@ -337,4 +337,3 @@ export class ClusterService {
 }
 
 export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
-module(CLUSTER_SERVICE, [CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER]).service('clusterService', ClusterService);

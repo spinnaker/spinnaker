@@ -3,7 +3,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { Application, IAccount, IFormikStageConfigInjectedProps, IRegion } from '@spinnaker/core';
-import { AccountService, NgReact, StageConfigField, StageConstants, TextInput } from '@spinnaker/core';
+import { AccountService, StageConfigField, StageConstants, TargetSelect, TextInput } from '@spinnaker/core';
 
 import { AccountRegionClusterSelector } from '../../../presentation/widgets/accountRegionClusterSelector';
 
@@ -96,7 +96,6 @@ export class CloudFoundryDeleteServiceBindingsStageConfigForm extends React.Comp
     const stage = this.props.formik.values;
     const { accounts, application } = this.state;
     const { target } = stage;
-    const { TargetSelect } = NgReact;
 
     return (
       <>

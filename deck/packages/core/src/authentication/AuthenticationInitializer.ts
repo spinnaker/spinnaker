@@ -1,12 +1,11 @@
 import type { IHttpPromiseCallbackArg } from 'angular';
-import { $http, $location, $rootScope } from 'ngimport';
 import type { Subscription } from 'rxjs';
 import { fromEvent as observableFromEvent } from 'rxjs';
 
 import { AuthenticationService } from './AuthenticationService';
 import { LoggedOutModal } from './LoggedOutModal';
 import { SETTINGS } from '../config/settings';
-import { ModalInjector } from '../reactShims/modal.injector';
+import { ReactModal } from '../presentation/ReactModal';
 
 interface IAuthResponse {
   username: string;
@@ -15,15 +14,42 @@ interface IAuthResponse {
   isAdmin?: boolean;
 }
 
+export interface IAuthenticationHttpClient {
+  get<T>(config: { url: string; headers?: Record<string, string> }): PromiseLike<T>;
+}
+
+const fetchAuthenticationHttpClient: IAuthenticationHttpClient = {
+  get: async <T>({ url, headers }: { url: string; headers?: Record<string, string> }) => {
+    const response = await fetch(url, { credentials: 'include', headers });
+    if (!response.ok) {
+      throw response;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    return (contentType.includes('json') ? await response.json() : await response.text()) as T;
+  },
+};
+
+let authenticationHttpClient = fetchAuthenticationHttpClient;
+
+export function setAuthenticationHttpClient(client: IAuthenticationHttpClient = fetchAuthenticationHttpClient): void {
+  authenticationHttpClient = client;
+}
+
 export class AuthenticationInitializer {
   private static userLoggedOut = false;
   private static visibilityWatch: Subscription = null;
 
-  private static checkForReauthentication(): void {
-    $http
-      .get(SETTINGS.authEndpoint)
+  private static get<T = IAuthResponse>(url: string, config?: any): PromiseLike<IHttpPromiseCallbackArg<T>> {
+    return Promise.resolve(
+      authenticationHttpClient.get<T>({ url, headers: config?.headers }),
+    ).then((data) => (({ data } as unknown) as IHttpPromiseCallbackArg<T>));
+  }
+
+  private static checkForReauthentication(visibilityWatch: Subscription): void {
+    this.get(SETTINGS.authEndpoint)
       .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-        if (response.data.username) {
+        if (this.visibilityWatch === visibilityWatch && response.data.username) {
           AuthenticationService.setAuthenticatedUser({
             name: response.data.username,
             authenticated: false,
@@ -31,8 +57,10 @@ export class AuthenticationInitializer {
             canMintApiTokens: response.data.canMintApiTokens,
             isAdmin: response.data.isAdmin,
           });
-          ModalInjector.modalStackService.dismissAll();
-          this.visibilityWatch.unsubscribe();
+          this.userLoggedOut = false;
+          this.visibilityWatch?.unsubscribe();
+          this.visibilityWatch = null;
+          ReactModal.dismissAll('reauthentication');
         }
       })
       .catch(() => {});
@@ -43,11 +71,13 @@ export class AuthenticationInitializer {
     this.userLoggedOut = true;
     this.openLoggedOutModal();
 
-    this.visibilityWatch = observableFromEvent(document, 'visibilitychange').subscribe(() => {
+    this.visibilityWatch?.unsubscribe();
+    const visibilityWatch = observableFromEvent(document, 'visibilitychange').subscribe(() => {
       if (document.visibilityState === 'visible') {
-        this.checkForReauthentication();
+        this.checkForReauthentication(visibilityWatch);
       }
     });
+    this.visibilityWatch = visibilityWatch;
   }
 
   private static openLoggedOutModal(): void {
@@ -55,36 +85,43 @@ export class AuthenticationInitializer {
   }
 
   public static loginRedirect(): void {
-    const callback: string = encodeURIComponent($location.absUrl());
+    const callback: string = encodeURIComponent(window.location.href);
     window.location.href = `${SETTINGS.gateUrl}/auth/redirect?to=${callback}`;
   }
 
-  public static authenticateUser() {
-    $rootScope.authenticating = true;
-    $http
-      .get(SETTINGS.authEndpoint)
+  public static authenticateUser(isCurrent: () => boolean = () => true): Promise<boolean> {
+    return Promise.resolve(this.get(SETTINGS.authEndpoint))
       .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-        if (response.data.username) {
-          AuthenticationService.setAuthenticatedUser({
-            name: response.data.username,
-            authenticated: false,
-            roles: response.data.roles,
-            canMintApiTokens: response.data.canMintApiTokens,
-            isAdmin: response.data.isAdmin,
-          });
-          $rootScope.authenticating = false;
-        } else {
+        if (!response.data.username) {
+          throw new Error('Authentication response did not include a username');
+        }
+
+        if (!isCurrent()) {
+          return false;
+        }
+
+        AuthenticationService.setAuthenticatedUser({
+          name: response.data.username,
+          authenticated: false,
+          roles: response.data.roles,
+          canMintApiTokens: response.data.canMintApiTokens,
+          isAdmin: response.data.isAdmin,
+        });
+        return true;
+      })
+      .catch(() => {
+        if (isCurrent()) {
+          AuthenticationService.reset();
           this.loginRedirect();
         }
-      })
-      .catch(() => this.loginRedirect());
+        return false;
+      });
   }
 
   public static reauthenticateUser(): void {
     if (!this.userLoggedOut) {
       this.userLoggedOut = true;
-      $http
-        .get(SETTINGS.authEndpoint)
+      this.get(SETTINGS.authEndpoint)
         .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
           if (response.data.username) {
             AuthenticationService.setAuthenticatedUser({
@@ -94,7 +131,6 @@ export class AuthenticationInitializer {
               canMintApiTokens: response.data.canMintApiTokens,
               isAdmin: response.data.isAdmin,
             });
-            $rootScope.authenticating = false;
             this.userLoggedOut = false;
           } else {
             this.loginNotification();
@@ -111,7 +147,7 @@ export class AuthenticationInitializer {
         transformResponse: (response: string) => response,
       };
 
-      $http.get(`${SETTINGS.gateUrl}/auth/logout`, config).then(
+      this.get(`${SETTINGS.gateUrl}/auth/logout`, config).then(
         () => this.loggedOutSequence(),
         () => this.loggedOutSequence(),
       );

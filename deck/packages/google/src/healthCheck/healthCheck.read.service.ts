@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { uniqWith } from 'lodash';
 
 import type { ISearchResults } from '@spinnaker/core';
@@ -52,4 +51,3 @@ export class GceHealthCheckReader {
 }
 
 export const GCE_HEALTH_CHECK_READER = 'spinnaker.gce.healthCheck.reader';
-module(GCE_HEALTH_CHECK_READER, []).service('gceHealthCheckReader', GceHealthCheckReader);

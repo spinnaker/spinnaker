@@ -1,5 +1,4 @@
 import { isString } from 'lodash';
-import { $q } from 'ngimport';
 
 import type { IAccountDetails } from '../account';
 import { AccountService } from '../account/AccountService';
@@ -42,7 +41,7 @@ export class SnapshotWriter {
   private static loadAccountDetails(app: Application): PromiseLike<IAccountDetails[]> {
     const accounts = isString(app.accounts) ? app.accounts.split(',') : [];
     const accountDetailPromises = accounts.map((account) => AccountService.getAccountDetails(account));
-    return $q.all(accountDetailPromises);
+    return Promise.all(accountDetailPromises);
   }
 
   public static takeSnapshot(app: Application): PromiseLike<ITask> {

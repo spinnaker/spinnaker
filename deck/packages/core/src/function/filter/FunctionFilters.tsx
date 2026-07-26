@@ -1,5 +1,4 @@
 import { chain, compact, debounce, map, uniq } from 'lodash';
-import { $rootScope } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 
@@ -8,6 +7,8 @@ import { FilterSearch } from '../../cluster/filter/FilterSearch';
 import { FilterSection } from '../../cluster/filter/FilterSection';
 import type { ISortFilter } from '../../filterModel';
 import { digestDependentFilters, FilterCheckbox } from '../../filterModel';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { locationChangeSuccess$, withRouter } from '../../navigation/routerContext';
 import { FunctionState } from '../../state';
 
 const poolValueCoordinates = [
@@ -45,13 +46,16 @@ export interface IFunctionFiltersState {
   regionHeadings: string[];
 }
 
-export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFunctionFiltersState> {
+class FunctionFiltersComponent extends React.Component<
+  IFunctionFiltersProps & IRouterInjectedProps,
+  IFunctionFiltersState
+> {
   private debouncedUpdateFunctionGroups: () => void;
   private groupsUpdatedSubscription: Subscription;
   private functionsRefreshUnsubscribe: () => void;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(props: IFunctionFiltersProps) {
+  constructor(props: IFunctionFiltersProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       sortFilter: FunctionState.filterModel.asFilterModel.sortFilter,
@@ -77,10 +81,11 @@ export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFun
 
     this.functionsRefreshUnsubscribe = app.functions.onRefresh(null, () => this.updateFunctionGroups());
 
-    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
+    const locationChangeSubscription = locationChangeSuccess$(this.props.router).subscribe(() => {
       FunctionState.filterModel.asFilterModel.activate();
       FunctionState.filterService.updateFunctionGroups(app);
     });
+    this.locationChangeUnsubscribe = () => locationChangeSubscription.unsubscribe();
   }
 
   public componentWillUnmount(): void {
@@ -184,3 +189,6 @@ export class FunctionFilters extends React.Component<IFunctionFiltersProps, IFun
     );
   }
 }
+
+export const FunctionFilters = withRouter(FunctionFiltersComponent);
+FunctionFilters.displayName = 'FunctionFilters';

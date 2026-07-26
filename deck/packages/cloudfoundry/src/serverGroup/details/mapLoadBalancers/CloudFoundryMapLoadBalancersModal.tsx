@@ -3,16 +3,23 @@ import { Form } from 'formik';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroup, IServerGroupJob } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IServerGroup,
+  IServerGroupJob,
+} from '@spinnaker/core';
 import {
+  DeckRuntimeContext,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../../domain';
 import { Routes } from '../../../presentation/forms/serverGroup';
 
@@ -39,6 +46,9 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
   ICloudFoundryLoadBalancerLinksModalProps,
   ICloudFoundryLoadBalancerLinksModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryLoadBalancerLinksModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -46,8 +56,11 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
 
   private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancerLinksModalValues>>();
 
-  public static show(props: ICloudFoundryLoadBalancerLinksModalProps): Promise<ICloudFoundryLoadBalancerLinkJob> {
-    return ReactModal.show(CloudFoundryMapLoadBalancersModal, props, {});
+  public static show(
+    props: ICloudFoundryLoadBalancerLinksModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ICloudFoundryLoadBalancerLinkJob> {
+    return ReactModal.show(CloudFoundryMapLoadBalancersModal, props, {}, runtimeServices);
   }
 
   constructor(props: ICloudFoundryLoadBalancerLinksModalProps) {
@@ -86,7 +99,7 @@ export class CloudFoundryMapLoadBalancersModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
+      return this.context.services.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
         serverGroupName: serverGroup.name,
       });
     });

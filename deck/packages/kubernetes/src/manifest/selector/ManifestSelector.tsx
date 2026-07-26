@@ -10,12 +10,12 @@ import {
   AccountSelectInput,
   AccountService,
   AppListExtractor,
-  NgReact,
   noop,
   ScopeClusterSelector,
   SETTINGS,
   StageConfigField,
   StageConstants,
+  TargetSelect,
 } from '@spinnaker/core';
 
 import type { IManifestLabelSelector } from './IManifestLabelSelector';
@@ -245,7 +245,7 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   private isExpression = (value: string): boolean => (typeof value === 'string' ? value.includes('${') : false);
 
   private search = (kind: string, namespace: string, account: string): PromiseLike<string[]> => {
-    if (this.isExpression(account)) {
+    if (!kind || !namespace || !account || this.isExpression(account)) {
       return Promise.resolve([]);
     }
     return ManifestKindSearchService.search(kind, namespace, account).then((results) =>
@@ -310,7 +310,6 @@ export class ManifestSelector extends React.Component<IManifestSelectorProps, IM
   };
 
   public render() {
-    const { TargetSelect } = NgReact;
     const selectedMode = this.getSelectedMode();
     const modes = this.props.modes || [selectedMode];
     const { selector, accounts, kinds, namespaces, resources, loading } = this.state;

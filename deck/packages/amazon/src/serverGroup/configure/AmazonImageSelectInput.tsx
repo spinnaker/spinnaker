@@ -1,4 +1,3 @@
-import { $q } from 'ngimport';
 import React from 'react';
 import type { HandlerRendererResult, MenuRendererProps, Option, OptionValues, ReactSelectProps } from 'react-select';
 import {
@@ -83,12 +82,14 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
   }
 
   private loadImageById(imageId: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
-    return !imageId ? $q.when(null) : this.awsImageReader.getImage(imageId, region, credentials).catch(() => null);
+    return !imageId
+      ? Promise.resolve(null)
+      : this.awsImageReader.getImage(imageId, region, credentials).catch(() => null);
   }
 
   private searchForImages(query: string): PromiseLike<IAmazonImage[]> {
     const hasMinLength = query && query.length >= 3;
-    return hasMinLength ? this.awsImageReader.findImages({ q: query }) : $q.when([]);
+    return hasMinLength ? this.awsImageReader.findImages({ q: query }) : Promise.resolve([]);
   }
 
   private fetchPackageImages(

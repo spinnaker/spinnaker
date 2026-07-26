@@ -30,9 +30,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredenti
 import com.netflix.spinnaker.clouddriver.cloudfoundry.cache.CacheRepository;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.config.CloudFoundryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
@@ -297,13 +295,9 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
 
     ServiceInstance si = new ServiceInstance();
     si.setName("userProvidedServiceName-v000");
-    Resource<ServiceInstance> resource = new Resource<>();
-    resource.setEntity(si);
-    List<Resource<? extends AbstractServiceInstance>> serviceInstances = List.of(resource);
+    List<ServiceInstance> serviceInstances = List.of(si);
 
-    when(cloudFoundryClient
-            .getServiceInstances()
-            .findAllVersionedServiceInstancesBySpaceAndName(any(), any()))
+    when(cloudFoundryClient.getServiceInstances().findAllServiceInstancesBySpace(any()))
         .thenReturn(serviceInstances);
 
     final DeployCloudFoundryServiceDescription result = converter.convertDescription(input);

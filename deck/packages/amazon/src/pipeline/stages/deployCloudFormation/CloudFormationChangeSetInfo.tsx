@@ -1,36 +1,27 @@
-import { module } from 'angular';
-import React, { useState } from 'react';
-import { react2angular } from 'react2angular';
+import React from 'react';
 
-import type { IStage, IStageConfigProps } from '@spinnaker/core';
-import { CheckboxInput, ReactSelectInput, StageConfigField, TextInput, withErrorBoundary } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { CheckboxInput, ReactSelectInput, StageConfigField, TextInput } from '@spinnaker/core';
 
 export interface ICloudFormationChangeSetInfoProps {
-  stage: IStage[];
-  stageconfig: IStageConfigProps;
+  stage: IStage;
+  updateStageField: (changes: { [key: string]: any }) => void;
 }
 
 export const CloudFormationChangeSetInfo = (props: ICloudFormationChangeSetInfoProps) => {
-  const { stage, stageconfig } = props;
-  const [changeSetName, setChangeSetName] = useState(
-    (stage as any).changeSetName ? (stage as any).changeSetName : "ChangeSet-${execution['id']}",
-  );
-  const [executeChangeSet, setExecuteChangeSet] = useState((stage as any).executeChangeSet);
-  const [actionOnReplacement, setActionOnReplacement] = useState((stage as any).actionOnReplacement);
+  const { stage, updateStageField } = props;
+  const changeSetName = stage.changeSetName || "ChangeSet-${execution['id']}";
 
   const modifyChangeSetName = (value: string) => {
-    setChangeSetName(value);
-    stageconfig.updateStageField({ changeSetName: value });
+    updateStageField({ changeSetName: value });
   };
 
   const toggleExecuteChangeSet = (checked: boolean) => {
-    setExecuteChangeSet(checked);
-    stageconfig.updateStageField({ executeChangeSet: checked });
+    updateStageField({ executeChangeSet: checked });
   };
 
   const modifyActionOnReplacement = (value: string) => {
-    setActionOnReplacement(value);
-    stageconfig.updateStageField({ actionOnReplacement: value });
+    updateStageField({ actionOnReplacement: value });
   };
 
   const actionOnReplacementOptions = [
@@ -53,13 +44,13 @@ export const CloudFormationChangeSetInfo = (props: ICloudFormationChangeSetInfoP
         />
       </StageConfigField>
       <StageConfigField label="Execute ChangeSet">
-        <CheckboxInput checked={executeChangeSet} onChange={(e) => toggleExecuteChangeSet(e.target.checked)} />
+        <CheckboxInput checked={stage.executeChangeSet} onChange={(e) => toggleExecuteChangeSet(e.target.checked)} />
       </StageConfigField>
-      {executeChangeSet && (
-        <StageConfigField label="If ChangeSet contains a replacement" help-key="aws.cloudformation.changeSet.options">
+      {stage.executeChangeSet && (
+        <StageConfigField label="If ChangeSet contains a replacement" helpKey="aws.cloudformation.changeSet.options">
           <ReactSelectInput
             clearable={false}
-            value={actionOnReplacement}
+            value={stage.actionOnReplacement}
             options={actionOnReplacementOptions}
             onChange={(e) => modifyActionOnReplacement(e.target.value)}
           />
@@ -68,13 +59,3 @@ export const CloudFormationChangeSetInfo = (props: ICloudFormationChangeSetInfoP
     </div>
   );
 };
-
-export const CLOUD_FORMATION_CHANGE_SET_INFO = 'spinnaker.amazon.cloudformation.changetset.info.component';
-
-module(CLOUD_FORMATION_CHANGE_SET_INFO, []).component(
-  'cloudFormationChangeSetInfo',
-  react2angular(withErrorBoundary(CloudFormationChangeSetInfo, 'cloudFormationChangeSetInfo'), [
-    'stage',
-    'stageconfig',
-  ]),
-);

@@ -862,7 +862,7 @@ class WebhooksControllerSpec extends Specification {
       .build();
 
     when:
-    controller.forwardEvent("artifactPublished",cdevent, headers)
+    def response = controller.forwardEvent("artifactPublished",cdevent, headers)
 
     then:
     1 * controller.propagator.processEvent(_) >> {
@@ -872,6 +872,7 @@ class WebhooksControllerSpec extends Specification {
     event.details.type == "cdevents"
     event.details.source == "artifactPublished"
     event.rawContent == cdEventData
+    response.eventProcessed == true
   }
 
   void "handles valid CDEvents Webhook Event with Attribute Constraints in request Headers"() {

@@ -7,9 +7,17 @@ export interface ICloudProviderLogo {
   path: string;
 }
 
+export interface IApplicationProviderField {
+  field: string;
+  label: string;
+  type: 'boolean';
+  helpKey?: string;
+}
+
 export interface ICloudProviderConfig {
   name: string;
   logo?: ICloudProviderLogo;
+  applicationProviderFields?: IApplicationProviderField[];
   [attribute: string]: any;
 }
 

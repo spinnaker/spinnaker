@@ -6,29 +6,38 @@ import React from 'react';
 import { Button } from 'react-bootstrap';
 
 import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
-import { InsightMenu } from './InsightMenu';
+import { InsightMenuComponent } from './InsightMenu';
+import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
 import type { CacheInitializerService } from '../cache/cacheInitializer.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 
-beforeEach(() => {
-  mock.module(($provide: any) => {
-    $provide.value('$uibModal', {} as IModalService);
-    $provide.value('overrideRegistry', new OverrideRegistry());
-    $provide.value('cacheInitializer', {} as CacheInitializerService);
-  });
-});
-
 describe('<InsightMenu />', () => {
   let component: ReactWrapper<IInsightMenuProps, IInsightMenuState>;
+  let go: jasmine.Spy;
+
+  beforeEach(() => {
+    mock.module(($provide: any) => {
+      $provide.value('$state', {});
+      $provide.value('$uibModal', {} as IModalService);
+      $provide.value('overrideRegistry', new OverrideRegistry());
+      $provide.value('cacheInitializer', {} as CacheInitializerService);
+    });
+  });
+  beforeEach(mock.inject());
+  beforeEach(() => (go = jasmine.createSpy('go')));
 
   function getNewMenu(params: object): ReactWrapper<IInsightMenuProps, any> {
     // Set defaults to zero so we only need to pass in the prop we want rendered
     const mergedParams = { ...{ createApp: false, createProject: false, refreshCaches: false }, ...params };
     return mount(
-      <InsightMenu
+      <InsightMenuComponent
         createApp={mergedParams.createApp}
         createProject={mergedParams.createProject}
         refreshCaches={mergedParams.refreshCaches}
+        deckRuntimeServices={{ cacheInitializer: {} as CacheInitializerService } as any}
+        router={{} as any}
+        stateParams={{}}
+        stateService={{ go } as any}
       />,
     );
   }
@@ -83,5 +92,16 @@ describe('<InsightMenu />', () => {
     expect(app.text()).toEqual('Create Application');
     // FIXME: when this project moves to v1+ of react-bootstrap this prop will need to change.
     expect(app.prop('bsStyle')).toEqual('primary');
+  });
+
+  it('opens the direct application modal and routes after creation', async () => {
+    spyOn(CreateApplicationModal, 'show').and.returnValue(Promise.resolve({ name: 'myapp' }) as any);
+    component = getNewMenu({ createApp: true });
+
+    component.find(Button).simulate('click');
+    await Promise.resolve();
+
+    expect(CreateApplicationModal.show).toHaveBeenCalledWith();
+    expect(go).toHaveBeenCalledWith('home.applications.application', { application: 'myapp' });
   });
 });

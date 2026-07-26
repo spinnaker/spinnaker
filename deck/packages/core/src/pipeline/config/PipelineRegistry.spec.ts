@@ -283,6 +283,18 @@ describe('PipelineRegistry: API', function () {
       expect(pipelineRegistry.getStageConfig({ type: 'x' } as IStage)).toEqual(unmatchedStage);
     });
 
+    it('matches a stage registered after an earlier unmatched lookup', function () {
+      const pipelineRegistry = new PipelineRegistry();
+      pipelineRegistry.registerStage(unmatchedStage);
+
+      expect(pipelineRegistry.getStageConfig({ type: 'late' } as IStage)).toEqual(unmatchedStage);
+
+      const lateStage = { key: 'late', description: 'Stage registered after config lookup' };
+      pipelineRegistry.registerStage(lateStage);
+
+      expect(pipelineRegistry.getStageConfig({ type: 'late' } as IStage)).toEqual(lateStage);
+    });
+
     it('matches nothing (returns null) when "unmatched" stage was not registered', function () {
       const pipelineRegistry = new PipelineRegistry();
       slimmaker.filter((stage) => stage !== unmatchedStage).forEach((stage) => pipelineRegistry.registerStage(stage));
@@ -330,6 +342,84 @@ describe('PipelineRegistry: API', function () {
         awsStage,
       );
       expect(pipelineRegistry.getStageConfig({ type: 'd' } as IStage)).toEqual(awsStage);
+    });
+  });
+
+  describe('provider implementation resolution', function () {
+    const BaseComponent = () => React.createElement('div');
+    const AwsComponent = () => React.createElement('div');
+    const EcsComponent = () => React.createElement('div');
+    let pipelineRegistry: PipelineRegistry;
+
+    beforeEach(function () {
+      pipelineRegistry = new PipelineRegistry();
+      pipelineRegistry.registerStage({
+        key: 'destroyServerGroup',
+        useBaseProvider: true,
+        component: BaseComponent,
+      } as IStageTypeConfig);
+      pipelineRegistry.registerStage({
+        key: 'destroyServerGroup',
+        provides: 'destroyServerGroup',
+        cloudProvider: 'aws',
+        component: AwsComponent,
+      } as IStageTypeConfig);
+      pipelineRegistry.registerStage({
+        key: 'destroyServerGroup',
+        provides: 'destroyServerGroup',
+        providesFor: ['ecs'],
+        component: EcsComponent,
+      } as IStageTypeConfig);
+    });
+
+    it('resolves an implementation declared with providesFor', function () {
+      const config = pipelineRegistry.getStageConfig({
+        type: 'destroyServerGroup',
+        cloudProviderType: 'ecs',
+      } as IStage);
+
+      expect(config.component).toBe(EcsComponent);
+    });
+
+    it('resolves an implementation declared with cloudProvider', function () {
+      const config = pipelineRegistry.getStageConfig(({
+        type: 'destroyServerGroup',
+        cloudProvider: 'aws',
+      } as unknown) as IStage);
+
+      expect(config.component).toBe(AwsComponent);
+    });
+
+    it('prefers cloudProvider when cloudProviderType conflicts', function () {
+      const config = pipelineRegistry.getStageConfig(({
+        type: 'destroyServerGroup',
+        cloudProvider: 'aws',
+        cloudProviderType: 'ecs',
+      } as unknown) as IStage);
+
+      expect(config.component).toBe(AwsComponent);
+    });
+
+    it('treats nonempty providesFor as provider-specific when falling back', function () {
+      const registry = new PipelineRegistry();
+      registry.registerStage({
+        key: 'destroyServerGroup',
+        useBaseProvider: true,
+        component: BaseComponent,
+      } as IStageTypeConfig);
+      registry.registerStage({
+        key: 'destroyServerGroup',
+        provides: 'destroyServerGroup',
+        providesFor: ['ecs'],
+        component: EcsComponent,
+      } as IStageTypeConfig);
+
+      const config = registry.getStageConfig({
+        type: 'destroyServerGroup',
+        cloudProviderType: 'unknown',
+      } as IStage);
+
+      expect(config.component).toBe(EcsComponent);
     });
   });
 

@@ -159,8 +159,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
             domains,
             spaces,
             resultsPerPage,
-            forkJoinPool,
-            localCacheConfig);
+            forkJoinPool);
     this.serviceKeys = new ServiceKeys(retrofit.create(ServiceKeyService.class), spaces);
     this.tasks = new Tasks(retrofit.create(TaskService.class));
 

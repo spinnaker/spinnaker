@@ -2,14 +2,14 @@ import type { FormikErrors } from 'formik';
 import { cloneDeep, every, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   LoadBalancerWriter,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -34,8 +34,8 @@ export interface ICreateApplicationLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateNetworkLoadBalancer extends React.Component<
-  ICreateNetworkLoadBalancerProps,
+export class CreateNetworkLoadBalancerComponent extends React.Component<
+  ICreateNetworkLoadBalancerProps & IRouterInjectedProps,
   ICreateApplicationLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateNetworkLoadBalancerProps> = {
@@ -47,12 +47,15 @@ export class CreateNetworkLoadBalancer extends React.Component<
   private refreshUnsubscribe: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateNetworkLoadBalancerProps): Promise<IAmazonNetworkLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateNetworkLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonNetworkLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateNetworkLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateNetworkLoadBalancer, props, modalProps, runtimeServices);
   }
 
-  constructor(props: ICreateNetworkLoadBalancerProps) {
+  constructor(props: ICreateNetworkLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.loadBalancer
@@ -169,10 +172,10 @@ export class CreateNetworkLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
@@ -301,3 +304,8 @@ export class CreateNetworkLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateNetworkLoadBalancer = Object.assign(
+  withRouter<ICreateNetworkLoadBalancerProps & IRouterInjectedProps>(CreateNetworkLoadBalancerComponent),
+  { show: CreateNetworkLoadBalancerComponent.show },
+);

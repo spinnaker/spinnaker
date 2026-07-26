@@ -16,7 +16,7 @@
 
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.front50.Main'
+application.mainClass = 'com.netflix.spinnaker.front50.Main'
 
 configurations.all {
   exclude group: 'org.slf4j', module: 'slf4j-log4j12'

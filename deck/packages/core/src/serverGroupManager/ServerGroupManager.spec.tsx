@@ -1,0 +1,53 @@
+import { shallow } from 'enzyme';
+import React from 'react';
+
+import { ServerGroupManagerComponent } from './ServerGroupManager';
+import { ServerGroupManagerHeading } from './ServerGroupManagerHeading';
+
+describe('<ServerGroupManager />', () => {
+  const serverGroup = {
+    account: 'k8s-local',
+    cloudProvider: 'kubernetes',
+    cluster: 'backend',
+    instanceCounts: {
+      up: 2,
+      down: 0,
+      starting: 0,
+      succeeded: 0,
+      failed: 0,
+      unknown: 0,
+      outOfService: 0,
+    },
+    instances: [],
+    name: 'backend-65b97dd546',
+    region: 'dev',
+    type: 'kubernetes',
+  } as any;
+
+  it('links grouped server group managers to manager details', () => {
+    const originalUrl = window.location.href;
+    window.history.replaceState(null, '', '#/applications/kubernetesapp/clusters');
+
+    try {
+      const component = shallow(
+        <ServerGroupManagerComponent
+          application={{ name: 'kubernetesapp' } as any}
+          grouping={{} as any}
+          manager="deployment backend"
+          serverGroups={[serverGroup]}
+          sortFilter={{} as any}
+          router={{} as any}
+          stateParams={{}}
+          stateService={{ includes: () => false } as any}
+        />,
+      );
+
+      expect(component.find(ServerGroupManagerHeading).prop('detailsHref')).toBe(
+        '#/applications/kubernetesapp/clusters/serverGroupManagerDetails/kubernetes/k8s-local/dev/deployment%20backend',
+      );
+      component.unmount();
+    } finally {
+      window.history.replaceState(null, '', originalUrl);
+    }
+  });
+});

@@ -1,15 +1,15 @@
 import type { StateService } from '@uirouter/core';
-import type { IScope } from 'angular';
-import type { IModalService } from 'angular-ui-bootstrap';
 import React from 'react';
 import { Button } from 'react-bootstrap';
 
-import type { Application } from '../application';
+import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
+import type { IDeckRuntimeServicesInjectedProps } from '../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { CacheInitializerService } from '../cache';
-import type { OverrideRegistry } from '../overrideRegistry';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { Overridable } from '../overrideRegistry';
 import { ConfigureProjectModal } from '../projects';
-import { ModalInjector, ReactInjector } from '../reactShims';
 
 export interface IInsightMenuProps {
   createApp?: boolean;
@@ -21,24 +21,20 @@ export interface IInsightMenuState {
   refreshingCache: boolean;
 }
 
-@Overridable('createInsightMenu')
-export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenuState> {
+export class InsightMenuComponent extends React.Component<
+  IInsightMenuProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  IInsightMenuState
+> {
   public static defaultProps: IInsightMenuProps = { createApp: true, createProject: true, refreshCaches: true };
 
-  private $rootScope: IScope;
-  private $uibModal: IModalService;
   private $state: StateService;
-  private overrideRegistry: OverrideRegistry;
   private cacheInitializer: CacheInitializerService;
 
-  constructor(props: IInsightMenuProps) {
+  constructor(props: IInsightMenuProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {} as IInsightMenuState;
-    this.$state = ReactInjector.$state;
-    this.$uibModal = ModalInjector.modalService;
-    this.$rootScope = ReactInjector.$rootScope;
-    this.overrideRegistry = ReactInjector.overrideRegistry;
-    this.cacheInitializer = ReactInjector.cacheInitializer;
+    this.$state = props.stateService;
+    this.cacheInitializer = props.deckRuntimeServices.cacheInitializer;
   }
 
   private createProject = () =>
@@ -48,25 +44,12 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
       })
       .catch(() => {});
 
-  private createApplication = () => {
-    this.$uibModal
-      .open({
-        scope: this.$rootScope.$new(),
-        templateUrl: this.overrideRegistry.getTemplate(
-          'createApplicationModal',
-          require('../application/modal/newapplication.html'),
-        ),
-        resolve: {
-          name: () => '',
-        },
-        controller: this.overrideRegistry.getController('CreateApplicationModalCtrl'),
-        controllerAs: 'newAppModal',
-      })
-      .result.then(this.routeToApplication)
+  private createApplication = () =>
+    CreateApplicationModal.show()
+      .then(this.routeToApplication)
       .catch(() => {});
-  };
 
-  private routeToApplication = (app: Application) => {
+  private routeToApplication = (app: { name: string }) => {
     this.$state.go('home.applications.application', { application: app.name });
   };
 
@@ -124,3 +107,7 @@ export class InsightMenu extends React.Component<IInsightMenuProps, IInsightMenu
     );
   }
 }
+
+const OverridableInsightMenu = Overridable('createInsightMenu')(InsightMenuComponent);
+export const InsightMenu = withDeckRuntimeServices(withRouter(OverridableInsightMenu));
+InsightMenu.displayName = 'InsightMenu';

@@ -1,5 +1,3 @@
-import { $log } from 'ngimport';
-
 import { REST } from '../api/ApiService';
 import type { IServerGroup } from '../domain';
 
@@ -21,7 +19,7 @@ export class ServerGroupReader {
       })
       .get()
       .catch((error: any): any[] => {
-        $log.error(error, 'error retrieving scaling activities');
+        console.error(error, 'error retrieving scaling activities');
         return [];
       });
   }

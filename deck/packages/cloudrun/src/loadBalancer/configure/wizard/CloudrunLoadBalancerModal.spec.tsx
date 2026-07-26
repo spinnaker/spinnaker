@@ -1,6 +1,6 @@
 import { TaskMonitor } from '@spinnaker/core';
 
-import { CloudrunLoadBalancerModal } from './CloudrunLoadBalancerModal';
+import { CloudrunLoadBalancerModalComponent as CloudrunLoadBalancerModal } from './CloudrunLoadBalancerModal';
 
 describe('CloudrunLoadBalancerModal', () => {
   beforeEach(() => {
@@ -16,6 +16,9 @@ describe('CloudrunLoadBalancerModal', () => {
       dismissModal: jasmine.createSpy('dismissModal'),
       isNew: false,
       loadBalancer: { name: 'service', account: 'test', region: 'us-central1' },
+      router: {},
+      stateParams: {},
+      stateService: { go: jasmine.createSpy('go'), includes: () => false },
       ...overrides,
     } as any;
 
@@ -42,5 +45,19 @@ describe('CloudrunLoadBalancerModal', () => {
     (modal as any).onApplicationRefresh();
 
     expect(modal.props.dismissModal).not.toHaveBeenCalled();
+  });
+
+  it('opens updated load balancer details through the injected state service', () => {
+    const modal = buildModal();
+    modal.state.loadBalancer = { credentials: 'test', name: 'service', region: 'us-central1' } as any;
+
+    (modal as any).onApplicationRefresh();
+
+    expect(modal.props.stateService.go).toHaveBeenCalledWith('.loadBalancerDetails', {
+      accountId: 'test',
+      name: 'service',
+      provider: 'cloudrun',
+      region: 'us-central1',
+    });
   });
 });

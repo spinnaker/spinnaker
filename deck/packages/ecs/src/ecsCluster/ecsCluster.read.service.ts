@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { REST } from '@spinnaker/core';
 
 import type { IEcsCapacityProviderDetails } from './IEcsCapacityProviderDetails';
@@ -17,7 +15,3 @@ export class EcsClusterReader {
     return {} as PromiseLike<IEcsCapacityProviderDetails[]>;
   }
 }
-
-export const ECS_CLUSTER_READ_SERVICE = 'spinnaker.ecs.ecsCluster.read.service';
-
-module(ECS_CLUSTER_READ_SERVICE, []).service('ecsClusterReader', EcsClusterReader);

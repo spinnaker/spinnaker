@@ -4,6 +4,8 @@ import { AccountService } from '../../account';
 import { HelpField } from '../../help/HelpField';
 import { Markdown } from '../../presentation/Markdown';
 
+import './userVerification.directive.less';
+
 const { useEffect, useState } = React;
 
 export interface IUserVerificationProps {

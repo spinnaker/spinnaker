@@ -6,7 +6,8 @@ import type { Application } from '../application';
 import type { IClusterSubgroup } from '../cluster';
 import type { IInstanceCounts, IServerGroup } from '../domain';
 import type { ISortFilter } from '../filterModel';
-import { ReactInjector } from '../reactShims';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { ServerGroup } from '../serverGroup';
 
 interface IServerGroupManagerProps {
@@ -17,7 +18,19 @@ interface IServerGroupManagerProps {
   serverGroups: IServerGroup[];
 }
 
-export class ServerGroupManager extends React.Component<IServerGroupManagerProps> {
+export class ServerGroupManagerComponent extends React.Component<IServerGroupManagerProps & IRouterInjectedProps> {
+  private getDetailsHref(): string {
+    const { application, manager, serverGroups } = this.props;
+    const currentHash = window.location.hash || `#/applications/${application.name}`;
+    const clustersPath = currentHash.includes('/clusters')
+      ? currentHash.split('/clusters')[0]
+      : `#/applications/${application.name}`;
+
+    return `${clustersPath}/clusters/serverGroupManagerDetails/${serverGroups[0].cloudProvider}/${
+      serverGroups[0].account
+    }/${serverGroups[0].region}/${encodeURIComponent(manager)}`;
+  }
+
   private isSelected = (): boolean => {
     const { manager, serverGroups } = this.props;
     const params = {
@@ -27,24 +40,15 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       serverGroupManager: manager,
       name: manager,
     };
-    return ReactInjector.$state.includes('**.serverGroupManager', params);
+    return this.props.stateService.includes('**.serverGroupManager', params);
   };
 
   private handleClick = (e: React.MouseEvent<HTMLElement>): void => {
-    const { manager, serverGroups } = this.props;
-    const nextState = ReactInjector.$state.current.name.endsWith('.clusters')
-      ? '.serverGroupManager'
-      : '^.serverGroupManager';
-
-    e.preventDefault();
     e.stopPropagation();
-    ReactInjector.$state.go(nextState, {
-      accountId: serverGroups[0].account,
-      region: serverGroups[0].region,
-      provider: serverGroups[0].cloudProvider,
-      serverGroupManager: manager,
-      name: manager,
-    });
+    if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      window.location.hash = this.getDetailsHref();
+    }
   };
 
   private buildHealthCounts = (): IInstanceCounts => {
@@ -76,6 +80,7 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
       <div className={classNames(classes)}>
         <ServerGroupManagerHeading
           onClick={this.handleClick}
+          detailsHref={this.getDetailsHref()}
           health={this.buildHealthCounts()}
           provider={serverGroups[0].type}
           heading={manager}
@@ -99,3 +104,6 @@ export class ServerGroupManager extends React.Component<IServerGroupManagerProps
     );
   }
 }
+
+export const ServerGroupManager = withRouter(ServerGroupManagerComponent);
+ServerGroupManager.displayName = 'ServerGroupManager';

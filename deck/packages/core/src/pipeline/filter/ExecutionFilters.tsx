@@ -13,7 +13,8 @@ import { PipelineConfigService } from '../config/services/PipelineConfigService'
 import type { IExecution, IPipeline, IPipelineTag } from '../../domain';
 import { ExecutionFilterService } from './executionFilter.service';
 import type { IFilterTag } from '../../filterModel';
-import { ReactInjector } from '../../reactShims';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { ExecutionState } from '../../state';
 import { logger } from '../../utils';
 
@@ -42,13 +43,16 @@ const DragHandle = SortableHandle(() => (
   <span className="pipeline-drag-handle clickable glyphicon glyphicon-resize-vertical" />
 ));
 
-export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IExecutionFiltersState> {
+class ExecutionFiltersComponent extends React.Component<
+  IExecutionFiltersProps & IRouterInjectedProps,
+  IExecutionFiltersState
+> {
   private executionsRefreshUnsubscribe: () => void;
   private groupsUpdatedSubscription: Subscription;
   private locationChangeUnsubscribe: Function;
   private pipelineConfigsRefreshUnsubscribe: () => void;
 
-  constructor(props: IExecutionFiltersProps) {
+  constructor(props: IExecutionFiltersProps & IRouterInjectedProps) {
     super(props);
 
     const searchString = ExecutionState.filterModel.asFilterModel.sortFilter.filter;
@@ -78,7 +82,7 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     });
 
     this.initialize();
-    this.locationChangeUnsubscribe = ReactInjector.$uiRouter.transitionService.onSuccess({}, () => {
+    this.locationChangeUnsubscribe = this.props.router.transitionService.onSuccess({}, () => {
       ExecutionState.filterModel.asFilterModel.activate();
       ExecutionFilterService.updateExecutionGroups(application);
     });
@@ -332,6 +336,9 @@ export class ExecutionFilters extends React.Component<IExecutionFiltersProps, IE
     );
   }
 }
+
+export const ExecutionFilters = withRouter(ExecutionFiltersComponent);
+ExecutionFilters.displayName = 'ExecutionFilters';
 
 const FilterCheckbox = (props: {
   tag: IFilterTag;

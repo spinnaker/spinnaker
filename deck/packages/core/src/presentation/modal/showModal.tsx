@@ -1,4 +1,3 @@
-import { UIRouterContextComponent } from '@uirouter/react-hybrid';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -84,9 +83,7 @@ export const showModal = <P, C = any, D = any>(
     function render() {
       ReactDOM.render(
         <Modal isOpen={show} onRequestClose={handleRequestClose} onAfterClose={onAfterClose} {...modalProps}>
-          <UIRouterContextComponent>
-            <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
-          </UIRouterContextComponent>
+          <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
         </Modal>,
         mountNode,
       );

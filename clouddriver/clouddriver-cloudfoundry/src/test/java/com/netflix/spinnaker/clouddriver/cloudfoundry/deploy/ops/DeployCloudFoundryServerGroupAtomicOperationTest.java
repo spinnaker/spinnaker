@@ -25,12 +25,10 @@ import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.artifacts.ArtifactCredentialsFromString;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.*;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreatePackage;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Docker;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ProcessStats;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeployCloudFoundryServerGroupDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
@@ -189,7 +187,7 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
         .verify(apps)
         .createPackage(eq(new CreatePackage("serverGroupId", CreatePackage.Type.BITS, null)));
     inOrder.verify(apps).uploadPackageBits(any(), any());
-    inOrder.verify(serviceInstances).createServiceBinding(any());
+    inOrder.verify(serviceInstances).createServiceBinding(any(), any(), any(), any());
     inOrder.verify(apps).createBuild(any(), any(), any());
     inOrder.verify(apps).buildCompleted(any());
     inOrder.verify(apps).findDropletGuidFromBuildId(any());
@@ -207,7 +205,9 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     InOrder inOrder = Mockito.inOrder(apps, processes, serviceInstances);
     inOrder.verify(apps).createApplication(any(), any(), any(), any());
     inOrder.verify(apps).createPackage(any());
-    inOrder.verify(cloudFoundryClient.getServiceInstances()).createServiceBinding(any());
+    inOrder
+        .verify(cloudFoundryClient.getServiceInstances())
+        .createServiceBinding(any(), any(), any(), any());
     inOrder.verify(apps).createBuild(any(), any(), any());
     inOrder.verify(processes).updateProcess("serverGroupId", null, "http", "/health", 180, null);
     inOrder.verify(processes).scaleProcess("serverGroupId", 7, 1024, 2048);
@@ -225,13 +225,11 @@ class DeployCloudFoundryServerGroupAtomicOperationTest
     return cloudFoundryClient.getProcesses();
   }
 
-  private List<Resource<? extends AbstractServiceInstance>> createServiceInstanceResource() {
+  private List<ServiceInstance> createServiceInstanceResource() {
     ServiceInstance serviceInstance = new ServiceInstance();
-    serviceInstance.setServicePlanGuid("plan-guid").setName("service1");
-    Resource<ServiceInstance> serviceInstanceResource = new Resource<>();
-    serviceInstanceResource.setMetadata(new Resource.Metadata().setGuid("service-instance-guid"));
-    serviceInstanceResource.setEntity(serviceInstance);
-    return List.of(serviceInstanceResource);
+    serviceInstance.setName("service1");
+    serviceInstance.setGuid("service-instance-guid");
+    return List.of(serviceInstance);
   }
 
   private Applications getApplications(

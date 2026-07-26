@@ -11,7 +11,8 @@ import type { IFilterTag } from '../filterModel/FilterTags';
 import { FilterTags } from '../filterModel/FilterTags';
 import type { ISortFilter } from '../filterModel/IFilterModel';
 import { HelpField } from '../help';
-import { ReactInjector } from '../reactShims';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { LoadBalancerState } from '../state';
 import { Spinner } from '../widgets/spinners/Spinner';
 
@@ -27,19 +28,19 @@ export interface ILoadBalancersState {
   showInstances: boolean;
 }
 
-export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBalancersState> {
+class LoadBalancersComponent extends React.Component<ILoadBalancersProps & IRouterInjectedProps, ILoadBalancersState> {
   private groupsUpdatedListener: Subscription;
   private loadBalancersRefreshUnsubscribe: () => any;
 
-  constructor(props: ILoadBalancersProps) {
+  constructor(props: ILoadBalancersProps & IRouterInjectedProps) {
     super(props);
-    const { $stateParams } = ReactInjector;
+    const { stateParams } = props;
     this.state = {
       initialized: false,
       groups: [],
       tags: [],
-      showServerGroups: !$stateParams.hideServerGroups || true,
-      showInstances: $stateParams.showInstances || false,
+      showServerGroups: !stateParams.hideServerGroups || true,
+      showInstances: stateParams.showInstances || false,
     };
   }
 
@@ -96,7 +97,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     if (state.showInstances) {
       params.showInstances = true;
     }
-    ReactInjector.$state.go('.', params);
+    this.props.stateService.go('.', params);
   }
 
   private handleInputChange = (event: any): void => {
@@ -116,7 +117,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     this.updateLoadBalancerGroups();
   };
 
-  public render(): React.ReactElement<LoadBalancers> {
+  public render(): React.ReactElement<LoadBalancersComponent> {
     const groupings = this.state.initialized ? (
       <div>
         {this.state.groups.map((group) => (
@@ -202,3 +203,6 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     );
   }
 }
+
+export const LoadBalancers = withRouter(LoadBalancersComponent);
+LoadBalancers.displayName = 'LoadBalancers';

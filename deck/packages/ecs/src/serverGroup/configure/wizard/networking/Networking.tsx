@@ -1,12 +1,10 @@
-import { module } from 'angular';
-import { isEqual, uniqWith } from 'lodash';
+import { isEqual, uniq, uniqWith } from 'lodash';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
 import type { ISubnet } from '@spinnaker/core';
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import { HelpField, TetheredSelect } from '@spinnaker/core';
 
 import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.service';
 
@@ -43,20 +41,22 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
     cmd.subnetTypes = uniqWith(defaultSubnetTypes, isEqual);
 
+    const availableSubnetTypes = cmd.backingData?.filtered?.subnetTypes || [];
+    const persistedSubnetTypes = cmd.subnetTypes
+      .filter((purpose) => !availableSubnetTypes.some((subnet) => subnet.purpose === purpose))
+      .map((purpose) => ({ purpose, vpcId: cmd.vpcId || 'unavailable' } as ISubnet));
+
     this.state = {
       associatePublicIpAddress: cmd.associatePublicIpAddress,
       networkMode: cmd.networkMode,
-      networkModesAvailable: cmd.backingData && cmd.backingData.networkModes ? cmd.backingData.networkModes : [],
+      networkModesAvailable: uniq([...(cmd.backingData?.networkModes || []), cmd.networkMode]).filter(Boolean),
       securityGroupNames: cmd.securityGroupNames,
-      securityGroupsAvailable:
-        cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.securityGroupNames
-          ? cmd.backingData.filtered.securityGroupNames
-          : [],
+      securityGroupsAvailable: uniq([
+        ...(cmd.backingData?.filtered?.securityGroupNames || []),
+        ...(cmd.securityGroupNames || []),
+      ]),
       subnetTypes: cmd.subnetTypes,
-      subnetTypesAvailable:
-        cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.subnetTypes
-          ? cmd.backingData.filtered.subnetTypes
-          : [],
+      subnetTypesAvailable: [...availableSubnetTypes, ...persistedSubnetTypes],
     };
   }
 
@@ -65,17 +65,46 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
     this.props.configureCommand('1').then(() => {
       this.setState({
-        networkModesAvailable: cmd.backingData && cmd.backingData.networkModes ? cmd.backingData.networkModes : [],
-        securityGroupsAvailable:
-          cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.securityGroupNames
-            ? cmd.backingData.filtered.securityGroupNames
-            : [],
-        subnetTypesAvailable:
-          cmd.backingData && cmd.backingData.filtered && cmd.backingData.filtered.subnetTypes
-            ? cmd.backingData.filtered.subnetTypes
-            : [],
+        networkModesAvailable: uniq([...(cmd.backingData?.networkModes || []), cmd.networkMode]).filter(Boolean),
+        securityGroupsAvailable: uniq([
+          ...(cmd.backingData?.filtered?.securityGroupNames || []),
+          ...(cmd.securityGroupNames || []),
+        ]),
+        subnetTypesAvailable: [
+          ...(cmd.backingData?.filtered?.subnetTypes || []),
+          ...(cmd.subnetTypes || [])
+            .filter(
+              (purpose) => !(cmd.backingData?.filtered?.subnetTypes || []).some((subnet) => subnet.purpose === purpose),
+            )
+            .map((purpose) => ({ purpose, vpcId: cmd.vpcId || 'unavailable' } as ISubnet)),
+        ],
       });
     });
+  }
+
+  public componentDidUpdate() {
+    const cmd = this.props.command;
+    const availableSubnetTypes = cmd.backingData?.filtered?.subnetTypes || [];
+    const nextState: IEcsNetworkingState = {
+      associatePublicIpAddress: cmd.associatePublicIpAddress,
+      networkMode: cmd.networkMode,
+      networkModesAvailable: uniq([...(cmd.backingData?.networkModes || []), cmd.networkMode]).filter(Boolean),
+      securityGroupNames: cmd.securityGroupNames || [],
+      securityGroupsAvailable: uniq([
+        ...(cmd.backingData?.filtered?.securityGroupNames || []),
+        ...(cmd.securityGroupNames || []),
+      ]),
+      subnetTypes: cmd.subnetTypes || [],
+      subnetTypesAvailable: [
+        ...availableSubnetTypes,
+        ...(cmd.subnetTypes || [])
+          .filter((purpose) => !availableSubnetTypes.some((subnet) => subnet.purpose === purpose))
+          .map((purpose) => ({ purpose, vpcId: cmd.vpcId || 'unavailable' } as ISubnet)),
+      ],
+    };
+    if (!isEqual(this.state, nextState)) {
+      this.setState(nextState);
+    }
   }
 
   private updateNetworkMode = (newNetworkMode: Option<string>) => {
@@ -140,6 +169,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
     const subnetTypeOptions = this.state.subnetTypesAvailable.length ? (
       <TetheredSelect
+        inputProps={{ 'aria-label': 'VPC subnet' }}
         multi={true}
         options={subnetTypesAvailable}
         value={this.state.subnetTypes}
@@ -153,6 +183,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
 
     const securityGroupsOptions = this.state.securityGroupsAvailable.length ? (
       <TetheredSelect
+        inputProps={{ 'aria-label': 'Security groups' }}
         multi={true}
         options={securityGroupsAvailable}
         value={this.state.securityGroupNames}
@@ -234,6 +265,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
             </div>
             <div className="col-md-9" data-test-id="Networking.networkMode">
               <TetheredSelect
+                inputProps={{ 'aria-label': 'Network mode' }}
                 placeholder="Select a network mode to use ..."
                 options={networkModesAvailable}
                 value={this.state.networkMode}
@@ -249,13 +281,3 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     );
   }
 }
-
-export const ECS_NETWORKING_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.networking.react';
-module(ECS_NETWORKING_REACT, []).component(
-  'ecsNetworkingReact',
-  react2angular(withErrorBoundary(EcsNetworking, 'ecsNetworkingReact'), [
-    'command',
-    'notifyAngular',
-    'configureCommand',
-  ]),
-);

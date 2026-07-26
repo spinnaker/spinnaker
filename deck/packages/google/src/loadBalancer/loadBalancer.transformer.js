@@ -1,15 +1,13 @@
 'use strict';
 
-import { module } from 'angular';
 import _ from 'lodash';
 
 import { GCEProviderSettings } from '../gce.settings';
 
 export const GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER = 'spinnaker.gce.loadBalancer.transformer';
 export const name = GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER; // for backwards compatibility
-module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalancerTransformer', [
-  '$q',
-  function ($q) {
+export class GceLoadBalancerTransformer {
+  constructor($q = { when: (value) => Promise.resolve(value) }) {
     function updateHealthCounts(container) {
       const instances = container.instances;
       const serverGroups = container.serverGroups || [container];
@@ -164,5 +162,5 @@ module(GOOGLE_LOADBALANCER_LOADBALANCER_TRANSFORMER, []).factory('gceLoadBalance
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
-  },
-]);
+  }
+}

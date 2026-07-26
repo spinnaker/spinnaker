@@ -1,10 +1,10 @@
 import { mount, shallow } from 'enzyme';
 import React from 'react';
 
-import { PipelineTriggerTemplate } from './PipelineTriggerTemplate';
+import { PipelineTriggerTemplateComponent } from './PipelineTriggerTemplate';
+import type { DeckRuntimeServices } from '../../../../bootstrap';
 import { SETTINGS } from '../../../../config/settings';
 import type { IExecution, IPipelineCommand, IPipelineTrigger } from '../../../../domain';
-import { ReactInjector } from '../../../../reactShims';
 import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 
 /**
@@ -19,6 +19,16 @@ import { ExecutionsTransformer } from '../../../service/ExecutionsTransformer';
 describe('<PipelineTriggerTemplate />', () => {
   let getExecutionsForConfigIdsSpy: jasmine.Spy;
   let addBuildInfoSpy: jasmine.Spy;
+
+  class PipelineTriggerTemplate extends PipelineTriggerTemplateComponent {
+    public static defaultProps = {
+      deckRuntimeServices: ({
+        executionService: {
+          getExecutionsForConfigIds: (...args: unknown[]) => getExecutionsForConfigIdsSpy(...args),
+        },
+      } as unknown) as DeckRuntimeServices,
+    };
+  }
 
   // Higher buildNumber = older execution (used for buildTime calculation)
   const createExecution = (id: string, buildNumber: number, overrides: Partial<IExecution> = {}): IExecution =>
@@ -75,10 +85,6 @@ describe('<PipelineTriggerTemplate />', () => {
 
   beforeEach(() => {
     getExecutionsForConfigIdsSpy = jasmine.createSpy('getExecutionsForConfigIds');
-    // ReactInjector.executionService is a getter, not a method - use spyOnProperty
-    spyOnProperty(ReactInjector, 'executionService', 'get').and.returnValue({
-      getExecutionsForConfigIds: getExecutionsForConfigIdsSpy,
-    });
     addBuildInfoSpy = spyOn(ExecutionsTransformer, 'addBuildInfo');
     updateCommandSpy.calls.reset();
   });

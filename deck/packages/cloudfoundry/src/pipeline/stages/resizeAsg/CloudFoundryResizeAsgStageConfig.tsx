@@ -3,7 +3,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { IAccount, IStageConfigProps } from '@spinnaker/core';
-import { AccountService, NgReact, StageConfigField, StageConstants } from '@spinnaker/core';
+import { AccountService, StageConfigField, StageConstants, TargetSelect } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
 export interface ICloudFoundryResizeAsgStageConfigState {
@@ -87,7 +87,6 @@ export class CloudFoundryResizeAsgStageConfig extends React.Component<
     const { application, pipeline, stage } = this.props;
     const { capacity, diskQuota, memory, target } = stage;
     const instanceCount = capacity.desired;
-    const { TargetSelect } = NgReact;
     return (
       <div className="cloudfoundry-resize-asg-stage form-horizontal">
         {!pipeline.strategy && (

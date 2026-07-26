@@ -8,6 +8,8 @@ import { takeUntil } from 'rxjs/operators';
 import { MigrationTag } from './MigrationTag';
 import { AccountTag } from '../../../account';
 import type { Application } from '../../../application/application.model';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
 import { CollapsibleSectionStateCache } from '../../../cache';
 import { PipelineConfigService } from '../../config/services/PipelineConfigService';
 import { SETTINGS } from '../../../config/settings';
@@ -24,10 +26,12 @@ import { EntityNotifications } from '../../../entityTag/notifications/EntityNoti
 import { Execution } from '../execution/Execution';
 import { ExecutionAction } from '../executionAction/ExecutionAction';
 import { ManualExecutionModal } from '../../manualExecution';
-import { Overridable } from '../../../overrideRegistry';
+import type { IRouterInjectedProps } from '../../../navigation/routerContext';
+import { stateChangeSuccess$, withRouter } from '../../../navigation/routerContext';
+import type { IOverridableProps } from '../../../overrideRegistry';
+import { overridableComponent } from '../../../overrideRegistry';
 import type { Placement } from '../../../presentation/Placement';
 import { Popover } from '../../../presentation/Popover';
-import { ReactInjector } from '../../../reactShims';
 import { ExecutionState } from '../../../state';
 import { NextRunTag } from '../../triggers/NextRunTag';
 import { TriggersTag } from '../../triggers/TriggersTag';
@@ -40,7 +44,7 @@ import './executionGroup.less';
 
 const ACCOUNT_TAG_OVERFLOW_LIMIT = SETTINGS.accountTagLimit ?? 1;
 
-export interface IExecutionGroupProps {
+export interface IExecutionGroupProps extends IOverridableProps {
   group: IExecutionGroup;
   application: Application;
   parent: HTMLDivElement;
@@ -59,15 +63,17 @@ export interface IExecutionGroupState {
   placement: Placement;
 }
 
-@Overridable('PipelineExecutionGroup')
-export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IExecutionGroupState> {
+export class ExecutionGroupComponent extends React.PureComponent<
+  IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  IExecutionGroupState
+> {
   public state: IExecutionGroupState;
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
   private destroy$ = new Subject();
   private headerRef = React.createRef<HTMLDivElement>();
 
-  constructor(props: IExecutionGroupProps) {
+  constructor(props: IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     const { group, application } = props;
     const strategyConfig = application.strategyConfigs.data.find((c: IPipeline) => c.name === group.heading);
@@ -94,28 +100,28 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     };
   }
 
-  private isShowingDetails(): boolean {
-    const { $state, $stateParams } = ReactInjector;
+  private isShowingDetails(routeParams = this.props.stateParams): boolean {
+    const { stateService } = this.props;
     return this.props.group.executions.some(
-      (execution: IExecution) => execution.id === $stateParams.executionId && $state.includes('**.execution.**'),
+      (execution: IExecution) => execution.id === routeParams.executionId && stateService.includes('**.execution.**'),
     );
   }
 
   public configure(id: string): void {
-    const { $state } = ReactInjector;
-    if (!$state.current.name.includes('.executions.execution')) {
-      $state.go('^.pipelineConfig', { pipelineId: id });
+    const { stateService } = this.props;
+    if (!stateService.current.name.includes('.executions.execution')) {
+      stateService.go('^.pipelineConfig', { pipelineId: id });
     } else {
-      $state.go('^.^.pipelineConfig', { pipelineId: id });
+      stateService.go('^.^.pipelineConfig', { pipelineId: id });
     }
   }
 
   private hideDetails(): void {
-    ReactInjector.$state.go('.^');
+    this.props.stateService.go('.^');
   }
 
   private getSectionCacheKey(): string {
-    const { executionService } = ReactInjector;
+    const { executionService } = this.props.deckRuntimeServices;
     return executionService.getSectionCacheKey(
       ExecutionState.filterModel.asFilterModel.sortFilter.groupBy,
       this.props.application.name,
@@ -133,7 +139,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
   };
 
   private startPipeline(command: IPipelineCommand): PromiseLike<void> {
-    const { executionService } = ReactInjector;
+    const { executionService } = this.props.deckRuntimeServices;
     this.setState({ triggeringExecution: true });
     return executionService
       .startAndMonitorPipeline(this.props.application, command.pipelineName, command.trigger)
@@ -162,31 +168,33 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     )
       .pipe(takeUntil(this.destroy$))
       .subscribe((pipeline) =>
-        ManualExecutionModal.show({
-          pipeline,
-          application: this.props.application,
-          trigger: trigger,
-          currentlyRunningExecutions: this.props.group.runningExecutions,
-        })
+        ManualExecutionModal.show(
+          {
+            pipeline,
+            application: this.props.application,
+            trigger: trigger,
+            currentlyRunningExecutions: this.props.group.runningExecutions,
+          },
+          this.props.deckRuntimeServices,
+        )
           .then((command) => this.startPipeline(command))
           .catch(() => {}),
       );
   }
 
   public componentDidMount(): void {
-    const { stateEvents } = ReactInjector;
     this.expandUpdatedSubscription = ExecutionState.filterModel.expandSubject.subscribe((expanded) => {
       if (this.state.open !== expanded) {
         this.toggle();
       }
     });
-    this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
+    this.stateChangeSuccessSubscription = stateChangeSuccess$(this.props.router).subscribe(({ toParams }) => {
       // If the heading is collapsed, but we've clicked on a link to an execution in this group, expand the group
-      const showingDetails = this.isShowingDetails();
-      if (this.isShowingDetails() && !this.state.open) {
-        this.toggle();
-      }
-      if (showingDetails !== this.state.showingDetails) {
+      const showingDetails = this.isShowingDetails(toParams);
+      if (showingDetails && !this.state.open) {
+        CollapsibleSectionStateCache.setExpanded(this.getSectionCacheKey(), true);
+        this.setState({ open: true, showingDetails: true });
+      } else if (showingDetails !== this.state.showingDetails) {
         this.setState({ showingDetails });
       }
     });
@@ -272,7 +280,7 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     );
   }
 
-  public render(): React.ReactElement<ExecutionGroup> {
+  public render(): React.ReactElement {
     const { group } = this.props;
     const { displayExecutionActions, pipelineConfig, triggeringExecution, showingDetails, placement } = this.state;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;
@@ -416,3 +424,10 @@ export class ExecutionGroup extends React.PureComponent<IExecutionGroupProps, IE
     );
   }
 }
+
+const OverridableExecutionGroup = overridableComponent(ExecutionGroupComponent, 'PipelineExecutionGroup');
+export const ExecutionGroup = withDeckRuntimeServices(
+  withRouter<IExecutionGroupProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps>(
+    OverridableExecutionGroup,
+  ),
+);

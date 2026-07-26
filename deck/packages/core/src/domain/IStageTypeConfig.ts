@@ -1,10 +1,34 @@
-import type { IExecutionContext, IExecutionStageLabelProps, IExecutionStageSummary } from './IExecutionStage';
+import type {
+  IExecutionContext,
+  IExecutionDetailsProps,
+  IExecutionStageLabelProps,
+  IExecutionStageSummary,
+} from './IExecutionStage';
 import type { IStage } from './IStage';
 import type { IStageOrTriggerTypeConfig } from './IStageOrTriggerTypeConfig';
 import type { IExecutionDetailsSectionProps } from '../pipeline/config/stages/common';
 import type { IStageSummaryProps } from '../pipeline/details/StageSummary';
 
-export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & { title: string };
+export interface IExecutionDetailsComponentProps {
+  application: IExecutionDetailsProps['application'];
+  config: IStageTypeConfig;
+  configSections: string[];
+  currentSection?: string;
+  execution: IExecutionDetailsProps['execution'];
+  provider: string;
+  stage: IExecutionDetailsProps['stage'];
+}
+
+export interface IExecutionStepLabelComponentProps {
+  application?: IStageSummaryProps['application'];
+  execution?: IStageSummaryProps['execution'];
+  step: IStage;
+}
+
+export type IExecutionDetailsSection = React.ComponentType<IExecutionDetailsSectionProps> & {
+  title: string;
+  shouldShow?: (props: IExecutionDetailsProps) => boolean;
+};
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   accountExtractor?: (stage: IStage) => string[];
@@ -19,11 +43,10 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   defaults?: any;
   disableNotifications?: boolean;
   executionConfigSections?: string[]; // angular only
+  executionDetailsComponent?: React.ComponentType<IExecutionDetailsComponentProps>;
   executionDetailsSections?: IExecutionDetailsSection[]; // react only
-  executionDetailsUrl?: string; // angular only
   executionLabelComponent?: React.ComponentType<IExecutionStageLabelProps>;
-  executionStepLabelUrl?: string;
-  executionSummaryUrl?: string;
+  executionStepLabelComponent?: React.ComponentType<IExecutionStepLabelComponentProps>;
   executionSummaryComponent?: React.ComponentType<IStageSummaryProps>;
   extraLabelLines?: (stage: IStage) => number;
   markerIcon?: React.ComponentClass<{ stage: IExecutionStageSummary }>;

@@ -1,7 +1,13 @@
 import React from 'react';
 
 import type { ICapacity } from '@spinnaker/core';
-import { CapacityDetailsSection, CollapsibleSection, Overridable, ViewScalingActivitiesLink } from '@spinnaker/core';
+import {
+  CapacityDetailsSection,
+  CollapsibleSection,
+  DeckRuntimeContext,
+  Overridable,
+  ViewScalingActivitiesLink,
+} from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AWSProviderSettings } from '../../../aws.settings';
@@ -9,6 +15,9 @@ import { AmazonResizeServerGroupModal } from '../resize/AmazonResizeServerGroupM
 
 @Overridable('amazon.serverGroup.CapacityDetailsSection')
 export class AmazonCapacityDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public render(): JSX.Element {
     const { serverGroup, app: application } = this.props;
 
@@ -24,7 +33,10 @@ export class AmazonCapacityDetailsSection extends React.Component<IAmazonServerG
 
         <div>
           {AWSProviderSettings.adHocInfraWritesEnabled && (
-            <a className="clickable" onClick={() => AmazonResizeServerGroupModal.show({ application, serverGroup })}>
+            <a
+              className="clickable"
+              onClick={() => AmazonResizeServerGroupModal.show({ application, serverGroup }, this.context.services)}
+            >
               Resize Server Group
             </a>
           )}

@@ -1,7 +1,5 @@
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import type { StateService } from '@uirouter/core';
 import type { IQService, ITimeoutService } from 'angular';
-import { module } from 'angular';
 import { get, identity, pickBy, uniq } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
@@ -15,10 +13,8 @@ import type { IPipeline } from '../../domain/IPipeline';
 import { ExecutionFilterService } from '../filter/executionFilter.service';
 import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
-import { ReactInjector } from '../../reactShims';
 import { ExecutionState } from '../../state';
 import { JsonUtils } from '../../utils';
-import { DebugWindow } from '../../utils/consoleDebug';
 import type { IRetryablePromise } from '../../utils/retryablePromise';
 import { retryablePromise } from '../../utils/retryablePromise';
 
@@ -236,9 +232,8 @@ export class ExecutionService {
     pipeline: string,
     trigger: any,
   ): PromiseLike<IRetryablePromise<void>> {
-    const { executionService } = ReactInjector;
     return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then((triggerResult) =>
-      executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
+      this.waitUntilTriggeredPipelineAppears(app, triggerResult),
     );
   }
 
@@ -247,7 +242,7 @@ export class ExecutionService {
     triggeredPipelineId: string,
   ): IRetryablePromise<any> {
     const closure = () => this.getExecution(triggeredPipelineId).then(() => application.executions.refresh());
-    return retryablePromise(closure, 1000, 10);
+    return retryablePromise(closure, 1000, 10, this.$timeout);
   }
 
   private waitUntilPipelineIsCancelled(application: Application, executionId: string): PromiseLike<any> {
@@ -557,11 +552,3 @@ export class ExecutionService {
 }
 
 export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
-module(EXECUTION_SERVICE, [UIROUTER_ANGULARJS]).factory('executionService', [
-  '$q',
-  '$state',
-  '$timeout',
-  ($q: IQService, $state: StateService, $timeout: ITimeoutService) => new ExecutionService($q, $state, $timeout),
-]);
-
-DebugWindow.addInjectable('executionService');

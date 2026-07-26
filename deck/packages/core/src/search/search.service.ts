@@ -1,5 +1,4 @@
 import type { IHttpPromiseCallbackArg } from 'angular';
-import { $log } from 'ngimport';
 
 import { API } from '../api/ApiService';
 import type { ICache } from '../cache';
@@ -63,7 +62,7 @@ export class SearchService {
         return response[0] || getFallbackResults<T>();
       })
       .catch((response: IHttpPromiseCallbackArg<any>) => {
-        $log.error(response.data, response);
+        console.error(response.data, response);
         return getFallbackResults();
       });
   }

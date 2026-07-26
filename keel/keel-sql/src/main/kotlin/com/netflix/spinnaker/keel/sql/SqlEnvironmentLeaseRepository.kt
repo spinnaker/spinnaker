@@ -74,11 +74,13 @@ class SqlEnvironmentLeaseRepository(
             .also { leaseCountId.incrementGranted("free", actionType, deliveryConfig.application, environment.name) }
 
           // expired lease
-          isExpired(record.leasedAt) -> updateRecord(this, leaseUid, environmentUid, actionType)
+          // leased_at is NOT NULL in the schema; jOOQ 3.19 generates converter-backed columns as
+          // nullable, so assert non-null to reflect the DB guarantee.
+          isExpired(record.leasedAt!!) -> updateRecord(this, leaseUid, environmentUid, actionType)
             .also { leaseCountId.incrementGranted("expired", actionType, deliveryConfig.application, environment.name) }
 
           // active lease
-          else -> throw ActiveLeaseExists(environment, record.leasedBy, record.leasedAt)
+          else -> throw ActiveLeaseExists(environment, record.leasedBy, record.leasedAt!!)
             .also { leaseCountId.incrementDenied(actionType, deliveryConfig.application, environment.name) }
         }
       }

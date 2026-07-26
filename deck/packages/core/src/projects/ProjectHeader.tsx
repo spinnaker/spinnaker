@@ -112,13 +112,17 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
                     {title} <span className="small glyphicon glyphicon-chevron-down" style={chevronStyle} />
                   </SpanDropdownTrigger>
                   <Dropdown.Menu>
-                    <UISref to=".dashboard">
+                    <UISref to="home.project.dashboard" params={{ project: project.name }}>
                       <MenuItem onClick={closeDropdown}>Project Dashboard</MenuItem>
                     </UISref>
                     <MenuItem divider={true} />
                     {config.applications &&
                       config.applications.sort().map((app) => (
-                        <UISref key={app} to=".application" params={{ application: app }}>
+                        <UISref
+                          key={app}
+                          to="home.project.application"
+                          params={{ project: project.name, application: app }}
+                        >
                           <MenuItem onClick={closeDropdown}> {app} </MenuItem>
                         </UISref>
                       ))}

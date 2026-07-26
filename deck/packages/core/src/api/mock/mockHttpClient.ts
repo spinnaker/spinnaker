@@ -2,7 +2,6 @@ import type { IHttpClientImplementation } from '../ApiService';
 import type { IExpectBuilder } from './expectedRequest';
 import { ExpectedRequest } from './expectedRequest';
 import type { IDeferred, UrlArg, Verb } from './mockHttpUtils';
-import { flushAngularJS, tick } from './mockHttpUtils';
 import { ReceivedRequest } from './receivedRequest';
 
 interface IRequest {
@@ -90,44 +89,33 @@ export class MockHttpClient implements IHttpClientImplementation {
    *
    * If more requests are received during the wait period, they are also flushed.
    *
-   * For interop with AngularJS code, the $httpBackend is also flushed
-   *
    * @param timeoutMs: How long to wait for all the expected requests to be received. (default: 100)
-   * @param delayAfterMs: How long to wait AFTER all the expected requests have been received (default: 0)
    */
-  async flush({ timeoutMs = 100, delayAfterMs = 0 } = {}): Promise<void> {
-    // Run an AngularJS digest before checking if anything needs flushing
-    flushAngularJS();
-
+  async flush({ timeoutMs = 100 } = {}): Promise<void> {
     if (!this.needsFlush()) {
       const message = 'There are no unflushed HTTP requests, nor are there any unfulfilled expected requests.';
       throw new Error(message);
     }
 
     let deregisterRequestListener: Function;
+    let watchdog: ReturnType<typeof setTimeout>;
+
+    const clearWatchdog = () => {
+      if (watchdog !== undefined) {
+        clearTimeout(watchdog);
+        watchdog = undefined;
+      }
+    };
 
     try {
       await new Promise((resolve, reject) => {
         const resolvePromiseWhenFlushed = () => {
-          // Poke AngularJS before checking for unflushed requests.
-          // This enables code such as: $q.when().then(() => REST('/foo').get())
-          flushAngularJS();
-
           const unflushedRequests = this.receivedRequests.filter((req) => !req.isFlushed());
           unflushedRequests.forEach((req) => req.flushResponse());
           const allExpectedRequestsFulfilled = this.expectedRequests.every((expected) => expected.isFulfilled());
           if (allExpectedRequestsFulfilled) {
-            const message = `All ${this.expectedRequests.length} expected requests are fulfilled`;
-            setTimeout(() => {
-              resolve(message);
-              // Poke AngularJS again after resolving the promise
-              flushAngularJS();
-            }, delayAfterMs);
-          }
-          // If we flushed any responses, wake AngularJS up
-          // This enables code such as: $q.when(REST('/foo').get())
-          if (unflushedRequests.length) {
-            setTimeout(flushAngularJS);
+            clearWatchdog();
+            setImmediate(() => resolve(`All ${this.expectedRequests.length} expected requests are fulfilled`));
           }
         };
 
@@ -137,18 +125,16 @@ export class MockHttpClient implements IHttpClientImplementation {
         // If we haven't successfully flushed all requests and expects after timeoutMs, reject the promise returned from .flush()
         const timeoutMessage = `MockHttpClient.flush() timed out after ${timeoutMs}ms`;
         const message = [timeoutMessage].concat(this.getOutstandingExpectationMessages()).join('\n');
-        setTimeout(() => reject(message), timeoutMs);
+        watchdog = setTimeout(() => {
+          watchdog = undefined;
+          reject(message);
+        }, timeoutMs);
 
         // Run the initial check
         resolvePromiseWhenFlushed();
       });
-
-      // Wait a few JS ticks afterwards to allow callbacks to be processed
-      // Is more than one tick helpful? I don't know... who knows? it's a mystery.
-      for (let i = 0; i < 10; i++) {
-        await tick();
-      }
     } finally {
+      clearWatchdog();
       if (deregisterRequestListener) {
         deregisterRequestListener();
       }

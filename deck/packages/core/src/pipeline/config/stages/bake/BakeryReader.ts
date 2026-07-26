@@ -1,5 +1,4 @@
 import { get, has } from 'lodash';
-import { $q } from 'ngimport';
 
 import { AccountService } from '../../../../account/AccountService';
 import { REST } from '../../../../api/ApiService';
@@ -21,7 +20,7 @@ export interface IBaseOsOptions {
 export class BakeryReader {
   public static getRegions(provider: string): PromiseLike<string[]> {
     if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {
-      return $q.when(get(SETTINGS, `providers.${provider}.bakeryRegions`));
+      return Promise.resolve(get(SETTINGS, `providers.${provider}.bakeryRegions`));
     }
     return AccountService.getUniqueAttributeForAllAccounts(provider, 'regions').then((regions: string[]) =>
       regions.sort(),
@@ -39,6 +38,6 @@ export class BakeryReader {
   }
 
   public static getBaseLabelOptions(): PromiseLike<string[]> {
-    return $q.when(['release', 'candidate', 'previous', 'unstable']);
+    return Promise.resolve(['release', 'candidate', 'previous', 'unstable']);
   }
 }

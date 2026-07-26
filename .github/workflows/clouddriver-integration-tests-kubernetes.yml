@@ -27,38 +27,30 @@ jobs:
   it-test-kubernetes:
     strategy:
       matrix:
+        # Node images are the ones shipped with kind v0.31.0 (see KIND_VERSION in
+        # clouddriver-kubernetes KubernetesCluster.java); kubectl is the latest patch
+        # release of the matching minor version.
+        #
+        # The base kubectl-version entry runs the oldest supported kubectl against
+        # every cluster version to cover version skew; the include entries add a
+        # job per cluster version with its matching kubectl.
         kubectl-version:
-          - 1.22.17
+          - 1.31.14
         kubernetes-image:
-          - "kindest/node:v1.30.13@sha256:397209b3d947d154f6641f2d0ce8d473732bd91c87d9575ade99049aa33cd648"
-          - "kindest/node:v1.29.0@sha256:eaa1450915475849a73a9227b8f201df25e55e268e5d619312131292e324d570"
-          - "kindest/node:v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31"
-          - "kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72"
-          - "kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb"
-          - "kindest/node:v1.25.11@sha256:227fa11ce74ea76a0474eeefb84cb75d8dad1b08638371ecf0e86259b35be0c8"
-          - "kindest/node:v1.24.15@sha256:7db4f8bea3e14b82d12e044e25e34bd53754b7f2b0e9d56df21774e6f66a70ab"
-          - "kindest/node:v1.23.17@sha256:59c989ff8a517a93127d4a536e7014d28e235fb3529d9fba91b3951d461edfdb"
-          - "kindest/node:v1.22.17@sha256:f5b2e5698c6c9d6d0adc419c0deae21a425c07d81bbf3b6a6834042f25d4fba2"
-          - "kindest/node:v1.21.14@sha256:8a4e9bb3f415d2bb81629ce33ef9c76ba514c14d707f9797a01e3216376ba093"
+          - "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f"
+          - "kindest/node:v1.34.3@sha256:08497ee19eace7b4b5348db5c6a1591d7752b164530a36f855cb0f2bdcbadd48"
+          - "kindest/node:v1.33.7@sha256:d26ef333bdb2cbe9862a0f7c3803ecc7b4303d8cea8e814b481b09949d353040"
+          - "kindest/node:v1.32.11@sha256:5fc52d52a7b9574015299724bd68f183702956aa4a2116ae75a63cb574b35af8"
+          - "kindest/node:v1.31.14@sha256:6f86cf509dbb42767b6e79debc3f2c32e4ee01386f0489b3b2be24b0a55aac2b"
         include:
-          - kubectl-version: 1.30.13
-            kubernetes-image: "kindest/node:v1.30.13@sha256:397209b3d947d154f6641f2d0ce8d473732bd91c87d9575ade99049aa33cd648"
-          - kubectl-version: 1.29.1
-            kubernetes-image: "kindest/node:v1.29.0@sha256:eaa1450915475849a73a9227b8f201df25e55e268e5d619312131292e324d570"
-          - kubectl-version: 1.28.6
-            kubernetes-image: "kindest/node:v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31"
-          - kubectl-version: 1.27.10
-            kubernetes-image: "kindest/node:v1.27.3@sha256:3966ac761ae0136263ffdb6cfd4db23ef8a83cba8a463690e98317add2c9ba72"
-          - kubectl-version: 1.26.13
-            kubernetes-image: "kindest/node:v1.26.6@sha256:6e2d8b28a5b601defe327b98bd1c2d1930b49e5d8c512e1895099e4504007adb"
-          - kubectl-version: 1.25.16
-            kubernetes-image: "kindest/node:v1.25.11@sha256:227fa11ce74ea76a0474eeefb84cb75d8dad1b08638371ecf0e86259b35be0c8"
-          - kubectl-version: 1.24.17
-            kubernetes-image: "kindest/node:v1.24.15@sha256:7db4f8bea3e14b82d12e044e25e34bd53754b7f2b0e9d56df21774e6f66a70ab"
-          - kubectl-version: 1.23.17
-            kubernetes-image: "kindest/node:v1.23.17@sha256:59c989ff8a517a93127d4a536e7014d28e235fb3529d9fba91b3951d461edfdb"
-          - kubectl-version: 1.21.14
-            kubernetes-image: "kindest/node:v1.21.14@sha256:8a4e9bb3f415d2bb81629ce33ef9c76ba514c14d707f9797a01e3216376ba093"
+          - kubectl-version: 1.35.6
+            kubernetes-image: "kindest/node:v1.35.0@sha256:452d707d4862f52530247495d180205e029056831160e22870e37e3f6c1ac31f"
+          - kubectl-version: 1.34.9
+            kubernetes-image: "kindest/node:v1.34.3@sha256:08497ee19eace7b4b5348db5c6a1591d7752b164530a36f855cb0f2bdcbadd48"
+          - kubectl-version: 1.33.13
+            kubernetes-image: "kindest/node:v1.33.7@sha256:d26ef333bdb2cbe9862a0f7c3803ecc7b4303d8cea8e814b481b09949d353040"
+          - kubectl-version: 1.32.13
+            kubernetes-image: "kindest/node:v1.32.11@sha256:5fc52d52a7b9574015299724bd68f183702956aa4a2116ae75a63cb574b35af8"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -89,5 +81,4 @@ jobs:
 
       - name: Kubernetes Provider Integration Tests
         run: |
-          version=$(echo '${{ matrix.kubernetes-image }}' | grep -o 'v[0-9]*\.[0-9]*')
-          ./gradlew --build-cache :clouddriver:clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }} -Pkubernetes-version=${version}
+          ./gradlew --build-cache :clouddriver:clouddriver-kubernetes:integrationTest -Pkubernetes-image=${{ matrix.kubernetes-image }} -Pkubectl-version=${{ matrix.kubectl-version }}

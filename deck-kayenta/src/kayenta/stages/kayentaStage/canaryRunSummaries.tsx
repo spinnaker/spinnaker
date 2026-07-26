@@ -1,10 +1,12 @@
+import { useRouter } from '@uirouter/react';
 import { CanaryScore } from 'kayenta/components/canaryScore';
 import Styleguide from 'kayenta/layout/styleguide';
 import { ITableColumn, NativeTable } from 'kayenta/layout/table';
 import { get, has } from 'lodash';
 import * as React from 'react';
 
-import { CopyToClipboard, HoverablePopover, IStage, ReactInjector, timestamp } from '@spinnaker/core';
+import type { IStage } from '@spinnaker/core';
+import { CopyToClipboard, HoverablePopover, timestamp } from '@spinnaker/core';
 
 import './canaryRunSummaries.less';
 
@@ -19,7 +21,12 @@ export interface ICanaryRunColumn {
   getContent: (run: IStage, firstScopeName?: string) => JSX.Element;
 }
 
+interface IReportHrefService {
+  go(state: string, params: { configId: string; runId: string }): unknown;
+}
+
 export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
+  const { stateService } = useRouter();
   const canaryRunColumns: Array<ITableColumn<IStage>> = [
     {
       label: 'Canary Result',
@@ -56,7 +63,7 @@ export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICana
         return (
           <section className="horizontal text-center">
             <div className="flex-1">
-              <ReportLink canaryRun={run} />
+              <ReportLink canaryRun={run} stateService={stateService} />
             </div>
             <div className="flex-1">
               <HoverablePopover template={popoverTemplate}>
@@ -107,7 +114,7 @@ function CanaryRunTimestamps({ canaryRun, firstScopeName }: { canaryRun: IStage;
   );
 }
 
-function ReportLink({ canaryRun }: { canaryRun: IStage }) {
+function ReportLink({ canaryRun, stateService }: { canaryRun: IStage; stateService: IReportHrefService }) {
   if (
     !has(canaryRun, 'context.canaryConfigId') ||
     !has(canaryRun, 'context.canaryPipelineExecutionId') ||
@@ -117,7 +124,7 @@ function ReportLink({ canaryRun }: { canaryRun: IStage }) {
   }
 
   const onClick = () =>
-    ReactInjector.$state.go('home.applications.application.canary.report.reportDetail', {
+    stateService.go('home.applications.application.canary.report.reportDetail', {
       configId: canaryRun.context.canaryConfigId,
       runId: canaryRun.context.canaryPipelineExecutionId,
     });

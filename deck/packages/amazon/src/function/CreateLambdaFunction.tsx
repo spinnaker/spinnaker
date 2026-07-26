@@ -1,8 +1,8 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-import type { IFunctionModalProps } from '@spinnaker/core';
-import { FunctionWriter, noop, ReactInjector, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import type { DeckRuntimeServices, IFunctionModalProps, IRouterInjectedProps } from '@spinnaker/core';
+import { FunctionWriter, noop, ReactModal, TaskMonitor, withRouter, WizardModal, WizardPage } from '@spinnaker/core';
 
 import { ExecutionRole } from './configure/ExecutionRole';
 import { FunctionBasicInformation } from './configure/FunctionBasicInformation';
@@ -23,13 +23,16 @@ export interface IAmazonCreateFunctionState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionProps, IAmazonCreateFunctionState> {
+export class CreateLambdaFunctionComponent extends React.Component<
+  IAmazonCreateFunctionProps & IRouterInjectedProps,
+  IAmazonCreateFunctionState
+> {
   public static defaultProps: Partial<IAmazonCreateFunctionProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  constructor(props: IAmazonCreateFunctionProps) {
+  constructor(props: IAmazonCreateFunctionProps & IRouterInjectedProps) {
     super(props);
     const functionTransformer = new AwsFunctionTransformer();
     const funcCommand = props.functionDef
@@ -45,9 +48,12 @@ export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionP
   private _isUnmounted = false;
   private refreshUnsubscribe: () => void;
 
-  public static show(props: IAmazonCreateFunctionProps): Promise<IAmazonFunctionUpsertCommand> {
+  public static show(
+    props: IAmazonCreateFunctionProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonFunctionUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateLambdaFunction, props, modalProps);
+    return ReactModal.show(CreateLambdaFunction, props, modalProps, runtimeServices);
   }
 
   public componentWillUnmount(): void {
@@ -73,10 +79,10 @@ export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionP
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.functionDetails')) {
-      ReactInjector.$state.go('.functionDetails', newStateParams);
+    if (!this.props.stateService.includes('**.functionDetails')) {
+      this.props.stateService.go('.functionDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.functionDetails', newStateParams);
+      this.props.stateService.go('^.functionDetails', newStateParams);
     }
   }
 
@@ -226,3 +232,8 @@ export class CreateLambdaFunction extends React.Component<IAmazonCreateFunctionP
     );
   }
 }
+
+export const CreateLambdaFunction = Object.assign(
+  withRouter<IAmazonCreateFunctionProps & IRouterInjectedProps>(CreateLambdaFunctionComponent),
+  { show: CreateLambdaFunctionComponent.show },
+);

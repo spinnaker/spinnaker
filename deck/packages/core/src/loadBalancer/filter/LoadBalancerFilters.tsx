@@ -1,5 +1,4 @@
 import { chain, cloneDeep, compact, debounce, map, uniq } from 'lodash';
-import { $rootScope } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 
@@ -8,6 +7,8 @@ import { FilterSearch } from '../../cluster/filter/FilterSearch';
 import { FilterSection } from '../../cluster/filter/FilterSection';
 import type { ISortFilter } from '../../filterModel';
 import { digestDependentFilters, FilterCheckbox } from '../../filterModel';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { locationChangeSuccess$, withRouter } from '../../navigation/routerContext';
 import { LoadBalancerState } from '../../state';
 
 const poolValueCoordinates = [
@@ -75,13 +76,16 @@ export interface ILoadBalancerFiltersState {
   detailHeadings: string[];
 }
 
-export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersProps, ILoadBalancerFiltersState> {
+class LoadBalancerFiltersComponent extends React.Component<
+  ILoadBalancerFiltersProps & IRouterInjectedProps,
+  ILoadBalancerFiltersState
+> {
   private debouncedUpdateLoadBalancerGroups: () => void;
   private groupsUpdatedSubscription: Subscription;
   private loadBalancersRefreshUnsubscribe: () => void;
   private locationChangeUnsubscribe: () => void;
 
-  constructor(props: ILoadBalancerFiltersProps) {
+  constructor(props: ILoadBalancerFiltersProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       sortFilter: LoadBalancerState.filterModel.asFilterModel.sortFilter,
@@ -111,10 +115,11 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
 
     this.loadBalancersRefreshUnsubscribe = app.loadBalancers.onRefresh(null, () => this.updateLoadBalancerGroups());
 
-    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
+    const locationChangeSubscription = locationChangeSuccess$(this.props.router).subscribe(() => {
       LoadBalancerState.filterModel.asFilterModel.activate();
       LoadBalancerState.filterService.updateLoadBalancerGroups(app);
     });
+    this.locationChangeUnsubscribe = () => locationChangeSubscription.unsubscribe();
   }
 
   public componentWillUnmount(): void {
@@ -321,3 +326,6 @@ export class LoadBalancerFilters extends React.Component<ILoadBalancerFiltersPro
     );
   }
 }
+
+export const LoadBalancerFilters = withRouter(LoadBalancerFiltersComponent);
+LoadBalancerFilters.displayName = 'LoadBalancerFilters';

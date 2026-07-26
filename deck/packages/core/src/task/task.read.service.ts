@@ -1,9 +1,10 @@
-import { $log, $q, $timeout } from 'ngimport';
 import type { Subject } from 'rxjs';
 
 import { REST } from '../api/ApiService';
 import type { ITask } from '../domain';
 import { OrchestratedItemTransformer } from '../orchestratedItem/orchestratedItem.transformer';
+import { createDeferred } from '../utils/deferred';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 export class TaskReader {
   private static activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
@@ -47,9 +48,21 @@ export class TaskReader {
         return task;
       })
       .catch((error: any): undefined => {
-        $log.warn('There was an issue retrieving taskId: ', taskId, error);
+        diagnosticLogger.warn('There was an issue retrieving taskId: ', taskId, error);
         return undefined;
       });
+  }
+
+  public static cancelPolling(task?: ITask): void {
+    if (!task || task.poller === undefined) {
+      return;
+    }
+
+    const poller = task.poller;
+    clearTimeout(poller);
+    if (task.poller === poller) {
+      task.poller = undefined;
+    }
   }
 
   public static waitUntilTaskMatches(
@@ -59,24 +72,45 @@ export class TaskReader {
     interval = 1000,
     notifier?: Subject<void>,
   ): PromiseLike<ITask> {
-    const deferred = $q.defer<ITask>();
+    const deferred = createDeferred<ITask>();
     if (!task) {
       deferred.reject(null);
     } else if (closure(task)) {
+      this.cancelPolling(task);
       deferred.resolve(task);
     } else if (failureClosure && failureClosure(task)) {
+      this.cancelPolling(task);
       deferred.reject(task);
     } else {
-      task.poller = $timeout(() => {
-        this.getTask(task.id).then((updated) => {
-          this.updateTask(task, updated);
-          notifier?.next();
-          this.waitUntilTaskMatches(task, closure, failureClosure, interval, notifier).then(
-            deferred.resolve,
-            deferred.reject,
-          );
-        });
+      this.cancelPolling(task);
+      const poller = setTimeout(() => {
+        if (task.poller !== poller) {
+          return;
+        }
+        void Promise.resolve()
+          .then(() => (task.poller === poller ? this.getTask(task.id) : undefined))
+          .then((updated) => {
+            if (task.poller !== poller) {
+              return;
+            }
+            this.updateTask(task, updated);
+            notifier?.next();
+            if (task.poller !== poller) {
+              return;
+            }
+            this.waitUntilTaskMatches(task, closure, failureClosure, interval, notifier).then(
+              deferred.resolve,
+              deferred.reject,
+            );
+          })
+          .catch((error) => {
+            if (task.poller === poller) {
+              this.cancelPolling(task);
+              deferred.reject(error);
+            }
+          });
       }, interval);
+      task.poller = poller;
     }
     return deferred.promise;
   }

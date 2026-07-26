@@ -1,22 +1,20 @@
-import { mock } from 'angular';
 import { find } from 'lodash';
 
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import type { ClusterService } from './cluster.service';
-import { CLUSTER_SERVICE } from './cluster.service';
+import { ClusterService } from './cluster.service';
+import { DirectProviderServiceDelegate } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import type { IInstanceCounts, IServerGroup } from '../domain';
-import { REACT_MODULE } from '../reactShims';
 import * as State from '../state';
+import { nativePromiseService } from '../utils/nativePromiseService';
 
 const ClusterState = State.ClusterState;
 
 describe('Service: Cluster', function () {
-  beforeEach(mock.module(CLUSTER_SERVICE, REACT_MODULE));
-
   let clusterService: ClusterService;
+  let serverGroupTransformer: any;
   let application: Application;
 
   function buildTask(config: { status: string; variables: { [key: string]: any } }) {
@@ -28,29 +26,63 @@ describe('Service: Cluster', function () {
     };
   }
 
-  beforeEach(
-    mock.inject((_clusterService_: ClusterService) => {
-      clusterService = _clusterService_;
+  beforeEach(() => {
+    serverGroupTransformer = {
+      normalizeServerGroup: (serverGroup: IServerGroup) => Promise.resolve(serverGroup),
+    };
+    clusterService = new ClusterService(
+      nativePromiseService,
+      serverGroupTransformer,
+      new DirectProviderServiceDelegate(nativePromiseService) as any,
+    );
 
-      application = ApplicationModelBuilder.createApplicationForTests(
-        'app',
-        { key: 'serverGroups', defaultData: [] },
-        { key: 'runningExecutions', defaultData: [] },
-        { key: 'runningTasks', defaultData: [] },
-      );
-      application.getDataSource('serverGroups').data = [
-        { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
-        { name: 'the-target', account: 'test', region: 'not-the-target' },
-        { name: 'the-target', account: 'test', region: 'us-east-1' },
-        { name: 'not-the-target', account: 'test', region: 'us-east-1' },
-        { name: 'the-source', account: 'test', region: 'us-east-1' },
-      ];
-    }),
-  );
+    application = ApplicationModelBuilder.createApplicationForTests(
+      'app',
+      { key: 'serverGroups', defaultData: [] },
+      { key: 'runningExecutions', defaultData: [] },
+      { key: 'runningTasks', defaultData: [] },
+    );
+    application.getDataSource('serverGroups').data = [
+      { name: 'the-target', account: 'not-the-target', region: 'us-east-1' },
+      { name: 'the-target', account: 'test', region: 'not-the-target' },
+      { name: 'the-target', account: 'test', region: 'us-east-1' },
+      { name: 'not-the-target', account: 'test', region: 'us-east-1' },
+      { name: 'the-source', account: 'test', region: 'us-east-1' },
+    ];
+  });
 
   beforeEach(() => State.initialize());
 
   describe('lazy cluster fetching', () => {
+    it('retains multi-account cluster summaries and fetches selected clusters by exact key', async () => {
+      const http = mockHttpClient();
+      const clustersByAccount = {
+        accountA: ['cluster-a'],
+        accountB: Array.from({ length: SETTINGS.onDemandClusterThreshold }, (_, index) => `cluster-b-${index}`),
+      };
+      ClusterState.filterModel.asFilterModel.sortFilter.clusters = {
+        'accountA:cluster-a': true,
+        'accountB:cluster-b-1': true,
+        'accountB:cluster-b-2': false,
+      };
+      http.expectGET('/applications/app/clusters').respond(200, clustersByAccount);
+      http
+        .expectGET('/applications/app/serverGroups')
+        .withParams({ clusters: 'accountA:cluster-a,accountB:cluster-b-1' }, true)
+        .respond(200, []);
+
+      const serverGroupsPromise = clusterService.loadServerGroups(application);
+      await http.flush();
+      const serverGroups = await serverGroupsPromise;
+
+      expect(application.serverGroups.fetchOnDemand).toBe(true);
+      expect(application.serverGroups.clusters).toEqual([
+        { account: 'accountA', name: 'cluster-a' },
+        ...clustersByAccount.accountB.map((name) => ({ account: 'accountB', name })),
+      ]);
+      expect(serverGroups).toEqual([]);
+    });
+
     it('switches to lazy cluster fetching if there are more than the on demand threshold for clusters', async () => {
       const http = mockHttpClient();
       const clusters = [...Array(SETTINGS.onDemandClusterThreshold + 1)];
@@ -75,6 +107,22 @@ describe('Service: Cluster', function () {
       expect(serverGroups).toEqual([]);
     });
 
+    it('loads server groups with missing instances', async () => {
+      const http = mockHttpClient();
+      const clusters = Array(SETTINGS.onDemandClusterThreshold);
+      http.expectGET('/applications/app/clusters').respond(200, { test: clusters });
+      http
+        .expectGET('/applications/app/serverGroups')
+        .respond(200, [({ name: 'app-v001', account: 'test', region: 'us-east-1' } as unknown) as IServerGroup]);
+      spyOn(serverGroupTransformer, 'normalizeServerGroup').and.callFake((serverGroup: IServerGroup) => serverGroup);
+      let serverGroups: IServerGroup[] = null;
+
+      clusterService.loadServerGroups(application).then((result: IServerGroup[]) => (serverGroups = result));
+      await http.flush();
+
+      expect(serverGroups.find(({ name }) => name === 'app-v001').instances).toEqual([]);
+    });
+
     it('converts clusters parameter to q and account params when there are fewer than 251 clusters', async () => {
       const http = mockHttpClient();
       spyOn(ClusterState.filterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
@@ -93,6 +141,25 @@ describe('Service: Cluster', function () {
   });
 
   describe('health count rollups', () => {
+    it('treats missing instances as an empty instance list', () => {
+      const serverGroups = [
+        {
+          cluster: 'cluster-a',
+          name: 'cluster-a-v001',
+          account: 'test',
+          region: 'us-east-1',
+          cloudProvider: 'kubernetes',
+          category: 'serverGroup',
+          instanceCounts: { total: 0 },
+        } as IServerGroup,
+      ];
+
+      const clusters = clusterService.createServerGroupClusters(serverGroups);
+
+      expect(clusters.length).toBe(1);
+      expect(serverGroups[0].instances).toEqual([]);
+    });
+
     it('aggregates health counts from server groups', () => {
       application.serverGroups.data = [
         {

@@ -2,17 +2,13 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
-import { ApplicationModelBuilder } from '@spinnaker/core';
 import { mockLaunchTemplate, mockServerGroup } from '@spinnaker/mocks';
 
 import type { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
 import { InstancesDistributionDetailsSection } from '../../../index';
 
 describe('InstancesDistribution', () => {
-  let app: Application;
-  beforeEach(() => {
-    app = ApplicationModelBuilder.createApplicationForTests('testapp');
-  });
+  const app = {} as Application;
 
   const serverGroupWithMip = {
     ...mockServerGroup,

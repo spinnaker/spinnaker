@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { ISearchResults } from '@spinnaker/core';
 import { InfrastructureCaches, SearchService } from '@spinnaker/core';
 
@@ -28,4 +26,3 @@ export class GceCertificateReader {
 }
 
 export const GCE_CERTIFICATE_READER = 'spinnaker.gce.certificateReader.service';
-module(GCE_CERTIFICATE_READER, []).service('gceCertificateReader', GceCertificateReader);

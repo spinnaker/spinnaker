@@ -1,12 +1,13 @@
 import React from 'react';
 
-import { CollapsibleSection, ModalInjector, Tooltip } from '@spinnaker/core';
+import { CollapsibleSection, Tooltip } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AWSProviderSettings } from '../../../aws.settings';
 import type { IScalingProcess } from '../../../domain';
 import { AutoScalingProcessService } from '../scalingProcesses/AutoScalingProcessService';
 import { ScheduledAction } from '../scheduledAction/ScheduledAction';
+import { EditScheduledActionsModal } from '../scheduledActions';
 
 export interface IScheduledActionsDetailsSectionState {
   scheduledActionsDisabled: boolean;
@@ -35,20 +36,14 @@ export class ScheduledActionsDetailsSection extends React.Component<
     return { scheduledActionsDisabled };
   }
 
-  private editScheduledActions = (): void => {
-    ModalInjector.modalService.open({
-      templateUrl: require('../scheduledAction/editScheduledActions.modal.html'),
-      controller: 'EditScheduledActionsCtrl as ctrl',
-      resolve: {
-        application: () => this.props.app,
-        serverGroup: () => this.props.serverGroup,
-      },
-    });
-  };
-
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState(this.getState(nextProps));
   }
+
+  private editScheduledActions = (): void => {
+    const { app: application, serverGroup } = this.props;
+    EditScheduledActionsModal.show({ application, serverGroup });
+  };
 
   public render(): JSX.Element {
     const { serverGroup } = this.props;
