@@ -7,7 +7,7 @@ export class ManifestTrafficService {
   public static readonly ENABLE_MANIFEST_OPERATION = 'enableManifest';
   public static readonly DISABLE_MANIFEST_OPERATION = 'disableManifest';
 
-  public static enable = (manifest: IManifest, application: Application, reason?: string): PromiseLike<ITask> => {
+  public static enable = (manifest: IManifest, application: Application, reason?: string): Promise<ITask> => {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -24,7 +24,7 @@ export class ManifestTrafficService {
     });
   };
 
-  public static disable = (manifest: IManifest, application: Application, reason?: string): PromiseLike<ITask> => {
+  public static disable = (manifest: IManifest, application: Application, reason?: string): Promise<ITask> => {
     return TaskExecutor.executeTask({
       job: [
         {

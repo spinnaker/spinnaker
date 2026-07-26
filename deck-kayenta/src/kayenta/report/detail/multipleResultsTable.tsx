@@ -1,12 +1,14 @@
 import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
-import { ITableColumn, Table } from 'kayenta/layout/table';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import type { ITableColumn } from 'kayenta/layout/table';
+import { Table } from 'kayenta/layout/table';
+import type { ICanaryState } from 'kayenta/reducers';
 import { selectedMetricResultIdSelector } from 'kayenta/selectors';
 import { chain } from 'lodash';
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
+import type { Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 
 import { BreakString } from '@spinnaker/core';
 
@@ -35,7 +37,7 @@ const MultipleResultsTable = ({
     .uniq()
     .value();
 
-  let columns: Array<ITableColumn<ICanaryAnalysisResult>> = tagKeys.map((key) => ({
+  let columns: ITableColumn<ICanaryAnalysisResult>[] = tagKeys.map((key) => ({
     label: key,
     width: 5,
     getContent: (result: ICanaryAnalysisResult) => <BreakString>{result.tags[key]}</BreakString>,

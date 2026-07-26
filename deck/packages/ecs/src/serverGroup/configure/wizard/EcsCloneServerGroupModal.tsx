@@ -79,6 +79,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   private configureRequest = 0;
   private formik: EcsFormikProps = null;
   private unmounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
 
   public static defaultProps: Partial<IEcsCloneServerGroupModalProps> = {
     closeModal: noop,
@@ -110,7 +111,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -126,14 +127,17 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this.unmounted = true;
+    this.clearApplicationRefreshSubscription();
   }
 
   private onTaskComplete = () => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.clearApplicationRefreshSubscription();
     if (this.unmounted) {
       return;
     }
@@ -163,6 +167,11 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
     });
   };
 
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
+  };
+
   private templateSelected = () => {
     this.ensureCommandShape(this.props.command);
     this.setState(
@@ -177,7 +186,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
     );
   };
 
-  private configureCommand = (imageQuery = '', command = this.state.command): PromiseLike<void> => {
+  private configureCommand = (imageQuery = '', command = this.state.command): Promise<void> => {
     const request = ++this.configureRequest;
     this.ensureCommandShape(command);
     this.command = command;
@@ -195,7 +204,7 @@ export class EcsCloneServerGroupModalComponent extends React.Component<
   };
 
   private safe<T>(promise: PromiseLike<T>, fallback: T): Promise<T> {
-    return Promise.resolve(promise as Promise<T>).catch(() => fallback);
+    return Promise.resolve(promise).catch(() => fallback);
   }
 
   private loadBackingData(

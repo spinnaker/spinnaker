@@ -7,7 +7,6 @@ export const awsFindImageFromTagsStage = {
   provides: 'findImageFromTags',
   cloudProvider: 'aws',
   component: AwsFindImageFromTagsStageConfig,
-  executionConfigSections: ['findImageConfig', 'taskStatus'],
   validators: [
     { type: 'requiredField', fieldName: 'packageName' },
     { type: 'requiredField', fieldName: 'regions' },

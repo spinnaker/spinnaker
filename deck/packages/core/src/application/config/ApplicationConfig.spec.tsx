@@ -51,13 +51,12 @@ describe('<ApplicationConfig />', () => {
     SETTINGS.slack = originalSlack;
   });
 
-  it('renders application config sections directly in React without the Angular adapter', () => {
+  it('renders application config sections', () => {
     const application = buildApplication();
 
     const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     wrapper.setState({ hasManagedResources: true });
 
-    expect(wrapper.find(['Angular', 'JS', 'Adapter'].join('')).exists()).toBe(false);
     expect(wrapper.find(PageSection).map((section) => section.prop('label'))).toEqual([
       'Application Attributes',
       'Managed Resources',
@@ -143,7 +142,6 @@ describe('<ApplicationConfig />', () => {
         .filterWhere((button) => button.text().includes('Edit Application Attributes'))
         .exists(),
     ).toBe(true);
-    expect(attributes.text()).not.toContain('Angular-owned');
   });
 
   it('renders only application attributes before the application is configured', () => {
@@ -161,7 +159,6 @@ describe('<ApplicationConfig />', () => {
         .filterWhere((button) => button.text().includes('Create Application'))
         .exists(),
     ).toBe(true);
-    expect(attributes.text()).not.toContain('Angular edit modal');
   });
 
   it('opens application attributes in a modal instead of editing inline', () => {

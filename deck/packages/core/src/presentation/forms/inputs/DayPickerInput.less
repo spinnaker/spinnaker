@@ -1,4 +1,5 @@
-/* Kludge while we figure out how to add the form-control ng-invalid classes directly to the nested day-picker input */
-.DayPickerInput.ng-invalid > input {
+/* Kludge while we figure out how to add the form-control invalid class directly to the nested day-picker input */
+.DayPickerInput.invalid.dirty > input,
+.DayPickerInput.invalid.highlight-pristine > input {
   border-color: var(--color-danger);
 }

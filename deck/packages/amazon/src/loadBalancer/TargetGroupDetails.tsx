@@ -60,9 +60,7 @@ export class TargetGroupDetailsComponent extends React.Component<
           return;
         }
         this.extractTargetGroup();
-        this.unsubscribeFromRefresh = this.props.app
-          .getDataSource('loadBalancers')
-          .onRefresh(null, this.extractTargetGroup);
+        this.unsubscribeFromRefresh = this.props.app.getDataSource('loadBalancers').onRefresh(this.extractTargetGroup);
       })
       .catch(() => {
         if (!this.isUnmounted) {

@@ -7,6 +7,7 @@ import {
   LoadBalancerWriter,
   ModalClose,
   NameUtils,
+  nativePromiseService,
   NetworkReader,
   noop,
   ReactModal,
@@ -350,7 +351,8 @@ export class AzureLoadBalancerModalComponent extends React.Component<
   }
 
   private mounted = false;
-  private transformer = new AzureLoadBalancerTransformer(null);
+  private applicationRefreshUnsubscribe?: () => void;
+  private transformer = new AzureLoadBalancerTransformer(nativePromiseService);
 
   constructor(props: IAzureLoadBalancerModalProps & IRouterInjectedProps) {
     super(props);
@@ -358,10 +360,7 @@ export class AzureLoadBalancerModalComponent extends React.Component<
     const taskMonitor = new TaskMonitor({
       application,
       title: `${props.isNew ? 'Creating' : 'Updating'} your load balancer`,
-      modalInstance: TaskMonitor.modalInstanceEmulation(
-        () => this.props.closeModal(),
-        () => this.props.dismissModal(),
-      ),
+      onDismiss: () => this.props.dismissModal(),
       onTaskComplete: this.onTaskComplete,
     });
 
@@ -387,6 +386,8 @@ export class AzureLoadBalancerModalComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this.mounted = false;
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   }
 
   private getApplication(): Application {
@@ -435,11 +436,15 @@ export class AzureLoadBalancerModalComponent extends React.Component<
 
   private onTaskComplete = (): void => {
     const application = this.getApplication();
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
+    this.applicationRefreshUnsubscribe = application.loadBalancers.onNextRefresh(this.onApplicationRefresh);
     application.loadBalancers.refresh();
-    application.loadBalancers.onNextRefresh(this, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
     if (!this.mounted) {
       return;
     }

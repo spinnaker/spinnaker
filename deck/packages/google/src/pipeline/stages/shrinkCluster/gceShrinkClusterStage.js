@@ -2,9 +2,6 @@ import { Registry } from '@spinnaker/core';
 
 import { GceShrinkClusterStageConfig } from '../googleStageConfig';
 
-export const GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE =
-  'spinnaker.gce.pipeline.stage..shrinkClusterStage';
-export const name = GOOGLE_PIPELINE_STAGES_SHRINKCLUSTER_GCESHRINKCLUSTERSTAGE;
 export function registerGceShrinkClusterStage() {
   Registry.pipeline.registerStage({
     provides: 'shrinkCluster',

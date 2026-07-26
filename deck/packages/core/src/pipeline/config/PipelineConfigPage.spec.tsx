@@ -708,7 +708,7 @@ describe('PipelineConfigPage', () => {
     wrapper.unmount();
   });
 
-  it('shows template configuration without Angular modal support', async () => {
+  it('shows template configuration controls', async () => {
     const requested = templatedV1();
     const plan = { ...pipeline(requested.id, requested.name), stages: [] } as IPipeline;
     const app = createApp([requested]);

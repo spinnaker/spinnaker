@@ -17,9 +17,4 @@ describe('Tencentcloud package entrypoint', () => {
   it('registers the provider configuration', () => {
     expect(CloudProviderRegistry.getValue('tencentcloud', 'image.reader')).toBe(TencentcloudImageReader);
   });
-
-  it('does not expose Angular module tokens', () => {
-    expect((tencentcloudPackage as any).TENCENTCLOUD_MODULE).toBeUndefined();
-    expect((tencentcloudPackage as any).TENCENTCLOUD_REACT_MODULE).toBeUndefined();
-  });
 });

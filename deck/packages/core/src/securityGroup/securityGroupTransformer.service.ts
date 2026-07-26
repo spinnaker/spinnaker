@@ -2,12 +2,13 @@ import type { ProviderServiceDelegate } from '../cloudProvider/providerService.d
 import type { ISecurityGroup } from '../domain';
 
 export class SecurityGroupTransformerService {
-  public static $inject = ['providerServiceDelegate'];
   constructor(private providerServiceDelegate: ProviderServiceDelegate) {}
 
-  public normalizeSecurityGroup(securityGroup: ISecurityGroup): PromiseLike<ISecurityGroup> {
-    return this.providerServiceDelegate
-      .getDelegate<any>(securityGroup.provider || securityGroup.type, 'securityGroup.transformer')
-      .normalizeSecurityGroup(securityGroup);
+  public normalizeSecurityGroup(securityGroup: ISecurityGroup): Promise<ISecurityGroup> {
+    return Promise.resolve(
+      this.providerServiceDelegate
+        .getDelegate<any>(securityGroup.provider || securityGroup.type, 'securityGroup.transformer')
+        .normalizeSecurityGroup(securityGroup),
+    );
   }
 }

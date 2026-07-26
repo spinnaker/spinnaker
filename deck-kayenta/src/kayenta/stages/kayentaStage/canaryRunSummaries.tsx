@@ -27,7 +27,7 @@ interface IReportHrefService {
 
 export default function CanaryRunSummaries({ canaryRuns, firstScopeName }: ICanarySummariesProps) {
   const { stateService } = useRouter();
-  const canaryRunColumns: Array<ITableColumn<IStage>> = [
+  const canaryRunColumns: ITableColumn<IStage>[] = [
     {
       label: 'Canary Result',
       getContent: (run) => {

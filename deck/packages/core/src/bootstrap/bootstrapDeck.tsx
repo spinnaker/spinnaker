@@ -7,10 +7,7 @@ import '@fortawesome/fontawesome-free/css/fontawesome.css';
 import 'react-select/dist/react-select.css';
 import 'react-virtualized/styles.css';
 import 'react-virtualized-select/styles.css';
-import 'ui-select/dist/select.css';
 import '@spinnaker/styleguide/public/styleguide.min.css';
-import 'select2/select2.css';
-import 'select2-bootstrap-css/select2-bootstrap.css';
 import 'source-sans/source-sans-3.css';
 import '../fonts/icons.css';
 
@@ -68,6 +65,7 @@ export function createDeckRoot(router: UIRouterReact, runtime: DeckRuntime): Rea
 
 function cleanupRuntime(): void {
   ReactModal.dismissAll('runtime-disposed');
+  ReactModal.setDefaultRuntimeServices(null);
   const runtime = activeRuntime;
   const router = activeRouter;
   const root = renderedRoot;
@@ -137,6 +135,7 @@ async function runBootstrap(root: HTMLElement): Promise<void> {
   await Promise.resolve();
 
   renderedRoot = root;
+  ReactModal.setDefaultRuntimeServices(runtime.services);
   render(createDeckRoot(router, runtime), root);
   document.querySelector('.loading-placeholder')?.remove();
   startRouter(router);

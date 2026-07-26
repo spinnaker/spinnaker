@@ -91,7 +91,7 @@ export class KubernetesSecurityGroupDetailsComponent extends React.Component<
 
         this.dataSourceReady = true;
         this.loadSecurityGroup();
-        this.unsubscribeFromRefresh = dataSource.onRefresh(null, this.loadSecurityGroup);
+        this.unsubscribeFromRefresh = dataSource.onRefresh(this.loadSecurityGroup);
       })
       .catch(this.autoClose);
   }

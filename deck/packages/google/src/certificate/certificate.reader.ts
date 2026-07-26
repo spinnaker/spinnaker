@@ -9,7 +9,7 @@ export interface IGceCertificate {
 }
 
 export class GceCertificateReader {
-  public listCertificates(): PromiseLike<IGceCertificate[]> {
+  public listCertificates(): Promise<IGceCertificate[]> {
     return SearchService.search<IGceCertificate>(
       { q: '', type: 'sslCertificates', allowShortQuery: 'true' },
       InfrastructureCaches.get('certificates'),
@@ -24,5 +24,3 @@ export class GceCertificateReader {
       .catch(() => []);
   }
 }
-
-export const GCE_CERTIFICATE_READER = 'spinnaker.gce.certificateReader.service';

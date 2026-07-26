@@ -114,8 +114,7 @@ export function CanaryScores(props: ICanaryScoresProps) {
                 value={Number.isNaN(unhealthy) ? '' : unhealthy}
                 onChange={handleUnhealthyChange}
                 className={classNames('form-control', 'input-sm', {
-                  'ng-invalid': !!errors.unhealthy,
-                  'ng-invalid-validate-min': !!errors.unhealthy,
+                  invalid: !!errors.unhealthy,
                 })}
               />
               {errors.unhealthy && <div className="error-message">{errors.unhealthy}</div>}
@@ -133,8 +132,7 @@ export function CanaryScores(props: ICanaryScoresProps) {
                 value={Number.isNaN(successful) ? '' : successful}
                 onChange={handleSuccessfulChange}
                 className={classNames('form-control', 'input-sm', {
-                  'ng-invalid': !!errors.successful,
-                  'ng-invalid-validate-max': !!errors.successful,
+                  invalid: !!errors.successful,
                 })}
               />
               {errors.successful && <div className="error-message">{errors.successful}</div>}

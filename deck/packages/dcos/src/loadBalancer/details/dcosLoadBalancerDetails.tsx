@@ -165,7 +165,7 @@ export class DcosCreateLoadBalancerModal extends React.Component<
   IDcosCreateLoadBalancerModalProps & any,
   IDcosCreateLoadBalancerModalState
 > {
-  public static show(props: IDcosCreateLoadBalancerModalProps): PromiseLike<any> {
+  public static show(props: IDcosCreateLoadBalancerModalProps): Promise<any> {
     return ReactModal.show(DcosCreateLoadBalancerModal as any, props as any, { dialogClassName: 'modal-lg' });
   }
 

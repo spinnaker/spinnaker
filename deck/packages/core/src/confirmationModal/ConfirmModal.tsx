@@ -44,11 +44,16 @@ export const ConfirmModal = (props: IConfirmModalProps) => {
     taskMonitor.onTaskRetry = handleTaskRetry;
 
     const originalCloseModal = taskMonitor.closeModal;
+    let hasDismissed = false;
     const handleTaskMonitorClose = (event?: React.MouseEvent<any>) => {
-      event?.stopPropagation();
+      originalCloseModal(event);
+      if (hasDismissed) {
+        return;
+      }
+      hasDismissed = true;
       dismissModal();
     };
-    if (!taskMonitor.modalInstance) {
+    if (!taskMonitor.hasDismissHandler()) {
       taskMonitor.closeModal = handleTaskMonitorClose;
     }
 

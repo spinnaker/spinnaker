@@ -2,7 +2,7 @@ import type { IProject, ITask } from '../../domain';
 import { TaskExecutor } from '../../task/taskExecutor';
 
 export class ProjectWriter {
-  public static upsertProject(project: IProject): PromiseLike<ITask> {
+  public static upsertProject(project: IProject): Promise<ITask> {
     const descriptor = project.id ? 'Update' : 'Create';
     return TaskExecutor.executeTask({
       application: 'spinnaker',
@@ -17,7 +17,7 @@ export class ProjectWriter {
     });
   }
 
-  public static deleteProject(project: IProject): PromiseLike<ITask> {
+  public static deleteProject(project: IProject): Promise<ITask> {
     return TaskExecutor.executeTask({
       application: 'spinnaker',
       job: [

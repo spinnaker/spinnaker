@@ -3,7 +3,7 @@ import { cloneDeep, filter } from 'lodash';
 import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { ClusterService } from '../cluster.service';
-import { DirectProviderServiceDelegate } from '../../cloudProvider';
+import { ProviderServiceDelegate } from '../../cloudProvider';
 import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
 import * as State from '../../state';
 import { nativePromiseService } from '../../utils/nativePromiseService';
@@ -26,7 +26,7 @@ describe('Service: clusterFilterService', function () {
     clusterService = new ClusterService(
       nativePromiseService,
       { normalizeServerGroup: (serverGroup: any) => Promise.resolve(serverGroup) },
-      new DirectProviderServiceDelegate(nativePromiseService) as any,
+      new ProviderServiceDelegate(nativePromiseService),
     );
 
     applicationJSON = cloneDeep(applicationJSONFixture);

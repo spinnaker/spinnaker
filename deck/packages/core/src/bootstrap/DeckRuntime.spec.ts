@@ -17,7 +17,11 @@ describe('createDeckRuntime', () => {
     const runtime = createDeckRuntime(router);
 
     expect(runtime.router).toBe(router);
-    expect(runtime.promiseService).toEqual(jasmine.any(Function));
+    expect(runtime.promiseService).toEqual({
+      all: jasmine.any(Function),
+      reject: jasmine.any(Function),
+      resolve: jasmine.any(Function),
+    });
     expect(runtime.timeoutService).toEqual(jasmine.any(Function));
     expect(runtime.logger.error).toEqual(jasmine.any(Function));
     expect(runtime.interpolate).toEqual(jasmine.any(Function));

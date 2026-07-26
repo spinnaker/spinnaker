@@ -4,8 +4,8 @@ import {
   DeploymentStrategySelector,
   MapEditor,
   NetworkReader,
+  nativePromiseService,
   ReactModal,
-  TaskMonitor,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -70,16 +70,12 @@ describe('AzureCloneServerGroupModal', () => {
   }
 
   beforeEach(() => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     runtimeServices = {
       cacheInitializer: {},
       loadBalancerReader: { getLoadBalancerDetails: jasmine.createSpy('getLoadBalancerDetails') },
       securityGroupReader: {},
     };
-    const configurationService = new AzureServerGroupConfigurationService(Promise, runtimeServices);
+    const configurationService = new AzureServerGroupConfigurationService(nativePromiseService, runtimeServices);
     runtimeServices.providerServiceDelegate = {
       getDelegate: jasmine.createSpy('getDelegate').and.returnValue(configurationService),
     };
@@ -153,6 +149,40 @@ describe('AzureCloneServerGroupModal', () => {
       { dialogClassName: 'wizard-modal modal-lg' },
       runtimeServices,
     );
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const modal = new AzureCloneServerGroupModal({
+      application: { name: 'fnord', serverGroups: { onNextRefresh, refresh } },
+      command: command(),
+      dismissModal: jasmine.createSpy('dismissModal'),
+      stateService,
+      title: 'Create server group',
+    } as any) as any;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('cancel and dismiss reject without submitting or mutating the command', async () => {

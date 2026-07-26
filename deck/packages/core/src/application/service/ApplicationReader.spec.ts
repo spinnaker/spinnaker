@@ -33,8 +33,8 @@ describe('ApplicationReader', function () {
       addTasksToServerGroups: () => undefined,
       addExecutionsToServerGroups: () => undefined,
     } as any;
-    registerSecurityGroupDataSource(nativePromiseService, securityGroupReader);
-    registerServerGroupDataSource(nativePromiseService, clusterService);
+    registerSecurityGroupDataSource(securityGroupReader);
+    registerServerGroupDataSource(clusterService);
     registerLoadBalancerDataSource(nativePromiseService, loadBalancerReader);
   });
 

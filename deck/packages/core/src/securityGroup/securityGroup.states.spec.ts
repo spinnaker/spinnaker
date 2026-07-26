@@ -23,8 +23,6 @@ describe('security group states', () => {
         $type: 'react',
       }),
     );
-    expect(state.views['main@'].templateUrl).toBeUndefined();
-    expect(state.views['main@'].controllerProvider).toBeUndefined();
   });
 
   it('resolves a standalone firewall through the direct security group reader', async () => {

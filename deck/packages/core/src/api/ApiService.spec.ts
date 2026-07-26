@@ -1,4 +1,4 @@
-import type { IHttpClientImplementation } from './ApiService';
+import type { IHttpClientImplementation, XhrError } from './ApiService';
 import { InvalidAPIResponse, invalidContentMessage, makeRequestBuilderConfig, RequestBuilder } from './ApiService';
 import { CacheFactory } from 'cachefactory';
 
@@ -8,8 +8,39 @@ import { SETTINGS } from '../config/settings';
 import { resetIapSessionRefreshState } from './iapSessionRefresh';
 import { useRealHttpClient } from './mock/jasmine';
 
+describe('XhrError', () => {
+  it('accepts native errors without requiring XHR response fields', () => {
+    const error: XhrError = new Error('network failure');
+
+    expect(error.name).toBe('Error');
+    expect(error.message).toBe('network failure');
+    expect(error.data).toBeUndefined();
+    expect(error.status).toBeUndefined();
+  });
+});
+
 describe('RequestBuilder backend', () => {
-  const createBackend = (): IHttpClientImplementation => jasmine.createSpyObj(['get', 'post', 'put', 'delete']);
+  const createBackend = (): IHttpClientImplementation =>
+    jasmine.createSpyObj(['get', 'post', 'put', 'patch', 'delete']);
+
+  it('normalizes thenables from every pluggable client method to native Promises', async () => {
+    const response = { value: 'response' };
+    const resolved = Promise.resolve(response);
+    const thenable: PromiseLike<typeof response> = { then: resolved.then.bind(resolved) };
+    const backend = {
+      get: () => thenable,
+      post: () => thenable,
+      put: () => thenable,
+      patch: () => thenable,
+      delete: () => thenable,
+    };
+    const request = new RequestBuilder(undefined, backend);
+
+    const promises = [request.get(), request.post(), request.put(), request.patch(), request.delete()];
+
+    promises.forEach((promise) => expect(promise).toEqual(jasmine.any(Promise)));
+    await expectAsync(Promise.all(promises)).toBeResolvedTo(Array(5).fill(response));
+  });
 
   it('receives a url prefixed with the baseUrl', () => {
     const backend = createBackend();
@@ -277,6 +308,7 @@ describe('REST Service', function () {
         params: { one: 'first', many: ['second', 'third'], ignored: null },
       });
 
+      expect(promise).toEqual(jasmine.any(Promise));
       expect(request.method).toBe('GET');
       expect(request.url).toBe(`${window.location.origin}/example?one=first&many=second&many=third`);
       expect(request.explicitHeaderValues('X-Custom')).toEqual(['caller']);
@@ -295,6 +327,7 @@ describe('REST Service', function () {
       const first = request.get<{ value: string }>();
       const second = request.get<{ value: string }>();
 
+      expect(first).toEqual(jasmine.any(Promise));
       expect(second).toBe(first);
       expect(FakeXMLHttpRequest.instances.length).toBe(1);
       FakeXMLHttpRequest.instances[0].respond({
@@ -303,6 +336,30 @@ describe('REST Service', function () {
       });
       await expectAsync(first).toBeResolvedTo({ value: 'cached' });
       await expectAsync(second).toBeResolvedTo({ value: 'cached' });
+    });
+
+    it('returns a native Promise for a cached value', async () => {
+      const value = { value: 'cached' };
+      const cache = ({ get: () => value } as unknown) as ICache;
+
+      const promise = builder('cached-value').useCache(cache).get<typeof value>();
+
+      expect(promise).toEqual(jasmine.any(Promise));
+      await expectAsync(promise).toBeResolvedTo(value);
+      expect(FakeXMLHttpRequest.instances).toEqual([]);
+    });
+
+    it('normalizes a cached thenable to a native Promise', async () => {
+      const value = { value: 'cached thenable' };
+      const resolved = Promise.resolve(value);
+      const thenable: PromiseLike<typeof value> = { then: resolved.then.bind(resolved) };
+      const cache = ({ get: () => thenable } as unknown) as ICache;
+
+      const promise = builder('cached-thenable').useCache(cache).get<typeof value>();
+
+      expect(promise).toEqual(jasmine.any(Promise));
+      await expectAsync(promise).toBeResolvedTo(value);
+      expect(FakeXMLHttpRequest.instances).toEqual([]);
     });
 
     it('reuses a successful default-cache response without another GET', async () => {
@@ -905,7 +962,7 @@ describe('REST Service', function () {
       expect(reauthenticateUser).not.toHaveBeenCalled();
     });
 
-    it('propagates the request timeout and rejects timed out requests with the AngularJS response shape', async () => {
+    it('propagates the request timeout and rejects timed out requests with the legacy response shape', async () => {
       const { promise, request } = xhrRequest('DELETE', { url: '/example', timeout: 1234 });
 
       expect(request.timeout).toBe(1234);

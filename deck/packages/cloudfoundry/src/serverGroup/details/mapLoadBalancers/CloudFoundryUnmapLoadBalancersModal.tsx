@@ -73,7 +73,7 @@ export class CloudFoundryUnmapLoadBalancersModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Unmapping a route from your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
     };

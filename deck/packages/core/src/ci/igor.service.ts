@@ -8,8 +8,8 @@ export enum BuildServiceType {
 }
 
 export class IgorService {
-  public static listMasters(buildType: BuildServiceType = null): PromiseLike<string[]> {
-    const allMasters: PromiseLike<string[]> = REST('/v2/builds').query({ type: buildType }).get();
+  public static listMasters(buildType: BuildServiceType = null): Promise<string[]> {
+    const allMasters: Promise<string[]> = REST('/v2/builds').query({ type: buildType }).get();
     if (!allMasters) {
       return Promise.reject('An error occurred when retrieving build masters');
     }
@@ -25,31 +25,31 @@ export class IgorService {
     }
   }
 
-  public static listJobsForMaster(master: string): PromiseLike<string[]> {
+  public static listJobsForMaster(master: string): Promise<string[]> {
     return REST('/v3/builds').path(master, 'jobs').get();
   }
 
-  public static listBuildsForJob(master: string, job: string): PromiseLike<IBuild[]> {
+  public static listBuildsForJob(master: string, job: string): Promise<IBuild[]> {
     return REST('/v3/builds').path(master, 'builds').query({ job }).get();
   }
 
-  public static getJobConfig(master: string, job: string): PromiseLike<IJobConfig> {
+  public static getJobConfig(master: string, job: string): Promise<IJobConfig> {
     return REST('/v3/builds').path(master, 'job').query({ job }).get();
   }
 
-  public static getGcbAccounts(): PromiseLike<string[]> {
+  public static getGcbAccounts(): Promise<string[]> {
     return REST('/gcb/accounts').get();
   }
 
-  public static getGcbTriggers(account: string): PromiseLike<IGcbTrigger[]> {
+  public static getGcbTriggers(account: string): Promise<IGcbTrigger[]> {
     return REST('/gcb/triggers').path(account).get();
   }
 
-  public static getCodeBuildAccounts(): PromiseLike<string[]> {
+  public static getCodeBuildAccounts(): Promise<string[]> {
     return REST('/codebuild/accounts').get();
   }
 
-  public static getCodeBuildProjects(account: string): PromiseLike<string[]> {
+  public static getCodeBuildProjects(account: string): Promise<string[]> {
     return REST('/codebuild/projects').path(account).get();
   }
 }

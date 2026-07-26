@@ -1,10 +1,10 @@
-import { ICanaryConfig, ICanaryMetricConfig } from 'kayenta/domain/index';
+import type { ICanaryConfig, ICanaryMetricConfig } from 'kayenta/domain/index';
 import { get } from 'lodash';
 import { createSelector } from 'reselect';
 
-import { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
+import type { ICanaryExecutionStatusResult } from '../domain/ICanaryExecutionStatusResult';
 import { validateMetric } from '../edit/editMetricValidation';
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 
 export const runSelector = (state: ICanaryState): ICanaryExecutionStatusResult => state.selectedRun.run;
 

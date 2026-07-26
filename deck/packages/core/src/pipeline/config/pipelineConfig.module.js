@@ -1,6 +1,5 @@
 'use strict';
 
-import './targetSelect.component';
 import './triggers';
 import './validation/anyFieldRequired.validator';
 import './validation/imageProviderBeforeType.validator';

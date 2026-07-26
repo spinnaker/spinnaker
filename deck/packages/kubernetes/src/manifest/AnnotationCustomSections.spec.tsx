@@ -76,7 +76,7 @@ describe('<AnnotationCustomSections />', () => {
     expect(wrapper.text()).toContain('frontend in production from frontend-manifest');
   });
 
-  it('leaves Angular expression placeholders unresolved instead of evaluating them as lodash paths', () => {
+  it('leaves non-path expression placeholders unresolved', () => {
     const wrapper = mount(
       <AnnotationCustomSections
         manifest={manifestWithAnnotations({

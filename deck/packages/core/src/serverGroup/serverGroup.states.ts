@@ -1,4 +1,4 @@
-import type { StateParams } from '@uirouter/angularjs';
+import type { RawParams } from '@uirouter/core';
 
 import type { ApplicationStateProvider } from '../application/application.state.provider';
 import { registerApplicationState } from '../application/applicationState.registration';
@@ -37,7 +37,7 @@ export function getServerGroupDetailsState(): INestedState {
     resolve: {
       serverGroup: [
         '$stateParams',
-        ($stateParams: StateParams) => {
+        ($stateParams: RawParams) => {
           return {
             name: $stateParams.serverGroup,
             accountId: $stateParams.accountId,
