@@ -66,10 +66,10 @@ export class PipelineConfigValidator {
     this.validators.set(type, validator);
   }
 
-  public static validatePipeline(pipeline: IPipeline): PromiseLike<IPipelineValidationResults> {
+  public static validatePipeline(pipeline: IPipeline): Promise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [];
     const triggers: ITrigger[] = pipeline.triggers || [];
-    const validations: Array<PromiseLike<void>> = [];
+    const validations: Array<Promise<void>> = [];
     const pipelineValidations: string[] = this.getPipelineLevelValidations(pipeline);
     const stageValidations: Map<IStage, string[]> = new Map();
     let preventSave = false;

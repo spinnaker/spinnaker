@@ -43,15 +43,13 @@ export const ApplicationNavigation = ({ app }: IApplicationNavigationProps) => {
   const initialCategories = getNavigationCategories(app.dataSources);
   const [navSections, setNavSections] = React.useState(initialCategories);
 
-  const appRefreshSubscription = app.onRefresh(null, () => {
-    if (!isEqual(app.attributes.dataSources, prevDataSourceAttr)) {
-      const categories = getNavigationCategories(app.dataSources);
-      setNavSections(categories);
-    }
-  });
-
   React.useEffect(() => {
-    const unsubscribe = appRefreshSubscription();
+    const unsubscribe = app.onRefresh(() => {
+      if (!isEqual(app.attributes.dataSources, prevDataSourceAttr)) {
+        const categories = getNavigationCategories(app.dataSources);
+        setNavSections(categories);
+      }
+    });
     return unsubscribe;
   }, []);
 

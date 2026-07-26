@@ -1,5 +1,3 @@
-import type { IQService } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
@@ -9,12 +7,7 @@ import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToServerGroups } from '../managed';
 import { JsonUtils } from '../utils';
 
-export const SERVER_GROUP_DATA_SOURCE = 'spinnaker.core.serverGroup.dataSource';
-
-function createDataSourceConfig(
-  clusterService: ClusterService,
-  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T>,
-) {
+function createDataSourceConfig(clusterService: ClusterService) {
   const loadServerGroups = (application: Application) => {
     return clusterService.loadServerGroups(application);
   };
@@ -22,16 +15,13 @@ function createDataSourceConfig(
   const addServerGroups = (application: Application, serverGroups: IServerGroup[]) => {
     serverGroups.forEach(
       (serverGroup) =>
-        (serverGroup.stringVal = JsonUtils.makeSortedStringFromAngularObject(serverGroup, [
-          'executions',
-          'runningTasks',
-        ])),
+        (serverGroup.stringVal = JsonUtils.makeSortedString(serverGroup, ['executions', 'runningTasks', '$$hashKey'])),
     );
     application.clusters = clusterService.createServerGroupClusters(serverGroups);
     const data = clusterService.addServerGroupsToApplication(application, serverGroups);
     clusterService.addTasksToServerGroups(application);
     clusterService.addExecutionsToServerGroups(application);
-    return when(data);
+    return Promise.resolve(data);
   };
 
   const addTags = (application: Application) => {
@@ -59,14 +49,11 @@ function createDataSourceConfig(
   };
 }
 
-export function registerServerGroupDataSource($q: IQService, clusterService: ClusterService): void {
+export function registerServerGroupDataSource(clusterService: ClusterService): void {
   if (ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'serverGroups')) {
     return;
   }
 
-  const dataSourceConfig = createDataSourceConfig(
-    clusterService,
-    $q ? <T>(value: T | PromiseLike<T>) => $q.when(value) : <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
-  );
+  const dataSourceConfig = createDataSourceConfig(clusterService);
   ApplicationDataSourceRegistry.registerDataSource(dataSourceConfig);
 }

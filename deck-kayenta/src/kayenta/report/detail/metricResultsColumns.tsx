@@ -1,13 +1,13 @@
-import { ITableColumn } from 'kayenta/layout/table';
+import type { ITableColumn } from 'kayenta/layout/table';
 import * as React from 'react';
 
 import { BreakString } from '@spinnaker/core';
 
 import MetricResultClassification from './metricResultClassification';
 import MetricResultDeviation from './metricResultDeviation';
-import { IMetricResultsTableRow } from './metricResultsList';
+import type { IMetricResultsTableRow } from './metricResultsList';
 
-export const metricResultsColumns: Array<ITableColumn<IMetricResultsTableRow>> = [
+export const metricResultsColumns: ITableColumn<IMetricResultsTableRow>[] = [
   {
     label: 'metric name',
     getContent: ({ metricName }) => <BreakString>{metricName}</BreakString>,

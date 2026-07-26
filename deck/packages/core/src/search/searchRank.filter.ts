@@ -18,5 +18,3 @@ export const searchRank = (input: ISearchResult[], query = '') => {
 };
 
 export const searchRankFilter = () => searchRank;
-
-export const SEARCH_RANK_FILTER = 'spinnaker.core.search.searchResult.searchRank.filter';

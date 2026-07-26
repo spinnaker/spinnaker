@@ -8,7 +8,7 @@ import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 describe('Service: FilterModelService', function () {
   var filterModel;
   var filterModelConfig;
-  var $uiRouter;
+  var router;
 
   function configure() {
     FilterModelService.configureFilterModel(filterModel, filterModelConfig);
@@ -18,13 +18,13 @@ describe('Service: FilterModelService', function () {
   beforeEach(function () {
     filterModel = {};
     filterModelConfig = [];
-    $uiRouter = new UIRouterReact();
-    $uiRouter.plugin(servicesPlugin);
-    $uiRouter.plugin(hashLocationPlugin);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
   });
 
   afterEach(function () {
-    $uiRouter.dispose();
+    router.dispose();
   });
 
   describe('isFilterable', function () {
@@ -373,26 +373,26 @@ describe('Service: FilterModelService', function () {
     let testRouter;
 
     async function go(state, params) {
-      await $uiRouter.stateService.go(state, params);
+      await router.stateService.go(state, params);
     }
 
     beforeEach(function () {
       testRouter = getDirectRouter();
-      setDirectRouter($uiRouter);
+      setDirectRouter(router);
       filterModelConfig = [
         { model: 'region', type: 'string' },
         { model: 'account', type: 'string' },
       ];
       configure();
 
-      $uiRouter.stateRegistry.register({ name: 'other' });
-      $uiRouter.stateRegistry.register({ name: 'application', url: '/applications/:application' });
-      $uiRouter.stateRegistry.register({
+      router.stateRegistry.register({ name: 'other' });
+      router.stateRegistry.register({ name: 'application', url: '/applications/:application' });
+      router.stateRegistry.register({
         name: 'application.filtered',
         url: '/filter?region&account',
         params: new StateConfigProvider().buildDynamicParams(filterModelConfig),
       });
-      $uiRouter.stateRegistry.register({ name: 'application.otherchild' });
+      router.stateRegistry.register({ name: 'application.otherchild' });
 
       FilterModelService.registerRouterHooks(filterModel, 'application.filtered');
     });
@@ -403,30 +403,30 @@ describe('Service: FilterModelService', function () {
 
     it('should restore the latest filters when reactivating a filter state in the same application', async function () {
       await go('application.filtered', { application: 'myapp', region: 'west', account: 'prod' });
-      expect($uiRouter.globals.params.region).toBe('west');
-      expect($uiRouter.globals.params.account).toBe('prod');
+      expect(router.globals.params.region).toBe('west');
+      expect(router.globals.params.account).toBe('prod');
 
       await go('application.otherchild');
-      expect($uiRouter.globals.params.region).toBe(undefined);
-      expect($uiRouter.globals.params.account).toBe(undefined);
+      expect(router.globals.params.region).toBe(undefined);
+      expect(router.globals.params.account).toBe(undefined);
 
       await go('application.filtered');
-      expect($uiRouter.globals.params.region).toBe('west');
-      expect($uiRouter.globals.params.account).toBe('prod');
+      expect(router.globals.params.region).toBe('west');
+      expect(router.globals.params.account).toBe('prod');
     });
 
     it('should not restore the latest filters when switching apps', async function () {
       await go('application.filtered', { application: 'foo', region: 'west', account: 'prod' });
-      expect($uiRouter.globals.params.region).toBe('west');
-      expect($uiRouter.globals.params.account).toBe('prod');
+      expect(router.globals.params.region).toBe('west');
+      expect(router.globals.params.account).toBe('prod');
 
       await go('application.otherchild');
-      expect($uiRouter.globals.params.region).toBe(undefined);
-      expect($uiRouter.globals.params.account).toBe(undefined);
+      expect(router.globals.params.region).toBe(undefined);
+      expect(router.globals.params.account).toBe(undefined);
 
       await go('application.filtered', { application: 'otherapp' });
-      expect($uiRouter.globals.params.region).toBe(undefined);
-      expect($uiRouter.globals.params.account).toBe(undefined);
+      expect(router.globals.params.region).toBe(undefined);
+      expect(router.globals.params.account).toBe(undefined);
     });
   });
 
@@ -483,8 +483,8 @@ describe('Service: FilterModelService', function () {
     describe('applyParamsToUrl', function () {
       it('should start a transition with params for all configured fields', function () {
         const previousRouter = getDirectRouter();
-        setDirectRouter($uiRouter);
-        const spy = spyOn($uiRouter.stateService, 'go');
+        setDirectRouter(router);
+        const spy = spyOn(router.stateService, 'go');
         filterModelConfig = [
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string', param: 'q' },

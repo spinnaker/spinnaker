@@ -117,7 +117,7 @@ export const SecurityGroups = ({ app }: ISecurityGroupsProps) => {
   useEffect(() => {
     const groupsUpdatedListener = SecurityGroupState.filterService.groupsUpdatedStream.subscribe(groupsUpdated);
     const dataSource = app.getDataSource('securityGroups');
-    const securityGroupsRefreshUnsubscribe = dataSource.onRefresh(null, updateSecurityGroupGroups);
+    const securityGroupsRefreshUnsubscribe = dataSource.onRefresh(updateSecurityGroupGroups);
     dataSource.ready().then(() => {
       updateSecurityGroupGroups();
     });

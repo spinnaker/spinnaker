@@ -225,7 +225,7 @@ export class PipelineSelector extends React.Component<IPipelineSelectorProps, IP
           )}
 
           {pipelineParameters.length > 0 && (
-            <div className="well well-sm clearfix ng-scope col-md-12">
+            <div className="well well-sm clearfix col-md-12">
               <strong className="text-left">Parameters</strong>
               {pipelineParameters.map((parameter) => (
                 <div key={parameter.name} className="form-group">

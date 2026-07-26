@@ -2,8 +2,6 @@ import React from 'react';
 
 import { HelpField } from '../../../../../help/HelpField';
 
-import './stageConfigField.directive.less';
-
 export interface IStageConfigFieldProps {
   label: string;
   helpKey?: string;

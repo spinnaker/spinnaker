@@ -1,4 +1,4 @@
-import { ICanaryMetricSetQueryConfig } from 'kayenta/domain';
+import type { ICanaryMetricSetQueryConfig } from 'kayenta/domain';
 
 export interface IPrometheusCanaryMetricSetQueryConfig extends ICanaryMetricSetQueryConfig {
   resourceType: string;

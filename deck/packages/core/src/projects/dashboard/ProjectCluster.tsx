@@ -63,7 +63,7 @@ export const ProjectCluster = ({ project, cluster, selectedRegions }: IProjectCl
   };
 
   return (
-    <project-cluster>
+    <section className="project-cluster">
       <div className="row rollup-entry sub-group">
         <div className="rollup-summary">
           <div className="container-fluid no-padding">
@@ -174,7 +174,7 @@ export const ProjectCluster = ({ project, cluster, selectedRegions }: IProjectCl
           </div>
         )}
       </div>
-    </project-cluster>
+    </section>
   );
 };
 

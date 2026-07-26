@@ -14,11 +14,9 @@ export interface IFunctionByAccount {
 }
 
 export class FunctionReader {
-  public static $inject = ['functionTransformer'];
-
   public constructor(private functionTransformer: IFunctionTransformer) {}
 
-  public loadFunctions(applicationName: string): PromiseLike<IFunctionSourceData[]> {
+  public loadFunctions(applicationName: string): Promise<IFunctionSourceData[]> {
     return REST('/applications')
       .path(applicationName, 'functions')
       .get()
@@ -33,7 +31,7 @@ export class FunctionReader {
     account: string,
     region: string,
     name: string,
-  ): PromiseLike<IFunctionSourceData[]> {
+  ): Promise<IFunctionSourceData[]> {
     return REST('/functions')
       .query({ provider: cloudProvider, functionName: name, region: region, account: account })
       .get()
@@ -43,7 +41,7 @@ export class FunctionReader {
       });
   }
 
-  public listFunctions(cloudProvider: string): PromiseLike<IFunctionByAccount[]> {
+  public listFunctions(cloudProvider: string): Promise<IFunctionByAccount[]> {
     return REST('/functions').query({ provider: cloudProvider }).get();
   }
 

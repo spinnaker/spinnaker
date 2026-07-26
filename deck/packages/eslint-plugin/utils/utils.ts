@@ -53,7 +53,9 @@ export function getVariableInScope(context: Rule.RuleContext, identifier: Identi
     return undefined;
   }
 
-  const { references } = context.sourceCode.getScope((identifier as unknown) as Rule.Node);
+  const { references } = context.sourceCode?.getScope
+    ? context.sourceCode.getScope((identifier as unknown) as Rule.Node)
+    : ((context as unknown) as { getScope: () => Pick<Scope.Scope, 'references'> }).getScope();
   const ref = references.find((r) => r.identifier.name === identifier.name);
   return ref ? ref.resolved : undefined;
 }

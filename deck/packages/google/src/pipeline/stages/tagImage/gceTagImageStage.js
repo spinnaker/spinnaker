@@ -14,9 +14,6 @@ import {
 
 const h = React.createElement;
 
-export const GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE = 'spinnaker.gce.pipeline.stage..tagImageStage';
-export const name = GOOGLE_PIPELINE_STAGES_TAGIMAGE_GCETAGIMAGESTAGE;
-
 function selectOptions(accounts) {
   return accounts.map((account) => h('option', { key: account.name, value: account.name }, account.name));
 }

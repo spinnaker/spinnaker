@@ -163,7 +163,7 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
     ExecutionState.filterModel.expandSubject.next(false);
   };
 
-  private startPipeline(command: IPipelineCommand): PromiseLike<void> {
+  private startPipeline(command: IPipelineCommand): Promise<void> {
     const { executionService } = this.context.services;
     this.setState({ triggeringExecution: true });
     return executionService
@@ -239,7 +239,6 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
 
     this.executionsRefreshUnsubscribe = app.executions.onRefresh(
-      null,
       () => {
         this.normalizeExecutionNames();
 
@@ -344,14 +343,14 @@ export class ExecutionsComponent extends React.Component<IExecutionsProps & IRou
           )}
           <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
             {filtersExpanded && (
-              <div className="nav ng-scope">
+              <div className="nav">
                 {!loading && (
                   <ExecutionFilters application={app} setReloadingForFilters={this.setReloadingForFilters} />
                 )}
               </div>
             )}
             <div
-              className={`nav-content ng-scope ${sortFilter.showDurations ? 'show-durations' : ''}`}
+              className={`nav-content ${sortFilter.showDurations ? 'show-durations' : ''}`}
               data-scroll-id="nav-content"
             >
               {!loading && (

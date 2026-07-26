@@ -1,13 +1,8 @@
-import { mock } from 'angular';
-
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { IPagerDutyService } from './pagerDuty.read.service';
 import { PagerDutyReader } from './pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
-  beforeEach(mock.module());
-  beforeEach(mock.inject());
-
   it('should return an empty array when configured to do so and invoked', async () => {
     const http = mockHttpClient();
     const services: IPagerDutyService[] = [];
@@ -17,7 +12,7 @@ describe('PagerDutyReader', () => {
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       expect(pagerDutyServices).toBeDefined();
       expect(pagerDutyServices.length).toBe(0);
-      executed = true; // can't use done() function b/c $digest is already in progress
+      executed = true;
     });
 
     await http.flush();
@@ -50,7 +45,7 @@ describe('PagerDutyReader', () => {
     PagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       expect(pagerDutyServices).toBeDefined();
       expect(pagerDutyServices.length).toBe(2);
-      executed = true; // can't use done() function b/c $digest is already in progress
+      executed = true;
     });
 
     await http.flush();

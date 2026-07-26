@@ -15,7 +15,6 @@ export interface IStepDetailsProps {
 }
 
 export interface IStepDetailsSections {
-  configSections?: string[];
   executionDetailsSections?: IExecutionDetailsSection[];
   provider: string;
 }
@@ -26,26 +25,22 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
   }
 
   private deriveSectionsFromProps(): IStepDetailsSections {
-    let configSections: string[] = [];
     let executionDetailsSections: IExecutionDetailsSection[];
     let provider: string;
 
     const stageConfig = this.props.config;
     if (stageConfig) {
-      if (stageConfig.executionConfigSections) {
-        configSections = stageConfig.executionConfigSections;
-      }
       if (stageConfig.executionDetailsSections) {
         executionDetailsSections = stageConfig.executionDetailsSections;
       }
       provider = stageConfig.cloudProvider;
     }
-    return { configSections, executionDetailsSections, provider };
+    return { executionDetailsSections, provider };
   }
 
   public render(): React.ReactElement<StepDetails> {
     const { application, config, execution, stage } = this.props;
-    const { executionDetailsSections, provider, configSections } = this.deriveSectionsFromProps();
+    const { executionDetailsSections, provider } = this.deriveSectionsFromProps();
     const detailsProps = { application, config, execution, provider, stage };
 
     return (
@@ -58,9 +53,7 @@ export class StepDetails extends React.Component<IStepDetailsProps> {
             </h5>
           )}
         </div>
-        {config && !executionDetailsSections && (
-          <StepExecutionDetailsWrapper {...detailsProps} configSections={configSections} />
-        )}
+        {config && !executionDetailsSections && <StepExecutionDetailsWrapper {...detailsProps} />}
         {executionDetailsSections && (
           <StepExecutionDetails {...detailsProps} detailsSections={executionDetailsSections} />
         )}

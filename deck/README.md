@@ -39,7 +39,7 @@ For example, `API_HOST=http://spinnaker.prod.netflix.net pnpm start` will run De
 
 ## Development
 
-Deck has a combination of Angular and React, but is moving to React only. New changes made to the Deck project should use React wherever possible.
+Deck is a React application. New changes to Deck should use React.
 
 ## Testing
 

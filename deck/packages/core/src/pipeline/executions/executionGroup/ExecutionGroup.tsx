@@ -138,7 +138,7 @@ export class ExecutionGroupComponent extends React.PureComponent<
     this.setState({ open });
   };
 
-  private startPipeline(command: IPipelineCommand): PromiseLike<void> {
+  private startPipeline(command: IPipelineCommand): Promise<void> {
     const { executionService } = this.props.deckRuntimeServices;
     this.setState({ triggeringExecution: true });
     return executionService

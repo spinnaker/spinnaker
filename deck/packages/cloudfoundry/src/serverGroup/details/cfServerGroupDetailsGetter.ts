@@ -5,7 +5,7 @@ import type { IServerGroupDetailsProps } from '@spinnaker/core';
 import { ServerGroupReader } from '@spinnaker/core';
 import type { ICloudFoundryLoadBalancer, ICloudFoundryServerGroup } from '../../domain';
 
-function extractServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<ICloudFoundryServerGroup> {
+function extractServerGroupSummary(props: IServerGroupDetailsProps): Promise<ICloudFoundryServerGroup> {
   const { app, serverGroup } = props;
   return app.ready().then(() => {
     let summary: ICloudFoundryServerGroup = app.serverGroups.data.find((toCheck: ICloudFoundryServerGroup) => {

@@ -5,8 +5,6 @@ import { HelpField } from '../../../help';
 import type { IInstanceTypeCategory, IPreferredInstanceType } from '../../../instance';
 import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
-import './instanceTypeSelector.directive.less';
-
 export interface IInstanceTypeSelectorProps {
   command: IServerGroupCommand;
   onTypeChanged: (type: string) => void;

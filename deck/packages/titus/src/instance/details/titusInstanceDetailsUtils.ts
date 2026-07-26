@@ -6,7 +6,7 @@ import type {
   ITargetGroup,
 } from '@spinnaker/amazon';
 import { getAllTargetGroups } from '@spinnaker/amazon';
-import type { Action, Application, DirectProviderServiceDelegate, IInstance, IJob } from '@spinnaker/core';
+import type { Action, Application, IInstance, IJob, ProviderServiceDelegate } from '@spinnaker/core';
 import { ConfirmationModalService, getDirectRouter, InstanceWriter } from '@spinnaker/core';
 
 export const applyTargetGroupInfoToHealthMetric = (
@@ -82,7 +82,7 @@ const terminateInstance = (instance: IInstance, app: Application) => {
 const terminateInstanceAndShrinkServerGroup = (
   instance: IInstance,
   app: Application,
-  providerServiceDelegate: DirectProviderServiceDelegate,
+  providerServiceDelegate: ProviderServiceDelegate,
 ) => {
   return () => {
     const taskMonitorConfig = {
@@ -164,7 +164,7 @@ const disableInstanceInDiscovery = (instance: IInstance, app: Application) => {
 export const buildTaskActions = (
   instance: IInstance,
   app: Application,
-  providerServiceDelegate: DirectProviderServiceDelegate,
+  providerServiceDelegate: ProviderServiceDelegate,
 ): Action[] => {
   const taskActions = [
     { label: 'Terminate', triggerAction: terminateInstance(instance, app) },

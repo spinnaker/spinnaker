@@ -7,7 +7,6 @@ export const titusResizeAsgStage = {
   alias: 'resizeAsg',
   cloudProvider: 'titus',
   component: TitusResizeAsgStageConfig,
-  executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
   accountExtractor: (stage) => [stage.context.credentials],
   configAccountExtractor: (stage) => [stage.credentials],
   validators: [

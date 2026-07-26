@@ -14,7 +14,7 @@ import { MultipleInstancesDetails } from './MultipleInstancesDetails';
 describe('<MultipleInstancesDetails />', () => {
   const providerServiceDelegate = {} as any;
   let previousMultiselectModel: any;
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
 
   const app = {
     serverGroups: {
@@ -41,11 +41,11 @@ describe('<MultipleInstancesDetails />', () => {
 
   const mountDetails = () =>
     mount(
-      <UIRouterContext.Provider value={$uiRouter}>
+      <UIRouterContext.Provider value={router}>
         <UIViewContext.Provider
           value={{
             fqn: 'application.insight.multipleInstances',
-            context: $uiRouter.stateRegistry.get('application.insight.multipleInstances') as any,
+            context: router.stateRegistry.get('application.insight.multipleInstances') as any,
           }}
         >
           <DeckRuntimeContext.Provider value={{ services: { providerServiceDelegate } } as any}>
@@ -56,11 +56,11 @@ describe('<MultipleInstancesDetails />', () => {
     );
 
   beforeEach(() => {
-    $uiRouter = new UIRouterReact();
-    $uiRouter.plugin(servicesPlugin);
-    $uiRouter.plugin(hashLocationPlugin);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
     ['application', 'application.insight', 'application.insight.multipleInstances'].forEach((name) => {
-      $uiRouter.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
     });
   });
 
@@ -94,7 +94,7 @@ describe('<MultipleInstancesDetails />', () => {
 
   afterEach(() => {
     ClusterState.multiselectModel = previousMultiselectModel;
-    $uiRouter.dispose();
+    router.dispose();
   });
 
   it('renders selected instances grouped by server group', () => {

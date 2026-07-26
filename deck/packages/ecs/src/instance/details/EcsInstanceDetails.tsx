@@ -320,7 +320,7 @@ export class EcsInstanceDetailsComponent extends React.Component<
         this.dataReady = true;
         this.retrieveInstance();
         if (!app.isStandalone && app.serverGroups?.onRefresh) {
-          this.unsubscribeFromRefresh = app.serverGroups.onRefresh(null, () => this.retrieveInstance());
+          this.unsubscribeFromRefresh = app.serverGroups.onRefresh(() => this.retrieveInstance());
         }
       },
       () => {

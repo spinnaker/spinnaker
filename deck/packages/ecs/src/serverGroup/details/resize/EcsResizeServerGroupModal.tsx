@@ -123,7 +123,7 @@ export class EcsResizeServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `Resizing ${serverGroup.name}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => application.serverGroups.refresh(),
       }),
       verified: false,

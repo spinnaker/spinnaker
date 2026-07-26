@@ -40,7 +40,7 @@ export const requiredForAnalysisTypes = (
   };
 };
 
-export const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaStage): PromiseLike<string> => {
+export const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
   return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then((configDetails) => {
     let definedScopeNames = uniq(map(configDetails.metrics, (metric) => metric.scopeName || 'default'));
     definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];
@@ -58,7 +58,7 @@ export const allScopesMustBeConfigured = (_pipeline: IPipeline, stage: IKayentaS
   });
 };
 
-export const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaStage): PromiseLike<string> => {
+export const allConfiguredScopesMustBeDefined = (_pipeline: IPipeline, stage: IKayentaStage): Promise<string> => {
   return getCanaryConfigById(get(stage, 'canaryConfig.canaryConfigId')).then((configDetails) => {
     let definedScopeNames = uniq(map(configDetails.metrics, (metric) => metric.scopeName || 'default'));
     definedScopeNames = !isEmpty(definedScopeNames) ? definedScopeNames : ['default'];

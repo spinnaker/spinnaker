@@ -2,8 +2,6 @@ import { Registry } from '@spinnaker/core';
 
 import { GceResizeServerGroupStageConfig } from '../googleStageConfig';
 
-export const GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE = 'spinnaker.gce.pipeline.stage..resizeAsgStage';
-export const name = GOOGLE_PIPELINE_STAGES_RESIZEASG_GCERESIZEASGSTAGE;
 export function registerGceResizeAsgStage() {
   Registry.pipeline.registerStage({
     provides: 'resizeServerGroup',

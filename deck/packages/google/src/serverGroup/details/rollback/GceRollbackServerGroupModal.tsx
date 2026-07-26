@@ -30,11 +30,7 @@ export interface IGceRollbackJob extends IServerGroupJob {
 }
 
 export interface IGceRollbackServerGroupWriter {
-  rollbackServerGroup(
-    serverGroup: IServerGroup,
-    application: Application,
-    command: IGceRollbackJob,
-  ): PromiseLike<ITask>;
+  rollbackServerGroup(serverGroup: IServerGroup, application: Application, command: IGceRollbackJob): Promise<ITask>;
 }
 
 export interface IGceRollbackServerGroupModalProps extends IModalComponentProps {
@@ -106,7 +102,7 @@ export class GceRollbackServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `Rollback ${serverGroup.name}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => application.serverGroups.refresh(),
       }),
       values: {

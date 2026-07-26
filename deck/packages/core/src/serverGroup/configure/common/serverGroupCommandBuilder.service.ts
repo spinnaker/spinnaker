@@ -166,7 +166,6 @@ export class ServerGroupCommandBuilderService {
     return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
   }
 
-  public static $inject = ['providerServiceDelegate'];
   constructor(private providerServiceDelegate: ProviderServiceDelegate) {}
 
   public buildNewServerGroupCommand(
@@ -199,5 +198,3 @@ export class ServerGroupCommandBuilderService {
     );
   }
 }
-
-export const SERVER_GROUP_COMMAND_BUILDER_SERVICE = 'spinnaker.core.serverGroup.configure.common.service';

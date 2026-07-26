@@ -4,7 +4,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { Application, IFunction, IOverridableProps } from '@spinnaker/core';
-import { AccountTag, CollapsibleSection, Details, Overrides } from '@spinnaker/core';
+import { AccountTag, CollapsibleSection, Details } from '@spinnaker/core';
 
 import { FunctionActions } from './FunctionActions';
 import { AwsServices } from '../../aws.services';
@@ -21,7 +21,6 @@ export interface IAmazonFunctionDetailsProps extends IOverridableProps {
   functionObj: IFunction;
 }
 
-@Overrides('function.details', 'aws')
 export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetailsProps, any> {
   private destroy$ = new Subject();
   constructor(props: IAmazonFunctionDetailsProps) {
@@ -73,7 +72,7 @@ export class AmazonFunctionDetails extends React.Component<IAmazonFunctionDetail
     observableFrom(dataSource.ready())
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        const dataSourceUnsubscribe = dataSource.onRefresh(null, () => this.extractFunction());
+        const dataSourceUnsubscribe = dataSource.onRefresh(() => this.extractFunction());
         this.setState({ dataSourceUnsubscribe });
         this.extractFunction();
       });
