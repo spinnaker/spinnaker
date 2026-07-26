@@ -2,7 +2,7 @@ import { REST } from '../api/ApiService';
 import type { IService } from '../domain';
 
 export class ServicesReader {
-  public static getServices(account: string, region: string): PromiseLike<IService[]> {
+  public static getServices(account: string, region: string): Promise<IService[]> {
     return REST('/servicebroker')
       .path(account, 'services')
       .query({

@@ -3,7 +3,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import GroupWeight from './groupWeight';
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 import { mapStateToConfig } from '../service/canaryConfig.service';
 
 interface IGroupWeightsStateProps {

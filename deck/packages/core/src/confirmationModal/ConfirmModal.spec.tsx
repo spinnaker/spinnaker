@@ -5,7 +5,8 @@ import { act } from 'react-dom/test-utils';
 import { filter, take } from 'rxjs/operators';
 
 import { ConfirmModal } from './ConfirmModal';
-import { TaskMonitor } from '../task';
+import { TaskMonitor, TaskReader } from '../task';
+import type { ITask } from '../domain';
 
 describe('ConfirmModal', () => {
   it('requires a reason and uses the configured placeholder', () => {
@@ -14,7 +15,7 @@ describe('ConfirmModal', () => {
     const dismissModal = jasmine.createSpy('dismissModal');
     const taskMonitor = new TaskMonitor({
       title: 'Page application owner',
-      modalInstance: { result: new Promise(() => undefined) } as any,
+      onDismiss: () => undefined,
     });
     const wrapper = mount(
       <ConfirmModal
@@ -65,7 +66,7 @@ describe('ConfirmModal', () => {
       </UIRouterContext.Provider>,
     );
 
-    expect(taskMonitor.modalInstance).toBeFalsy();
+    expect(taskMonitor.hasDismissHandler()).toBe(false);
     act(() => {
       wrapper.find('button.btn-primary').last().simulate('click');
     });
@@ -101,5 +102,110 @@ describe('ConfirmModal', () => {
 
     wrapper.unmount();
     router.dispose();
+  });
+
+  it('installs a local close override when the task monitor has no dismiss handler', () => {
+    const dismissModal = jasmine.createSpy('dismissModal');
+    const stopPropagation = jasmine.createSpy('stopPropagation');
+    const taskMonitor = new TaskMonitor({ title: 'Page application owner' });
+    const originalCloseModal = taskMonitor.closeModal;
+    const wrapper = mount(
+      <ConfirmModal
+        header="Page payments Owner"
+        buttonText="Page Owner"
+        cancelButtonText="Cancel"
+        closeModal={jasmine.createSpy('closeModal')}
+        dismissModal={dismissModal}
+        taskMonitor={taskMonitor}
+      />,
+    );
+
+    expect(taskMonitor.closeModal).not.toBe(originalCloseModal);
+    taskMonitor.closeModal({ stopPropagation } as any);
+
+    expect(stopPropagation).toHaveBeenCalledTimes(1);
+    expect(dismissModal).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+    expect(taskMonitor.closeModal).toBe(originalCloseModal);
+  });
+
+  it('closes the task monitor before dismissing and dismisses only once when dismissal throws', async () => {
+    jasmine.clock().install();
+    const poll = jasmine.createSpy('poll');
+    const activeTask = { poller: setTimeout(poll, 25) } as ITask;
+    const lateTask = { id: 'late-task', status: 'RUNNING' } as ITask;
+    let resolveSubmission: (task: ITask) => void;
+    const submission = new Promise<ITask>((resolve) => (resolveSubmission = resolve));
+    const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes');
+    const dismissalError = new Error('dismiss failed');
+    let pollingWasActiveAtDismiss: boolean;
+    const taskMonitor = new TaskMonitor({ title: 'Page application owner' });
+    const router = new UIRouterReact();
+    const dismissModal = jasmine.createSpy('dismissModal').and.callFake(() => {
+      pollingWasActiveAtDismiss = activeTask.poller !== undefined;
+      resolveSubmission(lateTask);
+      throw dismissalError;
+    });
+    const wrapper = mount(
+      <UIRouterContext.Provider value={router}>
+        <ConfirmModal
+          header="Page payments Owner"
+          buttonText="Page Owner"
+          cancelButtonText="Cancel"
+          closeModal={jasmine.createSpy('closeModal')}
+          dismissModal={dismissModal}
+          taskMonitor={taskMonitor}
+        />
+      </UIRouterContext.Provider>,
+    );
+
+    try {
+      taskMonitor.submit(() => submission);
+      taskMonitor.task = activeTask;
+
+      expect(() => taskMonitor.closeModal()).toThrow(dismissalError);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(pollingWasActiveAtDismiss).toBe(false);
+      expect(activeTask.poller).toBeUndefined();
+      jasmine.clock().tick(25);
+      expect(poll).not.toHaveBeenCalled();
+      expect(waitUntilTaskCompletes).not.toHaveBeenCalled();
+      expect(taskMonitor.task).toBe(activeTask);
+
+      expect(() => taskMonitor.closeModal()).not.toThrow();
+      expect(dismissModal).toHaveBeenCalledTimes(1);
+    } finally {
+      wrapper.unmount();
+      router.dispose();
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('keeps the task monitor close handler when it has a direct dismiss handler', () => {
+    const onDismiss = jasmine.createSpy('onDismiss');
+    const dismissModal = jasmine.createSpy('dismissModal');
+    const taskMonitor = new TaskMonitor({ title: 'Page application owner', onDismiss });
+    const originalCloseModal = taskMonitor.closeModal;
+    const wrapper = mount(
+      <ConfirmModal
+        header="Page payments Owner"
+        buttonText="Page Owner"
+        cancelButtonText="Cancel"
+        closeModal={jasmine.createSpy('closeModal')}
+        dismissModal={dismissModal}
+        taskMonitor={taskMonitor}
+      />,
+    );
+
+    expect(taskMonitor.closeModal).toBe(originalCloseModal);
+    taskMonitor.closeModal();
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(dismissModal).not.toHaveBeenCalled();
+
+    wrapper.unmount();
   });
 });

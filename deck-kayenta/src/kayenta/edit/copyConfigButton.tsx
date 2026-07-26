@@ -4,7 +4,7 @@ import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 
 interface ICopyConfigButtonStateProps {
   disabled: boolean;

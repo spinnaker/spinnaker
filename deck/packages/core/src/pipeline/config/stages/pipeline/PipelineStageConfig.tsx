@@ -239,7 +239,7 @@ export function PipelineStageConfig({ application, pipeline, stage, updateStageF
         )}
       </StageConfigField>
       {Boolean(sortedParameters.length) && (
-        <div className="well well-sm clearfix ng-scope col-md-offset-1 col-md-10">
+        <div className="well well-sm clearfix col-md-offset-1 col-md-10">
           <h4 className="text-left">Pipeline Parameters</h4>
           {sortedParameters.map((parameter) => {
             const useDefault = Boolean(useDefaultParameters[parameter.name]);

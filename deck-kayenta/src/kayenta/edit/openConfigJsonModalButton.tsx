@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import * as Creators from '../actions/creators';
 import ConfigJsonModal from './configJsonModal';

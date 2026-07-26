@@ -1,9 +1,8 @@
-import type { IQService } from 'angular';
-
 import { REST } from '../api/ApiService';
 import type { ILoadBalancer, ILoadBalancerSourceData } from '../domain';
 import type { IComponentName } from '../naming';
 import { NameUtils } from '../naming';
+import type { PromiseService } from '../utils/nativePromiseService';
 
 export interface ILoadBalancersByAccount {
   name: string;
@@ -17,16 +16,15 @@ export interface ILoadBalancersByAccount {
 }
 
 export class LoadBalancerReader {
-  public static $inject = ['$q', 'loadBalancerTransformer'];
-  public constructor(private $q: IQService, private loadBalancerTransformer: any) {}
+  public constructor(private promiseService: PromiseService, private loadBalancerTransformer: any) {}
 
-  public loadLoadBalancers(applicationName: string): PromiseLike<ILoadBalancerSourceData[]> {
+  public loadLoadBalancers(applicationName: string): Promise<ILoadBalancerSourceData[]> {
     return REST('/applications')
       .path(applicationName, 'loadBalancers')
       .get()
       .then((loadBalancers: ILoadBalancerSourceData[]) => {
         loadBalancers = this.loadBalancerTransformer.normalizeLoadBalancerSet(loadBalancers);
-        return this.$q.all(loadBalancers.map((lb) => this.normalizeLoadBalancer(lb)));
+        return this.promiseService.all(loadBalancers.map((lb) => this.normalizeLoadBalancer(lb)));
       });
   }
 
@@ -35,15 +33,15 @@ export class LoadBalancerReader {
     account: string,
     region: string,
     name: string,
-  ): PromiseLike<ILoadBalancerSourceData[]> {
+  ): Promise<ILoadBalancerSourceData[]> {
     return REST('/loadBalancers').path(account, region, name).query({ provider: cloudProvider }).get();
   }
 
-  public listLoadBalancers(cloudProvider: string): PromiseLike<ILoadBalancersByAccount[]> {
+  public listLoadBalancers(cloudProvider: string): Promise<ILoadBalancersByAccount[]> {
     return REST('/loadBalancers').query({ provider: cloudProvider }).get();
   }
 
-  private normalizeLoadBalancer(loadBalancer: ILoadBalancerSourceData): PromiseLike<ILoadBalancer> {
+  private normalizeLoadBalancer(loadBalancer: ILoadBalancerSourceData): Promise<ILoadBalancer> {
     return this.loadBalancerTransformer.normalizeLoadBalancer(loadBalancer).then((lb: ILoadBalancer) => {
       const nameParts: IComponentName = NameUtils.parseLoadBalancerName(lb.name);
       lb.stack = nameParts.stack;
@@ -53,5 +51,3 @@ export class LoadBalancerReader {
     });
   }
 }
-
-export const LOAD_BALANCER_READ_SERVICE = 'spinnaker.core.loadBalancer.read.service';

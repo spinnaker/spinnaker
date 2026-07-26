@@ -14,7 +14,7 @@ import { InstanceWriter } from '../instance.write.service';
 import { CollapsibleSection } from '../../presentation';
 import { ClusterState } from '../../state';
 
-import './multipleInstanceServerGroup.directive.less';
+import './multipleInstanceServerGroup.less';
 
 export interface IMultipleInstancesDetailsProps {
   app: Application;
@@ -81,7 +81,7 @@ export function MultipleInstancesDetails({ app }: IMultipleInstancesDetailsProps
 
     ProviderSelectionService.isDisabled(app).then((disabled) => active && setIsDisabled(disabled));
     const multiselectWatcher = ClusterState.multiselectModel.instancesStream.subscribe(retrieveInstances);
-    const unsubscribeRefresh = app.serverGroups.onRefresh(null, retrieveInstances);
+    const unsubscribeRefresh = app.serverGroups.onRefresh(retrieveInstances);
     retrieveInstances();
 
     return () => {

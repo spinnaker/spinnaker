@@ -14,7 +14,7 @@ import type {
 import type { ICreationMetadataTag, IEntityTag, IEntityTags } from '../domain/IEntityTags';
 
 export class EntityTagsReader {
-  public static getAllEntityTagsForApplication(application: string): PromiseLike<IEntityTags[]> {
+  public static getAllEntityTagsForApplication(application: string): Promise<IEntityTags[]> {
     return REST('/tags')
       .query({ maxResults: SETTINGS.entityTags.maxResults || 5000, application })
       .get()
@@ -141,7 +141,7 @@ export class EntityTagsReader {
     });
   }
 
-  public static getEntityTagsForId(entityType: string, entityId: string): PromiseLike<IEntityTags[]> {
+  public static getEntityTagsForId(entityType: string, entityId: string): Promise<IEntityTags[]> {
     if (!entityId) {
       return Promise.resolve([]);
     }

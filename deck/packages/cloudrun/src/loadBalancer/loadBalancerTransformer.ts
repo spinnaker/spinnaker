@@ -74,7 +74,7 @@ export class CloudrunLoadBalancerUpsertDescription implements ILoadBalancerUpser
 }
 
 export class CloudrunLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): Promise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -98,7 +98,7 @@ export class CloudrunLoadBalancerTransformer {
   public convertLoadBalancerForEditing(
     loadBalancer: ICloudrunLoadBalancer,
     application: Application,
-  ): PromiseLike<ICloudrunLoadBalancer> {
+  ): Promise<ICloudrunLoadBalancer> {
     return application
       .getDataSource('loadBalancers')
       .ready()

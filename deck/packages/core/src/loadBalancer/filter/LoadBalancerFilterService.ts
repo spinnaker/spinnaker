@@ -194,7 +194,7 @@ export class LoadBalancerFilterService {
   public sortGroupsByHeading(groups: ILoadBalancerGroup[]): void {
     this.diffSubgroups(LoadBalancerState.filterModel.asFilterModel.groups, groups);
 
-    // sort groups in place so Angular doesn't try to update the world
+    // Preserve the groups array identity for existing subscribers.
     LoadBalancerState.filterModel.asFilterModel.groups.sort((a, b) => {
       if (a.heading < b.heading) {
         return -1;

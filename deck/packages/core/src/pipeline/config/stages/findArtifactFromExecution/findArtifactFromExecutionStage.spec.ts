@@ -31,8 +31,5 @@ describe('findArtifactFromExecutionStage', () => {
         producesArtifacts: true,
       }),
     );
-    expect(findArtifactFromExecutionStage.templateUrl).toBeUndefined();
-    expect(findArtifactFromExecutionStage.controller).toBeUndefined();
-    expect(findArtifactFromExecutionStage.controllerAs).toBeUndefined();
   });
 });

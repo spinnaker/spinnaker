@@ -1,7 +1,7 @@
 import { SchedulerFactory } from './SchedulerFactory';
 
-describe('SchedulerFactory without Angular injection', function () {
-  it('uses browser globals without Angular services', function () {
+describe('SchedulerFactory browser integration', function () {
+  it('uses browser online and offline events', function () {
     const addEventListener = spyOn(window, 'addEventListener').and.callThrough();
     const removeEventListener = spyOn(window, 'removeEventListener').and.callThrough();
 

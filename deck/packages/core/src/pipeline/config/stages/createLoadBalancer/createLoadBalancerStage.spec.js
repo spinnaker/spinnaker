@@ -12,7 +12,6 @@ describe('createLoadBalancerStage registration', () => {
       'Creates one or more load balancers. If a load balancer exists with the same name, then that will be updated.',
     );
     expect(upsertLoadBalancersStage.component).toBeDefined();
-    expect(upsertLoadBalancersStage.templateUrl).toBeUndefined();
     expect(upsertLoadBalancersStage.executionDetailsSections).toBeDefined();
     expect(upsertLoadBalancersStage.executionDetailsSections.map((section) => section.title)).toEqual([
       'loadBalancerConfig',

@@ -8,7 +8,6 @@ export const awsModifyScalingProcessStage = {
   key: 'modifyAwsScalingProcess',
   alias: 'modifyScalingProcess',
   component: ModifyScalingProcessStageConfig,
-  executionConfigSections: ['modifyScalingProcessesConfig', 'taskStatus'],
   validators: [
     { type: 'requiredField', fieldName: 'cluster' },
     { type: 'requiredField', fieldName: 'target' },

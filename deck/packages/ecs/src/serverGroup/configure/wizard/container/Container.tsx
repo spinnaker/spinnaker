@@ -15,8 +15,8 @@ import type {
 
 export interface IContainerProps {
   command: IEcsServerGroupCommand;
-  notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => PromiseLike<void>;
+  onFieldChange: (key: string, value: any) => void;
+  configureCommand: (query: string) => Promise<void>;
 }
 
 interface IContainerState {
@@ -163,17 +163,17 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       newImageDescription = this.getEmptyImageDescription();
     }
 
-    this.props.notifyAngular('imageDescription', newImageDescription);
+    this.props.onFieldChange('imageDescription', newImageDescription);
     this.setState({ imageDescription: newImageDescription });
   };
 
   private updateComputeUnits = (newComputeUnits: number) => {
-    this.props.notifyAngular('computeUnits', newComputeUnits);
+    this.props.onFieldChange('computeUnits', newComputeUnits);
     this.setState({ computeUnits: newComputeUnits });
   };
 
   private updateReservedMemory = (newReservedMemory: number) => {
-    this.props.notifyAngular('reservedMemory', newReservedMemory);
+    this.props.onFieldChange('reservedMemory', newReservedMemory);
     this.setState({ reservedMemory: newReservedMemory });
   };
 
@@ -181,7 +181,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.targetGroup = newTargetGroup.value;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
     this.updateDirtyTargetGroups();
   };
@@ -190,14 +190,14 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.containerPort = targetPort;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
   private removeTargetGroupMapping = (index: number) => {
     const currentMappings = this.state.targetGroupMappings;
     currentMappings.splice(index, 1);
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 

@@ -1,10 +1,11 @@
 import * as Actions from 'kayenta/actions';
-import { IKayentaAction } from 'kayenta/actions/creators';
-import { ICanaryMetricConfig } from 'kayenta/domain';
-import { IUpdateListPayload, updateListReducer } from 'kayenta/layout/list';
-import { IStackdriverCanaryMetricSetQueryConfig } from 'kayenta/metricStore/stackdriver/domain/IStackdriverCanaryMetricSetQueryConfig';
+import type { IKayentaAction } from 'kayenta/actions/creators';
+import type { ICanaryMetricConfig } from 'kayenta/domain';
+import type { IUpdateListPayload } from 'kayenta/layout/list';
+import { updateListReducer } from 'kayenta/layout/list';
+import type { IStackdriverCanaryMetricSetQueryConfig } from 'kayenta/metricStore/stackdriver/domain/IStackdriverCanaryMetricSetQueryConfig';
 import { omit } from 'lodash';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 import { handleActions } from 'redux-actions';
 
 const updateGroupByReducer = updateListReducer();

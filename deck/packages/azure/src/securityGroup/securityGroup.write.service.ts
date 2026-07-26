@@ -39,7 +39,7 @@ export const AzureSecurityGroupWriter = {
     application: Application,
     descriptor: string,
     params: AzureSecurityGroupCommand = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const command = buildUpsertCommand(securityGroup, params);
 
     const operation = TaskExecutor.executeTask({
@@ -57,7 +57,7 @@ export const AzureSecurityGroupWriter = {
     securityGroup: ISecurityGroup & AzureSecurityGroupCommand,
     application: Application,
     params: AzureSecurityGroupCommand = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const command = buildDeleteCommand(securityGroup, application, params);
 
     const operation = TaskExecutor.executeTask({

@@ -1,8 +1,7 @@
-import type { IScope } from 'angular';
-import { mock } from 'angular';
 import type { ShallowWrapper } from 'enzyme';
 import { shallow } from 'enzyme';
 import React from 'react';
+import { act } from 'react-dom/test-utils';
 
 import type { IAccountSelectInputProps, IAccountSelectInputState } from './AccountSelectInput';
 import { AccountSelectInput } from './AccountSelectInput';
@@ -28,7 +27,6 @@ const makeAccount = (name: string, cloudProvider: string, primaryAccount: boolea
 
 describe('<AccountSelectInput/>', () => {
   let component: ShallowWrapper<IAccountSelectInputProps, IAccountSelectInputState>;
-  let $scope: IScope;
   let AccountServiceSpy: Spy;
 
   const allAccounts: { [provider: string]: IAccountDetails[] } = {
@@ -36,55 +34,49 @@ describe('<AccountSelectInput/>', () => {
     titus: [makeAccount('titusprod', 'titus', true), makeAccount('titusbackup', 'titus', false)],
   };
 
-  beforeEach(
-    mock.inject(($rootScope: IScope) => {
-      $scope = $rootScope.$new();
-      AccountServiceSpy = spyOn(AccountService, 'getAllAccountDetailsForProvider').and.callFake((provider: string) => {
-        return Promise.resolve(allAccounts[provider]);
-      });
-    }),
-  );
+  beforeEach(() => {
+    AccountServiceSpy = spyOn(AccountService, 'getAllAccountDetailsForProvider').and.callFake((provider: string) => {
+      return Promise.resolve(allAccounts[provider]);
+    });
+  });
 
-  it('groups accounts by primary field when provider not specified', (done) => {
+  async function settleComponent(): Promise<void> {
+    await act(async () => {
+      await Promise.resolve();
+    });
+    component.update();
+  }
+
+  it('groups accounts by primary field when provider not specified', async () => {
     const accounts = allAccounts.aws.concat(allAccounts.titus);
     component = shallow(<AccountSelectInput accounts={accounts} provider={null} value="prod" />);
-    setImmediate(() => {
-      $scope.$digest();
+    await settleComponent();
 
-      expect(component.state().primaryAccounts).toEqual(['prod', 'titusprod']);
-      expect(component.state().secondaryAccounts).toEqual(['backup', 'titusbackup']);
-      done();
-    });
+    expect(component.state().primaryAccounts).toEqual(['prod', 'titusprod']);
+    expect(component.state().secondaryAccounts).toEqual(['backup', 'titusbackup']);
   });
 
-  it('groups accounts by primary field when only one provider available', (done) => {
+  it('groups accounts by primary field when only one provider available', async () => {
     component = shallow(<AccountSelectInput accounts={allAccounts.aws} provider={null} value="prod" />);
-    setImmediate(() => {
-      $scope.$digest();
+    await settleComponent();
 
-      expect(component.state().primaryAccounts).toEqual(['prod']);
-      expect(component.state().secondaryAccounts).toEqual(['backup']);
-      expect(AccountServiceSpy.calls.count()).toBe(1);
-      done();
-    });
+    expect(component.state().primaryAccounts).toEqual(['prod']);
+    expect(component.state().secondaryAccounts).toEqual(['backup']);
+    expect(AccountServiceSpy.calls.count()).toBe(1);
   });
 
-  it('groups accounts by primary field when only names and provider supplied', (done) => {
+  it('groups accounts by primary field when only names and provider supplied', async () => {
     const accounts = allAccounts.aws.map((acct) => acct.name);
     component = shallow(<AccountSelectInput accounts={accounts} provider={'aws'} value="prod" />);
-    setImmediate(() => {
-      $scope.$digest();
+    await settleComponent();
 
-      expect(component.state().primaryAccounts).toEqual(['prod']);
-      expect(component.state().secondaryAccounts).toEqual(['backup']);
-      expect(AccountServiceSpy.calls.count()).toBe(1);
-      done();
-    });
+    expect(component.state().primaryAccounts).toEqual(['prod']);
+    expect(component.state().secondaryAccounts).toEqual(['backup']);
+    expect(AccountServiceSpy.calls.count()).toBe(1);
   });
 
   it('sets mergedAccounts only if there are no accounts supplied', () => {
     component = shallow(<AccountSelectInput accounts={null} provider={null} value="" />);
-    $scope.$digest();
     const state = component.state();
 
     expect(state.mergedAccounts).toEqual([]);
@@ -95,7 +87,7 @@ describe('<AccountSelectInput/>', () => {
 
   it('sets all accounts as primary when only names are supplied and provider is not set', async () => {
     component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
-    await Promise.resolve();
+    await settleComponent();
     const state = component.state();
 
     expect(state.mergedAccounts).toEqual(['prod', 'test']);
@@ -106,7 +98,7 @@ describe('<AccountSelectInput/>', () => {
 
   it('re-groups accounts when they change', async () => {
     component = shallow(<AccountSelectInput accounts={['prod', 'test']} provider={null} value="prod" />);
-    await Promise.resolve();
+    await settleComponent();
     let state = component.state();
 
     expect(state.mergedAccounts).toEqual(['prod', 'test']);
@@ -115,7 +107,7 @@ describe('<AccountSelectInput/>', () => {
     expect(AccountServiceSpy.calls.count()).toBe(0);
 
     component.setProps({ accounts: ['prod', 'test', 'staging'] });
-    await Promise.resolve();
+    await settleComponent();
     state = component.state();
 
     expect(state.mergedAccounts).toEqual(['prod', 'staging', 'test']);
@@ -130,10 +122,10 @@ describe('<AccountSelectInput/>', () => {
     component = shallow(
       <AccountSelectInput accounts={['prod', 'test']} provider={null} value="nonexistent" onChange={onChange} />,
     );
-    await Promise.resolve();
+    await settleComponent();
     expect(updatedVal).toBe('');
   });
-  //
+
   it('does not unselect account if account is an expression', () => {
     let updatedVal: string = null;
     const onChange = (evt: React.ChangeEvent<any>) => (updatedVal = evt.target.value);
@@ -145,16 +137,14 @@ describe('<AccountSelectInput/>', () => {
         onChange={onChange}
       />,
     );
-    $scope.$digest();
     expect(updatedVal).toBeNull();
   });
 
-  it('sets flag on ctrl if account is an expression', () => {
+  it('shows the runtime resolution notice when the account is an expression', () => {
     const text = 'Resolved at runtime from expression';
     component = shallow(
       <AccountSelectInput accounts={['prod', 'test']} provider={null} value="${parameters.account}" />,
     );
-    $scope.$digest();
     expect(component.text()).toContain(text);
   });
 });

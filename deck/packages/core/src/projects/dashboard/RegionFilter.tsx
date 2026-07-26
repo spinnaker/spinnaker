@@ -35,7 +35,7 @@ export const RegionFilter = ({ onClear, onToggleRegion, regions, selectedRegions
   };
 
   return (
-    <region-filter>
+    <div className="region-filter">
       <span ref={rootRef} className={`dropdown pull-right clickable ${isOpen ? 'open' : ''}`}>
         <h6 className="dropdown-toggle clickable" onClick={() => setIsOpen(!isOpen)}>
           <span className="region-filter-button">Filter by region / namespace</span>
@@ -59,6 +59,6 @@ export const RegionFilter = ({ onClear, onToggleRegion, regions, selectedRegions
           </ul>
         )}
       </span>
-    </region-filter>
+    </div>
   );
 };

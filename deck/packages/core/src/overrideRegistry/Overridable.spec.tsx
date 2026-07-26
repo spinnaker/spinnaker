@@ -17,24 +17,6 @@ class Original extends React.Component<{ accountId?: string }> {
 }
 
 describe('Overridable', () => {
-  it('keeps deprecated template override methods as non-rendering compatibility shims', () => {
-    const overrideRegistry = new OverrideRegistry();
-    const warnSpy = spyOn(console, 'warn');
-
-    expect(() => overrideRegistry.overrideTemplate('legacyTemplate', 'legacy.html')).not.toThrow();
-    expect(() => overrideRegistry.overrideController('legacyController', 'LegacyController')).not.toThrow();
-
-    expect(overrideRegistry.getTemplate('legacyTemplate')).toBeNull();
-    expect(overrideRegistry.getController('legacyController')).toBeNull();
-    expect(warnSpy.calls.count()).toBe(4);
-    expect(warnSpy.calls.allArgs().map(([message]) => message)).toEqual([
-      'OverrideRegistry.overrideTemplate("legacyTemplate") is deprecated. Angular template overrides are no longer rendered; migrate to overrideComponent(key, Component).',
-      'OverrideRegistry.overrideController("legacyController") is deprecated. Angular controller overrides are no longer rendered; migrate to overrideComponent(key, Component).',
-      'OverrideRegistry.getTemplate("legacyTemplate") is deprecated. Angular template overrides are no longer rendered; migrate to getComponent(key).',
-      'OverrideRegistry.getController("legacyController") is deprecated. Angular controller overrides are no longer rendered; migrate to getComponent(key).',
-    ]);
-  });
-
   it('renders a React component override registered in the override registry', () => {
     const key = 'overridable.spec.registryComponent';
     const OriginalComponent = Overridable(key)(Original);
@@ -48,7 +30,7 @@ describe('Overridable', () => {
     expect(wrapper.find('.original').exists()).toBeFalse();
   });
 
-  it('flushes override registrations into the direct singleton registry without AngularJS run blocks', () => {
+  it('flushes queued override registrations into the singleton registry', () => {
     const key = 'overridable.spec.directSingletonRegistry';
     const OverrideComponent = () => <div className="override">Override</div>;
 

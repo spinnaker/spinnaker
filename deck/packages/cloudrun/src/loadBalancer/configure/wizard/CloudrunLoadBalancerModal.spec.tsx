@@ -1,12 +1,6 @@
-import { TaskMonitor } from '@spinnaker/core';
-
 import { CloudrunLoadBalancerModalComponent as CloudrunLoadBalancerModal } from './CloudrunLoadBalancerModal';
 
 describe('CloudrunLoadBalancerModal', () => {
-  beforeEach(() => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
-  });
-
   function buildModal(overrides: any = {}) {
     const props = {
       app: {
@@ -45,6 +39,34 @@ describe('CloudrunLoadBalancerModal', () => {
     (modal as any).onApplicationRefresh();
 
     expect(modal.props.dismissModal).not.toHaveBeenCalled();
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const modal = buildModal({ app: { loadBalancers: { onNextRefresh, refresh } } }) as any;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(modal.props.dismissModal).not.toHaveBeenCalled();
+    expect(modal.props.stateService.go).not.toHaveBeenCalled();
   });
 
   it('opens updated load balancer details through the injected state service', () => {

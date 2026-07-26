@@ -237,7 +237,7 @@ export class LoadBalancerLocation
     this.props.formik.handleChange(event);
   };
 
-  private getAvailableSubnets(credentials: string, region: string): PromiseLike<ISubnet[]> {
+  private getAvailableSubnets(credentials: string, region: string): Promise<ISubnet[]> {
     return SubnetReader.listSubnets().then((subnets) => {
       return chain(subnets)
         .filter({ account: credentials, region })

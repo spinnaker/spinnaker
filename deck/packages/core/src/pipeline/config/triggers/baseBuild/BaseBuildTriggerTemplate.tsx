@@ -33,7 +33,7 @@ export class BaseBuildTriggerTemplate extends React.Component<
 > {
   private destroy$ = new Subject();
 
-  public static formatLabel(trigger: IBuildTrigger): PromiseLike<string> {
+  public static formatLabel(trigger: IBuildTrigger): Promise<string> {
     return Promise.resolve(`(${capitalize(trigger.type)}) ${trigger.master}: ${trigger.job}`);
   }
 

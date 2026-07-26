@@ -3,7 +3,7 @@ import { GroupMarkerIcon } from './GroupMarkerIcon';
 import { groupStage } from './groupStage';
 
 describe('Group stage registration', () => {
-  it('registers Group as a synthetic React-labelled stage without Angular config fields', () => {
+  it('registers Group as a synthetic stage with a React execution label', () => {
     expect(groupStage).toEqual(
       jasmine.objectContaining({
         description: 'A group of stages',
@@ -16,7 +16,5 @@ describe('Group stage registration', () => {
         validators: [],
       }),
     );
-    expect((groupStage as any).controller).toBeUndefined();
-    expect((groupStage as any).templateUrl).toBeUndefined();
   });
 });

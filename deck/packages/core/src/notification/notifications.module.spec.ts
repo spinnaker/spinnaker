@@ -178,7 +178,7 @@ describe('notification runtime registration', () => {
     await expectAsync(registerDynamicNotificationTypes()).toBeRejectedWith(failure);
   });
 
-  it('isolates Angular-compatible metadata failures and logs once', async () => {
+  it('isolates metadata initialization failures and logs once', async () => {
     const failure = new Error('metadata unavailable');
     spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
     const consoleError = spyOn(console, 'error').and.stub();

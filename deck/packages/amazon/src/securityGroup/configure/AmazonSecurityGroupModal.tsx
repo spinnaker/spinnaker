@@ -161,10 +161,7 @@ export class AmazonSecurityGroupModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application: app,
         title: `${this.getMode(props) === 'edit' ? 'Updating' : 'Creating'} your ${FirewallLabels.get('firewall')}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal(),
-          () => props.dismissModal(),
-        ),
+        onDismiss: () => props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };

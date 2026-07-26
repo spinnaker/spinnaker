@@ -1,22 +1,21 @@
 import { extent, histogram } from 'd3-array';
 import { scaleLinear } from 'd3-scale';
 import * as React from 'react';
-import {
-  Annotation,
+import type {
   IAnnotationType,
   IOrFrameHoverArgs,
   IOrGroup,
   IOrPiece,
   IOrXyData,
   ISemioticAnnotationArgs,
-  OrdinalFrame,
 } from 'semiotic';
+import { Annotation, OrdinalFrame } from 'semiotic';
 
 import ChartHeader from './chartHeader';
 import ChartLegend from './chartLegend';
 import CircleIcon from './circleIcon';
 import { vizConfig } from './config';
-import { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
+import type { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
 import Tooltip from './tooltip';
 import * as utils from './utils';
 

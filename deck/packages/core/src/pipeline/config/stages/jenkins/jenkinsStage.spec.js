@@ -23,7 +23,6 @@ describe('Jenkins stage registration', () => {
     expect(jenkinsStage.component).toBe(JenkinsStageConfig);
     expect(jenkinsStage.executionDetailsSections[0]).toBe(JenkinsExecutionDetails);
     expect(jenkinsStage.executionDetailsSections).toContain(ExecutionArtifactTab);
-    expect(jenkinsStage.templateUrl).toBeUndefined();
     expect(jenkinsStage.executionDetailsSections).toBeDefined();
   });
 

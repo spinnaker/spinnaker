@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import type { IHttpPromiseCallbackArg } from 'angular';
 import { cloneDeep, get, uniqBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
@@ -9,6 +8,7 @@ import Select from 'react-select';
 
 import { ManagedTemplateSelector } from './ManagedTemplateSelector';
 import { TemplateDescription } from './TemplateDescription';
+import type { XhrError } from '../../api/ApiService';
 import type { Application } from '../../application/application.model';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
 import { SETTINGS } from '../../config/settings';
@@ -202,7 +202,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     });
   }
 
-  private onSaveFailure = (response: IHttpPromiseCallbackArg<{ message: string }>): void => {
+  private onSaveFailure = (response: XhrError<{ message: string }>): void => {
     diagnosticLogger.warn(response);
     this.setState({
       submitting: false,
@@ -299,7 +299,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
           templates = uniqBy(templates, 'id').filter(({ schema }) => schema !== 'v2');
           this.setState({ templates, loading: false });
         })
-        .catch((response: IHttpPromiseCallbackArg<{ message: string }>) => {
+        .catch((response: XhrError<{ message: string }>) => {
           this.setState({
             loadError: true,
             loadErrorMessage: (response && response.data && response.data.message) || 'No message provided',

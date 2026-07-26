@@ -199,7 +199,7 @@ export class TitusServerGroupConfigurationService {
     };
   }
 
-  public configureCommand(cmd: ITitusServerGroupCommand): PromiseLike<void> {
+  public configureCommand(cmd: ITitusServerGroupCommand): Promise<void> {
     cmd.viewState.accountChangedStream = new Subject();
     cmd.viewState.regionChangedStream = new Subject();
     cmd.viewState.groupsRemovedStream = new Subject();
@@ -250,7 +250,7 @@ export class TitusServerGroupConfigurationService {
       cmd.backingData = backingData;
       backingData.filtered.securityGroups = this.getRegionalSecurityGroups(cmd);
 
-      let securityGroupRefresher: PromiseLike<any> = Promise.resolve();
+      let securityGroupRefresher: Promise<any> = Promise.resolve();
       if (cmd.securityGroups && cmd.securityGroups.length) {
         const regionalSecurityGroupIds = backingData.filtered.securityGroups.map((g: ISecurityGroup) => g.id);
         if (intersection(cmd.securityGroups, regionalSecurityGroupIds).length < cmd.securityGroups.length) {
@@ -327,10 +327,7 @@ export class TitusServerGroupConfigurationService {
     }
   }
 
-  public refreshSecurityGroups(
-    command: ITitusServerGroupCommand,
-    skipCommandReconfiguration: boolean,
-  ): PromiseLike<void> {
+  public refreshSecurityGroups(command: ITitusServerGroupCommand, skipCommandReconfiguration: boolean): Promise<void> {
     return this.getCacheInitializer()
       .refreshCache('securityGroups')
       .then(() => {
