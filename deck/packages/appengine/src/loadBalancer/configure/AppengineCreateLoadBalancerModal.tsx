@@ -51,7 +51,7 @@ export class AppengineCreateLoadBalancerModal extends React.Component<
     taskMonitor: new TaskMonitor({
       application: this.props.app,
       title: 'Updating your load balancer',
-      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+      onDismiss: () => this.props.dismissModal(),
       onTaskComplete: () => this.props.app.getDataSource('loadBalancers').refresh(),
     }),
   };

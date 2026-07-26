@@ -2,11 +2,11 @@ import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { DISABLE_EDIT_CONFIG, DisableableInput, DisableableReactSelect } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Option } from 'react-select';
-import { Action } from 'redux';
+import type { Option } from 'react-select';
+import type { Action } from 'redux';
 
 interface IJudgeSelectStateProps {
   judgeOptions: Option[];

@@ -116,7 +116,7 @@ export class DeployStageConfigComponent extends React.Component<
   private getClusterName = (cluster: any): string =>
     NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
 
-  private showCloneServerGroupModal(provider: string, serverGroupConfig: any, command: any): PromiseLike<any> {
+  private showCloneServerGroupModal(provider: string, serverGroupConfig: any, command: any): Promise<any> {
     const CloneServerGroupModal = serverGroupConfig && serverGroupConfig.CloneServerGroupModal;
     if (!CloneServerGroupModal) {
       const modalError = `No React clone server group modal is registered for provider "${provider}".`;
@@ -124,13 +124,15 @@ export class DeployStageConfigComponent extends React.Component<
       return Promise.reject(new Error(modalError));
     }
 
-    return CloneServerGroupModal.show(
-      {
-        title: 'Configure Deployment Cluster',
-        application: this.props.application,
-        command,
-      },
-      this.props.deckRuntimeServices,
+    return Promise.resolve(
+      CloneServerGroupModal.show(
+        {
+          title: 'Configure Deployment Cluster',
+          application: this.props.application,
+          command,
+        },
+        this.props.deckRuntimeServices,
+      ),
     );
   }
 

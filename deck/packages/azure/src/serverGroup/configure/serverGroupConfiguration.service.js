@@ -6,16 +6,16 @@ import { AzureInstanceTypeService } from '../../instance/azureInstanceType.servi
 export class AzureServerGroupConfigurationService {
   static requiresDeckRuntimeServices = true;
 
-  constructor($q, runtimeServices) {
-    this.$q = $q;
-    this.azureInstanceTypeService = new AzureInstanceTypeService($q);
+  constructor(promiseService, runtimeServices) {
+    this.promiseService = promiseService;
+    this.azureInstanceTypeService = new AzureInstanceTypeService(promiseService);
     this.cacheInitializer = runtimeServices.cacheInitializer;
     this.loadBalancerReader = runtimeServices.loadBalancerReader;
     this.securityGroupReader = runtimeServices.securityGroupReader;
   }
 
   createDelegate() {
-    const all = this.$q && this.$q.all ? this.$q.all.bind(this.$q) : Promise.all.bind(Promise);
+    const all = (values) => this.promiseService.all(values);
     const azureInstanceTypeService = this.azureInstanceTypeService;
     const cacheInitializer = this.cacheInitializer;
     const loadBalancerReader = this.loadBalancerReader;

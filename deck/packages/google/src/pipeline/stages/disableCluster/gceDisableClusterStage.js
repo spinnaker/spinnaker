@@ -2,9 +2,6 @@ import { Registry } from '@spinnaker/core';
 
 import { GceDisableClusterStageConfig } from '../googleStageConfig';
 
-export const GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE =
-  'spinnaker.gce.pipeline.stage..disableClusterStage';
-export const name = GOOGLE_PIPELINE_STAGES_DISABLECLUSTER_GCEDISABLECLUSTERSTAGE;
 export function registerGceDisableClusterStage() {
   Registry.pipeline.registerStage({
     provides: 'disableCluster',

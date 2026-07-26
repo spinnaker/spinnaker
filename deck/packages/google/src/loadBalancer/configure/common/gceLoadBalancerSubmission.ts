@@ -21,7 +21,7 @@ export type GceLoadBalancerOperationList = IGceSerializedLoadBalancerCommand[];
 export type GceLoadBalancerSubmissionResult =
   | IGceSerializedLoadBalancerCommand
   | GceLoadBalancerOperationList
-  | PromiseLike<ITask>;
+  | Promise<ITask>;
 
 export function buildGceLoadBalancerJobs(command: IGceLoadBalancerCommand): GceLoadBalancerOperationList {
   const serialized = serializeGceLoadBalancerCommand(command);
@@ -117,9 +117,11 @@ export function submitGceLoadBalancerCommand(
     return command.loadBalancerType === 'HTTP' || command.loadBalancerType === 'INTERNAL_MANAGED' ? jobs : jobs[0];
   }
 
-  return executeTask({
-    application,
-    description: `${command.mode === 'edit' ? 'Update' : 'Create'} Load Balancer: ${command.name}`,
-    job: jobs,
-  });
+  return Promise.resolve(
+    executeTask({
+      application,
+      description: `${command.mode === 'edit' ? 'Update' : 'Create'} Load Balancer: ${command.name}`,
+      job: jobs,
+    }),
+  );
 }

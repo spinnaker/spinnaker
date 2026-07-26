@@ -1,4 +1,4 @@
-import { IKayentaAction } from 'kayenta/actions/creators';
+import type { IKayentaAction } from 'kayenta/actions/creators';
 import * as React from 'react';
 
 import AddNewButton from './addNewButton';

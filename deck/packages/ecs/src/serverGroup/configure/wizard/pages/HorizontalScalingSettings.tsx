@@ -52,7 +52,7 @@ export const HorizontalScalingSettings = ({ command, configureCommand, onFieldCh
 
       {useCapacityProviders ? (
         <div className="form-group">
-          <EcsCapacityProvider command={command} configureCommand={configureCommand} notifyAngular={onFieldChange} />
+          <EcsCapacityProvider command={command} configureCommand={configureCommand} onFieldChange={onFieldChange} />
         </div>
       ) : (
         <div className="form-group">

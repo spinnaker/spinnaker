@@ -19,15 +19,7 @@ const webpackConfig = {
     modules: [path.resolve(`${APP_ROOT}/node_modules`), path.resolve(`${__dirname}/node_modules`)],
   },
   module: {
-    rules: [
-      ...prodWebpackConfig.module.rules.filter((rule) => {
-        return !(rule.test.source && rule.test.source.includes('html'));
-      }),
-      {
-        test: /\.html$/,
-        use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
-      },
-    ],
+    rules: prodWebpackConfig.module.rules,
   },
   resolve: {
     ...prodWebpackConfig.resolve,

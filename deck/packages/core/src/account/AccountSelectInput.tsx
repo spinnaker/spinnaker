@@ -47,7 +47,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     }
 
     const accountsAreObjects = Boolean((accounts[0] as IAccount).name);
-    let getAccountDetails: PromiseLike<IAccountDetails[]> = Promise.resolve([]);
+    let getAccountDetails: Promise<IAccountDetails[]> = Promise.resolve([]);
     if (provider) {
       getAccountDetails = AccountService.getAllAccountDetailsForProvider(provider);
     }
@@ -130,9 +130,7 @@ export class AccountSelectInput extends React.Component<IAccountSelectInputProps
     const useSimpleSelect = mergedAccounts.length < renderFilterableSelectThreshold;
 
     if (useSimpleSelect) {
-      // When this select is used in Angular, the event is accessed in a $timeout, and React will have
-      // re-rendered the input, setting its value (the event.target.value) back to the previous value
-      // This can go away once we're out of Angular land.
+      // Preserve the event for consumers that read its value asynchronously.
       const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         e.persist();
         this.props.onChange(e);

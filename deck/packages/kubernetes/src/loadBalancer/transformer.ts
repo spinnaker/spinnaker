@@ -5,7 +5,7 @@ import type { IInstanceCounts, IServerGroup } from '@spinnaker/core';
 import type { IKubernetesLoadBalancer } from '../interfaces';
 
 export class KubernetesLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: IKubernetesLoadBalancer): PromiseLike<IKubernetesLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IKubernetesLoadBalancer): Promise<IKubernetesLoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instances = [];
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);

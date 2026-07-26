@@ -13,6 +13,7 @@ describe('google: Compute Pipelines', () => {
 
   it('shows stored GCE pipelines with their account tag', () => {
     cy.visit('#/applications/compute/executions');
+    cy.get('.input-sm:contains("Pipeline")').select('Pipeline');
     cy.get('.execution-group').should('have.length', 9);
     cy.get('.account-tag').first().should('contain.text', 'gce');
   });

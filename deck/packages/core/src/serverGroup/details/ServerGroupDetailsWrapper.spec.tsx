@@ -174,7 +174,7 @@ describe('ServerGroupDetailsWrapper', () => {
 
     expect(component.find(Actions)).toHaveSize(1);
 
-    onRefresh.calls.mostRecent().args[1]();
+    onRefresh.calls.mostRecent().args[0]();
 
     expect(component.state()).toEqual({ loading: false, serverGroup: details });
     expect(component.find(Actions)).toHaveSize(1);

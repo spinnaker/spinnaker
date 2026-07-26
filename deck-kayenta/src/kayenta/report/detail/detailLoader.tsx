@@ -1,9 +1,10 @@
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import type { Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
+import type { Observable } from 'rxjs/Observable';
+import type { Subscription } from 'rxjs/Subscription';
 
 import ReportDetailLoadStates from './loadStates';
 

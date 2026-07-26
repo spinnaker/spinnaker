@@ -1,16 +1,7 @@
-import { TaskMonitor } from '@spinnaker/core';
-
 import { AzureLoadBalancerModalComponent } from './loadBalancer/configure/AzureLoadBalancerModal';
 import { AzureCloneServerGroupModalComponent } from './serverGroup/configure/wizard/AzureCloneServerGroupModal';
 
 describe('Azure routed modal consumers', () => {
-  beforeEach(() => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: jasmine.createSpy('dismiss'),
-      result: Promise.resolve(),
-    } as any);
-  });
-
   function stateService(includedState: string) {
     return {
       go: jasmine.createSpy('go'),

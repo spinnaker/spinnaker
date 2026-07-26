@@ -71,13 +71,13 @@ class ExecutionFiltersComponent extends React.Component<
   public componentDidMount(): void {
     const { application } = this.props;
 
-    this.executionsRefreshUnsubscribe = application.executions.onRefresh(null, () => {
+    this.executionsRefreshUnsubscribe = application.executions.onRefresh(() => {
       ExecutionFilterService.updateExecutionGroups(this.props.application);
     });
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() =>
       this.setState({ tags: ExecutionState.filterModel.asFilterModel.tags }),
     );
-    this.pipelineConfigsRefreshUnsubscribe = application.pipelineConfigs.onRefresh(null, () => {
+    this.pipelineConfigsRefreshUnsubscribe = application.pipelineConfigs.onRefresh(() => {
       this.refreshPipelines();
     });
 
@@ -208,7 +208,7 @@ class ExecutionFiltersComponent extends React.Component<
     this.updateFilterSearch(event.currentTarget.value);
   };
 
-  private updatePipelines(idsToUpdatedIndices: { [key: string]: number }): PromiseLike<void> {
+  private updatePipelines(idsToUpdatedIndices: { [key: string]: number }): Promise<void> {
     return PipelineConfigService.reorderPipelines(this.props.application.name, idsToUpdatedIndices, false);
   }
 

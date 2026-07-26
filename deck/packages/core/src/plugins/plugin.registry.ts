@@ -131,7 +131,7 @@ export class PluginRegistry {
   public loadPluginManifestFromGate() {
     const source = 'gate';
     const uri = '/plugins/deck/plugin-manifest.json';
-    const loadPromise: PromiseLike<IPluginMetaData[]> = REST(uri)
+    const loadPromise: Promise<IPluginMetaData[]> = REST(uri)
       .get()
       .catch((): IPluginMetaData[] => {
         console.error(`Failed to load ${uri} from ${source}`);

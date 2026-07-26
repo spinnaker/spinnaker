@@ -1,9 +1,10 @@
 import classNames from 'classnames';
 import { scaleUtc } from 'd3-scale';
 import { curveStepAfter } from 'd3-shape';
-import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
+import type { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
 import * as React from 'react';
-import { IMinimapProps, IXYFrameHoverBaseArgs, IXYFrameProps, MinimapXYFrame, XYFrame } from 'semiotic';
+import type { IMinimapProps, IXYFrameHoverBaseArgs, IXYFrameProps } from 'semiotic';
+import { MinimapXYFrame, XYFrame } from 'semiotic';
 
 import { SETTINGS, timestamp } from '@spinnaker/core';
 
@@ -14,7 +15,7 @@ import { vizConfig } from './config';
 import CustomAxisTickLabel from './customAxisTickLabel';
 import DifferenceArea from './differenceArea';
 import SecondaryTSXAxis from './secondaryTSXAxis';
-import { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
+import type { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
 import Tooltip from './tooltip';
 import * as utils from './utils';
 

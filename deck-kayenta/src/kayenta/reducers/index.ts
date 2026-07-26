@@ -1,25 +1,25 @@
 import * as Actions from 'kayenta/actions';
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import {
-  ICanaryAnalysisResult,
-  ICanaryJudgeConfig,
-  ICanaryMetricConfig,
-  IJudge,
-  KayentaAccountType,
-} from 'kayenta/domain';
+import type { ICanaryAnalysisResult, ICanaryJudgeConfig, ICanaryMetricConfig, IJudge } from 'kayenta/domain';
+import { KayentaAccountType } from 'kayenta/domain';
 import { JudgeSelectRenderState } from 'kayenta/edit/judgeSelect';
 import { metricResultsSelector } from 'kayenta/selectors';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import { chain, isEqual } from 'lodash';
-import { Action, combineReducers } from 'redux';
+import type { Action } from 'redux';
+import { combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
 
-import { app, IAppState } from './app';
+import type { IAppState } from './app';
+import { app } from './app';
 import { AsyncRequestState } from './asyncRequest';
-import { data, IDataState } from './data';
-import { ISelectedConfigState, selectedConfig } from './selectedConfig';
-import { ISelectedRunState, selectedRun } from './selectedRun';
+import type { IDataState } from './data';
+import { data } from './data';
+import type { ISelectedConfigState } from './selectedConfig';
+import { selectedConfig } from './selectedConfig';
+import type { ISelectedRunState } from './selectedRun';
+import { selectedRun } from './selectedRun';
 import { validationErrorsReducer } from './validators';
 
 export interface ICanaryState {

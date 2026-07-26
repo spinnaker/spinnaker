@@ -5,7 +5,7 @@ describe('core: bootstrap', () => {
     registerDefaultFixtures();
   });
 
-  it('uses the React root instead of AngularJS document bootstrap', () => {
+  it('uses the React root instead of document bootstrap', () => {
     cy.visit('/');
 
     cy.get('#spinnaker-root').should('exist');

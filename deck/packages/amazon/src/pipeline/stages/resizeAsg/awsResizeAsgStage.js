@@ -8,7 +8,6 @@ export const awsResizeAsgStage = {
   alias: 'resizeAsg',
   cloudProvider: 'aws',
   component: AwsResizeAsgStageConfig,
-  executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
   accountExtractor: (stage) => [stage.context.credentials],
   configAccountExtractor: (stage) => [stage.credentials],
   validators: [

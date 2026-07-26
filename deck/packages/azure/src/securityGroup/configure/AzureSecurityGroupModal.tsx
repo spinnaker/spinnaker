@@ -367,6 +367,9 @@ export class AzureSecurityGroupModalComponent extends React.Component<
     return ReactModal.show(AzureSecurityGroupModal, props, { dialogClassName: 'modal-lg' });
   }
 
+  private mounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
+
   constructor(props: IAzureSecurityGroupModalProps & IRouterInjectedProps) {
     super(props);
     const application = this.getApplication(props);
@@ -379,16 +382,14 @@ export class AzureSecurityGroupModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `${props.mode === 'edit' ? 'Updating' : 'Creating'} your security group`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal(),
-          () => props.dismissModal(),
-        ),
+        onDismiss: () => props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
   }
 
   public componentDidMount(): void {
+    this.mounted = true;
     AccountService.listAccounts('azure').then((accounts) => this.setState({ accounts }));
     if (this.state.securityGroup.accountId || this.state.securityGroup.credentials) {
       this.accountUpdated(false);
@@ -397,20 +398,29 @@ export class AzureSecurityGroupModalComponent extends React.Component<
     }
   }
 
+  public componentWillUnmount(): void {
+    this.mounted = false;
+    this.clearApplicationRefreshSubscription();
+  }
+
   private getApplication(props = this.props): Application {
     return (props.app || props.application) as Application;
   }
 
   public onTaskComplete = (): void => {
     const application = this.getApplication();
-    application.securityGroups?.refresh?.();
 
     if (this.props.mode === 'edit') {
+      application.securityGroups?.refresh?.();
       this.props.closeModal();
       return;
     }
 
     const showNewSecurityGroup = (): void => {
+      this.clearApplicationRefreshSubscription();
+      if (!this.mounted) {
+        return;
+      }
       const { securityGroup } = this.state;
       this.props.closeModal();
       this.props.stateService.go(
@@ -426,10 +436,18 @@ export class AzureSecurityGroupModalComponent extends React.Component<
     };
 
     if (application.securityGroups?.onNextRefresh) {
-      application.securityGroups.onNextRefresh(null, showNewSecurityGroup);
+      this.clearApplicationRefreshSubscription();
+      this.applicationRefreshUnsubscribe = application.securityGroups.onNextRefresh(showNewSecurityGroup);
+      application.securityGroups.refresh?.();
     } else {
+      application.securityGroups?.refresh?.();
       showNewSecurityGroup();
     }
+  };
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private updateSecurityGroup(values: any, callback?: () => void): void {

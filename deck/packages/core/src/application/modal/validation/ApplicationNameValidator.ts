@@ -57,7 +57,7 @@ export class ApplicationNameValidator {
   public static validate(
     applicationName: string,
     providersToTest: string[],
-  ): PromiseLike<IApplicationNameValidationResult> {
+  ): Promise<IApplicationNameValidationResult> {
     return AccountService.listProviders().then((availableProviders: string[]) => {
       const toCheck = providersToTest && providersToTest.length ? providersToTest : availableProviders;
 

@@ -7,7 +7,7 @@ import { registerPipelineDataSources } from './pipeline.dataSource';
 describe('Pipeline Data Source', function () {
   const promiseService = {
     all: (promises: PromiseLike<any>[]) => Promise.all(promises),
-    when: <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
+    resolve: <T>(value: T | PromiseLike<T>) => Promise.resolve(value),
   };
   let application: Application, executionService: any;
 
@@ -30,7 +30,7 @@ describe('Pipeline Data Source', function () {
   afterEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
   const waitForRefresh = (dataSource: any) =>
-    new Promise<void>((resolve) => dataSource.onNextRefresh(null, resolve, resolve));
+    new Promise<void>((resolve) => dataSource.onNextRefresh(resolve, resolve));
 
   async function refreshDataSource(dataSource: any) {
     const refreshComplete = waitForRefresh(dataSource);
@@ -116,7 +116,6 @@ describe('Pipeline Data Source', function () {
       await initialRefresh;
 
       application.getDataSource('executions').onRefresh(
-        null,
         () => successesHandled++,
         () => errorsHandled++,
       );
@@ -163,7 +162,6 @@ describe('Pipeline Data Source', function () {
       application.getDataSource('pipelineConfigs').activate();
 
       application.getDataSource('pipelineConfigs').onRefresh(
-        null,
         () => successesHandled++,
         () => errorsHandled++,
       );

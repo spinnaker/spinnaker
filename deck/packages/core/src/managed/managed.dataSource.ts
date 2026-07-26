@@ -11,8 +11,6 @@ import {
 } from './externals/managedResourceDecorators';
 import { noop } from '../utils';
 
-export const MANAGED_RESOURCES_DATA_SOURCE = 'spinnaker.core.managed.dataSource';
-
 export function registerManagedResourcesDataSources(): void {
   if (!SETTINGS.feature.managedResources) {
     return;

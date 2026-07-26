@@ -24,7 +24,7 @@ function deferred<T>(): IDeferred<T> {
 
 class TestServerGroupsDataSource {
   public callbacks: Array<() => void> = [];
-  public onRefresh = jasmine.createSpy('onRefresh').and.callFake((_scope: unknown, callback: () => void) => {
+  public onRefresh = jasmine.createSpy('onRefresh').and.callFake((callback: () => void) => {
     this.callbacks.push(callback);
     return () => {
       this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);

@@ -9,17 +9,10 @@ import type { StateHelper } from './stateHelper.provider';
 
 import './navigation.less';
 
-// Typescript kludge to widen interfaces so INestedState can support both react and angular views
-export interface IReactHybridIntermediate extends StateDeclaration {
-  children?: INestedState[];
-  component?: any;
-  $type?: string;
-  views?: { [key: string]: any };
-}
-
-export interface INestedState extends IReactHybridIntermediate {
+export interface INestedState extends StateDeclaration {
   children?: INestedState[];
   component?: React.ComponentType | string;
+  $type?: string;
   views?: { [key: string]: ReactViewDeclaration | any };
 }
 
@@ -36,7 +29,7 @@ export class StateConfigProvider {
   };
 
   constructor(
-    private $urlRouterProvider: UrlRouter,
+    private urlRouter: UrlRouter,
     private stateHelperProvider: StateHelper,
     public readonly runtimeServices: DeckRuntimeServices,
   ) {
@@ -71,7 +64,7 @@ export class StateConfigProvider {
    * @param replacement, e.g. "/applications/{application}/clusters"
    */
   public addRewriteRule(base: string | RegExp, replacement: string | Function) {
-    this.$urlRouterProvider.when(base, replacement as any);
+    this.urlRouter.when(base, replacement as any);
   }
 
   public buildDynamicParams(paramConfig: IFilterConfig[]): { [key: string]: ParamDeclaration | any } {
@@ -163,5 +156,3 @@ export const sortKeyParamType: ParamTypeDefinition = {
   equals: (a: any, b: any) => isEqual(a, b),
   is: (val: any) => isPlainObject(val),
 };
-
-export const STATE_CONFIG_PROVIDER = 'spinnaker.core.navigation.state.config.provider';

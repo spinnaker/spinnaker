@@ -1,17 +1,18 @@
 import autoBindMethods from 'class-autobind-decorator';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryMetricConfig } from 'kayenta/domain';
+import type { ICanaryMetricConfig } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableInput } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 import { createSelector } from 'reselect';
 
-import { ICanaryMetricValidationErrors, MetricValidatorFunction } from '../../edit/editMetricValidation';
-import KeyValueList, { IKeyValuePair, IUpdateKeyValueListPayload } from '../../layout/keyValueList';
+import type { ICanaryMetricValidationErrors, MetricValidatorFunction } from '../../edit/editMetricValidation';
+import type { IKeyValuePair, IUpdateKeyValueListPayload } from '../../layout/keyValueList';
+import KeyValueList from '../../layout/keyValueList';
 import { editingMetricSelector } from '../../selectors';
 
 import './metricConfigurer.less';

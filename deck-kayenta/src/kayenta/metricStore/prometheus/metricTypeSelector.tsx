@@ -1,16 +1,16 @@
 import * as Creators from 'kayenta/actions/creators';
 import { KayentaAccountType } from 'kayenta/domain';
 import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { AsyncRequestState } from 'kayenta/reducers/asyncRequest';
 import { chain, get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Option } from 'react-select';
-import { Dispatch } from 'redux';
+import type { Option } from 'react-select';
+import type { Dispatch } from 'redux';
 import { createSelector } from 'reselect';
 
-import { IPrometheusMetricDescriptor } from './domain/IPrometheusMetricDescriptor';
+import type { IPrometheusMetricDescriptor } from './domain/IPrometheusMetricDescriptor';
 
 import './metricTypeSelector.less';
 
@@ -19,9 +19,9 @@ interface IPrometheusMetricTypeSelectorDispatchProps {
 }
 
 interface IPrometheusMetricTypeSelectorStateProps {
-  accountOptions: Array<Option<string>>;
+  accountOptions: Option<string>[];
   loading: boolean;
-  metricOptions: Array<Option<string>>;
+  metricOptions: Option<string>[];
 }
 
 interface IPrometheusMetricTypeSelectorOwnProps {
@@ -109,7 +109,7 @@ export class PrometheusMetricTypeSelector extends React.Component<
 
 const accountOptionsSelector = createSelector(
   (state: ICanaryState) => state.data.kayentaAccounts.data,
-  (accounts): Array<Option<string>> => {
+  (accounts): Option<string>[] => {
     return chain(accounts)
       .filter((a) => a.supportedTypes.includes(KayentaAccountType.MetricsStore) && a.type === 'prometheus')
       .sortBy((a) => a.name)
@@ -120,7 +120,7 @@ const accountOptionsSelector = createSelector(
 
 const metricOptionsSelector = createSelector(
   (state: ICanaryState) => state.data.metricsServiceMetadata.data,
-  (descriptors: IPrometheusMetricDescriptor[]): Array<Option<string>> =>
+  (descriptors: IPrometheusMetricDescriptor[]): Option<string>[] =>
     descriptors.map((d) => ({ label: d.name, value: d.name })),
 );
 

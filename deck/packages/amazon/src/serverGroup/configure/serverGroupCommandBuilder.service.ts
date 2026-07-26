@@ -14,28 +14,24 @@ import type {
   IAmazonServerGroupDeployConfiguration,
 } from './serverGroupConfiguration.service';
 
-export const AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE =
-  'spinnaker.amazon.serverGroupCommandBuilder.service';
-export const name = AMAZON_SERVERGROUP_CONFIGURE_SERVERGROUPCOMMANDBUILDER_SERVICE; // for backwards compatibility
-
 export interface AwsServerGroupCommandBuilder {
   buildNewServerGroupCommand(
     application: Application,
     defaults?: { account?: string; region?: string; subnet?: string; mode?: string },
-  ): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+  ): Promise<Partial<IAmazonServerGroupCommand>>;
 
   buildServerGroupCommandFromExisting(
     application: Application,
     serverGroup: IAmazonServerGroupView,
     mode?: string,
-  ): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+  ): Promise<Partial<IAmazonServerGroupCommand>>;
 
-  buildNewServerGroupCommandForPipeline(): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+  buildNewServerGroupCommandForPipeline(): Promise<Partial<IAmazonServerGroupCommand>>;
 
   buildServerGroupCommandFromPipeline(
     application: Application,
     originalCluster: IAmazonServerGroupDeployConfiguration,
-  ): PromiseLike<Partial<IAmazonServerGroupCommand>>;
+  ): Promise<Partial<IAmazonServerGroupCommand>>;
 
   buildUpdateServerGroupCommand(serverGroup: IAmazonServerGroup): Partial<IAmazonServerGroupCommand>;
 }
@@ -512,7 +508,7 @@ export class AwsServerGroupCommandBuilderDelegate implements AwsServerGroupComma
   public buildNewServerGroupCommand(
     application: Application,
     defaults?: { account?: string; region?: string; subnet?: string; mode?: string },
-  ): PromiseLike<Partial<IAmazonServerGroupCommand>> {
+  ): Promise<Partial<IAmazonServerGroupCommand>> {
     return this.delegate.buildNewServerGroupCommand(application, defaults);
   }
 
@@ -520,18 +516,18 @@ export class AwsServerGroupCommandBuilderDelegate implements AwsServerGroupComma
     application: Application,
     serverGroup: IAmazonServerGroupView,
     mode?: string,
-  ): PromiseLike<Partial<IAmazonServerGroupCommand>> {
+  ): Promise<Partial<IAmazonServerGroupCommand>> {
     return this.delegate.buildServerGroupCommandFromExisting(application, serverGroup, mode);
   }
 
-  public buildNewServerGroupCommandForPipeline(): PromiseLike<Partial<IAmazonServerGroupCommand>> {
+  public buildNewServerGroupCommandForPipeline(): Promise<Partial<IAmazonServerGroupCommand>> {
     return this.delegate.buildNewServerGroupCommandForPipeline();
   }
 
   public buildServerGroupCommandFromPipeline(
     application: Application,
     originalCluster: IAmazonServerGroupDeployConfiguration,
-  ): PromiseLike<Partial<IAmazonServerGroupCommand>> {
+  ): Promise<Partial<IAmazonServerGroupCommand>> {
     return this.delegate.buildServerGroupCommandFromPipeline(application, originalCluster);
   }
 

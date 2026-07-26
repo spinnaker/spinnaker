@@ -31,8 +31,8 @@ describe('Application Model', function () {
       addTasksToServerGroups: () => undefined,
       addExecutionsToServerGroups: () => undefined,
     } as any;
-    registerSecurityGroupDataSource(nativePromiseService, securityGroupReader);
-    registerServerGroupDataSource(nativePromiseService, clusterService);
+    registerSecurityGroupDataSource(securityGroupReader);
+    registerServerGroupDataSource(clusterService);
     registerLoadBalancerDataSource(nativePromiseService, loadBalancerReader);
   });
 
@@ -67,6 +67,29 @@ describe('Application Model', function () {
     );
     await flushPromise(application.refresh());
   }
+
+  describe('refresh subscriptions', () => {
+    it('notifies callbacks without a lifecycle object until explicitly unsubscribed', () => {
+      application = ApplicationModelBuilder.createApplicationForTests('app');
+      const onRefresh = jasmine.createSpy('onRefresh');
+      const onError = jasmine.createSpy('onError');
+      const unsubscribe = application.onRefresh(onRefresh, onError);
+      const refreshError = new Error('refresh failed');
+
+      (application as any).refreshStream.next(null);
+      (application as any).refreshFailureStream.next(refreshError);
+
+      expect(onRefresh).toHaveBeenCalledOnceWith(null);
+      expect(onError).toHaveBeenCalledOnceWith(refreshError);
+
+      unsubscribe();
+      (application as any).refreshStream.next(null);
+      (application as any).refreshFailureStream.next(refreshError);
+
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenCalledTimes(1);
+    });
+  });
 
   describe('lazy dataSources', function () {
     beforeEach(function () {

@@ -85,7 +85,6 @@ export const awsTagImageStage = {
   provides: 'upsertImageTags',
   cloudProvider: 'aws',
   component: AwsTagImageStageConfig,
-  executionConfigSections: ['tagImageConfig', 'taskStatus'],
 } as IStageTypeConfig;
 
 export function registerAwsTagImageStage() {

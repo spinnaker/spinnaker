@@ -46,7 +46,7 @@ export class CreateLambdaFunctionComponent extends React.Component<
   }
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
 
   public static show(
     props: IAmazonCreateFunctionProps,
@@ -58,17 +58,17 @@ export class CreateLambdaFunctionComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
   }
 
   protected onApplicationRefresh(values: IAmazonFunctionUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
     if (this._isUnmounted) {
       return;
     }
 
-    this.refreshUnsubscribe = undefined;
     this.props.dismissModal();
     this.setState({ taskMonitor: undefined });
     const newStateParams = {
@@ -87,8 +87,10 @@ export class CreateLambdaFunctionComponent extends React.Component<
   }
 
   private onTaskComplete(values: IAmazonFunctionUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+    this.refreshUnsubscribe = this.props.app.functions.onNextRefresh(() => this.onApplicationRefresh(values));
     this.props.app.functions.refresh();
-    this.refreshUnsubscribe = this.props.app.functions.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
   private checkForS3Update(functionCommandFormatted: IAmazonFunctionUpsertCommand, descriptor: string): void {
@@ -111,7 +113,7 @@ export class CreateLambdaFunctionComponent extends React.Component<
     const taskMonitor = new TaskMonitor({
       application: app,
       title: `${isNew ? 'Creating' : 'Updating'} your function`,
-      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+      onDismiss: () => this.props.dismissModal(),
       onTaskComplete: () => {
         this.checkForS3Update(functionCommandFormatted, descriptor);
       },

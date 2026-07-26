@@ -127,7 +127,7 @@ export class ConfigurePipelineTemplateModal extends React.Component<
     const { application, pipelineId, pipelineTemplateConfig } = this.props;
     const configuration = this.state.configuration;
     let config: IPipelineTemplateConfig | IPipelineTemplateConfigV2;
-    let planRequest: PromiseLike<IPipeline>;
+    let planRequest: Promise<IPipeline>;
     try {
       config = buildTemplateConfig(application.name, pipelineId, pipelineTemplateConfig, configuration);
       planRequest = PipelineTemplateReader.getPipelinePlan(config);

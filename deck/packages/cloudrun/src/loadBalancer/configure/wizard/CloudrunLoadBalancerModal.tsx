@@ -35,6 +35,7 @@ export class CloudrunLoadBalancerModalComponent extends React.Component<
 
   private transformer = new CloudrunLoadBalancerTransformer();
   private isUnmounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
 
   constructor(props: ICloudrunLoadBalancerModalProps & IRouterInjectedProps) {
     super(props);
@@ -43,7 +44,7 @@ export class CloudrunLoadBalancerModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.app,
         title: 'Updating your load balancer',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => props.dismissModal()),
+        onDismiss: () => props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -82,14 +83,17 @@ export class CloudrunLoadBalancerModalComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this.isUnmounted = true;
+    this.clearApplicationRefreshSubscription();
   }
 
   private onTaskComplete = (): void => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(this.onApplicationRefresh);
     this.props.app.loadBalancers.refresh();
-    this.props.app.loadBalancers.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.clearApplicationRefreshSubscription();
     if (this.isUnmounted) {
       return;
     }
@@ -106,6 +110,11 @@ export class CloudrunLoadBalancerModalComponent extends React.Component<
     } else {
       this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
+  };
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private submit = (): void => {

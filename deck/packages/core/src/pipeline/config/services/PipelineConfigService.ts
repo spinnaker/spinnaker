@@ -8,11 +8,11 @@ import type { IStage } from '../../../domain/IStage';
 
 import { PipelineTemplateV2Service } from '../templates/v2/pipelineTemplateV2.service';
 
-function allPromises<T>(promises: Array<PromiseLike<T>>): PromiseLike<T[]> {
+function allPromises<T>(promises: Array<PromiseLike<T>>): Promise<T[]> {
   return Promise.all(promises);
 }
 
-function resolvePromise<T>(value: T): PromiseLike<T> {
+function resolvePromise<T>(value: T): Promise<T> {
   return Promise.resolve(value);
 }
 
@@ -27,7 +27,7 @@ export class PipelineConfigService {
     return `${applicationName}:${pipelineName}`;
   }
 
-  public static getPipelinesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
+  public static getPipelinesForApplication(applicationName: string): Promise<IPipeline[]> {
     return REST('/applications')
       .path(applicationName, 'pipelineConfigs')
       .get()
@@ -37,11 +37,11 @@ export class PipelineConfigService {
       });
   }
 
-  public static getPipelineForApplication(applicationName: string, pipelineName: string): PromiseLike<IPipeline> {
+  public static getPipelineForApplication(applicationName: string, pipelineName: string): Promise<IPipeline> {
     return REST('/applications').path(applicationName, 'pipelineConfigs', pipelineName).get();
   }
 
-  public static getStrategiesForApplication(applicationName: string): PromiseLike<IPipeline[]> {
+  public static getStrategiesForApplication(applicationName: string): Promise<IPipeline[]> {
     return REST('/applications')
       .path(applicationName, 'strategyConfigs')
       .get()
@@ -51,17 +51,17 @@ export class PipelineConfigService {
       });
   }
 
-  public static getHistory(id: string, isStrategy: boolean, count = 20): PromiseLike<IPipeline[]> {
+  public static getHistory(id: string, isStrategy: boolean, count = 20): Promise<IPipeline[]> {
     const endpoint = isStrategy ? 'strategyConfigs' : 'pipelineConfigs';
     return REST(endpoint).path(id, 'history').query({ limit: count }).get();
   }
 
-  public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): PromiseLike<void> {
+  public static deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): Promise<void> {
     const endpoint = pipeline.strategy ? 'strategies' : 'pipelines';
     return REST(endpoint).path(applicationName, pipelineName.trim()).delete();
   }
 
-  public static savePipeline(toSave: IPipeline): PromiseLike<void> {
+  public static savePipeline(toSave: IPipeline): Promise<void> {
     let pipeline = cloneDeep(toSave);
     delete pipeline.isNew;
     pipeline.name = pipeline.name.trim();
@@ -85,7 +85,7 @@ export class PipelineConfigService {
     application: string,
     idsToIndices: { [key: string]: number },
     isStrategy = false,
-  ): PromiseLike<void> {
+  ): Promise<void> {
     const type = isStrategy ? 'strategies' : 'pipelines';
     return REST('/actions').path(type, 'reorder').post({
       application,
@@ -98,14 +98,14 @@ export class PipelineConfigService {
     pipeline: IPipeline,
     currentName: string,
     newName: string,
-  ): PromiseLike<void> {
+  ): Promise<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName.trim();
     const endpoint = pipeline.strategy ? 'strategies' : 'pipelines';
     return REST(endpoint).path(pipeline.id).put(pipeline);
   }
 
-  public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): PromiseLike<string> {
+  public static triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): Promise<string> {
     body.user = AuthenticationService.getAuthenticatedUser().name;
     return REST('/pipelines/v2')
       .path(applicationName, pipelineName)
@@ -184,11 +184,11 @@ export class PipelineConfigService {
     return uniq(upstreamStages);
   }
 
-  private static sortPipelines(pipelines: IPipeline[]): PromiseLike<IPipeline[]> {
+  private static sortPipelines(pipelines: IPipeline[]): Promise<IPipeline[]> {
     const sorted = sortBy(pipelines, ['index', 'name']);
 
     // if there are pipelines with a bad index, fix that
-    const toReindex: Array<PromiseLike<void>> = [];
+    const toReindex: Array<Promise<void>> = [];
     if (sorted && sorted.length) {
       sorted.forEach((pipeline, index) => {
         if (pipeline.index !== index) {

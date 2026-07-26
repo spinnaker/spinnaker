@@ -1,6 +1,8 @@
 declare module 'semiotic' {
-  import { CurveFactory } from 'd3-shape';
-  import { ScaleTime } from 'd3-scale';
+  import type { CurveFactory } from 'd3-shape';
+  import type { ScaleTime } from 'd3-scale';
+
+  type HoverAnnotation = object | Function;
 
   export class XYFrame extends React.Component<IXYFrameProps<DataSet, DataPoint>> {}
   export class MinimapXYFrame extends React.Component<IMinimapProps<DataSet, DataPoint>> {}
@@ -17,7 +19,7 @@ declare module 'semiotic' {
     yAccessor?: string | ((d: DataPoint) => number);
     xScaleType?: ScaleTime<number, number>;
     baseMarkProps?: object;
-    hoverAnnotation?: boolean | Array<object | Function> | object | Function;
+    hoverAnnotation?: boolean | HoverAnnotation[] | HoverAnnotation;
     customHoverBehavior?: (d: IXYFrameHoverBaseArgs<DataPoint> & DataPoint) => void;
     xExtent?: Date[] | number[];
     axes?: object[];
@@ -80,7 +82,7 @@ declare module 'semiotic' {
    */
   export interface IOrFrameHoverArgs<DataPoint> {
     column?: IOrGroup<DataPoint>;
-    summary?: Array<IOrPiece<DataPoint>>;
+    summary?: IOrPiece<DataPoint>[];
     type?: string; // type of hover event (e.g. frame-hover)
     points: undefined | IOrSummaryPiece[]; // used for calculated summary datasets (e.g. boxplot)
     voronoiX?: number; // x position on the SVG element
@@ -111,7 +113,7 @@ declare module 'semiotic' {
     padding: number;
     width: number; // width of the column
     x: number; // starting position of the column (along the main axis)
-    xyData: Array<IOrXyData<DataPoint>>;
+    xyData: IOrXyData<DataPoint>[];
     y: number;
   }
 

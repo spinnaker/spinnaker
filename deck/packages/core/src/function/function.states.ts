@@ -1,4 +1,4 @@
-import type { StateParams } from '@uirouter/angularjs';
+import type { RawParams } from '@uirouter/core';
 
 import { FunctionDetails } from './FunctionDetails';
 import { Functions } from './Functions';
@@ -8,8 +8,6 @@ import { SETTINGS } from '../config/settings';
 import { filterModelConfig } from './filter/FunctionFilterModel';
 import { FunctionFilters } from './filter/FunctionFilters';
 import type { INestedState, StateConfigProvider } from '../navigation';
-
-export const FUNCTION_STATES = 'spinnaker.core.functions.states';
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
@@ -26,10 +24,10 @@ registerApplicationState(
         },
       },
       resolve: {
-        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.account],
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.account],
         functionObj: [
           '$stateParams',
-          ($stateParams: StateParams) => {
+          ($stateParams: RawParams) => {
             return {
               functionName: $stateParams.functionName,
               account: $stateParams.account,
