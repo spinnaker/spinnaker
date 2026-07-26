@@ -69,6 +69,7 @@ import {
   ScheduledActionsDetailsSection,
   SecurityGroupsDetailsSection,
   TagsDetailsSection,
+  WarmPoolDetailsSection,
 } from './serverGroup/details/sections';
 import { AwsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 import './validation/ApplicationNameValidator';
@@ -107,6 +108,7 @@ export function registerAmazonProvider(): void {
         ScalingProcessesDetailsSection,
         ScalingPoliciesDetailsSection,
         ScheduledActionsDetailsSection,
+        WarmPoolDetailsSection,
         TagsDetailsSection,
         PackageDetailsSection,
         AdvancedSettingsDetailsSection,
