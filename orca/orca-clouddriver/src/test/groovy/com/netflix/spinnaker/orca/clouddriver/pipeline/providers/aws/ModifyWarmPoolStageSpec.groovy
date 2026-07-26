@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
-import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import spock.lang.Specification
@@ -43,12 +42,12 @@ class ModifyWarmPoolStageSpec extends Specification {
     then:
     taskResult.status == expectedTaskResultStatus
 
-    1 * cloudDriverService.getTargetServerGroup("test", "test-asg", "us-east-1") >> {
-      Optional.of(new TargetServerGroup(
+    1 * cloudDriverService.getTargetServerGroupAsMap("test", "test-asg", "us-east-1") >> {
+      Optional.of([
         asg: [
           warmPoolConfiguration: warmPoolConfiguration
         ]
-      ))
+      ])
     }
 
     where:

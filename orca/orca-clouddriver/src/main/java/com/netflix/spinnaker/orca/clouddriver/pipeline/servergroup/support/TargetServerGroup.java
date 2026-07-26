@@ -99,12 +99,6 @@ public class TargetServerGroup {
     return serverGroup.getAsg();
   }
 
-  public Map<String, Object> getWarmPoolConfiguration() {
-    return Optional.ofNullable(serverGroup.getAsg())
-        .map(Asg::getWarmPoolConfiguration)
-        .orElse(null);
-  }
-
   public String getCredentials() { // TODO: is type String?
     return serverGroup.getCredentials();
   }

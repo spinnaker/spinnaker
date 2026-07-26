@@ -92,14 +92,14 @@ class ModifyWarmPoolStage extends TargetServerGroupLinearStageSupport implements
     @Override
     TaskResult execute(StageExecution stage) {
       def stageData = stage.mapTo(StageData)
-      def targetServerGroup = cloudDriverService.getTargetServerGroup(
+      def serverGroup = cloudDriverService.getTargetServerGroupAsMap(
           stageData.credentials, stageData.serverGroupName, stageData.region)
 
-      if (!targetServerGroup.present) {
+      if (!serverGroup.present) {
         throw new IllegalStateException("No server group found (serverGroupName: ${stageData.region}:${stageData.serverGroupName})")
       }
 
-      def warmPoolConfiguration = targetServerGroup.get().getWarmPoolConfiguration()
+      def warmPoolConfiguration = ((Map) serverGroup.get().asg)?.warmPoolConfiguration
       def isComplete = stageData.isDelete() ? !warmPoolConfiguration : warmPoolConfiguration != null
 
       return isComplete ? TaskResult.ofStatus(ExecutionStatus.SUCCEEDED) : TaskResult.ofStatus(ExecutionStatus.RUNNING)

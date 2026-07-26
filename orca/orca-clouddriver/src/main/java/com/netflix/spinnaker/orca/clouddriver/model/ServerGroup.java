@@ -85,7 +85,6 @@ public class ServerGroup {
     public Object minSize;
     public Object maxSize;
     public List<Process> suspendedProcesses;
-    public Map<String, Object> warmPoolConfiguration;
   }
 
   @Data
