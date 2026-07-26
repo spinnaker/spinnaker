@@ -1,10 +1,5 @@
 @import (reference) '../../presentation/less/imports/commonImports.less';
 
-.stage-choice {
-  .ui-select-highlight {
-    text-decoration: underline;
-  }
-}
 .stage-choice-heading {
   display: flex;
   strong {
@@ -90,12 +85,6 @@
       margin: 0;
       font-weight: 600;
     }
-    .select2-container-multi {
-      box-shadow: none;
-      .select2-choices {
-        background-color: transparent;
-      }
-    }
   }
 
   .pipeline-stage-config-heading p {
@@ -130,7 +119,6 @@ triggers,
     margin-bottom: 10px;
   }
   trigger,
-  expected-artifact,
   .trigger-config {
     display: block;
     padding: 10px 20px;
@@ -181,11 +169,6 @@ triggers,
   margin-bottom: 15px;
   &.no-border {
     border-width: 0;
-  }
-  .select2-result-label {
-    h5 {
-      margin: 5px 0 0 0;
-    }
   }
 }
 

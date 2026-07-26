@@ -184,7 +184,6 @@ export function Tasks({ app }: ITasksProps) {
     app.tasks.activate();
 
     const unsubscribe = app.tasks.onRefresh(
-      null,
       () => setViewState((current) => ({ ...current, loadError: app.tasks.loadFailure, loading: false })),
       () => setViewState((current) => ({ ...current, loadError: true, loading: false })),
     );

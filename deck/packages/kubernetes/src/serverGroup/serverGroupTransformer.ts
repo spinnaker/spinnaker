@@ -5,7 +5,7 @@ export class KubernetesV2ServerGroupTransformer {
   public normalizeServerGroup(
     serverGroup: IKubernetesServerGroup,
     application: Application,
-  ): PromiseLike<IKubernetesServerGroup> {
+  ): Promise<IKubernetesServerGroup> {
     return application
       .getDataSource('serverGroupManagers')
       .ready()

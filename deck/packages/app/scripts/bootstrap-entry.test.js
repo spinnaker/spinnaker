@@ -9,14 +9,11 @@ const coreSourceRoot = path.resolve(appRoot, '../core/src');
 const readAppFile = (relativePath) => readFileSync(path.join(appRoot, relativePath), 'utf8');
 const readCoreFile = (relativePath) => readFileSync(path.join(coreSourceRoot, relativePath), 'utf8');
 
-test('index.html exposes a React root instead of AngularJS document bootstrap', () => {
+test('index.html exposes the React root', () => {
   const html = readAppFile('index.html');
 
   assert.match(html, /<html class="no-js">/);
   assert.match(html, /<div id="spinnaker-root"><\/div>/);
-  assert.doesNotMatch(html, /ng-app=/);
-  assert.doesNotMatch(html, /ng-strict-di=/);
-  assert.doesNotMatch(html, /<spinnaker\b/);
 });
 
 test('index.deck template exposes the same React root contract as index.html', () => {
@@ -24,12 +21,9 @@ test('index.deck template exposes the same React root contract as index.html', (
 
   assert.match(html, /<html class="no-js">/);
   assert.match(html, /<div id="spinnaker-root"><\/div>/);
-  assert.doesNotMatch(html, /ng-app=/);
-  assert.doesNotMatch(html, /ng-strict-di=/);
-  assert.doesNotMatch(html, /<spinnaker\b/);
 });
 
-test('app entry renders Deck directly without creating an AngularJS root module', () => {
+test('app entry bootstraps Deck at the configured root', () => {
   const appEntry = readAppFile('src/app.ts');
 
   assert.match(appEntry, /import \{[^}]*\bbootstrapDeck\b[^}]*\} from '@spinnaker\/core';/);
@@ -37,10 +31,6 @@ test('app entry renders Deck directly without creating an AngularJS root module'
     appEntry,
     /void bootstrapDeck\(document\.getElementById\('spinnaker-root'\)\)\.catch\(\(error\) => \{\s*console\.error\('Deck bootstrap failed', error\);\s*\}\);/,
   );
-  assert.doesNotMatch(appEntry, /angular\.bootstrap/);
-  assert.doesNotMatch(appEntry, /from 'angular'/);
-  assert.doesNotMatch(appEntry, /module\('netflix\.spinnaker'/);
-  assert.doesNotMatch(appEntry, /strictDi/);
   assert.doesNotMatch(appEntry, /registerPreconfiguredJobStages/);
   assert.doesNotMatch(appEntry, /registerPreconfiguredWebhookStages/);
 });

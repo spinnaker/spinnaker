@@ -13,7 +13,7 @@ interface IManifestKindSearchResults {
 }
 
 export class ManifestKindSearchService {
-  public static search(kind: string, namespace: string, account: string): PromiseLike<IManifestKindSearchResults[]> {
+  public static search(kind: string, namespace: string, account: string): Promise<IManifestKindSearchResults[]> {
     return SearchService.search<IManifestKindSearchResults>({
       q: namespace,
       type: kind,

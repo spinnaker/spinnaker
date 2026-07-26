@@ -4,7 +4,6 @@ export class UUIDGenerator {
   }
 
   public static generateUuid(): string {
-    // source: https://github.com/daniellmb/angular-uuid-service/blob/master/angular-uuid-service.js
     let uuid = '';
     for (let i = 0; i < 36; i++) {
       switch (i) {

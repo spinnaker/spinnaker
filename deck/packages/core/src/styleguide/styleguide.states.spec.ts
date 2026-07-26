@@ -7,8 +7,5 @@ describe('styleguide states', () => {
     const view = state.views['main@'];
 
     expect(view).toEqual(jasmine.objectContaining({ component: StyleguideRoute, $type: 'react' }));
-    expect(view.templateUrl).toBeUndefined();
-    expect(view.controller).toBeUndefined();
-    expect(view.controllerAs).toBeUndefined();
   });
 });

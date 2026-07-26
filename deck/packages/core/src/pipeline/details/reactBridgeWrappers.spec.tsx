@@ -298,10 +298,10 @@ describe('pipeline details bridge wrappers', () => {
     expect(executionService.updateExecution).toHaveBeenCalledWith({ attributes: {} } as any, updatedExecution);
   });
 
-  it('renders the direct StepExecutionDetailsWrapper with provider and config sections', () => {
+  it('renders the direct StepExecutionDetailsWrapper with provider and no legacy section props', () => {
     const props = {
       application: {} as any,
-      config: { cloudProvider: 'aws', executionConfigSections: ['Task Status'] },
+      config: { cloudProvider: 'aws' },
       execution: {} as any,
       stage: {} as any,
     };
@@ -310,7 +310,9 @@ describe('pipeline details bridge wrappers', () => {
 
     expect(component.find(StepExecutionDetailsWrapper).length).toBe(1);
     expect(component.find(StepExecutionDetailsWrapper).prop('provider')).toBe('aws');
-    expect(component.find(StepExecutionDetailsWrapper).prop('configSections')).toEqual(['Task Status']);
+    expect(
+      Object.prototype.hasOwnProperty.call(component.find(StepExecutionDetailsWrapper).props(), 'configSections'),
+    ).toBe(false);
   });
 
   it('renders direct execution detail sections instead of the default wrapper', () => {
@@ -346,7 +348,6 @@ describe('pipeline details bridge wrappers', () => {
       <StepExecutionDetailsWrapperComponent
         {...routerProps}
         application={{} as any}
-        configSections={['Task Status']}
         execution={{} as any}
         stage={{ failureMessage: 'it failed', tasks: [{ name: 'deploy', status: 'SUCCEEDED' }] } as any}
       />,
@@ -370,7 +371,6 @@ describe('pipeline details bridge wrappers', () => {
         {...routerProps}
         application={{} as any}
         config={{ executionDetailsComponent: CustomExecutionDetails } as any}
-        configSections={['Custom']}
         execution={{} as any}
         provider="aws"
         stage={{ context: { serverGroupName: 'my-server-group' }, failureMessage: 'it failed', tasks: [] } as any}
@@ -382,6 +382,9 @@ describe('pipeline details bridge wrappers', () => {
       failureMessage: 'it failed',
       tasks: [],
     } as any);
+    expect(Object.prototype.hasOwnProperty.call(component.find(CustomExecutionDetails).props(), 'configSections')).toBe(
+      false,
+    );
     expect(component.find(ExecutionStepDetails).exists()).toBe(false);
   });
 
@@ -396,7 +399,6 @@ describe('pipeline details bridge wrappers', () => {
         {...({
           application: {},
           config: { executionDetailsComponent: CustomExecutionDetails },
-          configSections: ['Custom'],
           execution: {},
           stage: {},
           stateParams: { details: 'injected-details' },
@@ -405,28 +407,5 @@ describe('pipeline details bridge wrappers', () => {
     );
 
     expect(component.find(CustomExecutionDetails).prop('currentSection')).toBe('injected-details');
-  });
-
-  it('passes config sections to custom StepExecutionDetailsWrapper components so they can render section nav', () => {
-    const CustomExecutionDetails = ({ configSections }: any) => (
-      <ExecutionDetailsSectionNav sections={configSections} />
-    );
-
-    const component = shallow(
-      <StepExecutionDetailsWrapperComponent
-        {...routerProps}
-        application={{} as any}
-        config={{ executionDetailsComponent: CustomExecutionDetails } as any}
-        configSections={['Custom', 'Tasks']}
-        execution={{} as any}
-        stage={{ context: {}, tasks: [] } as any}
-      />,
-    );
-
-    expect(component.find(CustomExecutionDetails).prop('configSections')).toEqual(['Custom', 'Tasks']);
-    expect(component.find(CustomExecutionDetails).dive().find(ExecutionDetailsSectionNav).prop('sections')).toEqual([
-      'Custom',
-      'Tasks',
-    ]);
   });
 });

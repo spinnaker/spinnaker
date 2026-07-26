@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 
 import { SETTINGS } from '@spinnaker/core';
 
-import { ISummaryStatistics } from './semiotic.service';
+import type { ISummaryStatistics } from './semiotic.service';
 
 /*
 Formatter for any metric values. If the value is not a valid number (typically NaN),

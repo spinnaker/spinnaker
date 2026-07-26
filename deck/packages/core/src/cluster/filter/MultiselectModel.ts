@@ -122,7 +122,7 @@ export class MultiselectModel {
         region,
         cloudProvider,
         instanceIds,
-        instances: [], // populated by details controller
+        instances: [], // Populated when the details view loads.
         selectAll: false,
       };
       this.instanceGroups.push(result);

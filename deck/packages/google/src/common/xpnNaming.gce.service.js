@@ -2,8 +2,6 @@
 
 import _ from 'lodash';
 
-export const GOOGLE_COMMON_XPNNAMING_GCE_SERVICE = 'spinnaker.gce.common.xpnNaming.service';
-export const name = GOOGLE_COMMON_XPNNAMING_GCE_SERVICE; // for backwards compatibility
 export class GceXpnNamingService {
   deriveProjectId = (resourceWithSelfLink) => {
     const pathSegments = resourceWithSelfLink.selfLink.split('/');

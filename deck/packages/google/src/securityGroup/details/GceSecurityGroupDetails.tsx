@@ -161,7 +161,7 @@ export function GceSecurityGroupDetails({ app, resolvedSecurityGroup }: IGceSecu
   useEffect(() => {
     let cancelled = false;
 
-    const loadSecurityGroup = (): PromiseLike<any> => {
+    const loadSecurityGroup = (): Promise<any> => {
       return securityGroupReader
         .getSecurityGroupDetails(
           app,
@@ -186,7 +186,7 @@ export function GceSecurityGroupDetails({ app, resolvedSecurityGroup }: IGceSecu
     };
 
     loadSecurityGroup();
-    const unsubscribeFromRefresh = app.securityGroups?.onRefresh?.(null, loadSecurityGroup);
+    const unsubscribeFromRefresh = app.securityGroups?.onRefresh?.(loadSecurityGroup);
 
     return () => {
       cancelled = true;

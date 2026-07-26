@@ -6,8 +6,6 @@ import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState } from '../navigation/state.provider';
 import { TaskReader } from './task.read.service';
 
-export const TASK_STATES = 'spinnaker.core.task.states';
-
 export function getTasksState(): INestedState {
   const taskDetails: INestedState = {
     name: 'taskDetails',

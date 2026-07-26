@@ -51,7 +51,7 @@ export const TaskDefinitionSettings = ({ command, configureCommand, onFieldChang
       {command.useTaskDefinitionArtifact && (
         <div className="col-md-12">
           <hr />
-          <TaskDefinition command={command} configureCommand={configureCommand} notifyAngular={onFieldChange} />
+          <TaskDefinition command={command} configureCommand={configureCommand} onFieldChange={onFieldChange} />
         </div>
       )}
     </div>

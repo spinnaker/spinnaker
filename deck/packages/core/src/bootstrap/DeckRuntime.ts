@@ -1,20 +1,21 @@
 import type { UIRouterReact } from '@uirouter/react';
-import type { ILogService, IQService } from 'angular';
 
 import { DeckRuntimeServices } from './DeckRuntimeServices';
-import { DirectProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { RoutingState } from '../navigation/RoutingState';
 import type { CancellableTimeout } from '../utils/cancellableTimeout';
 import { createCancellableTimeout } from '../utils/cancellableTimeout';
+import type { DiagnosticLogger } from '../utils/diagnosticLogger';
 import { createDiagnosticLogger } from '../utils/diagnosticLogger';
 import { interpolate } from '../utils/interpolate';
+import type { PromiseService } from '../utils/nativePromiseService';
 import { createNativePromiseService } from '../utils/nativePromiseService';
 
 export interface DeckRuntime {
   router: UIRouterReact | null;
-  promiseService: IQService;
+  promiseService: PromiseService;
   timeoutService: CancellableTimeout;
-  logger: ILogService;
+  logger: DiagnosticLogger;
   interpolate: typeof interpolate;
   services: DeckRuntimeServices;
   routingState: RoutingState;
@@ -25,7 +26,7 @@ export function createDeckRuntime(router: UIRouterReact | null = null): DeckRunt
   const promiseService = createNativePromiseService();
   const timeoutService = createCancellableTimeout();
   const logger = createDiagnosticLogger();
-  const providerServiceDelegate = new DirectProviderServiceDelegate(promiseService);
+  const providerServiceDelegate = new ProviderServiceDelegate(promiseService);
   const services = new DeckRuntimeServices(router, promiseService, timeoutService, logger, providerServiceDelegate);
   const routingState = new RoutingState();
 

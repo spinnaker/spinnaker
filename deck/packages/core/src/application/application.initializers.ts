@@ -27,5 +27,3 @@ export function resetApplicationInitializersForTests(): void {
   initializers.length = 0;
   appliedContext = null;
 }
-
-export const APPLICATION_INITIALIZERS_MODULE = 'spinnaker.core.application.initializers';

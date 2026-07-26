@@ -4,9 +4,6 @@ import _ from 'lodash';
 
 import { FirewallLabels } from '@spinnaker/core';
 
-export const GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE =
-  'spinnaker.deck.gce.tagManager.service';
-export const name = GOOGLE_SERVERGROUP_CONFIGURE_WIZARD_SECURITYGROUPS_TAGMANAGER_SERVICE; // for backwards compatibility
 export class GceTagManager {
   constructor() {
     const resetKeys = ['command', 'securityGroups', 'securityGroupObjectsKeyedByTag', 'securityGroupObjectsKeyedById'];

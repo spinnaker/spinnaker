@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 
 import { UUIDGenerator } from '@spinnaker/core';
 
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 
 interface ICreateConfigButtonStateProps {
   disabled: boolean;

@@ -5,6 +5,7 @@ import {
   CloudProviderRegistry,
   ConfirmationModalService,
   DeckRuntimeContext,
+  nativePromiseService,
   ServerGroupReader,
   ServerGroupWarningMessageService,
 } from '@spinnaker/core';
@@ -53,7 +54,7 @@ describe('Azure server group details', () => {
 
   function mountActions(app: any, serverGroup: any) {
     runtimeServices = {
-      serverGroupCommandBuilder: new AzureServerGroupCommandBuilder(Promise),
+      serverGroupCommandBuilder: new AzureServerGroupCommandBuilder(nativePromiseService),
       serverGroupWriter: {
         destroyServerGroup: jasmine.createSpy('destroyServerGroup'),
         disableServerGroup: jasmine.createSpy('disableServerGroup'),
@@ -152,7 +153,7 @@ describe('Azure server group details', () => {
     expect(autoClose).toHaveBeenCalled();
   });
 
-  it('registers React server group details without Angular fallback keys', () => {
+  it('registers React server group details', () => {
     registerAzureProvider();
 
     expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsGetter')).toBe(azureServerGroupDetailsGetter);
@@ -162,8 +163,6 @@ describe('Azure server group details', () => {
     expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsSections')).toEqual(
       azureServerGroupDetailsSections,
     );
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsController')).toBeNull();
-    expect(CloudProviderRegistry.getValue('azure', 'serverGroup.detailsTemplateUrl')).toBeNull();
   });
 
   it('wires destroy, disable, and enable actions to confirmation modals', () => {

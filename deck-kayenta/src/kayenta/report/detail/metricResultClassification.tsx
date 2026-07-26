@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
+import type { MetricClassificationLabel } from 'kayenta/domain/MetricClassificationLabel';
 import * as React from 'react';
 
 import { mapMetricClassificationToColor } from './colors';

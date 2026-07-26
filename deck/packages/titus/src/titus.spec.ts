@@ -16,23 +16,11 @@ describe('Titus package entrypoint', () => {
     expect(() => require('./index')).not.toThrow();
   });
 
-  it('does not expose Angular module tokens', () => {
-    SETTINGS.providers.titus = true;
-    const titusPackage = require('./index');
-    const angularModuleToken = ['TITUS', 'MODULE'].join('_');
-    const reactModuleToken = ['TITUS', 'REACT', 'MODULE'].join('_');
-
-    expect((titusPackage as any)[angularModuleToken]).toBeUndefined();
-    expect((titusPackage as any)[reactModuleToken]).toBeUndefined();
-  });
-
-  it('registers non-Angular provider configuration', () => {
+  it('registers provider configuration', () => {
     SETTINGS.providers.titus = true;
     require('./index');
     require('./index').registerTitusProvider();
 
-    expect(CloudProviderRegistry.getValue('titus', ['serverGroup.details', 'Template', 'Url'].join(''))).toBeNull();
-    expect(CloudProviderRegistry.getValue('titus', ['serverGroup.details', 'Cont', 'roller'].join(''))).toBeNull();
     expect(typeof CloudProviderRegistry.getValue('titus', 'serverGroup.detailsGetter')).toBe('function');
     expect(CloudProviderRegistry.getValue('titus', 'serverGroup.detailsSections').length).toBeGreaterThan(0);
     expect(typeof CloudProviderRegistry.getValue('titus', 'serverGroup.transformer')).toBe('function');
@@ -56,7 +44,6 @@ describe('Titus package entrypoint', () => {
       expect(providerConfig.provides).toBe(stageType);
       expect(providerConfig.cloudProvider).toBe('titus');
       expect(providerConfig.component).toEqual(jasmine.any(Function));
-      expect(providerConfig.templateUrl).toBeUndefined();
     });
   });
 });

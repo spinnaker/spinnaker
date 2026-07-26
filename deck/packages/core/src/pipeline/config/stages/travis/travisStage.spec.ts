@@ -22,7 +22,6 @@ describe('Travis stage registration', () => {
     expect(travisStage.component).toBe(TravisStageConfig);
     expect(travisStage.executionDetailsSections[0]).toBe(TravisExecutionDetails);
     expect(travisStage.executionDetailsSections.length).toBeGreaterThan(1);
-    expect((travisStage as any).templateUrl).toBeUndefined();
     expect((travisStage as any).executionDetailsSections).toBeDefined();
   });
 

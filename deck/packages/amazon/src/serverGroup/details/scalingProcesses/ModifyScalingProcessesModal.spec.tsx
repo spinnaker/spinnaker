@@ -1,4 +1,4 @@
-import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
 
 import { ModifyScalingProcessesModal, buildScalingProcessJobs } from './ModifyScalingProcessesModal';
 
@@ -48,7 +48,6 @@ describe('ModifyScalingProcessesModal', () => {
   });
 
   it('submits the changed-state diff through the task monitor', () => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
     const execute = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({} as any));
     const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
     const modal = new ModifyScalingProcessesModal({

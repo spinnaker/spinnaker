@@ -55,7 +55,7 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                   value={Number.isNaN(unhealthy) ? '' : unhealthy}
                   onChange={this.handleUnhealthyChange}
                   className={`form-control input-sm ${
-                    this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-min'
+                    this.isUnhealthyScoreValid(successful, unhealthy) ? '' : 'invalid'
                   }`}
                 />
               </div>
@@ -70,7 +70,7 @@ export class CanaryScores extends React.Component<ICanaryScoresProps> {
                   value={Number.isNaN(successful) ? '' : successful}
                   onChange={this.handleSuccessfulChange}
                   className={`form-control input-sm ${
-                    this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'ng-invalid ng-invalid-validate-max'
+                    this.isSuccessfulScoreValid(successful, unhealthy) ? '' : 'invalid'
                   }`}
                 />
               </div>

@@ -1,5 +1,8 @@
 import type { FormikProps } from 'formik';
 import React from 'react';
+import { UIRouterReact } from '@uirouter/react';
+
+import { AccountService, createDeckRuntime, NetworkReader, SubnetReader } from '@spinnaker/core';
 
 import {
   GCE_SERVER_GROUP_OPERATION_MODES,
@@ -10,6 +13,9 @@ import {
   preservePersistedReference,
   validateGceServerGroupCommand,
 } from './index';
+import { registerGoogleProvider } from '../../../gce.module';
+import { GceHealthCheckReader } from '../../../healthCheck/healthCheck.read.service';
+import { GceImageReader } from '../../../image';
 import type {
   GceConfigurationRefreshMethod,
   GceConfigurationUpdateMethod,
@@ -97,6 +103,40 @@ describe('GceServerGroupWizard foundation', () => {
   });
 
   describe('adapter', () => {
+    it('uses runtime-owned readers through the registered default configuration path', async () => {
+      registerGoogleProvider();
+      const runtime = createDeckRuntime(new UIRouterReact());
+      const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.resolveTo(
+        {},
+      );
+      const listLoadBalancers = spyOn(runtime.services.loadBalancerReader, 'listLoadBalancers').and.resolveTo([]);
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.resolveTo({});
+      spyOn(AccountService, 'getAllAccountDetailsForProvider').and.resolveTo([]);
+      spyOn(AccountService, 'listAccounts').and.resolveTo([]);
+      spyOn(NetworkReader, 'listNetworksByProvider').and.resolveTo([]);
+      spyOn(SubnetReader, 'listSubnetsByProvider').and.resolveTo([]);
+      spyOn(GceImageReader, 'findImages').and.resolveTo([]);
+      spyOn(GceHealthCheckReader.prototype, 'listHealthChecks').and.resolveTo([]);
+
+      try {
+        const delegate = runtime.services.providerServiceDelegate;
+        const adapter = new GceServerGroupWizardAdapter(
+          delegate.getDelegate('gce', 'serverGroup.commandBuilder'),
+          delegate.getDelegate('gce', 'serverGroup.configurationService'),
+        );
+
+        await adapter.configureCommand(
+          { name: 'app' } as any,
+          command({ backingData: undefined, credentials: 'account', securityGroups: [], tags: [] }),
+        );
+
+        expect(getAllSecurityGroups).toHaveBeenCalledTimes(1);
+        expect(listLoadBalancers).toHaveBeenCalledOnceWith('gce');
+      } finally {
+        runtime.dispose();
+      }
+    });
+
     it('delegates the four surviving command-builder signatures', async () => {
       const builder = {
         buildNewServerGroupCommand: jasmine.createSpy().and.resolveTo(command()),

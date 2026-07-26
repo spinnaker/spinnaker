@@ -55,7 +55,7 @@ export function registerOracleProvider(): void {
         OracleServerGroupSizeSection,
         OracleServerGroupLaunchConfigSection,
       ],
-      // The Oracle create/clone wizard was Angular-only; register no modal until a React replacement exists.
+      // Oracle does not provide a create or clone modal.
       commandBuilder: OracleServerGroupCommandBuilder,
       configurationService: OracleServerGroupConfigurationService,
     },

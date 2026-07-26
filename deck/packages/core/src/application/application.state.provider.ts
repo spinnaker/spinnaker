@@ -139,5 +139,3 @@ export class ApplicationStateProvider {
     this.stateConfigProvider.setStates();
   }
 }
-
-export const APPLICATION_STATE_PROVIDER = 'spinnaker.core.application.state.provider';

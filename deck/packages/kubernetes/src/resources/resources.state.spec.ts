@@ -75,7 +75,7 @@ describe('Kubernetes resource state registration', () => {
     expect(KUBERNETES_RAW_RESOURCE_DETAILS_STATE.views['detail@../insight'].$type).toBe('react');
   });
 
-  it('queues raw resource states without an Angular module config block', () => {
+  it('queues raw resource states', () => {
     registerKubernetesRawResourceStates();
     const applicationStateProvider = makeApplicationStateProvider();
 
@@ -95,7 +95,7 @@ describe('Kubernetes resource state registration', () => {
     );
   });
 
-  it('registers the raw resource data source without an Angular module run block', () => {
+  it('registers the raw resource data source', () => {
     registerKubernetesRawResourceDataSource();
 
     const rawResourceDataSource = ApplicationDataSourceRegistry.getDataSources().find(

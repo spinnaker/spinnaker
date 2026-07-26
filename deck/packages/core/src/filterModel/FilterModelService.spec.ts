@@ -7,7 +7,7 @@ describe('FilterModelService direct router integration', () => {
     setDirectRouter(null);
   });
 
-  it('registers shared filter hooks and hydrates permalink params without an Angular injector', () => {
+  it('registers shared filter hooks and hydrates permalink params', () => {
     const onBefore = jasmine.createSpy('onBefore');
     const onStart = jasmine.createSpy('onStart');
     const onSuccess = jasmine.createSpy('onSuccess');

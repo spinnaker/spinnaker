@@ -72,7 +72,7 @@ export class ModifyScalingProcessesModal extends React.Component<
     taskMonitor: new TaskMonitor({
       application: this.props.application,
       title: `Update Auto Scaling Processes for ${this.props.serverGroup.name}`,
-      modalInstance: TaskMonitor.modalInstanceEmulation(this.props.closeModal, this.props.dismissModal),
+      onDismiss: this.props.dismissModal,
       onTaskComplete: () => this.props.application.serverGroups.refresh(),
     }),
   };

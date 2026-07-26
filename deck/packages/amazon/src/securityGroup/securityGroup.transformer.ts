@@ -7,7 +7,7 @@ import { VpcReader } from '../vpc/VpcReader';
 export class AwsSecurityGroupTransformer {
   public supportsCompression = true;
 
-  public normalizeSecurityGroup(securityGroup: ISecurityGroup): PromiseLike<ISecurityGroup> {
+  public normalizeSecurityGroup(securityGroup: ISecurityGroup): Promise<ISecurityGroup> {
     return VpcReader.listVpcs().then((vpcs) => {
       const match = vpcs.find((test) => test.id === securityGroup.vpcId);
       securityGroup.vpcName = match ? match.name : '';

@@ -29,7 +29,7 @@ export function useAppengineLoadBalancerDetails({
 
   useEffect(() => {
     refetch();
-    const unsubscribe = app.getDataSource('loadBalancers').onRefresh(null, refetch);
+    const unsubscribe = app.getDataSource('loadBalancers').onRefresh(refetch);
     return () => unsubscribe();
   }, [loadBalancerParams.name, loadBalancerParams.accountId, loadBalancerParams.region]);
 

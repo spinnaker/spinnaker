@@ -1,4 +1,4 @@
 module.exports = {
   plugins: ['@spinnaker/eslint-plugin'],
-  extends: ['plugin:@spinnaker/base'],
+  extends: ['plugin:@spinnaker/legacy-base'],
 };

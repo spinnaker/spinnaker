@@ -27,10 +27,9 @@ export interface IServerGroupJob extends IJob {
 }
 
 export class ServerGroupWriter {
-  public static $inject = ['serverGroupTransformer'];
   constructor(private serverGroupTransformer: any) {}
 
-  public cloneServerGroup(command: IServerGroupCommand, application: Application): PromiseLike<ITask> {
+  public cloneServerGroup(command: IServerGroupCommand, application: Application): Promise<ITask> {
     let description: string;
     if (command.viewState.mode === 'clone') {
       description = `Create Cloned Server Group from ${command.source.asgName}`;
@@ -55,7 +54,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.asgName = serverGroup.name;
     params.moniker = serverGroup.moniker;
     params.serverGroupName = serverGroup.name;
@@ -71,11 +70,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public disableServerGroup(
-    serverGroup: IServerGroup,
-    appName: string,
-    params: IServerGroupJob = {},
-  ): PromiseLike<ITask> {
+  public disableServerGroup(serverGroup: IServerGroup, appName: string, params: IServerGroupJob = {}): Promise<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -95,7 +90,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -120,7 +115,7 @@ export class ServerGroupWriter {
       .join(', ');
   }
 
-  public mapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): PromiseLike<ITask> {
+  public mapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): Promise<ITask> {
     params.type = 'mapLoadBalancers';
     params.name = [serverGroup.name];
     params.loadBalancerNames = serverGroup.loadBalancers;
@@ -138,7 +133,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.asgName = serverGroup.name;
     params.serverGroupName = serverGroup.name;
     params.moniker = serverGroup.moniker;
@@ -161,7 +156,7 @@ export class ServerGroupWriter {
     serverGroup: IServerGroup,
     application: Application,
     params: IServerGroupJob = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.type = 'rollbackServerGroup';
     params.moniker = serverGroup.moniker;
     params.region = serverGroup.region;
@@ -175,7 +170,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public unmapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): PromiseLike<ITask> {
+  public unmapLoadBalancers(serverGroup: IServerGroup, application: Application, params: any = {}): Promise<ITask> {
     params.type = 'unmapLoadBalancers';
     params.name = [serverGroup.name];
     params.loadBalancerNames = serverGroup.loadBalancers;
@@ -194,7 +189,7 @@ export class ServerGroupWriter {
     securityGroups: ISecurityGroup[],
     application: Application,
     hasLaunchTemplate?: boolean,
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const job: IServerGroupJob = {
       amiName: serverGroup.image.name,
       imageId: serverGroup.image.imageId,
@@ -218,5 +213,3 @@ export class ServerGroupWriter {
     });
   }
 }
-
-export const SERVER_GROUP_WRITER = 'spinnaker.core.serverGroup.write.service';

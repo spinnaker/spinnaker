@@ -1,6 +1,6 @@
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryFilterTemplateValidationMessages } from 'kayenta/edit/filterTemplatesValidation';
+import type { ICanaryFilterTemplateValidationMessages } from 'kayenta/edit/filterTemplatesValidation';
 import {
   DISABLE_EDIT_CONFIG,
   DisableableInput,
@@ -8,7 +8,7 @@ import {
   DisableableTextarea,
 } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { configTemplatesSelector, editingTemplateSelector } from 'kayenta/selectors';
 import {
   editingTemplateValidationSelector,
@@ -17,8 +17,8 @@ import {
 import { get, isString } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Option } from 'react-select';
-import { Dispatch } from 'redux';
+import type { Option } from 'react-select';
+import type { Dispatch } from 'redux';
 
 import './filterTemplateSelector.less';
 

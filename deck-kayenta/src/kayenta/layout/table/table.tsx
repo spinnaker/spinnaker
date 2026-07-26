@@ -1,12 +1,12 @@
 import classNames from 'classnames';
 import * as React from 'react';
 
-import { ITableColumn } from './tableColumn';
+import type { ITableColumn } from './tableColumn';
 import { TableHeader } from './tableHeader';
 
 export interface ITableProps<T> {
   rows: T[];
-  columns: Array<ITableColumn<T>>;
+  columns: ITableColumn<T>[];
   rowKey: (row: T) => string;
   tableBodyClassName?: string;
   headerClassName?: string;

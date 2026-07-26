@@ -8,8 +8,8 @@ import type { IEcsCapacityProviderStrategyItem, IEcsServerGroupCommand } from '.
 
 export interface IEcsCapacityProviderProps {
   command: IEcsServerGroupCommand;
-  notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => PromiseLike<void>;
+  onFieldChange: (key: string, value: any) => void;
+  configureCommand: (query: string) => Promise<void>;
 }
 
 interface IEcsCapacityProviderState {
@@ -52,8 +52,8 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
           capacityProviderLoadedFlag: true,
         },
         () => {
-          this.props.notifyAngular('useDefaultCapacityProviders', useDefaultCapacityProviders);
-          this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+          this.props.onFieldChange('useDefaultCapacityProviders', useDefaultCapacityProviders);
+          this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
         },
       );
     });
@@ -82,7 +82,7 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
       const strategyChanged = !isEqual(cmd.capacityProviderStrategy || [], commandState.capacityProviderStrategy);
       this.setState(commandState, () => {
         if (strategyChanged) {
-          this.props.notifyAngular('capacityProviderStrategy', commandState.capacityProviderStrategy);
+          this.props.onFieldChange('capacityProviderStrategy', commandState.capacityProviderStrategy);
         }
       });
     }
@@ -112,14 +112,14 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
   private addCapacityProviderStrategy = () => {
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     capacityProviderStrategy.push({ capacityProvider: '', base: null, weight: null });
-    this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+    this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
   };
 
   private removeCapacityProviderStrategy = (index: number) => {
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     capacityProviderStrategy.splice(index, 1);
-    this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+    this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
   };
 
@@ -127,7 +127,7 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     const targetCapacityProviderStrategy = capacityProviderStrategy[index];
     targetCapacityProviderStrategy.capacityProvider = targetCapacityProviderName;
-    this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+    this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
     this.props.command.viewState.dirty.customCapacityProviders = [];
   };
@@ -136,7 +136,7 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     const targetCapacityProviderStrategy = capacityProviderStrategy[index];
     targetCapacityProviderStrategy.base = targetCapacityProviderBase;
-    this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+    this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
   };
 
@@ -144,13 +144,13 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
     const capacityProviderStrategy = this.state.capacityProviderStrategy;
     const targetCapacityProviderStrategy = capacityProviderStrategy[index];
     targetCapacityProviderStrategy.weight = targetCapacityProviderWeight;
-    this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+    this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
   };
 
   private updateCapacityProviderType = (targetCapacityProviderType: boolean) => {
     this.setState({ useDefaultCapacityProviders: targetCapacityProviderType });
-    this.props.notifyAngular('useDefaultCapacityProviders', targetCapacityProviderType);
+    this.props.onFieldChange('useDefaultCapacityProviders', targetCapacityProviderType);
     this.props.command.viewState.dirty.customCapacityProviders = [];
 
     const capacityProviderStrategy =
@@ -158,7 +158,7 @@ export class EcsCapacityProvider extends React.Component<IEcsCapacityProviderPro
         ? this.state.defaultCapacityProviderStrategy
         : [];
     this.setState({ capacityProviderStrategy: capacityProviderStrategy });
-    this.props.notifyAngular('capacityProviderStrategy', capacityProviderStrategy);
+    this.props.onFieldChange('capacityProviderStrategy', capacityProviderStrategy);
   };
 
   render(): React.ReactElement<EcsCapacityProvider> {

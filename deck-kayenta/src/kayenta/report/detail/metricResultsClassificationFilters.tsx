@@ -1,9 +1,11 @@
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
+import type { Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 
 import * as Creators from '../../actions/creators';
-import { ICanaryAnalysisResult, MetricClassificationLabel } from '../../domain';
-import { ICanaryState } from '../../reducers';
+import type { ICanaryAnalysisResult } from '../../domain';
+import { MetricClassificationLabel } from '../../domain';
+import type { ICanaryState } from '../../reducers';
 
 export interface IMetricFiltersOwnProps {
   results: ICanaryAnalysisResult[];

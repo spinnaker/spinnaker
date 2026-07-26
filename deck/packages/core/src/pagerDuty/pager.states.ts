@@ -2,8 +2,6 @@ import { Pager } from './Pager';
 import type { INestedState } from '../navigation';
 import { registerRootState } from '../navigation/rootState.registration';
 
-export const PAGER_STATES = 'spinnaker.core.pager.states';
-
 registerRootState((stateConfigProvider) => {
   const pageState: INestedState = {
     url: '/page?app&q&keys&by&direction&hideNoApps&subject&&details',

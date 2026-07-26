@@ -21,7 +21,8 @@ describe('TaskMonitorWrapper', () => {
     try {
       const poll = jasmine.createSpy('poll');
       const task = { poller: setTimeout(poll, 25) } as ITask;
-      const monitor = new TaskMonitor({ title: 'owned task monitor' });
+      const onDismiss = jasmine.createSpy('onDismiss');
+      const monitor = new TaskMonitor({ title: 'owned task monitor', onDismiss });
       monitor.task = task;
       const wrapper = mount(<TaskMonitorWrapper monitor={monitor} />);
 
@@ -30,6 +31,7 @@ describe('TaskMonitorWrapper', () => {
 
       expect(task.poller).toBeUndefined();
       expect(poll).not.toHaveBeenCalled();
+      expect(onDismiss).not.toHaveBeenCalled();
     } finally {
       jasmine.clock().uninstall();
     }

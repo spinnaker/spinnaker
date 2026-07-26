@@ -1,7 +1,7 @@
 import { KayentaAccountType } from 'kayenta/domain';
 import { chain } from 'lodash';
 
-import { ICanaryState } from './index';
+import type { ICanaryState } from './index';
 
 export interface IConfigValidationError {
   message: string;

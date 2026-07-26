@@ -31,7 +31,7 @@ describe('Docker bake stage', () => {
     Registry.reinitialize();
   });
 
-  it('registers a package-local React stage config without Angular templates', () => {
+  it('registers the package-local React stage config', () => {
     Registry.pipeline.registerStage(DOCKER_BAKE_STAGE_CONFIG);
 
     const stageConfig = Registry.pipeline.getStageConfig({ type: 'bake', cloudProvider: 'docker' } as any);
@@ -41,8 +41,6 @@ describe('Docker bake stage', () => {
     expect(stageConfig.component).toBe(DockerBakeStageConfig);
     expect(stageConfig.executionDetailsSections).toEqual([DockerBakeExecutionDetails, ExecutionDetailsTasks]);
     expect(stageConfig.executionLabelComponent).toBe(BakeExecutionLabel);
-    expect(stageConfig.templateUrl).toBeUndefined();
-    expect(stageConfig.executionDetailsUrl).toBeUndefined();
   });
 
   it('applies Docker bake defaults and removes empty string properties', () => {

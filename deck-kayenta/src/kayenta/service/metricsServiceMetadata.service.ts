@@ -1,9 +1,11 @@
-import { IMetricsServiceMetadata } from 'kayenta/domain/IMetricsServiceMetadata';
+import type { IMetricsServiceMetadata } from 'kayenta/domain/IMetricsServiceMetadata';
 
 import { REST } from '@spinnaker/core';
 
 export const listMetricsServiceMetadata = (
   filter?: string,
   metricsAccountName?: string,
-): PromiseLike<IMetricsServiceMetadata[]> =>
-  REST('/v2/canaries/metadata/metricsService').query({ filter, metricsAccountName }).get();
+): Promise<IMetricsServiceMetadata[]> =>
+  Promise.resolve(
+    REST('/v2/canaries/metadata/metricsService').query({ filter, metricsAccountName }).get<IMetricsServiceMetadata[]>(),
+  );

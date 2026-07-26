@@ -2,9 +2,6 @@
 
 import _ from 'lodash';
 
-export const GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE =
-  'spinnaker.serverGroup.customInstanceBuilder.gce.service';
-export const name = GOOGLE_INSTANCE_CUSTOM_CUSTOMINSTANCEBUILDER_GCE_SERVICE; // for backwards compatibility
 export class GceCustomInstanceBuilderService {
   vCpuCountForLocationIsValid(instanceFamily, vCpuCount, location, locationToInstanceTypesMap) {
     let max = 0;

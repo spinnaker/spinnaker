@@ -1,9 +1,10 @@
 import { get } from 'lodash';
-import { Action, combineReducers, Reducer } from 'redux';
+import type { Action, Reducer } from 'redux';
+import { combineReducers } from 'redux';
 import { combineActions, handleActions } from 'redux-actions';
 
 import * as Actions from '../actions';
-import { ICanaryMetricConfig, IGroupWeights } from '../domain/ICanaryConfig';
+import type { ICanaryMetricConfig, IGroupWeights } from '../domain/ICanaryConfig';
 
 export interface IGroupState {
   list: string[];

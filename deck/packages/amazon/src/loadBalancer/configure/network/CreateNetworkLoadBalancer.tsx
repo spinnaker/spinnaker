@@ -44,7 +44,7 @@ export class CreateNetworkLoadBalancerComponent extends React.Component<
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
   public static show(
@@ -90,7 +90,7 @@ export class CreateNetworkLoadBalancerComponent extends React.Component<
     return certificateId;
   }
 
-  private formatListeners(command: IAmazonNetworkLoadBalancerUpsertCommand): PromiseLike<void> {
+  private formatListeners(command: IAmazonNetworkLoadBalancerUpsertCommand): Promise<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         if (listener.protocol === 'TCP') {
@@ -157,11 +157,12 @@ export class CreateNetworkLoadBalancerComponent extends React.Component<
   }
 
   protected onApplicationRefresh(values: IAmazonNetworkLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
     if (this._isUnmounted) {
       return;
     }
 
-    this.refreshUnsubscribe = undefined;
     this.props.dismissModal();
     this.setState({ taskMonitor: undefined });
     const newStateParams = {
@@ -181,14 +182,15 @@ export class CreateNetworkLoadBalancerComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
   }
 
   private onTaskComplete(values: IAmazonNetworkLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(() => this.onApplicationRefresh(values));
     this.props.app.loadBalancers.refresh();
-    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
   private submit = (values: IAmazonNetworkLoadBalancerUpsertCommand): void => {
@@ -209,7 +211,7 @@ export class CreateNetworkLoadBalancerComponent extends React.Component<
       const taskMonitor = new TaskMonitor({
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 

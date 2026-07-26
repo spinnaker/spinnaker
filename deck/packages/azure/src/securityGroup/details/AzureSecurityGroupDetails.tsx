@@ -68,7 +68,7 @@ export class AzureSecurityGroupDetailsComponent extends React.Component<
         return;
       }
       this.loadSecurityGroup();
-      this.unsubscribeFromRefresh = dataSource.onRefresh(null, this.loadSecurityGroup);
+      this.unsubscribeFromRefresh = dataSource.onRefresh(this.loadSecurityGroup);
     });
   }
 

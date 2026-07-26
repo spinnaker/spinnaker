@@ -56,7 +56,7 @@ export class JsonUtils {
       }, {});
   }
 
-  private static makeSortedString(str: string): string {
+  private static sortJsonString(str: string): string {
     return this.makeSortedStringFromObject(JSON.parse(str));
   }
 
@@ -68,24 +68,15 @@ export class JsonUtils {
     return JSON.stringify(obj, null, space);
   }
 
-  public static makeSortedStringFromAngularObject(obj: any, omit: string[] = []): string {
-    const replacer = (key: string, value: string) => {
-      let val = value;
-      if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
-        val = undefined;
-      }
-      if (omit.includes(key)) {
-        val = undefined;
-      }
-      return val;
-    };
+  public static makeSortedString(obj: any, omit: string[] = []): string {
+    const replacer = (key: string, value: unknown) => (omit.includes(key) ? undefined : value);
     return JSON.stringify(this.sortObject(obj), replacer);
   }
 
   public static diff(left: any, right: any, sortKeys = false): IJsonDiff {
     if (sortKeys) {
-      left = this.makeSortedString(left);
-      right = this.makeSortedString(right);
+      left = this.sortJsonString(left);
+      right = this.sortJsonString(right);
     }
     const diffs = this.generateDiff(left, right);
     const diffLines: IDiffDetails[] = [];

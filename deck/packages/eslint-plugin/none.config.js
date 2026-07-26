@@ -19,7 +19,6 @@ module.exports = [
         ...globals.browser,
         ...globals.node,
         ...globals.jasmine,
-        angular: true,
         $: true,
         _: true,
       },
