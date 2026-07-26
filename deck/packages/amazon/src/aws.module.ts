@@ -33,6 +33,7 @@ import { registerAwsFindAmiStage } from './pipeline/stages/findAmi/awsFindAmiSta
 import { registerAwsFindImageFromTagsStage } from './pipeline/stages/findImageFromTags/awsFindImageFromTagsStage';
 import { registerLambdaInvokeStage } from './pipeline/stages/invokeLambda';
 import { registerAwsModifyScalingProcessStage } from './pipeline/stages/modifyScalingProcess/modifyScalingProcessStage';
+import { registerAwsModifyWarmPoolStage } from './pipeline/stages/modifyWarmPool/modifyWarmPoolStage';
 import { registerAwsResizeAsgStage } from './pipeline/stages/resizeAsg/awsResizeAsgStage';
 import { registerAwsRollbackClusterStage } from './pipeline/stages/rollbackCluster/awsRollbackClusterStage';
 import { registerLambdaRouteStage } from './pipeline/stages/routeLambda';
@@ -183,6 +184,7 @@ export function registerAmazonPipelineStages(): void {
   registerPipelineStageOnce('Aws.LambdaDeploymentStage', registerLambdaDeployStage, null);
   registerPipelineStageOnce('Aws.LambdaInvokeStage', registerLambdaInvokeStage, null);
   registerPipelineStageOnce('modifyAwsScalingProcess', registerAwsModifyScalingProcessStage);
+  registerPipelineStageOnce('modifyWarmPool', registerAwsModifyWarmPoolStage);
   registerPipelineStageOnce('resizeServerGroup', registerAwsResizeAsgStage);
   registerPipelineStageOnce('rollbackCluster', registerAwsRollbackClusterStage);
   registerPipelineStageOnce('Aws.LambdaUpdateCodeStage', registerLambdaUpdateStage, null);
