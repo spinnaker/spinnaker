@@ -132,10 +132,7 @@ export class GceUpsertAutoscalingPolicyModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: `${action} scaling policy for ${props.serverGroup.name}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal?.(),
-          () => props.dismissModal?.(),
-        ),
+        onDismiss: () => props.dismissModal?.(),
         onTaskComplete: () => {
           props.application.serverGroups?.refresh?.();
           props.closeModal?.();

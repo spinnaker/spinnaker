@@ -29,5 +29,3 @@ export function robotToHuman(input: string): string {
 export function robotToHumanFilter() {
   return robotToHuman;
 }
-
-export const ROBOT_TO_HUMAN_FILTER = 'spinnaker.core.presentation.robotToHuman.filter';

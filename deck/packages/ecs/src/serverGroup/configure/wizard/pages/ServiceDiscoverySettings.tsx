@@ -5,6 +5,6 @@ import { ServiceDiscovery } from '../serviceDiscovery/ServiceDiscovery';
 
 export const ServiceDiscoverySettings = ({ command, configureCommand, onFieldChange }: IEcsWizardPageProps) => (
   <div data-test-id="EcsServerGroupWizard.serviceDiscovery">
-    <ServiceDiscovery command={command} configureCommand={configureCommand} notifyAngular={onFieldChange} />
+    <ServiceDiscovery command={command} configureCommand={configureCommand} onFieldChange={onFieldChange} />
   </div>
 );

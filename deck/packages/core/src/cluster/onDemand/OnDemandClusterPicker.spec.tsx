@@ -37,7 +37,7 @@ class TestServerGroupsDataSource {
 
   constructor(public clusters: Array<{ account: string; name: string }> = []) {}
 
-  public onRefresh(_scope: unknown, callback: () => void): () => void {
+  public onRefresh(callback: () => void): () => void {
     this.callbacks.push(callback);
     return () => {
       this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);

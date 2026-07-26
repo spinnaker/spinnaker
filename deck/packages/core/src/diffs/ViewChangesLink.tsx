@@ -31,7 +31,7 @@ export const ViewChangesLink = ({ changeConfig, linkText, nameItem, viewType }: 
       return executionService.getExecution(changeConfigValue.executionId);
     }
     /** A noop promise so `useData` can be utilized */
-    return (Promise.resolve({}) as unknown) as PromiseLike<IExecution>;
+    return Promise.resolve({} as IExecution);
   };
 
   const { result: executionDetails, status } = useData(fetchExecution, {} as IExecution, [

@@ -5,7 +5,7 @@ import type { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalan
 import { GceHttpLoadBalancerUtils } from './httpLoadBalancerUtils.service';
 
 export class GceLoadBalancerSetTransformer {
-  private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils;
+  private readonly gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
 
   private static normalizeHttpLoadBalancerGroup(group: IGceHttpLoadBalancer[]): IGceHttpLoadBalancer {
     const normalized = cloneDeep(group[0]);
@@ -31,13 +31,6 @@ export class GceLoadBalancerSetTransformer {
     return portRange.split('-')[0];
   }
 
-  constructor(gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils | unknown = new GceHttpLoadBalancerUtils()) {
-    this.gceHttpLoadBalancerUtils =
-      typeof (gceHttpLoadBalancerUtils as GceHttpLoadBalancerUtils).isHttpLoadBalancer === 'function'
-        ? (gceHttpLoadBalancerUtils as GceHttpLoadBalancerUtils)
-        : new GceHttpLoadBalancerUtils();
-  }
-
   public normalizeLoadBalancerSet = (loadBalancers: IGceLoadBalancer[]): IGceLoadBalancer[] => {
     const [httpLoadBalancers, otherLoadBalancers] = partition(loadBalancers, (lb) =>
       this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb),
@@ -52,5 +45,3 @@ export class GceLoadBalancerSetTransformer {
     return (normalizedElSevenLoadBalancers as IGceLoadBalancer[]).concat(otherLoadBalancers);
   };
 }
-
-export const LOAD_BALANCER_SET_TRANSFORMER = 'spinnaker.gce.loadBalancer.setTransformer.service';

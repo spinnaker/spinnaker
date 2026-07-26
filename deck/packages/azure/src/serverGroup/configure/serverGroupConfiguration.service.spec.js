@@ -1,12 +1,14 @@
 'use strict';
 
+import { nativePromiseService } from '@spinnaker/core';
+
 import { AzureServerGroupConfigurationService } from './serverGroupConfiguration.service';
 
 describe('Service: azureServerGroupConfiguration', function () {
   var service;
 
   beforeEach(function () {
-    service = new AzureServerGroupConfigurationService(Promise, {
+    service = new AzureServerGroupConfigurationService(nativePromiseService, {
       cacheInitializer: {},
       loadBalancerReader: {},
       securityGroupReader: {},

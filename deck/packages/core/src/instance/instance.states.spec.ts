@@ -24,8 +24,6 @@ describe('instance states', () => {
         $type: 'react',
       }),
     );
-    expect(state.views['main@'].templateUrl).toBeUndefined();
-    expect(state.views['main@'].controllerProvider).toBeUndefined();
   });
 
   it('includes the provider in standalone instance route params', () => {
@@ -54,9 +52,6 @@ describe('instance states', () => {
     const view = state.views['detail@../insight'];
 
     expect(view).toEqual(jasmine.objectContaining({ component: MultipleInstancesDetails, $type: 'react' }));
-    expect(view.templateUrl).toBeUndefined();
-    expect(view.controller).toBeUndefined();
-    expect(view.controllerAs).toBeUndefined();
   });
 
   it('resolves a standalone instance during a direct transition', async () => {

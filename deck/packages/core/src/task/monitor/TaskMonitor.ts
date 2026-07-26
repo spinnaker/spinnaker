@@ -1,24 +1,17 @@
-import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { Subject } from 'rxjs';
 
 import type { Application } from '../../application/application.model';
 import type { ITask } from '../../domain';
 import { TaskReader } from '../task.read.service';
-import type { Deferred } from '../../utils/deferred';
-import { createDeferred } from '../../utils/deferred';
 
 export interface ITaskMonitorConfig {
   title: string;
   application?: Application;
-  modalInstance?: IModalServiceInstance;
+  onDismiss?: (reason?: unknown) => unknown;
   onTaskComplete?: () => any;
   onTaskRetry?: () => void;
   monitorInterval?: number;
   submitMethod?: () => PromiseLike<ITask>;
-}
-
-export interface IModalServiceInstanceEmulation<T = any> extends IModalServiceInstance {
-  deferred: Deferred<T>;
 }
 
 export class TaskMonitor {
@@ -29,51 +22,26 @@ export class TaskMonitor {
   public title: string;
   public application: Application;
   public submitMethod: (params?: any) => PromiseLike<ITask>;
-  public modalInstance: IModalServiceInstance;
   private closed = false;
   private monitorInterval: number;
+  private onDismiss: (reason?: unknown) => unknown;
   private onTaskComplete: () => any;
   private submissionGeneration = 0;
   public onTaskRetry: () => void;
   public statusUpdatedStream: Subject<void> = new Subject<void>();
 
-  /** Use this factory in React Modal classes to emulate an AngularJS UI-Bootstrap modalInstance */
-  public static modalInstanceEmulation<T = any>(
-    onClose: (result: T) => void,
-    onDismiss?: (result: T) => void,
-  ): IModalServiceInstanceEmulation<T> {
-    const deferred = createDeferred<T>();
-    // handle when modal was closed
-    deferred.promise.catch(() => {});
-    return ({
-      deferred,
-      result: deferred.promise,
-      close: (result: T) => {
-        deferred.resolve(result);
-        return onClose(result);
-      },
-      dismiss: (result: T) => {
-        deferred.reject(result);
-        return (onDismiss || onClose)(result);
-      },
-    } as unknown) as IModalServiceInstanceEmulation<T>;
-  }
-
   constructor(public config: ITaskMonitorConfig) {
     this.title = config.title;
     this.application = config.application;
-    this.modalInstance = config.modalInstance;
+    this.onDismiss = config.onDismiss;
     this.onTaskComplete = config.onTaskComplete;
     this.onTaskRetry = config.onTaskRetry;
     this.monitorInterval = config.monitorInterval || 1000;
     this.submitMethod = config.submitMethod;
+  }
 
-    if (this.modalInstance) {
-      this.modalInstance.result.then(
-        () => this.onModalClose(),
-        () => this.onModalClose(),
-      );
-    }
+  public hasDismissHandler(): boolean {
+    return Boolean(this.onDismiss);
   }
 
   public onModalClose(): void {
@@ -86,12 +54,12 @@ export class TaskMonitor {
   }
 
   public closeModal = (evt?: React.MouseEvent<any>): void => {
-    try {
-      evt && evt.stopPropagation();
-      this.modalInstance.dismiss();
-    } catch (ignored) {
-      // modal was already closed
+    evt?.stopPropagation();
+    if (this.closed) {
+      return;
     }
+    this.onModalClose();
+    this.onDismiss?.();
   };
 
   public startSubmit(): number {
@@ -172,7 +140,7 @@ export class TaskMonitor {
     if (!this.isActiveGeneration(generation)) {
       return;
     }
-    (submitMethod || this.submitMethod)()
+    Promise.resolve((submitMethod || this.submitMethod)())
       .then((task: ITask) => this.handleTaskSuccess(task, generation))
       .catch((task: ITask) => this.setError(task, generation));
   };
@@ -182,7 +150,7 @@ export class TaskMonitor {
     if (!this.isActiveGeneration(generation)) {
       return;
     }
-    this.submitMethod(params)
+    Promise.resolve(this.submitMethod(params))
       .then((task: ITask) => this.handleTaskSuccess(task, generation))
       .catch((task: ITask) => this.setError(task, generation));
   }

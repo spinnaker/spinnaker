@@ -57,11 +57,10 @@ export const ConsoleOutputModal = ({ dismissModal, instance, usesMultiOutput }: 
               {usesMultiOutput && !loading && Boolean(consoleOutput?.length) && (
                 <div>
                   {((consoleOutput as IInstanceMultiOutputLog[]) || []).map((log: IInstanceMultiOutputLog) => (
-                    <ul className="tabs-basic console-output-tabs">
+                    <ul key={log.name} className="tabs-basic console-output-tabs">
                       <li
                         className={`console-output-tab ${log?.name === selectedLog?.name ? 'selected' : ''}`}
                         onClick={() => setSelectedLog(log)}
-                        ng-repeat="log in vm.consoleOutput"
                       >
                         {log.name}
                       </li>

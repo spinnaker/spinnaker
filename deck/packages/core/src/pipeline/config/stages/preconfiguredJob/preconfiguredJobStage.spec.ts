@@ -27,7 +27,6 @@ describe('Preconfigured Job stage registration', () => {
         producesArtifacts: false,
       }),
     );
-    expect((stage as any).templateUrl).toBeUndefined();
     expect((stage as any).executionDetailsSections).toBeDefined();
   });
 

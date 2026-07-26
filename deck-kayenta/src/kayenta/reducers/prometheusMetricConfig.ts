@@ -1,10 +1,11 @@
 import * as Actions from 'kayenta/actions';
-import { IKayentaAction } from 'kayenta/actions/creators';
-import { ICanaryMetricConfig } from 'kayenta/domain';
-import { IUpdateListPayload, updateListReducer } from 'kayenta/layout/list';
-import { IPrometheusCanaryMetricSetQueryConfig } from 'kayenta/metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
+import type { IKayentaAction } from 'kayenta/actions/creators';
+import type { ICanaryMetricConfig } from 'kayenta/domain';
+import type { IUpdateListPayload } from 'kayenta/layout/list';
+import { updateListReducer } from 'kayenta/layout/list';
+import type { IPrometheusCanaryMetricSetQueryConfig } from 'kayenta/metricStore/prometheus/domain/IPrometheusCanaryMetricSetQueryConfig';
 import { omit } from 'lodash';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 import { handleActions } from 'redux-actions';
 
 const updateLabelBindingsReducer = updateListReducer();

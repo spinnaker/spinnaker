@@ -10,8 +10,6 @@ export interface IServerGroupManagerStateParams {
   name: string;
 }
 
-export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
-
 const serverGroupManagerDetails: INestedState = {
   name: 'serverGroupManager',
   url: '/serverGroupManagerDetails/:provider/:accountId/:region/:name',

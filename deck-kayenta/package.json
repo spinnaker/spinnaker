@@ -16,7 +16,8 @@
   },
   "scripts": {
     "build": "npm run clean && NODE_ENV=production rollup -c --bundleConfigAsCjs",
-    "test": "jest",
+    "test": "pnpm run build:test-dependencies && jest",
+    "build:test-dependencies": "pnpm --filter @spinnaker/presentation build && pnpm --filter @spinnaker/core build",
     "test:debug": "node --inspect-brk ./node_modules/.bin/jest --runInBand",
     "prepublishOnly": "npm run build",
     "format": "prettier --write 'src/**/*.{ts,tsx,less}'",
@@ -30,9 +31,6 @@
     "watch": "rollup -c -w --no-watch.clearScreen --bundleConfigAsCjs"
   },
   "dependencies": {
-    "@uirouter/core": "6.0.4",
-    "@uirouter/react": "1.0.2",
-    "@uirouter/react-hybrid": "1.0.2",
     "ansi_up": "^5.0.0",
     "bootstrap": "3.4.1",
     "brace": "0.11.1",
@@ -78,6 +76,11 @@
     "semiotic": "1.20.6",
     "spel2js": "^0.2.6"
   },
+  "peerDependencies": {
+    "@spinnaker/core": "workspace:^",
+    "@uirouter/core": "6.0.8",
+    "@uirouter/react": "1.0.7"
+  },
   "devDependencies": {
     "@apollo/client": "^3.3.15",
     "@babel/core": "^7.24.0",
@@ -91,11 +94,11 @@
     "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "@rollup/plugin-url": "^8.0.2",
-    "@spinnaker/core": "^2026.1.0",
-    "@spinnaker/eslint-plugin": "3.0.2",
-    "@spinnaker/pluginsdk": "^2026.1.0",
-    "@spinnaker/pluginsdk-peerdeps": "^2026.1.0",
-    "@spinnaker/presentation": "^2026.1.0",
+    "@spinnaker/core": "workspace:^",
+    "@spinnaker/eslint-plugin": "workspace:^",
+    "@spinnaker/pluginsdk": "workspace:^",
+    "@spinnaker/pluginsdk-peerdeps": "workspace:^",
+    "@spinnaker/presentation": "workspace:^",
     "@types/classnames": "^2.2.0",
     "@types/d3-array": "^2.0.0",
     "@types/d3-format": "^1.3.1",
@@ -121,6 +124,8 @@
     "@types/redux-test-utils": "^0.2.0",
     "@typescript-eslint/eslint-plugin": "4.4.0",
     "@typescript-eslint/parser": "4.4.0",
+    "@uirouter/core": "6.0.8",
+    "@uirouter/react": "1.0.7",
     "@uirouter/rx": "0.6.5",
     "bufferutil": "4.0.9",
     "cachefactory": "^3.0.0",

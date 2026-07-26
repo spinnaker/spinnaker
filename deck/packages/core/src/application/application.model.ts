@@ -1,4 +1,3 @@
-import type { IScope } from 'angular';
 import { map, union, uniq } from 'lodash';
 import type { Observable, Subscription } from 'rxjs';
 import { combineLatest as observableCombineLatest, ReplaySubject, Subject } from 'rxjs';
@@ -8,7 +7,7 @@ import type { ICluster } from '../domain/ICluster';
 import type { IDataSourceConfig, IFetchStatus } from './service/applicationDataSource';
 import { ApplicationDataSource } from './service/applicationDataSource';
 
-function allPromises<T>(promises: Array<PromiseLike<T>>): PromiseLike<T[]> {
+function allPromises<T>(promises: Array<PromiseLike<T>>): Promise<T[]> {
   return Promise.all(promises);
 }
 
@@ -167,10 +166,10 @@ export class Application {
    * Refreshes all dataSources for the application
    * @param forceRefresh if true, will trigger a refresh on all data sources, even if the data source is currently
    * loading
-   * @returns {PromiseLike<void>} a promise that resolves when the application finishes loading, rejecting with an error if
+   * @returns {Promise<void>} a promise that resolves when the application finishes loading, rejecting with an error if
    * one of the data sources fails to refresh
    */
-  public refresh(forceRefresh?: boolean): PromiseLike<any> {
+  public refresh(forceRefresh?: boolean): Promise<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter((ds) => !ds.visible).forEach((ds) => ds.refresh(forceRefresh));
     this.refreshListeners.forEach((cb) => cb());
@@ -183,24 +182,22 @@ export class Application {
   /**
    * A promise that resolves immediately if all data sources are ready (i.e. loaded), or once all data sources have
    * loaded
-   * @returns {PromiseLike<any>} the return value is a promise, but its value is
+   * @returns {Promise<any>} the return value is a promise, but its value is
    * not useful - it's only useful to watch the promise itself
    */
-  public ready(): PromiseLike<any> {
+  public ready(): Promise<any> {
     return allPromises(
       this.dataSources.filter((ds) => ds.onLoad !== undefined && ds.visible).map((dataSource) => dataSource.ready()),
     );
   }
 
   /**
-   * Used to subscribe to the application's refresh cycle. Will automatically be disposed when the $scope is destroyed.
-   * @param $scope the $scope that will manage the lifecycle of the subscription
-   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
+   * Used to subscribe to the application's refresh cycle.
    * @param method the method to call when the refresh completes
    * @param failureMethod a method to call if the refresh fails
    * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
+  public onRefresh(method: any, failureMethod?: any): () => void {
     const success: Subscription = this.refreshStream.subscribe(method);
     let failure: Subscription = null;
     if (failureMethod) {
@@ -212,16 +209,10 @@ export class Application {
         failure.unsubscribe();
       }
     };
-    if ($scope) {
-      $scope.$on('$destroy', () => unsubscribe());
-    }
     return unsubscribe;
   }
 
-  /**
-   * This is really only used by the ApplicationController - it manages the refresh cycle for the overall application
-   * and halts refresh when switching applications or navigating to a non-application view
-   */
+  /** Starts the overall application refresh cycle. */
   public enableAutoRefresh(): void {
     this.dataLoader = this.scheduler.subscribe(() => this.refresh());
   }

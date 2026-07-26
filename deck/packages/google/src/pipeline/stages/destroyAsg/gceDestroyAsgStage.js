@@ -2,8 +2,6 @@ import { Registry } from '@spinnaker/core';
 
 import { GceTargetServerGroupStageConfig } from '../googleStageConfig';
 
-export const GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE = 'spinnaker.gce.pipeline.stage..destroyAsgStage';
-export const name = GOOGLE_PIPELINE_STAGES_DESTROYASG_GCEDESTROYASGSTAGE;
 export function registerGceDestroyAsgStage() {
   Registry.pipeline.registerStage({
     provides: 'destroyServerGroup',

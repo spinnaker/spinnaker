@@ -1,23 +1,23 @@
 import type { StateService } from '@uirouter/core';
-import type { ITimeoutService } from 'angular';
-import { noop } from 'angular';
 
 import { mockHttpClient } from '../../api/mock/jasmine';
 import type { Application } from '../../application';
 import type { IExecution } from '../../domain';
 import { ExecutionService } from './execution.service';
 import * as State from '../../state';
-import { nativePromiseService } from '../../utils/nativePromiseService';
+import type { CancellableTimeout, CancellableTimeoutPromise } from '../../utils/cancellableTimeout';
 
-type ControlledTimeout = ITimeoutService & { flush: () => void };
+const noop = (): void => undefined;
+
+type ControlledTimeout = CancellableTimeout & { flush: () => void };
 
 function createControlledTimeout(): ControlledTimeout {
-  const pending: Array<{ promise: PromiseLike<unknown>; run: () => void }> = [];
+  const pending: Array<{ promise: CancellableTimeoutPromise<unknown>; run: () => void }> = [];
   const timeout = (<T>(callback: () => T | PromiseLike<T>) => {
     let run: () => void;
     const promise = new Promise<T>((resolve, reject) => {
       run = () => Promise.resolve().then(callback).then(resolve, reject);
-    });
+    }) as CancellableTimeoutPromise<T>;
     pending.push({ promise, run });
     return promise;
   }) as ControlledTimeout;
@@ -36,6 +36,7 @@ function createControlledTimeout(): ControlledTimeout {
     }
     pending.splice(0).forEach(({ run }) => run());
   };
+  timeout.dispose = () => pending.splice(0);
 
   return timeout;
 }
@@ -46,7 +47,7 @@ describe('Service: executionService', () => {
 
   beforeEach(() => {
     timeout = createControlledTimeout();
-    executionService = new ExecutionService(nativePromiseService, {} as StateService, timeout);
+    executionService = new ExecutionService({} as StateService, timeout);
     State.initialize();
     State.ExecutionState.filterModel.asFilterModel.sortFilter.count = 3;
   });

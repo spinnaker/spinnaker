@@ -87,7 +87,7 @@ export class CloudFoundryResizeServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Resizing your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
     };

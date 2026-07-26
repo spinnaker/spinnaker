@@ -4,8 +4,6 @@ import { SETTINGS } from '../../config/settings';
 import { registerRootState } from '../../navigation/rootState.registration';
 import type { StateConfigProvider } from '../../navigation/state.provider';
 
-export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
-
 function registerSearchStates(stateConfigProvider: StateConfigProvider): void {
   stateConfigProvider.addToRootState({
     name: 'search',

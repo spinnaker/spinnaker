@@ -12,8 +12,8 @@ import type {
 
 export interface IServiceDiscoveryProps {
   command: IEcsServerGroupCommand;
-  notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => PromiseLike<void>;
+  onFieldChange: (key: string, value: any) => void;
+  configureCommand: (query: string) => Promise<void>;
 }
 
 export interface IEcsServiceDiscoveryRegistry {
@@ -71,7 +71,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     );
     if (!isEqual(currentAssociations, serviceDiscoveryAssociations)) {
       cmd.serviceDiscoveryAssociations = serviceDiscoveryAssociations;
-      this.props.notifyAngular('serviceDiscoveryAssociations', serviceDiscoveryAssociations);
+      this.props.onFieldChange('serviceDiscoveryAssociations', serviceDiscoveryAssociations);
     }
     const nextState: IServiceDiscoveryState = {
       serviceDiscoveryAssociations,
@@ -139,7 +139,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     const currentAssociations = this.state.serviceDiscoveryAssociations;
     const targetAssociation = currentAssociations[index];
     targetAssociation.registry = newServiceDiscoveryRegistry;
-    this.props.notifyAngular('serviceDiscoveryAssociations', currentAssociations);
+    this.props.onFieldChange('serviceDiscoveryAssociations', currentAssociations);
     this.setState({ serviceDiscoveryAssociations: currentAssociations });
   };
 
@@ -147,7 +147,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     const currentAssociations = this.state.serviceDiscoveryAssociations;
     const targetAssociations = currentAssociations[index];
     targetAssociations.containerPort = targetPort;
-    this.props.notifyAngular('serviceDiscoveryAssociations', currentAssociations);
+    this.props.onFieldChange('serviceDiscoveryAssociations', currentAssociations);
     this.setState({ serviceDiscoveryAssociations: currentAssociations });
   };
 
@@ -155,7 +155,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
     const currentAssociations = this.state.serviceDiscoveryAssociations;
     const targetAssociations = currentAssociations[index];
     targetAssociations.containerName = targetContainerName;
-    this.props.notifyAngular('serviceDiscoveryAssociations', currentAssociations);
+    this.props.onFieldChange('serviceDiscoveryAssociations', currentAssociations);
     this.setState({ serviceDiscoveryAssociations: currentAssociations });
   };
 
@@ -168,7 +168,7 @@ export class ServiceDiscovery extends React.Component<IServiceDiscoveryProps, IS
   private removeServiceDiscoveryAssociations = (index: number) => {
     const currentAssociations = this.state.serviceDiscoveryAssociations;
     currentAssociations.splice(index, 1);
-    this.props.notifyAngular('serviceDiscoveryAssociations', currentAssociations);
+    this.props.onFieldChange('serviceDiscoveryAssociations', currentAssociations);
     this.setState({ serviceDiscoveryAssociations: currentAssociations });
   };
 

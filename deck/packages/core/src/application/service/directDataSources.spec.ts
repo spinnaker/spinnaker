@@ -1,5 +1,3 @@
-import type { IRootScopeService } from 'angular';
-import { mock } from 'angular';
 import { UIRouterReact } from '@uirouter/react';
 
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
@@ -29,42 +27,39 @@ import { createDeckRuntime } from '../../bootstrap/DeckRuntime';
 const testRuntime = createDeckRuntime(new UIRouterReact());
 const loadBalancerDataSource = {
   ...loadBalancerDataSourceImpl,
-  registerLoadBalancerDataSource: ($q = testRuntime.promiseService, reader = testRuntime.services.loadBalancerReader) =>
-    loadBalancerDataSourceImpl.registerLoadBalancerDataSource($q, reader),
+  registerLoadBalancerDataSource: (
+    promiseService = testRuntime.promiseService,
+    reader = testRuntime.services.loadBalancerReader,
+  ) => loadBalancerDataSourceImpl.registerLoadBalancerDataSource(promiseService, reader),
 };
 const securityGroupDataSource = {
   ...securityGroupDataSourceImpl,
-  registerSecurityGroupDataSource: (
-    $q = testRuntime.promiseService,
-    reader = testRuntime.services.securityGroupReader,
-  ) => securityGroupDataSourceImpl.registerSecurityGroupDataSource($q, reader),
+  registerSecurityGroupDataSource: (reader = testRuntime.services.securityGroupReader) =>
+    securityGroupDataSourceImpl.registerSecurityGroupDataSource(reader),
 };
 const serverGroupDataSource = {
   ...serverGroupDataSourceImpl,
-  registerServerGroupDataSource: ($q = testRuntime.promiseService, service = testRuntime.services.clusterService) =>
-    serverGroupDataSourceImpl.registerServerGroupDataSource($q, service),
+  registerServerGroupDataSource: (service = testRuntime.services.clusterService) =>
+    serverGroupDataSourceImpl.registerServerGroupDataSource(service),
 };
 
 function registerFunctionDataSource(): void {
-  registerFunctionDataSourceImpl(
-    createDirectFunctionReader(testRuntime.services.providerServiceDelegate),
-    <T>(value: T | PromiseLike<T>) => testRuntime.promiseService.when(value),
-  );
+  registerFunctionDataSourceImpl(createDirectFunctionReader(testRuntime.services.providerServiceDelegate));
 }
 
 function registerTaskDataSources(
-  $q = testRuntime.promiseService,
+  promiseService = testRuntime.promiseService,
   clusterService = testRuntime.services.clusterService,
 ) {
-  return registerTaskDataSourcesImpl($q, clusterService);
+  return registerTaskDataSourcesImpl(promiseService, clusterService);
 }
 
 function registerPipelineDataSources(
-  $q = testRuntime.promiseService,
+  promiseService = testRuntime.promiseService,
   executionService = testRuntime.services.executionService,
   clusterService = testRuntime.services.clusterService,
 ) {
-  return registerPipelineDataSourcesImpl($q, executionService, clusterService);
+  return registerPipelineDataSourcesImpl(promiseService, executionService, clusterService);
 }
 
 function getDataSourcesByKey(key: string): any[] {
@@ -73,19 +68,9 @@ function getDataSourcesByKey(key: string): any[] {
 
 describe('direct application data source registration', () => {
   const originalFeatureSettings = SETTINGS.feature;
-  let $rootScope: IRootScopeService;
 
-  beforeEach(
-    mock.inject((_$rootScope_: IRootScopeService) => {
-      $rootScope = _$rootScope_;
-    }),
-  );
-
-  async function flushPromise<T>(promise: PromiseLike<T>): Promise<T> {
-    const nativePromise = Promise.resolve(promise);
-    await Promise.resolve();
-    $rootScope.$digest();
-    return nativePromise;
+  function flushPromise<T>(promise: PromiseLike<T>): Promise<T> {
+    return Promise.resolve(promise);
   }
 
   beforeEach(() => {
@@ -105,13 +90,13 @@ describe('direct application data source registration', () => {
     SETTINGS.feature = originalFeatureSettings;
   });
 
-  it('registers application config without Angular module execution', () => {
+  it('registers application config', () => {
     registerApplicationConfigDataSource();
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual(['config']);
   });
 
-  it('registers server group manager without Angular module execution', () => {
+  it('registers server group manager directly', () => {
     registerServerGroupManagerDataSource();
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual([
@@ -119,7 +104,7 @@ describe('direct application data source registration', () => {
     ]);
   });
 
-  it('registers managed resources when enabled without Angular module execution', () => {
+  it('registers managed resources when enabled', () => {
     registerManagedResourcesDataSources();
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual([
@@ -136,7 +121,7 @@ describe('direct application data source registration', () => {
     expect(ApplicationDataSourceRegistry.getDataSources()).toEqual([]);
   });
 
-  it('registers CI data sources when enabled without Angular module execution', () => {
+  it('registers CI data sources when enabled', () => {
     registerCiDataSources();
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual([
@@ -155,7 +140,7 @@ describe('direct application data source registration', () => {
     expect(ApplicationDataSourceRegistry.getDataSources()).toEqual([]);
   });
 
-  it('registers functions once without Angular module execution', () => {
+  it('registers functions once directly', () => {
     SETTINGS.feature = { ...SETTINGS.feature, functions: true };
 
     registerFunctionDataSource();
@@ -241,7 +226,7 @@ describe('direct application data source registration', () => {
     expect(functions.map(({ normalizedBy }) => normalizedBy)).toEqual(['transformer-1', 'transformer-1']);
   });
 
-  it('registers entity tags once without Angular module execution', () => {
+  it('registers entity tags once', () => {
     SETTINGS.feature = { ...SETTINGS.feature, entityTags: true };
 
     registerEntityTagsDataSource();
@@ -261,7 +246,7 @@ describe('direct application data source registration', () => {
     expect(ApplicationDataSourceRegistry.getDataSources()).toEqual([]);
   });
 
-  it('registers tasks without Angular module execution', () => {
+  it('registers tasks directly', () => {
     registerTaskDataSources(undefined, { addTasksToServerGroups: jasmine.createSpy('addTasksToServerGroups') });
 
     expect(ApplicationDataSourceRegistry.getDataSources().map((dataSource) => dataSource.key)).toEqual([
@@ -322,7 +307,7 @@ describe('direct application data source registration', () => {
     expect(dataSources.find(({ key }) => key === 'pipelineConfigs')).toEqual(existingPipelineConfigs);
   });
 
-  it('resolves ready and refresh without Angular $q injection', async () => {
+  it('resolves ready and refresh with the runtime promise service', async () => {
     const dataSource = new ApplicationDataSource({ key: 'example', defaultData: [] }, {} as any);
 
     await flushPromise(dataSource.refresh());
@@ -371,7 +356,7 @@ describe('direct application data source registration', () => {
     }
   });
 
-  it('refreshes an application without Angular $q injection', async () => {
+  it('refreshes an application with the runtime promise service', async () => {
     const application = new Application('example', {} as any, [{ key: 'example', defaultData: [] }]);
 
     await flushPromise(application.refresh());
@@ -428,7 +413,7 @@ describe('direct application data source registration', () => {
 
   it('notifies executions subscribers when running executions are merged', async () => {
     const runningExecution = { id: 'running', status: 'RUNNING', isActive: true, stringVal: 'running' };
-    const executionService = new ExecutionService(null);
+    const executionService = new ExecutionService(null, null);
     spyOn(executionService, 'getExecutions').and.returnValue(Promise.resolve([]));
     spyOn(executionService, 'getRunningExecutions').and.returnValue(Promise.resolve([runningExecution]));
     spyOn(executionService, 'transformExecutions').and.callFake(() => undefined);
@@ -443,7 +428,7 @@ describe('direct application data source registration', () => {
 
     application.executions.activate();
     await flushPromise(application.executions.ready());
-    application.executions.onRefresh(null, (executions: any[]) => refreshedExecutions.push(executions));
+    application.executions.onRefresh((executions: any[]) => refreshedExecutions.push(executions));
 
     application.runningExecutions.activate();
     await flushPromise(application.runningExecutions.ready());
@@ -465,15 +450,15 @@ describe('load balancer direct registration', () => {
     const directReader = {
       loadLoadBalancers: jasmine.createSpy('directLoadLoadBalancers').and.returnValue(directLoadResult),
     };
-    const whenResult = {} as PromiseLike<any>;
-    const directQ = { when: jasmine.createSpy('directWhen').and.returnValue(whenResult) } as any;
-    loadBalancerDataSource.registerLoadBalancerDataSource(directQ, directReader as any);
-    loadBalancerDataSource.registerLoadBalancerDataSource(directQ, directReader as any);
+    const resolveResult = {} as PromiseLike<any>;
+    const promiseService = { resolve: jasmine.createSpy('resolve').and.returnValue(resolveResult) } as any;
+    loadBalancerDataSource.registerLoadBalancerDataSource(promiseService, directReader as any);
+    loadBalancerDataSource.registerLoadBalancerDataSource(promiseService, directReader as any);
 
     const dataSources = getDataSourcesByKey('loadBalancers');
     expect(dataSources.length).toBe(1);
     expect(dataSources[0].loader({ name: 'app' } as Application)).toBe(directLoadResult);
-    expect(dataSources[0].onLoad({ name: 'app' } as Application, [])).toBe(whenResult);
+    expect(dataSources[0].onLoad({ name: 'app' } as Application, [])).toBe(resolveResult);
     expect(directReader.loadLoadBalancers).toHaveBeenCalledWith('app');
   });
 });
@@ -486,14 +471,13 @@ describe('security group direct registration', () => {
   afterEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
   it('registers one data source across repeated direct calls using direct defaults', () => {
-    const directQ = {} as ng.IQService;
     const directReader = {
       loadSecurityGroupsByApplicationName: jasmine.createSpy('directLoadSecurityGroups'),
       getApplicationSecurityGroups: jasmine.createSpy('directGetApplicationSecurityGroups'),
     } as any;
 
-    securityGroupDataSource.registerSecurityGroupDataSource(directQ, directReader);
-    securityGroupDataSource.registerSecurityGroupDataSource(directQ, directReader);
+    securityGroupDataSource.registerSecurityGroupDataSource(directReader);
+    securityGroupDataSource.registerSecurityGroupDataSource(directReader);
 
     expect(getDataSourcesByKey('securityGroups')).toEqual([
       jasmine.objectContaining({

@@ -1,4 +1,4 @@
-import { SecurityGroupWriter, TaskMonitor } from '@spinnaker/core';
+import { SecurityGroupWriter } from '@spinnaker/core';
 import { shallow } from 'enzyme';
 import React from 'react';
 
@@ -35,10 +35,6 @@ describe('AmazonSecurityGroupModal', () => {
   }
 
   function buildModal(securityGroup: any, mode = 'edit'): any {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: () => null,
-      result: Promise.resolve(),
-    } as any);
     const modal = new AmazonSecurityGroupModal({
       app: { name: 'fnord' },
       closeModal: jasmine.createSpy('closeModal'),

@@ -6,11 +6,10 @@ const KUBERNETS_RAW_RESOURCE_DATA_SOURCE_SREF = `.insight.${KUBERNETS_RAW_RESOUR
 
 type ApiK8sResource = any;
 
-const fetchK8sResources = (application: Application): PromiseLike<ApiK8sResource> =>
+const fetchK8sResources = (application: Application): Promise<ApiK8sResource> =>
   REST('applications').path(application.name, 'rawResources').get();
 
-const formatK8sResources = (_: Application, result: ApiK8sResource): PromiseLike<ApiK8sResource> =>
-  Promise.resolve(result);
+const formatK8sResources = (_: Application, result: ApiK8sResource): Promise<ApiK8sResource> => Promise.resolve(result);
 
 export function registerKubernetesRawResourceDataSource(): void {
   ApplicationDataSourceRegistry.removeDataSource(KUBERNETS_RAW_RESOURCE_DATA_SOURCE_KEY);

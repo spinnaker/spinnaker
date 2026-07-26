@@ -1,4 +1,4 @@
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import type { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 import { get } from 'lodash';
 
 import PrometheusMetricConfigurer from './metricConfigurer';

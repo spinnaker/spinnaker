@@ -54,7 +54,7 @@ const getScopeLocations = (scopes: ICanaryScopesByName, metrics: ICanaryMetricCo
     return acc;
   }, new Set<string>());
 
-const baseColumns: Array<ITableColumn<ICanaryExecutionStatusResult>> = [
+const baseColumns: ITableColumn<ICanaryExecutionStatusResult>[] = [
   {
     label: 'Summary',
     getContent: (execution) => (

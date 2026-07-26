@@ -323,7 +323,7 @@ export class ExecutionComponent extends React.PureComponent<
   private scrollIntoView = (forceScroll = false) => {
     const element = this.wrapperRef.current;
     const { scrollIntoView, execution } = this.props;
-    // use a timeout to let Angular render the execution details before scrolling it into view
+    // Wait for the execution details to render before scrolling them into view.
     (scrollIntoView || forceScroll) &&
       element &&
       execution.hydrated &&

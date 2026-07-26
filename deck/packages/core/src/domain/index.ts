@@ -12,8 +12,6 @@ export * from './ICloudMetric';
 export * from './ICluster';
 export * from './ICredentials';
 
-export * from './IDeckRootScope';
-
 export * from './IEntityTags';
 export * from './IExecution';
 export * from './IExecutionStage';

@@ -6,7 +6,6 @@ export const titusDisableClusterStage = {
   provides: 'disableCluster',
   cloudProvider: 'titus',
   component: TitusDisableClusterStageConfig,
-  executionConfigSections: ['disableClusterConfig', 'taskStatus'],
   validators: [
     { type: 'requiredField', fieldName: 'cluster' },
     { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups' },

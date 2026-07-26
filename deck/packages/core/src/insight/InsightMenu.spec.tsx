@@ -1,5 +1,3 @@
-import { mock } from 'angular';
-import type { IModalService } from 'angular-ui-bootstrap';
 import type { ReactWrapper } from 'enzyme';
 import { mount } from 'enzyme';
 import React from 'react';
@@ -9,21 +7,11 @@ import type { IInsightMenuProps, IInsightMenuState } from './InsightMenu';
 import { InsightMenuComponent } from './InsightMenu';
 import { CreateApplicationModal } from '../application/modal/CreateApplicationModal';
 import type { CacheInitializerService } from '../cache/cacheInitializer.service';
-import { OverrideRegistry } from '../overrideRegistry/override.registry';
 
 describe('<InsightMenu />', () => {
   let component: ReactWrapper<IInsightMenuProps, IInsightMenuState>;
   let go: jasmine.Spy;
 
-  beforeEach(() => {
-    mock.module(($provide: any) => {
-      $provide.value('$state', {});
-      $provide.value('$uibModal', {} as IModalService);
-      $provide.value('overrideRegistry', new OverrideRegistry());
-      $provide.value('cacheInitializer', {} as CacheInitializerService);
-    });
-  });
-  beforeEach(mock.inject());
   beforeEach(() => (go = jasmine.createSpy('go')));
 
   function getNewMenu(params: object): ReactWrapper<IInsightMenuProps, any> {
