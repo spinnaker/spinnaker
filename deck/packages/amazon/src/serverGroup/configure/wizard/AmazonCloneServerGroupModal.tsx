@@ -58,7 +58,7 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
 
   public static show(
     props: IAmazonCloneServerGroupModalProps,
@@ -79,7 +79,7 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -104,11 +104,13 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
   };
 
   private onTaskComplete = () => {
+    this.clearRefreshSubscription();
+    this.refreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   protected onApplicationRefresh = (): void => {
+    this.clearRefreshSubscription();
     if (this._isUnmounted) {
       return;
     }
@@ -172,10 +174,13 @@ export class AmazonCloneServerGroupModalComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.clearRefreshSubscription();
   }
+
+  private clearRefreshSubscription = (): void => {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+  };
 
   private submit = (command: IAmazonServerGroupCommand): void => {
     this.normalizeCommand(command);

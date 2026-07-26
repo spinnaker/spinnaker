@@ -1,8 +1,3 @@
-///<reference path="./angular-messages.d.ts" />
-///<reference path="./angular-sanitize.d.ts" />
-///<reference path="./angular-spinner.d.ts" />
-///<reference path="./ui-select.d.ts" />
-
 export * from './RenderWhenVisible';
 export * from './clipboard/CopyToClipboard';
 export * from './debug';

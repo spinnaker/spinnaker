@@ -1,4 +1,4 @@
-import type { StateParams } from '@uirouter/angularjs';
+import type { RawParams } from '@uirouter/core';
 
 import type { Application, ApplicationStateProvider } from '../application';
 import { registerApplicationState } from '../application';
@@ -22,7 +22,7 @@ export function getStandaloneInstanceState(): INestedState {
     resolve: {
       instance: [
         '$stateParams',
-        ($stateParams: StateParams) => {
+        ($stateParams: RawParams) => {
           return {
             instanceId: $stateParams.instanceId,
             account: $stateParams.account,
@@ -89,7 +89,7 @@ registerApplicationState((applicationStateProvider: ApplicationStateProvider) =>
       },
       instance: [
         '$stateParams',
-        ($stateParams: StateParams) => {
+        ($stateParams: RawParams) => {
           return {
             instanceId: $stateParams.instanceId,
           };

@@ -21,7 +21,7 @@ export class ProviderSelectionService {
     application: Application,
     feature: string,
     filterFn?: IProviderSelectionFilter,
-  ): PromiseLike<string> {
+  ): Promise<string> {
     return AccountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
       let reducedAccounts: IAccountDetails[] = [];
       if (feature) {
@@ -71,7 +71,7 @@ export class ProviderSelectionService {
     });
   }
 
-  public static isDisabled(app: Application): PromiseLike<boolean> {
+  public static isDisabled(app: Application): Promise<boolean> {
     return AccountService.applicationAccounts(app).then((accounts: IAccountDetails[]) => {
       let isDisable = false;
       const cloudProvidersEnabled = accounts.filter((a) => {

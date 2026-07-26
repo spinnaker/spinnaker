@@ -1,12 +1,13 @@
 import classNames from 'classnames';
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import type { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
 import { Table } from 'kayenta/layout/table';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
+import type { Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 
-import { MetricClassificationLabel } from '../../domain';
+import type { MetricClassificationLabel } from '../../domain';
 import MetricFilters from './metricResultsClassificationFilters';
 import { metricResultsColumns } from './metricResultsColumns';
 import MultipleResultsTable from './multipleResultsTable';

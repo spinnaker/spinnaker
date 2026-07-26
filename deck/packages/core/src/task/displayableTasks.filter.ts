@@ -13,5 +13,3 @@ export function displayableTasks(input: ITaskStep[]): ITaskStep[] {
 export function displayableTaskFilter() {
   return displayableTasks;
 }
-
-export const DISPLAYABLE_TASKS_FILTER = 'spinnaker.pipelines.stages.common.displayableTasks.filter';

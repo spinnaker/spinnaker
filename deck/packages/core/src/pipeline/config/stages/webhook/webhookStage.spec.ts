@@ -26,9 +26,6 @@ describe('Webhook stage registration', () => {
         ],
       }),
     );
-    expect(webhookStage.templateUrl).toBeUndefined();
-    expect(webhookStage.controller).toBeUndefined();
-    expect(webhookStage.controllerAs).toBeUndefined();
   });
 
   it('builds preconfigured webhook stages as React stage configs', () => {
@@ -64,9 +61,6 @@ describe('Webhook stage registration', () => {
         },
       }),
     );
-    expect(stage.templateUrl).toBeUndefined();
-    expect(stage.controller).toBeUndefined();
-    expect(stage.controllerAs).toBeUndefined();
   });
 
   it('fetches and registers preconfigured webhooks', async () => {

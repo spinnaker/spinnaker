@@ -1,11 +1,14 @@
-import type { IQService } from 'angular';
+export interface PromiseService {
+  all<T extends readonly unknown[]>(values: T): Promise<{ -readonly [K in keyof T]: Awaited<T[K]> }>;
+  all<T extends Record<string, unknown>>(values: T): Promise<{ [K in keyof T]: Awaited<T[K]> }>;
+  reject<T = never>(reason?: unknown): Promise<T>;
+  resolve<T = void>(value?: T | PromiseLike<T>): Promise<Awaited<T>>;
+}
 
-import { createDeferred } from './deferred';
-
-function all<T>(values: Array<T | PromiseLike<T>>): Promise<T[]>;
+function all<T extends readonly unknown[]>(values: T): Promise<{ -readonly [K in keyof T]: Awaited<T[K]> }>;
 function all<T extends Record<string, unknown>>(values: T): Promise<{ [K in keyof T]: Awaited<T[K]> }>;
 function all(
-  values: Array<unknown | PromiseLike<unknown>> | Record<string, unknown>,
+  values: ReadonlyArray<unknown | PromiseLike<unknown>> | Record<string, unknown>,
 ): Promise<unknown[] | Record<string, unknown>> {
   if (Array.isArray(values)) {
     return Promise.all(values);
@@ -17,18 +20,12 @@ function all(
   );
 }
 
-export function createNativePromiseService(): IQService {
-  return Object.assign(
-    ((<T>(resolver: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: unknown) => void) => void) =>
-      new Promise<T>(resolver)) as unknown) as IQService,
-    {
-      defer: <T>() => ({ ...createDeferred<T>(), notify: (): void => undefined }),
-      all,
-      reject: (reason?: unknown) => Promise.reject(reason),
-      resolve: (value?: unknown) => Promise.resolve(value),
-      when: (value: unknown) => Promise.resolve(value),
-    },
-  ) as IQService;
+export function createNativePromiseService(): PromiseService {
+  return {
+    all,
+    reject: <T = never>(reason?: unknown) => Promise.reject<T>(reason),
+    resolve: <T = void>(value?: T | PromiseLike<T>) => Promise.resolve(value) as Promise<Awaited<T>>,
+  };
 }
 
 export const nativePromiseService = createNativePromiseService();

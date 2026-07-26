@@ -2,7 +2,7 @@ import { mount, shallow } from 'enzyme';
 import React from 'react';
 import { MenuItem } from 'react-bootstrap';
 
-import { ConfirmationModalService, DeckRuntimeContext, ServerGroupNamePreview, TaskMonitor } from '@spinnaker/core';
+import { ConfirmationModalService, DeckRuntimeContext, ServerGroupNamePreview } from '@spinnaker/core';
 
 import { ServerGroupBasicSettingsComponent } from './configure/wizard/BasicSettings';
 import { ServerGroupWizardComponent } from './configure/wizard/serverGroupWizard';
@@ -82,7 +82,6 @@ describe('Cloud Run server group router consumers', () => {
   });
 
   it('opens a newly created server group through the injected state service', () => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
     const go = jasmine.createSpy('go');
     const component = new ServerGroupWizardComponent({
       application: { serverGroups: {} },
@@ -112,5 +111,42 @@ describe('Cloud Run server group router consumers', () => {
       region: 'us',
       serverGroup: 'app-v001',
     });
+  });
+
+  it('owns the server group refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const go = jasmine.createSpy('go');
+    const component = new ServerGroupWizardComponent({
+      application: { serverGroups: { onNextRefresh, refresh } },
+      closeModal: jasmine.createSpy('closeModal'),
+      command: { command: { credentials: 'test', region: 'us', viewState: { submitButtonLabel: 'Create' } } },
+      dismissModal: jasmine.createSpy('dismissModal'),
+      router: {},
+      stateParams: {},
+      stateService: { go, includes: () => false },
+      title: 'Create server group',
+    } as any) as any;
+
+    component.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    component.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    component.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(component.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(go).not.toHaveBeenCalled();
   });
 });

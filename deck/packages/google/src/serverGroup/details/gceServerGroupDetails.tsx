@@ -115,9 +115,8 @@ export function cloneGceServerGroup(
   serverGroup: any,
   commandBuilder: any,
   runtimeServices: ReturnType<typeof useDeckRuntimeServices>,
-): PromiseLike<void> {
-  return commandBuilder
-    .buildServerGroupCommandFromExisting(app, serverGroup)
+): Promise<void> {
+  return Promise.resolve(commandBuilder.buildServerGroupCommandFromExisting(app, serverGroup))
     .then((command: any) => {
       GceCloneServerGroupModal.show({ application: app, command, title: `Clone ${serverGroup.name}` }, runtimeServices);
     })

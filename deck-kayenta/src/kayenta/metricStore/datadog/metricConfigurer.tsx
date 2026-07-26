@@ -1,13 +1,13 @@
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryMetricConfig } from 'kayenta/domain';
+import type { ICanaryMetricConfig } from 'kayenta/domain';
 import FormRow from 'kayenta/layout/formRow';
 import RadioChoice from 'kayenta/layout/radioChoice';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Option } from 'react-select';
-import { Action } from 'redux';
+import type { Option } from 'react-select';
+import type { Action } from 'redux';
 
 import DatadogMetricTypeSelector from './metricTypeSelector';
 

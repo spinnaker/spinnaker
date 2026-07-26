@@ -1,7 +1,7 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 
-import { LoadBalancerWriter } from '@spinnaker/core';
+import { LoadBalancerWriter, TaskMonitorWrapper } from '@spinnaker/core';
 
 import { GceProxyLoadBalancerEditor } from './GceProxyLoadBalancerEditor';
 import {
@@ -248,6 +248,52 @@ describe('GceProxyLoadBalancerModal', () => {
 
     expect(wrapper.find(GceProxyLoadBalancerEditor).prop('command').mode).toBe('edit');
     expect(wrapper.find(GceProxyLoadBalancerEditor).prop('disabled')).toBe(true);
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const closeModal = jasmine.createSpy('closeModal');
+    const pending = new Promise<any[]>(() => undefined);
+    const readers = {
+      accounts: () => pending,
+      addresses: () => pending,
+      backendServices: () => pending,
+      certificates: () => pending,
+      healthChecks: () => pending,
+      networks: () => pending,
+      regions: () => pending,
+      subnets: () => pending,
+    };
+    const wrapper = mount(
+      <GceProxyLoadBalancerModal
+        application={{ loadBalancers: { onNextRefresh, refresh }, name: 'app' } as any}
+        closeModal={closeModal}
+        loadBalancerType="TCP"
+        readers={readers}
+      />,
+    );
+    const taskMonitor = wrapper.find(TaskMonitorWrapper).prop('monitor');
+
+    taskMonitor.config.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    taskMonitor.config.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    wrapper.unmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(closeModal).not.toHaveBeenCalled();
   });
 });
 

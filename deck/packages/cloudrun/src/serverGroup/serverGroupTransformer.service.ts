@@ -3,7 +3,7 @@ import type { IServerGroup } from '@spinnaker/core';
 import type { ICloudrunServerGroupCommand } from '../serverGroup/configure/serverGroupCommandBuilder.service';
 
 export class CloudrunV2ServerGroupTransformer {
-  public normalizeServerGroup(serverGroup: IServerGroup): PromiseLike<IServerGroup> {
+  public normalizeServerGroup(serverGroup: IServerGroup): Promise<IServerGroup> {
     return Promise.resolve(serverGroup);
   }
 

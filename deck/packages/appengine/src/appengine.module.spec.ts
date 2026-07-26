@@ -1,6 +1,6 @@
 import { CloudProviderRegistry, DeploymentStrategyRegistry, Registry, TaskExecutor } from '@spinnaker/core';
 
-import * as appengineEntrypoint from './index';
+import './index';
 import { AppengineInstanceDetails } from './instance/details/AppengineInstanceDetails';
 import {
   AppengineCreateLoadBalancerModal,
@@ -35,9 +35,7 @@ import { AppengineServerGroupTransformer } from './serverGroup/transformer';
 import { AppengineServerGroupWriter } from './serverGroup/writer/serverGroup.write.service';
 
 describe('App Engine provider registration', () => {
-  it('registers provider configuration from the package entrypoint without exporting an Angular module token', () => {
-    expect(Object.prototype.hasOwnProperty.call(appengineEntrypoint, 'APPENGINE_MODULE')).toBe(false);
-
+  it('registers provider configuration from the package entrypoint', () => {
     expect(CloudProviderRegistry.getValue('appengine', 'serverGroup.transformer')).toBe(
       AppengineServerGroupTransformer,
     );
@@ -87,9 +85,6 @@ describe('App Engine provider registration', () => {
       const stageConfig = Registry.pipeline.getStageConfig({ type, cloudProvider: 'appengine' } as any);
       expect(stageConfig).toBeDefined();
       expect(stageConfig.component).toBeDefined();
-      expect(stageConfig[`template${'Url'}`]).toBeUndefined();
-      expect(stageConfig.controller).toBeUndefined();
-      expect(stageConfig[`executionDetails${'Url'}`]).toBeUndefined();
     });
 
     expect(

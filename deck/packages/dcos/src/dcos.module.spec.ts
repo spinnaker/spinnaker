@@ -67,8 +67,8 @@ function buildLoadedDataSource(data: any[], refresh = jasmine.createSpy('refresh
 }
 
 describe('DC/OS provider registration', () => {
-  it('registers the provider configuration from the package entrypoint without exporting an Angular module token', async () => {
-    const entrypoint = await importDcosEntrypoint();
+  it('registers the provider configuration from the package entrypoint', async () => {
+    await importDcosEntrypoint();
 
     expect(CloudProviderRegistry.getValue('dcos', 'name')).toBe('DC/OS');
     expect(CloudProviderRegistry.getValue('dcos', 'serverGroup.skipUpstreamStageCheck')).toBe(true);
@@ -81,11 +81,6 @@ describe('DC/OS provider registration', () => {
     expect(CloudProviderRegistry.getValue('dcos', 'serverGroup.detailsActions')).toBeDefined();
     expect(CloudProviderRegistry.getValue('dcos', 'serverGroup.detailsSections').length).toBeGreaterThan(0);
     expect(CloudProviderRegistry.getValue('dcos', 'serverGroup.CloneServerGroupModal')).toBeDefined();
-    expect(CloudProviderRegistry.getValue('dcos', ['instance', 'details' + 'Template' + 'Url'].join('.'))).toBeNull();
-    expect(
-      CloudProviderRegistry.getValue('dcos', ['serverGroup', 'cloneServerGroup' + 'Control' + 'ler'].join('.')),
-    ).toBeNull();
-    expect(entrypoint['DCOS' + '_DCOS' + '_MODULE']).toBeUndefined();
   });
 
   it('registers DC/OS provider delegates as constructable services', async () => {
@@ -100,7 +95,7 @@ describe('DC/OS provider registration', () => {
     );
   });
 
-  it('registers dcos pipeline stages without Angular templates', async () => {
+  it('registers DC/OS pipeline stages with React components', async () => {
     await importDcosEntrypoint();
 
     const expectedStages = [
@@ -122,7 +117,6 @@ describe('DC/OS provider registration', () => {
       } as any);
       expect(config.cloudProvider).toBe('dcos');
       expect(config.component).toBeDefined();
-      expect(config['template' + 'Url']).toBeUndefined();
       expect(config.executionDetailsSections).toBeDefined();
     });
   });

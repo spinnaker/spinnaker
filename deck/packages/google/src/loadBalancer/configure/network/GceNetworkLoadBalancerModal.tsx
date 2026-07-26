@@ -176,17 +176,19 @@ export function serializeGceNetworkLoadBalancerCommand(
 export function submitGceNetworkLoadBalancerCommand(
   command: IGceNetworkLoadBalancerCommand,
   { application, executeTask = TaskExecutor.executeTask }: IGceNetworkSubmissionDependencies,
-): IGceNetworkLoadBalancerPayload | PromiseLike<ITask> {
+): IGceNetworkLoadBalancerPayload | Promise<ITask> {
   const payload = serializeGceNetworkLoadBalancerCommand(command);
   if (command.mode === 'pipeline') {
     return payload;
   }
 
-  return executeTask({
-    application,
-    description: `${command.mode === 'edit' ? 'Update' : 'Create'} Load Balancer: ${command.name}`,
-    job: [payload],
-  });
+  return Promise.resolve(
+    executeTask({
+      application,
+      description: `${command.mode === 'edit' ? 'Update' : 'Create'} Load Balancer: ${command.name}`,
+      job: [payload],
+    }),
+  );
 }
 
 class GceNetworkLoadBalancerModalComponent extends React.Component<
@@ -211,10 +213,7 @@ class GceNetworkLoadBalancerModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `${mode === 'edit' ? 'Updating' : 'Creating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal?.(),
-          () => props.dismissModal?.(),
-        ),
+        onDismiss: () => props.dismissModal?.(),
         onTaskComplete: () => {
           InfrastructureCaches.clearCache('healthChecks');
           application?.loadBalancers?.refresh?.();

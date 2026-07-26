@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import GroupWeights from './groupWeights';
 import JudgeSelect, { JudgeSelectRenderState } from './judgeSelect';
 import FormList from '../layout/formList';
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 
 interface IScoringStateProps {
   renderJudgeSelect: boolean;

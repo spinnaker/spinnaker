@@ -16,7 +16,7 @@ class TestServerGroupsDataSource {
     this.fetchOnDemand = fetchOnDemand;
   }
 
-  public onRefresh(_scope: unknown, callback: () => void): () => void {
+  public onRefresh(callback: () => void): () => void {
     this.callbacks.push(callback);
     return () => {
       this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);
@@ -68,14 +68,15 @@ describe('InsightLayout', () => {
     const wrapper = mount(React.createElement(Harness, { app: firstApp }));
 
     expect(wrapper.find(FilterCollapse).length).toBe(1);
-    expect(wrapper.find('.nav.ng-scope').length).toBe(1);
+    expect(wrapper.find('.insight > .nav').length).toBe(1);
+    expect(wrapper.find('.ng-scope').length).toBe(0);
     expect(firstServerGroups.callbackCount()).toBe(1);
 
     act(() => firstServerGroups.emit(true));
     wrapper.update();
 
     expect(wrapper.find(FilterCollapse).length).toBe(0);
-    expect(wrapper.find('.nav.ng-scope').length).toBe(0);
+    expect(wrapper.find('.insight > .nav').length).toBe(0);
 
     act(() => wrapper.setProps({ app: secondApp }));
     wrapper.update();
@@ -83,7 +84,7 @@ describe('InsightLayout', () => {
     expect(firstServerGroups.callbackCount()).toBe(0);
     expect(secondServerGroups.callbackCount()).toBe(1);
     expect(wrapper.find(FilterCollapse).length).toBe(1);
-    expect(wrapper.find('.nav.ng-scope').length).toBe(1);
+    expect(wrapper.find('.insight > .nav').length).toBe(1);
 
     wrapper.unmount();
     router.dispose();

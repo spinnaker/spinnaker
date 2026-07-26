@@ -190,6 +190,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
   public declare context: React.ContextType<typeof DeckRuntimeContext>;
 
   private mounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
 
   public static show(props: IGceSecurityGroupModalProps, runtimeServices: DeckRuntimeServices): Promise<any> {
     return ReactModal.show(GceSecurityGroupModal, props, { dialogClassName: 'modal-lg' }, runtimeServices);
@@ -205,10 +206,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `${mode === 'edit' ? 'Updating' : 'Creating'} your ${FirewallLabels.get('firewall')}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal?.(),
-          () => props.dismissModal?.(),
-        ),
+        onDismiss: () => props.dismissModal?.(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -236,6 +234,7 @@ export class GceSecurityGroupModalComponent extends React.Component<
 
   public componentWillUnmount(): void {
     this.mounted = false;
+    this.clearApplicationRefreshSubscription();
   }
 
   private getApplication(props = this.props): any {
@@ -255,6 +254,10 @@ export class GceSecurityGroupModalComponent extends React.Component<
     }
 
     const showNewSecurityGroup = (): void => {
+      this.clearApplicationRefreshSubscription();
+      if (!this.mounted) {
+        return;
+      }
       const { securityGroup } = this.state;
       this.props.closeModal?.();
       this.props.stateService.go(
@@ -270,7 +273,8 @@ export class GceSecurityGroupModalComponent extends React.Component<
     };
 
     if (securityGroups?.onNextRefresh) {
-      securityGroups.onNextRefresh(null, showNewSecurityGroup);
+      this.clearApplicationRefreshSubscription();
+      this.applicationRefreshUnsubscribe = securityGroups.onNextRefresh(showNewSecurityGroup);
       securityGroups.refresh?.();
       return;
     }
@@ -281,6 +285,11 @@ export class GceSecurityGroupModalComponent extends React.Component<
     } else {
       showNewSecurityGroup();
     }
+  };
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private updateSecurityGroup = (updates: any): void => {

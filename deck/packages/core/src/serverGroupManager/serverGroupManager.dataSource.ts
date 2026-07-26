@@ -4,8 +4,6 @@ import { ApplicationDataSourceRegistry } from '../application';
 import type { IServerGroupManager } from '../domain/IServerGroupManager';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 
-export const SERVER_GROUP_MANAGER_DATA_SOURCE = 'spinnaker.core.serverGroupManager.dataSource';
-
 export function registerServerGroupManagerDataSource(): void {
   const loader = (application: Application) =>
     ServerGroupManagerReader.getServerGroupManagersForApplication(application.name);

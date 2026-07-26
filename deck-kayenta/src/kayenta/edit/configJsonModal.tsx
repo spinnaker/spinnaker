@@ -4,15 +4,16 @@ import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import Styleguide from 'kayenta/layout/styleguide';
 import { Tab, Tabs } from 'kayenta/layout/tabs';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import { get, omit } from 'lodash';
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
-import { DiffView, IJsonDiff, JsonEditor, JsonUtils } from '@spinnaker/core';
+import type { IJsonDiff } from '@spinnaker/core';
+import { DiffView, JsonEditor, JsonUtils } from '@spinnaker/core';
 
 import './configJson.less';
 

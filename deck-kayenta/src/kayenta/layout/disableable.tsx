@@ -1,10 +1,12 @@
 import classNames from 'classnames';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { get, omit } from 'lodash';
 import * as React from 'react';
-import { Typeahead, TypeaheadProps } from 'react-bootstrap-typeahead';
+import type { TypeaheadProps } from 'react-bootstrap-typeahead';
+import { Typeahead } from 'react-bootstrap-typeahead';
 import { connect } from 'react-redux';
-import Select, { ReactSelectProps } from 'react-select';
+import type { ReactSelectProps } from 'react-select';
+import Select from 'react-select';
 
 // Well-known keys that flag if a component should be disabled.
 export const DISABLE_EDIT_CONFIG = 'app.disableConfigEdit';

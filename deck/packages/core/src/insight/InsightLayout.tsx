@@ -98,7 +98,7 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
     const serverGroups = app.serverGroups;
     const updateFetchOnDemand = () => setServerGroupsFetchOnDemand(Boolean(serverGroups?.fetchOnDemand));
     updateFetchOnDemand();
-    return serverGroups?.onRefresh(null, updateFetchOnDemand);
+    return serverGroups?.onRefresh(updateFetchOnDemand);
   }, [app]);
 
   const filtersHidden = shouldHideInsightFilters(currentState, serverGroupsFetchOnDemand);
@@ -117,12 +117,12 @@ export const InsightLayout = ({ app }: IInsightLayoutProps) => {
         </div>
       )}
       {!filtersHidden && filtersExpanded && (
-        <div className="nav ng-scope">
+        <div className="nav">
           <UIView name="nav" />
         </div>
       )}
       <div className="flex-1">
-        <div className="nav-content ng-scope" data-scroll-id="nav-content">
+        <div className="nav-content" data-scroll-id="nav-content">
           <UIView name="master" />
         </div>
         <div className="detail-content" style={{ display: showDetailsView ? undefined : 'none' }}>

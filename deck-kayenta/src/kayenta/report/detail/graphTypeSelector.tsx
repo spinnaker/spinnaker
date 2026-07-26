@@ -1,7 +1,8 @@
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
-import { connect, Dispatch } from 'react-redux';
+import type { Dispatch } from 'react-redux';
+import { connect } from 'react-redux';
 
 import { GraphType } from './graph/metricSetPairGraph.service';
 

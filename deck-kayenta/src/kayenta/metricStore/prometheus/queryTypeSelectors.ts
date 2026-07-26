@@ -1,6 +1,6 @@
-import { ICanaryMetricConfig } from '../../domain';
+import type { ICanaryMetricConfig } from '../../domain';
 import { PrometheusQueryType } from './domain/IPrometheusCanaryMetricSetQueryConfig';
-import { ITemplateTransformFunctions } from '../../selectors/filterTemplatesSelectors';
+import type { ITemplateTransformFunctions } from '../../selectors/filterTemplatesSelectors';
 
 const PROMQL_PREFIX = 'PromQL:';
 

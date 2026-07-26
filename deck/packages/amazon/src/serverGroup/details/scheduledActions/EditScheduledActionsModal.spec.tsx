@@ -1,4 +1,4 @@
-import { TaskExecutor, TaskMonitor } from '@spinnaker/core';
+import { TaskExecutor } from '@spinnaker/core';
 
 import {
   EditScheduledActionsModal,
@@ -54,7 +54,6 @@ describe('EditScheduledActionsModal', () => {
   });
 
   it('projects cached scheduled actions onto editable fields at initialization', () => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
     const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
     const modal = new EditScheduledActionsModal({
       application,
@@ -83,7 +82,6 @@ describe('EditScheduledActionsModal', () => {
   });
 
   it('adds, edits, removes, and submits capacity rows', () => {
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({ result: Promise.resolve() } as any);
     const execute = spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({} as any));
     const application = { name: 'deck', serverGroups: { refresh: jasmine.createSpy('refresh') } } as any;
     const modal = new EditScheduledActionsModal({

@@ -5,7 +5,7 @@ import { registerTaskDataSources } from './task.dataSource';
 import { TaskReader } from './task.read.service';
 
 describe('Task Data Source', function () {
-  const promiseService = { when: <T>(value: T | PromiseLike<T>) => Promise.resolve(value) };
+  const promiseService = { resolve: <T>(value: T | PromiseLike<T>) => Promise.resolve(value) };
   let application: Application;
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('Task Data Source', function () {
   afterEach(() => ApplicationDataSourceRegistry.clearDataSources());
 
   const waitForRefresh = (dataSource: any) =>
-    new Promise<void>((resolve) => dataSource.onNextRefresh(null, resolve, resolve));
+    new Promise<void>((resolve) => dataSource.onNextRefresh(resolve, resolve));
 
   async function refreshDataSource(dataSource: any) {
     const refreshComplete = waitForRefresh(dataSource);
@@ -69,7 +69,7 @@ describe('Task Data Source', function () {
       let nextCalls = 0;
       spyOn(TaskReader, 'getTasks').and.returnValue(Promise.resolve([]));
       await configureApplication();
-      application.getDataSource('tasks').onRefresh(null, () => nextCalls++);
+      application.getDataSource('tasks').onRefresh(() => nextCalls++);
       expect(application.getDataSource('tasks').loaded).toBe(true);
       expect(application.getDataSource('tasks').loading).toBe(false);
       expect(application.getDataSource('tasks').loadFailure).toBe(false);
@@ -92,7 +92,6 @@ describe('Task Data Source', function () {
       let successesHandled = 0;
       await configureApplication();
       application.getDataSource('tasks').onRefresh(
-        null,
         () => successesHandled++,
         () => errorsHandled++,
       );

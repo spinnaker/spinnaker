@@ -1,4 +1,4 @@
-import type { StateParams } from '@uirouter/angularjs';
+import type { RawParams } from '@uirouter/core';
 
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 import { SecurityGroups } from './SecurityGroups';
@@ -31,7 +31,7 @@ export function getStandaloneFirewallState(securityGroupReader: SecurityGroupRea
     resolve: {
       resolvedSecurityGroup: [
         '$stateParams',
-        ($stateParams: StateParams) => {
+        ($stateParams: RawParams) => {
           return {
             name: $stateParams.name,
             accountId: $stateParams.accountId,
@@ -43,7 +43,7 @@ export function getStandaloneFirewallState(securityGroupReader: SecurityGroupRea
       ],
       app: [
         '$stateParams',
-        ($stateParams: StateParams): PromiseLike<Application> => {
+        ($stateParams: RawParams): Promise<Application> => {
           // we need the application to have a firewall index (so rules get attached and linked properly)
           // and its name should just be the name of the firewall (so cloning works as expected)
           return securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
@@ -86,10 +86,10 @@ registerApplicationState(
         },
       },
       resolve: {
-        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.accountId],
         resolvedSecurityGroup: [
           '$stateParams',
-          ($stateParams: StateParams) => {
+          ($stateParams: RawParams) => {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,

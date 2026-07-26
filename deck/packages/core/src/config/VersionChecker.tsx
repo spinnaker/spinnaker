@@ -35,7 +35,7 @@ export class VersionChecker {
 
   private static checkVersion(): void {
     const url = `/version.json?_=${Date.now()}`;
-    const request: PromiseLike<any> = fetch(url, { credentials: 'include' }).then((response) =>
+    const request: Promise<any> = fetch(url, { credentials: 'include' }).then((response) =>
       response.json().then((data) => ({ data })),
     );
 

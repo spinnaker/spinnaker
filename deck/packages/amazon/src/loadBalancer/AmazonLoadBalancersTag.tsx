@@ -125,7 +125,7 @@ export class AmazonLoadBalancersTagComponent extends React.Component<
 
   public componentDidMount(): void {
     this.mounted = true;
-    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(() => {
       this.forceUpdate();
     });
 

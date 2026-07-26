@@ -25,7 +25,7 @@ import {
 
 import { AzureRollbackServerGroupModal } from './rollback/RollbackServerGroupModal';
 
-function findServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<any> {
+function findServerGroupSummary(props: IServerGroupDetailsProps): Promise<any> {
   const { app, serverGroup } = props;
   const findSummary = () => {
     let summary = app.serverGroups.data.find((toCheck: any) => {

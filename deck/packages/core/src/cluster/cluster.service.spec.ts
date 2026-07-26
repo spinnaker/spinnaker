@@ -4,7 +4,7 @@ import { mockHttpClient } from '../api/mock/jasmine';
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ClusterService } from './cluster.service';
-import { DirectProviderServiceDelegate } from '../cloudProvider';
+import { ProviderServiceDelegate } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import type { IInstanceCounts, IServerGroup } from '../domain';
 import * as State from '../state';
@@ -33,7 +33,7 @@ describe('Service: Cluster', function () {
     clusterService = new ClusterService(
       nativePromiseService,
       serverGroupTransformer,
-      new DirectProviderServiceDelegate(nativePromiseService) as any,
+      new ProviderServiceDelegate(nativePromiseService),
     );
 
     application = ApplicationModelBuilder.createApplicationForTests(

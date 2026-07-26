@@ -137,7 +137,7 @@ export class EcsRollbackServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `Rollback ${serverGroup.name}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => application.serverGroups.refresh(),
       }),
       verified: false,

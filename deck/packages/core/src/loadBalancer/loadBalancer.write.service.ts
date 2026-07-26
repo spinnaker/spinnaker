@@ -27,7 +27,7 @@ export interface ILoadBalancerDeleteCommand extends IJob {
 }
 
 export class LoadBalancerWriter {
-  public static deleteLoadBalancer(command: ILoadBalancerDeleteCommand, application: Application): PromiseLike<ITask> {
+  public static deleteLoadBalancer(command: ILoadBalancerDeleteCommand, application: Application): Promise<ITask> {
     command.type = 'deleteLoadBalancer';
 
     return TaskExecutor.executeTask({
@@ -42,7 +42,7 @@ export class LoadBalancerWriter {
     application: Application,
     descriptor: string,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     Object.assign(command, params);
     command.type = 'upsertLoadBalancer';
 

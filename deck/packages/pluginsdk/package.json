@@ -41,7 +41,7 @@
     "yargs": "^16.2.0"
   },
   "devDependencies": {
-    "@spinnaker/core": "0.0.549",
+    "@spinnaker/core": "workspace:^",
     "@types/yargs": "^16.0.0",
     "typescript": "5.0.4"
   },
