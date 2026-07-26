@@ -82,7 +82,7 @@ class PageModalComponent extends React.Component<IPageModalProps & IRouterInject
     const taskMonitor = new TaskMonitor({
       application: ownerApp,
       title: `Sending page to ${this.state.pageCount} policies`,
-      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.close()),
+      onDismiss: () => this.close(),
     });
 
     const submitMethod = () => {

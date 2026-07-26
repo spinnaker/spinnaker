@@ -1,265 +1,221 @@
-import type { IQService, IScope } from 'angular';
-import { mock } from 'angular';
-import { shallow } from 'enzyme';
 import React from 'react';
+import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
 
-import type { ICreatePipelineModalProps } from './CreatePipelineModal';
+import type { ICreatePipelineCommand, ICreatePipelineModalProps } from './CreatePipelineModal';
 import { CreatePipelineModal } from './CreatePipelineModal';
 import type { Application } from '../../application/application.model';
-import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
 import { PipelineConfigService } from '../config/services/PipelineConfigService';
-import { SETTINGS } from '../../config/settings';
-import { PipelineTemplateReader } from '../config/templates/PipelineTemplateReader';
-import type { IPipeline } from '../../domain';
+import type { IPipeline } from '../../domain/IPipeline';
+import { diagnosticLogger } from '../../utils/diagnosticLogger';
 
-// Disable CreatePipelineModal tests until enzyme supports React 16 https://github.com/airbnb/enzyme/issues/1553
-// CreatePipelineModal uses Overridable() which uses React.forwardRef
-xdescribe('CreatePipelineModal', () => {
-  let $q: IQService;
-  let $scope: IScope;
-  let application: Application;
-  let initializeComponent: (configs?: Array<Partial<IPipeline>>) => void;
+const DEFAULT_CONFIG: Partial<IPipeline> = {
+  name: 'None',
+  stages: [],
+  triggers: [],
+  application: 'app',
+  limitConcurrent: true,
+  keepWaitingPipelines: false,
+  spelEvaluator: 'v4',
+};
+
+interface IDeferred<T> {
+  promise: Promise<T>;
+  reject: (reason?: any) => void;
+  resolve: (value: T | PromiseLike<T>) => void;
+}
+
+function deferred<T>(): IDeferred<T> {
+  let resolve: (value: T | PromiseLike<T>) => void;
+  let reject: (reason?: any) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, reject: reject!, resolve: resolve! };
+}
+
+function createApplication(
+  pipelines: Array<Partial<IPipeline>> = [],
+  strategies: Array<Partial<IPipeline>> = [],
+): Application {
+  const pipelineConfigs = {
+    data: pipelines,
+    refresh: jasmine.createSpy('refresh').and.returnValue(Promise.resolve()),
+  };
+  const strategyConfigs = { data: strategies };
+  const dataSources = { pipelineConfigs, strategyConfigs };
+  return ({
+    name: 'app',
+    pipelineConfigs,
+    strategyConfigs,
+    getDataSource: (key: keyof typeof dataSources) => dataSources[key],
+  } as unknown) as Application;
+}
+
+async function resolveBoundary(
+  boundary: IDeferred<void>,
+  completion: Promise<unknown> = boundary.promise,
+): Promise<void> {
+  await act(async () => {
+    boundary.resolve();
+    await completion;
+  });
+}
+
+async function rejectBoundary(boundary: IDeferred<void>, reason: unknown): Promise<void> {
+  await act(async () => {
+    boundary.reject(reason);
+    await boundary.promise.catch(() => undefined);
+  });
+}
+
+describe('CreatePipelineModal', () => {
+  let container: HTMLDivElement;
   let component: CreatePipelineModal;
+  let pipelineSavedCallback: jasmine.Spy;
 
-  beforeEach(
-    mock.inject((_$q_: IQService, $rootScope: IScope) => {
-      $q = _$q_;
-      $scope = $rootScope.$new();
-      initializeComponent = (configs = []) => {
-        application = ApplicationModelBuilder.createApplicationForTests(
-          'app',
-          {
-            key: 'pipelineConfigs',
-            lazy: true,
-            loader: () => $q.resolve(application.pipelineConfigs.data),
-            onLoad: (_app, data) => $q.resolve(data),
-            defaultData: [],
-          },
-          {
-            key: 'strategyConfigs',
-            lazy: true,
-            loader: () => $q.resolve(application.strategyConfigs.data),
-            onLoad: (_app, data) => $q.resolve(data),
-            defaultData: [],
-          },
-        );
-        application.pipelineConfigs.data = configs;
-
-        const props: ICreatePipelineModalProps = {
-          application,
-          show: true,
-          showCallback: (): void => null,
-          pipelineSavedCallback: (): void => null,
-        };
-
-        const RealCreatePipelineModal = (CreatePipelineModal as any).OriginalComponent as React.ComponentType<any>;
-        component = shallow(<RealCreatePipelineModal {...props} />).instance() as CreatePipelineModal;
-      };
-    }),
-  );
-
-  describe('config instantiation', () => {
-    it('provides a default value when no configs exist', () => {
-      initializeComponent();
-      const config = component.state.configs[0];
-      expect(component.state.configs.length).toBe(1);
-      expect(config.name).toBe('None');
-      expect(config.application).toBe('app');
-      expect(config.triggers).toEqual([]);
-      expect(config.stages).toEqual([]);
-    });
-
-    it('includes the default value when configs exist', () => {
-      initializeComponent([{ name: 'some pipeline' }]);
-      expect(component.state.configs.length).toBe(2);
-      expect(component.state.configs[0].name).toBe('None');
-      expect(component.state.configs[1].name).toBe('some pipeline');
-    });
-
-    it('initializes command with the default config', () => {
-      initializeComponent([{ name: 'some pipeline' }]);
-      expect(component.state.configs.length).toBe(2);
-      expect(component.state.configs[0].name).toBe('None');
-      expect(component.state.configs[1].name).toBe('some pipeline');
-      expect(component.state.command.config.name).toBe('None');
-    });
-
-    it(`includes all config names in the component's state to be used to determine if a name is unique`, () => {
-      initializeComponent([{ name: 'a' }, { name: 'b' }]);
-      expect(component.state.configs.length).toBe(3);
-      expect(component.state.existingNames).toEqual(['None', 'a', 'b']);
-    });
-  });
-
-  describe('template initialization', () => {
-    beforeEach(() => (SETTINGS.feature.pipelineTemplates = true));
-    afterEach(SETTINGS.resetToOriginal);
-
-    it('loads pipeline templates', () => {
-      spyOn(PipelineTemplateReader, 'getPipelineTemplatesByScopes').and.callFake(() => {
-        const templates = [
-          {
-            id: 'templateA',
-            scopes: ['global'],
-          },
-          {
-            id: 'templateB',
-            scopes: ['myApp'],
-          },
-        ] as any;
-        return $q.resolve(templates);
-      });
-
-      component.loadPipelineTemplates();
-      $scope.$digest();
-
-      expect(component.state.templates.map((t) => t.id)).toEqual(['templateA', 'templateB']);
-    });
-
-    it('sets error flag, message when load is rejected', () => {
-      spyOn(PipelineTemplateReader, 'getPipelineTemplatesByScopes').and.callFake(() => {
-        return $q.reject(null);
-      });
-
-      component.loadPipelineTemplates();
-      $scope.$digest();
-
-      expect(component.state.loadError).toEqual(true);
-      expect(component.state.loadErrorMessage).toEqual('No message provided');
-    });
-  });
-
-  describe('pipeline name validation', () => {
-    const setPipelineName = (_component: CreatePipelineModal, name: string): void => {
-      _component.setState({ command: { ..._component.state.command, name } });
+  function renderModal(application: Application): void {
+    const props: ICreatePipelineModalProps = {
+      application,
+      pipelineSavedCallback,
+      show: false,
+      showCallback: jasmine.createSpy('showCallback'),
     };
-
-    it('verifies that the pipeline name does not contain invalid characters', () => {
-      initializeComponent();
-      setPipelineName(component, '\\');
-      expect(component.validateNameCharacters()).toEqual(false);
-      setPipelineName(component, '^');
-      expect(component.validateNameCharacters()).toEqual(false);
-      setPipelineName(component, '?');
-      expect(component.validateNameCharacters()).toEqual(false);
-      setPipelineName(component, '%');
-      expect(component.validateNameCharacters()).toEqual(false);
-      setPipelineName(component, '#');
-      expect(component.validateNameCharacters()).toEqual(false);
-      setPipelineName(component, 'validName');
-      expect(component.validateNameCharacters()).toEqual(true);
+    act(() => {
+      ReactDOM.render(
+        <CreatePipelineModal
+          {...props}
+          ref={(instance) => {
+            component = instance;
+          }}
+        />,
+        container,
+      );
     });
+  }
 
-    it('verifies that the pipeline name is unique', () => {
-      initializeComponent([{ name: 'a' }, { name: 'b' }]);
-      setPipelineName(component, 'a');
-      expect(component.validateNameIsUnique()).toEqual(false);
-      setPipelineName(component, 'b');
-      expect(component.validateNameIsUnique()).toEqual(false);
-      setPipelineName(component, 'c');
-      expect(component.validateNameIsUnique()).toEqual(true);
+  function updateCommand(update: Partial<ICreatePipelineCommand>): void {
+    act(() => component.setState({ command: { ...component.state.command, ...update } }));
+  }
+
+  function prepareSuccessfulSave(application: Application, savedPipeline: Partial<IPipeline>) {
+    const save = deferred<void>();
+    const refresh = deferred<void>();
+    const refreshCompletion = refresh.promise.then(() => {
+      application.pipelineConfigs.data = [...application.pipelineConfigs.data, savedPipeline];
+    });
+    const savePipeline = spyOn(PipelineConfigService, 'savePipeline').and.returnValue(save.promise);
+    application.pipelineConfigs.refresh.and.returnValue(refreshCompletion);
+    return { refresh, refreshCompletion, save, savePipeline };
+  }
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    pipelineSavedCallback = jasmine.createSpy('pipelineSavedCallback');
+    spyOn(diagnosticLogger, 'warn');
+  });
+
+  afterEach(() => {
+    act(() => {
+      ReactDOM.unmountComponentAtNode(container);
     });
   });
 
-  describe('pipeline submission', () => {
-    it('saves pipeline, adds it to application', () => {
-      initializeComponent();
-      let submitted: IPipeline = null;
+  it('initializes pipeline and strategy names with the application default config', () => {
+    const existingPipeline = { name: 'Existing pipeline' };
+    const existingStrategy = { name: 'Existing strategy' };
 
-      spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
-        application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
-        return $q.when(null);
-      });
-      spyOn(PipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
-        submitted = pipeline;
-        return $q.when(null);
-      });
+    renderModal(createApplication([existingPipeline], [existingStrategy]));
 
-      component.setState({ command: { ...component.state.command, name: 'new pipeline' } });
+    expect(component.state.configs).toEqual([DEFAULT_CONFIG, existingPipeline]);
+    expect(component.state.existingNames).toEqual(['None', 'Existing pipeline', 'Existing strategy']);
+    expect(component.state.command).toEqual({ strategy: false, name: '', config: DEFAULT_CONFIG, template: null });
+  });
 
-      component.submit();
-      $scope.$digest();
+  it('submits an immutable clone with a trimmed name, current index, and no copied id', async () => {
+    const sourceConfig: Partial<IPipeline> = {
+      id: 'source-id',
+      name: 'Source pipeline',
+      application: 'source-app',
+      stages: [{ refId: '1', type: 'wait', name: 'Wait' }],
+      triggers: [{ type: 'manual', enabled: true }],
+      limitConcurrent: false,
+      keepWaitingPipelines: true,
+      spelEvaluator: 'v4',
+    };
+    const sourceSnapshot = JSON.parse(JSON.stringify(sourceConfig));
+    const application = createApplication([sourceConfig, { name: 'Another pipeline' }]);
+    const boundaries = prepareSuccessfulSave(application, { id: 'copied-id', name: 'Copied pipeline' });
+    renderModal(application);
+    updateCommand({ name: '  Copied pipeline  ', config: sourceConfig });
 
-      expect(submitted.name).toBe('new pipeline');
-      expect(submitted.application).toBe('app');
-      expect(submitted.stages).toEqual([]);
-      expect(submitted.triggers).toEqual([]);
-    });
+    act(() => component.submit());
 
-    it('uses copy of plain version of pipeline', () => {
-      let submitted: IPipeline = null;
-      const toCopy = {
-        application: 'the_app',
-        name: 'old_name',
-        triggers: [{ name: 'the_trigger', enabled: true, type: 'git' }],
-      };
-      initializeComponent([toCopy]);
+    const expectedPayload = { ...sourceConfig, name: 'Copied pipeline', index: 2 };
+    delete expectedPayload.id;
+    expect(boundaries.savePipeline).toHaveBeenCalledOnceWith(expectedPayload as IPipeline);
+    const submitted = boundaries.savePipeline.calls.mostRecent().args[0];
+    expect(submitted).not.toBe(sourceConfig as IPipeline);
+    expect(submitted.stages).not.toBe(sourceConfig.stages);
+    expect(sourceConfig).toEqual(sourceSnapshot);
 
-      spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
-        application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
-        return $q.when(null);
-      });
-      spyOn(PipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
-        submitted = pipeline;
-        return $q.when(null);
-      });
+    await resolveBoundary(boundaries.save);
+    await resolveBoundary(boundaries.refresh, boundaries.refreshCompletion);
+  });
 
-      component.state.command.name = 'new pipeline';
-      component.state.command.config = toCopy;
+  it('refreshes, marks the saved pipeline as new, resets state, and reports its id', async () => {
+    const existingPipeline = { id: 'existing-id', name: 'Existing pipeline' };
+    const savedPipeline = { id: 'saved-id', name: 'New pipeline', isNew: false };
+    const application = createApplication([existingPipeline]);
+    const boundaries = prepareSuccessfulSave(application, savedPipeline);
+    renderModal(application);
+    updateCommand({ name: '  New pipeline  ' });
 
-      component.submit();
-      $scope.$digest();
+    act(() => component.submit());
+    expect(boundaries.savePipeline).toHaveBeenCalledOnceWith({
+      ...DEFAULT_CONFIG,
+      name: 'New pipeline',
+      index: 1,
+    } as IPipeline);
+    await resolveBoundary(boundaries.save);
+    expect(application.pipelineConfigs.refresh).toHaveBeenCalledWith(true);
+    await resolveBoundary(boundaries.refresh, boundaries.refreshCompletion);
 
-      expect(submitted.name).toBe('new pipeline');
-      expect(submitted.application).toBe('the_app');
-      expect(submitted.triggers.length).toBe(1);
-    });
+    expect(savedPipeline.isNew).toBe(true);
+    expect(component.state.submitting).toBe(false);
+    expect(component.state.saveError).toBe(false);
+    expect(component.state.command.name).toBe('');
+    expect(component.state.command.config.name).toBe('None');
+    expect(pipelineSavedCallback).toHaveBeenCalledOnceWith('saved-id');
+  });
 
-    it('should insert new pipeline as last one in application and set its index', () => {
-      let submitted: IPipeline = null;
-      initializeComponent([{ name: 'x' }]);
+  [
+    {
+      description: 'exposes a backend save error',
+      response: { data: { message: 'Backend rejected the pipeline' } },
+      message: 'Backend rejected the pipeline',
+    },
+    {
+      description: 'uses the default save error when the backend omits a message',
+      response: {},
+      message: 'No message provided',
+    },
+  ].forEach(({ description, response, message }) => {
+    it(`${description}, clears submitting, and does not report a saved pipeline`, async () => {
+      const save = deferred<void>();
+      spyOn(PipelineConfigService, 'savePipeline').and.returnValue(save.promise);
+      renderModal(createApplication());
+      updateCommand({ name: 'Rejected pipeline' });
 
-      spyOn(application.pipelineConfigs, 'refresh').and.callFake(() => {
-        application.pipelineConfigs.data = [{ name: 'new pipeline', id: '1234-5678' }];
-        return $q.when(null);
-      });
-      spyOn(PipelineConfigService, 'savePipeline').and.callFake((pipeline: IPipeline) => {
-        submitted = pipeline;
-        return $q.when(null);
-      });
+      act(() => component.submit());
+      expect(component.state.submitting).toBe(true);
+      await rejectBoundary(save, response);
 
-      component.state.command.name = 'new pipeline';
-
-      component.submit();
-      $scope.$digest();
-
-      expect(submitted.index).toBe(1);
-    });
-
-    it('sets error flag, message when save is rejected', () => {
-      initializeComponent();
-      spyOn(PipelineConfigService, 'savePipeline').and.callFake(() => {
-        return $q.reject({ data: { message: 'something went wrong' } });
-      });
-
-      component.submit();
-      $scope.$digest();
-
+      expect(component.state.submitting).toBe(false);
       expect(component.state.saveError).toBe(true);
-      expect(component.state.saveErrorMessage).toBe('something went wrong');
-    });
-
-    it('provides default error message when none provided on failed save', () => {
-      initializeComponent();
-      spyOn(PipelineConfigService, 'savePipeline').and.callFake(() => {
-        return $q.reject({});
-      });
-
-      component.submit();
-      $scope.$digest();
-
-      expect(component.state.saveError).toBe(true);
-      expect(component.state.saveErrorMessage).toBe('No message provided');
+      expect(component.state.saveErrorMessage).toBe(message);
+      expect(pipelineSavedCallback).not.toHaveBeenCalled();
     });
   });
 });

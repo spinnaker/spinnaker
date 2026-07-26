@@ -1,11 +1,7 @@
 export * from './ApplicationContext';
 export * from './ApplicationIcon';
 export type { ApplicationInitializer } from './application.initializers';
-export {
-  APPLICATION_INITIALIZERS_MODULE,
-  applyApplicationInitializers,
-  registerApplicationInitializer,
-} from './application.initializers';
+export { applyApplicationInitializers, registerApplicationInitializer } from './application.initializers';
 export * from './application.model';
 export * from './application.state.provider';
 export type { ApplicationStateRegistration } from './applicationState.registration';

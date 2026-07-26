@@ -6,7 +6,6 @@ export const titusScaleDownClusterStage = {
   provides: 'scaleDownCluster',
   cloudProvider: 'titus',
   component: TitusScaleDownClusterStageConfig,
-  executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
   accountExtractor: (stage) => [stage.context.credentials],
   configAccountExtractor: (stage) => [stage.credentials],
   validators: [

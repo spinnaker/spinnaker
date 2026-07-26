@@ -8,7 +8,7 @@ describe('ManifestTraffic stage registration', () => {
   beforeEach(() => Registry.reinitialize());
   afterEach(() => Registry.reinitialize());
 
-  it('registers enable and disable manifest stage configs without Angular module config', () => {
+  it('registers enable and disable manifest stage configs', () => {
     Registry.pipeline.registerStage(ENABLE_MANIFEST_STAGE_CONFIG);
     Registry.pipeline.registerStage(DISABLE_MANIFEST_STAGE_CONFIG);
 

@@ -53,7 +53,7 @@ export class AzureRollbackServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: 'Rolling back your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
       }),
       submitting: true,
       command: {

@@ -1,10 +1,11 @@
-import { ICanaryAnalysisResultsStats } from 'kayenta/domain';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
-import { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
-import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
+import type { ICanaryAnalysisResultsStats } from 'kayenta/domain';
+import type { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import type { ICanaryExecutionStatusResult } from 'kayenta/domain/ICanaryExecutionStatusResult';
+import type { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
 import FormattedDate from 'kayenta/layout/formattedDate';
-import { ITableColumn, NativeTable } from 'kayenta/layout/table';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ITableColumn } from 'kayenta/layout/table';
+import { NativeTable } from 'kayenta/layout/table';
+import type { ICanaryState } from 'kayenta/reducers';
 import { runSelector, selectedMetricConfigSelector } from 'kayenta/selectors';
 import { round } from 'lodash';
 import * as React from 'react';
@@ -49,7 +50,7 @@ const ResultMetadataRow = ({ row }: { row: IResultMetadataRow }) => {
 };
 
 const MetricResultStats = ({ metricConfig, metricSetPair, run }: IMetricResultStatsStateProps) => {
-  const tableColumns: Array<ITableColumn<string>> = [
+  const tableColumns: ITableColumn<string>[] = [
     {
       getContent: (target) => <span>{target === 'control' ? 'Baseline' : 'Canary'}</span>,
     },

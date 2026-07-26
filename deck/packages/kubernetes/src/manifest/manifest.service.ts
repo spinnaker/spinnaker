@@ -21,7 +21,7 @@ export type IManifestCallback = (manifest: IManifest) => void;
 export class KubernetesManifestService {
   public static subscribe(app: Application, params: IManifestParams, fn: IManifestCallback): () => void {
     KubernetesManifestService.updateManifest(params, fn);
-    return app.onRefresh(null, () => KubernetesManifestService.updateManifest(params, fn));
+    return app.onRefresh(() => KubernetesManifestService.updateManifest(params, fn));
   }
 
   private static updateManifest(params: IManifestParams, fn: IManifestCallback) {

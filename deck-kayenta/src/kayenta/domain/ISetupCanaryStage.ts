@@ -1,5 +1,5 @@
-import { IExecutionStage } from '@spinnaker/core';
-import { ICanaryConfig } from './ICanaryConfig';
+import type { IExecutionStage } from '@spinnaker/core';
+import type { ICanaryConfig } from './ICanaryConfig';
 
 export interface ISetupCanaryStage extends IExecutionStage {
   context: {

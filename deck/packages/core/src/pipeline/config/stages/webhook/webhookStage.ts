@@ -14,8 +14,6 @@ export type {
   IWebhookStageViewState,
 } from './WebhookStageConfig';
 
-export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
-
 export const webhookStage: IStageTypeConfig = {
   label: 'Webhook',
   description: 'Runs a Webhook job',
@@ -52,7 +50,7 @@ export function makePreconfiguredWebhookStage(preconfiguredWebhook: IPreconfigur
   };
 }
 
-export function registerPreconfiguredWebhookStages(): PromiseLike<void> {
+export function registerPreconfiguredWebhookStages(): Promise<void> {
   return REST('/webhooks/preconfigured')
     .get<IPreconfiguredWebhook[]>()
     .then((preconfiguredWebhooks) => {

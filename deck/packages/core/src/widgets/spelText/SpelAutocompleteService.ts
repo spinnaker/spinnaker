@@ -1,8 +1,7 @@
-import type { IQService } from 'angular';
-
 import { JsonListBuilder } from './JsonListBuilder';
 import type { IExecution, IPipeline, IStage } from '../../domain';
 import type { ExecutionService } from '../../pipeline';
+import type { PromiseService } from '../../utils/nativePromiseService';
 
 interface IBracket {
   open: string;
@@ -110,9 +109,7 @@ export class SpelAutocompleteService {
     },
   ];
 
-  constructor(private $q: IQService, private executionService: ExecutionService) {
-    'ngInject';
-  }
+  constructor(private promiseService: PromiseService, private executionService: ExecutionService) {}
 
   private paramInList(checkParam: { name: string }) {
     return (testParam: { name: string }) => checkParam.name === testParam.name;
@@ -384,9 +381,9 @@ export class SpelAutocompleteService {
     return textcompleteConfig;
   }
 
-  private getLastExecutionByPipelineConfig(pipelineConfig: IPipeline): PromiseLike<IExecution> {
+  private getLastExecutionByPipelineConfig(pipelineConfig: IPipeline): Promise<IExecution> {
     if (this.executionCache[pipelineConfig.id]) {
-      return this.$q.when(this.executionCache[pipelineConfig.id]);
+      return this.promiseService.resolve(this.executionCache[pipelineConfig.id]);
     } else {
       return this.executionService
         .getLastExecutionForApplicationByConfigId(pipelineConfig.application, pipelineConfig.id)
@@ -434,7 +431,7 @@ export class SpelAutocompleteService {
         .then((lastExecution) => lastExecution || pipelineConfig)
         .then((pipeline: IPipeline & IExecution) => this.buildTextCompleteConfig(pipeline));
     } else {
-      return this.$q.when(this.textcompleteConfig);
+      return this.promiseService.resolve(this.textcompleteConfig);
     }
   }
 }

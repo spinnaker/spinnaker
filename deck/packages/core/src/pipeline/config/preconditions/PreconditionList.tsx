@@ -8,7 +8,7 @@ import { getPreconditionTypeLabel } from './preconditionTypes';
 import { robotToHuman } from '../../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { StageConfigField } from '../stages/common';
 
-import './preconditionList.directive.less';
+import './preconditionList.less';
 
 export interface IPreconditionListProps {
   application: Application;

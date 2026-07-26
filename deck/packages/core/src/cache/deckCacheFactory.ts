@@ -99,7 +99,7 @@ export class DeckCacheFactory {
   private static cacheProxy: ICacheProxy = Object.create(null);
 
   public static getStoragePrefix(key: string, version: number): string {
-    return `angular-cache.caches.${key}:${version}.`;
+    return `deck-cache.caches.${key}:${version}.`;
   }
 
   private static buildCacheKey(namespace: string, cacheId: string): string {

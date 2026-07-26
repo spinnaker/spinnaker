@@ -1,5 +1,5 @@
 import { CanarySettings } from 'kayenta/canary.settings';
-import {
+import type {
   ICanaryConfig,
   ICanaryConfigSummary,
   ICanaryConfigUpdateResponse,
@@ -7,45 +7,42 @@ import {
   IJudge,
   IKayentaAccount,
 } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { omit } from 'lodash';
 
 import { REST } from '@spinnaker/core';
 
-export function getCanaryConfigById(id: string): PromiseLike<ICanaryConfig> {
-  return REST('/v2/canaryConfig')
-    .path(id)
-    .get()
-    .then((config: ICanaryConfig) => ({
-      ...config,
-      id,
-    }));
+export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
+  return Promise.resolve(REST('/v2/canaryConfig').path(id).get<ICanaryConfig>()).then((config) => ({
+    ...config,
+    id,
+  }));
 }
 
-export function getCanaryConfigSummaries(...application: string[]): PromiseLike<ICanaryConfigSummary[]> {
-  return REST('/v2/canaryConfig').query({ application }).get();
+export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
+  return Promise.resolve(REST('/v2/canaryConfig').query({ application }).get<ICanaryConfigSummary[]>());
 }
 
-export function updateCanaryConfig(config: ICanaryConfig): PromiseLike<ICanaryConfigUpdateResponse> {
-  return REST('/v2/canaryConfig').path(config.id).put(config);
+export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
+  return Promise.resolve(REST('/v2/canaryConfig').path(config.id).put<ICanaryConfigUpdateResponse>(config));
 }
 
-export function createCanaryConfig(config: ICanaryConfig): PromiseLike<ICanaryConfigUpdateResponse> {
-  return REST('/v2/canaryConfig').post(config);
+export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
+  return Promise.resolve(REST('/v2/canaryConfig').post<ICanaryConfigUpdateResponse>(config));
 }
 
-export function deleteCanaryConfig(id: string): PromiseLike<void> {
-  return REST('/v2/canaryConfig').path(id).delete();
+export function deleteCanaryConfig(id: string): Promise<void> {
+  return Promise.resolve(REST('/v2/canaryConfig').path(id).delete<void>());
 }
 
-export function listJudges(): PromiseLike<IJudge[]> {
-  return REST('/v2/canaries/judges')
-    .get()
-    .then((judges: IJudge[]) => judges.filter((judge) => judge.visible));
+export function listJudges(): Promise<IJudge[]> {
+  return Promise.resolve(REST('/v2/canaries/judges').get<IJudge[]>()).then((judges) =>
+    judges.filter((judge) => judge.visible),
+  );
 }
 
-export function listKayentaAccounts(): PromiseLike<IKayentaAccount[]> {
-  return REST('/v2/canaries/credentials').useCache().get();
+export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
+  return Promise.resolve(REST('/v2/canaries/credentials').useCache().get<IKayentaAccount[]>());
 }
 
 // Not sure if this is the right way to go about this. We have pieces of the config

@@ -1,7 +1,7 @@
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
 

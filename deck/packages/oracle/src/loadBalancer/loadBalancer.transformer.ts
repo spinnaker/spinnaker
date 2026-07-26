@@ -12,7 +12,7 @@ import { OracleProviderSettings } from '../oracle.settings';
 import { OracleDefaultProviderSettings } from '../oracle.settings';
 
 export class OracleLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): PromiseLike<IOracleLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IOracleLoadBalancer): Promise<IOracleLoadBalancer> {
     /*loadBalancer.serverGroups.forEach(function(serverGroup) {
       serverGroup.account = loadBalancer.account;
       serverGroup.region = loadBalancer.region;

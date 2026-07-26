@@ -102,7 +102,7 @@ export class AwsLoadBalancerTransformer {
     });
   }
 
-  private normalizeTargetGroup(targetGroup: ITargetGroup): PromiseLike<ITargetGroup> {
+  private normalizeTargetGroup(targetGroup: ITargetGroup): Promise<ITargetGroup> {
     this.normalizeServerGroups(targetGroup.serverGroups, targetGroup, 'targetGroups', 'TargetGroup');
 
     const activeServerGroups = filter(targetGroup.serverGroups, { isDisabled: false });
@@ -143,7 +143,7 @@ export class AwsLoadBalancerTransformer {
     }
   }
 
-  public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): PromiseLike<IAmazonLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): Promise<IAmazonLoadBalancer> {
     this.normalizeServerGroups(loadBalancer.serverGroups, loadBalancer, 'loadBalancers', 'LoadBalancer');
 
     let serverGroups = loadBalancer.serverGroups;

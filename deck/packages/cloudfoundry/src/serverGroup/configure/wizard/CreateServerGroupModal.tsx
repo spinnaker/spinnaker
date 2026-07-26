@@ -66,7 +66,7 @@ export class CloudFoundryCreateServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };

@@ -10,7 +10,6 @@ export function registerEcsResizeServerGroupStage() {
     alias: 'resizeAsg',
     cloudProvider: 'ecs',
     component: EcsResizeAsgStageConfig,
-    executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
     executionStepLabelComponent: (props) =>
       React.createElement(EcsServerGroupStepLabel, { action: 'Resize Server Group', ...props }),
     accountExtractor: (stage) => [stage.context.credentials],

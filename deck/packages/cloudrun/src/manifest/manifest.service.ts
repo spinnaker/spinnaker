@@ -21,7 +21,7 @@ export type IManifestCallback = (manifest: IManifest) => void;
 export class CloudrunManifestService {
   public static subscribe(app: Application, params: IManifestParams, fn: IManifestCallback): () => void {
     CloudrunManifestService.updateManifest(params, fn);
-    return app.onRefresh(null, () => CloudrunManifestService.updateManifest(params, fn));
+    return app.onRefresh(() => CloudrunManifestService.updateManifest(params, fn));
   }
 
   private static updateManifest(params: IManifestParams, fn: IManifestCallback) {

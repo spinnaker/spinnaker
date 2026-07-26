@@ -16,7 +16,7 @@ function deferred<T>(): IDeferred<T> {
 }
 
 describe('<DockerTriggerTemplate/>', () => {
-  it('formats Docker trigger labels without Angular promises', async () => {
+  it('formats Docker trigger labels', async () => {
     await expectAsync(
       Promise.resolve(
         DockerTriggerTemplate.formatLabel({ account: 'prod-registry', repository: 'example/service' } as any),

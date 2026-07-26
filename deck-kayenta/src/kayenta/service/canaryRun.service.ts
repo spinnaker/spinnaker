@@ -13,45 +13,51 @@ export interface ICanaryExecutionRouteService {
   params: Record<string, number | undefined>;
 }
 
-export const getCanaryRun = (configId: string, canaryExecutionId: string): PromiseLike<ICanaryExecutionStatusResult> =>
-  REST('/v2/canaries/canary')
-    .path(configId, canaryExecutionId)
-    .query({ storageAccountName: CanarySettings.storageAccountName })
-    .useCache()
-    .get()
-    .then((run: ICanaryExecutionStatusResult) => {
-      const { config } = run;
-      config.id = configId;
-      run.id = canaryExecutionId;
-      run.result?.judgeResult.results.sort((a, b) => a.name.localeCompare(b.name));
-      return run;
-    });
+export const getCanaryRun = (configId: string, canaryExecutionId: string): Promise<ICanaryExecutionStatusResult> =>
+  Promise.resolve(
+    REST('/v2/canaries/canary')
+      .path(configId, canaryExecutionId)
+      .query({ storageAccountName: CanarySettings.storageAccountName })
+      .useCache()
+      .get<ICanaryExecutionStatusResult>(),
+  ).then((run: ICanaryExecutionStatusResult) => {
+    const { config } = run;
+    config.id = configId;
+    run.id = canaryExecutionId;
+    run.result?.judgeResult.results.sort((a, b) => a.name.localeCompare(b.name));
+    return run;
+  });
 
 export const startCanaryRun = (
   configId: string,
   executionRequest: ICanaryExecutionRequest,
   params: ICanaryExecutionRequestParams = {},
-): PromiseLike<ICanaryExecutionResponse> => {
-  return REST('/v2/canaries/canary')
-    .path(configId)
-    .query(params as any)
-    .post(executionRequest);
+): Promise<ICanaryExecutionResponse> => {
+  return Promise.resolve(
+    REST('/v2/canaries/canary')
+      .path(configId)
+      .query(params as any)
+      .post<ICanaryExecutionResponse>(executionRequest),
+  );
 };
 
-export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): PromiseLike<IMetricSetPair> =>
-  REST('/v2/canaries/metricSetPairList')
-    .path(metricSetPairListId)
-    .query({ storageAccountName: CanarySettings.storageAccountName })
-    .useCache()
-    .get()
-    .then((list: IMetricSetPair[]) => list.find((pair) => pair.id === metricSetPairId));
+export const getMetricSetPair = (metricSetPairListId: string, metricSetPairId: string): Promise<IMetricSetPair> =>
+  Promise.resolve(
+    REST('/v2/canaries/metricSetPairList')
+      .path(metricSetPairListId)
+      .query({ storageAccountName: CanarySettings.storageAccountName })
+      .useCache()
+      .get<IMetricSetPair[]>(),
+  ).then((list: IMetricSetPair[]) => list.find((pair) => pair.id === metricSetPairId));
 
 export const listCanaryExecutions = (
   application: string,
   stateService: ICanaryExecutionRouteService,
-): PromiseLike<ICanaryExecutionStatusResult[]> => {
+): Promise<ICanaryExecutionStatusResult[]> => {
   const limit = stateService.params.count || 20;
-  return REST('/v2/canaries').path(application, 'executions').query({ limit }).get();
+  return Promise.resolve(
+    REST('/v2/canaries').path(application, 'executions').query({ limit }).get<ICanaryExecutionStatusResult[]>(),
+  );
 };
 
 export const getHealthLabel = (health: string, result: string): string => {

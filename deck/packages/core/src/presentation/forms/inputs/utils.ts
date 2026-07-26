@@ -7,10 +7,11 @@ import { noop } from '../../../utils';
 export const orEmptyString = (val: any) => (isNil(val) ? '' : val);
 
 export const validationClassName = (validation = {} as IFormInputValidation) => {
+  const touched = !!validation.touched;
   return classNames({
-    'ng-dirty': !!validation.touched,
-    'ng-invalid': validation.category === 'error',
-    'ng-warning': validation.category === 'warning',
+    dirty: touched,
+    invalid: touched && validation.category === 'error',
+    warning: touched && validation.category === 'warning',
   });
 };
 

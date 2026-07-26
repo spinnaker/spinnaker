@@ -81,11 +81,11 @@ export class ManagedReader {
     return response;
   }
 
-  public static getApplicationSummary(app: string): PromiseLike<IManagedApplicationSummary<'resources'>> {
+  public static getApplicationSummary(app: string): Promise<IManagedApplicationSummary<'resources'>> {
     return REST('/managed/application').path(app).query({ entities: 'resources' }).get().then(this.decorateResources);
   }
 
-  public static getResourceHistory(resourceId: string): PromiseLike<IManagedResourceEventHistory> {
+  public static getResourceHistory(resourceId: string): Promise<IManagedResourceEventHistory> {
     return REST('/history')
       .path(resourceId)
       .query({ limit: 100 })

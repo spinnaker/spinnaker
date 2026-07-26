@@ -559,8 +559,8 @@ function PipelineStageConfig({
           {stageConfig}
           {selectedProvider && !stageConfig && (
             <div className="alert alert-warning">
-              The {label} stage uses a legacy Angular-only editor. This direct React page can save, remove, reorder, and
-              edit this stage as JSON, but its form editor still needs a React migration.
+              The {label} stage does not provide a form editor. You can still save, remove, reorder, and edit this stage
+              as JSON.
             </div>
           )}
         </>
@@ -573,8 +573,8 @@ function PipelineStageConfig({
 
     return (
       <div className="alert alert-warning">
-        The {label} stage uses a legacy Angular-only editor. This direct React page can save, remove, reorder, and edit
-        this stage as JSON, but its form editor still needs a React migration.
+        The {label} stage does not provide a form editor. You can still save, remove, reorder, and edit this stage as
+        JSON.
       </div>
     );
   };

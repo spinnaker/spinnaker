@@ -5,6 +5,6 @@ import { Container } from '../container/Container';
 
 export const ContainerSettings = ({ command, configureCommand, onFieldChange }: IEcsWizardPageProps) => (
   <div data-test-id="EcsServerGroupWizard.container">
-    <Container command={command} configureCommand={configureCommand} notifyAngular={onFieldChange} />
+    <Container command={command} configureCommand={configureCommand} onFieldChange={onFieldChange} />
   </div>
 );

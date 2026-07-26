@@ -4,7 +4,7 @@ import { PipelineConfigService } from './config/services/PipelineConfigService';
 import { SETTINGS } from '../config/settings';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 
-export function registerPipelineDataSources($q, executionService, clusterService) {
+export function registerPipelineDataSources(promiseService, executionService, clusterService) {
   const registerOnce = (config) => {
     if (!ApplicationDataSourceRegistry.getDataSources().some(({ key }) => key === config.key)) {
       ApplicationDataSourceRegistry.registerDataSource(config);
@@ -13,7 +13,7 @@ export function registerPipelineDataSources($q, executionService, clusterService
 
   const addExecutions = (application, executions) => {
     executionService.transformExecutions(application, executions, application.executions.data);
-    return $q.when(executionService.addExecutionsToApplication(application, executions));
+    return promiseService.resolve(executionService.addExecutionsToApplication(application, executions));
   };
 
   const loadExecutions = (application) => {
@@ -23,14 +23,14 @@ export function registerPipelineDataSources($q, executionService, clusterService
   const loadPipelineConfigs = (application) => {
     const pipelineLoader = PipelineConfigService.getPipelinesForApplication(application.name);
     const strategyLoader = PipelineConfigService.getStrategiesForApplication(application.name);
-    return $q
+    return promiseService
       .all([pipelineLoader, strategyLoader])
       .then(([pipelineConfigs, strategyConfigs]) => ({ pipelineConfigs, strategyConfigs }));
   };
 
   const addPipelineConfigs = (application, data) => {
     application.strategyConfigs = { data: data.strategyConfigs };
-    return $q.when(data.pipelineConfigs);
+    return promiseService.resolve(data.pipelineConfigs);
   };
 
   const loadRunningExecutions = (application) => {
@@ -39,7 +39,7 @@ export function registerPipelineDataSources($q, executionService, clusterService
 
   const addRunningExecutions = (application, data) => {
     executionService.transformExecutions(application, data);
-    return $q.when(data);
+    return promiseService.resolve(data);
   };
 
   const runningExecutionsLoaded = (application) => {

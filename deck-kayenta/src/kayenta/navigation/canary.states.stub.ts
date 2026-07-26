@@ -1,6 +1,6 @@
-import { StateDeclaration, UIRouter } from '@uirouter/core';
+import type { StateDeclaration, UIRouter } from '@uirouter/core';
 
-import { ApplicationStateProvider } from '@spinnaker/core';
+import type { ApplicationStateProvider } from '@spinnaker/core';
 
 export function registerKayentaStateStubs(applicationState: ApplicationStateProvider, uiRouter: UIRouter) {
   const states: StateDeclaration[] = [

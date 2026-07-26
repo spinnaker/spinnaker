@@ -38,7 +38,7 @@ export class ConfirmationModalService {
     cancelButtonText: 'Cancel',
   };
 
-  public static confirm(params: IConfirmationModalParams): PromiseLike<any> {
+  public static confirm(params: IConfirmationModalParams): Promise<any> {
     const extendedParams: IConfirmModalProps = { ...this.defaults, ...params };
 
     if (params.body) {

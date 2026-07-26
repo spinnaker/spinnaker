@@ -10,8 +10,8 @@ import type { IEcsServerGroupCommand } from '../../serverGroupConfiguration.serv
 
 export interface IEcsNetworkingProps {
   command: IEcsServerGroupCommand;
-  notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => PromiseLike<void>;
+  onFieldChange: (key: string, value: any) => void;
+  configureCommand: (query: string) => Promise<void>;
 }
 
 interface IEcsNetworkingState {
@@ -110,7 +110,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
   private updateNetworkMode = (newNetworkMode: Option<string>) => {
     const updatedNetworkMode = newNetworkMode.value;
     const cmd = this.props.command;
-    this.props.notifyAngular('networkMode', updatedNetworkMode);
+    this.props.onFieldChange('networkMode', updatedNetworkMode);
     this.setState({
       networkMode: updatedNetworkMode,
       subnetTypesAvailable:
@@ -124,7 +124,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     const updatedSecurityGroups = Array.isArray(newSecurityGroups)
       ? newSecurityGroups.map((securityGroups) => securityGroups.value)
       : [];
-    this.props.notifyAngular('securityGroupNames', updatedSecurityGroups);
+    this.props.onFieldChange('securityGroupNames', updatedSecurityGroups);
     this.setState({ securityGroupNames: updatedSecurityGroups });
   };
 
@@ -133,7 +133,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
     const updatedSubnetTypes = Array.isArray(newSubnetTypes)
       ? newSubnetTypes.map((subnetType) => subnetType.value)
       : [];
-    this.props.notifyAngular('subnetTypes', updatedSubnetTypes);
+    this.props.onFieldChange('subnetTypes', updatedSubnetTypes);
     cmd.subnetTypeChanged(cmd);
     this.setState({
       subnetTypes: updatedSubnetTypes,
@@ -145,7 +145,7 @@ export class EcsNetworking extends React.Component<IEcsNetworkingProps, IEcsNetw
   };
 
   private updateAssociatePublicIpAddress = (usePublicIp: boolean) => {
-    this.props.notifyAngular('associatePublicIpAddress', usePublicIp);
+    this.props.onFieldChange('associatePublicIpAddress', usePublicIp);
     this.setState({ associatePublicIpAddress: usePublicIp });
   };
 
