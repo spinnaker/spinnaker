@@ -3,10 +3,10 @@ import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { DISABLE_EDIT_CONFIG, DisableableButton } from 'kayenta/layout/disableable';
 import { Tab, Tabs } from 'kayenta/layout/tabs';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import { noop } from '@spinnaker/core';
 

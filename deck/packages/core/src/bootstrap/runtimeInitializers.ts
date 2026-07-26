@@ -20,7 +20,7 @@ import { registerPreconfiguredWebhookStages } from '../pipeline/config/stages/we
 import { registerPipelineDataSources } from '../pipeline/pipeline.dataSource';
 import '../pipeline/pipeline.module';
 import { Registry } from '../registry';
-import { registerSearchFilterTypes } from '../search/widgets/search.component';
+import { registerSearchFilterTypes } from '../search/widgets/searchFilterTypeRegistrations';
 import { registerSecurityGroupDataSource } from '../securityGroup/securityGroup.dataSource';
 import '../securityGroup/securityGroup.module';
 import { registerServerGroupDataSource } from '../serverGroup/serverGroup.dataSource';
@@ -47,13 +47,10 @@ let dynamicRuntimeMetadataAttempt: Promise<void> | null = null;
 export function registerRuntimeDataSources(runtime: DeckRuntime): string[] {
   const existingKeys = new Set(ApplicationDataSourceRegistry.getDataSources().map(({ key }) => key));
   const { promiseService, services } = runtime;
-  registerServerGroupDataSource(promiseService, services.clusterService);
+  registerServerGroupDataSource(services.clusterService);
   registerLoadBalancerDataSource(promiseService, services.loadBalancerReader);
-  registerSecurityGroupDataSource(promiseService, services.securityGroupReader);
-  registerFunctionDataSource(
-    createDirectFunctionReader(services.providerServiceDelegate),
-    <T>(value: T | PromiseLike<T>) => promiseService.when(value),
-  );
+  registerSecurityGroupDataSource(services.securityGroupReader);
+  registerFunctionDataSource(createDirectFunctionReader(services.providerServiceDelegate));
   registerEntityTagsDataSource();
   registerPipelineDataSources(promiseService, services.executionService, services.clusterService);
   registerTaskDataSources(promiseService, services.clusterService);

@@ -131,27 +131,43 @@ function GceProxyLoadBalancerModalComponent(props: IGceProxyLoadBalancerModalPro
     normalizeGceProxyLoadBalancerCommand(props.loadBalancer, mode, type, application?.name),
   );
   const dataState = useGceLoadBalancerData(command.credentials, props.readers);
+  const applicationRefreshUnsubscribe = React.useRef<(() => void) | undefined>();
+  const isUnmounted = React.useRef(false);
   const [taskMonitor] = React.useState(
     () =>
       new TaskMonitor({
         application,
         title: `${mode === 'edit' ? 'Updating' : 'Creating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(
-          () => props.closeModal?.(),
-          () => props.dismissModal?.(),
-        ),
+        onDismiss: () => props.dismissModal?.(),
         onTaskComplete: () => {
           InfrastructureCaches.clearCache('healthChecks');
           const loadBalancers = (application as any)?.loadBalancers || application?.getDataSource?.('loadBalancers');
-          const close = () => props.closeModal?.();
+          const close = () => {
+            applicationRefreshUnsubscribe.current?.();
+            applicationRefreshUnsubscribe.current = undefined;
+            if (isUnmounted.current) {
+              return;
+            }
+            props.closeModal?.();
+          };
           if (loadBalancers?.onNextRefresh) {
-            loadBalancers.onNextRefresh(null, close);
+            applicationRefreshUnsubscribe.current?.();
+            applicationRefreshUnsubscribe.current = undefined;
+            applicationRefreshUnsubscribe.current = loadBalancers.onNextRefresh(close);
             loadBalancers.refresh?.();
           } else {
             close();
           }
         },
       }),
+  );
+  React.useEffect(
+    () => () => {
+      isUnmounted.current = true;
+      applicationRefreshUnsubscribe.current?.();
+      applicationRefreshUnsubscribe.current = undefined;
+    },
+    [],
   );
   const errors = validateGceProxyLoadBalancerCommand(command);
   const submitting = taskMonitor.submitting;

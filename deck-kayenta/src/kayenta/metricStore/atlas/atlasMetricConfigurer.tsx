@@ -3,12 +3,12 @@ import { get } from 'lodash';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import { UPDATE_ATLAS_QUERY } from '../../actions/index';
 import { CanarySettings } from '../../canary.settings';
-import { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
-import { ICanaryState } from '../../reducers/index';
+import type { ICanaryMetricConfig } from '../../domain/ICanaryConfig';
+import type { ICanaryState } from '../../reducers/index';
 
 interface IAtlasMetricConfigurerStateProps {
   editingMetric: ICanaryMetricConfig;

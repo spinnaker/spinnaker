@@ -200,7 +200,7 @@ export class AwsServerGroupConfigurationService {
     } as IAmazonServerGroupCommandBackingData;
   }
 
-  public configureCommand(application: Application, cmd: IAmazonServerGroupCommand): PromiseLike<void> {
+  public configureCommand(application: Application, cmd: IAmazonServerGroupCommand): Promise<void> {
     this.applyOverrides('beforeConfiguration', cmd);
     // TODO: Instead of attaching these to the command itself, they could be static methods
     cmd.toggleSuspendedProcess = (command: IAmazonServerGroupCommand, process: string): void => {
@@ -294,7 +294,7 @@ export class AwsServerGroupConfigurationService {
           terminationPolicies,
         };
 
-        let securityGroupReloader: PromiseLike<void> = Promise.resolve();
+        let securityGroupReloader: Promise<void> = Promise.resolve();
         backingData.accounts = keys(backingData.credentialsKeyedByAccount);
         backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
         backingData.scalingProcesses = AutoScalingProcessService.listProcesses();
@@ -511,7 +511,7 @@ export class AwsServerGroupConfigurationService {
   public refreshSecurityGroups(
     command: IAmazonServerGroupCommand,
     skipCommandReconfiguration?: boolean,
-  ): PromiseLike<void> {
+  ): Promise<void> {
     return this.getCacheInitializer()
       .refreshCache('securityGroups')
       .then(() => {

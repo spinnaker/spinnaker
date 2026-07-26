@@ -2,7 +2,7 @@ import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { DISABLE_EDIT_CONFIG, DisableableTextarea } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import {
   inlineTemplateValueSelector,
   transformInlineTemplateForSave,

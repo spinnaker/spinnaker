@@ -71,7 +71,7 @@ export class ServerGroupDetailsComponent extends React.Component<
 
   public componentDidMount(): void {
     this.loadServerGroup(this.props);
-    this.serverGroupsRefreshUnsubscribe = this.props.app.serverGroups.onRefresh(null, () => {
+    this.serverGroupsRefreshUnsubscribe = this.props.app.serverGroups.onRefresh(() => {
       this.loadServerGroup(this.props);
     });
   }

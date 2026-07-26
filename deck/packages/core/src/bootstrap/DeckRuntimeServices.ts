@@ -1,11 +1,10 @@
 import type { Rejection } from '@uirouter/core';
 import { RejectType } from '@uirouter/core';
 import type { UIRouterReact } from '@uirouter/react';
-import type { ILogService, IQService, ITimeoutService } from 'angular';
 
 import type { Application } from '../application';
 import { CacheInitializerService } from '../cache/cacheInitializer.service';
-import type { DirectProviderServiceDelegate, ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { ClusterService } from '../cluster/cluster.service';
 import { InstanceTypeService } from '../instance';
 import { LoadBalancerReader } from '../loadBalancer/loadBalancer.read.service';
@@ -18,6 +17,8 @@ import { SecurityGroupTransformerService } from '../securityGroup/securityGroupT
 import { ServerGroupCommandBuilderService } from '../serverGroup/configure/common/serverGroupCommandBuilder.service';
 import { ServerGroupWriter } from '../serverGroup/serverGroupWriter.service';
 import type { CancellableTimeout } from '../utils/cancellableTimeout';
+import type { DiagnosticLogger } from '../utils/diagnosticLogger';
+import type { PromiseService } from '../utils/nativePromiseService';
 
 export interface ServerGroupTransformer {
   normalizeServerGroup(serverGroup: any, application: Application): PromiseLike<any>;
@@ -127,10 +128,10 @@ export class DeckRuntimeServices {
 
   constructor(
     private router: UIRouterReact | null,
-    private promiseService: IQService,
+    private promiseService: PromiseService,
     private timeoutService: CancellableTimeout,
-    private logger: ILogService,
-    public readonly providerServiceDelegate: DirectProviderServiceDelegate,
+    private logger: DiagnosticLogger,
+    public readonly providerServiceDelegate: ProviderServiceDelegate,
   ) {
     providerServiceDelegate.bindRuntimeServices(this);
   }
@@ -147,7 +148,7 @@ export class DeckRuntimeServices {
     return (this.directClusterService ||= new ClusterService(
       this.promiseService,
       this.serverGroupTransformer,
-      (this.providerServiceDelegate as unknown) as ProviderServiceDelegate,
+      this.providerServiceDelegate,
     ));
   }
 
@@ -158,8 +159,8 @@ export class DeckRuntimeServices {
 
     return (this.directExecutionDetailsSectionService ||= new ExecutionDetailsSectionService(
       this.router.globals.params,
-      this.router.stateService as any,
-      (this.timeoutService as unknown) as ITimeoutService,
+      this.router.stateService,
+      this.timeoutService,
     ));
   }
 
@@ -168,24 +169,15 @@ export class DeckRuntimeServices {
       throw new Error('Cannot create ExecutionService before the direct UI Router is initialized');
     }
 
-    return (this.directExecutionService ||= new ExecutionService(
-      this.promiseService,
-      this.router.stateService,
-      (this.timeoutService as unknown) as ITimeoutService,
-    ));
+    return (this.directExecutionService ||= new ExecutionService(this.router.stateService, this.timeoutService));
   }
 
   public get infrastructureSearchService(): InfrastructureSearchService {
-    return (this.directInfrastructureSearchService ||= new InfrastructureSearchService(
-      this.promiseService,
-      this.providerServiceDelegate,
-    ));
+    return (this.directInfrastructureSearchService ||= new InfrastructureSearchService(this.providerServiceDelegate));
   }
 
   public get instanceTypeService(): InstanceTypeService {
-    return (this.directInstanceTypeService ||= new InstanceTypeService(
-      (this.providerServiceDelegate as unknown) as ProviderServiceDelegate,
-    ));
+    return (this.directInstanceTypeService ||= new InstanceTypeService(this.providerServiceDelegate));
   }
 
   public get loadBalancerReader(): LoadBalancerReader {
@@ -200,8 +192,7 @@ export class DeckRuntimeServices {
   }
 
   public get securityGroupReader(): SecurityGroupReader {
-    const providerServiceDelegate = (this.providerServiceDelegate as unknown) as ProviderServiceDelegate;
-    const securityGroupTransformer = new SecurityGroupTransformerService(providerServiceDelegate);
+    const securityGroupTransformer = new SecurityGroupTransformerService(this.providerServiceDelegate);
     const optionalSecurityGroupTransformer = {
       normalizeSecurityGroup: (securityGroup: any) => {
         const provider = securityGroup.provider || securityGroup.type;
@@ -214,13 +205,13 @@ export class DeckRuntimeServices {
       this.logger,
       this.promiseService,
       optionalSecurityGroupTransformer,
-      providerServiceDelegate,
+      this.providerServiceDelegate,
     ));
   }
 
   public get serverGroupCommandBuilder(): ServerGroupCommandBuilderService {
     return (this.directServerGroupCommandBuilder ||= new ServerGroupCommandBuilderService(
-      (this.providerServiceDelegate as unknown) as ProviderServiceDelegate,
+      this.providerServiceDelegate,
     ));
   }
 

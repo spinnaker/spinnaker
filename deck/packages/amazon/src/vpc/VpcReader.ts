@@ -2,9 +2,9 @@ import type { IVpc } from '@spinnaker/core';
 import { NetworkReader } from '@spinnaker/core';
 
 export class VpcReader {
-  private static cache: PromiseLike<IVpc[]>;
+  private static cache: Promise<IVpc[]>;
 
-  public static listVpcs(): PromiseLike<IVpc[]> {
+  public static listVpcs(): Promise<IVpc[]> {
     if (this.cache) {
       return this.cache;
     }

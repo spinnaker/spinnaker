@@ -1,23 +1,22 @@
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import type { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { IUpdateListPayload, List } from 'kayenta/layout/list';
+import type { IUpdateListPayload } from 'kayenta/layout/list';
+import { List } from 'kayenta/layout/list';
 import RadioChoice from 'kayenta/layout/radioChoice';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { queryTypeSelector } from 'kayenta/selectors/filterTemplatesSelectors';
 import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Option } from 'react-select';
-import { Action } from 'redux';
+import type { Option } from 'react-select';
+import type { Action } from 'redux';
 import { createSelector } from 'reselect';
 
-import {
-  IPrometheusCanaryMetricSetQueryConfig,
-  PrometheusQueryType,
-} from './domain/IPrometheusCanaryMetricSetQueryConfig';
-import { ICanaryMetricValidationErrors } from '../../edit/editMetricValidation';
+import type { IPrometheusCanaryMetricSetQueryConfig } from './domain/IPrometheusCanaryMetricSetQueryConfig';
+import { PrometheusQueryType } from './domain/IPrometheusCanaryMetricSetQueryConfig';
+import type { ICanaryMetricValidationErrors } from '../../edit/editMetricValidation';
 import PrometheusMetricTypeSelector from './metricTypeSelector';
 import { editingMetricSelector } from '../../selectors';
 
@@ -39,8 +38,7 @@ interface IPrometheusMetricConfigurerDispatchProps {
 
 const RESOURCE_TYPES = ['gce_instance', 'aws_ec2_instance'];
 
-const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
-  values.map((value) => ({ value, label: value }));
+const toReactSelectOptions = (values: string[]): Option<string>[] => values.map((value) => ({ value, label: value }));
 
 /*
  * Component for configuring a Prometheus metric.

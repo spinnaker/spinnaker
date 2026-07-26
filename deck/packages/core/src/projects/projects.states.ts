@@ -1,5 +1,3 @@
-import type { StateParams } from '@uirouter/angularjs';
-
 import { ProjectHeader } from './ProjectHeader';
 import { Projects } from './Projects';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
@@ -9,11 +7,9 @@ import type { IProject } from '../domain/IProject';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 import { ProjectReader } from './service/ProjectReader';
 
-export interface IProjectStateParms extends StateParams {
+export interface IProjectStateParms {
   project: string;
 }
-
-export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {

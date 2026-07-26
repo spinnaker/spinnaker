@@ -27,10 +27,7 @@ export class LoadBalancerDataUtils {
     return loadBalancer;
   }
 
-  public static populateLoadBalancers(
-    application: Application,
-    serverGroup: IServerGroup,
-  ): PromiseLike<ILoadBalancer[]> {
+  public static populateLoadBalancers(application: Application, serverGroup: IServerGroup): Promise<ILoadBalancer[]> {
     return application
       .getDataSource('loadBalancers')
       .ready()

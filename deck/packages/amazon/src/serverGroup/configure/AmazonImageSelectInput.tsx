@@ -63,7 +63,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     return { imageName, amis, attributes } as IAmazonImage;
   }
 
-  private loadImagesFromApplicationName(application: Application): PromiseLike<IAmazonImage[]> {
+  private loadImagesFromApplicationName(application: Application): Promise<IAmazonImage[]> {
     const query = application.name.replace(/_/g, '[_\\-]') + '*';
     return this.awsImageReader.findImages({ q: query });
   }
@@ -81,13 +81,13 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     return tooShort ? null : packageBase + (addDashToQuery ? '-*' : '*');
   }
 
-  private loadImageById(imageId: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
+  private loadImageById(imageId: string, region: string, credentials: string): Promise<IAmazonImage> {
     return !imageId
       ? Promise.resolve(null)
       : this.awsImageReader.getImage(imageId, region, credentials).catch(() => null);
   }
 
-  private searchForImages(query: string): PromiseLike<IAmazonImage[]> {
+  private searchForImages(query: string): Promise<IAmazonImage[]> {
     const hasMinLength = query && query.length >= 3;
     return hasMinLength ? this.awsImageReader.findImages({ q: query }) : Promise.resolve([]);
   }
@@ -97,7 +97,7 @@ export class AmazonImageSelectInput extends React.Component<IAmazonImageSelector
     region: string,
     credentials: string,
     application: Application,
-  ): PromiseLike<IAmazonImage[]> {
+  ): Promise<IAmazonImage[]> {
     const imageId = value && value.amis && value.amis[region] && value.amis[region][0];
 
     return this.loadImageById(imageId, region, credentials).then((image) => {

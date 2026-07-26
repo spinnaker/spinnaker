@@ -107,12 +107,10 @@ export class EntityTagEditor extends React.Component<IEntityTagEditorProps, IEnt
 
     tag.value.message = values.message;
 
-    const onClose = (result: any) => this.props.closeModal(result);
     const onDismiss = (result: any) => this.props.dismissModal(result);
-    const modalInstance = TaskMonitor.modalInstanceEmulation(onClose, onDismiss);
     const taskMonitor = new TaskMonitor({
       application,
-      modalInstance,
+      onDismiss,
       title: `${isNew ? 'Create' : 'Update'} ${this.props.tag.value.type} for ${entityRef.entityId}`,
       onTaskComplete: () => application.entityTags.refresh().then(() => onUpdate()),
     });

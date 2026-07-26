@@ -111,7 +111,7 @@ export class DeployInitializerComponent extends React.Component<
     Object.assign(baseCommand, command);
   }
 
-  private buildCommandFromTemplate(serverGroup: IServerGroup): PromiseLike<any> {
+  private buildCommandFromTemplate(serverGroup: IServerGroup): Promise<any> {
     const { application, cloudProvider } = this.props;
 
     const commandBuilder: any = this.props.deckRuntimeServices.providerServiceDelegate.getDelegate(
@@ -129,16 +129,16 @@ export class DeployInitializerComponent extends React.Component<
     });
   }
 
-  private buildEmptyCommand = (): PromiseLike<any> => {
+  private buildEmptyCommand = (): Promise<any> => {
     const { application, cloudProvider } = this.props;
     const commandBuilder: any = this.props.deckRuntimeServices.providerServiceDelegate.getDelegate(
       cloudProvider,
       'serverGroup.commandBuilder',
     );
-    return commandBuilder.buildNewServerGroupCommand(application, { mode: 'createPipeline' });
+    return Promise.resolve(commandBuilder.buildNewServerGroupCommand(application, { mode: 'createPipeline' }));
   };
 
-  private selectTemplate = (): PromiseLike<void> => {
+  private selectTemplate = (): Promise<void> => {
     const buildCommand =
       this.state.selectedTemplate === this.noTemplate
         ? this.buildEmptyCommand()

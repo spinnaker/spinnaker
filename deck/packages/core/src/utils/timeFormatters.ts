@@ -83,5 +83,3 @@ export function timePickerTime(input: any) {
   }
   return '-';
 }
-
-export const TIME_FORMATTERS = 'spinnaker.core.utils.timeFormatters';

@@ -1,6 +1,3 @@
-export const CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER = 'spinnaker.core.pipeline.stage.bake.transformer';
-export const name = CORE_PIPELINE_CONFIG_STAGES_BAKE_BAKESTAGE_TRANSFORMER; // for backwards compatibility
-
 /**
  * Bubbles "previouslyBaked" flag up to parallel bake stage.
  */

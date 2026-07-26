@@ -143,9 +143,10 @@ describe('GceSecurityGroupModal', () => {
     it(`waits for refreshed security groups before closing and navigating after ${mode}`, () => {
       let finishRefresh: (() => void) | undefined;
       const refresh = jasmine.createSpy('refresh');
-      const onNextRefresh = jasmine
-        .createSpy('onNextRefresh')
-        .and.callFake((_scope: any, callback: () => void) => (finishRefresh = callback));
+      const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+        finishRefresh = callback;
+        return () => undefined;
+      });
       const closeModal = jasmine.createSpy('closeModal');
       const state = {
         go: jasmine.createSpy('go'),
@@ -161,6 +162,7 @@ describe('GceSecurityGroupModal', () => {
         stateParams: {},
         stateService: state,
       } as any);
+      (modal as any).mounted = true;
       (modal.state as any).securityGroup = validSecurityGroup({ name: ' new-firewall ', network: ' default ' });
 
       (modal as any).onTaskComplete();
@@ -181,6 +183,42 @@ describe('GceSecurityGroupModal', () => {
         vpcId: 'default',
       });
     });
+  });
+
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    const onNextRefresh = jasmine.createSpy('onNextRefresh').and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    const refresh = jasmine.createSpy('refresh');
+    const closeModal = jasmine.createSpy('closeModal');
+    const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const modal = new GceSecurityGroupModal({
+      application: { name: 'my-app', securityGroups: { onNextRefresh, refresh } },
+      closeModal,
+      credentials: 'my-account',
+      stateService,
+    } as any) as any;
+    modal.mounted = true;
+
+    modal.onTaskComplete();
+
+    expect(onNextRefresh.calls.first().invocationOrder).toBeLessThan(refresh.calls.first().invocationOrder);
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(closeModal).not.toHaveBeenCalled();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('submits multiple protocol and port-range rows using the GCE firewall operation contract', () => {

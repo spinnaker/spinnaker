@@ -1,13 +1,13 @@
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import type { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 import { DISABLE_EDIT_CONFIG, DisableableSelect } from 'kayenta/layout/disableable';
 import Styleguide from 'kayenta/layout/styleguide';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { Modal } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import { noop } from '@spinnaker/core';
 

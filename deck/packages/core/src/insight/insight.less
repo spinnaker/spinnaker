@@ -1,11 +1,6 @@
-insight-layout,
 .insight {
   display: flex;
 
-  insight-filter,
-  cluster-filter,
-  load-balancer-filter,
-  security-group-filter,
   .insight-filter-content {
     display: flex;
     overflow-x: hidden;
@@ -17,16 +12,8 @@ insight-layout,
     }
   }
 
-  insight-filter,
   .insight-filter-content {
     flex-direction: column;
     margin-top: var(--m-spacing);
   }
-}
-
-ui-view[name='insight'],
-react-ui-view-adapter[name='insight'] {
-  flex: 1 1 auto;
-  display: flex;
-  overflow-x: hidden;
 }

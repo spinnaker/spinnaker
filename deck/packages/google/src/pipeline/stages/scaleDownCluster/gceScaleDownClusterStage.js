@@ -2,9 +2,6 @@ import { Registry } from '@spinnaker/core';
 
 import { GceScaleDownClusterStageConfig } from '../googleStageConfig';
 
-export const GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE =
-  'spinnaker.gce.pipeline.stage..scaleDownClusterStage';
-export const name = GOOGLE_PIPELINE_STAGES_SCALEDOWNCLUSTER_GCESCALEDOWNCLUSTERSTAGE;
 export function registerGceScaleDownClusterStage() {
   Registry.pipeline.registerStage({
     provides: 'scaleDownCluster',

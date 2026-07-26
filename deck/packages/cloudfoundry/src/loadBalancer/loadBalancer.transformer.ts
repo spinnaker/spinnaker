@@ -41,7 +41,7 @@ export class CloudFoundryLoadBalancerUpsertDescription
 }
 
 export class CloudFoundryLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): PromiseLike<ILoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: ILoadBalancer): Promise<ILoadBalancer> {
     loadBalancer.provider = loadBalancer.type;
     loadBalancer.instanceCounts = this.buildInstanceCounts(loadBalancer.serverGroups);
     loadBalancer.instances = [];
@@ -84,7 +84,7 @@ export class CloudFoundryLoadBalancerTransformer {
   public convertLoadBalancerForEditing(
     loadBalancer: ICloudFoundryLoadBalancer,
     application: Application,
-  ): PromiseLike<ICloudFoundryLoadBalancer> {
+  ): Promise<ICloudFoundryLoadBalancer> {
     return application
       .getDataSource('loadBalancers')
       .ready()

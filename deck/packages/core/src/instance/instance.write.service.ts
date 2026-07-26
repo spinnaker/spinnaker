@@ -1,5 +1,5 @@
 import type { Application } from '../application/application.model';
-import type { DirectProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import type { IInstance, IServerGroup, ITask } from '../domain';
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import type { IJob } from '../task/taskExecutor';
@@ -28,11 +28,7 @@ export interface IMultiInstanceJob {
 }
 
 export class InstanceWriter {
-  public static terminateInstance(
-    instance: IInstance,
-    application: Application,
-    params: IJob = {},
-  ): PromiseLike<ITask> {
+  public static terminateInstance(instance: IInstance, application: Application, params: IJob = {}): Promise<ITask> {
     params.type = 'terminateInstances';
     params['instanceIds'] = [instance.id];
     params['region'] = instance.region;
@@ -49,8 +45,8 @@ export class InstanceWriter {
   public static terminateInstances(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -63,12 +59,12 @@ export class InstanceWriter {
   private static executeMultiInstanceTask(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-    providerServiceDelegate: DirectProviderServiceDelegate,
+    providerServiceDelegate: ProviderServiceDelegate,
     type: string,
     baseDescriptor: string,
     descriptorSuffix?: string,
     additionalJobProperties: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     const jobs = InstanceWriter.buildMultiInstanceJob(
       instanceGroups,
       providerServiceDelegate,
@@ -86,8 +82,8 @@ export class InstanceWriter {
   public static rebootInstances(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -97,7 +93,7 @@ export class InstanceWriter {
     );
   }
 
-  public static rebootInstance(instance: IInstance, application: Application, params: any = {}): PromiseLike<ITask> {
+  public static rebootInstance(instance: IInstance, application: Application, params: any = {}): Promise<ITask> {
     params.type = 'rebootInstances';
     params.instanceIds = [instance.id];
     params.region = instance.region;
@@ -117,8 +113,8 @@ export class InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     const jobs = InstanceWriter.buildMultiInstanceJob(
       instanceGroups,
       providerServiceDelegate,
@@ -141,7 +137,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -159,8 +155,8 @@ export class InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     loadBalancerNames: string[],
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     const jobs = InstanceWriter.buildMultiInstanceJob(
       instanceGroups,
       providerServiceDelegate,
@@ -183,7 +179,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -200,8 +196,8 @@ export class InstanceWriter {
   public static enableInstancesInDiscovery(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -216,7 +212,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: IJob = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -238,8 +234,8 @@ export class InstanceWriter {
   public static disableInstancesInDiscovery(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -254,7 +250,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: IJob = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return TaskExecutor.executeTask({
       job: [
         {
@@ -276,8 +272,8 @@ export class InstanceWriter {
   public static terminateInstancesAndShrinkServerGroups(
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
-    providerServiceDelegate: DirectProviderServiceDelegate,
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     return InstanceWriter.executeMultiInstanceTask(
       instanceGroups,
       application,
@@ -297,7 +293,7 @@ export class InstanceWriter {
     instance: IInstance,
     application: Application,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return ServerGroupReader.getServerGroup(
       application.name,
       instance.account,
@@ -324,7 +320,7 @@ export class InstanceWriter {
 
   protected static buildMultiInstanceJob(
     instanceGroups: IMultiInstanceGroup[],
-    providerServiceDelegate: DirectProviderServiceDelegate,
+    providerServiceDelegate: ProviderServiceDelegate,
     type: string,
     additionalJobProperties = {},
   ) {
@@ -350,7 +346,7 @@ export class InstanceWriter {
 
   private static convertGroupToJob(
     instanceGroup: IMultiInstanceGroup,
-    providerServiceDelegate: DirectProviderServiceDelegate,
+    providerServiceDelegate: ProviderServiceDelegate,
     type: string,
     additionalJobProperties: any = {},
   ): IMultiInstanceJob {
@@ -374,7 +370,7 @@ export class InstanceWriter {
   private static transform(
     instanceGroup: IMultiInstanceGroup,
     job: IMultiInstanceJob,
-    providerServiceDelegate: DirectProviderServiceDelegate,
+    providerServiceDelegate: ProviderServiceDelegate,
   ) {
     const serviceKey = 'instance.multiInstanceTaskTransformer';
     if (providerServiceDelegate.hasDelegate(instanceGroup.cloudProvider, serviceKey)) {

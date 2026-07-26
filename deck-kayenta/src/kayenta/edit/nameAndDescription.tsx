@@ -3,10 +3,10 @@ import { CanarySettings } from 'kayenta/canary.settings';
 import { DISABLE_EDIT_CONFIG, DisableableInput, DisableableTextarea } from 'kayenta/layout/disableable';
 import FormList from 'kayenta/layout/formList';
 import FormRow from 'kayenta/layout/formRow';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import MetricStoreSelector from './metricStoreSelector';
 

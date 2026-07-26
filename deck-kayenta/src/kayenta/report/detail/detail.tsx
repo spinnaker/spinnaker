@@ -1,5 +1,5 @@
-import { ICanaryExecutionStatusResult } from 'kayenta/domain';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryExecutionStatusResult } from 'kayenta/domain';
+import type { ICanaryState } from 'kayenta/reducers';
 import * as React from 'react';
 import { connect } from 'react-redux';
 

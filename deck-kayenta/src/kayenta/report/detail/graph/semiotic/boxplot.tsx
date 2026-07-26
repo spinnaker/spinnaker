@@ -1,21 +1,14 @@
 import { extent } from 'd3-array';
 import { Force, Node } from 'labella';
 import * as React from 'react';
-import {
-  Annotation,
-  IAnnotationType,
-  IOrFrameHoverArgs,
-  IOrGroup,
-  IOrSummaryPiece,
-  ISemioticAnnotationArgs,
-  OrdinalFrame,
-} from 'semiotic';
+import type { IAnnotationType, IOrFrameHoverArgs, IOrGroup, IOrSummaryPiece, ISemioticAnnotationArgs } from 'semiotic';
+import { Annotation, OrdinalFrame } from 'semiotic';
 
 import ChartHeader from './chartHeader';
 import ChartLegend from './chartLegend';
 import CircleIcon from './circleIcon';
 import { vizConfig } from './config';
-import { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
+import type { IMargin, ISemioticChartProps, ITooltip } from './semiotic.service';
 import Tooltip from './tooltip';
 import * as utils from './utils';
 
@@ -198,7 +191,7 @@ export default class BoxPlot extends React.Component<ISemioticChartProps, IBoxPl
           const pieceData = summaryData.find((sd: IOrSummaryPiece) => sd.summaryPieceName === summaryKey);
           return pieceData ? new Node<IOrSummaryPiece>(pieceData.y, 20, pieceData) : null;
         })
-        .map((v: null | Node<IOrSummaryPiece>) => v) as Array<Node<IOrSummaryPiece>>;
+        .map((v: null | Node<IOrSummaryPiece>) => v) as Node<IOrSummaryPiece>[];
 
       const forceOptions = {
         minPos: this.margin.top,

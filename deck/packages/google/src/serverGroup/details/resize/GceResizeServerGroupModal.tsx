@@ -47,15 +47,11 @@ export interface IGceAutoscalingPolicyWriter {
     serverGroup: IServerGroup,
     policy: IGceAutoscalerResizeRequest['policy'],
     params: IGceAutoscalerResizeRequest['params'],
-  ): PromiseLike<ITask>;
+  ): Promise<ITask>;
 }
 
 export interface IGceResizeServerGroupWriter {
-  resizeServerGroup(
-    serverGroup: IServerGroup,
-    application: Application,
-    command: IGceFixedResizeJob,
-  ): PromiseLike<ITask>;
+  resizeServerGroup(serverGroup: IServerGroup, application: Application, command: IGceFixedResizeJob): Promise<ITask>;
 }
 
 export interface IGceResizeServerGroupModalProps extends IModalComponentProps {
@@ -165,7 +161,7 @@ export class GceResizeServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application,
         title: `Resizing ${props.serverGroup.name}`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => application.serverGroups.refresh(),
       }),
       values: {

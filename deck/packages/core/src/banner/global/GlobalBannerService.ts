@@ -34,32 +34,32 @@ export interface IBannerRecord {
 
 export const GlobalBannerService = {
   /** Returns only active (enabled + within time window) banners. Public endpoint. */
-  getActiveBanners(): PromiseLike<IBannerRecord[]> {
+  getActiveBanners(): Promise<IBannerRecord[]> {
     return REST('/banners').get();
   },
 
   /** Returns all banners regardless of enabled/time state. Admin endpoint. */
-  getAllBanners(): PromiseLike<IBannerRecord[]> {
+  getAllBanners(): Promise<IBannerRecord[]> {
     return REST('/banners/all').get();
   },
 
-  getBannerById(id: string): PromiseLike<IBannerRecord> {
+  getBannerById(id: string): Promise<IBannerRecord> {
     return REST('/banners').path(id).get();
   },
 
-  saveBanner(record: IBannerRecord): PromiseLike<IBannerRecord> {
+  saveBanner(record: IBannerRecord): Promise<IBannerRecord> {
     return REST('/banners').put(record);
   },
 
-  deleteBanner(id: string): PromiseLike<void> {
+  deleteBanner(id: string): Promise<void> {
     return REST('/banners').path(id).delete();
   },
 
-  deleteAllBanners(): PromiseLike<void> {
+  deleteAllBanners(): Promise<void> {
     return REST('/banners').delete();
   },
 
-  forceRefresh(): PromiseLike<void> {
+  forceRefresh(): Promise<void> {
     return REST('/banners/refresh').post();
   },
 };

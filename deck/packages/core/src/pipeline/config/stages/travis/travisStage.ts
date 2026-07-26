@@ -5,8 +5,6 @@ import { ExecutionDetailsTasks } from '../common';
 import type { IStage } from '../../../../domain';
 import { Registry } from '../../../../registry';
 
-export const TRAVIS_STAGE = 'spinnaker.core.pipeline.stage.travisStage';
-
 export const travisStage = {
   label: 'Travis',
   description: 'Runs a Travis job',

@@ -1,6 +1,6 @@
-import { Action, Dispatch, Middleware, MiddlewareAPI } from 'redux';
+import type { Action, Dispatch, Middleware, MiddlewareAPI } from 'redux';
 
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 
 /*
  * Middleware for scheduling actions from within reducers.

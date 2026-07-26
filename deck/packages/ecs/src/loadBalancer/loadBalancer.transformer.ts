@@ -1,7 +1,7 @@
 import type { IEcsLoadBalancer, IEcsLoadBalancerSourceData, IEcsTargetGroup } from '../domain/IEcsLoadBalancer';
 
 export class EcsLoadBalancerTransformer {
-  public normalizeLoadBalancer(loadBalancer: IEcsLoadBalancerSourceData): PromiseLike<IEcsLoadBalancer> {
+  public normalizeLoadBalancer(loadBalancer: IEcsLoadBalancerSourceData): Promise<IEcsLoadBalancer> {
     loadBalancer.targetGroups.forEach((tg: IEcsTargetGroup) => {
       tg.region = loadBalancer.region;
       tg.account = loadBalancer.account;

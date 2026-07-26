@@ -49,7 +49,7 @@ class UpdateBootImageModal extends React.Component<IUpdateBootImageModalProps, I
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Updating Boot Image',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
       }),
     };
   }

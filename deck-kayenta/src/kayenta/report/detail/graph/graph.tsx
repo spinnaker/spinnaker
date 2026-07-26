@@ -1,11 +1,12 @@
-import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
-import { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import type { IMetricSetPair } from 'kayenta/domain/IMetricSetPair';
+import type { ICanaryState } from 'kayenta/reducers';
 import { metricResultsSelector } from 'kayenta/selectors';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { GraphType, metricSetPairGraphService } from './metricSetPairGraph.service';
+import type { GraphType } from './metricSetPairGraph.service';
+import { metricSetPairGraphService } from './metricSetPairGraph.service';
 
 interface IMetricSetPairGraphStateProps {
   pair: IMetricSetPair;

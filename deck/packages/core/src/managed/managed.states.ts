@@ -52,8 +52,6 @@ const routes: Array<INestedState & { name: Routes }> = [
   },
 ];
 
-export const MANAGED_STATES = 'spinnaker.core.managed.states';
-
 registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
   if (SETTINGS.feature.managedDelivery) {
     const artifactVersion: INestedState = {

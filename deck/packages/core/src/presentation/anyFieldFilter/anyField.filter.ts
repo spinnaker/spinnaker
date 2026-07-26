@@ -1,11 +1,5 @@
 /**
- * From angular-ui-select demo: http://plnkr.co/edit/juqoNOt1z1Gb349XabQ2
- */
-/**
- * AngularJS default filter with the following expression:
- * "person in people | filter: {name: $select.search, age: $select.search}"
- * performs a AND between 'name: $select.search' and 'age: $select.search'.
- * We want to perform a OR.
+ * Matches an item when any configured field contains its search text.
  */
 
 export function anyFieldFilter() {
@@ -37,5 +31,3 @@ export function anyFieldFilter() {
     return out;
   };
 }
-
-export const ANY_FIELD_FILTER = 'spinnaker.core.presentation.anyFieldFilter';

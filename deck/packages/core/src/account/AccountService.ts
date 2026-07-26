@@ -9,10 +9,10 @@ import { CloudProviderRegistry } from '../cloudProvider/CloudProviderRegistry';
 import { SETTINGS } from '../config/settings';
 import type { ILoadBalancer, IServerGroup } from '../domain';
 
-const all = <T extends any[]>(promises: { [K in keyof T]: PromiseLike<T[K]> }): PromiseLike<T> =>
-  (Promise.all(promises as any) as unknown) as PromiseLike<T>;
+const all = <T extends any[]>(promises: { [K in keyof T]: PromiseLike<T[K]> }): Promise<T> =>
+  (Promise.all(promises as any) as unknown) as Promise<T>;
 
-const when = <T>(promise: PromiseLike<T>): PromiseLike<T> => Promise.resolve(promise) as PromiseLike<T>;
+const when = <T>(promise: PromiseLike<T>): Promise<T> => Promise.resolve(promise);
 
 export interface IRegion {
   account?: string;
@@ -83,7 +83,7 @@ export class AccountService {
     );
   }
 
-  public static challengeDestructiveActions(account: string): PromiseLike<boolean> {
+  public static challengeDestructiveActions(account: string): Promise<boolean> {
     const run = (resolve: (value: boolean) => void) => {
       if (account) {
         this.getAccountDetails(account)
@@ -102,15 +102,15 @@ export class AccountService {
     return new Promise<boolean>(run);
   }
 
-  public static getArtifactAccounts(): PromiseLike<IArtifactAccount[]> {
+  public static getArtifactAccounts(): Promise<IArtifactAccount[]> {
     return REST('/artifacts/credentials').useCache().get();
   }
 
-  public static getAccountDetails(account: string): PromiseLike<IAccountDetails> {
+  public static getAccountDetails(account: string): Promise<IAccountDetails> {
     return this.listAllAccounts().then((accounts) => accounts.find((a) => a.name === account));
   }
 
-  public static getAllAccountDetailsForProvider(provider: string): PromiseLike<IAccountDetails[]> {
+  public static getAllAccountDetailsForProvider(provider: string): Promise<IAccountDetails[]> {
     return this.listAccounts(provider).catch((error: any) => {
       console.warn(`Failed to load accounts for provider "${provider}"; exception:`, error);
       return [];
@@ -121,20 +121,20 @@ export class AccountService {
     provider: string,
     account: string,
     region: string,
-  ): PromiseLike<string[]> {
+  ): Promise<string[]> {
     return this.getPreferredZonesByAccount(provider).then(
       (result: IAccountZone) => (result[account] && result[account][region]) || [],
     );
   }
 
-  public static getCredentialsKeyedByAccount(provider: string = null): PromiseLike<IAggregatedAccounts> {
+  public static getCredentialsKeyedByAccount(provider: string = null): Promise<IAggregatedAccounts> {
     return this.listAllAccounts(provider).then((accounts: IAccountDetails[]) => {
       const names: string[] = accounts.map((account: IAccount) => account.name);
       return zipObject<IAccountDetails, IAggregatedAccounts>(names, accounts);
     });
   }
 
-  public static getPreferredZonesByAccount(provider: string): PromiseLike<IAccountZone> {
+  public static getPreferredZonesByAccount(provider: string): Promise<IAccountZone> {
     const preferred: IAccountZone = {};
     return this.getAllAccountDetailsForProvider(provider).then((accounts: IAccountDetails[]) => {
       accounts.forEach((account: IAccountDetails) => {
@@ -153,11 +153,11 @@ export class AccountService {
     });
   }
 
-  public static getRegionsForAccount(account: string): PromiseLike<IRegion[]> {
+  public static getRegionsForAccount(account: string): Promise<IRegion[]> {
     return this.getAccountDetails(account).then((details: IAccountDetails) => (details ? details.regions : []));
   }
 
-  public static getUniqueAttributeForAllAccounts(provider: string, attribute: string): PromiseLike<string[]> {
+  public static getUniqueAttributeForAllAccounts(provider: string, attribute: string): Promise<string[]> {
     return this.getCredentialsKeyedByAccount(provider).then((credentials: IAggregatedAccounts) => {
       return chain(credentials)
         .map(attribute)
@@ -169,19 +169,19 @@ export class AccountService {
     });
   }
 
-  public static listAllAccounts(provider: string = null): PromiseLike<IAccountDetails[]> {
+  public static listAllAccounts(provider: string = null): Promise<IAccountDetails[]> {
     return when(this.accounts$.toPromise()).then((accounts: IAccountDetails[]) =>
       accounts.filter((account) => !provider || account.type === provider),
     );
   }
 
-  public static listAccounts(provider: string = null): PromiseLike<IAccountDetails[]> {
+  public static listAccounts(provider: string = null): Promise<IAccountDetails[]> {
     return this.listAllAccounts(provider).then((accounts) =>
       accounts.filter((account) => account.authorized !== false),
     );
   }
 
-  public static applicationAccounts(application: Application = null): PromiseLike<IAccountDetails[]> {
+  public static applicationAccounts(application: Application = null): Promise<IAccountDetails[]> {
     return all<[string[], IAccountDetails[]]>([this.listProviders(application), this.listAccounts()]).then(
       ([providers, accounts]) => {
         return providers.reduce((memo, p) => {
@@ -208,15 +208,11 @@ export class AccountService {
     );
   }
 
-  public static listProviders(application: Application = null): PromiseLike<string[]> {
+  public static listProviders(application: Application = null): Promise<string[]> {
     return when(this.listProviders$(application).toPromise());
   }
 
-  public static getAccountForInstance(
-    cloudProvider: string,
-    instanceId: string,
-    app: Application,
-  ): PromiseLike<string> {
+  public static getAccountForInstance(cloudProvider: string, instanceId: string, app: Application): Promise<string> {
     return app.ready().then(() => {
       const serverGroups = app.getDataSource('serverGroups').data as IServerGroup[];
       const loadBalancers = app.getDataSource('loadBalancers').data as ILoadBalancer[];

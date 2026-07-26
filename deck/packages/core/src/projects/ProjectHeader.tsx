@@ -73,7 +73,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
     if (project.notFound) {
       return (
         <div className="flex-fill application">
-          <div className="row" ng-if="vm.project.notFound">
+          <div className="row">
             <h1 className="text-center">&lt;404&gt;</h1>
 
             <p className="text-center">
@@ -93,7 +93,7 @@ export class ProjectHeader extends React.Component<IProjectHeaderProps, IProject
     const closeDropdown = () => document.body.click();
 
     const projectConfiguration = (
-      <div className="pull-right" ng-if="vm.viewState.dashboard">
+      <div className="pull-right">
         <button className="passive medium btn-configure configure-project-link" onClick={this.configureProject}>
           <span className="glyphicon glyphicon-cog" /> Project Configuration
         </button>

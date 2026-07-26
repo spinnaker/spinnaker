@@ -1,7 +1,3 @@
-/**
- * Based 100% on Angular internals
- */
-
 export type QueryParamVal = string | boolean | any[];
 
 export interface IQueryParams {

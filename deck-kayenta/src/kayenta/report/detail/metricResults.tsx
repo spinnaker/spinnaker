@@ -1,5 +1,5 @@
-import { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryAnalysisResult } from 'kayenta/domain/ICanaryJudgeResult';
+import type { ICanaryState } from 'kayenta/reducers';
 import { judgeResultSelector } from 'kayenta/selectors';
 import * as React from 'react';
 import { connect } from 'react-redux';

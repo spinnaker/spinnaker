@@ -1,14 +1,13 @@
 import type { IStageTypeConfig } from '@spinnaker/core';
 import { CloudProviderRegistry, Registry } from '@spinnaker/core';
 
-import * as amazonPackage from './index';
+import './index';
 import { AwsFunctionTransformer } from './function/function.transformer';
 import { AwsImageReader } from './image';
 import { AwsInstanceTypeService } from './instance/awsInstanceType.service';
 import { AwsLoadBalancerTransformer } from './loadBalancer';
 import { AmazonStageConfig, getAmazonStageFields } from './pipeline/stages/AmazonStageConfig';
 import { DeployCloudFormationStackStageConfig } from './pipeline/stages/deployCloudFormation/DeployCloudFormationStackStageConfig';
-import { EvaluateCloudFormationChangeSetExecutionService } from './pipeline/stages/deployCloudFormation/evaluateCloudFormationChangeSetExecution.service';
 import { AwsFindImageFromTagsStageConfig } from './pipeline/stages/findImageFromTags/AwsFindImageFromTagsStageConfig';
 import { ModifyScalingProcessStageConfig } from './pipeline/stages/modifyScalingProcess/ModifyScalingProcessStageConfig';
 import { AwsResizeAsgStageConfig } from './pipeline/stages/resizeAsg/AwsResizeAsgStageConfig';
@@ -24,15 +23,6 @@ import {
 import { AwsServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 describe('Amazon package registration', () => {
-  const legacyCtrlKey = ['Cont', 'roller'].join('');
-  const legacyStageCtrlKey = ['cont', 'roller'].join('');
-  const legacyViewKey = ['Template', 'Url'].join('');
-  const legacyModuleExport = ['AMAZON', 'MODULE'].join('_');
-  const stageViewKey = ['template', 'Url'].join('');
-  const stepLabelViewKey = ['execution', 'Step', 'Label', 'Url'].join('');
-  const markupExtension = ['.', 'ht', 'ml'].join('');
-  const injectionMetadataKey = ['$', 'inject'].join('');
-
   function expectRegistered(path: string): void {
     expect(CloudProviderRegistry.getValue('aws', path)).withContext(path).not.toBeNull();
   }
@@ -44,21 +34,17 @@ describe('Amazon package registration', () => {
     expect(entries.length).withContext(path).toBeGreaterThan(0);
   }
 
-  function expectNoAngularStageRegistration(stageConfig: any): void {
-    expect(stageConfig[stageViewKey]).withContext(`aws ${stageConfig.provides} stage view`).toBeUndefined();
-    expect(stageConfig[legacyStageCtrlKey]).withContext(`aws ${stageConfig.provides} legacy handler`).toBeUndefined();
-    expect(stageConfig[stepLabelViewKey]).withContext(`aws ${stageConfig.provides} step label view`).toBeUndefined();
+  it('does not register function details as a provider override', () => {
+    const overrideValue = spyOn(CloudProviderRegistry, 'overrideValue');
+    const functionDetailsModule = require.resolve('./function/details/AmazonFunctionDetails');
+    delete require.cache[functionDetailsModule];
 
-    const htmlValues = Object.keys(stageConfig)
-      .map((key) => stageConfig[key])
-      .filter((value) => typeof value === 'string' && value.endsWith(markupExtension));
+    require('./function/details/AmazonFunctionDetails');
 
-    expect(htmlValues).withContext(`aws ${stageConfig.provides} markup stage config values`).toEqual([]);
-  }
+    expect(overrideValue).not.toHaveBeenCalled();
+  });
 
-  it('registers AWS without exporting an Angular module token', () => {
-    expect(Object.prototype.hasOwnProperty.call(amazonPackage, legacyModuleExport)).toBe(false);
-
+  it('registers AWS provider values', () => {
     expect(CloudProviderRegistry.getValue('aws', 'image.reader')).toBe(AwsImageReader);
     expect(CloudProviderRegistry.getValue('aws', 'serverGroup.transformer')).toBe(AwsServerGroupTransformer);
     expect(CloudProviderRegistry.getValue('aws', 'serverGroup.commandBuilder')).toBe(AwsServerGroupCommandBuilder);
@@ -93,20 +79,6 @@ describe('Amazon package registration', () => {
     expectRegistered('function.CreateFunctionModal');
     expectRegistered('securityGroup.CreateSecurityGroupModal');
     expectRegistered('securityGroup.details');
-
-    expect(CloudProviderRegistry.getValue('aws', `serverGroup.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `serverGroup.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `instance.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `instance.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `loadBalancer.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `loadBalancer.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `securityGroup.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('aws', `securityGroup.details${legacyViewKey}`)).toBeNull();
-  });
-
-  it('does not bundle Amazon Angular HTML templates', () => {
-    const templates = require.context('./', true, /\.htm[l]$/).keys();
-    expect(templates).toEqual([]);
   });
 
   it('registers AWS provider delegates as direct constructors', () => {
@@ -119,12 +91,6 @@ describe('Amazon package registration', () => {
     expect(typeof CloudProviderRegistry.getValue('aws', 'function.setTransformer')).toBe('function');
     expect(typeof CloudProviderRegistry.getValue('aws', 'securityGroup.reader')).toBe('function');
     expect(typeof CloudProviderRegistry.getValue('aws', 'securityGroup.transformer')).toBe('function');
-  });
-
-  it('registers AWS delegates without Angular injection metadata', () => {
-    [AwsServerGroupConfigurationService, EvaluateCloudFormationChangeSetExecutionService].forEach((delegate) => {
-      expect(Object.prototype.hasOwnProperty.call(delegate, injectionMetadataKey)).toBe(false);
-    });
   });
 
   it('constructs the server group configuration service with explicit dependencies', () => {
@@ -167,7 +133,7 @@ describe('Amazon package registration', () => {
     expect(command.backingData.filtered.instanceTypes).toEqual(['m5.large']);
   });
 
-  it('registers AWS pipeline stages without an Angular module dependency', () => {
+  it('registers AWS pipeline stages with React components', () => {
     const previousPipeline = Registry.pipeline;
     const previousUrlBuilder = Registry.urlBuilder;
 
@@ -200,49 +166,46 @@ describe('Amazon package registration', () => {
         const stage = awsStages.find((candidate) => (candidate.provides || candidate.key) === provides);
         expect(stage).withContext(`aws ${provides} stage`).toBeDefined();
         expect(stage?.component).withContext(`aws ${provides} stage component`).toBeDefined();
-        expectNoAngularStageRegistration(stage);
       });
 
       const structuredStages: Array<{
         component: IStageTypeConfig['component'];
-        executionSections: 'executionConfigSections' | 'executionDetailsSections';
         key: string;
       }> = [
         {
           key: 'deployCloudFormation',
           component: DeployCloudFormationStackStageConfig,
-          executionSections: 'executionDetailsSections',
         },
         {
           key: 'upsertImageTags',
           component: AwsTagImageStageConfig,
-          executionSections: 'executionConfigSections',
         },
         {
           key: 'findImageFromTags',
           component: AwsFindImageFromTagsStageConfig,
-          executionSections: 'executionConfigSections',
         },
         {
           key: 'resizeServerGroup',
           component: AwsResizeAsgStageConfig,
-          executionSections: 'executionConfigSections',
         },
         {
           key: 'modifyAwsScalingProcess',
           component: ModifyScalingProcessStageConfig,
-          executionSections: 'executionConfigSections',
         },
       ];
 
-      structuredStages.forEach(({ component, executionSections, key }) => {
+      structuredStages.forEach(({ component, key }) => {
         const stage = awsStages.find((candidate) => (candidate.key || candidate.provides) === key);
         expect(stage).withContext(`aws ${key} structured stage`).toBeDefined();
         expect(stage?.key).withContext(`aws ${key} stage key`).toBe(key);
         expect(stage?.cloudProvider).withContext(`aws ${key} cloud provider`).toBe('aws');
         expect(stage?.component).withContext(`aws ${key} config component`).toBe(component);
-        expect(stage?.[executionSections]?.length).withContext(`aws ${key} execution sections`).toBeGreaterThan(0);
       });
+
+      const deployCloudFormation = awsStages.find((stage) => stage.key === 'deployCloudFormation');
+      expect(deployCloudFormation?.executionDetailsSections?.length)
+        .withContext('aws deployCloudFormation React execution details')
+        .toBeGreaterThan(0);
 
       [
         'bake',

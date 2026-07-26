@@ -69,7 +69,7 @@ export function OnDemandClusterPicker({ application }: IOnDemandClusterPickerPro
   useEffect(() => {
     const updateClusters = () => setClusterState(readClusters());
     updateClusters();
-    return serverGroups.onRefresh(null, updateClusters);
+    return serverGroups.onRefresh(updateClusters);
   }, [application]);
 
   const selectCluster = (event: React.ChangeEvent<HTMLInputElement>): void => {

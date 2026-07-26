@@ -34,7 +34,7 @@ export class DockerTriggerTemplate extends React.Component<
   private subscription: Subscription;
   private tagRequest: AbortController;
 
-  public static formatLabel(trigger: IDockerTrigger): PromiseLike<string> {
+  public static formatLabel(trigger: IDockerTrigger): Promise<string> {
     return Promise.resolve(
       `(Docker Registry) ${trigger.account ? trigger.account + ':' : ''} ${trigger.repository || ''}`,
     );

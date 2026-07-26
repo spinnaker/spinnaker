@@ -14,7 +14,6 @@ export interface IDeploymentStrategy {
   description: string;
   providerRestricted?: boolean;
   additionalFields?: string[];
-  additionalFieldsTemplateUrl?: string;
   AdditionalFieldsComponent?: React.ComponentType<IDeploymentStrategyAdditionalFieldsProps>;
   initializationMethod?: (command: any) => void;
 }

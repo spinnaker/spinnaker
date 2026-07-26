@@ -2,7 +2,7 @@ import rule from '../rules/api-no-unused-chaining';
 import ruleTester from '../utils/ruleTester';
 const errorMessage = (text) => `Unused API.xyz() method chaining no longer works. Re-assign the result of: ${text}`;
 
-ruleTester.run('api-no-slashes', rule, {
+ruleTester.run('api-no-unused-chaining', rule, {
   valid: [
     { code: `const fooBar = API.one('foo', 'bar');` },
     { code: `let fooBar = API.one('foo', 'bar'); fooBar = fooBar.useCache()` },
@@ -21,6 +21,10 @@ ruleTester.run('api-no-slashes', rule, {
     {
       code: `var foo = API.one('foo/bad'); foo.withParams({});`,
       errors: [errorMessage(`foo.withParams({});`)],
+    },
+    {
+      code: `var foo = API.one('foo/bad'); foo.data({});`,
+      errors: [errorMessage(`foo.data({});`)],
     },
   ],
 });

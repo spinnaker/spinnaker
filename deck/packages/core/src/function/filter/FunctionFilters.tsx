@@ -79,7 +79,7 @@ class FunctionFiltersComponent extends React.Component<
       this.updateFunctionGroups();
     }
 
-    this.functionsRefreshUnsubscribe = app.functions.onRefresh(null, () => this.updateFunctionGroups());
+    this.functionsRefreshUnsubscribe = app.functions.onRefresh(() => this.updateFunctionGroups());
 
     const locationChangeSubscription = locationChangeSuccess$(this.props.router).subscribe(() => {
       FunctionState.filterModel.asFilterModel.activate();

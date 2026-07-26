@@ -12,7 +12,7 @@ import { MultipleServerGroupsDetails } from './MultipleServerGroupsDetails';
 describe('<MultipleServerGroupsDetails />', () => {
   let previousMultiselectModel: any;
   let serverGroupWriter: any;
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
 
   const app = {
     serverGroups: {
@@ -41,11 +41,11 @@ describe('<MultipleServerGroupsDetails />', () => {
 
   const mountDetails = () =>
     mount(
-      <UIRouterContext.Provider value={$uiRouter}>
+      <UIRouterContext.Provider value={router}>
         <UIViewContext.Provider
           value={{
             fqn: 'application.insight.multipleServerGroups',
-            context: $uiRouter.stateRegistry.get('application.insight.multipleServerGroups') as any,
+            context: router.stateRegistry.get('application.insight.multipleServerGroups') as any,
           }}
         >
           <DeckRuntimeContext.Provider
@@ -70,11 +70,11 @@ describe('<MultipleServerGroupsDetails />', () => {
     );
 
   beforeEach(() => {
-    $uiRouter = new UIRouterReact();
-    $uiRouter.plugin(servicesPlugin);
-    $uiRouter.plugin(hashLocationPlugin);
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
     ['application', 'application.insight', 'application.insight.multipleServerGroups'].forEach((name) => {
-      $uiRouter.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
     });
   });
 
@@ -102,7 +102,7 @@ describe('<MultipleServerGroupsDetails />', () => {
 
   afterEach(() => {
     ClusterState.multiselectModel = previousMultiselectModel;
-    $uiRouter.dispose();
+    router.dispose();
   });
 
   it('renders selected server group details', () => {
@@ -112,6 +112,8 @@ describe('<MultipleServerGroupsDetails />', () => {
     expect(wrapper.text()).toContain('app-v001');
     expect(wrapper.text()).toContain('prod');
     expect(wrapper.text()).toContain('us-west-2');
+    expect(wrapper.find('.multiple-server-group').length).toBe(1);
+    expect(wrapper.find('multiple-server-group').exists()).toBe(false);
     expect(wrapper.find('.instance-health-counts').text()).toContain('2');
     expect(wrapper.find('.instance-health-counts').text()).toContain('1');
 

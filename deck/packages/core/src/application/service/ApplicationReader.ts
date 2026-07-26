@@ -24,11 +24,11 @@ export interface IApplicationSummary {
 }
 
 export class ApplicationReader {
-  public static listApplications(): PromiseLike<IApplicationSummary[]> {
+  public static listApplications(): Promise<IApplicationSummary[]> {
     return REST('/applications').useCache().get();
   }
 
-  public static getApplicationAttributes(name: string): PromiseLike<any> {
+  public static getApplicationAttributes(name: string): Promise<any> {
     return REST('/applications')
       .path(name)
       .query({ expand: false })
@@ -39,7 +39,7 @@ export class ApplicationReader {
       });
   }
 
-  public static getApplicationPermissions(applicationName: string): PromiseLike<any> {
+  public static getApplicationPermissions(applicationName: string): Promise<any> {
     return REST('/applications')
       .path(applicationName)
       .query({
@@ -51,7 +51,7 @@ export class ApplicationReader {
       });
   }
 
-  public static getApplication(name: string, expand = true): PromiseLike<Application> {
+  public static getApplication(name: string, expand = true): Promise<Application> {
     return REST('/applications')
       .path(name)
       .query({ expand: expand })

@@ -2,7 +2,7 @@ import { REST } from '../api/ApiService';
 import { SETTINGS } from '../config/settings';
 
 export class ServiceAccountReader {
-  public static getServiceAccounts(): PromiseLike<string[]> {
+  public static getServiceAccounts(): Promise<string[]> {
     if (!SETTINGS.feature.fiatEnabled) {
       return Promise.resolve([]);
     } else {
@@ -10,7 +10,7 @@ export class ServiceAccountReader {
     }
   }
 
-  public static getServiceAccountsForApplication(application: string): PromiseLike<string[]> {
+  public static getServiceAccountsForApplication(application: string): Promise<string[]> {
     if (!SETTINGS.feature.fiatEnabled) {
       return Promise.resolve([]);
     } else {
