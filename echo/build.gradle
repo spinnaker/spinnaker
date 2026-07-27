@@ -22,10 +22,9 @@ plugins {
 }
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.echo"
 }
 subprojects {
-  group = "io.spinnaker.echo"
-
   if (name != "echo-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"

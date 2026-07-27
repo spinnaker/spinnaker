@@ -22,11 +22,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.fiat"
 }
 
 subprojects {
-  group = "io.spinnaker.fiat"
-
   if (name != "fiat-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
