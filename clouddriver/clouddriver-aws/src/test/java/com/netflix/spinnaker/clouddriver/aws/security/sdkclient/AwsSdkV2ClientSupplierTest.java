@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.core.limits.ServiceLimitConfigurationBuilder;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.services.ecr.EcrClient;
 import software.amazon.awssdk.services.ecs.EcsClient;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 /**
  * Unit tests for {@link AwsSdkV2ClientSupplier}.
@@ -96,5 +98,85 @@ class AwsSdkV2ClientSupplierTest {
     // but this test guards that no ClassCastException is thrown.
     assertThat(ecs).isNotNull();
     assertThat(ecr).isNotNull();
+  }
+
+  @Test
+  void resolveRetryPolicyWithoutConfigReturnsSharedPolicy() {
+    RetryPolicy resolved = supplier.resolveRetryPolicy(null);
+
+    // No per-service config → the supplier's shared retry policy is used unchanged.
+    assertThat(resolved.numRetries()).isEqualTo(RetryPolicy.defaultRetryPolicy().numRetries());
+  }
+
+  @Test
+  void resolveRetryPolicyOverridesNumRetriesFromConfig() {
+    AwsSdkV2ClientConfiguration config =
+        AwsSdkV2ClientConfiguration.builder().maxErrorRetry(7).build();
+
+    RetryPolicy resolved = supplier.resolveRetryPolicy(config);
+
+    assertThat(resolved.numRetries()).isEqualTo(7);
+  }
+
+  @Test
+  void buildHttpClientReturnsNullWhenNothingToCustomize() {
+    // No proxy and no per-service config → defer to the SDK default HTTP client.
+    assertThat(supplier.buildHttpClient(null)).isNull();
+  }
+
+  @Test
+  void buildHttpClientReturnsBuilderWhenConfigPresent() {
+    AwsSdkV2ClientConfiguration config =
+        AwsSdkV2ClientConfiguration.builder()
+            .socketTimeout(Duration.ofMillis(50000))
+            .tcpKeepAlive(true)
+            .build();
+
+    assertThat(supplier.buildHttpClient(config)).isNotNull();
+  }
+
+  @Test
+  void differentClientConfigurationReturnsDifferentInstance() {
+    // A short-timeout (default) client and a long-timeout invoke client for the same account,
+    // region, and service must be distinct cached instances.
+    AwsCredentialsProvider creds = dummyCreds();
+    AwsSdkV2ClientConfiguration shortSocket =
+        AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofSeconds(50)).build();
+    AwsSdkV2ClientConfiguration longSocket =
+        AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofMinutes(15)).build();
+
+    LambdaClient shortClient =
+        supplier.getClient(
+            LambdaClient::builder, LambdaClient.class, creds, "us-east-1", "acct", shortSocket);
+    LambdaClient longClient =
+        supplier.getClient(
+            LambdaClient::builder, LambdaClient.class, creds, "us-east-1", "acct", longSocket);
+
+    assertThat(shortClient).isNotSameAs(longClient);
+  }
+
+  @Test
+  void equalClientConfigurationReturnsSameInstance() {
+    // Config participates in cache identity by value: equal field values reuse the cached client.
+    AwsCredentialsProvider creds = dummyCreds();
+
+    LambdaClient first =
+        supplier.getClient(
+            LambdaClient::builder,
+            LambdaClient.class,
+            creds,
+            "us-east-1",
+            "acct",
+            AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofSeconds(50)).build());
+    LambdaClient second =
+        supplier.getClient(
+            LambdaClient::builder,
+            LambdaClient.class,
+            creds,
+            "us-east-1",
+            "acct",
+            AwsSdkV2ClientConfiguration.builder().socketTimeout(Duration.ofSeconds(50)).build());
+
+    assertThat(first).isSameAs(second);
   }
 }
