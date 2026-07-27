@@ -17,38 +17,40 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.*;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.PublishLambdaFunctionVersionDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.PublishVersionRequest;
+import software.amazon.awssdk.services.lambda.model.PublishVersionResponse;
 
 public class PublishLambdaAtomicOperation
     extends AbstractLambdaAtomicOperation<
-        PublishLambdaFunctionVersionDescription, PublishVersionResult>
-    implements AtomicOperation<PublishVersionResult> {
+        PublishLambdaFunctionVersionDescription, PublishVersionResponse>
+    implements AtomicOperation<PublishVersionResponse> {
 
   public PublishLambdaAtomicOperation(PublishLambdaFunctionVersionDescription description) {
     super(description, "PUBLISH_LAMBDA_FUNCTION_VERSION");
   }
 
   @Override
-  public PublishVersionResult operate(List priorOutputs) {
+  public PublishVersionResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Atomic Operation AWS Lambda for PublishVersion...");
     return publishFunctionVersion(
         description.getFunctionName(), description.getDescription(), description.getRevisionId());
   }
 
-  private PublishVersionResult publishFunctionVersion(
+  private PublishVersionResponse publishFunctionVersion(
       String functionName, String description, String revisionId) {
-    AWSLambda client = getLambdaClient();
-    PublishVersionRequest req =
-        new PublishVersionRequest()
-            .withFunctionName(functionName)
-            .withDescription(description)
-            .withRevisionId(revisionId);
+    LambdaClient client = getLambdaClient();
+    PublishVersionRequest.Builder req =
+        PublishVersionRequest.builder().functionName(functionName).description(description);
 
-    PublishVersionResult result = client.publishVersion(req);
+    if (revisionId != null) {
+      req.revisionId(revisionId);
+    }
+
+    PublishVersionResponse result = client.publishVersion(req.build());
     updateTaskStatus("Finished Atomic Operation AWS Lambda for PublishVersion...");
     return result;
   }

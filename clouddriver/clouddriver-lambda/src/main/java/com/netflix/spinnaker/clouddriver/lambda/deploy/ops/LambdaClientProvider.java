@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.retry.PredefinedBackoffStrategies;
-import com.amazonaws.retry.RetryPolicy;
-import com.amazonaws.services.lambda.AWSLambda;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
+import com.netflix.spinnaker.clouddriver.aws.security.sdkclient.AwsSdkV2ClientConfiguration;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.exception.InvalidAccountException;
 import com.netflix.spinnaker.config.LambdaServiceConfig;
+import java.time.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 public class LambdaClientProvider {
   @Autowired protected AmazonClientProvider amazonClientProvider;
 
   @Autowired protected LambdaServiceConfig operationsConfig;
+
   private String region;
   private NetflixAmazonCredentials credentials;
 
@@ -38,39 +38,54 @@ public class LambdaClientProvider {
     this.credentials = credentials;
   }
 
-  // See the AwsSdkClientSupplier class.  IN particular the "load" method.  This is a MOSTLY cached
-  // operation
-  // COULD ALSO potentially have timeouts eventually PER region so API calls to a completely
-  // different region would allow
-  // different timeouts.  future thing with maybe a more intelligent selector pattern that allows
-  // chaining of
-  // timeouts based upon a precedent/business logic (e.g. if configured, and no account overrides
-  // use region timeouts)
-  protected AWSLambda getLambdaClient() {
+  /**
+   * The maximum time an AWS Lambda function can run (15 minutes). Used as the socket-timeout
+   * ceiling for the dedicated invoke client so that a synchronous {@code RequestResponse} invoke —
+   * which holds the connection idle for the entire function execution — is never cut short below
+   * this hard limit. The per-request {@code apiCallTimeout} set by {@code
+   * InvokeLambdaAtomicOperation} remains the authoritative, tunable bound within this ceiling.
+   */
+  private static final Duration LAMBDA_MAX_EXECUTION = Duration.ofMinutes(15);
 
-    ClientConfiguration clientConfiguration = new ClientConfiguration();
-    clientConfiguration.setSocketTimeout(operationsConfig.getInvokeTimeoutMs());
-    clientConfiguration.setUseTcpKeepAlive(operationsConfig.isTcpKeepAlive());
-    // only override if non-negative, and can't just set to the negative default :(
-    if (operationsConfig.getRetry().getRetries() >= 0) {
-      clientConfiguration.setRetryPolicy(
-          RetryPolicy.builder()
-              .withBackoffStrategy(
-                  new PredefinedBackoffStrategies.SDKDefaultBackoffStrategy(
-                      100, 500, operationsConfig.getRetry().getTimeout() * 1000))
-              .withMaxErrorRetry(operationsConfig.getRetry().getRetries())
-              .build());
-      // doing it here as well as in the retry policy to be safe.
-      clientConfiguration.setMaxErrorRetry(operationsConfig.getRetry().getRetries());
-    }
+  protected LambdaClient getLambdaClient() {
+    return buildLambdaClient(
+        buildClientConfiguration(Duration.ofMillis(operationsConfig.getInvokeTimeoutMs())));
+  }
 
+  /**
+   * Returns a Lambda client dedicated to synchronous invocations. It differs from {@link
+   * #getLambdaClient()} only in its socket timeout, which is raised to the Lambda maximum so the
+   * per-request {@code apiCallTimeout} governs how long an invoke may run rather than being capped
+   * by the shorter default socket timeout used for all other (short) Lambda operations.
+   *
+   * <p>The distinct {@link AwsSdkV2ClientConfiguration} yields a separate cached client, leaving
+   * the shared non-invoke client's timeouts unchanged.
+   */
+  protected LambdaClient getInvokeLambdaClient() {
+    return buildLambdaClient(buildClientConfiguration(LAMBDA_MAX_EXECUTION));
+  }
+
+  private LambdaClient buildLambdaClient(AwsSdkV2ClientConfiguration clientConfiguration) {
     if (!credentials.isLambdaEnabled()) {
       throw new InvalidAccountException("AWS Lambda is not enabled for provided account. \n");
     }
-    // Note this is a CACHED response call.  AKA the clientConfig is ONLY set when this is first
-    // cached/loaded
-    // and won't be changed if OTHER requests make this.
-    return amazonClientProvider.getAmazonLambda(credentials, clientConfiguration, region);
+    return amazonClientProvider.getLambdaV2(credentials, region, clientConfiguration);
+  }
+
+  /**
+   * Translates the Lambda operation defaults into the v2 client tuning, applying the given socket
+   * timeout. A negative retry count defers to the SDK's default retry policy (see {@link
+   * LambdaServiceConfig}).
+   */
+  private AwsSdkV2ClientConfiguration buildClientConfiguration(Duration socketTimeout) {
+    AwsSdkV2ClientConfiguration.AwsSdkV2ClientConfigurationBuilder builder =
+        AwsSdkV2ClientConfiguration.builder()
+            .socketTimeout(socketTimeout)
+            .tcpKeepAlive(operationsConfig.isTcpKeepAlive());
+    if (operationsConfig.getRetry().getRetries() >= 0) {
+      builder.maxErrorRetry(operationsConfig.getRetry().getRetries());
+    }
+    return builder.build();
   }
 
   protected String getRegion() {
