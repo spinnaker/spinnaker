@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.PutProvisionedConcurrencyConfigRequest;
-import com.amazonaws.services.lambda.model.PutProvisionedConcurrencyConfigResult;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.PutLambdaProvisionedConcurrencyDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.PutProvisionedConcurrencyConfigRequest;
+import software.amazon.awssdk.services.lambda.model.PutProvisionedConcurrencyConfigResponse;
 
 public class PutLambdaProvisionedConcurrencyAtomicOperation
     extends AbstractLambdaAtomicOperation<
-        PutLambdaProvisionedConcurrencyDescription, PutProvisionedConcurrencyConfigResult>
-    implements AtomicOperation<PutProvisionedConcurrencyConfigResult> {
+        PutLambdaProvisionedConcurrencyDescription, PutProvisionedConcurrencyConfigResponse>
+    implements AtomicOperation<PutProvisionedConcurrencyConfigResponse> {
 
   public PutLambdaProvisionedConcurrencyAtomicOperation(
       PutLambdaProvisionedConcurrencyDescription description) {
@@ -34,7 +34,7 @@ public class PutLambdaProvisionedConcurrencyAtomicOperation
   }
 
   @Override
-  public PutProvisionedConcurrencyConfigResult operate(List priorOutputs) {
+  public PutProvisionedConcurrencyConfigResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Atomic Operation AWS Lambda for PutProvisionedConcurrency...");
     return putProvisionedFunctionConcurrency(
         description.getFunctionName(),
@@ -42,16 +42,17 @@ public class PutLambdaProvisionedConcurrencyAtomicOperation
         description.getProvisionedConcurrentExecutions());
   }
 
-  private PutProvisionedConcurrencyConfigResult putProvisionedFunctionConcurrency(
+  private PutProvisionedConcurrencyConfigResponse putProvisionedFunctionConcurrency(
       String functionName, String qualifier, int provisionedConcurrentExecutions) {
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
     PutProvisionedConcurrencyConfigRequest req =
-        new PutProvisionedConcurrencyConfigRequest()
-            .withFunctionName(functionName)
-            .withQualifier(qualifier)
-            .withProvisionedConcurrentExecutions(provisionedConcurrentExecutions);
+        PutProvisionedConcurrencyConfigRequest.builder()
+            .functionName(functionName)
+            .qualifier(qualifier)
+            .provisionedConcurrentExecutions(provisionedConcurrentExecutions)
+            .build();
 
-    PutProvisionedConcurrencyConfigResult result = client.putProvisionedConcurrencyConfig(req);
+    PutProvisionedConcurrencyConfigResponse result = client.putProvisionedConcurrencyConfig(req);
     updateTaskStatus("Finished Atomic Operation AWS Lambda for PutProvisionedConcurrency...");
     return result;
   }
