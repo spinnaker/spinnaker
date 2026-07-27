@@ -10,6 +10,7 @@ const deckRoot = path.resolve(__dirname, '../../..');
 const repositoryRoot = path.resolve(deckRoot, '..');
 const pullScript = path.join(repositoryRoot, 'pull.sh');
 const standaloneDeckKayentaRoot = path.join(repositoryRoot, 'deck-kayenta');
+const standaloneDeckKayentaWorkflow = path.join(repositoryRoot, '.github/workflows/deck-kayenta.yml');
 const parseYaml = createRequire(path.join(deckRoot, 'packages/core/package.json'))('js-yaml').load;
 const protectedDeckPaths = ['deck/**'];
 const deckWorkflowPaths = [...protectedDeckPaths, '.github/workflows/deck.yml'];
@@ -18,6 +19,9 @@ const operationalFiles = [
   'build.gradle',
   '.github/dependencies.yml',
   '.github/workflows/deck.yml',
+  '.github/workflows/rebuild-all.yml',
+  '.github/workflows/spinnaker-release.yml',
+  'init.sh',
   'deck/build.gradle',
   'deck/pnpm-workspace.yaml',
   'deck/packages/app/webpack.config.js',
@@ -106,6 +110,14 @@ test('standalone Deck Kayenta directory is absent', () => {
   assert.equal(existsSync(standaloneDeckKayentaRoot), false);
 });
 
+test('standalone Deck Kayenta workflow and release tag are absent', () => {
+  assert.equal(existsSync(standaloneDeckKayentaWorkflow), false);
+  assert.doesNotMatch(
+    readFileSync(path.join(repositoryRoot, '.github/actions/spinnaker-release/test-tag.sh'), 'utf8'),
+    /deck-kayenta-main-/,
+  );
+});
+
 test('other repository pulls retain their repository-name prefix', () => {
   const calls = capturePull('deck');
 
@@ -124,6 +136,19 @@ test('active build and workflow configuration has no standalone Deck Kayenta ref
     ),
   );
   assert.deepEqual(staleReferences, []);
+});
+
+test('automated Deck Kayenta pulls target the nested Deck package', () => {
+  const mergeSource = readFileSync(
+    path.join(repositoryRoot, '.github/actions/update-monorepo/src/git/merge.ts'),
+    'utf8',
+  );
+  const actionBundle = readFileSync(path.join(repositoryRoot, '.github/actions/update-monorepo/dist/index.js'), 'utf8');
+
+  assert.match(mergeSource, /deck-kayenta.*deck\/packages\/kayenta/);
+  assert.match(mergeSource, /subtree=\$\{prefix\}/);
+  assert.match(mergeSource, /GIT_SUBTREE:\s*prefix/);
+  assert.match(actionBundle, /deck-kayenta.*deck\/packages\/kayenta/);
 });
 
 test('standalone path guard ignores comments and detects active top-level paths', () => {

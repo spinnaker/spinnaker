@@ -1,6 +1,5 @@
 git tag -f clouddriver-main-0
 git tag -f deck-main-0
-git tag -f deck-kayenta-main-0
 git tag -f echo-main-0
 git tag -f fiat-main-0
 git tag -f front50-main-0
