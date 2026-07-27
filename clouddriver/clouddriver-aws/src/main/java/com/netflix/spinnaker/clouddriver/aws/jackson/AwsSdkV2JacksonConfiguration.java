@@ -1,7 +1,7 @@
 /*
- * Copyright 2018 Amazon.com, Inc. or its affiliates.
+ * Copyright 2026 Harness, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.lambda.deploy.description;
+package com.netflix.spinnaker.clouddriver.aws.jackson;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import software.amazon.awssdk.services.lambda.model.InvokeResponse;
+import com.fasterxml.jackson.databind.Module;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class InvokeLambdaFunctionOutputDescription {
-  InvokeResponse invokeResult;
-  private String responseString;
+@Configuration
+public class AwsSdkV2JacksonConfiguration {
+
+  @Bean
+  Module awsSdkV2Module() {
+    return new AwsSdkV2Module();
+  }
 }
