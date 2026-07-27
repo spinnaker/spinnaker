@@ -24,11 +24,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.clouddriver"
 }
 
 subprojects {
-  group = "io.spinnaker.clouddriver"
-
   if (name != "clouddriver-bom" && name != "clouddriver-api") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
