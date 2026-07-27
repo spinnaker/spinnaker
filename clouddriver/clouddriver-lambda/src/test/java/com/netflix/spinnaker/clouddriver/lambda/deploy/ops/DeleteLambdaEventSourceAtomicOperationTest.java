@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.DeleteEventSourceMappingRequest;
-import com.amazonaws.services.lambda.model.DeleteEventSourceMappingResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionEventMappingDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.DeleteEventSourceMappingRequest;
+import software.amazon.awssdk.services.lambda.model.DeleteEventSourceMappingResponse;
 
 public class DeleteLambdaEventSourceAtomicOperationTest implements LambdaTestingDefaults {
   @Test
@@ -47,7 +47,7 @@ public class DeleteLambdaEventSourceAtomicOperationTest implements LambdaTesting
         spy(new DeleteLambdaEventSourceAtomicOperation(eventMappingDesc));
     doNothing().when(deleteEventSourceOperation).updateTaskStatus(anyString());
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
 
     ReflectionTestUtils.setField(
@@ -59,10 +59,11 @@ public class DeleteLambdaEventSourceAtomicOperationTest implements LambdaTesting
         .when(lambdaFunctionProvider)
         .getFunction(anyString(), anyString(), anyString());
 
-    DeleteEventSourceMappingRequest testRequest = new DeleteEventSourceMappingRequest();
-    testRequest.setUUID(eventUuid);
+    DeleteEventSourceMappingRequest testRequest =
+        DeleteEventSourceMappingRequest.builder().uuid(eventUuid).build();
 
-    DeleteEventSourceMappingResult mockDeleteEventResult = new DeleteEventSourceMappingResult();
+    DeleteEventSourceMappingResponse mockDeleteEventResult =
+        DeleteEventSourceMappingResponse.builder().build();
     doReturn(mockDeleteEventResult).when(lambdaClient).deleteEventSourceMapping(testRequest);
 
     Object output = deleteEventSourceOperation.operate(null);

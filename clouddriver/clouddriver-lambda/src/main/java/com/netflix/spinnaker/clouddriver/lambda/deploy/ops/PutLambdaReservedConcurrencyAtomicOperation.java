@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.PutFunctionConcurrencyRequest;
-import com.amazonaws.services.lambda.model.PutFunctionConcurrencyResult;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.PutLambdaReservedConcurrencyDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.PutFunctionConcurrencyRequest;
+import software.amazon.awssdk.services.lambda.model.PutFunctionConcurrencyResponse;
 
 public class PutLambdaReservedConcurrencyAtomicOperation
     extends AbstractLambdaAtomicOperation<
-        PutLambdaReservedConcurrencyDescription, PutFunctionConcurrencyResult>
-    implements AtomicOperation<PutFunctionConcurrencyResult> {
+        PutLambdaReservedConcurrencyDescription, PutFunctionConcurrencyResponse>
+    implements AtomicOperation<PutFunctionConcurrencyResponse> {
 
   public PutLambdaReservedConcurrencyAtomicOperation(
       PutLambdaReservedConcurrencyDescription description) {
@@ -34,21 +34,22 @@ public class PutLambdaReservedConcurrencyAtomicOperation
   }
 
   @Override
-  public PutFunctionConcurrencyResult operate(List priorOutputs) {
+  public PutFunctionConcurrencyResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Atomic Operation AWS Lambda for PutReservedConcurrency...");
     return putReservedFunctionConcurrency(
         description.getFunctionName(), description.getReservedConcurrentExecutions());
   }
 
-  private PutFunctionConcurrencyResult putReservedFunctionConcurrency(
+  private PutFunctionConcurrencyResponse putReservedFunctionConcurrency(
       String functionName, int reservedConcurrentExecutions) {
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
     PutFunctionConcurrencyRequest req =
-        new PutFunctionConcurrencyRequest()
-            .withFunctionName(functionName)
-            .withReservedConcurrentExecutions(reservedConcurrentExecutions);
+        PutFunctionConcurrencyRequest.builder()
+            .functionName(functionName)
+            .reservedConcurrentExecutions(reservedConcurrentExecutions)
+            .build();
 
-    PutFunctionConcurrencyResult result = client.putFunctionConcurrency(req);
+    PutFunctionConcurrencyResponse result = client.putFunctionConcurrency(req);
     updateTaskStatus("Finished Atomic Operation AWS Lambda for PutReservedConcurrency...");
     return result;
   }

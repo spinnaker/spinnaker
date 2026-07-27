@@ -18,8 +18,6 @@ package com.netflix.spinnaker.clouddriver.lambda.service;
 
 import com.amazonaws.auth.policy.Policy;
 import com.amazonaws.auth.policy.Statement;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils;
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider;
@@ -31,11 +29,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.log4j.Log4j2;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.*;
+import software.amazon.awssdk.services.lambda.paginators.ListFunctionsIterable;
 
 @Log4j2
 public class LambdaService extends LambdaClientProvider {
 
   private final ObjectMapper mapper;
+  private final LambdaServiceConfig lambdaServiceConfig;
 
   public LambdaService(
       AmazonClientProvider amazonClientProvider,
@@ -44,40 +46,30 @@ public class LambdaService extends LambdaClientProvider {
       ObjectMapper mapper,
       LambdaServiceConfig lambdaServiceConfig) {
     super(region, account);
-    super.operationsConfig = lambdaServiceConfig;
     super.amazonClientProvider = amazonClientProvider;
+    super.operationsConfig = lambdaServiceConfig;
     this.mapper = mapper;
+    this.lambdaServiceConfig = lambdaServiceConfig;
   }
 
   public List<Map<String, Object>> getAllFunctions() {
-    List<FunctionConfiguration> functions = listAllFunctionConfigurations();
-    List<Map<String, Object>> hydratedFunctionList =
-        Collections.synchronizedList(new ArrayList<>());
-    functions.stream()
-        .forEach(
-            f -> {
-              Map<String, Object> functionAttributes = new ConcurrentHashMap<>();
-              addBaseAttributes(functionAttributes, f.getFunctionName());
-              addRevisionsAttributes(functionAttributes, f.getFunctionName());
-              addAliasAndEventSourceMappingConfigurationAttributes(
-                  functionAttributes, f.getFunctionName());
-              addTargetGroupAttributes(functionAttributes, f.getFunctionName());
-              hydratedFunctionList.add(functionAttributes);
-            });
-
-    // if addBaseAttributes returned null, the name won't be included. There is a chance other
-    // resources still have
-    // associations to the deleted lambda
-    return hydratedFunctionList.stream()
-        .filter(lf -> lf.get("functionName") != null)
-        .collect(Collectors.toList());
+    List<String> functionNames = listAllFunctionNames();
+    List<Map<String, Object>> hydratedFunctionList = new ArrayList<>();
+    functionNames.forEach(
+        functionName -> {
+          Map<String, Object> functionAttributes = getFunctionByName(functionName);
+          if (functionAttributes != null && functionAttributes.get("functionName") != null) {
+            hydratedFunctionList.add(functionAttributes);
+          }
+        });
+    return hydratedFunctionList;
   }
 
   public Map<String, Object> getFunctionByName(String functionName) {
     Map<String, Object> functionAttributes = new ConcurrentHashMap<>();
     addBaseAttributes(functionAttributes, functionName);
     if (functionAttributes.isEmpty()) {
-      // return quick so we don't make extra api calls for a delete lambda
+      // return quick so we don't make extra api calls for a deleted lambda
       return null;
     }
     addRevisionsAttributes(functionAttributes, functionName);
@@ -86,147 +78,87 @@ public class LambdaService extends LambdaClientProvider {
     return functionAttributes;
   }
 
-  public List<FunctionConfiguration> listAllFunctionConfigurations() {
-    AWSLambda lambda = getLambdaClient();
-    String nextMarker = null;
-    List<FunctionConfiguration> lstFunction = new ArrayList<>();
-    do {
-      ListFunctionsRequest listFunctionsRequest = new ListFunctionsRequest();
-      if (nextMarker != null) {
-        listFunctionsRequest.setMarker(nextMarker);
-      }
-
-      ListFunctionsResult listFunctionsResult = lambda.listFunctions(listFunctionsRequest);
-
-      if (listFunctionsResult == null) {
-        break;
-      }
-
-      lstFunction.addAll(listFunctionsResult.getFunctions());
-      nextMarker = listFunctionsResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
-    return lstFunction;
+  private List<String> listAllFunctionNames() {
+    LambdaClient lambda = getLambdaClient();
+    List<String> functionNames = new ArrayList<>();
+    ListFunctionsIterable paginator = lambda.listFunctionsPaginator();
+    if (paginator != null) {
+      paginator.forEach(
+          response ->
+              response.functions().forEach(function -> functionNames.add(function.functionName())));
+    }
+    return functionNames;
   }
 
   private Void addBaseAttributes(Map<String, Object> functionAttributes, String functionName) {
-    GetFunctionResult result =
-        getLambdaClient().getFunction(new GetFunctionRequest().withFunctionName(functionName));
+    GetFunctionResponse result =
+        getLambdaClient()
+            .getFunction(GetFunctionRequest.builder().functionName(functionName).build());
     if (result == null) {
       return null;
     }
-    Map<String, Object> attr = mapper.convertValue(result.getConfiguration(), Map.class);
+    Map<String, Object> attr = mapper.convertValue(result.configuration(), Map.class);
     attr.put("account", getCredentials().getName());
     attr.put("region", getRegion());
-    attr.put("code", result.getCode());
-    attr.put("tags", result.getTags());
-    attr.put("concurrency", result.getConcurrency());
+    attr.put("code", result.code());
+    attr.put("tags", result.tags());
+    attr.put("concurrency", result.concurrency());
     attr.values().removeAll(Collections.singleton(null));
     functionAttributes.putAll(attr);
     return null;
   }
 
   private void addRevisionsAttributes(Map<String, Object> functionAttributes, String functionName) {
-    Map<String, String> revisions = null;
-    boolean finished = false;
-    AWSLambda lambda = getLambdaClient();
-    String nextMarker = null;
-    Map<String, String> listRevionIds = new HashMap<>();
-    do {
-      ListVersionsByFunctionRequest listVersionsByFunctionRequest =
-          new ListVersionsByFunctionRequest();
-      listVersionsByFunctionRequest.setFunctionName(functionName);
-      if (nextMarker != null) {
-        listVersionsByFunctionRequest.setMarker(nextMarker);
-      }
-
-      ListVersionsByFunctionResult listVersionsByFunctionResult =
-          lambda.listVersionsByFunction(listVersionsByFunctionRequest);
-      if (listVersionsByFunctionResult == null) {
-        revisions = listRevionIds;
-        finished = true;
-        break;
-      }
-      for (FunctionConfiguration x : listVersionsByFunctionResult.getVersions()) {
-        listRevionIds.put(x.getRevisionId(), x.getVersion());
-      }
-      nextMarker = listVersionsByFunctionResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
-    if (!finished) {
-      revisions = listRevionIds;
-    }
+    Map<String, String> revisions = new HashMap<>();
+    getLambdaClient()
+        .listVersionsByFunctionPaginator(
+            ListVersionsByFunctionRequest.builder().functionName(functionName).build())
+        .forEach(
+            response ->
+                response
+                    .versions()
+                    .forEach(version -> revisions.put(version.revisionId(), version.version())));
     functionAttributes.put("revisions", revisions);
   }
 
   private Void addAliasAndEventSourceMappingConfigurationAttributes(
       Map<String, Object> functionAttributes, String functionName) {
     List<AliasConfiguration> aliasConfigurationList = listAliasConfiguration(functionName);
-    functionAttributes.put("aliasConfigurations", aliasConfigurationList);
+    functionAttributes.put(
+        "aliasConfigurations", mapper.convertValue(aliasConfigurationList, List.class));
 
     // TODO: should we also process these concurrently?
     List<EventSourceMappingConfiguration> eventSourceMappingConfigurationsList =
         listEventSourceMappingConfiguration(functionName);
     for (AliasConfiguration currAlias : aliasConfigurationList) {
       List<EventSourceMappingConfiguration> currAliasEvents =
-          listEventSourceMappingConfiguration(currAlias.getAliasArn());
+          listEventSourceMappingConfiguration(currAlias.aliasArn());
       eventSourceMappingConfigurationsList.addAll(currAliasEvents);
     }
-    functionAttributes.put("eventSourceMappings", eventSourceMappingConfigurationsList);
+    functionAttributes.put(
+        "eventSourceMappings",
+        mapper.convertValue(eventSourceMappingConfigurationsList, List.class));
     return null;
   }
 
   private List<AliasConfiguration> listAliasConfiguration(String functionName) {
-    AWSLambda lambda = getLambdaClient();
-    String nextMarker = null;
+    LambdaClient lambda = getLambdaClient();
     List<AliasConfiguration> aliasConfigurations = new ArrayList<>();
-    do {
-      ListAliasesRequest listAliasesRequest = new ListAliasesRequest();
-      listAliasesRequest.setFunctionName(functionName);
-      if (nextMarker != null) {
-        listAliasesRequest.setMarker(nextMarker);
-      }
-
-      ListAliasesResult listAliasesResult = lambda.listAliases(listAliasesRequest);
-      if (listAliasesResult == null) {
-        return aliasConfigurations;
-      }
-      for (AliasConfiguration x : listAliasesResult.getAliases()) {
-        aliasConfigurations.add(x);
-      }
-      nextMarker = listAliasesResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
+    lambda
+        .listAliasesPaginator(ListAliasesRequest.builder().functionName(functionName).build())
+        .forEach(response -> aliasConfigurations.addAll(response.aliases()));
     return aliasConfigurations;
   }
 
   private List<EventSourceMappingConfiguration> listEventSourceMappingConfiguration(
       String functionName) {
     List<EventSourceMappingConfiguration> eventSourceMappingConfigurations = new ArrayList<>();
-    AWSLambda lambda = getLambdaClient();
-    String nextMarker = null;
-    do {
-      ListEventSourceMappingsRequest listEventSourceMappingsRequest =
-          new ListEventSourceMappingsRequest();
-      listEventSourceMappingsRequest.setFunctionName(functionName);
-
-      if (nextMarker != null) {
-        listEventSourceMappingsRequest.setMarker(nextMarker);
-      }
-
-      ListEventSourceMappingsResult listEventSourceMappingsResult =
-          lambda.listEventSourceMappings(listEventSourceMappingsRequest);
-      if (listEventSourceMappingsResult == null) {
-        return eventSourceMappingConfigurations;
-      }
-
-      for (EventSourceMappingConfiguration x :
-          listEventSourceMappingsResult.getEventSourceMappings()) {
-        eventSourceMappingConfigurations.add(x);
-      }
-      nextMarker = listEventSourceMappingsResult.getNextMarker();
-
-    } while (nextMarker != null && nextMarker.length() != 0);
+    LambdaClient lambda = getLambdaClient();
+    lambda
+        .listEventSourceMappingsPaginator(
+            ListEventSourceMappingsRequest.builder().functionName(functionName).build())
+        .forEach(
+            response -> eventSourceMappingConfigurations.addAll(response.eventSourceMappings()));
 
     return eventSourceMappingConfigurations;
   }
@@ -254,10 +186,10 @@ public class LambdaService extends LambdaClientProvider {
         statement -> statement.getEffect().toString().equals(Statement.Effect.Allow.toString());
 
     try {
-      AWSLambda lambda = getLambdaClient();
-      GetPolicyResult result =
-          lambda.getPolicy(new GetPolicyRequest().withFunctionName(functionName));
-      Policy policy = Policy.fromJson(result.getPolicy());
+      LambdaClient lambda = getLambdaClient();
+      GetPolicyResponse result =
+          lambda.getPolicy(GetPolicyRequest.builder().functionName(functionName).build());
+      Policy policy = Policy.fromJson(result.policy());
 
       targetGroupNames =
           policy.getStatements().stream()
