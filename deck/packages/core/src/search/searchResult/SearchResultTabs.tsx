@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
@@ -10,7 +9,6 @@ export interface ISearchResultTabsProps {
   activeSearchResultType: SearchResultType;
 }
 
-@UIRouterContext
 export class SearchResultTabs extends React.Component<ISearchResultTabsProps> {
   public render(): React.ReactElement<SearchResultTabs> {
     const { activeSearchResultType } = this.props;

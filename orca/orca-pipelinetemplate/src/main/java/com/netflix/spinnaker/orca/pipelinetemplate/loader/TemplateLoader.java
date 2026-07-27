@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateLoaderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplateMerge;
@@ -58,10 +59,11 @@ public class TemplateLoader {
   public TemplateLoader(
       Collection<TemplateSchemeLoader> schemeLoaders,
       ObjectMapper objectMapper,
-      Renderer renderer) {
+      Renderer renderer,
+      YamlHelper yamlHelper) {
     this.schemeLoaders = schemeLoaders;
     this.objectMapper =
-        new ObjectMapper(new YAMLFactory())
+        new ObjectMapper(YAMLFactory.builder().loaderOptions(yamlHelper.loaderOptions()).build())
             .setConfig(objectMapper.getSerializationConfig())
             .setConfig(objectMapper.getDeserializationConfig());
     this.renderer = renderer;

@@ -1,16 +1,17 @@
-import { UISref, useCurrentStateAndParams } from '@uirouter/react';
+import type { StateDeclaration } from '@uirouter/core';
+import { UISref, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { set } from 'lodash';
 import React, { useEffect, useState } from 'react';
 
 import type { Application } from '../../application/application.model';
+import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import type { IExecution, IPipeline } from '../../domain';
 import { Execution } from '../executions/execution/Execution';
 import { ManualExecutionModal } from '../manualExecution';
 import { useData, useLatestPromise } from '../../presentation';
-import type { IStateChange } from '../../reactShims';
-import { ReactInjector } from '../../reactShims';
 import { SchedulerFactory } from '../../scheduler';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
+import type { ExecutionService } from '../service/execution.service';
 import { ExecutionState } from '../../state';
 import { logger } from '../../utils';
 
@@ -25,13 +26,20 @@ export interface ISingleExecutionStateParams {
   executionId: string;
 }
 
+interface IStateChange {
+  to: StateDeclaration;
+  from: StateDeclaration;
+  toParams: object;
+  fromParams: object;
+}
+
 export interface ISingleExecutionRouterStateChange extends IStateChange {
   fromParams: ISingleExecutionStateParams;
   toParams: ISingleExecutionStateParams;
 }
 
-export function getAndTransformExecution(id: string, app: Application) {
-  return ReactInjector.executionService.getExecution(id, app.pipelineConfigs?.data).then((execution) => {
+export function getAndTransformExecution(id: string, app: Application, executionService: ExecutionService) {
+  return executionService.getExecution(id, app.pipelineConfigs?.data).then((execution) => {
     ExecutionsTransformer.transformExecution(app, execution);
     return execution;
   });
@@ -56,9 +64,12 @@ function traverseLineage(execution: IExecution, maxGenerations = 3): string[] {
 }
 
 export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { executionService } = runtimeServices;
   const scheduler = SchedulerFactory.createScheduler(5000);
   const { sortFilter } = ExecutionState.filterModel.asFilterModel;
   const { app } = props;
+  const { stateService } = useRouter();
 
   const [showDurations, setShowDurations] = useState(sortFilter.showDurations);
   const { params } = useCurrentStateAndParams();
@@ -84,14 +95,16 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
 
     return Promise.all(
       lineage.map((generation) =>
-        cache[generation] ? Promise.resolve(cache[generation]) : getAndTransformExecution(generation, app),
+        cache[generation]
+          ? Promise.resolve(cache[generation])
+          : getAndTransformExecution(generation, app, executionService),
       ),
     );
   };
 
   // responsible for getting execution whenever executionId (route param) changes
   const { result: execution, status: getExecutionStatus, refresh: refreshExecution } = useLatestPromise(
-    () => getAndTransformExecution(executionId, app),
+    () => getAndTransformExecution(executionId, app, executionService),
     [executionId],
   );
 
@@ -129,14 +142,16 @@ export function SingleExecutionDetails(props: ISingleExecutionDetailsProps) {
   };
 
   const rerunExecution = (execution: IExecution, application: Application, pipeline: IPipeline) => {
-    ManualExecutionModal.show({
-      pipeline,
-      application,
-      trigger: execution.trigger,
-    }).then((command) => {
-      const { executionService } = ReactInjector;
+    ManualExecutionModal.show(
+      {
+        pipeline,
+        application,
+        trigger: execution.trigger,
+      },
+      runtimeServices,
+    ).then((command) => {
       executionService.startAndMonitorPipeline(application, command.pipelineName, command.trigger);
-      ReactInjector.$state.go('^.^.executions');
+      stateService.go('^.^.executions');
     });
   };
 

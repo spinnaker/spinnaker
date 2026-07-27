@@ -10,5 +10,6 @@ export const mockLoadBalancerHealth: ILoadBalancerHealth = {
 export const mockHealth: IHealth = {
   type: 'Discovery',
   state: 'Up',
+  description: 'Discovery health',
   loadBalancers: [mockLoadBalancerHealth],
 };

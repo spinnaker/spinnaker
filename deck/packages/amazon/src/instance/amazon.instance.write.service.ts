@@ -1,5 +1,12 @@
-import type { Application, IMultiInstanceGroup, IMultiInstanceJob, ITask } from '@spinnaker/core';
+import type {
+  Application,
+  IMultiInstanceGroup,
+  IMultiInstanceJob,
+  ITask,
+  ProviderServiceDelegate,
+} from '@spinnaker/core';
 import { InstanceWriter, TaskExecutor } from '@spinnaker/core';
+
 import type { IAmazonInstance } from '../domain';
 
 export interface IAmazonMultiInstanceGroup extends IMultiInstanceGroup {
@@ -15,9 +22,11 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
-  ): PromiseLike<ITask> {
+    providerServiceDelegate: ProviderServiceDelegate,
+  ): Promise<ITask> {
     const jobs = super.buildMultiInstanceJob(
       instanceGroups,
+      providerServiceDelegate,
       'deregisterInstancesFromLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
@@ -33,7 +42,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instance: IAmazonInstance,
     application: Application,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.targetGroupNames = instance.targetGroups;
@@ -51,9 +60,11 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instanceGroups: IMultiInstanceGroup[],
     application: Application,
     targetGroupNames: string[],
+    providerServiceDelegate: ProviderServiceDelegate,
   ) {
     const jobs = super.buildMultiInstanceJob(
       instanceGroups,
+      providerServiceDelegate,
       'registerInstancesWithLoadBalancer',
     ) as IAmazonMultiInstanceJob[];
     jobs.forEach((job) => (job.targetGroupNames = targetGroupNames));
@@ -69,7 +80,7 @@ export class AmazonInstanceWriter extends InstanceWriter {
     instance: IAmazonInstance,
     application: Application,
     params: any = {},
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.targetGroupNames = instance.targetGroups;

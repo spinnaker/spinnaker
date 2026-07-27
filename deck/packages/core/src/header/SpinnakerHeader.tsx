@@ -84,7 +84,7 @@ export const SpinnakerHeaderContent = () => {
         </div>
         {navExpanded && (
           <div className="nav-container nav-items">
-            <ul className="nav nav-items flex-1 page-nav">
+            <ul className="nav navbar-nav nav-items flex-1 page-nav">
               {navItems.map((item) => {
                 const { onClick, ...restProps } = item.srefProps;
                 return (

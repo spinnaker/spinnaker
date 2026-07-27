@@ -156,6 +156,7 @@ export interface ISpinnakerSettings {
   useClassicFirewallLabels: boolean;
   kubernetesAdHocInfraWritesEnabled: boolean;
   changelogUrl: string;
+  consoleLogRefreshIntervalMs?: number;
   cdevents?: {
     validUrlPattern: string;
     validCDEvent: string;
@@ -178,6 +179,7 @@ SETTINGS.managedDelivery = SETTINGS.managedDelivery || {
   manifestBasePath: '.spinnaker',
 };
 SETTINGS.maxFetchHistoryOnEvaluateVariables = SETTINGS.maxFetchHistoryOnEvaluateVariables ?? 100;
+SETTINGS.consoleLogRefreshIntervalMs = SETTINGS.consoleLogRefreshIntervalMs ?? 30000;
 SETTINGS.maxPipelineTriggerExecutionOptions = SETTINGS.maxPipelineTriggerExecutionOptions ?? 20;
 
 // A helper to make resetting settings to steady state after running tests easier

@@ -71,6 +71,58 @@ describe('kubernetes: Clusters', () => {
       });
   });
 
+  it('keeps filters and cluster content in separate, non-overlapping columns', () => {
+    cy.viewport(1440, 900);
+    cy.visit('#/applications/kubernetesapp/clusters');
+
+    cy.contains('.rollup-title-cell', 'deployment backend').should('be.visible');
+
+    cy.get(
+      '.spinnaker-content, .spinnaker-main-view, .application, .scrollable-columns, .secondary-panel, .insight',
+    ).each(($element) => {
+      const element = $element[0];
+      expect(
+        element.scrollWidth <= element.clientWidth,
+        `${element.className} horizontal overflow (${element.scrollWidth}/${element.clientWidth})`,
+      ).to.equal(true);
+      expect(
+        element.scrollHeight <= element.clientHeight,
+        `${element.className} vertical overflow (${element.scrollHeight}/${element.clientHeight})`,
+      ).to.equal(true);
+    });
+
+    cy.get('.filters-toggle .filters-open').then(($filterHeading) => {
+      const headingBounds = $filterHeading[0].getBoundingClientRect();
+      cy.get('.insight > .nav .FilterSearch').should(($search) => {
+        expect($search[0].getBoundingClientRect().top).to.be.at.least(headingBounds.bottom);
+      });
+    });
+
+    cy.get('.insight > .nav').then(($filters) => {
+      const filterBounds = $filters[0].getBoundingClientRect();
+      cy.get('.insight .nav-content .main-content').should(($content) => {
+        expect($content[0].getBoundingClientRect().left - filterBounds.right).to.be.at.least(16);
+      });
+    });
+  });
+
+  it('fits pod details to the application content without top or bottom gaps', () => {
+    cy.viewport(1440, 900);
+    cy.visit('#/applications/kubernetesapp/clusters');
+
+    cy.get('[title="pod backend-65b97dd546-vb8qf"]').click();
+
+    cy.get('.scrollable-columns').then(($applicationContent) => {
+      const contentBounds = $applicationContent[0].getBoundingClientRect();
+      cy.get('.insight .detail-content').should(($details) => {
+        const detailBounds = $details[0].getBoundingClientRect();
+        expect(detailBounds.width).to.equal(390);
+        expect(detailBounds.top).to.be.closeTo(contentBounds.top, 1);
+        expect(detailBounds.bottom).to.be.closeTo(contentBounds.bottom, 1);
+      });
+    });
+  });
+
   it('should displays instance details table when "with details" is checked', () => {
     cy.visit('#/applications/kubernetesapp/clusters');
 

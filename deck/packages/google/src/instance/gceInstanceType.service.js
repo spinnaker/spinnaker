@@ -1,18 +1,13 @@
 'use strict';
 
-import { module } from 'angular';
 import _ from 'lodash';
 
 import { AccountService, SETTINGS } from '@spinnaker/core';
 
 import { GCE_INSTANCE_TYPE_DISK_DEFAULTS } from './gceInstanceTypeDisks';
 
-export const GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE = 'spinnaker.gce.instanceType.service';
-export const name = GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE; // for backwards compatibility
-module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeService', [
-  '$q',
-  '$log',
-  function ($q, $log) {
+export class GceInstanceTypeService {
+  constructor(promiseService, logger = console) {
     const cachedResult = null;
 
     const n1standard = {
@@ -345,7 +340,7 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
                           sizeGb: 375,
                         };
                       default:
-                        $log.warn(`Disk type '${disk.type}' not supported.`);
+                        logger.warn(`Disk type '${disk.type}' not supported.`);
                         return null;
                     }
                   })
@@ -384,7 +379,7 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
 
     function getAllTypesByRegion() {
       if (cachedResult) {
-        return $q.when(cachedResult);
+        return promiseService.resolve(cachedResult);
       }
 
       return getCategories().then((categories) => {
@@ -428,5 +423,5 @@ module(GOOGLE_INSTANCE_GCEINSTANCETYPE_SERVICE, []).factory('gceInstanceTypeServ
       getAvailableTypesForLocations: getAvailableTypesForLocations,
       resolveInstanceTypeDetails: resolveInstanceTypeDetails,
     };
-  },
-]);
+  }
+}

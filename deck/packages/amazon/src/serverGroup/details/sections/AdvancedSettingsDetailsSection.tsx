@@ -1,26 +1,19 @@
 import React from 'react';
 
-import { CollapsibleSection, confirmNotManaged, ModalInjector } from '@spinnaker/core';
+import { CollapsibleSection, DeckRuntimeContext } from '@spinnaker/core';
 import { HelpField } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
+import { EditAsgAdvancedSettingsModal } from '../advancedSettings';
 import { AWSProviderSettings } from '../../../aws.settings';
 
 export class AdvancedSettingsDetailsSection extends React.Component<IAmazonServerGroupDetailsSectionProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private editAdvancedSettings = (): void => {
-    const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app).then(
-      (notManaged) =>
-        notManaged &&
-        ModalInjector.modalService.open({
-          templateUrl: require('../advancedSettings/editAsgAdvancedSettings.modal.html'),
-          controller: 'EditAsgAdvancedSettingsCtrl as ctrl',
-          resolve: {
-            application: () => app,
-            serverGroup: () => serverGroup,
-          },
-        }),
-    );
+    const { app: application, serverGroup } = this.props;
+    EditAsgAdvancedSettingsModal.show({ application, serverGroup }, this.context.services);
   };
 
   public render(): JSX.Element {

@@ -12,7 +12,10 @@ import {
   SETTINGS,
 } from '@spinnaker/core';
 
-import { KubernetesSecurityGroupActions, KubernetesSecurityGroupDetails } from './KubernetesSecurityGroupDetails';
+import {
+  KubernetesSecurityGroupActions,
+  KubernetesSecurityGroupDetailsComponent as KubernetesSecurityGroupDetails,
+} from './KubernetesSecurityGroupDetails';
 import type { IKubernetesSecurityGroupDetailsProps } from './KubernetesSecurityGroupDetails';
 import { KubernetesV2SecurityGroupTransformer } from '../transformer';
 import { AnnotationCustomSections } from '../../manifest/AnnotationCustomSections';
@@ -49,6 +52,21 @@ describe('<KubernetesSecurityGroupDetails />', () => {
     } as IKubernetesSecurityGroupDetailsProps;
 
     spyOn(ManifestReader, 'getManifest').and.returnValue(Promise.resolve(manifestDetails()) as any);
+  });
+
+  it('replaces missing details through the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go'), params: {} };
+    const component = new KubernetesSecurityGroupDetails({
+      ...props,
+      router: {},
+      stateParams: {},
+      stateService,
+    } as any);
+
+    (component as any).autoClose();
+
+    expect(stateService.params.allowModalToStayOpen).toBe(true);
+    expect(stateService.go).toHaveBeenCalledWith('^', null, { location: 'replace' });
   });
 
   afterEach(() => {

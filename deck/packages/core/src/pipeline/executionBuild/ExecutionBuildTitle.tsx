@@ -1,9 +1,6 @@
-import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { IExecutionBuildLinkProps } from './ExecutionBuildLink';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 import { timestamp } from '../../utils';
 
 export interface IExecutionBuildTitleProps extends IExecutionBuildLinkProps {
@@ -35,11 +32,3 @@ export class ExecutionBuildTitle extends React.Component<IExecutionBuildTitlePro
     );
   }
 }
-
-export const EXECUTION_BUILD_TITLE = 'spinnaker.core.pipeline.executionbuild.executionbuildtitle';
-const ngmodule = module(EXECUTION_BUILD_TITLE, []);
-
-ngmodule.component(
-  'executionBuildTitle',
-  react2angular(withErrorBoundary(ExecutionBuildTitle, 'executionBuildTitle'), ['execution', 'defaultToTimestamp']),
-);

@@ -2,8 +2,9 @@ import React from 'react';
 
 import { CreatePipelineModal } from './CreatePipelineModal';
 import type { Application } from '../../application';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Tooltip } from '../../presentation/Tooltip';
-import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';
 
 export interface ICreatePipelineButtonProps {
@@ -15,8 +16,11 @@ export interface ICreatePipelineButtonState {
   showCreatePipelineModal: boolean;
 }
 
-export class CreatePipelineButton extends React.Component<ICreatePipelineButtonProps, ICreatePipelineButtonState> {
-  constructor(props: ICreatePipelineButtonProps) {
+class CreatePipelineButtonComponent extends React.Component<
+  ICreatePipelineButtonProps & IRouterInjectedProps,
+  ICreatePipelineButtonState
+> {
+  constructor(props: ICreatePipelineButtonProps & IRouterInjectedProps) {
     super(props);
 
     this.state = {
@@ -34,11 +38,11 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
   };
 
   private goToPipelineConfig = (id: string) => {
-    const { $state } = ReactInjector;
-    if (!$state.current.name.includes('.executions.execution')) {
-      $state.go('^.pipelineConfig', { pipelineId: id });
+    const { stateService } = this.props;
+    if (!stateService.current.name.includes('.executions.execution')) {
+      stateService.go('^.pipelineConfig', { pipelineId: id });
     } else {
-      $state.go('^.^.pipelineConfig', { pipelineId: id });
+      stateService.go('^.^.pipelineConfig', { pipelineId: id });
     }
   };
 
@@ -71,3 +75,6 @@ export class CreatePipelineButton extends React.Component<ICreatePipelineButtonP
     );
   }
 }
+
+export const CreatePipelineButton = withRouter(CreatePipelineButtonComponent);
+CreatePipelineButton.displayName = 'CreatePipelineButton';

@@ -5,9 +5,10 @@ import type { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
 import type { ILoadBalancer } from '../domain';
 import { HealthCounts } from '../healthCounts/HealthCounts';
 import { LoadBalancerDataUtils } from './loadBalancerDataUtils';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { withRouter } from '../navigation/routerContext';
 import { HoverablePopover } from '../presentation';
 import { Tooltip } from '../presentation/Tooltip';
-import { ReactInjector } from '../reactShims';
 import { logger } from '../utils';
 import { Spinner } from '../widgets';
 
@@ -19,7 +20,7 @@ interface ILoadBalancerListItemProps {
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
-    e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
+    e.nativeEvent.preventDefault();
   };
 
   public render(): React.ReactElement<LoadBalancerListItem> {
@@ -35,7 +36,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
 class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
   private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
-    e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
+    e.nativeEvent.preventDefault();
   };
 
   public render(): React.ReactElement<LoadBalancerButton> {
@@ -58,10 +59,13 @@ export interface ILoadBalancersTagState {
   isLoading: boolean;
 }
 
-export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, ILoadBalancersTagState> {
+class LoadBalancersTagComponent extends React.Component<
+  ILoadBalancersTagProps & IRouterInjectedProps,
+  ILoadBalancersTagState
+> {
   private loadBalancersRefreshUnsubscribe: () => void;
 
-  constructor(props: ILoadBalancersTagProps) {
+  constructor(props: ILoadBalancersTagProps & IRouterInjectedProps) {
     super(props);
     this.state = {
       loadBalancers: [],
@@ -69,11 +73,13 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     };
   }
   private showLoadBalancerDetails = (loadBalancer: ILoadBalancer): void => {
-    const { $state } = ReactInjector;
+    const { stateService } = this.props;
     const serverGroup = this.props.serverGroup;
     logger.log({ category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)` });
-    const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
-    $state.go(nextState, {
+    const nextState = stateService.current.name.endsWith('.clusters')
+      ? '.loadBalancerDetails'
+      : '^.loadBalancerDetails';
+    stateService.go(nextState, {
       region: serverGroup.region,
       accountId: serverGroup.account,
       name: loadBalancer.name,
@@ -95,7 +101,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
       this.setState({ loadBalancers, isLoading: false }),
     );
 
-    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(() => {
       this.forceUpdate();
     });
   }
@@ -104,7 +110,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     this.loadBalancersRefreshUnsubscribe();
   }
 
-  public render(): React.ReactElement<LoadBalancersTag> {
+  public render(): React.ReactElement<LoadBalancersTagComponent> {
     const { loadBalancers, isLoading } = this.state;
 
     const totalCount = loadBalancers.length;
@@ -169,3 +175,6 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
     );
   }
 }
+
+export const LoadBalancersTag = withRouter(LoadBalancersTagComponent);
+LoadBalancersTag.displayName = 'LoadBalancersTag';

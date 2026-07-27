@@ -23,16 +23,17 @@ import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.AbstractServiceInstance;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Resource;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Relationship;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceInstance;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ToOneRelationship;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DeleteCloudFoundryServiceBindingDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class DeleteCloudFoundryServiceBindingAtomicOperationTest
@@ -61,31 +62,24 @@ public class DeleteCloudFoundryServiceBindingAtomicOperationTest
 
     DeleteCloudFoundryServiceBindingAtomicOperation operation =
         new DeleteCloudFoundryServiceBindingAtomicOperation(desc);
-    ServiceBinding appServiceInstance = new ServiceBinding();
-    appServiceInstance.setName("service1");
-    appServiceInstance.setAppGuid("app1");
-    appServiceInstance.setServiceInstanceGuid("service-guid-123");
+    ServiceCredentialBinding appServiceBinding = new ServiceCredentialBinding();
+    appServiceBinding.setGuid("service-guid-123");
+    appServiceBinding.setName("service1");
+    appServiceBinding.setType("app");
+    appServiceBinding.setRelationships(
+        Map.of(
+            "app", new ToOneRelationship(new Relationship("app1")),
+            "service_instance", new ToOneRelationship(new Relationship("service-guid-123"))));
 
-    Resource<ServiceBinding> appResource = new Resource<>();
-    Resource.Metadata appMetadata = new Resource.Metadata();
-    appMetadata.setGuid("service-guid-123");
-    appResource.setEntity(appServiceInstance);
-    appResource.setMetadata(appMetadata);
-
-    List<Resource<ServiceBinding>> appInstances = List.of(appResource);
+    List<ServiceCredentialBinding> appInstances = List.of(appServiceBinding);
     when(desc.getClient().getApplications().getServiceBindingsByApp(any()))
         .thenReturn(appInstances);
 
     ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setName("service1");
+    serviceInstance.setGuid("service-guid-123");
 
-    Resource<ServiceInstance> resource = new Resource<>();
-    Resource.Metadata metadata = new Resource.Metadata();
-    metadata.setGuid("service-guid-123");
-    resource.setEntity(serviceInstance);
-    resource.setMetadata(metadata);
-
-    List<Resource<? extends AbstractServiceInstance>> serviceInstances = List.of(resource);
+    List<ServiceInstance> serviceInstances = List.of(serviceInstance);
 
     when(desc.getClient().getServiceInstances().findAllServicesBySpaceAndNames(any(), any()))
         .thenReturn(serviceInstances);

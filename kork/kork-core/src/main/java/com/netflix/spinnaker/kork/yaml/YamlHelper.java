@@ -30,43 +30,67 @@ import org.yaml.snakeyaml.representer.Representer;
  * with various configurations such as: {@link Constructor}, {@link SafeConstructor}, {@link
  * DumperOptions}, {@link LoaderOptions}, and {@link Representer}.
  *
- * <p><strong>Usage Example:</strong>
+ * <p><strong>Usage Example:</strong> inject the {@code YamlHelper} bean and use the instance API.
  *
  * <pre>{@code
- * Yaml yaml = YamlHelper.newYaml(); // creates a secure YAML parser if properties are set
+ * private final YamlHelper yamlHelper; // constructor-injected
+ *
+ * Yaml yaml = yamlHelper.newSafeConstructorYaml(); // applies configured security limits
  * Map<String, Object> data = yaml.load(yamlContent);
  * }</pre>
  *
  * <p>When {@link YamlParserProperties} is available in the Spring context, security properties are
- * automatically applied to all created {@link Yaml} instances.
+ * automatically applied to all created {@link Yaml} instances. The {@code static} factory methods
+ * are deprecated and retained only for callers that are not yet Spring-managed.
  */
 @Component
 @Log4j2
 public class YamlHelper {
 
-  private static YamlParserProperties yamlParserProperties;
+  /**
+   * Configured limits for the injected-bean (instance) API. Prefer injecting the {@code YamlHelper}
+   * bean and calling the instance methods below.
+   */
+  private final YamlParserProperties yamlParserProperties;
+
+  /**
+   * Legacy static reference to the most-recently constructed helper's properties. Retained only so
+   * the deprecated static methods keep functioning for callers that are not yet Spring-managed.
+   * Remove once all callers inject the {@code YamlHelper} bean.
+   */
+  private static YamlParserProperties staticYamlParserProperties;
 
   @Autowired
   public YamlHelper(YamlParserProperties props) {
-    yamlParserProperties = props;
+    this.yamlParserProperties = props;
+    staticYamlParserProperties = props;
   }
 
-  private static boolean hasYamlSecurityPropertiesConfigured() {
-    return yamlParserProperties != null
-        && (yamlParserProperties.getMaxAliasesForCollections() != null
-            || yamlParserProperties.getCodePointLimit() != null);
+  // ---------------------------------------------------------------------------
+  // Shared logic (works off whichever properties are supplied)
+  // ---------------------------------------------------------------------------
+
+  private static boolean hasYamlSecurityPropertiesConfigured(YamlParserProperties props) {
+    return props != null
+        && (props.getMaxAliasesForCollections() != null || props.getCodePointLimit() != null);
   }
 
-  /**
-   * Creates a new {@link Yaml} instance with a {@link SafeConstructor}, ensuring that only standard
-   * types are loaded (no arbitrary object instantiation). If security properties are set, they are
-   * applied via {@link LoaderOptions}.
-   *
-   * @return a new {@link Yaml} instance with safe construction
-   */
-  public static Yaml newYamlSafeConstructor() {
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
+  private static LoaderOptions buildLoaderOptions(YamlParserProperties props) {
+    LoaderOptions opts = new LoaderOptions();
+    if (props != null) {
+      if (props.getMaxAliasesForCollections() != null) {
+        opts.setMaxAliasesForCollections(props.getMaxAliasesForCollections());
+      }
+      if (props.getCodePointLimit() != null) {
+        opts.setCodePointLimit(props.getCodePointLimit());
+      }
+    }
+    return opts;
+  }
+
+  private static Yaml buildYamlSafeConstructor(YamlParserProperties props) {
+    if (hasYamlSecurityPropertiesConfigured(props)) {
+      LoaderOptions opts = buildLoaderOptions(props);
 
       SafeConstructor constructor = new SafeConstructor(opts);
       DumperOptions dumperOpts = new DumperOptions();
@@ -78,16 +102,10 @@ public class YamlHelper {
     return new Yaml(new SafeConstructor(new LoaderOptions()));
   }
 
-  /**
-   * Creates a new {@link Yaml} instance using the specified {@link DumperOptions}. Applies
-   * security-related {@link LoaderOptions} if available.
-   *
-   * @param dumperOptions configuration for YAML serialization
-   * @return a new {@link Yaml} instance
-   */
-  public static Yaml newYamlDumperOptions(DumperOptions dumperOptions) {
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
+  private static Yaml buildYamlDumperOptions(
+      YamlParserProperties props, DumperOptions dumperOptions) {
+    if (hasYamlSecurityPropertiesConfigured(props)) {
+      LoaderOptions opts = buildLoaderOptions(props);
 
       SafeConstructor constructor = new SafeConstructor(opts);
       Representer representer = new Representer(dumperOptions);
@@ -99,48 +117,103 @@ public class YamlHelper {
         new SafeConstructor(new LoaderOptions()), new Representer(dumperOptions), dumperOptions);
   }
 
-  /**
-   * Creates a new {@link Yaml} instance with the specified {@link LoaderOptions}. If security
-   * properties are configured, they override the provided options.
-   *
-   * @param loaderOptions custom loader options for YAML parsing
-   * @return a new {@link Yaml} instance
-   */
-  public static Yaml newYamlLoaderOptions(LoaderOptions loaderOptions) {
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
-      return new Yaml(opts);
+  private static Yaml buildYamlLoaderOptions(
+      YamlParserProperties props, LoaderOptions loaderOptions) {
+    if (hasYamlSecurityPropertiesConfigured(props)) {
+      return new Yaml(buildLoaderOptions(props));
     }
     return new Yaml(loaderOptions);
   }
 
-  /**
-   * Creates a new {@link Yaml} instance using the given {@link Constructor} and {@link
-   * Representer}. Applies secure {@link LoaderOptions} if configured.
-   *
-   * @param constructor the YAML constructor
-   * @param representer the YAML representer
-   * @return a new {@link Yaml} instance
-   */
-  public static Yaml newYamlRepresenter(Constructor constructor, Representer representer) {
-    if (hasYamlSecurityPropertiesConfigured()) {
-      LoaderOptions opts = getLoaderOptions();
-      return new Yaml(constructor, representer, new DumperOptions(), opts);
+  private static Yaml buildYamlRepresenter(
+      YamlParserProperties props, Constructor constructor, Representer representer) {
+    if (hasYamlSecurityPropertiesConfigured(props)) {
+      return new Yaml(constructor, representer, new DumperOptions(), buildLoaderOptions(props));
     }
     return new Yaml(constructor, representer);
   }
 
-  public static LoaderOptions getLoaderOptions() {
-    LoaderOptions opts = new LoaderOptions();
-    if (yamlParserProperties != null) {
-      if (yamlParserProperties.getMaxAliasesForCollections() != null) {
-        opts.setMaxAliasesForCollections(yamlParserProperties.getMaxAliasesForCollections());
-      }
+  // ---------------------------------------------------------------------------
+  // Instance API — preferred. Inject the YamlHelper bean and call these.
+  // ---------------------------------------------------------------------------
 
-      if (yamlParserProperties.getCodePointLimit() != null) {
-        opts.setCodePointLimit(yamlParserProperties.getCodePointLimit());
-      }
-    }
-    return opts;
+  /**
+   * Builds {@link LoaderOptions} honoring the injected security limits (e.g. {@code
+   * codePointLimit}, {@code maxAliasesForCollections}).
+   */
+  public LoaderOptions loaderOptions() {
+    return buildLoaderOptions(yamlParserProperties);
+  }
+
+  /**
+   * Creates a new {@link Yaml} instance with a {@link SafeConstructor}, applying the injected
+   * security limits when configured.
+   */
+  public Yaml newSafeConstructorYaml() {
+    return buildYamlSafeConstructor(yamlParserProperties);
+  }
+
+  /** Creates a new {@link Yaml} instance using the specified {@link DumperOptions}. */
+  public Yaml newYaml(DumperOptions dumperOptions) {
+    return buildYamlDumperOptions(yamlParserProperties, dumperOptions);
+  }
+
+  /** Creates a new {@link Yaml} instance using the specified {@link LoaderOptions}. */
+  public Yaml newYaml(LoaderOptions loaderOptions) {
+    return buildYamlLoaderOptions(yamlParserProperties, loaderOptions);
+  }
+
+  /**
+   * Creates a new {@link Yaml} instance using the given {@link Constructor} and {@link
+   * Representer}.
+   */
+  public Yaml newYaml(Constructor constructor, Representer representer) {
+    return buildYamlRepresenter(yamlParserProperties, constructor, representer);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Legacy static API — DEPRECATED. Kept only for callers that are not yet
+  // Spring-managed; migrate them to the injected bean and instance API above.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #newSafeConstructorYaml()}.
+   */
+  @Deprecated
+  public static Yaml newYamlSafeConstructor() {
+    return buildYamlSafeConstructor(staticYamlParserProperties);
+  }
+
+  /**
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #newYaml(DumperOptions)}.
+   */
+  @Deprecated
+  public static Yaml newYamlDumperOptions(DumperOptions dumperOptions) {
+    return buildYamlDumperOptions(staticYamlParserProperties, dumperOptions);
+  }
+
+  /**
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #newYaml(LoaderOptions)}.
+   */
+  @Deprecated
+  public static Yaml newYamlLoaderOptions(LoaderOptions loaderOptions) {
+    return buildYamlLoaderOptions(staticYamlParserProperties, loaderOptions);
+  }
+
+  /**
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #newYaml(Constructor,
+   *     Representer)}.
+   */
+  @Deprecated
+  public static Yaml newYamlRepresenter(Constructor constructor, Representer representer) {
+    return buildYamlRepresenter(staticYamlParserProperties, constructor, representer);
+  }
+
+  /**
+   * @deprecated inject the {@link YamlHelper} bean and call {@link #loaderOptions()}.
+   */
+  @Deprecated
+  public static LoaderOptions getLoaderOptions() {
+    return buildLoaderOptions(staticYamlParserProperties);
   }
 }

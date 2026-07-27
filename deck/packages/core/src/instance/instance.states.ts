@@ -1,15 +1,13 @@
-import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
+import type { RawParams } from '@uirouter/core';
 
 import type { Application, ApplicationStateProvider } from '../application';
-import { APPLICATION_STATE_PROVIDER } from '../application';
+import { registerApplicationState } from '../application';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { InstanceDetails } from './details/InstanceDetails';
+import { MultipleInstancesDetails } from './details/MultipleInstancesDetails';
 import { StandaloneInstanceDetails } from './details/StandaloneInstanceDetails';
-import type { INestedState, StateConfigProvider } from '../navigation';
-import { STATE_CONFIG_PROVIDER } from '../navigation';
-
-export const INSTANCE_STATES = 'spinnaker.core.instance.states';
+import type { INestedState } from '../navigation';
+import { registerRootState } from '../navigation/rootState.registration';
 
 export function getStandaloneInstanceState(): INestedState {
   return {
@@ -24,7 +22,7 @@ export function getStandaloneInstanceState(): INestedState {
     resolve: {
       instance: [
         '$stateParams',
-        ($stateParams: StateParams) => {
+        ($stateParams: RawParams) => {
           return {
             instanceId: $stateParams.instanceId,
             account: $stateParams.account,
@@ -57,64 +55,60 @@ export function getStandaloneInstanceState(): INestedState {
   };
 }
 
-module(INSTANCE_STATES, [APPLICATION_STATE_PROVIDER, STATE_CONFIG_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
-  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
-    const instanceDetails: INestedState = {
-      name: 'instanceDetails',
-      url: '/instanceDetails/:provider/:instanceId',
-      views: {
-        'detail@../insight': {
-          component: InstanceDetails,
-          $type: 'react',
-        },
+export function getMultipleInstancesState(): INestedState {
+  return {
+    name: 'multipleInstances',
+    url: '/multipleInstances',
+    views: {
+      'detail@../insight': {
+        component: MultipleInstancesDetails,
+        $type: 'react',
       },
-      resolve: {
-        overrides: () => {
-          return {};
-        },
-        instance: [
-          '$stateParams',
-          ($stateParams: StateParams) => {
-            return {
-              instanceId: $stateParams.instanceId,
-            };
-          },
-        ],
+    },
+    data: {
+      pageTitleDetails: {
+        title: 'Multiple Instances',
       },
-      data: {
-        pageTitleDetails: {
-          title: 'Instance Details',
-          nameParam: 'instanceId',
-        },
-        history: {
-          type: 'instances',
-        },
-      },
-    };
+    },
+  };
+}
 
-    const multipleInstances: INestedState = {
-      name: 'multipleInstances',
-      url: '/multipleInstances',
-      views: {
-        'detail@../insight': {
-          templateUrl: require('../instance/details/multipleInstances.view.html'),
-          controller: 'MultipleInstancesCtrl',
-          controllerAs: 'vm',
-        },
+registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
+  const instanceDetails: INestedState = {
+    name: 'instanceDetails',
+    url: '/instanceDetails/:provider/:instanceId',
+    views: {
+      'detail@../insight': {
+        component: InstanceDetails,
+        $type: 'react',
       },
-      data: {
-        pageTitleDetails: {
-          title: 'Multiple Instances',
-        },
+    },
+    resolve: {
+      overrides: () => {
+        return {};
       },
-    };
+      instance: [
+        '$stateParams',
+        ($stateParams: RawParams) => {
+          return {
+            instanceId: $stateParams.instanceId,
+          };
+        },
+      ],
+    },
+    data: {
+      pageTitleDetails: {
+        title: 'Instance Details',
+        nameParam: 'instanceId',
+      },
+      history: {
+        type: 'instances',
+      },
+    },
+  };
 
-    const standaloneInstance = getStandaloneInstanceState();
+  applicationStateProvider.addInsightDetailState(instanceDetails);
+  applicationStateProvider.addInsightDetailState(getMultipleInstancesState());
+});
 
-    applicationStateProvider.addInsightDetailState(instanceDetails);
-    applicationStateProvider.addInsightDetailState(multipleInstances);
-    stateConfigProvider.addToRootState(standaloneInstance);
-  },
-]);
+registerRootState((stateConfigProvider) => stateConfigProvider.addToRootState(getStandaloneInstanceState()));

@@ -1,4 +1,5 @@
 export * from './config/PipelineRegistry';
+export * from './config/TargetSelect';
 export * from './config/services/PipelineConfigService';
 export * from './config/stages/FormikStageConfig';
 export * from './config/stages/FormikStageConfig';
@@ -9,6 +10,7 @@ export * from './config/stages/pipeline/PipelineStageExecutionDetails';
 export * from './config/stages/preconfiguredJob';
 export * from './config/stages/stageConstants';
 export * from './config/stages/templates';
+export * from './config/stages/webhook/webhookStage';
 export * from './config/templates';
 export * from './config/triggers/RunAsUser';
 export * from './config/triggers/Triggers';

@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName = 'com.netflix.spinnaker.gate.Main'
+application.mainClass = 'com.netflix.spinnaker.gate.Main'
 
 repositories {
   maven {

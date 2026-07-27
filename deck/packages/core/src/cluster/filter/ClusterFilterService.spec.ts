@@ -1,11 +1,13 @@
-import { mock } from 'angular';
 import { cloneDeep, filter } from 'lodash';
 
 import type { Application } from '../../application/application.model';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { CLUSTER_SERVICE } from '../cluster.service';
-import { REACT_MODULE } from '../../reactShims';
+import { ClusterService } from '../cluster.service';
+import { ProviderServiceDelegate } from '../../cloudProvider';
+import { getDirectRouter, setDirectRouter } from '../../navigation/directRouter';
 import * as State from '../../state';
+import { nativePromiseService } from '../../utils/nativePromiseService';
+import { applicationJSONFixture, groupedJSONFixture } from './ClusterFilterService.fixture';
 
 const ClusterState = State.ClusterState;
 
@@ -13,21 +15,24 @@ const ClusterState = State.ClusterState;
 describe('Service: clusterFilterService', function () {
   const debounceTimeout = 30;
 
-  let clusterService: any;
+  let clusterService: ClusterService;
   let applicationJSON: any;
   let groupedJSON: any;
   let application: Application;
+  let previousRouter: ReturnType<typeof getDirectRouter>;
 
   beforeEach(function () {
-    mock.module(CLUSTER_SERVICE, require('./mockApplicationData').name, 'ui.router', REACT_MODULE);
-    mock.inject(function (_applicationJSON_: any, _groupedJSON_: any, _clusterService_: any) {
-      clusterService = _clusterService_;
+    previousRouter = getDirectRouter();
+    clusterService = new ClusterService(
+      nativePromiseService,
+      { normalizeServerGroup: (serverGroup: any) => Promise.resolve(serverGroup) },
+      new ProviderServiceDelegate(nativePromiseService),
+    );
 
-      applicationJSON = _applicationJSON_;
-      groupedJSON = _groupedJSON_;
-      groupedJSON[0].subgroups[0].cluster = applicationJSON.clusters[0];
-      groupedJSON[1].subgroups[0].cluster = applicationJSON.clusters[1];
-    });
+    applicationJSON = cloneDeep(applicationJSONFixture);
+    groupedJSON = cloneDeep(groupedJSONFixture);
+    groupedJSON[0].subgroups[0].cluster = applicationJSON.clusters[0];
+    groupedJSON[1].subgroups[0].cluster = applicationJSON.clusters[1];
 
     this.buildApplication = (json: any) => {
       const app = ApplicationModelBuilder.createApplicationForTests('app', {
@@ -59,6 +64,8 @@ describe('Service: clusterFilterService', function () {
     application = this.buildApplication(applicationJSON);
     State.initialize();
   });
+
+  afterEach(() => setDirectRouter(previousRouter));
 
   describe('Updating the cluster group', function () {
     it('no filter: should be transformed', function (done) {
@@ -739,6 +746,26 @@ describe('Service: clusterFilterService', function () {
       ClusterState.filterService.clearFilters();
       expect(ClusterState.filterModel.asFilterModel.sortFilter.providerType).toBeUndefined();
       this.verifyTags([]);
+    });
+  });
+
+  describe('overriding filters from a URL', function () {
+    it('does not update cluster groups before the direct router is available', function () {
+      setDirectRouter(null);
+      const updateClusterGroups = spyOn(ClusterState.filterService, 'updateClusterGroups');
+
+      ClusterState.filterService.overrideFiltersForUrl({ href: '/clusters', application: 'app' });
+
+      expect(updateClusterGroups).not.toHaveBeenCalled();
+    });
+
+    it('updates cluster groups when the URL targets the direct router application', function () {
+      setDirectRouter({ stateService: { params: { application: 'app' } } } as any);
+      const updateClusterGroups = spyOn(ClusterState.filterService, 'updateClusterGroups');
+
+      ClusterState.filterService.overrideFiltersForUrl({ href: '/clusters', application: 'app' });
+
+      expect(updateClusterGroups).toHaveBeenCalled();
     });
   });
 

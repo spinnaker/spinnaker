@@ -11,7 +11,6 @@ export { Icon, Illustration } from '@spinnaker/presentation';
 export * from './LabelComponent';
 export * from './labeledValues';
 export * from './LinkWithClipboard';
-export * from './linkWithClipboard.component';
 export * from './Markdown';
 export * from './modal';
 export * from './navigation';

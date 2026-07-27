@@ -9,21 +9,10 @@ const isApiConfigCall = _.overSome([
   _.matches({ property: { type: 'Identifier', name: 'data' } }),
 ]);
 
-const falsePostitives = _.overSome([
-  _.matches({
-    property: { type: 'Identifier', name: 'data' },
-    object: { type: 'Identifier', name: '$element' },
-  }),
-]);
-
 const create = function (context) {
   return {
     ExpressionStatement(node) {
-      if (
-        node.expression.type === 'CallExpression' &&
-        isApiConfigCall(node.expression.callee) &&
-        !falsePostitives(node.expression.callee)
-      ) {
+      if (node.expression.type === 'CallExpression' && isApiConfigCall(node.expression.callee)) {
         const text = context.getSourceCode().getText(node);
         context.report({
           node,

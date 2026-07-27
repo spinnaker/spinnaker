@@ -6,7 +6,8 @@ import { combineLatest as observableCombineLatest, Subject } from 'rxjs';
 import { distinctUntilChanged, map, mergeMap, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
 
 import type { ISecurityGroup, IWizardPageComponent } from '@spinnaker/core';
-import { FirewallLabels, InfrastructureCaches, ReactInjector, Spinner, timestamp } from '@spinnaker/core';
+import { DeckRuntimeContext, FirewallLabels, InfrastructureCaches, Spinner, timestamp } from '@spinnaker/core';
+
 import { AWSProviderSettings } from '../../../aws.settings';
 import type { IAmazonLoadBalancerUpsertCommand } from '../../../domain';
 
@@ -28,6 +29,9 @@ export interface ISecurityGroupsState {
 export class SecurityGroups
   extends React.Component<ISecurityGroupsProps, ISecurityGroupsState>
   implements IWizardPageComponent<IAmazonLoadBalancerUpsertCommand> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private destroy$ = new Subject<void>();
   private props$ = new Subject<ISecurityGroupsProps>();
   private refresh$ = new Subject<void>();
@@ -42,9 +46,11 @@ export class SecurityGroups
       loaded: false,
       refreshing: false,
       removed: [],
-      refreshTime: InfrastructureCaches.get('securityGroups').getStats().ageMax,
+      refreshTime: this.getRefreshTime(),
     };
   }
+
+  private getRefreshTime = () => InfrastructureCaches.get('securityGroups')?.getStats().ageMax || 0;
 
   public validate(): FormikErrors<IAmazonLoadBalancerUpsertCommand> {
     const { removed } = this.state;
@@ -97,15 +103,15 @@ export class SecurityGroups
 
   private onRefreshComplete() {
     this.props.onLoadingChanged(false);
-    const refreshTime = InfrastructureCaches.get('securityGroups').getStats().ageMax;
+    const refreshTime = this.getRefreshTime();
     this.setState({ refreshing: false, loaded: true, refreshTime });
   }
 
   public componentDidMount(): void {
     const allSecurityGroups$ = this.refresh$.pipe(
       tap(() => this.onRefreshStart()),
-      switchMap(() => ReactInjector.cacheInitializer.refreshCache('securityGroups')),
-      mergeMap(() => ReactInjector.securityGroupReader.getAllSecurityGroups()),
+      switchMap(() => this.context.services.cacheInitializer.refreshCache('securityGroups')),
+      mergeMap(() => this.context.services.securityGroupReader.getAllSecurityGroups()),
       tap(() => this.onRefreshComplete()),
     );
 

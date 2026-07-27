@@ -37,7 +37,7 @@ export function CopyStageModal(props: ICopyStageModalProps) {
 
   const error = fetchApplications.status === 'REJECTED' || fetchStages.status === 'REJECTED';
 
-  function getStagesForApplication(applicationName: string): PromiseLike<ICopyStageCardProps[]> {
+  function getStagesForApplication(applicationName: string): Promise<ICopyStageCardProps[]> {
     const configType = forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
     return REST('/applications')

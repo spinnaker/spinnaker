@@ -42,24 +42,24 @@ export interface IApiTokenServiceAccount {
 }
 
 export const ApiTokenService = {
-  listTokens(): PromiseLike<IApiToken[]> {
+  listTokens(): Promise<IApiToken[]> {
     return REST('/auth/apiTokens').get();
   },
 
-  createToken(request: ICreateApiTokenRequest): PromiseLike<IApiToken & { token: string }> {
+  createToken(request: ICreateApiTokenRequest): Promise<IApiToken & { token: string }> {
     return REST('/auth/apiTokens').post(request);
   },
 
-  revokeToken(id: string): PromiseLike<void> {
+  revokeToken(id: string): Promise<void> {
     return REST('/auth/apiTokens').path(id).delete();
   },
 
-  listApiTokenServiceAccounts(): PromiseLike<IApiTokenServiceAccount[]> {
+  listApiTokenServiceAccounts(): Promise<IApiTokenServiceAccount[]> {
     return REST('/auth/apiTokens/serviceAccounts').get();
   },
 
   /** Admin-only: returns all USER tokens across all principals. */
-  listAllUserTokens(): PromiseLike<IApiToken[]> {
+  listAllUserTokens(): Promise<IApiToken[]> {
     return REST('/auth/apiTokens/admin/users').get();
   },
 };

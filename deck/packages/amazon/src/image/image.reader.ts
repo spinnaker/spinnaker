@@ -1,5 +1,3 @@
-import { $q } from 'ngimport';
-
 import { REST } from '@spinnaker/core';
 
 export interface IAmazonImage {
@@ -22,9 +20,9 @@ export interface IAmazonImage {
 }
 
 export class AwsImageReader {
-  public findImages(params: { q: string; region?: string }): PromiseLike<IAmazonImage[]> {
+  public findImages(params: { q: string; region?: string }): Promise<IAmazonImage[]> {
     if (!params.q || params.q.length < 3) {
-      return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
+      return Promise.resolve([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
     }
 
     return REST('/images/find')
@@ -33,7 +31,7 @@ export class AwsImageReader {
       .catch(() => [] as IAmazonImage[]);
   }
 
-  public getImage(amiName: string, region: string, credentials: string): PromiseLike<IAmazonImage> {
+  public getImage(amiName: string, region: string, credentials: string): Promise<IAmazonImage> {
     return REST('/images')
       .path(credentials, region, amiName)
       .query({ provider: 'aws' })

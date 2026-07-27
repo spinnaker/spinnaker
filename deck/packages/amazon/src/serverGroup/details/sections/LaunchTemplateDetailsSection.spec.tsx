@@ -2,7 +2,6 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import type { Application } from '@spinnaker/core';
-import { ApplicationModelBuilder } from '@spinnaker/core';
 import {
   createCustomMockLaunchTemplate,
   mockLaunchTemplate,
@@ -15,10 +14,7 @@ import { MultipleInstanceTypesSubSection } from './MultipleInstanceTypesSubSecti
 import type { IAmazonMixedInstancesPolicy, IAmazonServerGroupView, IScalingPolicy } from '../../../domain';
 
 describe('Launch template details', () => {
-  let app: Application;
-  beforeEach(() => {
-    app = ApplicationModelBuilder.createApplicationForTests('testapp');
-  });
+  const app = {} as Application;
 
   const baseServerGroupWithLt = {
     ...mockServerGroup,

@@ -4,7 +4,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { Application, IAccount, IPipeline, IStageConfigProps } from '@spinnaker/core';
-import { AccountService, NgReact, SpinFormik, StageConfigField, StageConstants } from '@spinnaker/core';
+import { AccountService, SpinFormik, StageConfigField, StageConstants, TargetSelect } from '@spinnaker/core';
 
 import { Routes } from '../../forms/serverGroup';
 import { AccountRegionClusterSelector } from '../../widgets/accountRegionClusterSelector';
@@ -76,7 +76,6 @@ export class CloudFoundryLoadBalancersStageConfig extends React.Component<
     const { stage } = this.props;
     const { accounts, application, initialValues, pipeline } = this.state;
     const { target } = stage;
-    const { TargetSelect } = NgReact;
     return (
       <div className="form-horizontal">
         {!pipeline.strategy && (

@@ -1,10 +1,8 @@
-import { mock } from 'angular';
-
-import type { IInstanceTypeCategory, InstanceTypeService } from './instanceType.service';
-import { INSTANCE_TYPE_SERVICE } from './instanceType.service';
+import type { IInstanceTypeCategory } from './instanceType.service';
+import { InstanceTypeService } from './instanceType.service';
 
 describe('Service: instanceTypeService', function () {
-  let instanceTypeService: InstanceTypeService, $q: ng.IQService, $scope: ng.IScope;
+  let instanceTypeService: InstanceTypeService;
 
   const m3Category: IInstanceTypeCategory = {
     type: 'general',
@@ -48,85 +46,46 @@ describe('Service: instanceTypeService', function () {
 
   const categories: IInstanceTypeCategory[] = [m3Category, r3Category, t2Category, gceCustomInstanceCategory];
 
-  beforeEach(mock.module(INSTANCE_TYPE_SERVICE));
-
-  beforeEach(
-    mock.inject(function (
-      _instanceTypeService_: InstanceTypeService,
-      _$q_: ng.IQService,
-      $rootScope: ng.IRootScopeService,
-      providerServiceDelegate: any,
-    ) {
-      instanceTypeService = _instanceTypeService_;
-      $q = _$q_;
-      $scope = $rootScope.$new();
-
-      spyOn(providerServiceDelegate, 'getDelegate').and.returnValue({
-        getCategories: () => {
-          return $q.when(categories);
-        },
-      });
-    }),
-  );
+  beforeEach(() => {
+    instanceTypeService = new InstanceTypeService({
+      getDelegate: () => ({ getCategories: () => Promise.resolve(categories) }),
+    } as any);
+  });
 
   describe('find profile name for instance type', function () {
-    beforeEach(function () {
-      spyOn(instanceTypeService, 'getCategories').and.returnValue($q.when(categories));
-    });
-
     m3Category.families[0].instanceTypes.forEach(function (instanceType) {
-      it('should return "general" if the ' + instanceType.name + ' is in the "general" category', function () {
-        let result: string = null;
-        instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function (category) {
-          result = category;
-        });
-        $scope.$digest();
+      it('should return "general" if the ' + instanceType.name + ' is in the "general" category', async function () {
+        const result = await instanceTypeService.getCategoryForInstanceType('aws', instanceType.name);
         expect(result).toBe('general');
       });
     });
 
     r3Category.families[0].instanceTypes.forEach(function (instanceType) {
-      it('should return "memory" if the ' + instanceType.name + ' is in the "memory" category', function () {
-        let result: string = null;
-        instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function (category) {
-          result = category;
-        });
-        $scope.$digest();
+      it('should return "memory" if the ' + instanceType.name + ' is in the "memory" category', async function () {
+        const result = await instanceTypeService.getCategoryForInstanceType('aws', instanceType.name);
         expect(result).toBe('memory');
       });
     });
 
     t2Category.families[0].instanceTypes.forEach(function (instanceType) {
-      it('should return "micro" if the ' + instanceType.name + ' is in the "micro" category', function () {
-        let result: string = null;
-        instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function (category) {
-          result = category;
-        });
-        $scope.$digest();
+      it('should return "micro" if the ' + instanceType.name + ' is in the "micro" category', async function () {
+        const result = await instanceTypeService.getCategoryForInstanceType('aws', instanceType.name);
         expect(result).toBe('micro');
       });
     });
 
     const customTypes = ['c1.large', 'c3.large', 'c4.large', 'm2.large'];
     customTypes.forEach(function (instanceType) {
-      it('should return "custom" if the ' + instanceType + ' is not in a category', function () {
-        let result: string = null;
-        instanceTypeService.getCategoryForInstanceType('aws', instanceType).then(function (category) {
-          result = category;
-        });
-        $scope.$digest();
+      it('should return "custom" if the ' + instanceType + ' is not in a category', async function () {
+        const result = await instanceTypeService.getCategoryForInstanceType('aws', instanceType);
         expect(result).toBe('custom');
       });
     });
 
     const gceBuildCustomTypes = ['custom-1-2816', 'custom-6-9984'];
     gceBuildCustomTypes.forEach(function (instanceType) {
-      it('should return "buildCustom" for ' + instanceType, function () {
-        let result: string = null;
-        instanceTypeService.getCategoryForInstanceType('gce', instanceType).then(function (category) {
-          result = category;
-        });
-        $scope.$digest();
+      it('should return "buildCustom" for ' + instanceType, async function () {
+        const result = await instanceTypeService.getCategoryForInstanceType('gce', instanceType);
         expect(result).toBe('buildCustom');
       });
     });

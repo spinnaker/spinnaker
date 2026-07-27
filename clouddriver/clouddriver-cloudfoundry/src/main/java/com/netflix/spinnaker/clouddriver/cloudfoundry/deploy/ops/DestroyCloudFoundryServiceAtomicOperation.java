@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.ops;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.NOT_FOUND;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.State.NOT_FOUND;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceInstanceResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.ServiceBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.deploy.description.DestroyCloudFoundryServiceDescription;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
 import com.netflix.spinnaker.clouddriver.data.task.Task;
@@ -54,19 +54,19 @@ public class DestroyCloudFoundryServiceAtomicOperation
               + description.getSpace().getName());
 
       // create map of binding guid to service binding entity
-      Map<String, ServiceBinding> map = new HashMap<>();
+      Map<String, ServiceCredentialBinding> map = new HashMap<>();
       description
           .getClient()
           .getServiceInstances()
           .findAllServiceBindingsByServiceName(
               description.getRegion(), description.getServiceInstanceName())
           .stream()
-          .forEach(r -> map.put(r.getMetadata().getGuid(), r.getEntity()));
+          .forEach(r -> map.put(r.getGuid(), r));
 
       // make sure that the bindings are only to sg's that belong to the specific spinnaker
       // application
       // before deleting, or else throw
-      for (ServiceBinding sb : map.values()) {
+      for (ServiceCredentialBinding sb : map.values()) {
         CloudFoundryServerGroup sg =
             description.getClient().getApplications().findById(sb.getAppGuid());
         String appName = description.getApplications().stream().findFirst().get();

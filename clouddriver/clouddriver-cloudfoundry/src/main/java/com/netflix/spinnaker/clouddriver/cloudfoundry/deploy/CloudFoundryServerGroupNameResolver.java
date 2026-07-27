@@ -50,11 +50,11 @@ public class CloudFoundryServerGroupNameResolver extends AbstractServerGroupName
     return client.getApplications().getTakenSlots(clusterName, space.getId()).stream()
         .map(
             app -> {
-              Names names = Names.parseName(app.getEntity().getName());
+              Names names = Names.parseName(app.getName());
               return new TakenSlot(
                   names.getCluster(),
                   names.getSequence(),
-                  Date.from(app.getMetadata().getCreatedAt().toInstant()));
+                  Date.from(app.getCreatedAt().toInstant()));
             })
         .collect(Collectors.toList());
   }

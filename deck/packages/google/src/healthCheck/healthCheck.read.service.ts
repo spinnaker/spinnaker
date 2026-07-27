@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { uniqWith } from 'lodash';
 
 import type { ISearchResults } from '@spinnaker/core';
@@ -16,7 +15,7 @@ interface IHealthCheckSearchResults {
 }
 
 export class GceHealthCheckReader {
-  public listHealthChecks(type?: string): PromiseLike<IGceHealthCheck[]> {
+  public listHealthChecks(type?: string): Promise<IGceHealthCheck[]> {
     if (type) {
       return this.listHealthChecks().then((healthChecks) =>
         healthChecks.filter((healthCheck) => healthCheck.healthCheckType === type),
@@ -50,6 +49,3 @@ export class GceHealthCheckReader {
     }
   }
 }
-
-export const GCE_HEALTH_CHECK_READER = 'spinnaker.gce.healthCheck.reader';
-module(GCE_HEALTH_CHECK_READER, []).service('gceHealthCheckReader', GceHealthCheckReader);

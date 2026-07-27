@@ -1,4 +1,3 @@
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import { flatten } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import React from 'react';
@@ -7,11 +6,13 @@ import { debounceTime, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { GlobalSearchRecentItems } from './GlobalSearchRecentItems';
 import { GlobalSearchResults } from './GlobalSearchResults';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import type { IChildComponentProps } from '../infrastructure/RecentlyViewedItems';
 import { RecentlyViewedItems } from '../infrastructure/RecentlyViewedItems';
 import type { ISearchResultSet } from '../infrastructure/infrastructureSearch.service';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Tooltip } from '../../presentation/Tooltip';
-import { ReactInjector } from '../../reactShims';
 import type { ISearchResult } from '../search.service';
 import { searchRank } from '../searchRank.filter';
 import { ClusterState } from '../../state';
@@ -32,8 +33,10 @@ export interface IGlobalSearchState {
   categories: ISearchResultSet[];
 }
 
-@UIRouterContext
-export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
+class GlobalSearchComponent extends React.Component<IRouterInjectedProps, IGlobalSearchState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private container: HTMLElement;
   private searchField: HTMLInputElement;
   private resultRefs: HTMLElement[][];
@@ -41,7 +44,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
   private query$ = new Subject<string>();
   private destroy$ = new Subject();
 
-  constructor(props: {}) {
+  constructor(props: IRouterInjectedProps) {
     super(props);
     this.state = {
       showDropdown: false,
@@ -56,7 +59,7 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     window.addEventListener('keyup', this.handleWindowKeyup);
     window.addEventListener('click', this.handleWindowClick);
 
-    const { infrastructureSearchService } = ReactInjector;
+    const { infrastructureSearchService } = this.context.services;
     const search = infrastructureSearchService.getSearcher();
 
     this.query$
@@ -143,16 +146,16 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
         this.focusFirstSearchResult();
       }
     } else if (key === 'Enter') {
-      const { $state } = ReactInjector;
+      const { stateService } = this.props;
       if (this.state.categories) {
         const matchingQueryResult = findMatchingApplicationResultToQuery(this.state.categories, this.state.query);
         if (matchingQueryResult) {
-          $state.go('home.applications.application', {
+          stateService.go('home.applications.application', {
             application: matchingQueryResult.result.application,
           });
           this.hideDropdown();
         } else {
-          $state.go('home.search', getSearchQueryParams(this.state.query));
+          stateService.go('home.search', getSearchQueryParams(this.state.query));
         }
       }
 
@@ -384,3 +387,6 @@ export class GlobalSearch extends React.Component<{}, IGlobalSearchState> {
     );
   };
 }
+
+export const GlobalSearch = withRouter(GlobalSearchComponent);
+GlobalSearch.displayName = 'GlobalSearch';

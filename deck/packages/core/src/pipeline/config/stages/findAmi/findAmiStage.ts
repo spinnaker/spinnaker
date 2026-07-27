@@ -1,7 +1,6 @@
-import { module } from 'angular';
-
 import { FindAmiExecutionDetails } from './FindAmiExecutionDetails';
-import { ExecutionDetailsTasks } from '../common';
+import { ExecutionDetailsTasks, NoConfigurationStageConfig } from '../common';
+import type { IStageTypeConfig } from '../../../../domain';
 import { Registry } from '../../../../registry';
 
 export interface IFindAmiStageContext {
@@ -10,14 +9,13 @@ export interface IFindAmiStageContext {
   imageName: string;
 }
 
-export const FIND_AMI_STAGE = 'spinnaker.core.pipeline.stage.findAmiStage';
+export const findAmiStage: IStageTypeConfig = {
+  executionDetailsSections: [FindAmiExecutionDetails, ExecutionDetailsTasks],
+  useBaseProvider: true,
+  key: 'findImage',
+  label: 'Find Image from Cluster',
+  description: 'Finds an image to deploy from an existing cluster',
+  component: NoConfigurationStageConfig,
+};
 
-module(FIND_AMI_STAGE, []).config(() => {
-  Registry.pipeline.registerStage({
-    executionDetailsSections: [FindAmiExecutionDetails, ExecutionDetailsTasks],
-    useBaseProvider: true,
-    key: 'findImage',
-    label: 'Find Image from Cluster',
-    description: 'Finds an image to deploy from an existing cluster',
-  });
-});
+Registry.pipeline.registerStage(findAmiStage);

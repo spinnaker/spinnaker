@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.yaml.YamlHelper
+import com.netflix.spinnaker.kork.yaml.YamlParserProperties
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.TemplatedPipelineRequest
 import com.netflix.spinnaker.orca.pipelinetemplate.handler.DefaultHandlerChain
@@ -34,7 +36,8 @@ class V1TemplateLoaderHandlerSpec extends Specification {
 
   Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 
-  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)], objectMapper, renderer)
+  def yamlHelper = new YamlHelper(new YamlParserProperties())
+  TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper, yamlHelper)], objectMapper, renderer, yamlHelper)
 
   @Subject
   def subject = new V1TemplateLoaderHandler(templateLoader, renderer, objectMapper)

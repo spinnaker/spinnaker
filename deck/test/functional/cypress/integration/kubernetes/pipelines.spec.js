@@ -3,8 +3,27 @@ import { registerDefaultFixtures } from '../../support';
 describe('kubernetes: Pipelines', () => {
   beforeEach(() => {
     registerDefaultFixtures();
-    cy.intercept('/applications/kubernetesapp/pipelines?expand=false&limit=2', {
+    cy.intercept({ pathname: '/applications/kubernetesapp/pipelines' }, {
       fixture: 'kubernetes/pipelines/pipelines.json',
+    });
+
+    cy.fixture('kubernetes/pipelines/01JSDR9Q2VBK2PTRZWKG0F5452.succeeded.json').then((execution) => {
+      cy.intercept('/applications/kubernetesapp/pipelines?*expand=true*', [execution]);
+
+      const deployStage = execution.stages.find((stage) => stage.name === 'Deploy (Manifest)');
+      deployStage.context['outputs.manifests'].forEach((manifest) => {
+        cy.intercept(`/manifests/k8s-local/spinnaker-dev/${manifest.kind}%20${manifest.metadata.name}`, {
+          account: 'k8s-local',
+          name: `${manifest.kind} ${manifest.metadata.name}`,
+          location: manifest.metadata.namespace,
+          manifest,
+          status: {},
+          artifacts: [],
+          events: [],
+          warnings: [],
+          metrics: [],
+        });
+      });
     });
 
     cy.intercept('/applications/kubernetesapp/pipelineConfigs', {
@@ -48,6 +67,19 @@ describe('kubernetes: Pipelines', () => {
     });
 
     cy.get('.execution-summary .execution-status').should('contain.text', 'SUCCEEDED');
+  });
+
+  it('fills the application content height with executions', () => {
+    cy.viewport(1440, 900);
+    cy.visit('#/applications/kubernetesapp/executions');
+    cy.get('.executions-section').should('be.visible');
+
+    cy.get('.secondary-panel').then(($panel) => {
+      const panelBounds = $panel[0].getBoundingClientRect();
+      cy.get('.executions-section').should(($executions) => {
+        expect($executions[0].getBoundingClientRect().bottom).to.be.closeTo(panelBounds.bottom, 1);
+      });
+    });
   });
 
   it('displays step-section-details tab content for Delete (Manifest)', () => {

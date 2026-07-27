@@ -1,10 +1,10 @@
-import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
+import type { RawParams } from '@uirouter/core';
 
 import { LoadBalancers } from './LoadBalancers';
 import type { ApplicationStateProvider } from '../application';
-import { APPLICATION_STATE_PROVIDER } from '../application';
+import { registerApplicationState } from '../application';
 import { LoadBalancerDetails } from './details';
+import { TargetGroupDetails } from './details/TargetGroupDetailsWrapper';
 import { filterModelConfig } from './filter/LoadBalancerFilterModel';
 import { LoadBalancerFilters } from './filter/LoadBalancerFilters';
 import type { INestedState, StateConfigProvider } from '../navigation';
@@ -17,10 +17,7 @@ export interface ILoadBalancerStateParams {
   provider: string;
 }
 
-export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
-module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
-  'applicationStateProvider',
-  'stateConfigProvider',
+registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const loadBalancerDetails: INestedState = {
       name: 'loadBalancerDetails',
@@ -38,10 +35,10 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
         },
       },
       resolve: {
-        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.accountId],
         loadBalancer: [
           '$stateParams',
-          ($stateParams: StateParams): ILoadBalancerStateParams => {
+          ($stateParams: RawParams): ILoadBalancerStateParams => {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
@@ -65,6 +62,47 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
       },
     };
 
+    const targetGroupDetails: INestedState = {
+      name: 'targetGroupDetails',
+      url: '/targetGroupDetails/:provider/:accountId/:region/:vpcId/:loadBalancerName/:name',
+      params: {
+        vpcId: {
+          value: null,
+          squash: true,
+        },
+      },
+      views: {
+        'detail@../insight': {
+          component: TargetGroupDetails,
+          $type: 'react',
+        },
+      },
+      resolve: {
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.accountId],
+        name: ['$stateParams', ($stateParams: RawParams) => $stateParams.name],
+        provider: ['$stateParams', ($stateParams: RawParams) => $stateParams.provider],
+        targetGroup: [
+          '$stateParams',
+          ($stateParams: RawParams) => ({
+            accountId: $stateParams.accountId,
+            loadBalancerName: $stateParams.loadBalancerName,
+            name: $stateParams.name,
+            provider: $stateParams.provider,
+            region: $stateParams.region,
+            vpcId: $stateParams.vpcId,
+          }),
+        ],
+      },
+      data: {
+        pageTitleDetails: {
+          title: 'Target Group Details',
+          nameParam: 'name',
+          accountParam: 'accountId',
+          regionParam: 'region',
+        },
+      },
+    };
+
     const loadBalancers: INestedState = {
       url: `/loadBalancers?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
       name: 'loadBalancers',
@@ -83,5 +121,6 @@ module(LOAD_BALANCER_STATES, [APPLICATION_STATE_PROVIDER]).config([
 
     applicationStateProvider.addInsightState(loadBalancers);
     applicationStateProvider.addInsightDetailState(loadBalancerDetails);
+    applicationStateProvider.addInsightDetailState(targetGroupDetails);
   },
-]);
+);

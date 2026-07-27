@@ -9,11 +9,11 @@ export interface ITaskCreateResult {
 }
 
 export class TaskWriter {
-  public static postTaskCommand(taskCommand: ITaskCommand): PromiseLike<ITaskCreateResult> {
+  public static postTaskCommand(taskCommand: ITaskCommand): Promise<ITaskCreateResult> {
     return REST('/tasks').post(taskCommand);
   }
 
-  public static cancelTask(taskId: string): PromiseLike<ITask> {
+  public static cancelTask(taskId: string): Promise<ITask> {
     return REST('/tasks')
       .path(taskId, 'cancel')
       .put()

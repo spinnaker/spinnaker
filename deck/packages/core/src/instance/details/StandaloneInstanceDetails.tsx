@@ -3,7 +3,6 @@ import React from 'react';
 import type { Application } from '../../application';
 import { CloudProviderRegistry } from '../../cloudProvider';
 import type { IMoniker } from '../../naming';
-import { AngularJSAdapter } from '../../reactShims';
 
 export interface IStandaloneInstance {
   account: string;
@@ -42,17 +41,6 @@ export function StandaloneInstanceDetails(props: IStandaloneInstanceDetailsProps
     return (
       <StandaloneDetailsLayout>
         <DetailsComponent {...props} />
-      </StandaloneDetailsLayout>
-    );
-  }
-
-  const templateUrl = CloudProviderRegistry.getValue(provider, 'instance.detailsTemplateUrl');
-  const controller = CloudProviderRegistry.getValue(provider, 'instance.detailsController');
-
-  if (templateUrl && controller) {
-    return (
-      <StandaloneDetailsLayout>
-        <AngularJSAdapter templateUrl={templateUrl} controller={`${controller} as ctrl`} locals={props} />
       </StandaloneDetailsLayout>
     );
   }

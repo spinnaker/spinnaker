@@ -2,7 +2,6 @@ import React from 'react';
 
 import type { Application } from '../application';
 import { CloudProviderRegistry } from '../cloudProvider';
-import { AngularJSAdapter } from '../reactShims';
 
 export interface IStandaloneResolvedSecurityGroup {
   accountId: string;
@@ -38,17 +37,6 @@ export function StandaloneSecurityGroupDetails(props: IStandaloneSecurityGroupDe
     return (
       <StandaloneDetailsLayout>
         <DetailsComponent {...props} />
-      </StandaloneDetailsLayout>
-    );
-  }
-
-  const templateUrl = CloudProviderRegistry.getValue(provider, 'securityGroup.detailsTemplateUrl');
-  const controller = CloudProviderRegistry.getValue(provider, 'securityGroup.detailsController');
-
-  if (templateUrl && controller) {
-    return (
-      <StandaloneDetailsLayout>
-        <AngularJSAdapter templateUrl={templateUrl} controller={`${controller} as ctrl`} locals={props} />
       </StandaloneDetailsLayout>
     );
   }

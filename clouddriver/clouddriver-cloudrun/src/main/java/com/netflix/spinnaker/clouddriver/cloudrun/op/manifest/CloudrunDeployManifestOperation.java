@@ -33,6 +33,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository;
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -61,6 +62,9 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
   CloudrunDeployManifestDescription description;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
+
+  private final ObjectMapper yamlMapper =
+      new ObjectMapper(YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
 
   private CloudrunYmlData ymlData = new CloudrunYmlData();
 
@@ -175,7 +179,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
         .map(
             (configFile) -> {
               try {
-                ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
                 CloudrunService yamlObj = configFile;
                 if (yamlObj != null) {
                   if (yamlObj.getMetadata() != null) {
@@ -208,7 +211,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
                     }
                   }
                 }
-                return yamlReader.writeValueAsString(ymlData);
+                return yamlMapper.writeValueAsString(ymlData);
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
               }
@@ -223,7 +226,6 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
         .map(
             (configFile) -> {
               try {
-                ObjectMapper yamlReader = new ObjectMapper(new YAMLFactory());
                 CloudrunService yamlObj = configFile;
                 if (yamlObj != null && yamlObj.getMetadata() != null) {
                   CloudrunMetaData metadata = ymlData.getMetadata();
@@ -236,7 +238,7 @@ public class CloudrunDeployManifestOperation implements AtomicOperation<Deployme
                     }
                   }
                 }
-                return yamlReader.writeValueAsString(yamlObj);
+                return yamlMapper.writeValueAsString(yamlObj);
               } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
               }

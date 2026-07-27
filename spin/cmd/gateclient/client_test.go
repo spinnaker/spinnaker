@@ -1,6 +1,8 @@
 package gateclient
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +15,45 @@ import (
 	gate "github.com/spinnaker/spinnaker/spin/gateapi"
 	"github.com/spinnaker/spinnaker/spin/util"
 )
+
+func TestNewGateClientSendsXSpinnakerTokenHeader(t *testing.T) {
+	token := "my-static-api-token"
+	receivedToken := make(chan string, 1)
+
+	mux := http.NewServeMux()
+	mux.Handle("/version", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		receivedToken <- r.Header.Get("X-Spinnaker-Token")
+		payload := map[string]string{"version": "Unknown"}
+		b, _ := json.Marshal(payload)
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, string(b))
+	}))
+
+	testServer := httptest.NewServer(mux)
+	defer testServer.Close()
+
+	configPath := filepath.Join(t.TempDir(), "config")
+	configContents := "gate:\n" +
+		"  endpoint: " + testServer.URL + "\n" +
+		"auth:\n" +
+		"  enabled: true\n" +
+		"  apiToken:\n" +
+		"    token: " + token + "\n"
+
+	if err := os.WriteFile(configPath, []byte(configContents), 0o600); err != nil {
+		t.Fatalf("failed writing test config: %v", err)
+	}
+
+	ui := output.NewUI(true, false, output.MarshalToJson, io.Discard, io.Discard)
+	if _, err := NewGateClient(ui, "", "", configPath, false, false, 0); err != nil {
+		t.Fatalf("NewGateClient returned error: %v", err)
+	}
+
+	got := <-receivedToken
+	if got != token {
+		t.Fatalf("X-Spinnaker-Token header: got %q, want %q", got, token)
+	}
+}
 
 func TestNewGateClientSetsContextAccessTokenFromOAuth2CachedToken(t *testing.T) {
 	token := "cached-access-token"

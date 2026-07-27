@@ -1,8 +1,8 @@
 import React from 'react';
-import type { Subscription } from 'rxjs';
 
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
-import { ReactInjector } from '../../reactShims';
 import { logger } from '../../utils';
 
 export interface IExecutionDetailsSectionNavProps {
@@ -13,52 +13,48 @@ export interface IExecutionDetailsSectionNavState {
   activeSection: string;
 }
 
-export class ExecutionDetailsSectionNav extends React.Component<
-  IExecutionDetailsSectionNavProps,
+export class ExecutionDetailsSectionNavComponent extends React.Component<
+  IExecutionDetailsSectionNavProps & IRouterInjectedProps,
   IExecutionDetailsSectionNavState
 > {
-  private stateChangeSuccessSubscription: Subscription;
-
-  public constructor(props: IExecutionDetailsSectionNavProps) {
+  public constructor(props: IExecutionDetailsSectionNavProps & IRouterInjectedProps) {
     super(props);
     this.state = this.getState(props);
   }
 
-  public componentDidMount(): void {
-    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() =>
-      this.setState(this.getState(this.props)),
-    );
-  }
-
-  private getState(props: IExecutionDetailsSectionNavProps): IExecutionDetailsSectionNavState {
-    const { $stateParams } = ReactInjector;
-    const activeSection = $stateParams.details || props.sections[0];
+  private getState(props: IExecutionDetailsSectionNavProps & IRouterInjectedProps): IExecutionDetailsSectionNavState {
+    const activeSection = props.stateParams.details || props.sections[0];
     return { activeSection };
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionDetailsSectionNavProps): void {
+  public componentWillReceiveProps(nextProps: IExecutionDetailsSectionNavProps & IRouterInjectedProps): void {
     this.setState(this.getState(nextProps));
-  }
-
-  public componentWillUnmount(): void {
-    this.stateChangeSuccessSubscription.unsubscribe();
   }
 
   public render() {
     return (
       <ul className="nav nav-pills">
         {this.props.sections.map((section) => (
-          <Section key={section} section={section} active={this.state.activeSection === section} />
+          <Section
+            key={section}
+            section={section}
+            active={this.state.activeSection === section}
+            stateService={this.props.stateService}
+          />
         ))}
       </ul>
     );
   }
 }
 
-const Section = (props: { section: string; active: boolean }): JSX.Element => {
+const Section = (props: {
+  section: string;
+  active: boolean;
+  stateService: IRouterInjectedProps['stateService'];
+}): JSX.Element => {
   const clicked = () => {
     logger.log({ category: 'Pipeline', action: 'Execution details section selected', data: { label: props.section } });
-    ReactInjector.$state.go('.', { details: props.section });
+    props.stateService.go('.', { details: props.section });
   };
   return (
     <li>
@@ -68,3 +64,5 @@ const Section = (props: { section: string; active: boolean }): JSX.Element => {
     </li>
   );
 };
+
+export const ExecutionDetailsSectionNav = withRouter(ExecutionDetailsSectionNavComponent);

@@ -2,21 +2,17 @@ import * as React from 'react';
 
 import type { IAccountDetails } from '../account';
 import type { Application } from '../application';
+import { useDeckRuntimeServices } from '../bootstrap/DeckRuntimeContext';
 import type { ICloudProviderConfig } from '../cloudProvider';
 import { CloudProviderRegistry, ProviderSelectionService } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 import { FirewallLabels } from './label/FirewallLabels';
 import { Tooltip } from '../presentation';
-import { ModalInjector } from '../reactShims';
 import { noop } from '../utils';
 
 const providerFilterFn = (_application: Application, _account: IAccountDetails, provider: ICloudProviderConfig) => {
   const sgConfig = provider.securityGroup;
-  return (
-    sgConfig &&
-    (sgConfig.CreateSecurityGroupModal ||
-      (sgConfig.createSecurityGroupTemplateUrl && sgConfig.createSecurityGroupController))
-  );
+  return Boolean(sgConfig && sgConfig.CreateSecurityGroupModal);
 };
 
 const getProviderDefaults = (provider: string) => SETTINGS.providers[provider]?.defaults || {};
@@ -26,52 +22,21 @@ const getDefaultCredentials = (app: Application, provider: string) =>
 const getDefaultRegion = (app: Application, provider: string) =>
   app.defaultRegions?.[provider] || getProviderDefaults(provider).region;
 
-interface IAngularCreateSecurityGroupCommand {
-  credentials: string | undefined;
-  subnet: string;
-  regions: Array<string | undefined>;
-  vpcId: string | null;
-  securityGroupIngress: unknown[];
-}
-
-const getAngularModalOptions = (provider: any, selectedProvider: string, app: Application) => ({
-  templateUrl: provider.createSecurityGroupTemplateUrl,
-  controller: `${provider.createSecurityGroupController} as ctrl`,
-  windowClass: 'modal-z-index',
-  size: 'lg',
-  resolve: {
-    securityGroup: (): IAngularCreateSecurityGroupCommand => {
-      return {
-        credentials: getDefaultCredentials(app, selectedProvider),
-        subnet: 'none',
-        regions: [getDefaultRegion(app, selectedProvider)],
-        vpcId: null,
-        securityGroupIngress: [],
-      };
-    },
-    application: () => {
-      return app;
-    },
-  },
-});
-
 const getReactModalOptions = (selectedProvider: string, app: Application) => ({
   credentials: getDefaultCredentials(app, selectedProvider),
   application: app,
   isNew: true,
+  region: getDefaultRegion(app, selectedProvider),
 });
 
 export const CreateSecurityGroupButton = ({ app }: { app: Application }) => {
+  const runtimeServices = useDeckRuntimeServices();
+
   const createSecurityGroup = (): void => {
     ProviderSelectionService.selectProvider(app, 'securityGroup', providerFilterFn).then((selectedProvider) => {
       const provider = CloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
 
-      if (provider.CreateSecurityGroupModal) {
-        provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app));
-      } else {
-        // angular
-        ModalInjector.modalService.open(getAngularModalOptions(provider, selectedProvider, app)).result.catch(noop);
-      }
+      provider.CreateSecurityGroupModal.show(getReactModalOptions(selectedProvider, app), runtimeServices);
     }, noop);
   };
 

@@ -10,7 +10,8 @@ import { ApplicationReader } from '../../../../../application';
 import { CreatePipelineModal } from '../../../../create';
 import type { IPipelineTemplateV2 } from '../../../../../domain/IPipelineTemplateV2';
 import { SubmitButton } from '../../../../../modal/buttons/SubmitButton';
-import { ReactInjector } from '../../../../../reactShims';
+import type { IRouterInjectedProps } from '../../../../../navigation/routerContext';
+import { withRouter } from '../../../../../navigation/routerContext';
 import { Spinner } from '../../../../../widgets/spinners/Spinner';
 
 import './createPipelineFromTemplate.less';
@@ -30,8 +31,8 @@ interface ICreatePipelineFromTemplateState {
   submitting: boolean;
 }
 
-export class CreatePipelineFromTemplate extends React.Component<
-  ICreatePipelineFromTemplateProps,
+export class CreatePipelineFromTemplateComponent extends React.Component<
+  ICreatePipelineFromTemplateProps & IRouterInjectedProps,
   ICreatePipelineFromTemplateState
 > {
   public state: ICreatePipelineFromTemplateState = {
@@ -101,8 +102,11 @@ export class CreatePipelineFromTemplate extends React.Component<
   };
 
   private goToPipelineConfig = (application: string, id: string) => {
-    const { $state } = ReactInjector;
-    $state.go('home.applications.application.pipelines.pipelineConfig', { application, pipelineId: id, new: 1 });
+    this.props.stateService.go('home.applications.application.pipelines.pipelineConfig', {
+      application,
+      pipelineId: id,
+      new: 1,
+    });
   };
 
   public render() {
@@ -168,3 +172,5 @@ export class CreatePipelineFromTemplate extends React.Component<
     );
   }
 }
+
+export const CreatePipelineFromTemplate = withRouter(CreatePipelineFromTemplateComponent);

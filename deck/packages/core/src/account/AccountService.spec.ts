@@ -1,6 +1,3 @@
-import { mock } from 'angular';
-import { $rootScope } from 'ngimport';
-
 import type { IAccount } from './AccountService';
 import { AccountService } from './AccountService';
 import { mockHttpClient } from '../api/mock/jasmine';
@@ -8,15 +5,12 @@ import type { MockHttpClient } from '../api/mock/mockHttpClient';
 import { CloudProviderRegistry } from '../cloudProvider';
 import { SETTINGS } from '../config/settings';
 
-function flush<T>(http: MockHttpClient, promise: PromiseLike<T>): Promise<T> {
-  return http
-    .flush()
-    .then(() => setTimeout(() => $rootScope.$digest()))
-    .then(() => promise);
+async function flush<T>(http: MockHttpClient, promise: PromiseLike<T>): Promise<T> {
+  await http.flush();
+  return promise;
 }
 
 describe('Service: AccountService', () => {
-  beforeEach(mock.inject());
   beforeEach(() => AccountService.initialize());
   afterEach(SETTINGS.resetToOriginal);
 

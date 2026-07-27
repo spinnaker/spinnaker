@@ -11,9 +11,6 @@ export interface IStageOrTriggerTypeConfig {
   description?: string;
   extendedDescription?: string;
   key: string;
-  templateUrl?: string;
-  controller?: string;
-  controllerAs?: string;
   component?: React.ComponentType<any>;
   providesRepositoryInformation?: boolean;
   providesVersionForBake?: boolean;

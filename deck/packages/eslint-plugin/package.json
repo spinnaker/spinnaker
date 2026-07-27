@@ -21,6 +21,7 @@
     "ts-node": "*"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.15.0",
     "@babel/preset-typescript": "^7.15.0",
     "@eslint/compat": "^2.0.3",
     "@eslint/eslintrc": "^3.3.5",
@@ -56,8 +57,7 @@
   ],
   "jest": {
     "testPathIgnorePatterns": [
-      "<rootDir>/template",
-      "<rootDir>/rules/ng-strictdi.spec.ts"
+      "<rootDir>/template"
     ],
     "testEnvironment": "node"
   }

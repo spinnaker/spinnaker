@@ -7,8 +7,6 @@ import { CloudMetricsReader, ReactSelectInput, TextInput, useData } from '@spinn
 
 import type { IScalingPolicyAlarmView } from '../../../../../domain';
 
-import './dimensionsEditor.less';
-
 export interface IDimensionsEditorProps {
   alarm: IScalingPolicyAlarmView;
   namespaceUpdated?: Subject<void>;

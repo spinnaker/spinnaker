@@ -5,6 +5,7 @@ import { StageConfigField } from '@spinnaker/core';
 
 import type { IManifestDeploymentOptionsProps } from './ManifestDeploymentOptions';
 import { defaultTrafficManagementConfig, ManifestDeploymentOptions } from './ManifestDeploymentOptions';
+import { ManifestKindSearchService } from '../../../manifest/ManifestKindSearch';
 
 describe('<ManifestDeploymentOptions />', () => {
   const onConfigChangeSpy = jasmine.createSpy('onConfigChangeSpy');
@@ -12,6 +13,7 @@ describe('<ManifestDeploymentOptions />', () => {
   let props: IManifestDeploymentOptionsProps;
 
   beforeEach(() => {
+    spyOn(ManifestKindSearchService, 'search').and.returnValue(Promise.resolve([]));
     props = {
       accounts: [],
       config: defaultTrafficManagementConfig,

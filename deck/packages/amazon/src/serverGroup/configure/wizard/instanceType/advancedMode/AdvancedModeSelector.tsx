@@ -7,8 +7,8 @@ import { usePrevious } from '@spinnaker/core';
 import { InstanceProfileSelector } from './InstanceProfileSelector';
 import { InstanceTypeTable } from './InstanceTypeTable';
 import { InstancesDistribution } from './InstancesDistribution';
+import { AwsServices } from '../../../../../aws.services';
 import type { IAmazonInstanceTypeCategory } from '../../../../../instance/awsInstanceType.service';
-import { AwsReactInjector } from '../../../../../reactShims';
 import type { IAmazonInstanceTypeOverride, IAmazonServerGroupCommand } from '../../../serverGroupConfiguration.service';
 
 export interface IAdvancedModeSelectorProps {
@@ -57,7 +57,7 @@ export function AdvancedModeSelector(props: IAdvancedModeSelectorProps) {
     const hasProfileChanged = prevInstanceProfile && newProfile && prevInstanceProfile !== newProfile;
     const isInstanceTypesUpdateNeeded = newProfile !== 'custom' && instanceTypesInProps && instanceTypesInProps.length;
     if (hasProfileChanged && isInstanceTypesUpdateNeeded) {
-      const instanceTypesInProfile: string[] = AwsReactInjector.awsInstanceTypeService.getInstanceTypesInCategory(
+      const instanceTypesInProfile: string[] = AwsServices.awsInstanceTypeService.getInstanceTypesInCategory(
         instanceTypesInProps.map((it) => it.instanceType),
         newProfile,
       );

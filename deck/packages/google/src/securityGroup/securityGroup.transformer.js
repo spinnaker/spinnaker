@@ -1,18 +1,11 @@
 'use strict';
 
-import { module } from 'angular';
+export class GceSecurityGroupTransformer {
+  constructor(promiseService) {
+    this.promiseService = promiseService;
+  }
 
-export const GOOGLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER = 'spinnaker.gce.securityGroup.transformer';
-export const name = GOOGLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER; // for backwards compatibility
-module(GOOGLE_SECURITYGROUP_SECURITYGROUP_TRANSFORMER, []).factory('gceSecurityGroupTransformer', [
-  '$q',
-  function ($q) {
-    function normalizeSecurityGroup(securityGroup) {
-      return $q.when(securityGroup); // no-op
-    }
-
-    return {
-      normalizeSecurityGroup: normalizeSecurityGroup,
-    };
-  },
-]);
+  normalizeSecurityGroup(securityGroup) {
+    return this.promiseService.resolve(securityGroup);
+  }
+}

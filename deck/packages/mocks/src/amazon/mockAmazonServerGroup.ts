@@ -4,9 +4,11 @@ import { mockLaunchTemplate } from './mockAmazonLaunchTemplate';
 import { mockInstanceCounts } from './../mockInstanceCounts';
 
 export const mockAmazonAsg: IAmazonAsg = {
+  autoScalingGroupName: 'deck-test-123',
   minSize: 2,
   maxSize: 2,
   desiredCapacity: 2,
+  loadBalancerNames: ['lb-123'],
   tags: [],
   availabilityZones: ['a', 'b', 'c'],
   vpczoneIdentifier: '',

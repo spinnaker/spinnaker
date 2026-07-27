@@ -1,5 +1,3 @@
-import { $httpBackend } from 'ngimport';
-
 export type Verb = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type UrlArg = string | RegExp | ((url: string) => boolean);
 
@@ -29,16 +27,4 @@ export function deferred() {
   return deferredObj;
 }
 
-/**
- * Tries to flush any outstanding $httpBackend calls
- * This implicitly calls $rootScope.$digest() as the first step
- */
-export function flushAngularJS() {
-  try {
-    $httpBackend.flush();
-    // eslint-disable-next-line no-empty
-  } catch (ignore) {}
-}
-
-export const tick = (ms?: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const isSuccessStatus = (status: number) => status >= 200 && status <= 299;

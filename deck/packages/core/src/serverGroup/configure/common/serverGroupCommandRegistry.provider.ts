@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { cloneDeep } from 'lodash';
 
 export interface IWatchConfig {
@@ -11,12 +10,8 @@ export interface IServerGroupCommandConfigurer {
   attachEventHandlers: (command: any) => void;
 }
 
-export class ServerGroupCommandRegistry implements ng.IServiceProvider {
+export class ServerGroupCommandRegistry {
   private providers: Map<string, any> = new Map<string, any>();
-
-  public $get(): ServerGroupCommandRegistry {
-    return this;
-  }
 
   public getCommandOverrides(provider: string): IServerGroupCommandConfigurer[] {
     let result: IServerGroupCommandConfigurer[] = [];
@@ -34,6 +29,3 @@ export class ServerGroupCommandRegistry implements ng.IServiceProvider {
     this.providers.get(provider).push(handler);
   }
 }
-
-export const SERVER_GROUP_COMMAND_REGISTRY_PROVIDER = 'spinnaker.core.serverGroup.configure.command.registry';
-module(SERVER_GROUP_COMMAND_REGISTRY_PROVIDER, []).provider('serverGroupCommandRegistry', ServerGroupCommandRegistry);

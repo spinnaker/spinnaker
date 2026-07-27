@@ -35,8 +35,8 @@ describe('<AnnotationCustomSections />', () => {
     );
 
     const html = wrapper.html();
-    expect(html).toContain('target="_blank"');
-    expect(html).toContain('target="dashboard"');
+    expect((html.match(/target="_blank"/g) || []).length).toBe(2);
+    expect(html).not.toContain('target="dashboard"');
     expect(html).toContain('rel="noopener noreferrer"');
     expect((html.match(/rel="noopener noreferrer"/g) || []).length).toBe(2);
     expect(html).toContain('Runbook');
@@ -76,7 +76,7 @@ describe('<AnnotationCustomSections />', () => {
     expect(wrapper.text()).toContain('frontend in production from frontend-manifest');
   });
 
-  it('leaves Angular expression placeholders unresolved instead of evaluating them as lodash paths', () => {
+  it('leaves non-path expression placeholders unresolved', () => {
     const wrapper = mount(
       <AnnotationCustomSections
         manifest={manifestWithAnnotations({

@@ -1,10 +1,10 @@
-import { $http, $log } from 'ngimport';
 import React from 'react';
 // @ts-ignore
 import version from 'root/version.json';
 
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
+import { diagnosticLogger } from '../utils/diagnosticLogger';
 import { timestamp } from '../utils/timeFormatters';
 import { NotifierService } from '../widgets/notifier/notifier.service';
 
@@ -19,16 +19,28 @@ export class VersionChecker {
   private static scheduler: IScheduler;
 
   public static initialize(): void {
-    $log.debug('Deck version', this.currentVersion.version, 'created', timestamp(this.currentVersion.created));
+    if (this.scheduler) {
+      return;
+    }
+    this.logDebug('Deck version', this.currentVersion.version, 'created', timestamp(this.currentVersion.created));
     this.scheduler = SchedulerFactory.createScheduler();
     this.scheduler.subscribe(() => this.checkVersion());
   }
 
+  public static resetForTests(): void {
+    this.scheduler?.unsubscribe();
+    this.scheduler = null;
+    this.newVersionSeenCount = 0;
+  }
+
   private static checkVersion(): void {
     const url = `/version.json?_=${Date.now()}`;
-    $http
-      .get(url)
-      .then((resp) => this.versionRetrieved(resp))
+    const request: Promise<any> = fetch(url, { credentials: 'include' }).then((response) =>
+      response.json().then((data) => ({ data })),
+    );
+
+    Promise.resolve(request)
+      .then((resp: any) => this.versionRetrieved(resp))
       .catch(() => {});
   }
 
@@ -39,7 +51,7 @@ export class VersionChecker {
     } else {
       this.newVersionSeenCount++;
       if (this.newVersionSeenCount > 5) {
-        $log.debug('New Deck version:', data.version, 'created', timestamp(data.created));
+        this.logDebug('New Deck version:', data.version, 'created', timestamp(data.created));
         NotifierService.publish({
           key: 'newVersion',
           action: 'create',
@@ -55,5 +67,9 @@ export class VersionChecker {
         this.scheduler.unsubscribe();
       }
     }
+  }
+
+  private static logDebug(...args: any[]): void {
+    diagnosticLogger.debug(...args);
   }
 }

@@ -1,6 +1,12 @@
 import { OrchestratedItemTransformer } from './orchestratedItem.transformer';
+import { getDirectRouter, setDirectRouter } from '../navigation/directRouter';
 
 describe('orchestratedItem transformer', () => {
+  let previousRouter: ReturnType<typeof getDirectRouter>;
+
+  beforeEach(() => (previousRouter = getDirectRouter()));
+  afterEach(() => setDirectRouter(previousRouter));
+
   describe('failure message extraction', () => {
     const getMessage = (obj: any) => {
       OrchestratedItemTransformer.defineProperties(obj);
@@ -229,6 +235,50 @@ describe('orchestratedItem transformer', () => {
 
     it('returns null if no failure message is present', () => {
       expect(getMessage({ status: 'SUCCEEDED' })).toBe(null);
+    });
+
+    it('links to the task holding an orchestration lock', () => {
+      const href = jasmine.createSpy('href').and.returnValue('#/task');
+      setDirectRouter({ stateService: { href } } as any);
+
+      const message = getMessage({
+        context: {
+          exception: {
+            exceptionType: 'LockFailureException',
+            details: { currentLockValue: { application: 'app', id: 'task-id', type: 'orchestration' } },
+          },
+        },
+      });
+
+      expect(href).toHaveBeenCalledWith('home.applications.application.tasks.taskDetails', {
+        application: 'app',
+        taskId: 'task-id',
+      });
+      expect(message).toBe(
+        'Failed to acquire lock. An <a href="#/task">existing task</a> is currently operating on the cluster.',
+      );
+    });
+
+    it('links to the pipeline holding a pipeline lock', () => {
+      const href = jasmine.createSpy('href').and.returnValue('#/pipeline');
+      setDirectRouter({ stateService: { href } } as any);
+
+      const message = getMessage({
+        context: {
+          exception: {
+            exceptionType: 'LockFailureException',
+            details: { currentLockValue: { application: 'app', id: 'execution-id', type: 'pipeline' } },
+          },
+        },
+      });
+
+      expect(href).toHaveBeenCalledWith('home.applications.application.pipelines.executionDetails.execution', {
+        application: 'app',
+        executionId: 'execution-id',
+      });
+      expect(message).toBe(
+        'Failed to acquire lock. An <a href="#/pipeline">existing pipeline</a> is currently operating on the cluster.',
+      );
     });
   });
 });

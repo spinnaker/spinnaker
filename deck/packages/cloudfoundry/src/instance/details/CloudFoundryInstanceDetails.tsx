@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import { flattenDeep } from 'lodash';
 import React from 'react';
 
@@ -34,7 +33,6 @@ interface ICloudFoundryInstanceDetailsProps {
   loading: boolean;
 }
 
-@UIRouterContext
 export class CloudFoundryInstanceDetails extends React.Component<
   ICloudFoundryInstanceDetailsProps,
   ICloudFoundryInstanceDetailsState
