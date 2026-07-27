@@ -15,6 +15,7 @@ import './config/stages/disableAsg/disableAsgStage.module';
 import './config/stages/disableCluster/disableClusterStage';
 import './config/stages/enableAsg/enableAsgStage';
 import './config/stages/entityTags/applyEntityTagsStage';
+import './config/stages/evaluateArtifacts/evaluateArtifactsStage';
 import './config/stages/evaluateVariables/evaluateVariablesStage';
 import './config/stages/executionWindows/executionWindowsStage';
 import './config/stages/findAmi/findAmiStage';
