@@ -13,6 +13,7 @@ const stageKeysThatMustHaveReactConfig = [
   'disableServerGroup',
   'disableCluster',
   'enableServerGroup',
+  'evaluateArtifacts',
   'evaluateDeploymentHealth',
   'findImage',
   'findImageFromTags',
