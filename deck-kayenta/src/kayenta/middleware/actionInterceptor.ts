@@ -1,8 +1,8 @@
 import * as Creators from 'kayenta/actions/creators';
 import * as Actions from 'kayenta/actions/index';
-import { Action, Dispatch, Middleware, MiddlewareAPI } from 'redux';
+import type { Action, Dispatch, Middleware, MiddlewareAPI } from 'redux';
 
-import { ICanaryState } from '../reducers/index';
+import type { ICanaryState } from '../reducers/index';
 import { buildConfigCopy, buildNewConfig } from '../service/canaryConfig.service';
 
 // TODO: replace the `any` generic passed to MiddlewareAPI with ICanaryState. The Redux typings here are wrong.

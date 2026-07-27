@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash';
 import React from 'react';
 
 import { AccountTag } from '../../../../account/AccountTag';
+import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import { CloudProviderRegistry, ProviderSelectionService } from '../../../../cloudProvider';
 import type { IStageConfigProps } from '../common';
 import type { ILoadBalancer } from '../../../../domain';
@@ -16,6 +17,9 @@ export class CreateLoadBalancerStageConfig extends React.Component<
   IStageConfigProps,
   ICreateLoadBalancerStageConfigState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IStageConfigProps) {
     super(props);
     this.ensureStageDefaults(props);
@@ -39,7 +43,7 @@ export class CreateLoadBalancerStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   }
 
-  private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): PromiseLike<ILoadBalancer | ILoadBalancer[]> {
+  private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): Promise<ILoadBalancer | ILoadBalancer[]> {
     this.setState({ modalError: null });
     return ProviderSelectionService.selectProvider(
       this.props.application,
@@ -54,12 +58,16 @@ export class CreateLoadBalancerStageConfig extends React.Component<
           ),
         );
       }
-      return openLoadBalancerModal(provider.loadBalancer, {
-        application: this.props.application,
-        loadBalancer,
-        isNew,
-        forPipelineConfig: true,
-      });
+      return openLoadBalancerModal(
+        provider.loadBalancer,
+        {
+          application: this.props.application,
+          loadBalancer,
+          isNew,
+          forPipelineConfig: true,
+        },
+        this.context.services,
+      );
     });
   }
 

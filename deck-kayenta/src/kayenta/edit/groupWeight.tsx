@@ -1,13 +1,13 @@
 import * as Creators from 'kayenta/actions/creators';
 import { CanarySettings } from 'kayenta/canary.settings';
-import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
+import type { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
 import { DISABLE_EDIT_CONFIG, DisableableInput } from 'kayenta/layout/disableable';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { mapStateToConfig } from 'kayenta/service/canaryConfig.service';
 import { get, isNumber } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Action } from 'redux';
+import type { Action } from 'redux';
 
 import FormRow from '../layout/formRow';
 

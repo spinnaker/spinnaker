@@ -9,8 +9,8 @@ declare module 'labella' {
   }
   export class Force<Data> {
     constructor(options: { [option: string]: number | string | boolean | null });
-    nodes(nodes: Array<Node<Data>>): this;
-    nodes(): Array<Node<Data>>; // eslint-disable-line no-dupe-class-members
+    nodes(nodes: Node<Data>[]): this;
+    nodes(): Node<Data>[]; // eslint-disable-line no-dupe-class-members
     compute(): this;
   }
 }

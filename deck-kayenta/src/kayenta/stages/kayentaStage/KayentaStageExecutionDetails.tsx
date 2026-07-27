@@ -1,16 +1,11 @@
+import { useRouter } from '@uirouter/react';
 import { CanaryScore } from 'kayenta/components/canaryScore';
 import { KayentaAnalysisType } from 'kayenta/domain';
 import { get } from 'lodash';
 import React from 'react';
 
 import type { IExecutionDetailsSectionProps, IExecutionStage } from '@spinnaker/core';
-import {
-  AngularServices,
-  ExecutionDetailsSection,
-  robotToHuman,
-  StageFailureMessage,
-  timestamp,
-} from '@spinnaker/core';
+import { ExecutionDetailsSection, robotToHuman, StageFailureMessage, timestamp } from '@spinnaker/core';
 
 import CanaryRunSummaries from './canaryRunSummaries';
 import { KAYENTA_CANARY, RUN_CANARY } from './stageTypes';
@@ -55,6 +50,7 @@ export function KayentaStageExecutionDetails(props: IExecutionDetailsSectionProp
 }
 
 export function KayentaStageExecutionConfigDetails(props: IExecutionDetailsSectionProps) {
+  const { stateService } = useRouter();
   const { application, current, name, stage } = props;
   const canaryConfig = stage.context.canaryConfig || {};
   const firstScope = get(canaryConfig, 'scopes[0]', {});
@@ -90,7 +86,13 @@ export function KayentaStageExecutionConfigDetails(props: IExecutionDetailsSecti
             <div className="row">
               <div className="col-md-4 sm-label-right compact">Config Name</div>
               <div className="col-md-8" style={wordWrap}>
-                <a href={canaryConfigHref(canaryConfig.canaryConfigId)}>{canaryConfigName}</a>
+                <a
+                  href={stateService.href('home.applications.application.canary.canaryConfig.configDetail', {
+                    id: canaryConfig.canaryConfigId,
+                  })}
+                >
+                  {canaryConfigName}
+                </a>
               </div>
             </div>
             <DetailRow label="Analysis Type" value={robotToHuman(stage.context.analysisType)} />
@@ -186,10 +188,6 @@ function resolveControlAndExperimentNames(
     resolvedControl: get(stage, 'context.canaryConfig.scopes[0].controlScope'),
     resolvedExperiment: get(stage, 'context.canaryConfig.scopes[0].experimentScope'),
   };
-}
-
-function canaryConfigHref(id: string) {
-  return AngularServices.$state.href('home.applications.application.canary.canaryConfig.configDetail', { id });
 }
 
 KayentaStageExecutionDetails.title = 'canarySummary';

@@ -12,7 +12,6 @@ import type {
   IGceServerGroupWizardFieldOrigin,
   IGceServerGroupWizardPageProps,
 } from './GceServerGroupWizard.types';
-import { GceServerGroupWizardAdapter } from './GceServerGroupWizardAdapter';
 
 export function createGceServerGroupWizardCommandState(
   command: IGceServerGroupCommand,
@@ -25,12 +24,18 @@ export abstract class GceServerGroupWizardPage<
   >
   extends React.Component<P>
   implements IWizardPageComponent<IGceServerGroupCommand> {
-  protected readonly adapter = this.props.adapter || new GceServerGroupWizardAdapter();
   private readonly commandState =
     this.props.commandState || createGceServerGroupWizardCommandState(this.props.formik.values);
 
   private requestGeneration = 0;
   private isUnmounted = false;
+
+  protected get adapter() {
+    if (!this.props.adapter) {
+      throw new Error('GCE server group wizard pages require an adapter owned by the wizard modal');
+    }
+    return this.props.adapter;
+  }
 
   public validate(_values: IGceServerGroupCommand): { [key: string]: any } {
     return {};

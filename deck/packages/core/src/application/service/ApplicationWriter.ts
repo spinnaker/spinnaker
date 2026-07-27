@@ -13,7 +13,7 @@ export interface IApplicationAttributes {
 }
 
 export class ApplicationWriter {
-  public static createApplication(application: IApplicationAttributes): PromiseLike<ITask> {
+  public static createApplication(application: IApplicationAttributes): Promise<ITask> {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -22,7 +22,7 @@ export class ApplicationWriter {
     });
   }
 
-  public static updateApplication(application: IApplicationAttributes): PromiseLike<ITask> {
+  public static updateApplication(application: IApplicationAttributes): Promise<ITask> {
     const jobs: IJob[] = this.buildJobs(application, 'updateApplication', cloneDeep);
     return TaskExecutor.executeTask({
       job: jobs,
@@ -31,7 +31,7 @@ export class ApplicationWriter {
     });
   }
 
-  public static deleteApplication(application: IApplicationAttributes): PromiseLike<ITask> {
+  public static deleteApplication(application: IApplicationAttributes): Promise<ITask> {
     const jobs: IJob[] = this.buildJobs(application, 'deleteApplication', (app: IApplicationAttributes): any => {
       return { name: app.name };
     });

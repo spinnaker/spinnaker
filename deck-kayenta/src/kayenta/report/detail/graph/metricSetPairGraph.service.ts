@@ -1,6 +1,6 @@
-import { ICanaryAnalysisResult, IMetricSetPair } from 'kayenta/domain';
+import type { ICanaryAnalysisResult, IMetricSetPair } from 'kayenta/domain';
 import { buildDelegateService } from 'kayenta/service/delegateFactory';
-import * as React from 'react';
+import type * as React from 'react';
 
 // e.g., amplitude vs. time, histogram, etc.
 export enum GraphType {

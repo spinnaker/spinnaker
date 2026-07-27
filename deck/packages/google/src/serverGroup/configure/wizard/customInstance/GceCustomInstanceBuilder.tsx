@@ -1,7 +1,7 @@
 import React from 'react';
 
 import type { ICustomInstanceBuilderProps } from '@spinnaker/core';
-import { AngularServices } from '@spinnaker/core';
+import { useDeckRuntimeServices } from '@spinnaker/core';
 
 import type { ICustomInstanceConfig } from './CustomInstanceConfigurer';
 import { CustomInstanceConfigurer } from './CustomInstanceConfigurer';
@@ -10,6 +10,7 @@ import { GceCustomInstanceBuilderService } from '../../../../instance/custom/cus
 const customInstanceBuilderService = new GceCustomInstanceBuilderService();
 
 export function GceCustomInstanceBuilder({ command, onTypeChanged }: ICustomInstanceBuilderProps) {
+  const { instanceTypeService } = useDeckRuntimeServices();
   const gceCommand = command as any;
   const [config, setConfig] = React.useState<ICustomInstanceConfig>(() => getInitialConfig(gceCommand));
   const choices = getChoices(gceCommand, config);
@@ -28,7 +29,7 @@ export function GceCustomInstanceBuilder({ command, onTypeChanged }: ICustomInst
     gceCommand.instanceType = nextInstanceType;
     gceCommand.customInstanceChanged && gceCommand.customInstanceChanged(gceCommand);
     setConfig(completeConfig);
-    AngularServices.instanceTypeService
+    instanceTypeService
       .getInstanceTypeDetails(gceCommand.selectedProvider, nextInstanceType)
       .then((instanceTypeDetails) => {
         gceCommand.viewState.instanceTypeDetails = instanceTypeDetails;

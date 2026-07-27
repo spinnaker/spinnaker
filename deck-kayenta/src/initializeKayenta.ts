@@ -18,7 +18,7 @@ export function initializeKayenta(applicationState: ApplicationStateProvider, ui
   }
 
   initialized = true;
-  registerKayentaDataSourceStubs();
+  registerKayentaDataSourceStubs(uiRouter);
   registerKayentaStateStubs(applicationState, uiRouter);
 
   if (CanarySettings.stagesEnabled !== false) {

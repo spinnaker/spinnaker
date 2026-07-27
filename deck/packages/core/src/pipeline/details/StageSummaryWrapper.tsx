@@ -1,11 +1,14 @@
 import React from 'react';
 
-import { AngularServices } from '../../angular/services';
 import { REST } from '../../api';
 import type { Application } from '../../application';
+import type { IDeckRuntimeServicesInjectedProps } from '../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import { ConfirmationModalService } from '../../confirmationModal';
 import type { IExecution, IExecutionStage, IExecutionStageSummary } from '../../domain';
 import type { IStage } from '../../domain';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Markdown } from '../../presentation/Markdown';
 import { robotToHuman } from '../../presentation/robotToHumanFilter/robotToHuman.filter';
 import { Registry } from '../../registry/Registry';
@@ -14,13 +17,15 @@ import { duration, timestamp } from '../../utils/timeFormatters';
 export interface IStageSummaryWrapperProps {
   application: Application;
   execution: IExecution;
-  sourceUrl: string;
   stage: IExecutionStage;
   stageSummary: IExecutionStageSummary;
 }
 
-export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
-  const { application, execution, stage, stageSummary } = props;
+export function StageSummaryWrapperComponent(
+  props: IStageSummaryWrapperProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+) {
+  const { application, deckRuntimeServices, execution, stage, stageSummary, stateParams, stateService } = props;
+  const { executionService } = deckRuntimeServices;
 
   const renderStepLabel = (step: IStage) => {
     const StepLabelComponent = Registry.pipeline.getStageConfig(step)?.executionStepLabelComponent;
@@ -31,7 +36,7 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     );
   };
 
-  const getCurrentStep = () => parseInt(AngularServices.$stateParams.step, 10);
+  const getCurrentStep = () => parseInt(stateParams.step, 10);
   const getTopLevelStage = (): IExecutionStage => {
     let parentStageId = stage.parentStageId;
     let topLevelStage = stage;
@@ -65,7 +70,7 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     return stage.isRunning && topLevelStage && topLevelStage.context.canManuallySkip;
   };
 
-  const restartStage = (): PromiseLike<void> => {
+  const restartStage = (): Promise<void> => {
     return REST('/pipelines')
       .path(execution.id, 'stages', stage.id, 'restart')
       .put({ skip: false })
@@ -114,15 +119,15 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
         </div>
       `,
       submitMethod: (reason: string) =>
-        AngularServices.executionService
+        executionService
           .patchExecution(execution.id, topLevelStage.id, { manualSkip: true, reason })
           .then(() =>
-            AngularServices.executionService.waitUntilExecutionMatches(execution.id, (updatedExecution) => {
+            executionService.waitUntilExecutionMatches(execution.id, (updatedExecution) => {
               const updatedStage = updatedExecution.stages.find((candidate) => candidate.id === topLevelStage.id);
               return updatedStage && updatedStage.status === 'SKIPPED';
             }),
           )
-          .then((updated) => AngularServices.executionService.updateExecution(application, updated)),
+          .then((updated) => executionService.updateExecution(application, updated)),
     });
   };
 
@@ -132,15 +137,15 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     }
 
     const newState = { step: index } as any;
-    const stageIndex = parseInt(AngularServices.$stateParams.stage, 10);
+    const stageIndex = parseInt(stateParams.stage, 10);
     if (stageIndex) {
       newState.stage = stageIndex;
     }
-    const subStage = parseInt(AngularServices.$stateParams.subStage, 10);
+    const subStage = parseInt(stateParams.subStage, 10);
     if (subStage) {
       newState.subStage = subStage;
     }
-    AngularServices.$state.go('.', newState);
+    stateService.go('.', newState);
   };
 
   const topLevelStage = getTopLevelStage();
@@ -217,3 +222,5 @@ export function StageSummaryWrapper(props: IStageSummaryWrapperProps) {
     </div>
   );
 }
+
+export const StageSummaryWrapper = withDeckRuntimeServices(withRouter(StageSummaryWrapperComponent));

@@ -1,16 +1,17 @@
 import * as Creators from 'kayenta/actions/creators';
-import { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
+import type { ICanaryMetricConfig } from 'kayenta/domain/ICanaryConfig';
 import { DISABLE_EDIT_CONFIG, DisableableReactSelect } from 'kayenta/layout/disableable';
 import FormRow from 'kayenta/layout/formRow';
-import { IUpdateListPayload, List } from 'kayenta/layout/list';
-import { ICanaryState } from 'kayenta/reducers';
+import type { IUpdateListPayload } from 'kayenta/layout/list';
+import { List } from 'kayenta/layout/list';
+import type { ICanaryState } from 'kayenta/reducers';
 import { get } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Option } from 'react-select';
-import { Action } from 'redux';
+import type { Option } from 'react-select';
+import type { Action } from 'redux';
 
-import { IStackdriverCanaryMetricSetQueryConfig } from './domain/IStackdriverCanaryMetricSetQueryConfig';
+import type { IStackdriverCanaryMetricSetQueryConfig } from './domain/IStackdriverCanaryMetricSetQueryConfig';
 import StackdriverMetricTypeSelector from './metricTypeSelector';
 
 interface IStackdriverMetricConfigurerStateProps {
@@ -77,8 +78,7 @@ const PER_SERIES_ALIGNERS = [
 
 const STACKDRIVER_HELP_ID_PREFIX = 'stackdriver';
 
-const toReactSelectOptions = (values: string[]): Array<Option<string>> =>
-  values.map((value) => ({ value, label: value }));
+const toReactSelectOptions = (values: string[]): Option<string>[] => values.map((value) => ({ value, label: value }));
 
 /*
  * Component for configuring a Stackdriver metric.

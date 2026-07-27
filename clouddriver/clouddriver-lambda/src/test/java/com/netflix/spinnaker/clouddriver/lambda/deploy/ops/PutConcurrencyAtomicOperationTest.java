@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.PutFunctionConcurrencyRequest;
-import com.amazonaws.services.lambda.model.PutFunctionConcurrencyResult;
-import com.amazonaws.services.lambda.model.PutProvisionedConcurrencyConfigRequest;
-import com.amazonaws.services.lambda.model.PutProvisionedConcurrencyConfigResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.PutLambdaProvisionedConcurrencyDescription;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.PutLambdaReservedConcurrencyDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.PutFunctionConcurrencyRequest;
+import software.amazon.awssdk.services.lambda.model.PutFunctionConcurrencyResponse;
+import software.amazon.awssdk.services.lambda.model.PutProvisionedConcurrencyConfigRequest;
+import software.amazon.awssdk.services.lambda.model.PutProvisionedConcurrencyConfigResponse;
 
 public class PutConcurrencyAtomicOperationTest implements LambdaTestingDefaults {
 
@@ -50,7 +50,7 @@ public class PutConcurrencyAtomicOperationTest implements LambdaTestingDefaults 
         spy(new PutLambdaProvisionedConcurrencyAtomicOperation(provisionedConcurrencyDescription));
     doNothing().when(putConcurrencyOperation).updateTaskStatus(anyString());
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
 
     ReflectionTestUtils.setField(
@@ -63,19 +63,21 @@ public class PutConcurrencyAtomicOperationTest implements LambdaTestingDefaults 
         .getFunction(anyString(), anyString(), anyString());
 
     PutProvisionedConcurrencyConfigRequest testRequest =
-        new PutProvisionedConcurrencyConfigRequest();
-    testRequest.setFunctionName(fName);
-    testRequest.setQualifier(version);
-    testRequest.setProvisionedConcurrentExecutions(2);
+        PutProvisionedConcurrencyConfigRequest.builder()
+            .functionName(fName)
+            .qualifier(version)
+            .provisionedConcurrentExecutions(2)
+            .build();
 
-    PutProvisionedConcurrencyConfigResult mockProvisionResult =
-        new PutProvisionedConcurrencyConfigResult();
-    mockProvisionResult.setAllocatedProvisionedConcurrentExecutions(2);
-    mockProvisionResult.setAvailableProvisionedConcurrentExecutions(4);
-    mockProvisionResult.setStatus("provisioned");
+    PutProvisionedConcurrencyConfigResponse mockProvisionResult =
+        PutProvisionedConcurrencyConfigResponse.builder()
+            .allocatedProvisionedConcurrentExecutions(2)
+            .availableProvisionedConcurrentExecutions(4)
+            .status("provisioned")
+            .build();
     doReturn(mockProvisionResult).when(lambdaClient).putProvisionedConcurrencyConfig(testRequest);
 
-    PutProvisionedConcurrencyConfigResult output = putConcurrencyOperation.operate(null);
+    PutProvisionedConcurrencyConfigResponse output = putConcurrencyOperation.operate(null);
     verify(putConcurrencyOperation, atLeastOnce()).updateTaskStatus(anyString());
     assertThat(output).isEqualTo(mockProvisionResult);
   }
@@ -95,7 +97,7 @@ public class PutConcurrencyAtomicOperationTest implements LambdaTestingDefaults 
         spy(new PutLambdaReservedConcurrencyAtomicOperation(provisionedConcurrencyDescription));
     doNothing().when(putConcurrencyOperation).updateTaskStatus(anyString());
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
 
     ReflectionTestUtils.setField(
@@ -107,14 +109,17 @@ public class PutConcurrencyAtomicOperationTest implements LambdaTestingDefaults 
         .when(lambdaFunctionProvider)
         .getFunction(anyString(), anyString(), anyString());
 
-    PutFunctionConcurrencyRequest testRequest = new PutFunctionConcurrencyRequest();
-    testRequest.setReservedConcurrentExecutions(2);
-    testRequest.setFunctionName(fName);
+    PutFunctionConcurrencyRequest testRequest =
+        PutFunctionConcurrencyRequest.builder()
+            .reservedConcurrentExecutions(2)
+            .functionName(fName)
+            .build();
 
-    PutFunctionConcurrencyResult mockProvisionResult = new PutFunctionConcurrencyResult();
+    PutFunctionConcurrencyResponse mockProvisionResult =
+        PutFunctionConcurrencyResponse.builder().build();
     doReturn(mockProvisionResult).when(lambdaClient).putFunctionConcurrency(testRequest);
 
-    PutFunctionConcurrencyResult output = putConcurrencyOperation.operate(null);
+    PutFunctionConcurrencyResponse output = putConcurrencyOperation.operate(null);
     verify(putConcurrencyOperation, atLeastOnce()).updateTaskStatus(anyString());
     assertThat(output).isEqualTo(mockProvisionResult);
   }

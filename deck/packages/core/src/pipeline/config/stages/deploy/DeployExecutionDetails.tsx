@@ -3,7 +3,6 @@ import { Duration } from 'luxon';
 import React from 'react';
 
 import { AccountTag } from '../../../../account/AccountTag';
-import { AngularServices } from '../../../../angular/services';
 import type { Application } from '../../../../application';
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IExecutionDetailsSectionProps } from '../common';
@@ -11,11 +10,13 @@ import { ExecutionDetailsSection } from '../common';
 import { StageFailureMessage } from '../../../details/StageFailureMessage';
 import { ViewChangesLink } from '../../../../diffs/ViewChangesLink';
 import type { IViewChangesConfig } from '../../../../diffs/ViewChangesLink';
-import type { IExecutionDetailsProps, IExecutionStage } from '../../../../domain';
+import type { IExecutionDetailsProps, IExecutionStage, IJenkinsInfo } from '../../../../domain';
 import { HealthCounts } from '../../../../healthCounts/HealthCounts';
 import { HelpContentsRegistry } from '../../../../help';
 import { NameUtils } from '../../../../naming/nameUtils';
 import { UrlBuilder } from '../../../../navigation/UrlBuilder';
+import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
+import { withRouter } from '../../../../navigation/routerContext';
 import { Markdown } from '../../../../presentation/Markdown';
 import { ViewScalingActivitiesLink } from '../../../../serverGroup/details/scalingActivities/ViewScalingActivitiesLink';
 import { ServerGroupReader } from '../../../../serverGroup/serverGroupReader.service';
@@ -43,7 +44,6 @@ export interface IDeployWaitingMessages {
 }
 
 export interface IDeployExecutionDetailsState {
-  changeConfig: IViewChangesConfig;
   customStuckDeployGuide: string;
   deployed: IDeployedServerGroup[];
   provider: string;
@@ -162,42 +162,27 @@ export function getDeployWaitingMessages(
   return waitingMessages;
 }
 
-export class DeployExecutionDetails extends React.Component<
-  IExecutionDetailsSectionProps,
+export class DeployExecutionDetailsComponent extends React.Component<
+  IExecutionDetailsSectionProps & IRouterInjectedProps,
   IDeployExecutionDetailsState
 > {
   public static title = 'deploymentConfig';
 
-  private mounted = true;
-
-  constructor(props: IExecutionDetailsSectionProps) {
+  constructor(props: IExecutionDetailsSectionProps & IRouterInjectedProps) {
     super(props);
     this.state = this.buildState(props);
   }
 
-  public componentDidMount(): void {
-    this.loadSourceBuildInfo(this.props);
-  }
-
-  public componentDidUpdate(prevProps: IExecutionDetailsSectionProps): void {
+  public componentDidUpdate(prevProps: IExecutionDetailsSectionProps & IRouterInjectedProps): void {
     if (prevProps.stage !== this.props.stage) {
-      this.setState(this.buildState(this.props), () => this.loadSourceBuildInfo(this.props));
+      this.setState(this.buildState(this.props));
     }
   }
 
-  public componentWillUnmount(): void {
-    this.mounted = false;
-  }
-
-  private buildState(props: IExecutionDetailsSectionProps): IDeployExecutionDetailsState {
+  private buildState(props: IExecutionDetailsSectionProps & IRouterInjectedProps): IDeployExecutionDetailsState {
     const context = props.stage.context || {};
-    const deployed = getDeployedServerGroups(props.stage, AngularServices.$stateParams.project);
+    const deployed = getDeployedServerGroups(props.stage, props.stateParams.project);
     return {
-      changeConfig: {
-        buildInfo: context.buildInfo || {},
-        commits: context.commits,
-        jarDiffs: context.jarDiffs,
-      },
       customStuckDeployGuide: HelpContentsRegistry.getHelpField('execution.stuckDeploy.guide'),
       deployed,
       provider: context.cloudProvider || context.providerType || 'aws',
@@ -205,32 +190,10 @@ export class DeployExecutionDetails extends React.Component<
     };
   }
 
-  private loadSourceBuildInfo(props: IExecutionDetailsSectionProps): void {
-    const context = props.stage.context || {};
-    if (has(context, 'source.region') && context['deploy.server.groups']) {
-      const serverGroupName = context['deploy.server.groups'][context.source.region][0];
-      ServerGroupReader.getServerGroup(context.application, context.account, context.source.region, serverGroupName)
-        .then((serverGroup) => {
-          if (this.mounted && has(serverGroup, 'buildInfo.jenkins')) {
-            this.setState((state) => ({
-              changeConfig: {
-                ...state.changeConfig,
-                buildInfo: {
-                  ...state.changeConfig.buildInfo,
-                  jenkins: serverGroup.buildInfo.jenkins,
-                },
-              },
-            }));
-          }
-        })
-        .catch(() => {});
-    }
-  }
-
   private getConfigHref(): string {
     const applicationName = this.props.application && this.props.application.name;
     return applicationName
-      ? AngularServices.$state.href('home.applications.application.config', { application: applicationName })
+      ? this.props.stateService.href('home.applications.application.config', { application: applicationName })
       : null;
   }
 
@@ -354,18 +317,81 @@ export class DeployExecutionDetails extends React.Component<
   }
 }
 
-export function DeployChangesExecutionDetails(props: IExecutionDetailsSectionProps) {
-  const context = props.stage.context || {};
-  const changeConfig = {
-    buildInfo: context.buildInfo || {},
-    commits: context.commits,
-    jarDiffs: context.jarDiffs,
-  };
-  return (
-    <ExecutionDetailsSection name={props.name} current={props.current}>
-      <ViewChangesLink viewType="linkOnly" changeConfig={changeConfig} nameItem={props.stage} />
-    </ExecutionDetailsSection>
-  );
+export const DeployExecutionDetails = Object.assign(withRouter(DeployExecutionDetailsComponent), {
+  title: DeployExecutionDetailsComponent.title,
+});
+
+export class DeployChangesExecutionDetails extends React.Component<
+  IExecutionDetailsSectionProps,
+  { jenkins?: IJenkinsInfo }
+> {
+  private mounted = false;
+  private sourceKey: string;
+  private sourceRequest = 0;
+
+  constructor(props: IExecutionDetailsSectionProps) {
+    super(props);
+    this.state = {};
+  }
+
+  public componentDidMount(): void {
+    this.mounted = true;
+    this.loadSourceBuildInfo();
+  }
+
+  public componentDidUpdate(): void {
+    this.loadSourceBuildInfo();
+  }
+
+  public componentWillUnmount(): void {
+    this.mounted = false;
+  }
+
+  private loadSourceBuildInfo(): void {
+    const context = this.props.stage.context || {};
+    const region = context.source?.region;
+    const serverGroup = context['deploy.server.groups']?.[region]?.[0];
+    const source = region && serverGroup ? [context.application, context.account, region, serverGroup] : undefined;
+    const sourceKey = JSON.stringify(source);
+
+    if (sourceKey === this.sourceKey) {
+      return;
+    }
+
+    this.sourceKey = sourceKey;
+    const sourceRequest = ++this.sourceRequest;
+    if (this.state.jenkins) {
+      this.setState({ jenkins: undefined });
+    }
+
+    if (source) {
+      ServerGroupReader.getServerGroup(source[0], source[1], source[2], source[3])
+        .then((serverGroup) => {
+          if (this.mounted && sourceRequest === this.sourceRequest && has(serverGroup, 'buildInfo.jenkins')) {
+            this.setState({ jenkins: serverGroup.buildInfo.jenkins });
+          }
+        })
+        .catch(() => {});
+    }
+  }
+
+  public render(): React.ReactNode {
+    const context = this.props.stage.context || {};
+    const changeConfig: IViewChangesConfig = {
+      buildInfo: {
+        ...(context.buildInfo || {}),
+        ...(this.state.jenkins && { jenkins: this.state.jenkins }),
+      },
+      commits: context.commits,
+      jarDiffs: context.jarDiffs,
+    };
+
+    return (
+      <ExecutionDetailsSection name={this.props.name} current={this.props.current}>
+        <ViewChangesLink viewType="linkOnly" changeConfig={changeConfig} nameItem={this.props.stage} />
+      </ExecutionDetailsSection>
+    );
+  }
 }
 
 // TODO: refactor this to not use namespace

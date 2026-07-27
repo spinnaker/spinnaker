@@ -1,14 +1,16 @@
+import { mount as enzymeMount } from 'enzyme';
 import React from 'react';
-import { shallow } from 'enzyme';
 
 import {
   CloudProviderRegistry,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ErrorModalService,
   InfrastructureCaches,
   LoadBalancerWriter,
   ManagedMenuItem,
-  AngularServices,
+  nativePromiseService,
+  ProviderServiceDelegate,
   Registry,
   ServerGroupReader,
   ServerGroupWarningMessageService,
@@ -17,17 +19,17 @@ import {
 } from '@spinnaker/core';
 
 import { GceCacheConfigurer } from './cache/cacheConfigurer.service';
-import * as googlePackage from './index';
 import { GceImageReader } from './image';
+import * as googlePackage from './index';
 import { decorateInstance } from './instance/details/GceInstanceDetails';
 import { GceInstanceTypeService } from './instance/gceInstanceType.service';
 import { GceMultiInstanceTaskTransformer } from './instance/gceMultiInstanceTask.transformer';
-import { GceLoadBalancerSetTransformer } from './loadBalancer/loadBalancer.setTransformer';
-import { GceLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
 import { GceLoadBalancerChoiceModal } from './loadBalancer/configure/choice/GceLoadBalancerChoiceModal';
 import { GceLoadBalancerActions, loadGceLoadBalancerDetails } from './loadBalancer/details/gceLoadBalancerDetails';
+import { GceLoadBalancerSetTransformer } from './loadBalancer/loadBalancer.setTransformer';
+import { GceLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
 import { interpolatedBakeDetailUrl } from './pipeline/stages/bake/gceBakeStage';
-import { GceSecurityGroupModal } from './securityGroup/configure/GceSecurityGroupModal';
+import { GceSecurityGroupModalComponent as GceSecurityGroupModal } from './securityGroup/configure/GceSecurityGroupModal';
 import { GceSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { GceSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { GceServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
@@ -41,31 +43,21 @@ import { GceServerGroupTransformer } from './serverGroup/serverGroup.transformer
 import { GceSubnetRenderer } from './subnet/subnet.renderer';
 
 describe('Google provider registration', () => {
-  const legacyCtrlKey = ['Cont', 'roller'].join('');
-  const legacyViewKey = ['Template', 'Url'].join('');
-  const legacyModuleExport = ['GOOGLE', 'MODULE'].join('_');
-  const stageViewKey = ['template', 'Url'].join('');
-  const stageCtrlKey = ['cont', 'roller'].join('');
-  const stepLabelViewKey = ['execution', 'Step', 'Label', 'Url'].join('');
-  const markupExtension = ['.', 'ht', 'ml'].join('');
-  const injectionMetadataKey = ['$', 'inject'].join('');
+  let runtimeServices: any;
+  const RuntimeWrapper = ({ children }: React.PropsWithChildren<{}>) =>
+    React.createElement(DeckRuntimeContext.Provider, { value: { services: runtimeServices } as any }, children);
+  const mount = (component: React.ReactElement) => enzymeMount(component, { wrappingComponent: RuntimeWrapper });
 
-  function expectNoAngularStageRegistration(stageConfig: any): void {
-    expect(stageConfig[stageViewKey]).withContext(`gce ${stageConfig.provides} stage view`).toBeUndefined();
-    expect(stageConfig[stageCtrlKey]).withContext(`gce ${stageConfig.provides} legacy handler`).toBeUndefined();
-    expect(stageConfig[stepLabelViewKey]).withContext(`gce ${stageConfig.provides} step label view`).toBeUndefined();
+  beforeEach(() => {
+    runtimeServices = {
+      securityGroupReader: { getAllSecurityGroups: () => Promise.resolve({}) },
+      serverGroupCommandBuilder: {},
+      serverGroupWriter: {},
+    };
+  });
 
-    const htmlValues = Object.keys(stageConfig)
-      .map((key) => stageConfig[key])
-      .filter((value) => typeof value === 'string' && value.endsWith(markupExtension));
-
-    expect(htmlValues).withContext(`gce ${stageConfig.provides} markup stage config values`).toEqual([]);
-  }
-
-  it('registers Google without exporting an Angular module token', () => {
+  it('registers Google provider values', () => {
     googlePackage.registerGoogleProvider();
-
-    expect(Object.prototype.hasOwnProperty.call(googlePackage, legacyModuleExport)).toBe(false);
 
     expect(CloudProviderRegistry.getValue('gce', 'cache.configurer')).toBe(GceCacheConfigurer);
     expect(CloudProviderRegistry.getValue('gce', 'image.reader')).toBe(GceImageReader);
@@ -99,42 +91,61 @@ describe('Google provider registration', () => {
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.reader')).toBe(GceSecurityGroupReader);
     expect(CloudProviderRegistry.getValue('gce', 'securityGroup.transformer')).toBe(GceSecurityGroupTransformer);
     expect(CloudProviderRegistry.getValue('gce', 'subnet.renderer')).toBe(GceSubnetRenderer);
-    expect(CloudProviderRegistry.getValue('gce', `serverGroup.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `serverGroup.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `instance.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `instance.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `loadBalancer.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `loadBalancer.details${legacyViewKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `securityGroup.details${legacyCtrlKey}`)).toBeNull();
-    expect(CloudProviderRegistry.getValue('gce', `securityGroup.details${legacyViewKey}`)).toBeNull();
+    expect(CloudProviderRegistry.getValue('gce', 'applicationProviderFields')).toEqual([
+      {
+        field: 'associatePublicIpAddress',
+        helpKey: 'gce.serverGroup.associatePublicIpAddress.providerField',
+        label: 'Associate Public IP Address',
+        type: 'boolean',
+      },
+    ]);
   });
 
-  it('does not bundle Google Angular HTML templates', () => {
-    const templates = require.context('./', true, /\.htm[l]$/).keys();
-    expect(templates).toEqual([]);
+  it('constructs the registered load balancer set transformer and normalizes GCE load balancers', () => {
+    googlePackage.registerGoogleProvider();
+    const transformer = new ProviderServiceDelegate(nativePromiseService).getDelegate<GceLoadBalancerSetTransformer>(
+      'gce',
+      'loadBalancer.setTransformer',
+    );
+    const networkLoadBalancer = {
+      loadBalancerType: 'NETWORK',
+      provider: 'gce',
+      type: 'gce',
+      name: 'network-lb',
+      portRange: '8080-8080',
+    };
+    let result: any[] = [];
+
+    expect(() => {
+      result = transformer.normalizeLoadBalancerSet([
+        {
+          loadBalancerType: 'HTTP',
+          provider: 'gce',
+          type: 'gce',
+          name: 'forwarding-rule-80',
+          urlMapName: 'frontend-map',
+          portRange: '80-80',
+        },
+        {
+          loadBalancerType: 'HTTP',
+          provider: 'gce',
+          type: 'gce',
+          name: 'forwarding-rule-443',
+          urlMapName: 'frontend-map',
+          portRange: '443-443',
+        },
+        networkLoadBalancer,
+      ] as any);
+    }).not.toThrowError(/isHttpLoadBalancer/);
+
+    expect(result.length).toBe(2);
+    expect(result[0].name).toBe('frontend-map');
+    expect((result[0] as any).listeners.map((listener: any) => listener.port)).toEqual(['80', '443']);
+    expect(result[1]).toBe(networkLoadBalancer as any);
   });
 
-  it('registers Google delegates without Angular injection metadata', () => {
-    [
-      GceCacheConfigurer,
-      GceInstanceTypeService,
-      GceMultiInstanceTaskTransformer,
-      GceLoadBalancerSetTransformer,
-      GceLoadBalancerTransformer,
-      GceSecurityGroupReader,
-      GceSecurityGroupTransformer,
-      GceServerGroupCommandBuilder,
-      GceServerGroupConfigurationService,
-      GceServerGroupTransformer,
-      GceSubnetRenderer,
-    ].forEach((delegate) => {
-      expect(Object.prototype.hasOwnProperty.call(delegate, injectionMetadataKey)).toBe(false);
-    });
-  });
-
-  it('constructs the load balancer set transformer when Core passes the deferred compatibility argument', () => {
-    const transformer = new GceLoadBalancerSetTransformer({ when: jasmine.createSpy('when') } as any);
-    const result = transformer.normalizeLoadBalancerSet([
+  it('normalizes HTTP load balancers without constructor dependencies', () => {
+    const result = new GceLoadBalancerSetTransformer().normalizeLoadBalancerSet([
       {
         loadBalancerType: 'HTTP',
         provider: 'gce',
@@ -159,10 +170,10 @@ describe('Google provider registration', () => {
   });
 
   it('allows GCE firewalls that apply to all target tags', async () => {
-    spyOnProperty(AngularServices, 'securityGroupReader', 'get').and.returnValue({
+    runtimeServices.securityGroupReader = {
       getAllSecurityGroups: () => Promise.resolve({}),
-    } as any);
-    const wrapper = shallow(
+    };
+    const wrapper = mount(
       React.createElement(GceSecurityGroupModal, {
         application: { name: 'fnord', securityGroups: { data: [] } },
         credentials: 'test-account',
@@ -290,7 +301,7 @@ describe('Google provider registration', () => {
       urlMapName: 'frontend-map',
     };
 
-    const wrapper = shallow(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
+    const wrapper = mount(React.createElement(GceLoadBalancerActions, { app, loadBalancer }));
     wrapper
       .find(ManagedMenuItem)
       .filterWhere((item) => item.prop('children') === 'Delete Load Balancer')
@@ -409,9 +420,9 @@ describe('Google provider registration', () => {
   it('does not force Google health provider params when platform-health override is disabled', async () => {
     const confirmSpy = spyOn(ConfirmationModalService, 'confirm').and.returnValue(Promise.resolve({}) as any);
     const writer = { enableServerGroup: jasmine.createSpy('enableServerGroup').and.returnValue(Promise.resolve({})) };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
+    runtimeServices.serverGroupWriter = writer;
 
-    shallow(
+    mount(
       React.createElement(GceServerGroupActions, {
         app: { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: false }, name: 'fnord' },
         serverGroup: { account: 'test-account', isDisabled: true, name: 'fnord-v001', region: 'us-central1' },
@@ -435,11 +446,11 @@ describe('Google provider registration', () => {
       destroyServerGroup: jasmine.createSpy('destroyServerGroup').and.returnValue(Promise.resolve({})),
       disableServerGroup: jasmine.createSpy('disableServerGroup').and.returnValue(Promise.resolve({})),
     };
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(writer as any);
+    runtimeServices.serverGroupWriter = writer;
     const app = { attributes: { platformHealthOnly: true, platformHealthOnlyShowOverride: true }, name: 'fnord' };
     const serverGroup = { account: 'test-account', isDisabled: false, name: 'fnord-v001', region: 'us-central1' };
 
-    const wrapper = shallow(React.createElement(GceServerGroupActions, { app, serverGroup }));
+    const wrapper = mount(React.createElement(GceServerGroupActions, { app, serverGroup }));
     wrapper
       .find('a')
       .filterWhere((link) => link.text() === 'Disable')
@@ -504,7 +515,7 @@ describe('Google provider registration', () => {
     expect(loadBalancerReader.getLoadBalancerDetails).not.toHaveBeenCalled();
   });
 
-  it('registers Google pipeline stages without an Angular module dependency', () => {
+  it('registers Google pipeline stages with React components', () => {
     const previousPipeline = Registry.pipeline;
     const previousUrlBuilder = Registry.urlBuilder;
 
@@ -533,7 +544,6 @@ describe('Google provider registration', () => {
         const stage = gceStages.find((candidate: any) => candidate.provides === provides);
         expect(stage).withContext(`gce ${provides} stage`).toBeDefined();
         expect(stage?.component).withContext(`gce ${provides} stage component`).toBeDefined();
-        expectNoAngularStageRegistration(stage);
       });
     } finally {
       Registry.pipeline = previousPipeline;

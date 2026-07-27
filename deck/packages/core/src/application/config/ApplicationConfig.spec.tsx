@@ -20,6 +20,12 @@ import { TaskReader } from '../../task';
 import { AccountService } from '../../account';
 import { ReactSelectInput } from '../../presentation';
 import { HelpField } from '../../help';
+import { AuthenticationService } from '../../authentication';
+import { ClusterMatcher } from '../../cluster';
+import { ClusterMatches } from '../../widgets';
+import { ConfigSectionFooter } from './footer/ConfigSectionFooter';
+
+const routerProps = { stateService: { go: () => undefined } as any };
 
 describe('<ApplicationConfig />', () => {
   let originalFeatures: typeof SETTINGS.feature;
@@ -45,13 +51,12 @@ describe('<ApplicationConfig />', () => {
     SETTINGS.slack = originalSlack;
   });
 
-  it('renders application config sections directly in React without the Angular adapter', () => {
+  it('renders application config sections', () => {
     const application = buildApplication();
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     wrapper.setState({ hasManagedResources: true });
 
-    expect(wrapper.find(['Angular', 'JS', 'Adapter'].join('')).exists()).toBe(false);
     expect(wrapper.find(PageSection).map((section) => section.prop('label'))).toEqual([
       'Application Attributes',
       'Managed Resources',
@@ -86,11 +91,24 @@ describe('<ApplicationConfig />', () => {
     ).toBe(true);
   });
 
+  it('redirects missing applications using the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go') };
+
+    shallow(
+      <ApplicationConfigComponent
+        app={buildApplication({ notFound: true }) as any}
+        stateService={stateService as any}
+      />,
+    );
+
+    expect(stateService.go).toHaveBeenCalledWith('home.infrastructure', null, { location: 'replace' });
+  });
+
   it('renders NotificationsList with application notification props', () => {
     const notifications = [{ level: 'application', type: 'email', when: ['pipeline.failed'] }];
     const application = buildApplication({ attributes: { notifications } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const notificationList = wrapper.find(NotificationsList);
 
     expect(
@@ -111,7 +129,7 @@ describe('<ApplicationConfig />', () => {
       attributes: { appGroup: 'payments', aliases: 'pay', email: 'user@example.com' },
     });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).toContain('Owner');
@@ -124,13 +142,12 @@ describe('<ApplicationConfig />', () => {
         .filterWhere((button) => button.text().includes('Edit Application Attributes'))
         .exists(),
     ).toBe(true);
-    expect(attributes.text()).not.toContain('Angular-owned');
   });
 
   it('renders only application attributes before the application is configured', () => {
     const application = buildApplication({ attributes: { email: null } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(wrapper.find(PageSection).map((section) => section.prop('label'))).toEqual(['Application Attributes']);
@@ -142,14 +159,13 @@ describe('<ApplicationConfig />', () => {
         .filterWhere((button) => button.text().includes('Create Application'))
         .exists(),
     ).toBe(true);
-    expect(attributes.text()).not.toContain('Angular edit modal');
   });
 
   it('opens application attributes in a modal instead of editing inline', () => {
     const application = buildApplication();
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes));
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     attributes
@@ -168,7 +184,7 @@ describe('<ApplicationConfig />', () => {
   it('renders configured sections after application attributes are saved', () => {
     const application = buildApplication({ attributes: { email: null } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
 
     expect(wrapper.find(PageSection).map((section) => section.prop('label'))).toEqual(['Application Attributes']);
 
@@ -348,9 +364,108 @@ describe('<ApplicationConfig />', () => {
     expect(form.find(PermissionsConfigurer).prop('permissions')).toEqual({ READ: ['readers'], EXECUTE: [], WRITE: [] });
   });
 
-  it('preserves batched application attribute updates when saving', () => {
+  (['READ', 'WRITE', 'EXECUTE'] as const).forEach((permissionType) => {
+    ([null, ''] as Array<string | null>).forEach((emptyGroup) => {
+      it(`rejects ${
+        emptyGroup === null ? 'null' : 'empty'
+      } ${permissionType} permission groups when fiat is enabled`, () => {
+        SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
+        const permissions = {
+          READ: ['readers'],
+          WRITE: ['writers'],
+          EXECUTE: ['executors'],
+          [permissionType]: [emptyGroup],
+        };
+        const application = buildApplication({ attributes: { permissions } });
+        spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+        const form = shallow(
+          <ApplicationAttributesForm
+            application={application as any}
+            isConfigured={true}
+            onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
+          />,
+        );
+
+        form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+
+        expect(form.find('.error-message').map((message) => message.text())).toEqual([
+          'Permission groups cannot be empty.',
+        ]);
+        expect(ApplicationWriter.updateApplication).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  it('rejects read permissions without write permissions when fiat is enabled', () => {
+    SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
+    const application = buildApplication({
+      attributes: { permissions: { READ: ['readers'], WRITE: [], EXECUTE: [] } },
+    });
+    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+    const form = shallow(
+      <ApplicationAttributesForm
+        application={application as any}
+        isConfigured={true}
+        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
+      />,
+    );
+
+    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+
+    expect(form.find('.error-message').map((message) => message.text())).toEqual([
+      'Write permission is required when read permission is configured.',
+    ]);
+    expect(ApplicationWriter.updateApplication).not.toHaveBeenCalled();
+  });
+
+  it('allows hidden invalid legacy permissions when fiat is disabled', () => {
+    const application = buildApplication({
+      attributes: { permissions: { READ: ['readers', ''], WRITE: [], EXECUTE: [null] } },
+    });
+    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+    const form = shallow(
+      <ApplicationAttributesForm
+        application={application as any}
+        isConfigured={true}
+        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
+      />,
+    );
+
+    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+
+    expect(form.find('.error-message').exists()).toBe(false);
+    expect(ApplicationWriter.updateApplication).toHaveBeenCalled();
+  });
+
+  it('allows saving permissions that warn about locking out the current user', () => {
+    SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
+    spyOn(AuthenticationService, 'getAuthenticatedUser').and.returnValue({ roles: ['current-user-group'] } as any);
+    const application = buildApplication({
+      attributes: {
+        permissions: { READ: ['other-group'], WRITE: ['other-group'], EXECUTE: ['other-group'] },
+      },
+    });
+    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(new Promise(() => {}) as any);
+    const form = shallow(
+      <ApplicationAttributesForm
+        application={application as any}
+        isConfigured={true}
+        onAttributesSaved={jasmine.createSpy('onAttributesSaved')}
+      />,
+    );
+
+    form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+
+    expect(form.find('.error-message').exists()).toBe(false);
+    expect(ApplicationWriter.updateApplication).toHaveBeenCalled();
+  });
+
+  it('preserves batched application attribute updates when saving', async () => {
     const application = buildApplication({ attributes: { appGroup: '', email: 'old@example.com' } });
     spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
+    const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(
+      Promise.resolve({}) as any,
+    );
     const form = shallow(
       <ApplicationAttributesForm
         application={application as any}
@@ -363,10 +478,12 @@ describe('<ApplicationConfig />', () => {
     form.find('TextField[label="App Group"]').prop('onChange')('payments');
     form.update();
     form.simulate('submit', { preventDefault: jasmine.createSpy('preventDefault') });
+    await Promise.resolve();
 
     expect(ApplicationWriter.updateApplication).toHaveBeenCalledWith(
       jasmine.objectContaining({ appGroup: 'payments', email: 'new@example.com' }),
     );
+    expect(waitUntilTaskCompletes).toHaveBeenCalled();
   });
 
   it('rejects fractional instance ports', () => {
@@ -423,7 +540,7 @@ describe('<ApplicationConfig />', () => {
       },
     });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).toContain('Pager Duty');
@@ -437,7 +554,7 @@ describe('<ApplicationConfig />', () => {
   it('hides permissions when fiat is disabled', () => {
     const application = buildApplication({ attributes: { permissions: { READ: ['readers'] } } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).not.toContain('Permissions');
@@ -448,7 +565,7 @@ describe('<ApplicationConfig />', () => {
     SETTINGS.feature = { ...SETTINGS.feature, fiatEnabled: true };
     const application = buildApplication({ attributes: { permissions: { READ: ['readers'] } } });
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const attributes = wrapper.find(ApplicationAttributes).dive();
 
     expect(attributes.text()).toContain('Permissions');
@@ -458,7 +575,7 @@ describe('<ApplicationConfig />', () => {
   it('renders functional React sections instead of migration blockers', () => {
     const application = buildApplication();
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
 
     expect(wrapper.text()).not.toContain('still backed by');
     expect(wrapper.find('ApplicationLinksConfig').exists()).toBe(true);
@@ -467,11 +584,264 @@ describe('<ApplicationConfig />', () => {
     expect(wrapper.find('ApplicationSnapshotSection').exists()).toBe(true);
   });
 
+  it('loads region-capable accounts and preserves unknown persisted Chaos Monkey exception values', async () => {
+    const application = buildApplication({
+      attributes: {
+        chaosMonkey: {
+          exceptions: [{ account: 'legacy', region: 'moon-1', stack: 'payments', detail: 'api' }],
+        },
+      },
+    });
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      Promise.resolve({
+        aws: { name: 'aws', regions: [{ name: 'eu-west-1' }] },
+        kubernetes: { name: 'kubernetes', namespaces: ['default'] },
+      }) as any,
+    );
+
+    const chaos = mountChaosMonkeyConfig(application);
+    await Promise.resolve();
+    await Promise.resolve();
+    chaos.update();
+
+    expect(chaos.find('input[placeholder="account"]').exists()).toBe(false);
+    expect(chaos.find('input[placeholder="region"]').exists()).toBe(false);
+    expect(chaos.find('select[name="chaosExceptionAccount"] option').map((option) => option.prop('value'))).toEqual([
+      '',
+      'aws',
+      'legacy',
+    ]);
+    expect(chaos.find('select[name="chaosExceptionRegion"] option').map((option) => option.prop('value'))).toEqual([
+      '*',
+      'moon-1',
+    ]);
+
+    chaos.unmount();
+  });
+
+  it('resets the Chaos Monkey exception region when its account changes and keeps stack and detail editable', async () => {
+    const application = buildApplication({
+      attributes: {
+        chaosMonkey: {
+          exceptions: [{ account: 'legacy', region: 'moon-1', stack: 'payments', detail: 'api' }],
+        },
+      },
+    });
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      Promise.resolve({ aws: { name: 'aws', regions: [{ name: 'eu-west-1' }] } }) as any,
+    );
+    const chaos = mountChaosMonkeyConfig(application);
+    await Promise.resolve();
+    await Promise.resolve();
+    chaos.update();
+
+    chaos.find('select[name="chaosExceptionAccount"]').simulate('change', { target: { value: 'aws' } });
+    chaos.find('input[name="chaosExceptionStack"]').simulate('change', { target: { value: 'platform' } });
+    chaos.find('input[name="chaosExceptionDetail"]').simulate('change', { target: { value: 'worker' } });
+    chaos.update();
+
+    expect(chaos.find('select[name="chaosExceptionRegion"]').prop('value')).toBe('*');
+    expect(chaos.find('input[name="chaosExceptionStack"]').prop('value')).toBe('platform');
+    expect(chaos.find('input[name="chaosExceptionDetail"]').prop('value')).toBe('worker');
+
+    chaos.unmount();
+  });
+
+  it('waits for server groups before rendering sorted cluster matches for every Chaos Monkey exception', async () => {
+    let resolveServerGroups: () => void;
+    const serverGroupsReady = new Promise<void>((resolve) => {
+      resolveServerGroups = resolve;
+    });
+    const application = buildApplication({
+      attributes: {
+        chaosMonkey: {
+          exceptions: [
+            { account: 'prod', region: '*', stack: 'payments', detail: '*' },
+            { account: 'prod', region: 'eu-west-1', stack: 'missing', detail: '*' },
+          ],
+        },
+      },
+    });
+    application.clusters = [
+      {
+        account: 'prod',
+        name: 'fnord-payments-zeta',
+        serverGroups: [{ region: 'us-west-2' }, { region: 'us-east-1' }],
+      },
+      {
+        account: 'prod',
+        name: 'fnord-payments-alpha',
+        serverGroups: [{ region: 'us-east-1' }],
+      },
+      { account: 'prod', name: 'fnord-other', serverGroups: [{ region: 'eu-west-1' }] },
+    ];
+    application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({ ready: () => serverGroupsReady });
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'us-east-1' }] } }) as any,
+    );
+    spyOn(ClusterMatcher, 'getMatchingRule').and.callThrough();
+
+    const chaos = mountChaosMonkeyConfig(application);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(application.getDataSource).toHaveBeenCalledWith('serverGroups');
+    expect(ClusterMatcher.getMatchingRule).not.toHaveBeenCalled();
+
+    resolveServerGroups!();
+    await Promise.resolve();
+    await Promise.resolve();
+    chaos.update();
+
+    expect(ClusterMatcher.getMatchingRule).toHaveBeenCalledWith('prod', 'us-west-2', 'fnord-payments-zeta', [
+      jasmine.objectContaining({ account: 'prod', location: '*', stack: 'payments', detail: '*' }),
+    ]);
+    expect(chaos.find(ClusterMatches)).toHaveSize(2);
+    expect(chaos.find(ClusterMatches).at(0).prop('matches')).toEqual([
+      { account: 'prod', name: 'fnord-payments-alpha', regions: ['us-east-1'] },
+      { account: 'prod', name: 'fnord-payments-zeta', regions: ['us-east-1', 'us-west-2'] },
+    ]);
+    expect(chaos.find(ClusterMatches).at(1).text()).toBe('(no matches)');
+
+    chaos.unmount();
+  });
+
+  (['credentials', 'server groups'] as const).forEach((failureSource) => {
+    it(`shows unavailable matching when ${failureSource} fail to load`, async () => {
+      const application = buildApplication({
+        attributes: {
+          chaosMonkey: {
+            exceptions: [{ account: 'prod', region: '*', stack: 'payments', detail: '*' }],
+          },
+        },
+      });
+      const failure = new Error(`${failureSource} unavailable`);
+      spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+        failureSource === 'credentials'
+          ? (Promise.reject(failure) as any)
+          : (Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'eu-west-1' }] } }) as any),
+      );
+      application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({
+        ready: () => (failureSource === 'server groups' ? Promise.reject(failure) : Promise.resolve()),
+      });
+
+      const chaos = mountChaosMonkeyConfig(application);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      chaos.update();
+
+      expect(chaos.find('.chaos-matches-unavailable').text()).toBe('(matches unavailable)');
+      expect(chaos.find(ClusterMatches).exists()).toBe(false);
+
+      chaos.unmount();
+    });
+  });
+
+  it('normalizes null and empty persisted Chaos Monkey regions for display, matching, and save', async () => {
+    const application = buildApplication({
+      attributes: {
+        chaosMonkey: {
+          exceptions: [
+            { account: 'prod', region: null, stack: 'payments', detail: '*' },
+            { account: 'prod', region: '', stack: 'platform', detail: '*' },
+          ],
+        },
+      },
+    });
+    application.clusters = [
+      { account: 'prod', name: 'fnord-payments', serverGroups: [{ region: 'eu-west-1' }] },
+      { account: 'prod', name: 'fnord-platform', serverGroups: [{ region: 'us-east-1' }] },
+    ];
+    application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({ ready: () => Promise.resolve() });
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'eu-west-1' }, { name: 'us-east-1' }] } }) as any,
+    );
+    spyOn(ClusterMatcher, 'getMatchingRule').and.callThrough();
+    spyOn(ApplicationWriter, 'updateApplication').and.returnValue(Promise.resolve({ id: '1' }) as any);
+    spyOn(TaskReader, 'waitUntilTaskCompletes').and.returnValue(Promise.resolve({}) as any);
+
+    const chaos = mountChaosMonkeyConfig(application);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    chaos.update();
+
+    expect(chaos.find('select[name="chaosExceptionRegion"]').map((select) => select.prop('value'))).toEqual(['*', '*']);
+    expect((ClusterMatcher.getMatchingRule as jasmine.Spy).calls.allArgs().map((args) => args[3][0])).toEqual(
+      jasmine.arrayContaining([
+        jasmine.objectContaining({ location: '*', stack: 'payments' }),
+        jasmine.objectContaining({ location: '*', stack: 'platform' }),
+      ]),
+    );
+
+    chaos.find(ConfigSectionFooter).prop('onSaveClicked')();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(ApplicationWriter.updateApplication).toHaveBeenCalledWith(
+      jasmine.objectContaining({
+        chaosMonkey: jasmine.objectContaining({
+          exceptions: [
+            { account: 'prod', region: '*', stack: 'payments', detail: '*' },
+            { account: 'prod', region: '*', stack: 'platform', detail: '*' },
+          ],
+        }),
+      }),
+    );
+
+    chaos.unmount();
+  });
+
+  it('preserves Chaos Monkey exception row identity when an earlier row is removed', async () => {
+    const application = buildApplication({
+      attributes: {
+        chaosMonkey: {
+          exceptions: [
+            { account: 'prod', region: '*', stack: 'payments', detail: '*' },
+            { account: 'prod', region: '*', stack: 'platform', detail: '*' },
+          ],
+        },
+      },
+    });
+    application.getDataSource = jasmine.createSpy('getDataSource').and.returnValue({ ready: () => Promise.resolve() });
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.returnValue(
+      Promise.resolve({ prod: { name: 'prod', regions: [{ name: 'eu-west-1' }] } }) as any,
+    );
+    const chaos = mountChaosMonkeyConfig(application);
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    chaos.update();
+    const secondMatches = chaos.find(ClusterMatches).at(1).instance();
+
+    chaos.find('tbody button').at(0).simulate('click');
+    chaos.update();
+
+    expect(chaos.find(ClusterMatches)).toHaveSize(1);
+    expect(chaos.find(ClusterMatches).at(0).instance()).toBe(secondMatches);
+
+    chaos.unmount();
+  });
+
   it('opens application links JSON editing in a modal instead of editing inline', () => {
     const application = buildApplication();
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes.instanceLinks));
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
 
     links
@@ -490,7 +860,7 @@ describe('<ApplicationConfig />', () => {
   it('renders application links in the same horizontal form layout as other config sections', () => {
     const application = buildApplication();
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
 
     expect(links.find('.application-links-config.form-horizontal').exists()).toBe(true);
@@ -505,7 +875,7 @@ describe('<ApplicationConfig />', () => {
     const application = buildApplication();
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve(application.attributes.instanceLinks));
 
-    const wrapper = shallow(<ApplicationConfigComponent app={application as any} />);
+    const wrapper = shallow(<ApplicationConfigComponent {...routerProps} app={application as any} />);
     const links = wrapper.find('ApplicationLinksConfig').dive();
     links
       .find('button')
@@ -548,4 +918,12 @@ function buildApplication(overrides: any = {}) {
     }),
     serverGroups: { data: [] },
   };
+}
+
+function mountChaosMonkeyConfig(application: any) {
+  const config = shallow(<ApplicationConfigComponent {...routerProps} app={application} />, {
+    disableLifecycleMethods: true,
+  }).find('ChaosMonkeyConfigSection');
+  const ChaosMonkeyConfigSection = config.type() as React.ComponentType<{ application: any }>;
+  return mount(<ChaosMonkeyConfigSection application={application} />);
 }

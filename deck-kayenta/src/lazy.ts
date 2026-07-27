@@ -4,12 +4,13 @@ import 'kayenta/report/detail/graph/semiotic';
 
 import { ApplicationStateProvider } from '@spinnaker/core';
 
-// This import has a side effect of instantiating the canary redux store
+import { initializeCanaryStore } from './kayenta/canary';
 import { bridgeKayentaDataSourceToReduxStore } from './kayenta/canary.dataSource.bridge';
 import { registerStates, registerTransitionHooks } from './kayenta/navigation/canary.states';
 
 export function lazyInitializeKayenta(applicationState: ApplicationStateProvider, uiRouter: UIRouter) {
   const { stateRegistry } = uiRouter;
+  initializeCanaryStore(uiRouter);
 
   // deregister the stub states, starting with the deepest children first
   stateRegistry

@@ -1,4 +1,4 @@
-import { IMetricsServiceMetadata } from 'kayenta/domain/IMetricsServiceMetadata';
+import type { IMetricsServiceMetadata } from 'kayenta/domain/IMetricsServiceMetadata';
 
 export interface INewRelicMetricDescriptor extends IMetricsServiceMetadata {
   name: string;

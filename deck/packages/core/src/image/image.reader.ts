@@ -1,6 +1,4 @@
-import { module } from 'angular';
 import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider/providerService.delegate';
 
 export type IFindImageParams = {
   provider: string;
@@ -25,21 +23,17 @@ export interface IImageReader {
 }
 
 export class ImageReader {
-  public static $inject = ['providerServiceDelegate'];
   public constructor(private providerServiceDelegate: ProviderServiceDelegate) {}
 
   private getDelegate(cloudProvider: string): IImageReader {
     return this.providerServiceDelegate.getDelegate<IImageReader>(cloudProvider, 'image.reader');
   }
 
-  public findImages(params: IFindImageParams): PromiseLike<IImage[]> {
-    return this.getDelegate(params.provider).findImages(params);
+  public findImages(params: IFindImageParams): Promise<IImage[]> {
+    return Promise.resolve(this.getDelegate(params.provider).findImages(params));
   }
 
-  public getImage(cloudProvider: string, imageName: string, region: string, credentials: string): PromiseLike<IImage> {
-    return this.getDelegate(cloudProvider).getImage(imageName, region, credentials);
+  public getImage(cloudProvider: string, imageName: string, region: string, credentials: string): Promise<IImage> {
+    return Promise.resolve(this.getDelegate(cloudProvider).getImage(imageName, region, credentials));
   }
 }
-
-export const IMAGE_READER = 'spinnaker.core.image.reader';
-module(IMAGE_READER, [PROVIDER_SERVICE_DELEGATE]).service('imageReader', ImageReader);

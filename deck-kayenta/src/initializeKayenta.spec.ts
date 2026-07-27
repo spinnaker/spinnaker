@@ -32,7 +32,7 @@ describe('initializeKayenta', () => {
 
     initializeKayenta(applicationState, uiRouter);
 
-    expect(registerKayentaDataSourceStubs).toHaveBeenCalledTimes(1);
+    expect(registerKayentaDataSourceStubs).toHaveBeenCalledWith(uiRouter);
     expect(registerKayentaStateStubs).toHaveBeenCalledWith(applicationState, uiRouter);
   });
 

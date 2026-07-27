@@ -2,9 +2,9 @@ import { get } from 'lodash';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 
-import type { Application, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
+import type { Application, DeckRuntimeServices, IModalComponentProps, IServerGroupJob } from '@spinnaker/core';
 import {
-  AngularServices,
+  DeckRuntimeContext,
   FormikFormField,
   ModalClose,
   noop,
@@ -59,13 +59,19 @@ export class TitusRollbackServerGroupModal extends React.Component<
   ITitusRollbackServerGroupModalProps,
   ITitusRollbackServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ITitusRollbackServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
-  public static show(props: ITitusRollbackServerGroupModalProps): Promise<ITitusRollbackJob> {
-    return ReactModal.show(TitusRollbackServerGroupModal, props);
+  public static show(
+    props: ITitusRollbackServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ITitusRollbackJob> {
+    return ReactModal.show(TitusRollbackServerGroupModal, props, undefined, runtimeServices);
   }
 
   constructor(props: ITitusRollbackServerGroupModalProps) {
@@ -81,7 +87,7 @@ export class TitusRollbackServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Rollback ' + props.serverGroup.name,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
       verified: false,
@@ -177,7 +183,7 @@ export class TitusRollbackServerGroupModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
+      this.context.services.serverGroupWriter.rollbackServerGroup(serverGroup, application, command),
     );
   };
 

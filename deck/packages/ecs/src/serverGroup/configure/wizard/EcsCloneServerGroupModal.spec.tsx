@@ -5,11 +5,9 @@ import React from 'react';
 import {
   AccountService,
   AccountSelectInput,
-  AngularServices,
   DeploymentStrategySelector,
   RegionSelectInput,
   RequestBuilder,
-  TaskMonitor,
   TetheredSelect,
   MapEditor,
   WizardModal,
@@ -18,7 +16,7 @@ import {
 
 import type { IEcsServerGroupCommand } from '../serverGroupConfiguration.service';
 import { ServiceDiscoveryReader } from '../../../serviceDiscovery/serviceDiscovery.read.service';
-import { EcsCloneServerGroupModal } from './EcsCloneServerGroupModal';
+import { EcsCloneServerGroupModalComponent as EcsCloneServerGroupModal } from './EcsCloneServerGroupModal';
 import { BasicSettings } from './pages/BasicSettings';
 import { NetworkingSettings } from './pages/NetworkingSettings';
 import { EcsNetworking } from './networking/Networking';
@@ -84,7 +82,7 @@ const renderCapacityProvider = (command: IEcsServerGroupCommand): ShallowWrapper
     <EcsCapacityProvider
       command={command}
       configureCommand={() => Promise.resolve()}
-      notifyAngular={(field, value) => (command[field] = value)}
+      onFieldChange={(field, value) => (command[field] = value)}
     />,
     { disableLifecycleMethods: true } as any,
   );
@@ -93,16 +91,6 @@ const renderCapacityProvider = (command: IEcsServerGroupCommand): ShallowWrapper
 };
 
 describe('EcsCloneServerGroupModal', () => {
-  beforeEach(() => {
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue({
-      cloneServerGroup: () => Promise.resolve(),
-    } as any);
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: jasmine.createSpy('dismiss'),
-      result: Promise.resolve(),
-    } as any);
-  });
-
   it('does not set state when backing data resolves after unmount', async () => {
     const modal = new EcsCloneServerGroupModal(buildProps(buildCommand())) as any;
     let resolveBackingData: () => void;
@@ -565,7 +553,7 @@ describe('EcsCloneServerGroupModal', () => {
     it(`returns the transformed command without executing infrastructure in ${mode} mode`, () => {
       const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode } as any });
       const modal = buildUnrenderedModal(command) as any;
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup');
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup');
 
       modal.submit();
 
@@ -731,9 +719,8 @@ describe('EcsCloneServerGroupModal', () => {
       const props = buildProps(command);
       const modal = new EcsCloneServerGroupModal(props) as any;
       const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup').and.returnValue(
-        task as any,
-      );
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup').and.returnValue(task as any);
+      modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
       const monitorSubmit = spyOn(
         modal.state.taskMonitor,
         'submit',
@@ -769,14 +756,14 @@ describe('EcsCloneServerGroupModal', () => {
       go: jasmine.createSpy('go'),
       includes: jasmine.createSpy('includes').and.callFake((name: string) => name === '**.clusters'),
     };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
+    props.stateService = state;
 
     modal.onTaskComplete();
 
     expect(props.application.serverGroups.refresh).toHaveBeenCalled();
-    expect(props.application.serverGroups.onNextRefresh).toHaveBeenCalledWith(null, modal.onApplicationRefresh);
+    expect(props.application.serverGroups.onNextRefresh).toHaveBeenCalledWith(modal.onApplicationRefresh);
 
-    const refreshCallback = props.application.serverGroups.onNextRefresh.calls.mostRecent().args[1];
+    const refreshCallback = props.application.serverGroups.onNextRefresh.calls.mostRecent().args[0];
     refreshCallback();
 
     expect(state.includes).toHaveBeenCalledWith('**.clusters');
@@ -788,17 +775,55 @@ describe('EcsCloneServerGroupModal', () => {
     });
   });
 
+  it('owns its refresh subscription across replacement and unmount', () => {
+    const props = buildProps(buildCommand());
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    const callbacks: Array<() => void> = [];
+    props.application.serverGroups.onNextRefresh.and.callFake((callback: () => void) => {
+      callbacks.push(callback);
+      return callbacks.length === 1 ? firstUnsubscribe : secondUnsubscribe;
+    });
+    props.stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes') };
+    const modal = new EcsCloneServerGroupModal(props) as any;
+
+    modal.onTaskComplete();
+
+    expect(props.application.serverGroups.onNextRefresh.calls.first().invocationOrder).toBeLessThan(
+      props.application.serverGroups.refresh.calls.first().invocationOrder,
+    );
+
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+
+    modal.componentWillUnmount();
+    callbacks[1]();
+
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(props.stateService.go).not.toHaveBeenCalled();
+  });
+
   it('retains modal command state when ad-hoc submission fails', async () => {
     const command = buildCommand({ viewState: { contextImages: [], dirty: {}, mode: 'create' } as any });
     const props = buildProps(command);
     const modal = new EcsCloneServerGroupModal(props) as any;
-    spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup').and.callFake(
-      () => Promise.reject({ failureMessage: 'create failed' }) as any,
-    );
+    const cloneServerGroup = jasmine
+      .createSpy('cloneServerGroup')
+      .and.callFake(() => Promise.reject({ failureMessage: 'create failed' }) as any);
+    modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
+    const errorPublished = new Promise<void>((resolve) => {
+      const subscription = modal.state.taskMonitor.statusUpdatedStream.subscribe(() => {
+        if (modal.state.taskMonitor.error) {
+          subscription.unsubscribe();
+          resolve();
+        }
+      });
+    });
 
     modal.submit();
-    await Promise.resolve();
-    await Promise.resolve();
+    await errorPublished;
 
     expect(modal.state.taskMonitor.error).toBe(true);
     expect(modal.state.taskMonitor.errorMessage).toBe('create failed');
@@ -1108,7 +1133,7 @@ describe('EcsCloneServerGroupModal', () => {
     const childProps = {
       command,
       configureCommand: () => Promise.resolve(),
-      notifyAngular: jasmine.createSpy('notifyAngular'),
+      onFieldChange: jasmine.createSpy('onFieldChange'),
     };
     const capacityProvider = shallow(<EcsCapacityProvider {...childProps} />, {
       disableLifecycleMethods: true,
@@ -1396,7 +1421,7 @@ describe('EcsCloneServerGroupModal', () => {
       <EcsNetworking
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={jasmine.createSpy('notifyAngular')}
+        onFieldChange={jasmine.createSpy('onFieldChange')}
       />,
     );
 
@@ -1424,7 +1449,7 @@ describe('EcsCloneServerGroupModal', () => {
       <Container
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={jasmine.createSpy('notifyAngular')}
+        onFieldChange={jasmine.createSpy('onFieldChange')}
       />,
     );
 
@@ -1450,7 +1475,7 @@ describe('EcsCloneServerGroupModal', () => {
       <TaskDefinition
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={jasmine.createSpy('notifyAngular')}
+        onFieldChange={jasmine.createSpy('onFieldChange')}
       />,
     );
 
@@ -1479,7 +1504,7 @@ describe('EcsCloneServerGroupModal', () => {
       <ServiceDiscovery
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={jasmine.createSpy('notifyAngular')}
+        onFieldChange={jasmine.createSpy('onFieldChange')}
       />,
     );
 
@@ -1500,12 +1525,12 @@ describe('EcsCloneServerGroupModal', () => {
       serviceDiscoveryAssociations: [{ containerName: 'api', containerPort: 8080, registry } as any],
       useTaskDefinitionArtifact: true,
     });
-    const notifyAngular = jasmine.createSpy('notifyAngular');
+    const onFieldChange = jasmine.createSpy('onFieldChange');
     const wrapper = shallow(
       <ServiceDiscovery
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={notifyAngular}
+        onFieldChange={onFieldChange}
       />,
     );
 
@@ -1517,7 +1542,7 @@ describe('EcsCloneServerGroupModal', () => {
       { containerName: null, containerPort: 8080, registry } as any,
     ]);
     expect(findByTestId(wrapper, 'ServiceDiscovery.containerName').exists()).toBe(false);
-    expect(notifyAngular).toHaveBeenCalledWith(
+    expect(onFieldChange).toHaveBeenCalledWith(
       'serviceDiscoveryAssociations',
       wrapper.state('serviceDiscoveryAssociations'),
     );
@@ -1529,12 +1554,12 @@ describe('EcsCloneServerGroupModal', () => {
       serviceDiscoveryAssociations: [{ containerName: null, containerPort: 8080, registry } as any],
       useTaskDefinitionArtifact: false,
     });
-    const notifyAngular = jasmine.createSpy('notifyAngular');
+    const onFieldChange = jasmine.createSpy('onFieldChange');
     const wrapper = shallow(
       <ServiceDiscovery
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={notifyAngular}
+        onFieldChange={onFieldChange}
       />,
     );
 
@@ -1553,7 +1578,7 @@ describe('EcsCloneServerGroupModal', () => {
       '',
       'worker',
     ]);
-    expect(notifyAngular).toHaveBeenCalledWith(
+    expect(onFieldChange).toHaveBeenCalledWith(
       'serviceDiscoveryAssociations',
       wrapper.state('serviceDiscoveryAssociations'),
     );
@@ -1576,7 +1601,7 @@ describe('EcsCloneServerGroupModal', () => {
       <EcsCapacityProvider
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={jasmine.createSpy('notifyAngular')}
+        onFieldChange={jasmine.createSpy('onFieldChange')}
       />,
     );
 
@@ -1601,13 +1626,13 @@ describe('EcsCloneServerGroupModal', () => {
       capacityProviderStrategy: [{ base: 0, capacityProvider: 'FARGATE', weight: 1 }],
       useDefaultCapacityProviders: true,
     });
-    const notifyAngular = jasmine.createSpy('notifyAngular');
+    const onFieldChange = jasmine.createSpy('onFieldChange');
     const configureCommand = jasmine.createSpy('configureCommand').and.callFake(() => {
       command.backingData.filtered.defaultCapacityProviderStrategy = refreshedStrategy;
       return Promise.resolve();
     });
     const wrapper = shallow(
-      <EcsCapacityProvider command={command} configureCommand={configureCommand} notifyAngular={notifyAngular} />,
+      <EcsCapacityProvider command={command} configureCommand={configureCommand} onFieldChange={onFieldChange} />,
       { disableLifecycleMethods: true } as any,
     );
     const instance = wrapper.instance() as any;
@@ -1621,10 +1646,10 @@ describe('EcsCloneServerGroupModal', () => {
 
     instance.componentDidMount();
     await Promise.resolve();
-    expect(notifyAngular).not.toHaveBeenCalledWith('capacityProviderStrategy', jasmine.anything());
+    expect(onFieldChange).not.toHaveBeenCalledWith('capacityProviderStrategy', jasmine.anything());
 
     applyState();
-    expect(notifyAngular).toHaveBeenCalledWith('capacityProviderStrategy', refreshedStrategy);
+    expect(onFieldChange).toHaveBeenCalledWith('capacityProviderStrategy', refreshedStrategy);
   });
 
   it('publishes refreshed default strategy props once without a notification loop', () => {
@@ -1641,14 +1666,14 @@ describe('EcsCloneServerGroupModal', () => {
       ecsClusterName: 'cluster-a',
       useDefaultCapacityProviders: true,
     });
-    const notifyAngular = jasmine.createSpy('notifyAngular').and.callFake((field: string, value: any) => {
+    const onFieldChange = jasmine.createSpy('onFieldChange').and.callFake((field: string, value: any) => {
       command[field] = value;
     });
     const wrapper = shallow(
       <EcsCapacityProvider
         command={command}
         configureCommand={() => new Promise<void>(() => undefined)}
-        notifyAngular={notifyAngular}
+        onFieldChange={onFieldChange}
       />,
       { disableLifecycleMethods: true } as any,
     );
@@ -1658,10 +1683,10 @@ describe('EcsCloneServerGroupModal', () => {
 
     expect(wrapper.state('capacityProviderStrategy')).toBe(refreshedStrategy);
     expect(command.capacityProviderStrategy).toBe(refreshedStrategy);
-    expect(notifyAngular).toHaveBeenCalledOnceWith('capacityProviderStrategy', refreshedStrategy);
+    expect(onFieldChange).toHaveBeenCalledOnceWith('capacityProviderStrategy', refreshedStrategy);
 
     (wrapper.instance() as EcsCapacityProvider).componentDidUpdate();
-    expect(notifyAngular).toHaveBeenCalledTimes(1);
+    expect(onFieldChange).toHaveBeenCalledTimes(1);
   });
 
   it('gives interactive fields accessible names across all wizard pages', () => {
@@ -1717,7 +1742,7 @@ describe('EcsCloneServerGroupModal', () => {
     expect(findByTestId(basic, 'ServerGroup.details').prop('aria-label')).toBe('Detail');
 
     const networking = shallow(
-      <EcsNetworking command={command} configureCommand={configureCommand} notifyAngular={fieldChange} />,
+      <EcsNetworking command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
       { disableLifecycleMethods: true } as any,
     );
     expect(findByTestId(networking, 'Networking.networkMode').find(TetheredSelect).prop('inputProps')).toEqual({
@@ -1731,7 +1756,7 @@ describe('EcsCloneServerGroupModal', () => {
     });
 
     const taskDefinition = shallow(
-      <TaskDefinition command={command} configureCommand={configureCommand} notifyAngular={fieldChange} />,
+      <TaskDefinition command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
       { disableLifecycleMethods: true } as any,
     );
     expect(findByTestId(taskDefinition, 'Artifacts.containerName').prop('aria-label')).toBe('Container name 1');
@@ -1747,7 +1772,7 @@ describe('EcsCloneServerGroupModal', () => {
     expect(findByTestId(taskDefinition, 'Artifacts.targetGroupPort').prop('aria-label')).toBe('Target port 1');
 
     const container = shallow(
-      <Container command={command} configureCommand={configureCommand} notifyAngular={fieldChange} />,
+      <Container command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
       { disableLifecycleMethods: true } as any,
     );
     expect(findByTestId(container, 'ContainerInputs.containerImage').find(TetheredSelect).prop('inputProps')).toEqual({
@@ -1782,7 +1807,7 @@ describe('EcsCloneServerGroupModal', () => {
     expect(logging.find(MapEditor).prop('valueLabel')).toBe('Logging option value');
 
     const discovery = shallow(
-      <ServiceDiscovery command={command} configureCommand={configureCommand} notifyAngular={fieldChange} />,
+      <ServiceDiscovery command={command} configureCommand={configureCommand} onFieldChange={fieldChange} />,
       { disableLifecycleMethods: true } as any,
     );
     expect(findByTestId(discovery, 'ServiceDiscovery.containerName').prop('aria-label')).toBe('Container name 1');

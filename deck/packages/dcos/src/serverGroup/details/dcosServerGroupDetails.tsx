@@ -8,7 +8,7 @@ import { DcosJsonLink, DcosLink, DcosMapSection } from '../../common/DcosDetails
 import { DcosCloneServerGroupModal } from '../configure/DcosCloneServerGroupModal';
 import { dcosProxyUiService } from '../../proxy/ui.service';
 
-function findServerGroupSummary(props: IServerGroupDetailsProps): PromiseLike<any> {
+function findServerGroupSummary(props: IServerGroupDetailsProps): Promise<any> {
   const { app, serverGroup } = props;
   return app.ready().then(() => {
     let summary = app.serverGroups.data.find((toCheck: any) => {

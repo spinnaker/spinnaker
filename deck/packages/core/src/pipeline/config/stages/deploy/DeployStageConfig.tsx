@@ -5,7 +5,8 @@ import { arrayMove, SortableContainer, SortableElement, SortableHandle } from 'r
 
 import { AccountService } from '../../../../account/AccountService';
 import { AccountTag } from '../../../../account/AccountTag';
-import { AngularServices } from '../../../../angular/services';
+import type { IDeckRuntimeServicesInjectedProps } from '../../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 import { CloudProviderLogo } from '../../../../cloudProvider/CloudProviderLogo';
 import { CloudProviderRegistry } from '../../../../cloudProvider/CloudProviderRegistry';
 import type { IProviderSelectionFilter } from '../../../../cloudProvider/providerSelection/ProviderSelectionService';
@@ -22,11 +23,14 @@ export interface IDeployStageConfigState {
   showProviderColumn: boolean;
 }
 
-export class DeployStageConfig extends React.Component<IStageConfigProps, IDeployStageConfigState> {
+export class DeployStageConfigComponent extends React.Component<
+  IStageConfigProps & IDeckRuntimeServicesInjectedProps,
+  IDeployStageConfigState
+> {
   private mounted = true;
   private subnetRenderers: { [cloudProvider: string]: any } = {};
 
-  constructor(props: IStageConfigProps) {
+  constructor(props: IStageConfigProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.ensureStageDefaults(props);
     this.state = {
@@ -112,7 +116,7 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
   private getClusterName = (cluster: any): string =>
     NameUtils.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
 
-  private showCloneServerGroupModal(provider: string, serverGroupConfig: any, command: any): PromiseLike<any> {
+  private showCloneServerGroupModal(provider: string, serverGroupConfig: any, command: any): Promise<any> {
     const CloneServerGroupModal = serverGroupConfig && serverGroupConfig.CloneServerGroupModal;
     if (!CloneServerGroupModal) {
       const modalError = `No React clone server group modal is registered for provider "${provider}".`;
@@ -120,15 +124,23 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
       return Promise.reject(new Error(modalError));
     }
 
-    return CloneServerGroupModal.show({
-      title: 'Configure Deployment Cluster',
-      application: this.props.application,
-      command,
-    });
+    return Promise.resolve(
+      CloneServerGroupModal.show(
+        {
+          title: 'Configure Deployment Cluster',
+          application: this.props.application,
+          command,
+        },
+        this.props.deckRuntimeServices,
+      ),
+    );
   }
 
   private providerFilterFn: IProviderSelectionFilter = (_application, _account, provider) => {
-    return !provider.unsupportedStageTypes || provider.unsupportedStageTypes.indexOf('deploy') === -1;
+    return (
+      Boolean(provider.serverGroup?.CloneServerGroupModal) &&
+      (!provider.unsupportedStageTypes || provider.unsupportedStageTypes.indexOf('deploy') === -1)
+    );
   };
 
   private addCluster = (): void => {
@@ -136,12 +148,12 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
     ProviderSelectionService.selectProvider(this.props.application, 'serverGroup', this.providerFilterFn)
       .then((selectedProvider) => {
         const serverGroupConfig = CloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
-        return AngularServices.serverGroupCommandBuilder
+        return this.props.deckRuntimeServices.serverGroupCommandBuilder
           .buildNewServerGroupCommandForPipeline(selectedProvider, this.props.stage, this.props.pipeline)
           .then((command: any) => this.showCloneServerGroupModal(selectedProvider, serverGroupConfig, command))
           .then((command: any) => {
             command.provider = selectedProvider;
-            const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+            const stageCluster = this.props.deckRuntimeServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
               command,
             );
             delete stageCluster.credentials;
@@ -160,13 +172,13 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
     cluster.provider = cluster.cloudProvider || cluster.providerType || 'aws';
     const providerConfig = CloudProviderRegistry.getProvider(cluster.provider);
 
-    AngularServices.serverGroupCommandBuilder
+    this.props.deckRuntimeServices.serverGroupCommandBuilder
       .buildServerGroupCommandFromPipeline(this.props.application, cluster, this.props.stage, this.props.pipeline)
       .then((command: any) =>
         this.showCloneServerGroupModal(cluster.provider, providerConfig && providerConfig.serverGroup, command),
       )
       .then((command: any) => {
-        const stageCluster = AngularServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
+        const stageCluster = this.props.deckRuntimeServices.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(
           command,
         );
         delete stageCluster.credentials;
@@ -285,6 +297,8 @@ export class DeployStageConfig extends React.Component<IStageConfigProps, IDeplo
     );
   }
 }
+
+export const DeployStageConfig = withDeckRuntimeServices(DeployStageConfigComponent);
 
 export interface IDeployClusterTableBodyProps extends SortableContainerProps {
   clusters: any[];

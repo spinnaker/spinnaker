@@ -3,17 +3,23 @@ import { CanarySettings } from 'kayenta/canary.settings';
 import { Application, ApplicationDataSourceRegistry } from '@spinnaker/core';
 
 import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
+import type { ICanaryExecutionRouteService } from './service/canaryRun.service';
 import { listCanaryExecutions } from './service/canaryRun.service';
+
+interface ICanaryDataSourceRouter {
+  stateService: ICanaryExecutionRouteService;
+}
 
 // When the lazy portion loads, it overwrites these stub with implementation that bridges data to the redux store
 export const stub = {
-  loadCanaryExecutions: (application: Application) => listCanaryExecutions(application.name),
+  loadCanaryExecutions: (application: Application, stateService: ICanaryExecutionRouteService) =>
+    listCanaryExecutions(application.name, stateService),
   afterConfigsLoaded: (_application: Application): void => void 0,
   afterJudgesLoaded: (_application: Application): void => void 0,
   afterCanaryExecutionsLoaded: (_application: Application): void => void 0,
 };
 
-export function registerKayentaDataSourceStubs() {
+export function registerKayentaDataSourceStubs(uiRouter: ICanaryDataSourceRouter) {
   const onLoad = (app: Application, data: any) => Promise.resolve(data);
   const loadCanaryConfigs = (application: Application) => {
     return CanarySettings.showAllConfigs ? getCanaryConfigSummaries() : getCanaryConfigSummaries(application.name);
@@ -54,7 +60,7 @@ export function registerKayentaDataSourceStubs() {
     activeState: '**.report.**',
     category: 'delivery',
     requiresDataSource: 'canaryConfigs',
-    loader: (application) => stub.loadCanaryExecutions(application),
+    loader: (application) => stub.loadCanaryExecutions(application, uiRouter.stateService),
     onLoad,
     afterLoad: (application) => stub.afterCanaryExecutionsLoaded(application),
     lazy: true,

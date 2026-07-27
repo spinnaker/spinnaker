@@ -6,7 +6,7 @@ import { XYFrame } from 'semiotic';
 import { vizConfig } from './config';
 import CustomAxisTickLabel from './customAxisTickLabel';
 import SecondaryTSXAxis from './secondaryTSXAxis';
-import { IMargin, ISemioticChartProps } from './semiotic.service';
+import type { IMargin, ISemioticChartProps } from './semiotic.service';
 import * as utils from './utils';
 
 import './differenceArea.less';

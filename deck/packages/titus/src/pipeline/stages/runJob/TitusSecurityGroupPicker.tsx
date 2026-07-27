@@ -3,7 +3,7 @@ import React from 'react';
 
 import { SecurityGroupSelector, ServerGroupSecurityGroupsRemoved, VpcReader } from '@spinnaker/amazon';
 import type { IAccountDetails, IAggregatedAccounts, ISecurityGroup, IVpc } from '@spinnaker/core';
-import { AccountService, AccountTag, AngularServices, FirewallLabels } from '@spinnaker/core';
+import { AccountService, AccountTag, DeckRuntimeContext, FirewallLabels } from '@spinnaker/core';
 
 export interface ITitusSecurityGroupPickerProps {
   account: string;
@@ -25,6 +25,9 @@ export class TitusSecurityGroupPicker extends React.Component<
   ITitusSecurityGroupPickerProps,
   ITitusSecurityGroupPickerState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: ITitusSecurityGroupPickerState = {
     availableGroups: [],
     removedGroups: [],
@@ -72,8 +75,8 @@ export class TitusSecurityGroupPicker extends React.Component<
   }
 
   public refreshSecurityGroups(skipCommandReconfiguration?: boolean) {
-    return AngularServices.cacheInitializer.refreshCache('securityGroups').then(() => {
-      return AngularServices.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
+    return this.context.services.cacheInitializer.refreshCache('securityGroups').then(() => {
+      return this.context.services.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
         this.securityGroups = securityGroups;
         if (!skipCommandReconfiguration) {
           this.configureSecurityGroupOptions();
@@ -122,7 +125,7 @@ export class TitusSecurityGroupPicker extends React.Component<
         this.credentials = credentials;
       },
     );
-    const groupLoader = AngularServices.securityGroupReader.getAllSecurityGroups().then((groups) => {
+    const groupLoader = this.context.services.securityGroupReader.getAllSecurityGroups().then((groups) => {
       this.securityGroups = groups;
     });
     const vpcLoader = VpcReader.listVpcs().then((vpcs: IVpc[]) => (this.vpcs = vpcs));

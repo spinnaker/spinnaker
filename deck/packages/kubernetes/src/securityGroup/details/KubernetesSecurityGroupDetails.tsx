@@ -5,15 +5,16 @@ import type {
   Application,
   IManifest,
   IOverridableProps,
+  IRouterInjectedProps,
   ISecurityGroupDetail,
   SecurityGroupReader,
 } from '@spinnaker/core';
 import {
   AccountTag,
   AddEntityTagLinks,
-  AngularServices,
   CloudProviderLogo,
   CollapsibleSection,
+  DeckRuntimeContext,
   EntityNotifications,
   FirewallLabels,
   ManifestReader,
@@ -21,6 +22,7 @@ import {
   SETTINGS,
   timestamp,
   useModal,
+  withRouter,
 } from '@spinnaker/core';
 
 import type { IKubernetesSecurityGroup } from '../../interfaces';
@@ -55,10 +57,13 @@ export interface IKubernetesSecurityGroupActionsProps {
   securityGroup: IKubernetesSecurityGroup;
 }
 
-export class KubernetesSecurityGroupDetails extends React.Component<
-  IKubernetesSecurityGroupDetailsProps,
+export class KubernetesSecurityGroupDetailsComponent extends React.Component<
+  IKubernetesSecurityGroupDetailsProps & IRouterInjectedProps,
   IKubernetesSecurityGroupDetailsState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public state: IKubernetesSecurityGroupDetailsState = {
     loading: true,
   };
@@ -86,7 +91,7 @@ export class KubernetesSecurityGroupDetails extends React.Component<
 
         this.dataSourceReady = true;
         this.loadSecurityGroup();
-        this.unsubscribeFromRefresh = dataSource.onRefresh(null, this.loadSecurityGroup);
+        this.unsubscribeFromRefresh = dataSource.onRefresh(this.loadSecurityGroup);
       })
       .catch(this.autoClose);
   }
@@ -105,7 +110,7 @@ export class KubernetesSecurityGroupDetails extends React.Component<
   }
 
   private getSecurityGroupReader(): SecurityGroupReader {
-    return this.props.securityGroupReader || AngularServices.securityGroupReader;
+    return this.props.securityGroupReader || this.context.services.securityGroupReader;
   }
 
   private getCoordinatesKey(props: IKubernetesSecurityGroupDetailsProps): string {
@@ -161,12 +166,12 @@ export class KubernetesSecurityGroupDetails extends React.Component<
       return;
     }
 
-    AngularServices.$state.params.allowModalToStayOpen = true;
-    AngularServices.$state.go('^', null, { location: 'replace' });
+    this.props.stateService.params.allowModalToStayOpen = true;
+    this.props.stateService.go('^', null, { location: 'replace' });
   };
 
   private closeDetails = (): void => {
-    AngularServices.$state.go('^');
+    this.props.stateService.go('^');
   };
 
   public render(): JSX.Element {
@@ -246,6 +251,8 @@ export class KubernetesSecurityGroupDetails extends React.Component<
     );
   }
 }
+
+export const KubernetesSecurityGroupDetails = withRouter(KubernetesSecurityGroupDetailsComponent);
 
 export function KubernetesSecurityGroupActions({ app, manifest, securityGroup }: IKubernetesSecurityGroupActionsProps) {
   const deleteModal = useModal();

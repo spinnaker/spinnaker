@@ -1,11 +1,11 @@
 import { get } from 'lodash';
-import { $q } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
-import { AngularServices } from '../../angular/services';
 
 import type { Application } from '../../application';
 import type { IDefaultTagFilterConfig } from '../../application/config/defaultTagFilter/DefaultTagFilterConfig';
+import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
+import { CollapsibleSectionStateCache } from '../../cache';
 import { CreatePipeline } from '../config/CreatePipeline';
 import { CreatePipelineButton } from '../create/CreatePipelineButton';
 import type { IExecution, IPipeline, IPipelineCommand } from '../../domain';
@@ -15,7 +15,10 @@ import { ExecutionFilterService } from '../filter/executionFilter.service';
 import type { IFilterTag, ISortFilter } from '../../filterModel';
 import { FilterCollapse, FilterTags } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
-import { Overridable } from '../../overrideRegistry';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
+import type { IOverridableProps } from '../../overrideRegistry';
+import { overridableComponent } from '../../overrideRegistry';
 import { Tooltip } from '../../presentation/Tooltip';
 import { SchedulerFactory } from '../../scheduler';
 import type { IScheduler } from '../../scheduler/SchedulerFactory';
@@ -26,7 +29,7 @@ import { Spinner } from '../../widgets/spinners/Spinner';
 
 import './executions.less';
 
-export interface IExecutionsProps {
+export interface IExecutionsProps extends IOverridableProps {
   app: Application;
 }
 
@@ -45,21 +48,25 @@ export interface IExecutionsState {
 const forwardedExecutions = new Set();
 // This ensures we only forward to permalink on landing, not on future refreshes
 let disableForwarding = false;
+const INSIGHT_FILTERS_CACHE_KEY = 'insightFilters';
 
-@Overridable('PipelineExecutions')
-export class Executions extends React.Component<IExecutionsProps, IExecutionsState> {
+export class ExecutionsComponent extends React.Component<IExecutionsProps & IRouterInjectedProps, IExecutionsState> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private executionsRefreshUnsubscribe: Function;
   private groupsUpdatedSubscription: Subscription;
-  private insightFilterStateModel = AngularServices.insightFilterStateModel;
   private activeRefresher: IScheduler;
 
   private filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50, 100, 200];
 
-  constructor(props: IExecutionsProps) {
+  constructor(props: IExecutionsProps & IRouterInjectedProps) {
     super(props);
 
     this.state = {
-      filtersExpanded: this.insightFilterStateModel.filtersExpanded,
+      filtersExpanded:
+        !CollapsibleSectionStateCache.isSet(INSIGHT_FILTERS_CACHE_KEY) ||
+        CollapsibleSectionStateCache.isExpanded(INSIGHT_FILTERS_CACHE_KEY),
       loading: true,
       poll: null,
       sortFilter: ExecutionState.filterModel.asFilterModel.sortFilter,
@@ -156,8 +163,8 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     ExecutionState.filterModel.expandSubject.next(false);
   };
 
-  private startPipeline(command: IPipelineCommand): PromiseLike<void> {
-    const { executionService } = AngularServices;
+  private startPipeline(command: IPipelineCommand): Promise<void> {
+    const { executionService } = this.context.services;
     this.setState({ triggeringExecution: true });
     return executionService
       .startAndMonitorPipeline(this.props.app, command.pipelineName, command.trigger)
@@ -176,10 +183,13 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
   private triggerPipeline(pipeline: IPipeline = null): void {
     logger.log({ category: 'Pipelines', action: 'Trigger Pipeline (top level)' });
-    ManualExecutionModal.show({
-      pipeline: pipeline,
-      application: this.props.app,
-    })
+    ManualExecutionModal.show(
+      {
+        pipeline: pipeline,
+        application: this.props.app,
+      },
+      this.context.services,
+    )
       .then((command) => {
         this.startPipeline(command);
         this.clearManualExecutionParam();
@@ -188,22 +198,23 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private clearManualExecutionParam(): void {
-    AngularServices.$state.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
+    this.props.stateService.go('.', { startManualExecution: null }, { inherit: true, location: 'replace' });
   }
 
   private handleAgedOutExecutions(executionId: string, forwardToPermalink: boolean): void {
-    const { $state, executionService } = AngularServices;
+    const { executionService } = this.context.services;
+    const { stateParams, stateService } = this.props;
     if (forwardToPermalink && executionId && !forwardedExecutions.has(executionId)) {
       // We only want to forward to permalink on initial load
       executionService.getExecution(executionId).then(() => {
-        const detailsState = $state.current.name.replace('executions.execution', 'executionDetails.execution');
-        const { stage, step, details } = $state.params;
+        const detailsState = stateService.current.name.replace('executions.execution', 'executionDetails.execution');
+        const { stage, step, details } = stateParams;
         forwardedExecutions.add(executionId);
-        $state.go(detailsState, { executionId, stage, step, details });
+        stateService.go(detailsState, { executionId, stage, step, details });
       });
     } else {
       // Handles the case where we already forwarded once and user navigated back, so do not forward again.
-      $state.go('.^');
+      stateService.go('.^');
     }
   }
 
@@ -228,16 +239,15 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     this.groupsUpdatedSubscription = ExecutionFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
 
     this.executionsRefreshUnsubscribe = app.executions.onRefresh(
-      null,
       () => {
         this.normalizeExecutionNames();
 
         // if an execution was selected but is no longer present, navigate up
-        const { $state } = AngularServices;
-        if ($state.params.executionId) {
+        const { executionId } = this.props.stateParams;
+        if (executionId) {
           const executions: IExecution[] = app.executions.data;
-          if (executions.every((e) => e.id !== $state.params.executionId)) {
-            this.handleAgedOutExecutions($state.params.executionId, !disableForwarding);
+          if (executions.every((e) => e.id !== executionId)) {
+            this.handleAgedOutExecutions(executionId, !disableForwarding);
           }
         }
         // After the very first refresh interval (landing), we do not want to forward the user to the permalink
@@ -248,9 +258,9 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
 
     this.loadDefaultFilters();
 
-    $q.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
+    Promise.all([app.executions.ready(), app.pipelineConfigs.ready()]).then(() => {
       this.updateExecutionGroups();
-      const nameOrIdToStart = AngularServices.$stateParams.startManualExecution;
+      const { startManualExecution: nameOrIdToStart } = this.props.stateParams;
       if (nameOrIdToStart) {
         const toStart = app.pipelineConfigs.data.find((p: IPipeline) => [p.id, p.name].includes(nameOrIdToStart));
         if (toStart) {
@@ -260,6 +270,12 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
         }
       }
     });
+  }
+
+  public componentDidUpdate(_prevProps: IExecutionsProps & IRouterInjectedProps, prevState: IExecutionsState): void {
+    if (prevState.filtersExpanded !== this.state.filtersExpanded) {
+      CollapsibleSectionStateCache.setExpanded(INSIGHT_FILTERS_CACHE_KEY, this.state.filtersExpanded);
+    }
   }
 
   public componentWillUnmount(): void {
@@ -274,9 +290,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
   }
 
   private toggleFilters = (): void => {
-    const newState = !this.state.filtersExpanded;
-    this.setState({ filtersExpanded: newState });
-    this.insightFilterStateModel.pinFilters(newState);
+    this.setState(({ filtersExpanded }) => ({ filtersExpanded: !filtersExpanded }));
   };
 
   private groupByChanged = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -303,7 +317,7 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     logger.log({ category: 'Pipelines', action: 'Toggle Durations', data: { label: checked.toString() } });
   };
 
-  public render(): React.ReactElement<Executions> {
+  public render(): React.ReactElement {
     const { app } = this.props;
     const { filtersExpanded, loading, sortFilter, tags, triggeringExecution, reloadingForFilters } = this.state;
 
@@ -323,20 +337,20 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
       return (
         <div className="executions-section">
           {!loading && (
-            <div onClick={this.toggleFilters}>
-              <FilterCollapse />
+            <div>
+              <FilterCollapse filtersExpanded={filtersExpanded} onToggle={this.toggleFilters} />
             </div>
           )}
           <div className={`insight ${filtersExpanded ? 'filters-expanded' : 'filters-collapsed'}`}>
             {filtersExpanded && (
-              <div className="nav ng-scope">
+              <div className="nav">
                 {!loading && (
                   <ExecutionFilters application={app} setReloadingForFilters={this.setReloadingForFilters} />
                 )}
               </div>
             )}
             <div
-              className={`nav-content ng-scope ${sortFilter.showDurations ? 'show-durations' : ''}`}
+              className={`nav-content ${sortFilter.showDurations ? 'show-durations' : ''}`}
               data-scroll-id="nav-content"
             >
               {!loading && (
@@ -462,3 +476,6 @@ export class Executions extends React.Component<IExecutionsProps, IExecutionsSta
     return null;
   }
 }
+
+const OverridableExecutions = overridableComponent(ExecutionsComponent, 'PipelineExecutions');
+export const Executions = withRouter<IExecutionsProps & IRouterInjectedProps>(OverridableExecutions);

@@ -1,14 +1,11 @@
 /// <reference path="./types/index.d.ts" />
 
-import './utils/failedToInstantiateModule';
-
 export * from './account';
 export * from './api';
 export * from './apitoken';
 export * from './application';
 export * from './artifact';
 export * from './authentication';
-export * from './angular/services';
 export * from './banner';
 export * from './cache';
 export * from './certificates';
@@ -63,7 +60,6 @@ export * from './notification';
 export * from './orchestratedItem';
 export * from './overrideRegistry';
 
-export * from './pageTitle';
 export * from './pagerDuty';
 export * from './pipeline';
 export * from './plugins';
@@ -96,5 +92,7 @@ export * from './widgets';
 
 export * from './yamlEditor';
 
-export * from './core.module';
-export * from './angular/services';
+export * from './bootstrap/bootstrapDeck';
+export * from './bootstrap/DeckRuntime';
+export * from './bootstrap/DeckRuntimeContext';
+export * from './bootstrap/DeckRuntimeServices';

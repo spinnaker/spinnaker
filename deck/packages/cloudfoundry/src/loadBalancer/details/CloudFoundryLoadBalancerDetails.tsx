@@ -1,5 +1,4 @@
 import { UISref } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react-hybrid';
 import React from 'react';
 
 import type { Application, LoadBalancerWriter } from '@spinnaker/core';
@@ -30,7 +29,6 @@ export interface ICloudFoundryLoadBalancerDetailsProps {
   loadBalancerWriter: LoadBalancerWriter;
 }
 
-@UIRouterContext
 export class CloudFoundryLoadBalancerDetails extends React.Component<
   ICloudFoundryLoadBalancerDetailsProps,
   ICloudFoundryLoadBalancerDetailsState
@@ -72,7 +70,7 @@ export class CloudFoundryLoadBalancerDetails extends React.Component<
       this.setState({
         refreshListenerUnsubscribe: this.props.app
           .getDataSource('loadBalancers')
-          .onRefresh(null, () => this.extractLoadBalancer()),
+          .onRefresh(() => this.extractLoadBalancer()),
       });
     } else {
       this.setState({

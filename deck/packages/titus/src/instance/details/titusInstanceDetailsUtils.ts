@@ -6,8 +6,8 @@ import type {
   ITargetGroup,
 } from '@spinnaker/amazon';
 import { getAllTargetGroups } from '@spinnaker/amazon';
-import type { Action, Application, IInstance, IJob } from '@spinnaker/core';
-import { AngularServices, ConfirmationModalService, InstanceWriter } from '@spinnaker/core';
+import type { Action, Application, IInstance, IJob, ProviderServiceDelegate } from '@spinnaker/core';
+import { ConfirmationModalService, getDirectRouter, InstanceWriter } from '@spinnaker/core';
 
 export const applyTargetGroupInfoToHealthMetric = (
   metricGroups: IAmazonTargetGroupHealth[],
@@ -54,8 +54,9 @@ const terminateInstance = (instance: IInstance, app: Application) => {
       application: app,
       title: `Terminating ${instance.id}`,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.instanceDetails', { id: instance.id })) {
-          AngularServices.$state.go('^');
+        const stateService = getDirectRouter()?.stateService;
+        if (stateService?.includes('**.instanceDetails', { id: instance.id })) {
+          stateService.go('^');
         }
       },
     };
@@ -78,14 +79,19 @@ const terminateInstance = (instance: IInstance, app: Application) => {
   };
 };
 
-const terminateInstanceAndShrinkServerGroup = (instance: IInstance, app: Application) => {
+const terminateInstanceAndShrinkServerGroup = (
+  instance: IInstance,
+  app: Application,
+  providerServiceDelegate: ProviderServiceDelegate,
+) => {
   return () => {
     const taskMonitorConfig = {
       application: app,
       title: `Terminating ${instance.id} and shrinking server group`,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.instanceDetails', { instanceId: instance.id })) {
-          AngularServices.$state.go('^');
+        const stateService = getDirectRouter()?.stateService;
+        if (stateService?.includes('**.instanceDetails', { instanceId: instance.id })) {
+          stateService.go('^');
         }
       },
     };
@@ -103,6 +109,7 @@ const terminateInstanceAndShrinkServerGroup = (instance: IInstance, app: Applica
           },
         ],
         app,
+        providerServiceDelegate,
       );
     };
 
@@ -154,10 +161,17 @@ const disableInstanceInDiscovery = (instance: IInstance, app: Application) => {
   };
 };
 
-export const buildTaskActions = (instance: IInstance, app: Application): Action[] => {
+export const buildTaskActions = (
+  instance: IInstance,
+  app: Application,
+  providerServiceDelegate: ProviderServiceDelegate,
+): Action[] => {
   const taskActions = [
     { label: 'Terminate', triggerAction: terminateInstance(instance, app) },
-    { label: 'Terminate and Shrink Server Group', triggerAction: terminateInstanceAndShrinkServerGroup(instance, app) },
+    {
+      label: 'Terminate and Shrink Server Group',
+      triggerAction: terminateInstanceAndShrinkServerGroup(instance, app, providerServiceDelegate),
+    },
   ];
 
   const discoveryHealth = (instance.health || []).filter((h) => h.type === 'Discovery');

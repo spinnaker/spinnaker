@@ -4,7 +4,7 @@ import React from 'react';
 import { IPRangeRules } from '@spinnaker/amazon';
 import { CollapsibleSection } from '@spinnaker/core';
 
-import { EcsSecurityGroupDetails } from './EcsSecurityGroupDetails';
+import { EcsSecurityGroupDetailsComponent as EcsSecurityGroupDetails } from './EcsSecurityGroupDetails';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve));
 
@@ -26,6 +26,21 @@ describe('EcsSecurityGroupDetails', () => {
       }),
     } as any;
   }
+
+  it('replaces missing details through the injected state service', () => {
+    const stateService = { go: jasmine.createSpy('go') };
+    const component = new EcsSecurityGroupDetails({
+      app: app(),
+      resolvedSecurityGroup,
+      router: {},
+      stateParams: {},
+      stateService,
+    } as any);
+
+    (component as any).showNotFound();
+
+    expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' });
+  });
 
   function securityGroup(name = 'web-sg') {
     return {

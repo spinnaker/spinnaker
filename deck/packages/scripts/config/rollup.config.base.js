@@ -25,7 +25,7 @@ const plugins = [
   nodeResolve(),
   commonjs({
     // Ensure CommonJS modules that use require() get the full module.exports
-    // rather than trying to find a default export (fixes ngimport interop)
+    // rather than trying to find a default export
     defaultIsModuleExports: true,
     // Treat external ESM dependencies correctly when they're required from CJS
     esmExternals: true,

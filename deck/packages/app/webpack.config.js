@@ -18,15 +18,7 @@ const STYLEGUIDE_PACKAGE_ROOT = path.dirname(
 const REACT_VIRTUALIZED_COMMONJS = require.resolve('react-virtualized/dist/commonjs/index.js', {
   paths: [CORE_PACKAGE_ROOT],
 });
-const SHARED_PACKAGE_ALIASES = [
-  '@uirouter/angularjs',
-  '@uirouter/core',
-  '@uirouter/react',
-  '@uirouter/react-hybrid',
-  'angular',
-  'react',
-  'react-dom',
-];
+const SHARED_PACKAGE_ALIASES = ['@uirouter/core', '@uirouter/react', 'react', 'react-dom'];
 const SHARED_PACKAGE_ALIAS_RESOLUTIONS = Object.fromEntries(
   SHARED_PACKAGE_ALIASES.map((packageName) => [
     packageName,
@@ -133,7 +125,7 @@ function configure(env, webpackOpts) {
         : [], // Disable minification unless production
     },
     resolve: {
-      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
+      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less'],
       alias: {
         ...SHARED_PACKAGE_ALIAS_RESOLUTIONS,
         '@spinnaker/core': CORE_PACKAGE_ROOT,
@@ -183,10 +175,6 @@ function configure(env, webpackOpts) {
         {
           test: /\.css$/,
           use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
-        },
-        {
-          test: /\.html$/,
-          use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
         },
         {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,

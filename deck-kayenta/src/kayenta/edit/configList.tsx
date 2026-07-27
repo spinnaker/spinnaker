@@ -1,7 +1,7 @@
 import { UISref } from '@uirouter/react';
-import { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
+import type { ICanaryConfigSummary } from 'kayenta/domain/ICanaryConfigSummary';
 import FormattedDate from 'kayenta/layout/formattedDate';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import { sortBy } from 'lodash';
 import * as React from 'react';
 import { connect } from 'react-redux';

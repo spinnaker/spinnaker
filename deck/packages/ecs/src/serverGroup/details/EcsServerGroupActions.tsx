@@ -2,15 +2,16 @@ import React from 'react';
 import { Dropdown, Tooltip } from 'react-bootstrap';
 
 import { AWSProviderSettings } from '@spinnaker/amazon';
-import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
+import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
   ManagedMenuItem,
   ServerGroupWarningMessageService,
   SETTINGS,
+  useDeckRuntimeServices,
+  withRouter,
 } from '@spinnaker/core';
 
 import { EcsResizeServerGroupModal } from './resize/EcsResizeServerGroupModal';
@@ -24,7 +25,13 @@ const actionLabels: Record<ConfirmedAction, { present: string; progressive: stri
   enable: { present: 'Enable', progressive: 'Enabling' },
 };
 
-export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsProps) {
+export function EcsServerGroupActionsComponent({
+  app,
+  serverGroup,
+  stateService,
+}: IServerGroupActionsProps & IRouterInjectedProps) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupWriter } = runtimeServices;
   if (!AWSProviderSettings.adHocInfraWritesEnabled) {
     return null;
   }
@@ -50,8 +57,8 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
         ...(action === 'destroy'
           ? {
               onTaskComplete: () => {
-                if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-                  AngularServices.$state.go('^');
+                if (stateService.includes('**.serverGroup', stateParams)) {
+                  stateService.go('^');
                 }
               },
             }
@@ -63,12 +70,12 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
         app.attributes.platformHealthOnlyShowOverride && app.attributes.platformHealthOnly ? ['Ecs'] : undefined,
       submitMethod: (params: IServerGroupJob) => {
         if (action === 'destroy') {
-          return AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+          return serverGroupWriter.destroyServerGroup(serverGroup, app, params);
         }
         if (action === 'disable') {
-          return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+          return serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
         }
-        return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+        return serverGroupWriter.enableServerGroup(serverGroup, app, params);
       },
       askForReason: true,
     };
@@ -90,7 +97,7 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
           <ManagedMenuItem
             resource={serverGroup}
             application={app}
-            onClick={() => EcsRollbackServerGroupModal.show({ application: app, serverGroup })}
+            onClick={() => EcsRollbackServerGroupModal.show({ application: app, serverGroup }, runtimeServices)}
           >
             Rollback
           </ManagedMenuItem>
@@ -98,7 +105,7 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
         <ManagedMenuItem
           resource={serverGroup}
           application={app}
-          onClick={() => EcsResizeServerGroupModal.show({ application: app, serverGroup })}
+          onClick={() => EcsResizeServerGroupModal.show({ application: app, serverGroup }, runtimeServices)}
         >
           Resize
         </ManagedMenuItem>
@@ -141,3 +148,5 @@ export function EcsServerGroupActions({ app, serverGroup }: IServerGroupActionsP
     </Dropdown>
   );
 }
+
+export const EcsServerGroupActions = withRouter(EcsServerGroupActionsComponent);

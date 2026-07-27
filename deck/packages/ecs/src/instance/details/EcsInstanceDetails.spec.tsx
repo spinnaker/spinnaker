@@ -3,7 +3,6 @@ import React from 'react';
 
 import { InstanceInformation, InstanceStatus, VpcTag } from '@spinnaker/amazon';
 import {
-  AngularServices,
   CollapsibleSection,
   ConsoleOutputLink,
   InstanceDetailsHeader,
@@ -13,14 +12,13 @@ import {
   RecentHistoryService,
 } from '@spinnaker/core';
 
-import { EcsInstanceDetails } from './EcsInstanceDetails';
+import { EcsInstanceDetailsComponent as EcsInstanceDetails } from './EcsInstanceDetails';
 
 describe('EcsInstanceDetails', () => {
-  let $state: { go: jasmine.Spy };
+  let stateService: { go: jasmine.Spy };
 
   beforeEach(() => {
-    $state = { go: jasmine.createSpy('go') };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue($state as any);
+    stateService = { go: jasmine.createSpy('go') };
     spyOn(RecentHistoryService, 'addExtraDataToLatest');
     spyOn(RecentHistoryService, 'removeLastItem');
   });
@@ -250,7 +248,7 @@ describe('EcsInstanceDetails', () => {
     expect(wrapper.text()).toContain('Instance not found.');
     expect(wrapper.text()).toContain('missing-task');
     expect(RecentHistoryService.removeLastItem).toHaveBeenCalledWith('instances');
-    expect($state.go).not.toHaveBeenCalled();
+    expect(stateService.go).not.toHaveBeenCalled();
   });
 
   it('closes routed details when loading fails', async () => {
@@ -260,13 +258,16 @@ describe('EcsInstanceDetails', () => {
         app={application()}
         environment="test"
         moniker={{ app: 'fnord' }}
+        router={{} as any}
+        stateParams={{}}
+        stateService={stateService as any}
         $stateParams={{ provider: 'ecs', instanceId: 'task-1' }}
       />,
     );
 
     await settle();
 
-    expect($state.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' });
+    expect(stateService.go).toHaveBeenCalledWith('^', { allowModalToStayOpen: true }, { location: 'replace' });
   });
 
   it('keeps newer instance details when an older request resolves last', async () => {

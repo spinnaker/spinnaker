@@ -1,11 +1,28 @@
 import { cloneDeep } from 'lodash';
 import React from 'react';
 import { mount, shallow } from 'enzyme';
+import { UIRouterReact } from '@uirouter/react';
 
-import { AngularServices, ReactModal, TaskMonitor, WizardModal, WizardPage } from '@spinnaker/core';
+import {
+  AccountService,
+  createDeckRuntime,
+  NetworkReader,
+  ReactModal,
+  SubnetReader,
+  WizardModal,
+  WizardPage,
+} from '@spinnaker/core';
 
-import { GceCloneServerGroupModal, transformGceServerGroupCommand } from './GceCloneServerGroupModal';
+import {
+  GceCloneServerGroupModal as RoutedGceCloneServerGroupModal,
+  GceCloneServerGroupModalComponent as GceCloneServerGroupModal,
+  transformGceServerGroupCommand,
+} from './GceCloneServerGroupModal';
+import { GceServerGroupWizardAdapter } from './GceServerGroupWizardAdapter';
 import type { IGceServerGroupCommand, IGceServerGroupWizardAdapter } from './GceServerGroupWizard.types';
+import { registerGoogleProvider } from '../../../gce.module';
+import { GceHealthCheckReader } from '../../../healthCheck/healthCheck.read.service';
+import { GceImageReader } from '../../../image';
 
 const application = {
   name: 'fnord',
@@ -16,31 +33,28 @@ const application = {
 } as any;
 
 describe('GceCloneServerGroupModal', () => {
-  const serverGroupWriter = { cloneServerGroup: () => Promise.resolve() };
-
   beforeEach(() => {
     application.serverGroups.onNextRefresh.calls.reset();
     application.serverGroups.refresh.calls.reset();
-    spyOn(TaskMonitor, 'modalInstanceEmulation').and.returnValue({
-      dismiss: jasmine.createSpy('dismiss'),
-      result: Promise.resolve(),
-    } as any);
-    spyOnProperty(AngularServices, 'serverGroupWriter', 'get').and.returnValue(serverGroupWriter as any);
   });
 
   it('opens as a wizard modal', () => {
     const props = buildProps(buildCommand());
+    const runtimeServices = {} as any;
     spyOn(ReactModal, 'show').and.returnValue(Promise.resolve());
 
-    GceCloneServerGroupModal.show(props);
+    GceCloneServerGroupModal.show(props, runtimeServices);
 
-    expect(ReactModal.show).toHaveBeenCalledWith(GceCloneServerGroupModal, props, {
-      dialogClassName: 'wizard-modal modal-lg',
-    });
+    expect(ReactModal.show).toHaveBeenCalledWith(
+      RoutedGceCloneServerGroupModal,
+      props,
+      { dialogClassName: 'wizard-modal modal-lg' },
+      runtimeServices,
+    );
   });
 
   it('renders the eight GCE pages in parity order without requiring a source template', () => {
-    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand())} />, {
+    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand(), buildAdapter())} />, {
       disableLifecycleMethods: true,
     } as any);
 
@@ -97,8 +111,64 @@ describe('GceCloneServerGroupModal', () => {
     expect(commandStates[0]).toBeDefined();
   });
 
+  it('uses the registered runtime-owned GCE configuration service in the default React path', async () => {
+    registerGoogleProvider();
+    const runtime = createDeckRuntime(new UIRouterReact());
+    const getAllSecurityGroups = spyOn(runtime.services.securityGroupReader, 'getAllSecurityGroups').and.resolveTo({});
+    const listLoadBalancers = spyOn(runtime.services.loadBalancerReader, 'listLoadBalancers').and.resolveTo([]);
+    spyOn(AccountService, 'getCredentialsKeyedByAccount').and.resolveTo({});
+    spyOn(AccountService, 'getAllAccountDetailsForProvider').and.resolveTo([]);
+    spyOn(AccountService, 'listAccounts').and.resolveTo([]);
+    spyOn(NetworkReader, 'listNetworksByProvider').and.resolveTo([]);
+    spyOn(SubnetReader, 'listSubnetsByProvider').and.resolveTo([]);
+    spyOn(GceImageReader, 'findImages').and.resolveTo([]);
+    spyOn(GceHealthCheckReader.prototype, 'listHealthChecks').and.resolveTo([]);
+    const getDelegate = spyOn(runtime.services.providerServiceDelegate, 'getDelegate').and.callThrough();
+
+    try {
+      const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
+      modal.context = runtime;
+      const wizard = modal.render() as React.ReactElement<any>;
+      const pages = shallow(
+        <div>
+          {wizard.props.render({
+            formik: { values: buildCommand() } as any,
+            nextIdx: () => 1,
+            wizard: {} as any,
+          })}
+        </div>,
+      );
+      const adapters = pages.find(WizardPage).map((page) => {
+        const renderedPage = shallow(
+          <div>{page.prop('render')({ innerRef: React.createRef(), onLoadingChanged: () => undefined })}</div>,
+        );
+        return renderedPage.childAt(0).prop('adapter');
+      });
+
+      expect(getDelegate.calls.allArgs()).toEqual([
+        ['gce', 'serverGroup.commandBuilder'],
+        ['gce', 'serverGroup.configurationService'],
+      ]);
+      expect(adapters.every((adapter) => adapter === adapters[0])).toBe(true);
+      expect(adapters[0]).toEqual(jasmine.any(GceServerGroupWizardAdapter));
+
+      const configuredCommand = await adapters[0].configureCommand(
+        application,
+        buildCommand({ backingData: undefined, securityGroups: [], tags: [] }),
+      );
+      await adapters[0].applyConfigurationRefresh(configuredCommand, 'refreshLoadBalancers');
+      await adapters[0].applyConfigurationRefresh(configuredCommand, 'refreshSecurityGroups');
+
+      expect(getAllSecurityGroups).toHaveBeenCalledTimes(2);
+      expect(listLoadBalancers).toHaveBeenCalledTimes(2);
+      expect(listLoadBalancers).toHaveBeenCalledWith('gce');
+    } finally {
+      runtime.dispose();
+    }
+  });
+
   it('exposes command validation to the wizard', () => {
-    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand())} />, {
+    const wrapper = shallow(<GceCloneServerGroupModal {...buildProps(buildCommand(), buildAdapter())} />, {
       disableLifecycleMethods: true,
     } as any);
     const validate = wrapper.find(WizardModal).prop('validate');
@@ -816,7 +886,7 @@ describe('GceCloneServerGroupModal', () => {
       });
       const props = buildProps(command);
       const modal = new GceCloneServerGroupModal(props) as any;
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup');
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup');
 
       modal.submit(command);
 
@@ -855,9 +925,8 @@ describe('GceCloneServerGroupModal', () => {
       const props = buildProps(command);
       const modal = new GceCloneServerGroupModal(props) as any;
       const task = Promise.resolve({ id: 'task-id' });
-      const cloneServerGroup = spyOn(AngularServices.serverGroupWriter, 'cloneServerGroup').and.returnValue(
-        task as any,
-      );
+      const cloneServerGroup = jasmine.createSpy('cloneServerGroup').and.returnValue(task as any);
+      modal.context = { services: { serverGroupWriter: { cloneServerGroup } } };
       const monitorSubmit = spyOn(
         modal.state.taskMonitor,
         'submit',
@@ -890,7 +959,7 @@ describe('GceCloneServerGroupModal', () => {
     const viewState = { ...buildCommand().viewState, mode: 'editPipeline' as const };
     const initialCommand = buildCommand({ stack: 'old', viewState });
     const formik = { values: buildCommand({ stack: 'edited', viewState }) } as any;
-    const props = buildProps(initialCommand);
+    const props = buildProps(initialCommand, buildAdapter());
     const wrapper = shallow(<GceCloneServerGroupModal {...props} />, { disableLifecycleMethods: true } as any);
     const modal = wrapper.instance() as any;
     const wizard = wrapper.find(WizardModal);
@@ -991,13 +1060,16 @@ describe('GceCloneServerGroupModal', () => {
       go: jasmine.createSpy('go'),
       includes: jasmine.createSpy('includes').and.callFake((name: string) => name === '**.clusters'),
     };
-    spyOnProperty(AngularServices, '$state', 'get').and.returnValue(state as any);
+    props.stateService = state;
 
     modal.onTaskComplete();
 
     expect(application.serverGroups.refresh).toHaveBeenCalled();
-    expect(application.serverGroups.onNextRefresh).toHaveBeenCalledWith(null, modal.onApplicationRefresh);
-    application.serverGroups.onNextRefresh.calls.mostRecent().args[1]();
+    expect(application.serverGroups.onNextRefresh).toHaveBeenCalledWith(modal.onApplicationRefresh);
+    expect(application.serverGroups.onNextRefresh.calls.first().invocationOrder).toBeLessThan(
+      application.serverGroups.refresh.calls.first().invocationOrder,
+    );
+    application.serverGroups.onNextRefresh.calls.mostRecent().args[0]();
     expect(state.go).toHaveBeenCalledWith('.serverGroup', {
       accountId: 'gce-account',
       provider: 'gce',
@@ -1018,15 +1090,48 @@ describe('GceCloneServerGroupModal', () => {
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it('unsubscribes from the application refresh when unmounted', () => {
+  it('ignores a late application refresh after unmount', () => {
     const unsubscribe = jasmine.createSpy('unsubscribe');
-    application.serverGroups.onNextRefresh.and.returnValue(unsubscribe);
-    const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
+    let refreshCallback: (() => void) | undefined;
+    application.serverGroups.onNextRefresh.and.callFake((callback: () => void) => {
+      refreshCallback = callback;
+      return unsubscribe;
+    });
+    const props = buildProps(buildCommand({ credentials: 'gce-account', region: 'us-central1' }));
+    const modal = new GceCloneServerGroupModal(props) as any;
+    modal.state.taskMonitor.task = {
+      execution: {
+        stages: [
+          {
+            context: { 'deploy.server.groups': { 'us-central1': 'fnord-main-api-v042' } },
+            type: 'cloneServerGroup',
+          },
+        ],
+      },
+    };
 
     modal.onTaskComplete();
     modal.componentWillUnmount();
+    refreshCallback!();
 
     expect(unsubscribe).toHaveBeenCalledTimes(1);
+    expect(modal.applicationRefreshUnsubscribe).toBeUndefined();
+    expect(props.stateService.go).not.toHaveBeenCalled();
+    expect(props.closeModal).not.toHaveBeenCalled();
+    expect(props.dismissModal).not.toHaveBeenCalled();
+  });
+
+  it('unsubscribes from a pending application refresh before replacing it', () => {
+    const firstUnsubscribe = jasmine.createSpy('firstUnsubscribe');
+    const secondUnsubscribe = jasmine.createSpy('secondUnsubscribe');
+    application.serverGroups.onNextRefresh.and.returnValues(firstUnsubscribe, secondUnsubscribe);
+    const modal = new GceCloneServerGroupModal(buildProps(buildCommand())) as any;
+
+    modal.onTaskComplete();
+    modal.onTaskComplete();
+
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(secondUnsubscribe).not.toHaveBeenCalled();
   });
 });
 
@@ -1080,6 +1185,9 @@ function buildProps(command: IGceServerGroupCommand, adapter?: IGceServerGroupWi
     closeModal: jasmine.createSpy('closeModal'),
     command,
     dismissModal: jasmine.createSpy('dismissModal'),
+    router: {},
+    stateParams: {},
+    stateService: { go: jasmine.createSpy('go'), includes: () => false },
     title: 'Configure GCE server group',
   };
 }

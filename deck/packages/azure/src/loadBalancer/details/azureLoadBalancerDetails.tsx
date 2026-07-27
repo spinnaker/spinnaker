@@ -20,10 +20,10 @@ import {
   CopyToClipboard,
   FirewallLabels,
   HealthCounts,
-  LoadBalancerReader,
   LoadBalancerWriter,
   timestamp,
   useDataSource,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { AzureLoadBalancerModal } from '../configure/AzureLoadBalancerModal';
@@ -34,7 +34,7 @@ interface ILoadAzureLoadBalancerDetailsProps {
   loadBalancers?: ILoadBalancer[];
   loadBalancerParams: IAzureLoadBalancerStateParams;
   loadBalancerReader: LoadBalancerReaderType;
-  securityGroupReader?: SecurityGroupReader;
+  securityGroupReader: SecurityGroupReader;
 }
 
 interface IAzureLoadBalancerStateParams {
@@ -43,8 +43,6 @@ interface IAzureLoadBalancerStateParams {
   provider: string;
   region: string;
 }
-
-const loadBalancerReader = new LoadBalancerReader(null, null);
 
 function formatLoadBalancerType(loadBalancerType: string): string {
   if (!loadBalancerType?.includes('_')) {
@@ -64,7 +62,7 @@ function resolveSecurityGroups(
   app: Application,
   loadBalancer: ILoadBalancer,
   loadBalancerParams: IAzureLoadBalancerStateParams,
-  securityGroupReader?: SecurityGroupReader,
+  securityGroupReader: SecurityGroupReader,
 ): any[] {
   const securityGroupIds = loadBalancer.elb?.securityGroups || loadBalancer.securityGroups || [];
   if (!securityGroupIds.length) {
@@ -72,17 +70,14 @@ function resolveSecurityGroups(
   }
 
   return securityGroupIds
-    .map((securityGroupId: string) => {
-      if (securityGroupReader) {
-        return securityGroupReader.getApplicationSecurityGroup(
-          app,
-          loadBalancerParams.accountId,
-          loadBalancerParams.region,
-          securityGroupId,
-        );
-      }
-      return app['securityGroupsIndex']?.[loadBalancerParams.accountId]?.[loadBalancerParams.region]?.[securityGroupId];
-    })
+    .map((securityGroupId: string) =>
+      securityGroupReader.getApplicationSecurityGroup(
+        app,
+        loadBalancerParams.accountId,
+        loadBalancerParams.region,
+        securityGroupId,
+      ),
+    )
     .filter(Boolean)
     .sort((a: any, b: any) => a.name.localeCompare(b.name));
 }
@@ -137,12 +132,31 @@ export function useAzureLoadBalancerDetails({
   const azureLoadBalancerParams = loadBalancerParams as IAzureLoadBalancerStateParams;
   const dataSource = app.getDataSource('loadBalancers');
   const { data: loadBalancers, loaded, refresh, error } = useDataSource<ILoadBalancer[]>(dataSource);
+  const { loadBalancerReader, securityGroupReader } = useDeckRuntimeServices();
   const [data, setData] = React.useState<ILoadBalancer>();
   const [loadingDetails, setLoadingDetails] = React.useState(false);
   const [detailsError, setDetailsError] = React.useState<string | null>(null);
+  const autoCloseRef = React.useRef(autoClose);
+  const isMountedRef = React.useRef(true);
+  const requestGenerationRef = React.useRef(0);
+  const { accountId, name, provider, region } = azureLoadBalancerParams;
+
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    autoCloseRef.current = autoClose;
+  }, [autoClose]);
 
   const loadDetails = React.useCallback(async () => {
+    const requestGeneration = ++requestGenerationRef.current;
     if (!loaded || error) {
+      if (isMountedRef.current) {
+        setLoadingDetails(false);
+      }
       return;
     }
 
@@ -151,18 +165,25 @@ export function useAzureLoadBalancerDetails({
     try {
       const loadBalancer = await loadAzureLoadBalancerDetails({
         app,
-        loadBalancerParams: azureLoadBalancerParams,
+        loadBalancerParams: { accountId, name, provider, region },
         loadBalancers,
-        autoClose,
+        autoClose: () => autoCloseRef.current(),
         loadBalancerReader,
+        securityGroupReader,
       });
-      setData(loadBalancer);
+      if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+        setData(loadBalancer);
+      }
     } catch (e) {
-      setDetailsError(e?.message || String(e));
+      if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+        setDetailsError(e?.message || String(e));
+      }
     } finally {
-      setLoadingDetails(false);
+      if (isMountedRef.current && requestGeneration === requestGenerationRef.current) {
+        setLoadingDetails(false);
+      }
     }
-  }, [app, autoClose, azureLoadBalancerParams, error, loadBalancers, loaded]);
+  }, [accountId, app, error, loadBalancerReader, loadBalancers, loaded, name, provider, region, securityGroupReader]);
 
   React.useEffect(() => {
     loadDetails();

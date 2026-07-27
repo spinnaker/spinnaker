@@ -114,7 +114,7 @@ configurations {
 dependencies {
   implementation project(":kayenta-core")
 
-  api 'com.signalfx.public:signalfx-java:1.0.5'
+  api 'com.signalfx.public:signalfx-java:1.0.49'
 
   testImplementation project(":kayenta-standalone-canary-analysis")
   testImplementation "com.squareup.retrofit2:converter-jackson"

@@ -1,20 +1,21 @@
 import classNames from 'classnames';
 import { has } from 'lodash';
-import { $interpolate } from 'ngimport';
 import React from 'react';
 import type { Subscription } from 'rxjs';
 import { merge } from 'rxjs/operators';
 
 import { ServerGroupHeader } from './ServerGroupHeader';
-import { AngularServices } from '../angular/services';
 import type { Application } from '../application';
 import { SETTINGS } from '../config';
 import type { IInstance, IServerGroup } from '../domain';
 import type { ISortFilter } from '../filterModel';
 import { InstanceList } from '../instance/InstanceList';
 import { Instances } from '../instance/Instances';
+import type { IRouterInjectedProps } from '../navigation/routerContext';
+import { stateChangeSuccess$, withRouter } from '../navigation/routerContext';
 import { ClusterState } from '../state';
 import { logger, ScrollToService } from '../utils';
+import { interpolate } from '../utils/interpolate';
 
 export interface IJenkinsViewModel {
   number: number;
@@ -48,11 +49,11 @@ export interface IServerGroupState {
   isMultiSelected: boolean; // multiselect mode
 }
 
-export class ServerGroup extends React.Component<IServerGroupProps, IServerGroupState> {
+export class ServerGroupComponent extends React.Component<IServerGroupProps & IRouterInjectedProps, IServerGroupState> {
   private stateChangeSubscription: Subscription;
   private serverGroupsSubscription: Subscription;
 
-  constructor(props: IServerGroupProps) {
+  constructor(props: IServerGroupProps & IRouterInjectedProps) {
     super(props);
     this.state = this.getState(props);
   }
@@ -87,7 +88,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
         tag: dockerConfig.tag,
         image: dockerConfig.image,
         href:
-          $interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
+          interpolate(SETTINGS.dockerInsights.url)(serverGroup) +
           'images/' +
           encodeURIComponent(dockerConfig.image) +
           '/' +
@@ -124,7 +125,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
       provider: serverGroup.type,
     };
 
-    return AngularServices.$state.includes('**.serverGroup', params);
+    return this.props.stateService.includes('**.serverGroup', params);
   }
 
   private isMultiSelected(multiselect: boolean, serverGroup: IServerGroup) {
@@ -134,8 +135,6 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
   private onServerGroupsChanged = () => {
     const isMultiSelected = this.isMultiSelected(this.props.sortFilter.multiselect, this.props.serverGroup);
     this.setState({ isMultiSelected });
-    // Enables the (angular) details pane to detect the changes
-    AngularServices.$rootScope.$applyAsync(() => false);
   };
 
   private onStateChanged = () => {
@@ -148,7 +147,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     this.serverGroupsSubscription = serverGroupsStream
       .pipe(merge(instancesStream))
       .subscribe(this.onServerGroupsChanged);
-    this.stateChangeSubscription = AngularServices.$uiRouter.globals.success$.subscribe(this.onStateChanged);
+    this.stateChangeSubscription = stateChangeSuccess$(this.props.router).subscribe(this.onStateChanged);
     this.onStateChanged();
   }
 
@@ -157,7 +156,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     this.serverGroupsSubscription.unsubscribe();
   }
 
-  public componentWillReceiveProps(nextProps: IServerGroupProps) {
+  public componentWillReceiveProps(nextProps: IServerGroupProps & IRouterInjectedProps) {
     this.setState(this.getState(nextProps));
   }
 
@@ -231,3 +230,5 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
     );
   }
 }
+
+export const ServerGroup = withRouter(ServerGroupComponent);

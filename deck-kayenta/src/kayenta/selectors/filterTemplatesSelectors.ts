@@ -4,7 +4,7 @@ import {
   getPrometheusQueryType,
   prometheusQueryTypeToTransformFunction,
 } from 'kayenta/metricStore/prometheus/queryTypeSelectors';
-import { ICanaryState } from 'kayenta/reducers';
+import type { ICanaryState } from 'kayenta/reducers';
 import {
   configTemplatesSelector,
   editingMetricSelector,

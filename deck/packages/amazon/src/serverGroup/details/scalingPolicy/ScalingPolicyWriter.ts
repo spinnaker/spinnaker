@@ -67,10 +67,7 @@ export interface IUpsertAlarmDescription extends IConfigurableMetric {
 }
 
 export class ScalingPolicyWriter {
-  public static upsertScalingPolicy(
-    application: Application,
-    command: IUpsertScalingPolicyCommand,
-  ): PromiseLike<ITask> {
+  public static upsertScalingPolicy(application: Application, command: IUpsertScalingPolicyCommand): Promise<ITask> {
     command.type = command.type || 'upsertScalingPolicy';
     return TaskExecutor.executeTask({
       application,
@@ -83,7 +80,7 @@ export class ScalingPolicyWriter {
     application: Application,
     serverGroup: IServerGroup,
     scalingPolicy: IScalingPolicy,
-  ): PromiseLike<ITask> {
+  ): Promise<ITask> {
     return TaskExecutor.executeTask({
       application,
       description: 'Delete scaling policy ' + scalingPolicy.policyName,

@@ -1,7 +1,7 @@
 import { CloudProviderRegistry, Registry } from '@spinnaker/core';
 
+import './index';
 import { OracleImageReader } from './image/image.reader';
-import * as oraclePackage from './index';
 import { OracleLoadBalancerTransformer } from './loadBalancer/loadBalancer.transformer';
 import { registerOraclePipelineStages } from './oracle.provider';
 import { OracleSecurityGroupReader } from './securityGroup/securityGroup.reader';
@@ -11,9 +11,7 @@ import { OracleServerGroupConfigurationService } from './serverGroup/configure/s
 import { OracleServerGroupTransformer } from './serverGroup/serverGroup.transformer';
 
 describe('Oracle provider registration', () => {
-  it('registers direct provider delegates without exporting an Angular module token', () => {
-    expect((oraclePackage as any)['ORACLE' + '_MODULE']).toBeUndefined();
-
+  it('registers provider delegates', () => {
     expect(CloudProviderRegistry.getValue('oracle', 'image.reader')).toBe(OracleImageReader);
     expect(CloudProviderRegistry.getValue('oracle', 'loadBalancer.transformer')).toBe(OracleLoadBalancerTransformer);
     expect(CloudProviderRegistry.getValue('oracle', 'serverGroup.transformer')).toBe(OracleServerGroupTransformer);

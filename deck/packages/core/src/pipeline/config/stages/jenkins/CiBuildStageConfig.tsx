@@ -166,7 +166,6 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
 
   private renderJobField(stage: any) {
     const jobIsParameterized = this.isParameterized(stage.job);
-    const jobs = this.shouldFilter() ? this.state.jobs.slice(0, this.filterLimit) : this.state.jobs;
     return (
       <StageConfigField label={this.props.jobLabel || 'Job'}>
         {!stage.master && <p className="form-control-static">(Select a build service)</p>}
@@ -178,7 +177,8 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
             <Select
               value={stage.job}
               placeholder={this.shouldFilter() ? 'Start typing...' : this.props.jobPlaceholder || 'Select a job...'}
-              options={jobs.map((job) => ({ label: job, value: job }))}
+              options={this.state.jobs.map((job) => ({ label: job, value: job }))}
+              filterOptions={this.shouldFilter() ? this.filterJobOptions : undefined}
               onChange={this.onJobChanged}
               clearable={false}
             />
@@ -459,6 +459,13 @@ export class CiBuildStageConfig extends React.Component<ICiBuildStageConfigProps
   private shouldFilter(): boolean {
     return this.state.jobs && this.state.jobs.length >= this.filterThreshold;
   }
+
+  private filterJobOptions = (options: Array<Option<string>>, filter: string): Array<Option<string>> => {
+    const normalizedFilter = filter.toLowerCase();
+    return options
+      .filter((option) => option.label?.toLowerCase().includes(normalizedFilter))
+      .slice(0, this.filterLimit);
+  };
 
   private isParameterized(value: string): boolean {
     return !!value && value.includes('${');

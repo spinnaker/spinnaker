@@ -1,13 +1,19 @@
 import { isEqual } from 'lodash';
 import React from 'react';
-import { AngularServices } from '../../../../angular/services';
 
+import type { IDeckRuntimeServicesInjectedProps } from '../../../../bootstrap/DeckRuntimeContext';
+import { withDeckRuntimeServices } from '../../../../bootstrap/DeckRuntimeContext';
 import { ExecutionDetailsSectionNav } from '../../../details';
 import type { IExecutionDetailsProps, IExecutionDetailsState } from '../../../../domain';
+import type { IRouterInjectedProps } from '../../../../navigation/routerContext';
+import { withRouter } from '../../../../navigation/routerContext';
 import { SpinErrorBoundary } from '../../../../presentation';
 
-export class StepExecutionDetails extends React.Component<IExecutionDetailsProps, IExecutionDetailsState> {
-  constructor(props: IExecutionDetailsProps) {
+export class StepExecutionDetailsComponent extends React.Component<
+  IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  IExecutionDetailsState
+> {
+  constructor(props: IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps) {
     super(props);
     this.state = {
       configSections: this.getDetailsSections(props).map((s) => s.title),
@@ -19,16 +25,19 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
     return props.detailsSections.filter((section) => !section.shouldShow || section.shouldShow(props));
   }
 
-  public updateCurrentSection(): void {
-    const currentSection = AngularServices.$stateParams.details;
+  public updateCurrentSection(props: IExecutionDetailsProps & IRouterInjectedProps = this.props): void {
+    const currentSection = props.stateParams.details;
     if (this.state.currentSection !== currentSection) {
       this.setState({ currentSection });
     }
   }
 
-  public syncDetails(configSections: string[]): void {
-    AngularServices.executionDetailsSectionService.synchronizeSection(configSections, () =>
-      this.updateCurrentSection(),
+  public syncDetails(
+    configSections: string[],
+    props: IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps = this.props,
+  ): void {
+    props.deckRuntimeServices.executionDetailsSectionService.synchronizeSection(configSections, () =>
+      this.updateCurrentSection(props),
     );
   }
 
@@ -36,14 +45,15 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
     this.syncDetails(this.state.configSections);
   }
 
-  public componentWillReceiveProps(nextProps: IExecutionDetailsProps): void {
+  public componentWillReceiveProps(
+    nextProps: IExecutionDetailsProps & IRouterInjectedProps & IDeckRuntimeServicesInjectedProps,
+  ): void {
     const configSections = this.getDetailsSections(nextProps).map((s) => s.title);
     if (!isEqual(this.state.configSections, configSections)) {
       this.setState({ configSections });
-      this.syncDetails(configSections);
-    } else {
-      this.updateCurrentSection();
+      this.syncDetails(configSections, nextProps);
     }
+    this.updateCurrentSection(nextProps);
   }
 
   public render() {
@@ -61,3 +71,5 @@ export class StepExecutionDetails extends React.Component<IExecutionDetailsProps
     );
   }
 }
+
+export const StepExecutionDetails = withDeckRuntimeServices(withRouter(StepExecutionDetailsComponent));

@@ -45,7 +45,7 @@ import { AmazonSecurityGroupDetails } from './securityGroup/details/AmazonSecuri
 import { AwsSecurityGroupReader } from './securityGroup/securityGroup.reader';
 import { AwsSecurityGroupTransformer } from './securityGroup/securityGroup.transformer';
 import { AwsServerGroupCommandBuilder } from './serverGroup/configure/serverGroupCommandBuilder.service';
-import { AwsServerGroupConfigurationService } from './serverGroup/configure/serverGroupConfiguration.service';
+import { AwsServerGroupConfigurationServiceDelegate } from './serverGroup/configure/serverGroupConfiguration.service';
 import { AmazonCloneServerGroupModal } from './serverGroup/configure/wizard/AmazonCloneServerGroupModal';
 import { AmazonServerGroupActions } from './serverGroup/details/AmazonServerGroupActions';
 import { amazonServerGroupDetailsGetter } from './serverGroup/details/amazonServerGroupDetailsGetter';
@@ -82,6 +82,13 @@ export function registerAmazonProvider(): void {
     logo: {
       path: amazonLogo,
     },
+    applicationProviderFields: [
+      {
+        field: 'useAmiBlockDeviceMappings',
+        label: 'Prefer AMI Block Device Mappings',
+        type: 'boolean',
+      },
+    ],
     image: {
       reader: AwsImageReader,
     },
@@ -107,7 +114,7 @@ export function registerAmazonProvider(): void {
       ],
       CloneServerGroupModal: AmazonCloneServerGroupModal,
       commandBuilder: AwsServerGroupCommandBuilder,
-      configurationService: AwsServerGroupConfigurationService,
+      configurationService: AwsServerGroupConfigurationServiceDelegate,
       instanceTypeService: AwsInstanceTypeService,
       scalingActivitiesEnabled: true,
       TargetTrackingChart,

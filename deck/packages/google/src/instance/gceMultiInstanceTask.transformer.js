@@ -1,8 +1,5 @@
 'use strict';
 
-export const GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER =
-  'spinnaker.google.instance.multiInstance.task.transformer';
-export const name = GOOGLE_INSTANCE_GCEMULTIINSTANCETASK_TRANSFORMER; // for backwards compatibility
 const transformers = {
   rebootInstances: (job) => {
     job.interestingHealthProviderNames = [];

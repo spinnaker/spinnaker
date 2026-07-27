@@ -1,14 +1,13 @@
 import { Registry } from '@spinnaker/core';
 
-import { AmazonStageConfig } from '../AmazonStageConfig';
+import { ModifyScalingProcessStageConfig } from './ModifyScalingProcessStageConfig';
 
 export const awsModifyScalingProcessStage = {
   label: 'Modify Scaling Process',
   description: 'Suspend/Resume Scaling Processes',
   key: 'modifyAwsScalingProcess',
   alias: 'modifyScalingProcess',
-  component: AmazonStageConfig,
-  executionConfigSections: ['modifyScalingProcessesConfig', 'taskStatus'],
+  component: ModifyScalingProcessStageConfig,
   validators: [
     { type: 'requiredField', fieldName: 'cluster' },
     { type: 'requiredField', fieldName: 'target' },

@@ -9,19 +9,19 @@ import type { IAccountDetails, IStageConfigProps } from '@spinnaker/core';
 import {
   AccountService,
   AccountTag,
-  AngularServices,
   AppListExtractor,
   CloudProviderRegistry,
   logger,
   MapEditor,
   ProviderSelectionService,
   StageConfigField,
+  useDeckRuntimeServices,
 } from '@spinnaker/core';
 
 import { AnalysisType } from './AnalysisType';
 import { ForAnalysisType } from './ForAnalysisType';
 import { KayentaStageConfigSection } from './KayentaStageConfigSection';
-import type { IKayentaStageConfigModel } from './kayentaStageConfig.model';
+import type { IKayentaServerGroupModalDependencies, IKayentaStageConfigModel } from './kayentaStageConfig.model';
 import {
   addPair,
   createInitialKayentaStageConfigModel,
@@ -43,6 +43,8 @@ import {
 import './kayentaStage.less';
 
 export function KayentaCanaryStageConfig({ application, stage, updateStage }: IStageConfigProps) {
+  const runtimeServices = useDeckRuntimeServices();
+  const { serverGroupCommandBuilder, serverGroupTransformer } = runtimeServices;
   const kayentaStage = (stage as unknown) as IKayentaStage;
   const [model, setModel] = useState<IKayentaStageConfigModel>(() => {
     const initialModel = createInitialKayentaStageConfigModel();
@@ -832,14 +834,14 @@ export function KayentaCanaryStageConfig({ application, stage, updateStage }: IS
     }
   }
 
-  function modalDependencies() {
+  function modalDependencies(): IKayentaServerGroupModalDependencies {
     return {
       application,
       cloudProviderRegistry: CloudProviderRegistry,
       providerSelectionService: ProviderSelectionService,
-      serverGroupCommandBuilder: AngularServices.serverGroupCommandBuilder,
-      serverGroupTransformer: AngularServices.serverGroupTransformer,
-      $uibModal: AngularServices.$uibModal,
+      serverGroupCommandBuilder,
+      serverGroupTransformer,
+      runtimeServices,
     };
   }
 

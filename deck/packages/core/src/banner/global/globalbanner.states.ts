@@ -12,32 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { module } from 'angular';
-
 import { GlobalBannerAdminPageContainer } from './GlobalBannerAdminPageContainer';
-import type { INestedState, StateConfigProvider } from '../../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../../navigation/state.provider';
+import { registerRootState } from '../../navigation/rootState.registration';
+import type { INestedState } from '../../navigation/state.provider';
 
-export const GLOBALBANNER_STATES = 'spinnaker.core.globalbanner.states';
-module(GLOBALBANNER_STATES, [STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  (stateConfigProvider: StateConfigProvider) => {
-    const globalBanners: INestedState = {
-      name: 'globalBanners',
-      url: '/global-banners',
-      views: {
-        'main@': {
-          component: GlobalBannerAdminPageContainer,
-          $type: 'react',
-        },
+registerRootState((stateConfigProvider) => {
+  const globalBanners: INestedState = {
+    name: 'globalBanners',
+    url: '/global-banners',
+    views: {
+      'main@': {
+        component: GlobalBannerAdminPageContainer,
+        $type: 'react',
       },
-      data: {
-        pageTitleMain: {
-          label: 'Global Banners',
-        },
+    },
+    data: {
+      pageTitleMain: {
+        label: 'Global Banners',
       },
-    };
+    },
+  };
 
-    stateConfigProvider.addToRootState(globalBanners);
-  },
-]);
+  stateConfigProvider.addToRootState(globalBanners);
+});

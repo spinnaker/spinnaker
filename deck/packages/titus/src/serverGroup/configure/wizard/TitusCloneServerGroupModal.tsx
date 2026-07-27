@@ -2,15 +2,22 @@ import { get, isEqual } from 'lodash';
 import React from 'react';
 
 import { ServerGroupCapacity, ServerGroupLoadBalancers, ServerGroupSecurityGroups } from '@spinnaker/amazon';
-import type { Application, IModalComponentProps, IStage } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  IStage,
+} from '@spinnaker/core';
 import {
   AccountTag,
-  AngularServices,
+  DeckRuntimeContext,
   DeployInitializer,
   FirewallLabels,
   noop,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -18,10 +25,8 @@ import {
 import { ServerGroupBasicSettings, ServerGroupParameters, ServerGroupResources } from './pages';
 import { JobDisruptionBudget } from './pages/disruptionBudget/JobDisruptionBudget';
 import type { ITitusServerGroupCommand } from '../serverGroupConfiguration.service';
-import {
-  getDefaultJobDisruptionBudgetForApp,
-  getTitusServerGroupConfigurationService,
-} from '../serverGroupConfiguration.service';
+import { getDefaultJobDisruptionBudgetForApp } from '../serverGroupConfiguration.service';
+import type { TitusServerGroupConfigurationService } from '../serverGroupConfiguration.service';
 
 export interface ITitusCloneServerGroupModalProps extends IModalComponentProps {
   title: string;
@@ -36,31 +41,33 @@ export interface ITitusCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class TitusCloneServerGroupModal extends React.Component<
-  ITitusCloneServerGroupModalProps,
+export class TitusCloneServerGroupModalComponent extends React.Component<
+  ITitusCloneServerGroupModalProps & IRouterInjectedProps,
   ITitusCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ITitusCloneServerGroupModalProps> = {
     closeModal: noop,
     dismissModal: noop,
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
 
-  public static show(props: ITitusCloneServerGroupModalProps): Promise<ITitusServerGroupCommand> {
+  public static show(
+    props: ITitusCloneServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<ITitusServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(TitusCloneServerGroupModal, props, modalProps);
+    return ReactModal.show(TitusCloneServerGroupModal, props, modalProps, runtimeServices);
   }
 
-  constructor(props: ITitusCloneServerGroupModalProps) {
+  constructor(props: ITitusCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
 
     const requiresTemplateSelection = get(props, 'command.viewState.requiresTemplateSelection', false);
-    if (!requiresTemplateSelection) {
-      this.configureCommand();
-    }
-
     this.state = {
       firewallsLabel: FirewallLabels.get('Firewalls'),
       loaded: false,
@@ -68,10 +75,16 @@ export class TitusCloneServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
+  }
+
+  public componentDidMount(): void {
+    if (!this.state.requiresTemplateSelection) {
+      this.configureCommand();
+    }
   }
 
   private templateSelected = () => {
@@ -80,11 +93,13 @@ export class TitusCloneServerGroupModal extends React.Component<
   };
 
   private onTaskComplete = () => {
+    this.clearRefreshSubscription();
+    this.refreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   protected onApplicationRefresh = (): void => {
+    this.clearRefreshSubscription();
     if (this._isUnmounted) {
       return;
     }
@@ -102,26 +117,28 @@ export class TitusCloneServerGroupModal extends React.Component<
           provider: 'titus',
         };
         let transitionTo = '^.^.^.clusters.serverGroup';
-        if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.serverGroup')) {
           // clone via details, all view
           transitionTo = '^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+        if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
           // clone or create with details open
           transitionTo = '^.^.serverGroup';
         }
-        if (AngularServices.$state.includes('**.clusters')) {
+        if (this.props.stateService.includes('**.clusters')) {
           // create new, no details open
           transitionTo = '.serverGroup';
         }
-        AngularServices.$state.go(transitionTo, newStateParams);
+        this.props.stateService.go(transitionTo, newStateParams);
       }
     }
   };
 
   private configureCommand = () => {
     const { command } = this.props;
-    const configurationService = getTitusServerGroupConfigurationService();
+    const configurationService = this.context.services.providerServiceDelegate.getDelegate<
+      TitusServerGroupConfigurationService
+    >('titus', 'serverGroup.configurationService');
     configurationService.configureCommand(command).then(() => {
       configurationService.configureSubnets(command);
       if (!command.credentials.includes('${')) {
@@ -134,10 +151,13 @@ export class TitusCloneServerGroupModal extends React.Component<
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.clearRefreshSubscription();
   }
+
+  private clearRefreshSubscription = (): void => {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+  };
 
   private submit = (command: ITitusServerGroupCommand): void => {
     const forPipelineConfig = command.viewState.mode === 'editPipeline' || command.viewState.mode === 'createPipeline';
@@ -154,7 +174,7 @@ export class TitusCloneServerGroupModal extends React.Component<
       this.props.closeModal && this.props.closeModal(toSubmit);
     } else {
       this.state.taskMonitor.submit(() =>
-        AngularServices.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
+        this.context.services.serverGroupWriter.cloneServerGroup(toSubmit, this.props.application),
       );
     }
   };
@@ -294,3 +314,8 @@ export class TitusCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const TitusCloneServerGroupModal = Object.assign(
+  withRouter<ITitusCloneServerGroupModalProps & IRouterInjectedProps>(TitusCloneServerGroupModalComponent),
+  { show: TitusCloneServerGroupModalComponent.show },
+);

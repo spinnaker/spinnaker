@@ -1,5 +1,4 @@
 import { uniq } from 'lodash';
-import { $q } from 'ngimport';
 
 import type { ICloudProviderConfig } from '../CloudProviderRegistry';
 import { CloudProviderRegistry } from '../CloudProviderRegistry';
@@ -22,7 +21,7 @@ export class ProviderSelectionService {
     application: Application,
     feature: string,
     filterFn?: IProviderSelectionFilter,
-  ): PromiseLike<string> {
+  ): Promise<string> {
     return AccountService.applicationAccounts(application).then((accounts: IAccountDetails[]) => {
       let reducedAccounts: IAccountDetails[] = [];
       if (feature) {
@@ -62,17 +61,17 @@ export class ProviderSelectionService {
       if (providerOptions.length > 1) {
         return ProviderSelectionModal.show({ providerOptions });
       } else if (providerOptions.length === 1) {
-        provider = $q.when(providerOptions[0]);
+        provider = Promise.resolve(providerOptions[0]);
       } else if (filterFn) {
-        provider = $q.reject(new Error(`No providers support ${feature} for this action.`));
+        provider = Promise.reject(new Error(`No providers support ${feature} for this action.`));
       } else {
-        provider = $q.when(SETTINGS.defaultProvider || 'aws');
+        provider = Promise.resolve(SETTINGS.defaultProvider || 'aws');
       }
       return provider;
     });
   }
 
-  public static isDisabled(app: Application): PromiseLike<boolean> {
+  public static isDisabled(app: Application): Promise<boolean> {
     return AccountService.applicationAccounts(app).then((accounts: IAccountDetails[]) => {
       let isDisable = false;
       const cloudProvidersEnabled = accounts.filter((a) => {

@@ -75,11 +75,11 @@ export class AwsInstanceTypeService {
     burstablePerf: ['t2', 't3', 't3a', 't4g'],
   };
 
-  public getCategories(): PromiseLike<IAmazonInstanceTypeCategory[]> {
+  public getCategories(): Promise<IAmazonInstanceTypeCategory[]> {
     return Promise.resolve(categories);
   }
 
-  public getAllTypesByRegion(): PromiseLike<IAmazonInstanceTypesByRegion> {
+  public getAllTypesByRegion(): Promise<IAmazonInstanceTypesByRegion> {
     return REST('/instanceTypes')
       .get()
       .then(function (types) {

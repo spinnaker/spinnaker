@@ -10,7 +10,6 @@ Registry.pipeline.registerStage({
   key: 'rollbackCluster',
   cloudProvider: 'cloudfoundry',
   component: CloudFoundryRollbackClusterStageConfig,
-  controller: 'cfRollbackClusterStageCtrl',
   validators: [
     { type: 'requiredField', preventSave: true, fieldName: 'cluster' },
     { type: 'requiredField', preventSave: true, fieldName: 'regions' },

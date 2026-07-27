@@ -10,7 +10,7 @@ export interface INetwork {
 }
 
 export class NetworkReader {
-  public static listNetworks(): PromiseLike<INetwork[]> {
+  public static listNetworks(): Promise<INetwork[]> {
     return REST('/networks').get();
   }
 

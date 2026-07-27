@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-import { AccountService, AngularServices, InfrastructureCaches, NetworkReader, SubnetReader } from '@spinnaker/core';
+import { AccountService, InfrastructureCaches, NetworkReader, SubnetReader } from '@spinnaker/core';
 
 import { GCEProviderSettings } from '../../gce.settings';
 import { GceHealthCheckReader } from '../../healthCheck/healthCheck.read.service';
@@ -19,10 +19,15 @@ export const GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE =
   'spinnaker.serverGroup.configure.gce.configuration.service';
 export const name = GOOGLE_SERVERGROUP_CONFIGURE_SERVERGROUPCONFIGURATION_SERVICE; // for backwards compatibility
 export class GceServerGroupConfigurationService {
-  constructor($q = { all: (values) => Promise.all(values), when: (value) => Promise.resolve(value) }) {
-    const securityGroupReader = () => AngularServices.securityGroupReader;
-    const gceInstanceTypeService = new GceInstanceTypeService($q);
-    const loadBalancerReader = () => AngularServices.loadBalancerReader;
+  static requiresDeckRuntimeServices = true;
+
+  constructor(
+    promiseService = { all: (values) => Promise.all(values), resolve: (value) => Promise.resolve(value) },
+    runtimeServices,
+  ) {
+    const securityGroupReader = runtimeServices.securityGroupReader;
+    const loadBalancerReader = runtimeServices.loadBalancerReader;
+    const gceInstanceTypeService = new GceInstanceTypeService(promiseService);
     const gceCustomInstanceBuilderService = new GceCustomInstanceBuilderService();
     const gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
     const gceHealthCheckReader = new GceHealthCheckReader();
@@ -56,17 +61,17 @@ export class GceServerGroupConfigurationService {
     ];
 
     function configureCommand(application, command) {
-      return $q
+      return promiseService
         .all([
           AccountService.getCredentialsKeyedByAccount('gce'),
-          securityGroupReader().getAllSecurityGroups(),
+          securityGroupReader.getAllSecurityGroups(),
           NetworkReader.listNetworksByProvider('gce'),
           SubnetReader.listSubnetsByProvider('gce'),
-          loadBalancerReader().listLoadBalancers('gce'),
+          loadBalancerReader.listLoadBalancers('gce'),
           loadAllImages(command.credentials),
           gceInstanceTypeService.getAllTypesByRegion(),
-          $q.when(_.cloneDeep(persistentDiskTypes)),
-          $q.when(_.cloneDeep(authScopes)),
+          promiseService.resolve(_.cloneDeep(persistentDiskTypes)),
+          promiseService.resolve(_.cloneDeep(authScopes)),
           gceHealthCheckReader.listHealthChecks(),
           AccountService.listAccounts('gce'),
         ])
@@ -96,9 +101,9 @@ export class GceServerGroupConfigurationService {
             healthChecks,
             accounts,
           };
-          let securityGroupReloader = $q.when(null);
-          let networkReloader = $q.when(null);
-          let healthCheckReloader = $q.when(null);
+          let securityGroupReloader = promiseService.resolve(null);
+          let networkReloader = promiseService.resolve(null);
+          let healthCheckReloader = promiseService.resolve(null);
           backingData.filtered = {};
           backingData.distributionPolicyTargetShapes = getDistributionPolicyTargetShapes();
           command.backingData = backingData;
@@ -134,7 +139,7 @@ export class GceServerGroupConfigurationService {
             }
           }
 
-          return $q.all([securityGroupReloader, networkReloader, healthCheckReloader]).then(() => {
+          return promiseService.all([securityGroupReloader, networkReloader, healthCheckReloader]).then(() => {
             gceTagManager.register(command);
             attachEventHandlers(command);
           });
@@ -455,14 +460,12 @@ export class GceServerGroupConfigurationService {
     }
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
-      return loadBalancerReader()
-        .listLoadBalancers('gce')
-        .then(function (loadBalancers) {
-          command.backingData.loadBalancers = loadBalancers;
-          if (!skipCommandReconfiguration) {
-            configureLoadBalancerOptions(command);
-          }
-        });
+      return loadBalancerReader.listLoadBalancers('gce').then(function (loadBalancers) {
+        command.backingData.loadBalancers = loadBalancers;
+        if (!skipCommandReconfiguration) {
+          configureLoadBalancerOptions(command);
+        }
+      });
     }
 
     function refreshHealthChecks(command, skipCommandReconfiguration) {
@@ -559,14 +562,12 @@ export class GceServerGroupConfigurationService {
 
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
       InfrastructureCaches.clearCache('securityGroups');
-      return securityGroupReader()
-        .getAllSecurityGroups()
-        .then(function (securityGroups) {
-          command.backingData.securityGroups = securityGroups;
-          if (!skipCommandReconfiguration) {
-            configureSecurityGroupOptions(command);
-          }
-        });
+      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+        command.backingData.securityGroups = securityGroups;
+        if (!skipCommandReconfiguration) {
+          configureSecurityGroupOptions(command);
+        }
+      });
     }
 
     function getNetworkNames(command) {

@@ -1,16 +1,24 @@
 import { get, uniq, uniqBy } from 'lodash';
 import React from 'react';
 
-import type { Application, IModalComponentProps, ISubnet, IWizardPageInjectedProps } from '@spinnaker/core';
+import type {
+  Application,
+  DeckRuntimeServices,
+  IModalComponentProps,
+  IRouterInjectedProps,
+  ISubnet,
+  IWizardPageInjectedProps,
+} from '@spinnaker/core';
 import {
   AccountService,
-  AngularServices,
+  DeckRuntimeContext,
   DeployInitializer,
   NameUtils,
   noop,
   ReactModal,
   REST,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -60,14 +68,18 @@ interface IEcsCloneServerGroupModalState {
   taskMonitor: TaskMonitor;
 }
 
-export class EcsCloneServerGroupModal extends React.Component<
-  IEcsCloneServerGroupModalProps,
+export class EcsCloneServerGroupModalComponent extends React.Component<
+  IEcsCloneServerGroupModalProps & IRouterInjectedProps,
   IEcsCloneServerGroupModalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private command: IEcsServerGroupCommand;
   private configureRequest = 0;
   private formik: EcsFormikProps = null;
   private unmounted = false;
+  private applicationRefreshUnsubscribe?: () => void;
 
   public static defaultProps: Partial<IEcsCloneServerGroupModalProps> = {
     closeModal: noop,
@@ -80,12 +92,15 @@ export class EcsCloneServerGroupModal extends React.Component<
   private placementStrategyService = new PlacementStrategyService();
   private secretReader = new SecretReader();
 
-  public static show(props: IEcsCloneServerGroupModalProps): Promise<IEcsServerGroupCommand> {
+  public static show(
+    props: IEcsCloneServerGroupModalProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IEcsServerGroupCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(EcsCloneServerGroupModal, props, modalProps);
+    return ReactModal.show(EcsCloneServerGroupModal, props, modalProps, runtimeServices);
   }
 
-  constructor(props: IEcsCloneServerGroupModalProps) {
+  constructor(props: IEcsCloneServerGroupModalProps & IRouterInjectedProps) {
     super(props);
     this.ensureCommandShape(props.command);
     this.command = props.command;
@@ -96,7 +111,7 @@ export class EcsCloneServerGroupModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Creating your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: this.onTaskComplete,
       }),
     };
@@ -112,14 +127,17 @@ export class EcsCloneServerGroupModal extends React.Component<
 
   public componentWillUnmount(): void {
     this.unmounted = true;
+    this.clearApplicationRefreshSubscription();
   }
 
   private onTaskComplete = () => {
+    this.clearApplicationRefreshSubscription();
+    this.applicationRefreshUnsubscribe = this.props.application.serverGroups.onNextRefresh(this.onApplicationRefresh);
     this.props.application.serverGroups.refresh();
-    this.props.application.serverGroups.onNextRefresh(null, this.onApplicationRefresh);
   };
 
   private onApplicationRefresh = (): void => {
+    this.clearApplicationRefreshSubscription();
     if (this.unmounted) {
       return;
     }
@@ -132,21 +150,26 @@ export class EcsCloneServerGroupModal extends React.Component<
     }
 
     let transitionTo = '^.^.^.clusters.serverGroup';
-    if (AngularServices.$state.includes('**.clusters.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.serverGroup')) {
       transitionTo = '^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters.cluster.serverGroup')) {
+    if (this.props.stateService.includes('**.clusters.cluster.serverGroup')) {
       transitionTo = '^.^.serverGroup';
     }
-    if (AngularServices.$state.includes('**.clusters')) {
+    if (this.props.stateService.includes('**.clusters')) {
       transitionTo = '.serverGroup';
     }
-    AngularServices.$state.go(transitionTo, {
+    this.props.stateService.go(transitionTo, {
       accountId: command.credentials,
       provider: 'ecs',
       region: command.region,
       serverGroup: newServerGroupName,
     });
+  };
+
+  private clearApplicationRefreshSubscription = (): void => {
+    this.applicationRefreshUnsubscribe?.();
+    this.applicationRefreshUnsubscribe = undefined;
   };
 
   private templateSelected = () => {
@@ -163,7 +186,7 @@ export class EcsCloneServerGroupModal extends React.Component<
     );
   };
 
-  private configureCommand = (imageQuery = '', command = this.state.command): PromiseLike<void> => {
+  private configureCommand = (imageQuery = '', command = this.state.command): Promise<void> => {
     const request = ++this.configureRequest;
     this.ensureCommandShape(command);
     this.command = command;
@@ -181,7 +204,7 @@ export class EcsCloneServerGroupModal extends React.Component<
   };
 
   private safe<T>(promise: PromiseLike<T>, fallback: T): Promise<T> {
-    return Promise.resolve(promise as Promise<T>).catch(() => fallback);
+    return Promise.resolve(promise).catch(() => fallback);
   }
 
   private loadBackingData(
@@ -549,7 +572,7 @@ export class EcsCloneServerGroupModal extends React.Component<
       return this.props.closeModal(command);
     }
     return taskMonitor.submit(() =>
-      AngularServices.serverGroupWriter.cloneServerGroup(command as any, this.props.application),
+      this.context.services.serverGroupWriter.cloneServerGroup(command as any, this.props.application),
     );
   };
 
@@ -710,3 +733,8 @@ export class EcsCloneServerGroupModal extends React.Component<
     );
   }
 }
+
+export const EcsCloneServerGroupModal = Object.assign(
+  withRouter<IEcsCloneServerGroupModalProps & IRouterInjectedProps>(EcsCloneServerGroupModalComponent),
+  { show: EcsCloneServerGroupModalComponent.show },
+);

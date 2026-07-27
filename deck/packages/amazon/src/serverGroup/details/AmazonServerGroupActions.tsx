@@ -2,25 +2,30 @@ import { get } from 'lodash';
 import React from 'react';
 import { Dropdown, MenuItem, Tooltip } from 'react-bootstrap';
 
-import type { IOwnerOption, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
+import type { IOwnerOption, IRouterInjectedProps, IServerGroupActionsProps, IServerGroupJob } from '@spinnaker/core';
 import {
   AddEntityTagLinks,
-  AngularServices,
   ClusterTargetBuilder,
   ConfirmationModalService,
+  DeckRuntimeContext,
   ManagedMenuItem,
   Overridable,
   ServerGroupWarningMessageService,
   SETTINGS,
+  withRouter,
 } from '@spinnaker/core';
 
-import { AwsServices } from '../../aws.services';
 import { AWSProviderSettings } from '../../aws.settings';
 import type { IAmazonServerGroupCommand } from '../configure';
 import { AmazonCloneServerGroupModal } from '../configure/wizard/AmazonCloneServerGroupModal';
 import type { IAmazonServerGroup, IAmazonServerGroupView } from '../../domain';
 import type { IAmazonResizeServerGroupModalProps } from './resize/AmazonResizeServerGroupModal';
 import { AmazonResizeServerGroupModal } from './resize/AmazonResizeServerGroupModal';
+import {
+  AmazonRollbackServerGroupModal,
+  isAmazonRollbackAvailable,
+  selectAmazonRollbackServerGroups,
+} from './rollback';
 
 export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps {
   serverGroup: IAmazonServerGroupView;
@@ -28,8 +33,11 @@ export interface IAmazonServerGroupActionsProps extends IServerGroupActionsProps
 
 @Overridable('AmazonServerGroupActions.resize')
 export class AmazonServerGroupActionsResize extends React.Component<IAmazonResizeServerGroupModalProps> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private resizeServerGroup = (): void => {
-    AmazonResizeServerGroupModal.show(this.props);
+    AmazonResizeServerGroupModal.show(this.props, this.context.services);
   };
 
   public render(): JSX.Element {
@@ -37,7 +45,12 @@ export class AmazonServerGroupActionsResize extends React.Component<IAmazonResiz
   }
 }
 
-export class AmazonServerGroupActions extends React.Component<IAmazonServerGroupActionsProps> {
+export class AmazonServerGroupActionsComponent extends React.Component<
+  IAmazonServerGroupActionsProps & IRouterInjectedProps
+> {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   private isEnableLocked(): boolean {
     if (this.props.serverGroup.isDisabled) {
       const resizeTasks = (this.props.serverGroup.runningTasks || []).filter((task) =>
@@ -52,22 +65,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
 
   private isRollbackEnabled(): boolean {
     const { app, serverGroup } = this.props;
-
-    if (!serverGroup.isDisabled) {
-      // enabled server groups are always a candidate for rollback
-      return true;
-    }
-
-    // if the server group selected for rollback is disabled, ensure that at least one enabled server group exists
-    return app
-      .getDataSource('serverGroups')
-      .data.some(
-        (g: IAmazonServerGroup) =>
-          g.cluster === serverGroup.cluster &&
-          g.region === serverGroup.region &&
-          g.account === serverGroup.account &&
-          !g.isDisabled,
-      );
+    return isAmazonRollbackAvailable(app.name, serverGroup, app.getDataSource('serverGroups').data);
   }
 
   private hasDisabledInstances(): boolean {
@@ -82,14 +80,14 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
       application: app,
       title: 'Destroying ' + serverGroup.name,
       onTaskComplete: () => {
-        if (AngularServices.$state.includes('**.serverGroup', stateParams)) {
-          AngularServices.$state.go('^');
+        if (this.props.stateService.includes('**.serverGroup', stateParams)) {
+          this.props.stateService.go('^');
         }
       },
     };
 
     const submitMethod = (params: IServerGroupJob) =>
-      AngularServices.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
+      this.context.services.serverGroupWriter.destroyServerGroup(serverGroup, app, params);
 
     const stateParams = {
       name: serverGroup.name,
@@ -127,7 +125,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     const submitMethod = (params: IServerGroupJob) => {
-      return AngularServices.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
+      return this.context.services.serverGroupWriter.disableServerGroup(serverGroup, app.name, params);
     };
 
     const confirmationModalParams = {
@@ -166,7 +164,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     ConfirmationModalService.confirm(confirmationModalParams)
-      .then(() => this.showEnableServerGroupModal())
+      .then(() => this.rollbackServerGroup())
       .catch((error) => {
         // don't show the enable modal if the user cancels with the header button
         if (error?.source === 'footer') {
@@ -184,7 +182,7 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     };
 
     const submitMethod = (params: IServerGroupJob) => {
-      return AngularServices.serverGroupWriter.enableServerGroup(serverGroup, app, params);
+      return this.context.services.serverGroupWriter.enableServerGroup(serverGroup, app, params);
     };
 
     const confirmationModalParams = {
@@ -206,13 +204,26 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     ConfirmationModalService.confirm(confirmationModalParams);
   }
 
+  private rollbackServerGroup = (): void => {
+    const { app, serverGroup } = this.props;
+    const selection = selectAmazonRollbackServerGroups(
+      app.name,
+      serverGroup,
+      app.getDataSource('serverGroups').data as IAmazonServerGroup[],
+    );
+
+    if (selection) {
+      AmazonRollbackServerGroupModal.show({ application: app, ...selection }, this.context.services);
+    }
+  };
+
   private cloneServerGroup = (): void => {
     const { app, serverGroup } = this.props;
-    AwsServices.awsServerGroupCommandBuilder
+    this.context.services.serverGroupCommandBuilder
       .buildServerGroupCommandFromExisting(app, serverGroup)
       .then((command: IAmazonServerGroupCommand) => {
         const title = `Clone ${serverGroup.name}`;
-        AmazonCloneServerGroupModal.show({ title, application: app, command });
+        AmazonCloneServerGroupModal.show({ title, application: app, command }, this.context.services);
       });
   };
 
@@ -228,6 +239,12 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
           <Dropdown className="dropdown" id="server-group-actions-dropdown">
             <Dropdown.Toggle className="btn btn-sm btn-primary dropdown-toggle">Server Group Actions</Dropdown.Toggle>
             <Dropdown.Menu className="dropdown-menu">
+              {this.isRollbackEnabled() && (
+                <ManagedMenuItem resource={serverGroup} application={app} onClick={this.rollbackServerGroup}>
+                  Rollback
+                </ManagedMenuItem>
+              )}
+              {this.isRollbackEnabled() && <li role="presentation" className="divider" />}
               <AmazonServerGroupActionsResize application={app} serverGroup={serverGroup} />
               {!serverGroup.isDisabled && (
                 <ManagedMenuItem resource={serverGroup} application={app} onClick={this.disableServerGroup}>
@@ -272,3 +289,5 @@ export class AmazonServerGroupActions extends React.Component<IAmazonServerGroup
     );
   }
 }
+
+export const AmazonServerGroupActions = withRouter(AmazonServerGroupActionsComponent);

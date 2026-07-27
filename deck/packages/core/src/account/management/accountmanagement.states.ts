@@ -1,29 +1,23 @@
-import { module } from 'angular';
-
 import { AccountManagementPageContainer } from './AccountManagementPageContainer';
-import type { INestedState, StateConfigProvider } from '../../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../../navigation/state.provider';
+import { registerRootState } from '../../navigation/rootState.registration';
+import type { INestedState } from '../../navigation/state.provider';
 
-export const ACCOUNT_MANAGEMENT_STATES = 'spinnaker.core.accountManagement.states';
-module(ACCOUNT_MANAGEMENT_STATES, [STATE_CONFIG_PROVIDER]).config([
-  'stateConfigProvider',
-  (stateConfigProvider: StateConfigProvider) => {
-    const accountManagement: INestedState = {
-      name: 'accountManagement',
-      url: '/account-management',
-      views: {
-        'main@': {
-          component: AccountManagementPageContainer,
-          $type: 'react',
-        },
+registerRootState((stateConfigProvider) => {
+  const accountManagement: INestedState = {
+    name: 'accountManagement',
+    url: '/account-management',
+    views: {
+      'main@': {
+        component: AccountManagementPageContainer,
+        $type: 'react',
       },
-      data: {
-        pageTitleMain: {
-          label: 'Account Management',
-        },
+    },
+    data: {
+      pageTitleMain: {
+        label: 'Account Management',
       },
-    };
+    },
+  };
 
-    stateConfigProvider.addToRootState(accountManagement);
-  },
-]);
+  stateConfigProvider.addToRootState(accountManagement);
+});

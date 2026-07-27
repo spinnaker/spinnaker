@@ -7,16 +7,21 @@ export interface ICloudProviderLogo {
   path: string;
 }
 
+export interface IApplicationProviderField {
+  field: string;
+  label: string;
+  type: 'boolean';
+  helpKey?: string;
+}
+
 export interface ICloudProviderConfig {
   name: string;
   logo?: ICloudProviderLogo;
+  applicationProviderFields?: IApplicationProviderField[];
   [attribute: string]: any;
 }
 
 export class CloudProviderRegistry {
-  /*
-  Note: Providers don't get $log, so we stick with console statements here
-   */
   private static providers = new Map<string, ICloudProviderConfig>();
 
   public static registerProvider(cloudProvider: string, config: ICloudProviderConfig): void {

@@ -21,9 +21,6 @@ import {
   StageFailureMessage,
 } from '@spinnaker/core';
 
-export const DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE = 'spinnaker.docker.pipeline.stage.bakeStage';
-export const name = DOCKER_PIPELINE_STAGES_BAKE_DOCKERBAKESTAGE; // for backwards compatibility
-
 interface IBaseOsOption {
   id: string;
   shortDescription?: string;

@@ -4,7 +4,7 @@ import { Axis } from 'semiotic';
 
 import { vizConfig } from './config';
 import CustomAxisTickLabel from './customAxisTickLabel';
-import { IMargin } from './semiotic.service';
+import type { IMargin } from './semiotic.service';
 import * as utils from './utils';
 
 import './secondaryTSXAxis.less';

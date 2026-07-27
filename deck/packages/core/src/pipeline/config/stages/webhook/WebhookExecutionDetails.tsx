@@ -68,9 +68,7 @@ function WebhookConfigSection(props: IExecutionDetailsSectionProps) {
               Payload
             </dt>
             <dd>
-              <pre className="ng-binding" style={{ background: 'unset', border: 'unset', padding: 0 }}>
-                {payload}
-              </pre>
+              <pre style={{ background: 'unset', border: 'unset', padding: 0 }}>{payload}</pre>
             </dd>
           </dl>
           {stage.context?.waitForCompletion && (
@@ -98,15 +96,15 @@ function WebhookConfigSection(props: IExecutionDetailsSectionProps) {
       {(progressMessage || stage.status || body) && (
         <div className="well alert-info">
           <h4>Results</h4>
-          <dl className="dl-narrow dl-horizontal ng-scope">
+          <dl className="dl-narrow dl-horizontal">
             <dt>Status</dt>
-            <dd className="ng-binding">{stage.status}</dd>
+            <dd>{stage.status}</dd>
             <dt>Info</dt>
-            <dd className="ng-binding webhook-progress-message" style={{ whiteSpace: 'pre-line' }}>
+            <dd className="webhook-progress-message" style={{ whiteSpace: 'pre-line' }}>
               {renderLinkedText(progressMessage)}
             </dd>
             <dt>Code</dt>
-            <dd className="ng-binding">{statusCode}</dd>
+            <dd>{statusCode}</dd>
             <dt>
               <CopyToClipboard
                 className="copy-to-clipboard copy-to-clipboard-sm"
@@ -116,10 +114,7 @@ function WebhookConfigSection(props: IExecutionDetailsSectionProps) {
               Response
             </dt>
             <dd>
-              <pre
-                className="ng-binding"
-                style={{ background: 'unset', border: 'unset', maxHeight: 400, overflowY: 'auto', padding: 0 }}
-              >
+              <pre style={{ background: 'unset', border: 'unset', maxHeight: 400, overflowY: 'auto', padding: 0 }}>
                 {body}
               </pre>
             </dd>

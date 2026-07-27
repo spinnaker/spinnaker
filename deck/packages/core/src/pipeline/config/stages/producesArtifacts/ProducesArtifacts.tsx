@@ -1,7 +1,5 @@
-import { module } from 'angular';
 import React from 'react';
 
-import { angularComponentFromReact } from '../../../../angular/angularComponentFromReact';
 import { ArtifactTypePatterns, ExpectedArtifactModal } from '../../../../artifact';
 import type { IExpectedArtifact, IPipeline, IStage } from '../../../../domain';
 
@@ -78,9 +76,3 @@ export const ProducesArtifacts: React.SFC<IProducesArtifactsProps> = (props) => 
     </>
   );
 };
-
-export const PRODUCES_ARTIFACTS_REACT = 'spinnaker.core.pipeline.stages.produces.artifacts.react';
-module(PRODUCES_ARTIFACTS_REACT, []).component(
-  'producesArtifactsReact',
-  angularComponentFromReact(ProducesArtifacts, 'producesArtifactsReact', ['pipeline', 'stage', 'onProducesChanged']),
-);

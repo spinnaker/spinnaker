@@ -14,6 +14,7 @@ export interface IServerGroupManagerHeadingProps {
   heading: string;
   grouping: IClusterSubgroup;
   app: Application;
+  detailsHref?: string;
   onClick(event: React.MouseEvent<HTMLElement>): void;
 }
 
@@ -24,11 +25,17 @@ export const ServerGroupManagerHeading = ({
   heading,
   grouping,
   app,
+  detailsHref,
 }: IServerGroupManagerHeadingProps) => {
   const showEntityTags = SETTINGS.feature && SETTINGS.feature.entityTags;
 
   return (
-    <div className={`flex-container-h baseline server-group-title`} onClick={onClick}>
+    <a
+      className={`flex-container-h baseline server-group-title`}
+      href={detailsHref}
+      onClickCapture={onClick}
+      style={{ color: 'inherit', textDecoration: 'none' }}
+    >
       <div className="flex-container-h baseline section-title">
         <CloudProviderLogo provider={provider} height="16px" width="16px" />
         {heading}
@@ -47,6 +54,6 @@ export const ServerGroupManagerHeading = ({
       <div className="flex-container-h baseline flex-pull-right">
         <HealthCounts container={health} />
       </div>
-    </div>
+    </a>
   );
 };

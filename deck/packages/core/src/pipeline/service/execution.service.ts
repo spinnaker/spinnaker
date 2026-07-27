@@ -1,11 +1,7 @@
-import UIROUTER_ANGULARJS from '@uirouter/angularjs';
 import type { StateService } from '@uirouter/core';
-import type { IQService, ITimeoutService } from 'angular';
-import { module } from 'angular';
 import { get, identity, pickBy, uniq } from 'lodash';
 
 import { ExecutionsTransformer } from './ExecutionsTransformer';
-import { AngularServices } from '../../angular/services';
 import { REST } from '../../api/ApiService';
 import type { Application } from '../../application/application.model';
 import type { ApplicationDataSource } from '../../application/service/applicationDataSource';
@@ -18,7 +14,8 @@ import type { ISortFilter } from '../../filterModel';
 import { FilterModelService } from '../../filterModel';
 import { ExecutionState } from '../../state';
 import { JsonUtils } from '../../utils';
-import { DebugWindow } from '../../utils/consoleDebug';
+import type { CancellableTimeout } from '../../utils/cancellableTimeout';
+import { createDeferred } from '../../utils/deferred';
 import type { IRetryablePromise } from '../../utils/retryablePromise';
 import { retryablePromise } from '../../utils/retryablePromise';
 
@@ -35,14 +32,17 @@ export class ExecutionService {
     'hydrator',
     'hydrated',
     'instances',
+    'durationString',
+    'lastModifiedBy',
     'requisiteIds',
     'requisiteStageRefIds',
+    'updateTs',
     '$$hashKey',
   ];
 
-  constructor(private $q: IQService, private $state: StateService, private $timeout: ITimeoutService) {}
+  constructor(private $state: StateService, private timeout: CancellableTimeout) {}
 
-  public getRunningExecutions(applicationName: string): PromiseLike<IExecution[]> {
+  public getRunningExecutions(applicationName: string): Promise<IExecution[]> {
     return this.getFilteredExecutions(applicationName, this.activeStatuses, this.runningLimit, null, true);
   }
 
@@ -52,7 +52,7 @@ export class ExecutionService {
     limit: number,
     pipelineConfigIds: string[] = null,
     expand = false,
-  ): PromiseLike<IExecution[]> {
+  ): Promise<IExecution[]> {
     const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
     const call = pipelineConfigIds
       ? REST('/executions').query({ limit, pipelineConfigIds, statuses }).get()
@@ -86,7 +86,7 @@ export class ExecutionService {
     applicationName: string,
     application: Application = null,
     expand = false,
-  ): PromiseLike<IExecution[]> {
+  ): Promise<IExecution[]> {
     const sortFilter: ISortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     const tags = FilterModelService.getCheckValues(sortFilter.tags);
     const pipelines = Object.keys(sortFilter.pipeline);
@@ -100,7 +100,7 @@ export class ExecutionService {
     return this.getFilteredExecutions(applicationName, statuses, limit, null, expand);
   }
 
-  public getExecution(executionId: string, pipelineConfigs: IPipeline[] = []): PromiseLike<IExecution> {
+  public getExecution(executionId: string, pipelineConfigs: IPipeline[] = []): Promise<IExecution> {
     return REST('/pipelines')
       .path(executionId)
       .get()
@@ -142,7 +142,7 @@ export class ExecutionService {
     });
   }
 
-  private getConfigIdsFromFilterModel(application: Application): PromiseLike<string[]> {
+  private getConfigIdsFromFilterModel(application: Application): Promise<string[]> {
     const sortFilter = ExecutionState.filterModel.asFilterModel.sortFilter;
     const tags = FilterModelService.getCheckValues(sortFilter.tags);
     const pipelines = Object.keys(sortFilter.pipeline);
@@ -231,14 +231,9 @@ export class ExecutionService {
     }
   }
 
-  public startAndMonitorPipeline(
-    app: Application,
-    pipeline: string,
-    trigger: any,
-  ): PromiseLike<IRetryablePromise<void>> {
-    const { executionService } = AngularServices;
+  public startAndMonitorPipeline(app: Application, pipeline: string, trigger: any): Promise<IRetryablePromise<void>> {
     return PipelineConfigService.triggerPipeline(app.name, pipeline, trigger).then((triggerResult) =>
-      executionService.waitUntilTriggeredPipelineAppears(app, triggerResult),
+      this.waitUntilTriggeredPipelineAppears(app, triggerResult),
     );
   }
 
@@ -247,20 +242,20 @@ export class ExecutionService {
     triggeredPipelineId: string,
   ): IRetryablePromise<any> {
     const closure = () => this.getExecution(triggeredPipelineId).then(() => application.executions.refresh());
-    return retryablePromise(closure, 1000, 10);
+    return retryablePromise(closure, 1000, 10, this.timeout);
   }
 
-  private waitUntilPipelineIsCancelled(application: Application, executionId: string): PromiseLike<any> {
+  private waitUntilPipelineIsCancelled(application: Application, executionId: string): Promise<any> {
     return this.waitUntilExecutionMatches(
       executionId,
       (execution: IExecution) => execution.status === 'CANCELED',
     ).then(() => application.executions.refresh());
   }
 
-  private waitUntilPipelineIsDeleted(application: Application, executionId: string): PromiseLike<any> {
-    const deferred = this.$q.defer();
+  private waitUntilPipelineIsDeleted(application: Application, executionId: string): Promise<any> {
+    const deferred = createDeferred<void>();
     this.getExecution(executionId).then(
-      () => this.$timeout(() => this.waitUntilPipelineIsDeleted(application, executionId).then(deferred.resolve), 1000),
+      () => this.timeout(() => this.waitUntilPipelineIsDeleted(application, executionId).then(deferred.resolve), 1000),
       () => deferred.resolve(),
     );
     deferred.promise.then(() => application.executions.refresh());
@@ -272,7 +267,7 @@ export class ExecutionService {
     executionId: string,
     force?: boolean,
     reason?: string,
-  ): PromiseLike<any> {
+  ): Promise<any> {
     return REST('/pipelines')
       .path(executionId, 'cancel')
       .query({ force, reason })
@@ -283,7 +278,7 @@ export class ExecutionService {
       });
   }
 
-  public pauseExecution(application: Application, executionId: string): PromiseLike<any> {
+  public pauseExecution(application: Application, executionId: string): Promise<any> {
     return REST('/pipelines')
       .path(executionId, 'pause')
       .put()
@@ -294,7 +289,7 @@ export class ExecutionService {
       });
   }
 
-  public resumeExecution(application: Application, executionId: string): PromiseLike<any> {
+  public resumeExecution(application: Application, executionId: string): Promise<any> {
     return REST('/pipelines')
       .path(executionId, 'resume')
       .put()
@@ -305,7 +300,7 @@ export class ExecutionService {
       });
   }
 
-  public deleteExecution(application: Application, executionId: string): PromiseLike<any> {
+  public deleteExecution(application: Application, executionId: string): Promise<any> {
     const promiseLike = REST('/pipelines')
       .path(executionId)
       .delete()
@@ -320,12 +315,12 @@ export class ExecutionService {
   public waitUntilExecutionMatches(
     executionId: string,
     matchPredicate: (execution: IExecution) => boolean,
-  ): PromiseLike<IExecution> {
+  ): Promise<IExecution> {
     return this.getExecution(executionId).then((execution) => {
       if (matchPredicate(execution)) {
         return execution;
       }
-      return this.$timeout(() => this.waitUntilExecutionMatches(executionId, matchPredicate), 1000);
+      return this.timeout(() => this.waitUntilExecutionMatches(executionId, matchPredicate), 1000);
     });
   }
 
@@ -333,7 +328,7 @@ export class ExecutionService {
     return ['pipeline', groupBy, application, heading].join('#');
   }
 
-  public getProjectExecutions(project: string, limit = 1): PromiseLike<IExecution[]> {
+  public getProjectExecutions(project: string, limit = 1): Promise<IExecution[]> {
     return REST('/projects')
       .path(project, 'pipelines')
       .query({ limit })
@@ -499,7 +494,7 @@ export class ExecutionService {
     return unhydrated.hydrator;
   }
 
-  public getLastExecutionForApplicationByConfigId(appName: string, configId: string): PromiseLike<IExecution> {
+  public getLastExecutionForApplicationByConfigId(appName: string, configId: string): Promise<IExecution> {
     return this.getFilteredExecutions(appName, [], 1)
       .then((executions: IExecution[]) => {
         return executions.filter((execution) => {
@@ -519,12 +514,12 @@ export class ExecutionService {
    *  application: if transform is true, the application to use when transforming the executions (default: null)
    *  limit: the number of executions per config ID to retrieve (default: whatever Gate sets)
    *  statuses: an optional set of execution statuses (default: all)
-   * @return {PromiseLike<IExecution[]>}
+   * @return {Promise<IExecution[]>}
    */
   public getExecutionsForConfigIds(
     pipelineConfigIds: string[],
     options: { limit?: number; statuses?: string; transform?: boolean; application?: Application } = {},
-  ): PromiseLike<IExecution[]> {
+  ): Promise<IExecution[]> {
     const { limit, statuses, transform, application } = options;
     return REST('/executions')
       .query({ limit, pipelineConfigIds: (pipelineConfigIds || []).join(','), statuses })
@@ -541,7 +536,7 @@ export class ExecutionService {
       .catch(() => [] as IExecution[]);
   }
 
-  public patchExecution(executionId: string, stageId: string, data: any): PromiseLike<any> {
+  public patchExecution(executionId: string, stageId: string, data: any): Promise<any> {
     return REST('/pipelines').path(executionId, 'stages', stageId).patch(data);
   }
 
@@ -552,16 +547,6 @@ export class ExecutionService {
   }
 
   private stringify(object: IExecution | IExecutionStageSummary): string {
-    return JsonUtils.makeSortedStringFromAngularObject({ ...object }, this.ignoredStringValFields);
+    return JsonUtils.makeSortedString({ ...object }, this.ignoredStringValFields);
   }
 }
-
-export const EXECUTION_SERVICE = 'spinnaker.core.pipeline.executions.service';
-module(EXECUTION_SERVICE, [UIROUTER_ANGULARJS]).factory('executionService', [
-  '$q',
-  '$state',
-  '$timeout',
-  ($q: IQService, $state: StateService, $timeout: ITimeoutService) => new ExecutionService($q, $state, $timeout),
-]);
-
-DebugWindow.addInjectable('executionService');

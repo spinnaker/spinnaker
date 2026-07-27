@@ -17,7 +17,7 @@ export const AccountManagementService = {
     accountType: string,
     limit?: number,
     startingAccountName?: string,
-  ): PromiseLike<IAccountDefinition[]> {
+  ): Promise<IAccountDefinition[]> {
     const params: Record<string, string | number> = {};
     if (limit != null) {
       params.limit = limit;
@@ -28,15 +28,15 @@ export const AccountManagementService = {
     return REST('/credentials/type').path(accountType).query(params).get();
   },
 
-  createAccount(accountDefinition: IAccountDefinition): PromiseLike<IAccountDefinition> {
+  createAccount(accountDefinition: IAccountDefinition): Promise<IAccountDefinition> {
     return REST('/credentials').post(accountDefinition);
   },
 
-  updateAccount(accountDefinition: IAccountDefinition): PromiseLike<IAccountDefinition> {
+  updateAccount(accountDefinition: IAccountDefinition): Promise<IAccountDefinition> {
     return REST('/credentials').put(accountDefinition);
   },
 
-  deleteAccount(accountName: string): PromiseLike<void> {
+  deleteAccount(accountName: string): Promise<void> {
     return REST('/credentials').path(accountName).delete();
   },
 };
