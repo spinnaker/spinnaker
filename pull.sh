@@ -59,7 +59,15 @@ function pull() {
     return 0
   fi
 
-  local prefix="$repo"
+  local prefix
+  case "$repo" in
+    deck-kayenta)
+      prefix='deck/packages/kayenta'
+      ;;
+    *)
+      prefix="$repo"
+      ;;
+  esac
   local remote="github.com:spinnaker/$repo.git"
 
   # Export data for the editor script
