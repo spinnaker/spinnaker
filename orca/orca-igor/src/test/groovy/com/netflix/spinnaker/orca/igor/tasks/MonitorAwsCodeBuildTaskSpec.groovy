@@ -29,6 +29,8 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import java.util.concurrent.TimeUnit
+
 class MonitorAwsCodeBuildTaskSpec extends Specification {
   String ACCOUNT = "my-account"
   String BUILD_ID = "test:c7715bbf-5c12-44d6-87ef-8149473e02f7"
@@ -37,8 +39,13 @@ class MonitorAwsCodeBuildTaskSpec extends Specification {
   PipelineExecutionImpl execution = Mock(PipelineExecutionImpl)
   IgorService igorService = Mock(IgorService)
 
+  def properties = new MonitorAwsCodeBuildProperties(
+    backoffPeriod: TimeUnit.SECONDS.toMillis(10),
+    timeout: TimeUnit.HOURS.toMillis(8)
+  )
+
   @Subject
-  MonitorAwsCodeBuildTask task = new MonitorAwsCodeBuildTask(igorService)
+  MonitorAwsCodeBuildTask task = new MonitorAwsCodeBuildTask(igorService, properties)
 
   @Unroll
   def "task returns #executionStatus when build returns #buildStatus"() {
