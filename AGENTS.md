@@ -8,7 +8,7 @@
 ## Architecture
 - **Type:** Monorepo with Gradle composite builds
 - **Backend:** Java/Kotlin (Spring Boot microservices)
-- **Frontend:** TypeScript/React (deck, deck-kayenta)
+- **Frontend:** TypeScript/React (Deck, including `deck/packages/kayenta`)
 - **Build System:** Gradle (backend), Yarn/Webpack (frontend)
 - **Storage:** Redis (queues/caching), MySQL/SQL (persistence)
 
@@ -56,7 +56,7 @@ pnpm build
 - `/kayenta/` - Canary analysis
 - `/kork/` - Shared libraries
 - `/deck/` - UI (React/TypeScript)
-- `/deck-kayenta/` - Canary UI plugin
+- `/deck/packages/kayenta/` - Canary UI package
 
 ## Build & Test
 
@@ -79,18 +79,18 @@ pnpm prettier:check      # Check formatting
 pnpm prettier            # Apply formatting
 ```
 
-### Frontend (deck-kayenta)
+### Frontend (Deck Kayenta)
 ```bash
-cd deck-kayenta
-npm run build
-npm run test
-npm run lint
+cd deck
+pnpm --filter @spinnaker/kayenta build
+pnpm test
+pnpm lint
 ```
 
 ## Testing Strategy
 - Prefer running single service tests: `./gradlew :servicename:test`
 - Backend uses JUnit 5 (via `useJUnitPlatform()`)
-- Frontend uses Karma (deck) and Jest (deck-kayenta)
+- Frontend uses Karma for Deck packages, including Kayenta
 - Fix all test/type errors before committing
 - Run `spotlessCheck` / `pnpm lint` before commits
 
@@ -109,7 +109,7 @@ npm run lint
 /kork/                  # Shared libraries
 /deck/                  # Main UI (React)
 /deck/packages/         # UI workspace packages
-/deck-kayenta/          # Canary UI plugin
+/deck/packages/kayenta/ # Canary UI package
 /spinnaker-gradle-project/ # Gradle plugins
 ```
 
