@@ -6,7 +6,6 @@ includeBuild 'spinnaker-gradle-project'
 // All non-buildscript projects
 includeBuild 'clouddriver'
 includeBuild 'deck'
-includeBuild 'deck-kayenta'
 includeBuild 'echo'
 includeBuild 'fiat'
 includeBuild 'front50'

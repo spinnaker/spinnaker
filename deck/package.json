@@ -16,7 +16,7 @@
   },
   "private": true,
   "scripts": {
-    "clean": "lerna run clean --parallel",
+    "clean": "rimraf .cache-loader build packages/*/dist",
     "fixup": "scripts/monorepo_fixup.sh",
     "build": "pnpm --filter deck-app build",
     "lint": "eslint --max-warnings=0 --ext js,jsx,ts,tsx packages",
