@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.UpdateFunctionCodeRequest;
-import com.amazonaws.services.lambda.model.UpdateFunctionCodeResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpdateLambdaFunctionCodeDescription;
 import com.netflix.spinnaker.clouddriver.lambda.provider.view.LambdaFunctionProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.UpdateFunctionCodeRequest;
+import software.amazon.awssdk.services.lambda.model.UpdateFunctionCodeResponse;
 
 public class UpdateLambdaAtomicOperationTest implements LambdaTestingDefaults {
 
@@ -40,7 +40,7 @@ public class UpdateLambdaAtomicOperationTest implements LambdaTestingDefaults {
         spy(new UpdateLambdaCodeAtomicOperation(updateCodeDesc));
     doNothing().when(updateCodeOperation).updateTaskStatus(anyString());
 
-    AWSLambda lambdaClient = mock(AWSLambda.class);
+    LambdaClient lambdaClient = mock(LambdaClient.class);
     LambdaFunction cachedFunction = getMockedFunctionDefintion();
 
     LambdaFunctionProvider lambdaFunctionProvider = mock(LambdaFunctionProvider.class);
@@ -52,12 +52,12 @@ public class UpdateLambdaAtomicOperationTest implements LambdaTestingDefaults {
         .when(lambdaFunctionProvider)
         .getFunction(anyString(), anyString(), anyString());
 
-    UpdateFunctionCodeRequest updateCodeRequest = new UpdateFunctionCodeRequest();
-    updateCodeRequest.withFunctionName(functionArn);
-    UpdateFunctionCodeResult mockCodeResult = new UpdateFunctionCodeResult();
+    UpdateFunctionCodeRequest updateCodeRequest =
+        UpdateFunctionCodeRequest.builder().functionName(functionArn).build();
+    UpdateFunctionCodeResponse mockCodeResult = UpdateFunctionCodeResponse.builder().build();
     doReturn(mockCodeResult).when(lambdaClient).updateFunctionCode(updateCodeRequest);
 
-    UpdateFunctionCodeResult output = updateCodeOperation.operate(null);
+    UpdateFunctionCodeResponse output = updateCodeOperation.operate(null);
     verify(updateCodeOperation, atLeastOnce()).updateTaskStatus(anyString());
     assertThat(output).isEqualTo(mockCodeResult);
   }
