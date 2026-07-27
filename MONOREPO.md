@@ -66,7 +66,7 @@ If you do not have access to any of these things, please DM me!
     - Issue link: https://github.com/actions/toolkit/issues/1168
   - However, the main limitation of reusable workflows is much harder to deal with - each reusable workflow is a separate job, and additional steps cannot easily be added around it
 - Deck publishing flow is now fully integrated
-  - No more version bump PRs - prerelease NPM versions are published on every `deck` or `deck-kayenta` publish (see `npm` repo above for examples) 
+  - No more version bump PRs - prerelease NPM versions are published on every `deck` publish (see `npm` repo above for examples)
   - Versions are somewhat synthetic - rewritten dynamically and committed during the build, pre-publish
     - We can change the in-repo committed version to something like `0.0.0` for all packages
     - This may not be ideal - it is likely better to use Lerna versioning and incremental publishing, though its assumptions around tagging and committed values aren't exactly aligned with 

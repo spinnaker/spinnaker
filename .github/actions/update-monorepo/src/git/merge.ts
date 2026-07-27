@@ -12,14 +12,19 @@ async function fetchRemote(remote: string, ref: string) {
   return execWithOutput(`git fetch -n ${remote} ${ref}`);
 }
 
+export function subtreePrefix(remote: string) {
+  return remote === 'deck-kayenta' ? 'deck/packages/kayenta' : remote;
+}
+
 async function mergeRemote(remote: string, ref: string) {
+  const prefix = subtreePrefix(remote);
   const withOurs = getInput('merge-with-ours') == 'true' ? ' -X ours' : '';
   const result = await execWithOutput(
-    `git merge --edit --strategy subtree -X subtree=${remote}${withOurs} ${remote}/${ref}`,
+    `git merge --edit --strategy subtree -X subtree=${prefix}${withOurs} ${remote}/${ref}`,
     undefined,
     {
       GIT_EDITOR: './.github/actions/update-monorepo/subtree_pull_editor.sh',
-      GIT_SUBTREE: remote,
+      GIT_SUBTREE: prefix,
       GIT_SUBTREE_REMOTE: `${remote}/${ref}`,
     },
   );
