@@ -22,12 +22,8 @@ plugins {
 }
 
 allprojects {
-<<<<<<< HEAD
-  apply plugin: "io.spinnaker.project"
-=======
   apply plugin: 'io.spinnaker.project'
   group = "io.spinnaker.echo"
->>>>>>> 5213400d44 (fix(build): Set group name on all root projects (#7834))
 }
 
 subprojects {
