@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.credentials;
 
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+import jakarta.annotation.Nullable;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * Repository of credentials of a given type

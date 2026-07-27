@@ -19,7 +19,8 @@ package com.netflix.spinnaker.kork.retrofit
 
 import brave.Tracing
 import brave.http.HttpTracing
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
@@ -102,7 +103,7 @@ private open class TestConfiguration {
 
   @Bean
   open fun objectMapper(): ObjectMapper {
-    return  ObjectMapper()
+    return  JsonMapper()
   }
 
   @Bean

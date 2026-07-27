@@ -17,12 +17,12 @@
 package com.netflix.spinnaker.kork.plugins.api;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import jakarta.annotation.Nonnull;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import javax.annotation.Nonnull;
 
 /**
  * Denotes that a class provides extension configuration. For example:

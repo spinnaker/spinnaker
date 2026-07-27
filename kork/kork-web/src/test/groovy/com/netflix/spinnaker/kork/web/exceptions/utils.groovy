@@ -25,8 +25,8 @@ import org.springframework.beans.factory.ObjectProvider
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
-import javax.annotation.Nonnull
-import javax.annotation.Nullable
+import jakarta.annotation.Nonnull
+import jakarta.annotation.Nullable
 
 class ExceptionMessageProvider implements ObjectProvider<List<ExceptionMessage>> {
 

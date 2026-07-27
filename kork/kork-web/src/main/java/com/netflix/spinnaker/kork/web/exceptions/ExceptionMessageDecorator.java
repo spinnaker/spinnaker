@@ -2,8 +2,8 @@ package com.netflix.spinnaker.kork.web.exceptions;
 
 import com.netflix.spinnaker.kork.api.exceptions.ExceptionDetails;
 import com.netflix.spinnaker.kork.api.exceptions.ExceptionMessage;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 
 /**

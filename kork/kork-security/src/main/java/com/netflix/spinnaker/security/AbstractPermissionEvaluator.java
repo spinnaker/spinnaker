@@ -39,8 +39,8 @@ public abstract class AbstractPermissionEvaluator implements PermissionEvaluator
     if (SpinnakerAuthorities.isAdmin(authentication)) {
       return true;
     }
-    if (targetDomainObject instanceof AccessControlled) {
-      return ((AccessControlled) targetDomainObject).isAuthorized(authentication, permission);
+    if (targetDomainObject instanceof AccessControlled controlled) {
+      return controlled.isAuthorized(authentication, permission);
     }
     return false;
   }

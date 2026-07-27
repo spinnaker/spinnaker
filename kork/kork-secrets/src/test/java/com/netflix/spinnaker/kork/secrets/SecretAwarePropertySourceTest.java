@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +37,7 @@ public class SecretAwarePropertySourceTest {
     secretAwarePropertySource =
         new SecretAwarePropertySource<>(propertySource, secretPropertyProcessor);
 
-    lenient().when(secretManager.decryptAsFile(any())).thenReturn(Paths.get("decryptedFile"));
+    lenient().when(secretManager.decryptAsFile(any())).thenReturn(Path.of("decryptedFile"));
     lenient().when(secretManager.decrypt(any())).thenReturn("decryptedString");
   }
 

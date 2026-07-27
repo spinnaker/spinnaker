@@ -18,7 +18,7 @@ package com.netflix.spinnaker.credentials.definition;
 
 import com.netflix.spinnaker.credentials.Credentials;
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Instantiate {@link Credentials} from a {@link CredentialsDefinition}.

@@ -31,7 +31,8 @@ import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import java.lang.IllegalStateException
-import java.nio.file.Paths
+import java.nio.file.Path
+
 import org.pf4j.ExtensionPoint
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
@@ -115,7 +116,7 @@ class DependencyInjectionTest : JUnit5Minutests {
         val pluginWrapper = PluginWrapper(
           pluginManager,
           SpinnakerPluginDescriptor(pluginId = "hello", pluginClass = PluginWithoutInjection::class.java.canonicalName),
-          Paths.get("/dev/null"),
+          Path.of("/dev/null"),
           javaClass.classLoader
         )
 
@@ -127,7 +128,7 @@ class DependencyInjectionTest : JUnit5Minutests {
         val pluginWrapper = PluginWrapper(
           pluginManager,
           SpinnakerPluginDescriptor(pluginId = "hello", pluginClass = PluginWithConfig::class.java.canonicalName),
-          Paths.get("/dev/null"),
+          Path.of("/dev/null"),
           javaClass.classLoader
         )
 
@@ -143,7 +144,7 @@ class DependencyInjectionTest : JUnit5Minutests {
         val pluginWrapper = PluginWrapper(
           pluginManager,
           SpinnakerPluginDescriptor(pluginId = "hello", pluginClass = PluginWithUnsupportedArg::class.java.canonicalName),
-          Paths.get("/dev/null"),
+          Path.of("/dev/null"),
           javaClass.classLoader
         )
 
@@ -156,7 +157,7 @@ class DependencyInjectionTest : JUnit5Minutests {
         val pluginWrapper = PluginWrapper(
           pluginManager,
           SpinnakerPluginDescriptor(pluginId = "hello", pluginClass = PluginWithMultipleConstructors::class.java.canonicalName),
-          Paths.get("/dev/null"),
+          Path.of("/dev/null"),
           javaClass.classLoader
         )
 
@@ -169,7 +170,7 @@ class DependencyInjectionTest : JUnit5Minutests {
         val pluginWrapper = PluginWrapper(
           pluginManager,
           SpinnakerPluginDescriptor(pluginId = "hello", pluginClass = PluginWithSdks::class.java.canonicalName),
-          Paths.get("/dev/null"),
+          Path.of("/dev/null"),
           javaClass.classLoader
         )
 

@@ -43,8 +43,8 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
@@ -132,7 +132,7 @@ public class MdcCopyingAsyncTaskExecutorTest {
 
       final org.slf4j.Logger log = LoggerFactory.getLogger(MdcCopyingAsyncTaskExecutorTest.class);
 
-      @RequestMapping(value = "/streamingResponseBody", method = RequestMethod.GET)
+      @GetMapping("/streamingResponseBody")
       StreamingResponseBody streamingResponseBody() {
         return outputStream -> {
           // Note: It's important for the log message to be inside the lambda to

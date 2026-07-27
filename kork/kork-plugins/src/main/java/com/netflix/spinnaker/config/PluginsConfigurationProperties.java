@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.config;
 
+import jakarta.annotation.Nullable;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 
 /**

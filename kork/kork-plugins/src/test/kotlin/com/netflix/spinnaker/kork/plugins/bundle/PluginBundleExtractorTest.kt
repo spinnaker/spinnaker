@@ -28,7 +28,6 @@ import java.net.URL
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.springframework.core.env.ConfigurableEnvironment
@@ -127,7 +126,7 @@ class PluginBundleExtractorTest : JUnit5Minutests {
       FileOutputStream(destination.resolve(zipFilename).toString()).use { fos ->
         ZipOutputStream(fos).use { zos ->
           fileList.forEach { file ->
-            val ze = ZipEntry(Paths.get(file).fileName.toString())
+            val ze = ZipEntry(Path.of(file).fileName.toString())
             zos.putNextEntry(ze)
 
             FileInputStream(sourceRootPath.resolve(file).toString()).use { input ->

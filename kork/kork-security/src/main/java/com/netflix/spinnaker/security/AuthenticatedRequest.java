@@ -71,9 +71,8 @@ public class AuthenticatedRequest {
      * @return the comma separated list of accounts for the provided principal.
      */
     default Optional<String> getSpinnakerAccounts(Object principal) {
-      if (principal instanceof UserDetails) {
-        Collection<String> allowedAccounts =
-            AllowedAccountsAuthorities.getAllowedAccounts((UserDetails) principal);
+      if (principal instanceof UserDetails details) {
+        Collection<String> allowedAccounts = AllowedAccountsAuthorities.getAllowedAccounts(details);
         if (!CollectionUtils.isEmpty(allowedAccounts)) {
           return Optional.of(String.join(",", allowedAccounts));
         }
@@ -95,14 +94,14 @@ public class AuthenticatedRequest {
      * @return the user id of the provided principal
      */
     default Optional<String> getSpinnakerUser(Object principal) {
-      if (principal instanceof UserDetails) {
-        return Optional.ofNullable(((UserDetails) principal).getUsername());
+      if (principal instanceof UserDetails details) {
+        return Optional.ofNullable(details.getUsername());
       }
-      if (principal instanceof AuthenticatedPrincipal) {
-        return Optional.ofNullable(((AuthenticatedPrincipal) principal).getName());
+      if (principal instanceof AuthenticatedPrincipal authenticatedPrincipal) {
+        return Optional.ofNullable(authenticatedPrincipal.getName());
       }
-      if (principal instanceof Principal) {
-        return Optional.ofNullable(((Principal) principal).getName());
+      if (principal instanceof Principal principal1) {
+        return Optional.ofNullable(principal1.getName());
       }
       return Optional.ofNullable(principal).map(Object::toString).or(() -> get(Header.USER));
     }

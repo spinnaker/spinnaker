@@ -15,17 +15,16 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.std.MapSerializer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ser.std.MapSerializer;
 
 /**
  * MapSerializerHook will hook into the map serializers to match a map to a handler.
@@ -66,8 +65,8 @@ public class MapSerializerHook extends MapSerializer {
       List<ArtifactHandler> handlers,
       MapSerializer defaultSerializer,
       BeanProperty property,
-      JsonSerializer<?> keySerializer,
-      JsonSerializer<?> valueSerializer,
+      ValueSerializer<?> keySerializer,
+      ValueSerializer<?> valueSerializer,
       Set<String> ignoredEntries,
       Set<String> includedEntries) {
     super(
@@ -83,9 +82,8 @@ public class MapSerializerHook extends MapSerializer {
   }
 
   @Override
-  public void serialize(Map<?, ?> value, JsonGenerator gen, SerializerProvider provider)
-      throws IOException {
-    ObjectMapper objectMapper = (ObjectMapper) gen.getCodec();
+  public void serialize(Map<?, ?> value, JsonGenerator gen, SerializationContext provider) {
+    ObjectMapper objectMapper = (ObjectMapper) gen.objectWriteContext();
     value = visit(value, objectMapper);
     this.defaultSerializer.serialize(value, gen, provider);
   }
@@ -157,8 +155,8 @@ public class MapSerializerHook extends MapSerializer {
   @Override
   public MapSerializer withResolved(
       BeanProperty property,
-      JsonSerializer<?> keySerializer,
-      JsonSerializer<?> valueSerializer,
+      ValueSerializer<?> keySerializer,
+      ValueSerializer<?> valueSerializer,
       Set<String> ignored,
       Set<String> included,
       boolean sortKeys) {

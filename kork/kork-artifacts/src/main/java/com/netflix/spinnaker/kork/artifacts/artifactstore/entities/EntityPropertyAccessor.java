@@ -105,8 +105,8 @@ public class EntityPropertyAccessor implements PropertyAccessor {
       throw new ArtifactStoreInvalidTypeException(type);
     }
 
-    if (target instanceof Map) {
-      return new TypedValue(handleMap((Map) target, name));
+    if (target instanceof Map map) {
+      return new TypedValue(handleMap(map, name));
     }
     throw new ArtifactStoreInvalidStateException(
         String.format(
@@ -128,8 +128,8 @@ public class EntityPropertyAccessor implements PropertyAccessor {
       }
 
       return ret;
-    } else if (v instanceof Map) {
-      return handleMap((Map) v, null);
+    } else if (v instanceof Map map) {
+      return handleMap(map, null);
     }
 
     return target;
@@ -176,8 +176,8 @@ public class EntityPropertyAccessor implements PropertyAccessor {
    * artifact type, and we have a reference key of a string type.
    */
   private static String extractType(Object target) {
-    if (target instanceof Artifact) {
-      return ((Artifact) target).getType();
+    if (target instanceof Artifact artifact) {
+      return artifact.getType();
     }
     if (!(target instanceof Map)) {
       return NO_TYPE;

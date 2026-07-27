@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.kork.api.exceptions;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Details regarding an access denied exception.

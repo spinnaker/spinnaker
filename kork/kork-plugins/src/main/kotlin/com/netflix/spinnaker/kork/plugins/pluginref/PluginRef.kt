@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.kork.plugins.pluginref
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.netflix.spinnaker.kork.exceptions.UserException
-import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import org.pf4j.Plugin
 import org.pf4j.PluginDescriptor
+import tools.jackson.core.JacksonException
 
 /**
  * A [PluginRef] is a type of [Plugin] that exists as a pointer to an actual Plugin for use
@@ -96,7 +95,7 @@ data class PluginRef(
         } else {
           ref.copy(pluginPath = path.parent.resolve(ref.refPath).toAbsolutePath().toString())
         }
-      } catch (ex: IOException) {
+      } catch (ex: JacksonException) {
         throw MalformedPluginRefException(path!!, ex)
       }
     }
@@ -107,7 +106,7 @@ data class PluginRef(
    */
   val refPath: Path
     @JsonIgnore
-    get() = Paths.get(pluginPath)
+    get() = Path.of(pluginPath)
 }
 
 /**

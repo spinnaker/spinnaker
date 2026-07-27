@@ -21,12 +21,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.kork.exceptions.ConstraintViolationException;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
+import jakarta.annotation.Nonnull;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.Callable;
-import javax.annotation.Nonnull;
 
 public interface LockManager {
   <R> AcquireLockResponse<R> acquireLock(

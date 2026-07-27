@@ -22,9 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.io.IOException;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ public class RetrofitUtilsTest {
 
   @AfterAll
   void teardown() throws IOException {
-    server.shutdown();
+    server.close();
   }
 
   @Test
@@ -78,7 +78,7 @@ public class RetrofitUtilsTest {
 
   @Test
   void testGetRoot() {
-    server.enqueue(new MockResponse().setResponseCode(200));
+    server.enqueue(new MockResponse.Builder().code(200).build());
     Response resp = Retrofit2SyncCall.executeCall(service.getRoot());
 
     // @GET("/") uses server root
@@ -87,7 +87,7 @@ public class RetrofitUtilsTest {
 
   @Test
   void testGetBaseUrl() {
-    server.enqueue(new MockResponse().setResponseCode(200));
+    server.enqueue(new MockResponse.Builder().code(200).build());
     Response resp = Retrofit2SyncCall.executeCall(service.getBaseUrl());
 
     // @GET(".") uses base url ending in slash
@@ -96,7 +96,7 @@ public class RetrofitUtilsTest {
 
   @Test
   void testGetResource() {
-    server.enqueue(new MockResponse().setResponseCode(200));
+    server.enqueue(new MockResponse.Builder().code(200).build());
     Response resp = Retrofit2SyncCall.executeCall(service.getUsers());
 
     // @GET("users") uses relative path /users of base url
@@ -105,7 +105,7 @@ public class RetrofitUtilsTest {
 
   @Test
   void testAbsolutePath() {
-    server.enqueue(new MockResponse().setResponseCode(200));
+    server.enqueue(new MockResponse.Builder().code(200).build());
     Response resp = Retrofit2SyncCall.executeCall(service.getV2());
 
     // @GET("/v2") uses absolute path

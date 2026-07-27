@@ -20,9 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretException;
@@ -37,16 +36,21 @@ import com.netflix.spinnaker.kork.secrets.user.UserSecretSerde;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretSerdeFactory;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.Tag;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class SecretsManagerSecretEngineTest {
+  private AutoCloseable mocks;
   @Spy private SecretsManagerSecretEngine secretsManagerSecretEngine;
   @Mock private SecretsManagerClientProvider clientProvider;
 
@@ -64,13 +68,13 @@ public class SecretsManagerSecretEngineTest {
 
   @BeforeEach
   public void setup() {
-    ObjectMapper mapper = new ObjectMapper();
+    ObjectMapper mapper = new JsonMapper();
     List<ObjectMapper> mappers = List.of(mapper);
     userSecretSerde = new DefaultUserSecretSerde(mappers, List.of(OpaqueUserSecretData.class));
     userSecretSerdeFactory = new UserSecretSerdeFactory(List.of(userSecretSerde));
     secretsManagerSecretEngine =
         new SecretsManagerSecretEngine(mapper, userSecretSerdeFactory, clientProvider);
-    initMocks(this);
+    mocks = MockitoAnnotations.openMocks(this);
   }
 
   @Test
@@ -154,5 +158,10 @@ public class SecretsManagerSecretEngineTest {
     UserSecret secret = secretsManagerSecretEngine.decrypt(reference);
     assertEquals("hunter2", secret.getSecretString(reference));
     assertEquals(List.of("a", "b", "c"), secret.getRoles());
+  }
+
+  @AfterEach
+  void tearDown() throws Exception {
+    mocks.close();
   }
 }

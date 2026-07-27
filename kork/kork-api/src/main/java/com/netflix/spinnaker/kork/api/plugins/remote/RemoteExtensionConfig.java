@@ -18,10 +18,10 @@
 package com.netflix.spinnaker.kork.api.plugins.remote;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

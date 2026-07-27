@@ -68,7 +68,7 @@ public class RedisClientSelector {
     Optional<RedisClientDelegate> client =
         clients.stream().filter(it -> stdName.equals(it.name())).findFirst();
 
-    if (!client.isPresent() && fallbackToDefault) {
+    if (client.isEmpty() && fallbackToDefault) {
       String defaultName = getName(primary, DEFAULT);
       client = clients.stream().filter(it -> defaultName.equals(it.name())).findFirst();
     }

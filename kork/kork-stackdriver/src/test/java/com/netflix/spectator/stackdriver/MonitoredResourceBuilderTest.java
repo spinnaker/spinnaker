@@ -63,11 +63,13 @@ public class MonitoredResourceBuilderTest {
   @Test
   public void testMatchAttribute() {
     String text =
-        "{\n"
-            + " \"version\" : \"2016-08-01\",\n"
-            + " \"instanceId\" : \"the-instance\",\n"
-            + " \"region\" : \"us-east-1\"\n"
-            + "}";
+        """
+        {
+         "version" : "2016-08-01",
+         "instanceId" : "the-instance",
+         "region" : "us-east-1"
+        }\
+        """;
 
     assertEquals("the-instance", builder.matchAttribute(text, "instanceId"));
     assertEquals("us-east-1", builder.matchAttribute(text, "region"));

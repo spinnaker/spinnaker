@@ -41,8 +41,8 @@ public class AllowedAccountsAuthorities {
 
   @SuppressWarnings("deprecation")
   public static Collection<String> getAllowedAccounts(UserDetails userDetails) {
-    if (userDetails instanceof User) {
-      return ((User) userDetails).getAllowedAccounts();
+    if (userDetails instanceof User user) {
+      return user.getAllowedAccounts();
     }
     return getAllowedAccountAuthorities(userDetails).stream()
         .map(a -> a.getAuthority().substring(PREFIX.length()))

@@ -18,9 +18,9 @@ package com.netflix.spinnaker.credentials;
 
 import com.netflix.spinnaker.kork.exceptions.MissingCredentialsException;
 import com.netflix.spinnaker.kork.exceptions.UnknownCredentialsTypeException;
+import jakarta.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 /**
  * Provides access to credentials (or extension of Credentials) across credentials types.

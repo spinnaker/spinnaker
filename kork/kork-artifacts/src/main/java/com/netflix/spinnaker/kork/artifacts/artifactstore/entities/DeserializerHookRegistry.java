@@ -15,17 +15,16 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-import com.fasterxml.jackson.databind.deser.std.MapDeserializer;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.BeanDescription;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.deser.BeanDeserializerModifier;
+import tools.jackson.databind.deser.std.MapDeserializer;
+import tools.jackson.databind.type.MapType;
 
 @Component
 @ConditionalOnProperty("artifact-store.entities.expand")
@@ -33,7 +32,6 @@ public class DeserializerHookRegistry extends BeanDeserializerModifier {
   private final ArtifactStore storage;
   private final ArtifactHandlerLists handlers;
 
-  @Autowired
   public DeserializerHookRegistry(
       ArtifactStore storage,
       @Qualifier("deserializerEntityHandlers") ArtifactHandlerLists handlers) {
@@ -42,15 +40,14 @@ public class DeserializerHookRegistry extends BeanDeserializerModifier {
   }
 
   @Override
-  public JsonDeserializer<?> modifyMapDeserializer(
+  public ValueDeserializer<?> modifyMapDeserializer(
       DeserializationConfig config,
       MapType type,
       BeanDescription beanDesc,
-      JsonDeserializer<?> deserializer) {
-    if (deserializer instanceof MapDeserializer) {
+      ValueDeserializer<?> deserializer) {
+    if (deserializer instanceof MapDeserializer mapDeserializer) {
       // In the event that visited was NOT set, we will wrap the deserializer to modify the AST.
-      return new MapDeserializerHook(
-          this.storage, this.handlers.getMapHandlers(), (MapDeserializer) deserializer);
+      return new MapDeserializerHook(this.storage, this.handlers.getMapHandlers(), mapDeserializer);
     }
 
     return deserializer;

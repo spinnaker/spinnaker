@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kork.docker.service;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryAuthenticationException;
 import com.netflix.spinnaker.kork.docker.exceptions.DockerRegistryOperationException;
@@ -45,6 +43,8 @@ import okhttp3.ResponseBody;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * TODO: Properties in this class are duplicated in HelmOciDockerArtifactAccount and
@@ -218,8 +218,7 @@ public class DockerRegistryClient {
 
   private static ObjectMapper getObjectMapper() {
     if (objectMapper == null) {
-      objectMapper = new ObjectMapper();
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      objectMapper = new JsonMapper();
     }
     return objectMapper;
   }
@@ -687,8 +686,8 @@ public class DockerRegistryClient {
       doCheckV2Availability(null);
     } catch (SpinnakerServerException error) {
       if (tokenService.getBasicAuthHeader() == null
-          && error instanceof SpinnakerHttpException
-          && ((SpinnakerHttpException) error).getResponseCode() == 401) {
+          && error instanceof SpinnakerHttpException exception
+          && exception.getResponseCode() == 401) {
         return;
       }
       Response<ResponseBody> response = doCheckV2Availability(tokenService.getBasicAuthHeader());

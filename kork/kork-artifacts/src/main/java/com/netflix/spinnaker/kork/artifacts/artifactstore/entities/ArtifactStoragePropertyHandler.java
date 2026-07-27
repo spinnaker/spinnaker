@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * An artifact storage property handler is a special type of handler specific of handling fields in

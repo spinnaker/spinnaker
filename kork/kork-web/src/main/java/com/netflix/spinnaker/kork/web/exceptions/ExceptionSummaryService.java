@@ -6,10 +6,10 @@ import com.netflix.spinnaker.kork.api.exceptions.ExceptionSummary.TraceDetail;
 import com.netflix.spinnaker.kork.api.exceptions.ExceptionSummary.TraceDetail.TraceDetailBuilder;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * Builds an {@link ExceptionSummary} object from a given Exception. This object is meant to help
@@ -66,8 +66,7 @@ public class ExceptionSummaryService {
       Throwable throwable, @Nullable ExceptionDetails exceptionDetails) {
     TraceDetailBuilder detailBuilder = TraceDetail.builder().message(throwable.getMessage());
 
-    if (throwable instanceof SpinnakerException) {
-      SpinnakerException spinnakerException = (SpinnakerException) throwable;
+    if (throwable instanceof SpinnakerException spinnakerException) {
 
       detailBuilder
           .userMessage(
@@ -75,9 +74,8 @@ public class ExceptionSummaryService {
                   throwable, spinnakerException.getUserMessage(), exceptionDetails))
           .retryable(spinnakerException.getRetryable());
     }
-    if (throwable instanceof HasAdditionalAttributes) {
-      detailBuilder.additionalAttributes(
-          ((HasAdditionalAttributes) throwable).getAdditionalAttributes());
+    if (throwable instanceof HasAdditionalAttributes attributes) {
+      detailBuilder.additionalAttributes(attributes.getAdditionalAttributes());
     }
 
     return detailBuilder.build();

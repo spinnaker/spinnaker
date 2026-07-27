@@ -23,7 +23,6 @@ import com.netflix.spinnaker.kork.exceptions.SystemException;
 import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,7 +30,6 @@ public class OkHttpClientProvider {
 
   private final List<OkHttpClientBuilderProvider> providers;
 
-  @Autowired
   public OkHttpClientProvider(List<OkHttpClientBuilderProvider> providers) {
     this.providers = providers;
   }

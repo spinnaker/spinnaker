@@ -15,12 +15,13 @@
  */
 package com.netflix.spinnaker.kork.plugins.finders
 
+import java.nio.file.Path
+
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.nio.file.Paths
 import org.pf4j.CompoundPluginDescriptorFinder
 import org.pf4j.RuntimeMode
 import strikt.api.expectThat
@@ -34,13 +35,13 @@ class SpinnakerPluginDescriptorFinderTest : JUnit5Minutests {
 
     test("delegates isApplicable to internal chain") {
       every { finder.isApplicable(any()) } returns true
-      expectThat(subject.isApplicable(Paths.get("/somewhere"))).isTrue()
+      expectThat(subject.isApplicable(Path.of("/somewhere"))).isTrue()
       verify(exactly = 1) { finder.isApplicable(any()) }
     }
 
     test("delegates find to internal chain") {
       every { finder.find(any()) } returns pluginDescriptor
-      expectThat(subject.find(Paths.get("/somewhere/plugin"))).isEqualTo(pluginDescriptor)
+      expectThat(subject.find(Path.of("/somewhere/plugin"))).isEqualTo(pluginDescriptor)
     }
   }
 

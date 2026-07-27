@@ -19,15 +19,14 @@ package com.netflix.spinnaker.kork.retrofit.exceptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
+import mockwebserver3.SocketPolicy;
 import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.SocketPolicy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.json.JsonMapper;
 
 class SpinnakerRetrofit2ErrorHandleTest {
 
@@ -53,7 +53,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
     Map<String, String> responseBodyMap = new HashMap<>();
     responseBodyMap.put("timestamp", "123123123123");
     responseBodyMap.put("message", "Something happened error message");
-    responseBodyString = new ObjectMapper().writeValueAsString(responseBodyMap);
+    responseBodyString = new JsonMapper().writeValueAsString(responseBodyMap);
 
     retrofit2Service =
         new Retrofit.Builder()
@@ -71,16 +71,17 @@ class SpinnakerRetrofit2ErrorHandleTest {
 
   @AfterAll
   static void shutdownOnce() throws Exception {
-    mockWebServer.shutdown();
+    mockWebServer.close();
   }
 
   @Test
   void testRetrofitNotFoundIsNotRetryable() {
 
     mockWebServer.enqueue(
-        new MockResponse()
-            .setResponseCode(HttpStatus.NOT_FOUND.value())
-            .setBody(responseBodyString));
+        new MockResponse.Builder()
+            .code(HttpStatus.NOT_FOUND.value())
+            .body(responseBodyString)
+            .build());
     SpinnakerHttpException notFoundException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerHttpException.class);
@@ -93,9 +94,10 @@ class SpinnakerRetrofit2ErrorHandleTest {
   void testRetrofitBadRequestIsNotRetryable() {
 
     mockWebServer.enqueue(
-        new MockResponse()
-            .setResponseCode(HttpStatus.NOT_FOUND.value())
-            .setBody(responseBodyString));
+        new MockResponse.Builder()
+            .code(HttpStatus.NOT_FOUND.value())
+            .body(responseBodyString)
+            .build());
     SpinnakerHttpException spinnakerHttpException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerHttpException.class);
@@ -109,7 +111,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
   void testRetrofitOtherClientErrorHasNullRetryable() {
 
     mockWebServer.enqueue(
-        new MockResponse().setResponseCode(HttpStatus.GONE.value()).setBody(responseBodyString));
+        new MockResponse.Builder().code(HttpStatus.GONE.value()).body(responseBodyString).build());
     SpinnakerHttpException spinnakerHttpException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerHttpException.class);
@@ -120,7 +122,8 @@ class SpinnakerRetrofit2ErrorHandleTest {
 
   @Test
   void testRetrofitSimpleSpinnakerNetworkException() {
-    mockWebServer.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
+    mockWebServer.enqueue(
+        new MockResponse.Builder().setSocketPolicy(SocketPolicy.NO_RESPONSE).build());
     SpinnakerNetworkException spinnakerNetworkException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerNetworkException.class);
@@ -133,10 +136,11 @@ class SpinnakerRetrofit2ErrorHandleTest {
 
     // Check response headers are retrievable from a SpinnakerHttpException
     mockWebServer.enqueue(
-        new MockResponse()
-            .setResponseCode(HttpStatus.NOT_FOUND.value())
-            .setBody(responseBodyString)
-            .setHeader("Test", "true"));
+        new MockResponse.Builder()
+            .code(HttpStatus.NOT_FOUND.value())
+            .body(responseBodyString)
+            .setHeader("Test", "true")
+            .build());
     SpinnakerHttpException spinnakerHttpException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerHttpException.class);
@@ -150,9 +154,10 @@ class SpinnakerRetrofit2ErrorHandleTest {
   void testHttpMethodInException() {
     // Check http request method is retrievable from a SpinnakerHttpException
     mockWebServer.enqueue(
-        new MockResponse()
-            .setResponseCode(HttpStatus.BAD_REQUEST.value())
-            .setBody(responseBodyString));
+        new MockResponse.Builder()
+            .code(HttpStatus.BAD_REQUEST.value())
+            .body(responseBodyString)
+            .build());
     SpinnakerHttpException spinnakerHttpException =
         catchThrowableOfType(
             () -> retrofit2Service.deleteRetrofit2().execute(), SpinnakerHttpException.class);
@@ -191,9 +196,10 @@ class SpinnakerRetrofit2ErrorHandleTest {
     String invalidJsonTypeResponseBody = "{'testcasename': 'testSpinnakerConversionException'";
 
     mockWebServer.enqueue(
-        new MockResponse()
-            .setResponseCode(HttpStatus.OK.value())
-            .setBody(invalidJsonTypeResponseBody));
+        new MockResponse.Builder()
+            .code(HttpStatus.OK.value())
+            .body(invalidJsonTypeResponseBody)
+            .build());
 
     SpinnakerConversionException spinnakerConversionException =
         catchThrowableOfType(
@@ -202,8 +208,9 @@ class SpinnakerRetrofit2ErrorHandleTest {
     assertThat(spinnakerConversionException.getRetryable()).isFalse();
     assertThat(spinnakerConversionException)
         .hasMessage(
-            "Failed to process response body: Cannot deserialize value of type `java.lang.String` from Object value (token `JsonToken.START_OBJECT`)\n"
-                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1]");
+            """
+            Failed to process response body: Cannot deserialize value of type `java.lang.String` from Object value (token `JsonToken.START_OBJECT`)
+             at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 1]""");
     assertThat(spinnakerConversionException.getUrl())
         .isEqualTo(mockWebServer.url("/retrofit2").toString());
   }
@@ -217,7 +224,7 @@ class SpinnakerRetrofit2ErrorHandleTest {
     String reason = "Server Error";
 
     mockWebServer.enqueue(
-        new MockResponse().setResponseCode(responseCode).setBody(invalidJsonTypeResponseBody));
+        new MockResponse.Builder().code(responseCode).body(invalidJsonTypeResponseBody).build());
     SpinnakerHttpException spinnakerHttpException =
         catchThrowableOfType(
             () -> retrofit2Service.getRetrofit2().execute(), SpinnakerHttpException.class);

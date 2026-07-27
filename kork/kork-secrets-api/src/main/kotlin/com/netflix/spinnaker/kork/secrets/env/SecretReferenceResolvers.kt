@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.kork.secrets.env
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper
+import tools.jackson.dataformat.yaml.YAMLMapper
 import com.netflix.spinnaker.kork.secrets.SecretDecryptionException
 import com.netflix.spinnaker.kork.secrets.SecretReferenceParser
 import com.netflix.spinnaker.kork.secrets.SecretReferenceResolver

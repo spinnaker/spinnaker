@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.cloud.config.environment.Environment;
@@ -38,7 +38,7 @@ import org.springframework.core.io.ByteArrayResource;
 class CloudConfigResourceServiceTest {
   private static final String TEST_FILE_NAME = "testfile";
   private static final String TEST_FILE_PATH =
-      Paths.get(System.getProperty("java.io.tmpdir"), TEST_FILE_NAME).toString();
+      Path.of(System.getProperty("java.io.tmpdir"), TEST_FILE_NAME).toString();
   private static final String CLOUD_TEST_FILE_NAME = "configserver:" + TEST_FILE_NAME;
   private static final String TEST_FILE_CONTENTS = "test file contents";
 
@@ -50,7 +50,7 @@ class CloudConfigResourceServiceTest {
 
   @AfterEach
   void tearDown() throws IOException {
-    Files.deleteIfExists(Paths.get(TEST_FILE_PATH));
+    Files.deleteIfExists(Path.of(TEST_FILE_PATH));
   }
 
   @Test

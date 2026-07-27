@@ -21,7 +21,7 @@ import com.netflix.spinnaker.kork.plugins.api.httpclient.HttpClientRegistry;
 import com.netflix.spinnaker.kork.plugins.api.serde.SerdeService;
 import com.netflix.spinnaker.kork.plugins.api.servicesdk.ServiceSdk;
 import com.netflix.spinnaker.kork.plugins.api.yaml.YamlResourceLoader;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * A convenience interface for accessing plugin SDK services.

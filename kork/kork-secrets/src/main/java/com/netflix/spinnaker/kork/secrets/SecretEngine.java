@@ -19,8 +19,8 @@ package com.netflix.spinnaker.kork.secrets;
 import com.netflix.spinnaker.kork.secrets.user.UnsupportedUserSecretEngineException;
 import com.netflix.spinnaker.kork.secrets.user.UserSecret;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import jakarta.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
-import javax.annotation.Nonnull;
 
 /**
  * SecretEngines contain service specific functionality in order to decrypt EncryptedSecrets.

@@ -19,7 +19,8 @@ package com.netflix.spinnaker.kork.jedis.locking
 import static org.assertj.core.api.Assertions.assertThat
 
 import java.util.function.Consumer
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisClientDelegate
@@ -32,7 +33,7 @@ import spock.lang.Shared
 class RedisLockManagerSpec extends BaseLockManagerSpec<RedisLockManager> {
   @Shared def embeddedRedis = EmbeddedRedis.embed()
   def jedisPool = embeddedRedis.getPool() as JedisPool
-  def objectMapper = new ObjectMapper()
+  def objectMapper = new JsonMapper()
   def registry = new NoopRegistry()
   def redisClientDelegate = new JedisClientDelegate(jedisPool)
   def heartbeatRateMillis = 30L

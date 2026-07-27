@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -51,7 +50,6 @@ public class SNSPublisherProvider {
   private final DiscoveryStatusListener discoveryStatus;
   private final DynamicConfigService dynamicConfig;
 
-  @Autowired
   public SNSPublisherProvider(
       AwsCredentialsProvider awsCredentialsProvider,
       AmazonPubsubProperties properties,

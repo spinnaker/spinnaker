@@ -1,4 +1,5 @@
 dependencies {
+  implementation(platform(project(":spinnaker-dependencies")))
   runtimeOnly(platform(project(":spinnaker-dependencies")))
 
   // Add each included runtime project as a runtime dependency

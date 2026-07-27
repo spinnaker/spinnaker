@@ -15,14 +15,15 @@
  */
 package com.netflix.spinnaker.kork.plugins
 
-import com.fasterxml.jackson.core.type.TypeReference
+import tools.jackson.core.type.TypeReference
 import com.netflix.spinnaker.kork.plugins.config.ConfigCoordinates
 import com.netflix.spinnaker.kork.plugins.config.ConfigResolver
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import java.lang.reflect.ParameterizedType
-import java.nio.file.Paths
+import java.nio.file.Path
+
 import org.pf4j.DefaultPluginDescriptor
 import org.pf4j.PluginState
 import org.pf4j.PluginStatusProvider
@@ -41,7 +42,7 @@ class SpinnakerPluginManagerTest : JUnit5Minutests {
         mockk(),
         listOf(),
         "kork",
-        Paths.get("plugins"),
+        Path.of("plugins"),
         mockk(),
         mockk()
       )

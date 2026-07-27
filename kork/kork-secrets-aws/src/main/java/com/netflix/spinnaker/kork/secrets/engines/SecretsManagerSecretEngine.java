@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretEngine;
@@ -214,7 +214,7 @@ public class SecretsManagerSecretEngine implements SecretEngine {
                         return mapper
                             .readerForMapOf(String.class)
                             .readValue(getSecretValue(parameters).secretString());
-                      } catch (JsonProcessingException | IllegalArgumentException e) {
+                      } catch (JacksonException | IllegalArgumentException e) {
                         throw new SecretException(
                             String.format(
                                 "Failed to parse secret when using AWS Secrets Manager to fetch: %s",

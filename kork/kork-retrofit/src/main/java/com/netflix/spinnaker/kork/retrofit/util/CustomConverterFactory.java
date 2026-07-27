@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kork.retrofit.util;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.util.IOUtils;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -26,6 +24,9 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * This Factory handles the conversion of concrete objects of an abstract class to the RequestBody.
@@ -41,7 +42,7 @@ public class CustomConverterFactory extends Converter.Factory {
       MediaType.get("application/json; charset=UTF-8");
 
   public static CustomConverterFactory create() {
-    return new CustomConverterFactory(new ObjectMapper());
+    return new CustomConverterFactory(new JsonMapper());
   }
 
   public static CustomConverterFactory create(ObjectMapper mapper) {

@@ -22,9 +22,9 @@ import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFacto
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import mockwebserver3.MockResponse;
+import mockwebserver3.MockWebServer;
 import okhttp3.OkHttpClient;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import retrofit2.Call;
@@ -67,18 +67,18 @@ public class ErrorHandlingExecutorCallAdapterFactoryTest {
 
   @Test
   public void testLegacySignature() {
-    mockWebServer.enqueue(new MockResponse().setBody("{\"foo\": \"bar\"}"));
+    mockWebServer.enqueue(new MockResponse.Builder().body("{\"foo\": \"bar\"}").build());
     var ret = testService.legacy1();
     assertEquals("bar", ret.get("foo"));
 
-    mockWebServer.enqueue(new MockResponse().setBody("{\"foo\": \"bar\"}"));
+    mockWebServer.enqueue(new MockResponse.Builder().body("{\"foo\": \"bar\"}").build());
     var ret2 = testService.legacy2();
     assertEquals("bar", ret2.get("foo"));
   }
 
   @Test
   public void testModernSignature() {
-    mockWebServer.enqueue(new MockResponse().setBody("{\"foo\": \"bar\"}"));
+    mockWebServer.enqueue(new MockResponse.Builder().body("{\"foo\": \"bar\"}").build());
     var ret = Retrofit2SyncCall.execute(testService.modern1());
     assertEquals("bar", ret.get("foo"));
   }

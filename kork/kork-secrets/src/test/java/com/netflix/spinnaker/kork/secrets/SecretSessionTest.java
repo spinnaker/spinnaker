@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.kork.secrets.engines.NoopSecretEngine;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +38,7 @@ public class SecretSessionTest {
 
   private void addTestValuesToSecretSessionCaches() {
     secretSession.addCachedSecret("encrypted:noop!f:test!k:key", "decrypted");
-    secretSession.addCachedSecretFile("encrypted:noop!f:file", Paths.get("decryptedFile"));
+    secretSession.addCachedSecretFile("encrypted:noop!f:file", Path.of("decryptedFile"));
   }
 
   @Test
@@ -65,7 +64,7 @@ public class SecretSessionTest {
 
   @Test
   public void decryptAsFileAddsToCacheOnCacheMiss() {
-    doReturn(Paths.get("tempFile")).when(secretManager).decryptAsFile(any());
+    doReturn(Path.of("tempFile")).when(secretManager).decryptAsFile(any());
     assertEquals(1, secretSession.secretFileCache.size());
     Path decrypted = secretSession.decryptAsFile("encrypted:noop!f:unknown");
     assertEquals(2, secretSession.secretFileCache.size());

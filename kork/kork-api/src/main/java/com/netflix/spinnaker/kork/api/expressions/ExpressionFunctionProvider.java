@@ -18,10 +18,10 @@ package com.netflix.spinnaker.kork.api.expressions;
 
 import com.netflix.spinnaker.kork.annotations.DeprecationInfo;
 import com.netflix.spinnaker.kork.plugins.api.internal.SpinnakerExtensionPoint;
+import jakarta.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
  * Provides a contract for adding new function definitions for SpEL evaluation.

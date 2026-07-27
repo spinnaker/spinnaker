@@ -19,7 +19,6 @@ package com.netflix.spinnaker.kork.plugins.finders
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import java.nio.file.Path
-import java.nio.file.Paths
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginDescriptorFinder
 import strikt.api.expectThat
@@ -42,8 +41,8 @@ class PluginRefPluginDescriptorFinderTests : JUnit5Minutests {
   }
 
   private inner class Fixture {
-    val expectedDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(Paths.get(javaClass.getResource("/testplugin/plugin.properties").toURI()).parent)
-    val pluginRefPath: Path = Paths.get(javaClass.getResource("/test.plugin-ref").toURI())
+    val expectedDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(Path.of(javaClass.getResource("/testplugin/plugin.properties").toURI()).parent)
+    val pluginRefPath: Path = Path.of(javaClass.getResource("/test.plugin-ref").toURI())
     val finder: PluginDescriptorFinder = SpinnakerPropertiesPluginDescriptorFinder()
     val subject = PluginRefPluginDescriptorFinder(finder)
   }

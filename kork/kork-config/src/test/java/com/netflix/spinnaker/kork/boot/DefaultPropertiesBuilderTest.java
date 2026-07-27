@@ -19,19 +19,16 @@ package com.netflix.spinnaker.kork.boot;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = TestApplication.class)
+@SpringJUnitConfig(classes = TestApplication.class)
 class DefaultPropertiesBuilderTest {
   @Test
   public void testContextLoads() {
     String dummyUserHome = "/foo/bar";
-    assertTrue(Files.notExists(Paths.get(dummyUserHome)));
+    assertTrue(Files.notExists(Path.of(dummyUserHome)));
     TestApplication.execute(dummyUserHome);
   }
 }

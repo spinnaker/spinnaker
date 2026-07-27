@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.dynamicconfig;
 
+import jakarta.annotation.Nonnull;
 import java.util.function.Supplier;
-import javax.annotation.Nonnull;
 
 /**
  * A simple interface for interacting with dynamic Spring properties in the scope of feature flags.

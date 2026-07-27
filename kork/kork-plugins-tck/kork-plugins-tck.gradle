@@ -15,7 +15,7 @@ dependencies {
   api("dev.minutest:minutest")
   api("io.mockk:mockk")
   api("org.springframework.boot:spring-boot-starter-test")
-  api("org.springframework.security:spring-security-test")
+  api("org.springframework.boot:spring-boot-starter-security-test")
   api("org.springframework.security:spring-security-config")
   api("com.ninja-squad:springmockk")
 

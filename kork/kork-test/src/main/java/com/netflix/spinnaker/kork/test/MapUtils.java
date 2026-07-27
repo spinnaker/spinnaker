@@ -15,12 +15,12 @@
  */
 package com.netflix.spinnaker.kork.test;
 
+import jakarta.annotation.Nonnull;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 
 /** Provides a standard library of helper functions for Map types. */
 public class MapUtils {

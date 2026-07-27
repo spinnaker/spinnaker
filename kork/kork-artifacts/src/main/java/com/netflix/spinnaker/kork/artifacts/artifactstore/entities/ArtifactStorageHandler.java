@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * ArtifactStorageHandler is used to hook into the serializers to handle a particular class, e.g. a

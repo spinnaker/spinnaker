@@ -27,7 +27,7 @@ import lombok.Getter;
  */
 @UserSecretType("opaque")
 public class OpaqueUserSecretData implements UserSecretData {
-  @Getter(onMethod = @__({@JsonValue}))
+  @Getter(onMethod_ = {@JsonValue})
   private final Map<String, String> data;
 
   @JsonCreator

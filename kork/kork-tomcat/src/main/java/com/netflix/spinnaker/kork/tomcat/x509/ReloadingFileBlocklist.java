@@ -113,8 +113,8 @@ public class ReloadingFileBlocklist implements Blocklist {
     } catch (ExecutionException ee) {
       Throwable cause = ee.getCause();
       if (cause != null) {
-        if (cause instanceof RuntimeException) {
-          throw (RuntimeException) cause;
+        if (cause instanceof RuntimeException exception) {
+          throw exception;
         }
         throw new RuntimeException(cause);
       }

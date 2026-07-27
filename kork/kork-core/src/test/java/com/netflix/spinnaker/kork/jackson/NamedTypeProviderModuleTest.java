@@ -21,9 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import java.util.List;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
@@ -32,6 +29,10 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 @SpringBootTest(classes = NamedTypeProviderModuleTest.TestConfig.class)
 @AutoConfigureJson
@@ -52,6 +53,7 @@ class NamedTypeProviderModuleTest {
     private String bet;
   }
 
+  @Configuration
   static class TestConfig {
     @Bean
     NamedTypeProvider testNamedTypeProvider() {
@@ -62,7 +64,7 @@ class NamedTypeProviderModuleTest {
   @Autowired ObjectMapper objectMapper;
 
   @Test
-  void objectMapperHasNamedSubtypesRegistered() throws JsonProcessingException {
+  void objectMapperHasNamedSubtypesRegistered() throws JacksonException {
     var firstType = new FirstType();
     firstType.setAlef("knee");
     assertEquals(firstType, serializeRoundTrip(firstType));
@@ -71,7 +73,7 @@ class NamedTypeProviderModuleTest {
     assertEquals(secondType, serializeRoundTrip(secondType));
   }
 
-  private BaseType serializeRoundTrip(BaseType baseType) throws JsonProcessingException {
+  private BaseType serializeRoundTrip(BaseType baseType) throws JacksonException {
     return objectMapper.readValue(objectMapper.writeValueAsString(baseType), BaseType.class);
   }
 }

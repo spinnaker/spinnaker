@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -56,6 +57,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 public class StackdriverWriterTest {
+  private AutoCloseable mocks;
+
   static class TestableStackdriverWriter extends StackdriverWriter {
     public TestableStackdriverWriter(ConfigParams params) {
       super(params);
@@ -160,7 +163,7 @@ public class StackdriverWriterTest {
 
   @BeforeEach
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    mocks = MockitoAnnotations.openMocks(this);
     when(monitoringApi.projects()).thenReturn(projectsApi);
     when(projectsApi.metricDescriptors()).thenReturn(descriptorsApi);
     when(projectsApi.timeSeries()).thenReturn(timeseriesApi);
@@ -384,5 +387,10 @@ public class StackdriverWriterTest {
     // which means the transforms occurred as expected.
     List<TimeSeries> tsList = writer.registryToTimeSeries(testRegistry);
     assertEquals(2, tsList.size());
+  }
+
+  @AfterEach
+  void tearDown() throws Exception {
+    mocks.close();
   }
 }

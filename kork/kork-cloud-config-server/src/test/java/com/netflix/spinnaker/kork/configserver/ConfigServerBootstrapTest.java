@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kork.configserver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -29,7 +29,7 @@ public class ConfigServerBootstrapTest {
   @Test
   public void testConfigServerContextLoads() {
     String dummyUserHome = "/foo/bar";
-    assertTrue(Files.notExists(Paths.get(dummyUserHome)));
+    assertTrue(Files.notExists(Path.of(dummyUserHome)));
     ConfigServerTestApplication.execute(dummyUserHome);
   }
 }

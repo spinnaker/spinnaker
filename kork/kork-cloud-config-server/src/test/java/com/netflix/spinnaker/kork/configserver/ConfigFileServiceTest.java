@@ -23,21 +23,21 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class ConfigFileServiceTest {
   private static final String TEST_FILE_NAME = "testfile";
   private static final String TEST_FILE_PATH =
-      Paths.get(System.getProperty("java.io.tmpdir"), TEST_FILE_NAME).toString();
+      Path.of(System.getProperty("java.io.tmpdir"), TEST_FILE_NAME).toString();
   private static final String TEST_FILE_CONTENTS = "test file contents";
 
   private ConfigFileService configFileService = new ConfigFileService(null);
 
   @AfterEach
   void tearDown() throws IOException {
-    Files.deleteIfExists(Paths.get(TEST_FILE_PATH));
+    Files.deleteIfExists(Path.of(TEST_FILE_PATH));
   }
 
   @Test

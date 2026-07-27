@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.kork.tomcat.x509;
 
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Component;
 public class BlocklistEnabledDynamicConfigMonitor {
   private final DynamicConfigService dynamicConfigService;
 
-  @Autowired
   public BlocklistEnabledDynamicConfigMonitor(DynamicConfigService dynamicConfigService) {
     this.dynamicConfigService = dynamicConfigService;
     syncEnabledProperty();

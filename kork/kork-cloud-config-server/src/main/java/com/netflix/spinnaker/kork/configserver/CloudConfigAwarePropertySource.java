@@ -33,8 +33,7 @@ public class CloudConfigAwarePropertySource extends EnumerablePropertySource<Pro
   @Override
   public Object getProperty(String name) {
     Object value = source.getProperty(name);
-    if (value instanceof String) {
-      String stringValue = (String) value;
+    if (value instanceof String stringValue) {
       if (CloudConfigResourceService.isCloudConfigResource(stringValue)) {
         resolveResourceService(stringValue);
         value = resourceService.getLocalPath(stringValue);
@@ -56,8 +55,8 @@ public class CloudConfigAwarePropertySource extends EnumerablePropertySource<Pro
 
   @Override
   public String[] getPropertyNames() {
-    if (source instanceof EnumerablePropertySource) {
-      return ((EnumerablePropertySource) source).getPropertyNames();
+    if (source instanceof EnumerablePropertySource propertySource) {
+      return propertySource.getPropertyNames();
     } else {
       return new String[0];
     }

@@ -19,8 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.exceptions.ArtifactStoreInvalidTypeException;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
@@ -28,9 +26,12 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 class ArtifactStoreConverterTest {
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper = new JsonMapper();
 
   @Test
   void checkToMap() {
@@ -39,7 +40,7 @@ class ArtifactStoreConverterTest {
     byte[] b = null;
     try {
       b = mapper.writeValueAsBytes(m);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       fail("JSON serialization exception", e);
     }
     String b64ref = Base64.getEncoder().encodeToString(b);

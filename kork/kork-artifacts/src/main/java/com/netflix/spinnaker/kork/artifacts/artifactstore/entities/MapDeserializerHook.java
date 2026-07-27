@@ -15,18 +15,17 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.MapDeserializer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.deser.std.MapDeserializer;
 
 /**
  * DeserializerVisitorHook just wraps any deserializer. This is much different than how
@@ -49,15 +48,14 @@ public class MapDeserializerHook extends MapDeserializer {
   }
 
   @Override
-  public Map<Object, Object> deserialize(JsonParser jsonParser, DeserializationContext ctxt)
-      throws IOException {
+  public Map<Object, Object> deserialize(JsonParser jsonParser, DeserializationContext ctxt) {
     Map<Object, Object> m = this.deserializer.deserialize(jsonParser, ctxt);
-    return (Map<Object, Object>) visit(m, (ObjectMapper) jsonParser.getCodec());
+    return (Map<Object, Object>) visit(m, (ObjectMapper) jsonParser.objectReadContext());
   }
 
   @Override
-  public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property)
-      throws JsonMappingException {
+  public ValueDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property)
+      throws DatabindException {
     return new MapDeserializerHook(
         this.storage,
         this.handlers,
@@ -84,8 +82,8 @@ public class MapDeserializerHook extends MapDeserializer {
       }
 
       Object v = entry.getValue();
-      if (v instanceof Map) {
-        Object temp = this.visit((Map) v, objectMapper);
+      if (v instanceof Map map) {
+        Object temp = this.visit(map, objectMapper);
         if (temp != v) {
           m.put(keyObj, temp);
         }

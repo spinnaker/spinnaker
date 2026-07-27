@@ -16,8 +16,8 @@
 package com.netflix.spinnaker.kork.plugins.api.serde;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 /** Provides utility methods into Spinnaker's standard internal serialization libraries. */
 @Beta

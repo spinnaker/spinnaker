@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.kork.plugins.api.httpclient;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * Contains a bucket of configured {@link HttpClient}s for use within an extension.

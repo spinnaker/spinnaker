@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.secrets.engines;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.secrets.SecretConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = SecretConfiguration.class)
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ class SecretsManagerConfigurationTest {
   public static class ObjectMapperConfig {
     @Bean
     public ObjectMapper mapper() {
-      return new ObjectMapper();
+      return new JsonMapper();
     }
   }
 

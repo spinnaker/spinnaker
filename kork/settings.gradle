@@ -57,7 +57,7 @@ include(
   "kork-retrofit2",
   "kork-sql",
   "kork-sql-test",
-  "kork-stackdriver",
+  //"kork-stackdriver",
   "kork-swagger",
   "kork-telemetry",
   "kork-test",

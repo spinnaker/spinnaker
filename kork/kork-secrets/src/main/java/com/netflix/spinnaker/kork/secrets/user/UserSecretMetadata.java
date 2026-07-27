@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.kork.secrets.user;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

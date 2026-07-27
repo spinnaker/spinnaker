@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kork.secrets;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import org.springframework.core.env.EnumerablePropertySource;
 
 /**

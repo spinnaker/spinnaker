@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -47,6 +48,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class MetricDescriptorCacheTest {
+  private AutoCloseable mocks;
+
   static class ReturnExecuteDescriptorArg implements Answer {
     private Monitoring.Projects.MetricDescriptors.Create mockCreateMethod;
 
@@ -142,7 +145,7 @@ public class MetricDescriptorCacheTest {
 
   @BeforeEach
   public void setup() {
-    MockitoAnnotations.initMocks(this);
+    mocks = MockitoAnnotations.openMocks(this);
     when(monitoringApi.projects()).thenReturn(projectsApi);
     when(projectsApi.metricDescriptors()).thenReturn(descriptorsApi);
 
@@ -291,5 +294,10 @@ public class MetricDescriptorCacheTest {
     verify(mockGetMethod, times(1)).execute();
     verify(mockDeleteMethod, times(0)).execute();
     verify(mockCreateMethod, times(0)).execute();
+  }
+
+  @AfterEach
+  void tearDown() throws Exception {
+    mocks.close();
   }
 }

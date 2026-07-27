@@ -15,17 +15,16 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.ser.std.CollectionSerializer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.jsontype.TypeSerializer;
+import tools.jackson.databind.ser.std.CollectionSerializer;
 
 /**
  * CollectionSerializerHook will hook into the collection serializers to match a collection element
@@ -45,10 +44,10 @@ public class CollectionSerializerHook extends CollectionSerializer {
   }
 
   @Override
-  public void serializeContents(Collection<?> value, JsonGenerator g, SerializerProvider provider)
-      throws IOException {
+  public void serializeContents(
+      Collection<?> value, JsonGenerator g, SerializationContext provider) {
     final Collection<?> tempValue = value;
-    ObjectMapper mapper = (ObjectMapper) g.getCodec();
+    ObjectMapper mapper = (ObjectMapper) g.objectWriteContext();
     if (this._property != null) {
       ArtifactStoragePropertyHandler handler =
           this.handlers.stream()
@@ -84,7 +83,7 @@ public class CollectionSerializerHook extends CollectionSerializer {
       CollectionSerializer serializer,
       BeanProperty property,
       TypeSerializer vts,
-      JsonSerializer<?> elementSerializer,
+      ValueSerializer<?> elementSerializer,
       Boolean unwrapSingle) {
     super(serializer, property, vts, elementSerializer, unwrapSingle);
     this.storage = storage;
@@ -95,7 +94,7 @@ public class CollectionSerializerHook extends CollectionSerializer {
   public CollectionSerializer withResolved(
       BeanProperty property,
       TypeSerializer vts,
-      JsonSerializer<?> elementSerializer,
+      ValueSerializer<?> elementSerializer,
       Boolean unwrapSingle) {
     return new CollectionSerializerHook(
         this.storage,

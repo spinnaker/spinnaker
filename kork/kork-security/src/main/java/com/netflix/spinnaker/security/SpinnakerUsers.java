@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.security;
 
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

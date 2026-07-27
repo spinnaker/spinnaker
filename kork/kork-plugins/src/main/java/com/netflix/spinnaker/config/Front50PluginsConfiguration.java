@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsConfigurationProperties.PluginRepositoryProperties;
 import com.netflix.spinnaker.kork.plugins.update.EnvironmentServerGroupLocationResolver;
@@ -57,6 +53,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.module.kotlin.KotlinModule;
 
 @Configuration
 @ConditionalOnProperty("spinnaker.extensibility.repositories.front50.enabled")
@@ -127,11 +127,11 @@ public class Front50PluginsConfiguration {
     KotlinModule kotlinModule = new KotlinModule.Builder().build();
 
     ObjectMapper objectMapper =
-        new ObjectMapper()
-            .registerModule(kotlinModule)
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        JsonMapper.builder()
+            .addModule(kotlinModule)
             .configure(SerializationFeature.INDENT_OUTPUT, true)
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
+            .build();
 
     return new Retrofit.Builder()
         .addConverterFactory(JacksonConverterFactory.create(objectMapper))

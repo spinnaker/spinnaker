@@ -228,8 +228,7 @@ public class SelectableService<T> {
 
     @Override
     public int compareTo(Object o) {
-      if (o instanceof BaseUrl) {
-        final BaseUrl other = (BaseUrl) o;
+      if (o instanceof BaseUrl other) {
         if (priority == other.priority) {
           return 0;
         } else if (priority < other.priority) {
@@ -304,15 +303,14 @@ public class SelectableService<T> {
 
     @Override
     public boolean equals(Object o) {
-      if (o instanceof Parameter) {
-        Parameter other = (Parameter) o;
+      if (o instanceof Parameter other) {
         if (!this.name.equals(other.getName())) {
           return false;
         }
 
         for (Object v : values) {
-          if (v instanceof String && ((String) v).startsWith("regex:")) {
-            final String regex = ((String) v).substring(((String) v).indexOf(":") + 1);
+          if (v instanceof String string && string.startsWith("regex:")) {
+            final String regex = string.substring(string.indexOf(":") + 1);
             if (other.getValues().stream().anyMatch(i -> ((String) i).matches(regex))) {
               return true;
             }

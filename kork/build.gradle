@@ -64,6 +64,7 @@ subprojects {
     dependencies {
       annotationProcessor(platform(project(":spinnaker-dependencies")))
       annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+      implementation "jakarta.annotation:jakarta.annotation-api"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
       testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     }

@@ -15,17 +15,14 @@
  */
 package com.netflix.spinnaker.kork.plugins.config
 
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.JsonMappingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.node.MissingNode
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.databind.node.TreeTraversingParser
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import tools.jackson.core.type.TypeReference
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.node.MissingNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.databind.node.TreeTraversingParser
+import tools.jackson.dataformat.javaprop.JavaPropsMapper
+import tools.jackson.module.kotlin.registerKotlinModule
 import com.netflix.spinnaker.kork.annotations.Beta
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
 import com.netflix.spinnaker.kork.exceptions.SystemException
@@ -35,6 +32,8 @@ import java.util.Properties
 import org.slf4j.LoggerFactory
 import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.EnumerablePropertySource
+import tools.jackson.core.exc.StreamReadException
+import tools.jackson.databind.DatabindException
 
 /**
  * Resolves extension config from the parent Spring Environment.
@@ -55,9 +54,7 @@ class SpringEnvironmentConfigResolver(
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val mapper = ObjectMapper()
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+  private val mapper = JsonMapper()
     .registerKotlinModule()
 
   override fun <T> resolve(coordinates: ConfigCoordinates, expectedType: Class<T>): T =
@@ -102,9 +99,9 @@ class SpringEnvironmentConfigResolver(
 
     try {
       return callback(TreeTraversingParser(tree, mapper))
-    } catch (pe: JsonParseException) {
+    } catch (pe: StreamReadException) {
       throw IntegrationException("Failed reading extension config: Input appears invalid", pe)
-    } catch (me: JsonMappingException) {
+    } catch (me: DatabindException) {
       throw IntegrationException("Failed reading extension config: Could not map provided config to expected shape", me)
     } catch (@Suppress("TooGenericExceptionCaught") e: RuntimeException) {
       throw SystemException("Failed resolving extension config for an unexpected reason", e)

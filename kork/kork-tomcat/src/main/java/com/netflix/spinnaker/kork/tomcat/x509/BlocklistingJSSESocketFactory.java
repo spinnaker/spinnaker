@@ -54,9 +54,8 @@ public class BlocklistingJSSESocketFactory extends JSSEUtil {
       int delegatedCount = 0;
       for (int i = 0; i < trustManagers.length; i++) {
         TrustManager tm = trustManagers[i];
-        if (tm instanceof X509TrustManager) {
-          trustManagers[i] =
-              new BlocklistingX509TrustManager((X509TrustManager) tm, blocklist, registry);
+        if (tm instanceof X509TrustManager manager) {
+          trustManagers[i] = new BlocklistingX509TrustManager(manager, blocklist, registry);
           delegatedCount++;
         }
       }

@@ -96,8 +96,8 @@ public class TelemetryHelper {
   static long payloadSize(List payload) {
     long size = 0;
     for (Object p : payload) {
-      if (p instanceof String) {
-        size += payloadSize((String) p);
+      if (p instanceof String string) {
+        size += payloadSize(string);
       } else {
         size += payloadSize((byte[]) p);
       }

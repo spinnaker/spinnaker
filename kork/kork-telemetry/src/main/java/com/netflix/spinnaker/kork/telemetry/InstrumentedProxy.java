@@ -145,10 +145,8 @@ public class InstrumentedProxy implements InvocationHandler {
       seenMethods.add(method);
       boolean processed = false;
       for (Annotation a : method.getDeclaredAnnotations()) {
-        if (a instanceof Metered) {
+        if (a instanceof Metered metered) {
           processed = true;
-
-          Metered metered = (Metered) a;
           if (metered.ignore()) {
             return null;
           }

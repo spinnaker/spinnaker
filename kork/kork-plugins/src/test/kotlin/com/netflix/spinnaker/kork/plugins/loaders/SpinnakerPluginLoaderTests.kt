@@ -23,7 +23,6 @@ import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.mockk
 import java.nio.file.Path
-import java.nio.file.Paths
 import org.pf4j.PluginClassLoader
 import org.pf4j.PluginDescriptor
 import org.pf4j.PluginLoader
@@ -83,7 +82,7 @@ abstract class SpinnakerPluginLoadersTCK : JUnit5Minutests {
   }
 
   protected open inner class FixtureImpl(supplier: (f: Fixture) -> PluginLoader) : Fixture {
-    val unsafeDescriptorDirectory: Path = Paths.get(javaClass.getResource("/unsafe-testplugin/plugin.properties").toURI()).parent
+    val unsafeDescriptorDirectory: Path = Path.of(javaClass.getResource("/unsafe-testplugin/plugin.properties").toURI()).parent
     override val unsafePluginPath: Path = unsafeDescriptorDirectory
     override val unsafePluginDescriptor: PluginDescriptor = SpinnakerPropertiesPluginDescriptorFinder().find(unsafeDescriptorDirectory)
     override val pluginManager: PluginManager = mockk(relaxed = true)

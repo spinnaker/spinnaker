@@ -16,7 +16,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.api.events;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /** The base type for all Spinnaker application events that are accessible by plugins. */
 public interface SpinnakerApplicationEvent {

@@ -25,8 +25,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
@@ -52,6 +50,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(classes = {DockerBearerTokenService.class})
 public class DockerRegistryClientTest {
@@ -68,7 +69,7 @@ public class DockerRegistryClientTest {
   static DockerRegistryClient dockerRegistryClient;
   static DockerRegistryClient dockerRegistryClient2;
 
-  ObjectMapper objectMapper = new ObjectMapper();
+  ObjectMapper objectMapper = new JsonMapper();
   Map<String, Object> tagsResponse;
   String tagsResponseString;
   String tagsSecondResponseString;
@@ -79,7 +80,7 @@ public class DockerRegistryClientTest {
   String catalogThirdResponseString;
 
   @BeforeEach
-  public void init() throws JsonProcessingException {
+  public void init() throws JacksonException {
     tagsResponse =
         Map.of(
             "name",
@@ -259,7 +260,7 @@ public class DockerRegistryClientTest {
   }
 
   @Test
-  public void testTagsResponse_With_AdditionalFields() throws JsonProcessingException {
+  public void testTagsResponse_With_AdditionalFields() throws JacksonException {
     Map<String, Object> tagsResponse =
         Map.of(
             "child",
@@ -331,37 +332,39 @@ public class DockerRegistryClientTest {
   @Test
   public void DockerRegistryClientShouldBeAbleToToFetchDigest() {
     String manifestResponseString =
-        "{\n"
-            + "    \"schemaVersion\": 2,\n"
-            + "    \"mediaType\": \"application/vnd.docker.distribution.manifest.v2+json\",\n"
-            + "    \"config\": {\n"
-            + "        \"mediaType\": \"application/vnd.docker.container.image.v1+json\",\n"
-            + "        \"size\": 2578,\n"
-            + "        \"digest\": \"sha256:af2c053ebf8b22cbae434fe297c52aaf14c9ae72598aed25df03e6281644b500\"\n"
-            + "    },\n"
-            + "    \"layers\": [\n"
-            + "        {\n"
-            + "            \"mediaType\": \"application/vnd.docker.image.rootfs.diff.tar.gzip\",\n"
-            + "            \"size\": 2387850,\n"
-            + "            \"digest\": \"sha256:c1e54eec4b5786500c19795d1fc604aa7302aee307edfe0554a5c07108b77d48\"\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"mediaType\": \"application/vnd.docker.image.rootfs.diff.tar.gzip\",\n"
-            + "            \"size\": 184,\n"
-            + "            \"digest\": \"sha256:83b840425d8ae4740536e990e5c5aedcc0bce060c52cf9f266459630b96c91e8\"\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"mediaType\": \"application/vnd.docker.image.rootfs.diff.tar.gzip\",\n"
-            + "            \"size\": 5872586,\n"
-            + "            \"digest\": \"sha256:79ea61ba90a3ea63704d7b095d45c79f19573a241123b23455a8609c7a6347af\"\n"
-            + "        },\n"
-            + "        {\n"
-            + "            \"mediaType\": \"application/vnd.docker.image.rootfs.diff.tar.gzip\",\n"
-            + "            \"size\": 5872586,\n"
-            + "            \"digest\": \"sha256:79ea61ba90a3ea63704d7b095d45c79f19573a241123b23455a8609c7a6347af\"\n"
-            + "        }\n"
-            + "    ]\n"
-            + "}";
+        """
+        {
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "config": {
+                "mediaType": "application/vnd.docker.container.image.v1+json",
+                "size": 2578,
+                "digest": "sha256:af2c053ebf8b22cbae434fe297c52aaf14c9ae72598aed25df03e6281644b500"
+            },
+            "layers": [
+                {
+                    "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+                    "size": 2387850,
+                    "digest": "sha256:c1e54eec4b5786500c19795d1fc604aa7302aee307edfe0554a5c07108b77d48"
+                },
+                {
+                    "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+                    "size": 184,
+                    "digest": "sha256:83b840425d8ae4740536e990e5c5aedcc0bce060c52cf9f266459630b96c91e8"
+                },
+                {
+                    "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+                    "size": 5872586,
+                    "digest": "sha256:79ea61ba90a3ea63704d7b095d45c79f19573a241123b23455a8609c7a6347af"
+                },
+                {
+                    "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+                    "size": 5872586,
+                    "digest": "sha256:79ea61ba90a3ea63704d7b095d45c79f19573a241123b23455a8609c7a6347af"
+                }
+            ]
+        }\
+        """;
 
     wmDockerRegistry.stubFor(
         WireMock.get(urlMatching("/v2/library/nginx/manifests/1.0.0"))
@@ -375,52 +378,54 @@ public class DockerRegistryClientTest {
   @Test
   public void DockerRegistryClientShouldBeAbleToToFetchTheConfigLayer() {
     String configLayerResponseString =
-        "{\n"
-            + "    \"architecture\": \"amd64\",\n"
-            + "    \"config\": {\n"
-            + "        \"ExposedPorts\": {\n"
-            + "            \"80/tcp\": {}\n"
-            + "        },\n"
-            + "        \"Env\": [\n"
-            + "            \"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\",\n"
-            + "            \"NGINX_VERSION=1.28.0\",\n"
-            + "            \"NJS_VERSION=0.8.10\",\n"
-            + "            \"NJS_RELEASE=1~bookworm\",\n"
-            + "            \"PKG_RELEASE=1~bookworm\",\n"
-            + "            \"DYNPKG_RELEASE=1~bookworm\"\n"
-            + "        ],\n"
-            + "        \"Entrypoint\": [\n"
-            + "            \"/docker-entrypoint.sh\"\n"
-            + "        ],\n"
-            + "        \"Cmd\": [\n"
-            + "            \"nginx\",\n"
-            + "            \"-g\",\n"
-            + "            \"daemon off;\"\n"
-            + "        ],\n"
-            + "        \"Labels\": {\n"
-            + "            \"maintainer\": \"NGINX Docker Maintainers <docker-maint@nginx.com>\",\n"
-            + "            \"commitId\" : \"b48e2cf960de545597411c99ec969e47a7635ba3\"\n"
-            + "        },\n"
-            + "        \"StopSignal\": \"SIGQUIT\"\n"
-            + "    },\n"
-            + "    \"created\": \"2025-04-23T18:00:49Z\",\n"
-            + "    \"history\": [\n"
-            + "    ],\n"
-            + "    \"os\": \"linux\",\n"
-            + "    \"rootfs\": {\n"
-            + "        \"type\": \"layers\",\n"
-            + "        \"diff_ids\": [\n"
-            + "            \"sha256:6c4c763d22d0c5f9b2c5901dfa667fbbc4713cee6869336b8fd5022185071f1c\",\n"
-            + "            \"sha256:9f46bafac0d08ae71ba1cded69760cba6ac8f647b0c643fc8bee54bf66cb172b\",\n"
-            + "            \"sha256:9aa50fe684c520cc1d48f7086fd491637e5eeee9315a1d2230fdfe1d67145379\",\n"
-            + "            \"sha256:1097e804b7e9ff52048e9dd91ad691859d038d0dd305df3bd505070332da9594\",\n"
-            + "            \"sha256:50495e2ba6dcb6ef54317ab717758e73d685b60183911f45e60c4d0d65a8ba1c\",\n"
-            + "            \"sha256:b6ec55b719dc8f564e5749f53fe4f07c141a207fe72b0b019703d91d883a3285\",\n"
-            + "            \"sha256:5a905c85a1e62e0d7be06acb90957b7f796be944a4864de79fcb7438b5169b00\",\n"
-            + "            \"sha256:c522020b6a4645cdf93e4f0c1bd7af25b8f74f3281701fbb0b759fef1b6ccd16\"\n"
-            + "        ]\n"
-            + "    }\n"
-            + "}";
+        """
+        {
+            "architecture": "amd64",
+            "config": {
+                "ExposedPorts": {
+                    "80/tcp": {}
+                },
+                "Env": [
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "NGINX_VERSION=1.28.0",
+                    "NJS_VERSION=0.8.10",
+                    "NJS_RELEASE=1~bookworm",
+                    "PKG_RELEASE=1~bookworm",
+                    "DYNPKG_RELEASE=1~bookworm"
+                ],
+                "Entrypoint": [
+                    "/docker-entrypoint.sh"
+                ],
+                "Cmd": [
+                    "nginx",
+                    "-g",
+                    "daemon off;"
+                ],
+                "Labels": {
+                    "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>",
+                    "commitId" : "b48e2cf960de545597411c99ec969e47a7635ba3"
+                },
+                "StopSignal": "SIGQUIT"
+            },
+            "created": "2025-04-23T18:00:49Z",
+            "history": [
+            ],
+            "os": "linux",
+            "rootfs": {
+                "type": "layers",
+                "diff_ids": [
+                    "sha256:6c4c763d22d0c5f9b2c5901dfa667fbbc4713cee6869336b8fd5022185071f1c",
+                    "sha256:9f46bafac0d08ae71ba1cded69760cba6ac8f647b0c643fc8bee54bf66cb172b",
+                    "sha256:9aa50fe684c520cc1d48f7086fd491637e5eeee9315a1d2230fdfe1d67145379",
+                    "sha256:1097e804b7e9ff52048e9dd91ad691859d038d0dd305df3bd505070332da9594",
+                    "sha256:50495e2ba6dcb6ef54317ab717758e73d685b60183911f45e60c4d0d65a8ba1c",
+                    "sha256:b6ec55b719dc8f564e5749f53fe4f07c141a207fe72b0b019703d91d883a3285",
+                    "sha256:5a905c85a1e62e0d7be06acb90957b7f796be944a4864de79fcb7438b5169b00",
+                    "sha256:c522020b6a4645cdf93e4f0c1bd7af25b8f74f3281701fbb0b759fef1b6ccd16"
+                ]
+            }
+        }\
+        """;
 
     wmDockerRegistry.stubFor(
         WireMock.get(

@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.kork.artifacts.artifactstore.entities;
 
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypeDecorator;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
@@ -30,6 +28,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Handles the storage of manifest collections (specifically Sets) as artifacts.
@@ -149,8 +149,7 @@ public class ManifestStorageCollectionHandler implements ArtifactStorageProperty
     Set<Object> hashSet = new HashSet<>();
     for (Iterator<?> it = arr.iterator(); it.hasNext(); ) {
       Object elem = it.next();
-      if (elem instanceof Map) {
-        Map<?, ?> m = (Map<?, ?>) elem;
+      if (elem instanceof Map<?, ?> m) {
         elem = handleMap(store, m);
       }
 

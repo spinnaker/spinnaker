@@ -24,7 +24,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.netflix.spectator.api.NoopRegistry;
@@ -52,6 +51,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -146,7 +147,7 @@ class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testRepeatingQueryParams() throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new JsonMapper();
     List<String> qry1List =
         List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
     String qry2 = "qryVal2";
@@ -192,7 +193,7 @@ class Retrofit2EncodeCorrectionInterceptorTest {
 
   @Test
   public void testRepeatingQueryParams_withinUrl() throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new JsonMapper();
     List<String> qry1List =
         List.of("/*/action", "/*/build", "/*/property[not(parameterDefinition)");
     String qry2 = "qryVal2";

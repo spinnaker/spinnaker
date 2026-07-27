@@ -18,21 +18,23 @@ package com.netflix.spinnaker.credentials.definition;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.netflix.spinnaker.kork.jackson.NamedTypeParser;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
 
 class CredentialsTypeTest {
   @Test
-  void typeDiscriminatorUsage() throws JsonProcessingException {
-    var mapper = new ObjectMapper();
-    mapper.addMixIn(CredentialsDefinition.class, CredentialsDefinitionMixin.class);
+  void typeDiscriminatorUsage() throws JacksonException {
+    var mapper =
+        JsonMapper.builder()
+            .addMixIn(CredentialsDefinition.class, CredentialsDefinitionMixin.class)
+            .build();
     new ObjectMapperSubtypeConfigurer(new CredentialsTypeParser())
         .registerSubtype(
             mapper,

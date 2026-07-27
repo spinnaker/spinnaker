@@ -60,8 +60,7 @@ public class CRLFHeaderTest {
    */
   @Test
   public void clientTest() throws IOException {
-    Socket socket = new Socket("127.0.0.1", port);
-    try {
+    try (Socket socket = new Socket("127.0.0.1", port)) {
       // set the buffer size to 1 to force a TCP segment at 1 byte
       socket.setSendBufferSize(1);
       // set TCP_NODELAY to true which prevents tcp from buffering requests
@@ -99,8 +98,6 @@ public class CRLFHeaderTest {
         }
         line = lineReader.readLine();
       }
-    } finally {
-      socket.close();
     }
   }
 }

@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,14 +68,14 @@ public class ConfigFileService {
   }
 
   private void verifyLocalPath(String path) {
-    if (StringUtils.isNotEmpty(path) && !Files.isReadable(Paths.get(path))) {
+    if (StringUtils.isNotEmpty(path) && !Files.isReadable(Path.of(path))) {
       throw new ConfigFileLoadingException("File \"" + path + "\" not found or is not readable");
     }
   }
 
   private String retrieveFromLocalPath(String path) {
     try {
-      Path filePath = Paths.get(path);
+      Path filePath = Path.of(path);
       return new String(Files.readAllBytes(filePath));
     } catch (FileNotFoundException e) {
       throw new ConfigFileLoadingException("File \"" + path + "\" not found or is not readable", e);

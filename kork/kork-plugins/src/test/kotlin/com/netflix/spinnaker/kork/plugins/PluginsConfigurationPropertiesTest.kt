@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kork.plugins
 
+import java.nio.file.Path
+
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.config.PluginsConfigurationProperties
 import com.netflix.spinnaker.kork.plugins.update.SpinnakerUpdateManager
@@ -27,7 +29,6 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.doesNotContain
 import strikt.assertions.isEqualTo
-import java.nio.file.Paths
 
 class PluginsConfigurationPropertiesTest : JUnit5Minutests {
   fun tests() = rootContext {
@@ -96,7 +97,7 @@ class PluginsConfigurationPropertiesTest : JUnit5Minutests {
       test("plugins root path is 'plugins'") {
         run { ctx ->
           val pluginManager = ctx.getBean(SpinnakerPluginManager::class.java)
-          expectThat(pluginManager.pluginsRoot).isEqualTo(Paths.get(PluginsConfigurationProperties.DEFAULT_ROOT_PATH))
+          expectThat(pluginManager.pluginsRoot).isEqualTo(Path.of(PluginsConfigurationProperties.DEFAULT_ROOT_PATH))
         }
       }
     }
@@ -118,7 +119,7 @@ class PluginsConfigurationPropertiesTest : JUnit5Minutests {
       test("plugins root path is absolute path of configured value") {
         run { ctx ->
           val pluginManager = ctx.getBean(SpinnakerPluginManager::class.java)
-          expectThat(pluginManager.pluginsRoot).isEqualTo(Paths.get("path/to/my/plugins").toAbsolutePath())
+          expectThat(pluginManager.pluginsRoot).isEqualTo(Path.of("path/to/my/plugins").toAbsolutePath())
         }
       }
     }

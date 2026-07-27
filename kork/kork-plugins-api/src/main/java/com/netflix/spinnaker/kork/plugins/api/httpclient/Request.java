@@ -16,9 +16,9 @@
 package com.netflix.spinnaker.kork.plugins.api.httpclient;
 
 import com.netflix.spinnaker.kork.annotations.Beta;
+import jakarta.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nonnull;
 
 /**
  * Represents an HTTP request for {@link HttpClient}.

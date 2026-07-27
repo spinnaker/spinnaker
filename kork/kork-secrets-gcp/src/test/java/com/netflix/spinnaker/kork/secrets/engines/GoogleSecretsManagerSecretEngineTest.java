@@ -19,18 +19,21 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.cloud.secretmanager.v1.SecretPayload;
 import com.google.protobuf.ByteString;
 import com.netflix.spinnaker.kork.secrets.EncryptedSecret;
 import com.netflix.spinnaker.kork.secrets.InvalidSecretFormatException;
 import com.netflix.spinnaker.kork.secrets.SecretException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 public class GoogleSecretsManagerSecretEngineTest {
+
+  private AutoCloseable mocks;
 
   @Spy
   private GoogleSecretsManagerSecretEngine googleSecretsManagerSecretEngine =
@@ -59,7 +62,7 @@ public class GoogleSecretsManagerSecretEngineTest {
 
   @BeforeEach
   public void setup() {
-    initMocks(this);
+    mocks = MockitoAnnotations.openMocks(this);
   }
 
   @Test
@@ -142,5 +145,10 @@ public class GoogleSecretsManagerSecretEngineTest {
         .when(googleSecretsManagerSecretEngine)
         .getSecretPayload(any(), any(), any());
     assertThrows(SecretException.class, () -> googleSecretsManagerSecretEngine.decrypt(kvSecret));
+  }
+
+  @AfterEach
+  void tearDown() throws Exception {
+    mocks.close();
   }
 }

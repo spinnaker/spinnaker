@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kork.secrets.engines;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.gax.rpc.ApiException;
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
@@ -34,6 +32,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 public class GoogleSecretsManagerSecretEngine implements SecretEngine {
@@ -46,7 +47,7 @@ public class GoogleSecretsManagerSecretEngine implements SecretEngine {
   private static final String IDENTIFIER = "google-secrets-manager";
 
   private final Map<String, Map<String, String>> cache = new ConcurrentHashMap<>();
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = new JsonMapper();
 
   private static SecretManagerServiceClient client;
 
@@ -124,7 +125,7 @@ public class GoogleSecretsManagerSecretEngine implements SecretEngine {
       try {
         Map<String, String> map = objectMapper.readValue(secretString, Map.class);
         cache.put(secretId, map);
-      } catch (JsonProcessingException | IllegalArgumentException e) {
+      } catch (JacksonException | IllegalArgumentException e) {
         throw new SecretException(
             String.format(
                 "Failed to parse secret when using Google Secrets Manager to fetch: [projectNumber: %s, secretId: %s, secretKey: %s]",

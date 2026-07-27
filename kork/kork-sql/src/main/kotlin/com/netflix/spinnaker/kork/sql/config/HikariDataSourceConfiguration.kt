@@ -19,6 +19,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.sql.telemetry.HikariSpectatorMetricsTrackerFactory
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -36,6 +37,7 @@ class HikariDataSourceConfiguration {
 
   @Suppress("UndocumentedPublicFunction")
   @Bean
+  @DependsOnDatabaseInitialization
   fun dataSourceFactory(metricsTrackerFactory: MetricsTrackerFactory): DataSourceFactory =
     HikariDataSourceFactory(metricsTrackerFactory)
 }

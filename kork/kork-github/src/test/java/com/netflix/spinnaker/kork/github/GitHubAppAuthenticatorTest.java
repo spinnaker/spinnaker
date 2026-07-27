@@ -125,39 +125,40 @@ class GitHubAppAuthenticatorTest {
   void shouldSupportPKCS1Format(@TempDir Path tempDir) throws IOException {
     // Given - PKCS#1 format (BEGIN RSA PRIVATE KEY)
     String pkcs1Key =
-        "-----BEGIN RSA PRIVATE KEY-----\n"
-            + "MIIEowIBAAKCAQEAywqiTATVJwjwuWQgy1WtIfXPzfO3uQFHTuxO1MGZiTe/lUXu\n"
-            + "4+rkskn"
-            + "kvQZ9T5rWUhE187c/KYf4lXuMvogUqrb2c0pLywuWYM7A9+7/mMP4RUkLvzWY\n"
-            + "HHecHI3fODH4+4Ty+xNR5C+FaGGv8gGtdXgQZPOIp+aJca746"
-            + "32SWcvAxXW+KXVR\n"
-            + "BOmJ82gw9TvXNUWuhDZbjcQ47z8MmnoYGiwilYxVY2wz4nPonsqA5kfSAA1tOHLs\n"
-            + "/Ufmbtqtk"
-            + "RC6kL7ZXuADEoRSchkbh1sOPy1yagB2bXPDaBs5pMbe+8rjkORF9IK/\n"
-            + "idA+HBQF31ckNmyIZxeMIs9eSd9JSBNDzQIDAQABAoIBACl4Swy+wfBelZgv+Li/\n"
-            + "D4ULqT1V5XTua2uVvUYcIqlRjxpEddXsUHiPuh3XePms1NBfPodAKrDnWiDh4q25\n"
-            + "qorxoqWKi691dune4K7jDCZeBFPWZwVPQ3mw/lwgp/JY1pM8pMoeOJAkGpnmteJ2\n"
-            + "cEC5XJPZ39P3NKRZCfNDKwSWyTnyKHGOT1v1HJTz9KVxWGSaDtYHCOzGcAwdpJ9H\n"
-            + "wmgjLDEc6ZxBPc6F11eW/oGcC0+5sMCB4ibUpQ+YgHGBAcv5Q/S3G7+Lda3269V8\n"
-            + "0CiJIPbAq7bdXX14h5x4wk8UbSa/AYZkcUNujtYP+Rbe2qcA6a4Vgvyq2KXRUoxi\n"
-            + "cSsCgYEA88lmv"
-            + "SNybbZJ3yTKpsii87Zx+MK8TL4/6Kq3AZxgX4mIfXSeH8YksJ\n"
-            + "L+j57Jh/5KY2FW1KKzh8SqjMXMTyDrSKofYgNs8rF4q91N93HxFlv7Ua"
-            + "XjhGlimM\n"
-            + "L2DXd2qH7Ld2O2hBGbCnF63BK9EwgixhbYPfczg21TYcXEOEVoN68CgYEA1Taro\n"
-            + "aEsWGqpaSYt5QfAs2puUa6B0GPCOaHNHlbTDMP6r9ypRLrIYwC+9BZcv9lbtg6R\n"
-            + "GgBPfbAOJJyzN7MuUqQiEFcAaziBd5A9Y5cs6I1PCSKhlD6WrDFNvEj/30fTRIbV\n"
-            + "pHu8KAosvKFP2apT96cUce48z8xtm5iZUub5n0MCgYEApwJlcWhvcKmZ5+3LiwDO\n"
-            + "aYmmgJXf6+811w4Eu2zGtQyCXffjT78taW36SKeuRqUVjwmjM56WwT8g27mx4s+Z\n"
-            + "gDlTsJDKNWURVyQQAqGjWP8AqAmuWQrdSerYJpGdz4a1mv/LjKSHA1uEoHmR4BTl\n"
-            + "2N9vmtvcBYCC6+tRJn+eCu8CgYAvgVDYYFrLEGjSnsk"
-            + "XAJU05H/T/ze5QKDjymMz\n"
-            + "YVEAxSGz0Ux9nchMFrx1Eg50SG+grroxuuP7MyDTk35y6J9nll5omZnkSeC+zQqA\n"
-            + "iAxffCyh8qhrqU5U619Qlks8anpuCETNsywHF81D8gUikErJIRbzE4vFGN1LD8MJ\n"
-            + "r6DqlQKBgCKOkfIZDtJhpxLQLbiKdOGa7Cb1ENBfzbHvyL3U/DwQtsXM+ld3/i2i\n"
-            + "Rvcqjee3xqA+lebZntIXT2+iv/+NpaASUOc00xzLfkbZCg8j7fit63lyMRS+BNBo\n"
-            + "mKyaUEbIyrucVmWO94zuMwv/Wkz/ctCyadem2gBMTFMr7IH99HOA\n"
-            + "-----END RSA PRIVATE KEY-----";
+        """
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAywqiTATVJwjwuWQgy1WtIfXPzfO3uQFHTuxO1MGZiTe/lUXu
+        4+rkskn\
+        kvQZ9T5rWUhE187c/KYf4lXuMvogUqrb2c0pLywuWYM7A9+7/mMP4RUkLvzWY
+        HHecHI3fODH4+4Ty+xNR5C+FaGGv8gGtdXgQZPOIp+aJca746\
+        32SWcvAxXW+KXVR
+        BOmJ82gw9TvXNUWuhDZbjcQ47z8MmnoYGiwilYxVY2wz4nPonsqA5kfSAA1tOHLs
+        /Ufmbtqtk\
+        RC6kL7ZXuADEoRSchkbh1sOPy1yagB2bXPDaBs5pMbe+8rjkORF9IK/
+        idA+HBQF31ckNmyIZxeMIs9eSd9JSBNDzQIDAQABAoIBACl4Swy+wfBelZgv+Li/
+        D4ULqT1V5XTua2uVvUYcIqlRjxpEddXsUHiPuh3XePms1NBfPodAKrDnWiDh4q25
+        qorxoqWKi691dune4K7jDCZeBFPWZwVPQ3mw/lwgp/JY1pM8pMoeOJAkGpnmteJ2
+        cEC5XJPZ39P3NKRZCfNDKwSWyTnyKHGOT1v1HJTz9KVxWGSaDtYHCOzGcAwdpJ9H
+        wmgjLDEc6ZxBPc6F11eW/oGcC0+5sMCB4ibUpQ+YgHGBAcv5Q/S3G7+Lda3269V8
+        0CiJIPbAq7bdXX14h5x4wk8UbSa/AYZkcUNujtYP+Rbe2qcA6a4Vgvyq2KXRUoxi
+        cSsCgYEA88lmv\
+        SNybbZJ3yTKpsii87Zx+MK8TL4/6Kq3AZxgX4mIfXSeH8YksJ
+        L+j57Jh/5KY2FW1KKzh8SqjMXMTyDrSKofYgNs8rF4q91N93HxFlv7Ua\
+        XjhGlimM
+        L2DXd2qH7Ld2O2hBGbCnF63BK9EwgixhbYPfczg21TYcXEOEVoN68CgYEA1Taro
+        aEsWGqpaSYt5QfAs2puUa6B0GPCOaHNHlbTDMP6r9ypRLrIYwC+9BZcv9lbtg6R
+        GgBPfbAOJJyzN7MuUqQiEFcAaziBd5A9Y5cs6I1PCSKhlD6WrDFNvEj/30fTRIbV
+        pHu8KAosvKFP2apT96cUce48z8xtm5iZUub5n0MCgYEApwJlcWhvcKmZ5+3LiwDO
+        aYmmgJXf6+811w4Eu2zGtQyCXffjT78taW36SKeuRqUVjwmjM56WwT8g27mx4s+Z
+        gDlTsJDKNWURVyQQAqGjWP8AqAmuWQrdSerYJpGdz4a1mv/LjKSHA1uEoHmR4BTl
+        2N9vmtvcBYCC6+tRJn+eCu8CgYAvgVDYYFrLEGjSnsk\
+        XAJU05H/T/ze5QKDjymMz
+        YVEAxSGz0Ux9nchMFrx1Eg50SG+grroxuuP7MyDTk35y6J9nll5omZnkSeC+zQqA
+        iAxffCyh8qhrqU5U619Qlks8anpuCETNsywHF81D8gUikErJIRbzE4vFGN1LD8MJ
+        r6DqlQKBgCKOkfIZDtJhpxLQLbiKdOGa7Cb1ENBfzbHvyL3U/DwQtsXM+ld3/i2i
+        Rvcqjee3xqA+lebZntIXT2+iv/+NpaASUOc00xzLfkbZCg8j7fit63lyMRS+BNBo
+        mKyaUEbIyrucVmWO94zuMwv/Wkz/ctCyadem2gBMTFMr7IH99HOA
+        -----END RSA PRIVATE KEY-----""";
 
     Path pkcs1File = tempDir.resolve("pkcs1-key.pem");
     Files.write(pkcs1File, pkcs1Key.getBytes());

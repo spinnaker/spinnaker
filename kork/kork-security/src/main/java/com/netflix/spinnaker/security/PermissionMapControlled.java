@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.security;
 
 import com.netflix.spinnaker.kork.annotations.Alpha;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.springframework.security.core.Authentication;
 
 /**

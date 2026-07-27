@@ -20,7 +20,6 @@ import io.github.resilience4j.retry.Retry
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -48,7 +47,7 @@ class Front50FileDownloader(
       throw NotFoundException("Plugin binary could not be downloaded, received HTTP ${response.code}")
     }
 
-    return downloadDir.resolve(Paths.get(fileUrl.path + binaryExtension).fileName).also {
+    return downloadDir.resolve(Path.of(fileUrl.path + binaryExtension).fileName).also {
       Files.write(it, body.bytes())
     }
   }
