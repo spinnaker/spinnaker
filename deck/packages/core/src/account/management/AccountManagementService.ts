@@ -13,11 +13,7 @@ export interface IAccountDefinition {
 
 export const AccountManagementService = {
   /** Lists account definitions of the given type. Both parameters are optional pagination controls. */
-  getAccountsByType(
-    accountType: string,
-    limit?: number,
-    startingAccountName?: string,
-  ): Promise<IAccountDefinition[]> {
+  getAccountsByType(accountType: string, limit?: number, startingAccountName?: string): Promise<IAccountDefinition[]> {
     const params: Record<string, string | number> = {};
     if (limit != null) {
       params.limit = limit;
