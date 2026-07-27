@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Amazon.com, Inc. or its affiliates.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.*;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpsertLambdaFunctionEventMappingDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import java.util.Map;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.DeleteEventSourceMappingRequest;
+import software.amazon.awssdk.services.lambda.model.DeleteEventSourceMappingResponse;
 
 public class DeleteLambdaEventSourceAtomicOperation
     extends AbstractLambdaAtomicOperation<UpsertLambdaFunctionEventMappingDescription, Object>
@@ -39,30 +41,31 @@ public class DeleteLambdaEventSourceAtomicOperation
             lambdaFunctionProvider.getFunction(
                 description.getAccount(), description.getRegion(), description.getFunctionName());
 
-    List<EventSourceMappingConfiguration> eventSourceMappingConfigurations =
+    List<Map<String, Object>> eventSourceMappingConfigurations =
         lambdaFunction.getEventSourceMappings();
 
-    for (EventSourceMappingConfiguration eventSourceMappingConfiguration :
-        eventSourceMappingConfigurations) {
-      if (eventSourceMappingConfiguration
-          .getEventSourceArn()
-          .equalsIgnoreCase(description.getEventSourceArn())) {
-        description.setUuid(eventSourceMappingConfiguration.getUUID());
-        return deleteEventSourceMappingResult();
+    if (eventSourceMappingConfigurations != null) {
+      for (Map<String, Object> eventSourceMappingConfiguration : eventSourceMappingConfigurations) {
+        if (description
+            .getEventSourceArn()
+            .equalsIgnoreCase((String) eventSourceMappingConfiguration.get("eventSourceArn"))) {
+          description.setUuid((String) eventSourceMappingConfiguration.get("uuid"));
+          return deleteEventSourceMappingResult();
+        }
       }
     }
 
     return null;
   }
 
-  private DeleteEventSourceMappingResult deleteEventSourceMappingResult() {
+  private DeleteEventSourceMappingResponse deleteEventSourceMappingResult() {
     updateTaskStatus("Initializing Deleting of AWS Lambda Function Event Mapping Operation...");
 
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
     DeleteEventSourceMappingRequest request =
-        new DeleteEventSourceMappingRequest().withUUID(description.getUuid());
+        DeleteEventSourceMappingRequest.builder().uuid(description.getUuid()).build();
 
-    DeleteEventSourceMappingResult result = client.deleteEventSourceMapping(request);
+    DeleteEventSourceMappingResponse result = client.deleteEventSourceMapping(request);
     updateTaskStatus("Finished Deleting of AWS Lambda Function Event Mapping Operation...");
 
     return result;

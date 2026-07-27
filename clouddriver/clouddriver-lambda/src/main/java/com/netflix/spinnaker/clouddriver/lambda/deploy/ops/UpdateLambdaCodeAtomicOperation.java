@@ -16,45 +16,46 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.UpdateFunctionCodeRequest;
-import com.amazonaws.services.lambda.model.UpdateFunctionCodeResult;
 import com.netflix.spinnaker.clouddriver.lambda.cache.model.LambdaFunction;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.UpdateLambdaFunctionCodeDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.UpdateFunctionCodeRequest;
+import software.amazon.awssdk.services.lambda.model.UpdateFunctionCodeResponse;
 
 public class UpdateLambdaCodeAtomicOperation
     extends AbstractLambdaAtomicOperation<
-        UpdateLambdaFunctionCodeDescription, UpdateFunctionCodeResult>
-    implements AtomicOperation<UpdateFunctionCodeResult> {
+        UpdateLambdaFunctionCodeDescription, UpdateFunctionCodeResponse>
+    implements AtomicOperation<UpdateFunctionCodeResponse> {
 
   public UpdateLambdaCodeAtomicOperation(UpdateLambdaFunctionCodeDescription description) {
     super(description, "UPDATE_LAMBDA_FUNCTION_CODE");
   }
 
   @Override
-  public UpdateFunctionCodeResult operate(List priorOutputs) {
+  public UpdateFunctionCodeResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Updating of AWS Lambda Function Code Operation...");
     return updateFunctionConfigurationResult();
   }
 
-  private UpdateFunctionCodeResult updateFunctionConfigurationResult() {
+  private UpdateFunctionCodeResponse updateFunctionConfigurationResult() {
     LambdaFunction lambdaFunction =
         (LambdaFunction)
             lambdaFunctionProvider.getFunction(
                 description.getAccount(), description.getRegion(), description.getFunctionName());
 
-    AWSLambda client = getLambdaClient();
+    LambdaClient client = getLambdaClient();
 
     UpdateFunctionCodeRequest request =
-        new UpdateFunctionCodeRequest()
-            .withFunctionName(lambdaFunction.getFunctionArn())
-            .withPublish(description.getPublish())
-            .withS3Bucket(description.getS3bucket())
-            .withS3Key(description.getS3key());
+        UpdateFunctionCodeRequest.builder()
+            .functionName(lambdaFunction.getFunctionArn())
+            .publish(description.getPublish())
+            .s3Bucket(description.getS3bucket())
+            .s3Key(description.getS3key())
+            .build();
 
-    UpdateFunctionCodeResult result = client.updateFunctionCode(request);
+    UpdateFunctionCodeResponse result = client.updateFunctionCode(request);
     updateTaskStatus("Finished Updating of AWS Lambda Function Code Operation...");
 
     return result;
