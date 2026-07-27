@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
-import { ReactInjector } from '../../../../../reactShims';
+import { useDeckRuntimeServices } from '../../../../../bootstrap/DeckRuntimeContext';
 
 function CancelAllModal(props: any) {
+  const { executionService } = useDeckRuntimeServices();
   const [loading, setLoading] = useState('none');
   const [isDisabled, setDisabled] = useState(false);
   const [autoCloseModal, setAutoCloseModal] = useState(false);
@@ -17,7 +18,7 @@ function CancelAllModal(props: any) {
     setLoading('block');
     setDisabled(true);
     for (const execution of props.allRunning) {
-      ReactInjector.executionService
+      executionService
         .cancelExecution(props.application, execution.id)
         .then((response) => {
           return response;
