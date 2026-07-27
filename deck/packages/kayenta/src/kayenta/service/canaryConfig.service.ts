@@ -1,0 +1,120 @@
+import { omit } from 'lodash';
+
+import { REST } from '@spinnaker/core';
+
+import { CanarySettings } from '../canary.settings';
+import type {
+  ICanaryConfig,
+  ICanaryConfigSummary,
+  ICanaryConfigUpdateResponse,
+  ICanaryMetricConfig,
+  IJudge,
+  IKayentaAccount,
+} from '../domain';
+import type { ICanaryState } from '../reducers';
+
+export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
+  return Promise.resolve(REST('/v2/canaryConfig').path(id).get<ICanaryConfig>()).then((config) => ({
+    ...config,
+    id,
+  }));
+}
+
+export function getCanaryConfigSummaries(...application: string[]): Promise<ICanaryConfigSummary[]> {
+  return Promise.resolve(REST('/v2/canaryConfig').query({ application }).get<ICanaryConfigSummary[]>());
+}
+
+export function updateCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
+  return Promise.resolve(REST('/v2/canaryConfig').path(config.id).put<ICanaryConfigUpdateResponse>(config));
+}
+
+export function createCanaryConfig(config: ICanaryConfig): Promise<ICanaryConfigUpdateResponse> {
+  return Promise.resolve(REST('/v2/canaryConfig').post<ICanaryConfigUpdateResponse>(config));
+}
+
+export function deleteCanaryConfig(id: string): Promise<void> {
+  return Promise.resolve(REST('/v2/canaryConfig').path(id).delete<void>());
+}
+
+export function listJudges(): Promise<IJudge[]> {
+  return Promise.resolve(REST('/v2/canaries/judges').get<IJudge[]>()).then((judges) =>
+    judges.filter((judge) => judge.visible),
+  );
+}
+
+export function listKayentaAccounts(): Promise<IKayentaAccount[]> {
+  return Promise.resolve(REST('/v2/canaries/credentials').useCache().get<IKayentaAccount[]>());
+}
+
+// Not sure if this is the right way to go about this. We have pieces of the config
+// living on different parts of the store. Before, e.g., updating the config, we should
+// reconstitute it into a single object that reflects the user's changes.
+export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
+  const { selectedConfig } = state;
+  if (selectedConfig.config) {
+    return {
+      ...selectedConfig.config,
+      judge: selectedConfig.judge.judgeConfig,
+      metrics: selectedConfig.metricList.map((metric) => omit(metric, 'id') as ICanaryMetricConfig),
+      classifier: {
+        ...selectedConfig.config.classifier,
+        groupWeights: selectedConfig.group.groupWeights,
+      },
+    };
+  } else {
+    return null;
+  }
+}
+
+export function buildNewConfig(state: ICanaryState): ICanaryConfig {
+  let configName = 'new-config';
+  let i = 1;
+  while ((state.data.configSummaries || []).some((summary) => summary.name === configName)) {
+    configName = `new-config-${i}`;
+    i++;
+  }
+
+  return {
+    name: configName,
+    applications: [state.data.application.name],
+    description: '',
+    isNew: true,
+    metrics: [] as ICanaryMetricConfig[],
+    configVersion: '1',
+    templates: {},
+    classifier: {
+      groupWeights: {} as { [key: string]: number },
+    },
+    judge: {
+      name: CanarySettings.defaultJudge || 'NetflixACAJudge-v1.0',
+      judgeConfigurations: {},
+    },
+  };
+}
+
+export function buildConfigCopy(state: ICanaryState): ICanaryConfig {
+  const config: ICanaryConfig = {
+    ...mapStateToConfig(state),
+    applications: [state.data.application.name], // Copy into current application.
+  };
+  if (!config) {
+    return null;
+  }
+
+  // Probably a rare case, but someone could be lazy about naming their configs.
+  let configName = `${config.name}-copy`;
+  let i = 1;
+  while ((state.data.configSummaries || []).some((summary) => summary.name === configName)) {
+    configName = `${config.name}-copy-${i}`;
+    i++;
+  }
+
+  return (omit(
+    {
+      ...config,
+      name: configName,
+      isNew: true,
+    },
+    'id',
+  ) as unknown) as ICanaryConfig;
+}

@@ -53,6 +53,9 @@ testContext.keys().forEach(testContext);
 testContext = require.context('./packages/core/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
+testContext = require.context('./packages/kayenta/src', true, /\.spec\.(js|ts|tsx)$/);
+testContext.keys().forEach(testContext);
+
 testContext = require.context('./packages/dcos/src', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
 
