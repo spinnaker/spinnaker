@@ -22,7 +22,6 @@ import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMB
 import static com.netflix.spinnaker.clouddriver.lambda.cache.Keys.Namespace.LAMBDA_FUNCTIONS;
 import static java.util.stream.Collectors.toSet;
 
-import com.amazonaws.services.lambda.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
@@ -63,6 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.lambda.model.ResourceNotFoundException;
 
 @Slf4j
 public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandAgent {
@@ -317,13 +317,11 @@ public class LambdaCachingAgent implements CachingAgent, AccountAware, OnDemandA
     Map<String, Object> lambdaAttributes = null;
     try {
       lambdaAttributes = lambdaService.getFunctionByName(functionName);
+    } catch (ResourceNotFoundException e) {
+      // do nothing, the lambda was deleted
     } catch (Exception e) {
-      if (e instanceof ResourceNotFoundException) {
-        // do nothing, the lambda was deleted
-      } else {
-        throw new SpinnakerException(
-            "Failed to populate the onDemandCache for lambda '" + functionName + "'");
-      }
+      throw new SpinnakerException(
+          "Failed to populate the onDemandCache for lambda '" + functionName + "'");
     }
 
     DefaultCacheResult defaultCacheResult;
