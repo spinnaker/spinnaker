@@ -25,8 +25,8 @@ import type {
 
 export interface ITaskDefinitionProps {
   command: IEcsServerGroupCommand;
-  notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => PromiseLike<void>;
+  onFieldChange: (key: string, value: any) => void;
+  configureCommand: (query: string) => Promise<void>;
 }
 
 interface ITaskDefinitionState {
@@ -169,13 +169,13 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
 
   private onExpectedArtifactSelected = (expectedArtifactId: string): void => {
     const selectedArtifact = { artifactId: expectedArtifactId };
-    this.props.notifyAngular('taskDefinitionArtifact', selectedArtifact);
+    this.props.onFieldChange('taskDefinitionArtifact', selectedArtifact);
     this.setState({ taskDefArtifact: selectedArtifact });
   };
 
   private onArtifactEdited = (artifact: IArtifact): void => {
     const newArtifact = { artifact: artifact };
-    this.props.notifyAngular('taskDefinitionArtifact', newArtifact);
+    this.props.onFieldChange('taskDefinitionArtifact', newArtifact);
     this.setState({ taskDefArtifact: newArtifact });
   };
 
@@ -195,7 +195,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const currentMappings = this.state.containerMappings;
     const targetMapping = currentMappings[index];
     targetMapping.containerName = newName;
-    this.props.notifyAngular('containerMappings', currentMappings);
+    this.props.onFieldChange('containerMappings', currentMappings);
     this.setState({ containerMappings: currentMappings });
   };
 
@@ -209,7 +209,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const currentMappings = this.state.containerMappings;
     const targetMapping = currentMappings[index];
     targetMapping.imageDescription = newImageDescription;
-    this.props.notifyAngular('containerMappings', currentMappings);
+    this.props.onFieldChange('containerMappings', currentMappings);
     this.setState({ containerMappings: currentMappings });
   };
 
@@ -217,7 +217,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.targetGroup = newTargetGroup.value;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
@@ -225,7 +225,7 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.containerName = targetContainer;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
@@ -233,26 +233,26 @@ export class TaskDefinition extends React.Component<ITaskDefinitionProps, ITaskD
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.containerPort = targetPort;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
   private removeMapping = (index: number) => {
     const currentMappings = this.state.containerMappings;
     currentMappings.splice(index, 1);
-    this.props.notifyAngular('containerMappings', currentMappings);
+    this.props.onFieldChange('containerMappings', currentMappings);
     this.setState({ containerMappings: currentMappings });
   };
 
   private removeTargetGroupMapping = (index: number) => {
     const currentMappings = this.state.targetGroupMappings;
     currentMappings.splice(index, 1);
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
   private updateEvaluateTaskDefArtifactFlag = () => {
-    this.props.notifyAngular(
+    this.props.onFieldChange(
       'evaluateTaskDefinitionArtifactExpressions',
       !this.props.command.evaluateTaskDefinitionArtifactExpressions,
     );

@@ -17,7 +17,6 @@ import { duration, timestamp } from '../../utils/timeFormatters';
 export interface IStageSummaryWrapperProps {
   application: Application;
   execution: IExecution;
-  sourceUrl: string;
   stage: IExecutionStage;
   stageSummary: IExecutionStageSummary;
 }
@@ -71,7 +70,7 @@ export function StageSummaryWrapperComponent(
     return stage.isRunning && topLevelStage && topLevelStage.context.canManuallySkip;
   };
 
-  const restartStage = (): PromiseLike<void> => {
+  const restartStage = (): Promise<void> => {
     return REST('/pipelines')
       .path(execution.id, 'stages', stage.id, 'restart')
       .put({ skip: false })

@@ -1,13 +1,9 @@
-import { mock } from 'angular';
-
 import { PipelineConfigService } from './PipelineConfigService';
 import { mockHttpClient } from '../../../api/mock/jasmine';
 import type { IPipeline } from '../../../domain/IPipeline';
 import type { IStage } from '../../../domain/IStage';
 
 describe('PipelineConfigService', () => {
-  let $scope: ng.IScope;
-
   const buildStage = (base: any): IStage => {
     const stageDefaults: IStage = {
       name: 'a',
@@ -44,12 +40,6 @@ describe('PipelineConfigService', () => {
 
     return defaults;
   };
-
-  beforeEach(
-    mock.inject(($rootScope: ng.IRootScopeService) => {
-      $scope = $rootScope.$new();
-    }),
-  );
 
   describe('savePipeline', () => {
     it('clears isNew flags, stage name if not present', async () => {
@@ -88,10 +78,9 @@ describe('PipelineConfigService', () => {
 
       http.expectDELETE('/pipelines/foo/bar%5Bbaz%5D').respond(200, '');
 
-      PipelineConfigService.deletePipeline('foo', pipeline, 'bar[baz]');
-
-      $scope.$digest();
+      const deletion = PipelineConfigService.deletePipeline('foo', pipeline, 'bar[baz]');
       await http.flush();
+      await deletion;
     });
   });
 
@@ -107,11 +96,9 @@ describe('PipelineConfigService', () => {
       ];
       http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
 
-      PipelineConfigService.getPipelinesForApplication('app').then((pipelines: IPipeline[]) => {
-        result = pipelines;
-      });
-      $scope.$digest();
+      const pipelinesPromise = PipelineConfigService.getPipelinesForApplication('app');
       await http.flush();
+      result = await pipelinesPromise;
 
       expect(result.map((r) => r.name)).toEqual(['first', 'second', 'third', 'last']);
     });
@@ -132,8 +119,9 @@ describe('PipelineConfigService', () => {
         return Promise.resolve(undefined);
       });
 
-      PipelineConfigService.getPipelinesForApplication('app');
+      const pipelinesPromise = PipelineConfigService.getPipelinesForApplication('app');
       await http.flush();
+      await pipelinesPromise;
 
       expect(posted.length).toEqual(3);
       expect(posted[0]).toEqual(jasmine.objectContaining({ name: 'first', index: 0 }));
@@ -150,12 +138,9 @@ describe('PipelineConfigService', () => {
       let result: IPipeline = null;
       http.expectGET('/applications/foo/pipelineConfigs/bar%20name').respond(200, pipeline);
 
-      PipelineConfigService.getPipelineForApplication('foo', 'bar name').then((pipelines: IPipeline) => {
-        result = pipelines;
-      });
-
-      $scope.$digest();
+      const pipelinePromise = PipelineConfigService.getPipelineForApplication('foo', 'bar name');
       await http.flush();
+      result = await pipelinePromise;
       expect(result).toEqual(pipeline);
     });
   });

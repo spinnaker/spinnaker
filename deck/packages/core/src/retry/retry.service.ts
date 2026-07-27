@@ -6,7 +6,7 @@ export class RetryService {
     limit: number,
     interval: number,
     signal?: AbortSignal,
-  ): PromiseLike<T> {
+  ): Promise<T> {
     const abortError = () => {
       const error = new Error('Retry sequence aborted');
       error.name = 'AbortError';

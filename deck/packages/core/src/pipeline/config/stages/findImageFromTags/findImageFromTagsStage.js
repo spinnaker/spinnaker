@@ -1,13 +1,8 @@
 'use strict';
 
-import { module } from 'angular';
-
 import { NoConfigurationStageConfig } from '../common';
 import { Registry } from '../../../../registry';
 
-export const CORE_PIPELINE_CONFIG_STAGES_FINDIMAGEFROMTAGS_FINDIMAGEFROMTAGSSTAGE =
-  'spinnaker.core.pipeline.stage.findImageFromTagsStage';
-export const name = CORE_PIPELINE_CONFIG_STAGES_FINDIMAGEFROMTAGS_FINDIMAGEFROMTAGSSTAGE; // for backwards compatibility
 export const findImageFromTagsStage = {
   useBaseProvider: true,
   key: 'findImageFromTags',
@@ -17,4 +12,3 @@ export const findImageFromTagsStage = {
 };
 
 Registry.pipeline.registerStage(findImageFromTagsStage);
-module(CORE_PIPELINE_CONFIG_STAGES_FINDIMAGEFROMTAGS_FINDIMAGEFROMTAGSSTAGE, []);

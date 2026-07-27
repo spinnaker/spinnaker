@@ -13,6 +13,11 @@ import { diagnosticLogger } from '../utils/diagnosticLogger';
 /** An imperative service for showing a react component as a modal */
 export class ReactModal {
   private static activeModals = new Set<{ dismiss: (reason?: unknown) => void; forceUnmount: () => void }>();
+  private static defaultRuntimeServices: DeckRuntimeServices | null = null;
+
+  public static setDefaultRuntimeServices(runtimeServices: DeckRuntimeServices | null): void {
+    this.defaultRuntimeServices = runtimeServices;
+  }
 
   public static dismissAll(reason?: unknown): void {
     Array.from(this.activeModals).forEach(({ dismiss, forceUnmount }) => {
@@ -52,6 +57,7 @@ export class ReactModal {
     modalProps?: Partial<ModalProps>,
     runtimeServices?: DeckRuntimeServices,
   ): Promise<T> {
+    const modalRuntimeServices = runtimeServices ?? this.defaultRuntimeServices;
     const modalPromise = new Promise<T>((resolve, reject) => {
       let mountNode = document.createElement('div');
       let show = true;
@@ -112,17 +118,26 @@ export class ReactModal {
         settled = true;
         // Use react-bootstrap modal lifecycle, i.e. show=false, which triggers onExited
         show = false;
-        try {
-          render();
-        } catch (error) {
-          settlePendingResult();
-          try {
-            unmount();
-          } catch (unmountError) {
-            diagnosticLogger.error('Failed to unmount React modal after exit render failure', unmountError);
-          }
-          diagnosticLogger.error('Failed to render React modal exit', error);
+        if (modalProps?.animation === false) {
+          Promise.resolve().then(forceUnmount);
+          return;
         }
+        Promise.resolve().then(() => {
+          if (!mountNode) {
+            return;
+          }
+          try {
+            render();
+          } catch (error) {
+            settlePendingResult();
+            try {
+              unmount();
+            } catch (unmountError) {
+              diagnosticLogger.error('Failed to unmount React modal after exit render failure', unmountError);
+            }
+            diagnosticLogger.error('Failed to render React modal exit', error);
+          }
+        });
       };
 
       const handleClose = destroy(resolve);
@@ -136,8 +151,8 @@ export class ReactModal {
             <ModalComponent {...componentProps} dismissModal={handleDismiss} closeModal={handleClose} />
           </Modal>
         );
-        const runtimeModal = runtimeServices ? (
-          <DeckRuntimeContext.Provider value={{ services: runtimeServices }}>{modal}</DeckRuntimeContext.Provider>
+        const runtimeModal = modalRuntimeServices ? (
+          <DeckRuntimeContext.Provider value={{ services: modalRuntimeServices }}>{modal}</DeckRuntimeContext.Provider>
         ) : (
           modal
         );

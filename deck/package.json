@@ -16,7 +16,7 @@
   },
   "private": true,
   "scripts": {
-    "clean": "lerna run clean --parallel",
+    "clean": "rimraf .cache-loader build packages/*/dist",
     "fixup": "scripts/monorepo_fixup.sh",
     "build": "pnpm --filter deck-app build",
     "lint": "eslint --max-warnings=0 --ext js,jsx,ts,tsx packages",
@@ -40,8 +40,6 @@
     "@types/node": "16.4.13",
     "@typescript-eslint/eslint-plugin": "8.32.0",
     "@typescript-eslint/parser": "8.32.0",
-    "angular": "1.8.3",
-    "angular-mocks": "1.8.3",
     "babel-loader": "8.1.0",
     "buffer": "^6.0.3",
     "enzyme": "3.11.0",

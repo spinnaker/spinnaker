@@ -28,7 +28,7 @@ export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
   const search = React.useMemo(() => infrastructureSearchService.getSearcher(), [infrastructureSearchService]);
 
   /** fetches the displayName and adds it to the history entry */
-  function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): PromiseLike<ISearchResult> {
+  function getFullHistoryEntry(category: string, item: IRecentHistoryEntry): Promise<ISearchResult> {
     const routeParams = { ...item.params, ...item.extraData };
     return search.formatRouteResult(category, routeParams).then((displayName) => ({ ...item, displayName }));
   }
@@ -66,8 +66,7 @@ export function RecentlyViewedItems(props: IRecentlyViewedItemsProps) {
       onResultClick={handleResultClick}
     />
   ) : (
-    // Once RecentlyViewedItems is no longer rendered as part of any angular
-    // templates, we can stop defaulting to SearchResultPods and require a component.
+    // Keep a default renderer for callers that do not provide a category-specific component.
     <SearchResultPods
       results={result}
       onRemoveItem={handleRemoveItem}

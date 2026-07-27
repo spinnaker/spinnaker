@@ -113,7 +113,7 @@ class LoadBalancerFiltersComponent extends React.Component<
       this.updateLoadBalancerGroups();
     }
 
-    this.loadBalancersRefreshUnsubscribe = app.loadBalancers.onRefresh(null, () => this.updateLoadBalancerGroups());
+    this.loadBalancersRefreshUnsubscribe = app.loadBalancers.onRefresh(() => this.updateLoadBalancerGroups());
 
     const locationChangeSubscription = locationChangeSuccess$(this.props.router).subscribe(() => {
       LoadBalancerState.filterModel.asFilterModel.activate();

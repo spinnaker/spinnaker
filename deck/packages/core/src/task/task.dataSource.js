@@ -1,14 +1,8 @@
-import * as angular from 'angular';
-
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import { CLUSTER_SERVICE } from '../cluster/cluster.service';
 import { SETTINGS } from '../config';
 import { TaskReader } from './task.read.service';
 
-export const CORE_TASK_TASK_DATASOURCE = 'spinnaker.core.task.dataSource';
-export const name = CORE_TASK_TASK_DATASOURCE; // for backwards compatibility
-
-export function registerTaskDataSources($q, clusterService) {
+export function registerTaskDataSources(promiseService, clusterService) {
   const registerOnce = (config) => {
     if (!ApplicationDataSourceRegistry.getDataSources().some(({ key }) => key === config.key)) {
       ApplicationDataSourceRegistry.registerDataSource(config);
@@ -16,7 +10,7 @@ export function registerTaskDataSources($q, clusterService) {
   };
 
   const addTasks = (application, tasks) => {
-    return $q.when(angular.isArray(tasks) ? tasks : []);
+    return promiseService.resolve(Array.isArray(tasks) ? tasks : []);
   };
 
   const loadPaginatedTasks = async (application, page = 1) => {
@@ -43,7 +37,7 @@ export function registerTaskDataSources($q, clusterService) {
   };
 
   const addRunningTasks = (application, data) => {
-    return $q.when(data);
+    return promiseService.resolve(data);
   };
 
   const runningTasksLoaded = (application) => {
@@ -79,5 +73,3 @@ export function registerTaskDataSources($q, clusterService) {
     defaultData: [],
   });
 }
-
-angular.module(CORE_TASK_TASK_DATASOURCE, [CLUSTER_SERVICE]).run(['$q', 'clusterService', registerTaskDataSources]);

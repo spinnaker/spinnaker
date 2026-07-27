@@ -7,12 +7,27 @@ import { AccountTag } from '../../../account';
 import type { Application } from '../../../application';
 import type { IDeckRuntimeServicesInjectedProps } from '../../../bootstrap/DeckRuntimeContext';
 import { withDeckRuntimeServices } from '../../../bootstrap/DeckRuntimeContext';
-import type { IDeployTemplate, ITemplateSelectionText } from './deployInitializer.component';
 import type { IServerGroup } from '../../../domain';
 import { ModalClose } from '../../../modal';
 import { TetheredSelect } from '../../../presentation/TetheredSelect';
 import type { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 import { ServerGroupReader } from '../../serverGroupReader.service';
+
+export interface IDeployTemplate {
+  key?: string;
+  label?: string;
+  serverGroup: IServerGroup;
+  cluster: string;
+  account?: string;
+  region?: string;
+  serverGroupName?: string;
+}
+
+export interface ITemplateSelectionText {
+  copied: string[];
+  notCopied: string[];
+  additionalCopyText: string;
+}
 
 export interface IDeployInitializerProps {
   application: Application;
@@ -96,7 +111,7 @@ export class DeployInitializerComponent extends React.Component<
     Object.assign(baseCommand, command);
   }
 
-  private buildCommandFromTemplate(serverGroup: IServerGroup): PromiseLike<any> {
+  private buildCommandFromTemplate(serverGroup: IServerGroup): Promise<any> {
     const { application, cloudProvider } = this.props;
 
     const commandBuilder: any = this.props.deckRuntimeServices.providerServiceDelegate.getDelegate(
@@ -114,16 +129,16 @@ export class DeployInitializerComponent extends React.Component<
     });
   }
 
-  private buildEmptyCommand = (): PromiseLike<any> => {
+  private buildEmptyCommand = (): Promise<any> => {
     const { application, cloudProvider } = this.props;
     const commandBuilder: any = this.props.deckRuntimeServices.providerServiceDelegate.getDelegate(
       cloudProvider,
       'serverGroup.commandBuilder',
     );
-    return commandBuilder.buildNewServerGroupCommand(application, { mode: 'createPipeline' });
+    return Promise.resolve(commandBuilder.buildNewServerGroupCommand(application, { mode: 'createPipeline' }));
   };
 
-  private selectTemplate = (): PromiseLike<void> => {
+  private selectTemplate = (): Promise<void> => {
     const buildCommand =
       this.state.selectedTemplate === this.noTemplate
         ? this.buildEmptyCommand()

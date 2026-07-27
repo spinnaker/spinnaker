@@ -1,3 +1,4 @@
+import type { StateDeclaration } from '@uirouter/core';
 import { UISref, useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { set } from 'lodash';
 import React, { useEffect, useState } from 'react';
@@ -8,7 +9,6 @@ import type { IExecution, IPipeline } from '../../domain';
 import { Execution } from '../executions/execution/Execution';
 import { ManualExecutionModal } from '../manualExecution';
 import { useData, useLatestPromise } from '../../presentation';
-import type { IStateChange } from '../../reactShims';
 import { SchedulerFactory } from '../../scheduler';
 import { ExecutionsTransformer } from '../service/ExecutionsTransformer';
 import type { ExecutionService } from '../service/execution.service';
@@ -24,6 +24,13 @@ export interface ISingleExecutionDetailsProps {
 export interface ISingleExecutionStateParams {
   application: string;
   executionId: string;
+}
+
+interface IStateChange {
+  to: StateDeclaration;
+  from: StateDeclaration;
+  toParams: object;
+  fromParams: object;
 }
 
 export interface ISingleExecutionRouterStateChange extends IStateChange {

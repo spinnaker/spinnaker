@@ -1,5 +1,3 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
 import { flatten, forOwn, groupBy, has, head, keyBy, keys, values } from 'lodash';
 
 import { REST } from '../api';
@@ -18,21 +16,20 @@ import type {
 } from '../domain';
 import { FilterModelService } from '../filterModel';
 import { NameUtils } from '../naming';
-import { CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER } from '../serverGroup/serverGroup.transformer';
 import { ClusterState } from '../state';
 import { taskMatcher } from './task.matcher';
+import type { PromiseService } from '../utils/nativePromiseService';
 
 export class ClusterService {
-  public static $inject = ['$q', 'serverGroupTransformer', 'providerServiceDelegate'];
   constructor(
-    private $q: IQService,
+    private promiseService: PromiseService,
     private serverGroupTransformer: any,
     private providerServiceDelegate: ProviderServiceDelegate,
   ) {}
 
   // Retrieves and normalizes all server groups. If a server group for an unsupported cloud provider (i.e. one that does
   // not have a server group transformer) is encountered, it will be omitted from the result.
-  public loadServerGroups(application: Application): PromiseLike<IServerGroup[]> {
+  public loadServerGroups(application: Application): Promise<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
       let serverGroupLoader = REST('/applications').path(application.name, 'serverGroups');
@@ -50,7 +47,7 @@ export class ClusterService {
       return serverGroupLoader.get().then((serverGroups: IServerGroup[]) => {
         serverGroups.forEach((sg) => this.addHealthStatusCheck(sg));
         serverGroups.forEach((sg) => this.addNameParts(sg));
-        return this.$q
+        return this.promiseService
           .all(serverGroups.map((sg) => this.serverGroupTransformer.normalizeServerGroup(sg, application)))
           .then((normalized) => normalized.filter(Boolean));
       });
@@ -236,7 +233,7 @@ export class ClusterService {
     this.getArtifactExtractor(cluster.cloudProvider).removeArtifact(cluster, artifactId);
   }
 
-  private getClusters(application: string): PromiseLike<IClusterSummary[]> {
+  private getClusters(application: string): Promise<IClusterSummary[]> {
     return REST('/applications')
       .path(application, 'clusters')
       .get()
@@ -337,6 +334,3 @@ export class ClusterService {
     });
   }
 }
-
-export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
-module(CLUSTER_SERVICE, [CORE_SERVERGROUP_SERVERGROUP_TRANSFORMER]).service('clusterService', ClusterService);

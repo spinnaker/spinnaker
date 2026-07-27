@@ -96,7 +96,7 @@ export class AppengineServerGroupCommandBuilder {
     app: Application,
     selectedProvider: string,
     mode = 'create',
-  ): PromiseLike<IAppengineServerGroupCommand> {
+  ): Promise<IAppengineServerGroupCommand> {
     if (selectedProvider == null) {
       selectedProvider = 'appengine';
     }
@@ -135,7 +135,7 @@ export class AppengineServerGroupCommandBuilder {
   public buildServerGroupCommandFromExisting(
     app: Application,
     serverGroup: IAppengineServerGroup,
-  ): PromiseLike<IAppengineServerGroupCommand> {
+  ): Promise<IAppengineServerGroupCommand> {
     return this.buildNewServerGroupCommand(app, 'appengine', 'clone').then((command) => {
       command.stack = serverGroup.stack;
       command.freeFormDetails = serverGroup.detail;
@@ -146,7 +146,7 @@ export class AppengineServerGroupCommandBuilder {
   public buildNewServerGroupCommandForPipeline(
     _stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<{
+  ): Promise<{
     viewState: {
       stage: IStage;
       pipeline: IPipeline;
@@ -175,7 +175,7 @@ export class AppengineServerGroupCommandBuilder {
     cluster: AppengineDeployDescription,
     _stage: IStage,
     pipeline: IPipeline,
-  ): PromiseLike<IAppengineServerGroupCommand> {
+  ): Promise<IAppengineServerGroupCommand> {
     return this.buildNewServerGroupCommand(app, 'appengine', 'editPipeline').then(
       (command: IAppengineServerGroupCommand) => {
         command = {

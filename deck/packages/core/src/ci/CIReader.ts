@@ -50,18 +50,18 @@ export class CIReader {
     return 4095;
   }
 
-  public static getBuilds(repoType: string, projectKey: string, repoSlug: string): PromiseLike<ICiBuild[]> {
+  public static getBuilds(repoType: string, projectKey: string, repoSlug: string): Promise<ICiBuild[]> {
     return REST('ci/builds')
       .query({ repoType, projectKey, repoSlug })
       .get()
       .then((builds: ICiBuildAPI[]) => builds.map((build: ICiBuildAPI) => transformBuildToUIFormat(build)));
   }
 
-  public static getRunningBuilds(repoType: string, projectKey: string, repoSlug: string): PromiseLike<ICiBuild[]> {
+  public static getRunningBuilds(repoType: string, projectKey: string, repoSlug: string): Promise<ICiBuild[]> {
     return REST('ci/builds').query({ repoType, projectKey, repoSlug, completionStatus: 'INCOMPLETE' }).get();
   }
 
-  public static getBuildOutput(buildId: string, start = -1): PromiseLike<ICiBuildOutputConfig> {
+  public static getBuildOutput(buildId: string, start = -1): Promise<ICiBuildOutputConfig> {
     return REST('ci/builds').path(buildId, 'output').query({ start, limit: CIReader.MAX_LINES }).get();
   }
 }

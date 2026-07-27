@@ -1,6 +1,4 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext, UIViewContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -9,7 +7,6 @@ import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
 import { CollapsibleSection } from '../../presentation';
-import { REACT_MODULE } from '../../reactShims';
 import { ClusterState } from '../../state';
 import { InstanceWriter } from '../instance.write.service';
 import { MultipleInstancesDetails } from './MultipleInstancesDetails';
@@ -17,7 +14,7 @@ import { MultipleInstancesDetails } from './MultipleInstancesDetails';
 describe('<MultipleInstancesDetails />', () => {
   const providerServiceDelegate = {} as any;
   let previousMultiselectModel: any;
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
 
   const app = {
     serverGroups: {
@@ -44,11 +41,11 @@ describe('<MultipleInstancesDetails />', () => {
 
   const mountDetails = () =>
     mount(
-      <UIRouterContext.Provider value={$uiRouter}>
+      <UIRouterContext.Provider value={router}>
         <UIViewContext.Provider
           value={{
             fqn: 'application.insight.multipleInstances',
-            context: $uiRouter.stateRegistry.get('application.insight.multipleInstances') as any,
+            context: router.stateRegistry.get('application.insight.multipleInstances') as any,
           }}
         >
           <DeckRuntimeContext.Provider value={{ services: { providerServiceDelegate } } as any}>
@@ -58,17 +55,14 @@ describe('<MultipleInstancesDetails />', () => {
       </UIRouterContext.Provider>,
     );
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-      ['application', 'application.insight', 'application.insight.multipleInstances'].forEach((name) => {
-        if (!$uiRouter.stateRegistry.get(name)) {
-          $uiRouter.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
-        }
-      });
-    }),
-  );
+  beforeEach(() => {
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.insight', 'application.insight.multipleInstances'].forEach((name) => {
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
+    });
+  });
 
   beforeEach(() => {
     previousMultiselectModel = ClusterState.multiselectModel;
@@ -100,6 +94,7 @@ describe('<MultipleInstancesDetails />', () => {
 
   afterEach(() => {
     ClusterState.multiselectModel = previousMultiselectModel;
+    router.dispose();
   });
 
   it('renders selected instances grouped by server group', () => {

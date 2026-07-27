@@ -1,5 +1,3 @@
-import type { IModalServiceInstance } from 'angular-ui-bootstrap';
-
 import { TaskMonitor } from './TaskMonitor';
 import { mockHttpClient } from '../../api/mock/jasmine';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
@@ -32,7 +30,6 @@ describe('TaskMonitor', () => {
           defaultData: [],
         }),
         title: 'some task',
-        modalInstance: { result: createDeferred().promise } as IModalServiceInstance,
         monitorInterval: 1,
         onTaskComplete: () => (completeCalled = true),
       });
@@ -65,7 +62,6 @@ describe('TaskMonitor', () => {
           defaultData: [],
         }),
         title: 'a task',
-        modalInstance: { result: createDeferred().promise } as IModalServiceInstance,
         onTaskComplete: () => (completeCalled = true),
       });
 
@@ -95,7 +91,6 @@ describe('TaskMonitor', () => {
           defaultData: [],
         }),
         title: 'a task',
-        modalInstance: { result: createDeferred().promise } as IModalServiceInstance,
         monitorInterval: 1,
         onTaskComplete: () => (completeCalled = true),
       });
@@ -158,17 +153,19 @@ describe('TaskMonitor', () => {
         const http = mockHttpClient();
         const task = { id: 'task-id', status: 'RUNNING' } as ITask;
         OrchestratedItemTransformer.defineProperties(task);
-        const monitor = new TaskMonitor({ title: 'polling task', monitorInterval: 25 });
+        const onDismiss = jasmine.createSpy('onDismiss');
+        const monitor = new TaskMonitor({ title: 'polling task', monitorInterval: 25, onDismiss });
 
         monitor.submit(() => Promise.resolve(task));
         await settleNativePromises();
         expect(task.poller).toBeDefined();
 
-        monitor.onModalClose();
+        monitor.closeModal();
         jasmine.clock().tick(25);
 
         expect(task.poller).toBeUndefined();
         expect(http.receivedRequests).toEqual([]);
+        expect(onDismiss).toHaveBeenCalledTimes(1);
       } finally {
         jasmine.clock().uninstall();
       }
@@ -304,6 +301,59 @@ describe('TaskMonitor', () => {
       expect(onFailedTaskComplete).not.toHaveBeenCalled();
       expect(successMonitor.error).toBe(false);
       expect(failureMonitor.error).toBe(false);
+    });
+  });
+
+  describe('close', () => {
+    it('stops event propagation and invokes the direct dismiss handler', () => {
+      const stopPropagation = jasmine.createSpy('stopPropagation');
+      const onDismiss = jasmine.createSpy('onDismiss');
+      const monitor = new TaskMonitor({ title: 'dismissable task', onDismiss });
+
+      monitor.closeModal({ stopPropagation } as any);
+
+      expect(stopPropagation).toHaveBeenCalledTimes(1);
+      expect(onDismiss).toHaveBeenCalledOnceWith();
+    });
+
+    it('invalidates a pending submission before dismissing', async () => {
+      const submission = createDeferred<ITask>();
+      const waitUntilTaskCompletes = spyOn(TaskReader, 'waitUntilTaskCompletes');
+      const onDismiss = jasmine.createSpy('onDismiss');
+      const monitor = new TaskMonitor({ title: 'pending task', onDismiss });
+
+      monitor.submit(() => submission.promise);
+      monitor.closeModal();
+      submission.resolve({ id: 'late-task', status: 'RUNNING' } as ITask);
+      await settleNativePromises();
+
+      expect(monitor.task).toBeNull();
+      expect(waitUntilTaskCompletes).not.toHaveBeenCalled();
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels and dismisses only once when closed repeatedly', () => {
+      const onDismiss = jasmine.createSpy('onDismiss');
+      const cancelPolling = spyOn(TaskReader, 'cancelPolling');
+      const monitor = new TaskMonitor({ title: 'idempotent task', onDismiss });
+
+      monitor.closeModal();
+      monitor.closeModal();
+
+      expect(cancelPolling).toHaveBeenCalledTimes(1);
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not swallow dismiss handler exceptions', () => {
+      const error = new Error('dismiss failed');
+      const monitor = new TaskMonitor({
+        title: 'failing dismissal',
+        onDismiss: () => {
+          throw error;
+        },
+      });
+
+      expect(() => monitor.closeModal()).toThrow(error);
     });
   });
 });

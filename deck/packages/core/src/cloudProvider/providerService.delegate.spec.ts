@@ -1,12 +1,12 @@
-import type { IQService } from 'angular';
-
 import { SETTINGS } from '../config';
 import { CloudProviderRegistry } from './CloudProviderRegistry';
-import { DirectProviderServiceDelegate } from './providerService.delegate';
+import { ProviderServiceDelegate } from './providerService.delegate';
+import type { PromiseService } from '../utils/nativePromiseService';
+import { nativePromiseService } from '../utils/nativePromiseService';
 
-describe('DirectProviderServiceDelegate', () => {
-  const provider = 'directProviderServiceDelegateTest';
-  const otherProvider = 'otherDirectProviderServiceDelegateTest';
+describe('ProviderServiceDelegate', () => {
+  const provider = 'providerServiceDelegateTest';
+  const otherProvider = 'otherProviderServiceDelegateTest';
   const serviceKey = 'test.service';
   const otherServiceKey = 'test.otherService';
 
@@ -29,23 +29,23 @@ describe('DirectProviderServiceDelegate', () => {
       test: { service: constructor },
     });
 
-    const delegate = new DirectProviderServiceDelegate({} as IQService);
+    const delegate = new ProviderServiceDelegate(nativePromiseService);
 
     expect(delegate.hasDelegate(provider, serviceKey)).toBe(true);
     expect(constructor).not.toHaveBeenCalled();
   });
 
   it('constructs the registered delegate with its promise dependency', () => {
-    const promiseService = {} as IQService;
+    const promiseService = nativePromiseService;
     class TestService {
-      constructor(public readonly injectedPromiseService: IQService) {}
+      constructor(public readonly injectedPromiseService: PromiseService) {}
     }
     CloudProviderRegistry.registerProvider(provider, {
       name: provider,
       test: { service: TestService },
     });
 
-    const service = new DirectProviderServiceDelegate(promiseService).getDelegate<TestService>(provider, serviceKey);
+    const service = new ProviderServiceDelegate(promiseService).getDelegate<TestService>(provider, serviceKey);
 
     expect(service).toEqual(jasmine.any(TestService));
     expect(service.injectedPromiseService).toBe(promiseService);
@@ -54,17 +54,17 @@ describe('DirectProviderServiceDelegate', () => {
   it('only injects runtime services into delegates that opt in', () => {
     const runtimeServices = {} as any;
     class ExistingService {
-      constructor(_promiseService: IQService, public readonly existingSecondDependency = 'existing') {}
+      constructor(_promiseService: PromiseService, public readonly existingSecondDependency = 'existing') {}
     }
     class RuntimeAwareService {
       public static readonly requiresDeckRuntimeServices = true;
-      constructor(_promiseService: IQService, public readonly injectedRuntimeServices?: any) {}
+      constructor(_promiseService: PromiseService, public readonly injectedRuntimeServices?: any) {}
     }
     CloudProviderRegistry.registerProvider(provider, {
       name: provider,
       test: { service: ExistingService, otherService: RuntimeAwareService },
     });
-    const delegate = new DirectProviderServiceDelegate({} as IQService);
+    const delegate = new ProviderServiceDelegate(nativePromiseService);
     delegate.bindRuntimeServices(runtimeServices);
 
     expect(delegate.getDelegate<ExistingService>(provider, serviceKey).existingSecondDependency).toBe('existing');
@@ -83,7 +83,7 @@ describe('DirectProviderServiceDelegate', () => {
       name: otherProvider,
       test: { service: TestService },
     });
-    const delegate = new DirectProviderServiceDelegate({} as IQService);
+    const delegate = new ProviderServiceDelegate(nativePromiseService);
     const service = delegate.getDelegate(provider, serviceKey);
 
     expect(delegate.getDelegate(provider, serviceKey)).toBe(service);
@@ -93,7 +93,7 @@ describe('DirectProviderServiceDelegate', () => {
 
   it('resolves registrations made after the delegate is created', () => {
     class TestService {}
-    const delegate = new DirectProviderServiceDelegate({} as IQService);
+    const delegate = new ProviderServiceDelegate(nativePromiseService);
 
     expect(delegate.hasDelegate(provider, serviceKey)).toBe(false);
 
@@ -111,7 +111,7 @@ describe('DirectProviderServiceDelegate', () => {
       name: provider,
       test: { service: TestService },
     });
-    const delegate = new DirectProviderServiceDelegate({} as IQService);
+    const delegate = new ProviderServiceDelegate(nativePromiseService);
     const firstService = delegate.getDelegate(provider, serviceKey);
 
     delegate.dispose();
@@ -120,10 +120,10 @@ describe('DirectProviderServiceDelegate', () => {
   });
 
   it('throws the established error when no delegate is registered', () => {
-    const delegate = new DirectProviderServiceDelegate({} as IQService);
+    const delegate = new ProviderServiceDelegate(nativePromiseService);
 
     expect(() => delegate.getDelegate(provider, serviceKey)).toThrowError(
-      'No "test.service" service found for provider "directProviderServiceDelegateTest"',
+      'No "test.service" service found for provider "providerServiceDelegateTest"',
     );
   });
 });

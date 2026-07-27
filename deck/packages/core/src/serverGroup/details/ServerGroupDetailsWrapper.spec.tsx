@@ -33,22 +33,12 @@ describe('ServerGroupDetailsWrapper', () => {
     expect(component.find(ServerGroupDetails).prop('sections')).toEqual([Section]);
   });
 
-  it('renders a migration-required message for legacy template/controller-only server group details', () => {
-    const component = shallow(<ServerGroupDetailsWrapper app={app} serverGroup={serverGroup} />, {
-      disableLifecycleMethods: true,
-    });
-
-    component.setState({ Actions: undefined, detailsGetter: undefined, legacyDetailsConfigured: true, sections: [] });
-
-    expect(component.text()).toContain('Server group details must be migrated to React.');
-  });
-
   it('renders nothing when provider server group details config is missing', () => {
     const component = shallow(<ServerGroupDetailsWrapper app={app} serverGroup={serverGroup} />, {
       disableLifecycleMethods: true,
     });
 
-    component.setState({ Actions: undefined, detailsGetter: undefined, legacyDetailsConfigured: false, sections: [] });
+    component.setState({ Actions: undefined, detailsGetter: undefined, sections: [] });
 
     expect(component.isEmptyRender()).toBe(true);
   });
@@ -89,7 +79,11 @@ describe('ServerGroupDetailsWrapper', () => {
     await Promise.resolve();
     await Promise.resolve();
     component.update();
-    expect(getValue.calls.allArgs().filter(([provider]) => provider === 'kubernetes')).toHaveSize(5);
+    expect(getValue.calls.allArgs().filter(([provider]) => provider === 'kubernetes')).toEqual([
+      ['kubernetes', 'serverGroup.detailsActions'],
+      ['kubernetes', 'serverGroup.detailsGetter'],
+      ['kubernetes', 'serverGroup.detailsSections'],
+    ]);
     expect(component.find(ServerGroupDetails).prop('serverGroup')).toBe(nextServerGroup);
     expect(component.find(ServerGroupDetails).prop('Actions')).toBe(KubernetesActions);
     expect(component.find(ServerGroupDetails).prop('detailsGetter')).toBe(kubernetesGetter);
@@ -180,7 +174,7 @@ describe('ServerGroupDetailsWrapper', () => {
 
     expect(component.find(Actions)).toHaveSize(1);
 
-    onRefresh.calls.mostRecent().args[1]();
+    onRefresh.calls.mostRecent().args[0]();
 
     expect(component.state()).toEqual({ loading: false, serverGroup: details });
     expect(component.find(Actions)).toHaveSize(1);

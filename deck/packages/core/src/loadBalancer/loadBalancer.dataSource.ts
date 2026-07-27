@@ -1,18 +1,14 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import type { ILoadBalancer } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import type { LoadBalancerReader } from './loadBalancer.read.service';
-import { LOAD_BALANCER_READ_SERVICE } from './loadBalancer.read.service';
 import { addManagedResourceMetadataToLoadBalancers } from '../managed';
+import type { PromiseService } from '../utils/nativePromiseService';
 
-export const LOAD_BALANCER_DATA_SOURCE = 'spinnaker.core.loadBalancer.dataSource';
 function createDataSourceConfig(
-  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T>,
+  resolve: <T>(value: T | PromiseLike<T>) => Promise<Awaited<T>>,
   loadBalancerReader: LoadBalancerReader,
 ) {
   const loadLoadBalancers = (application: Application) => {
@@ -20,7 +16,7 @@ function createDataSourceConfig(
   };
 
   const addLoadBalancers = (_application: Application, loadBalancers: ILoadBalancer[]) => {
-    return when(loadBalancers);
+    return resolve(loadBalancers);
   };
 
   const addTags = (application: Application) => {
@@ -46,18 +42,15 @@ function createDataSourceConfig(
   };
 }
 
-export function registerLoadBalancerDataSource($q: IQService, loadBalancerReader: LoadBalancerReader): void {
+export function registerLoadBalancerDataSource(
+  promiseService: PromiseService,
+  loadBalancerReader: LoadBalancerReader,
+): void {
   if (ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'loadBalancers')) {
     return;
   }
 
   ApplicationDataSourceRegistry.registerDataSource(
-    createDataSourceConfig(<T>(value: T | PromiseLike<T>) => $q.when(value), loadBalancerReader),
+    createDataSourceConfig(<T>(value: T | PromiseLike<T>) => promiseService.resolve(value), loadBalancerReader),
   );
 }
-
-module(LOAD_BALANCER_DATA_SOURCE, [LOAD_BALANCER_READ_SERVICE]).run([
-  '$q',
-  'loadBalancerReader',
-  ($q: IQService, loadBalancerReader: LoadBalancerReader) => registerLoadBalancerDataSource($q, loadBalancerReader),
-]);

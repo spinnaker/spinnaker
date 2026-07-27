@@ -1,5 +1,8 @@
 import React from 'react';
+
 import { AccountService } from './AccountService';
+
+import './accountTag.less';
 
 export interface IAccountTagProps {
   account: string | null;
@@ -12,7 +15,7 @@ export interface IAccountTagState {
 
 export class AccountTag extends React.Component<IAccountTagProps, IAccountTagState> {
   private static cache: {
-    [account: string]: boolean | PromiseLike<boolean>;
+    [account: string]: boolean | Promise<boolean>;
   } = {};
 
   public state = { isProdAccount: false };
@@ -42,7 +45,7 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
       );
     }
 
-    const cachedVal: boolean | PromiseLike<boolean> = cache[account];
+    const cachedVal: boolean | Promise<boolean> = cache[account];
 
     if (typeof cachedVal === 'boolean') {
       this.setState({ isProdAccount: cachedVal });

@@ -1,5 +1,4 @@
-import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
+import type { RawParams } from '@uirouter/core';
 
 import { SecurityGroupDetails } from './SecurityGroupDetails';
 import { SecurityGroups } from './SecurityGroups';
@@ -12,8 +11,6 @@ import { FirewallLabels } from './label';
 import type { INestedState, StateConfigProvider } from '../navigation';
 import { registerRootState } from '../navigation/rootState.registration';
 import type { SecurityGroupReader } from './securityGroupReader.service';
-
-export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 
 export function getStandaloneFirewallState(securityGroupReader: SecurityGroupReader): INestedState {
   return {
@@ -34,7 +31,7 @@ export function getStandaloneFirewallState(securityGroupReader: SecurityGroupRea
     resolve: {
       resolvedSecurityGroup: [
         '$stateParams',
-        ($stateParams: StateParams) => {
+        ($stateParams: RawParams) => {
           return {
             name: $stateParams.name,
             accountId: $stateParams.accountId,
@@ -46,7 +43,7 @@ export function getStandaloneFirewallState(securityGroupReader: SecurityGroupRea
       ],
       app: [
         '$stateParams',
-        ($stateParams: StateParams): PromiseLike<Application> => {
+        ($stateParams: RawParams): Promise<Application> => {
           // we need the application to have a firewall index (so rules get attached and linked properly)
           // and its name should just be the name of the firewall (so cloning works as expected)
           return securityGroupReader.loadSecurityGroups().then((securityGroupsIndex) => {
@@ -71,8 +68,6 @@ export function getStandaloneFirewallState(securityGroupReader: SecurityGroupRea
   };
 }
 
-module(SECURITY_GROUP_STATES, []);
-
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const firewallDetails: INestedState = {
@@ -91,10 +86,10 @@ registerApplicationState(
         },
       },
       resolve: {
-        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.accountId],
         resolvedSecurityGroup: [
           '$stateParams',
-          ($stateParams: StateParams) => {
+          ($stateParams: RawParams) => {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,

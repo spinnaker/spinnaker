@@ -74,7 +74,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     const { name } = project;
     const taskMonitor = new TaskMonitor({
       title: 'Updating Project',
-      modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.closeModal({ name, action: 'upsert' })),
+      onDismiss: () => this.props.closeModal({ name, action: 'upsert' }),
     });
 
     this.setState({ taskMonitor });
@@ -101,7 +101,7 @@ export class ConfigureProjectModal extends React.Component<IConfigureProjectModa
     if (projectConfiguration) {
       const taskMonitor = new TaskMonitor({
         title: 'Deleting Project',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.closeModal({ name, action: 'delete' })),
+        onDismiss: () => this.props.closeModal({ name, action: 'delete' }),
       });
 
       this.setState({ taskMonitor });

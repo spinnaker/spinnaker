@@ -1,20 +1,14 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
-import type { DirectProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
+import type { ProviderServiceDelegate } from '../cloudProvider/providerService.delegate';
 import { SETTINGS } from '../config/settings';
 import type { IFunction, IFunctionSourceData } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { FunctionReader } from './function.read.service';
-import { FUNCTION_READ_SERVICE } from './function.read.service';
 import type { IFunctionTransformer } from './function.transformer';
 
-export const FUNCTION_DATA_SOURCE = 'spinnaker.core.functions.dataSource';
-
-export function createDirectFunctionReader(providerServiceDelegate: DirectProviderServiceDelegate): FunctionReader {
+export function createDirectFunctionReader(providerServiceDelegate: ProviderServiceDelegate): FunctionReader {
   const functionTransformer: IFunctionTransformer = {
     normalizeFunction: (functionDef: IFunctionSourceData) =>
       providerServiceDelegate
@@ -48,10 +42,7 @@ export function createDirectFunctionReader(providerServiceDelegate: DirectProvid
   return new FunctionReader(functionTransformer);
 }
 
-export function registerFunctionDataSource(
-  functionReader: FunctionReader,
-  when: <T>(value: T | PromiseLike<T>) => PromiseLike<T>,
-): void {
+export function registerFunctionDataSource(functionReader: FunctionReader): void {
   if (
     !SETTINGS.feature.functions ||
     ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'functions')
@@ -63,7 +54,7 @@ export function registerFunctionDataSource(
   };
 
   const addFunctions = (_application: Application, functionList: IFunction[]) => {
-    return when(functionList);
+    return Promise.resolve(functionList);
   };
 
   const addTags = (application: Application) => {
@@ -88,10 +79,3 @@ export function registerFunctionDataSource(
     defaultData: [],
   });
 }
-
-module(FUNCTION_DATA_SOURCE, [FUNCTION_READ_SERVICE]).run([
-  '$q',
-  'functionReader',
-  ($q: IQService, functionReader: FunctionReader) =>
-    registerFunctionDataSource(functionReader, <T>(value: T | PromiseLike<T>) => $q.when(value)),
-]);

@@ -11,21 +11,13 @@ const webpack = require('webpack');
 
 const DECK_ROOT = path.resolve(`${__dirname}/../..`);
 const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
-const KAYENTA_PACKAGE_ROOT = path.resolve(DECK_ROOT, '../deck-kayenta');
 const STYLEGUIDE_PACKAGE_ROOT = path.dirname(
   require.resolve('@spinnaker/styleguide/package.json', { paths: [__dirname] }),
 );
 const REACT_VIRTUALIZED_COMMONJS = require.resolve('react-virtualized/dist/commonjs/index.js', {
   paths: [CORE_PACKAGE_ROOT],
 });
-const SHARED_PACKAGE_ALIASES = [
-  '@uirouter/angularjs',
-  '@uirouter/core',
-  '@uirouter/react',
-  'angular',
-  'react',
-  'react-dom',
-];
+const SHARED_PACKAGE_ALIASES = ['@uirouter/core', '@uirouter/react', 'react', 'react-dom'];
 const SHARED_PACKAGE_ALIAS_RESOLUTIONS = Object.fromEntries(
   SHARED_PACKAGE_ALIASES.map((packageName) => [
     packageName,
@@ -132,13 +124,11 @@ function configure(env, webpackOpts) {
         : [], // Disable minification unless production
     },
     resolve: {
-      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
+      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less'],
       alias: {
         ...SHARED_PACKAGE_ALIAS_RESOLUTIONS,
         '@spinnaker/core': CORE_PACKAGE_ROOT,
-        '@spinnaker/kayenta': path.resolve(KAYENTA_PACKAGE_ROOT, 'src'),
         coreImports: path.resolve(CORE_PACKAGE_ROOT, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-        kayenta: path.resolve(KAYENTA_PACKAGE_ROOT, 'src', 'kayenta'),
         root: DECK_ROOT,
         // Fix react-virtualized circular dependency issue with webpack 5
         // https://github.com/bvaughn/react-virtualized/issues/1632
@@ -182,10 +172,6 @@ function configure(env, webpackOpts) {
         {
           test: /\.css$/,
           use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
-        },
-        {
-          test: /\.html$/,
-          use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
         },
         {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,

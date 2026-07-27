@@ -1,22 +1,25 @@
 import { shallow } from 'enzyme';
 import React from 'react';
+import { act } from 'react-dom/test-utils';
 
-import type { IRootScopeService } from 'angular';
-import { mock } from 'angular';
 import * as core from '@spinnaker/core';
 
 import { TitusServerGroupActionsComponent as TitusServerGroupActions } from './TitusServerGroupActions';
 import { TitusRollbackServerGroupModal } from './rollback/TitusRollbackServerGroupModal';
 
+interface IDeferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+}
+
+function deferred<T>(): IDeferred<T> {
+  let resolve: (value: T) => void;
+  const promise = new Promise<T>((promiseResolve) => (resolve = promiseResolve));
+  return { promise, resolve };
+}
+
 describe('<TitusServerGroupActions />', () => {
   const runtimeServices = {} as any;
-  let $rootScope: IRootScopeService;
-
-  beforeEach(
-    mock.inject((_$rootScope_: IRootScopeService) => {
-      $rootScope = _$rootScope_;
-    }),
-  );
 
   const buildServerGroup = (overrides: any = {}) => ({
     account: 'test-account',
@@ -39,6 +42,15 @@ describe('<TitusServerGroupActions />', () => {
 
   const rollbackLinks = (wrapper: any) => wrapper.find('a').filterWhere((link: any) => link.text() === 'Rollback');
 
+  const managedResource = {
+    isManaged: true,
+    managedResourceSummary: {
+      id: 'managed-resource',
+      isPaused: false,
+      locations: { account: 'test-account' },
+    },
+  };
+
   afterEach(() => core.SETTINGS.resetToOriginal());
 
   it('renders Rollback for an enabled server group', () => {
@@ -60,15 +72,27 @@ describe('<TitusServerGroupActions />', () => {
 
   it('opens the Titus rollback modal with the previous server group', async () => {
     const previousServerGroup = buildServerGroup({ createdTime: 1, name: 'test-app-main-v001' });
-    const serverGroup = buildServerGroup();
+    const serverGroup = buildServerGroup(managedResource);
     const app = buildApp([previousServerGroup, serverGroup]);
-    const show = spyOn(TitusRollbackServerGroupModal, 'show').and.returnValue(Promise.resolve({} as any));
+    const managementConfirmation = deferred<any>();
+    const rollbackModalShown = deferred<void>();
+    spyOn(core.ConfirmationModalService, 'confirm').and.returnValue(managementConfirmation.promise);
+    const show = spyOn(TitusRollbackServerGroupModal, 'show').and.callFake(() => {
+      rollbackModalShown.resolve(undefined);
+      return Promise.resolve({} as any);
+    });
     const wrapper = shallow(<TitusServerGroupActions app={app} serverGroup={serverGroup} />);
     (wrapper.instance() as any).context = { services: runtimeServices };
 
-    rollbackLinks(wrapper).simulate('click');
-    $rootScope.$digest();
-    await settle();
+    act(() => {
+      rollbackLinks(wrapper).simulate('click');
+    });
+    expect(show).not.toHaveBeenCalled();
+
+    await act(async () => {
+      managementConfirmation.resolve(undefined);
+      await rollbackModalShown.promise;
+    });
 
     expect(show).toHaveBeenCalledOnceWith(
       {
@@ -92,9 +116,17 @@ describe('<TitusServerGroupActions />', () => {
   });
 
   it('closes destroyed server group details through the injected state service', async () => {
-    const serverGroup = buildServerGroup();
+    const serverGroup = buildServerGroup(managedResource);
     const stateService = { go: jasmine.createSpy('go'), includes: jasmine.createSpy('includes').and.returnValue(true) };
-    const confirm = spyOn(core.ConfirmationModalService, 'confirm');
+    const managementConfirmation = deferred<any>();
+    const destroyConfirmationShown = deferred<void>();
+    const confirm = spyOn(core.ConfirmationModalService, 'confirm').and.callFake(() => {
+      if (confirm.calls.count() === 1) {
+        return managementConfirmation.promise;
+      }
+      destroyConfirmationShown.resolve(undefined);
+      return Promise.resolve({} as any);
+    });
     spyOn(core.ServerGroupWarningMessageService, 'addDestroyWarningMessage');
     const wrapper = shallow(
       <TitusServerGroupActions
@@ -106,16 +138,20 @@ describe('<TitusServerGroupActions />', () => {
       />,
     );
 
-    wrapper
-      .find('a')
-      .filterWhere((link: any) => link.text() === 'Destroy')
-      .simulate('click');
-    $rootScope.$digest();
-    await settle();
+    act(() => {
+      wrapper
+        .find('a')
+        .filterWhere((link: any) => link.text() === 'Destroy')
+        .simulate('click');
+    });
+    expect(confirm).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      managementConfirmation.resolve(undefined);
+      await destroyConfirmationShown.promise;
+    });
     confirm.calls.mostRecent().args[0].taskMonitorConfig.onTaskComplete();
 
     expect(stateService.go).toHaveBeenCalledWith('^');
   });
 });
-
-const settle = () => new Promise((resolve) => setTimeout(resolve));

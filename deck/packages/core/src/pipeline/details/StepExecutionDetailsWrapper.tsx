@@ -10,15 +10,13 @@ import { withRouter } from '../../navigation/routerContext';
 export interface IStepExecutionDetailsWrapperProps {
   application: Application;
   config?: IStageTypeConfig;
-  configSections: string[];
   execution: IExecution;
   provider?: string;
   stage: IExecutionStage;
-  sourceUrl: string;
 }
 
 export function StepExecutionDetailsWrapperComponent(props: IStepExecutionDetailsWrapperProps & IRouterInjectedProps) {
-  const { application, config, configSections, execution, provider, stage } = props;
+  const { application, config, execution, provider, stage } = props;
   const ExecutionDetailsComponent = config?.executionDetailsComponent;
 
   if (ExecutionDetailsComponent) {
@@ -26,7 +24,6 @@ export function StepExecutionDetailsWrapperComponent(props: IStepExecutionDetail
       <ExecutionDetailsComponent
         application={application}
         config={config}
-        configSections={configSections}
         currentSection={props.stateParams.details}
         execution={execution}
         provider={provider || ''}

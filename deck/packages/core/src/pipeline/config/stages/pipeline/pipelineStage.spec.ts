@@ -1,3 +1,4 @@
+import '../../../../bootstrap/runtimeInitializers';
 import { ExecutionDetailsTasks } from '../common/ExecutionDetailsTasks';
 import { Registry } from '../../../../registry';
 import { PipelineParametersExecutionDetails } from './PipelineParametersExecutionDetails';
@@ -5,16 +6,11 @@ import { PipelineStageConfig } from './PipelineStageConfig';
 import { PipelineStageExecutionDetails } from './PipelineStageExecutionDetails';
 import { pipelineStage } from './pipelineStage';
 
+const registeredPipelineStage = Registry.pipeline.getStageConfig({ type: 'pipeline' } as any) as any;
+
 describe('pipelineStage', () => {
-  beforeEach(() => {
-    Registry.reinitialize();
-    Registry.pipeline.registerStage(pipelineStage);
-  });
-
   it('registers the Pipeline stage as a React stage config', () => {
-    const stageConfig = Registry.pipeline.getStageConfig({ type: 'pipeline' } as any) as any;
-
-    expect(stageConfig).toEqual(
+    expect(registeredPipelineStage).toEqual(
       jasmine.objectContaining({
         label: 'Pipeline',
         description: 'Runs a pipeline',
@@ -30,8 +26,5 @@ describe('pipelineStage', () => {
         validators: [{ type: 'requiredField', fieldName: 'pipeline' }],
       }),
     );
-    expect(stageConfig.templateUrl).toBeUndefined();
-    expect(stageConfig.controller).toBeUndefined();
-    expect(stageConfig.controllerAs).toBeUndefined();
   });
 });

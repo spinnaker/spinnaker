@@ -1,19 +1,8 @@
-import type { IRootScopeService, IScope } from 'angular';
-import { mock } from 'angular';
-
 import { mockHttpClient } from '../api/mock/jasmine';
 import type { ISubnet } from '../domain';
 import { SubnetReader } from './subnet.read.service';
 
 describe('SubnetReader', function () {
-  let $scope: IScope;
-
-  beforeEach(
-    mock.inject(function ($rootScope: IRootScopeService) {
-      $scope = $rootScope.$new();
-    }),
-  );
-
   it('adds label to subnet, including (deprecated) if deprecated field is true', async function () {
     const http = mockHttpClient();
     http
@@ -24,14 +13,10 @@ describe('SubnetReader', function () {
         { purpose: 'internal' },
       ]);
 
-    let result: ISubnet[] = null;
-
-    SubnetReader.listSubnets().then((subnets: ISubnet[]) => {
-      result = subnets;
-    });
+    const resultPromise = SubnetReader.listSubnets();
 
     await http.flush();
-    $scope.$digest();
+    const result: ISubnet[] = await resultPromise;
 
     expect(result[0].label).toBe('internal (deprecated)');
     expect(result[0].deprecated).toBe(true);

@@ -1,5 +1,4 @@
-import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
+import type { RawParams } from '@uirouter/core';
 
 import { LoadBalancers } from './LoadBalancers';
 import type { ApplicationStateProvider } from '../application';
@@ -17,9 +16,6 @@ export interface ILoadBalancerStateParams {
   vpcId: string;
   provider: string;
 }
-
-export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
-module(LOAD_BALANCER_STATES, []);
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
@@ -39,10 +35,10 @@ registerApplicationState(
         },
       },
       resolve: {
-        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.accountId],
         loadBalancer: [
           '$stateParams',
-          ($stateParams: StateParams): ILoadBalancerStateParams => {
+          ($stateParams: RawParams): ILoadBalancerStateParams => {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
@@ -82,12 +78,12 @@ registerApplicationState(
         },
       },
       resolve: {
-        accountId: ['$stateParams', ($stateParams: StateParams) => $stateParams.accountId],
-        name: ['$stateParams', ($stateParams: StateParams) => $stateParams.name],
-        provider: ['$stateParams', ($stateParams: StateParams) => $stateParams.provider],
+        accountId: ['$stateParams', ($stateParams: RawParams) => $stateParams.accountId],
+        name: ['$stateParams', ($stateParams: RawParams) => $stateParams.name],
+        provider: ['$stateParams', ($stateParams: RawParams) => $stateParams.provider],
         targetGroup: [
           '$stateParams',
-          ($stateParams: StateParams) => ({
+          ($stateParams: RawParams) => ({
             accountId: $stateParams.accountId,
             loadBalancerName: $stateParams.loadBalancerName,
             name: $stateParams.name,

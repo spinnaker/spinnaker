@@ -8,7 +8,6 @@ import {
   makeClusterFilterKey,
   OnDemandClusterPicker,
 } from './OnDemandClusterPicker';
-import { onDemandClusterPickerComponent } from './onDemandClusterPicker.component';
 import { AccountTag } from '../../account';
 import type { Application } from '../../application';
 import { ApplicationDataSource } from '../../application/service/applicationDataSource';
@@ -38,7 +37,7 @@ class TestServerGroupsDataSource {
 
   constructor(public clusters: Array<{ account: string; name: string }> = []) {}
 
-  public onRefresh(_scope: unknown, callback: () => void): () => void {
+  public onRefresh(callback: () => void): () => void {
     this.callbacks.push(callback);
     return () => {
       this.callbacks = this.callbacks.filter((candidate) => candidate !== callback);
@@ -209,8 +208,7 @@ describe('OnDemandClusterPicker', () => {
     expect(serverGroups.callbacks).toHaveSize(0);
   });
 
-  it('styles the Angular host as a block and uses consistent select menu height limits', () => {
-    const host = document.createElement('on-demand-cluster-picker');
+  it('styles the native picker as a block and uses consistent select menu height limits', () => {
     const root = document.createElement('div');
     const outerMenu = document.createElement('div');
     const menu = document.createElement('div');
@@ -219,17 +217,12 @@ describe('OnDemandClusterPicker', () => {
     menu.className = 'Select-menu';
     outerMenu.appendChild(menu);
     root.appendChild(outerMenu);
-    host.appendChild(root);
-    document.body.appendChild(host);
+    document.body.appendChild(root);
 
-    expect(window.getComputedStyle(host).display).toBe('block');
+    expect(window.getComputedStyle(root).display).toBe('block');
     expect(window.getComputedStyle(menu).maxHeight).toBe(window.getComputedStyle(outerMenu).maxHeight);
     expect(window.getComputedStyle(menu).maxHeight).not.toBe('none');
 
-    host.remove();
-  });
-
-  it('exposes only the application binding through the Angular compatibility wrapper', () => {
-    expect(onDemandClusterPickerComponent.bindings).toEqual({ application: '<' });
+    root.remove();
   });
 });

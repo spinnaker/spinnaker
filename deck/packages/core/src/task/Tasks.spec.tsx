@@ -1,34 +1,29 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext, UIViewContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ViewStateCache } from '../cache';
-import { REACT_MODULE } from '../reactShims';
 import { getSelectedItemsPerPage, Tasks } from './Tasks';
 import type { ITask } from '../domain';
 
 describe('Tasks', () => {
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-      if (!$uiRouter.stateRegistry.get('tasks')) {
-        $uiRouter.stateRegistry.register({ name: 'tasks', url: '/tasks' } as any);
-      }
-      if (!$uiRouter.stateRegistry.get('tasks.taskDetails')) {
-        $uiRouter.stateRegistry.register({ name: 'tasks.taskDetails', url: '/:taskId' } as any);
-      }
-      spyOn($uiRouter.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
-      ViewStateCache.get('tasks').removeAll();
-    }),
-  );
+  beforeEach(() => {
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    router.stateRegistry.register({ name: 'tasks', url: '/tasks' } as any);
+    router.stateRegistry.register({ name: 'tasks.taskDetails', url: '/:taskId' } as any);
+    spyOn(router.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
+    ViewStateCache.get('tasks').removeAll();
+  });
 
-  afterEach(() => ViewStateCache.get('tasks').removeAll());
+  afterEach(() => {
+    ViewStateCache.get('tasks').removeAll();
+    router.dispose();
+  });
 
   it('updates the per-page count without reading from a pooled event', (done) => {
     const app = ApplicationModelBuilder.createApplicationForTests('app', {
@@ -41,8 +36,8 @@ describe('Tasks', () => {
     spyOn(app.tasks, 'ready').and.returnValue(Promise.resolve(app.tasks.data) as any);
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
-        <UIViewContext.Provider value={{ fqn: 'tasks', context: $uiRouter.stateRegistry.get('tasks') as any }}>
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider value={{ fqn: 'tasks', context: router.stateRegistry.get('tasks') as any }}>
           <Tasks app={app} />
         </UIViewContext.Provider>
       </UIRouterContext.Provider>,
@@ -89,8 +84,8 @@ describe('Tasks', () => {
     spyOn(app.tasks, 'ready').and.returnValue(Promise.resolve(app.tasks.data) as any);
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
-        <UIViewContext.Provider value={{ fqn: 'tasks', context: $uiRouter.stateRegistry.get('tasks') as any }}>
+      <UIRouterContext.Provider value={router}>
+        <UIViewContext.Provider value={{ fqn: 'tasks', context: router.stateRegistry.get('tasks') as any }}>
           <Tasks app={app} />
         </UIViewContext.Provider>
       </UIRouterContext.Provider>,

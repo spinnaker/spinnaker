@@ -32,7 +32,7 @@ const HelmManualTriggerConfig = (props: ITriggerTemplateComponentProps) => {
   );
 };
 
-HelmManualTriggerConfig.formatLabel = (trigger: IHelmTrigger): PromiseLike<string> => {
+HelmManualTriggerConfig.formatLabel = (trigger: IHelmTrigger): Promise<string> => {
   return Promise.resolve(`(Helm) ${trigger.account ? trigger.account + ':' : ''}${trigger.chart || ''}`);
 };
 

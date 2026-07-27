@@ -1,6 +1,4 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext, UIViewContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact, UIViewContext } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
@@ -8,14 +6,13 @@ import { AccountService } from '../../account';
 import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
 import { ConfirmationModalService } from '../../confirmationModal';
-import { REACT_MODULE } from '../../reactShims';
 import { ClusterState } from '../../state';
 import { MultipleServerGroupsDetails } from './MultipleServerGroupsDetails';
 
 describe('<MultipleServerGroupsDetails />', () => {
   let previousMultiselectModel: any;
   let serverGroupWriter: any;
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
 
   const app = {
     serverGroups: {
@@ -44,11 +41,11 @@ describe('<MultipleServerGroupsDetails />', () => {
 
   const mountDetails = () =>
     mount(
-      <UIRouterContext.Provider value={$uiRouter}>
+      <UIRouterContext.Provider value={router}>
         <UIViewContext.Provider
           value={{
             fqn: 'application.insight.multipleServerGroups',
-            context: $uiRouter.stateRegistry.get('application.insight.multipleServerGroups') as any,
+            context: router.stateRegistry.get('application.insight.multipleServerGroups') as any,
           }}
         >
           <DeckRuntimeContext.Provider
@@ -72,17 +69,14 @@ describe('<MultipleServerGroupsDetails />', () => {
       </UIRouterContext.Provider>,
     );
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-      ['application', 'application.insight', 'application.insight.multipleServerGroups'].forEach((name) => {
-        if (!$uiRouter.stateRegistry.get(name)) {
-          $uiRouter.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
-        }
-      });
-    }),
-  );
+  beforeEach(() => {
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+    ['application', 'application.insight', 'application.insight.multipleServerGroups'].forEach((name) => {
+      router.stateRegistry.register({ name, url: `/${name.split('.').pop()}` } as any);
+    });
+  });
 
   beforeEach(() => {
     previousMultiselectModel = ClusterState.multiselectModel;
@@ -108,6 +102,7 @@ describe('<MultipleServerGroupsDetails />', () => {
 
   afterEach(() => {
     ClusterState.multiselectModel = previousMultiselectModel;
+    router.dispose();
   });
 
   it('renders selected server group details', () => {
@@ -117,6 +112,8 @@ describe('<MultipleServerGroupsDetails />', () => {
     expect(wrapper.text()).toContain('app-v001');
     expect(wrapper.text()).toContain('prod');
     expect(wrapper.text()).toContain('us-west-2');
+    expect(wrapper.find('.multiple-server-group').length).toBe(1);
+    expect(wrapper.find('multiple-server-group').exists()).toBe(false);
     expect(wrapper.find('.instance-health-counts').text()).toContain('2');
     expect(wrapper.find('.instance-health-counts').text()).toContain('1');
 

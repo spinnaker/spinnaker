@@ -1,20 +1,16 @@
 import { mount } from 'enzyme';
 import React from 'react';
 
-import { targetSelectComponent, TargetSelect } from './targetSelect.component';
+import * as TargetSelectExports from './TargetSelect';
 
 describe('TargetSelect', () => {
-  it('registers the Angular component through the React bridge', () => {
-    expect(targetSelectComponent.templateUrl).toBeUndefined();
-    expect(targetSelectComponent.controller).toBeDefined();
-  });
-
-  it('renders without the AngularJS adapter and updates the model target', () => {
+  it('renders the native selector and updates the model target', () => {
     const onChange = jasmine.createSpy('onChange');
     const model = { target: 'current_asg_dynamic' };
-    const component = mount(<TargetSelect model={model} onChange={onChange} options={targetOptions()} />);
+    const component = mount(
+      <TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />,
+    );
 
-    expect(component.find(`.Angular${'JS'}Adapter`).exists()).toBe(false);
     component.find('input.target-select-search').simulate('focus');
     component.find('button.target-select-option').at(1).simulate('click');
 
@@ -24,7 +20,11 @@ describe('TargetSelect', () => {
 
   it('renders descriptions and filters options by search text', () => {
     const component = mount(
-      <TargetSelect model={{ target: '' }} onChange={jasmine.createSpy()} options={targetOptions()} />,
+      <TargetSelectExports.TargetSelect
+        model={{ target: '' }}
+        onChange={jasmine.createSpy()}
+        options={targetOptions()}
+      />,
     );
 
     component.find('input.target-select-search').simulate('focus');
@@ -41,7 +41,9 @@ describe('TargetSelect', () => {
   it('supports clearing to None', () => {
     const onChange = jasmine.createSpy('onChange');
     const model = { target: 'current_asg_dynamic' };
-    const component = mount(<TargetSelect model={model} onChange={onChange} options={targetOptions()} />);
+    const component = mount(
+      <TargetSelectExports.TargetSelect model={model} onChange={onChange} options={targetOptions()} />,
+    );
 
     component.find('button.target-select-clear').simulate('click');
 

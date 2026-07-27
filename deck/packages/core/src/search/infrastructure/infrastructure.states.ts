@@ -1,12 +1,8 @@
-import { module } from 'angular';
-
 import { SearchV1 } from './SearchV1';
 import { SearchV2 } from './SearchV2';
 import { SETTINGS } from '../../config/settings';
 import { registerRootState } from '../../navigation/rootState.registration';
 import type { StateConfigProvider } from '../../navigation/state.provider';
-
-export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
 
 function registerSearchStates(stateConfigProvider: StateConfigProvider): void {
   stateConfigProvider.addToRootState({
@@ -47,5 +43,4 @@ function registerSearchStates(stateConfigProvider: StateConfigProvider): void {
   stateConfigProvider.addRewriteRule('/', '/search');
 }
 
-module(INFRASTRUCTURE_STATES, []);
 registerRootState(registerSearchStates);

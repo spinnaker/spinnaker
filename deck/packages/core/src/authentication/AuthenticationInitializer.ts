@@ -1,4 +1,3 @@
-import type { IHttpPromiseCallbackArg } from 'angular';
 import type { Subscription } from 'rxjs';
 import { fromEvent as observableFromEvent } from 'rxjs';
 
@@ -40,22 +39,22 @@ export class AuthenticationInitializer {
   private static userLoggedOut = false;
   private static visibilityWatch: Subscription = null;
 
-  private static get<T = IAuthResponse>(url: string, config?: any): PromiseLike<IHttpPromiseCallbackArg<T>> {
+  private static get<T = IAuthResponse>(url: string, config?: any): Promise<T> {
     return Promise.resolve(
       authenticationHttpClient.get<T>({ url, headers: config?.headers }),
-    ).then((data) => (({ data } as unknown) as IHttpPromiseCallbackArg<T>));
+    );
   }
 
   private static checkForReauthentication(visibilityWatch: Subscription): void {
     this.get(SETTINGS.authEndpoint)
-      .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-        if (this.visibilityWatch === visibilityWatch && response.data.username) {
+      .then((response) => {
+        if (this.visibilityWatch === visibilityWatch && response.username) {
           AuthenticationService.setAuthenticatedUser({
-            name: response.data.username,
+            name: response.username,
             authenticated: false,
-            roles: response.data.roles,
-            canMintApiTokens: response.data.canMintApiTokens,
-            isAdmin: response.data.isAdmin,
+            roles: response.roles,
+            canMintApiTokens: response.canMintApiTokens,
+            isAdmin: response.isAdmin,
           });
           this.userLoggedOut = false;
           this.visibilityWatch?.unsubscribe();
@@ -91,8 +90,8 @@ export class AuthenticationInitializer {
 
   public static authenticateUser(isCurrent: () => boolean = () => true): Promise<boolean> {
     return Promise.resolve(this.get(SETTINGS.authEndpoint))
-      .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-        if (!response.data.username) {
+      .then((response) => {
+        if (!response.username) {
           throw new Error('Authentication response did not include a username');
         }
 
@@ -101,11 +100,11 @@ export class AuthenticationInitializer {
         }
 
         AuthenticationService.setAuthenticatedUser({
-          name: response.data.username,
+          name: response.username,
           authenticated: false,
-          roles: response.data.roles,
-          canMintApiTokens: response.data.canMintApiTokens,
-          isAdmin: response.data.isAdmin,
+          roles: response.roles,
+          canMintApiTokens: response.canMintApiTokens,
+          isAdmin: response.isAdmin,
         });
         return true;
       })
@@ -122,14 +121,14 @@ export class AuthenticationInitializer {
     if (!this.userLoggedOut) {
       this.userLoggedOut = true;
       this.get(SETTINGS.authEndpoint)
-        .then((response: IHttpPromiseCallbackArg<IAuthResponse>) => {
-          if (response.data.username) {
+        .then((response) => {
+          if (response.username) {
             AuthenticationService.setAuthenticatedUser({
-              name: response.data.username,
+              name: response.username,
               authenticated: false,
-              roles: response.data.roles,
-              canMintApiTokens: response.data.canMintApiTokens,
-              isAdmin: response.data.isAdmin,
+              roles: response.roles,
+              canMintApiTokens: response.canMintApiTokens,
+              isAdmin: response.isAdmin,
             });
             this.userLoggedOut = false;
           } else {

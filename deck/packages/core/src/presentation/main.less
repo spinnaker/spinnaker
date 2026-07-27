@@ -123,11 +123,6 @@ html {
       border-color: var(--color-accent);
     }
   }
-  .select2-container .select2-choices .select2-search-field input,
-  .select2-container .select2-choice,
-  .select2-container .select2-choices {
-    font-family: 'Source Sans 3', sans-serif;
-  }
 }
 
 .insight {
@@ -161,11 +156,6 @@ html {
       font-size: 90%;
       h3 {
         font-size: 120%;
-      }
-      filter-section {
-        h4 {
-          font-size: 110%;
-        }
       }
     }
     .content {
@@ -296,11 +286,6 @@ html {
 
     @media (max-width: 390px) {
       width: 100%;
-    }
-
-    react-ui-view-adapter {
-      width: 100%;
-      overflow-x: visible !important;
     }
   }
   .nav-content {
@@ -689,11 +674,6 @@ body > .container {
   }
 }
 
-/* This class is used to override the uibModal default z-index value of 1050 */
-.modal-z-index {
-  z-index: var(--layer-critical) !important;
-}
-
 .modal-pages {
   width: 1200px;
   .modal-page {
@@ -756,36 +736,6 @@ select:invalid {
   border-color: var(--color-danger);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
-}
-
-.form-control {
-  &.ng-invalid {
-    &.ng-dirty,
-    &.ng-invalid-validate-min,
-    &.ng-invalid-validate-max,
-    &.ng-invalid-required,
-    &.highlight-pristine {
-      border-color: var(--color-danger);
-      .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075)); // Redeclare so transitions work
-      &:focus {
-        border-color: var(--color-danger);
-        @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
-        .box-shadow(@shadow);
-      }
-    }
-  }
-}
-
-.highlight-pristine {
-  .ng-invalid {
-    border-color: var(--color-danger);
-    .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075)); // Redeclare so transitions work
-    &:focus {
-      border-color: var(--color-danger);
-      @shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px var(--color-danger-light);
-      .box-shadow(@shadow);
-    }
-  }
 }
 
 .table {
@@ -1353,67 +1303,9 @@ html {
           display: flex;
           overflow: visible;
         }
-        react-ui-view-adapter {
-          display: flex;
-          width: 100%;
-          overflow-x: hidden;
-          // >div {
-          //   display: flex;
-          //   width: 100%;
-          //   overflow-x: hidden;
-          // }
-        }
       }
     }
   }
-}
-
-.ui-select-multiple {
-  .select2-drop {
-    width: calc(~'100% - 40px');
-    margin-left: 1px;
-  }
-}
-.select2-results {
-  .select2-disabled {
-    background-color: transparent;
-    opacity: 0.5;
-    &:hover,
-    &.select2-highlighted {
-      background-color: transparent;
-    }
-    .select2-result-label {
-      cursor: default;
-      background-color: transparent;
-    }
-  }
-}
-
-ul.select2-results {
-  max-height: 225px;
-}
-
-.select2.select2-container {
-  &.ng-invalid-required {
-    a.select2-default {
-      border: 1px solid var(--color-danger);
-    }
-  }
-}
-
-.select2-container.input-sm.direction-up {
-  .select2-drop-active {
-    border-top: 1px solid var(--color-accent);
-    padding-top: 3px;
-    margin-bottom: 3px;
-  }
-  .select2-choice {
-    border-bottom-color: var(--color-accent);
-  }
-}
-
-body > .select2-container.open {
-  z-index: 10003;
 }
 
 .tooltip,
@@ -1429,14 +1321,6 @@ body > .select2-container.open {
     border: 1px solid var(--color-accent);
     background-color: var(--color-cirrus);
     transition: border-color 0.2s, background-color 0.2s, color 0.2s;
-  }
-}
-
-.checkbox {
-  help-field {
-    .help-contents {
-      margin-left: 20px;
-    }
   }
 }
 

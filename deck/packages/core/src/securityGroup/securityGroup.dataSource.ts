@@ -1,16 +1,11 @@
-import type { IQService } from 'angular';
-import { module } from 'angular';
 import type { Application } from '../application/application.model';
 import { INFRASTRUCTURE_KEY } from '../application/nav/defaultCategories';
 import { ApplicationDataSourceRegistry } from '../application/service/ApplicationDataSourceRegistry';
 import type { ISecurityGroup } from '../domain';
 import { EntityTagsReader } from '../entityTag/EntityTagsReader';
 import { addManagedResourceMetadataToSecurityGroups } from '../managed';
-
 import type { SecurityGroupReader } from './securityGroupReader.service';
-import { SECURITY_GROUP_READER } from './securityGroupReader.service';
 
-export const SECURITY_GROUP_DATA_SOURCE = 'spinnaker.core.securityGroup.dataSource';
 function createDataSourceConfig(securityGroupReader: SecurityGroupReader) {
   const loadSecurityGroups = (application: Application) => {
     return securityGroupReader.loadSecurityGroupsByApplicationName(application.name);
@@ -44,16 +39,10 @@ function createDataSourceConfig(securityGroupReader: SecurityGroupReader) {
   };
 }
 
-export function registerSecurityGroupDataSource(_$q: IQService, securityGroupReader: SecurityGroupReader): void {
+export function registerSecurityGroupDataSource(securityGroupReader: SecurityGroupReader): void {
   if (ApplicationDataSourceRegistry.getDataSources().some((source) => source.key === 'securityGroups')) {
     return;
   }
 
   ApplicationDataSourceRegistry.registerDataSource(createDataSourceConfig(securityGroupReader));
 }
-
-module(SECURITY_GROUP_DATA_SOURCE, [SECURITY_GROUP_READER]).run([
-  '$q',
-  'securityGroupReader',
-  ($q: IQService, securityGroupReader: SecurityGroupReader) => registerSecurityGroupDataSource($q, securityGroupReader),
-]);

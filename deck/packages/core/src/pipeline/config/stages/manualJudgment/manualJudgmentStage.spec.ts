@@ -32,12 +32,4 @@ describe('manualJudgmentStage', () => {
       }),
     );
   });
-
-  it('does not register Angular-only config fields', () => {
-    const stageConfig = Registry.pipeline.getStageConfig({ type: 'manualJudgment' } as any) as any;
-
-    expect(stageConfig.controller).toBeUndefined();
-    expect(stageConfig.controllerAs).toBeUndefined();
-    expect(stageConfig.templateUrl).toBeUndefined();
-  });
 });

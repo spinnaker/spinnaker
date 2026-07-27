@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { TaskNotFound } from './TaskNotFound';
 import { Tasks } from './Tasks';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
@@ -7,8 +5,6 @@ import { registerApplicationState } from '../application/applicationState.regist
 import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState } from '../navigation/state.provider';
 import { TaskReader } from './task.read.service';
-
-export const TASK_STATES = 'spinnaker.core.task.states';
 
 export function getTasksState(): INestedState {
   const taskDetails: INestedState = {
@@ -43,8 +39,6 @@ export function getTasksState(): INestedState {
     children: [taskDetails],
   };
 }
-
-module(TASK_STATES, []);
 
 registerApplicationState((applicationStateProvider: ApplicationStateProvider) => {
   applicationStateProvider.addChildState(getTasksState());

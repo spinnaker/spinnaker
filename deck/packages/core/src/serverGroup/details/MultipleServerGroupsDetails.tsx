@@ -7,7 +7,7 @@ import type { Application } from '../../application';
 import { useDeckRuntimeServices } from '../../bootstrap/DeckRuntimeContext';
 import { CloudProviderLogo } from '../../cloudProvider';
 import { ProviderSelectionService } from '../../cloudProvider/providerSelection/ProviderSelectionService';
-import type { DirectProviderServiceDelegate } from '../../cloudProvider/providerService.delegate';
+import type { ProviderServiceDelegate } from '../../cloudProvider/providerService.delegate';
 import { ConfirmationModalService } from '../../confirmationModal';
 import type { IServerGroup } from '../../domain';
 import { HealthCounts } from '../../healthCounts';
@@ -57,7 +57,7 @@ function getSelectedServerGroups(app: Application): IServerGroup[] {
 }
 
 function getMixinParams(
-  providerServiceDelegate: DirectProviderServiceDelegate,
+  providerServiceDelegate: ProviderServiceDelegate,
   submitMethodName: ServerGroupAction,
   serverGroup: IServerGroup,
 ): any {
@@ -81,7 +81,7 @@ export function MultipleServerGroupsDetails({ app }: IMultipleServerGroupsDetail
 
     ProviderSelectionService.isDisabled(app).then((disabled) => active && setIsDisabled(disabled));
     const multiselectWatcher = ClusterState.multiselectModel.serverGroupsStream.subscribe(retrieveServerGroups);
-    const unsubscribeRefresh = app.serverGroups.onRefresh(null, retrieveServerGroups);
+    const unsubscribeRefresh = app.serverGroups.onRefresh(retrieveServerGroups);
     retrieveServerGroups();
 
     return () => {
@@ -191,21 +191,22 @@ export function MultipleServerGroupsDetails({ app }: IMultipleServerGroupsDetail
         )}
       </div>
       <div className="content">
-        {serverGroups.map((serverGroup) =>
-          React.createElement(
-            'multiple-server-group',
-            { key: `${serverGroup.account}:${serverGroup.region}:${serverGroup.name}` },
-            <h5 key="heading">
+        {serverGroups.map((serverGroup) => (
+          <section
+            className="multiple-server-group"
+            key={`${serverGroup.account}:${serverGroup.region}:${serverGroup.name}`}
+          >
+            <h5>
               <div className={`server-group-name ${isServerGroupDisabled(serverGroup) ? 'disabled' : ''}`}>
                 <CloudProviderLogo provider={getProvider(serverGroup)} height="20px" width="20px" /> {serverGroup.name}
               </div>
-            </h5>,
-            <div className="server-group-details" key="details">
+            </h5>
+            <div className="server-group-details">
               <AccountTag account={serverGroup.account} /> {serverGroup.region}
               <HealthCounts container={serverGroup.instanceCounts} />
-            </div>,
-          ),
-        )}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );

@@ -43,7 +43,7 @@ export class CreateLoadBalancerStageConfig extends React.Component<
     this.props.stageFieldUpdated();
   }
 
-  private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): PromiseLike<ILoadBalancer | ILoadBalancer[]> {
+  private openProviderModal(loadBalancer: ILoadBalancer, isNew: boolean): Promise<ILoadBalancer | ILoadBalancer[]> {
     this.setState({ modalError: null });
     return ProviderSelectionService.selectProvider(
       this.props.application,

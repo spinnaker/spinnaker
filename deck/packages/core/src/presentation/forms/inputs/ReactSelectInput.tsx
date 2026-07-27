@@ -19,7 +19,7 @@ export interface IReactSelectInputProps<T = OptionValues>
 }
 
 // TODO: use standard css classes (from style guide?)
-// Currently the form-control class is needed for ng-invalid, but messes up the rendering of react-select
+// Currently the form-control class is needed for invalid styles, but messes up the rendering of react-select
 export const reactSelectValidationErrorStyle = {
   borderColor: 'var(--color-danger)',
   WebkitBoxShadow: 'inset 0 1px 1px rgba(0, 0, 0, 0.075)',

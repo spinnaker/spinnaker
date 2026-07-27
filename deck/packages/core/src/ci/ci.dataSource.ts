@@ -6,9 +6,6 @@ import { ApplicationDataSourceRegistry, navigationCategoryRegistry } from '../ap
 import { SETTINGS } from '../config/settings';
 import type { ICiBuild } from './domain';
 
-export const CI_DATASOURCE = 'spinnaker.ci.dataSource';
-export const name = CI_DATASOURCE;
-
 export function registerCiDataSources(): void {
   if (!SETTINGS.feature.ci) {
     return;

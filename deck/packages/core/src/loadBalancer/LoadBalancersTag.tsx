@@ -20,7 +20,7 @@ interface ILoadBalancerListItemProps {
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
-    e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
+    e.nativeEvent.preventDefault();
   };
 
   public render(): React.ReactElement<LoadBalancerListItem> {
@@ -36,7 +36,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
 class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
   private onClick = (e: React.MouseEvent<HTMLElement>): void => {
     this.props.onItemClick(this.props.loadBalancer);
-    e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
+    e.nativeEvent.preventDefault();
   };
 
   public render(): React.ReactElement<LoadBalancerButton> {
@@ -101,7 +101,7 @@ class LoadBalancersTagComponent extends React.Component<
       this.setState({ loadBalancers, isLoading: false }),
     );
 
-    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => {
+    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(() => {
       this.forceUpdate();
     });
   }

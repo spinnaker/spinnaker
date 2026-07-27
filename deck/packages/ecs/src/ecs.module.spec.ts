@@ -34,7 +34,7 @@ describe('ECS package registration', () => {
     expect(CloudProviderRegistry.getValue('ecs', `securityGroup.details${controllerKey}`)).toBeNull();
   });
 
-  it('registers ECS pipeline stages without an Angular module dependency', () => {
+  it('registers ECS pipeline stages directly', () => {
     Registry.reinitialize();
     registerEcsPipelineStages();
     const stages = Registry.pipeline.getStageTypes();
@@ -46,7 +46,7 @@ describe('ECS package registration', () => {
     );
   });
 
-  it('registers ECS pipeline stage config forms as React components', () => {
+  it('ECS stage configs expose React components without legacy templates', () => {
     Registry.reinitialize();
     registerEcsPipelineStages();
     const ecsStages = Registry.pipeline
@@ -68,6 +68,12 @@ describe('ECS package registration', () => {
       expect(stage.component).toEqual(jasmine.any(Function));
       expect(stage.templateUrl).toBeUndefined();
     });
+  });
+
+  it('does not bundle ECS HTML templates', () => {
+    const ecsTemplates = require.context('./', true, /\.html$/).keys();
+
+    expect(ecsTemplates).toEqual([]);
   });
 
   it('normalizes ECS security groups as resolved values', async () => {

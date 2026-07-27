@@ -1,10 +1,8 @@
-/* eslint-disable @spinnaker/migrate-to-mock-http-client */
-import { mock } from 'angular';
 import { Subscription } from 'rxjs';
 
 import { AuthenticationInitializer } from './AuthenticationInitializer';
 import { AuthenticationService } from './AuthenticationService';
-import { AUTHENTICATION_MODULE, initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
+import { initializeAuthentication, resetAuthenticationRuntime } from './authentication.module';
 import { RequestBuilder } from '../api/ApiService';
 import { FailClosedHttpClient, mockHttpClient } from '../api/mock/jasmine';
 import { SETTINGS } from '../config/settings';
@@ -12,7 +10,6 @@ import type { IModalComponentProps } from '../presentation';
 import { ReactModal } from '../presentation/ReactModal';
 import type { IScheduler } from '../scheduler/SchedulerFactory';
 import { SchedulerFactory } from '../scheduler/SchedulerFactory';
-import { diagnosticLogger } from '../utils/diagnosticLogger';
 
 declare const window: any;
 
@@ -33,8 +30,6 @@ describe('AuthenticationInitializer', function () {
   beforeEach(() => (SETTINGS.authEnabled = false));
   beforeEach(() => (window.spinnakerSettings.authEnabled = false));
   beforeEach(() => AuthenticationService.reset());
-  beforeEach(mock.module(AUTHENTICATION_MODULE));
-
   afterEach(() => {
     authenticationUnsubscribes.splice(0).forEach((unsubscribe) => unsubscribe());
     AuthenticationService.reset();
@@ -233,9 +228,9 @@ describe('AuthenticationInitializer', function () {
     });
     const openLoggedOutModal = spyOn(AuthenticationInitializer as any, 'openLoggedOutModal');
     const get = spyOn(AuthenticationInitializer as any, 'get').and.returnValues(
-      Promise.resolve({ data: {} }),
-      Promise.resolve({ data: { username: 'restored-user', roles: [] } }),
-      Promise.resolve({ data: {} }),
+      Promise.resolve({}),
+      Promise.resolve({ username: 'restored-user', roles: [] }),
+      Promise.resolve({}),
     );
     spyOnProperty(document, 'visibilityState', 'get').and.returnValue('visible');
     (AuthenticationInitializer as any).userLoggedOut = false;
@@ -286,7 +281,7 @@ describe('AuthenticationInitializer', function () {
       const secondVisibilityWatch = (AuthenticationInitializer as any).visibilityWatch as Subscription;
       document.dispatchEvent(new Event('visibilitychange'));
 
-      firstResponse.resolve({ data: { username: 'stale-user', roles: ['stale-role'] } });
+      firstResponse.resolve({ username: 'stale-user', roles: ['stale-role'] });
       await Promise.resolve();
       await Promise.resolve();
 
@@ -295,7 +290,7 @@ describe('AuthenticationInitializer', function () {
       expect(dismissAll).not.toHaveBeenCalled();
       expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
 
-      secondResponse.resolve({ data: { username: 'restored-user', roles: ['restored-role'] } });
+      secondResponse.resolve({ username: 'restored-user', roles: ['restored-role'] });
       await Promise.resolve();
       await Promise.resolve();
 
@@ -364,7 +359,7 @@ describe('initializeAuthentication', () => {
     expect(createScheduler).toHaveBeenCalledOnceWith(1234);
     expect(scheduler.subscribe).toHaveBeenCalledTimes(1);
 
-    request.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+    request.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([true, true]);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
@@ -386,7 +381,7 @@ describe('initializeAuthentication', () => {
 
     const firstInitialization = initializeAuthentication();
     const secondInitialization = initializeAuthentication();
-    request.resolve({ data: {} });
+    request.resolve({});
 
     expect(await Promise.all([firstInitialization, secondInitialization])).toEqual([false, false]);
     expect(get).toHaveBeenCalledTimes(1);
@@ -469,13 +464,13 @@ describe('initializeAuthentication', () => {
     resetAuthenticationRuntime();
     const secondInitialization = initializeAuthentication();
 
-    firstRequest.resolve({ data: { username: 'stale-user', roles: ['stale-role'] } });
+    firstRequest.resolve({ username: 'stale-user', roles: ['stale-role'] });
 
     expect(await firstInitialization).toBe(false);
     expect(AuthenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
     expect(initializeAuthentication()).toBe(secondInitialization);
 
-    secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+    secondRequest.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await secondInitialization).toBe(true);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
@@ -503,44 +498,12 @@ describe('initializeAuthentication', () => {
     expect(loginRedirect).not.toHaveBeenCalled();
     expect(initializeAuthentication()).toBe(secondInitialization);
 
-    secondRequest.resolve({ data: { username: 'new-user', roles: ['new-role'] } });
+    secondRequest.resolve({ username: 'new-user', roles: ['new-role'] });
 
     expect(await secondInitialization).toBe(true);
     expect(AuthenticationService.getAuthenticatedUser()).toEqual(
       jasmine.objectContaining({ name: 'new-user', authenticated: true, roles: ['new-role'] }),
     );
     expect(loginRedirect).not.toHaveBeenCalled();
-  });
-});
-
-describe('authentication module startup', () => {
-  const initializationError = new Error('initialization failed');
-  const reportError = jasmine.createSpy('reportError');
-
-  beforeEach(() => {
-    SETTINGS.authEnabled = true;
-    SETTINGS.authTtl = 1234;
-    const scheduler: IScheduler = {
-      subscribe: () => new Subscription(),
-      scheduleImmediate: jasmine.createSpy('scheduleImmediate'),
-      unsubscribe: jasmine.createSpy('unsubscribe'),
-    };
-    spyOn(SchedulerFactory, 'createScheduler').and.returnValue(scheduler);
-    spyOn(AuthenticationInitializer, 'authenticateUser').and.returnValue(Promise.reject(initializationError));
-    spyOn(diagnosticLogger, 'error').and.callFake(reportError);
-  });
-  beforeEach(mock.module(AUTHENTICATION_MODULE));
-  beforeEach(mock.inject(() => undefined));
-
-  afterEach(() => {
-    resetAuthenticationRuntime();
-    SETTINGS.resetToOriginal();
-    reportError.calls.reset();
-  });
-
-  it('reports unexpected initializeAuthentication rejections', async () => {
-    await new Promise((resolve) => setTimeout(resolve));
-
-    expect(reportError).toHaveBeenCalledOnceWith('Failed to initialize authentication', initializationError);
   });
 });

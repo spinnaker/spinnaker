@@ -1,3 +1,5 @@
+import { nativePromiseService } from '@spinnaker/core';
+
 import { AzureImageReader } from '../../image/image.reader';
 import { AzureServerGroupCommandBuilder } from './serverGroupCommandBuilder.service';
 
@@ -26,7 +28,7 @@ describe('AzureServerGroupCommandBuilder', function () {
     ];
     spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
 
-    const command = await new AzureServerGroupCommandBuilder(null).buildServerGroupCommandFromExisting(
+    const command = await new AzureServerGroupCommandBuilder(nativePromiseService).buildServerGroupCommandFromExisting(
       { name: 'fnord' },
       serverGroup({ image: { imageName: 'ubuntu-west' } }),
     );
@@ -41,7 +43,7 @@ describe('AzureServerGroupCommandBuilder', function () {
     const images = [{ imageName: 'ubuntu-west', amis: { westus: ['ami-west'] } }];
     spyOn(AzureImageReader.prototype, 'findImages').and.returnValue(Promise.resolve(images));
 
-    const command = await new AzureServerGroupCommandBuilder(null).buildServerGroupCommandFromExisting(
+    const command = await new AzureServerGroupCommandBuilder(nativePromiseService).buildServerGroupCommandFromExisting(
       { name: 'fnord' },
       serverGroup({
         image: { isCustom: true, imageName: 'custom-image', ostype: 'Linux', uri: 'https://image.vhd' },

@@ -1,6 +1,5 @@
 import type { Transition } from '@uirouter/core';
 import { UIView } from '@uirouter/react';
-import { module } from 'angular';
 import React from 'react';
 
 import type { ApplicationStateProvider } from '../application/application.state.provider';
@@ -13,8 +12,6 @@ import { filterModelConfig } from './filter/ExecutionFilterModel';
 import { registerRootState } from '../navigation/rootState.registration';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
 
-export const PIPELINE_STATES = 'spinnaker.core.pipeline.states';
-
 const PipelineInsightView = ({ className }: { className?: string }) =>
   React.createElement(
     'div',
@@ -25,8 +22,6 @@ const PipelineInsightView = ({ className }: { className?: string }) =>
       React.createElement(UIView, { name: 'pipelines', className: 'flex-fill' }),
     ),
   );
-
-module(PIPELINE_STATES, []);
 
 registerApplicationState(
   (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
@@ -46,9 +41,8 @@ registerApplicationState(
       },
     };
 
-    // a specific stage can be deep linked by providing either refId or stageId,
-    // which will be resolved to stage or step by the executionDetails controller to stage/step parameters,
-    // replacing the URL
+    // A specific stage can be deep linked by providing either refId or stageId. The execution details view resolves
+    // these to stage and step parameters and replaces the URL.
     const executionDetails: INestedState = {
       name: 'execution',
       url: '/:executionId?refId&stage&subStage&step&details&stageId',

@@ -12,7 +12,6 @@ import type { IStageSummaryProps } from '../pipeline/details/StageSummary';
 export interface IExecutionDetailsComponentProps {
   application: IExecutionDetailsProps['application'];
   config: IStageTypeConfig;
-  configSections: string[];
   currentSection?: string;
   execution: IExecutionDetailsProps['execution'];
   provider: string;
@@ -42,12 +41,10 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   configuration?: any;
   defaults?: any;
   disableNotifications?: boolean;
-  executionConfigSections?: string[]; // angular only
   executionDetailsComponent?: React.ComponentType<IExecutionDetailsComponentProps>;
   executionDetailsSections?: IExecutionDetailsSection[]; // react only
   executionLabelComponent?: React.ComponentType<IExecutionStageLabelProps>;
   executionStepLabelComponent?: React.ComponentType<IExecutionStepLabelComponentProps>;
-  executionSummaryUrl?: string;
   executionSummaryComponent?: React.ComponentType<IStageSummaryProps>;
   extraLabelLines?: (stage: IStage) => number;
   markerIcon?: React.ComponentClass<{ stage: IExecutionStageSummary }>;

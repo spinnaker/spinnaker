@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import { ServerGroupManagerDetails } from './ServerGroupManagerDetails';
 import type { ApplicationStateProvider } from '../application';
 import { registerApplicationState } from '../application';
@@ -11,9 +9,6 @@ export interface IServerGroupManagerStateParams {
   region: string;
   name: string;
 }
-
-export const SERVER_GROUP_MANAGER_STATES = 'spinnaker.core.serverGroupManager.states';
-module(SERVER_GROUP_MANAGER_STATES, []);
 
 const serverGroupManagerDetails: INestedState = {
   name: 'serverGroupManager',

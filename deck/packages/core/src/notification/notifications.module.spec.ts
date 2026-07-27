@@ -1,4 +1,3 @@
-import { mock } from 'angular';
 import React from 'react';
 
 import type { INotificationSettings } from '../config';
@@ -8,11 +7,7 @@ import { Registry } from '../registry';
 import type { INotificationParameter } from './NotificationService';
 import { NotificationService } from './NotificationService';
 import { BUILTIN_NOTIFICATION_KEYS, registerBuiltinNotificationTypes } from './notification.types';
-import {
-  CORE_NOTIFICATION_NOTIFICATIONS_MODULE,
-  initializeDynamicNotificationTypes,
-  registerDynamicNotificationTypes,
-} from './notifications.module';
+import { initializeDynamicNotificationTypes, registerDynamicNotificationTypes } from './notifications.module';
 
 describe('notification runtime registration', () => {
   const originalNotifications = SETTINGS.notifications;
@@ -183,7 +178,7 @@ describe('notification runtime registration', () => {
     await expectAsync(registerDynamicNotificationTypes()).toBeRejectedWith(failure);
   });
 
-  it('isolates Angular-compatible metadata failures and logs once', async () => {
+  it('isolates metadata initialization failures and logs once', async () => {
     const failure = new Error('metadata unavailable');
     spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
     const consoleError = spyOn(console, 'error').and.stub();
@@ -195,7 +190,7 @@ describe('notification runtime registration', () => {
   });
 });
 
-describe('Angular-compatible notification registration', () => {
+describe('direct notification initialization', () => {
   const originalNotifications = SETTINGS.notifications;
   let originalPipeline: typeof Registry.pipeline;
   let originalUrlBuilder: typeof Registry.urlBuilder;
@@ -216,7 +211,7 @@ describe('Angular-compatible notification registration', () => {
   describe('successful metadata loading', () => {
     const registrationEvents: string[] = [];
 
-    beforeEach(() => {
+    it('registers built-ins synchronously before loading dynamic metadata', async () => {
       registrationEvents.length = 0;
       const registerNotification = Registry.pipeline.registerNotification.bind(Registry.pipeline);
       spyOn(Registry.pipeline, 'registerNotification').and.callFake((config) => {
@@ -225,14 +220,12 @@ describe('Angular-compatible notification registration', () => {
       });
       spyOn(NotificationService, 'getNotificationTypeMetadata').and.callFake(() => {
         registrationEvents.push('load-dynamic');
-        return new Promise(() => undefined);
+        return Promise.resolve([]);
       });
-    });
 
-    beforeEach(mock.module(CORE_NOTIFICATION_NOTIFICATIONS_MODULE));
-    beforeEach(mock.inject(() => undefined));
+      registerBuiltinNotificationTypes();
+      await initializeDynamicNotificationTypes();
 
-    it('registers built-ins synchronously before loading dynamic metadata', () => {
       expect(registrationEvents).toEqual([
         ...Array.from(BUILTIN_NOTIFICATION_KEYS, (key) => `register:${key}`),
         'load-dynamic',
@@ -244,16 +237,11 @@ describe('Angular-compatible notification registration', () => {
     const failure = new Error('metadata unavailable');
     let consoleError: jasmine.Spy;
 
-    beforeEach(() => {
+    it('awaits and isolates dynamic metadata failures with exactly one log', async () => {
       spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.reject(failure));
       consoleError = spyOn(console, 'error').and.stub();
-    });
 
-    beforeEach(mock.module(CORE_NOTIFICATION_NOTIFICATIONS_MODULE));
-    beforeEach(mock.inject(() => undefined));
-
-    it('isolates dynamic metadata failures and logs once', async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await expectAsync(initializeDynamicNotificationTypes()).toBeResolved();
 
       expect(consoleError).toHaveBeenCalledTimes(1);
       expect(consoleError).toHaveBeenCalledWith('Failed to load notification type metadata', failure);
@@ -261,16 +249,12 @@ describe('Angular-compatible notification registration', () => {
   });
 
   describe('after direct registration', () => {
-    beforeEach(() => {
+    it('keeps built-in notifications idempotent across repeated direct initialization', async () => {
       spyOn(NotificationService, 'getNotificationTypeMetadata').and.returnValue(Promise.resolve([]));
       registerBuiltinNotificationTypes();
       registerBuiltinNotificationTypes();
-    });
+      await initializeDynamicNotificationTypes();
 
-    beforeEach(mock.module(CORE_NOTIFICATION_NOTIFICATIONS_MODULE));
-    beforeEach(mock.inject(() => undefined));
-
-    it('keeps built-in notifications idempotent across direct and Angular initialization', () => {
       const notificationKeys = Registry.pipeline.getNotificationTypes().map(({ key }) => key);
 
       expect(notificationKeys).toEqual(Array.from(BUILTIN_NOTIFICATION_KEYS));

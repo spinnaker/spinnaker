@@ -1,17 +1,14 @@
-import type { UIRouterReact } from '@uirouter/react';
-import { UIRouterContext } from '@uirouter/react';
-import { mock } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { mount } from 'enzyme';
 import React from 'react';
 
 import { ApplicationDataSource } from '../../application/service/applicationDataSource';
 import { ApplicationModelBuilder } from '../../application/applicationModel.builder';
-import { REACT_MODULE } from '../../reactShims';
 import { Builds } from './Builds';
 import type { ICiBuild } from '../domain';
 
 describe('Builds', () => {
-  let $uiRouter: UIRouterReact;
+  let router: UIRouterReact;
   const build = ({
     id: 'build-1',
     number: 1,
@@ -29,12 +26,13 @@ describe('Builds', () => {
     url: 'https://example.test/build/1',
   } as unknown) as ICiBuild;
 
-  beforeEach(mock.module(REACT_MODULE));
-  beforeEach(
-    mock.inject((_$uiRouter_: UIRouterReact) => {
-      $uiRouter = _$uiRouter_;
-    }),
-  );
+  beforeEach(() => {
+    router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
+  });
+
+  afterEach(() => router.dispose());
 
   it('renders loaded builds inside a single page wrapper', () => {
     const app = ApplicationModelBuilder.createApplicationForTests(
@@ -48,10 +46,10 @@ describe('Builds', () => {
     app.attributes.repoType = 'github';
     app.attributes.repoProjectKey = 'spinnaker';
     app.attributes.repoSlug = 'deck';
-    spyOn($uiRouter.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
+    spyOn(router.stateService, 'go').and.returnValue(Promise.resolve(null) as any);
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
+      <UIRouterContext.Provider value={router}>
         <Builds app={app} />
       </UIRouterContext.Provider>,
     );
@@ -73,7 +71,7 @@ describe('Builds', () => {
     buildsDataSource.status$.next({ status: 'FETCHED', loaded: true, data: [], lastRefresh: 0, error: null });
 
     const wrapper = mount(
-      <UIRouterContext.Provider value={$uiRouter}>
+      <UIRouterContext.Provider value={router}>
         <Builds app={app} />
       </UIRouterContext.Provider>,
     );

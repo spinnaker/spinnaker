@@ -1,5 +1,4 @@
-import { UIRouterContext, UIRouterReact } from '@uirouter/react';
-import { mock, noop } from 'angular';
+import { hashLocationPlugin, servicesPlugin, UIRouterContext, UIRouterReact } from '@uirouter/react';
 import type { ReactWrapper } from 'enzyme';
 import { mount, shallow } from 'enzyme';
 import { set } from 'lodash';
@@ -14,9 +13,9 @@ import { DeckRuntimeContext } from '../../bootstrap/DeckRuntimeContext';
 import { CollapsibleSectionStateCache, ViewStateCache } from '../../cache';
 import { FilterCollapse } from '../../filterModel';
 import { ManualExecutionModal } from '../manualExecution';
-import { OVERRIDE_REGISTRY } from '../../overrideRegistry';
-import { REACT_MODULE } from '../../reactShims';
+import { ApplicationForbidden } from '../../notfound/ApplicationForbidden';
 import * as State from '../../state';
+import { noop } from '../../utils';
 import { Spinner } from '../../widgets/spinners/Spinner';
 
 describe('<Executions/>', () => {
@@ -59,12 +58,13 @@ describe('<Executions/>', () => {
   beforeEach(() => {
     component = null;
     router = new UIRouterReact();
+    router.plugin(servicesPlugin);
+    router.plugin(hashLocationPlugin);
     routerProps = { router, stateParams: {}, stateService: { go: jasmine.createSpy('injectedGo') } };
     spyOn(CollapsibleSectionStateCache, 'isSet').and.returnValue(false);
     spyOn(CollapsibleSectionStateCache, 'isExpanded').and.returnValue(false);
     spyOn(CollapsibleSectionStateCache, 'setExpanded');
   });
-  beforeEach(mock.module(REACT_MODULE, OVERRIDE_REGISTRY));
   beforeEach(() => jasmine.clock().install());
   beforeEach(() => {
     spyOn(ViewStateCache, 'createCache').and.returnValue({ get: noop, put: noop, touch: noop } as any);

@@ -22,9 +22,6 @@ export interface ICloudProviderConfig {
 }
 
 export class CloudProviderRegistry {
-  /*
-  Note: Providers don't get $log, so we stick with console statements here
-   */
   private static providers = new Map<string, ICloudProviderConfig>();
 
   public static registerProvider(cloudProvider: string, config: ICloudProviderConfig): void {
