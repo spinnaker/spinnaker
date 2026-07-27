@@ -129,13 +129,31 @@ public class AwsSdkV2ClientSupplier {
    * @param account the Spinnaker account name, used for rate-limiter resolution
    * @return a shared, cached client instance
    */
-  @SuppressWarnings("unchecked")
   public <C extends SdkClient> C getClient(
       Supplier<? extends AwsClientBuilder<?, C>> builderSupplier,
       Class<C> clientType,
       AwsCredentialsProvider credentialsProvider,
       String region,
       String account) {
+    return getClient(builderSupplier, clientType, credentialsProvider, region, account, null);
+  }
+
+  /**
+   * Returns a cached v2 SDK client, applying optional per-service {@link
+   * AwsSdkV2ClientConfiguration} (retry count, socket timeout, TCP keep-alive).
+   *
+   * <p>The client config does not participate in cache identity: like the v1 behavior, tuning is
+   * captured on first build and shared for subsequent lookups of the same (clientType, credentials,
+   * region, account) key.
+   */
+  @SuppressWarnings("unchecked")
+  public <C extends SdkClient> C getClient(
+      Supplier<? extends AwsClientBuilder<?, C>> builderSupplier,
+      Class<C> clientType,
+      AwsCredentialsProvider credentialsProvider,
+      String region,
+      String account,
+      AwsSdkV2ClientConfiguration clientConfiguration) {
     requireNonNull(builderSupplier, "builderSupplier");
     requireNonNull(clientType, "clientType");
     requireNonNull(credentialsProvider, "credentialsProvider");
@@ -143,7 +161,8 @@ public class AwsSdkV2ClientSupplier {
     requireNonNull(account, "account");
 
     V2ClientKey key =
-        new V2ClientKey(clientType, builderSupplier, credentialsProvider, region, account);
+        new V2ClientKey(
+            clientType, builderSupplier, credentialsProvider, region, account, clientConfiguration);
 
     try {
       return clientType.cast(clientCache.get(key));
@@ -185,7 +204,7 @@ public class AwsSdkV2ClientSupplier {
       ClientOverrideConfiguration.Builder overrideConfig =
           ClientOverrideConfiguration.builder()
               .addExecutionInterceptor(rateLimitInterceptor)
-              .retryPolicy(retryPolicy)
+              .retryPolicy(resolveRetryPolicy(key.clientConfiguration))
               .addMetricPublisher(new SpectatorMetricPublisher(registry))
               .putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "spinnaker");
 
@@ -199,16 +218,15 @@ public class AwsSdkV2ClientSupplier {
 
       builder.overrideConfiguration(overrideConfig.build());
 
-      // Proxy configuration
-      if (proxy != null && proxy.isProxyConfigMode()) {
-        ProxyConfiguration proxyConfiguration = buildProxyConfiguration(proxy);
-        if (builder
-            instanceof
-            software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder<?, ?>
-            syncBuilder) {
-          syncBuilder.httpClient(
-              ApacheHttpClient.builder().proxyConfiguration(proxyConfiguration).build());
-        }
+      // HTTP client configuration (proxy + per-service tuning). Only override the builder's default
+      // HTTP client when there is something to customize.
+      ApacheHttpClient.Builder httpClientBuilder = buildHttpClient(key.clientConfiguration);
+      if (httpClientBuilder != null
+          && builder
+              instanceof
+              software.amazon.awssdk.core.client.builder.SdkSyncClientBuilder<?, ?>
+              syncBuilder) {
+        syncBuilder.httpClient(httpClientBuilder.build());
       }
 
       log.debug("V2ClientCacheLoader.load: key '{}', region '{}'", key, key.region);
@@ -216,6 +234,43 @@ public class AwsSdkV2ClientSupplier {
 
       return (SdkClient) builder.build();
     }
+  }
+
+  /**
+   * Returns the retry policy to use, overriding the number of retries from the shared policy when a
+   * per-service {@link AwsSdkV2ClientConfiguration#getMaxErrorRetry()} is set. Package-private for
+   * testability.
+   */
+  RetryPolicy resolveRetryPolicy(AwsSdkV2ClientConfiguration clientConfiguration) {
+    if (clientConfiguration == null || clientConfiguration.getMaxErrorRetry() == null) {
+      return retryPolicy;
+    }
+    return retryPolicy.toBuilder().numRetries(clientConfiguration.getMaxErrorRetry()).build();
+  }
+
+  /**
+   * Builds an {@link ApacheHttpClient.Builder} combining the (optional) proxy configuration and the
+   * (optional) per-service tuning. Returns {@code null} when neither is present, signaling that the
+   * SDK default HTTP client should be used. Package-private for testability.
+   */
+  ApacheHttpClient.Builder buildHttpClient(AwsSdkV2ClientConfiguration clientConfiguration) {
+    boolean hasProxy = proxy != null && proxy.isProxyConfigMode();
+    boolean hasClientConfig = clientConfiguration != null;
+    if (!hasProxy && !hasClientConfig) {
+      return null;
+    }
+
+    ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
+    if (hasProxy) {
+      httpClientBuilder.proxyConfiguration(buildProxyConfiguration(proxy));
+    }
+    if (hasClientConfig) {
+      if (clientConfiguration.getSocketTimeout() != null) {
+        httpClientBuilder.socketTimeout(clientConfiguration.getSocketTimeout());
+      }
+      httpClientBuilder.tcpKeepAlive(clientConfiguration.isTcpKeepAlive());
+    }
+    return httpClientBuilder;
   }
 
   private RateLimitingExecutionInterceptor createRateLimitInterceptor(
@@ -261,7 +316,9 @@ public class AwsSdkV2ClientSupplier {
    *
    * <p>Identity is based on: - The client type class (e.g. {@code EcsClient.class}) - The
    * credentials provider identity (same reference == same account/role) - The region string - The
-   * account name (affects rate limiter selection)
+   * account name (affects rate limiter selection) - The per-service {@link
+   * AwsSdkV2ClientConfiguration} (value equality), so callers can obtain distinct clients tuned
+   * differently for the same account, region, and service.
    */
   static final class V2ClientKey {
     /** The v2 client interface class, used as the service type discriminator. */
@@ -272,17 +329,27 @@ public class AwsSdkV2ClientSupplier {
     private final String region;
     private final String account;
 
+    /**
+     * Per-service tuning applied at build time. Included in {@link #equals}/{@link #hashCode} by
+     * value so that different tuning for the same (clientType, credentials, region, account)
+     * resolves to distinct cached clients (e.g. a short-timeout client vs a long-timeout invoke
+     * client). Being a Lombok {@code @Value}, equal field values reuse the same cached instance.
+     */
+    private final AwsSdkV2ClientConfiguration clientConfiguration;
+
     V2ClientKey(
         Class<?> clientType,
         Supplier<? extends AwsClientBuilder<?, ?>> builderSupplier,
         AwsCredentialsProvider credentialsProvider,
         String region,
-        String account) {
+        String account,
+        AwsSdkV2ClientConfiguration clientConfiguration) {
       this.clientType = requireNonNull(clientType);
       this.builderSupplier = requireNonNull(builderSupplier);
       this.credentialsProvider = requireNonNull(credentialsProvider);
       this.region = requireNonNull(region);
       this.account = requireNonNull(account);
+      this.clientConfiguration = clientConfiguration;
     }
 
     @Override
@@ -294,7 +361,9 @@ public class AwsSdkV2ClientSupplier {
           // Identity comparison: same provider reference == same account/role credentials.
           && credentialsProvider == that.credentialsProvider
           && region.equals(that.region)
-          && account.equals(that.account);
+          && account.equals(that.account)
+          // Value comparison: different tuning => different cached client.
+          && Objects.equals(clientConfiguration, that.clientConfiguration);
     }
 
     @Override
@@ -302,7 +371,11 @@ public class AwsSdkV2ClientSupplier {
       // identityHashCode matches the identity (==) comparison used in equals() for
       // credentialsProvider.
       return Objects.hash(
-          clientType, System.identityHashCode(credentialsProvider), region, account);
+          clientType,
+          System.identityHashCode(credentialsProvider),
+          region,
+          account,
+          clientConfiguration);
     }
 
     @Override
