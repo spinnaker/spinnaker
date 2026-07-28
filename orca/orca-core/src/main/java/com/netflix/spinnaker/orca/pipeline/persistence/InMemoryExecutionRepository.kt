@@ -345,7 +345,8 @@ class InMemoryExecutionRepository : ExecutionRepository {
   private fun List<PipelineExecution>.applyCriteria(criteria: ExecutionCriteria): List<PipelineExecution> {
     return filter { criteria.statuses.contains(it.status) }
       .filter { Instant.ofEpochMilli(it.startTime).isAfter(criteria.startTimeCutoff) }
-      .chunked(criteria.pageSize)[criteria.page]
+      .chunked(criteria.pageSize.coerceAtLeast(1))
+      .getOrElse(criteria.page - 1) { emptyList() }
   }
 
   private fun List<PipelineExecution>.sortedByExecutionComparator(
