@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.security;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import java.util.Set;
 
-/** Provides account authorization checks and related security abstractions on Fiat when enabled. */
+/** Provides account authorization checks and related security abstractions when enabled. */
 @NonnullByDefault
 public interface AccountSecurityPolicy {
 

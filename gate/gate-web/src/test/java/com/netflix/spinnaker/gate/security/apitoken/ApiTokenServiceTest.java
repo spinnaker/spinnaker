@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.netflix.spinnaker.fiat.model.resources.Role.View;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import java.time.Instant;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import redis.clients.jedis.exceptions.JedisException;
 
 @ExtendWith(MockitoExtension.class)
 class ApiTokenServiceTest {
@@ -99,8 +99,8 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("skips Fiat check when rejectIfNoPrincipalPermissions is false")
-    void skipsFiatCheckWhenFlagOff() {
+    @DisplayName("skips permission check when rejectIfNoPrincipalPermissions is false")
+    void skipsAuthCheckWhenFlagOff() {
       // Lives here rather than under RejectIfNoPermissions because that nested class's @BeforeEach
       // flips the flag on; keep all flag-off behaviour under the top-level setup.
       when(redisRepo.findByHash(HASH))
@@ -121,15 +121,12 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("resolves token when principal is still active in Fiat")
+    @DisplayName("resolves token when principal still has permissions")
     void resolvesWhenPrincipalActive() {
       when(permissionService.isEnabled()).thenReturn(true);
       when(redisRepo.findByHash(HASH))
           .thenReturn(Optional.of(makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY)));
-      View roleView = new View();
-      roleView.setName("ops");
-      when(permissionService.getRolesForTokenAuth(PRINCIPAL))
-          .thenReturn(java.util.Set.of(roleView));
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL)).thenReturn(java.util.Set.of("ops"));
 
       assertThat(service.resolveByHash(HASH)).isPresent();
     }
@@ -146,8 +143,8 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("returns empty when Fiat returns 404 for principal")
-    void rejectsWhenPrincipalDeletedFromFiat() {
+    @DisplayName("returns empty when permission lookup returns 404 for principal")
+    void rejectsWhenPrincipalDeleted() {
       when(permissionService.isEnabled()).thenReturn(true);
       when(redisRepo.findByHash(HASH))
           .thenReturn(Optional.of(makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY)));
@@ -159,8 +156,8 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("fails open when Fiat is temporarily unreachable")
-    void failsOpenWhenFiatDown() {
+    @DisplayName("fails open when permission lookup is temporarily unreachable")
+    void failsOpenWhenPermissionLookupDown() {
       when(permissionService.isEnabled()).thenReturn(true);
       when(redisRepo.findByHash(HASH))
           .thenReturn(Optional.of(makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY)));
@@ -171,8 +168,9 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("fails open when Fiat returns 503 — repository purged, not a departed user")
-    void failsOpenWhenFiatReturns503() {
+    @DisplayName(
+        "fails open when permission lookup returns 503 — repository purged, not a departed user")
+    void failsOpenWhenPermissionLookupReturns503() {
       when(permissionService.isEnabled()).thenReturn(true);
       when(redisRepo.findByHash(HASH))
           .thenReturn(Optional.of(makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY)));
@@ -184,8 +182,8 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("resolves and does not call Fiat when Fiat is disabled")
-    void resolvesWhenFiatDisabled() {
+    @DisplayName("resolves and does not check permissions when PermissionService is disabled")
+    void resolvesWhenPermissionServiceDisabled() {
       when(permissionService.isEnabled()).thenReturn(false);
       when(redisRepo.findByHash(HASH))
           .thenReturn(Optional.of(makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY)));
@@ -195,11 +193,11 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("skips Fiat check when lastFiatCheckAt is within the interval")
-    void skipsFiatCheckWhenWithinInterval() {
+    @DisplayName("skips permission check when lastAuthCheckAt is within the interval")
+    void skipsAuthCheckWhenWithinInterval() {
       properties.setRejectCheckIntervalSeconds(60);
       TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
-      record.setLastFiatCheckAt(Instant.now().minusSeconds(30).toString());
+      record.setLastAuthCheckAt(Instant.now().minusSeconds(30).toString());
       when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
 
       assertThat(service.resolveByHash(HASH)).isPresent();
@@ -207,61 +205,118 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("triggers Fiat check when lastFiatCheckAt has passed the interval")
-    void triggersFiatCheckWhenIntervalElapsed() {
+    @DisplayName("triggers permission check when lastAuthCheckAt has passed the interval")
+    void triggersAuthCheckWhenIntervalElapsed() {
       when(permissionService.isEnabled()).thenReturn(true);
       properties.setRejectCheckIntervalSeconds(60);
       TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
-      record.setLastFiatCheckAt(Instant.now().minusSeconds(120).toString());
+      record.setLastAuthCheckAt(Instant.now().minusSeconds(120).toString());
       when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
-      View roleView = new View();
-      roleView.setName("ops");
-      when(permissionService.getRolesForTokenAuth(PRINCIPAL))
-          .thenReturn(java.util.Set.of(roleView));
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL)).thenReturn(java.util.Set.of("ops"));
 
       assertThat(service.resolveByHash(HASH)).isPresent();
       verify(permissionService).getRolesForTokenAuth(PRINCIPAL);
-      verify(redisRepo).updateLastFiatCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
+      verify(redisRepo).updateLastAuthCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
+    }
+
+    @Test
+    @DisplayName("triggers permission check when lastAuthCheckAt is absent")
+    void triggersAuthCheckWhenLastCheckAbsent() {
+      when(permissionService.isEnabled()).thenReturn(true);
+      TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
+      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL)).thenReturn(java.util.Set.of("ops"));
+
+      assertThat(service.resolveByHash(HASH)).isPresent();
+      verify(permissionService).getRolesForTokenAuth(PRINCIPAL);
     }
 
     @Test
     @DisplayName(
-        "swallows TokenOperationFailedException from updateLastFiatCheck — request still resolves")
-    void resolvesWhenLastFiatCheckWriteLosesWatchRace() {
-      // Bookkeeping write is best-effort: a lost WATCH race must not 500 a valid request.
+        "a failed auth-check timestamp write does not fail authentication — advancing the throttle"
+            + " is best-effort, and dropping it only means the next request re-checks")
+    void timestampWriteFailureDoesNotFailAuthentication() {
       when(permissionService.isEnabled()).thenReturn(true);
-      properties.setRejectCheckIntervalSeconds(60);
-      TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
-      record.setLastFiatCheckAt(Instant.now().minusSeconds(120).toString());
-      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
-      View roleView = new View();
-      roleView.setName("ops");
-      when(permissionService.getRolesForTokenAuth(PRINCIPAL))
-          .thenReturn(java.util.Set.of(roleView));
-      doThrow(new RedisApiTokenRepository.TokenOperationFailedException("lost WATCH race"))
+      when(redisRepo.findByHash(HASH))
+          .thenReturn(Optional.of(makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY)));
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL)).thenReturn(java.util.Set.of("ops"));
+      doThrow(new JedisException("connection reset"))
           .when(redisRepo)
-          .updateLastFiatCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
+          .updateLastAuthCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
 
-      Optional<TokenRecord> result = service.resolveByHash(HASH);
+      assertThat(service.resolveByHash(HASH)).isPresent();
+    }
+  }
 
-      assertThat(result).isPresent();
-      assertThat(result.get().getId()).isEqualTo(TOKEN_ID);
-      verify(redisRepo).updateLastFiatCheck(eq(TOKEN_ID), eq(HASH), any(Instant.class));
+  @Nested
+  @DisplayName(
+      "rejectIfNoPrincipalPermissions — resolution must mirror ApiTokenAuthenticationFilter, so the"
+          + " check can never reject a token the filter would have authenticated")
+  class RejectCheckMirrorsFilterResolution {
+
+    private static final String SERVICE_ACCOUNT = "svc_gitops@example.com";
+
+    @BeforeEach
+    void enableCheck() {
+      properties.setRejectIfNoPrincipalPermissions(true);
+      when(permissionService.isEnabled()).thenReturn(true);
+    }
+
+    private TokenRecord serviceAccountRecord() {
+      TokenRecord r = makeRecord(TOKEN_ID, SERVICE_ACCOUNT, FUTURE_EXPIRY);
+      r.setPrincipalType("SERVICE_ACCOUNT");
+      return r;
     }
 
     @Test
-    @DisplayName("triggers Fiat check when lastFiatCheckAt is absent")
-    void triggersFiatCheckWhenLastCheckAbsent() {
-      when(permissionService.isEnabled()).thenReturn(true);
-      TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
-      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
-      View roleView = new View();
-      roleView.setName("ops");
-      when(permissionService.getRolesForTokenAuth(PRINCIPAL))
-          .thenReturn(java.util.Set.of(roleView));
+    @DisplayName(
+        "service-account principal resolves from the SA's Front50 memberOf, not the user role"
+            + " provider — which never knows a service account and would reject every SA token")
+    void serviceAccountResolvesFromMemberOf() {
+      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(serviceAccountRecord()));
+      when(permissionService.resolveServiceAccountRoles(SERVICE_ACCOUNT))
+          .thenReturn(java.util.Set.of("spin-internal-service-accounts"));
 
       assertThat(service.resolveByHash(HASH)).isPresent();
-      verify(permissionService).getRolesForTokenAuth(PRINCIPAL);
+      verify(permissionService).resolveServiceAccountRoles(SERVICE_ACCOUNT);
+      verify(permissionService, never()).getRolesForTokenAuth(any());
+    }
+
+    @Test
+    @DisplayName("service account with no memberOf roles is still rejected")
+    void serviceAccountWithoutMemberOfIsRejected() {
+      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(serviceAccountRecord()));
+      when(permissionService.resolveServiceAccountRoles(SERVICE_ACCOUNT))
+          .thenReturn(java.util.Set.of());
+
+      assertThat(service.resolveByHash(HASH)).isEmpty();
+    }
+
+    @Test
+    @DisplayName(
+        "with no role provider configured, the roles snapshotted on the token at creation keep it"
+            + " alive — live resolution can never succeed in that mode")
+    void snapshotHonouredWhenNoRoleProvider() {
+      TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
+      record.setRoles(List.of("ops"));
+      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL)).thenReturn(java.util.Set.of());
+      when(permissionService.hasUserRolesResolver()).thenReturn(false);
+
+      assertThat(service.resolveByHash(HASH)).isPresent();
+    }
+
+    @Test
+    @DisplayName(
+        "with a role provider configured, a stale snapshot does NOT keep a deprovisioned user alive")
+    void snapshotIgnoredWhenRoleProviderConfigured() {
+      TokenRecord record = makeRecord(TOKEN_ID, PRINCIPAL, FUTURE_EXPIRY);
+      record.setRoles(List.of("ops"));
+      when(redisRepo.findByHash(HASH)).thenReturn(Optional.of(record));
+      when(permissionService.getRolesForTokenAuth(PRINCIPAL)).thenReturn(java.util.Set.of());
+      when(permissionService.hasUserRolesResolver()).thenReturn(true);
+
+      assertThat(service.resolveByHash(HASH)).isEmpty();
     }
   }
 
@@ -280,7 +335,7 @@ class ApiTokenServiceTest {
     }
 
     @Test
-    @DisplayName("returns true for Fiat admins regardless of allowedMintingRoles")
+    @DisplayName("returns true for admins regardless of allowedMintingRoles")
     void returnsTrueForAdmin() {
       properties.setAllowedMintingRoles(List.of());
       when(permissionService.isAdmin(PRINCIPAL)).thenReturn(true);
@@ -304,12 +359,8 @@ class ApiTokenServiceTest {
     void returnsTrueWhenUserHasAllowedRole() {
       properties.setAllowedMintingRoles(List.of("api-minters", "platform"));
       when(permissionService.isAdmin(PRINCIPAL)).thenReturn(false);
-      View allowedRole = new View();
-      allowedRole.setName("api-minters");
-      View extraRole = new View();
-      extraRole.setName("read-only");
       when(permissionService.getRoles(PRINCIPAL))
-          .thenReturn(java.util.Set.of(allowedRole, extraRole));
+          .thenReturn(java.util.Set.of("api-minters", "read-only"));
 
       assertThat(service.canMintApiTokens(PRINCIPAL)).isTrue();
     }
@@ -319,9 +370,7 @@ class ApiTokenServiceTest {
     void returnsFalseWhenUserHasNoAllowedRole() {
       properties.setAllowedMintingRoles(List.of("api-minters"));
       when(permissionService.isAdmin(PRINCIPAL)).thenReturn(false);
-      View otherRole = new View();
-      otherRole.setName("read-only");
-      when(permissionService.getRoles(PRINCIPAL)).thenReturn(java.util.Set.of(otherRole));
+      when(permissionService.getRoles(PRINCIPAL)).thenReturn(java.util.Set.of("read-only"));
 
       assertThat(service.canMintApiTokens(PRINCIPAL)).isFalse();
     }

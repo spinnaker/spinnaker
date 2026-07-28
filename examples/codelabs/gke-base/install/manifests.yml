@@ -72,9 +72,6 @@ spec:
         - name: halconfig
           mountPath: /home/spinnaker/staging/.hal/default/service-settings/gate.yml
           subPath: gate.yml
-        - name: halconfig
-          mountPath: /home/spinnaker/staging/.hal/default/service-settings/fiat.yml
-          subPath: fiat.yml
       volumes:
       - name: halconfig
         configMap:
@@ -103,9 +100,6 @@ metadata:
   name: halconfig
   namespace: spinnaker
 data:
-  fiat.yml: |
-    enabled: false
-    skipLifeCycleManagement: true
   gate.yml: |
     host: 0.0.0.0
   deck.yml: |
@@ -196,7 +190,6 @@ data:
       features:
         artifacts: true
         auth: false
-        fiat: false
         chaos: false
         entityTags: false
         jobs: false

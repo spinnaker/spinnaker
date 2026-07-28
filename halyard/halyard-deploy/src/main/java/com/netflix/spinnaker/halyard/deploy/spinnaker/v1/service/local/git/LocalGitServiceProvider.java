@@ -46,8 +46,6 @@ public class LocalGitServiceProvider extends LocalServiceProvider {
 
   @Autowired LocalGitEchoService echoService;
 
-  @Autowired LocalGitFiatService fiatService;
-
   @Autowired LocalGitFront50Service front50Service;
 
   @Autowired LocalGitGateService gateService;

@@ -24,7 +24,6 @@ import com.netflix.spinnaker.echo.model.pubsub.MessageDescription
 import com.netflix.spinnaker.echo.model.pubsub.PubsubSystem
 import com.netflix.spinnaker.echo.model.trigger.PubsubEvent
 import com.netflix.spinnaker.echo.test.RetrofitStubs
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
 import groovy.json.JsonOutput
@@ -37,7 +36,6 @@ class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def handlerSupport = new EventHandlerSupport()
-  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Shared
   def goodArtifact = Artifact.builder().name('myArtifact').type('artifactType').build()
@@ -75,11 +73,7 @@ class PubsubEventHandlerSpec extends Specification implements RetrofitStubs {
   ]
 
   @Subject
-  def eventHandler = new PubsubEventHandler(registry, objectMapper, fiatPermissionEvaluator)
-
-  void setup() {
-    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
-  }
+  def eventHandler = new PubsubEventHandler(registry, objectMapper)
 
   @Unroll
   def "triggers pipelines for successful builds for Google pubsub"() {

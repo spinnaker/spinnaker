@@ -33,8 +33,8 @@ import org.slf4j.MDC;
  * A small subset of AuthenticatedRequestFilter that extracts ids used for tracing from http
  * requests and puts the information in the MDC. This way the info is available in log messages and
  * to build headers for downstream http requests. Because AuthenticatedRequestFilter runs late in
- * the filter chain, it happens after calls to fiat during authentication. With this, the requests
- * to fiat no longer get a random UUID for X-SPINNAKER-REQUEST-ID.
+ * the filter chain, it happens after calls made during authentication. With this, those
+ * authentication requests no longer get a random UUID for X-SPINNAKER-REQUEST-ID.
  */
 @Slf4j
 public class ProvidedIdRequestFilter extends HttpFilter {

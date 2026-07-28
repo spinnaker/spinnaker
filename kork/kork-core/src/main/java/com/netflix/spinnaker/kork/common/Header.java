@@ -26,6 +26,12 @@ package com.netflix.spinnaker.kork.common;
 public enum Header {
   USER("X-SPINNAKER-USER", true),
   ACCOUNTS("X-SPINNAKER-ACCOUNTS", true),
+  /**
+   * Dedicated header carrying the signed identity+roles token minted by Gate (or the run-as
+   * minter). Deliberately distinct from the inbound {@code Authorization} header so it never
+   * collides with API tokens presented as {@code Authorization: Bearer spk_...}.
+   */
+  IDENTITY_TOKEN("X-SPINNAKER-IDENTITY-TOKEN", false),
   USER_ORIGIN("X-SPINNAKER-USER-ORIGIN", false),
   REQUEST_ID("X-SPINNAKER-REQUEST-ID", false),
   EXECUTION_ID("X-SPINNAKER-EXECUTION-ID", false),

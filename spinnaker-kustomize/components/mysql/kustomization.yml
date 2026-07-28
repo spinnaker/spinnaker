@@ -54,26 +54,6 @@ patches:
       value:
         configMap:
           items:
-          - key: fiat.yml
-            path: mysql/fiat.yml
-          name: fiat-mysql
-    - op: add
-      path: /spec/template/spec/containers/0/env/-
-      value:
-        name: FIAT_MYSQL
-        value: fiat
-  target:
-    group: apps
-    version: v1
-    kind: Deployment
-    name: fiat
-
-- patch: |-
-    - op: add
-      path: /spec/template/spec/volumes/0/projected/sources/-
-      value:
-        configMap:
-          items:
           - key: front50.yml
             path: mysql/front50.yml
           name: front50-mysql
@@ -137,10 +117,6 @@ configMapGenerator:
   name: echo-mysql
   files:
   - files/echo.yml
-- behavior: create
-  name: fiat-mysql
-  files:
-  - files/fiat.yml
 - behavior: create
   name: front50-mysql
   files:

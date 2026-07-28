@@ -28,7 +28,7 @@ import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.cats.provider.Provider;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.search.SearchProvider;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -116,7 +116,7 @@ public class CacheConfig {
       Cache cacheView,
       List<SearchableProvider> providers,
       ProviderRegistry providerRegistry,
-      Optional<FiatPermissionEvaluator> permissionEvaluator,
+      Optional<PolicyDecisionPointPermissionEvaluator> permissionEvaluator,
       Optional<List<KeyParser>> keyParsers) {
     return new CatsSearchProvider(
         catsInMemorySearchProperties,

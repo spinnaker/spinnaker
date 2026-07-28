@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;

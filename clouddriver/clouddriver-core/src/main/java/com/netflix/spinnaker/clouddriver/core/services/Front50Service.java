@@ -48,6 +48,20 @@ public interface Front50Service {
   @GET("v2/applications?restricted=false")
   Call<Set<Front50Application>> getAllApplicationsUnrestricted();
 
+  /**
+   * The application's owner-local ACL record (Front50 owns application permissions). Returns the
+   * serialized {@code Application.Permission} ({@code name} + {@code permissions} map); a 404 means
+   * the application has no permission record (i.e. it is unrestricted unless global default
+   * application permissions apply).
+   *
+   * @param effective pass true for authorization decisions: Front50 then merges in the global
+   *     default application permissions, so {@code authz.application.default-permissions} need only
+   *     be configured there.
+   */
+  @GET("permissions/applications/{appName}")
+  Call<Map> getApplicationPermission(
+      @Path("appName") String appName, @Query("effective") boolean effective);
+
   @GET("v2/projects/{project}")
   Call<Map> getProject(@Path("project") String project);
 

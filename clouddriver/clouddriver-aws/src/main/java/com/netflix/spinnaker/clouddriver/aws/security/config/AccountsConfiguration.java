@@ -20,7 +20,7 @@ import static lombok.EqualsAndHashCode.Include;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

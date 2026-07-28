@@ -46,7 +46,7 @@ class EchoNotifyingPipelineExecutionListenerSpec extends Specification {
   @Shared Registry registry = new DefaultRegistry()
 
   @Subject
-  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor, registry)
+  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor, null, registry)
 
   @Shared
   ApplicationNotifications notifications = new ApplicationNotifications()

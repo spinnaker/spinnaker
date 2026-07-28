@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.clouddriver.aws.AwsConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

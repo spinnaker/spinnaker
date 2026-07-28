@@ -44,7 +44,7 @@ public class SnapshotsController {
     this.snapshotDAO = snapshotDAO;
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{id:.+}/history", method = RequestMethod.GET)
   public Collection<Snapshot> getHistory(

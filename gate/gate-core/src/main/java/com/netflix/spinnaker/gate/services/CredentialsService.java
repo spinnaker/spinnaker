@@ -17,9 +17,8 @@
 
 package com.netflix.spinnaker.gate.services;
 
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
+import com.netflix.spinnaker.security.authz.Authorization;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +38,6 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class CredentialsService {
   private final AccountLookupService accountLookupService;
-  private final FiatStatus fiatStatus;
 
   public Collection<String> getAccountNames(@Nullable Collection<String> userRoles) {
     return getAccounts(userRoles, false).stream()
@@ -48,15 +46,15 @@ public class CredentialsService {
   }
 
   public Collection<String> getAccountNames(
-      @Nullable Collection<String> userRoles, boolean ignoreFiatStatus) {
-    return getAccounts(userRoles, ignoreFiatStatus).stream()
+      @Nullable Collection<String> userRoles, boolean ignoreAuthStatus) {
+    return getAccounts(userRoles, ignoreAuthStatus).stream()
         .map(ClouddriverService.Account::getName)
         .collect(Collectors.toList());
   }
 
   /** Returns all account names that a user with the specified list of userRoles has access to. */
   List<ClouddriverService.AccountDetails> getAccounts(
-      @Nullable Collection<String> userRoles, boolean ignoreFiatStatus) {
+      @Nullable Collection<String> userRoles, boolean ignoreAuthStatus) {
     Set<String> userRolesLower =
         userRoles == null
             ? Set.of()
@@ -67,8 +65,8 @@ public class CredentialsService {
     return accountLookupService.getAccounts().stream()
         .filter(
             account -> {
-              if (!ignoreFiatStatus && fiatStatus.isEnabled()) {
-                return true; // Returned list is filtered later.
+              if (!ignoreAuthStatus) {
+                return true; // Returned list is filtered later (downstream enforces account ACLs).
               }
 
               Map<String, Collection<String>> permissions = account.getPermissions();

@@ -2,7 +2,6 @@
 
 // these are the primary settings to change here.  The rest should read the window.settings stuff
 var gateHost = 'http://example.com/api/v1';
-var fiatEnabled = 'true' === 'true';
 
 var atlasWebComponentsUrl = '{%canary.atlasWebComponentsUrl%}';
 var authEnabled = 'true' === 'true';
@@ -122,7 +121,6 @@ window.spinnakerSettings = {
   feature: {
     canary: mineCanaryEnabled,
     chaosMonkey: chaosEnabled,
-    fiatEnabled: fiatEnabled,
     pipelineTemplates: pipelineTemplatesEnabled,
     roscoMode: true,
     dynamicRollbackTimeout: dynamicRollbackTimeoutEnabled,

@@ -57,7 +57,6 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.mockito:mockito-junit-jupiter")
-  testImplementation("io.spinnaker.fiat:fiat-core")
   testImplementation "io.spinnaker.kork:kork-test"
   testImplementation("dev.minutest:minutest")
   testImplementation("io.strikt:strikt-core")

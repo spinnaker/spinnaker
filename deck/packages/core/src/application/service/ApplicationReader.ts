@@ -39,6 +39,15 @@ export class ApplicationReader {
       });
   }
 
+  /**
+   * The grants every application receives from Spinnaker's configuration. An existing application
+   * reports these alongside its own ACL; this is for the creation form, which has no application to
+   * read them from yet.
+   */
+  public static getDefaultApplicationPermissions(): Promise<any> {
+    return REST('/permissions/defaults').get();
+  }
+
   public static getApplicationPermissions(applicationName: string): Promise<any> {
     return REST('/applications')
       .path(applicationName)

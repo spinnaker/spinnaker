@@ -46,7 +46,7 @@ server:
 ## a future release — flip `enabled: true` to opt in.
 ##
 ## Tokens are sent via the X-Spinnaker-Token header (IAP-safe) or
-## Authorization: Bearer spk_...   Minting is gated by either Fiat admin OR
+## Authorization: Bearer spk_...   Minting is gated by either admin OR
 ## membership in one of the roles under allowed-minting-roles. Service-account
 ## tokens additionally require the SA to be declared in front50's
 ## `service-accounts:` config (see front50-local.yml).
@@ -57,16 +57,16 @@ api-tokens:
   #token-prefix: spk_
   ## Redis namespace prefix so Gate can share a Redis instance with other services.
   #redis-key-prefix: api-token
-  ## Throttle (seconds) for re-checking a token's principal against Fiat — only
+  ## Throttle (seconds) for re-checking a token's principal's permissions — only
   ## consulted when reject-if-no-principal-permissions is true.
   #reject-check-interval-seconds: 60
   ## Maximum lifetime caps. Tokens cannot be extended after mint — operators
   ## revoke + reissue instead.
   #max-user-token-lifetime-days: 90
   #max-service-account-token-lifetime-days: 365
-  ## Reject tokens whose owner has been deprovisioned (no Fiat roles).
+  ## Reject tokens whose owner has been deprovisioned (no roles).
   #reject-if-no-principal-permissions: false
-  ## Fiat roles permitted to mint tokens. Admins always bypass this check.
+  ## Roles permitted to mint tokens. Admins always bypass this check.
   #allowed-minting-roles:
   #  - spinnaker-api-users
 

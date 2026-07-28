@@ -2,7 +2,6 @@
   <configuration default="false" name="Spinnaker" type="CompoundRunConfigurationType">
     <toRun name="clouddriver" type="GradleRunConfiguration" />
     <toRun name="echo" type="GradleRunConfiguration" />
-    <toRun name="fiat" type="GradleRunConfiguration" />
     <toRun name="front50" type="GradleRunConfiguration" />
     <toRun name="gate" type="GradleRunConfiguration" />
     <toRun name="igor" type="GradleRunConfiguration" />

@@ -67,9 +67,6 @@ spec:
         - name: halconfig
           mountPath: /root/.hal/default/service-settings/igor.yml
           subPath: igor.yml
-        - name: halconfig
-          mountPath: /root/.hal/default/service-settings/fiat.yml
-          subPath: fiat.yml
       volumes:
       - name: halconfig
         configMap:
@@ -99,9 +96,6 @@ metadata:
   namespace: spinnaker
 data:
   igor.yml: |
-    enabled: false
-    skipLifeCycleManagement: true
-  fiat.yml: |
     enabled: false
     skipLifeCycleManagement: true
   gate.yml: |
@@ -195,7 +189,6 @@ data:
       features:
         artifacts: true
         auth: false
-        fiat: false
         chaos: false
         entityTags: false
         jobs: false

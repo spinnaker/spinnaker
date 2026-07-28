@@ -22,13 +22,13 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.front50.ServiceAccountsService;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger;
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator;
 import com.netflix.spinnaker.front50.api.validator.ValidatorErrors;
 import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig;
+import com.netflix.spinnaker.front50.config.security.Front50PermissionEvaluator;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidEntityException;
@@ -82,7 +82,7 @@ public class PipelineController {
   private final List<PipelineValidator> pipelineValidators;
   private final Optional<PipelineTemplateDAO> pipelineTemplateDAO;
   private final PipelineControllerConfig pipelineControllerConfig;
-  private final FiatPermissionEvaluator fiatPermissionEvaluator;
+  private final Front50PermissionEvaluator permissionEvaluator;
   private final AuthorizationSupport authorizationSupport;
 
   public PipelineController(
@@ -92,7 +92,7 @@ public class PipelineController {
       List<PipelineValidator> pipelineValidators,
       Optional<PipelineTemplateDAO> pipelineTemplateDAO,
       PipelineControllerConfig pipelineControllerConfig,
-      FiatPermissionEvaluator fiatPermissionEvaluator,
+      Front50PermissionEvaluator permissionEvaluator,
       AuthorizationSupport authorizationSupport) {
     this.pipelineDAO = pipelineDAO;
     this.objectMapper = objectMapper;
@@ -100,11 +100,11 @@ public class PipelineController {
     this.pipelineValidators = pipelineValidators;
     this.pipelineTemplateDAO = pipelineTemplateDAO;
     this.pipelineControllerConfig = pipelineControllerConfig;
-    this.fiatPermissionEvaluator = fiatPermissionEvaluator;
+    this.permissionEvaluator = permissionEvaluator;
     this.authorizationSupport = authorizationSupport;
   }
 
-  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PreAuthorize("permitAll()")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @RequestMapping(value = "", method = RequestMethod.GET)
   public Collection<Pipeline> list(
@@ -159,7 +159,7 @@ public class PipelineController {
    * @param id the id of the completed/triggering pipeline
    * @param status the execution status of the pipeline (canceled/suspended/succeeded)
    */
-  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PreAuthorize("permitAll()")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @RequestMapping(
       value = {"triggeredBy/{id:.+}/{status}", "triggeredBy/{id:.+}/{status}/"},
@@ -270,7 +270,7 @@ public class PipelineController {
     return copiedPipelines;
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "{id:.+}/history", method = RequestMethod.GET)
   public Collection<Pipeline> getHistory(
@@ -278,14 +278,14 @@ public class PipelineController {
     return pipelineDAO.history(id, limit);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "{id:.+}/get", method = RequestMethod.GET)
   public Pipeline get(@PathVariable String id) {
     return pipelineDAO.findById(id);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostAuthorize("hasPermission(returnObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(
       value = {"{application:.+}/name/{name:.+}", "{application:.+}/name/{name:.+}/"},
@@ -298,8 +298,7 @@ public class PipelineController {
   }
 
   @PreAuthorize(
-      "@fiatPermissionEvaluator.storeWholePermission() "
-          + "and hasPermission(#pipeline.application, 'APPLICATION', 'WRITE') "
+      "hasPermission(#pipeline.application, 'APPLICATION', 'WRITE') "
           + "and @authorizationSupport.hasRunAsUserPermission(#pipeline)")
   @RequestMapping(value = "", method = RequestMethod.POST)
   public synchronized Pipeline save(
@@ -332,7 +331,7 @@ public class PipelineController {
     return savedPipeline;
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @RequestMapping(value = "batchUpdate", method = RequestMethod.POST)
   public Map<String, Object> batchUpdate(
       @RequestBody List<Map<String, Object>> pipelinesJson,
@@ -665,7 +664,7 @@ public class PipelineController {
         if (!appPermissionForUser.computeIfAbsent(
             app,
             key ->
-                fiatPermissionEvaluator.hasPermission(
+                permissionEvaluator.hasPermission(
                     auth, pipeline.getApplication(), "APPLICATION", "WRITE"))) {
           String errorMessage =
               String.format(

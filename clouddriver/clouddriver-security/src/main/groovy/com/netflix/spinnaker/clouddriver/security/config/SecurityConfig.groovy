@@ -20,21 +20,22 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.security.AllowedAccountsValidator
 import com.netflix.spinnaker.clouddriver.security.DefaultAllowedAccountsValidator
 
-import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+/**
+ * Authorization is owner-local and wired by {@code ClouddriverSecurityConfig} (verifier-only
+ * identity-token chain + {@code spinnakerPermissionEvaluator} bean). This config only contributes
+ * Clouddriver's operation-security properties and the local allowed-accounts validator.
+ */
 @Configuration
-@EnableFiatAutoConfig
 @EnableConfigurationProperties(OperationsSecurityConfigurationProperties)
 class SecurityConfig {
   @Bean
-  AllowedAccountsValidator allowedAccountsValidator(AccountCredentialsProvider accountCredentialsProvider,
-                                                    FiatStatus fiatStatus) {
-    return new DefaultAllowedAccountsValidator(accountCredentialsProvider, fiatStatus)
+  AllowedAccountsValidator allowedAccountsValidator(AccountCredentialsProvider accountCredentialsProvider) {
+    return new DefaultAllowedAccountsValidator(accountCredentialsProvider)
   }
 
   @ConfigurationProperties("operations.security")

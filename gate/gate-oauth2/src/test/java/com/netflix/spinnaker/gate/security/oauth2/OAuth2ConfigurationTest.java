@@ -19,9 +19,6 @@ package com.netflix.spinnaker.gate.security.oauth2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.config.AuthConfig;
 import com.netflix.spinnaker.gate.config.PermissionRevokingLogoutSuccessHandler;
 import com.netflix.spinnaker.gate.config.RequestMatcherProvider;
@@ -48,7 +45,6 @@ class OAuth2ConfigurationTest {
           .withConfiguration(
               UserConfigurations.of(
                   TestConfiguration.class,
-                  FiatClientConfigurationProperties.class,
                   DefaultCookieSerializer.class,
                   PermissionRevokingLogoutSuccessHandler.class,
                   AuthConfig.class,
@@ -72,16 +68,6 @@ class OAuth2ConfigurationTest {
     @Bean
     PermissionService permissionService() {
       return mock(PermissionService.class);
-    }
-
-    @Bean
-    FiatStatus fiatStatus() {
-      return mock(FiatStatus.class);
-    }
-
-    @Bean
-    FiatPermissionEvaluator fiatPermissionEvaluator() {
-      return mock(FiatPermissionEvaluator.class);
     }
 
     @Bean

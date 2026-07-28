@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.webhook.config;
 
-import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.PreconfiguredStageParameter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -248,7 +247,12 @@ public class WebhookProperties {
       }
     }
 
-    public boolean isAllowed(String permission, Set<Role.View> roles) {
+    /**
+     * Whether the supplied (token-derived) role names are allowed for the given permission. This is
+     * a role-only decision; in the owner-local / token-carried model the caller passes the role
+     * names carried by the verified identity token.
+     */
+    public boolean isAllowed(String permission, Set<String> roleNames) {
       if (permissions == null || !permissions.containsKey(permission)) {
         return true;
       }
@@ -258,11 +262,11 @@ public class WebhookProperties {
         return true;
       }
 
-      return permissionList.stream().anyMatch(p -> anyRoleMatches(p, roles));
+      return permissionList.stream().anyMatch(p -> anyRoleMatches(p, roleNames));
     }
 
-    private boolean anyRoleMatches(String role, Set<Role.View> roles) {
-      return roles.stream().anyMatch(r -> r.getName().contains(role));
+    private boolean anyRoleMatches(String role, Set<String> roleNames) {
+      return roleNames.stream().anyMatch(r -> r.contains(role));
     }
   }
 

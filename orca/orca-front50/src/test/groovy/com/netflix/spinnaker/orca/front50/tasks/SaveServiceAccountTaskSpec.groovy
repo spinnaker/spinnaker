@@ -19,14 +19,15 @@ package com.netflix.spinnaker.orca.front50.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
 import com.google.common.hash.Hashing
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.model.resources.Role
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.model.ServiceAccount
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTrigger
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.token.AuthorizationProperties
+import com.netflix.spinnaker.security.token.SpinnakerTokenClaims
+import com.netflix.spinnaker.security.token.SpinnakerTokenVerifier
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import retrofit2.mock.Calls
@@ -36,17 +37,35 @@ import spock.lang.Subject
 import static com.netflix.spinnaker.orca.test.model.ExecutionBuilder.stage
 
 class SaveServiceAccountTaskSpec extends Specification {
+  static final String TOKEN = 'test-identity-token'
+
   Front50Service front50Service = Mock(Front50Service)
-  FiatPermissionEvaluator fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-  FiatStatus fiatStatus = Mock() {
-    _ * isEnabled() >> true
-  }
+  SpinnakerTokenVerifier tokenVerifier = Mock(SpinnakerTokenVerifier)
   ObjectMapper objectMapper = new ObjectMapper()
+  AuthorizationProperties authorizationProperties = new AuthorizationProperties()
   boolean useSharedManagedServiceAccounts = false
 
   @Subject
-  SaveServiceAccountTask task = new SaveServiceAccountTask(Optional.of(fiatStatus), Optional.of(front50Service),
-  Optional.of(fiatPermissionEvaluator), objectMapper, useSharedManagedServiceAccounts)
+  SaveServiceAccountTask task = new SaveServiceAccountTask(Optional.of(front50Service),
+    Optional.of(tokenVerifier), Optional.of(authorizationProperties), objectMapper,
+    useSharedManagedServiceAccounts)
+
+  def setup() {
+    // The saving user's roles + admin flag are read from the verified identity token on the request.
+    AuthenticatedRequest.set(Header.IDENTITY_TOKEN, TOKEN)
+  }
+
+  def cleanup() {
+    AuthenticatedRequest.clear()
+  }
+
+  private static SpinnakerTokenClaims claims(List<String> roles, boolean admin = false) {
+    SpinnakerTokenClaims.builder('abc@somedomain.io').roles(roles).admin(admin).build()
+  }
+
+  private static ServiceAccount existing(String name, List<String> memberOf) {
+    new ServiceAccount(name: name, memberOf: memberOf)
+  }
 
   def "should do nothing if no pipeline roles present"() {
     given:
@@ -90,8 +109,8 @@ class SaveServiceAccountTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * fiatPermissionEvaluator.getPermission(serviceAccount) >> {
-      new UserPermission().addResources([new Role('foo'), new Role('bar')]).view
+    1 * front50Service.getServiceAccounts() >> {
+      Calls.response([existing(serviceAccount, ['foo', 'bar'])])
     }
     0 * front50Service.saveServiceAccount(_)
     result.status == ExecutionStatus.SUCCEEDED
@@ -120,9 +139,8 @@ class SaveServiceAccountTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
+    1 * front50Service.getServiceAccounts() >> { Calls.response([]) }
+    1 * tokenVerifier.verify(TOKEN) >> claims(['foo'])
 
     1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
       Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
@@ -161,9 +179,8 @@ class SaveServiceAccountTaskSpec extends Specification {
     }
 
     then:
-    1 * fiatPermissionEvaluator.getPermission(user) >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
+    1 * front50Service.getServiceAccounts() >> { Calls.response([]) }
+    1 * tokenVerifier.verify(TOKEN) >> claims(['foo'])
 
     0 * front50Service.saveServiceAccount(_)
 
@@ -192,9 +209,8 @@ class SaveServiceAccountTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().setAdmin(true).view
-    }
+    1 * front50Service.getServiceAccounts() >> { Calls.response([]) }
+    1 * tokenVerifier.verify(TOKEN) >> claims([], true)
 
     1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
       Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
@@ -225,9 +241,8 @@ class SaveServiceAccountTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
+    1 * front50Service.getServiceAccounts() >> { Calls.response([]) }
+    1 * tokenVerifier.verify(TOKEN) >> claims(['foo'])
 
     1 * front50Service.saveServiceAccount({ it.name != null }) >> { ServiceAccount serviceAccount ->
       uuid = serviceAccount.name - "@managed-service-account"
@@ -260,17 +275,17 @@ class SaveServiceAccountTaskSpec extends Specification {
     }
     def expectedServiceAccount = new ServiceAccount(name: expectedServiceAccountName, memberOf: ['foo'])
 
-    task = new SaveServiceAccountTask(Optional.of(fiatStatus), Optional.of(front50Service),
-        Optional.of(fiatPermissionEvaluator), objectMapper, useSharedManagedServiceAccountsEnabled)
+    task = new SaveServiceAccountTask(Optional.of(front50Service),
+        Optional.of(tokenVerifier), Optional.of(authorizationProperties), objectMapper,
+        useSharedManagedServiceAccountsEnabled)
 
     when:
     stage.getExecution().setTrigger(new DefaultTrigger('manual', null, 'abc@somedomain.io'))
     def result = task.execute(stage)
 
     then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
+    1 * front50Service.getServiceAccounts() >> { Calls.response([]) }
+    1 * tokenVerifier.verify(TOKEN) >> claims(['foo'])
 
     1 * front50Service.saveServiceAccount(expectedServiceAccount) >> {
       Calls.response(ResponseBody.create(MediaType.parse("application/json"),"[]"))
@@ -293,103 +308,5 @@ class SaveServiceAccountTaskSpec extends Specification {
 
   private String generateSha256StringFromRolesString(String rolesString) {
     Hashing.sha256().hashBytes(rolesString.getBytes()).toString() + "@shared-managed-service-account"
-  }
-
-  private bulkStage(List pipelines, String user = 'abc@somedomain.io') {
-    def s = stage {
-      context = [
-          isBulkSavingPipelines: true,
-          pipelines            : Base64.encoder.encodeToString(
-              objectMapper.writeValueAsString(pipelines).bytes)
-      ]
-    }
-    s.getExecution().setTrigger(new DefaultTrigger('manual', null, user))
-    s
-  }
-
-  private List decodePipelines(result) {
-    objectMapper.readValue(Base64.decoder.decode(result.context.pipelines as String), List)
-  }
-
-  def "bulk save: provisions a service account per pipeline and rewrites runAsUser triggers"() {
-    given:
-    def pipelineWithRoles = [
-        application: 'app1',
-        id         : 'pipeline-1',
-        name       : 'p1',
-        roles      : ['foo'],
-        triggers   : [[type: 'cron', runAsUser: null]]
-    ]
-    def pipelineWithoutRoles = [
-        application: 'app2',
-        name       : 'p2',
-        triggers   : [[type: 'manual']]
-    ]
-
-    when:
-    def result = task.execute(bulkStage([pipelineWithRoles, pipelineWithoutRoles]))
-    def reDecoded = decodePipelines(result)
-
-    then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
-    1 * front50Service.saveServiceAccount(
-        new ServiceAccount(name: 'pipeline-1@managed-service-account', memberOf: ['foo'])) >> {
-      Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
-    }
-    0 * front50Service.saveServiceAccount({ it.name != 'pipeline-1@managed-service-account' })
-
-    result.status == ExecutionStatus.SUCCEEDED
-    reDecoded[0].triggers[0].runAsUser == 'pipeline-1@managed-service-account'
-    reDecoded[1].triggers[0].runAsUser == null
-    reDecoded[1].id != null
-    reDecoded[1].regenerateCronTriggerIds == true
-  }
-
-  def "bulk save: assigns id and regenerateCronTriggerIds when pipeline has no id"() {
-    given:
-    def pipeline = [
-        application: 'app1',
-        name       : 'p1',
-        roles      : ['foo'],
-        triggers   : []
-    ]
-
-    when:
-    def result = task.execute(bulkStage([pipeline]))
-    def reDecoded = decodePipelines(result)
-
-    then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
-    1 * front50Service.saveServiceAccount(_) >> {
-      Calls.response(ResponseBody.create(MediaType.parse("application/json"), "[]"))
-    }
-
-    result.status == ExecutionStatus.SUCCEEDED
-    reDecoded[0].id != null
-    reDecoded[0].regenerateCronTriggerIds == true
-  }
-
-  def "bulk save: rejects when user lacks roles for any pipeline"() {
-    given:
-    def pipeline = [
-        application: 'app1',
-        id         : 'pipeline-1',
-        name       : 'p1',
-        roles      : ['restricted-role']
-    ]
-
-    when:
-    task.execute(bulkStage([pipeline]))
-
-    then:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).view
-    }
-    0 * front50Service.saveServiceAccount(_)
-    thrown(com.netflix.spinnaker.kork.exceptions.UserException)
   }
 }

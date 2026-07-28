@@ -12,7 +12,9 @@ var defaultCanaryJudge = '{%canary.defaultJudge%}';
 var defaultMetricsStore = '{%canary.defaultMetricsStore%}';
 var defaultMetricsAccountName = '{%canary.defaultMetricsAccount%}';
 var defaultStorageAccountName = '{%canary.defaultStorageAccount%}';
-var fiatEnabled = '{%features.fiat%}' === 'true';
+// Authorization uses a decentralized, token-based model.
+// Authorization-related UI is shown whenever authentication is enabled.
+var authzEnabled = authEnabled;
 var manualJudgmentParentPipelineEnabled = '{%features.manualJudgmentParentPipeline%}' === 'true';
 var mineCanaryEnabled = '{%features.mineCanary%}' === 'true';
 var pipelineTemplatesEnabled = '{%features.pipelineTemplates%}' === 'true';
@@ -119,13 +121,16 @@ window.spinnakerSettings = {
   feature: {
     canary: mineCanaryEnabled,
     chaosMonkey: chaosEnabled,
-    fiatEnabled: fiatEnabled,
+    authzEnabled: authzEnabled,
     pipelineTemplates: pipelineTemplatesEnabled,
     roscoMode: true,
     dynamicRollbackTimeout: dynamicRollbackTimeoutEnabled,
   },
   gateUrl: gateHost,
   notifications: {
+    bearychat: {
+      enabled: true,
+    },
     email: {
       enabled: true,
     },

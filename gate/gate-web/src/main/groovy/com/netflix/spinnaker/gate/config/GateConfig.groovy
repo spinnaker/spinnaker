@@ -22,10 +22,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
@@ -126,28 +122,31 @@ class GateConfig {
   }
 
   @Bean
-  FiatService fiatService() {
-    // always create the fiat service even if 'services.fiat.enabled' is 'false' (it can be enabled dynamically)
-    createClient "fiat", FiatService, null, true
-  }
-
-  @Bean
-  ExtendedFiatService extendedFiatService() {
-    // always create the fiat service even if 'services.fiat.enabled' is 'false' (it can be enabled dynamically)
-    createClient "fiat", ExtendedFiatService,  null, true
-  }
-
-  @Bean
-  @ConditionalOnProperty("services.fiat.config.dynamic-endpoints.login")
-  FiatService fiatLoginService() {
-    // always create the fiat service even if 'services.fiat.enabled' is 'false' (it can be enabled dynamically)
-    createClient "fiat", FiatService,  "login", true
-  }
-
-
-  @Bean
   Front50Service front50Service() {
     createClient "front50", Front50Service
+  }
+
+  /**
+   * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
+   * to customize tomcat exception handling, and specifically to generate json responses for
+   * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
+   */
+  @Bean
+  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
+    return new TomcatWebSocketServletWebServerCustomizer() {
+      @Override
+      public void customize(TomcatServletWebServerFactory factory) {
+        factory.addContextCustomizers(
+            (Context context) -> {
+              Container parent = context.getParent();
+              if (parent instanceof StandardHost) {
+                ((StandardHost) parent)
+                    .setErrorReportValveClass(
+                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
+              }
+            });
+      }
+    };
   }
 
   @Bean
@@ -345,7 +344,7 @@ class GateConfig {
    * Ensure that tracing identifiers (e.g. X-SPINNAKER-REQUEST-ID,
    * X-SPINNAKER-EXECUTION-ID) make it to the MDC early.  This way they're
    * available for logging during the security filter chain, and are including
-   * in requests made during authentication (e.g. to fiat).
+   * in requests made during authentication.
    */
   @ConditionalOnProperty("provided-id-request-filter.enabled")
   @Bean
@@ -379,43 +378,5 @@ class GateConfig {
      */
     frb.order = Ordered.HIGHEST_PRECEDENCE + 3
     return frb
-  }
-
-  @Bean
-  FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
-                        Registry registry,
-                        FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-    return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties)
-  }
-
-  @Bean
-  FiatPermissionEvaluator fiatPermissionEvaluator(FiatStatus fiatStatus,
-                                                  Registry registry,
-                                                  FiatService fiatService,
-                                                  FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-    return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)
-  }
-
-  /**
-   * Inspired by https://github.com/spring-projects/spring-boot/issues/21257#issuecomment-745565376
-   * to customize tomcat exception handling, and specifically to generate json responses for
-   * exceptions that bubble up to tomcat / aren't handled by spring boot nor spring security.
-   */
-  @Bean
-  public TomcatWebSocketServletWebServerCustomizer errorValveCustomizer() {
-    return new TomcatWebSocketServletWebServerCustomizer() {
-      @Override
-      public void customize(TomcatServletWebServerFactory factory) {
-        factory.addContextCustomizers(
-            (Context context) -> {
-              Container parent = context.getParent();
-              if (parent instanceof StandardHost) {
-                ((StandardHost) parent)
-                    .setErrorReportValveClass(
-                        "com.netflix.spinnaker.gate.tomcat.SpinnakerTomcatErrorValve");
-              }
-            });
-      }
-    };
   }
 }

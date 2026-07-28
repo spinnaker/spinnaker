@@ -26,8 +26,8 @@ dependencies {
   }
 
   implementation "com.netflix.frigga:frigga"
-  implementation "io.spinnaker.fiat:fiat-api"
-  implementation "io.spinnaker.fiat:fiat-core"
+  implementation "io.spinnaker.kork:kork-authz"
+  implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-cloud-config-server"
   implementation "io.spinnaker.kork:kork-config"
@@ -57,6 +57,7 @@ dependencies {
   // comes from the spring-cloud BOM.
   testImplementation "io.kubernetes:client-java"
   testImplementation "org.apache.groovy:groovy-json"
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 
   // Add each included cloud provider project as a runtime dependency
   gradle.includedCloudProviderProjects.each {

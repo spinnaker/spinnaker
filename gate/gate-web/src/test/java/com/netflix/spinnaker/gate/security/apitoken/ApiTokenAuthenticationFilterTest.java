@@ -19,14 +19,12 @@ package com.netflix.spinnaker.gate.security.apitoken;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.netflix.spinnaker.fiat.model.SpinnakerAuthorities;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.filters.AuthRequestAttributes;
 import com.netflix.spinnaker.gate.filters.AuthTypeResolver;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
+import com.netflix.spinnaker.gate.security.token.GateIdentityService;
 import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import com.netflix.spinnaker.security.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,7 +56,7 @@ class ApiTokenAuthenticationFilterTest {
 
   @Mock ApiTokenService apiTokenService;
   @Mock PermissionService permissionService;
-  @Mock FiatPermissionEvaluator permissionEvaluator;
+  @Mock GateIdentityService identityService;
   @Mock AllowedAccountsSupport allowedAccountsSupport;
 
   ApiTokenProperties properties;
@@ -82,7 +80,7 @@ class ApiTokenAuthenticationFilterTest {
             properties,
             apiTokenService,
             permissionService,
-            permissionEvaluator,
+            identityService,
             allowedAccountsSupport);
     // Lenient stub: rejection-path tests never reach the User-building branch, so strict stubbing
     // would fail. Tests that care about allowed accounts override this.
@@ -90,19 +88,6 @@ class ApiTokenAuthenticationFilterTest {
         .when(allowedAccountsSupport.filterAllowedAccounts(anyString(), anyCollection()))
         .thenReturn(List.of());
     SecurityContextHolder.clearContext();
-  }
-
-  /** Builds a {@link UserPermission.View} matching what {@code getPermission} would return. */
-  private static UserPermission.View viewWith(boolean admin, String... roleNames) {
-    UserPermission perm = new UserPermission().setId(PRINCIPAL);
-    Set<Role> roles = new java.util.LinkedHashSet<>();
-    for (String name : roleNames) {
-      roles.add(new Role(name));
-    }
-    perm.setRoles(roles);
-    UserPermission.View view = perm.getView();
-    view.setAdmin(admin);
-    return view;
   }
 
   @AfterEach
@@ -210,13 +195,13 @@ class ApiTokenAuthenticationFilterTest {
   @Test
   @DisplayName(
       "valid token — MUST NOT call permissionService.login(): doing so re-resolves the principal"
-          + " via Fiat's role providers and wipes the live session's roles for users whose roles"
+          + " via the role providers and wipes the live session's roles for users whose roles"
           + " were loaded via loginWithRoles (e.g. OIDC users)")
-  void validTokenDoesNotCallFiatLogin() throws Exception {
+  void validTokenDoesNotCallLogin() throws Exception {
     when(apiTokenService.resolveByHash(EXPECTED_HASH))
         .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
     when(permissionService.isEnabled()).thenReturn(true);
-    when(permissionEvaluator.getPermission(PRINCIPAL)).thenReturn(viewWith(false, "deploy-team"));
+    when(identityService.rolesFor(PRINCIPAL)).thenReturn(Set.of("deploy-team"));
 
     filter.doFilterInternal(
         requestWithBearer(PLAINTEXT), new MockHttpServletResponse(), new MockFilterChain());
@@ -226,19 +211,19 @@ class ApiTokenAuthenticationFilterTest {
   }
 
   // ---------------------------------------------------------------------------
-  // Fiat-derived authorities — the core of the FiatAuthenticationConverter parity fix
+  // Edge token-exchange — roles resolved via kork-roles (GateIdentityService)
   // ---------------------------------------------------------------------------
 
   @Test
   @DisplayName(
-      "valid token (Fiat enabled) — Authentication is a PreAuthenticatedAuthenticationToken"
-          + " whose authorities are derived from UserPermission.View.toGrantedAuthorities()")
-  void preAuthenticatedTokenWithFiatAuthorities() throws Exception {
+      "valid token (authz enabled) — Authentication is a PreAuthenticatedAuthenticationToken"
+          + " whose authorities are derived from the edge-resolved roles + admin flag")
+  void preAuthenticatedTokenWithResolvedAuthorities() throws Exception {
     when(apiTokenService.resolveByHash(EXPECTED_HASH))
         .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
     when(permissionService.isEnabled()).thenReturn(true);
-    when(permissionEvaluator.getPermission(PRINCIPAL))
-        .thenReturn(viewWith(true, "deploy-team", "ops"));
+    when(identityService.rolesFor(PRINCIPAL)).thenReturn(Set.of("deploy-team", "ops"));
+    when(identityService.isAdmin(anyCollection())).thenReturn(true);
 
     filter.doFilterInternal(
         requestWithBearer(PLAINTEXT), new MockHttpServletResponse(), new MockFilterChain());
@@ -262,15 +247,14 @@ class ApiTokenAuthenticationFilterTest {
 
   @Test
   @DisplayName(
-      "valid token (Fiat enabled) — principal is a fully-populated User with username, roles, and"
+      "valid token (authz enabled) — principal is a fully-populated User with username, roles, and"
           + " allowedAccounts derived from AllowedAccountsSupport (so /auth/user returns a real"
           + " body and @SpinnakerUser resolves correctly)")
   void principalIsAFullyPopulatedUser() throws Exception {
     when(apiTokenService.resolveByHash(EXPECTED_HASH))
         .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
     when(permissionService.isEnabled()).thenReturn(true);
-    when(permissionEvaluator.getPermission(PRINCIPAL))
-        .thenReturn(viewWith(false, "deploy-team", "ops"));
+    when(identityService.rolesFor(PRINCIPAL)).thenReturn(Set.of("deploy-team", "ops"));
     when(allowedAccountsSupport.filterAllowedAccounts(eq(PRINCIPAL), anyCollection()))
         .thenReturn(java.util.List.of("prod-account", "stage-account"));
 
@@ -295,13 +279,14 @@ class ApiTokenAuthenticationFilterTest {
 
   @Test
   @DisplayName(
-      "valid token (Fiat enabled) — getPermission returns null → no Authentication set, request"
-          + " falls through unauthenticated but is still marked as an API-token request")
-  void nullFiatPermissionRejectsToken() throws Exception {
+      "valid token (authz enabled) — edge-resolved roles are empty → still authenticates with an"
+          + " empty-authority principal (the departed/unknown-principal rejection is"
+          + " ApiTokenService's job, not the filter's)")
+  void emptyResolvedRolesStillAuthenticate() throws Exception {
     when(apiTokenService.resolveByHash(EXPECTED_HASH))
         .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
     when(permissionService.isEnabled()).thenReturn(true);
-    when(permissionEvaluator.getPermission(PRINCIPAL)).thenReturn(null);
+    when(identityService.rolesFor(PRINCIPAL)).thenReturn(Set.of());
 
     MockHttpServletRequest request = requestWithBearer(PLAINTEXT);
     MockHttpServletResponse response = new MockHttpServletResponse();
@@ -309,25 +294,91 @@ class ApiTokenAuthenticationFilterTest {
 
     filter.doFilterInternal(request, response, chain);
 
-    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
-    // IS_API_TOKEN/AUTH_TYPE must be set even on rejection so FiatSessionFilter and DPoP skip
-    // their session-flow logic on what is unambiguously a token request.
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    assertThat(auth).isNotNull().isInstanceOf(PreAuthenticatedAuthenticationToken.class);
+    assertThat(((User) auth.getPrincipal()).getUsername()).isEqualTo(PRINCIPAL);
+    assertThat(auth.getAuthorities()).isEmpty();
     assertThat(request.getAttribute(AuthRequestAttributes.IS_API_TOKEN)).isEqualTo(Boolean.TRUE);
-    assertThat(request.getAttribute(AuthTypeResolver.AUTH_TYPE_ATTRIBUTE))
-        .isEqualTo(AuthTypeResolver.TYPE_API_TOKEN);
-    // PRINCIPAL_KIND / API_TOKEN_ID are success-path-only.
-    assertThat(request.getAttribute(AuthTypeResolver.PRINCIPAL_KIND_ATTRIBUTE)).isNull();
-    assertThat(request.getAttribute(ApiTokenAuthenticationFilter.API_TOKEN_ID_ATTRIBUTE)).isNull();
-    verify(chain).doFilter(request, response);
-    verify(apiTokenService, never()).touchLastUsedAsync(any(), any());
+    verify(apiTokenService).touchLastUsedAsync(TOKEN_ID, EXPECTED_HASH);
   }
 
   @Test
   @DisplayName(
-      "valid token (Fiat disabled) — sets an authenticated PreAuthenticatedAuthenticationToken"
-          + " whose principal is a User (empty roles/authorities), and never consults Fiat"
-          + " (preserves pre-Fiat behaviour)")
-  void validTokenAuthenticatesWithFiatDisabled() throws Exception {
+      "EXTERNAL (no role provider): empty live resolution falls back to the token's stored role"
+          + " snapshot, so the token authenticates with its captured roles")
+  void externalFallsBackToStoredRoles() throws Exception {
+    TokenRecord rec = record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY);
+    rec.setRoles(List.of("deploy-team", "ops"));
+    when(apiTokenService.resolveByHash(EXPECTED_HASH)).thenReturn(Optional.of(rec));
+    when(permissionService.isEnabled()).thenReturn(true);
+    when(identityService.rolesFor(PRINCIPAL)).thenReturn(Set.of());
+    when(identityService.hasUserRolesResolver()).thenReturn(false);
+
+    filter.doFilterInternal(
+        requestWithBearer(PLAINTEXT), new MockHttpServletResponse(), new MockFilterChain());
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Set<String> authorityNames = AuthorityUtils.authorityListToSet(auth.getAuthorities());
+    assertThat(authorityNames)
+        .contains(
+            SpinnakerAuthorities.forRoleName("deploy-team").getAuthority(),
+            SpinnakerAuthorities.forRoleName("ops").getAuthority());
+    assertThat(((User) auth.getPrincipal()).getRoles())
+        .containsExactlyInAnyOrder("deploy-team", "ops");
+  }
+
+  @Test
+  @DisplayName(
+      "SERVICE_ACCOUNT token (authz enabled) — roles come from the SA's Front50 memberOf via"
+          + " PermissionService, not from the user role provider")
+  void serviceAccountTokenResolvesRolesFromFront50() throws Exception {
+    when(apiTokenService.resolveByHash(EXPECTED_HASH))
+        .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "SERVICE_ACCOUNT", FUTURE_EXPIRY)));
+    when(permissionService.isEnabled()).thenReturn(true);
+    when(permissionService.resolveServiceAccountRoles(PRINCIPAL))
+        .thenReturn(Set.of("deploy-team", "ops"));
+
+    filter.doFilterInternal(
+        requestWithBearer(PLAINTEXT), new MockHttpServletResponse(), new MockFilterChain());
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Set<String> authorityNames = AuthorityUtils.authorityListToSet(auth.getAuthorities());
+    assertThat(authorityNames)
+        .contains(
+            SpinnakerAuthorities.forRoleName("deploy-team").getAuthority(),
+            SpinnakerAuthorities.forRoleName("ops").getAuthority());
+    assertThat(((User) auth.getPrincipal()).getRoles())
+        .containsExactlyInAnyOrder("deploy-team", "ops");
+    // The service-account path must not consult the user (group-membership) role resolver.
+    verify(identityService, never()).rolesFor(anyString());
+  }
+
+  @Test
+  @DisplayName(
+      "provider-backed (resolver present): empty live resolution does NOT fall back to the stored"
+          + " snapshot — provider resolution is authoritative so revoked roles aren't re-granted")
+  void providerModeIgnoresStoredRoles() throws Exception {
+    TokenRecord rec = record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY);
+    rec.setRoles(List.of("deploy-team"));
+    when(apiTokenService.resolveByHash(EXPECTED_HASH)).thenReturn(Optional.of(rec));
+    when(permissionService.isEnabled()).thenReturn(true);
+    when(identityService.rolesFor(PRINCIPAL)).thenReturn(Set.of());
+    when(identityService.hasUserRolesResolver()).thenReturn(true);
+
+    filter.doFilterInternal(
+        requestWithBearer(PLAINTEXT), new MockHttpServletResponse(), new MockFilterChain());
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    assertThat(auth.getAuthorities()).isEmpty();
+    assertThat(((User) auth.getPrincipal()).getRoles()).isEmpty();
+  }
+
+  @Test
+  @DisplayName(
+      "valid token (authz disabled) — sets an authenticated PreAuthenticatedAuthenticationToken"
+          + " whose principal is a User (empty roles/authorities), and never consults the identity"
+          + " service (preserves pre-authz behaviour)")
+  void validTokenAuthenticatesWithAuthzDisabled() throws Exception {
     when(apiTokenService.resolveByHash(EXPECTED_HASH))
         .thenReturn(Optional.of(record(TOKEN_ID, PRINCIPAL, "USER", FUTURE_EXPIRY)));
     when(permissionService.isEnabled()).thenReturn(false);
@@ -339,7 +390,7 @@ class ApiTokenAuthenticationFilterTest {
     assertThat(auth).isNotNull().isInstanceOf(PreAuthenticatedAuthenticationToken.class);
     assertThat(auth.isAuthenticated()).isTrue();
 
-    // Principal must be a User (not a raw String) so @SpinnakerUser resolves correctly. With Fiat
+    // Principal must be a User (not a raw String) so @SpinnakerUser resolves correctly. With authz
     // disabled the User carries no roles/accounts.
     assertThat(auth.getPrincipal()).isInstanceOf(User.class);
     User user = (User) auth.getPrincipal();
@@ -347,7 +398,7 @@ class ApiTokenAuthenticationFilterTest {
     assertThat(user.getRoles()).isEmpty();
 
     assertThat(auth.getAuthorities()).isEmpty();
-    verify(permissionEvaluator, never()).getPermission(any());
+    verify(identityService, never()).rolesFor(any());
   }
 
   // ---------------------------------------------------------------------------

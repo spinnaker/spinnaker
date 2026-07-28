@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService.AccountDetails
 import retrofit2.mock.Calls
@@ -27,7 +26,7 @@ import spock.lang.Unroll
 class CredentialsServiceSpec extends Specification {
 
   @Unroll
-  def "should return allowed account names"() {
+  def "should locally filter accounts by WRITE permissions when ignoreAuthStatus is true"() {
     setup:
     ClouddriverService clouddriverService = Stub(ClouddriverService) {
       getAccountDetails() >> Calls.response(accounts)
@@ -36,38 +35,51 @@ class CredentialsServiceSpec extends Specification {
     AccountLookupService accountLookupService = new DefaultProviderLookupService(clouddriverService)
     accountLookupService.refreshCache()
 
-    def fiatStatus = Mock(FiatStatus) {
-      _ * isEnabled() >> { return false }
-    }
-
     @Subject
-    CredentialsService credentialsService = new CredentialsService(accountLookupService, fiatStatus)
+    CredentialsService credentialsService = new CredentialsService(accountLookupService)
 
     expect:
-    credentialsService.getAccountNames(roles) == expectedAccounts
+    credentialsService.getAccountNames(roles, true) == expectedAccounts
 
     where:
-    roles              | accounts                                                      || expectedAccounts
-    null               | []                                                            || []
-    []                 | []                                                            || []
-    [null]             | []                                                            || []
-    ["roleA"]          | [acnt("acntA")]                                               || ["acntA"]
-    ["roleA"]          | [acnt("acntB")]                                               || ["acntB"]
-    ["roleA", "roleB"] | [acnt("acntA"), acnt("acntB")]                                || ["acntA", "acntB"]
-    ["roleA"]          | [acnt("acntA", "roleA")]                                      || ["acntA"]
-    ["ROLEA"]          | [acnt("acntA", "rolea")]                                      || ["acntA"]
-    ["roleA"]          | [acnt("acntA", "roleB")]                                      || []
-    ["roleA"]          | [acnt("acntA", [:])]                                          || ["acntA"]
-    ["roleA"]          | [acnt("acntA", [WRITE: []])]                                  || []
-    ["roleA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: null])]               || []
-    ["roleA"]          | [acnt("acntA", [READ: ['roleA']])]                            || []
-    ["roleA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['roleA']])]          || ['acntA']
-    ["ROLEA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['roleA']])]          || ['acntA']
-    ["roleA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['ROLEA']])]          || ['acntA']
-    ["roleB"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['roleA']], 'roleB')] || []
+    roles              | accounts                                             || expectedAccounts
+    null               | []                                                   || []
+    []                 | []                                                   || []
+    [null]             | []                                                   || []
+    ["roleA"]          | [acnt("acntA")]                                      || ["acntA"]
+    ["roleA"]          | [acnt("acntB")]                                      || ["acntB"]
+    ["roleA", "roleB"] | [acnt("acntA"), acnt("acntB")]                       || ["acntA", "acntB"]
+    ["roleA"]          | [acnt("acntA", [:])]                                 || ["acntA"]
+    ["roleA"]          | [acnt("acntA", [WRITE: []])]                         || []
+    ["roleA"]          | [acnt("acntA", [READ: ['roleA']])]                   || []
+    ["roleA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['roleA']])] || ['acntA']
+    ["ROLEA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['roleA']])] || ['acntA']
+    ["roleA"]          | [acnt("acntA", [READ: ['roleA'], WRITE: ['ROLEA']])] || ['acntA']
   }
 
-  static AccountDetails acnt(String name, Map<String, List<String>> permissions = null, String... reqGroupMembership) {
-    new AccountDetails(name: name, requiredGroupMembership: reqGroupMembership, permissions: permissions)
+  @Unroll
+  def "should return all accounts unfiltered when ignoreAuthStatus is false (downstream enforces ACLs)"() {
+    setup:
+    ClouddriverService clouddriverService = Stub(ClouddriverService) {
+      getAccountDetails() >> Calls.response(accounts)
+    }
+
+    AccountLookupService accountLookupService = new DefaultProviderLookupService(clouddriverService)
+    accountLookupService.refreshCache()
+
+    @Subject
+    CredentialsService credentialsService = new CredentialsService(accountLookupService)
+
+    expect:
+    credentialsService.getAccountNames(roles) as Set == expectedAccounts as Set
+
+    where:
+    roles     | accounts                                             || expectedAccounts
+    ["roleA"] | [acnt("acntA", [READ: ['roleB'], WRITE: ['roleB']])] || ["acntA"]
+    []        | [acnt("acntA")]                                      || ["acntA"]
+  }
+
+  static AccountDetails acnt(String name, Map<String, List<String>> permissions = null) {
+    new AccountDetails(name: name, permissions: permissions)
   }
 }

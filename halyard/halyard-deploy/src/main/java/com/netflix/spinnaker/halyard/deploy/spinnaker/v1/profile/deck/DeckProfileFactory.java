@@ -112,9 +112,6 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
     bindings.put("features.chaos", Boolean.toString(features.isChaos()));
     bindings.put(
-        "features.fiat",
-        Boolean.toString(deploymentConfiguration.getSecurity().getAuthz().isEnabled()));
-    bindings.put(
         "features.pipelineTemplates",
         Boolean.toString(
             features.getPipelineTemplates() != null ? features.getPipelineTemplates() : false));

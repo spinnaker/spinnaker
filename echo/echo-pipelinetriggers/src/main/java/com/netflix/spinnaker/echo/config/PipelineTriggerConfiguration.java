@@ -7,12 +7,13 @@ import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCacheConfigurationProperties;
 import com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers.PubsubEventHandler;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
-import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.echo.pipelinetriggers.runas.RunAsTokenClient;
+import com.netflix.spinnaker.echo.pipelinetriggers.runas.RunAsTokenService;
 import com.netflix.spinnaker.kork.expressions.config.ExpressionProperties;
 import com.netflix.spinnaker.kork.retrofit.ErrorHandlingExecutorCallAdapterFactory;
+import com.netflix.spinnaker.kork.retrofit.util.RetrofitUtils;
+import com.netflix.spinnaker.security.s2s.client.ServiceIdentityInterceptor;
+import com.netflix.spinnaker.security.s2s.config.ServiceIdentityClientConfiguration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +23,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 @Configuration
 @ComponentScan(value = "com.netflix.spinnaker.echo.pipelinetriggers")
+@Import(ServiceIdentityClientConfiguration.class)
 @EnableConfigurationProperties({
-  FiatClientConfigurationProperties.class,
   PipelineCacheConfigurationProperties.class,
   QuietPeriodIndicatorConfigurationProperties.class,
   ExpressionProperties.class
@@ -55,19 +57,46 @@ public class PipelineTriggerConfiguration {
   }
 
   @Bean
-  public FiatStatus fiatStatus(
-      Registry registry,
-      DynamicConfigService dynamicConfigService,
-      FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-    return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);
+  PubsubEventHandler pubsubEventHandler(Registry registry, ObjectMapper objectMapper) {
+    return new PubsubEventHandler(registry, objectMapper);
   }
 
+  /**
+   * Retrofit client for Front50's run-as token mint/exchange endpoint (Component 7). Echo exchanges
+   * a managed service-account name for a short-lived signed identity token rather than resolving SA
+   * roles remotely or holding a signing key. Mirrors {@code Front50Service} wiring.
+   */
   @Bean
-  PubsubEventHandler pubsubEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    return new PubsubEventHandler(registry, objectMapper, fiatPermissionEvaluator);
+  public RunAsTokenClient runAsTokenClient(
+      @Value("${front50.base-url}") final String endpoint,
+      ServiceIdentityInterceptor serviceIdentityInterceptor) {
+    return new Retrofit.Builder()
+        .baseUrl(RetrofitUtils.getBaseUrl(endpoint))
+        .client(
+            okHttp3ClientConfiguration
+                .createForRetrofit2()
+                .addInterceptor(serviceIdentityInterceptor)
+                .build())
+        .addCallAdapterFactory(ErrorHandlingExecutorCallAdapterFactory.getInstance())
+        .addConverterFactory(JacksonConverterFactory.create(EchoObjectMapper.getInstance()))
+        .build()
+        .create(RunAsTokenClient.class);
+  }
+
+  /**
+   * Echo holds <b>no</b> identity-token signing key. It proves it is a trusted caller of Front50's
+   * initial run-as mint via service-to-service caller authentication (mTLS / mesh / Kubernetes
+   * ServiceAccount token; see {@code authz.s2s}), not a shared-key assertion — so a compromised
+   * Echo pod cannot extract a minting key and forge user identity tokens. The mint request carries
+   * only the service account and pipeline id, which Front50 verifies against the saved pipeline's
+   * {@code runAsUser}.
+   *
+   * <p>Because the shared-key assertion is gone, minting a run-as token requires {@code
+   * authz.s2s.enabled=true} (so Front50 can authenticate Echo as the caller).
+   */
+  @Bean
+  public RunAsTokenService runAsTokenService(RunAsTokenClient runAsTokenClient) {
+    return new RunAsTokenService(runAsTokenClient);
   }
 
   @Bean

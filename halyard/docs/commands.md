@@ -260,9 +260,6 @@
  * [**hal config deploy component-sizing echo-worker**](#hal-config-deploy-component-sizing-echo-worker)
  * [**hal config deploy component-sizing echo-worker delete**](#hal-config-deploy-component-sizing-echo-worker-delete)
  * [**hal config deploy component-sizing echo-worker edit**](#hal-config-deploy-component-sizing-echo-worker-edit)
- * [**hal config deploy component-sizing fiat**](#hal-config-deploy-component-sizing-fiat)
- * [**hal config deploy component-sizing fiat delete**](#hal-config-deploy-component-sizing-fiat-delete)
- * [**hal config deploy component-sizing fiat edit**](#hal-config-deploy-component-sizing-fiat-edit)
  * [**hal config deploy component-sizing front50**](#hal-config-deploy-component-sizing-front50)
  * [**hal config deploy component-sizing front50 delete**](#hal-config-deploy-component-sizing-front50-delete)
  * [**hal config deploy component-sizing front50 edit**](#hal-config-deploy-component-sizing-front50-edit)
@@ -4577,7 +4574,6 @@ hal config deploy component-sizing [subcommands]
  * `echo`: Manage and view Spinnaker component sizing configuration for echo
  * `echo-scheduler`: Manage and view Spinnaker component sizing configuration for echo-scheduler
  * `echo-worker`: Manage and view Spinnaker component sizing configuration for echo-worker
- * `fiat`: Manage and view Spinnaker component sizing configuration for fiat
  * `front50`: Manage and view Spinnaker component sizing configuration for front50
  * `gate`: Manage and view Spinnaker component sizing configuration for gate
  * `igor`: Manage and view Spinnaker component sizing configuration for igor
@@ -5259,63 +5255,6 @@ Edit the component sizing for service echo-worker, such as the number of replica
 #### Usage
 ```
 hal config deploy component-sizing echo-worker edit [parameters]
-```
-
-#### Parameters
- * `--container-limits-cpu`: Sets the cpu limit for the container running the spinnaker service. Example: 1.
- * `--container-limits-memory`: Sets the memory limit for the container running the spinnaker service. Example: 1Gi.
- * `--container-requests-cpu`: Sets the cpu request for the container running the spinnaker service. Example: 250m.
- * `--container-requests-memory`: Sets the memory request for the container running the spinnaker service. Example: 512Mi.
- * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--pod-limits-cpu`: Sets the cpu limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1.
- * `--pod-limits-memory`: Sets the memory limit for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 1Gi.
- * `--pod-requests-cpu`: Sets the cpu request for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 250m.
- * `--pod-requests-memory`: Sets the memory request for the container running the spinnaker service, as well as any sidecar containers (e.g. the monitoring daemon). Example: 512Mi.
- * `--replicas`: (*Default*: `1`) Set the number of replicas (pods) to be created for this service.
-
-
----
-## hal config deploy component-sizing fiat
-
-Manage and view Spinnaker component sizing configuration for fiat
-
-#### Usage
-```
-hal config deploy component-sizing fiat [parameters] [subcommands]
-```
-
-#### Parameters
- * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
-#### Subcommands
- * `delete`: Delete the custom component sizings for service fiat
- * `edit`: Edit the component sizing for service fiat, such as the number of replicas and the resources limits.
-
----
-## hal config deploy component-sizing fiat delete
-
-Delete the custom component sizings for service fiat
-
-#### Usage
-```
-hal config deploy component-sizing fiat delete [parameters]
-```
-
-#### Parameters
- * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
-
----
-## hal config deploy component-sizing fiat edit
-
-Edit the component sizing for service fiat, such as the number of replicas and the resources limits.
-
-#### Usage
-```
-hal config deploy component-sizing fiat edit [parameters]
 ```
 
 #### Parameters

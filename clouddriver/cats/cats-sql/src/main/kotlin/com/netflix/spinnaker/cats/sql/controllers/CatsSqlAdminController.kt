@@ -2,9 +2,8 @@ package com.netflix.spinnaker.cats.sql.controllers
 
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.cats.sql.cache.SqlSchemaVersion
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
-import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.SpinnakerAuthorities
 import java.sql.DriverManager
 import org.jooq.impl.DSL
 import org.slf4j.LoggerFactory
@@ -12,19 +11,17 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-
-// TODO: Replace validatePermissions() with a to-be-implemented fiat isAdmin() decorator
 
 @ConditionalOnProperty("sql.cache.enabled")
 @EnableConfigurationProperties(SqlProperties::class)
 @RestController
 @RequestMapping("/admin/db")
 class CatsSqlAdminController(
-  private val fiat: FiatPermissionEvaluator,
   private val properties: SqlProperties
 ) {
 
@@ -115,19 +112,11 @@ class CatsSqlAdminController(
   }
 
   private fun validatePermissions() {
-    val user = AuthenticatedRequest.getSpinnakerUser()
-    if (!user.isPresent) {
+    // Owner-local: admin is asserted by the caller's verified identity token (populated into the
+    // SecurityContext by the kork-authz identity-token filter), not looked up remotely.
+    val authentication = SecurityContextHolder.getContext().authentication
+    if (!SpinnakerAuthorities.isAdmin(authentication)) {
       throw BadCredentialsException("Unauthorized")
-    }
-
-    try {
-      val perms = fiat.getPermission(user.get())
-      if (!perms.isAdmin) {
-        throw BadCredentialsException("Unauthorized")
-      }
-    } catch (e: Exception) {
-      log.error("Failed looking up fiat permissions for user ${user.get()}")
-      throw BadCredentialsException("Unauthorized", e)
     }
   }
 }

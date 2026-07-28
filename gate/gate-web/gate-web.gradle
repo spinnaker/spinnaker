@@ -18,15 +18,14 @@ dependencies {
   implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
   implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-  implementation "io.spinnaker.fiat:fiat-core"
-  implementation "io.spinnaker.fiat:fiat-api"
-
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-config"
   implementation "io.spinnaker.kork:kork-plugins"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-retrofit2"
+  implementation "io.spinnaker.kork:kork-security"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "io.spinnaker.kork:kork-web"
   implementation "com.netflix.frigga:frigga"
   implementation "redis.clients:jedis"

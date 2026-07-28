@@ -24,6 +24,7 @@ import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.core.RetrySupport;
+import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.User;
 import java.time.Duration;
@@ -153,7 +154,8 @@ public class HeaderAuthenticationUserDetailsService
     try {
       List<ServiceAccountPojo> serviceAccounts =
           serviceAccountCache.get(
-              SERVICE_ACCOUNTS_CACHE_KEY, key -> front50Service.getServiceAccountsPojo());
+              SERVICE_ACCOUNTS_CACHE_KEY,
+              key -> Retrofit2SyncCall.execute(front50Service.getServiceAccountsPojo()));
       // Caffeine's get() with a loading function should never return null - it will either return
       // a value or throw an exception. This null check is defensive programming.
       if (serviceAccounts == null) {

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.orca.webhook.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.kork.crypto.StandardCrypto;
 import com.netflix.spinnaker.kork.crypto.StaticX509Identity;
+import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -26,11 +28,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.security.spec.RSAKeyGenParameterSpec;
@@ -52,6 +50,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
@@ -90,6 +89,15 @@ class MtlsConfigurationTestBase {
     ObjectMapper objectMapper() {
       return mapper;
     }
+
+    @Bean
+    Registry registry() {
+      return new NoopRegistry();
+    }
+
+    @MockBean OortService oortService;
+
+    @MockBean DynamicConfigService dynamicConfigService;
   }
 
   @SneakyThrows

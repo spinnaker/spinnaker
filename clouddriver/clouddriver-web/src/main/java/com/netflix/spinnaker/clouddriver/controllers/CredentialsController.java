@@ -63,6 +63,20 @@ public class CredentialsController {
     this.accountCredentialsProvider = accountCredentialsProvider;
   }
 
+  /**
+   * Lists the full account catalog, each rendered with its embedded {@link
+   * com.netflix.spinnaker.security.authz.Permissions} ACL ({@code permissions} map). This endpoint
+   * intentionally does <b>not</b> role-filter per caller: Gate consumes it through {@code
+   * DefaultProviderLookupService}, which caches it <em>once, globally</em>, refreshed anonymously
+   * on a timer and shared across all users — so any per-caller filtering here would be both
+   * incorrect (the cached result leaks across principals) and, for the anonymous refresh, would
+   * collapse the catalog to only unrestricted accounts (the bug that left {@code /credentials}
+   * empty). Per-user authorization is the consumer's responsibility: Gate derives the caller's
+   * allowed accounts from the embedded {@code permissions} (its {@code AllowedAccountsSupport} /
+   * {@code CredentialsService}), and actual resource access is enforced per-operation by the
+   * owner-local {@code @PreAuthorize} / {@code AuthorizationSupport} checks on the data endpoints.
+   * The per-account detail endpoints below remain individually access-controlled.
+   */
   @GetMapping
   public List<Map<String, Object>> listAccountCredentials(@RequestParam Optional<Boolean> expand) {
     boolean shouldExpand = expand.orElse(false);
@@ -73,6 +87,7 @@ public class CredentialsController {
   }
 
   @GetMapping("/{accountName}")
+  @PreAuthorize("hasPermission(#accountName, 'ACCOUNT', 'READ')")
   public Map<String, Object> getAccountCredentialsDetails(@PathVariable String accountName) {
     var accountDetail =
         renderAccountCredentials(accountCredentialsProvider.getCredentials(accountName), true);

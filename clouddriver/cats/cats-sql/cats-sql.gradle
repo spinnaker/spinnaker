@@ -28,8 +28,7 @@ dependencies {
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "io.spinnaker.fiat:fiat-api"
-  implementation "io.spinnaker.fiat:fiat-core"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-sql"
   implementation "de.huxhorn.sulky:de.huxhorn.sulky.ulid"

@@ -147,8 +147,6 @@ class StandaloneContainerTest {
             "false",
             "services.orca.enabled",
             "false",
-            "services.fiat.baseUrl",
-            "http://nowhere",
             "redis.connection",
             redisUrl,
             "services.clouddriver.baseUrl",

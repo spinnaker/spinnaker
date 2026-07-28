@@ -62,7 +62,7 @@ public class PluginInfoController {
     return pluginInfoService.upsert(pluginInfo);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void delete(@PathVariable String id) {
@@ -75,14 +75,14 @@ public class PluginInfoController {
     return pluginInfoService.createRelease(id, release);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}/releases", method = RequestMethod.PUT)
   PluginInfo upsertRelease(
       @PathVariable String id, @Valid @RequestBody PluginInfo.Release release) {
     return pluginInfoService.upsertRelease(id, release);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.PUT)
   PluginInfo.Release preferReleaseVersion(
       @PathVariable String id,
@@ -91,7 +91,7 @@ public class PluginInfoController {
     return pluginInfoService.preferReleaseVersion(id, releaseVersion, preferred);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "/{id}/releases/{releaseVersion}", method = RequestMethod.DELETE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   PluginInfo deleteRelease(

@@ -1,0 +1,43 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api(project(":kork-authz"))
+
+  implementation(project(":kork-core"))
+  implementation(project(":kork-exceptions"))
+  implementation(project(":kork-retrofit"))
+  implementation(project(":kork-web"))
+
+  implementation "com.google.guava:guava"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework:spring-core"
+  implementation "org.springframework:spring-context"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+
+  // file provider
+  implementation "com.fasterxml.jackson.core:jackson-core"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+  implementation "commons-io:commons-io"
+
+  // github provider
+  implementation "com.squareup.retrofit2:retrofit"
+  implementation "com.squareup.retrofit2:converter-jackson"
+  implementation "jakarta.validation:jakarta.validation-api"
+
+  // google groups provider
+  implementation "com.google.api-client:google-api-client"
+  implementation "com.google.apis:google-api-services-admin-directory"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.springframework:spring-test"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
+}

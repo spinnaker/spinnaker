@@ -20,7 +20,7 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator
 import com.netflix.spinnaker.security.User
 import org.springframework.security.authentication.TestingAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 class AuthorizationSupportSpec extends Specification {
 
-  FiatPermissionEvaluator permissionEvaluator
+  PolicyDecisionPointPermissionEvaluator permissionEvaluator
   AccountCredentialsProvider accountCredentialsProvider = Mock(AccountCredentialsProvider)
 
   def setup() {
@@ -37,7 +37,7 @@ class AuthorizationSupportSpec extends Specification {
     ctx.setAuthentication(new TestingAuthenticationToken(new User(email: "testUser"), null))
     SecurityContextHolder.setContext(ctx)
 
-    permissionEvaluator = Mock(FiatPermissionEvaluator)
+    permissionEvaluator = Mock(PolicyDecisionPointPermissionEvaluator)
   }
 
   def cleanup() {

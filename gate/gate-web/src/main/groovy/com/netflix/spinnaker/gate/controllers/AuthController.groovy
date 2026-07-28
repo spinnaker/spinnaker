@@ -88,9 +88,9 @@ class AuthController {
       return null
     }
 
-    def fiatRoles = permissionService.getRoles(user.username)?.collect{ it.name }
-    if (fiatRoles) {
-      user.roles = fiatRoles
+    def resolvedRoles = permissionService.getRoles(user.username)?.collect{ it }
+    if (resolvedRoles) {
+      user.roles = resolvedRoles
     }
 
     boolean isAdmin = permissionService.isAdmin(user.username)

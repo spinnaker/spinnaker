@@ -41,12 +41,10 @@ public class ServiceAccountsProperties {
 
   @Data
   public static class ServiceAccountDefinition {
-    /** Service account name (must match the Fiat identity). */
+    /** Service account name (must match the service-account identity). */
     private String name;
 
-    /**
-     * Fiat roles this account should belong to. Config is authoritative — overwritten on startup.
-     */
+    /** Roles this account should belong to. Config is authoritative — overwritten on startup. */
     private List<String> memberOf = new ArrayList<>();
   }
 }

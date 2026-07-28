@@ -1,10 +1,6 @@
 package com.netflix.spinnaker.gate.security.x509
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.model.resources.Role
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
@@ -28,20 +24,13 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
       isEnabled('x509.loginDebounce', _) >> true
     }
     def email = 'foo@bar.net'
-    def view = new UserPermission(id: email).view
     def perms = Mock(PermissionService)
     def clock = new TestClock()
     def cert = Mock(X509Certificate)
     def userDetails = new X509AuthenticationUserDetailsService(clock)
-    def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-    def fiatStatus = Mock(FiatStatus)
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
-    userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
     userDetails.registry = registry
-    userDetails.setFiatStatus(fiatStatus)
-    fiatPermissionEvaluator.getPermission(email) >> view
-    fiatStatus.isEnabled() >> true
 
     when: "initial login"
     userDetails.handleLogin(email, cert)
@@ -54,19 +43,10 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     userDetails.handleLogin(email, cert)
 
     then: "should not call login"
-    1 * fiatPermissionEvaluator.hasCachedPermission(email) >> true
     0 * perms.login(email)
 
     when: "subsequent login after debounce window"
     clock.advanceTime(Duration.ofMinutes(5))
-    userDetails.handleLogin(email, cert)
-
-    then: "should call login"
-    1 * fiatPermissionEvaluator.hasCachedPermission(email) >> true
-    1 * perms.login(email)
-
-    when: "login with no cached permission"
-    fiatPermissionEvaluator.hasCachedPermission(email) >> false
     userDetails.handleLogin(email, cert)
 
     then: "should call login"
@@ -81,12 +61,8 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     def clock = new TestClock()
     def cert = Mock(X509Certificate)
     def userDetails = new X509AuthenticationUserDetailsService(clock)
-    def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-    def fiatStatus = Mock(FiatStatus)
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
-    userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
-    userDetails.setFiatStatus(fiatStatus)
     userDetails.registry = registry
 
     when:
@@ -121,42 +97,34 @@ class X509AuthenticationUserDetailsServiceSpec extends Specification {
     def cert = Mock(X509Certificate)
     def rolesExtractor = Mock(X509RolesExtractor)
     def userDetails = new X509AuthenticationUserDetailsService(clock)
-    def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-    def fiatStatus = Mock(FiatStatus)
     def roles
     userDetails.setPermissionService(perms)
     userDetails.setDynamicConfigService(config)
     userDetails.setRolesExtractor(rolesExtractor)
-    userDetails.setFiatPermissionEvaluator(fiatPermissionEvaluator)
-    userDetails.setFiatStatus(fiatStatus)
     userDetails.registry = registry
 
-    def view = new UserPermission(id: email, roles: [new Role('bish')]).view
-
     when:
-    fiatStatus.isEnabled() >> true
     roles = userDetails.handleLogin(email, cert)
 
     then:
     1 * rolesExtractor.fromCertificate(cert) >> ['foo', 'bar']
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.loginWithRoles(email, [email, 'foo', 'bar'])
-    1 * fiatPermissionEvaluator.getPermission(email) >> view
+    1 * perms.getRoles(email) >> ['bish']
 
-    and: 'the roles retrieved from fiatPermissionEvaluator are also added to the list of returned roles'
+    and: 'the roles resolved locally by the permission service are also added to the list of returned roles'
     roles == [email, 'foo', 'bar', 'bish']
 
     when:
-    fiatStatus.isEnabled() >> false
     roles = userDetails.handleLogin(email, cert)
 
     then:
     1 * rolesExtractor.fromCertificate(cert) >> ['foo', 'bar']
     1 * config.isEnabled('x509.loginDebounce', _) >> false
     1 * perms.loginWithRoles(email, [email, 'foo', 'bar'])
-    0 * fiatPermissionEvaluator.getPermission(email) >> view
+    1 * perms.getRoles(email) >> []
 
-    and: 'no roles are retrieved from fiatPermissionEvaluator when fiat is disabled'
+    and: 'no extra roles are added when the permission service resolves none'
     roles == [email, 'foo', 'bar']
   }
 

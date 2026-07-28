@@ -21,13 +21,44 @@ export interface IPermissionRow {
 
 export interface IPermissionsConfigurerProps {
   permissions: IPermissions;
+  /**
+   * Grants every application receives from the global default application permissions. They are
+   * not part of this application's own ACL, so they are shown for context but cannot be edited or
+   * removed here — only changing the server's `authz.application.default-permissions` revokes them.
+   */
+  defaultPermissions?: IPermissions;
   requiredGroupMembership: string[];
   onPermissionsChange: (permissions: IPermissions) => void;
 }
 
 export interface IPermissionsConfigurerState {
   permissionRows: IPermissionRow[];
+  defaultPermissionRows: IPermissionRow[];
   roleOptions: Option[];
+}
+
+const AUTHORIZATIONS: Array<keyof IPermissions> = ['READ', 'EXECUTE', 'WRITE'];
+
+function mergePermissions(permissions: IPermissions, other: IPermissions): IPermissions {
+  if (!permissions || !other) {
+    return permissions || other;
+  }
+  const merged: IPermissions = { READ: [], EXECUTE: [], WRITE: [] };
+  AUTHORIZATIONS.forEach((authorization) => {
+    merged[authorization] = uniq((permissions[authorization] || []).concat(other[authorization] || []));
+  });
+  return merged;
+}
+
+function subtractPermissions(permissions: IPermissions, toRemove: IPermissions): IPermissions {
+  if (!permissions || !toRemove) {
+    return permissions;
+  }
+  const remaining: IPermissions = { READ: [], EXECUTE: [], WRITE: [] };
+  AUTHORIZATIONS.forEach((authorization) => {
+    remaining[authorization] = without(permissions[authorization] || [], ...(toRemove[authorization] || []));
+  });
+  return remaining;
 }
 
 export class PermissionsConfigurer extends React.Component<IPermissionsConfigurerProps, IPermissionsConfigurerState> {
@@ -51,10 +82,18 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
   }
 
   private getState(props: IPermissionsConfigurerProps): IPermissionsConfigurerState {
+    // `permissions` arrives as the effective ACL, so the defaults have to come back out to leave
+    // the grid holding only what this application actually grants and what a save can change.
     return {
-      permissionRows: this.getPermissionRows(props.permissions),
-      roleOptions: this.getRoleOptions(props.permissions),
+      permissionRows: this.getPermissionRows(subtractPermissions(props.permissions, props.defaultPermissions)),
+      defaultPermissionRows: this.getPermissionRows(props.defaultPermissions),
+      roleOptions: this.getRoleOptions(mergePermissions(props.permissions, props.defaultPermissions)),
     };
+  }
+
+  /** Everything the caller is granted, whether by this application's ACL or by the defaults. */
+  private effectivePermissions(): IPermissions {
+    return mergePermissions(this.props.permissions, this.props.defaultPermissions);
   }
 
   private getPermissionRows(permissions: IPermissions): IPermissionRow[] {
@@ -139,10 +178,11 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     return permissions;
   }
 
+  // Both lockout warnings ask "who will still be able to get in after this save", so they have to
+  // consider the defaults too: a role granted globally keeps its access regardless of this grid.
   private willApplicationLockoutForUser(): boolean {
-    const configuredPermissions = this.props.permissions
-      ? (this.props.permissions.READ || []).concat(this.props.permissions.WRITE || [])
-      : [];
+    const effective = this.effectivePermissions();
+    const configuredPermissions = effective ? (effective.READ || []).concat(effective.WRITE || []) : [];
     if (compact(configuredPermissions).length) {
       const userRoles = AuthenticationService.getAuthenticatedUser().roles || [];
       return intersection(configuredPermissions, userRoles).length === 0;
@@ -152,11 +192,8 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
   }
 
   private willApplicationLockoutAllUsers(): boolean {
-    return (
-      !!this.props.permissions &&
-      compact(this.props.permissions.READ).length > 0 &&
-      compact(this.props.permissions.WRITE).length === 0
-    );
+    const effective = this.effectivePermissions();
+    return !!effective && compact(effective.READ).length > 0 && compact(effective.WRITE).length === 0;
   }
 
   private handleRoleSelect(rowIndex: number): (option: Option) => void {
@@ -189,16 +226,47 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     this.props.onPermissionsChange(this.buildPermissions(permissionRows));
   };
 
+  private static accessLabel(access: string): string {
+    const match = [...PermissionsConfigurer.accessTypes, ...PermissionsConfigurer.legacyAccessTypes].find(
+      (type) => type.value === access,
+    );
+    // Defaults are operator-configured and need not spell out one of the combinations the grid
+    // offers (a WRITE-only default is legal), so fall back to showing the raw access string.
+    return match ? match.label : access;
+  }
+
   public render() {
     return (
       <div className="permissions-configurer">
+        {this.state.defaultPermissionRows.map((row) => (
+          <div key={`default-${row.group}`} className="permissions-row clearfix">
+            <div className="col-md-5 permissions-group">
+              <Select value={{ value: row.group, label: row.group }} disabled={true} clearable={false} />
+            </div>
+            <div className="col-md-6">
+              <Select
+                value={{ value: row.access, label: PermissionsConfigurer.accessLabel(row.access) }}
+                disabled={true}
+                clearable={false}
+              />
+            </div>
+            <div className="col-md-1" />
+          </div>
+        ))}
+        {this.state.defaultPermissionRows.length > 0 && (
+          <div className="row">
+            <div className="col-md-11 default-permissions-note">
+              <p className="small">
+                The roles above are granted to every application by the Spinnaker configuration, so they cannot be
+                changed here.
+              </p>
+            </div>
+          </div>
+        )}
         {this.state.permissionRows.map((row, i) => {
-          const permissionTypeLabel = [
-            ...PermissionsConfigurer.accessTypes,
-            ...PermissionsConfigurer.legacyAccessTypes,
-          ].find((type) => type.value === row.access).label;
+          const permissionTypeLabel = PermissionsConfigurer.accessLabel(row.access);
           return (
-            <div key={row.group || i} className="permissions-row clearfix">
+            <div key={`own-${row.group || i}`} className="permissions-row clearfix">
               <div className="col-md-5 permissions-group">
                 <Creatable
                   clearable={false}

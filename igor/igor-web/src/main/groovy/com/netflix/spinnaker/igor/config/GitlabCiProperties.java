@@ -15,10 +15,10 @@
  */
 package com.netflix.spinnaker.igor.config;
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import jakarta.validation.Valid;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Valid;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;

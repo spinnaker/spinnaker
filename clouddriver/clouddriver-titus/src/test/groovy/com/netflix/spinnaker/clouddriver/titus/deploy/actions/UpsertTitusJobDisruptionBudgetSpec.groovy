@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentia
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.ServiceJobProcessesRequest
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.UpsertJobDisruptionBudgetDescription
 import com.netflix.spinnaker.clouddriver.titus.deploy.ops.UpsertTitusJobDisruptionBudgetAtomicOperation
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import spock.lang.Specification
 import spock.lang.Subject
 

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.keel.rest
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator
 import com.netflix.spinnaker.keel.api.DeliveryConfig
 import com.netflix.spinnaker.keel.api.Environment
 import com.netflix.spinnaker.keel.auth.PermissionLevel.READ
@@ -30,7 +30,7 @@ import strikt.assertions.isTrue
 
 internal class AuthorizationSupportTests : JUnit5Minutests {
   private val dynamicConfigService: DynamicConfigService = mockk(relaxed = true)
-  private val permissionEvaluator: FiatPermissionEvaluator = mockk(relaxed = true)
+  private val permissionEvaluator: PolicyDecisionPointPermissionEvaluator = mockk(relaxed = true)
   private val combinedRepository: CombinedRepository = mockk(relaxed = true)
   private val resource = locatableResource()
   private val deliveryConfig = DeliveryConfig(
@@ -60,7 +60,7 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
         } returns mockk(relaxed = true)
 
         every {
-          dynamicConfigService.isEnabled("keel.authorization", true)
+          dynamicConfigService.isEnabled("authz.enabled", false)
         } returns true
 
         every {
@@ -189,7 +189,7 @@ internal class AuthorizationSupportTests : JUnit5Minutests {
     context("authorization is disabled") {
       before {
         every {
-          dynamicConfigService.isEnabled("keel.authorization", true)
+          dynamicConfigService.isEnabled("authz.enabled", false)
         } returns false
       }
 

@@ -16,14 +16,21 @@
 package com.netflix.spinnaker.igor.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
+import com.netflix.spinnaker.security.authz.Permissions;
+import com.netflix.spinnaker.security.authz.ProtectedResource;
+import com.netflix.spinnaker.security.authz.ResourceType;
 
 /**
  * Interface representing a Build Service host (CI) and the permissions needed to access it. Most
  * implementations should implement the {@link BuildOperations} interface instead.
+ *
+ * <p>A build service is the only resource type Igor owns ACLs for. It implements {@link
+ * ProtectedResource} so the owner-local {@code PolicyDecisionPointPermissionEvaluator} can derive
+ * the resource type, name and embedded ACL straight from the in-process build-service object,
+ * without any remote lookup.
  */
-public interface BuildService {
+public interface BuildService extends ProtectedResource {
   /**
    * Get the name of the build service host
    *
@@ -46,6 +53,13 @@ public interface BuildService {
    * @return The permissions needed to access this build service host
    */
   Permissions getPermissions();
+
+  /** Igor only ever authorizes {@code build_service} resources. */
+  @JsonIgnore
+  @Override
+  default ResourceType getResourceType() {
+    return ResourceType.BUILD_SERVICE;
+  }
 
   @JsonIgnore
   default BuildServiceView getView() {

@@ -22,11 +22,7 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.TriggerResponse;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.echo.pipelinetriggers.runas.RunAsTokenService;
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -34,15 +30,13 @@ import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import jakarta.annotation.PostConstruct;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +52,13 @@ public class PipelineInitiator {
   private final Registry registry;
   private final DynamicConfigService dynamicConfigService;
   private final OrcaService orca;
-  private final FiatPermissionEvaluator fiatPermissionEvaluator;
-  private final FiatStatus fiatStatus;
+
+  /**
+   * Mints/propagates short-lived run-as tokens from Front50 (Component 7). Optional so deployments
+   * (and tests) without the run-as endpoint wired simply fall back to the unsigned identity
+   * headers.
+   */
+  @Nullable private final RunAsTokenService runAsTokenService;
 
   private final ObjectMapper objectMapper;
   private final QuietPeriodIndicator quietPeriodIndicator;
@@ -72,8 +71,7 @@ public class PipelineInitiator {
   public PipelineInitiator(
       @NonNull Registry registry,
       @NonNull OrcaService orca,
-      @NonNull Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
-      @NonNull FiatStatus fiatStatus,
+      @NonNull Optional<RunAsTokenService> runAsTokenService,
       @NonNull ExecutorService executorService,
       ObjectMapper objectMapper,
       @NonNull QuietPeriodIndicator quietPeriodIndicator,
@@ -83,8 +81,7 @@ public class PipelineInitiator {
       @Value("${orca.pipeline-initiator-retry-delay-millis:5000}") long retryDelayMillis) {
     this.registry = registry;
     this.orca = orca;
-    this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
-    this.fiatStatus = fiatStatus;
+    this.runAsTokenService = runAsTokenService.orElse(null);
     this.objectMapper = objectMapper;
     this.quietPeriodIndicator = quietPeriodIndicator;
     this.dynamicConfigService = dynamicConfigService;
@@ -225,25 +222,24 @@ public class PipelineInitiator {
       TriggerResponse response;
 
       if (pipeline.getTrigger() != null && pipeline.getTrigger().isPropagateAuth()) {
-        response = triggerWithRetries(pipeline);
+        // Propagate the caller's existing (possibly signed) identity unchanged.
+        response = triggerWithRetries(pipeline, null);
       } else {
         // default to anonymous consistent with the existing pattern of
         // `AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")`
         String runAsUser = "anonymous";
-        Collection<String> allowedAccounts = Collections.emptySet();
-
-        if (fiatStatus.isEnabled()) {
-          if (pipeline.getTrigger() != null
-              && StringUtils.isNotBlank(pipeline.getTrigger().getRunAsUser())) {
-            runAsUser = pipeline.getTrigger().getRunAsUser().trim();
-          }
-          allowedAccounts = getAllowedAccountsForUser(runAsUser);
+        if (pipeline.getTrigger() != null
+            && StringUtils.isNotBlank(pipeline.getTrigger().getRunAsUser())) {
+          runAsUser = pipeline.getTrigger().getRunAsUser().trim();
         }
 
+        final String user = runAsUser;
+        // Authorization is no longer pre-resolved here (no replicated ACLs): Echo
+        // obtains a signed run-as token for the service account from Front50 and propagates it,
+        // and the owning services (Front50 on the pipeline-config fetch, Clouddriver on account
+        // ops) enforce at the boundary against that token.
         response =
-            AuthenticatedRequest.runAs(
-                    runAsUser, allowedAccounts, () -> triggerWithRetries(pipeline))
-                .call();
+            AuthenticatedRequest.runAs(user, () -> triggerWithRetries(pipeline, user)).call();
       }
 
       log.info("Successfully triggered {}: execution id: {}", pipeline, response.getRef());
@@ -280,12 +276,24 @@ public class PipelineInitiator {
     return null;
   }
 
-  private TriggerResponse triggerWithRetries(Pipeline pipeline) {
+  /**
+   * Triggers the pipeline in Orca, retrying on retryable failures.
+   *
+   * <p>When {@code runAsUser} is non-null (the run-as path), a fresh short-lived run-as token is
+   * minted from Front50 and stamped onto the identity at each attempt — i.e. re-minted at the stage
+   * boundary so the token stays short-lived and roles are re-resolved, rather than reusing one
+   * long-lived token across retries. When {@code runAsUser} is null (the propagate-auth path) the
+   * caller's existing identity is propagated unchanged.
+   */
+  private TriggerResponse triggerWithRetries(Pipeline pipeline, @Nullable String runAsUser) {
     int attempts = 0;
 
     while (true) {
       try {
         attempts++;
+        if (runAsUser != null && runAsTokenService != null) {
+          runAsTokenService.propagateRunAsToken(runAsUser, pipeline.getId());
+        }
         return Retrofit2SyncCall.execute(orca.trigger(pipeline));
       } catch (SpinnakerServerException e) {
         if ((attempts >= retryCount) || (e.getRetryable() != null && !e.getRetryable())) {
@@ -306,37 +314,6 @@ public class PipelineInitiator {
       } catch (InterruptedException ignored) {
       }
     }
-  }
-
-  /**
-   * The set of accounts that a user has WRITE access to.
-   *
-   * <p>Similar filtering can be found in `gate` (see AllowedAccountsSupport.java).
-   *
-   * @param user A service account name (or 'anonymous' if not specified)
-   * @return the allowed accounts for {@param user} as determined by fiat
-   */
-  private Set<String> getAllowedAccountsForUser(String user) {
-    if (fiatPermissionEvaluator == null || !fiatStatus.isLegacyFallbackEnabled()) {
-      return Collections.emptySet();
-    }
-
-    UserPermission.View userPermission = null;
-    try {
-      userPermission =
-          AuthenticatedRequest.allowAnonymous(() -> fiatPermissionEvaluator.getPermission(user));
-    } catch (Exception e) {
-      log.error("Unable to fetch permission for {}", user, e);
-    }
-
-    if (userPermission == null) {
-      return Collections.emptySet();
-    }
-
-    return userPermission.getAccounts().stream()
-        .filter(v -> v.getAuthorizations().contains(Authorization.WRITE))
-        .map(Account.View::getName)
-        .collect(Collectors.toSet());
   }
 
   private void logOrcaErrorMetric(String exceptionName, String triggerSource, String triggerType) {

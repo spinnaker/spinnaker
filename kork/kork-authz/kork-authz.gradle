@@ -1,0 +1,43 @@
+apply plugin: "java-library"
+apply plugin: "groovy"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  api(project(":kork-security"))
+  api "org.springframework.security:spring-security-core"
+  api "org.springframework.security:spring-security-acl"
+  api "com.fasterxml.jackson.core:jackson-annotations"
+  // ServiceIdentityInterceptor is an okhttp3.Interceptor that callers wire onto their own clients,
+  // so the type is part of this module's API surface.
+  api "com.squareup.okhttp3:okhttp"
+
+  implementation(project(":kork-core"))
+  // TrustStores, to verify the Kubernetes API server's cluster-CA-signed certificate when fetching
+  // the cluster JWKS.
+  implementation(project(":kork-crypto"))
+  implementation "org.springframework.security:spring-security-web"
+  implementation "org.springframework:spring-context"
+  implementation "org.springframework:spring-web"
+  implementation "org.springframework.boot:spring-boot"
+  implementation "org.aspectj:aspectjweaver"
+  implementation "com.fasterxml.jackson.core:jackson-databind"
+  implementation "com.google.guava:guava"
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.slf4j:slf4j-api"
+
+  compileOnly "jakarta.servlet:jakarta.servlet-api"
+
+  testImplementation "org.junit.jupiter:junit-jupiter-api"
+  testImplementation "org.junit.jupiter:junit-jupiter-params"
+  testImplementation "org.assertj:assertj-core"
+  testImplementation "org.mockito:mockito-core"
+  testImplementation "com.squareup.okhttp3:mockwebserver"
+  testImplementation "org.springframework:spring-test"
+  testImplementation "org.springframework:spring-aop"
+  testImplementation "jakarta.servlet:jakarta.servlet-api"
+  testImplementation(testFixtures(project(":kork-crypto")))
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+  testRuntimeOnly "ch.qos.logback:logback-classic"
+}

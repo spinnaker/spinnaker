@@ -25,9 +25,6 @@ dependencies {
   api(enforcedPlatform("io.spinnaker.kork:kork-bom"))
 
   constraints {
-    api("io.spinnaker.fiat:fiat-api")
-    api("io.spinnaker.fiat:fiat-core")
-
     rootProject
       .subprojects
       .findAll { it != project }

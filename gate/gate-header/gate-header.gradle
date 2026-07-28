@@ -5,4 +5,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-annotations"
   implementation "com.github.ben-manes.caffeine:caffeine"
+
+  testImplementation "com.squareup.retrofit2:retrofit-mock"
 }

@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.front50.config.AuthorizationConfig
+import com.netflix.spinnaker.front50.config.security.Front50PermissionEvaluator
+import com.netflix.spinnaker.security.authz.ResourceAclResolver
 import com.netflix.spinnaker.front50.ServiceAccountsService
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
@@ -70,7 +72,8 @@ abstract class PipelineControllerTck extends Specification {
   ServiceAccountsService serviceAccountsService
   StorageServiceConfigurationProperties.PerObjectType pipelineDAOConfigProperties =
     new StorageServiceConfigurationProperties().getPipeline()
-  FiatPermissionEvaluator fiatPermissionEvaluator
+  Front50PermissionEvaluator permissionEvaluator
+  ResourceAclResolver resourceAclResolver
   AuthorizationSupport authorizationSupport
   ObjectMapper objectMapper
   PipelineControllerConfig pipelineControllerConfig
@@ -84,8 +87,9 @@ abstract class PipelineControllerTck extends Specification {
     this.pipelineDAO = Spy(createPipelineDAO())
     this.serviceAccountsService = Mock(ServiceAccountsService)
     this.pipelineControllerConfig = new PipelineControllerConfig()
-    this.fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-    this.authorizationSupport = Spy(new AuthorizationSupport(fiatPermissionEvaluator))
+    this.permissionEvaluator = Mock(Front50PermissionEvaluator)
+    this.resourceAclResolver = Mock(ResourceAclResolver)
+    this.authorizationSupport = Spy(new AuthorizationSupport(permissionEvaluator, resourceAclResolver, new AuthorizationConfig()))
 
     MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
     mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper)
@@ -99,7 +103,7 @@ abstract class PipelineControllerTck extends Specification {
           Collections.emptyList(),
           Optional.empty(),
           pipelineControllerConfig,
-          fiatPermissionEvaluator,
+          permissionEvaluator,
           authorizationSupport
         )
       )
@@ -517,8 +521,8 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == OK
-    1 * fiatPermissionEvaluator.hasPermission(_, "test1", "APPLICATION", "WRITE") >> true
-    1 * fiatPermissionEvaluator.hasPermission(_, "test2", "APPLICATION", "WRITE") >> true
+    1 * permissionEvaluator.hasPermission(_, "test1", "APPLICATION", "WRITE") >> true
+    1 * permissionEvaluator.hasPermission(_, "test2", "APPLICATION", "WRITE") >> true
     1 * pipelineDAO.bulkImport(pipelines) >> null
     new JsonSlurper().parseText(response.getContentAsString()) == [
       successful_pipelines_count: 4,
@@ -555,8 +559,8 @@ abstract class PipelineControllerTck extends Specification {
     1 * pipelineDAO.all(false) >> [
       [name: "Failed Pipeline 4", application: "test_app", id: "existing_pipeline_id"] as Pipeline
     ]
-    1 * fiatPermissionEvaluator.hasPermission(_, "test_app", "APPLICATION", "WRITE") >> true
-    1 * fiatPermissionEvaluator.hasPermission(_, "test_app_without_permission", "APPLICATION", "WRITE") >> false
+    1 * permissionEvaluator.hasPermission(_, "test_app", "APPLICATION", "WRITE") >> true
+    1 * permissionEvaluator.hasPermission(_, "test_app_without_permission", "APPLICATION", "WRITE") >> false
     1 * pipelineDAO.bulkImport(pipelines[0..0]) >> null
     1 * authorizationSupport.hasRunAsUserPermission(pipelines[6]) >> false
     response.status == OK

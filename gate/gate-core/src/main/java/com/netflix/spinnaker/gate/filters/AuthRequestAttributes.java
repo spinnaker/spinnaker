@@ -20,16 +20,16 @@ package com.netflix.spinnaker.gate.filters;
  * Shared {@code ServletRequest} attribute keys used to communicate authentication classifications
  * across the request lifecycle.
  *
- * <p>Lives in {@code gate-core} so filters in either module (e.g. {@link FiatSessionFilter} here in
- * gate-core, {@code ApiTokenAuthenticationFilter} in gate-web) can reference the same symbol
- * without inverting the gate-core ← gate-web module dependency.
+ * <p>Lives in {@code gate-core} so filters in either module (e.g. the identity-token inbound filter
+ * here in gate-core, {@code ApiTokenAuthenticationFilter} in gate-web) can reference the same
+ * symbol without inverting the gate-core ← gate-web module dependency.
  */
 public final class AuthRequestAttributes {
 
   /**
    * Set to {@code Boolean.TRUE} by the API-token auth filter once it decides the inbound request is
    * bearing a Spinnaker API token. Consumed by downstream filters that should skip session / DPoP /
-   * browser-flow logic for stateless token requests (e.g. {@link FiatSessionFilter}).
+   * browser-flow logic for stateless token requests.
    */
   public static final String IS_API_TOKEN = "gate.isApiToken";
 

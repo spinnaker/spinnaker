@@ -32,11 +32,11 @@ import com.netflix.spinnaker.clouddriver.security.AllowAllAccountSecurityPolicy;
 import com.netflix.spinnaker.clouddriver.security.AuthorizedRolesExtractor;
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountSecurityPolicy;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.secrets.SecretManager;
 import com.netflix.spinnaker.kork.secrets.SecretSession;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretManager;
 import com.netflix.spinnaker.kork.secrets.user.UserSecretReference;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,9 +76,13 @@ public class AccountDefinitionConfiguration {
   @Bean
   @ConditionalOnMissingBean
   public AccountSecurityPolicy accountSecurity(
-      @Nullable FiatPermissionEvaluator permissionEvaluator,
-      @Value("${services.fiat.enabled:false}") boolean fiatEnabled) {
-    return fiatEnabled && permissionEvaluator != null
+      @Nullable PolicyDecisionPointPermissionEvaluator permissionEvaluator,
+      @Value("${authz.enabled:false}") boolean authzEnabled) {
+    // Owner-local enforcement is driven by the authorization master switch. While authorization is
+    // disabled (authz.enabled=false, the default) account-definition access is allow-all;
+    // once the operator enables it, decisions are made locally against the caller's verified token
+    // roles and Clouddriver's own account ACLs.
+    return authzEnabled && permissionEvaluator != null
         ? new DefaultAccountSecurityPolicy(permissionEvaluator)
         : new AllowAllAccountSecurityPolicy();
   }

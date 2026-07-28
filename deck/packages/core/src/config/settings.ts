@@ -32,7 +32,7 @@ export interface IFeatures {
   dockerBake?: boolean;
   entityTags?: boolean;
   executionMarkerInformationModal?: boolean;
-  fiatEnabled?: boolean;
+  authzEnabled?: boolean;
   iapRefresherEnabled?: boolean;
   lambdaAdditionalStages?: boolean;
   managedDelivery?: boolean;

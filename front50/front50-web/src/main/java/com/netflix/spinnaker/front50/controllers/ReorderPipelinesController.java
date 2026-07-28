@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.ItemDAO;
@@ -23,15 +22,11 @@ import com.netflix.spinnaker.front50.model.pipeline.*;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("actions")
 class ReorderPipelinesController {
-  @Autowired FiatPermissionEvaluator fiatPermissionEvaluator;
-
   @Autowired PipelineDAO pipelineDAO;
 
   @Autowired PipelineStrategyDAO pipelineStrategyDAO;
@@ -57,14 +52,6 @@ class ReorderPipelinesController {
 
     if (idsToIndices == null) {
       throw new InvalidRequestException("`idsToIndices` is required field on request body");
-    }
-
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-    if (!fiatPermissionEvaluator.storeWholePermission()
-        && !fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
-      throw new InvalidRequestException(
-          "Application write permission is required to reorder pipelines");
     }
 
     for (String id : idsToIndices.keySet()) {

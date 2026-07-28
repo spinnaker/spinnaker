@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.model.resources.Role
-import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
@@ -43,6 +40,10 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.token.AuthorizationProperties
+import com.netflix.spinnaker.security.token.SpinnakerTokenClaims
+import com.netflix.spinnaker.security.token.SpinnakerTokenVerifier
+import com.netflix.spinnaker.security.token.TokenValidationException
 import groovy.util.logging.Slf4j
 import javassist.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,6 +56,27 @@ import static com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType.PIPEL
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
 import static net.logstash.logback.argument.StructuredArguments.value
 
+/**
+ * Starts pipeline and ad-hoc task executions (the {@code /orchestrate*} and {@code /ops*}
+ * endpoints).
+ *
+ * <p><b>Trust assumption — this controller enforces no method-level authorization.</b> Unlike
+ * {@link TaskController}, whose read/write/execute endpoints are gated by
+ * {@code @PreAuthorize}/{@code @PostFilter} SpEL against the {@code spinnakerPermissionEvaluator}
+ * (see {@code OrcaSecurityConfig}), none of the execution-launching endpoints here carry any
+ * authorization annotation. Access control for these endpoints has always been delegated entirely
+ * to Gate (which authorizes the request before proxying it) plus the operational assumption that
+ * Orca is not directly reachable by end users. The only per-request authorization decision this
+ * controller makes is the role-based filtering of {@code /webhooks/preconfigured}, and that is a
+ * read-only visibility filter, not a gate on launching executions.
+ *
+ * <p>This is a long-standing property, not a regression. It is called out explicitly because, with
+ * Fiat no longer in the request path, any operator who mentally treated Orca's own authorization as
+ * a second line of defense for execution starts should understand that no such second line exists
+ * here — Gate and network isolation remain the sole enforcement points for {@code /orchestrate*}
+ * and {@code /ops*}. If direct-to-Orca execution starts must be authorized in the future, these
+ * endpoints would need their own {@code @PreAuthorize} checks.
+ */
 @RestController
 @Slf4j
 class OperationsController {
@@ -91,11 +113,11 @@ class OperationsController {
   @Autowired(required = false)
   ArtifactUtils artifactUtils
 
-  @Autowired
-  FiatStatus fiatStatus
+  @Autowired(required = false)
+  SpinnakerTokenVerifier tokenVerifier
 
   @Autowired(required = false)
-  FiatService fiatService
+  AuthorizationProperties authorizationProperties
 
   @Autowired(required = false)
   Front50Service front50Service
@@ -385,19 +407,25 @@ class OperationsController {
     }
     def webhooks = webhookService.preconfiguredWebhooks
 
-    if (webhooks && fiatStatus.isEnabled()) {
-      if (webhooks.any { it.permissions }) {
-        def userPermissionRoles = [new Role.View(new Role("anonymous"))] as Set<Role.View>
-        try {
-          String user = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-          UserPermission.View userPermission = Retrofit2SyncCall.execute(fiatService.getUserPermission(user))
-          userPermissionRoles = userPermission.roles
-        } catch (Exception e) {
-          log.error("Unable to determine roles for current user, falling back to 'anonymous'", e)
+    if (webhooks && webhooks.any { it.permissions }) {
+      // Role-only decision sourced from the verified identity token (no remote lookup). An admin
+      // always sees everything.
+      SpinnakerTokenClaims claims = resolveVerifiedClaims()
+      if (claims != null) {
+        if (!claims.isAdmin()) {
+          Set<String> roleNames = claims.getRoles() as Set<String>
+          webhooks = webhooks.findAll { it.isAllowed("READ", roleNames) }
         }
-
-        webhooks = webhooks.findAll { it.isAllowed("READ", userPermissionRoles) }
+      } else if (isStrictAuthorization()) {
+        // Fail closed: strict authorization is enabled but no verified token is present, so treat
+        // the caller as an anonymous user with no roles (only webhooks readable without any role
+        // are shown) rather than showing everything.
+        log.warn("Filtering preconfigured webhooks as an anonymous (no-role) user: no verified identity token was present and authz.strict is enabled")
+        Set<String> noRoles = Collections.emptySet()
+        webhooks = webhooks.findAll { it.isAllowed("READ", noRoles) }
       }
+      // else permissive: no verified token during rollout, show all preconfigured webhooks rather
+      // than failing closed.
     }
 
     return webhooks.collect {
@@ -494,6 +522,38 @@ class OperationsController {
   private void injectPipelineOrigin(Map pipeline) {
     if (!pipeline.origin) {
       pipeline.origin = AuthenticatedRequest.spinnakerUserOrigin.orElse('unknown')
+    }
+  }
+
+  /**
+   * Resolve the caller's roles from the verified identity token on the current request, or null when
+   * none is available (no verifier wired, no token present, or an invalid token) so the caller can
+   * stay permissive during rollout.
+   */
+  /**
+   * Whether fail-closed authorization is in effect: {@code authz.enabled} and {@code authz.strict}
+   * are both true. When true, role-only decision points deny (rather than stay permissive) if no
+   * verified identity token is available.
+   */
+  private boolean isStrictAuthorization() {
+    return authorizationProperties != null &&
+      authorizationProperties.isEnabled() &&
+      authorizationProperties.isStrict()
+  }
+
+  private SpinnakerTokenClaims resolveVerifiedClaims() {
+    if (tokenVerifier == null) {
+      return null
+    }
+    String token = AuthenticatedRequest.get(Header.IDENTITY_TOKEN).orElse(null)
+    if (!token) {
+      return null
+    }
+    try {
+      return tokenVerifier.verify(token)
+    } catch (TokenValidationException e) {
+      log.warn("Ignoring invalid identity token while listing preconfigured webhooks", e)
+      return null
     }
   }
 }

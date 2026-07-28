@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.security.RunAsTokenProvider
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -42,6 +43,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+
 
 @Configuration
 @Import([RetrofitConfiguration])
@@ -78,13 +80,14 @@ class EchoConfiguration {
     Front50Service front50Service,
     ObjectMapper objectMapper,
     ContextParameterProcessor contextParameterProcessor,
-    Registry registry
-  ) {
-    return new EchoNotifyingExecutionListener(
+    Optional<RunAsTokenProvider> runAsTokenProvider,
+    Registry registry) {
+    new EchoNotifyingExecutionListener(
       echoService,
       front50Service,
       objectMapper,
       contextParameterProcessor,
+      runAsTokenProvider.orElse(null),
       registry
     )
   }

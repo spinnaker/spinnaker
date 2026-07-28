@@ -168,7 +168,8 @@ class RunTaskHandlerExceptionHandlerTest {
             taskExecutionInterceptors,
             new NoopRegistry(),
             dynamicConfigService,
-            retriableLock);
+            retriableLock,
+            null);
 
     PipelineExecutionImpl pipeline = new PipelineExecutionImpl(PIPELINE, "test-application");
 

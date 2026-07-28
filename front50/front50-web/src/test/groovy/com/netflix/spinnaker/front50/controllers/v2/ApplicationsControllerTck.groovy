@@ -20,8 +20,6 @@ package com.netflix.spinnaker.front50.controllers.v2
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.Front50SqlProperties
-import com.netflix.spinnaker.fiat.shared.FiatStatus
-import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties
 import com.netflix.spinnaker.front50.jackson.Front50ApiModule
 import com.netflix.spinnaker.front50.model.DefaultObjectKeyLoader
@@ -41,6 +39,7 @@ import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import com.netflix.spinnaker.kork.web.exceptions.ExceptionMessageDecorator
 import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import com.netflix.spinnaker.security.authz.config.ApplicationDefaultPermissionsProperties
 import io.github.resilience4j.circuitbreaker.internal.InMemoryCircuitBreakerRegistry
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.support.StaticMessageSource
@@ -70,7 +69,6 @@ abstract class ApplicationsControllerTck extends Specification {
   def projectDAO = Mock(ProjectDAO)
   def pipelineDAO = Mock(PipelineDAO)
   def pipelineStrategyDAO = Mock(PipelineStrategyDAO)
-  def fiatStatus = Mock(FiatStatus)
 
   @Subject
   ApplicationDAO dao
@@ -93,10 +91,8 @@ abstract class ApplicationsControllerTck extends Specification {
       new StaticMessageSource(),
       dao,
       Optional.empty(),
-      Optional.empty(),
-      new FiatConfigurationProperties(),
-      fiatStatus,
-      applicationService
+      applicationService,
+      new ApplicationDefaultPermissionsProperties()
     )
 
     MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();

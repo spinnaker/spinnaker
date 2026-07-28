@@ -18,23 +18,20 @@ package com.netflix.spinnaker.echo;
 
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {Application.class})
 @TestPropertySource(properties = {"spring.config.location=classpath:echo-test.yml"})
 public class ApplicationSpec {
-  @MockitoBean Front50Service front50Service;
+  @MockBean Front50Service front50Service;
 
-  @MockitoBean OrcaService orcaService;
-
-  @MockitoBean FiatService fiatService;
+  @MockBean OrcaService orcaService;
 
   @Test
   public void startupTest() {}

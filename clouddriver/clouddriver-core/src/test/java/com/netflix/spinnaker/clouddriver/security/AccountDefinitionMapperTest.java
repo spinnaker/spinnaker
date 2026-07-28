@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.spinnaker.clouddriver.config.AccountDefinitionConfiguration;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.fiat.model.Authorization;
+import com.netflix.spinnaker.security.authz.Authorization;
 import io.spinnaker.test.security.TestAccount;
 import io.spinnaker.test.security.ValueAccount;
 import java.util.Set;

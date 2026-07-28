@@ -30,13 +30,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.OrcaService;
@@ -50,20 +43,18 @@ import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.mock.Calls;
 
 /**
@@ -78,8 +69,6 @@ import retrofit2.mock.Calls;
       "logging.level.org.springframework.security=DEBUG",
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000",
-      "services.fiat.enabled=true",
-      "fiat.session-filter.enabled=false",
       "provided-id-request-filter.enabled=true",
       "logging.level.com.netflix.spinnaker.gate.filters=DEBUG"
     })
@@ -93,20 +82,16 @@ public class HeaderAuthTest {
 
   @Autowired ObjectMapper objectMapper;
 
-  @MockitoBean ClouddriverService clouddriverService;
+  @MockBean ClouddriverService clouddriverService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @SpyBean RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
-  @MockitoBean FiatService fiatService;
+  @MockBean OrcaServiceSelector orcaServiceSelector;
 
-  @MockitoBean OrcaServiceSelector orcaServiceSelector;
-
-  @MockitoBean OrcaService orcaService;
-
-  @SpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
+  @MockBean OrcaService orcaService;
 
   @BeforeEach
   void init(TestInfo testInfo) {
@@ -118,15 +103,6 @@ public class HeaderAuthTest {
     when(orcaServiceSelector.select()).thenReturn(orcaService);
   }
 
-  @AfterEach
-  void cleanup() {
-    // Clean up the permissions cache in FiatPermissionEvaluator since we don't
-    // get a fresh bean for each test.  There's an invalidateAll method on the
-    // permissions cache, but FiatPermissionEvaluator doesn't expose it.  For
-    // now we're testing with one user, so this is sufficient.
-    fiatPermissionEvaluator.invalidatePermission(USERNAME);
-  }
-
   @Test
   void testAuthUserWithUser() throws Exception {
     URI uri = new URI("http://localhost:" + port + "/auth/user");
@@ -134,26 +110,6 @@ public class HeaderAuthTest {
     HttpRequest request =
         HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
 
-    when(fiatService.loginUser(USERNAME)).thenReturn(Calls.response((Void) null));
-
-    // simulate a role from fiat
-    when(fiatService.getUserPermission(USERNAME))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(USERNAME)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account-a")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(
-                            new Role.View()
-                                .setName("testRoleA")
-                                .setSource(Role.Source.LDAP))))); // arbitrary
-
     HttpResponse<String> response = callGate(request, 200);
 
     Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
@@ -162,69 +118,10 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
     assertThat(jsonResponse.get("firstName")).isNull();
     assertThat(jsonResponse.get("lastName")).isNull();
-    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).containsExactly("testRoleA");
-    assertThat(jsonResponse.get("allowedAccounts"))
-        .asInstanceOf(LIST)
-        .containsExactly("test-account-a");
-    assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
-    assertThat(jsonResponse.get("authorities"))
-        .asInstanceOf(LIST)
-        .contains(Map.of("authority", "testRoleA"));
-    assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
-    assertThat(jsonResponse.get("accountNonLocked")).asInstanceOf(BOOLEAN).isTrue();
-    assertThat(jsonResponse.get("credentialsNonExpired")).asInstanceOf(BOOLEAN).isTrue();
-
-    // Make sure there isn't some exception-handling path that added a message to the response
-    assertThat(jsonResponse.containsKey("message")).isFalse();
-
-    verifyRequestProcessing(1);
-
-    // Verify that gate called fiat
-    verify(fiatService).loginUser(USERNAME);
-    verify(fiatService).getUserPermission(USERNAME);
-
-    // Verify that there were no other fiat interactions
-    verifyNoMoreInteractions(fiatService);
-  }
-
-  @Test
-  void testAuthRawUserWithUser() throws Exception {
-    URI uri = new URI("http://localhost:" + port + "/auth/rawUser");
-
-    HttpRequest request =
-        HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
-
-    when(fiatService.loginUser(USERNAME)).thenReturn(Calls.response((Void) null));
-
-    when(fiatService.getUserPermission(USERNAME))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(USERNAME)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account-b")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(
-                            new Role.View()
-                                .setName("testRoleB")
-                                .setSource(Role.Source.LDAP))))); // arbitrary
-
-    HttpResponse<String> response = callGate(request, 200);
-
-    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
-
-    assertThat(jsonResponse.get("email")).isEqualTo(USERNAME);
-    assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
-    assertThat(jsonResponse.get("firstName")).isNull();
-    assertThat(jsonResponse.get("lastName")).isNull();
+    // With no role provider configured, header auth asserts no roles, and allowedAccounts is
+    // derived locally from Clouddriver's accounts (none in this test).
     assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).isEmpty();
-    assertThat(jsonResponse.get("allowedAccounts"))
-        .asInstanceOf(LIST)
-        .containsExactly("test-account-b");
+    assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
     assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
     assertThat(jsonResponse.get("authorities")).asInstanceOf(LIST).isEmpty();
     assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
@@ -235,11 +132,35 @@ public class HeaderAuthTest {
     assertThat(jsonResponse.containsKey("message")).isFalse();
 
     verifyRequestProcessing(1);
+  }
 
-    // Verify interactions with fiat.
-    verify(fiatService).loginUser(USERNAME);
-    verify(fiatService).getUserPermission(USERNAME);
-    verifyNoMoreInteractions(fiatService);
+  @Test
+  void testAuthRawUserWithUser() throws Exception {
+    URI uri = new URI("http://localhost:" + port + "/auth/rawUser");
+
+    HttpRequest request =
+        HttpRequest.newBuilder(uri).GET().header(USER.getHeader(), USERNAME).build();
+
+    HttpResponse<String> response = callGate(request, 200);
+
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
+
+    assertThat(jsonResponse.get("email")).isEqualTo(USERNAME);
+    assertThat(jsonResponse.get("username")).isEqualTo(USERNAME);
+    assertThat(jsonResponse.get("firstName")).isNull();
+    assertThat(jsonResponse.get("lastName")).isNull();
+    assertThat(jsonResponse.get("roles")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("allowedAccounts")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("enabled")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("authorities")).asInstanceOf(LIST).isEmpty();
+    assertThat(jsonResponse.get("accountNonExpired")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("accountNonLocked")).asInstanceOf(BOOLEAN).isTrue();
+    assertThat(jsonResponse.get("credentialsNonExpired")).asInstanceOf(BOOLEAN).isTrue();
+
+    // Make sure there isn't some exception-handling path that added a message to the response
+    assertThat(jsonResponse.containsKey("message")).isFalse();
+
+    verifyRequestProcessing(1);
 
     // Verify there's no session cookie in the response
     Optional<String> sessionCookieOptional = response.headers().firstValue("set-cookie");
@@ -266,6 +187,24 @@ public class HeaderAuthTest {
   }
 
   @Test
+  void testSpinnakerTomcatErrorValve() throws Exception {
+    // If error handling is configured properly, other tests don't exercise
+    // SpinnakerTomcatErrorValve, so let's exercise it here.an-invalid-character")
+    URI uri = new URI("http://localhost:" + port + "/bracket-is-an-invalid-character?[foo]");
+
+    HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
+    HttpResponse<String> response = callGate(request, 400);
+
+    Map<String, Object> jsonResponse = objectMapper.readValue(response.body(), mapType);
+    assertThat(jsonResponse.get("message"))
+        .isEqualTo(
+            "Invalid character found in the request target [/bracket-is-an-invalid-character?[foo] ]. The valid characters are defined in RFC 7230 and RFC 3986");
+    assertThat(jsonResponse.get("exception")).isEqualTo(IllegalArgumentException.class.getName());
+    assertThat(jsonResponse.get("status")).isEqualTo(400);
+  }
+
+  @Test
   void testCsrfDisabled() throws Exception {
     // Choose an arbitrary endpoint that only works if csrf is disabled.  That
     // is, any endpoint with an http method that DefaultRequiresCsrfMatcher
@@ -279,20 +218,6 @@ public class HeaderAuthTest {
             .POST(HttpRequest.BodyPublishers.ofString("{}"))
             .build();
 
-    when(fiatService.loginUser(USERNAME)).thenReturn(Calls.response((Void) null));
-
-    when(fiatService.getUserPermission(USERNAME))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(USERNAME)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account-c")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))));
-
     // arbitrary execution info
     when(orcaService.startPipeline(anyMap(), eq(USERNAME))).thenReturn(Calls.response(Map.of()));
 
@@ -300,10 +225,6 @@ public class HeaderAuthTest {
 
     // The response from orcaService.startPipeline configured above
     assertThat(response.body()).isEqualTo("{}");
-
-    verify(fiatService).loginUser(USERNAME);
-    verify(fiatService).getUserPermission(USERNAME);
-    verifyNoMoreInteractions(fiatService);
 
     verify(orcaService).startPipeline(anyMap(), eq(USERNAME));
     verifyNoMoreInteractions(orcaService);

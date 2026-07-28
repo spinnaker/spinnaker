@@ -99,7 +99,6 @@ import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.definition.CredentialsLoader;
 import com.netflix.spinnaker.credentials.poller.PollerConfiguration;
 import com.netflix.spinnaker.credentials.poller.PollerConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactDeserializer;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStore;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
@@ -107,6 +106,7 @@ import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
 import jakarta.inject.Provider;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -396,11 +396,11 @@ class CloudDriverConfig {
   @Bean
   DescriptionAuthorizerService descriptionAuthorizerService(
       Registry registry,
-      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+      Optional<PolicyDecisionPointPermissionEvaluator> permissionEvaluator,
       SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
       AccountDefinitionSecretManager secretManager) {
     return new DescriptionAuthorizerService(
-        registry, fiatPermissionEvaluator, opsSecurityConfigProps, secretManager);
+        registry, permissionEvaluator, opsSecurityConfigProps, secretManager);
   }
 
   @Bean

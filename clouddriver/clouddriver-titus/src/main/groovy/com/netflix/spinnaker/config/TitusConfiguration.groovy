@@ -26,8 +26,8 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.GrpcChannelFactory
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
-import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Authorization
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.kork.core.RetrySupport
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer
 import com.netflix.spinnaker.kork.jackson.ObjectMapperSubtypeConfigurer.SubtypeLocator

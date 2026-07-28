@@ -27,8 +27,6 @@ import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.DefaultServiceClientProvider;
 import com.netflix.spinnaker.config.okhttp3.DefaultOkHttpClientBuilderProvider;
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider;
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2ServiceFactory;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -65,10 +63,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
       OkHttpClient.class,
       OkHttpClientConfigurationProperties.class,
       ObjectMapper.class,
-      FiatStatus.class,
       NoopRegistry.class,
       DynamicConfigService.NoopDynamicConfig.class,
-      FiatClientConfigurationProperties.class,
       InMemoryExecutionRepository.class,
       ContextParameterProcessor.class
     })

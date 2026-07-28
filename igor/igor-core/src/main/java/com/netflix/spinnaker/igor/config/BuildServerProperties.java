@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.igor.config;
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.List;
 
 /**

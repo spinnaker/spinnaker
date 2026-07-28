@@ -66,7 +66,6 @@ public class BillOfMaterials {
     Artifact echo;
     Artifact clouddriver;
     Artifact deck;
-    Artifact fiat;
     Artifact front50;
     Artifact gate;
     Artifact igor;

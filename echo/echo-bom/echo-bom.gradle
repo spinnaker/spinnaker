@@ -25,8 +25,7 @@ dependencies {
   api(enforcedPlatform("io.spinnaker.kork:kork-bom"))
 
   constraints {
-    api("io.spinnaker.fiat:fiat-api")
-    api("io.spinnaker.fiat:fiat-core")
+    api("io.spinnaker.kork:kork-authz")
 
     rootProject
       .subprojects

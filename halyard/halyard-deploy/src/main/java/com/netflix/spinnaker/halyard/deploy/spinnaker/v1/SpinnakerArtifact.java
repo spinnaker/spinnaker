@@ -26,7 +26,6 @@ public enum SpinnakerArtifact {
   CLOUDDRIVER("clouddriver", true),
   DECK("deck", true),
   ECHO("echo", true),
-  FIAT("fiat", true),
   FRONT50("front50", true),
   GATE("gate", true),
   IGOR("igor", true),

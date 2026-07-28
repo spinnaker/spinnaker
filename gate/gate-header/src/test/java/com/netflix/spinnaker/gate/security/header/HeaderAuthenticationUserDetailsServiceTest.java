@@ -35,6 +35,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import retrofit2.mock.Calls;
 
 class HeaderAuthenticationUserDetailsServiceTest {
 
@@ -56,7 +57,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
   void testServiceAccountDoesNotCallFiatLogin() {
     String serviceAccountEmail = "pipegensvc@salesforce.com";
     ServiceAccountPojo serviceAccount = new ServiceAccountPojo(serviceAccountEmail);
-    when(front50Service.getServiceAccountsPojo()).thenReturn(List.of(serviceAccount));
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(List.of(serviceAccount)));
 
     PreAuthenticatedAuthenticationToken token =
         new PreAuthenticatedAuthenticationToken(serviceAccountEmail, null);
@@ -70,7 +72,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
   @Test
   void testRegularUserCallsFiatLogin() {
     String regularUserEmail = "regularuser@salesforce.com";
-    when(front50Service.getServiceAccountsPojo()).thenReturn(Collections.emptyList());
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(Collections.emptyList()));
 
     PreAuthenticatedAuthenticationToken token =
         new PreAuthenticatedAuthenticationToken(regularUserEmail, null);
@@ -88,7 +91,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
 
     String serviceAccountEmail = "pipegensvc@salesforce.com";
     ServiceAccountPojo serviceAccount = new ServiceAccountPojo(serviceAccountEmail);
-    when(front50Service.getServiceAccountsPojo()).thenReturn(List.of(serviceAccount));
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(List.of(serviceAccount)));
 
     PreAuthenticatedAuthenticationToken token1 =
         new PreAuthenticatedAuthenticationToken(serviceAccountEmail, null);
@@ -118,7 +122,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
   void testIsServiceAccountCaseInsensitive() {
     String serviceAccountEmail = "PipeGenSvc@Salesforce.com";
     ServiceAccountPojo serviceAccount = new ServiceAccountPojo("pipegensvc@salesforce.com");
-    when(front50Service.getServiceAccountsPojo()).thenReturn(List.of(serviceAccount));
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(List.of(serviceAccount)));
 
     boolean result = userDetailsService.isServiceAccount(serviceAccountEmail);
 
@@ -130,7 +135,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
   void testIsServiceAccountReturnsFalseWhenNotInList() {
     String regularUserEmail = "regularuser@salesforce.com";
     ServiceAccountPojo serviceAccount = new ServiceAccountPojo("pipegensvc@salesforce.com");
-    when(front50Service.getServiceAccountsPojo()).thenReturn(List.of(serviceAccount));
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(List.of(serviceAccount)));
 
     boolean result = userDetailsService.isServiceAccount(regularUserEmail);
 
@@ -140,7 +146,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
 
   @Test
   void testIsServiceAccountHandlesEmptyServiceAccountList() {
-    when(front50Service.getServiceAccountsPojo()).thenReturn(Collections.emptyList());
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(Collections.emptyList()));
 
     boolean result = userDetailsService.isServiceAccount("test@salesforce.com");
 
@@ -155,7 +162,7 @@ class HeaderAuthenticationUserDetailsServiceTest {
     ServiceAccountPojo serviceAccount2 = new ServiceAccountPojo(serviceAccountEmail);
     ServiceAccountPojo serviceAccount3 = new ServiceAccountPojo("anotherservice@salesforce.com");
     when(front50Service.getServiceAccountsPojo())
-        .thenReturn(List.of(serviceAccount1, serviceAccount2, serviceAccount3));
+        .thenReturn(Calls.response(List.of(serviceAccount1, serviceAccount2, serviceAccount3)));
 
     boolean result = userDetailsService.isServiceAccount(serviceAccountEmail);
 
@@ -166,7 +173,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
   @Test
   void testCreateUserDetailsReturnsUserWithEmail() {
     String email = "user@salesforce.com";
-    when(front50Service.getServiceAccountsPojo()).thenReturn(Collections.emptyList());
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(Collections.emptyList()));
 
     PreAuthenticatedAuthenticationToken token =
         new PreAuthenticatedAuthenticationToken(email, null);
@@ -183,7 +191,8 @@ class HeaderAuthenticationUserDetailsServiceTest {
   @Test
   void testCreateUserDetailsCallsFilterAllowedAccounts() {
     String email = "user@salesforce.com";
-    when(front50Service.getServiceAccountsPojo()).thenReturn(Collections.emptyList());
+    when(front50Service.getServiceAccountsPojo())
+        .thenReturn(Calls.response(Collections.emptyList()));
 
     PreAuthenticatedAuthenticationToken token =
         new PreAuthenticatedAuthenticationToken(email, null);
@@ -204,7 +213,10 @@ class HeaderAuthenticationUserDetailsServiceTest {
         new HeaderAuthenticationUserDetailsService(
             permissionService, allowedAccountsSupport, front50Service, headerAuthProperties);
 
-    when(front50Service.getServiceAccountsPojo()).thenReturn(List.of(serviceAccount));
+    // Return a fresh Call per invocation since the cache expires and Front50 is queried more than
+    // once (a retrofit2 Call can only be executed a single time).
+    when(front50Service.getServiceAccountsPojo())
+        .thenAnswer(invocation -> Calls.response(List.of(serviceAccount)));
 
     PreAuthenticatedAuthenticationToken token1 =
         new PreAuthenticatedAuthenticationToken(serviceAccountEmail, null);

@@ -21,7 +21,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.CDEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +41,8 @@ public class CDEventsWebhookHandler extends BaseTriggerEventHandler<CDEvent> {
   private static final List<String> supportedTriggerTypes = List.of(TRIGGER_TYPE);
 
   @Autowired
-  public CDEventsWebhookHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+  public CDEventsWebhookHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override

@@ -38,7 +38,7 @@ public class StrategyController {
     this.pipelineStrategyDAO = pipelineStrategyDAO;
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "", method = RequestMethod.GET)
   public Collection<Pipeline> list() {
@@ -76,7 +76,7 @@ public class StrategyController {
     pipelineStrategyDAO.create(strategy.getId(), strategy);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   @RequestMapping(value = "batchUpdate", method = RequestMethod.POST)
   public void batchUpdate(@RequestBody List<Pipeline> strategies) {
     pipelineStrategyDAO.bulkImport(strategies);

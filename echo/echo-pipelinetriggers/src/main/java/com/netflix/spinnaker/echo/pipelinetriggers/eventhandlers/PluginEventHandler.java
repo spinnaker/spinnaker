@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.PluginEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,11 +36,8 @@ public class PluginEventHandler extends BaseTriggerEventHandler<PluginEvent> {
   private static final List<String> SUPPORTED_TYPES =
       Collections.singletonList(PLUGIN_TRIGGER_TYPE);
 
-  public PluginEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+  public PluginEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override

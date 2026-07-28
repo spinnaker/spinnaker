@@ -172,7 +172,6 @@ public abstract class SpinnakerService<T> implements HasServiceSettings<T> {
     ECHO("echo"),
     ECHO_SCHEDULER(ECHO, "scheduler"),
     ECHO_WORKER(ECHO, "worker"),
-    FIAT("fiat"),
     FRONT50("front50"),
     GATE("gate"),
     IGOR("igor"),

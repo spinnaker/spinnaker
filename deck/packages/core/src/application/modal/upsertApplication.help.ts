@@ -12,7 +12,7 @@ const helpContents: { [key: string]: string } = {
         <li>To read from this application, a user must be a member of at least one group with read access.</li>
         <li>To write to this application, a user must be a member of at least one group with write access.</li>
         <li>If no permissions are specified, any user can read from or write to this application.</li>
-        <li>These permissions will only be enforced if Fiat is enabled.</li>
+        <li>These permissions will only be enforced if authorization is enabled.</li>
       </ul>
       <p class="small"><strong>Note:</strong> Due to caching, data may be delayed up to 10 minutes</p>
     `,

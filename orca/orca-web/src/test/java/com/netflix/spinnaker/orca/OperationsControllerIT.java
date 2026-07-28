@@ -47,8 +47,7 @@ import org.springframework.test.web.servlet.MvcResult;
     properties = {
       "spring.config.location=classpath:orca-test.yml",
       "keiko.queue.redis.enabled=false",
-      "redis.enabled=false",
-      "services.fiat.enabled=false"
+      "redis.enabled=false"
     })
 @AutoConfigureMockMvc
 class OperationsControllerIT {

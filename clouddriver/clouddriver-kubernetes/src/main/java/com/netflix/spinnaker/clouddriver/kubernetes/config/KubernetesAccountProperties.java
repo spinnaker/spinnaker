@@ -20,7 +20,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.config;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.Strings;
 import com.netflix.spinnaker.clouddriver.security.AccessControlledAccountDefinition;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;

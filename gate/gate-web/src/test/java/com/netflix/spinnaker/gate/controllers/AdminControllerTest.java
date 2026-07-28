@@ -14,18 +14,18 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Body;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.GateBootAuthIntegrationTest;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.security.GatePermissionEvaluator;
 import java.net.http.HttpResponse;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(
     classes = {Main.class, AdminController.class},
@@ -42,14 +42,14 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
     registry.add("services.orca.base-url", wmOrca::baseUrl);
   }
 
-  @MockitoBean FiatPermissionEvaluator fiatPermissionEvaluator;
+  @MockBean GatePermissionEvaluator permissionEvaluator;
 
   @BeforeEach
   void setUp() {}
 
   @Test
   public void basicAdminCheck() throws Exception {
-    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    when(permissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response = callGateWithPath("/admin", "GET");
     assertNotNull(response);
     assertThat(response.statusCode()).isEqualTo(200);
@@ -65,7 +65,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
                 urlEqualTo(
                     "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
             .willReturn(aResponse().withStatus(200).withResponseBody(Body.none())));
-    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    when(permissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
         callGateWithPath(
             "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
@@ -77,7 +77,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
   @Test
   public void rehydrateAExecution() throws Exception {
     setupOrcaMock();
-    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    when(permissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
         callGateWithPath(
             "/admin/executions/hydrate?executionId=randomExecutionId&dryRun=false", "POST");
@@ -92,7 +92,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
                 urlEqualTo(
                     "/admin/forceCancelExecution?executionId=randomExecutionId&executionType=PIPELINE&canceledBy=testuser"))
             .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
-    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    when(permissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
         callGateWithPath(
             "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
@@ -120,7 +120,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
                     .withStatus(404)
                     .withBody(
                         "{\"error\":\"Not Found\",\"message\":\"Execution not found\",\"status\":404}")));
-    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> true);
+    when(permissionEvaluator.isAdmin()).then(invocation -> true);
     HttpResponse<String> response =
         callGateWithPath(
             "/admin/executions/forceCancel?executionId=randomExecutionId&executionType=PIPELINE",
@@ -141,7 +141,7 @@ public class AdminControllerTest extends GateBootAuthIntegrationTest {
 
   @Test
   public void verifyPermissionsDeniedIfNotAdmin() throws Exception {
-    when(fiatPermissionEvaluator.isAdmin()).then(invocation -> false);
+    when(permissionEvaluator.isAdmin()).then(invocation -> false);
     HttpResponse<String> response =
         callGateWithPath("/admin/executions/forceCancel?executionId=randomExecutionId", "PUT");
     assertNotNull(response);

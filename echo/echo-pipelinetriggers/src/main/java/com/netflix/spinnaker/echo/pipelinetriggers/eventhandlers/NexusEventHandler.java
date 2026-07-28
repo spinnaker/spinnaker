@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.NexusEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,11 +38,8 @@ public class NexusEventHandler extends BaseTriggerEventHandler<NexusEvent> {
   private static final List<String> supportedTriggerTypes =
       Collections.singletonList(NEXUS_TRIGGER_TYPE);
 
-  public NexusEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+  public NexusEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override

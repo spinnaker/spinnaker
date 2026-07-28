@@ -27,7 +27,6 @@ import com.netflix.spinnaker.gate.plugins.web.SpinnakerExtensionsConfigPropertie
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.EchoService
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.gate.services.internal.KeelService
@@ -40,12 +39,12 @@ import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import retrofit2.mock.Calls;
@@ -82,40 +81,37 @@ class PluginInfoControllerSpec extends Specification {
   @Autowired
   OkHttpClientProvider okHttpClientProvider
 
-  @MockitoBean
+  @MockBean
   private TaskService taskService
 
-  @MockitoBean
+  @MockBean
   private SpinnakerPluginManager spinnakerPluginManager
 
-  @MockitoBean
+  @MockBean
   private ClouddriverService clouddriverService
 
-  @MockitoBean
+  @MockBean
   private EchoService echoService
 
-  @MockitoBean
-  private ExtendedFiatService extendedFiatService
-
-  @MockitoBean
+  @MockBean
   private Front50Service front50Service
 
-  @MockitoBean
+  @MockBean
   private IgorService igorService
 
-  @MockitoBean
+  @MockBean
   private KeelService keelService
 
-  @MockitoBean
+  @MockBean
   private OrcaServiceSelector orcaServiceSelector
 
-  @MockitoBean
+  @MockBean
   private RoscoService roscoService
 
-  @MockitoBean
+  @MockBean
   private SwabbieService swabbieService
 
-  @MockitoBean
+  @MockBean
   private DeckPluginService deckPluginService
 
   private Map requestContent = ['name': 'test plugin', provider: 'Test Co']

@@ -27,6 +27,8 @@ import lombok.EqualsAndHashCode;
   "appengineContainerImageUrlDeployments",
   "auth",
   "entityTags",
+  // Fiat has been removed, but existing halconfig files may still carry a `features.fiat` entry.
+  // Ignore it so those configs keep parsing under the strict object mapper instead of failing.
   "fiat"
 })
 public class Features extends Node {

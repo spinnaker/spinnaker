@@ -3,7 +3,6 @@ package com.netflix.spinnaker.gate.plugins.web.installed
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.gate.services.internal.EchoService
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import com.netflix.spinnaker.gate.services.internal.KeelService
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController
 class PluginsInstalledController(
   private val clouddriverService: ClouddriverService,
   private val echoService: ObjectProvider<EchoService>,
-  private val fiatService: ExtendedFiatService,
   private val front50Service: Front50Service,
   private val igorService: ObjectProvider<IgorService>,
   private val keelService: ObjectProvider<KeelService>,
@@ -54,7 +52,6 @@ class PluginsInstalledController(
       clouddriver -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(clouddriverService.installedPlugins) }))
       deck -> if (deckPluginService.ifAvailable != null) mutableMapOf(Pair(service, deckPlugins())) else emptyMap()
       echo -> if (echoService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(echoService.ifAvailable!!.installedPlugins) })) else emptyMap()
-      fiat -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(fiatService.installedPlugins) }))
       front50 -> mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(front50Service.installedPlugins) }))
       gate -> mutableMapOf(Pair(service, gatePlugins()))
       igor -> if (igorService.ifAvailable != null) mutableMapOf(Pair(service, callService { Retrofit2SyncCall.execute(igorService.ifAvailable!!.installedPlugins) })) else emptyMap()
@@ -72,7 +69,6 @@ class PluginsInstalledController(
           Pair(clouddriver, callService { Retrofit2SyncCall.execute(clouddriverService.installedPlugins) }),
           Pair(deck, if (deckPluginService.ifAvailable != null) deckPlugins() else emptyList()),
           echoPair,
-          Pair(fiat, callService { Retrofit2SyncCall.execute(fiatService.installedPlugins) }),
           Pair(front50, callService { Retrofit2SyncCall.execute(front50Service.installedPlugins) }),
           Pair(gate, gatePlugins()),
           igorPair,
@@ -140,7 +136,6 @@ class PluginsInstalledController(
     const val clouddriver: String = "clouddriver"
     const val deck: String = "deck"
     const val echo: String = "echo"
-    const val fiat: String = "fiat"
     const val front50: String = "front50"
     const val gate: String = "gate"
     const val igor: String = "igor"

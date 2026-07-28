@@ -5,10 +5,9 @@ import javax.annotation.Nullable;
 /**
  * Details regarding an access denied exception.
  *
- * <p>TODO(jonsie): We need to migrate fiat-api into a kork module (like kork-authz) so that we can
- * create a proper fiat-api module which would provide things like Fiat's Authorization and
- * ResourceType objects. For now, this object just uses strings to represent resource type and
- * authorization, but eventually should support types provided from fiat-api.
+ * <p>For now, this object just uses strings to represent resource type and authorization, but
+ * eventually should support the {@code Authorization} and {@code ResourceType} types provided by
+ * {@code kork-authz}.
  */
 public class AccessDeniedDetails implements ExceptionDetails {
   private final String resourceType;

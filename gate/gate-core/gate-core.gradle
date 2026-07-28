@@ -22,15 +22,24 @@ dependencies {
   implementation "io.spinnaker.kork:kork-artifacts"
   implementation "io.spinnaker.kork:kork-plugins"
 
-  implementation "io.spinnaker.fiat:fiat-api"
-  implementation "io.spinnaker.fiat:fiat-core"
-
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-security"
+  // kork-roles (role resolution + external-group merge) and kork-authz (identity-token filter,
+  // PDP SPI) provide login-time role resolution and token verification.
+  // kork-roles api-depends on kork-authz which api-depends on kork-security.
+  implementation "io.spinnaker.kork:kork-roles"
+  // LDAP role provider lives in its own module so non-LDAP services never pull spring-security-ldap
+  // (which would trigger Boot's localhost LDAP auto-configuration/health check). Gate bundles it for
+  // runtime component-scanning; it activates only when auth.group-membership.service=ldap, and Gate's
+  // Main already excludes LdapHealthContributorAutoConfiguration for the unselected case.
+  runtimeOnly "io.spinnaker.kork:kork-roles-ldap"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:guava"
+  implementation "com.github.ben-manes.caffeine:caffeine"
+  implementation "com.google.guava:guava"
   implementation "org.apache.commons:commons-lang3"
 
   implementation "io.cloudevents:cloudevents-spring:2.5.0"

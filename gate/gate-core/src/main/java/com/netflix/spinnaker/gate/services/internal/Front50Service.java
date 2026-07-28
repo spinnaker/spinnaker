@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services.internal;
 
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.gate.model.front50.ServiceAccountPojo;
 import com.netflix.spinnaker.kork.plugins.SpinnakerPluginDescriptor;
 import java.util.List;
@@ -44,6 +43,13 @@ public interface Front50Service {
   @GET("v2/applications/{applicationName}/history")
   Call<List<Map>> getApplicationHistory(
       @Path("applicationName") String applicationName, @Query("limit") int limit);
+
+  /**
+   * The grants every application receives from {@code authz.application.default-permissions}, as a
+   * map of authorization to roles. Front50 owns this configuration.
+   */
+  @GET("permissions/defaults")
+  Call<Map> getDefaultApplicationPermissions();
 
   @GET("pipelines")
   Call<List<Map>> getAllPipelineConfigs();
@@ -152,7 +158,7 @@ public interface Front50Service {
   Call<List<ServiceAccount>> getServiceAccounts();
 
   @GET("serviceAccounts")
-  List<ServiceAccountPojo> getServiceAccountsPojo();
+  Call<List<ServiceAccountPojo>> getServiceAccountsPojo();
 
   @GET("deliveries")
   Call<List<Map>> getDeliveries();

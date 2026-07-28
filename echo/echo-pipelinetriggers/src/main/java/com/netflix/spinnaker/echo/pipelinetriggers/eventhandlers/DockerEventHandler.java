@@ -19,7 +19,6 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +34,8 @@ public class DockerEventHandler extends AbstractOCIRegistryEventHandler<DockerEv
   private static final List<String> SUPPORTED_TYPES = Collections.singletonList(TRIGGER_TYPE);
 
   @Autowired
-  public DockerEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+  public DockerEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override

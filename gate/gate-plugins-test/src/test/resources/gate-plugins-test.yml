@@ -10,10 +10,6 @@ services:
   echo.enabled: false
   echo.baseUrl: "http://echo"
 
-  fiat.enabled: false
-
-  fiat.baseUrl: "http://localhost:8080"
-
   front50.baseUrl: "http://localhost:8080"
 
   igor.enabled: false

@@ -165,6 +165,14 @@ public class ApiTokenController {
     record.setCreatedByUserId(user.getUsername());
     record.setCreatedAt(Instant.now().toString());
     record.setExpiresAt(resolvedExpiry);
+    // Snapshot the creator's roles onto USER tokens so they survive token-exchange in EXTERNAL
+    // mode (no role provider), where there is no live session to resolve roles from at request
+    // time. Provider-backed deployments resolve roles live and ignore this snapshot. Skipped for
+    // SERVICE_ACCOUNT tokens: the creating admin's roles are not the service account's, and an SA
+    // never has a login session to snapshot from.
+    if ("USER".equals(principalType) && !user.getRoles().isEmpty()) {
+      record.setRoles(new ArrayList<>(user.getRoles()));
+    }
 
     try {
       redisRepo.save(record, tokenHash);

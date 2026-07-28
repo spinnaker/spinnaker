@@ -55,7 +55,7 @@ public class PipelineTemplateController {
 
   @Autowired ObjectMapper objectMapper;
 
-  // TODO rz - Add fiat authz
+  // TODO rz - Add authz
 
   @RequestMapping(value = "", method = RequestMethod.GET)
   List<PipelineTemplate> list(

@@ -19,7 +19,6 @@ data:
     databases=(
       "clouddriver"
       "echo"
-      "fiat"
       "front50"
       "keel"
       "orca"

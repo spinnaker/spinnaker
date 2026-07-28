@@ -33,8 +33,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 /**
  * In combination with HeaderAuthConfigurerAdapter, authenticate the X-SPINNAKER-USER header using
- * permissions obtained from fiat. See
- * https://bwgjoseph.com/spring-security-custom-pre-authentication-flow for background.
+ * roles resolved at login. See https://bwgjoseph.com/spring-security-custom-pre-authentication-flow
+ * for background.
  */
 @ConditionalOnProperty("header.enabled")
 @Configuration
@@ -85,17 +85,9 @@ public class HeaderAuthConfig {
     HttpSessionSecurityContextRepository securityContextRepository =
         new HttpSessionSecurityContextRepository();
 
-    // Save the work to read and write session information.  Each request
-    // provides X-SPINNAKER-USER, and gate caches information from fiat, so
-    // there's no need for callers to support session cookies, and dealing with
-    // expiration, etc.
-    //
-    // With this, when services.fiat.legacyFallback is false, FiatSessionFilter
-    // doesn't ever do meaningful work because request.getSession() always returns
-    // null, so save some cycles by setting fiat.session-filter.enabled to false.
-    //
-    // When services.fiat.legacyFallback is true, FiatSessionFilter still
-    // invalidates the cache for the user.
+    // Header auth is stateless: every request carries X-SPINNAKER-USER (and Gate resolves the
+    // caller's roles and mints/propagates the identity token per request), so there's no need for
+    // callers to support session cookies or for us to persist a security context between requests.
     securityContextRepository.setAllowSessionCreation(false);
     requestHeaderAuthenticationFilter.setSecurityContextRepository(securityContextRepository);
     return requestHeaderAuthenticationFilter;

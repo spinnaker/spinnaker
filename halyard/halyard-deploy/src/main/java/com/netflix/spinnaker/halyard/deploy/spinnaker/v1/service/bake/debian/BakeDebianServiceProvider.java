@@ -56,8 +56,6 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
 
   @Autowired BakeDebianEchoService echoService;
 
-  @Autowired BakeDebianFiatService fiatService;
-
   @Autowired BakeDebianFront50Service front50Service;
 
   @Autowired BakeDebianGateService gateService;

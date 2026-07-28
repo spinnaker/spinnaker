@@ -277,6 +277,10 @@ public class AuthenticatedRequest {
     String requestId = getSpinnakerRequestId().orElse(null);
     String spinnakerAccounts = getSpinnakerAccounts(principal).orElse(null);
     String spinnakerApp = getSpinnakerApplication().orElse(null);
+    // The signed identity token must cross the thread boundary too, otherwise work dispatched onto
+    // another thread (e.g. Echo's async event processing) loses it and downstream services that
+    // authorize against the verified token (authz.enabled=true) treat the call as anonymous.
+    String identityToken = get(Header.IDENTITY_TOKEN).orElse(null);
 
     return () -> {
       // Deal with (set/reset) known X-SPINNAKER headers, all others will just stick around
@@ -289,6 +293,7 @@ public class AuthenticatedRequest {
         setOrRemoveMdc(Header.REQUEST_ID.getHeader(), requestId);
         setOrRemoveMdc(Header.EXECUTION_ID.getHeader(), executionId);
         setOrRemoveMdc(Header.APPLICATION.getHeader(), spinnakerApp);
+        setOrRemoveMdc(Header.IDENTITY_TOKEN.getHeader(), identityToken);
 
         return closure.call();
       } finally {

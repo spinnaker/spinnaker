@@ -16,74 +16,69 @@
 
 package com.netflix.spinnaker.clouddriver.security;
 
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
-import java.util.Optional;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
+import com.netflix.spinnaker.security.authz.Authorization;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.ResourceType;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+/**
+ * Owner-local {@link AccountSecurityPolicy}. Decides account authorization from the caller's
+ * verified identity token (the {@code SecurityContext} authorities populated by the kork-authz
+ * identity-token filter) plus Clouddriver's own in-process account ACLs — no remote {@code
+ * getUserPermission} call.
+ *
+ * <p>The {@code username} arguments are retained to satisfy the {@link AccountSecurityPolicy}
+ * contract (the {@code @PreAuthorize} call sites pass {@code authentication.name}); the decision is
+ * made against the current request's authentication, which is always the same principal.
+ */
 @RequiredArgsConstructor
 @NonnullByDefault
 public class DefaultAccountSecurityPolicy implements AccountSecurityPolicy {
-  private final FiatPermissionEvaluator permissionEvaluator;
+  private final PolicyDecisionPointPermissionEvaluator permissionEvaluator;
 
   @Override
   public boolean isAdmin(String username) {
-    return Optional.ofNullable(permissionEvaluator.getPermission(username))
-        .filter(UserPermission.View::isAdmin)
-        .isPresent();
+    return SpinnakerAuthorities.isAdmin(authentication());
   }
 
   @Override
   public boolean isAccountManager(String username) {
-    return Optional.ofNullable(permissionEvaluator.getPermission(username))
-        .filter(permission -> isAccountManager(permission) || permission.isAdmin())
-        .isPresent();
+    Authentication auth = authentication();
+    return SpinnakerAuthorities.isAdmin(auth) || SpinnakerAuthorities.isAccountManager(auth);
   }
 
   @Override
   public Set<String> getRoles(String username) {
-    return Optional.ofNullable(permissionEvaluator.getPermission(username)).stream()
-        .flatMap(permission -> permission.getRoles().stream().map(Role.View::getName))
-        .collect(Collectors.toSet());
+    return new HashSet<>(SpinnakerAuthorities.getRoles(authentication()));
   }
 
   @Override
   public boolean canUseAccount(@Nonnull String username, @Nonnull String account) {
-    // note that WRITE permissions are required in order to do anything with an account as the READ
-    // permission
-    // is only used for certain UI items related to the account
-    return Optional.ofNullable(permissionEvaluator.getPermission(username))
-        .filter(
-            permission ->
-                permission.isAdmin()
-                    || permissionEvaluator.hasPermission(
-                        username, account, ResourceType.ACCOUNT.getName(), Authorization.WRITE))
-        .isPresent();
+    // WRITE is required to do anything with an account; READ only gates certain UI items. Admins
+    // (and account managers, via the evaluator's account short-circuit) bypass the ACL.
+    Authentication auth = authentication();
+    return SpinnakerAuthorities.isAdmin(auth)
+        || permissionEvaluator.hasPermission(
+            auth, account, ResourceType.ACCOUNT.getName(), Authorization.WRITE);
   }
 
   @Override
   public boolean canModifyAccount(@Nonnull String username, @Nonnull String account) {
-    // note that WRITE permissions are required in order to do anything with an account as the READ
-    // permission
-    // is only used for certain UI items related to the account
-    return Optional.ofNullable(permissionEvaluator.getPermission(username))
-        .filter(
-            permission ->
-                permission.isAdmin()
-                    || isAccountManager(permission)
-                        && permissionEvaluator.hasPermission(
-                            username, account, ResourceType.ACCOUNT.getName(), Authorization.WRITE))
-        .isPresent();
+    Authentication auth = authentication();
+    return SpinnakerAuthorities.isAdmin(auth)
+        || (SpinnakerAuthorities.isAccountManager(auth)
+            && permissionEvaluator.hasPermission(
+                auth, account, ResourceType.ACCOUNT.getName(), Authorization.WRITE));
   }
 
-  private static boolean isAccountManager(UserPermission.View permission) {
-    return permission.isAccountManager();
+  private static Authentication authentication() {
+    return SecurityContextHolder.getContext().getAuthentication();
   }
 }

@@ -110,9 +110,7 @@ class StandaloneContainerTest {
             "sql.migration.user",
             mysql.getUsername(),
             "sql.migration.password",
-            mysql.getPassword(),
-            "services.fiat.baseUrl",
-            "http://nowhere");
+            mysql.getPassword());
     ObjectMapper mapper = new ObjectMapper();
     return mapper.writeValueAsString(properties);
   }

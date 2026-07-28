@@ -27,6 +27,8 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.spring.DependentPipelineExecutionListener
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.security.s2s.client.ServiceIdentityInterceptor
+import com.netflix.spinnaker.security.s2s.config.ServiceIdentityClientConfiguration
 import groovy.transform.CompileStatic
 import okhttp3.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,13 +45,15 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import java.util.concurrent.TimeUnit
 
 @Configuration
-@Import(RetrofitConfiguration)
+@Import([RetrofitConfiguration, ServiceIdentityClientConfiguration])
 @ComponentScan([
   "com.netflix.spinnaker.orca.front50.pipeline",
   "com.netflix.spinnaker.orca.front50.tasks",
   "com.netflix.spinnaker.orca.front50"
 ])
-@EnableConfigurationProperties(Front50ConfigurationProperties)
+@EnableConfigurationProperties([
+  Front50ConfigurationProperties
+])
 @CompileStatic
 @ConditionalOnExpression('${front50.enabled:true}')
 class Front50Configuration {
@@ -57,14 +61,23 @@ class Front50Configuration {
   @Autowired
   OkHttpClientProvider clientProvider
 
+  /**
+   * Front50 is a Spinnaker service, so this client carries Orca's service identity. Front50's
+   * {@code /auth/issueExecutionToken} is restricted to Orca via {@code @AllowServiceCallers}, and
+   * without the identity every stage boundary fails to re-mint its execution token and degrades to
+   * an anonymous, roleless call.
+   */
   @Bean
-  Front50Service front50Service(ObjectMapper mapper, Front50ConfigurationProperties front50ConfigurationProperties) {
+  Front50Service front50Service(ObjectMapper mapper,
+                                Front50ConfigurationProperties front50ConfigurationProperties,
+                                ServiceIdentityInterceptor serviceIdentityInterceptor) {
     String baseUrl = RetrofitUtils.getBaseUrl(front50ConfigurationProperties.baseUrl)
     OkHttpClient okHttpClient = clientProvider.getClient(new DefaultServiceEndpoint("front50", baseUrl));
     okHttpClient = okHttpClient.newBuilder()
         .readTimeout(front50ConfigurationProperties.okhttp.readTimeoutMs, TimeUnit.MILLISECONDS)
         .writeTimeout(front50ConfigurationProperties.okhttp.writeTimeoutMs, TimeUnit.MILLISECONDS)
         .connectTimeout(front50ConfigurationProperties.okhttp.connectTimeoutMs, TimeUnit.MILLISECONDS)
+        .addInterceptor(serviceIdentityInterceptor)
         .build()
 
     return new Retrofit.Builder()

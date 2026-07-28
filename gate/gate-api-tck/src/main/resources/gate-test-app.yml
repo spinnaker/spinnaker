@@ -10,9 +10,6 @@ services:
   echo:
     enabled: false
     baseUrl: http://localhost:8089
-  fiat:
-    enabled: false
-    baseUrl: http://localhost:8080
   front50:
     baseUrl: http://localhost:8080
   igor:

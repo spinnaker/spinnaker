@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.q.handler
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.TaskImplementationResolver
+import com.netflix.spinnaker.orca.security.RunAsTokenProvider
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.RUNNING
@@ -71,7 +72,8 @@ class StartStageHandler(
   private val clock: Clock,
   private val registry: Registry,
   @Value("\${queue.retry.delay.ms:15000}") retryDelayMs: Long,
-  private val taskImplementationResolver: TaskImplementationResolver
+  private val taskImplementationResolver: TaskImplementationResolver,
+  override val runAsTokenProvider: RunAsTokenProvider? = null
 ) : OrcaMessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
   private val retryDelay = Duration.ofMillis(retryDelayMs)

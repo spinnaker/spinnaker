@@ -5,7 +5,6 @@ import com.google.common.base.Strings;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.HelmEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.Semver.SemverType;
@@ -24,11 +23,8 @@ public class HelmEventHandler extends BaseTriggerEventHandler<HelmEvent> {
   private static final String TRIGGER_TYPE = Trigger.Type.HELM.toString();
 
   @Autowired
-  public HelmEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+  public HelmEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   @Override

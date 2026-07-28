@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.clouddriver.security
 
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
-import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.model.resources.Permissions
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.security.authz.Authorization
+import com.netflix.spinnaker.security.authz.Permissions
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -60,12 +59,9 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
   )
 
   def accountCredentialsProvider = Mock(AccountCredentialsProvider)
-  def fiatStatus = Mock(FiatStatus) {
-    _ * isEnabled() >> { return false }
-  }
 
   @Subject
-  def validator = new DefaultAllowedAccountsValidator(accountCredentialsProvider, fiatStatus)
+  def validator = new DefaultAllowedAccountsValidator(accountCredentialsProvider)
 
   @Unroll
   void "should reject if allowed accounts does not intersect with required group memberships"() {
@@ -164,18 +160,6 @@ class DefaultAllowedAccountsValidatorSpec extends Specification {
     1 * accountCredentialsProvider.getAll() >> { [credentialsWithRequiredGroup] }
     0 * accountCredentialsProvider._
     1 * errors.rejectValue("credentials", "missing", _)
-  }
-
-  void "should short circuit if fiat is enabled"() {
-    given:
-    def errors = Mock(Errors)
-
-    when:
-    validator.validate("TestAccount", [], new InvalidDescription(), errors)
-
-    then:
-    1 * fiatStatus.isEnabled() >> { return true }
-    0 * _
   }
 
   static class TestAccountCredentials implements AccountCredentials<TestCredentials> {

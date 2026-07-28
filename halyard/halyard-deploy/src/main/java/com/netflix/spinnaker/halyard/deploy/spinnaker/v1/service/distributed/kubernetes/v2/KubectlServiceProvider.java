@@ -62,8 +62,6 @@ public class KubectlServiceProvider
 
   @Autowired KubernetesV2EchoWorkerService echoWorkerService;
 
-  @Autowired KubernetesV2FiatService fiatService;
-
   @Autowired KubernetesV2Front50Service front50Service;
 
   @Autowired KubernetesV2GateService gateService;

@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.igor.build
 
-import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Authorization
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.igor.config.GoogleCloudBuildProperties
 import com.netflix.spinnaker.igor.config.JenkinsConfig
 import com.netflix.spinnaker.igor.config.JenkinsProperties
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.BuildOperations
 import com.netflix.spinnaker.igor.service.BuildServices
 import com.netflix.spinnaker.igor.travis.service.TravisService
+import com.netflix.spinnaker.igor.wercker.WerckerService
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import groovy.json.JsonSlurper
@@ -287,6 +288,23 @@ class InfoControllerSpec extends Specification {
         travisService.getBuildServiceProvider() >> BuildServiceProvider.TRAVIS
         1 * cache.getJobNames('travis-master1') >> ["some-job"]
         response.contentAsString == '["some-job"]'
+
+    }
+
+    void 'is able to get jobs for a wercker master'() {
+        given:
+        def werckerJob = 'myOrg/myApp/myTarget'
+        WerckerService werckerService = Stub(WerckerService)
+        createMocks(['wercker-master': werckerService])
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(get('/jobs/wercker-master')
+            .accept(MediaType.APPLICATION_JSON)).andReturn().response
+
+        then:
+        werckerService.getBuildServiceProvider() >> BuildServiceProvider.WERCKER
+        werckerService.getJobs() >> [werckerJob]
+        response.contentAsString == '["' + werckerJob + '"]'
 
     }
 

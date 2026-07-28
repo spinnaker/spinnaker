@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Authorization;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,7 +33,16 @@ public abstract class AbstractAccountCredentials<T> implements AccountCredential
   @JsonIgnore
   public abstract T getCredentials();
 
-  // Todo: make Fiat an acceptable dependency for clouddriver-api and push up to AccountCredentials
+  /**
+   * Clouddriver owns {@code account} ACLs: each credential exposes its embedded {@link Permissions}
+   * here, which the owner-local {@code ClouddriverResourceAclResolver} reads in-process for PDP
+   * decisions (never from a remote/cached copy).
+   *
+   * <p>NB: intentionally not adapted to the kork {@code ProtectedResource} interface, whose {@code
+   * getPermissions()} is {@code @JsonIgnore}; inheriting that ignoral would drop the {@code
+   * permissions} field from {@code GET /credentials}, breaking the Gate role-filtering contract.
+   */
+  // Todo: push getPermissions() up to AccountCredentials in clouddriver-api
   public Permissions getPermissions() {
     Set<String> rgm =
         Optional.ofNullable(getRequiredGroupMembership())

@@ -9,8 +9,8 @@ import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
-import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.ResourceType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class DescriptionAuthorizerService {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final Registry registry;
-  private final FiatPermissionEvaluator fiatPermissionEvaluator;
+  private final PolicyDecisionPointPermissionEvaluator permissionEvaluator;
   private final SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps;
   private final AccountDefinitionSecretManager secretManager;
 
@@ -39,11 +39,11 @@ public class DescriptionAuthorizerService {
 
   public DescriptionAuthorizerService(
       Registry registry,
-      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+      Optional<PolicyDecisionPointPermissionEvaluator> permissionEvaluator,
       SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps,
       AccountDefinitionSecretManager secretManager) {
     this.registry = registry;
-    this.fiatPermissionEvaluator = fiatPermissionEvaluator.orElse(null);
+    this.permissionEvaluator = permissionEvaluator.orElse(null);
     this.opsSecurityConfigProps = opsSecurityConfigProps;
     this.secretManager = secretManager;
 
@@ -57,7 +57,7 @@ public class DescriptionAuthorizerService {
   }
 
   public void authorize(Object description, Errors errors, Collection<ResourceType> resourceTypes) {
-    if (fiatPermissionEvaluator == null || description == null) {
+    if (permissionEvaluator == null || description == null) {
       return;
     }
 
@@ -118,10 +118,8 @@ public class DescriptionAuthorizerService {
     }
 
     if (resourceTypes.contains(ResourceType.APPLICATION) && !applications.isEmpty()) {
-      fiatPermissionEvaluator.storeWholePermission();
-
       for (String application : applications) {
-        if (!fiatPermissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
+        if (!permissionEvaluator.hasPermission(auth, application, "APPLICATION", "WRITE")) {
           hasPermission = false;
           errors.reject(
               "authorization.application", format("Access denied to application %s", application));

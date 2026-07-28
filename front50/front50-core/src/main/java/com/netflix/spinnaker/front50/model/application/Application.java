@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.front50.api.model.Timestamped;
+import com.netflix.spinnaker.security.authz.Authorization;
+import com.netflix.spinnaker.security.authz.Permissions;
+import com.netflix.spinnaker.security.authz.ProtectedResource;
+import com.netflix.spinnaker.security.authz.ResourceType;
 import java.util.*;
 import net.logstash.logback.argument.StructuredArguments;
 import org.slf4j.Logger;
@@ -176,7 +178,7 @@ public class Application implements Timestamped {
     this.cloudProviders = cloudProviders;
   }
 
-  public static class Permission implements Timestamped {
+  public static class Permission implements Timestamped, ProtectedResource {
     private String name;
     private Long lastModified;
     private String lastModifiedBy;
@@ -186,6 +188,12 @@ public class Application implements Timestamped {
     @JsonIgnore
     public String getId() {
       return name.toLowerCase();
+    }
+
+    @Override
+    @JsonIgnore
+    public ResourceType getResourceType() {
+      return ResourceType.APPLICATION;
     }
 
     @JsonSetter

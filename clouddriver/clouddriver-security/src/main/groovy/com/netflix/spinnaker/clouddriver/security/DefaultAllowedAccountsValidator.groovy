@@ -18,10 +18,8 @@ package com.netflix.spinnaker.clouddriver.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.security.resources.NonCredentialed
-import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.security.authz.Authorization
 import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.Errors
 
 @Slf4j
@@ -29,20 +27,15 @@ class DefaultAllowedAccountsValidator implements AllowedAccountsValidator {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
 
   private final AccountCredentialsProvider accountCredentialsProvider
-  private final FiatStatus fiatStatus
 
-  DefaultAllowedAccountsValidator(AccountCredentialsProvider accountCredentialsProvider, FiatStatus fiatStatus) {
+  DefaultAllowedAccountsValidator(AccountCredentialsProvider accountCredentialsProvider) {
     this.accountCredentialsProvider = accountCredentialsProvider
-    this.fiatStatus = fiatStatus
   }
 
   @Override
   void validate(String user, Collection<String> allowedAccounts, Object description, Errors errors) {
-    if (fiatStatus.isEnabled()) {
-      // fiat has it's own mechanisms for verifying access to an account
-      return
-    }
-
+    // Owner-local: account access is enforced against each credential's embedded permissions; there
+    // is no external status to defer to.
     if (!accountCredentialsProvider.all.find {
       it.requiredGroupMembership || ((it instanceof AbstractAccountCredentials) && it.permissions?.isRestricted())
     }) {

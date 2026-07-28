@@ -27,13 +27,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 import ch.qos.logback.classic.Level;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.common.Header;
@@ -46,9 +44,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -70,21 +68,17 @@ public class GateConfigAuthenticatedRequestFilterTest {
   private static final String LOG_MESSAGE = " logged in api: ";
   private static final String NULL_VALUE = "null";
 
-  @MockitoBean private ServiceClientProvider mockServiceClientProvider;
+  @MockBean private ServiceClientProvider mockServiceClientProvider;
 
-  @MockitoBean private ClouddriverService mockClouddriverService;
+  @MockBean private ClouddriverService mockClouddriverService;
 
-  @MockitoBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
+  @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
 
-  @MockitoBean private ApplicationService mockApplicationService;
+  @MockBean private ApplicationService mockApplicationService;
 
-  @MockitoBean private FiatService mockFiatService;
+  @MockBean private PermissionService mockPermissionService;
 
-  @MockitoBean private PermissionService mockPermissionService;
-
-  @MockitoBean private ExtendedFiatService mockExtendedFiatService;
-
-  @MockitoBean private Front50Service mockFront50Service;
+  @MockBean private Front50Service mockFront50Service;
 
   @RestController
   @RequestMapping(value = API_BASE)

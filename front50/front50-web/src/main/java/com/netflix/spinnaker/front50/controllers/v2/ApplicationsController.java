@@ -2,9 +2,6 @@ package com.netflix.spinnaker.front50.controllers.v2;
 
 import static java.lang.String.format;
 
-import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
-import com.netflix.spinnaker.front50.config.FiatConfigurationProperties;
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException;
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException;
 import com.netflix.spinnaker.front50.exception.ValidationException;
@@ -12,8 +9,9 @@ import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationService;
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.security.authz.Permissions;
+import com.netflix.spinnaker.security.authz.config.ApplicationDefaultPermissionsProperties;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,29 +37,23 @@ public class ApplicationsController {
   private final MessageSource messageSource;
   private final ApplicationDAO applicationDAO;
   private final Optional<ApplicationPermissionDAO> applicationPermissionDAO;
-  private final Optional<FiatService> fiatService;
-  private final FiatConfigurationProperties fiatConfigurationProperties;
-  private final FiatStatus fiatStatus;
   private final ApplicationService applicationService;
+  private final ApplicationDefaultPermissionsProperties applicationDefaultPermissions;
 
   public ApplicationsController(
       MessageSource messageSource,
       ApplicationDAO applicationDAO,
       Optional<ApplicationPermissionDAO> applicationPermissionDAO,
-      Optional<FiatService> fiatService,
-      FiatConfigurationProperties fiatConfigurationProperties,
-      FiatStatus fiatStatus,
-      ApplicationService applicationService) {
+      ApplicationService applicationService,
+      ApplicationDefaultPermissionsProperties applicationDefaultPermissions) {
     this.messageSource = messageSource;
     this.applicationDAO = applicationDAO;
     this.applicationPermissionDAO = applicationPermissionDAO;
-    this.fiatService = fiatService;
-    this.fiatConfigurationProperties = fiatConfigurationProperties;
-    this.fiatStatus = fiatStatus;
     this.applicationService = applicationService;
+    this.applicationDefaultPermissions = applicationDefaultPermissions;
   }
 
-  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PreAuthorize("permitAll()")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @Operation(
       summary = "",
@@ -76,13 +68,18 @@ public class ApplicationsController {
     params.remove("pageSize");
     params.remove("restricted");
 
-    Map<String, List<Application.Permission>> permissions =
+    Permissions defaultPermissions = applicationDefaultPermissions.toPermissions();
+    Map<String, Permissions> ownPermissions =
         applicationPermissionDAO
             .map(
                 apd ->
                     apd.all().stream()
                         .filter(it -> it.getPermissions().isRestricted())
-                        .collect(Collectors.groupingBy(it -> it.getName().toLowerCase())))
+                        .collect(
+                            Collectors.toMap(
+                                it -> it.getName().toLowerCase(),
+                                Application.Permission::getPermissions,
+                                (a, b) -> a)))
             .orElseGet(HashMap::new);
 
     List<Application> applications;
@@ -102,9 +99,14 @@ public class ApplicationsController {
                 : applications.subList(0, Math.min(pageSize, applications.size())));
     results.forEach(
         it -> {
-          if (permissions.containsKey(it.getName().toLowerCase())) {
-            it.set(
-                "permissions", permissions.get(it.getName().toLowerCase()).get(0).getPermissions());
+          // Additively merge the global default application permissions (if any) onto each
+          // application's own embedded ACL so every consumer of the embedded ACL (Gate's list
+          // filter, downstream services) sees the same effective permissions Front50 enforces.
+          Permissions own =
+              ownPermissions.getOrDefault(it.getName().toLowerCase(), Permissions.EMPTY);
+          Permissions merged = defaultPermissions.merge(own);
+          if (merged.isRestricted()) {
+            it.set("permissions", merged);
           } else {
             it.details().remove("permissions");
           }
@@ -113,7 +115,7 @@ public class ApplicationsController {
     return results;
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.canCreate('APPLICATION', #app)")
+  @PreAuthorize("@spinnakerPermissionEvaluator.canCreate('APPLICATION', #app)")
   @Operation(summary = "", description = "Create an application")
   @RequestMapping(method = RequestMethod.POST)
   public Application create(@RequestBody final Application app) {
@@ -121,18 +123,9 @@ public class ApplicationsController {
       throw new ApplicationAlreadyExistsException();
     }
 
-    Application createdApplication = applicationService.save(app);
-    if (fiatStatus.isEnabled()
-        && fiatConfigurationProperties.getRoleSync().isEnabled()
-        && fiatService.isPresent()) {
-      try {
-        Retrofit2SyncCall.execute(fiatService.get().sync());
-      } catch (Exception e) {
-        log.warn("failed to trigger fiat permission sync", e);
-      }
-    }
-
-    return createdApplication;
+    // Owner-local authorization: Front50 owns application ACLs in its own store, so there is no
+    // external permission store to sync on creation.
+    return applicationService.save(app);
   }
 
   @PreAuthorize("hasPermission(#applicationName, 'APPLICATION', 'WRITE')")
@@ -181,16 +174,33 @@ public class ApplicationsController {
   public Application get(@PathVariable final String applicationName) {
     Application app = applicationDAO.findByName(applicationName.toUpperCase());
 
+    Permissions defaultPermissions = applicationDefaultPermissions.toPermissions();
+    Permissions own = Permissions.EMPTY;
     try {
       Application.Permission perm =
           applicationPermissionDAO.map(it -> it.findById(app.getName())).orElse(null);
-      if (perm != null && perm.getPermissions().isRestricted()) {
-        app.details().put("permissions", perm.getPermissions());
-      } else {
-        app.details().remove("permissions");
+      if (perm != null) {
+        own = perm.getPermissions();
       }
     } catch (NotFoundException nfe) {
       // ignored.
+    }
+    // Embed the global defaults additively merged with the application's own ACL.
+    Permissions merged = defaultPermissions.merge(own);
+    if (merged.isRestricted()) {
+      app.details().put("permissions", merged);
+    } else {
+      app.details().remove("permissions");
+    }
+
+    // Also report the defaults on their own. `permissions` is the effective ACL, which callers
+    // deciding what a user may do (e.g. Deck's manual judgment check) need; but an editor needs to
+    // know which of those grants it does not own, so it can present them as inherited rather than
+    // as rows the operator can remove.
+    if (defaultPermissions.isRestricted()) {
+      app.details().put("defaultPermissions", defaultPermissions);
+    } else {
+      app.details().remove("defaultPermissions");
     }
 
     return app;
@@ -204,7 +214,7 @@ public class ApplicationsController {
     return applicationDAO.history(applicationName, limit);
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   @RequestMapping(method = RequestMethod.POST, value = "/batch/applications")
   public void batchUpdate(@RequestBody final Collection<Application> applications) {
     applicationDAO.bulkImport(applications);

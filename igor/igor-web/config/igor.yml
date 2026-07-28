@@ -1,5 +1,3 @@
-services.fiat.baseUrl: https://fiat.net
-
 netflix:
   appinfo:
     name: 'igor'

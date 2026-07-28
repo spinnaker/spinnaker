@@ -45,8 +45,6 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
 
   @Autowired LocalDebianEchoService echoService;
 
-  @Autowired LocalDebianFiatService fiatService;
-
   @Autowired LocalDebianFront50Service front50Service;
 
   @Autowired LocalDebianGateService gateService;

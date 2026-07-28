@@ -20,8 +20,8 @@ import java.io.Serializable;
 import org.springframework.security.access.PermissionEvaluator;
 
 /**
- * Make it possible to authorize by username in kork (e.g. in S3ArtifactStoreGetter), as
- * FiatPermissionEvaluator currently does.
+ * Make it possible to authorize by username in kork (e.g. in S3ArtifactStoreGetter), as the
+ * Spinnaker permission evaluator does.
  */
 public interface UserPermissionEvaluator extends PermissionEvaluator {
 

@@ -19,11 +19,11 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.security.authz.Authorization;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

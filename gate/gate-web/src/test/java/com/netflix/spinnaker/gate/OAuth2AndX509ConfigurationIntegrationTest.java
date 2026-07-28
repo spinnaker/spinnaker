@@ -19,12 +19,6 @@ package com.netflix.spinnaker.gate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableSet;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import java.io.File;
@@ -45,7 +39,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -142,8 +135,6 @@ class OAuth2AndX509ConfigurationIntegrationTest {
 
   @MockitoBean ClouddriverService clouddriverService;
 
-  @MockitoBean FiatService fiatService;
-
   @MockitoBean Front50Service front50Service;
 
   @LocalServerPort protected int mainPort;
@@ -221,23 +212,8 @@ class OAuth2AndX509ConfigurationIntegrationTest {
 
   @Test
   void fullX509AuthenticationFlowWithClientCertificateWorks() throws Exception {
-    // Mock Fiat responses for user authorization
-    // The X509 filter extracts username from the certificate CN (testclient)
-    when(fiatService.loginUser("testclient")).thenReturn(Calls.response((Void) null));
-    when(fiatService.getUserPermission("testclient"))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName("testclient")
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
-
+    // The X509 filter extracts the username from the certificate CN (testclient); roles are
+    // resolved locally at login (kork-roles), so no Fiat stubbing is required.
     // Create SSL context with client certificate for MTLS
     SSLContext sslContext = createClientSSLContext();
 
@@ -286,22 +262,6 @@ class OAuth2AndX509ConfigurationIntegrationTest {
   void fullOAuth2AuthenticationFlowUsingBrowserWorks() throws Exception {
     // Configure OAuth2 client in Keycloak
     createOAuth2ClientInKeycloak(mainPort);
-
-    // Mock Fiat responses for user authorization
-    when(fiatService.loginUser(TEST_EMAIL)).thenReturn(Calls.response((Void) null));
-    when(fiatService.getUserPermission(TEST_EMAIL))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(TEST_EMAIL)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
 
     // Use HtmlUnit to simulate a browser navigating through the OAuth2 flow
     // HtmlUnitDriver with JavaScript enabled (true parameter)

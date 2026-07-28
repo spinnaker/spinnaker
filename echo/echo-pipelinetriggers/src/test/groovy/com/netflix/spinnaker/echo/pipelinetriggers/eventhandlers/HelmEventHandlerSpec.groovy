@@ -20,7 +20,6 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.test.RetrofitStubs
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -29,14 +28,9 @@ class HelmEventHandlerSpec extends Specification implements RetrofitStubs {
   def registry = new NoopRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def handlerSupport = new EventHandlerSupport()
-  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  def eventHandler = new HelmEventHandler(registry, objectMapper, fiatPermissionEvaluator)
-
-  void setup() {
-    fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true
-  }
+  def eventHandler = new HelmEventHandler(registry, objectMapper)
 
   @Unroll
   def "honors pipeline trigger semver"() {

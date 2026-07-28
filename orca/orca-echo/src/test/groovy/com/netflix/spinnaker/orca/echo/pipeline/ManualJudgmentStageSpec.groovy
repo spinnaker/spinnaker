@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.echo.pipeline
 
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.model.resources.Role
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.kork.common.Header
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.token.SpinnakerTokenClaims
+import com.netflix.spinnaker.security.token.SpinnakerTokenVerifier
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -37,16 +37,16 @@ class ManualJudgmentStageSpec extends Specification {
     _ * create(_) >> { return Calls.response(null) }
   }
 
-  FiatPermissionEvaluator fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-
-  FiatStatus fiatStatus = Mock() {
-    _ * isEnabled() >> true
-  }
+  SpinnakerTokenVerifier tokenVerifier = Mock(SpinnakerTokenVerifier)
 
   ManualJudgmentAuthorization manualJudgmentAuthorization = new ManualJudgmentAuthorization(
-      Optional.of(fiatPermissionEvaluator),
-      fiatStatus
+      Optional.of(tokenVerifier),
+      Optional.empty()
   )
+
+  def cleanup() {
+    AuthenticatedRequest.clear()
+  }
 
   @Unroll
   void "should return execution status based on judgmentStatus"() {
@@ -72,9 +72,9 @@ class ManualJudgmentStageSpec extends Specification {
   @Unroll
   void "should return execution status based on authorizedGroups"() {
     given:
-    1 * fiatPermissionEvaluator.getPermission('abc@somedomain.io') >> {
-      new UserPermission().addResources([new Role('foo')]).setAdmin(isAdmin).view
-    }
+    AuthenticatedRequest.set(Header.IDENTITY_TOKEN, "signed-identity-token")
+    1 * tokenVerifier.verify("signed-identity-token") >>
+        SpinnakerTokenClaims.builder('abc@somedomain.io').roles(['foo']).admin(isAdmin).build()
 
     def task = new WaitForManualJudgmentTask(Optional.of(echoService), manualJudgmentAuthorization)
 

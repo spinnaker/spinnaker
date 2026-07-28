@@ -50,7 +50,7 @@ class ApplicationsController {
   @Autowired
   RequestQueue requestQueue
 
-  @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
+  @PreAuthorize("permitAll()")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @RequestMapping(method = RequestMethod.GET)
   List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand,

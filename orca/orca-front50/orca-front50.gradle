@@ -22,8 +22,11 @@ dependencies {
 
   api("org.apache.groovy:groovy")
 
-  implementation("io.spinnaker.fiat:fiat-api")
-  implementation("io.spinnaker.fiat:fiat-core")
+  // kork-authz is exposed transitively: Application's public API (get/setPermissions) uses
+  // com.netflix.spinnaker.security.authz.Permissions, so downstream Groovy consumers
+  // (orca-bakery, orca-applications, orca-web, ...) need it on their compile classpath.
+  api("io.spinnaker.kork:kork-authz")
+  implementation("io.spinnaker.kork:kork-security")
   implementation("com.netflix.spectator:spectator-api")
   implementation("org.jetbrains:annotations")
   implementation("org.springframework.boot:spring-boot-autoconfigure")

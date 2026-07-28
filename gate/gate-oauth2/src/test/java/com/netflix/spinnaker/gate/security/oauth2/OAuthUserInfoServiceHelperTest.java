@@ -22,10 +22,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.gate.services.internal.ServiceAccount;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +66,6 @@ public class OAuthUserInfoServiceHelperTest {
             userInfoRequirements,
             permissionService,
             front50Service,
-            null,
             null,
             null,
             Optional.empty());
@@ -155,7 +154,7 @@ public class OAuthUserInfoServiceHelperTest {
     when(userInfoMapping.getServiceAccountEmail()).thenReturn("email");
     when(permissionService.isEnabled()).thenReturn(true);
     ServiceAccount serviceAccount = new ServiceAccount();
-    serviceAccount = serviceAccount.setName("service@example.com");
+    serviceAccount.setName("service@example.com");
     when(front50Service.getServiceAccounts()).thenReturn(Calls.response(List.of(serviceAccount)));
 
     assertThat(userInfoService.isServiceAccount(details)).isTrue();
@@ -169,7 +168,7 @@ public class OAuthUserInfoServiceHelperTest {
     when(userInfoMapping.getServiceAccountEmail()).thenReturn("email");
     when(permissionService.isEnabled()).thenReturn(true);
     ServiceAccount serviceAccount = new ServiceAccount();
-    serviceAccount = serviceAccount.setName("service@example.com");
+    serviceAccount.setName("service@example.com");
     when(front50Service.getServiceAccounts()).thenReturn(Calls.response(List.of(serviceAccount)));
 
     assertThat(userInfoService.isServiceAccount(details)).isFalse();
@@ -194,7 +193,6 @@ public class OAuthUserInfoServiceHelperTest {
                 permissionService,
                 front50Service,
                 allowedAccountsSupport,
-                null,
                 null,
                 Optional.empty()));
     String userName = "userName";

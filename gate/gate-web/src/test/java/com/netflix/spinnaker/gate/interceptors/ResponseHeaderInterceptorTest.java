@@ -24,12 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.common.Header;
@@ -41,8 +39,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,19 +58,15 @@ public class ResponseHeaderInterceptorTest {
   private static final String TEST_EXECUTION_TYPE = "Test-Execution-Type";
   private static final String TEST_APPLICATION = "Test-Application";
 
-  @MockitoBean private ClouddriverService mockClouddriverService;
+  @MockBean private ClouddriverService mockClouddriverService;
 
-  @MockitoBean private ServiceClientProvider mockServiceClientProvider;
+  @MockBean private ServiceClientProvider mockServiceClientProvider;
 
-  @MockitoBean private ApplicationService mockApplicationService;
+  @MockBean private ApplicationService mockApplicationService;
 
-  @MockitoBean private PermissionService mockPermissionService;
+  @MockBean private PermissionService mockPermissionService;
 
-  @MockitoBean private FiatService mockFiatService;
-
-  @MockitoBean private ExtendedFiatService mockExtendedFiatService;
-
-  @MockitoBean private Front50Service mockFront50Service;
+  @MockBean private Front50Service mockFront50Service;
 
   @RestController
   @RequestMapping(value = API_BASE)

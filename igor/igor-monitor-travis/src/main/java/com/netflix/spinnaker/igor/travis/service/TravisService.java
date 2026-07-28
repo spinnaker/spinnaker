@@ -20,7 +20,6 @@ package com.netflix.spinnaker.igor.travis.service;
 import static java.util.Collections.emptyList;
 import static net.logstash.logback.argument.StructuredArguments.kv;
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.build.model.GenericBuild;
 import com.netflix.spinnaker.igor.build.model.GenericGitRevision;
 import com.netflix.spinnaker.igor.build.model.GenericJobConfiguration;
@@ -53,6 +52,7 @@ import com.netflix.spinnaker.igor.travis.client.model.v3.V3Log;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import com.netflix.spinnaker.security.authz.Permissions;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.core.SupplierUtils;

@@ -19,8 +19,8 @@ package com.netflix.spinnaker.clouddriver.docker.registry.security
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.clouddriver.docker.registry.exception.DockerRegistryConfigException
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
-import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Authorization
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider
 import com.netflix.spinnaker.kork.docker.service.DockerRegistryClient

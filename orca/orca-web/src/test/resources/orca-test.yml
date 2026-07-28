@@ -22,10 +22,6 @@ spring:
   application:
     name: orcaTest
 
-services:
-  fiat:
-    baseUrl: https://fiat.net
-
 clouddriver:
     baseUrl: https://clouddriver.net
     readOnly:

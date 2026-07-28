@@ -1,0 +1,18 @@
+apply plugin: "java-library"
+apply from: "$rootDir/gradle/lombok.gradle"
+
+dependencies {
+  api(platform(project(":spinnaker-dependencies")))
+
+  // Base role-resolution types (BaseUserRolesProvider, ExternalUser, UserRolesProviderCacheConfig)
+  // and, transitively, kork-authz (Role). Kept as its own optional module so that consumers which
+  // do not use the LDAP role provider never pull spring-security-ldap onto their classpath and
+  // therefore never trigger Spring Boot's localhost LDAP auto-configuration / health check.
+  implementation(project(":kork-roles"))
+
+  implementation "org.apache.commons:commons-lang3"
+  implementation "org.slf4j:slf4j-api"
+  implementation "org.springframework.boot:spring-boot-autoconfigure"
+  implementation "org.springframework.security:spring-security-ldap"
+  implementation "com.google.guava:guava"
+}

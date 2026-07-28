@@ -1,6 +1,3 @@
-sourceSets.main.java.srcDirs = []
-sourceSets.main.groovy.srcDirs += ["src/main/java"]
-
 dependencies {
   implementation project(":clouddriver-api")
   implementation project(":clouddriver-core")
@@ -9,9 +6,7 @@ dependencies {
 
   implementation "com.netflix.frigga:frigga"
   implementation "com.netflix.spectator:spectator-api"
-  implementation "io.spinnaker.fiat:fiat-api"
-  implementation "io.spinnaker.fiat:fiat-core"
-  implementation "io.spinnaker.kork:kork-credentials"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "io.spinnaker.kork:kork-exceptions"
   implementation "io.spinnaker.kork:kork-moniker"
   implementation "org.apache.groovy:groovy"

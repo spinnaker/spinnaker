@@ -48,7 +48,7 @@ public class EntityTagsController {
   }
 
   @RequestMapping(method = RequestMethod.GET)
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(filterObject.getEntityRef().getApplication(), 'APPLICATION', 'READ')")
   public Collection<EntityTags> list(
       @RequestParam(value = "cloudProvider", required = false) String cloudProvider,
@@ -83,7 +83,7 @@ public class EntityTagsController {
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostAuthorize("@authorizationSupport.authorizeEntityTags(returnObject)")
   public EntityTags get(HttpServletRequest request) {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);

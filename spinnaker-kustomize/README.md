@@ -61,7 +61,7 @@ several locations to change this setting.
 You should ALSO adjust the default password set in `overlays/config/files/gate-local.yml` to some other default password and better yet, a real auth provider.
 
 NOTE:  When setting an auth provider other than basicform, please ALSO turn on various settings like pipeline permissions which are default commented out
-and enable fiat for RBAC.  Docs are available on [the website](https://spinnaker.io) for more installation settings
+and enable authorization (`authz.enabled`) for RBAC.  Docs are available on [the website](https://spinnaker.io) for more installation settings
 
 ## Customizing Spinnaker
 

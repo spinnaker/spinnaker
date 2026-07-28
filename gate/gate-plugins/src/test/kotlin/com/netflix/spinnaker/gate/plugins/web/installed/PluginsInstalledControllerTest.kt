@@ -19,7 +19,6 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
@@ -46,7 +45,6 @@ class PluginsInstalledControllerTest {
     .withBean(SpringStrictPluginLoaderStatusProvider::class.java, { mock() })
     .withBean(DynamicConfigService::class.java, { mock() })
     .withBean(ClouddriverService::class.java, { mock() })
-    .withBean(ExtendedFiatService::class.java, { mock() })
     .withBean(Front50Service::class.java, { mock() })
     .withBean(OrcaServiceSelector::class.java, { mock() })
     .withUserConfiguration(PluginsInstalledController::class.java)

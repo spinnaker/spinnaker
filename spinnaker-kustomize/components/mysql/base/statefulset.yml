@@ -17,8 +17,6 @@ spec:
           value: "testing123"
         - name: echo
           value: "testing123"
-        - name: fiat
-          value: "testing123"
         - name: front50
           value: "testing123"
         - name: orca

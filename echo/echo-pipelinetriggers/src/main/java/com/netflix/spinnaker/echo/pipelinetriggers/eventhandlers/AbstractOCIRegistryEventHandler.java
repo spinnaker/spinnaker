@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
 import java.util.List;
@@ -38,11 +37,8 @@ import org.apache.commons.lang3.StringUtils;
 public abstract class AbstractOCIRegistryEventHandler<T extends AbstractOCIRegistryEvent>
     extends BaseTriggerEventHandler<T> {
 
-  protected AbstractOCIRegistryEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+  protected AbstractOCIRegistryEventHandler(Registry registry, ObjectMapper objectMapper) {
+    super(registry, objectMapper);
   }
 
   /** Get the trigger type string for this handler. */

@@ -37,7 +37,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
   WebhookProperties webhookProperties = new WebhookProperties()
 
   @Subject
-  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, null, monitorWebhookTask, webhookProperties)
+  preconfiguredWebhookStage = new PreconfiguredWebhookStage(webhookService, Optional.empty(), monitorWebhookTask, webhookProperties)
 
   def "Context should be taken from PreconfiguredWebhookProperties"() {
     given:

@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.gate.config;
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
-import com.netflix.spinnaker.gate.filters.FiatSessionFilter;
+import com.netflix.spinnaker.gate.security.token.GateIdentityService;
+import com.netflix.spinnaker.gate.security.token.GateIdentityTokenInboundFilter;
+import com.netflix.spinnaker.gate.security.token.IdentityTokenPropagationFilter;
 import com.netflix.spinnaker.gate.services.ServiceAccountFilterConfigProps;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.security.authz.filter.IdentityTokenAuthenticationConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -37,18 +38,24 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 @Configuration
-@EnableConfigurationProperties({
-  ServiceConfiguration.class,
-  ServiceAccountFilterConfigProps.class,
-  FiatClientConfigurationProperties.class,
-  DynamicRoutingConfigProperties.class
-})
+@EnableConfigurationProperties({ServiceConfiguration.class, DynamicRoutingConfigProperties.class})
 @NonnullByDefault
 @RequiredArgsConstructor
 public class AuthConfig {
+
+  /**
+   * Resolves the service-account filter config, preferring the canonical {@code
+   * authz.service-accounts.filter} key and falling back to the deprecated {@code
+   * fiat.service-accounts.filter} alias. Registered as an explicit bean (rather than via
+   * {@code @EnableConfigurationProperties}) so the dual-prefix/deprecation-fallback logic in {@link
+   * ServiceAccountFilterConfigProps#bind} can run.
+   */
+  @Bean
+  public ServiceAccountFilterConfigProps serviceAccountFilterConfigProps(Environment environment) {
+    return ServiceAccountFilterConfigProps.bind(environment);
+  }
+
   private final PermissionRevokingLogoutSuccessHandler permissionRevokingLogoutSuccessHandler;
-  private final FiatStatus fiatStatus;
-  private final FiatPermissionEvaluator permissionEvaluator;
   private final RequestMatcherProvider requestMatcherProvider;
 
   @Setter(
@@ -58,13 +65,16 @@ public class AuthConfig {
 
   @Setter(
       onMethod_ = {@Autowired},
-      onParam_ = {@Value("${fiat.session-filter.enabled:true}")})
-  private boolean fiatSessionFilterEnabled;
-
-  @Setter(
-      onMethod_ = {@Autowired},
       onParam_ = {@Value("${security.webhooks.default-auth-enabled:false}")})
   private boolean webhookDefaultAuthEnabled;
+
+  /** Edge identity facade; null when the identity-token machinery is not configured. */
+  @Setter(onMethod_ = {@Autowired(required = false)})
+  private GateIdentityService gateIdentityService;
+
+  /** Verifies inbound identity tokens at the edge; null when not configured. */
+  @Setter(onMethod_ = {@Autowired(required = false)})
+  private IdentityTokenAuthenticationConverter identityTokenAuthenticationConverter;
 
   @Bean
   public WebSecurityCustomizer securityDebugCustomizer() {
@@ -74,8 +84,18 @@ public class AuthConfig {
   public void configure(HttpSecurity http) throws Exception {
     http.securityMatcher(requestMatcherProvider.requestMatcher())
         .authorizeHttpRequests(
-            authz -> {
-              authz
+            registry -> {
+              registry
+                  // https://github.com/spring-projects/spring-security/issues/11055#issuecomment-1098061598 suggests
+                  //
+                  // filterSecurityInterceptorOncePerRequest(false)
+                  //
+                  // until spring boot 3.0.  Since
+                  //
+                  // .antMatchers("/error").permitAll()
+                  //
+                  // permits unauthorized access to /error, filterSecurityInterceptorOncePerRequest
+                  // isn't relevant.
                   .requestMatchers("/error")
                   .permitAll()
                   .requestMatchers("/favicon.ico")
@@ -86,15 +106,25 @@ public class AuthConfig {
                   .permitAll()
                   .requestMatchers("/auth/user")
                   .permitAll()
+                  // Public key material so downstream services can verify Gate-minted identity
+                  // tokens (derived from services.gate.baseUrl). Server-to-server, unauthenticated.
+                  .requestMatchers(HttpMethod.GET, "/auth/jwks")
+                  .permitAll()
+                  // Server-side token exchange: a downstream service swaps an opaque spk_ token
+                  // (presented directly to it) for the signed identity token Gate would have
+                  // minted. The spk_ token in the body is itself the credential, so the endpoint
+                  // is unauthenticated and returns 401 for an unknown/expired token.
+                  .requestMatchers(HttpMethod.POST, "/auth/apiTokens/exchange")
+                  .permitAll()
                   .requestMatchers("/plugins/deck/**")
                   .permitAll();
-              var webhooks = authz.requestMatchers(HttpMethod.POST, "/webhooks/**");
+              var webhooks = registry.requestMatchers(HttpMethod.POST, "/webhooks/**");
               if (webhookDefaultAuthEnabled) {
                 webhooks.authenticated();
               } else {
                 webhooks.permitAll();
               }
-              authz
+              registry
                   .requestMatchers(HttpMethod.POST, "/notifications/callbacks/**")
                   .permitAll()
                   .requestMatchers(HttpMethod.POST, "/managed/notifications/callbacks/**")
@@ -112,9 +142,20 @@ public class AuthConfig {
                     .permitAll())
         .csrf(AbstractHttpConfigurer::disable);
 
-    if (fiatSessionFilterEnabled) {
-      var filter = new FiatSessionFilter(fiatStatus, permissionEvaluator);
-      http.addFilterBefore(filter, AnonymousAuthenticationFilter.class);
+    // Edge inbound verification: only acts when an identity token is actually present on the
+    // request (service-to-service), never clobbering an established browser/CLI edge session.
+    if (identityTokenAuthenticationConverter != null) {
+      http.addFilterBefore(
+          new GateIdentityTokenInboundFilter(identityTokenAuthenticationConverter),
+          AnonymousAuthenticationFilter.class);
+    }
+
+    // After authentication is established, mint the short-lived signed identity token for the
+    // caller and stash it in the MDC so it propagates to downstream services.
+    if (gateIdentityService != null) {
+      http.addFilterAfter(
+          new IdentityTokenPropagationFilter(gateIdentityService),
+          AnonymousAuthenticationFilter.class);
     }
   }
 }

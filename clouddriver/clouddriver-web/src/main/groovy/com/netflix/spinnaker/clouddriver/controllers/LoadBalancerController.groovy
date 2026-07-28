@@ -48,7 +48,7 @@ class LoadBalancerController {
     .sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() } as List<LoadBalancer>
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostAuthorize("@authorizationSupport.filterLoadBalancerProviderItems(returnObject)")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancerProvider.Item> listForCloudProvider(@PathVariable String cloudProvider) {

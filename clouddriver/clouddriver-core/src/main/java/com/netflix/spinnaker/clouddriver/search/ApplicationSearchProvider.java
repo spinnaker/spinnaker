@@ -18,8 +18,8 @@ package com.netflix.spinnaker.clouddriver.search;
 
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service;
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +33,12 @@ public class ApplicationSearchProvider implements SearchProvider {
 
   private final Front50Service front50Service;
   private final List<ClusterProvider> clusterProviders;
-  private final FiatPermissionEvaluator permissionEvaluator;
+  private final PolicyDecisionPointPermissionEvaluator permissionEvaluator;
 
   public ApplicationSearchProvider(
       Front50Service front50Service,
       List<ClusterProvider> clusterProviders,
-      FiatPermissionEvaluator permissionEvaluator) {
+      PolicyDecisionPointPermissionEvaluator permissionEvaluator) {
     this.front50Service = front50Service;
     this.clusterProviders = clusterProviders;
     this.permissionEvaluator = permissionEvaluator;
@@ -94,8 +94,8 @@ public class ApplicationSearchProvider implements SearchProvider {
     rawResults.forEach(
         application -> {
           String appName = application.get("name").toString().toLowerCase();
-          if (permissionEvaluator != null
-              && permissionEvaluator.hasPermission(auth, appName, "APPLICATION", "READ")) {
+          if (permissionEvaluator == null
+              || permissionEvaluator.hasPermission(auth, appName, "APPLICATION", "READ")) {
             application.put("application", appName);
             application.put("type", APPLICATIONS_TYPE);
             application.put("url", String.format("/applications/%s", appName));

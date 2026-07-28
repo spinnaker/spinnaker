@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.googlecommon.config
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 
 class GoogleCommonManagedAccount implements CredentialsDefinition {
   String name

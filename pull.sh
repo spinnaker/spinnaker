@@ -45,7 +45,7 @@ done
 
 # Add in default repos if user did not provide any
 if [ ${#REPOS[@]} -eq 0 ]; then
-  REPOS=(clouddriver deck deck-kayenta echo fiat front50 gate halyard igor kayenta kork orca rosco spin spinnaker-gradle-project)
+  REPOS=(clouddriver deck deck-kayenta echo front50 gate halyard igor kayenta kork orca rosco spin spinnaker-gradle-project)
 fi
 
 function pull() {

@@ -34,7 +34,11 @@ const displayTimestampsInUserLocalTime =
 const dryRunEnabled = import.meta.env.VITE_DRYRUN_ENABLED === 'true' || process.env.DRYRUN_ENABLED === 'true' || false;
 const entityTagsEnabled =
   import.meta.env.VITE_ENTITY_TAGS_ENABLED === 'true' || process.env.ENTITY_TAGS_ENABLED === 'true' || false;
-const fiatEnabled = import.meta.env.VITE_FIAT_ENABLED === 'true' || process.env.FIAT_ENABLED === 'true' || false;
+// Authorization uses a decentralized, token-based model.
+// Authorization-related UI is shown whenever authentication is enabled, but can
+// still be toggled independently via AUTHZ_ENABLED for local development.
+const authzEnabled =
+  import.meta.env.VITE_AUTHZ_ENABLED === 'true' || process.env.AUTHZ_ENABLED === 'true' || authEnabled;
 const gceScaleDownControlsEnabled =
   import.meta.env.VITE_GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
   process.env.GCE_SCALE_DOWN_CONTROLS_ENABLED === 'true' ||
@@ -120,7 +124,7 @@ window.spinnakerSettings = {
     dryRunEnabled: dryRunEnabled,
     entityTags: entityTagsEnabled,
     executionMarkerInformationModal: false,
-    fiatEnabled: fiatEnabled,
+    authzEnabled: authzEnabled,
     html5Routing: html5Routing,
     iapRefresherEnabled: iapRefresherEnabled,
     managedDelivery: managedDeliveryEnabled,

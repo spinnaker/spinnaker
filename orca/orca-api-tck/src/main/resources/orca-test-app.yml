@@ -30,10 +30,6 @@ spring:
   application:
     name: orca
 
-services:
-  fiat:
-    baseUrl: https://fiat.net
-
 clouddriver:
   baseUrl: https://clouddriver.net
   readOnly:

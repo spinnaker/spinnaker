@@ -255,7 +255,14 @@ public class OkHttpClientComponents {
 
   @Bean
   public HttpLoggingInterceptor httpLoggingInterceptor() {
-    return new HttpLoggingInterceptor().setLevel(retrofit2Properties.getLogLevel());
+    HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+    interceptor.setLevel(retrofit2Properties.getLogLevel());
+    // Never log service-to-service credentials even at HEADERS/BODY log level.
+    interceptor.redactHeader("X-Service-Identity");
+    // The K8s provider carries a raw bearer JWT on this header; see
+    // com.netflix.spinnaker.security.s2s.config.ServiceToServiceProperties.K8s#tokenHeader.
+    interceptor.redactHeader("X-Service-Identity-Token");
+    return interceptor;
   }
 
   @Bean

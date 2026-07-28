@@ -1,11 +1,30 @@
 ## Keel API authorization
 
 ### Overview
-Keel, like other Spinnaker services, leverages [`fiat`](https://github.com/spinnaker/fiat) for API authorization.
+Keel now authorizes requests with the shared
+kork authorization libraries (`kork-authz`/`kork-security`): inbound identity tokens are verified by the
+verifier-only chain in `com.netflix.spinnaker.config.SecurityConfiguration`, the caller's roles are read from the
+verified token (no remote authorization call), and per-resource decisions are delegated to the kork
+`PolicyDecisionPointPermissionEvaluator`.
+
+Authorization is gated on the master switch `authz.enabled` (default `false` = disabled), consistent with the
+other migrated services and modeled on the legacy `services.fiat.enabled`. While disabled, keel allows access and
+falls back to the unsigned `X-SPINNAKER-USER` header; flipping the flag to `true` enables token-driven enforcement.
+Note that keel does not own the ACLs for applications, cloud accounts, or service accounts (those resources live in
+other services), so when enforcing,
+non-admin decisions for those resources rely on token-sourced roles only.
+
+#### Accepting an API token directly
+Keel only understands the signed identity token, not the opaque `spk_` API token. When
+`authz.api-token-exchange.enabled=true` (the Gate address is the standard
+`services.gate.baseUrl`), a `spk_` token presented directly to keel (e.g. via port-forward, in `X-Spinnaker-Token` or
+`Authorization: Bearer spk_…`) is exchanged once at Gate's `/auth/apiTokens/exchange` endpoint for
+the signed token Gate would have minted, and then verified through the normal chain — so the result
+is identical to a request proxied through Gate. See `gate/README.md` for the full configuration.
 
 To simplify the implementation of authorization checks and avoid redundant code, we provide a helper class,
 `com.netflix.spinnaker.keel.rest.AuthorizationSupport`, with high-level authorization functions that wrap the standard
-`PermissionEvaluator.hasPermission()` function from the `fiat` library. 
+`PermissionEvaluator.hasPermission()` function. 
 
 Access to APIs is granted based on one or more of the following permission checks:
  - The caller (as identified by the X-SPINNAKER-USER request header, or X509 client certificate) has access to the
@@ -18,7 +37,8 @@ Access to APIs is granted based on one or more of the following permission check
    function.
 
 The authorization functions in `AuthorizationSupport` extract the necessary information from keel's database, based on 
-request parameters, so that the appropriate permission checks in `fiat` can be carried out. 
+request parameters, so that the appropriate permission checks can be carried out by the kork
+`PolicyDecisionPointPermissionEvaluator`. 
 
 For example, consider the API to read a delivery config: `GET /delivery-configs/{name}`. We check that the caller has 
 `READ` permission to the application:

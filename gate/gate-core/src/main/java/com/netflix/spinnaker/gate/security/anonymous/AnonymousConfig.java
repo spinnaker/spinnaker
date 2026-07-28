@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.security.anonymous;
 
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig;
 import com.netflix.spinnaker.gate.services.CredentialsService;
 import com.netflix.spinnaker.security.User;
@@ -40,9 +39,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Requires auth.anonymous.enabled to be true in Fiat configs to work properly. This is because
- * anonymous users are a special permissions case, because the "user" doesn't actually exist in the
- * backing UserRolesProvider.
+ * Requires auth.anonymous.enabled to be true to work properly. This is because anonymous users are
+ * a special permissions case, because the "user" doesn't actually exist in the backing
+ * UserRolesProvider.
  */
 @ConditionalOnMissingBean(annotation = SpinnakerAuthConfig.class)
 @Configuration
@@ -55,7 +54,6 @@ public class AnonymousConfig {
   private static final String defaultEmail = "anonymous";
 
   private final CredentialsService credentialsService;
-  private final FiatStatus fiatStatus;
   @Getter private final List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>();
 
   @Bean
@@ -73,10 +71,8 @@ public class AnonymousConfig {
 
   @Scheduled(fixedDelay = 60000L)
   public void updateAnonymousAccounts() {
-    if (fiatStatus.isEnabled()) {
-      return;
-    }
-
+    // This config is only active when no authentication mechanism is configured (anonymous
+    // access), so anonymous users are granted all locally-known accounts.
     try {
       Collection<String> names = credentialsService.getAccountNames(Set.of());
       Collection<String> newAnonAccounts = !CollectionUtils.isEmpty(names) ? names : Set.of();

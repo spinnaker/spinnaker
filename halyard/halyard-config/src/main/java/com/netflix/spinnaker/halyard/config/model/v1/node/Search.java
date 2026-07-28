@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

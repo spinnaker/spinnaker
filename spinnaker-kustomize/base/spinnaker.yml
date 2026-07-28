@@ -16,8 +16,6 @@ services:
   echo:
     baseUrl: http://echo:8089
     enabled: true
-  fiat:
-    baseUrl: http://fiat:7003
     ## CANNOT be enabled with basic auth at this time
     enabled: false
   front50:

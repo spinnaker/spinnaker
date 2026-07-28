@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.gate.security.apitoken;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
+import com.netflix.spinnaker.gate.security.token.GateIdentityService;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -55,14 +55,10 @@ public class ApiTokenConfig {
       ApiTokenProperties properties,
       ApiTokenService apiTokenService,
       PermissionService permissionService,
-      FiatPermissionEvaluator permissionEvaluator,
+      GateIdentityService identityService,
       AllowedAccountsSupport allowedAccountsSupport) {
     return new ApiTokenAuthenticationFilter(
-        properties,
-        apiTokenService,
-        permissionService,
-        permissionEvaluator,
-        allowedAccountsSupport);
+        properties, apiTokenService, permissionService, identityService, allowedAccountsSupport);
   }
 
   /**
