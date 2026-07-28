@@ -34,6 +34,7 @@ import './config/stages/pipeline/pipelineStage';
 import './config/stages/resizeAsg/resizeAsgStage';
 import './config/stages/rollbackCluster/rollbackClusterStage';
 import './config/stages/runJob/runJobStage';
+import './config/stages/runMultiplePipelines/runMultiplePipelinesStage';
 import './config/stages/savePipelines/savePipelinesStage';
 import './config/stages/scaleDownCluster/scaleDownClusterStage';
 import './config/stages/script/scriptStage';
