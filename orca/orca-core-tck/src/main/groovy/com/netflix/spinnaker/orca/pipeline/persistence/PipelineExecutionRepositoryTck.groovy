@@ -93,6 +93,57 @@ abstract class PipelineExecutionRepositoryTck<T extends ExecutionRepository> ext
     pipelines.isEmpty()
   }
 
+  def "can retrieve pipelines by page"() {
+    given:
+    // ids are pinned rather than left to the default ULID generator: executions created back-to-back
+    // in a test can land in the same millisecond, where ULID ordering is only randomly tie-broken and
+    // would make assertions on "id desc" ordering (as used by the SQL backend) flaky.
+    def first = pipeline {
+      status = SUCCEEDED
+      pipelineConfigId = "pipeline-1"
+      buildTime = 1000
+    }
+    first.id = "00000000000000000000000001"
+    def second = pipeline {
+      status = SUCCEEDED
+      pipelineConfigId = "pipeline-1"
+      buildTime = 2000
+    }
+    second.id = "00000000000000000000000002"
+    def third = pipeline {
+      status = SUCCEEDED
+      pipelineConfigId = "pipeline-1"
+      buildTime = 3000
+    }
+    third.id = "00000000000000000000000003"
+
+    when:
+    repository().store(first)
+    repository().store(second)
+    repository().store(third)
+
+    def page1 = repository().retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionCriteria(pageSize: 1, page: 1, statuses: ["SUCCEEDED"])
+    ).subscribeOn(Schedulers.io()).toList().blockingGet()
+    def page2 = repository().retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionCriteria(pageSize: 1, page: 2, statuses: ["SUCCEEDED"])
+    ).subscribeOn(Schedulers.io()).toList().blockingGet()
+    def page3 = repository().retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionCriteria(pageSize: 1, page: 3, statuses: ["SUCCEEDED"])
+    ).subscribeOn(Schedulers.io()).toList().blockingGet()
+    def page4 = repository().retrievePipelinesForPipelineConfigId(
+      "pipeline-1", new ExecutionCriteria(pageSize: 1, page: 4, statuses: ["SUCCEEDED"])
+    ).subscribeOn(Schedulers.io()).toList().blockingGet()
+
+    then: "each page returns a distinct, newest-first execution rather than repeating the same results"
+    page1*.id == [third.id]
+    page2*.id == [second.id]
+    page3*.id == [first.id]
+
+    and: "paging past the available results returns empty instead of repeating or erroring"
+    page4.isEmpty()
+  }
+
   @Deprecated // Testing deprecated API
   def "can retrieve orchestrations by status"() {
     given:
