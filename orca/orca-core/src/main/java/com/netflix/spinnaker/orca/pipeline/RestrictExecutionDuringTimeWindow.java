@@ -59,7 +59,7 @@ public class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder
 
     try {
       JitterConfig jitter = stage.mapTo("/restrictedExecutionWindow/jitter", JitterConfig.class);
-      if (jitter.enabled && jitter.maxDelay > 0) {
+      if (jitter != null && jitter.enabled && jitter.maxDelay > 0) {
         if (jitter.skipManual && stage.getExecution().getTrigger().getType().equals("manual")) {
           return;
         }

@@ -28,8 +28,8 @@ class EcsCloudMetricControllerSpec extends Specification {
 
   def 'should get a map of metrics'() {
     given:
-    def metricAlarms = [new EcsMetricAlarm().withAlarmName('alarm-name-1').withAlarmArn('alarm-arn-1'),
-                        new EcsMetricAlarm().withAlarmName('alarm-name-2').withAlarmArn('alarm-arn-2')]
+    def metricAlarms = [EcsMetricAlarm.builder().alarmName('alarm-name-1').alarmArn('alarm-arn-1').build(),
+                        EcsMetricAlarm.builder().alarmName('alarm-name-2').alarmArn('alarm-arn-2').build()]
 
     when:
     def returnedMetricAlarms = controller.findAllMetricAlarms()

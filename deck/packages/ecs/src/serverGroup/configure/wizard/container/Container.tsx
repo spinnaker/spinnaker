@@ -1,11 +1,11 @@
-import { module } from 'angular';
-import { isEqual, uniqWith } from 'lodash';
+import { isEqual, uniq, uniqWith } from 'lodash';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 import type { Option } from 'react-select';
-import { react2angular } from 'react2angular';
 
-import { HelpField, TetheredSelect, withErrorBoundary } from '@spinnaker/core';
+import type { IAccountDetails } from '@spinnaker/core';
+import { AccountService, HelpField, TetheredSelect } from '@spinnaker/core';
+import { DockerImageReader } from '@spinnaker/docker';
 
 import type {
   IEcsDockerImage,
@@ -15,8 +15,8 @@ import type {
 
 export interface IContainerProps {
   command: IEcsServerGroupCommand;
-  notifyAngular: (key: string, value: any) => void;
-  configureCommand: (query: string) => PromiseLike<void>;
+  onFieldChange: (key: string, value: any) => void;
+  configureCommand: (query: string) => Promise<void>;
 }
 
 interface IContainerState {
@@ -24,6 +24,8 @@ interface IContainerState {
   computeUnits: number;
   reservedMemory: number;
   dockerImages: IEcsDockerImage[];
+  dockerRegistryAccounts: IAccountDetails[];
+  selectedDockerAccount: string;
   targetGroupsAvailable: string[];
   targetGroupMappings: IEcsTargetGroupMapping[];
 }
@@ -60,8 +62,13 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       computeUnits: cmd.computeUnits,
       reservedMemory: cmd.reservedMemory,
       dockerImages: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.images : [],
+      dockerRegistryAccounts: [],
+      selectedDockerAccount: cmd.imageDescription?.account ?? '',
       targetGroupMappings: cmd.targetGroupMappings,
-      targetGroupsAvailable: cmd.backingData && cmd.backingData.filtered ? cmd.backingData.filtered.targetGroups : [],
+      targetGroupsAvailable: uniq([
+        ...(cmd.backingData?.filtered?.targetGroups || []),
+        ...cmd.targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
+      ]),
     };
 
     this.state.targetGroupMappings.forEach((targetGroupMapping) => {
@@ -70,12 +77,40 @@ export class Container extends React.Component<IContainerProps, IContainerState>
   }
 
   public componentDidMount() {
+    AccountService.listAccounts('dockerRegistry').then((accounts: IAccountDetails[]) => {
+      this.setState({ dockerRegistryAccounts: accounts });
+    });
+
     this.props.configureCommand('1').then(() => {
       this.setState({
         dockerImages: this.props.command.backingData.filtered.images,
-        targetGroupsAvailable: this.props.command.backingData.filtered.targetGroups,
+        targetGroupsAvailable: uniq([
+          ...(this.props.command.backingData.filtered.targetGroups || []),
+          ...this.state.targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
+        ]),
       });
     });
+  }
+
+  public componentDidUpdate() {
+    const cmd = this.props.command;
+    const targetGroupMappings = cmd.targetGroupMappings || [];
+    const nextState: IContainerState = {
+      imageDescription: cmd.imageDescription || this.getEmptyImageDescription(),
+      computeUnits: cmd.computeUnits,
+      reservedMemory: cmd.reservedMemory,
+      dockerImages: cmd.backingData?.filtered?.images || [],
+      dockerRegistryAccounts: this.state.dockerRegistryAccounts,
+      selectedDockerAccount: this.state.selectedDockerAccount,
+      targetGroupMappings,
+      targetGroupsAvailable: uniq([
+        ...(cmd.backingData?.filtered?.targetGroups || []),
+        ...targetGroupMappings.map((mapping) => mapping.targetGroup).filter(Boolean),
+      ]),
+    };
+    if (!isEqual(this.state, nextState)) {
+      this.setState(nextState);
+    }
   }
 
   // TODO: Separate docker image component used by both TaskDefinition and Container
@@ -104,6 +139,17 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     };
   };
 
+  private updateDockerRegistryAccount = (newAccount: Option<string>) => {
+    const account = newAccount.value;
+    this.props.command.backingData.filtered.images = [];
+    this.setState({ selectedDockerAccount: account, dockerImages: [] });
+    DockerImageReader.findImages({ provider: 'dockerRegistry', account, count: 50 }).then((images) => {
+      const ecsImages = images as IEcsDockerImage[];
+      this.props.command.backingData.filtered.images = ecsImages;
+      this.setState({ dockerImages: ecsImages });
+    });
+  };
+
   private pushTargetGroupMapping = () => {
     const targetMaps = this.state.targetGroupMappings;
     targetMaps.push({ containerName: '', targetGroup: '', containerPort: 80 });
@@ -117,17 +163,17 @@ export class Container extends React.Component<IContainerProps, IContainerState>
       newImageDescription = this.getEmptyImageDescription();
     }
 
-    this.props.notifyAngular('imageDescription', newImageDescription);
+    this.props.onFieldChange('imageDescription', newImageDescription);
     this.setState({ imageDescription: newImageDescription });
   };
 
   private updateComputeUnits = (newComputeUnits: number) => {
-    this.props.notifyAngular('computeUnits', newComputeUnits);
+    this.props.onFieldChange('computeUnits', newComputeUnits);
     this.setState({ computeUnits: newComputeUnits });
   };
 
   private updateReservedMemory = (newReservedMemory: number) => {
-    this.props.notifyAngular('reservedMemory', newReservedMemory);
+    this.props.onFieldChange('reservedMemory', newReservedMemory);
     this.setState({ reservedMemory: newReservedMemory });
   };
 
@@ -135,7 +181,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.targetGroup = newTargetGroup.value;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
     this.updateDirtyTargetGroups();
   };
@@ -144,14 +190,14 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     const currentMappings = this.state.targetGroupMappings;
     const targetMapping = currentMappings[index];
     targetMapping.containerPort = targetPort;
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
   private removeTargetGroupMapping = (index: number) => {
     const currentMappings = this.state.targetGroupMappings;
     currentMappings.splice(index, 1);
-    this.props.notifyAngular('targetGroupMappings', currentMappings);
+    this.props.onFieldChange('targetGroupMappings', currentMappings);
     this.setState({ targetGroupMappings: currentMappings });
   };
 
@@ -171,6 +217,11 @@ export class Container extends React.Component<IContainerProps, IContainerState>
         ? this.props.command.viewState.dirty.targetGroups
         : [];
 
+    const dockerRegistryAccountOptions = this.state.dockerRegistryAccounts.map((account) => ({
+      label: account.name,
+      value: account.name,
+    }));
+
     const dockerImageOptions = this.state.dockerImages.map(function (image) {
       let msg = '';
       if (image.fromTrigger || image.fromContext) {
@@ -180,7 +231,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     });
 
     const dirtyTargetGroupList = dirtyTagetGroups
-      ? dirtyTagetGroups.map(function (targetGroup, index) {
+      ? dirtyTagetGroups.map(function (targetGroup: string, index: number) {
           return <li key={index}>{targetGroup}</li>;
         })
       : '';
@@ -202,6 +253,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
         className="btn btn-block btn-sm add-new"
         data-test-id="ContainerInputs.targetGroupAdd"
         onClick={this.pushTargetGroupMapping}
+        type="button"
       >
         <span className="glyphicon glyphicon-plus-sign" />
         Add New Target Group Mapping
@@ -221,6 +273,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
         <tr key={index}>
           <td data-test-id="ContainerInputs.targetGroup">
             <TetheredSelect
+              inputProps={{ 'aria-label': `Target group ${index + 1}` }}
               placeholder="Select a target group to use..."
               options={targetGroupsAvailable}
               value={mapping.targetGroup.toString()}
@@ -230,6 +283,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </td>
           <td>
             <input
+              aria-label={`Target port ${index + 1}`}
               data-test-id="ContainerInputs.targetGroupPort"
               type="number"
               className="form-control input-sm no-spel"
@@ -240,14 +294,16 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </td>
           <td>
             <div className="form-control-static">
-              <a
+              <button
+                aria-label={`Remove target group mapping ${index + 1}`}
                 className="btn-link sm-label"
                 data-test-id="ContainerInputs.targetGroupRemove"
                 onClick={() => removeTargetGroupMapping(index)}
+                type="button"
               >
                 <span className="glyphicon glyphicon-trash" />
                 <span className="sr-only">Remove</span>
-              </a>
+              </button>
             </div>
           </td>
         </tr>
@@ -259,11 +315,26 @@ export class Container extends React.Component<IContainerProps, IContainerState>
         {dirtyTagetGroups.length > 0 ? <div>{dirtyTargetGroupSection}</div> : ''}
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
+            <b>Docker Registry Account</b>
+          </div>
+          <div className="col-md-9" data-test-id="ContainerInputs.dockerRegistryAccount">
+            <TetheredSelect
+              placeholder="Select a Docker registry account..."
+              options={dockerRegistryAccountOptions}
+              value={this.state.selectedDockerAccount}
+              onChange={(e: Option) => this.updateDockerRegistryAccount(e as Option<string>)}
+              clearable={false}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <div className="col-md-3 sm-label-right">
             <b>Container Image</b>
             <HelpField id="ecs.containerMappingImage" />
           </div>
           <div className="col-md-9" data-test-id="ContainerInputs.containerImage">
             <TetheredSelect
+              inputProps={{ 'aria-label': 'Container image' }}
               placeholder="Select an image to use..."
               options={dockerImageOptions}
               value={this.state.imageDescription.imageId}
@@ -281,6 +352,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </div>
           <div className="col-md-9" style={{ width: '100px' }}>
             <input
+              aria-label="Compute units"
               data-test-id="ContainerInputs.computeUnits"
               type="number"
               className="form-control input-sm no-spel"
@@ -297,6 +369,7 @@ export class Container extends React.Component<IContainerProps, IContainerState>
           </div>
           <div className="col-md-9" style={{ width: '100px' }}>
             <input
+              aria-label="Reserved memory"
               data-test-id="ContainerInputs.reservedMemory"
               type="number"
               className="form-control input-sm no-spel"
@@ -339,9 +412,3 @@ export class Container extends React.Component<IContainerProps, IContainerState>
     );
   }
 }
-
-export const CONTAINER_REACT = 'spinnaker.ecs.serverGroup.configure.wizard.container.react';
-module(CONTAINER_REACT, []).component(
-  'containerReact',
-  react2angular(withErrorBoundary(Container, 'containerReact'), ['command', 'notifyAngular', 'configureCommand']),
-);

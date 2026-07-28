@@ -66,7 +66,7 @@ class MetricsInterceptor {
         for (Header header : Header.values()) {
           String headerValue = request3.header(header.getHeader());
 
-          if (header.isRequired() && StringUtils.isEmpty(headerValue)) {
+          if (header.isRequired() && !StringUtils.hasLength(headerValue)) {
             missingHeaders.add(header.getHeader());
           }
         }

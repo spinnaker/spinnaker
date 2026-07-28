@@ -3,11 +3,12 @@ import { chain, find, sortBy } from 'lodash';
 import React from 'react';
 
 import type { ISecurityGroup, ISecurityGroupsByAccount } from '@spinnaker/core';
-import { CollapsibleSection, confirmNotManaged, FirewallLabels, ModalInjector } from '@spinnaker/core';
+import { CollapsibleSection, DeckRuntimeContext, FirewallLabels } from '@spinnaker/core';
 
 import type { IAmazonServerGroupDetailsSectionProps } from './IAmazonServerGroupDetailsSectionProps';
 import { AWSProviderSettings } from '../../../aws.settings';
 import { AwsSecurityGroupReader } from '../../../securityGroup/securityGroup.reader';
+import { EditSecurityGroupsModal } from '../securityGroups';
 
 export interface ISecurityGroupsDetailsSectionState {
   securityGroups: ISecurityGroup[];
@@ -17,6 +18,9 @@ export class SecurityGroupsDetailsSection extends React.Component<
   IAmazonServerGroupDetailsSectionProps,
   ISecurityGroupsDetailsSectionState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IAmazonServerGroupDetailsSectionProps) {
     super(props);
 
@@ -61,26 +65,17 @@ export class SecurityGroupsDetailsSection extends React.Component<
     return securityGroups;
   }
 
-  private updateSecurityGroups = (): void => {
-    const { app, serverGroup } = this.props;
-    confirmNotManaged(serverGroup, app).then(
-      (notManaged) =>
-        notManaged &&
-        ModalInjector.modalService.open({
-          templateUrl: require('../securityGroup/editSecurityGroups.modal.html'),
-          controller: 'EditSecurityGroupsCtrl as $ctrl',
-          resolve: {
-            application: () => app,
-            serverGroup: () => serverGroup,
-            securityGroups: () => this.state.securityGroups,
-          },
-        }),
-    );
-  };
-
   public componentWillReceiveProps(nextProps: IAmazonServerGroupDetailsSectionProps): void {
     this.setState({ securityGroups: this.getSecurityGroups(nextProps) });
   }
+
+  private editSecurityGroups = (): void => {
+    const { app: application, serverGroup } = this.props;
+    EditSecurityGroupsModal.show(
+      { application, securityGroups: this.state.securityGroups, serverGroup },
+      this.context.services,
+    );
+  };
 
   public render(): JSX.Element {
     const { serverGroup } = this.props;
@@ -109,7 +104,7 @@ export class SecurityGroupsDetailsSection extends React.Component<
           ))}
         </ul>
         {AWSProviderSettings.adHocInfraWritesEnabled && serverGroup.vpcId && (
-          <a className="clickable" onClick={this.updateSecurityGroups}>
+          <a className="clickable" onClick={this.editSecurityGroups}>
             Edit {FirewallLabels.get('Firewalls')}
           </a>
         )}

@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
+import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -40,6 +41,7 @@ import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache
 import org.springframework.session.web.http.DefaultCookieSerializer
 import org.springframework.stereotype.Component
 
@@ -90,14 +92,20 @@ class LdapSsoConfig {
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(2)
+  @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationConfiguration authConfiguration) throws Exception {
     def authenticationManager = authConfiguration.getAuthenticationManager()
     defaultCookieSerializer.setSameSite(null)
-    http.formLogin()
+    HttpSessionRequestCache requestCache = new HttpSessionRequestCache();
+    requestCache.setMatchingRequestParameterName(null);
+    // Configure request cache to save original requests
+    http.formLogin(Customizer.withDefaults())
+      .requestCache(cache -> cache
+        .requestCache(requestCache)
+      )
     authConfig.configure(http)
     http.addFilterBefore(new BasicAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter)
-    return http.build() as SecurityFilterChain
+    return http.build()
   }
 
   @Component

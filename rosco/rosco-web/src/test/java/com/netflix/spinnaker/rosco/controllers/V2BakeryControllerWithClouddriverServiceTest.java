@@ -49,12 +49,12 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -71,12 +71,12 @@ class V2BakeryControllerWithClouddriverServiceTest {
 
   @Autowired private WebApplicationContext webApplicationContext;
 
-  @MockBean BakePoller bakePoller;
+  @MockitoBean BakePoller bakePoller;
 
   @Autowired ObjectMapper objectMapper;
 
   /** Prevent attempts to invoke a local binary (e.g. helm) */
-  @MockBean JobExecutor jobExecutor;
+  @MockitoBean JobExecutor jobExecutor;
 
   /**
    * This takes X-SPINNAKER-* headers from requests to rosco and puts them in the MDC. This is

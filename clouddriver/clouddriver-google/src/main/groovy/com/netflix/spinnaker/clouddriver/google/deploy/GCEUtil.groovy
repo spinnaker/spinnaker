@@ -62,6 +62,9 @@ class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
   private static final String DISK_TYPE_SCRATCH = "SCRATCH"
   private static final String GCE_API_PREFIX = "https://compute.googleapis.com/compute/v1/projects/"
+  // The "//" prefix (not "https://") matches the GCP certificateMap URL format expected by the
+  // Compute API on TargetHttpsProxy resources. This is intentional per GCP documentation.
+  private static final String CERTIFICATE_MANAGER_API_PREFIX = "//certificatemanager.googleapis.com/projects/"
   private static final List<Integer> RETRY_ERROR_CODES = [400, 403, 412, 429, 503]
 
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
@@ -687,6 +690,11 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/regions/$region/sslCertificates/$certName"
   }
 
+  static String buildCertificateMapUrl(String projectName, String mapName) {
+    // Certificate Manager maps are attached to target HTTPS proxies via the global location.
+    return CERTIFICATE_MANAGER_API_PREFIX + "$projectName/locations/global/certificateMaps/$mapName"
+  }
+
   static String buildHttpHealthCheckUrl(String projectName, String healthCheckName) {
     return GCE_API_PREFIX + "$projectName/global/httpHealthChecks/$healthCheckName"
   }
@@ -962,6 +970,10 @@ class GCEUtil {
     throw new GoogleResourceNotFoundException(errorMsg)
   }
 
+  // Extracts the trailing resource name from a full GCP URL. Works for both Compute API URLs
+  // (https://compute.googleapis.com/compute/v1/projects/…) and Certificate Manager URLs
+  // (//certificatemanager.googleapis.com/projects/…/certificateMaps/my-map) because both
+  // place the resource name as the final path segment.
   public static String getLocalName(String fullUrl) {
     if (!fullUrl) {
       return fullUrl

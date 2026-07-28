@@ -21,7 +21,7 @@ import strikt.java.propertiesAreEqualTo
 abstract class ModelParsingTestSupport<in S : Any, out E : Any>(serviceType: Class<S>) {
 
   private val mapper = ObjectMapper()
-    .registerModule(KotlinModule())
+    .registerModule(KotlinModule.Builder().build())
     .registerModule(JavaTimeModule())
     .enable(INDENT_OUTPUT)
     .disable(FAIL_ON_UNKNOWN_PROPERTIES)

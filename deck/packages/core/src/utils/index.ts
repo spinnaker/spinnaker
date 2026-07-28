@@ -1,8 +1,3 @@
-///<reference path="./angular-messages.d.ts" />
-///<reference path="./angular-sanitize.d.ts" />
-///<reference path="./angular-spinner.d.ts" />
-///<reference path="./ui-select.d.ts" />
-
 export * from './RenderWhenVisible';
 export * from './clipboard/CopyToClipboard';
 export * from './debug';
@@ -12,7 +7,6 @@ export * from './json/DiffView';
 export * from './json/traverseObject';
 export * from './noop';
 export * from './q';
-export * from './renderIfFeature.component';
 export * from './feature';
 export * from './scrollTo/scrollTo.service';
 export * from './timeFormatters';
@@ -21,4 +15,9 @@ export * from './uuid.service';
 export * from './workerPool';
 export * from './json/filterObjectValues';
 export * from './Logger';
+export * from './cancellableTimeout';
+export * from './deferred';
+export * from './diagnosticLogger';
+export * from './interpolate';
+export * from './nativePromiseService';
 export * from './parseNum';

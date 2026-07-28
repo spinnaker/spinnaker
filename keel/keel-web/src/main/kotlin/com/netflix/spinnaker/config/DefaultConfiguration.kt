@@ -20,12 +20,13 @@ import de.huxhorn.sulky.ulid.ULID
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.jackson.JsonComponentModule
-import org.springframework.boot.task.TaskSchedulerCustomizer
+import org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.core.Ordered.HIGHEST_PRECEDENCE
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
@@ -70,6 +71,9 @@ class DefaultConfiguration(
   }
 
   @Bean
+//  @ConditionalOnMissingBean(name = ["fiatSecurityFilterChain"])
+  @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass("com.netflix.spinnaker.fiat.shared.FiatAuthenticationConfig")
+  @Order(HIGHEST_PRECEDENCE)
   fun noSecurityFilterChain(http: HttpSecurity): SecurityFilterChain {
     http
       .authorizeHttpRequests { it.anyRequest().permitAll() }
@@ -114,8 +118,8 @@ class DefaultConfiguration(
       .apply { order = HIGHEST_PRECEDENCE }
 
   @Bean
-  fun taskSchedulerCustomizer(@Value("\${keel.scheduler.pool-size:10}") poolSize: Int): TaskSchedulerCustomizer =
-    TaskSchedulerCustomizer { scheduler ->
+  fun taskSchedulerCustomizer(@Value("\${keel.scheduler.pool-size:10}") poolSize: Int): ThreadPoolTaskSchedulerCustomizer =
+    ThreadPoolTaskSchedulerCustomizer { scheduler ->
       scheduler.poolSize = poolSize
       scheduler.threadNamePrefix = "scheduler-"
     }

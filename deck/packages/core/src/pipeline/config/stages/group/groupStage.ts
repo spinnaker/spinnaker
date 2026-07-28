@@ -1,27 +1,19 @@
-import type { IController } from 'angular';
-import { module } from 'angular';
-
 import { GroupExecutionLabel } from './GroupExecutionLabel';
 import { GroupMarkerIcon } from './GroupMarkerIcon';
+import { NoConfigurationStageConfig } from '../common';
+import type { IStageTypeConfig } from '../../../../domain';
 import { Registry } from '../../../../registry';
 
-export const GROUP_STAGE = 'spinnaker.core.pipeline.stage.groupStage';
+export const groupStage: IStageTypeConfig = {
+  description: 'A group of stages',
+  executionLabelComponent: GroupExecutionLabel,
+  component: NoConfigurationStageConfig,
+  markerIcon: GroupMarkerIcon,
+  key: 'group',
+  label: 'Group',
+  useCustomTooltip: true,
+  synthetic: true,
+  validators: [],
+};
 
-export class GroupStage implements IController {}
-
-module(GROUP_STAGE, [])
-  .config(() => {
-    Registry.pipeline.registerStage({
-      controller: 'GroupStageCtrl',
-      description: 'A group of stages',
-      executionLabelComponent: GroupExecutionLabel,
-      markerIcon: GroupMarkerIcon,
-      key: 'group',
-      label: 'Group',
-      templateUrl: require('./groupStage.html'),
-      useCustomTooltip: true,
-      synthetic: true,
-      validators: [],
-    });
-  })
-  .controller('GroupStageCtrl', GroupStage);
+Registry.pipeline.registerStage(groupStage);

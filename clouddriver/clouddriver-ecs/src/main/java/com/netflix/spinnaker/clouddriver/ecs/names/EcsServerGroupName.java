@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.clouddriver.ecs.names;
 
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.MonikerHelper;
 
 public class EcsServerGroupName {
 

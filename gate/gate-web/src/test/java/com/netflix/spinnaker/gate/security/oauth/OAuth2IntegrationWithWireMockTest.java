@@ -26,21 +26,25 @@ import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
 import com.netflix.spinnaker.gate.security.oauth.config.OAuth2TestConfiguration;
 import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.DefaultProviderLookupService;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -84,13 +88,13 @@ public class OAuth2IntegrationWithWireMockTest {
           .build();
 
   /** To prevent attempts to connect to clouddriver */
-  @MockBean private DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean private DefaultProviderLookupService defaultProviderLookupService;
 
   /** To prevent attempts to connect to front50 */
-  @MockBean private ApplicationService applicationService;
+  @MockitoBean private ApplicationService applicationService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean private DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   // Provide WireMock URLs into Spring properties before context initialization uses them
   @DynamicPropertySource
@@ -105,16 +109,23 @@ public class OAuth2IntegrationWithWireMockTest {
     registry.add(
         "spring.security.oauth2.client.provider.github.user-info-uri",
         () -> base + "/login/oauth/user");
+    // Github default username is "id".  WHICH can't be null and gets validated in latest releases.
+    // Force it
+    // to what the test uses of "login".
+    registry.add(
+        "spring.security.oauth2.client.provider.github.user-name-attribute", () -> "login");
   }
 
   @BeforeEach
-  public void setUp() {
-    // Now appPort (@LocalServerPort) is available — set the supplier so transformer can use it
-    RedirectWithStateTransformer.setAppPortSupplier(() -> appPort);
+  public void setUp(TestInfo testInfo) {
+    System.out.println("--------------- Test " + testInfo.getDisplayName());
   }
 
   @Test
   void whenOAuth2UserInfoHasNullsThenAuthenticationSucceeds() {
+    // NOTE:  Changed per above.  The user-name-attribute CANNOT be a null.  WIth github as the
+    // "type"
+    // this means "id" is the default and will fail, but we can allow OTHER attributes to be null.
     githubMockServer.stubFor(
         WireMock.get(urlPathEqualTo("/login/oauth/authorize"))
             .willReturn(WireMock.aResponse().withTransformers("redirect-with-state")));
@@ -136,9 +147,7 @@ public class OAuth2IntegrationWithWireMockTest {
                 """)));
     HttpHeaders headers = new HttpHeaders();
     headers.set(
-        HttpHeaders.ACCEPT,
-        "text/html"); // simulate browser otherwise request will not be cached to replay after
-    // Authentication
+        HttpHeaders.ACCEPT, "text/html"); // Spring Boot 3.x requires explicit content type matching
 
     HttpEntity<Void> request = new HttpEntity<>(headers);
 
@@ -151,5 +160,115 @@ public class OAuth2IntegrationWithWireMockTest {
     assertThat(response.getBody()).isEqualTo("authenticated");
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/authorize")));
     githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies that a Bearer token provided directly in the Authorization header (e.g. from spin-cli)
+   * authenticates the user by calling the OAuth2 provider's user-info endpoint with the token. This
+   * is handled by {@link com.netflix.spinnaker.gate.security.oauth2.ExternalAuthTokenFilter
+   * ExternalAuthTokenFilter}.
+   */
+  @Test
+  void bearerTokenAuthenticatesViaUserInfoEndpoint() {
+    githubMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{"
+                            + "\"email\": \"test@example.com\","
+                            + "\"login\": \"testuser\","
+                            + "\"name\": \"Test User\","
+                            + "\"type\": \"User\","
+                            + "\"id\": 12345"
+                            + "}")));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.AUTHORIZATION, "Bearer my-personal-access-token");
+
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+
+    // Use Apache HttpClient with redirect handling disabled so we can observe
+    // the actual response from gate rather than following the redirect chain.
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/credentials", HttpMethod.GET, request, String.class);
+
+    assertThat(response.getStatusCodeValue()).isEqualTo(200);
+    assertThat(response.getBody()).isNotNull();
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies that a Bearer token sent to /login authenticates the user via the user-info endpoint
+   * and redirects to the base URL.
+   */
+  @Test
+  void loginWithBearerTokenAuthenticatesAndRedirectsToBaseUrl() {
+    githubMockServer.stubFor(
+        WireMock.get(urlPathEqualTo("/login/oauth/user"))
+            .willReturn(
+                WireMock.aResponse()
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(
+                        "{"
+                            + "\"email\": \"test@example.com\","
+                            + "\"login\": \"testuser\","
+                            + "\"name\": \"Test User\","
+                            + "\"type\": \"User\","
+                            + "\"id\": 12345"
+                            + "}")));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.AUTHORIZATION, "Bearer my-personal-access-token");
+
+    HttpEntity<Void> request = new HttpEntity<>(headers);
+
+    // Use Apache HttpClient with redirect handling disabled so we can observe
+    // the actual response from gate rather than following the redirect chain.
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login", HttpMethod.GET, request, String.class);
+
+    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getHeaders().getLocation().toString())
+        .isEqualTo("http://localhost:" + appPort + "/");
+    githubMockServer.verify(getRequestedFor(urlPathEqualTo("/login/oauth/user")));
+  }
+
+  /**
+   * Verifies that GET /login without a Bearer token redirects to the OAuth2 provider's
+   * authorization endpoint, matching the legacy {@code @EnableOAuth2Sso} behavior.
+   */
+  @Test
+  void loginWithoutBearerTokenRedirectsToOAuthProvider() {
+    CloseableHttpClient httpClient = HttpClients.custom().disableRedirectHandling().build();
+    RestTemplate noRedirectRestTemplate =
+        new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
+
+    ResponseEntity<String> response =
+        noRedirectRestTemplate.exchange(
+            "http://localhost:" + appPort + "/login",
+            HttpMethod.GET,
+            HttpEntity.EMPTY,
+            String.class);
+
+    // On the legacy @EnableOAuth2Sso stack, /login redirected directly to the provider's
+    // authorization endpoint (/login/oauth/authorize with client_id and response_type params).
+    // On the oauth2Login() stack, /login redirects to Spring's intermediate authorization
+    // request endpoint (/oauth2/authorization/github), which then redirects to the provider.
+    assertThat(response.getStatusCodeValue()).isEqualTo(302);
+    assertThat(response.getHeaders().getLocation().toString())
+        .contains("/oauth2/authorization/github");
+    githubMockServer.verify(0, getRequestedFor(urlPathEqualTo("/login/oauth/user")));
   }
 }

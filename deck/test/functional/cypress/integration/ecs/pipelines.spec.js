@@ -5,6 +5,7 @@ describe('amazon ecs: ECSApp Pipeline', () => {
     registerDefaultFixtures();
     cy.intercept('/applications/ecsapp/pipelines?expand=false', { fixture: 'ecs/pipelines/pipelines.json' });
     cy.intercept('/applications/ecsapp/pipelines?expand=false&limit=2', { fixture: 'ecs/pipelines/pipelines.json' });
+    cy.intercept('/applications/ecsapp/pipelines?*', { fixture: 'ecs/pipelines/pipelines.json' });
     cy.intercept('/images/find?*', { fixture: 'google/shared/images.json' });
     cy.intercept('/applications/ecsapp/pipelineConfigs', { fixture: 'ecs/pipelines/pipelineConfigs.json' });
     cy.intercept('/networks/aws', { fixture: 'ecs/default/networks.aws-ecs.json' });
@@ -62,5 +63,23 @@ describe('amazon ecs: ECSApp Pipeline', () => {
     cy.get('td:contains("us-west-2")').should('have.length', 2);
 
     cy.get('td:contains("redblack")').should('have.length', 2);
+  });
+
+  it('adds an ECS destroy server group stage without an Amazon provider fallback', () => {
+    cy.visit('#/applications/ecsapp/executions');
+
+    cy.get('a:contains("Configure")').click({ force: true });
+    cy.get('button:contains("Add stage")').click();
+    cy.get('.pipeline-stage-type-select .Select-arrow').click();
+    cy.get('.Select-option').contains('Destroy Server Group').click();
+
+    cy.get('.pipeline-config-view .stage-details')
+      .should('be.visible')
+      .within(() => {
+        cy.get('.base-provider-label').should('have.text', 'EC2 Container Service');
+        cy.get('input[name="cloudProviderType"]').should('not.exist');
+        cy.contains('Cluster').should('be.visible');
+        cy.contains('Amazon').should('not.exist');
+      });
   });
 });

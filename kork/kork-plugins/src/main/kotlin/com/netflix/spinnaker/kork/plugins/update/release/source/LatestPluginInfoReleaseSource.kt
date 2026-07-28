@@ -61,6 +61,9 @@ class LatestPluginInfoReleaseSource(
    */
   override fun getOrder(): Int = HIGHEST_PRECEDENCE
 
+  /**
+   * Companion object holding shared Jackson ObjectMapper instance.
+   */
   companion object {
     private val objectMapper = jacksonObjectMapper()
   }

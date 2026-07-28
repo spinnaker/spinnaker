@@ -31,7 +31,6 @@ interface Resolver<T : ResourceSpec> : SpinnakerExtensionPoint, (Resource<T>) ->
 
   override fun invoke(resource: Resource<T>): Resource<T>
 
-  @JvmDefault
   val name: String
     get() = extensionClass.simpleName
 }

@@ -27,4 +27,5 @@ dependencies {
   testImplementation("org.objenesis:objenesis")
   testRuntimeOnly("org.junit.platform:junit-platform-engine")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

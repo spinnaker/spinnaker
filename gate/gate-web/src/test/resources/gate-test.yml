@@ -11,6 +11,17 @@ spring:
 
   application:
     name: gate
+# Disable the deck plugin cache and remote plugin cache to prevent their scheduled
+# refreshes from polluting test output with "Cached 0 deck plugins" and
+# "Cached 0 remote plugin configurations" on every test that boots the full Gate context.
+spinnaker:
+  extensibility:
+    deck-proxy:
+      enabled: false
+    remote-plugins:
+      cache:
+        enabled: false
+
 services:
   clouddriver.baseUrl: "http://localhost:7002"
 

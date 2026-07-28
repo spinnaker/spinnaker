@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.config.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig
 import org.springframework.context.ApplicationContext
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
@@ -33,7 +34,7 @@ class HalconfigParserSpec extends Specification {
 
   void setup() {
     ApplicationContext applicationContext = Stub(ApplicationContext.class)
-    applicationContext.getBean(Yaml.class) >> new Yaml(new SafeConstructor())
+    applicationContext.getBean(Yaml.class) >> new Yaml(new SafeConstructor(new LoaderOptions()))
     parser = new HalconfigParser(new StrictObjectMapper(), null /* halconfigDirectoyStructure */, applicationContext)
   }
 

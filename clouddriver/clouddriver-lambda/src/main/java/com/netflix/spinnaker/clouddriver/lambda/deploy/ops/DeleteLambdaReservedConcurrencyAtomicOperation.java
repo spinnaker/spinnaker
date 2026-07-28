@@ -1,7 +1,7 @@
 /*
  * Copyright 2018 Amazon.com, Inc. or its affiliates.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.lambda.deploy.ops;
 
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.model.DeleteFunctionConcurrencyRequest;
-import com.amazonaws.services.lambda.model.DeleteFunctionConcurrencyResult;
 import com.netflix.spinnaker.clouddriver.lambda.deploy.description.DeleteLambdaReservedConcurrencyDescription;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import java.util.List;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionConcurrencyRequest;
+import software.amazon.awssdk.services.lambda.model.DeleteFunctionConcurrencyResponse;
 
 public class DeleteLambdaReservedConcurrencyAtomicOperation
     extends AbstractLambdaAtomicOperation<
-        DeleteLambdaReservedConcurrencyDescription, DeleteFunctionConcurrencyResult>
-    implements AtomicOperation<DeleteFunctionConcurrencyResult> {
+        DeleteLambdaReservedConcurrencyDescription, DeleteFunctionConcurrencyResponse>
+    implements AtomicOperation<DeleteFunctionConcurrencyResponse> {
 
   public DeleteLambdaReservedConcurrencyAtomicOperation(
       DeleteLambdaReservedConcurrencyDescription description) {
@@ -34,17 +34,17 @@ public class DeleteLambdaReservedConcurrencyAtomicOperation
   }
 
   @Override
-  public DeleteFunctionConcurrencyResult operate(List priorOutputs) {
+  public DeleteFunctionConcurrencyResponse operate(List priorOutputs) {
     updateTaskStatus("Initializing Atomic Operation AWS Lambda for DeleteReservedConcurrency...");
     return deleteReservedFunctionConcurrency(description.getFunctionName());
   }
 
-  private DeleteFunctionConcurrencyResult deleteReservedFunctionConcurrency(String functionName) {
-    AWSLambda client = getLambdaClient();
+  private DeleteFunctionConcurrencyResponse deleteReservedFunctionConcurrency(String functionName) {
+    LambdaClient client = getLambdaClient();
     DeleteFunctionConcurrencyRequest req =
-        new DeleteFunctionConcurrencyRequest().withFunctionName(functionName);
+        DeleteFunctionConcurrencyRequest.builder().functionName(functionName).build();
 
-    DeleteFunctionConcurrencyResult result = client.deleteFunctionConcurrency(req);
+    DeleteFunctionConcurrencyResponse result = client.deleteFunctionConcurrency(req);
     updateTaskStatus("Finished Atomic Operation AWS Lambda for DeleteReservedConcurrency...");
     return result;
   }

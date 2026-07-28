@@ -154,7 +154,7 @@ class BuildController {
     return buildService.queuedBuild(master, item)
   }
 
-  @RequestMapping(value = '/builds/all/{master:.+}/**')
+  @RequestMapping(value = ['/builds/all/{master:.+}/**', '/builds/all/{master:.+}'])
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'READ')")
   List<Object> getBuilds(@PathVariable String master, HttpServletRequest request) {
     def job = ((String) request.getAttribute(
@@ -174,7 +174,7 @@ class BuildController {
     "true"
   }
 
-  @RequestMapping(value = "/masters/{master}/jobs/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
+  @RequestMapping(value = "/masters/{master:.+}/jobs/stop/{queuedBuild}/{buildNumber}", method = RequestMethod.PUT)
   @PreAuthorize("hasPermission(#master, 'BUILD_SERVICE', 'WRITE')")
   String stopWithQueryParam(
     @PathVariable String master,

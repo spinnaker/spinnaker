@@ -29,7 +29,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import lombok.experimental.Wither;
+import lombok.With;
 
 @Value
 @EqualsAndHashCode(
@@ -46,7 +46,7 @@ public class CloudFoundryCluster extends CloudFoundryModel implements Cluster {
   @JsonView(Views.Cache.class)
   String name;
 
-  @Wither
+  @With
   @JsonView(Views.Relationship.class)
   Set<CloudFoundryServerGroup> serverGroups;
 

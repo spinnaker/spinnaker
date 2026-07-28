@@ -15,7 +15,6 @@
  */
 
 apply from: "$rootDir/../versions.gradle"
-
 include(
   "keel-api",
   "keel-artifact",

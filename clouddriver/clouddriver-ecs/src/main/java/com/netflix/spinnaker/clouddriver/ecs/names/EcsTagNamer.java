@@ -21,6 +21,7 @@ import com.amazonaws.services.ecs.model.Tag;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.names.NamingStrategy;
 import com.netflix.spinnaker.moniker.Moniker;
+import com.netflix.spinnaker.moniker.MonikerHelper;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;

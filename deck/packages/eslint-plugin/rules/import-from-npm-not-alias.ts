@@ -1,5 +1,4 @@
 import type { Rule } from 'eslint';
-import type { ImportDeclaration } from 'estree';
 
 import { getAliasImport, getAllSpinnakerPackages, getSourceFileDetails } from '../utils/import-aliases';
 
@@ -21,7 +20,8 @@ const rule = function (context: Rule.RuleContext) {
   const allSpinnakerPackages = getAllSpinnakerPackages(modulesPath);
 
   return {
-    ImportDeclaration: function (node: ImportDeclaration & Rule.NodeParentExtension) {
+    ImportDeclaration: function (_node: any) {
+      const node = _node;
       if (node.source.type !== 'Literal' || !node.source.value) {
         return;
       }

@@ -499,7 +499,7 @@ final class ArtifactReplacerTest {
                 .addNewContainer()
                 .addNewEnvFrom()
                 .withNewConfigMapRef()
-                .withNewName(configMapRef)
+                .withName(configMapRef)
                 .endConfigMapRef()
                 .endEnvFrom()
                 .endContainer()

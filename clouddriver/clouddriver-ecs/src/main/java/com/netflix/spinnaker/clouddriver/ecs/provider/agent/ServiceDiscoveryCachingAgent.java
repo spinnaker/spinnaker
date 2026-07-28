@@ -18,10 +18,6 @@ package com.netflix.spinnaker.clouddriver.ecs.provider.agent;
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE;
 import static com.netflix.spinnaker.clouddriver.ecs.cache.Keys.Namespace.SERVICE_DISCOVERY_REGISTRIES;
 
-import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
-import com.amazonaws.services.servicediscovery.model.ListServicesRequest;
-import com.amazonaws.services.servicediscovery.model.ListServicesResult;
-import com.amazonaws.services.servicediscovery.model.ServiceSummary;
 import com.netflix.spinnaker.cats.agent.AccountAware;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
@@ -38,6 +34,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
+import software.amazon.awssdk.services.servicediscovery.model.ListServicesRequest;
+import software.amazon.awssdk.services.servicediscovery.model.ListServicesResponse;
+import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary;
 
 public class ServiceDiscoveryCachingAgent implements CachingAgent, AccountAware {
   static final Collection<AgentDataType> types =
@@ -63,9 +63,9 @@ public class ServiceDiscoveryCachingAgent implements CachingAgent, AccountAware 
     Map<String, Object> attributes = new HashMap<>();
     attributes.put("account", accountName);
     attributes.put("region", region);
-    attributes.put("serviceName", service.getName());
-    attributes.put("serviceArn", service.getArn());
-    attributes.put("serviceId", service.getId());
+    attributes.put("serviceName", service.name());
+    attributes.put("serviceArn", service.arn());
+    attributes.put("serviceId", service.id());
     return attributes;
   }
 
@@ -76,18 +76,18 @@ public class ServiceDiscoveryCachingAgent implements CachingAgent, AccountAware 
 
   @Override
   public CacheResult loadData(ProviderCache providerCache) {
-    AWSServiceDiscovery serviceDiscoveryClient =
-        amazonClientProvider.getAmazonServiceDiscovery(account, region, false);
+    ServiceDiscoveryClient serviceDiscoveryClient =
+        amazonClientProvider.getAmazonServiceDiscoveryV2(account, region);
 
     Set<ServiceSummary> services = fetchServices(serviceDiscoveryClient);
     Map<String, Collection<CacheData>> newDataMap = generateFreshData(services);
     Collection<CacheData> newData = newDataMap.get(SERVICE_DISCOVERY_REGISTRIES.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(SERVICE_DISCOVERY_REGISTRIES.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountRegionFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                SERVICE_DISCOVERY_REGISTRIES.toString(),
+                Keys.buildGlob(SERVICE_DISCOVERY_REGISTRIES, accountName, region)));
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
@@ -111,7 +111,7 @@ public class ServiceDiscoveryCachingAgent implements CachingAgent, AccountAware 
     Map<String, Collection<CacheData>> newDataMap = new HashMap<>();
 
     for (ServiceSummary service : services) {
-      String key = Keys.getServiceDiscoveryRegistryKey(accountName, region, service.getId());
+      String key = Keys.getServiceDiscoveryRegistryKey(accountName, region, service.id());
       Map<String, Object> attributes = convertServiceToAttributes(accountName, region, service);
 
       CacheData data = new DefaultCacheData(key, attributes, Collections.emptyMap());
@@ -123,19 +123,19 @@ public class ServiceDiscoveryCachingAgent implements CachingAgent, AccountAware 
     return newDataMap;
   }
 
-  Set<ServiceSummary> fetchServices(AWSServiceDiscovery serviceDiscoveryClient) {
+  Set<ServiceSummary> fetchServices(ServiceDiscoveryClient serviceDiscoveryClient) {
     Set<ServiceSummary> services = new HashSet<>();
     String nextToken = null;
     do {
-      ListServicesRequest request = new ListServicesRequest();
+      ListServicesRequest.Builder requestBuilder = ListServicesRequest.builder();
       if (nextToken != null) {
-        request.setNextToken(nextToken);
+        requestBuilder.nextToken(nextToken);
       }
 
-      ListServicesResult result = serviceDiscoveryClient.listServices(request);
-      services.addAll(result.getServices());
+      ListServicesResponse result = serviceDiscoveryClient.listServices(requestBuilder.build());
+      services.addAll(result.services());
 
-      nextToken = result.getNextToken();
+      nextToken = result.nextToken();
     } while (nextToken != null && nextToken.length() != 0);
 
     return services;

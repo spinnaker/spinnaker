@@ -25,8 +25,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineTemplateSave_createjson(t *testing.T) {
@@ -377,14 +377,14 @@ func testGatePipelineTemplateUpdateTagSuccess(buffer io.Writer, method *string, 
 		"/v2/pipelineTemplates/update/testSpelTemplate",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			*method = "update"
-			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, "").ServeHTTP(w, r)
+			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, "{}").ServeHTTP(w, r)
 		}),
 	)
 	mux.Handle(
 		"/v2/pipelineTemplates/create",
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			*method = "create"
-			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, "").ServeHTTP(w, r)
+			util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, "{}").ServeHTTP(w, r)
 		}),
 	)
 	// Return that we found an MPT if a tag from the request equals to expectedTag.
@@ -406,7 +406,7 @@ func testGatePipelineTemplateUpdateSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle(
 		"/v2/pipelineTemplates/update/testSpelTemplate",
-		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, ""),
+		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusOK, "{}"),
 	)
 	// Return that we found an MPT to signal that we should update.
 	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -423,7 +423,7 @@ func testGatePipelineTemplateCreateSuccess(buffer io.Writer) *httptest.Server {
 	mux := util.TestGateMuxWithVersionHandler()
 	mux.Handle(
 		"/v2/pipelineTemplates/create",
-		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, ""),
+		util.NewTestBufferHandlerFunc(http.MethodPost, buffer, http.StatusAccepted, "{}"),
 	)
 	// Return that there are no existing MPTs.
 	mux.Handle("/v2/pipelineTemplates/testSpelTemplate", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -654,6 +654,87 @@ const testPipelineTemplateWithTagJsonStr = `
  ]
 }
 `
+
+const testPipelineTemplateWithArrayTagJsonStr = `
+{
+ "id": "testSpelTemplate",
+ "lastModifiedBy": "anonymous",
+ "metadata": {
+  "description": "A generic application bake and tag pipeline.",
+  "name": "Default Bake and Tag",
+  "owner": "example@example.com",
+  "scopes": [
+   "global"
+  ]
+ },
+ "pipeline": {
+  "description": "",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "notifications": [],
+  "parameterConfig": [],
+  "stages": [
+   {
+    "name": "My Wait Stage",
+    "refId": "wait1",
+    "requisiteStageRefIds": [],
+    "type": "wait",
+    "waitTime": "${ templateVariables.waitTime }"
+   }
+  ],
+  "triggers": [
+   {
+    "attributeConstraints": {},
+    "enabled": true,
+    "payloadConstraints": {},
+    "pubsubSystem": "google",
+    "source": "jake",
+    "subscription": "super-why",
+    "subscriptionName": "super-why",
+    "type": "pubsub"
+   }
+  ],
+  "updateTs": "1543509523663"
+ },
+ "protect": false,
+ "schema": "v2",
+ "tag": ["stable", "latest"],
+ "updateTs": "1544475186050",
+ "variables": [
+  {
+   "defaultValue": 42,
+   "description": "The time a wait stage shall pauseth",
+   "name": "waitTime",
+   "type": "int"
+  }
+ ]
+}
+`
+
+func TestPipelineTemplateSave_tagAsArray(t *testing.T) {
+	ts := testGatePipelineTemplateCreateSuccess(new(bytes.Buffer))
+	defer ts.Close()
+
+	tempFile := tempPipelineTemplateFile(testPipelineTemplateWithArrayTagJsonStr)
+	if tempFile == nil {
+		t.Fatal("Could not create temp pipeline template file.")
+	}
+	defer os.Remove(tempFile.Name())
+
+	rootCmd, rootOpts := cmd.NewCmdRoot(ioutil.Discard, ioutil.Discard)
+	rootCmd.AddCommand(NewPipelineTemplateCmd(rootOpts))
+
+	args := []string{"pipeline-template", "save", "--file", tempFile.Name(), "--gate-endpoint", ts.URL}
+	rootCmd.SetArgs(args)
+	err := rootCmd.Execute()
+	if err == nil {
+		t.Fatalf("Expected error when tag is an array, but command succeeded")
+	}
+	if !strings.Contains(err.Error(), "tag must be a string") {
+		t.Fatalf("Expected error about tag type, got: %s", err.Error())
+	}
+}
 
 const testPipelineTemplateYamlStr = `
 id: testSpelTemplate

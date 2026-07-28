@@ -47,6 +47,7 @@ dependencies {
   testImplementation("com.squareup.retrofit2:retrofit-mock")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 sourceSets {

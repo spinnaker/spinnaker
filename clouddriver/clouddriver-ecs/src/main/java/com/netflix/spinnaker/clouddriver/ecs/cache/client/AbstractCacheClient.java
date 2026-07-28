@@ -22,7 +22,6 @@ import com.netflix.spinnaker.clouddriver.ecs.cache.Keys;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,10 +48,18 @@ abstract class AbstractCacheClient<T> {
   protected abstract T convert(CacheData cacheData);
 
   /**
-   * @return A list of all generic type objects belonging to the key namespace.
+   * WARNING: This method loads ALL data across ALL accounts and regions into memory. It should be
+   * replaced with scoped methods that require account/region parameters.
+   *
+   * @deprecated Use {@link #getAll(String, String)} with explicit account and region instead
+   * @return A list of all generic type objects across all accounts/regions (MEMORY INTENSIVE)
    */
+  @Deprecated
   public Collection<T> getAll() {
     Collection<CacheData> allData = cacheView.getAll(keyNamespace);
+    if (allData == null) {
+      return Collections.emptyList();
+    }
     return convertAll(allData);
   }
 
@@ -105,14 +112,11 @@ abstract class AbstractCacheClient<T> {
     log.debug("fetching all for account '{}' and region '{}'", account, region);
     String accountFilter = account != null ? account + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
     String regionFilter = region != null ? region + Keys.SEPARATOR : "*" + Keys.SEPARATOR;
-    Set<String> keys = new HashSet<>();
     String pattern =
         "ecs" + Keys.SEPARATOR + keyNamespace + Keys.SEPARATOR + accountFilter + regionFilter + "*";
-    Collection<String> nameMatches = cacheView.filterIdentifiers(keyNamespace, pattern);
-
-    keys.addAll(nameMatches);
-
-    Collection<CacheData> allData = cacheView.getAll(keyNamespace, keys);
+    Collection<CacheData> allData =
+        cacheView.getAll(
+            keyNamespace, new HashSet<>(cacheView.filterIdentifiers(keyNamespace, pattern)));
 
     if (allData == null) {
       return Collections.emptyList();

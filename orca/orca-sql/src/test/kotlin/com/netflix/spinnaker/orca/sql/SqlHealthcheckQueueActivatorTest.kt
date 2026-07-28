@@ -16,12 +16,12 @@
 package com.netflix.spinnaker.orca.sql
 
 import com.netflix.spectator.api.NoopRegistry
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.doThrow
-import com.nhaarman.mockito_kotlin.isA
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.whenever
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
+import org.mockito.kotlin.isA
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.whenever
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.jooq.DSLContext

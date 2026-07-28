@@ -42,7 +42,7 @@ if (!DEV_PROXY_HOST) {
   console.error();
   console.error('Or, to specify the proxy host on the command line:');
   console.error();
-  console.error('DEV_PROXY_HOST=https://existing.spinnaker.deck.url/ yarn proxy');
+  console.error('DEV_PROXY_HOST=https://existing.spinnaker.deck.url/ pnpm proxy');
   console.error();
   console.error();
   process.exit(1);

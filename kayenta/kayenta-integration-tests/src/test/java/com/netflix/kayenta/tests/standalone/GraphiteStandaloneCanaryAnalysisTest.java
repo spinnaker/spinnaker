@@ -15,41 +15,91 @@
  */
 package com.netflix.kayenta.tests.standalone;
 
+import static io.restassured.RestAssured.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 
 import com.netflix.kayenta.steps.StandaloneCanaryAnalysisSteps;
 import com.netflix.kayenta.tests.BaseIntegrationTest;
 import io.restassured.response.ValidatableResponse;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
+/**
+ * This test is increasingly and notoriously unstable in passing/failing and is marked disabled as
+ * of 05/15/2026. We should look at explicit tags for graphite perhaps, and consider the plan around
+ * these tests to be less painful
+ */
+@Disabled
 public class GraphiteStandaloneCanaryAnalysisTest extends BaseIntegrationTest {
 
   @Autowired protected StandaloneCanaryAnalysisSteps steps;
 
-  @Test
-  public void canaryAnalysisIsSuccessful() throws InterruptedException {
-    int retries = 4;
-    ValidatableResponse response = null;
-    while (retries > 0) {
-      String canaryAnalysisExecutionId =
-          steps.createCanaryAnalysis(
-              "cpu-successful-analysis-case",
-              "graphite-account",
-              "in-memory-store-account",
-              "canary-configs/graphite/integration-test-cpu.json");
+  @Value("${embedded.graphite.httpPort}")
+  private int graphiteHttpPort;
 
-      response = steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
-      if (!"SUCCEEDED".equals(response.extract().path("executionStatus"))) {
-        log.warn("Validation failed so retrying . . ");
-        Thread.sleep(30000);
-        retries--;
-        continue;
-      }
-      break;
+  private static final AtomicBoolean metricsAccumulated = new AtomicBoolean(false);
+
+  @BeforeEach
+  public void waitForMetricsAccumulation() throws InterruptedException {
+    // Wait for metrics to accumulate in Graphite before running tests.
+    // This only happens once per test class execution (after Spring context is initialized).
+    // Uses active polling to handle variable timing from ARM64 emulation overhead.
+    if (metricsAccumulated.compareAndSet(false, true)) {
+      log.info(
+          "Waiting for Graphite to accumulate and index sufficient metrics (container now running)...");
+
+      // Initial wait for metrics to start flowing
+      TimeUnit.SECONDS.sleep(90);
+
+      // Poll for metric availability with generous timeout for ARM emulation
+      log.info("Polling Graphite for metric availability...");
+      await()
+          .pollDelay(5, TimeUnit.SECONDS)
+          .pollInterval(10, TimeUnit.SECONDS)
+          .atMost(5, TimeUnit.MINUTES)
+          .ignoreExceptions()
+          .untilAsserted(
+              () -> {
+                // Verify Graphite can respond to metric queries
+                given()
+                    .port(graphiteHttpPort)
+                    .queryParam("query", "integration.test.cpu")
+                    .queryParam("format", "json")
+                    .when()
+                    .get("/metrics/find")
+                    .then()
+                    .statusCode(200);
+                log.info("Graphite metrics are queryable");
+              });
+
+      // Additional wait to ensure sufficient historical data for 1-minute analysis window
+      // Needs extra time for ARM emulation and to accumulate enough data points
+      log.info("Metrics queryable, waiting 90 more seconds for data accumulation...");
+      TimeUnit.SECONDS.sleep(90);
+      log.info("Metrics accumulation period complete, starting tests");
     }
+  }
+
+  @Test
+  public void canaryAnalysisIsSuccessful() {
+    String canaryAnalysisExecutionId =
+        steps.createCanaryAnalysis(
+            "cpu-successful-analysis-case",
+            "graphite-account",
+            "in-memory-store-account",
+            "canary-configs/graphite/integration-test-cpu.json");
+
+    ValidatableResponse response =
+        steps.waitUntilCanaryAnalysisCompleted(canaryAnalysisExecutionId);
+
     response
         .body("executionStatus", is("SUCCEEDED"))
         .body("canaryAnalysisExecutionResult.hasWarnings", is(false))

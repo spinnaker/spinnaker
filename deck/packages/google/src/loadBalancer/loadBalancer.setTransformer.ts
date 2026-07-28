@@ -1,12 +1,12 @@
-import { module } from 'angular';
 import { cloneDeep, groupBy, map, partition } from 'lodash';
 
 import type { IGceHttpLoadBalancer, IGceLoadBalancer } from '../domain/loadBalancer';
 
-import type { GceHttpLoadBalancerUtils } from './httpLoadBalancerUtils.service';
-import { GCE_HTTP_LOAD_BALANCER_UTILS } from './httpLoadBalancerUtils.service';
+import { GceHttpLoadBalancerUtils } from './httpLoadBalancerUtils.service';
 
 export class GceLoadBalancerSetTransformer {
+  private readonly gceHttpLoadBalancerUtils = new GceHttpLoadBalancerUtils();
+
   private static normalizeHttpLoadBalancerGroup(group: IGceHttpLoadBalancer[]): IGceHttpLoadBalancer {
     const normalized = cloneDeep(group[0]);
 
@@ -16,6 +16,7 @@ export class GceLoadBalancerSetTransformer {
         port,
         name: loadBalancer.name,
         certificate: loadBalancer.certificate,
+        certificateMap: loadBalancer.certificateMap,
         ipAddress: loadBalancer.ipAddress,
         subnet: loadBalancer.subnet,
       };
@@ -29,9 +30,6 @@ export class GceLoadBalancerSetTransformer {
   private static parsePortRange(portRange: string): string {
     return portRange.split('-')[0];
   }
-
-  public static $inject = ['gceHttpLoadBalancerUtils'];
-  constructor(private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils) {}
 
   public normalizeLoadBalancerSet = (loadBalancers: IGceLoadBalancer[]): IGceLoadBalancer[] => {
     const [httpLoadBalancers, otherLoadBalancers] = partition(loadBalancers, (lb) =>
@@ -47,9 +45,3 @@ export class GceLoadBalancerSetTransformer {
     return (normalizedElSevenLoadBalancers as IGceLoadBalancer[]).concat(otherLoadBalancers);
   };
 }
-
-export const LOAD_BALANCER_SET_TRANSFORMER = 'spinnaker.gce.loadBalancer.setTransformer.service';
-module(LOAD_BALANCER_SET_TRANSFORMER, [GCE_HTTP_LOAD_BALANCER_UTILS]).service(
-  'gceLoadBalancerSetTransformer',
-  GceLoadBalancerSetTransformer,
-);

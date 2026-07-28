@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * Provides an Amazon credential pack that uses Assume Role
@@ -76,6 +77,12 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
   @Getter private final Integer sessionDurationSeconds;
 
   @Getter private final String externalId;
+
+  /**
+   * Lazily-initialised v2 credentials provider. Initialised on first call to {@link
+   * #getV2CredentialsProvider()} using the v2 long-lived credentials exposed by the parent class.
+   */
+  private volatile AwsCredentialsProvider v2CredentialsProvider;
 
   public AssumeRoleAmazonCredentials(
       @JsonProperty("name") String name,
@@ -195,5 +202,31 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     this.sessionDurationSeconds = sessionDurationSeconds;
     this.externalId = externalId;
+  }
+
+  /**
+   * Returns a v2 {@link AwsCredentialsProvider} that assumes the role configured on this account.
+   * The provider is created lazily on first access and cached for the lifetime of this credentials
+   * object. The base v2 credentials are obtained from the parent's {@link
+   * AmazonCredentials#getV2CredentialsProvider()} (the {@link
+   * software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider} chain).
+   */
+  @Override
+  public AwsCredentialsProvider getV2CredentialsProvider() {
+    if (v2CredentialsProvider == null) {
+      synchronized (this) {
+        if (v2CredentialsProvider == null) {
+          v2CredentialsProvider =
+              new SpinnakerStsAssumeRoleCredentialsProviderV2(
+                  super.getV2CredentialsProvider(),
+                  getAccountId(),
+                  assumeRole,
+                  sessionName,
+                  sessionDurationSeconds,
+                  externalId);
+        }
+      }
+    }
+    return v2CredentialsProvider;
   }
 }

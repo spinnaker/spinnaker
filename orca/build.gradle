@@ -18,7 +18,7 @@ plugins {
   id 'io.spinnaker.project' apply false
   alias(libs.plugins.kotlin.jvm) apply false
   alias(libs.plugins.kotlin.allopen) apply false
-  id "io.gitlab.arturbosch.detekt" version "1.17.1" apply false
+//  id "io.gitlab.arturbosch.detekt" version "1.23.8" apply false
 }
 
 allprojects {

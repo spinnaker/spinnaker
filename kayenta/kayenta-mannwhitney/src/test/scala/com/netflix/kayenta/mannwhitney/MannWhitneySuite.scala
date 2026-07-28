@@ -19,10 +19,10 @@ package com.netflix.kayenta.mannwhitney
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.apache.commons.math3.analysis.UnivariateFunction
 import org.apache.commons.math3.distribution.NormalDistribution
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 
-class MannWhitneySuite extends FunSuite {
+class MannWhitneySuite extends AnyFunSuite {
 
   private val E = 0.000001
 

@@ -52,7 +52,7 @@ func NewWhoamiCmd(accOptions *accountOptions) *cobra.Command {
 }
 
 func whoamiAccount(cmd *cobra.Command, options *whoamiOptions, args []string) error {
-	whoami, resp, err := options.GateClient.AuthControllerApi.User(options.GateClient.Context)
+	whoami, resp, err := options.GateClient.AuthControllerAPI.User(options.GateClient.Context).Execute()
 	if err != nil {
 		return err
 	}

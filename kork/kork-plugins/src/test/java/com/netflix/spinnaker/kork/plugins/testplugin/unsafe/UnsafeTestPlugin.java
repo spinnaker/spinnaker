@@ -19,9 +19,13 @@ package com.netflix.spinnaker.kork.plugins.testplugin.unsafe;
 import org.pf4j.Plugin;
 import org.pf4j.PluginWrapper;
 
-/** An unsafe (in-codebase) Plugin for UnsafeTestExtension. */
+/**
+ * An unsafe (in-codebase) Plugin for UnsafeTestExtension.
+ *
+ * <p>The wrapper parameter is required for createWithConstructor DI type matching but intentionally
+ * unused since Plugin() no-arg replaces the deprecated Plugin(PluginWrapper) constructor.
+ */
+@SuppressWarnings("unused")
 public class UnsafeTestPlugin extends Plugin {
-  public UnsafeTestPlugin(PluginWrapper wrapper) {
-    super(wrapper);
-  }
+  public UnsafeTestPlugin(PluginWrapper wrapper) {}
 }

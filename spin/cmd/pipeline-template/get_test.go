@@ -24,8 +24,8 @@ import (
 
 	"github.com/andreyvit/diff"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestPipelineGet_json(t *testing.T) {

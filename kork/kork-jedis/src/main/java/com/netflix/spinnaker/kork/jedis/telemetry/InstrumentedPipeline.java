@@ -37,16 +37,13 @@ import redis.clients.jedis.params.ZIncrByParams;
 import redis.clients.jedis.params.ZParams;
 import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.resps.Tuple;
+import redis.clients.jedis.util.KeyValue;
 
 public class InstrumentedPipeline extends Pipeline {
 
   private final Registry registry;
   private final Pipeline delegated;
   private final String poolName;
-
-  public InstrumentedPipeline(Registry registry, Jedis jedis) {
-    this(registry, jedis, "unnamed");
-  }
 
   public InstrumentedPipeline(Registry registry, Jedis jedis, String poolName) {
     super(jedis);
@@ -141,7 +138,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<List<byte[]>> brpop(double timeout, byte[]... args) {
+  public Response<KeyValue<byte[], byte[]>> brpop(double timeout, byte[]... args) {
     String command = "brpop";
     return instrumented(command, () -> delegated.brpop(timeout, args));
   }
@@ -153,7 +150,7 @@ public class InstrumentedPipeline extends Pipeline {
   }
 
   @Override
-  public Response<List<byte[]>> blpop(double timeout, byte[]... args) {
+  public Response<KeyValue<byte[], byte[]>> blpop(double timeout, byte[]... args) {
     String command = "blpop";
     return instrumented(command, () -> delegated.blpop(timeout, args));
   }

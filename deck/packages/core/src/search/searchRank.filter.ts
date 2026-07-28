@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { ISearchResult } from './search.service';
 
 export const searchRank = (input: ISearchResult[], query = '') => {
@@ -20,6 +18,3 @@ export const searchRank = (input: ISearchResult[], query = '') => {
 };
 
 export const searchRankFilter = () => searchRank;
-
-export const SEARCH_RANK_FILTER = 'spinnaker.core.search.searchResult.searchRank.filter';
-module(SEARCH_RANK_FILTER, []).filter('searchRank', searchRankFilter);

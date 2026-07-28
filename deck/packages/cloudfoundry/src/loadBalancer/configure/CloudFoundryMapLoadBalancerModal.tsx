@@ -1,8 +1,5 @@
-import type { IDeferred } from 'angular';
-import type { IModalServiceInstance } from 'angular-ui-bootstrap';
 import type { Formik } from 'formik';
 import { Form } from 'formik';
-import { $q } from 'ngimport';
 import React from 'react';
 import { Modal, ModalFooter } from 'react-bootstrap';
 import { from as observableFrom, Subject } from 'rxjs';
@@ -10,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import type {
   Application,
+  DeckRuntimeServices,
   IAccount,
   ILoadBalancerModalProps,
   IModalComponentProps,
@@ -17,14 +15,15 @@ import type {
 } from '@spinnaker/core';
 import {
   AccountService,
+  DeckRuntimeContext,
   ModalClose,
   noop,
-  ReactInjector,
   ReactModal,
   SpinFormik,
   TaskMonitor,
   TaskMonitorWrapper,
 } from '@spinnaker/core';
+
 import type { ICloudFoundryServerGroup } from '../../domain';
 import { AccountRegionClusterSelector, Routes } from '../../presentation';
 
@@ -51,6 +50,9 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
   ICloudFoundryLoadBalancerModalProps,
   ICreateCloudFoundryMapLoadBalancerState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   public static defaultProps: Partial<ICloudFoundryLoadBalancerModalProps> = {
     closeModal: noop,
     dismissModal: noop,
@@ -58,19 +60,10 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
 
   private destroy$ = new Subject();
   private formikRef = React.createRef<Formik<ICloudFoundryLoadBalancerModalValues>>();
-  private $uibModalInstanceEmulation: IModalServiceInstance & { deferred?: IDeferred<any> };
 
   constructor(props: ICloudFoundryLoadBalancerModalProps) {
     super(props);
 
-    const deferred = $q.defer();
-    const promise = deferred.promise;
-    this.$uibModalInstanceEmulation = {
-      result: promise,
-      close: () => this.props.dismissModal(),
-      dismiss: () => this.props.dismissModal(),
-    } as IModalServiceInstance;
-    Object.assign(this.$uibModalInstanceEmulation, { deferred });
     this.state = {
       accounts: [],
       regions: [],
@@ -84,7 +77,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: 'Mapping a route to your server group',
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.props.application.serverGroups.refresh(),
       }),
     };
@@ -93,7 +86,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
       .subscribe((rawAccounts: IAccount[]) => this.setState({ accounts: rawAccounts }));
   }
 
-  public static show(props: ILoadBalancerModalProps): Promise<void> {
+  public static show(props: ILoadBalancerModalProps, runtimeServices: DeckRuntimeServices): Promise<void> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
     return ReactModal.show(
       CloudFoundryMapLoadBalancerModal,
@@ -102,6 +95,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
         // className: 'create-pipeline-modal-overflow-visible',
       },
       modalProps,
+      runtimeServices,
     );
   }
 
@@ -137,7 +131,7 @@ export class CloudFoundryMapLoadBalancerModal extends React.Component<
     };
 
     this.state.taskMonitor.submit(() => {
-      return ReactInjector.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
+      return this.context.services.serverGroupWriter.mapLoadBalancers(coreServerGroup, this.props.application, {
         serverGroupName: serverGroup.name,
       });
     });

@@ -56,8 +56,10 @@ runs:
       shell: bash
       if: github.event_name != 'pull_request'
       run: |
-        echo "### Deb Publishing" >> "$GITHUB_STEP_SUMMARY"
-        echo "| | |" >> "$GITHUB_STEP_SUMMARY"
-        echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
-        echo "| __Name__ | ${{ inputs.project }}-${{ inputs.is-release != 'true' && 'dev' || '' }} |" >> "$GITHUB_STEP_SUMMARY"
-        echo "| __Version__ | ${{ inputs.version }} |" >> "$GITHUB_STEP_SUMMARY"
+        cat <<EOF> "$GITHUB_STEP_SUMMARY"
+        ### Deb Publishing
+        | | |
+        | --- | --- |
+        | __Name__ | ${{ inputs.project }}-${{ inputs.is-release != 'true' && 'dev' || '' }} |
+        | __Version__ | ${{ inputs.version }} |
+        EOF

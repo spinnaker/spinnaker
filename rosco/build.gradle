@@ -4,11 +4,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.rosco"
 }
 
 subprojects {
-  group = "io.spinnaker.rosco"
-
   if (name != "rosco-bom") {
     apply plugin: 'java-library'
     apply plugin: "groovy"
@@ -28,6 +27,7 @@ subprojects {
       testAnnotationProcessor "org.projectlombok:lombok"
 
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     test {
@@ -37,7 +37,6 @@ subprojects {
       useJUnitPlatform()
     }
   }
-
   tasks.withType(JavaExec) {
     if (System.getProperty('DEBUG', 'false') == 'true') {
       jvmArgs '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8187'

@@ -44,8 +44,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
@@ -57,7 +57,7 @@ public class DockerRegistryClientTest {
       WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
   static RegistryService dockerRegistryService;
-  @MockBean DockerBearerTokenService dockerBearerTokenService;
+  @MockitoBean DockerBearerTokenService dockerBearerTokenService;
   static DockerRegistryClient dockerRegistryClient;
   ObjectMapper objectMapper = new ObjectMapper();
   Map<String, Object> tagsResponse;

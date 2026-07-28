@@ -70,7 +70,7 @@ abstract class PluginsTck<T : PluginsTckFixture> : JUnit5Minutests {
 /**
  * DSL for constructing a service fixture within a Minutest suite.
  */
-inline fun <PF, reified F> TestContextBuilder<PF, F>.serviceFixture(
+inline fun <PF, reified F : Any> TestContextBuilder<PF, F>.serviceFixture(
   crossinline factory: (Unit).(testDescriptor: TestDescriptor) -> F
 ) {
   fixture { testDescriptor ->

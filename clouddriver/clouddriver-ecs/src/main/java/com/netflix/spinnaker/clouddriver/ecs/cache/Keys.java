@@ -23,8 +23,10 @@ import com.google.common.base.CaseFormat;
 import com.netflix.spinnaker.clouddriver.cache.KeyParser;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 public class Keys implements KeyParser {
+
   public enum Namespace {
     ECS_APPLICATIONS,
     IAM_ROLE,
@@ -45,9 +47,40 @@ public class Keys implements KeyParser {
       ns = CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, this.name());
     }
 
+    @Override
     public String toString() {
       return ns;
     }
+  }
+
+  public static String buildGlob(Namespace type, String accountName, String region) {
+    return buildGlob(type.ns, accountName, region, "*");
+  }
+
+  /**
+   * Build a glob pattern for the given namespace string (works with any namespace, including core
+   * namespaces).
+   *
+   * @param namespace the namespace string (e.g., "ecsClusters", "health")
+   * @param accountName the account name (or null for wildcard)
+   * @param region the region (or null for wildcard)
+   * @param identifier the identifier pattern (or "*" for wildcard)
+   * @return a glob pattern string
+   */
+  public static String buildGlob(
+      String namespace, String accountName, String region, String identifier) {
+    String accountGlob = StringUtils.defaultIfEmpty(accountName, "*");
+    String regionGlob = StringUtils.defaultIfEmpty(region, "*");
+    String identifierGlob = StringUtils.defaultIfEmpty(identifier, "*");
+
+    // Special cases for ECS namespaces
+    if (Namespace.IAM_ROLE.ns.equals(namespace)) {
+      return ID + SEPARATOR + namespace + SEPARATOR + accountGlob + SEPARATOR + identifierGlob;
+    }
+    if (Namespace.ECS_APPLICATIONS.ns.equals(namespace)) {
+      return ID + SEPARATOR + namespace + SEPARATOR + identifierGlob;
+    }
+    return buildKey(namespace, accountGlob, regionGlob, identifierGlob);
   }
 
   public static final String SEPARATOR = ";";

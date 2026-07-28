@@ -631,4 +631,10 @@ package com.netflix.spinnaker.clouddriver.google.deploy
         "https://compute.googleapis.com/compute/v1/my-test-project/global/firewalls/name-a"
       ]
   }
+
+  void "buildCertificateMapUrl should build global certificate manager URL"() {
+    expect:
+      GCEUtil.buildCertificateMapUrl(PROJECT_NAME, "my-map") ==
+        "//certificatemanager.googleapis.com/projects/${PROJECT_NAME}/locations/global/certificateMaps/my-map"
+  }
 }

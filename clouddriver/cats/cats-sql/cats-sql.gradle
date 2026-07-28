@@ -47,7 +47,7 @@ dependencies {
 
   testImplementation "cglib:cglib-nodep"
   testImplementation "io.spinnaker.kork:kork-sql-test"
-  testImplementation "com.nhaarman:mockito-kotlin"
+  testImplementation "org.mockito.kotlin:mockito-kotlin"
   testImplementation "junit:junit"
   testImplementation "org.hamcrest:hamcrest-core"
   testImplementation "org.junit.jupiter:junit-jupiter-api"

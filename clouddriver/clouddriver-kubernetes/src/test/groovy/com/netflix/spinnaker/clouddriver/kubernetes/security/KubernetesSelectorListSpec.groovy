@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.kubernetes.security
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.SafeConstructor
 import spock.lang.Specification
@@ -26,7 +27,7 @@ import spock.lang.Unroll
 
 class KubernetesSelectorListSpec extends Specification {
   def objectMapper = new ObjectMapper()
-  def yaml = new Yaml(new SafeConstructor())
+  def yaml = new Yaml(new SafeConstructor(new LoaderOptions()))
 
   List<MatchExpression> matchExpressionsFromYaml(String input) {
     return objectMapper.convertValue(yaml.load(input), new TypeReference<List<MatchExpression>>() {})

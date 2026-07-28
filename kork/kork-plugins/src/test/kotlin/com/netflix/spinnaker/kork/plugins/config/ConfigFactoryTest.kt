@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.kork.plugins.config
 
-import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
+import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import io.mockk.every
@@ -57,7 +57,7 @@ class ConfigFactoryTest : JUnit5Minutests {
     val subject = ConfigFactory(configResolver)
   }
 
-  @ExtensionConfiguration("my-sweet-extension")
+  @PluginConfiguration("my-sweet-extension")
   private data class MyExtensionConfig(val message: String)
 
   private data class MyPluginConfig(val message: String)

@@ -8,7 +8,7 @@ import { FormikStageConfig, FormValidator } from '@spinnaker/core';
 import { CloudFoundryDeleteServiceBindingsStageConfigForm } from './CloudFoundryDeleteServiceBindingsStageConfigForm';
 
 interface ServiceUnbindingRequests {
-  serviceInstanceName: String;
+  serviceInstanceName: string;
 }
 
 export function CloudFoundryDeleteServiceBindingsConfig({

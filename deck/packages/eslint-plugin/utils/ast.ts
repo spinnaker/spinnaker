@@ -1,6 +1,4 @@
-import type { Identifier, Literal } from 'estree';
-
-export function getImportName(node: Identifier | Literal): string {
+export function getImportName(node: any): string {
   if (node.type === 'Identifier') {
     return node.name;
   }

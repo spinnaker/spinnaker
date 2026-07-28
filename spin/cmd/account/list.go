@@ -18,10 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type listOptions struct {
@@ -55,7 +52,11 @@ func NewListCmd(accOptions *accountOptions) *cobra.Command {
 }
 
 func listAccount(cmd *cobra.Command, options *listOptions, args []string) error {
-	accountList, resp, err := options.GateClient.CredentialsControllerApi.GetAccounts(options.GateClient.Context, &gate.CredentialsControllerApiGetAccountsOpts{Expand: optional.NewBool(options.expand)})
+	req := options.GateClient.CredentialsControllerAPI.GetAccounts(options.GateClient.Context)
+	if options.expand {
+		req = req.Expand(options.expand)
+	}
+	accountList, resp, err := req.Execute()
 	if err != nil {
 		return err
 	}

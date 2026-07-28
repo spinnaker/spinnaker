@@ -1,8 +1,11 @@
 import React from 'react';
+
 import { AccountService } from './AccountService';
 
+import './accountTag.less';
+
 export interface IAccountTagProps {
-  account: string;
+  account: string | null;
   className?: string;
 }
 
@@ -12,7 +15,7 @@ export interface IAccountTagState {
 
 export class AccountTag extends React.Component<IAccountTagProps, IAccountTagState> {
   private static cache: {
-    [account: string]: boolean | PromiseLike<boolean>;
+    [account: string]: boolean | Promise<boolean>;
   } = {};
 
   public state = { isProdAccount: false };
@@ -30,7 +33,11 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
     this.updateAccount(nextProps.account);
   }
 
-  private updateAccount(account: string) {
+  private updateAccount(account: string | null) {
+    if (!account) {
+      return;
+    }
+
     const { cache } = AccountTag;
     if (!cache.hasOwnProperty(account)) {
       cache[account] = AccountService.challengeDestructiveActions(account).then(
@@ -38,7 +45,7 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
       );
     }
 
-    const cachedVal: boolean | PromiseLike<boolean> = cache[account];
+    const cachedVal: boolean | Promise<boolean> = cache[account];
 
     if (typeof cachedVal === 'boolean') {
       this.setState({ isProdAccount: cachedVal });
@@ -51,6 +58,9 @@ export class AccountTag extends React.Component<IAccountTagProps, IAccountTagSta
     const { account, className } = this.props;
     const { isProdAccount } = this.state;
     const shouldShowTitle = className === 'account-tag-wrapper';
+    if (!account) {
+      return null;
+    }
     return (
       <span className={`account-tag account-tag-${isProdAccount ? 'prod' : 'notprod'} ${className || ''}`}>
         <span className="account-tag-name" title={shouldShowTitle ? account : null}>

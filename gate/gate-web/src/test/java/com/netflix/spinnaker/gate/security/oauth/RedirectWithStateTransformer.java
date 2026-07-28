@@ -8,54 +8,17 @@ import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
- * WireMock ResponseDefinitionTransformer that builds a 302 redirect to the application callback URL
- * while preserving and URL-encoding the incoming "state" query parameter.
+ * WireMock ResponseDefinitionTransformer that simulates an OAuth2 authorization server by issuing a
+ * 302 redirect back to the application's {@code redirect_uri} with a mock authorization code and
+ * the original {@code state} parameter.
  *
- * <p>The transformer does not require the app port at construction time. Instead it calls a {@link
- * Supplier<Integer>} (configured by the test) to obtain the application's HTTP port at transform
- * time. Tests should set the supplier (see example test code).
- *
- * <p>Usage:
- *
- * <pre>
- *   // in test setup:
- *   RedirectWithStateTransformer.setAppPortSupplier(() -> localServerPort);
- * </pre>
+ * <p>Both the {@code redirect_uri} and {@code state} are read directly from the incoming request's
+ * query parameters (sent by Spring Security), so no hard-coded paths or port configuration is
+ * needed.
  */
 public class RedirectWithStateTransformer extends ResponseDefinitionTransformer {
-
-  /**
-   * A supplier that returns the application port. Tests MUST set this before the transformer is
-   * invoked, e.g. in {@code @BeforeEach}.
-   */
-  private static volatile Supplier<Integer> appPortSupplier = () -> -1;
-
-  /**
-   * Set the supplier that will provide the application port at transform time. Use a lambda that
-   * returns the value of @LocalServerPort.
-   *
-   * @param supplier supplier returning the app port
-   */
-  public static void setAppPortSupplier(Supplier<Integer> supplier) {
-    appPortSupplier = Objects.requireNonNull(supplier, "appPort supplier must not be null");
-  }
-
-  /** Reset supplier to default (optional cleanup). */
-  public static void resetAppPortSupplier() {
-    appPortSupplier = () -> -1;
-  }
-
-  private int getAppPortOrThrow() {
-    int port = appPortSupplier.get();
-    if (port <= 0) {
-      throw new IllegalStateException("Application port not set in RedirectWithStateTransformer");
-    }
-    return port;
-  }
 
   @Override
   public ResponseDefinition transform(
@@ -64,23 +27,25 @@ public class RedirectWithStateTransformer extends ResponseDefinitionTransformer 
       FileSource files,
       Parameters parameters) {
 
-    // Grab the first state value if present
+    // Read the redirect_uri that Spring Security sent to the authorize endpoint.
+    String redirectUri = "";
+    if (request.queryParameter("redirect_uri") != null
+        && request.queryParameter("redirect_uri").isPresent()) {
+      redirectUri = request.queryParameter("redirect_uri").firstValue();
+    }
+
+    // Grab the state value if present.
     String state = "";
-    if (request.queryParameter("state") != null
-        && request.queryParameter("state").firstValue() != null) {
+    if (request.queryParameter("state") != null && request.queryParameter("state").isPresent()) {
       state = request.queryParameter("state").firstValue();
     }
 
-    // URL-encode state to preserve characters like '=' and '+'
     String encodedState = URLEncoder.encode(state, StandardCharsets.UTF_8);
 
-    int appPort = getAppPortOrThrow();
-
-    String redirectLocation =
-        "http://localhost:"
-            + appPort
-            + "/login/oauth2/code/github?code=vcbcncnm&state="
-            + encodedState;
+    // Build the redirect as a real OAuth2 provider would: back to the redirect_uri with
+    // an authorization code and the original state.
+    String separator = redirectUri.contains("?") ? "&" : "?";
+    String redirectLocation = redirectUri + separator + "code=mock-auth-code&state=" + encodedState;
 
     return ResponseDefinitionBuilder.responseDefinition()
         .withStatus(302)

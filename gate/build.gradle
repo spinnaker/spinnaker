@@ -41,6 +41,7 @@ allprojects {
       testImplementation "org.hamcrest:hamcrest-core"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
       testRuntimeOnly "org.objenesis:objenesis"
     }
 

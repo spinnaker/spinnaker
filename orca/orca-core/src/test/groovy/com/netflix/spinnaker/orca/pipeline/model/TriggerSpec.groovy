@@ -618,38 +618,6 @@ class TriggerSpec extends Specification {
 """
   }
 
-  def "a Wercker trigger works just like a Jenkins one"() {
-    given:
-    def trigger = mapper.readValue(triggerJson, Trigger)
-
-    expect:
-    trigger instanceof JenkinsTrigger
-    with(trigger) {
-      master == "staging"
-      job == "mytest"
-      buildNumber == 123
-      propertyFile == null
-      buildInfo.name == "test-build"
-      buildInfo.number == 123
-      buildInfo.url == "https://testurl"
-    }
-
-    where:
-    triggerJson = """{
-  "buildInfo": {
-    "name": "test-build",
-    "number": 123,
-    "url": "https://testurl"
-  },
-  "buildNumber": 123,
-  "job": "mytest",
-  "master": "staging",
-  "propertyFile": null,
-  "type": "wercker"
-}
-"""
-  }
-
   def "correctly map collection item to its type"() {
     given:
     def trigger = mapper.readValue(triggerJson, Trigger)

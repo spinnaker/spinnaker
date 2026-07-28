@@ -104,6 +104,9 @@ class Front50UpdateRepository(
     plugins.clear()
   }
 
+  /**
+   * Retry handling support allowing overload
+   */
   companion object {
     private val retry = Retry.ofDefaults("front50-update-repository")
   }

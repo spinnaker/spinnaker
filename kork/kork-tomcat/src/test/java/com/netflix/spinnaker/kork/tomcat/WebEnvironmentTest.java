@@ -9,16 +9,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @SpringBootTest(
@@ -43,6 +46,13 @@ class WebEnvironmentTest {
 
   @Test
   void testTomcatWithIllegalHttpHeaders() throws Exception {
+    // Use Apache HttpComponents client which allows invalid headers
+    // The default JDK HttpClient in Spring Boot 3.5+ validates headers on the client side
+    RestTemplate httpComponentsRestTemplate =
+        new RestTemplateBuilder()
+            .requestFactory(HttpComponentsClientHttpRequestFactory.class)
+            .build();
+
     HttpHeaders headers = new HttpHeaders();
     // this is enough to cause a BAD_REQUEST if tomcat has rejectIllegalHeaders
     // set to true
@@ -55,7 +65,8 @@ class WebEnvironmentTest {
             .toUri();
 
     ResponseEntity<String> entity =
-        restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        httpComponentsRestTemplate.exchange(
+            uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
     assertEquals(HttpStatus.OK, entity.getStatusCode());
   }
 

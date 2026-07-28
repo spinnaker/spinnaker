@@ -1,16 +1,16 @@
 import reactRefresh from '@vitejs/plugin-react-refresh';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import { createRequire } from 'module';
 import path from 'path';
 import strip from 'rollup-plugin-strip-code';
 import { defineConfig } from 'vite';
 import htmlConfigPlugin from 'vite-plugin-html-config';
 import svgr from 'vite-plugin-svgr';
 
-import angularTemplateLoader from '@spinnaker/scripts/helpers/rollup-plugin-angularjs-template-loader';
-
 const DECK_ROOT = path.resolve(`${__dirname}/../../`);
-const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
+const require = createRequire(import.meta.url);
+const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
 
 const envLocalFilePath = path.resolve(`${__dirname}/.env.local`);
 if (fs.existsSync(envLocalFilePath)) {
@@ -24,7 +24,7 @@ export default defineConfig(({ command }) => {
     { find: 'root', replacement: DECK_ROOT },
     {
       find: 'coreImports',
-      replacement: `${NODE_MODULE_PATH}/@spinnaker/core/src/presentation/less/imports/commonImports.less`,
+      replacement: `${CORE_PACKAGE_ROOT}/src/presentation/less/imports/commonImports.less`,
     },
   ];
 
@@ -37,20 +37,6 @@ export default defineConfig(({ command }) => {
   }
   return {
     clearScreen: false,
-    // `vite` has a depdendency optimization step where it pre-bundles the dependencies using esbuild and directly
-    // serves the source files. When `vite` encounters linked packages, it doesn't include them in the pre-bundle and
-    // instead treats them as source files. However (not sure it is intentional or a bug), it still runs esbuild across
-    // the linked package source files (for building the module graph?). This is an issue when we have custom loaders
-    // defined as rollup plugins since this will not be used in this step.
-    // So fixing the issue by making esbuild load .html files as text files (which is ok since it doesn't affect the
-    // output) and later use rollup to actually load/transform the file.
-    optimizeDeps: {
-      esbuildOptions: {
-        loader: {
-          '.html': 'text',
-        },
-      },
-    },
     plugins: [
       reactRefresh(),
       htmlConfigPlugin(
@@ -63,7 +49,6 @@ export default defineConfig(({ command }) => {
           'g',
         ),
       }),
-      angularTemplateLoader({ sourceMap: true }),
       svgr(),
     ],
     resolve: {

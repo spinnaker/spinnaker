@@ -18,10 +18,10 @@ package com.netflix.kayenta.judge
 
 import com.netflix.kayenta.judge.stats.DescriptiveStatistics.percentile
 import com.netflix.kayenta.judge.stats.{DescriptiveStatistics, EffectSizes, MetricStatistics}
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
-class StatisticSuite extends FunSuite{
+class StatisticSuite extends AnyFunSuite{
 
   test("Summary Statistics: Scalar"){
     val metric = Metric("scalar", Array[Double](4.0), "test")

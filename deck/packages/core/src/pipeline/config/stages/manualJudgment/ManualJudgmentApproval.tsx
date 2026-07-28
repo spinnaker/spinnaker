@@ -5,9 +5,10 @@ import Select from 'react-select';
 import type { Application } from '../../../../application/application.model';
 import { ApplicationReader } from '../../../../application/service/ApplicationReader';
 import { AuthenticationService } from '../../../../authentication';
+import { DeckRuntimeContext } from '../../../../bootstrap/DeckRuntimeContext';
 import type { IExecution, IExecutionStage } from '../../../../domain';
+import { ManualJudgmentService } from './manualJudgment.service';
 import { Markdown } from '../../../../presentation/Markdown';
-import { ReactInjector } from '../../../../reactShims';
 import { Spinner } from '../../../../widgets/spinners/Spinner';
 
 export interface IManualJudgmentApprovalProps {
@@ -29,6 +30,9 @@ export class ManualJudgmentApproval extends React.Component<
   IManualJudgmentApprovalProps,
   IManualJudgmentApprovalState
 > {
+  public static contextType = DeckRuntimeContext;
+  public declare context: React.ContextType<typeof DeckRuntimeContext>;
+
   constructor(props: IManualJudgmentApprovalProps) {
     super(props);
     this.state = {
@@ -59,7 +63,15 @@ export class ManualJudgmentApproval extends React.Component<
     const { application, execution, stage } = this.props;
     const judgmentInput: string = this.state.judgmentInput ? this.state.judgmentInput.value : null;
     this.setState({ submitting: true, error: false, judgmentDecision });
-    ReactInjector.manualJudgmentService.provideJudgment(application, execution, stage, judgmentDecision, judgmentInput);
+    if (!this.context) {
+      throw new Error('Deck runtime services are unavailable outside DeckRuntimeContext');
+    }
+
+    new ManualJudgmentService(this.context.services.executionService)
+      .provideJudgment(application, execution, stage, judgmentDecision, judgmentInput)
+      .catch(() => {
+        this.setState({ submitting: false, error: true });
+      });
   }
 
   private isManualJudgmentStageNotAuthorized(): boolean {
@@ -71,6 +83,16 @@ export class ManualJudgmentApproval extends React.Component<
       isStageNotAuthorized = false;
       return isStageNotAuthorized;
     }
+
+    const preventSelfApproval = this.props.stage?.context?.preventSelfApproval || false;
+    const triggeredBy = this.props.execution?.user || this.props.execution?.authentication?.user;
+    const currentUser = AuthenticationService.getAuthenticatedUser().name;
+    if (preventSelfApproval) {
+      if (!triggeredBy || !currentUser || triggeredBy === currentUser) {
+        return isStageNotAuthorized;
+      }
+    }
+
     const { CREATE, EXECUTE, WRITE } = applicationRoles;
     userRoles.forEach((userRole) => {
       if (returnOnceFalse) {
@@ -176,9 +198,7 @@ export class ManualJudgmentApproval extends React.Component<
             </div>
           </div>
         )}
-        {this.state.error && (
-          <div className="error-message">There was an error recording your decision. Please try again.</div>
-        )}
+        {this.state.error && <div className="error-message">There was an error recording your decision</div>}
       </div>
     );
   }

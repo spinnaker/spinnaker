@@ -1,5 +1,11 @@
 import type { Rule } from 'eslint';
-import type { CallExpression, ImportDeclaration, ImportSpecifier, MemberExpression, Node } from 'estree';
+import type * as ESTree from 'estree';
+
+type CallExpression = ESTree.CallExpression;
+type ImportDeclaration = ESTree.ImportDeclaration;
+type ImportSpecifier = ESTree.ImportSpecifier;
+type MemberExpression = ESTree.MemberExpression;
+type Node = ESTree.Node;
 import * as _ from 'lodash/fp';
 
 import { getImportName } from '../utils/ast';
@@ -202,7 +208,8 @@ const rule: Rule.RuleModule = {
        * - part of an xyz() call chained off a variable, e.g.: var foo = API.xyz(); foo.get()
        * @param node {CallExpression}
        */
-      CallExpression(node) {
+      CallExpression(_node: any) {
+        const node = _node as CallExpression & Rule.NodeParentExtension;
         if (node.parent.type === 'MemberExpression' || !isAPICall(context, node)) {
           return undefined;
         }

@@ -40,7 +40,9 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Slf4j
 @RestController
@@ -274,6 +276,17 @@ public class AuthorizeController {
           .counter(getUserPermissionCounterId.withTag("success", true).withTag("fallback", false))
           .increment();
       return Optional.of(userPermission);
+    }
+
+    // Empty repo likely means a purge (e.g. accidental Redis flush). Return 503 so callers fail
+    // open instead of treating every principal as departed.
+    if (permissionsRepository.isEmpty()) {
+      log.warn(
+          "Permissions repository is empty — returning 503 for user '{}'. "
+              + "This may indicate an accidental data loss (e.g. Redis flush).",
+          userId);
+      throw new ResponseStatusException(
+          HttpStatus.SERVICE_UNAVAILABLE, "Fiat permissions repository is empty");
     }
 
     /*

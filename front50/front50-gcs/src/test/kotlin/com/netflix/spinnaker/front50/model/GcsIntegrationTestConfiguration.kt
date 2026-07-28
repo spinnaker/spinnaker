@@ -52,6 +52,7 @@ class GcsIntegrationTestConfiguration {
   fun circuitBreakerRegistry(): CircuitBreakerRegistry = InMemoryCircuitBreakerRegistry()
 
   @Bean
+  @Primary
   fun storage(properties: GcsProperties): Storage {
     return StorageOptions.newBuilder().setServiceRpcFactory(FakeStorageRpcFactory(clock)).build().service
   }

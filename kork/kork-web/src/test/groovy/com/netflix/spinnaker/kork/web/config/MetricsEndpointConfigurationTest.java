@@ -45,9 +45,9 @@ public class MetricsEndpointConfigurationTest {
   @Autowired TestRestTemplate restTemplate;
 
   @Test
-  public void spectatorMetricsAccess() {
+  void spectatorMetricsAccess() {
     URI uri =
-        UriComponentsBuilder.fromHttpUrl("http://localhost/spectator/metrics")
+        UriComponentsBuilder.fromUriString("http://localhost/spectator/metrics")
             .port(port)
             .build()
             .toUri();

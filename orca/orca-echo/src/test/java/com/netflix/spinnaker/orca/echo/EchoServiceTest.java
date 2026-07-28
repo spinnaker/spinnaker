@@ -46,12 +46,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(
     classes = {
@@ -73,6 +73,7 @@ import org.springframework.test.context.DynamicPropertySource;
       ContextParameterProcessor.class
     })
 public class EchoServiceTest {
+  @MockitoBean Front50Service front50Service;
 
   @RegisterExtension
   static WireMockExtension wmEcho50 =
@@ -98,8 +99,6 @@ public class EchoServiceTest {
 
   @Configuration
   static class TestConfig {
-
-    @MockBean Front50Service front50Service;
 
     @Bean
     SpinnakerRequestHeaderInterceptor spinnakerRequestHeaderInterceptor() {

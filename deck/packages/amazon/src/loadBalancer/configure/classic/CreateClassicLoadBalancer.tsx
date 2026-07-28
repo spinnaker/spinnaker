@@ -2,15 +2,15 @@ import type { FormikErrors, FormikValues } from 'formik';
 import { cloneDeep, get } from 'lodash';
 import React from 'react';
 
-import type { ILoadBalancerModalProps } from '@spinnaker/core';
+import type { DeckRuntimeServices, ILoadBalancerModalProps, IRouterInjectedProps } from '@spinnaker/core';
 import {
   AccountService,
   FirewallLabels,
   LoadBalancerWriter,
   noop,
-  ReactInjector,
   ReactModal,
   TaskMonitor,
+  withRouter,
   WizardModal,
   WizardPage,
 } from '@spinnaker/core';
@@ -36,8 +36,8 @@ export interface ICreateClassicLoadBalancerState {
   taskMonitor: TaskMonitor;
 }
 
-export class CreateClassicLoadBalancer extends React.Component<
-  ICreateClassicLoadBalancerProps,
+export class CreateClassicLoadBalancerComponent extends React.Component<
+  ICreateClassicLoadBalancerProps & IRouterInjectedProps,
   ICreateClassicLoadBalancerState
 > {
   public static defaultProps: Partial<ICreateClassicLoadBalancerProps> = {
@@ -46,15 +46,18 @@ export class CreateClassicLoadBalancer extends React.Component<
   };
 
   private _isUnmounted = false;
-  private refreshUnsubscribe: () => void;
+  private refreshUnsubscribe?: () => void;
   private certificateTypes = get(AWSProviderSettings, 'loadBalancers.certificateTypes', ['iam', 'acm']);
 
-  public static show(props: ICreateClassicLoadBalancerProps): Promise<IAmazonClassicLoadBalancerUpsertCommand> {
+  public static show(
+    props: ICreateClassicLoadBalancerProps,
+    runtimeServices: DeckRuntimeServices,
+  ): Promise<IAmazonClassicLoadBalancerUpsertCommand> {
     const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
-    return ReactModal.show(CreateClassicLoadBalancer, props, modalProps);
+    return ReactModal.show(CreateClassicLoadBalancer, props, modalProps, runtimeServices);
   }
 
-  constructor(props: ICreateClassicLoadBalancerProps) {
+  constructor(props: ICreateClassicLoadBalancerProps & IRouterInjectedProps) {
     super(props);
 
     const loadBalancerCommand = props.command
@@ -91,7 +94,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     return certificateId;
   }
 
-  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): PromiseLike<void> {
+  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): Promise<void> {
     return AccountService.getAccountDetails(command.credentials).then((account) => {
       command.listeners.forEach((listener) => {
         listener.sslCertificateId = this.certificateIdAsARN(
@@ -134,11 +137,12 @@ export class CreateClassicLoadBalancer extends React.Component<
   }
 
   protected onApplicationRefresh(values: IAmazonClassicLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
     if (this._isUnmounted) {
       return;
     }
 
-    this.refreshUnsubscribe = undefined;
     this.props.dismissModal();
     this.setState({ taskMonitor: undefined });
     const newStateParams = {
@@ -149,23 +153,24 @@ export class CreateClassicLoadBalancer extends React.Component<
       provider: 'aws',
     };
 
-    if (!ReactInjector.$state.includes('**.loadBalancerDetails')) {
-      ReactInjector.$state.go('.loadBalancerDetails', newStateParams);
+    if (!this.props.stateService.includes('**.loadBalancerDetails')) {
+      this.props.stateService.go('.loadBalancerDetails', newStateParams);
     } else {
-      ReactInjector.$state.go('^.loadBalancerDetails', newStateParams);
+      this.props.stateService.go('^.loadBalancerDetails', newStateParams);
     }
   }
 
   public componentWillUnmount(): void {
     this._isUnmounted = true;
-    if (this.refreshUnsubscribe) {
-      this.refreshUnsubscribe();
-    }
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
   }
 
   private onTaskComplete(values: IAmazonClassicLoadBalancerUpsertCommand): void {
+    this.refreshUnsubscribe?.();
+    this.refreshUnsubscribe = undefined;
+    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(() => this.onApplicationRefresh(values));
     this.props.app.loadBalancers.refresh();
-    this.refreshUnsubscribe = this.props.app.loadBalancers.onNextRefresh(null, () => this.onApplicationRefresh(values));
   }
 
   private submit = (values: IAmazonClassicLoadBalancerUpsertCommand): void => {
@@ -183,7 +188,7 @@ export class CreateClassicLoadBalancer extends React.Component<
       const taskMonitor = new TaskMonitor({
         application: app,
         title: `${isNew ? 'Creating' : 'Updating'} your load balancer`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
         onTaskComplete: () => this.onTaskComplete(loadBalancerCommandFormatted),
       });
 
@@ -203,7 +208,7 @@ export class CreateClassicLoadBalancer extends React.Component<
     return errors;
   };
 
-  public render(): React.ReactElement<CreateClassicLoadBalancer> {
+  public render(): React.ReactElement<CreateClassicLoadBalancerComponent> {
     const { app, dismissModal, forPipelineConfig, loadBalancer } = this.props;
     const { isNew, loadBalancerCommand, taskMonitor } = this.state;
 
@@ -280,3 +285,8 @@ export class CreateClassicLoadBalancer extends React.Component<
     );
   }
 }
+
+export const CreateClassicLoadBalancer = Object.assign(
+  withRouter<ICreateClassicLoadBalancerProps & IRouterInjectedProps>(CreateClassicLoadBalancerComponent),
+  { show: CreateClassicLoadBalancerComponent.show },
+);

@@ -15,9 +15,9 @@
     "prepublishOnly": "tsc"
   },
   "devDependencies": {
-    "@spinnaker/amazon": "latest",
-    "@spinnaker/core": "latest",
-    "@spinnaker/eslint-plugin": "latest",
+    "@spinnaker/amazon": "workspace:*",
+    "@spinnaker/core": "workspace:*",
+    "@spinnaker/eslint-plugin": "workspace:*",
     "typescript": "5.0.4"
   },
   "peerDependencies": {

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.keel.serialization
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.jsontype.NamedType
@@ -209,6 +210,7 @@ private data class TestSubnetAwareLocatableResource(
   override val application: String,
   override val locations: SubnetAwareLocations
 ) : Locatable<SubnetAwareLocations> {
+  @get:JsonIgnore
   override val displayName: String = "$application-$id"
 }
 
@@ -217,5 +219,6 @@ private data class TestSimpleLocatableResource(
   override val application: String,
   override val locations: SimpleLocations
 ) : Locatable<SimpleLocations> {
+  @get:JsonIgnore
   override val displayName: String = "$application-$id"
 }

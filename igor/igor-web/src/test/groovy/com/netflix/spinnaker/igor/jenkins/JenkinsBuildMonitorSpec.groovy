@@ -69,6 +69,7 @@ class   JenkinsBuildMonitorSpec extends Specification {
 
     def 'should handle any failure to talk to jenkins graciously' () {
         given:
+        jenkinsService.getProjects() >> new ProjectsList()
         jenkinsService.getProjects().getList() >> new Exception("failed")
 
         when:

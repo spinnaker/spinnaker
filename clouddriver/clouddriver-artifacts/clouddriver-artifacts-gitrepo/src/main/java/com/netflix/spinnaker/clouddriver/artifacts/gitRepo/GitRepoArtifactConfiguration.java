@@ -50,7 +50,13 @@ class GitRepoArtifactConfiguration {
             a -> {
               try {
                 return new GitRepoArtifactCredentials(
-                    new GitJobExecutor(a, jobExecutor, gitExecutable), gitRepoFileSystem);
+                    new GitJobExecutor(
+                        a,
+                        jobExecutor,
+                        gitExecutable,
+                        gitRepoArtifactProviderProperties.getValidGitUrlRegex()),
+                    gitRepoFileSystem,
+                    a.getAllowedHosts());
               } catch (IOException e) {
                 log.warn("Failure instantiating git artifact account {}: ", a, e);
                 return null;

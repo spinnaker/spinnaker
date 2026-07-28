@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toSet;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryCluster;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.view.CloudFoundryClusterProvider;
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,10 +42,7 @@ public class CloudFoundryImageController {
    */
   @RequestMapping(value = "/find", method = RequestMethod.GET)
   public Collection<CloudFoundryCluster> list(@RequestParam(required = false) String account) {
-    Stream<CloudFoundryCluster> clusters =
-        account == null
-            ? clusterProvider.getClusters().values().stream().flatMap(Set::stream)
-            : clusterProvider.getClusters().get(account).stream();
+    Stream<CloudFoundryCluster> clusters = clusterProvider.getClusters("*", account).stream();
 
     return clusters
         .map(

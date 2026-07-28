@@ -73,7 +73,7 @@ class Ok3HttpClientRegistry(
   }
 
   private fun findInternalServiceBaseUrl(name: String): String {
-    val normalized = name.toLowerCase()
+    val normalized = name.lowercase()
     val paths = baseUrlPaths.map { it.replace(serviceNamePlaceholder, normalized) }
 
     for (path in paths) {
@@ -86,6 +86,9 @@ class Ok3HttpClientRegistry(
     throw IntegrationException("Unknown service '$name': No baseUrl config property set for service")
   }
 
+  /**
+   * Companion object holding constants for internal service URL resolution.
+   */
   companion object {
     private const val serviceNamePlaceholder = "SERVICE_NAME"
     private val baseUrlPaths: List<String> = listOf(

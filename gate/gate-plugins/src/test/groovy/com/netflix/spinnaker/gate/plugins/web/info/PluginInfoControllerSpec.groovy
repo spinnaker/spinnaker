@@ -40,12 +40,12 @@ import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import retrofit2.mock.Calls;
@@ -82,40 +82,40 @@ class PluginInfoControllerSpec extends Specification {
   @Autowired
   OkHttpClientProvider okHttpClientProvider
 
-  @MockBean
+  @MockitoBean
   private TaskService taskService
 
-  @MockBean
+  @MockitoBean
   private SpinnakerPluginManager spinnakerPluginManager
 
-  @MockBean
+  @MockitoBean
   private ClouddriverService clouddriverService
 
-  @MockBean
+  @MockitoBean
   private EchoService echoService
 
-  @MockBean
+  @MockitoBean
   private ExtendedFiatService extendedFiatService
 
-  @MockBean
+  @MockitoBean
   private Front50Service front50Service
 
-  @MockBean
+  @MockitoBean
   private IgorService igorService
 
-  @MockBean
+  @MockitoBean
   private KeelService keelService
 
-  @MockBean
+  @MockitoBean
   private OrcaServiceSelector orcaServiceSelector
 
-  @MockBean
+  @MockitoBean
   private RoscoService roscoService
 
-  @MockBean
+  @MockitoBean
   private SwabbieService swabbieService
 
-  @MockBean
+  @MockitoBean
   private DeckPluginService deckPluginService
 
   private Map requestContent = ['name': 'test plugin', provider: 'Test Co']

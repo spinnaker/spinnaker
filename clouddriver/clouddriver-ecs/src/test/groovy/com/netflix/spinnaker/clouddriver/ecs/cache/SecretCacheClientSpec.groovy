@@ -15,7 +15,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.amazonaws.services.secretsmanager.model.SecretListEntry
+import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.SecretCacheClient
@@ -46,10 +46,10 @@ class SecretCacheClientSpec extends Specification {
       arn: secretArn
     )
 
-    def originalSecretEntry = new SecretListEntry(
-      name: secretName,
-      aRN: secretArn
-    );
+    def originalSecretEntry = SecretListEntry.builder()
+      .name(secretName)
+      .arn(secretArn)
+      .build()
 
     def attributes = SecretCachingAgent.convertSecretToAttributes(account, region, originalSecretEntry)
     cacheView.get(SECRETS.ns, key) >> new DefaultCacheData(key, attributes, Collections.emptyMap())

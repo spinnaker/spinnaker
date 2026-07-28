@@ -29,7 +29,7 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
 import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.kork.secrets.SecretSession
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
-import com.nhaarman.mockito_kotlin.mock
+import org.mockito.kotlin.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.Assertions.assertThat

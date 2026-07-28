@@ -58,6 +58,8 @@ public class AmazonPubsubProperties {
     int sqsMessageRetentionPeriodSeconds = 120;
     int waitTimeSeconds = 5;
 
+    boolean skipQueueBootstrap = false;
+
     // 1 hour default
     private Integer dedupeRetentionSeconds = 3600;
 

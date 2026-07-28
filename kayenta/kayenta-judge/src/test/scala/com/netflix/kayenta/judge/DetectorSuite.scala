@@ -17,10 +17,10 @@
 package com.netflix.kayenta.judge
 
 import com.netflix.kayenta.judge.detectors.{IQRDetector, KSigmaDetector}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 
-class DetectorSuite extends FunSuite{
+class DetectorSuite extends AnyFunSuite{
 
   test("KSigma Detection"){
     val testData = Array(1.0, 1.0, 1.0, 1.0, 1.0, 20.0, 1.0, 1.0, 1.0, 1.0, 1.0)

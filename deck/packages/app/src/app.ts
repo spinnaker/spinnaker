@@ -1,35 +1,22 @@
 /* eslint-disable @spinnaker/import-sort */
 import 'rxjs-compat';
-import { module } from 'angular';
-import './strictDi';
 
-import { CORE_MODULE } from '@spinnaker/core';
-import { DOCKER_MODULE } from '@spinnaker/docker';
-import { AMAZON_MODULE } from '@spinnaker/amazon';
-import { APPENGINE_MODULE } from '@spinnaker/appengine';
-import { AZURE_MODULE } from '@spinnaker/azure';
-import { GOOGLE_MODULE } from '@spinnaker/google';
-import { CANARY_MODULE } from './canary/canary.module';
-import { KUBERNETES_MODULE } from '@spinnaker/kubernetes';
-import { ORACLE_MODULE } from '@spinnaker/oracle';
-import { KAYENTA_MODULE } from '@spinnaker/kayenta';
-import { TITUS_MODULE } from '@spinnaker/titus';
-import { ECS_MODULE } from '@spinnaker/ecs';
-import { CLOUDRUN_MODULE } from '@spinnaker/cloudrun';
+import '@spinnaker/docker';
+import '@spinnaker/amazon';
+import '@spinnaker/appengine';
+import '@spinnaker/azure';
+import '@spinnaker/google';
+import './canary/canary.module';
+import '@spinnaker/kubernetes';
+import '@spinnaker/oracle';
+import '@spinnaker/kayenta';
+import '@spinnaker/titus';
+import '@spinnaker/ecs';
+import '@spinnaker/cloudrun';
 import '@spinnaker/cloudfoundry';
 
-module('netflix.spinnaker', [
-  CORE_MODULE,
-  AMAZON_MODULE,
-  AZURE_MODULE,
-  GOOGLE_MODULE,
-  ECS_MODULE,
-  DOCKER_MODULE,
-  ORACLE_MODULE,
-  APPENGINE_MODULE,
-  CANARY_MODULE,
-  KUBERNETES_MODULE,
-  KAYENTA_MODULE,
-  TITUS_MODULE,
-  CLOUDRUN_MODULE,
-]);
+import { bootstrapDeck } from '@spinnaker/core';
+
+void bootstrapDeck(document.getElementById('spinnaker-root')).catch((error) => {
+  console.error('Deck bootstrap failed', error);
+});

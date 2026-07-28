@@ -16,7 +16,7 @@ fun List<Map<String, Any>>?.getFailureMessage(mapper: ObjectMapper): String? {
       return context.exception.details?.errors?.joinToString(",")
     }
 
-    if (context?.clouddriverException != null) {
+    if (context?.clouddriverException != null && context.clouddriverException.isNotEmpty()) {
       val clouddriverError: ClouddriverException? = context.clouddriverException.first()["exception"]?.let { mapper.convertValue(it) }
       return clouddriverError?.message
     }

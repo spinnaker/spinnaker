@@ -56,7 +56,7 @@ internal class GeneratorTests {
         .generateSchema<T>()
         .also {
           jacksonObjectMapper()
-            .setSerializationInclusion(NON_NULL)
+            .setDefaultPropertyInclusion(NON_NULL)
             .enable(INDENT_OUTPUT)
             .writeValueAsString(it)
             .also(::println)
@@ -535,8 +535,8 @@ internal class GeneratorTests {
     @Test
     fun `constructor parameters are documented`() {
       expectThat(schema.properties)
-        .containsKey("arg0")
-        .get("arg0")
+        .containsKey("string")
+        .get("string")
         .isA<StringSchema>()
     }
 

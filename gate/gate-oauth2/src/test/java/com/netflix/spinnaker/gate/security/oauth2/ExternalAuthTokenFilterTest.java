@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.gate.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -64,6 +64,9 @@ class ExternalAuthTokenFilterTest {
 
   @BeforeEach
   void setUp() {
+    ClientRegistration clientRegistration = createClientRegistrationWithUserInfoUri();
+    when(clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID))
+        .thenReturn(clientRegistration);
     filter =
         new ExternalAuthTokenFilter(
             clientRegistrationRepository, userInfoServiceHelper, REGISTRATION_ID, restTemplate);
@@ -104,42 +107,40 @@ class ExternalAuthTokenFilterTest {
     filter.doFilterInternal(request, response, filterChain);
 
     verify(filterChain).doFilter(request, response);
-    verify(clientRegistrationRepository, never()).findByRegistrationId(any());
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isEqualTo(existingAuth);
   }
 
   @Test
-  void shouldNotAuthenticateWhenClientRegistrationNotFound() throws Exception {
-    when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
-    when(clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID)).thenReturn(null);
+  void shouldThrowWhenClientRegistrationNotFound() {
+    ClientRegistrationRepository emptyRepo = mock(ClientRegistrationRepository.class);
+    when(emptyRepo.findByRegistrationId(REGISTRATION_ID)).thenReturn(null);
 
-    filter.doFilterInternal(request, response, filterChain);
-
-    verify(filterChain).doFilter(request, response);
-    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    assertThatThrownBy(
+            () ->
+                new ExternalAuthTokenFilter(
+                    emptyRepo, userInfoServiceHelper, REGISTRATION_ID, restTemplate))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining(
+            "No client registration found for registrationId: " + REGISTRATION_ID);
   }
 
   @Test
-  void shouldNotAuthenticateWhenUserInfoUriNotConfigured() throws Exception {
-    when(request.getHeader("Authorization")).thenReturn("Bearer test-token");
-
+  void shouldThrowWhenUserInfoUriNotConfigured() {
     ClientRegistration clientRegistration = createClientRegistrationWithoutUserInfoUri();
-    when(clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID))
-        .thenReturn(clientRegistration);
+    ClientRegistrationRepository repoWithoutUserInfo = mock(ClientRegistrationRepository.class);
+    when(repoWithoutUserInfo.findByRegistrationId(REGISTRATION_ID)).thenReturn(clientRegistration);
 
-    filter.doFilterInternal(request, response, filterChain);
-
-    verify(filterChain).doFilter(request, response);
-    assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    assertThatThrownBy(
+            () ->
+                new ExternalAuthTokenFilter(
+                    repoWithoutUserInfo, userInfoServiceHelper, REGISTRATION_ID, restTemplate))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("No user-info-uri configured for registrationId: " + REGISTRATION_ID);
   }
 
   @Test
   void shouldAuthenticateSuccessfullyWithValidToken() throws Exception {
     when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
-
-    ClientRegistration clientRegistration = createClientRegistrationWithUserInfoUri();
-    when(clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID))
-        .thenReturn(clientRegistration);
 
     Map<String, Object> userAttributes = Map.of("login", "testuser", "email", "test@example.com");
     ResponseEntity<Map<String, Object>> responseEntity = ResponseEntity.ok(userAttributes);
@@ -166,10 +167,6 @@ class ExternalAuthTokenFilterTest {
   void shouldNotAuthenticateWhenUserInfoEndpointFails() throws Exception {
     when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
 
-    ClientRegistration clientRegistration = createClientRegistrationWithUserInfoUri();
-    when(clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID))
-        .thenReturn(clientRegistration);
-
     when(restTemplate.exchange(
             eq("https://api.github.com/user"),
             eq(HttpMethod.GET),
@@ -186,10 +183,6 @@ class ExternalAuthTokenFilterTest {
   @Test
   void shouldNotAuthenticateWhenUserInfoReturnsEmptyResponse() throws Exception {
     when(request.getHeader("Authorization")).thenReturn("Bearer valid-token");
-
-    ClientRegistration clientRegistration = createClientRegistrationWithUserInfoUri();
-    when(clientRegistrationRepository.findByRegistrationId(REGISTRATION_ID))
-        .thenReturn(clientRegistration);
 
     ResponseEntity<Map<String, Object>> responseEntity = ResponseEntity.ok(Map.of());
     when(restTemplate.exchange(

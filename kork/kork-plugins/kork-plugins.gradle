@@ -41,7 +41,7 @@ dependencies {
   testImplementation("org.mockito:mockito-core")
   testImplementation "org.spockframework:spock-core"
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  testImplementation("org.wiremock:wiremock:3.0.4")
+  testImplementation("org.wiremock:wiremock-jetty12:3.10.0")
 
   testRuntimeOnly "cglib:cglib-nodep"
   testRuntimeOnly "org.objenesis:objenesis"

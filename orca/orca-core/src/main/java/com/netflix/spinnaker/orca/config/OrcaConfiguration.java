@@ -102,7 +102,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
   ExecutionConfigurationProperties.class,
   ExpressionProperties.class,
   TaskConfigurationProperties.class,
-  ProvidedIdRequestFilterConfigurationProperties.class
+  ProvidedIdRequestFilterConfigurationProperties.class,
+  JacksonParserProperties.class
 })
 public class OrcaConfiguration {
   @Bean
@@ -121,8 +122,10 @@ public class OrcaConfiguration {
   }
 
   @Bean(name = {"mapper", "objectMapper"})
-  public ObjectMapper mapper(Optional<SerializerHookRegistry> serializerModifier) {
-    ObjectMapper mapper = OrcaObjectMapper.getInstance();
+  public ObjectMapper mapper(
+      Optional<SerializerHookRegistry> serializerModifier,
+      JacksonParserProperties parserProperties) {
+    ObjectMapper mapper = OrcaObjectMapper.newInstance(parserProperties);
     if (serializerModifier.isPresent()) {
       SimpleModule module = new SimpleModule();
       module.setSerializerModifier(serializerModifier.get());

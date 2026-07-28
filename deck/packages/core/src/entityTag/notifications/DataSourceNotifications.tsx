@@ -1,11 +1,8 @@
-import { module } from 'angular';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import { NotificationsPopover } from './NotificationsPopover';
 import type { Application } from '../../application';
 import type { IEntityTag, IEntityTags } from '../../domain';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 
 export interface IDataSourceNotificationsProps {
   tags: IEntityTags[];
@@ -42,15 +39,3 @@ export class DataSourceNotifications extends React.Component<IDataSourceNotifica
     );
   }
 }
-
-export const DATA_SOURCE_NOTIFICATIONS = 'spinnaker.core.entityTag.alerts.datasourcenotifications';
-const ngmodule = module(DATA_SOURCE_NOTIFICATIONS, []);
-
-ngmodule.component(
-  'dataSourceNotifications',
-  react2angular(withErrorBoundary(DataSourceNotifications, 'dataSourceNotifications'), [
-    'tags',
-    'application',
-    'tabName',
-  ]),
-);

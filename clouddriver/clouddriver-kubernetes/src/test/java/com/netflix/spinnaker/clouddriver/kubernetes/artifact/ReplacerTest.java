@@ -1319,8 +1319,8 @@ final class ReplacerTest {
             NAMESPACE,
             ACCOUNT);
 
-    V1beta1CronJob replacedCronJob =
-        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1beta1CronJob.class);
+    V1CronJob replacedCronJob =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1CronJob.class);
     assertThat(
             replacedCronJob
                 .getSpec()
@@ -1364,8 +1364,8 @@ final class ReplacerTest {
       expectedImageAndTag = "gcr.io/my-repository/my-image:expected-tag";
     }
 
-    V1beta1CronJob replacedCronJob =
-        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1beta1CronJob.class);
+    V1CronJob replacedCronJob =
+        KubernetesCacheDataConverter.getResource(replaceResult.getManifest(), V1CronJob.class);
     assertThat(
             replacedCronJob
                 .getSpec()
@@ -1387,7 +1387,7 @@ final class ReplacerTest {
   private KubernetesManifest getCronJob() {
     String cronJob =
         json.serialize(
-            new V1beta1CronJobBuilder()
+            new V1CronJobBuilder()
                 .withNewSpec()
                 .withNewJobTemplate()
                 .withNewSpec()
@@ -1414,7 +1414,7 @@ final class ReplacerTest {
   private KubernetesManifest getCronJobWithOneContainerWithImageTag() {
     String cronJob =
         json.serialize(
-            new V1beta1CronJobBuilder()
+            new V1CronJobBuilder()
                 .withNewSpec()
                 .withNewJobTemplate()
                 .withNewSpec()

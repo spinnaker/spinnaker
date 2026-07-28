@@ -54,12 +54,14 @@ export function Builds({ app }: IBuildProps) {
   const hasAllConfig = [repoType, repoProjectKey, repoSlug].every((attr) => trim(attr));
   if (!hasAllConfig) {
     return (
-      <div className="row configuration-error">
-        <div className="col-md-12">
-          Welcome! To get started with Builds, you'll need to add a
-          <UISref to="home.applications.application.config" className="bold config">
-            <a> repository to your app's configuration.</a>
-          </UISref>
+      <div className="builds-page builds-page-empty">
+        <div className="row configuration-error">
+          <div className="col-md-12">
+            Welcome! To get started with Builds, you'll need to add a
+            <UISref to="home.applications.application.config" className="bold config">
+              <a> repository to your app's configuration.</a>
+            </UISref>
+          </div>
         </div>
       </div>
     );
@@ -67,16 +69,18 @@ export function Builds({ app }: IBuildProps) {
 
   if (isEmpty(builds)) {
     return (
-      <div className="col-md-12">
-        <span>
-          Welcome! To get started with Builds, you'll need to make sure that RocketCI is configured for this app.
-          <br />
-          Please visit{' '}
-          <a href="http://go.netflix.com/rocketci/" target="_blank">
-            RocketCI
-          </a>{' '}
-          for more details.
-        </span>
+      <div className="builds-page builds-page-empty">
+        <div className="col-md-12">
+          <span>
+            Welcome! To get started with Builds, you'll need to make sure that RocketCI is configured for this app.
+            <br />
+            Please visit{' '}
+            <a href="http://go.netflix.com/rocketci/" target="_blank">
+              RocketCI
+            </a>{' '}
+            for more details.
+          </span>
+        </div>
       </div>
     );
   }
@@ -84,7 +88,7 @@ export function Builds({ app }: IBuildProps) {
   const selectedBuild = params.buildId ? builds.find((build) => build.id === params.buildId) : null;
 
   return (
-    <>
+    <div className="builds-page">
       <div className="nav-ci">
         {builds.map((build) => (
           <BuildInfoSummaryCard
@@ -104,6 +108,6 @@ export function Builds({ app }: IBuildProps) {
           </BuildDetailsScrollContainerContext.Provider>
         )}
       </div>
-    </>
+    </div>
   );
 }

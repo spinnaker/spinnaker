@@ -20,7 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
+import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
+import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.webhook.service.WebhookService;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(
     classes = {
@@ -44,7 +47,12 @@ import org.springframework.http.HttpStatus;
       WebhookService.class
     })
 public class MtlsConfigurationPemTest extends MtlsConfigurationTestBase {
+  @MockitoBean FiatService fiatService;
+
+  @MockitoBean OortService oortService;
+
   static class PemTestConfiguration {
+
     @Bean
     @Primary
     WebhookProperties webhookProperties() {

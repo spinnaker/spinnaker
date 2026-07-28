@@ -22,8 +22,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -31,10 +29,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.eclipse.jgit.dircache.DirCache;
-import org.eclipse.jgit.dircache.DirCacheEntry;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.w3c.dom.Document;
@@ -64,12 +58,6 @@ public class SpinnakerNewIdeaProjectPlugin implements Plugin<Project> {
 
       updateCopyrightText(project);
     });
-  }
-
-  private static Stream<DirCacheEntry> entryStream(DirCache index) {
-    return COMMITTED_IDEA_FILES.stream().map(path -> Paths.get(".idea").resolve(path)).map(Path::toString).map(
-      index::getEntry
-    ).filter(Objects::nonNull);
   }
 
   private static void updateCopyrightText(Project project) {

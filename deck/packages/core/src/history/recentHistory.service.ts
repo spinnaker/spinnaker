@@ -1,12 +1,10 @@
-import type { Ng1StateDeclaration } from '@uirouter/angularjs';
-import { module } from 'angular';
+import type { StateDeclaration } from '@uirouter/core';
 import { find, isUndefined, omit, omitBy, sortBy } from 'lodash';
 import { Duration } from 'luxon';
 
 import type { ICache } from '../cache';
 import { DeckCacheFactory } from '../cache';
 import { UUIDGenerator } from '../utils/uuid.service';
-import IAngularEvent = angular.IAngularEvent;
 
 export interface ICacheEntryStateMigrator {
   // a string literal in the state to be replaced (not a regex)
@@ -96,13 +94,7 @@ export class RecentHistoryService {
     }
   }
 
-  /**
-   * Used to include additional fields needed by display formatters that might not be present in $stateParams,
-   * but are resolved in a controller when the view loads
-   * See instanceDetails.controller.js for an example
-   * @param type
-   * @param extraData
-   */
+  /** Adds fields resolved after navigation that are needed by recent-history display formatters. */
   public static addExtraDataToLatest(type: string, extraData: any): void {
     const items: IRecentHistoryEntry[] = this.getItems(type);
     if (items.length) {
@@ -132,17 +124,11 @@ export class RecentHistoryService {
   }
 }
 
-export const RECENT_HISTORY_SERVICE = 'spinnaker.core.history.recentHistory.service';
-module(RECENT_HISTORY_SERVICE, []).run([
-  '$rootScope',
-  ($rootScope: ng.IRootScopeService) => {
-    $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
-      const history = toState.data?.history;
-      if (history) {
-        const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
-        const state = history.state || toState.name;
-        RecentHistoryService.addItem(history.type, state, params, history.keyParams);
-      }
-    });
-  },
-]);
+export function recordRecentHistory(toState: StateDeclaration, toParams: any): void {
+  const history = toState.data?.history;
+  if (history) {
+    const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
+    const state = history.state || toState.name;
+    RecentHistoryService.addItem(history.type, state, params, history.keyParams);
+  }
+}

@@ -1,6 +1,5 @@
-import { $q } from 'ngimport';
-
 import { REST } from '@spinnaker/core';
+
 export interface ITencentcloudSnapshot {
   diskSize: string;
   diskType: string;
@@ -31,9 +30,9 @@ export interface ITencentcloudImage {
 }
 
 export class TencentcloudImageReader {
-  public findImages(params: { q: string; region?: string }): PromiseLike<ITencentcloudImage[]> {
+  public findImages(params: { q: string; region?: string }): Promise<ITencentcloudImage[]> {
     if (!params.q || params.q.length < 3) {
-      return $q.when([{ message: 'Please enter at least 3 characters...', disabled: true }]) as any;
+      return Promise.resolve([{ message: 'Please enter at least 3 characters...', disabled: true }] as any);
     }
 
     return REST('/images/find')
@@ -42,7 +41,7 @@ export class TencentcloudImageReader {
       .catch(() => [] as ITencentcloudImage[]);
   }
 
-  public getImage(name: string, region: string, credentials: string): PromiseLike<ITencentcloudImage> {
+  public getImage(name: string, region: string, credentials: string): Promise<ITencentcloudImage> {
     return REST('/images')
       .path(credentials, region, name)
       .query({ provider: 'tencentcloud' })

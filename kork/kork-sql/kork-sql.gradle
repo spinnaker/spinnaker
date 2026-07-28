@@ -13,7 +13,7 @@ dependencies {
   api "org.liquibase:liquibase-core"
   api "com.zaxxer:HikariCP"
 
-  implementation 'com.github.blagerweij:liquibase-sessionlock:1.5.0'
+  implementation 'com.github.blagerweij:liquibase-sessionlock:1.6.9'
   implementation "jakarta.validation:jakarta.validation-api"
   implementation "org.hibernate.validator:hibernate-validator"
 
@@ -23,6 +23,7 @@ dependencies {
   testImplementation "org.springframework.boot:spring-boot-starter-test"
 
   testRuntimeOnly project(":kork-web")
+  testRuntimeOnly "com.h2database:h2"
   testRuntimeOnly "com.mysql:mysql-connector-j"
 }
 

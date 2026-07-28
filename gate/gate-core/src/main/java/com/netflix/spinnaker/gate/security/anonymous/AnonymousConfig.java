@@ -59,14 +59,16 @@ public class AnonymousConfig {
   @Getter private final List<String> anonymousAllowedAccounts = new CopyOnWriteArrayList<>();
 
   @Bean
-  public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+  public SecurityFilterChain anonymousSecurityFilterChain(HttpSecurity http) throws Exception {
     updateAnonymousAccounts();
     // Not using the ImmutableUser version in order to update allowedAccounts.
     User principal = new User();
     principal.setEmail(defaultEmail);
     principal.setAllowedAccounts(anonymousAllowedAccounts);
 
-    return http.anonymous().key(key).principal(principal).and().csrf().disable().build();
+    return http.anonymous(anonymous -> anonymous.key(key).principal(principal))
+        .csrf(csrf -> csrf.disable())
+        .build();
   }
 
   @Scheduled(fixedDelay = 60000L)

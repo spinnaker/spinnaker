@@ -15,7 +15,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.view
 
-import com.amazonaws.services.servicediscovery.model.ServiceSummary
+import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -53,11 +53,11 @@ class EcsServiceDiscoveryProviderSpec extends Specification {
 
     HashSet keys = [key]
 
-    ServiceSummary serviceEntry = new ServiceSummary(
-      name: serviceName,
-      arn: serviceArn,
-      id: serviceId
-    )
+    ServiceSummary serviceEntry = ServiceSummary.builder()
+      .name(serviceName)
+      .arn(serviceArn)
+      .id(serviceId)
+      .build()
 
     def attributes = ServiceDiscoveryCachingAgent.convertServiceToAttributes(ACCOUNT, REGION, serviceEntry)
     def cacheData = new HashSet()
@@ -91,11 +91,11 @@ class EcsServiceDiscoveryProviderSpec extends Specification {
       keys.add(key)
       serviceIds.add(serviceId)
 
-      ServiceSummary serviceEntry = new ServiceSummary(
-        name: serviceName,
-        arn: serviceArn,
-        id: serviceId
-      )
+      ServiceSummary serviceEntry = ServiceSummary.builder()
+        .name(serviceName)
+        .arn(serviceArn)
+        .id(serviceId)
+        .build()
 
       Map<String, Object> attributes = ServiceDiscoveryCachingAgent.convertServiceToAttributes(ACCOUNT, REGION, serviceEntry)
       cacheData.add(new DefaultCacheData(key, attributes, Collections.emptyMap()))

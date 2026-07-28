@@ -45,6 +45,12 @@ class GoogleHttpLoadBalancer extends GoogleLoadBalancer {
   String certificate
 
   /**
+   * Certificate map name. This is populated only if this load balancer is a HTTPS load balancer
+   * using Certificate Manager.
+   */
+  String certificateMap
+
+  /**
    * The name of the UrlMap this load balancer uses to route traffic. In the Google
    * Cloud Console, the L7 load balancer name is the same as this name.
    */
@@ -77,6 +83,7 @@ class GoogleHttpLoadBalancer extends GoogleLoadBalancer {
     GoogleBackendService defaultService
     List<GoogleHostRule> hostRules
     String certificate
+    String certificateMap
     String urlMapName
 
     Set<LoadBalancerServerGroup> serverGroups
@@ -94,6 +101,7 @@ class GoogleHttpLoadBalancer extends GoogleLoadBalancer {
       defaultService = googleHttpLoadBalancer.defaultService
       hostRules = googleHttpLoadBalancer.hostRules
       certificate = googleHttpLoadBalancer.certificate
+      certificateMap = googleHttpLoadBalancer.certificateMap
       urlMapName = googleHttpLoadBalancer.urlMapName
       serverGroups = new HashSet<>()
     }

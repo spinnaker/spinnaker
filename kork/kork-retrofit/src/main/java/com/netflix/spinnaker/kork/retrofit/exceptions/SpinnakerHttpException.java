@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.kork.retrofit.exceptions;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.spinnaker.kork.annotations.NullableByDefault;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,8 @@ import retrofit2.Retrofit;
 @NullableByDefault
 @Slf4j
 public class SpinnakerHttpException extends SpinnakerServerException {
+
+  private static final Type ERROR_BODY_TYPE = new TypeReference<Map<String, Object>>() {}.getType();
 
   private HttpHeaders headers;
 
@@ -161,8 +165,8 @@ public class SpinnakerHttpException extends SpinnakerServerException {
       return null;
     }
 
-    Converter<ResponseBody, Map> converter =
-        retrofit.responseBodyConverter(Map.class, new Annotation[0]);
+    Converter<ResponseBody, Map<String, Object>> converter =
+        retrofit.responseBodyConverter(ERROR_BODY_TYPE, new Annotation[0]);
     try {
       return converter.convert(retrofit2Response.errorBody());
     } catch (Exception e) {

@@ -17,7 +17,7 @@ dependencies {
 }
 
 task scalaTest(dependsOn: ['testClasses'], type: JavaExec) {
-  main = 'org.scalatest.tools.Runner'
+  mainClass.set('org.scalatest.tools.Runner')
   args = ['-R', 'build/classes/scala/test', '-o']
   classpath = sourceSets.test.runtimeClasspath
 }

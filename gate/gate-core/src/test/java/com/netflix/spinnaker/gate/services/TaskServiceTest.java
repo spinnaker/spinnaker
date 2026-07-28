@@ -15,7 +15,9 @@
  */
 package com.netflix.spinnaker.gate.services;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.gate.config.TaskServiceProperties;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
@@ -27,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import retrofit2.mock.Calls;
 
@@ -35,19 +37,20 @@ import retrofit2.mock.Calls;
 @SpringBootTest(classes = {TaskService.class, TaskServiceProperties.class})
 public class TaskServiceTest {
 
-  @MockBean private OrcaServiceSelector selector;
-  @MockBean private ClouddriverServiceSelector clouddriverServiceSelector;
-  @MockBean private OrcaService orcaService;
+  @MockitoBean private OrcaServiceSelector selector;
+  @MockitoBean private ClouddriverServiceSelector clouddriverServiceSelector;
+  @MockitoBean private OrcaService orcaService;
 
   @Autowired TaskService taskService;
 
   @Test
   public void callAsManyTimesAsSet() {
-    Map operation = new LinkedHashMap();
+    Map<String, Object> operation = new LinkedHashMap<>();
 
-    Map task = Map.of("ref", "apps/bob/someRandomId");
+    Map<String, String> operationResult = Map.of("ref", "apps/bob/someRandomId");
+    Map<String, Object> task = Map.of("id", "someRandomId", "status", "RUNNING");
     when(selector.select()).thenReturn(orcaService);
-    when(orcaService.doOperation(operation)).thenReturn(Calls.response(task));
+    when(orcaService.doOperation(operation)).thenReturn(Calls.response(operationResult));
     when(orcaService.getTask("someRandomId")).thenAnswer(invocation -> Calls.response(task));
     taskService.createAndWaitForCompletion(operation, 32, 1);
     verify(orcaService, times(32)).getTask("someRandomId");

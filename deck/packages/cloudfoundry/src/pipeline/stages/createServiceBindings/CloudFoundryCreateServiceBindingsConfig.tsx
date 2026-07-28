@@ -8,7 +8,7 @@ import { FormikStageConfig, FormValidator } from '@spinnaker/core';
 import { CloudFoundryCreateServiceBindingsStageConfigForm } from './CloudFoundryCreateServiceBindingsStageConfigForm';
 
 export interface ServiceBindingRequests {
-  serviceInstanceName: String;
+  serviceInstanceName: string;
 }
 
 export function CloudFoundryCreateServiceBindingsConfig({

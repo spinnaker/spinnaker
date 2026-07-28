@@ -3,6 +3,7 @@ package com.netflix.spinnaker.keel.serialization
 import com.fasterxml.jackson.databind.BeanProperty
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.InjectableValues
+import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -52,19 +53,20 @@ class SubmittedEnvironmentDeserializer : StdNodeBasedDeserializer<SubmittedEnvir
 }
 
 private class InjectableLocations(
-  value: SubnetAwareLocations?
-) : InjectableValues.Std(mapOf("locations" to value)) {
+  private val subnetAwareValue: SubnetAwareLocations?
+) : InjectableValues() {
   override fun findInjectableValue(
-    valueId: Any,
+    valueId: Any?,
     context: DeserializationContext,
     forProperty: BeanProperty,
     beanInstance: Any?
   ): Any? {
-    val value = super.findInjectableValue(valueId, context, forProperty, beanInstance) as? SubnetAwareLocations
+    if (valueId != "locations") return null
+
     return when {
-      value == null -> null
-      forProperty.type.isTypeOrSubTypeOf(SimpleLocations::class.java) -> value.toSimpleLocations()
-      else -> value
+      subnetAwareValue == null -> null
+      forProperty.type.isTypeOrSubTypeOf(SimpleLocations::class.java) -> subnetAwareValue.toSimpleLocations()
+      else -> subnetAwareValue
     }
   }
 }

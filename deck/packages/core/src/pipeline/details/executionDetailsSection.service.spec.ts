@@ -1,31 +1,49 @@
-import type { StateParams, StateService } from '@uirouter/angularjs';
-import { mock, noop } from 'angular';
+import type { RawParams, StateService } from '@uirouter/core';
+import { noop } from 'lodash';
 
-import type { ExecutionDetailsSectionService } from './executionDetailsSection.service';
-import { EXECUTION_DETAILS_SECTION_SERVICE } from './executionDetailsSection.service';
+import { ExecutionDetailsSectionService } from './executionDetailsSection.service';
+import type { CancellableTimeout, CancellableTimeoutPromise } from '../../utils/cancellableTimeout';
+
+type FlushableTimeout = CancellableTimeout & { flush: () => void };
+
+function createFlushableTimeout(): FlushableTimeout {
+  const queued: Array<{ promise: CancellableTimeoutPromise<unknown>; run: () => void }> = [];
+  const timeout = (<T>(callback: () => T | PromiseLike<T>) => {
+    let run: () => void;
+    const promise = new Promise<T>((resolve, reject) => {
+      run = () => {
+        try {
+          Promise.resolve(callback()).then(resolve, reject);
+        } catch (error) {
+          reject(error);
+        }
+      };
+    }) as CancellableTimeoutPromise<T>;
+    queued.push({ promise, run });
+    return promise;
+  }) as FlushableTimeout;
+  timeout.cancel = (promise) => {
+    const index = queued.findIndex((handle) => handle.promise === promise);
+    if (index === -1) {
+      return false;
+    }
+    queued.splice(index, 1);
+    return true;
+  };
+  timeout.flush = () => queued.splice(0).forEach(({ run }) => run());
+  timeout.dispose = () => queued.splice(0);
+  return timeout;
+}
 
 describe('executionDetailsSectionService', function () {
-  let $state: StateService,
-    $stateParams: StateParams,
-    $timeout: ng.ITimeoutService,
-    service: ExecutionDetailsSectionService;
+  let $state: StateService, $stateParams: RawParams, timeout: FlushableTimeout, service: ExecutionDetailsSectionService;
 
-  beforeEach(mock.module(EXECUTION_DETAILS_SECTION_SERVICE));
-  beforeEach(
-    mock.inject(
-      (
-        executionDetailsSectionService: ExecutionDetailsSectionService,
-        _$state_: StateService,
-        _$stateParams_: StateParams,
-        _$timeout_: ng.ITimeoutService,
-      ) => {
-        service = executionDetailsSectionService;
-        $state = _$state_;
-        $stateParams = _$stateParams_;
-        $timeout = _$timeout_;
-      },
-    ),
-  );
+  beforeEach(() => {
+    $state = { includes: () => false, go: () => Promise.resolve() } as any;
+    $stateParams = {};
+    timeout = createFlushableTimeout();
+    service = new ExecutionDetailsSectionService($stateParams, $state, timeout);
+  });
 
   describe('synchronizeSection', () => {
     it('does nothing when state is not in execution details', function () {
@@ -57,7 +75,7 @@ describe('executionDetailsSectionService', function () {
       $stateParams.details = 'c';
 
       service.synchronizeSection(['a', 'b']);
-      $timeout.flush();
+      timeout.flush();
       expect($state.includes).toHaveBeenCalledWith('**.execution');
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
@@ -69,7 +87,7 @@ describe('executionDetailsSectionService', function () {
       $stateParams.details = undefined;
 
       service.synchronizeSection(['a', 'b']);
-      $timeout.flush();
+      timeout.flush();
       expect($state.includes).toHaveBeenCalledWith('**.execution');
       expect($state.go).toHaveBeenCalledWith('.', { details: 'a' }, { location: 'replace' });
     });
@@ -83,7 +101,7 @@ describe('executionDetailsSectionService', function () {
 
       service.synchronizeSection(['a', 'b'], init);
       expect(completed).toBe(false);
-      $timeout.flush();
+      timeout.flush();
       expect(completed).toBe(true);
     });
 
@@ -96,7 +114,7 @@ describe('executionDetailsSectionService', function () {
 
       service.synchronizeSection(['a', 'b'], init);
       service.synchronizeSection(['a', 'b'], noop);
-      $timeout.flush();
+      timeout.flush();
       expect(completed).toBe(false);
     });
   });

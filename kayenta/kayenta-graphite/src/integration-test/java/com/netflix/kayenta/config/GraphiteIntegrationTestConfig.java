@@ -18,6 +18,8 @@ package com.netflix.kayenta.config;
 
 import static com.netflix.kayenta.graphite.E2EIntegrationTest.CANARY_WINDOW_IN_MINUTES;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -27,8 +29,6 @@ import java.time.Instant;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

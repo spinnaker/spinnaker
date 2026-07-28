@@ -6,9 +6,9 @@ export enum ManifestRenderers {
   KUSTOMIZE4 = 'KUSTOMIZE4',
 }
 
-export const HELM_RENDERERS: Readonly<ManifestRenderers[]> = [ManifestRenderers.HELM2, ManifestRenderers.HELM3];
+export const HELM_RENDERERS: readonly ManifestRenderers[] = [ManifestRenderers.HELM2, ManifestRenderers.HELM3];
 export const HELMFILE_RENDERER: Readonly<ManifestRenderers> = ManifestRenderers.HELMFILE;
-export const KUSTOMIZE_RENDERERS: Readonly<ManifestRenderers[]> = [
+export const KUSTOMIZE_RENDERERS: readonly ManifestRenderers[] = [
   ManifestRenderers.KUSTOMIZE,
   ManifestRenderers.KUSTOMIZE4,
 ];

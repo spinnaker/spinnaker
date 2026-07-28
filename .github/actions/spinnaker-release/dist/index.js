@@ -12249,7 +12249,9 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Agent = void 0;
+const net = __importStar(__nccwpck_require__(41808));
 const http = __importStar(__nccwpck_require__(13685));
+const https_1 = __nccwpck_require__(95687);
 __exportStar(__nccwpck_require__(8348), exports);
 const INTERNAL = Symbol('AgentBaseInternalState');
 class Agent extends http.Agent {
@@ -12286,22 +12288,86 @@ class Agent extends http.Agent {
             .some((l) => l.indexOf('(https.js:') !== -1 ||
             l.indexOf('node:https:') !== -1);
     }
+    // In order to support async signatures in `connect()` and Node's native
+    // connection pooling in `http.Agent`, the array of sockets for each origin
+    // has to be updated synchronously. This is so the length of the array is
+    // accurate when `addRequest()` is next called. We achieve this by creating a
+    // fake socket and adding it to `sockets[origin]` and incrementing
+    // `totalSocketCount`.
+    incrementSockets(name) {
+        // If `maxSockets` and `maxTotalSockets` are both Infinity then there is no
+        // need to create a fake socket because Node.js native connection pooling
+        // will never be invoked.
+        if (this.maxSockets === Infinity && this.maxTotalSockets === Infinity) {
+            return null;
+        }
+        // All instances of `sockets` are expected TypeScript errors. The
+        // alternative is to add it as a private property of this class but that
+        // will break TypeScript subclassing.
+        if (!this.sockets[name]) {
+            // @ts-expect-error `sockets` is readonly in `@types/node`
+            this.sockets[name] = [];
+        }
+        const fakeSocket = new net.Socket({ writable: false });
+        this.sockets[name].push(fakeSocket);
+        // @ts-expect-error `totalSocketCount` isn't defined in `@types/node`
+        this.totalSocketCount++;
+        return fakeSocket;
+    }
+    decrementSockets(name, socket) {
+        if (!this.sockets[name] || socket === null) {
+            return;
+        }
+        const sockets = this.sockets[name];
+        const index = sockets.indexOf(socket);
+        if (index !== -1) {
+            sockets.splice(index, 1);
+            // @ts-expect-error  `totalSocketCount` isn't defined in `@types/node`
+            this.totalSocketCount--;
+            if (sockets.length === 0) {
+                // @ts-expect-error `sockets` is readonly in `@types/node`
+                delete this.sockets[name];
+            }
+        }
+    }
+    // In order to properly update the socket pool, we need to call `getName()` on
+    // the core `https.Agent` if it is a secureEndpoint.
+    getName(options) {
+        const secureEndpoint = this.isSecureEndpoint(options);
+        if (secureEndpoint) {
+            // @ts-expect-error `getName()` isn't defined in `@types/node`
+            return https_1.Agent.prototype.getName.call(this, options);
+        }
+        // @ts-expect-error `getName()` isn't defined in `@types/node`
+        return super.getName(options);
+    }
     createSocket(req, options, cb) {
         const connectOpts = {
             ...options,
             secureEndpoint: this.isSecureEndpoint(options),
         };
+        const name = this.getName(connectOpts);
+        const fakeSocket = this.incrementSockets(name);
         Promise.resolve()
             .then(() => this.connect(req, connectOpts))
             .then((socket) => {
+            this.decrementSockets(name, fakeSocket);
             if (socket instanceof http.Agent) {
-                // @ts-expect-error `addRequest()` isn't defined in `@types/node`
-                return socket.addRequest(req, connectOpts);
+                try {
+                    // @ts-expect-error `addRequest()` isn't defined in `@types/node`
+                    return socket.addRequest(req, connectOpts);
+                }
+                catch (err) {
+                    return cb(err);
+                }
             }
             this[INTERNAL].currentSocket = socket;
             // @ts-expect-error `createSocket()` isn't defined in `@types/node`
             super.createSocket(req, options, cb);
-        }, cb);
+        }, (err) => {
+            this.decrementSockets(name, fakeSocket);
+            cb(err);
+        });
     }
     createConnection() {
         const socket = this[INTERNAL].currentSocket;
@@ -12780,10 +12846,10 @@ function removeHook(state, name, method) {
   'use strict';
 
 /*
- *      bignumber.js v9.1.2
+ *      bignumber.js v9.3.1
  *      A JavaScript library for arbitrary-precision arithmetic.
  *      https://github.com/MikeMcl/bignumber.js
- *      Copyright (c) 2022 Michael Mclaughlin <M8ch88l@gmail.com>
+ *      Copyright (c) 2025 Michael Mclaughlin <M8ch88l@gmail.com>
  *      MIT Licensed.
  *
  *      BigNumber.prototype methods     |  BigNumber methods
@@ -13684,7 +13750,7 @@ function removeHook(state, name, method) {
 
         // xc now represents str converted to baseOut.
 
-        // THe index of the rounding digit.
+        // The index of the rounding digit.
         d = e + dp + 1;
 
         // The rounding digit: the digit to the right of the digit that may be rounded up.
@@ -14048,7 +14114,7 @@ function removeHook(state, name, method) {
 
         // Fixed-point notation.
         } else {
-          i -= ne;
+          i -= ne + (id === 2 && e > ne);
           str = toFixedPoint(str, e, '0');
 
           // Append zeros?
@@ -15751,72 +15817,6 @@ bufferEq.restore = function() {
 
 /***/ }),
 
-/***/ 96763:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-/*!
- * compressible
- * Copyright(c) 2013 Jonathan Ong
- * Copyright(c) 2014 Jeremiah Senkpiel
- * Copyright(c) 2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-
-
-
-/**
- * Module dependencies.
- * @private
- */
-
-var db = __nccwpck_require__(47426)
-
-/**
- * Module variables.
- * @private
- */
-
-var COMPRESSIBLE_TYPE_REGEXP = /^text\/|\+(?:json|text|xml)$/i
-var EXTRACT_TYPE_REGEXP = /^\s*([^;\s]*)(?:;|\s|$)/
-
-/**
- * Module exports.
- * @public
- */
-
-module.exports = compressible
-
-/**
- * Checks if a type is compressible.
- *
- * @param {string} type
- * @return {Boolean} compressible
- * @public
- */
-
-function compressible (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
-
-  // strip parameters
-  var match = EXTRACT_TYPE_REGEXP.exec(type)
-  var mime = match && match[1].toLowerCase()
-  var data = db[mime]
-
-  // return database information
-  if (data && data.compressible !== undefined) {
-    return data.compressible
-  }
-
-  // fallback to regexp or unknown
-  return COMPRESSIBLE_TYPE_REGEXP.test(mime) || undefined
-}
-
-
-/***/ }),
-
 /***/ 7401:
 /***/ (function(module) {
 
@@ -17174,6 +17174,8 @@ var once = __nccwpck_require__(1223);
 
 var noop = function() {};
 
+var qnt = global.Bare ? queueMicrotask : process.nextTick.bind(process);
+
 var isRequest = function(stream) {
 	return stream.setHeader && typeof stream.abort === 'function';
 };
@@ -17217,7 +17219,7 @@ var eos = function(stream, opts, callback) {
 	};
 
 	var onclose = function() {
-		process.nextTick(onclosenexttick);
+		qnt(onclosenexttick);
 	};
 
 	var onclosenexttick = function() {
@@ -17264,100 +17266,6 @@ var eos = function(stream, opts, callback) {
 };
 
 module.exports = eos;
-
-
-/***/ }),
-
-/***/ 35771:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var punycode = __nccwpck_require__(85477);
-var entities = __nccwpck_require__(12077);
-
-module.exports = decode;
-
-function decode (str) {
-    if (typeof str !== 'string') {
-        throw new TypeError('Expected a String');
-    }
-
-    return str.replace(/&(#?[^;\W]+;?)/g, function (_, match) {
-        var m;
-        if (m = /^#(\d+);?$/.exec(match)) {
-            return punycode.ucs2.encode([ parseInt(m[1], 10) ]);
-        } else if (m = /^#[Xx]([A-Fa-f0-9]+);?/.exec(match)) {
-            return punycode.ucs2.encode([ parseInt(m[1], 16) ]);
-        } else {
-            // named entity
-            var hasSemi = /;$/.test(match);
-            var withoutSemi = hasSemi ? match.replace(/;$/, '') : match;
-            var target = entities[withoutSemi] || (hasSemi && entities[match]);
-
-            if (typeof target === 'number') {
-                return punycode.ucs2.encode([ target ]);
-            } else if (typeof target === 'string') {
-                return target;
-            } else {
-                return '&' + match;
-            }
-        }
-    });
-}
-
-
-/***/ }),
-
-/***/ 86521:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-var punycode = __nccwpck_require__(85477);
-var revEntities = __nccwpck_require__(3123);
-
-module.exports = encode;
-
-function encode (str, opts) {
-    if (typeof str !== 'string') {
-        throw new TypeError('Expected a String');
-    }
-    if (!opts) opts = {};
-
-    var numeric = true;
-    if (opts.named) numeric = false;
-    if (opts.numeric !== undefined) numeric = opts.numeric;
-
-    var special = opts.special || {
-        '"': true, "'": true,
-        '<': true, '>': true,
-        '&': true
-    };
-
-    var codePoints = punycode.ucs2.decode(str);
-    var chars = [];
-    for (var i = 0; i < codePoints.length; i++) {
-        var cc = codePoints[i];
-        var c = punycode.ucs2.encode([ cc ]);
-        var e = revEntities[cc];
-        if (e && (cc >= 127 || special[c]) && !numeric) {
-            chars.push('&' + (/;$/.test(e) ? e : e + ';'));
-        }
-        else if (cc < 32 || cc >= 127 || special[c]) {
-            chars.push('&#' + cc + ';');
-        }
-        else {
-            chars.push(c);
-        }
-    }
-    return chars.join('');
-}
-
-
-/***/ }),
-
-/***/ 1151:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-exports.encode = __nccwpck_require__(86521);
-exports.decode = __nccwpck_require__(35771);
 
 
 /***/ }),
@@ -18366,1987 +18274,8 @@ module.exports = function extend() {
 
 /***/ }),
 
-/***/ 12603:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const validator = __nccwpck_require__(61739);
-const XMLParser = __nccwpck_require__(42380);
-const XMLBuilder = __nccwpck_require__(80660);
-
-module.exports = {
-  XMLParser: XMLParser,
-  XMLValidator: validator,
-  XMLBuilder: XMLBuilder
-}
-
-/***/ }),
-
-/***/ 38280:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-const nameStartChar = ':A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD';
-const nameChar = nameStartChar + '\\-.\\d\\u00B7\\u0300-\\u036F\\u203F-\\u2040';
-const nameRegexp = '[' + nameStartChar + '][' + nameChar + ']*'
-const regexName = new RegExp('^' + nameRegexp + '$');
-
-const getAllMatches = function(string, regex) {
-  const matches = [];
-  let match = regex.exec(string);
-  while (match) {
-    const allmatches = [];
-    allmatches.startIndex = regex.lastIndex - match[0].length;
-    const len = match.length;
-    for (let index = 0; index < len; index++) {
-      allmatches.push(match[index]);
-    }
-    matches.push(allmatches);
-    match = regex.exec(string);
-  }
-  return matches;
-};
-
-const isName = function(string) {
-  const match = regexName.exec(string);
-  return !(match === null || typeof match === 'undefined');
-};
-
-exports.isExist = function(v) {
-  return typeof v !== 'undefined';
-};
-
-exports.isEmptyObject = function(obj) {
-  return Object.keys(obj).length === 0;
-};
-
-/**
- * Copy all the properties of a into b.
- * @param {*} target
- * @param {*} a
- */
-exports.merge = function(target, a, arrayMode) {
-  if (a) {
-    const keys = Object.keys(a); // will return an array of own properties
-    const len = keys.length; //don't make it inline
-    for (let i = 0; i < len; i++) {
-      if (arrayMode === 'strict') {
-        target[keys[i]] = [ a[keys[i]] ];
-      } else {
-        target[keys[i]] = a[keys[i]];
-      }
-    }
-  }
-};
-/* exports.merge =function (b,a){
-  return Object.assign(b,a);
-} */
-
-exports.getValue = function(v) {
-  if (exports.isExist(v)) {
-    return v;
-  } else {
-    return '';
-  }
-};
-
-// const fakeCall = function(a) {return a;};
-// const fakeCallNoReturn = function() {};
-
-exports.isName = isName;
-exports.getAllMatches = getAllMatches;
-exports.nameRegexp = nameRegexp;
-
-
-/***/ }),
-
-/***/ 61739:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const util = __nccwpck_require__(38280);
-
-const defaultOptions = {
-  allowBooleanAttributes: false, //A tag can have attributes without any value
-  unpairedTags: []
-};
-
-//const tagsPattern = new RegExp("<\\/?([\\w:\\-_\.]+)\\s*\/?>","g");
-exports.validate = function (xmlData, options) {
-  options = Object.assign({}, defaultOptions, options);
-
-  //xmlData = xmlData.replace(/(\r\n|\n|\r)/gm,"");//make it single line
-  //xmlData = xmlData.replace(/(^\s*<\?xml.*?\?>)/g,"");//Remove XML starting tag
-  //xmlData = xmlData.replace(/(<!DOCTYPE[\s\w\"\.\/\-\:]+(\[.*\])*\s*>)/g,"");//Remove DOCTYPE
-  const tags = [];
-  let tagFound = false;
-
-  //indicates that the root tag has been closed (aka. depth 0 has been reached)
-  let reachedRoot = false;
-
-  if (xmlData[0] === '\ufeff') {
-    // check for byte order mark (BOM)
-    xmlData = xmlData.substr(1);
-  }
-  
-  for (let i = 0; i < xmlData.length; i++) {
-
-    if (xmlData[i] === '<' && xmlData[i+1] === '?') {
-      i+=2;
-      i = readPI(xmlData,i);
-      if (i.err) return i;
-    }else if (xmlData[i] === '<') {
-      //starting of tag
-      //read until you reach to '>' avoiding any '>' in attribute value
-      let tagStartPos = i;
-      i++;
-      
-      if (xmlData[i] === '!') {
-        i = readCommentAndCDATA(xmlData, i);
-        continue;
-      } else {
-        let closingTag = false;
-        if (xmlData[i] === '/') {
-          //closing tag
-          closingTag = true;
-          i++;
-        }
-        //read tagname
-        let tagName = '';
-        for (; i < xmlData.length &&
-          xmlData[i] !== '>' &&
-          xmlData[i] !== ' ' &&
-          xmlData[i] !== '\t' &&
-          xmlData[i] !== '\n' &&
-          xmlData[i] !== '\r'; i++
-        ) {
-          tagName += xmlData[i];
-        }
-        tagName = tagName.trim();
-        //console.log(tagName);
-
-        if (tagName[tagName.length - 1] === '/') {
-          //self closing tag without attributes
-          tagName = tagName.substring(0, tagName.length - 1);
-          //continue;
-          i--;
-        }
-        if (!validateTagName(tagName)) {
-          let msg;
-          if (tagName.trim().length === 0) {
-            msg = "Invalid space after '<'.";
-          } else {
-            msg = "Tag '"+tagName+"' is an invalid name.";
-          }
-          return getErrorObject('InvalidTag', msg, getLineNumberForPosition(xmlData, i));
-        }
-
-        const result = readAttributeStr(xmlData, i);
-        if (result === false) {
-          return getErrorObject('InvalidAttr', "Attributes for '"+tagName+"' have open quote.", getLineNumberForPosition(xmlData, i));
-        }
-        let attrStr = result.value;
-        i = result.index;
-
-        if (attrStr[attrStr.length - 1] === '/') {
-          //self closing tag
-          const attrStrStart = i - attrStr.length;
-          attrStr = attrStr.substring(0, attrStr.length - 1);
-          const isValid = validateAttributeString(attrStr, options);
-          if (isValid === true) {
-            tagFound = true;
-            //continue; //text may presents after self closing tag
-          } else {
-            //the result from the nested function returns the position of the error within the attribute
-            //in order to get the 'true' error line, we need to calculate the position where the attribute begins (i - attrStr.length) and then add the position within the attribute
-            //this gives us the absolute index in the entire xml, which we can use to find the line at last
-            return getErrorObject(isValid.err.code, isValid.err.msg, getLineNumberForPosition(xmlData, attrStrStart + isValid.err.line));
-          }
-        } else if (closingTag) {
-          if (!result.tagClosed) {
-            return getErrorObject('InvalidTag', "Closing tag '"+tagName+"' doesn't have proper closing.", getLineNumberForPosition(xmlData, i));
-          } else if (attrStr.trim().length > 0) {
-            return getErrorObject('InvalidTag', "Closing tag '"+tagName+"' can't have attributes or invalid starting.", getLineNumberForPosition(xmlData, tagStartPos));
-          } else {
-            const otg = tags.pop();
-            if (tagName !== otg.tagName) {
-              let openPos = getLineNumberForPosition(xmlData, otg.tagStartPos);
-              return getErrorObject('InvalidTag',
-                "Expected closing tag '"+otg.tagName+"' (opened in line "+openPos.line+", col "+openPos.col+") instead of closing tag '"+tagName+"'.",
-                getLineNumberForPosition(xmlData, tagStartPos));
-            }
-
-            //when there are no more tags, we reached the root level.
-            if (tags.length == 0) {
-              reachedRoot = true;
-            }
-          }
-        } else {
-          const isValid = validateAttributeString(attrStr, options);
-          if (isValid !== true) {
-            //the result from the nested function returns the position of the error within the attribute
-            //in order to get the 'true' error line, we need to calculate the position where the attribute begins (i - attrStr.length) and then add the position within the attribute
-            //this gives us the absolute index in the entire xml, which we can use to find the line at last
-            return getErrorObject(isValid.err.code, isValid.err.msg, getLineNumberForPosition(xmlData, i - attrStr.length + isValid.err.line));
-          }
-
-          //if the root level has been reached before ...
-          if (reachedRoot === true) {
-            return getErrorObject('InvalidXml', 'Multiple possible root nodes found.', getLineNumberForPosition(xmlData, i));
-          } else if(options.unpairedTags.indexOf(tagName) !== -1){
-            //don't push into stack
-          } else {
-            tags.push({tagName, tagStartPos});
-          }
-          tagFound = true;
-        }
-
-        //skip tag text value
-        //It may include comments and CDATA value
-        for (i++; i < xmlData.length; i++) {
-          if (xmlData[i] === '<') {
-            if (xmlData[i + 1] === '!') {
-              //comment or CADATA
-              i++;
-              i = readCommentAndCDATA(xmlData, i);
-              continue;
-            } else if (xmlData[i+1] === '?') {
-              i = readPI(xmlData, ++i);
-              if (i.err) return i;
-            } else{
-              break;
-            }
-          } else if (xmlData[i] === '&') {
-            const afterAmp = validateAmpersand(xmlData, i);
-            if (afterAmp == -1)
-              return getErrorObject('InvalidChar', "char '&' is not expected.", getLineNumberForPosition(xmlData, i));
-            i = afterAmp;
-          }else{
-            if (reachedRoot === true && !isWhiteSpace(xmlData[i])) {
-              return getErrorObject('InvalidXml', "Extra text at the end", getLineNumberForPosition(xmlData, i));
-            }
-          }
-        } //end of reading tag text value
-        if (xmlData[i] === '<') {
-          i--;
-        }
-      }
-    } else {
-      if ( isWhiteSpace(xmlData[i])) {
-        continue;
-      }
-      return getErrorObject('InvalidChar', "char '"+xmlData[i]+"' is not expected.", getLineNumberForPosition(xmlData, i));
-    }
-  }
-
-  if (!tagFound) {
-    return getErrorObject('InvalidXml', 'Start tag expected.', 1);
-  }else if (tags.length == 1) {
-      return getErrorObject('InvalidTag', "Unclosed tag '"+tags[0].tagName+"'.", getLineNumberForPosition(xmlData, tags[0].tagStartPos));
-  }else if (tags.length > 0) {
-      return getErrorObject('InvalidXml', "Invalid '"+
-          JSON.stringify(tags.map(t => t.tagName), null, 4).replace(/\r?\n/g, '')+
-          "' found.", {line: 1, col: 1});
-  }
-
-  return true;
-};
-
-function isWhiteSpace(char){
-  return char === ' ' || char === '\t' || char === '\n'  || char === '\r';
-}
-/**
- * Read Processing insstructions and skip
- * @param {*} xmlData
- * @param {*} i
- */
-function readPI(xmlData, i) {
-  const start = i;
-  for (; i < xmlData.length; i++) {
-    if (xmlData[i] == '?' || xmlData[i] == ' ') {
-      //tagname
-      const tagname = xmlData.substr(start, i - start);
-      if (i > 5 && tagname === 'xml') {
-        return getErrorObject('InvalidXml', 'XML declaration allowed only at the start of the document.', getLineNumberForPosition(xmlData, i));
-      } else if (xmlData[i] == '?' && xmlData[i + 1] == '>') {
-        //check if valid attribut string
-        i++;
-        break;
-      } else {
-        continue;
-      }
-    }
-  }
-  return i;
-}
-
-function readCommentAndCDATA(xmlData, i) {
-  if (xmlData.length > i + 5 && xmlData[i + 1] === '-' && xmlData[i + 2] === '-') {
-    //comment
-    for (i += 3; i < xmlData.length; i++) {
-      if (xmlData[i] === '-' && xmlData[i + 1] === '-' && xmlData[i + 2] === '>') {
-        i += 2;
-        break;
-      }
-    }
-  } else if (
-    xmlData.length > i + 8 &&
-    xmlData[i + 1] === 'D' &&
-    xmlData[i + 2] === 'O' &&
-    xmlData[i + 3] === 'C' &&
-    xmlData[i + 4] === 'T' &&
-    xmlData[i + 5] === 'Y' &&
-    xmlData[i + 6] === 'P' &&
-    xmlData[i + 7] === 'E'
-  ) {
-    let angleBracketsCount = 1;
-    for (i += 8; i < xmlData.length; i++) {
-      if (xmlData[i] === '<') {
-        angleBracketsCount++;
-      } else if (xmlData[i] === '>') {
-        angleBracketsCount--;
-        if (angleBracketsCount === 0) {
-          break;
-        }
-      }
-    }
-  } else if (
-    xmlData.length > i + 9 &&
-    xmlData[i + 1] === '[' &&
-    xmlData[i + 2] === 'C' &&
-    xmlData[i + 3] === 'D' &&
-    xmlData[i + 4] === 'A' &&
-    xmlData[i + 5] === 'T' &&
-    xmlData[i + 6] === 'A' &&
-    xmlData[i + 7] === '['
-  ) {
-    for (i += 8; i < xmlData.length; i++) {
-      if (xmlData[i] === ']' && xmlData[i + 1] === ']' && xmlData[i + 2] === '>') {
-        i += 2;
-        break;
-      }
-    }
-  }
-
-  return i;
-}
-
-const doubleQuote = '"';
-const singleQuote = "'";
-
-/**
- * Keep reading xmlData until '<' is found outside the attribute value.
- * @param {string} xmlData
- * @param {number} i
- */
-function readAttributeStr(xmlData, i) {
-  let attrStr = '';
-  let startChar = '';
-  let tagClosed = false;
-  for (; i < xmlData.length; i++) {
-    if (xmlData[i] === doubleQuote || xmlData[i] === singleQuote) {
-      if (startChar === '') {
-        startChar = xmlData[i];
-      } else if (startChar !== xmlData[i]) {
-        //if vaue is enclosed with double quote then single quotes are allowed inside the value and vice versa
-      } else {
-        startChar = '';
-      }
-    } else if (xmlData[i] === '>') {
-      if (startChar === '') {
-        tagClosed = true;
-        break;
-      }
-    }
-    attrStr += xmlData[i];
-  }
-  if (startChar !== '') {
-    return false;
-  }
-
-  return {
-    value: attrStr,
-    index: i,
-    tagClosed: tagClosed
-  };
-}
-
-/**
- * Select all the attributes whether valid or invalid.
- */
-const validAttrStrRegxp = new RegExp('(\\s*)([^\\s=]+)(\\s*=)?(\\s*([\'"])(([\\s\\S])*?)\\5)?', 'g');
-
-//attr, ="sd", a="amit's", a="sd"b="saf", ab  cd=""
-
-function validateAttributeString(attrStr, options) {
-  //console.log("start:"+attrStr+":end");
-
-  //if(attrStr.trim().length === 0) return true; //empty string
-
-  const matches = util.getAllMatches(attrStr, validAttrStrRegxp);
-  const attrNames = {};
-
-  for (let i = 0; i < matches.length; i++) {
-    if (matches[i][1].length === 0) {
-      //nospace before attribute name: a="sd"b="saf"
-      return getErrorObject('InvalidAttr', "Attribute '"+matches[i][2]+"' has no space in starting.", getPositionFromMatch(matches[i]))
-    } else if (matches[i][3] !== undefined && matches[i][4] === undefined) {
-      return getErrorObject('InvalidAttr', "Attribute '"+matches[i][2]+"' is without value.", getPositionFromMatch(matches[i]));
-    } else if (matches[i][3] === undefined && !options.allowBooleanAttributes) {
-      //independent attribute: ab
-      return getErrorObject('InvalidAttr', "boolean attribute '"+matches[i][2]+"' is not allowed.", getPositionFromMatch(matches[i]));
-    }
-    /* else if(matches[i][6] === undefined){//attribute without value: ab=
-                    return { err: { code:"InvalidAttr",msg:"attribute " + matches[i][2] + " has no value assigned."}};
-                } */
-    const attrName = matches[i][2];
-    if (!validateAttrName(attrName)) {
-      return getErrorObject('InvalidAttr', "Attribute '"+attrName+"' is an invalid name.", getPositionFromMatch(matches[i]));
-    }
-    if (!attrNames.hasOwnProperty(attrName)) {
-      //check for duplicate attribute.
-      attrNames[attrName] = 1;
-    } else {
-      return getErrorObject('InvalidAttr', "Attribute '"+attrName+"' is repeated.", getPositionFromMatch(matches[i]));
-    }
-  }
-
-  return true;
-}
-
-function validateNumberAmpersand(xmlData, i) {
-  let re = /\d/;
-  if (xmlData[i] === 'x') {
-    i++;
-    re = /[\da-fA-F]/;
-  }
-  for (; i < xmlData.length; i++) {
-    if (xmlData[i] === ';')
-      return i;
-    if (!xmlData[i].match(re))
-      break;
-  }
-  return -1;
-}
-
-function validateAmpersand(xmlData, i) {
-  // https://www.w3.org/TR/xml/#dt-charref
-  i++;
-  if (xmlData[i] === ';')
-    return -1;
-  if (xmlData[i] === '#') {
-    i++;
-    return validateNumberAmpersand(xmlData, i);
-  }
-  let count = 0;
-  for (; i < xmlData.length; i++, count++) {
-    if (xmlData[i].match(/\w/) && count < 20)
-      continue;
-    if (xmlData[i] === ';')
-      break;
-    return -1;
-  }
-  return i;
-}
-
-function getErrorObject(code, message, lineNumber) {
-  return {
-    err: {
-      code: code,
-      msg: message,
-      line: lineNumber.line || lineNumber,
-      col: lineNumber.col,
-    },
-  };
-}
-
-function validateAttrName(attrName) {
-  return util.isName(attrName);
-}
-
-// const startsWithXML = /^xml/i;
-
-function validateTagName(tagname) {
-  return util.isName(tagname) /* && !tagname.match(startsWithXML) */;
-}
-
-//this function returns the line number for the character at the given index
-function getLineNumberForPosition(xmlData, index) {
-  const lines = xmlData.substring(0, index).split(/\r?\n/);
-  return {
-    line: lines.length,
-
-    // column number is last line's length + 1, because column numbering starts at 1:
-    col: lines[lines.length - 1].length + 1
-  };
-}
-
-//this function returns the position of the first character of match within attrStr
-function getPositionFromMatch(match) {
-  return match.startIndex + match[1].length;
-}
-
-
-/***/ }),
-
-/***/ 80660:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-//parse Empty Node as self closing node
-const buildFromOrderedJs = __nccwpck_require__(72462);
-
-const defaultOptions = {
-  attributeNamePrefix: '@_',
-  attributesGroupName: false,
-  textNodeName: '#text',
-  ignoreAttributes: true,
-  cdataPropName: false,
-  format: false,
-  indentBy: '  ',
-  suppressEmptyNode: false,
-  suppressUnpairedNode: true,
-  suppressBooleanAttributes: true,
-  tagValueProcessor: function(key, a) {
-    return a;
-  },
-  attributeValueProcessor: function(attrName, a) {
-    return a;
-  },
-  preserveOrder: false,
-  commentPropName: false,
-  unpairedTags: [],
-  entities: [
-    { regex: new RegExp("&", "g"), val: "&amp;" },//it must be on top
-    { regex: new RegExp(">", "g"), val: "&gt;" },
-    { regex: new RegExp("<", "g"), val: "&lt;" },
-    { regex: new RegExp("\'", "g"), val: "&apos;" },
-    { regex: new RegExp("\"", "g"), val: "&quot;" }
-  ],
-  processEntities: true,
-  stopNodes: [],
-  // transformTagName: false,
-  // transformAttributeName: false,
-  oneListGroup: false
-};
-
-function Builder(options) {
-  this.options = Object.assign({}, defaultOptions, options);
-  if (this.options.ignoreAttributes || this.options.attributesGroupName) {
-    this.isAttribute = function(/*a*/) {
-      return false;
-    };
-  } else {
-    this.attrPrefixLen = this.options.attributeNamePrefix.length;
-    this.isAttribute = isAttribute;
-  }
-
-  this.processTextOrObjNode = processTextOrObjNode
-
-  if (this.options.format) {
-    this.indentate = indentate;
-    this.tagEndChar = '>\n';
-    this.newLine = '\n';
-  } else {
-    this.indentate = function() {
-      return '';
-    };
-    this.tagEndChar = '>';
-    this.newLine = '';
-  }
-}
-
-Builder.prototype.build = function(jObj) {
-  if(this.options.preserveOrder){
-    return buildFromOrderedJs(jObj, this.options);
-  }else {
-    if(Array.isArray(jObj) && this.options.arrayNodeName && this.options.arrayNodeName.length > 1){
-      jObj = {
-        [this.options.arrayNodeName] : jObj
-      }
-    }
-    return this.j2x(jObj, 0).val;
-  }
-};
-
-Builder.prototype.j2x = function(jObj, level) {
-  let attrStr = '';
-  let val = '';
-  for (let key in jObj) {
-    if(!Object.prototype.hasOwnProperty.call(jObj, key)) continue;
-    if (typeof jObj[key] === 'undefined') {
-      // supress undefined node only if it is not an attribute
-      if (this.isAttribute(key)) {
-        val += '';
-      }
-    } else if (jObj[key] === null) {
-      // null attribute should be ignored by the attribute list, but should not cause the tag closing
-      if (this.isAttribute(key)) {
-        val += '';
-      } else if (key[0] === '?') {
-        val += this.indentate(level) + '<' + key + '?' + this.tagEndChar;
-      } else {
-        val += this.indentate(level) + '<' + key + '/' + this.tagEndChar;
-      }
-      // val += this.indentate(level) + '<' + key + '/' + this.tagEndChar;
-    } else if (jObj[key] instanceof Date) {
-      val += this.buildTextValNode(jObj[key], key, '', level);
-    } else if (typeof jObj[key] !== 'object') {
-      //premitive type
-      const attr = this.isAttribute(key);
-      if (attr) {
-        attrStr += this.buildAttrPairStr(attr, '' + jObj[key]);
-      }else {
-        //tag value
-        if (key === this.options.textNodeName) {
-          let newval = this.options.tagValueProcessor(key, '' + jObj[key]);
-          val += this.replaceEntitiesValue(newval);
-        } else {
-          val += this.buildTextValNode(jObj[key], key, '', level);
-        }
-      }
-    } else if (Array.isArray(jObj[key])) {
-      //repeated nodes
-      const arrLen = jObj[key].length;
-      let listTagVal = "";
-      for (let j = 0; j < arrLen; j++) {
-        const item = jObj[key][j];
-        if (typeof item === 'undefined') {
-          // supress undefined node
-        } else if (item === null) {
-          if(key[0] === "?") val += this.indentate(level) + '<' + key + '?' + this.tagEndChar;
-          else val += this.indentate(level) + '<' + key + '/' + this.tagEndChar;
-          // val += this.indentate(level) + '<' + key + '/' + this.tagEndChar;
-        } else if (typeof item === 'object') {
-          if(this.options.oneListGroup ){
-            listTagVal += this.j2x(item, level + 1).val;
-          }else{
-            listTagVal += this.processTextOrObjNode(item, key, level)
-          }
-        } else {
-          listTagVal += this.buildTextValNode(item, key, '', level);
-        }
-      }
-      if(this.options.oneListGroup){
-        listTagVal = this.buildObjectNode(listTagVal, key, '', level);
-      }
-      val += listTagVal;
-    } else {
-      //nested node
-      if (this.options.attributesGroupName && key === this.options.attributesGroupName) {
-        const Ks = Object.keys(jObj[key]);
-        const L = Ks.length;
-        for (let j = 0; j < L; j++) {
-          attrStr += this.buildAttrPairStr(Ks[j], '' + jObj[key][Ks[j]]);
-        }
-      } else {
-        val += this.processTextOrObjNode(jObj[key], key, level)
-      }
-    }
-  }
-  return {attrStr: attrStr, val: val};
-};
-
-Builder.prototype.buildAttrPairStr = function(attrName, val){
-  val = this.options.attributeValueProcessor(attrName, '' + val);
-  val = this.replaceEntitiesValue(val);
-  if (this.options.suppressBooleanAttributes && val === "true") {
-    return ' ' + attrName;
-  } else return ' ' + attrName + '="' + val + '"';
-}
-
-function processTextOrObjNode (object, key, level) {
-  const result = this.j2x(object, level + 1);
-  if (object[this.options.textNodeName] !== undefined && Object.keys(object).length === 1) {
-    return this.buildTextValNode(object[this.options.textNodeName], key, result.attrStr, level);
-  } else {
-    return this.buildObjectNode(result.val, key, result.attrStr, level);
-  }
-}
-
-Builder.prototype.buildObjectNode = function(val, key, attrStr, level) {
-  if(val === ""){
-    if(key[0] === "?") return  this.indentate(level) + '<' + key + attrStr+ '?' + this.tagEndChar;
-    else {
-      return this.indentate(level) + '<' + key + attrStr + this.closeTag(key) + this.tagEndChar;
-    }
-  }else{
-
-    let tagEndExp = '</' + key + this.tagEndChar;
-    let piClosingChar = "";
-    
-    if(key[0] === "?") {
-      piClosingChar = "?";
-      tagEndExp = "";
-    }
-  
-    // attrStr is an empty string in case the attribute came as undefined or null
-    if ((attrStr || attrStr === '') && val.indexOf('<') === -1) {
-      return ( this.indentate(level) + '<' +  key + attrStr + piClosingChar + '>' + val + tagEndExp );
-    } else if (this.options.commentPropName !== false && key === this.options.commentPropName && piClosingChar.length === 0) {
-      return this.indentate(level) + `<!--${val}-->` + this.newLine;
-    }else {
-      return (
-        this.indentate(level) + '<' + key + attrStr + piClosingChar + this.tagEndChar +
-        val +
-        this.indentate(level) + tagEndExp    );
-    }
-  }
-}
-
-Builder.prototype.closeTag = function(key){
-  let closeTag = "";
-  if(this.options.unpairedTags.indexOf(key) !== -1){ //unpaired
-    if(!this.options.suppressUnpairedNode) closeTag = "/"
-  }else if(this.options.suppressEmptyNode){ //empty
-    closeTag = "/";
-  }else{
-    closeTag = `></${key}`
-  }
-  return closeTag;
-}
-
-function buildEmptyObjNode(val, key, attrStr, level) {
-  if (val !== '') {
-    return this.buildObjectNode(val, key, attrStr, level);
-  } else {
-    if(key[0] === "?") return  this.indentate(level) + '<' + key + attrStr+ '?' + this.tagEndChar;
-    else {
-      return  this.indentate(level) + '<' + key + attrStr + '/' + this.tagEndChar;
-      // return this.buildTagStr(level,key, attrStr);
-    }
-  }
-}
-
-Builder.prototype.buildTextValNode = function(val, key, attrStr, level) {
-  if (this.options.cdataPropName !== false && key === this.options.cdataPropName) {
-    return this.indentate(level) + `<![CDATA[${val}]]>` +  this.newLine;
-  }else if (this.options.commentPropName !== false && key === this.options.commentPropName) {
-    return this.indentate(level) + `<!--${val}-->` +  this.newLine;
-  }else if(key[0] === "?") {//PI tag
-    return  this.indentate(level) + '<' + key + attrStr+ '?' + this.tagEndChar; 
-  }else{
-    let textValue = this.options.tagValueProcessor(key, val);
-    textValue = this.replaceEntitiesValue(textValue);
-  
-    if( textValue === ''){
-      return this.indentate(level) + '<' + key + attrStr + this.closeTag(key) + this.tagEndChar;
-    }else{
-      return this.indentate(level) + '<' + key + attrStr + '>' +
-         textValue +
-        '</' + key + this.tagEndChar;
-    }
-  }
-}
-
-Builder.prototype.replaceEntitiesValue = function(textValue){
-  if(textValue && textValue.length > 0 && this.options.processEntities){
-    for (let i=0; i<this.options.entities.length; i++) {
-      const entity = this.options.entities[i];
-      textValue = textValue.replace(entity.regex, entity.val);
-    }
-  }
-  return textValue;
-}
-
-function indentate(level) {
-  return this.options.indentBy.repeat(level);
-}
-
-function isAttribute(name /*, options*/) {
-  if (name.startsWith(this.options.attributeNamePrefix) && name !== this.options.textNodeName) {
-    return name.substr(this.attrPrefixLen);
-  } else {
-    return false;
-  }
-}
-
-module.exports = Builder;
-
-
-/***/ }),
-
-/***/ 72462:
-/***/ ((module) => {
-
-const EOL = "\n";
-
-/**
- * 
- * @param {array} jArray 
- * @param {any} options 
- * @returns 
- */
-function toXml(jArray, options) {
-    let indentation = "";
-    if (options.format && options.indentBy.length > 0) {
-        indentation = EOL;
-    }
-    return arrToStr(jArray, options, "", indentation);
-}
-
-function arrToStr(arr, options, jPath, indentation) {
-    let xmlStr = "";
-    let isPreviousElementTag = false;
-
-    for (let i = 0; i < arr.length; i++) {
-        const tagObj = arr[i];
-        const tagName = propName(tagObj);
-        if(tagName === undefined) continue;
-
-        let newJPath = "";
-        if (jPath.length === 0) newJPath = tagName
-        else newJPath = `${jPath}.${tagName}`;
-
-        if (tagName === options.textNodeName) {
-            let tagText = tagObj[tagName];
-            if (!isStopNode(newJPath, options)) {
-                tagText = options.tagValueProcessor(tagName, tagText);
-                tagText = replaceEntitiesValue(tagText, options);
-            }
-            if (isPreviousElementTag) {
-                xmlStr += indentation;
-            }
-            xmlStr += tagText;
-            isPreviousElementTag = false;
-            continue;
-        } else if (tagName === options.cdataPropName) {
-            if (isPreviousElementTag) {
-                xmlStr += indentation;
-            }
-            xmlStr += `<![CDATA[${tagObj[tagName][0][options.textNodeName]}]]>`;
-            isPreviousElementTag = false;
-            continue;
-        } else if (tagName === options.commentPropName) {
-            xmlStr += indentation + `<!--${tagObj[tagName][0][options.textNodeName]}-->`;
-            isPreviousElementTag = true;
-            continue;
-        } else if (tagName[0] === "?") {
-            const attStr = attr_to_str(tagObj[":@"], options);
-            const tempInd = tagName === "?xml" ? "" : indentation;
-            let piTextNodeName = tagObj[tagName][0][options.textNodeName];
-            piTextNodeName = piTextNodeName.length !== 0 ? " " + piTextNodeName : ""; //remove extra spacing
-            xmlStr += tempInd + `<${tagName}${piTextNodeName}${attStr}?>`;
-            isPreviousElementTag = true;
-            continue;
-        }
-        let newIdentation = indentation;
-        if (newIdentation !== "") {
-            newIdentation += options.indentBy;
-        }
-        const attStr = attr_to_str(tagObj[":@"], options);
-        const tagStart = indentation + `<${tagName}${attStr}`;
-        const tagValue = arrToStr(tagObj[tagName], options, newJPath, newIdentation);
-        if (options.unpairedTags.indexOf(tagName) !== -1) {
-            if (options.suppressUnpairedNode) xmlStr += tagStart + ">";
-            else xmlStr += tagStart + "/>";
-        } else if ((!tagValue || tagValue.length === 0) && options.suppressEmptyNode) {
-            xmlStr += tagStart + "/>";
-        } else if (tagValue && tagValue.endsWith(">")) {
-            xmlStr += tagStart + `>${tagValue}${indentation}</${tagName}>`;
-        } else {
-            xmlStr += tagStart + ">";
-            if (tagValue && indentation !== "" && (tagValue.includes("/>") || tagValue.includes("</"))) {
-                xmlStr += indentation + options.indentBy + tagValue + indentation;
-            } else {
-                xmlStr += tagValue;
-            }
-            xmlStr += `</${tagName}>`;
-        }
-        isPreviousElementTag = true;
-    }
-
-    return xmlStr;
-}
-
-function propName(obj) {
-    const keys = Object.keys(obj);
-    for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        if(!obj.hasOwnProperty(key)) continue;
-        if (key !== ":@") return key;
-    }
-}
-
-function attr_to_str(attrMap, options) {
-    let attrStr = "";
-    if (attrMap && !options.ignoreAttributes) {
-        for (let attr in attrMap) {
-            if(!attrMap.hasOwnProperty(attr)) continue;
-            let attrVal = options.attributeValueProcessor(attr, attrMap[attr]);
-            attrVal = replaceEntitiesValue(attrVal, options);
-            if (attrVal === true && options.suppressBooleanAttributes) {
-                attrStr += ` ${attr.substr(options.attributeNamePrefix.length)}`;
-            } else {
-                attrStr += ` ${attr.substr(options.attributeNamePrefix.length)}="${attrVal}"`;
-            }
-        }
-    }
-    return attrStr;
-}
-
-function isStopNode(jPath, options) {
-    jPath = jPath.substr(0, jPath.length - options.textNodeName.length - 1);
-    let tagName = jPath.substr(jPath.lastIndexOf(".") + 1);
-    for (let index in options.stopNodes) {
-        if (options.stopNodes[index] === jPath || options.stopNodes[index] === "*." + tagName) return true;
-    }
-    return false;
-}
-
-function replaceEntitiesValue(textValue, options) {
-    if (textValue && textValue.length > 0 && options.processEntities) {
-        for (let i = 0; i < options.entities.length; i++) {
-            const entity = options.entities[i];
-            textValue = textValue.replace(entity.regex, entity.val);
-        }
-    }
-    return textValue;
-}
-module.exports = toXml;
-
-
-/***/ }),
-
-/***/ 6072:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const util = __nccwpck_require__(38280);
-
-//TODO: handle comments
-function readDocType(xmlData, i){
-    
-    const entities = {};
-    if( xmlData[i + 3] === 'O' &&
-         xmlData[i + 4] === 'C' &&
-         xmlData[i + 5] === 'T' &&
-         xmlData[i + 6] === 'Y' &&
-         xmlData[i + 7] === 'P' &&
-         xmlData[i + 8] === 'E')
-    {    
-        i = i+9;
-        let angleBracketsCount = 1;
-        let hasBody = false, comment = false;
-        let exp = "";
-        for(;i<xmlData.length;i++){
-            if (xmlData[i] === '<' && !comment) { //Determine the tag type
-                if( hasBody && isEntity(xmlData, i)){
-                    i += 7; 
-                    [entityName, val,i] = readEntityExp(xmlData,i+1);
-                    if(val.indexOf("&") === -1) //Parameter entities are not supported
-                        entities[ validateEntityName(entityName) ] = {
-                            regx : RegExp( `&${entityName};`,"g"),
-                            val: val
-                        };
-                }
-                else if( hasBody && isElement(xmlData, i))  i += 8;//Not supported
-                else if( hasBody && isAttlist(xmlData, i))  i += 8;//Not supported
-                else if( hasBody && isNotation(xmlData, i)) i += 9;//Not supported
-                else if( isComment)                         comment = true;
-                else                                        throw new Error("Invalid DOCTYPE");
-
-                angleBracketsCount++;
-                exp = "";
-            } else if (xmlData[i] === '>') { //Read tag content
-                if(comment){
-                    if( xmlData[i - 1] === "-" && xmlData[i - 2] === "-"){
-                        comment = false;
-                        angleBracketsCount--;
-                    }
-                }else{
-                    angleBracketsCount--;
-                }
-                if (angleBracketsCount === 0) {
-                  break;
-                }
-            }else if( xmlData[i] === '['){
-                hasBody = true;
-            }else{
-                exp += xmlData[i];
-            }
-        }
-        if(angleBracketsCount !== 0){
-            throw new Error(`Unclosed DOCTYPE`);
-        }
-    }else{
-        throw new Error(`Invalid Tag instead of DOCTYPE`);
-    }
-    return {entities, i};
-}
-
-function readEntityExp(xmlData,i){
-    //External entities are not supported
-    //    <!ENTITY ext SYSTEM "http://normal-website.com" >
-
-    //Parameter entities are not supported
-    //    <!ENTITY entityname "&anotherElement;">
-
-    //Internal entities are supported
-    //    <!ENTITY entityname "replacement text">
-    
-    //read EntityName
-    let entityName = "";
-    for (; i < xmlData.length && (xmlData[i] !== "'" && xmlData[i] !== '"' ); i++) {
-        // if(xmlData[i] === " ") continue;
-        // else 
-        entityName += xmlData[i];
-    }
-    entityName = entityName.trim();
-    if(entityName.indexOf(" ") !== -1) throw new Error("External entites are not supported");
-
-    //read Entity Value
-    const startChar = xmlData[i++];
-    let val = ""
-    for (; i < xmlData.length && xmlData[i] !== startChar ; i++) {
-        val += xmlData[i];
-    }
-    return [entityName, val, i];
-}
-
-function isComment(xmlData, i){
-    if(xmlData[i+1] === '!' &&
-    xmlData[i+2] === '-' &&
-    xmlData[i+3] === '-') return true
-    return false
-}
-function isEntity(xmlData, i){
-    if(xmlData[i+1] === '!' &&
-    xmlData[i+2] === 'E' &&
-    xmlData[i+3] === 'N' &&
-    xmlData[i+4] === 'T' &&
-    xmlData[i+5] === 'I' &&
-    xmlData[i+6] === 'T' &&
-    xmlData[i+7] === 'Y') return true
-    return false
-}
-function isElement(xmlData, i){
-    if(xmlData[i+1] === '!' &&
-    xmlData[i+2] === 'E' &&
-    xmlData[i+3] === 'L' &&
-    xmlData[i+4] === 'E' &&
-    xmlData[i+5] === 'M' &&
-    xmlData[i+6] === 'E' &&
-    xmlData[i+7] === 'N' &&
-    xmlData[i+8] === 'T') return true
-    return false
-}
-
-function isAttlist(xmlData, i){
-    if(xmlData[i+1] === '!' &&
-    xmlData[i+2] === 'A' &&
-    xmlData[i+3] === 'T' &&
-    xmlData[i+4] === 'T' &&
-    xmlData[i+5] === 'L' &&
-    xmlData[i+6] === 'I' &&
-    xmlData[i+7] === 'S' &&
-    xmlData[i+8] === 'T') return true
-    return false
-}
-function isNotation(xmlData, i){
-    if(xmlData[i+1] === '!' &&
-    xmlData[i+2] === 'N' &&
-    xmlData[i+3] === 'O' &&
-    xmlData[i+4] === 'T' &&
-    xmlData[i+5] === 'A' &&
-    xmlData[i+6] === 'T' &&
-    xmlData[i+7] === 'I' &&
-    xmlData[i+8] === 'O' &&
-    xmlData[i+9] === 'N') return true
-    return false
-}
-
-function validateEntityName(name){
-    if (util.isName(name))
-	return name;
-    else
-        throw new Error(`Invalid entity name ${name}`);
-}
-
-module.exports = readDocType;
-
-
-/***/ }),
-
-/***/ 86993:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-const defaultOptions = {
-    preserveOrder: false,
-    attributeNamePrefix: '@_',
-    attributesGroupName: false,
-    textNodeName: '#text',
-    ignoreAttributes: true,
-    removeNSPrefix: false, // remove NS from tag name or attribute name if true
-    allowBooleanAttributes: false, //a tag can have attributes without any value
-    //ignoreRootElement : false,
-    parseTagValue: true,
-    parseAttributeValue: false,
-    trimValues: true, //Trim string values of tag and attributes
-    cdataPropName: false,
-    numberParseOptions: {
-      hex: true,
-      leadingZeros: true,
-      eNotation: true
-    },
-    tagValueProcessor: function(tagName, val) {
-      return val;
-    },
-    attributeValueProcessor: function(attrName, val) {
-      return val;
-    },
-    stopNodes: [], //nested tags will not be parsed even for errors
-    alwaysCreateTextNode: false,
-    isArray: () => false,
-    commentPropName: false,
-    unpairedTags: [],
-    processEntities: true,
-    htmlEntities: false,
-    ignoreDeclaration: false,
-    ignorePiTags: false,
-    transformTagName: false,
-    transformAttributeName: false,
-    updateTag: function(tagName, jPath, attrs){
-      return tagName
-    },
-    // skipEmptyListItem: false
-};
-   
-const buildOptions = function(options) {
-    return Object.assign({}, defaultOptions, options);
-};
-
-exports.buildOptions = buildOptions;
-exports.defaultOptions = defaultOptions;
-
-/***/ }),
-
-/***/ 25832:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-///@ts-check
-
-const util = __nccwpck_require__(38280);
-const xmlNode = __nccwpck_require__(7462);
-const readDocType = __nccwpck_require__(6072);
-const toNumber = __nccwpck_require__(14526);
-
-const regx =
-  '<((!\\[CDATA\\[([\\s\\S]*?)(]]>))|((NAME:)?(NAME))([^>]*)>|((\\/)(NAME)\\s*>))([^<]*)'
-  .replace(/NAME/g, util.nameRegexp);
-
-//const tagsRegx = new RegExp("<(\\/?[\\w:\\-\._]+)([^>]*)>(\\s*"+cdataRegx+")*([^<]+)?","g");
-//const tagsRegx = new RegExp("<(\\/?)((\\w*:)?([\\w:\\-\._]+))([^>]*)>([^<]*)("+cdataRegx+"([^<]*))*([^<]+)?","g");
-
-class OrderedObjParser{
-  constructor(options){
-    this.options = options;
-    this.currentNode = null;
-    this.tagsNodeStack = [];
-    this.docTypeEntities = {};
-    this.lastEntities = {
-      "apos" : { regex: /&(apos|#39|#x27);/g, val : "'"},
-      "gt" : { regex: /&(gt|#62|#x3E);/g, val : ">"},
-      "lt" : { regex: /&(lt|#60|#x3C);/g, val : "<"},
-      "quot" : { regex: /&(quot|#34|#x22);/g, val : "\""},
-    };
-    this.ampEntity = { regex: /&(amp|#38|#x26);/g, val : "&"};
-    this.htmlEntities = {
-      "space": { regex: /&(nbsp|#160);/g, val: " " },
-      // "lt" : { regex: /&(lt|#60);/g, val: "<" },
-      // "gt" : { regex: /&(gt|#62);/g, val: ">" },
-      // "amp" : { regex: /&(amp|#38);/g, val: "&" },
-      // "quot" : { regex: /&(quot|#34);/g, val: "\"" },
-      // "apos" : { regex: /&(apos|#39);/g, val: "'" },
-      "cent" : { regex: /&(cent|#162);/g, val: "¢" },
-      "pound" : { regex: /&(pound|#163);/g, val: "£" },
-      "yen" : { regex: /&(yen|#165);/g, val: "¥" },
-      "euro" : { regex: /&(euro|#8364);/g, val: "€" },
-      "copyright" : { regex: /&(copy|#169);/g, val: "©" },
-      "reg" : { regex: /&(reg|#174);/g, val: "®" },
-      "inr" : { regex: /&(inr|#8377);/g, val: "₹" },
-    };
-    this.addExternalEntities = addExternalEntities;
-    this.parseXml = parseXml;
-    this.parseTextData = parseTextData;
-    this.resolveNameSpace = resolveNameSpace;
-    this.buildAttributesMap = buildAttributesMap;
-    this.isItStopNode = isItStopNode;
-    this.replaceEntitiesValue = replaceEntitiesValue;
-    this.readStopNodeData = readStopNodeData;
-    this.saveTextToParentTag = saveTextToParentTag;
-    this.addChild = addChild;
-  }
-
-}
-
-function addExternalEntities(externalEntities){
-  const entKeys = Object.keys(externalEntities);
-  for (let i = 0; i < entKeys.length; i++) {
-    const ent = entKeys[i];
-    this.lastEntities[ent] = {
-       regex: new RegExp("&"+ent+";","g"),
-       val : externalEntities[ent]
-    }
-  }
-}
-
-/**
- * @param {string} val
- * @param {string} tagName
- * @param {string} jPath
- * @param {boolean} dontTrim
- * @param {boolean} hasAttributes
- * @param {boolean} isLeafNode
- * @param {boolean} escapeEntities
- */
-function parseTextData(val, tagName, jPath, dontTrim, hasAttributes, isLeafNode, escapeEntities) {
-  if (val !== undefined) {
-    if (this.options.trimValues && !dontTrim) {
-      val = val.trim();
-    }
-    if(val.length > 0){
-      if(!escapeEntities) val = this.replaceEntitiesValue(val);
-      
-      const newval = this.options.tagValueProcessor(tagName, val, jPath, hasAttributes, isLeafNode);
-      if(newval === null || newval === undefined){
-        //don't parse
-        return val;
-      }else if(typeof newval !== typeof val || newval !== val){
-        //overwrite
-        return newval;
-      }else if(this.options.trimValues){
-        return parseValue(val, this.options.parseTagValue, this.options.numberParseOptions);
-      }else{
-        const trimmedVal = val.trim();
-        if(trimmedVal === val){
-          return parseValue(val, this.options.parseTagValue, this.options.numberParseOptions);
-        }else{
-          return val;
-        }
-      }
-    }
-  }
-}
-
-function resolveNameSpace(tagname) {
-  if (this.options.removeNSPrefix) {
-    const tags = tagname.split(':');
-    const prefix = tagname.charAt(0) === '/' ? '/' : '';
-    if (tags[0] === 'xmlns') {
-      return '';
-    }
-    if (tags.length === 2) {
-      tagname = prefix + tags[1];
-    }
-  }
-  return tagname;
-}
-
-//TODO: change regex to capture NS
-//const attrsRegx = new RegExp("([\\w\\-\\.\\:]+)\\s*=\\s*(['\"])((.|\n)*?)\\2","gm");
-const attrsRegx = new RegExp('([^\\s=]+)\\s*(=\\s*([\'"])([\\s\\S]*?)\\3)?', 'gm');
-
-function buildAttributesMap(attrStr, jPath, tagName) {
-  if (!this.options.ignoreAttributes && typeof attrStr === 'string') {
-    // attrStr = attrStr.replace(/\r?\n/g, ' ');
-    //attrStr = attrStr || attrStr.trim();
-
-    const matches = util.getAllMatches(attrStr, attrsRegx);
-    const len = matches.length; //don't make it inline
-    const attrs = {};
-    for (let i = 0; i < len; i++) {
-      const attrName = this.resolveNameSpace(matches[i][1]);
-      let oldVal = matches[i][4];
-      let aName = this.options.attributeNamePrefix + attrName;
-      if (attrName.length) {
-        if (this.options.transformAttributeName) {
-          aName = this.options.transformAttributeName(aName);
-        }
-        if(aName === "__proto__") aName  = "#__proto__";
-        if (oldVal !== undefined) {
-          if (this.options.trimValues) {
-            oldVal = oldVal.trim();
-          }
-          oldVal = this.replaceEntitiesValue(oldVal);
-          const newVal = this.options.attributeValueProcessor(attrName, oldVal, jPath);
-          if(newVal === null || newVal === undefined){
-            //don't parse
-            attrs[aName] = oldVal;
-          }else if(typeof newVal !== typeof oldVal || newVal !== oldVal){
-            //overwrite
-            attrs[aName] = newVal;
-          }else{
-            //parse
-            attrs[aName] = parseValue(
-              oldVal,
-              this.options.parseAttributeValue,
-              this.options.numberParseOptions
-            );
-          }
-        } else if (this.options.allowBooleanAttributes) {
-          attrs[aName] = true;
-        }
-      }
-    }
-    if (!Object.keys(attrs).length) {
-      return;
-    }
-    if (this.options.attributesGroupName) {
-      const attrCollection = {};
-      attrCollection[this.options.attributesGroupName] = attrs;
-      return attrCollection;
-    }
-    return attrs
-  }
-}
-
-const parseXml = function(xmlData) {
-  xmlData = xmlData.replace(/\r\n?/g, "\n"); //TODO: remove this line
-  const xmlObj = new xmlNode('!xml');
-  let currentNode = xmlObj;
-  let textData = "";
-  let jPath = "";
-  for(let i=0; i< xmlData.length; i++){//for each char in XML data
-    const ch = xmlData[i];
-    if(ch === '<'){
-      // const nextIndex = i+1;
-      // const _2ndChar = xmlData[nextIndex];
-      if( xmlData[i+1] === '/') {//Closing Tag
-        const closeIndex = findClosingIndex(xmlData, ">", i, "Closing Tag is not closed.")
-        let tagName = xmlData.substring(i+2,closeIndex).trim();
-
-        if(this.options.removeNSPrefix){
-          const colonIndex = tagName.indexOf(":");
-          if(colonIndex !== -1){
-            tagName = tagName.substr(colonIndex+1);
-          }
-        }
-
-        if(this.options.transformTagName) {
-          tagName = this.options.transformTagName(tagName);
-        }
-
-        if(currentNode){
-          textData = this.saveTextToParentTag(textData, currentNode, jPath);
-        }
-
-        //check if last tag of nested tag was unpaired tag
-        const lastTagName = jPath.substring(jPath.lastIndexOf(".")+1);
-        if(tagName && this.options.unpairedTags.indexOf(tagName) !== -1 ){
-          throw new Error(`Unpaired tag can not be used as closing tag: </${tagName}>`);
-        }
-        let propIndex = 0
-        if(lastTagName && this.options.unpairedTags.indexOf(lastTagName) !== -1 ){
-          propIndex = jPath.lastIndexOf('.', jPath.lastIndexOf('.')-1)
-          this.tagsNodeStack.pop();
-        }else{
-          propIndex = jPath.lastIndexOf(".");
-        }
-        jPath = jPath.substring(0, propIndex);
-
-        currentNode = this.tagsNodeStack.pop();//avoid recursion, set the parent tag scope
-        textData = "";
-        i = closeIndex;
-      } else if( xmlData[i+1] === '?') {
-
-        let tagData = readTagExp(xmlData,i, false, "?>");
-        if(!tagData) throw new Error("Pi Tag is not closed.");
-
-        textData = this.saveTextToParentTag(textData, currentNode, jPath);
-        if( (this.options.ignoreDeclaration && tagData.tagName === "?xml") || this.options.ignorePiTags){
-
-        }else{
-  
-          const childNode = new xmlNode(tagData.tagName);
-          childNode.add(this.options.textNodeName, "");
-          
-          if(tagData.tagName !== tagData.tagExp && tagData.attrExpPresent){
-            childNode[":@"] = this.buildAttributesMap(tagData.tagExp, jPath, tagData.tagName);
-          }
-          this.addChild(currentNode, childNode, jPath)
-
-        }
-
-
-        i = tagData.closeIndex + 1;
-      } else if(xmlData.substr(i + 1, 3) === '!--') {
-        const endIndex = findClosingIndex(xmlData, "-->", i+4, "Comment is not closed.")
-        if(this.options.commentPropName){
-          const comment = xmlData.substring(i + 4, endIndex - 2);
-
-          textData = this.saveTextToParentTag(textData, currentNode, jPath);
-
-          currentNode.add(this.options.commentPropName, [ { [this.options.textNodeName] : comment } ]);
-        }
-        i = endIndex;
-      } else if( xmlData.substr(i + 1, 2) === '!D') {
-        const result = readDocType(xmlData, i);
-        this.docTypeEntities = result.entities;
-        i = result.i;
-      }else if(xmlData.substr(i + 1, 2) === '![') {
-        const closeIndex = findClosingIndex(xmlData, "]]>", i, "CDATA is not closed.") - 2;
-        const tagExp = xmlData.substring(i + 9,closeIndex);
-
-        textData = this.saveTextToParentTag(textData, currentNode, jPath);
-
-        //cdata should be set even if it is 0 length string
-        if(this.options.cdataPropName){
-          // let val = this.parseTextData(tagExp, this.options.cdataPropName, jPath + "." + this.options.cdataPropName, true, false, true);
-          // if(!val) val = "";
-          currentNode.add(this.options.cdataPropName, [ { [this.options.textNodeName] : tagExp } ]);
-        }else{
-          let val = this.parseTextData(tagExp, currentNode.tagname, jPath, true, false, true);
-          if(val == undefined) val = "";
-          currentNode.add(this.options.textNodeName, val);
-        }
-        
-        i = closeIndex + 2;
-      }else {//Opening tag
-        let result = readTagExp(xmlData,i, this.options.removeNSPrefix);
-        let tagName= result.tagName;
-        const rawTagName = result.rawTagName;
-        let tagExp = result.tagExp;
-        let attrExpPresent = result.attrExpPresent;
-        let closeIndex = result.closeIndex;
-
-        if (this.options.transformTagName) {
-          tagName = this.options.transformTagName(tagName);
-        }
-        
-        //save text as child node
-        if (currentNode && textData) {
-          if(currentNode.tagname !== '!xml'){
-            //when nested tag is found
-            textData = this.saveTextToParentTag(textData, currentNode, jPath, false);
-          }
-        }
-
-        //check if last tag was unpaired tag
-        const lastTag = currentNode;
-        if(lastTag && this.options.unpairedTags.indexOf(lastTag.tagname) !== -1 ){
-          currentNode = this.tagsNodeStack.pop();
-          jPath = jPath.substring(0, jPath.lastIndexOf("."));
-        }
-        if(tagName !== xmlObj.tagname){
-          jPath += jPath ? "." + tagName : tagName;
-        }
-        if (this.isItStopNode(this.options.stopNodes, jPath, tagName)) {
-          let tagContent = "";
-          //self-closing tag
-          if(tagExp.length > 0 && tagExp.lastIndexOf("/") === tagExp.length - 1){
-            i = result.closeIndex;
-          }
-          //unpaired tag
-          else if(this.options.unpairedTags.indexOf(tagName) !== -1){
-            i = result.closeIndex;
-          }
-          //normal tag
-          else{
-            //read until closing tag is found
-            const result = this.readStopNodeData(xmlData, rawTagName, closeIndex + 1);
-            if(!result) throw new Error(`Unexpected end of ${rawTagName}`);
-            i = result.i;
-            tagContent = result.tagContent;
-          }
-
-          const childNode = new xmlNode(tagName);
-          if(tagName !== tagExp && attrExpPresent){
-            childNode[":@"] = this.buildAttributesMap(tagExp, jPath, tagName);
-          }
-          if(tagContent) {
-            tagContent = this.parseTextData(tagContent, tagName, jPath, true, attrExpPresent, true, true);
-          }
-          
-          jPath = jPath.substr(0, jPath.lastIndexOf("."));
-          childNode.add(this.options.textNodeName, tagContent);
-          
-          this.addChild(currentNode, childNode, jPath)
-        }else{
-  //selfClosing tag
-          if(tagExp.length > 0 && tagExp.lastIndexOf("/") === tagExp.length - 1){
-            if(tagName[tagName.length - 1] === "/"){ //remove trailing '/'
-              tagName = tagName.substr(0, tagName.length - 1);
-              jPath = jPath.substr(0, jPath.length - 1);
-              tagExp = tagName;
-            }else{
-              tagExp = tagExp.substr(0, tagExp.length - 1);
-            }
-            
-            if(this.options.transformTagName) {
-              tagName = this.options.transformTagName(tagName);
-            }
-
-            const childNode = new xmlNode(tagName);
-            if(tagName !== tagExp && attrExpPresent){
-              childNode[":@"] = this.buildAttributesMap(tagExp, jPath, tagName);
-            }
-            this.addChild(currentNode, childNode, jPath)
-            jPath = jPath.substr(0, jPath.lastIndexOf("."));
-          }
-    //opening tag
-          else{
-            const childNode = new xmlNode( tagName);
-            this.tagsNodeStack.push(currentNode);
-            
-            if(tagName !== tagExp && attrExpPresent){
-              childNode[":@"] = this.buildAttributesMap(tagExp, jPath, tagName);
-            }
-            this.addChild(currentNode, childNode, jPath)
-            currentNode = childNode;
-          }
-          textData = "";
-          i = closeIndex;
-        }
-      }
-    }else{
-      textData += xmlData[i];
-    }
-  }
-  return xmlObj.child;
-}
-
-function addChild(currentNode, childNode, jPath){
-  const result = this.options.updateTag(childNode.tagname, jPath, childNode[":@"])
-  if(result === false){
-  }else if(typeof result === "string"){
-    childNode.tagname = result
-    currentNode.addChild(childNode);
-  }else{
-    currentNode.addChild(childNode);
-  }
-}
-
-const replaceEntitiesValue = function(val){
-
-  if(this.options.processEntities){
-    for(let entityName in this.docTypeEntities){
-      const entity = this.docTypeEntities[entityName];
-      val = val.replace( entity.regx, entity.val);
-    }
-    for(let entityName in this.lastEntities){
-      const entity = this.lastEntities[entityName];
-      val = val.replace( entity.regex, entity.val);
-    }
-    if(this.options.htmlEntities){
-      for(let entityName in this.htmlEntities){
-        const entity = this.htmlEntities[entityName];
-        val = val.replace( entity.regex, entity.val);
-      }
-    }
-    val = val.replace( this.ampEntity.regex, this.ampEntity.val);
-  }
-  return val;
-}
-function saveTextToParentTag(textData, currentNode, jPath, isLeafNode) {
-  if (textData) { //store previously collected data as textNode
-    if(isLeafNode === undefined) isLeafNode = Object.keys(currentNode.child).length === 0
-    
-    textData = this.parseTextData(textData,
-      currentNode.tagname,
-      jPath,
-      false,
-      currentNode[":@"] ? Object.keys(currentNode[":@"]).length !== 0 : false,
-      isLeafNode);
-
-    if (textData !== undefined && textData !== "")
-      currentNode.add(this.options.textNodeName, textData);
-    textData = "";
-  }
-  return textData;
-}
-
-//TODO: use jPath to simplify the logic
-/**
- * 
- * @param {string[]} stopNodes 
- * @param {string} jPath
- * @param {string} currentTagName 
- */
-function isItStopNode(stopNodes, jPath, currentTagName){
-  const allNodesExp = "*." + currentTagName;
-  for (const stopNodePath in stopNodes) {
-    const stopNodeExp = stopNodes[stopNodePath];
-    if( allNodesExp === stopNodeExp || jPath === stopNodeExp  ) return true;
-  }
-  return false;
-}
-
-/**
- * Returns the tag Expression and where it is ending handling single-double quotes situation
- * @param {string} xmlData 
- * @param {number} i starting index
- * @returns 
- */
-function tagExpWithClosingIndex(xmlData, i, closingChar = ">"){
-  let attrBoundary;
-  let tagExp = "";
-  for (let index = i; index < xmlData.length; index++) {
-    let ch = xmlData[index];
-    if (attrBoundary) {
-        if (ch === attrBoundary) attrBoundary = "";//reset
-    } else if (ch === '"' || ch === "'") {
-        attrBoundary = ch;
-    } else if (ch === closingChar[0]) {
-      if(closingChar[1]){
-        if(xmlData[index + 1] === closingChar[1]){
-          return {
-            data: tagExp,
-            index: index
-          }
-        }
-      }else{
-        return {
-          data: tagExp,
-          index: index
-        }
-      }
-    } else if (ch === '\t') {
-      ch = " "
-    }
-    tagExp += ch;
-  }
-}
-
-function findClosingIndex(xmlData, str, i, errMsg){
-  const closingIndex = xmlData.indexOf(str, i);
-  if(closingIndex === -1){
-    throw new Error(errMsg)
-  }else{
-    return closingIndex + str.length - 1;
-  }
-}
-
-function readTagExp(xmlData,i, removeNSPrefix, closingChar = ">"){
-  const result = tagExpWithClosingIndex(xmlData, i+1, closingChar);
-  if(!result) return;
-  let tagExp = result.data;
-  const closeIndex = result.index;
-  const separatorIndex = tagExp.search(/\s/);
-  let tagName = tagExp;
-  let attrExpPresent = true;
-  if(separatorIndex !== -1){//separate tag name and attributes expression
-    tagName = tagExp.substr(0, separatorIndex).replace(/\s\s*$/, '');
-    tagExp = tagExp.substr(separatorIndex + 1);
-  }
-
-  const rawTagName = tagName;
-  if(removeNSPrefix){
-    const colonIndex = tagName.indexOf(":");
-    if(colonIndex !== -1){
-      tagName = tagName.substr(colonIndex+1);
-      attrExpPresent = tagName !== result.data.substr(colonIndex + 1);
-    }
-  }
-
-  return {
-    tagName: tagName,
-    tagExp: tagExp,
-    closeIndex: closeIndex,
-    attrExpPresent: attrExpPresent,
-    rawTagName: rawTagName,
-  }
-}
-/**
- * find paired tag for a stop node
- * @param {string} xmlData 
- * @param {string} tagName 
- * @param {number} i 
- */
-function readStopNodeData(xmlData, tagName, i){
-  const startIndex = i;
-  // Starting at 1 since we already have an open tag
-  let openTagCount = 1;
-
-  for (; i < xmlData.length; i++) {
-    if( xmlData[i] === "<"){ 
-      if (xmlData[i+1] === "/") {//close tag
-          const closeIndex = findClosingIndex(xmlData, ">", i, `${tagName} is not closed`);
-          let closeTagName = xmlData.substring(i+2,closeIndex).trim();
-          if(closeTagName === tagName){
-            openTagCount--;
-            if (openTagCount === 0) {
-              return {
-                tagContent: xmlData.substring(startIndex, i),
-                i : closeIndex
-              }
-            }
-          }
-          i=closeIndex;
-        } else if(xmlData[i+1] === '?') { 
-          const closeIndex = findClosingIndex(xmlData, "?>", i+1, "StopNode is not closed.")
-          i=closeIndex;
-        } else if(xmlData.substr(i + 1, 3) === '!--') { 
-          const closeIndex = findClosingIndex(xmlData, "-->", i+3, "StopNode is not closed.")
-          i=closeIndex;
-        } else if(xmlData.substr(i + 1, 2) === '![') { 
-          const closeIndex = findClosingIndex(xmlData, "]]>", i, "StopNode is not closed.") - 2;
-          i=closeIndex;
-        } else {
-          const tagData = readTagExp(xmlData, i, '>')
-
-          if (tagData) {
-            const openTagName = tagData && tagData.tagName;
-            if (openTagName === tagName && tagData.tagExp[tagData.tagExp.length-1] !== "/") {
-              openTagCount++;
-            }
-            i=tagData.closeIndex;
-          }
-        }
-      }
-  }//end for loop
-}
-
-function parseValue(val, shouldParse, options) {
-  if (shouldParse && typeof val === 'string') {
-    //console.log(options)
-    const newval = val.trim();
-    if(newval === 'true' ) return true;
-    else if(newval === 'false' ) return false;
-    else return toNumber(val, options);
-  } else {
-    if (util.isExist(val)) {
-      return val;
-    } else {
-      return '';
-    }
-  }
-}
-
-
-module.exports = OrderedObjParser;
-
-
-/***/ }),
-
-/***/ 42380:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const { buildOptions} = __nccwpck_require__(86993);
-const OrderedObjParser = __nccwpck_require__(25832);
-const { prettify} = __nccwpck_require__(42882);
-const validator = __nccwpck_require__(61739);
-
-class XMLParser{
-    
-    constructor(options){
-        this.externalEntities = {};
-        this.options = buildOptions(options);
-        
-    }
-    /**
-     * Parse XML dats to JS object 
-     * @param {string|Buffer} xmlData 
-     * @param {boolean|Object} validationOption 
-     */
-    parse(xmlData,validationOption){
-        if(typeof xmlData === "string"){
-        }else if( xmlData.toString){
-            xmlData = xmlData.toString();
-        }else{
-            throw new Error("XML data is accepted in String or Bytes[] form.")
-        }
-        if( validationOption){
-            if(validationOption === true) validationOption = {}; //validate with default options
-            
-            const result = validator.validate(xmlData, validationOption);
-            if (result !== true) {
-              throw Error( `${result.err.msg}:${result.err.line}:${result.err.col}` )
-            }
-          }
-        const orderedObjParser = new OrderedObjParser(this.options);
-        orderedObjParser.addExternalEntities(this.externalEntities);
-        const orderedResult = orderedObjParser.parseXml(xmlData);
-        if(this.options.preserveOrder || orderedResult === undefined) return orderedResult;
-        else return prettify(orderedResult, this.options);
-    }
-
-    /**
-     * Add Entity which is not by default supported by this library
-     * @param {string} key 
-     * @param {string} value 
-     */
-    addEntity(key, value){
-        if(value.indexOf("&") !== -1){
-            throw new Error("Entity value can't have '&'")
-        }else if(key.indexOf("&") !== -1 || key.indexOf(";") !== -1){
-            throw new Error("An entity must be set without '&' and ';'. Eg. use '#xD' for '&#xD;'")
-        }else if(value === "&"){
-            throw new Error("An entity with value '&' is not permitted");
-        }else{
-            this.externalEntities[key] = value;
-        }
-    }
-}
-
-module.exports = XMLParser;
-
-/***/ }),
-
-/***/ 42882:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-/**
- * 
- * @param {array} node 
- * @param {any} options 
- * @returns 
- */
-function prettify(node, options){
-  return compress( node, options);
-}
-
-/**
- * 
- * @param {array} arr 
- * @param {object} options 
- * @param {string} jPath 
- * @returns object
- */
-function compress(arr, options, jPath){
-  let text;
-  const compressedObj = {};
-  for (let i = 0; i < arr.length; i++) {
-    const tagObj = arr[i];
-    const property = propName(tagObj);
-    let newJpath = "";
-    if(jPath === undefined) newJpath = property;
-    else newJpath = jPath + "." + property;
-
-    if(property === options.textNodeName){
-      if(text === undefined) text = tagObj[property];
-      else text += "" + tagObj[property];
-    }else if(property === undefined){
-      continue;
-    }else if(tagObj[property]){
-      
-      let val = compress(tagObj[property], options, newJpath);
-      const isLeaf = isLeafTag(val, options);
-
-      if(tagObj[":@"]){
-        assignAttributes( val, tagObj[":@"], newJpath, options);
-      }else if(Object.keys(val).length === 1 && val[options.textNodeName] !== undefined && !options.alwaysCreateTextNode){
-        val = val[options.textNodeName];
-      }else if(Object.keys(val).length === 0){
-        if(options.alwaysCreateTextNode) val[options.textNodeName] = "";
-        else val = "";
-      }
-
-      if(compressedObj[property] !== undefined && compressedObj.hasOwnProperty(property)) {
-        if(!Array.isArray(compressedObj[property])) {
-            compressedObj[property] = [ compressedObj[property] ];
-        }
-        compressedObj[property].push(val);
-      }else{
-        //TODO: if a node is not an array, then check if it should be an array
-        //also determine if it is a leaf node
-        if (options.isArray(property, newJpath, isLeaf )) {
-          compressedObj[property] = [val];
-        }else{
-          compressedObj[property] = val;
-        }
-      }
-    }
-    
-  }
-  // if(text && text.length > 0) compressedObj[options.textNodeName] = text;
-  if(typeof text === "string"){
-    if(text.length > 0) compressedObj[options.textNodeName] = text;
-  }else if(text !== undefined) compressedObj[options.textNodeName] = text;
-  return compressedObj;
-}
-
-function propName(obj){
-  const keys = Object.keys(obj);
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-    if(key !== ":@") return key;
-  }
-}
-
-function assignAttributes(obj, attrMap, jpath, options){
-  if (attrMap) {
-    const keys = Object.keys(attrMap);
-    const len = keys.length; //don't make it inline
-    for (let i = 0; i < len; i++) {
-      const atrrName = keys[i];
-      if (options.isArray(atrrName, jpath + "." + atrrName, true, true)) {
-        obj[atrrName] = [ attrMap[atrrName] ];
-      } else {
-        obj[atrrName] = attrMap[atrrName];
-      }
-    }
-  }
-}
-
-function isLeafTag(obj, options){
-  const { textNodeName } = options;
-  const propCount = Object.keys(obj).length;
-  
-  if (propCount === 0) {
-    return true;
-  }
-
-  if (
-    propCount === 1 &&
-    (obj[textNodeName] || typeof obj[textNodeName] === "boolean" || obj[textNodeName] === 0)
-  ) {
-    return true;
-  }
-
-  return false;
-}
-exports.prettify = prettify;
-
-
-/***/ }),
-
-/***/ 7462:
-/***/ ((module) => {
-
-"use strict";
-
-
-class XmlNode{
-  constructor(tagname) {
-    this.tagname = tagname;
-    this.child = []; //nested tags, text, cdata, comments in order
-    this[":@"] = {}; //attributes map
-  }
-  add(key,val){
-    // this.child.push( {name : key, val: val, isCdata: isCdata });
-    if(key === "__proto__") key = "#__proto__";
-    this.child.push( {[key]: val });
-  }
-  addChild(node) {
-    if(node.tagname === "__proto__") node.tagname = "#__proto__";
-    if(node[":@"] && Object.keys(node[":@"]).length > 0){
-      this.child.push( { [node.tagname]: node.child, [":@"]: node[":@"] });
-    }else{
-      this.child.push( { [node.tagname]: node.child });
-    }
-  };
-};
-
-
-module.exports = XmlNode;
-
-/***/ }),
-
 /***/ 66129:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -20362,21 +18291,67 @@ module.exports = XmlNode;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.defaultErrorRedactor = exports.GaxiosError = void 0;
+exports.GaxiosError = exports.GAXIOS_ERROR_SYMBOL = void 0;
+exports.defaultErrorRedactor = defaultErrorRedactor;
 const url_1 = __nccwpck_require__(57310);
-/* eslint-disable @typescript-eslint/no-explicit-any */
+const util_1 = __nccwpck_require__(21980);
+const extend_1 = __importDefault(__nccwpck_require__(38171));
+/**
+ * Support `instanceof` operator for `GaxiosError`s in different versions of this library.
+ *
+ * @see {@link GaxiosError[Symbol.hasInstance]}
+ */
+exports.GAXIOS_ERROR_SYMBOL = Symbol.for(`${util_1.pkg.name}-gaxios-error`);
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 class GaxiosError extends Error {
+    /**
+     * Support `instanceof` operator for `GaxiosError` across builds/duplicated files.
+     *
+     * @see {@link GAXIOS_ERROR_SYMBOL}
+     * @see {@link GaxiosError[GAXIOS_ERROR_SYMBOL]}
+     */
+    static [(_a = exports.GAXIOS_ERROR_SYMBOL, Symbol.hasInstance)](instance) {
+        if (instance &&
+            typeof instance === 'object' &&
+            exports.GAXIOS_ERROR_SYMBOL in instance &&
+            instance[exports.GAXIOS_ERROR_SYMBOL] === util_1.pkg.version) {
+            return true;
+        }
+        // fallback to native
+        return Function.prototype[Symbol.hasInstance].call(GaxiosError, instance);
+    }
     constructor(message, config, response, error) {
+        var _b;
         super(message);
         this.config = config;
         this.response = response;
         this.error = error;
+        /**
+         * Support `instanceof` operator for `GaxiosError` across builds/duplicated files.
+         *
+         * @see {@link GAXIOS_ERROR_SYMBOL}
+         * @see {@link GaxiosError[Symbol.hasInstance]}
+         * @see {@link https://github.com/microsoft/TypeScript/issues/13965#issuecomment-278570200}
+         * @see {@link https://stackoverflow.com/questions/46618852/require-and-instanceof}
+         * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/@@hasInstance#reverting_to_default_instanceof_behavior}
+         */
+        this[_a] = util_1.pkg.version;
+        // deep-copy config as we do not want to mutate
+        // the existing config for future retries/use
+        this.config = (0, extend_1.default)(true, {}, config);
+        if (this.response) {
+            this.response.config = (0, extend_1.default)(true, {}, this.response.config);
+        }
         if (this.response) {
             try {
-                this.response.data = translateData(config.responseType, response === null || response === void 0 ? void 0 : response.data);
+                this.response.data = translateData(this.config.responseType, (_b = this.response) === null || _b === void 0 ? void 0 : _b.data);
             }
-            catch (_a) {
+            catch (_c) {
                 // best effort - don't throw an error within an error
                 // we could set `this.response.config.responseType = 'unknown'`, but
                 // that would mutate future calls with this config object.
@@ -20387,19 +18362,10 @@ class GaxiosError extends Error {
             this.code = error.code;
         }
         if (config.errorRedactor) {
-            const errorRedactor = (config.errorRedactor);
-            // shallow-copy config for redaction as we do not want
-            // future requests to have redacted information
-            this.config = { ...config };
-            if (this.response) {
-                // copy response's config, as it may be recursively redacted
-                this.response = { ...this.response, config: { ...this.response.config } };
-            }
-            const results = errorRedactor({ config, response });
-            this.config = { ...config, ...results.config };
-            if (this.response) {
-                this.response = { ...this.response, ...results.response, config };
-            }
+            config.errorRedactor({
+                config: this.config,
+                response: this.response,
+            });
         }
     }
 }
@@ -20433,7 +18399,15 @@ function defaultErrorRedactor(data) {
             return;
         for (const key of Object.keys(headers)) {
             // any casing of `Authentication`
-            if (/^authentication$/.test(key)) {
+            if (/^authentication$/i.test(key)) {
+                headers[key] = REDACT;
+            }
+            // any casing of `Authorization`
+            if (/^authorization$/i.test(key)) {
+                headers[key] = REDACT;
+            }
+            // anything containing secret, such as 'client secret'
+            if (/secret/i.test(key)) {
                 headers[key] = REDACT;
             }
         }
@@ -20443,7 +18417,9 @@ function defaultErrorRedactor(data) {
             obj !== null &&
             typeof obj[key] === 'string') {
             const text = obj[key];
-            if (/grant_type=/.test(text) || /assertion=/.test(text)) {
+            if (/grant_type=/i.test(text) ||
+                /assertion=/i.test(text) ||
+                /secret/i.test(text)) {
                 obj[key] = REDACT;
             }
         }
@@ -20456,6 +18432,9 @@ function defaultErrorRedactor(data) {
             if ('assertion' in obj) {
                 obj['assertion'] = REDACT;
             }
+            if ('client_secret' in obj) {
+                obj['client_secret'] = REDACT;
+            }
         }
     }
     if (data.config) {
@@ -20465,13 +18444,16 @@ function defaultErrorRedactor(data) {
         redactString(data.config, 'body');
         redactObject(data.config.body);
         try {
-            const url = new url_1.URL(data.config.url || '');
+            const url = new url_1.URL('', data.config.url);
             if (url.searchParams.has('token')) {
                 url.searchParams.set('token', REDACT);
             }
+            if (url.searchParams.has('client_secret')) {
+                url.searchParams.set('client_secret', REDACT);
+            }
             data.config.url = url.toString();
         }
-        catch (_a) {
+        catch (_b) {
             // ignore error - no need to parse an invalid URL
         }
     }
@@ -20483,7 +18465,6 @@ function defaultErrorRedactor(data) {
     }
     return data;
 }
-exports.defaultErrorRedactor = defaultErrorRedactor;
 //# sourceMappingURL=common.js.map
 
 /***/ }),
@@ -20505,9 +18486,44 @@ exports.defaultErrorRedactor = defaultErrorRedactor;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _Gaxios_instances, _a, _Gaxios_urlMayUseProxy, _Gaxios_applyRequestInterceptors, _Gaxios_applyResponseInterceptors, _Gaxios_prepareRequest, _Gaxios_proxyAgent, _Gaxios_getProxyAgent;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Gaxios = void 0;
 const extend_1 = __importDefault(__nccwpck_require__(38171));
@@ -20518,7 +18534,9 @@ const is_stream_1 = __importDefault(__nccwpck_require__(41554));
 const url_1 = __nccwpck_require__(57310);
 const common_1 = __nccwpck_require__(66129);
 const retry_1 = __nccwpck_require__(31052);
-const https_proxy_agent_1 = __nccwpck_require__(77219);
+const stream_1 = __nccwpck_require__(12781);
+const uuid_1 = __nccwpck_require__(19694);
+const interceptor_1 = __nccwpck_require__(14309);
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const fetch = hasFetch() ? window.fetch : node_fetch_1.default;
 function hasWindow() {
@@ -20542,65 +18560,28 @@ function getHeader(options, header) {
     }
     return undefined;
 }
-let HttpsProxyAgent;
-function loadProxy() {
-    var _a, _b, _c, _d;
-    const proxy = ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.HTTPS_PROXY) ||
-        ((_b = process === null || process === void 0 ? void 0 : process.env) === null || _b === void 0 ? void 0 : _b.https_proxy) ||
-        ((_c = process === null || process === void 0 ? void 0 : process.env) === null || _c === void 0 ? void 0 : _c.HTTP_PROXY) ||
-        ((_d = process === null || process === void 0 ? void 0 : process.env) === null || _d === void 0 ? void 0 : _d.http_proxy);
-    if (proxy) {
-        HttpsProxyAgent = https_proxy_agent_1.HttpsProxyAgent;
-    }
-    return proxy;
-}
-loadProxy();
-function skipProxy(url) {
-    var _a;
-    const noProxyEnv = (_a = process.env.NO_PROXY) !== null && _a !== void 0 ? _a : process.env.no_proxy;
-    if (!noProxyEnv) {
-        return false;
-    }
-    const noProxyUrls = noProxyEnv.split(',');
-    const parsedURL = new url_1.URL(url);
-    return !!noProxyUrls.find(url => {
-        if (url.startsWith('*.') || url.startsWith('.')) {
-            url = url.replace(/^\*\./, '.');
-            return parsedURL.hostname.endsWith(url);
-        }
-        else {
-            return url === parsedURL.origin || url === parsedURL.hostname;
-        }
-    });
-}
-// Figure out if we should be using a proxy. Only if it's required, load
-// the https-proxy-agent module as it adds startup cost.
-function getProxy(url) {
-    // If there is a match between the no_proxy env variables and the url, then do not proxy
-    if (skipProxy(url)) {
-        return undefined;
-        // If there is not a match between the no_proxy env variables and the url, check to see if there should be a proxy
-    }
-    else {
-        return loadProxy();
-    }
-}
 class Gaxios {
     /**
      * The Gaxios class is responsible for making HTTP requests.
      * @param defaults The default set of options to be used for this instance.
      */
     constructor(defaults) {
+        _Gaxios_instances.add(this);
         this.agentCache = new Map();
         this.defaults = defaults || {};
+        this.interceptors = {
+            request: new interceptor_1.GaxiosInterceptorManager(),
+            response: new interceptor_1.GaxiosInterceptorManager(),
+        };
     }
     /**
      * Perform an HTTP request with the given options.
      * @param opts Set of HTTP options that will be used for this HTTP request.
      */
     async request(opts = {}) {
-        opts = this.validateOpts(opts);
-        return this._request(opts);
+        opts = await __classPrivateFieldGet(this, _Gaxios_instances, "m", _Gaxios_prepareRequest).call(this, opts);
+        opts = await __classPrivateFieldGet(this, _Gaxios_instances, "m", _Gaxios_applyRequestInterceptors).call(this, opts);
+        return __classPrivateFieldGet(this, _Gaxios_instances, "m", _Gaxios_applyResponseInterceptors).call(this, this._request(opts));
     }
     async _defaultAdapter(opts) {
         const fetchImpl = opts.fetchImplementation || fetch;
@@ -20613,6 +18594,7 @@ class Gaxios {
      * @param opts Set of HTTP options that will be used for this HTTP request.
      */
     async _request(opts = {}) {
+        var _b;
         try {
             let translatedResponse;
             if (opts.adapter) {
@@ -20644,7 +18626,10 @@ class Gaxios {
             if (shouldRetry && config) {
                 err.config.retryConfig.currentRetryAttempt =
                     config.retryConfig.currentRetryAttempt;
-                return this._request(err.config);
+                // The error's config could be redacted - therefore we only want to
+                // copy the retry state over to the existing config
+                opts.retryConfig = (_b = err.config) === null || _b === void 0 ? void 0 : _b.retryConfig;
+                return this._request(opts);
             }
             throw err;
         }
@@ -20658,7 +18643,7 @@ class Gaxios {
                 try {
                     data = JSON.parse(data);
                 }
-                catch (_a) {
+                catch (_b) {
                     // continue
                 }
                 return data;
@@ -20672,119 +18657,6 @@ class Gaxios {
             default:
                 return this.getResponseDataFromContentType(res);
         }
-    }
-    /**
-     * Validates the options, and merges them with defaults.
-     * @param opts The original options passed from the client.
-     */
-    validateOpts(options) {
-        const opts = (0, extend_1.default)(true, {}, this.defaults, options);
-        if (!opts.url) {
-            throw new Error('URL is required.');
-        }
-        // baseUrl has been deprecated, remove in 2.0
-        const baseUrl = opts.baseUrl || opts.baseURL;
-        if (baseUrl) {
-            opts.url = baseUrl + opts.url;
-        }
-        opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
-        if (opts.params && Object.keys(opts.params).length > 0) {
-            let additionalQueryParams = opts.paramsSerializer(opts.params);
-            if (additionalQueryParams.startsWith('?')) {
-                additionalQueryParams = additionalQueryParams.slice(1);
-            }
-            const prefix = opts.url.includes('?') ? '&' : '?';
-            opts.url = opts.url + prefix + additionalQueryParams;
-        }
-        if (typeof options.maxContentLength === 'number') {
-            opts.size = options.maxContentLength;
-        }
-        if (typeof options.maxRedirects === 'number') {
-            opts.follow = options.maxRedirects;
-        }
-        opts.headers = opts.headers || {};
-        if (opts.data) {
-            const isFormData = typeof FormData === 'undefined'
-                ? false
-                : (opts === null || opts === void 0 ? void 0 : opts.data) instanceof FormData;
-            if (is_stream_1.default.readable(opts.data)) {
-                opts.body = opts.data;
-            }
-            else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
-                // Do not attempt to JSON.stringify() a Buffer:
-                opts.body = opts.data;
-                if (!hasHeader(opts, 'Content-Type')) {
-                    opts.headers['Content-Type'] = 'application/json';
-                }
-            }
-            else if (typeof opts.data === 'object') {
-                // If www-form-urlencoded content type has been set, but data is
-                // provided as an object, serialize the content using querystring:
-                if (!isFormData) {
-                    if (getHeader(opts, 'content-type') ===
-                        'application/x-www-form-urlencoded') {
-                        opts.body = opts.paramsSerializer(opts.data);
-                    }
-                    else {
-                        // } else if (!(opts.data instanceof FormData)) {
-                        if (!hasHeader(opts, 'Content-Type')) {
-                            opts.headers['Content-Type'] = 'application/json';
-                        }
-                        opts.body = JSON.stringify(opts.data);
-                    }
-                }
-            }
-            else {
-                opts.body = opts.data;
-            }
-        }
-        opts.validateStatus = opts.validateStatus || this.validateStatus;
-        opts.responseType = opts.responseType || 'unknown';
-        if (!opts.headers['Accept'] && opts.responseType === 'json') {
-            opts.headers['Accept'] = 'application/json';
-        }
-        opts.method = opts.method || 'GET';
-        const proxy = getProxy(opts.url);
-        if (proxy) {
-            if (this.agentCache.has(proxy)) {
-                opts.agent = this.agentCache.get(proxy);
-            }
-            else {
-                // Proxy is being used in conjunction with mTLS.
-                if (opts.cert && opts.key) {
-                    const parsedURL = new url_1.URL(proxy);
-                    opts.agent = new HttpsProxyAgent({
-                        port: parsedURL.port,
-                        host: parsedURL.host,
-                        protocol: parsedURL.protocol,
-                        cert: opts.cert,
-                        key: opts.key,
-                    });
-                }
-                else {
-                    opts.agent = new HttpsProxyAgent(proxy);
-                }
-                this.agentCache.set(proxy, opts.agent);
-            }
-        }
-        else if (opts.cert && opts.key) {
-            // Configure client for mTLS:
-            if (this.agentCache.has(opts.key)) {
-                opts.agent = this.agentCache.get(opts.key);
-            }
-            else {
-                opts.agent = new https_1.Agent({
-                    cert: opts.cert,
-                    key: opts.key,
-                });
-                this.agentCache.set(opts.key, opts.agent);
-            }
-        }
-        if (typeof opts.errorRedactor !== 'function' &&
-            opts.errorRedactor !== false) {
-            opts.errorRedactor = common_1.defaultErrorRedactor;
-        }
-        return opts;
     }
     /**
      * By default, throw for any non-2xx status code
@@ -20835,13 +18707,12 @@ class Gaxios {
             try {
                 data = JSON.parse(data);
             }
-            catch (_a) {
+            catch (_b) {
                 // continue
             }
             return data;
         }
-        else if (contentType.includes('text/plain') ||
-            contentType.includes('text/html')) {
+        else if (contentType.match(/^text\//)) {
             return response.text();
         }
         else {
@@ -20849,14 +18720,244 @@ class Gaxios {
             return response.blob();
         }
     }
+    /**
+     * Creates an async generator that yields the pieces of a multipart/related request body.
+     * This implementation follows the spec: https://www.ietf.org/rfc/rfc2387.txt. However, recursive
+     * multipart/related requests are not currently supported.
+     *
+     * @param {GaxioMultipartOptions[]} multipartOptions the pieces to turn into a multipart/related body.
+     * @param {string} boundary the boundary string to be placed between each part.
+     */
+    async *getMultipartRequest(multipartOptions, boundary) {
+        const finale = `--${boundary}--`;
+        for (const currentPart of multipartOptions) {
+            const partContentType = currentPart.headers['Content-Type'] || 'application/octet-stream';
+            const preamble = `--${boundary}\r\nContent-Type: ${partContentType}\r\n\r\n`;
+            yield preamble;
+            if (typeof currentPart.content === 'string') {
+                yield currentPart.content;
+            }
+            else {
+                yield* currentPart.content;
+            }
+            yield '\r\n';
+        }
+        yield finale;
+    }
 }
 exports.Gaxios = Gaxios;
+_a = Gaxios, _Gaxios_instances = new WeakSet(), _Gaxios_urlMayUseProxy = function _Gaxios_urlMayUseProxy(url, noProxy = []) {
+    var _b, _c;
+    const candidate = new url_1.URL(url);
+    const noProxyList = [...noProxy];
+    const noProxyEnvList = ((_c = ((_b = process.env.NO_PROXY) !== null && _b !== void 0 ? _b : process.env.no_proxy)) === null || _c === void 0 ? void 0 : _c.split(',')) || [];
+    for (const rule of noProxyEnvList) {
+        noProxyList.push(rule.trim());
+    }
+    for (const rule of noProxyList) {
+        // Match regex
+        if (rule instanceof RegExp) {
+            if (rule.test(candidate.toString())) {
+                return false;
+            }
+        }
+        // Match URL
+        else if (rule instanceof url_1.URL) {
+            if (rule.origin === candidate.origin) {
+                return false;
+            }
+        }
+        // Match string regex
+        else if (rule.startsWith('*.') || rule.startsWith('.')) {
+            const cleanedRule = rule.replace(/^\*\./, '.');
+            if (candidate.hostname.endsWith(cleanedRule)) {
+                return false;
+            }
+        }
+        // Basic string match
+        else if (rule === candidate.origin ||
+            rule === candidate.hostname ||
+            rule === candidate.href) {
+            return false;
+        }
+    }
+    return true;
+}, _Gaxios_applyRequestInterceptors = 
+/**
+ * Applies the request interceptors. The request interceptors are applied after the
+ * call to prepareRequest is completed.
+ *
+ * @param {GaxiosOptions} options The current set of options.
+ *
+ * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+ */
+async function _Gaxios_applyRequestInterceptors(options) {
+    let promiseChain = Promise.resolve(options);
+    for (const interceptor of this.interceptors.request.values()) {
+        if (interceptor) {
+            promiseChain = promiseChain.then(interceptor.resolved, interceptor.rejected);
+        }
+    }
+    return promiseChain;
+}, _Gaxios_applyResponseInterceptors = 
+/**
+ * Applies the response interceptors. The response interceptors are applied after the
+ * call to request is made.
+ *
+ * @param {GaxiosOptions} options The current set of options.
+ *
+ * @returns {Promise<GaxiosOptions>} Promise that resolves to the set of options or response after interceptors are applied.
+ */
+async function _Gaxios_applyResponseInterceptors(response) {
+    let promiseChain = Promise.resolve(response);
+    for (const interceptor of this.interceptors.response.values()) {
+        if (interceptor) {
+            promiseChain = promiseChain.then(interceptor.resolved, interceptor.rejected);
+        }
+    }
+    return promiseChain;
+}, _Gaxios_prepareRequest = 
+/**
+ * Validates the options, merges them with defaults, and prepare request.
+ *
+ * @param options The original options passed from the client.
+ * @returns Prepared options, ready to make a request
+ */
+async function _Gaxios_prepareRequest(options) {
+    var _b, _c, _d, _e;
+    const opts = (0, extend_1.default)(true, {}, this.defaults, options);
+    if (!opts.url) {
+        throw new Error('URL is required.');
+    }
+    // baseUrl has been deprecated, remove in 2.0
+    const baseUrl = opts.baseUrl || opts.baseURL;
+    if (baseUrl) {
+        opts.url = baseUrl.toString() + opts.url;
+    }
+    opts.paramsSerializer = opts.paramsSerializer || this.paramsSerializer;
+    if (opts.params && Object.keys(opts.params).length > 0) {
+        let additionalQueryParams = opts.paramsSerializer(opts.params);
+        if (additionalQueryParams.startsWith('?')) {
+            additionalQueryParams = additionalQueryParams.slice(1);
+        }
+        const prefix = opts.url.toString().includes('?') ? '&' : '?';
+        opts.url = opts.url + prefix + additionalQueryParams;
+    }
+    if (typeof options.maxContentLength === 'number') {
+        opts.size = options.maxContentLength;
+    }
+    if (typeof options.maxRedirects === 'number') {
+        opts.follow = options.maxRedirects;
+    }
+    opts.headers = opts.headers || {};
+    if (opts.multipart === undefined && opts.data) {
+        const isFormData = typeof FormData === 'undefined'
+            ? false
+            : (opts === null || opts === void 0 ? void 0 : opts.data) instanceof FormData;
+        if (is_stream_1.default.readable(opts.data)) {
+            opts.body = opts.data;
+        }
+        else if (hasBuffer() && Buffer.isBuffer(opts.data)) {
+            // Do not attempt to JSON.stringify() a Buffer:
+            opts.body = opts.data;
+            if (!hasHeader(opts, 'Content-Type')) {
+                opts.headers['Content-Type'] = 'application/json';
+            }
+        }
+        else if (typeof opts.data === 'object') {
+            // If www-form-urlencoded content type has been set, but data is
+            // provided as an object, serialize the content using querystring:
+            if (!isFormData) {
+                if (getHeader(opts, 'content-type') ===
+                    'application/x-www-form-urlencoded') {
+                    opts.body = opts.paramsSerializer(opts.data);
+                }
+                else {
+                    // } else if (!(opts.data instanceof FormData)) {
+                    if (!hasHeader(opts, 'Content-Type')) {
+                        opts.headers['Content-Type'] = 'application/json';
+                    }
+                    opts.body = JSON.stringify(opts.data);
+                }
+            }
+        }
+        else {
+            opts.body = opts.data;
+        }
+    }
+    else if (opts.multipart && opts.multipart.length > 0) {
+        // note: once the minimum version reaches Node 16,
+        // this can be replaced with randomUUID() function from crypto
+        // and the dependency on UUID removed
+        const boundary = (0, uuid_1.v4)();
+        opts.headers['Content-Type'] = `multipart/related; boundary=${boundary}`;
+        const bodyStream = new stream_1.PassThrough();
+        opts.body = bodyStream;
+        (0, stream_1.pipeline)(this.getMultipartRequest(opts.multipart, boundary), bodyStream, () => { });
+    }
+    opts.validateStatus = opts.validateStatus || this.validateStatus;
+    opts.responseType = opts.responseType || 'unknown';
+    if (!opts.headers['Accept'] && opts.responseType === 'json') {
+        opts.headers['Accept'] = 'application/json';
+    }
+    opts.method = opts.method || 'GET';
+    const proxy = opts.proxy ||
+        ((_b = process === null || process === void 0 ? void 0 : process.env) === null || _b === void 0 ? void 0 : _b.HTTPS_PROXY) ||
+        ((_c = process === null || process === void 0 ? void 0 : process.env) === null || _c === void 0 ? void 0 : _c.https_proxy) ||
+        ((_d = process === null || process === void 0 ? void 0 : process.env) === null || _d === void 0 ? void 0 : _d.HTTP_PROXY) ||
+        ((_e = process === null || process === void 0 ? void 0 : process.env) === null || _e === void 0 ? void 0 : _e.http_proxy);
+    const urlMayUseProxy = __classPrivateFieldGet(this, _Gaxios_instances, "m", _Gaxios_urlMayUseProxy).call(this, opts.url, opts.noProxy);
+    if (opts.agent) {
+        // don't do any of the following options - use the user-provided agent.
+    }
+    else if (proxy && urlMayUseProxy) {
+        const HttpsProxyAgent = await __classPrivateFieldGet(_a, _a, "m", _Gaxios_getProxyAgent).call(_a);
+        if (this.agentCache.has(proxy)) {
+            opts.agent = this.agentCache.get(proxy);
+        }
+        else {
+            opts.agent = new HttpsProxyAgent(proxy, {
+                cert: opts.cert,
+                key: opts.key,
+            });
+            this.agentCache.set(proxy, opts.agent);
+        }
+    }
+    else if (opts.cert && opts.key) {
+        // Configure client for mTLS
+        if (this.agentCache.has(opts.key)) {
+            opts.agent = this.agentCache.get(opts.key);
+        }
+        else {
+            opts.agent = new https_1.Agent({
+                cert: opts.cert,
+                key: opts.key,
+            });
+            this.agentCache.set(opts.key, opts.agent);
+        }
+    }
+    if (typeof opts.errorRedactor !== 'function' &&
+        opts.errorRedactor !== false) {
+        opts.errorRedactor = common_1.defaultErrorRedactor;
+    }
+    return opts;
+}, _Gaxios_getProxyAgent = async function _Gaxios_getProxyAgent() {
+    __classPrivateFieldSet(this, _a, __classPrivateFieldGet(this, _a, "f", _Gaxios_proxyAgent) || (await Promise.resolve().then(() => __importStar(__nccwpck_require__(77219)))).HttpsProxyAgent, "f", _Gaxios_proxyAgent);
+    return __classPrivateFieldGet(this, _a, "f", _Gaxios_proxyAgent);
+};
+/**
+ * A cache for the lazily-loaded proxy agent.
+ *
+ * Should use {@link Gaxios[#getProxyAgent]} to retrieve.
+ */
+// using `import` to dynamically import the types here
+_Gaxios_proxyAgent = { value: void 0 };
 //# sourceMappingURL=gaxios.js.map
 
 /***/ }),
 
 /***/ 59555:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -20872,12 +18973,28 @@ exports.Gaxios = Gaxios;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.request = exports.instance = exports.Gaxios = exports.GaxiosError = void 0;
+exports.instance = exports.Gaxios = exports.GaxiosError = void 0;
+exports.request = request;
 const gaxios_1 = __nccwpck_require__(28133);
 Object.defineProperty(exports, "Gaxios", ({ enumerable: true, get: function () { return gaxios_1.Gaxios; } }));
 var common_1 = __nccwpck_require__(66129);
 Object.defineProperty(exports, "GaxiosError", ({ enumerable: true, get: function () { return common_1.GaxiosError; } }));
+__exportStar(__nccwpck_require__(14309), exports);
 /**
  * The default instance used when the `request` method is directly
  * invoked.
@@ -20890,8 +19007,36 @@ exports.instance = new gaxios_1.Gaxios();
 async function request(opts) {
     return exports.instance.request(opts);
 }
-exports.request = request;
 //# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 14309:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GaxiosInterceptorManager = void 0;
+/**
+ * Class to manage collections of GaxiosInterceptors for both requests and responses.
+ */
+class GaxiosInterceptorManager extends Set {
+}
+exports.GaxiosInterceptorManager = GaxiosInterceptorManager;
+//# sourceMappingURL=interceptor.js.map
 
 /***/ }),
 
@@ -20913,9 +19058,8 @@ exports.request = request;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getRetryConfig = void 0;
+exports.getRetryConfig = getRetryConfig;
 async function getRetryConfig(err) {
-    var _a;
     let config = getConfig(err);
     if (!err || !err.config || (!config && !err.config.retry)) {
         return { shouldRetry: false };
@@ -20935,6 +19079,18 @@ async function getRetryConfig(err) {
         config.noResponseRetries === undefined || config.noResponseRetries === null
             ? 2
             : config.noResponseRetries;
+    config.retryDelayMultiplier = config.retryDelayMultiplier
+        ? config.retryDelayMultiplier
+        : 2;
+    config.timeOfFirstRequest = config.timeOfFirstRequest
+        ? config.timeOfFirstRequest
+        : Date.now();
+    config.totalTimeout = config.totalTimeout
+        ? config.totalTimeout
+        : Number.MAX_SAFE_INTEGER;
+    config.maxRetryDelay = config.maxRetryDelay
+        ? config.maxRetryDelay
+        : Number.MAX_SAFE_INTEGER;
     // If this wasn't in the list of status codes where we want
     // to automatically retry, return.
     const retryRanges = [
@@ -20943,9 +19099,11 @@ async function getRetryConfig(err) {
         // 2xx - Do not retry (Success)
         // 3xx - Do not retry (Redirect)
         // 4xx - Do not retry (Client errors)
+        // 408 - Retry ("Request Timeout")
         // 429 - Retry ("Too Many Requests")
         // 5xx - Retry (Server errors)
         [100, 199],
+        [408, 408],
         [429, 429],
         [500, 599],
     ];
@@ -20957,11 +19115,7 @@ async function getRetryConfig(err) {
     if (!(await shouldRetryFn(err))) {
         return { shouldRetry: false, config: err.config };
     }
-    // Calculate time to wait with exponential backoff.
-    // If this is the first retry, look for a configured retryDelay.
-    const retryDelay = config.currentRetryAttempt ? 0 : (_a = config.retryDelay) !== null && _a !== void 0 ? _a : 100;
-    // Formula: retryDelay + ((2^c - 1 / 2) * 1000)
-    const delay = retryDelay + ((Math.pow(2, config.currentRetryAttempt) - 1) / 2) * 1000;
+    const delay = getNextRetryDelay(config);
     // We're going to retry!  Incremenent the counter.
     err.config.retryConfig.currentRetryAttempt += 1;
     // Create a promise that invokes the retry after the backOffDelay
@@ -20978,7 +19132,6 @@ async function getRetryConfig(err) {
     await backoff;
     return { shouldRetry: true, config: err.config };
 }
-exports.getRetryConfig = getRetryConfig;
 /**
  * Determine based on config if we should retry the request.
  * @param err The GaxiosError passed to the interceptor.
@@ -21037,7 +19190,731 @@ function getConfig(err) {
     }
     return;
 }
+/**
+ * Gets the delay to wait before the next retry.
+ *
+ * @param {RetryConfig} config The current set of retry options
+ * @returns {number} the amount of ms to wait before the next retry attempt.
+ */
+function getNextRetryDelay(config) {
+    var _a;
+    // Calculate time to wait with exponential backoff.
+    // If this is the first retry, look for a configured retryDelay.
+    const retryDelay = config.currentRetryAttempt ? 0 : (_a = config.retryDelay) !== null && _a !== void 0 ? _a : 100;
+    // Formula: retryDelay + ((retryDelayMultiplier^currentRetryAttempt - 1 / 2) * 1000)
+    const calculatedDelay = retryDelay +
+        ((Math.pow(config.retryDelayMultiplier, config.currentRetryAttempt) - 1) /
+            2) *
+            1000;
+    const maxAllowableDelay = config.totalTimeout - (Date.now() - config.timeOfFirstRequest);
+    return Math.min(calculatedDelay, maxAllowableDelay, config.maxRetryDelay);
+}
 //# sourceMappingURL=retry.js.map
+
+/***/ }),
+
+/***/ 21980:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright 2023 Google LLC
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.pkg = void 0;
+exports.pkg = __nccwpck_require__(6318);
+//# sourceMappingURL=util.js.map
+
+/***/ }),
+
+/***/ 19694:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+Object.defineProperty(exports, "NIL", ({
+  enumerable: true,
+  get: function () {
+    return _nil.default;
+  }
+}));
+Object.defineProperty(exports, "parse", ({
+  enumerable: true,
+  get: function () {
+    return _parse.default;
+  }
+}));
+Object.defineProperty(exports, "stringify", ({
+  enumerable: true,
+  get: function () {
+    return _stringify.default;
+  }
+}));
+Object.defineProperty(exports, "v1", ({
+  enumerable: true,
+  get: function () {
+    return _v.default;
+  }
+}));
+Object.defineProperty(exports, "v3", ({
+  enumerable: true,
+  get: function () {
+    return _v2.default;
+  }
+}));
+Object.defineProperty(exports, "v4", ({
+  enumerable: true,
+  get: function () {
+    return _v3.default;
+  }
+}));
+Object.defineProperty(exports, "v5", ({
+  enumerable: true,
+  get: function () {
+    return _v4.default;
+  }
+}));
+Object.defineProperty(exports, "validate", ({
+  enumerable: true,
+  get: function () {
+    return _validate.default;
+  }
+}));
+Object.defineProperty(exports, "version", ({
+  enumerable: true,
+  get: function () {
+    return _version.default;
+  }
+}));
+
+var _v = _interopRequireDefault(__nccwpck_require__(94625));
+
+var _v2 = _interopRequireDefault(__nccwpck_require__(93951));
+
+var _v3 = _interopRequireDefault(__nccwpck_require__(52507));
+
+var _v4 = _interopRequireDefault(__nccwpck_require__(18457));
+
+var _nil = _interopRequireDefault(__nccwpck_require__(27298));
+
+var _version = _interopRequireDefault(__nccwpck_require__(40278));
+
+var _validate = _interopRequireDefault(__nccwpck_require__(75559));
+
+var _stringify = _interopRequireDefault(__nccwpck_require__(52956));
+
+var _parse = _interopRequireDefault(__nccwpck_require__(55558));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ }),
+
+/***/ 12484:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function md5(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('md5').update(bytes).digest();
+}
+
+var _default = md5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 53513:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var _default = {
+  randomUUID: _crypto.default.randomUUID
+};
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 27298:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = '00000000-0000-0000-0000-000000000000';
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 55558:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(75559));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function parse(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  let v;
+  const arr = new Uint8Array(16); // Parse ########-....-....-....-............
+
+  arr[0] = (v = parseInt(uuid.slice(0, 8), 16)) >>> 24;
+  arr[1] = v >>> 16 & 0xff;
+  arr[2] = v >>> 8 & 0xff;
+  arr[3] = v & 0xff; // Parse ........-####-....-....-............
+
+  arr[4] = (v = parseInt(uuid.slice(9, 13), 16)) >>> 8;
+  arr[5] = v & 0xff; // Parse ........-....-####-....-............
+
+  arr[6] = (v = parseInt(uuid.slice(14, 18), 16)) >>> 8;
+  arr[7] = v & 0xff; // Parse ........-....-....-####-............
+
+  arr[8] = (v = parseInt(uuid.slice(19, 23), 16)) >>> 8;
+  arr[9] = v & 0xff; // Parse ........-....-....-....-############
+  // (Use "/" to avoid 32-bit truncation when bit-shifting high-order bytes)
+
+  arr[10] = (v = parseInt(uuid.slice(24, 36), 16)) / 0x10000000000 & 0xff;
+  arr[11] = v / 0x100000000 & 0xff;
+  arr[12] = v >>> 24 & 0xff;
+  arr[13] = v >>> 16 & 0xff;
+  arr[14] = v >>> 8 & 0xff;
+  arr[15] = v & 0xff;
+  return arr;
+}
+
+var _default = parse;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 23894:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 27440:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = rng;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const rnds8Pool = new Uint8Array(256); // # of random values to pre-allocate
+
+let poolPtr = rnds8Pool.length;
+
+function rng() {
+  if (poolPtr > rnds8Pool.length - 16) {
+    _crypto.default.randomFillSync(rnds8Pool);
+
+    poolPtr = 0;
+  }
+
+  return rnds8Pool.slice(poolPtr, poolPtr += 16);
+}
+
+/***/ }),
+
+/***/ 45682:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _crypto = _interopRequireDefault(__nccwpck_require__(6113));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function sha1(bytes) {
+  if (Array.isArray(bytes)) {
+    bytes = Buffer.from(bytes);
+  } else if (typeof bytes === 'string') {
+    bytes = Buffer.from(bytes, 'utf8');
+  }
+
+  return _crypto.default.createHash('sha1').update(bytes).digest();
+}
+
+var _default = sha1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 52956:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+exports.unsafeStringify = unsafeStringify;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(75559));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Convert array of 16 byte values to UUID string format of the form:
+ * XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+ */
+const byteToHex = [];
+
+for (let i = 0; i < 256; ++i) {
+  byteToHex.push((i + 0x100).toString(16).slice(1));
+}
+
+function unsafeStringify(arr, offset = 0) {
+  // Note: Be careful editing this code!  It's been tuned for performance
+  // and works in ways you may not expect. See https://github.com/uuidjs/uuid/pull/434
+  return byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + '-' + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + '-' + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + '-' + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + '-' + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]];
+}
+
+function stringify(arr, offset = 0) {
+  const uuid = unsafeStringify(arr, offset); // Consistency check for valid UUID.  If this throws, it's likely due to one
+  // of the following:
+  // - One or more input array values don't map to a hex octet (leading to
+  // "undefined" in the uuid)
+  // - Invalid input values for the RFC `version` or `variant` fields
+
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Stringified UUID is invalid');
+  }
+
+  return uuid;
+}
+
+var _default = stringify;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 94625:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _rng = _interopRequireDefault(__nccwpck_require__(27440));
+
+var _stringify = __nccwpck_require__(52956);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// **`v1()` - Generate time-based UUID**
+//
+// Inspired by https://github.com/LiosK/UUID.js
+// and http://docs.python.org/library/uuid.html
+let _nodeId;
+
+let _clockseq; // Previous uuid creation time
+
+
+let _lastMSecs = 0;
+let _lastNSecs = 0; // See https://github.com/uuidjs/uuid for API details
+
+function v1(options, buf, offset) {
+  let i = buf && offset || 0;
+  const b = buf || new Array(16);
+  options = options || {};
+  let node = options.node || _nodeId;
+  let clockseq = options.clockseq !== undefined ? options.clockseq : _clockseq; // node and clockseq need to be initialized to random values if they're not
+  // specified.  We do this lazily to minimize issues related to insufficient
+  // system entropy.  See #189
+
+  if (node == null || clockseq == null) {
+    const seedBytes = options.random || (options.rng || _rng.default)();
+
+    if (node == null) {
+      // Per 4.5, create and 48-bit node id, (47 random bits + multicast bit = 1)
+      node = _nodeId = [seedBytes[0] | 0x01, seedBytes[1], seedBytes[2], seedBytes[3], seedBytes[4], seedBytes[5]];
+    }
+
+    if (clockseq == null) {
+      // Per 4.2.2, randomize (14 bit) clockseq
+      clockseq = _clockseq = (seedBytes[6] << 8 | seedBytes[7]) & 0x3fff;
+    }
+  } // UUID timestamps are 100 nano-second units since the Gregorian epoch,
+  // (1582-10-15 00:00).  JSNumbers aren't precise enough for this, so
+  // time is handled internally as 'msecs' (integer milliseconds) and 'nsecs'
+  // (100-nanoseconds offset from msecs) since unix epoch, 1970-01-01 00:00.
+
+
+  let msecs = options.msecs !== undefined ? options.msecs : Date.now(); // Per 4.2.1.2, use count of uuid's generated during the current clock
+  // cycle to simulate higher resolution clock
+
+  let nsecs = options.nsecs !== undefined ? options.nsecs : _lastNSecs + 1; // Time since last uuid creation (in msecs)
+
+  const dt = msecs - _lastMSecs + (nsecs - _lastNSecs) / 10000; // Per 4.2.1.2, Bump clockseq on clock regression
+
+  if (dt < 0 && options.clockseq === undefined) {
+    clockseq = clockseq + 1 & 0x3fff;
+  } // Reset nsecs if clock regresses (new clockseq) or we've moved onto a new
+  // time interval
+
+
+  if ((dt < 0 || msecs > _lastMSecs) && options.nsecs === undefined) {
+    nsecs = 0;
+  } // Per 4.2.1.2 Throw error if too many uuids are requested
+
+
+  if (nsecs >= 10000) {
+    throw new Error("uuid.v1(): Can't create more than 10M uuids/sec");
+  }
+
+  _lastMSecs = msecs;
+  _lastNSecs = nsecs;
+  _clockseq = clockseq; // Per 4.1.4 - Convert from unix epoch to Gregorian epoch
+
+  msecs += 12219292800000; // `time_low`
+
+  const tl = ((msecs & 0xfffffff) * 10000 + nsecs) % 0x100000000;
+  b[i++] = tl >>> 24 & 0xff;
+  b[i++] = tl >>> 16 & 0xff;
+  b[i++] = tl >>> 8 & 0xff;
+  b[i++] = tl & 0xff; // `time_mid`
+
+  const tmh = msecs / 0x100000000 * 10000 & 0xfffffff;
+  b[i++] = tmh >>> 8 & 0xff;
+  b[i++] = tmh & 0xff; // `time_high_and_version`
+
+  b[i++] = tmh >>> 24 & 0xf | 0x10; // include version
+
+  b[i++] = tmh >>> 16 & 0xff; // `clock_seq_hi_and_reserved` (Per 4.2.2 - include variant)
+
+  b[i++] = clockseq >>> 8 | 0x80; // `clock_seq_low`
+
+  b[i++] = clockseq & 0xff; // `node`
+
+  for (let n = 0; n < 6; ++n) {
+    b[i + n] = node[n];
+  }
+
+  return buf || (0, _stringify.unsafeStringify)(b);
+}
+
+var _default = v1;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 93951:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(64313));
+
+var _md = _interopRequireDefault(__nccwpck_require__(12484));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v3 = (0, _v.default)('v3', 0x30, _md.default);
+var _default = v3;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 64313:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.URL = exports.DNS = void 0;
+exports["default"] = v35;
+
+var _stringify = __nccwpck_require__(52956);
+
+var _parse = _interopRequireDefault(__nccwpck_require__(55558));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function stringToBytes(str) {
+  str = unescape(encodeURIComponent(str)); // UTF8 escape
+
+  const bytes = [];
+
+  for (let i = 0; i < str.length; ++i) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  return bytes;
+}
+
+const DNS = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
+exports.DNS = DNS;
+const URL = '6ba7b811-9dad-11d1-80b4-00c04fd430c8';
+exports.URL = URL;
+
+function v35(name, version, hashfunc) {
+  function generateUUID(value, namespace, buf, offset) {
+    var _namespace;
+
+    if (typeof value === 'string') {
+      value = stringToBytes(value);
+    }
+
+    if (typeof namespace === 'string') {
+      namespace = (0, _parse.default)(namespace);
+    }
+
+    if (((_namespace = namespace) === null || _namespace === void 0 ? void 0 : _namespace.length) !== 16) {
+      throw TypeError('Namespace must be array-like (16 iterable integer values, 0-255)');
+    } // Compute hash of namespace and value, Per 4.3
+    // Future: Use spread syntax when supported on all platforms, e.g. `bytes =
+    // hashfunc([...namespace, ... value])`
+
+
+    let bytes = new Uint8Array(16 + value.length);
+    bytes.set(namespace);
+    bytes.set(value, namespace.length);
+    bytes = hashfunc(bytes);
+    bytes[6] = bytes[6] & 0x0f | version;
+    bytes[8] = bytes[8] & 0x3f | 0x80;
+
+    if (buf) {
+      offset = offset || 0;
+
+      for (let i = 0; i < 16; ++i) {
+        buf[offset + i] = bytes[i];
+      }
+
+      return buf;
+    }
+
+    return (0, _stringify.unsafeStringify)(bytes);
+  } // Function#name is not settable on some platforms (#270)
+
+
+  try {
+    generateUUID.name = name; // eslint-disable-next-line no-empty
+  } catch (err) {} // For CommonJS default export support
+
+
+  generateUUID.DNS = DNS;
+  generateUUID.URL = URL;
+  return generateUUID;
+}
+
+/***/ }),
+
+/***/ 52507:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _native = _interopRequireDefault(__nccwpck_require__(53513));
+
+var _rng = _interopRequireDefault(__nccwpck_require__(27440));
+
+var _stringify = __nccwpck_require__(52956);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function v4(options, buf, offset) {
+  if (_native.default.randomUUID && !buf && !options) {
+    return _native.default.randomUUID();
+  }
+
+  options = options || {};
+
+  const rnds = options.random || (options.rng || _rng.default)(); // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
+
+
+  rnds[6] = rnds[6] & 0x0f | 0x40;
+  rnds[8] = rnds[8] & 0x3f | 0x80; // Copy bytes to buffer, if provided
+
+  if (buf) {
+    offset = offset || 0;
+
+    for (let i = 0; i < 16; ++i) {
+      buf[offset + i] = rnds[i];
+    }
+
+    return buf;
+  }
+
+  return (0, _stringify.unsafeStringify)(rnds);
+}
+
+var _default = v4;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 18457:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _v = _interopRequireDefault(__nccwpck_require__(64313));
+
+var _sha = _interopRequireDefault(__nccwpck_require__(45682));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const v5 = (0, _v.default)('v5', 0x50, _sha.default);
+var _default = v5;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 75559:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _regex = _interopRequireDefault(__nccwpck_require__(23894));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function validate(uuid) {
+  return typeof uuid === 'string' && _regex.default.test(uuid);
+}
+
+var _default = validate;
+exports["default"] = _default;
+
+/***/ }),
+
+/***/ 40278:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+
+var _validate = _interopRequireDefault(__nccwpck_require__(75559));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function version(uuid) {
+  if (!(0, _validate.default)(uuid)) {
+    throw TypeError('Invalid UUID');
+  }
+
+  return parseInt(uuid.slice(14, 15), 16);
+}
+
+var _default = version;
+exports["default"] = _default;
 
 /***/ }),
 
@@ -21062,7 +19939,12 @@ function getConfig(err) {
  * limitations under the License.
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.detectGCPResidency = exports.isGoogleComputeEngine = exports.isGoogleComputeEngineMACAddress = exports.isGoogleComputeEngineLinux = exports.isGoogleCloudServerless = exports.GCE_LINUX_BIOS_PATHS = void 0;
+exports.GCE_LINUX_BIOS_PATHS = void 0;
+exports.isGoogleCloudServerless = isGoogleCloudServerless;
+exports.isGoogleComputeEngineLinux = isGoogleComputeEngineLinux;
+exports.isGoogleComputeEngineMACAddress = isGoogleComputeEngineMACAddress;
+exports.isGoogleComputeEngine = isGoogleComputeEngine;
+exports.detectGCPResidency = detectGCPResidency;
 const fs_1 = __nccwpck_require__(57147);
 const os_1 = __nccwpck_require__(22037);
 /**
@@ -21099,7 +19981,6 @@ function isGoogleCloudServerless() {
         process.env.K_SERVICE;
     return !!isGFEnvironment;
 }
-exports.isGoogleCloudServerless = isGoogleCloudServerless;
 /**
  * Determines if the process is running on a Linux Google Compute Engine instance.
  *
@@ -21119,7 +20000,6 @@ function isGoogleComputeEngineLinux() {
         return false;
     }
 }
-exports.isGoogleComputeEngineLinux = isGoogleComputeEngineLinux;
 /**
  * Determines if the process is running on a Google Compute Engine instance with a known
  * MAC address.
@@ -21139,7 +20019,6 @@ function isGoogleComputeEngineMACAddress() {
     }
     return false;
 }
-exports.isGoogleComputeEngineMACAddress = isGoogleComputeEngineMACAddress;
 /**
  * Determines if the process is running on a Google Compute Engine instance.
  *
@@ -21148,7 +20027,6 @@ exports.isGoogleComputeEngineMACAddress = isGoogleComputeEngineMACAddress;
 function isGoogleComputeEngine() {
     return isGoogleComputeEngineLinux() || isGoogleComputeEngineMACAddress();
 }
-exports.isGoogleComputeEngine = isGoogleComputeEngine;
 /**
  * Determines if the process is running on Google Cloud Platform.
  *
@@ -21157,7 +20035,6 @@ exports.isGoogleComputeEngine = isGoogleComputeEngine;
 function detectGCPResidency() {
     return isGoogleCloudServerless() || isGoogleComputeEngine();
 }
-exports.detectGCPResidency = detectGCPResidency;
 //# sourceMappingURL=gcp-residency.js.map
 
 /***/ }),
@@ -21170,8 +20047,17 @@ exports.detectGCPResidency = detectGCPResidency;
 /**
  * Copyright 2018 Google LLC
  *
- * Distributed under MIT license.
- * See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -21188,16 +20074,27 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.requestTimeout = exports.setGCPResidency = exports.getGCPResidency = exports.gcpResidencyCache = exports.resetIsAvailableCache = exports.isAvailable = exports.project = exports.instance = exports.METADATA_SERVER_DETECTION = exports.HEADERS = exports.HEADER_VALUE = exports.HEADER_NAME = exports.SECONDARY_HOST_ADDRESS = exports.HOST_ADDRESS = exports.BASE_PATH = void 0;
+exports.gcpResidencyCache = exports.METADATA_SERVER_DETECTION = exports.HEADERS = exports.HEADER_VALUE = exports.HEADER_NAME = exports.SECONDARY_HOST_ADDRESS = exports.HOST_ADDRESS = exports.BASE_PATH = void 0;
+exports.instance = instance;
+exports.project = project;
+exports.universe = universe;
+exports.bulk = bulk;
+exports.isAvailable = isAvailable;
+exports.resetIsAvailableCache = resetIsAvailableCache;
+exports.getGCPResidency = getGCPResidency;
+exports.setGCPResidency = setGCPResidency;
+exports.requestTimeout = requestTimeout;
 const gaxios_1 = __nccwpck_require__(59555);
 const jsonBigint = __nccwpck_require__(55031);
 const gcp_residency_1 = __nccwpck_require__(51904);
+const logger = __nccwpck_require__(97306);
 exports.BASE_PATH = '/computeMetadata/v1';
 exports.HOST_ADDRESS = 'http://169.254.169.254';
 exports.SECONDARY_HOST_ADDRESS = 'http://metadata.google.internal.';
 exports.HEADER_NAME = 'Metadata-Flavor';
 exports.HEADER_VALUE = 'Google';
 exports.HEADERS = Object.freeze({ [exports.HEADER_NAME]: exports.HEADER_VALUE });
+const log = logger.log('gcp metadata');
 /**
  * Metadata server detection override options.
  *
@@ -21247,55 +20144,63 @@ function validate(options) {
         }
     });
 }
-async function metadataAccessor(type, options, noResponseRetries = 3, fastFail = false) {
-    options = options || {};
+async function metadataAccessor(type, options = {}, noResponseRetries = 3, fastFail = false) {
+    let metadataKey = '';
+    let params = {};
+    let headers = {};
+    if (typeof type === 'object') {
+        const metadataAccessor = type;
+        metadataKey = metadataAccessor.metadataKey;
+        params = metadataAccessor.params || params;
+        headers = metadataAccessor.headers || headers;
+        noResponseRetries = metadataAccessor.noResponseRetries || noResponseRetries;
+        fastFail = metadataAccessor.fastFail || fastFail;
+    }
+    else {
+        metadataKey = type;
+    }
     if (typeof options === 'string') {
-        options = { property: options };
+        metadataKey += `/${options}`;
     }
-    let property = '';
-    if (typeof options === 'object' && options.property) {
-        property = '/' + options.property;
+    else {
+        validate(options);
+        if (options.property) {
+            metadataKey += `/${options.property}`;
+        }
+        headers = options.headers || headers;
+        params = options.params || params;
     }
-    validate(options);
-    try {
-        const requestMethod = fastFail ? fastFailMetadataRequest : gaxios_1.request;
-        const res = await requestMethod({
-            url: `${getBaseUrl()}/${type}${property}`,
-            headers: Object.assign({}, exports.HEADERS, options.headers),
-            retryConfig: { noResponseRetries },
-            params: options.params,
-            responseType: 'text',
-            timeout: requestTimeout(),
-        });
-        // NOTE: node.js converts all incoming headers to lower case.
-        if (res.headers[exports.HEADER_NAME.toLowerCase()] !== exports.HEADER_VALUE) {
-            throw new Error(`Invalid response from metadata service: incorrect ${exports.HEADER_NAME} header.`);
-        }
-        else if (!res.data) {
-            throw new Error('Invalid response from the metadata service');
-        }
-        if (typeof res.data === 'string') {
-            try {
-                return jsonBigint.parse(res.data);
-            }
-            catch (_a) {
-                /* ignore */
-            }
-        }
-        return res.data;
+    const requestMethod = fastFail ? fastFailMetadataRequest : gaxios_1.request;
+    const req = {
+        url: `${getBaseUrl()}/${metadataKey}`,
+        headers: { ...exports.HEADERS, ...headers },
+        retryConfig: { noResponseRetries },
+        params,
+        responseType: 'text',
+        timeout: requestTimeout(),
+    };
+    log.info('instance request %j', req);
+    const res = await requestMethod(req);
+    log.info('instance metadata is %s', res.data);
+    // NOTE: node.js converts all incoming headers to lower case.
+    if (res.headers[exports.HEADER_NAME.toLowerCase()] !== exports.HEADER_VALUE) {
+        throw new Error(`Invalid response from metadata service: incorrect ${exports.HEADER_NAME} header. Expected '${exports.HEADER_VALUE}', got ${res.headers[exports.HEADER_NAME.toLowerCase()] ? `'${res.headers[exports.HEADER_NAME.toLowerCase()]}'` : 'no header'}`);
     }
-    catch (e) {
-        const err = e;
-        if (err.response && err.response.status !== 200) {
-            err.message = `Unsuccessful response status code. ${err.message}`;
+    if (typeof res.data === 'string') {
+        try {
+            return jsonBigint.parse(res.data);
         }
-        throw e;
+        catch (_a) {
+            /* ignore */
+        }
     }
+    return res.data;
 }
 async function fastFailMetadataRequest(options) {
+    var _a;
     const secondaryOptions = {
         ...options,
-        url: options.url.replace(getBaseUrl(), getBaseUrl(exports.SECONDARY_HOST_ADDRESS)),
+        url: (_a = options.url) === null || _a === void 0 ? void 0 : _a.toString().replace(getBaseUrl(), getBaseUrl(exports.SECONDARY_HOST_ADDRESS)),
     };
     // We race a connection between DNS/IP to metadata server. There are a couple
     // reasons for this:
@@ -21344,21 +20249,82 @@ async function fastFailMetadataRequest(options) {
     return Promise.race([r1, r2]);
 }
 /**
- * Obtain metadata for the current GCE instance
+ * Obtain metadata for the current GCE instance.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const serviceAccount: {} = await instance('service-accounts/');
+ * const serviceAccountEmail: string = await instance('service-accounts/default/email');
+ * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function instance(options) {
     return metadataAccessor('instance', options);
 }
-exports.instance = instance;
 /**
- * Obtain metadata for the current GCP Project.
+ * Obtain metadata for the current GCP project.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const projectId: string = await project('project-id');
+ * const numericProjectId: number = await project('numeric-project-id');
+ * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function project(options) {
     return metadataAccessor('project', options);
 }
-exports.project = project;
+/**
+ * Obtain metadata for the current universe.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const universeDomain: string = await universe('universe-domain');
+ * ```
+ */
+function universe(options) {
+    return metadataAccessor('universe', options);
+}
+/**
+ * Retrieve metadata items in parallel.
+ *
+ * @see {@link https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys}
+ *
+ * @example
+ * ```
+ * const data = await bulk([
+ *   {
+ *     metadataKey: 'instance',
+ *   },
+ *   {
+ *     metadataKey: 'project/project-id',
+ *   },
+ * ] as const);
+ *
+ * // data.instance;
+ * // data['project/project-id'];
+ * ```
+ *
+ * @param properties The metadata properties to retrieve
+ * @returns The metadata in `metadatakey:value` format
+ */
+async function bulk(properties) {
+    const r = {};
+    await Promise.all(properties.map(item => {
+        return (async () => {
+            const res = await metadataAccessor(item);
+            const key = item.metadataKey;
+            r[key] = res;
+        })();
+    }));
+    return r;
+}
 /*
  * How many times should we retry detecting GCP environment.
  */
@@ -21439,14 +20405,12 @@ async function isAvailable() {
         }
     }
 }
-exports.isAvailable = isAvailable;
 /**
  * reset the memoized isAvailable() lookup.
  */
 function resetIsAvailableCache() {
     cachedIsAvailableResponse = undefined;
 }
-exports.resetIsAvailableCache = resetIsAvailableCache;
 /**
  * A cache for the detected GCP Residency.
  */
@@ -21463,7 +20427,6 @@ function getGCPResidency() {
     }
     return exports.gcpResidencyCache;
 }
-exports.getGCPResidency = getGCPResidency;
 /**
  * Sets the detected GCP Residency.
  * Useful for forcing metadata server detection behavior.
@@ -21474,7 +20437,6 @@ exports.getGCPResidency = getGCPResidency;
 function setGCPResidency(value = null) {
     exports.gcpResidencyCache = value !== null ? value : (0, gcp_residency_1.detectGCPResidency)();
 }
-exports.setGCPResidency = setGCPResidency;
 /**
  * Obtain the timeout for requests to the metadata server.
  *
@@ -21487,7 +20449,6 @@ exports.setGCPResidency = setGCPResidency;
 function requestTimeout() {
     return getGCPResidency() ? 0 : 3000;
 }
-exports.requestTimeout = requestTimeout;
 __exportStar(__nccwpck_require__(51904), exports);
 //# sourceMappingURL=index.js.map
 
@@ -21514,6 +20475,7 @@ __exportStar(__nccwpck_require__(51904), exports);
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthClient = exports.DEFAULT_EAGER_REFRESH_THRESHOLD_MILLIS = exports.DEFAULT_UNIVERSE = void 0;
 const events_1 = __nccwpck_require__(82361);
+const gaxios_1 = __nccwpck_require__(59555);
 const transporters_1 = __nccwpck_require__(72649);
 const util_1 = __nccwpck_require__(68905);
 /**
@@ -21536,6 +20498,7 @@ class AuthClient extends events_1.EventEmitter {
         this.universeDomain = exports.DEFAULT_UNIVERSE;
         const options = (0, util_1.originalOrCamelOptions)(opts);
         // Shared auth options
+        this.apiKey = opts.apiKey;
         this.projectId = (_a = options.get('project_id')) !== null && _a !== void 0 ? _a : null;
         this.quotaProjectId = options.get('quota_project_id');
         this.credentials = (_b = options.get('credentials')) !== null && _b !== void 0 ? _b : {};
@@ -21549,6 +20512,24 @@ class AuthClient extends events_1.EventEmitter {
             this.eagerRefreshThresholdMillis = opts.eagerRefreshThresholdMillis;
         }
         this.forceRefreshOnFailure = (_e = opts.forceRefreshOnFailure) !== null && _e !== void 0 ? _e : false;
+    }
+    /**
+     * Return the {@link Gaxios `Gaxios`} instance from the {@link AuthClient.transporter}.
+     *
+     * @expiremental
+     */
+    get gaxios() {
+        if (this.transporter instanceof gaxios_1.Gaxios) {
+            return this.transporter;
+        }
+        else if (this.transporter instanceof transporters_1.DefaultTransporter) {
+            return this.transporter.instance;
+        }
+        else if ('instance' in this.transporter &&
+            this.transporter.instance instanceof gaxios_1.Gaxios) {
+            return this.transporter.instance;
+        }
+        return null;
     }
     /**
      * Sets the auth credentials.
@@ -21574,6 +20555,23 @@ class AuthClient extends events_1.EventEmitter {
         }
         return headers;
     }
+    /**
+     * Retry config for Auth-related requests.
+     *
+     * @remarks
+     *
+     * This is not a part of the default {@link AuthClient.transporter transporter/gaxios}
+     * config as some downstream APIs would prefer if customers explicitly enable retries,
+     * such as GCS.
+     */
+    static get RETRY_CONFIG() {
+        return {
+            retry: true,
+            retryConfig: {
+                httpMethodsToRetry: ['GET', 'PUT', 'POST', 'HEAD', 'OPTIONS', 'DELETE'],
+            },
+        };
+    }
 }
 exports.AuthClient = AuthClient;
 
@@ -21581,7 +20579,7 @@ exports.AuthClient = AuthClient;
 /***/ }),
 
 /***/ 71569:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -21598,10 +20596,18 @@ exports.AuthClient = AuthClient;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _a, _AwsClient_DEFAULT_AWS_REGIONAL_CREDENTIAL_VERIFICATION_URL;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AwsClient = void 0;
 const awsrequestsigner_1 = __nccwpck_require__(1754);
 const baseexternalclient_1 = __nccwpck_require__(40810);
+const defaultawssecuritycredentialssupplier_1 = __nccwpck_require__(89799);
+const util_1 = __nccwpck_require__(68905);
 /**
  * AWS external account client. This is used for AWS workloads, where
  * AWS STS GetCallerIdentity serialized signed requests are exchanged for
@@ -21621,26 +20627,49 @@ class AwsClient extends baseexternalclient_1.BaseExternalAccountClient {
      */
     constructor(options, additionalOptions) {
         super(options, additionalOptions);
-        this.environmentId = options.credential_source.environment_id;
-        // This is only required if the AWS region is not available in the
-        // AWS_REGION or AWS_DEFAULT_REGION environment variables.
-        this.regionUrl = options.credential_source.region_url;
-        // This is only required if AWS security credentials are not available in
-        // environment variables.
-        this.securityCredentialsUrl = options.credential_source.url;
-        this.regionalCredVerificationUrl =
-            options.credential_source.regional_cred_verification_url;
-        this.imdsV2SessionTokenUrl =
-            options.credential_source.imdsv2_session_token_url;
+        const opts = (0, util_1.originalOrCamelOptions)(options);
+        const credentialSource = opts.get('credential_source');
+        const awsSecurityCredentialsSupplier = opts.get('aws_security_credentials_supplier');
+        // Validate credential sourcing configuration.
+        if (!credentialSource && !awsSecurityCredentialsSupplier) {
+            throw new Error('A credential source or AWS security credentials supplier must be specified.');
+        }
+        if (credentialSource && awsSecurityCredentialsSupplier) {
+            throw new Error('Only one of credential source or AWS security credentials supplier can be specified.');
+        }
+        if (awsSecurityCredentialsSupplier) {
+            this.awsSecurityCredentialsSupplier = awsSecurityCredentialsSupplier;
+            this.regionalCredVerificationUrl =
+                __classPrivateFieldGet(_a, _a, "f", _AwsClient_DEFAULT_AWS_REGIONAL_CREDENTIAL_VERIFICATION_URL);
+            this.credentialSourceType = 'programmatic';
+        }
+        else {
+            const credentialSourceOpts = (0, util_1.originalOrCamelOptions)(credentialSource);
+            this.environmentId = credentialSourceOpts.get('environment_id');
+            // This is only required if the AWS region is not available in the
+            // AWS_REGION or AWS_DEFAULT_REGION environment variables.
+            const regionUrl = credentialSourceOpts.get('region_url');
+            // This is only required if AWS security credentials are not available in
+            // environment variables.
+            const securityCredentialsUrl = credentialSourceOpts.get('url');
+            const imdsV2SessionTokenUrl = credentialSourceOpts.get('imdsv2_session_token_url');
+            this.awsSecurityCredentialsSupplier =
+                new defaultawssecuritycredentialssupplier_1.DefaultAwsSecurityCredentialsSupplier({
+                    regionUrl: regionUrl,
+                    securityCredentialsUrl: securityCredentialsUrl,
+                    imdsV2SessionTokenUrl: imdsV2SessionTokenUrl,
+                });
+            this.regionalCredVerificationUrl = credentialSourceOpts.get('regional_cred_verification_url');
+            this.credentialSourceType = 'aws';
+            // Data validators.
+            this.validateEnvironmentId();
+        }
         this.awsRequestSigner = null;
         this.region = '';
-        this.credentialSourceType = 'aws';
-        // Data validators.
-        this.validateEnvironmentId();
     }
     validateEnvironmentId() {
-        var _a;
-        const match = (_a = this.environmentId) === null || _a === void 0 ? void 0 : _a.match(/^(aws)(\d+)$/);
+        var _b;
+        const match = (_b = this.environmentId) === null || _b === void 0 ? void 0 : _b.match(/^(aws)(\d+)$/);
         if (!match || !this.regionalCredVerificationUrl) {
             throw new Error('No valid AWS "credential_source" provided');
         }
@@ -21650,65 +20679,24 @@ class AwsClient extends baseexternalclient_1.BaseExternalAccountClient {
     }
     /**
      * Triggered when an external subject token is needed to be exchanged for a
-     * GCP access token via GCP STS endpoint.
-     * This uses the `options.credential_source` object to figure out how
-     * to retrieve the token using the current environment. In this case,
-     * this uses a serialized AWS signed request to the STS GetCallerIdentity
-     * endpoint.
-     * The logic is summarized as:
-     * 1. If imdsv2_session_token_url is provided in the credential source, then
-     *    fetch the aws session token and include it in the headers of the
-     *    metadata requests. This is a requirement for IDMSv2 but optional
-     *    for IDMSv1.
-     * 2. Retrieve AWS region from availability-zone.
-     * 3a. Check AWS credentials in environment variables. If not found, get
-     *     from security-credentials endpoint.
-     * 3b. Get AWS credentials from security-credentials endpoint. In order
-     *     to retrieve this, the AWS role needs to be determined by calling
-     *     security-credentials endpoint without any argument. Then the
-     *     credentials can be retrieved via: security-credentials/role_name
-     * 4. Generate the signed request to AWS STS GetCallerIdentity action.
-     * 5. Inject x-goog-cloud-target-resource into header and serialize the
-     *    signed request. This will be the subject-token to pass to GCP STS.
+     * GCP access token via GCP STS endpoint. This will call the
+     * {@link AwsSecurityCredentialsSupplier} to retrieve an AWS region and AWS
+     * Security Credentials, then use them to create a signed AWS STS request that
+     * can be exchanged for a GCP access token.
      * @return A promise that resolves with the external subject token.
      */
     async retrieveSubjectToken() {
         // Initialize AWS request signer if not already initialized.
         if (!this.awsRequestSigner) {
-            const metadataHeaders = {};
-            // Only retrieve the IMDSv2 session token if both the security credentials and region are
-            // not retrievable through the environment.
-            // The credential config contains all the URLs by default but clients may be running this
-            // where the metadata server is not available and returning the credentials through the environment.
-            // Removing this check may break them.
-            if (this.shouldUseMetadataServer() && this.imdsV2SessionTokenUrl) {
-                metadataHeaders['x-aws-ec2-metadata-token'] =
-                    await this.getImdsV2SessionToken();
-            }
-            this.region = await this.getAwsRegion(metadataHeaders);
+            this.region = await this.awsSecurityCredentialsSupplier.getAwsRegion(this.supplierContext);
             this.awsRequestSigner = new awsrequestsigner_1.AwsRequestSigner(async () => {
-                // Check environment variables for permanent credentials first.
-                // https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html
-                if (this.securityCredentialsFromEnv) {
-                    return this.securityCredentialsFromEnv;
-                }
-                // Since the role on a VM can change, we don't need to cache it.
-                const roleName = await this.getAwsRoleName(metadataHeaders);
-                // Temporary credentials typically last for several hours.
-                // Expiration is returned in response.
-                // Consider future optimization of this logic to cache AWS tokens
-                // until their natural expiration.
-                const awsCreds = await this.getAwsSecurityCredentials(roleName, metadataHeaders);
-                return {
-                    accessKeyId: awsCreds.AccessKeyId,
-                    secretAccessKey: awsCreds.SecretAccessKey,
-                    token: awsCreds.Token,
-                };
+                return this.awsSecurityCredentialsSupplier.getAwsSecurityCredentials(this.supplierContext);
             }, this.region);
         }
         // Generate signed request to AWS STS GetCallerIdentity API.
         // Use the required regional endpoint. Otherwise, the request will fail.
         const options = await this.awsRequestSigner.getRequestOptions({
+            ..._a.RETRY_CONFIG,
             url: this.regionalCredVerificationUrl.replace('{region}', this.region),
             method: 'POST',
         });
@@ -21746,104 +20734,17 @@ class AwsClient extends baseexternalclient_1.BaseExternalAccountClient {
             headers: reformattedHeader,
         }));
     }
-    /**
-     * @return A promise that resolves with the IMDSv2 Session Token.
-     */
-    async getImdsV2SessionToken() {
-        const opts = {
-            url: this.imdsV2SessionTokenUrl,
-            method: 'PUT',
-            responseType: 'text',
-            headers: { 'x-aws-ec2-metadata-token-ttl-seconds': '300' },
-        };
-        const response = await this.transporter.request(opts);
-        return response.data;
-    }
-    /**
-     * @param headers The headers to be used in the metadata request.
-     * @return A promise that resolves with the current AWS region.
-     */
-    async getAwsRegion(headers) {
-        // Priority order for region determination:
-        // AWS_REGION > AWS_DEFAULT_REGION > metadata server.
-        if (this.regionFromEnv) {
-            return this.regionFromEnv;
-        }
-        if (!this.regionUrl) {
-            throw new Error('Unable to determine AWS region due to missing ' +
-                '"options.credential_source.region_url"');
-        }
-        const opts = {
-            url: this.regionUrl,
-            method: 'GET',
-            responseType: 'text',
-            headers: headers,
-        };
-        const response = await this.transporter.request(opts);
-        // Remove last character. For example, if us-east-2b is returned,
-        // the region would be us-east-2.
-        return response.data.substr(0, response.data.length - 1);
-    }
-    /**
-     * @param headers The headers to be used in the metadata request.
-     * @return A promise that resolves with the assigned role to the current
-     *   AWS VM. This is needed for calling the security-credentials endpoint.
-     */
-    async getAwsRoleName(headers) {
-        if (!this.securityCredentialsUrl) {
-            throw new Error('Unable to determine AWS role name due to missing ' +
-                '"options.credential_source.url"');
-        }
-        const opts = {
-            url: this.securityCredentialsUrl,
-            method: 'GET',
-            responseType: 'text',
-            headers: headers,
-        };
-        const response = await this.transporter.request(opts);
-        return response.data;
-    }
-    /**
-     * Retrieves the temporary AWS credentials by calling the security-credentials
-     * endpoint as specified in the `credential_source` object.
-     * @param roleName The role attached to the current VM.
-     * @param headers The headers to be used in the metadata request.
-     * @return A promise that resolves with the temporary AWS credentials
-     *   needed for creating the GetCallerIdentity signed request.
-     */
-    async getAwsSecurityCredentials(roleName, headers) {
-        const response = await this.transporter.request({
-            url: `${this.securityCredentialsUrl}/${roleName}`,
-            responseType: 'json',
-            headers: headers,
-        });
-        return response.data;
-    }
-    shouldUseMetadataServer() {
-        // The metadata server must be used when either the AWS region or AWS security
-        // credentials cannot be retrieved through their defined environment variables.
-        return !this.regionFromEnv || !this.securityCredentialsFromEnv;
-    }
-    get regionFromEnv() {
-        // The AWS region can be provided through AWS_REGION or AWS_DEFAULT_REGION.
-        // Only one is required.
-        return (process.env['AWS_REGION'] || process.env['AWS_DEFAULT_REGION'] || null);
-    }
-    get securityCredentialsFromEnv() {
-        // Both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required.
-        if (process.env['AWS_ACCESS_KEY_ID'] &&
-            process.env['AWS_SECRET_ACCESS_KEY']) {
-            return {
-                accessKeyId: process.env['AWS_ACCESS_KEY_ID'],
-                secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'],
-                token: process.env['AWS_SESSION_TOKEN'],
-            };
-        }
-        return null;
-    }
 }
 exports.AwsClient = AwsClient;
+_a = AwsClient;
+_AwsClient_DEFAULT_AWS_REGIONAL_CREDENTIAL_VERIFICATION_URL = { value: 'https://sts.{region}.amazonaws.com?Action=GetCallerIdentity&Version=2011-06-15' };
+/**
+ * @deprecated AWS client no validates the EC2 metadata address.
+ **/
 AwsClient.AWS_EC2_METADATA_IPV4_ADDRESS = '169.254.169.254';
+/**
+ * @deprecated AWS client no validates the EC2 metadata address.
+ **/
 AwsClient.AWS_EC2_METADATA_IPV6_ADDRESS = 'fd00:ec2::254';
 
 
@@ -22067,7 +20968,7 @@ async function generateAuthenticationHeaderMap(options) {
 /***/ }),
 
 /***/ 40810:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -22084,6 +20985,18 @@ async function generateAuthenticationHeaderMap(options) {
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var _BaseExternalAccountClient_instances, _BaseExternalAccountClient_pendingAccessToken, _BaseExternalAccountClient_internalRefreshAccessTokenAsync;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.BaseExternalAccountClient = exports.DEFAULT_UNIVERSE = exports.CLOUD_RESOURCE_MANAGER = exports.EXTERNAL_ACCOUNT_TYPE = exports.EXPIRATION_TIME_OFFSET = void 0;
 const stream = __nccwpck_require__(12781);
@@ -22114,10 +21027,15 @@ exports.EXPIRATION_TIME_OFFSET = 5 * 60 * 1000;
  * 3. external_Account => non-GCP service (eg. AWS, Azure, K8s)
  */
 exports.EXTERNAL_ACCOUNT_TYPE = 'external_account';
-/** Cloud resource manager URL used to retrieve project information. */
+/**
+ * Cloud resource manager URL used to retrieve project information.
+ *
+ * @deprecated use {@link BaseExternalAccountClient.cloudResourceManagerURL} instead
+ **/
 exports.CLOUD_RESOURCE_MANAGER = 'https://cloudresourcemanager.googleapis.com/v1/projects/';
 /** The workforce audience pattern. */
 const WORKFORCE_AUDIENCE_PATTERN = '//iam\\.googleapis\\.com/locations/[^/]+/workforcePools/[^/]+/providers/.+';
+const DEFAULT_TOKEN_URL = 'https://sts.{universeDomain}/v1/token';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = __nccwpck_require__(51402);
 /**
@@ -22147,20 +21065,29 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
      *   on 401/403 API request errors.
      */
     constructor(options, additionalOptions) {
+        var _a;
         super({ ...options, ...additionalOptions });
+        _BaseExternalAccountClient_instances.add(this);
+        /**
+         * A pending access token request. Used for concurrent calls.
+         */
+        _BaseExternalAccountClient_pendingAccessToken.set(this, null);
         const opts = (0, util_1.originalOrCamelOptions)(options);
-        if (opts.get('type') !== exports.EXTERNAL_ACCOUNT_TYPE) {
+        const type = opts.get('type');
+        if (type && type !== exports.EXTERNAL_ACCOUNT_TYPE) {
             throw new Error(`Expected "${exports.EXTERNAL_ACCOUNT_TYPE}" type but ` +
                 `received "${options.type}"`);
         }
         const clientId = opts.get('client_id');
         const clientSecret = opts.get('client_secret');
-        const tokenUrl = opts.get('token_url');
+        const tokenUrl = (_a = opts.get('token_url')) !== null && _a !== void 0 ? _a : DEFAULT_TOKEN_URL.replace('{universeDomain}', this.universeDomain);
         const subjectTokenType = opts.get('subject_token_type');
         const workforcePoolUserProject = opts.get('workforce_pool_user_project');
         const serviceAccountImpersonationUrl = opts.get('service_account_impersonation_url');
         const serviceAccountImpersonation = opts.get('service_account_impersonation');
         const serviceAccountImpersonationLifetime = (0, util_1.originalOrCamelOptions)(serviceAccountImpersonation).get('token_lifetime_seconds');
+        this.cloudResourceManagerURL = new URL(opts.get('cloud_resource_manager_url') ||
+            `https://cloudresourcemanager.${this.universeDomain}/v1/projects/`);
         if (clientId) {
             this.clientAuth = {
                 confidentialClientType: 'basic',
@@ -22169,8 +21096,7 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
             };
         }
         this.stsCredential = new sts.StsCredentials(tokenUrl, this.clientAuth);
-        // Default OAuth scope. This could be overridden via public property.
-        this.scopes = [DEFAULT_OAUTH_SCOPE];
+        this.scopes = opts.get('scopes') || [DEFAULT_OAUTH_SCOPE];
         this.cachedAccessToken = null;
         this.audience = opts.get('audience');
         this.subjectTokenType = subjectTokenType;
@@ -22192,6 +21118,11 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
             this.serviceAccountImpersonationLifetime = DEFAULT_TOKEN_LIFESPAN;
         }
         this.projectNumber = this.getProjectNumber(this.audience);
+        this.supplierContext = {
+            audience: this.audience,
+            subjectTokenType: this.subjectTokenType,
+            transporter: this.transporter,
+        };
     }
     /** The service account email to be impersonated, if available. */
     getServiceAccountEmail() {
@@ -22287,8 +21218,9 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
             // Preferable not to use request() to avoid retrial policies.
             const headers = await this.getRequestHeaders();
             const response = await this.transporter.request({
+                ...BaseExternalAccountClient.RETRY_CONFIG,
                 headers,
-                url: `${exports.CLOUD_RESOURCE_MANAGER}${projectNumber}`,
+                url: `${this.cloudResourceManagerURL.toString()}${projectNumber}`,
                 responseType: 'json',
             });
             this.projectId = response.data.projectId;
@@ -22300,10 +21232,10 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
      * Authenticates the provided HTTP request, processes it and resolves with the
      * returned response.
      * @param opts The HTTP request options.
-     * @param retry Whether the current attempt is a retry after a failed attempt.
+     * @param reAuthRetried Whether the current attempt is a retry after a failed attempt due to an auth failure.
      * @return A promise that resolves with the successful response.
      */
-    async requestAsync(opts, retry = false) {
+    async requestAsync(opts, reAuthRetried = false) {
         let response;
         try {
             const requestHeaders = await this.getRequestHeaders();
@@ -22328,7 +21260,7 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
                 // - forceRefreshOnFailure is true
                 const isReadableStream = res.config.data instanceof stream.Readable;
                 const isAuthErr = statusCode === 401 || statusCode === 403;
-                if (!retry &&
+                if (!reAuthRetried &&
                     isAuthErr &&
                     !isReadableStream &&
                     this.forceRefreshOnFailure) {
@@ -22351,67 +21283,15 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
      * @return A promise that resolves with the fresh GCP access tokens.
      */
     async refreshAccessTokenAsync() {
-        // Retrieve the external credential.
-        const subjectToken = await this.retrieveSubjectToken();
-        // Construct the STS credentials options.
-        const stsCredentialsOptions = {
-            grantType: STS_GRANT_TYPE,
-            audience: this.audience,
-            requestedTokenType: STS_REQUEST_TOKEN_TYPE,
-            subjectToken,
-            subjectTokenType: this.subjectTokenType,
-            // generateAccessToken requires the provided access token to have
-            // scopes:
-            // https://www.googleapis.com/auth/iam or
-            // https://www.googleapis.com/auth/cloud-platform
-            // The new service account access token scopes will match the user
-            // provided ones.
-            scope: this.serviceAccountImpersonationUrl
-                ? [DEFAULT_OAUTH_SCOPE]
-                : this.getScopesArray(),
-        };
-        // Exchange the external credentials for a GCP access token.
-        // Client auth is prioritized over passing the workforcePoolUserProject
-        // parameter for STS token exchange.
-        const additionalOptions = !this.clientAuth && this.workforcePoolUserProject
-            ? { userProject: this.workforcePoolUserProject }
-            : undefined;
-        const additionalHeaders = {
-            'x-goog-api-client': this.getMetricsHeaderValue(),
-        };
-        const stsResponse = await this.stsCredential.exchangeToken(stsCredentialsOptions, additionalHeaders, additionalOptions);
-        if (this.serviceAccountImpersonationUrl) {
-            this.cachedAccessToken = await this.getImpersonatedAccessToken(stsResponse.access_token);
+        // Use an existing access token request, or cache a new one
+        __classPrivateFieldSet(this, _BaseExternalAccountClient_pendingAccessToken, __classPrivateFieldGet(this, _BaseExternalAccountClient_pendingAccessToken, "f") || __classPrivateFieldGet(this, _BaseExternalAccountClient_instances, "m", _BaseExternalAccountClient_internalRefreshAccessTokenAsync).call(this), "f");
+        try {
+            return await __classPrivateFieldGet(this, _BaseExternalAccountClient_pendingAccessToken, "f");
         }
-        else if (stsResponse.expires_in) {
-            // Save response in cached access token.
-            this.cachedAccessToken = {
-                access_token: stsResponse.access_token,
-                expiry_date: new Date().getTime() + stsResponse.expires_in * 1000,
-                res: stsResponse.res,
-            };
+        finally {
+            // clear pending access token for future requests
+            __classPrivateFieldSet(this, _BaseExternalAccountClient_pendingAccessToken, null, "f");
         }
-        else {
-            // Save response in cached access token.
-            this.cachedAccessToken = {
-                access_token: stsResponse.access_token,
-                res: stsResponse.res,
-            };
-        }
-        // Save credentials.
-        this.credentials = {};
-        Object.assign(this.credentials, this.cachedAccessToken);
-        delete this.credentials.res;
-        // Trigger tokens event to notify external listeners.
-        this.emit('tokens', {
-            refresh_token: null,
-            expiry_date: this.cachedAccessToken.expiry_date,
-            access_token: this.cachedAccessToken.access_token,
-            token_type: 'Bearer',
-            id_token: null,
-        });
-        // Return the cached access token.
-        return this.cachedAccessToken;
     }
     /**
      * Returns the workload identity pool project number if it is determinable
@@ -22441,6 +21321,7 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
      */
     async getImpersonatedAccessToken(token) {
         const opts = {
+            ...BaseExternalAccountClient.RETRY_CONFIG,
             url: this.serviceAccountImpersonationUrl,
             method: 'POST',
             headers: {
@@ -22483,12 +21364,7 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
         if (typeof this.scopes === 'string') {
             return [this.scopes];
         }
-        else if (typeof this.scopes === 'undefined') {
-            return [DEFAULT_OAUTH_SCOPE];
-        }
-        else {
-            return this.scopes;
-        }
+        return this.scopes || [DEFAULT_OAUTH_SCOPE];
     }
     getMetricsHeaderValue() {
         const nodeVersion = process.version.replace(/^v/, '');
@@ -22500,6 +21376,69 @@ class BaseExternalAccountClient extends authclient_1.AuthClient {
     }
 }
 exports.BaseExternalAccountClient = BaseExternalAccountClient;
+_BaseExternalAccountClient_pendingAccessToken = new WeakMap(), _BaseExternalAccountClient_instances = new WeakSet(), _BaseExternalAccountClient_internalRefreshAccessTokenAsync = async function _BaseExternalAccountClient_internalRefreshAccessTokenAsync() {
+    // Retrieve the external credential.
+    const subjectToken = await this.retrieveSubjectToken();
+    // Construct the STS credentials options.
+    const stsCredentialsOptions = {
+        grantType: STS_GRANT_TYPE,
+        audience: this.audience,
+        requestedTokenType: STS_REQUEST_TOKEN_TYPE,
+        subjectToken,
+        subjectTokenType: this.subjectTokenType,
+        // generateAccessToken requires the provided access token to have
+        // scopes:
+        // https://www.googleapis.com/auth/iam or
+        // https://www.googleapis.com/auth/cloud-platform
+        // The new service account access token scopes will match the user
+        // provided ones.
+        scope: this.serviceAccountImpersonationUrl
+            ? [DEFAULT_OAUTH_SCOPE]
+            : this.getScopesArray(),
+    };
+    // Exchange the external credentials for a GCP access token.
+    // Client auth is prioritized over passing the workforcePoolUserProject
+    // parameter for STS token exchange.
+    const additionalOptions = !this.clientAuth && this.workforcePoolUserProject
+        ? { userProject: this.workforcePoolUserProject }
+        : undefined;
+    const additionalHeaders = {
+        'x-goog-api-client': this.getMetricsHeaderValue(),
+    };
+    const stsResponse = await this.stsCredential.exchangeToken(stsCredentialsOptions, additionalHeaders, additionalOptions);
+    if (this.serviceAccountImpersonationUrl) {
+        this.cachedAccessToken = await this.getImpersonatedAccessToken(stsResponse.access_token);
+    }
+    else if (stsResponse.expires_in) {
+        // Save response in cached access token.
+        this.cachedAccessToken = {
+            access_token: stsResponse.access_token,
+            expiry_date: new Date().getTime() + stsResponse.expires_in * 1000,
+            res: stsResponse.res,
+        };
+    }
+    else {
+        // Save response in cached access token.
+        this.cachedAccessToken = {
+            access_token: stsResponse.access_token,
+            res: stsResponse.res,
+        };
+    }
+    // Save credentials.
+    this.credentials = {};
+    Object.assign(this.credentials, this.cachedAccessToken);
+    delete this.credentials.res;
+    // Trigger tokens event to notify external listeners.
+    this.emit('tokens', {
+        refresh_token: null,
+        expiry_date: this.cachedAccessToken.expiry_date,
+        access_token: this.cachedAccessToken.access_token,
+        token_type: 'Bearer',
+        id_token: null,
+    });
+    // Return the cached access token.
+    return this.cachedAccessToken;
+};
 
 
 /***/ }),
@@ -22532,7 +21471,7 @@ class Compute extends oauth2client_1.OAuth2Client {
      * Google Compute Engine service account credentials.
      *
      * Retrieve access token from the metadata server.
-     * See: https://developers.google.com/compute/docs/authentication
+     * See: https://cloud.google.com/compute/docs/access/authenticate-workloads#applications
      */
     constructor(options = {}) {
         super(options);
@@ -22629,6 +21568,210 @@ exports.Compute = Compute;
 
 /***/ }),
 
+/***/ 89799:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _DefaultAwsSecurityCredentialsSupplier_instances, _DefaultAwsSecurityCredentialsSupplier_getImdsV2SessionToken, _DefaultAwsSecurityCredentialsSupplier_getAwsRoleName, _DefaultAwsSecurityCredentialsSupplier_retrieveAwsSecurityCredentials, _DefaultAwsSecurityCredentialsSupplier_regionFromEnv_get, _DefaultAwsSecurityCredentialsSupplier_securityCredentialsFromEnv_get;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DefaultAwsSecurityCredentialsSupplier = void 0;
+/**
+ * Internal AWS security credentials supplier implementation used by {@link AwsClient}
+ * when a credential source is provided instead of a user defined supplier.
+ * The logic is summarized as:
+ * 1. If imdsv2_session_token_url is provided in the credential source, then
+ *    fetch the aws session token and include it in the headers of the
+ *    metadata requests. This is a requirement for IDMSv2 but optional
+ *    for IDMSv1.
+ * 2. Retrieve AWS region from availability-zone.
+ * 3a. Check AWS credentials in environment variables. If not found, get
+ *     from security-credentials endpoint.
+ * 3b. Get AWS credentials from security-credentials endpoint. In order
+ *     to retrieve this, the AWS role needs to be determined by calling
+ *     security-credentials endpoint without any argument. Then the
+ *     credentials can be retrieved via: security-credentials/role_name
+ * 4. Generate the signed request to AWS STS GetCallerIdentity action.
+ * 5. Inject x-goog-cloud-target-resource into header and serialize the
+ *    signed request. This will be the subject-token to pass to GCP STS.
+ */
+class DefaultAwsSecurityCredentialsSupplier {
+    /**
+     * Instantiates a new DefaultAwsSecurityCredentialsSupplier using information
+     * from the credential_source stored in the ADC file.
+     * @param opts The default aws security credentials supplier options object to
+     *   build the supplier with.
+     */
+    constructor(opts) {
+        _DefaultAwsSecurityCredentialsSupplier_instances.add(this);
+        this.regionUrl = opts.regionUrl;
+        this.securityCredentialsUrl = opts.securityCredentialsUrl;
+        this.imdsV2SessionTokenUrl = opts.imdsV2SessionTokenUrl;
+        this.additionalGaxiosOptions = opts.additionalGaxiosOptions;
+    }
+    /**
+     * Returns the active AWS region. This first checks to see if the region
+     * is available as an environment variable. If it is not, then the supplier
+     * will call the region URL.
+     * @param context {@link ExternalAccountSupplierContext} from the calling
+     *   {@link AwsClient}, contains the requested audience and subject token type
+     *   for the external account identity.
+     * @return A promise that resolves with the AWS region string.
+     */
+    async getAwsRegion(context) {
+        // Priority order for region determination:
+        // AWS_REGION > AWS_DEFAULT_REGION > metadata server.
+        if (__classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "a", _DefaultAwsSecurityCredentialsSupplier_regionFromEnv_get)) {
+            return __classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "a", _DefaultAwsSecurityCredentialsSupplier_regionFromEnv_get);
+        }
+        const metadataHeaders = {};
+        if (!__classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "a", _DefaultAwsSecurityCredentialsSupplier_regionFromEnv_get) && this.imdsV2SessionTokenUrl) {
+            metadataHeaders['x-aws-ec2-metadata-token'] =
+                await __classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "m", _DefaultAwsSecurityCredentialsSupplier_getImdsV2SessionToken).call(this, context.transporter);
+        }
+        if (!this.regionUrl) {
+            throw new Error('Unable to determine AWS region due to missing ' +
+                '"options.credential_source.region_url"');
+        }
+        const opts = {
+            ...this.additionalGaxiosOptions,
+            url: this.regionUrl,
+            method: 'GET',
+            responseType: 'text',
+            headers: metadataHeaders,
+        };
+        const response = await context.transporter.request(opts);
+        // Remove last character. For example, if us-east-2b is returned,
+        // the region would be us-east-2.
+        return response.data.substr(0, response.data.length - 1);
+    }
+    /**
+     * Returns AWS security credentials. This first checks to see if the credentials
+     * is available as environment variables. If it is not, then the supplier
+     * will call the security credentials URL.
+     * @param context {@link ExternalAccountSupplierContext} from the calling
+     *   {@link AwsClient}, contains the requested audience and subject token type
+     *   for the external account identity.
+     * @return A promise that resolves with the AWS security credentials.
+     */
+    async getAwsSecurityCredentials(context) {
+        // Check environment variables for permanent credentials first.
+        // https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html
+        if (__classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "a", _DefaultAwsSecurityCredentialsSupplier_securityCredentialsFromEnv_get)) {
+            return __classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "a", _DefaultAwsSecurityCredentialsSupplier_securityCredentialsFromEnv_get);
+        }
+        const metadataHeaders = {};
+        if (this.imdsV2SessionTokenUrl) {
+            metadataHeaders['x-aws-ec2-metadata-token'] =
+                await __classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "m", _DefaultAwsSecurityCredentialsSupplier_getImdsV2SessionToken).call(this, context.transporter);
+        }
+        // Since the role on a VM can change, we don't need to cache it.
+        const roleName = await __classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "m", _DefaultAwsSecurityCredentialsSupplier_getAwsRoleName).call(this, metadataHeaders, context.transporter);
+        // Temporary credentials typically last for several hours.
+        // Expiration is returned in response.
+        // Consider future optimization of this logic to cache AWS tokens
+        // until their natural expiration.
+        const awsCreds = await __classPrivateFieldGet(this, _DefaultAwsSecurityCredentialsSupplier_instances, "m", _DefaultAwsSecurityCredentialsSupplier_retrieveAwsSecurityCredentials).call(this, roleName, metadataHeaders, context.transporter);
+        return {
+            accessKeyId: awsCreds.AccessKeyId,
+            secretAccessKey: awsCreds.SecretAccessKey,
+            token: awsCreds.Token,
+        };
+    }
+}
+exports.DefaultAwsSecurityCredentialsSupplier = DefaultAwsSecurityCredentialsSupplier;
+_DefaultAwsSecurityCredentialsSupplier_instances = new WeakSet(), _DefaultAwsSecurityCredentialsSupplier_getImdsV2SessionToken = 
+/**
+ * @param transporter The transporter to use for requests.
+ * @return A promise that resolves with the IMDSv2 Session Token.
+ */
+async function _DefaultAwsSecurityCredentialsSupplier_getImdsV2SessionToken(transporter) {
+    const opts = {
+        ...this.additionalGaxiosOptions,
+        url: this.imdsV2SessionTokenUrl,
+        method: 'PUT',
+        responseType: 'text',
+        headers: { 'x-aws-ec2-metadata-token-ttl-seconds': '300' },
+    };
+    const response = await transporter.request(opts);
+    return response.data;
+}, _DefaultAwsSecurityCredentialsSupplier_getAwsRoleName = 
+/**
+ * @param headers The headers to be used in the metadata request.
+ * @param transporter The transporter to use for requests.
+ * @return A promise that resolves with the assigned role to the current
+ *   AWS VM. This is needed for calling the security-credentials endpoint.
+ */
+async function _DefaultAwsSecurityCredentialsSupplier_getAwsRoleName(headers, transporter) {
+    if (!this.securityCredentialsUrl) {
+        throw new Error('Unable to determine AWS role name due to missing ' +
+            '"options.credential_source.url"');
+    }
+    const opts = {
+        ...this.additionalGaxiosOptions,
+        url: this.securityCredentialsUrl,
+        method: 'GET',
+        responseType: 'text',
+        headers: headers,
+    };
+    const response = await transporter.request(opts);
+    return response.data;
+}, _DefaultAwsSecurityCredentialsSupplier_retrieveAwsSecurityCredentials = 
+/**
+ * Retrieves the temporary AWS credentials by calling the security-credentials
+ * endpoint as specified in the `credential_source` object.
+ * @param roleName The role attached to the current VM.
+ * @param headers The headers to be used in the metadata request.
+ * @param transporter The transporter to use for requests.
+ * @return A promise that resolves with the temporary AWS credentials
+ *   needed for creating the GetCallerIdentity signed request.
+ */
+async function _DefaultAwsSecurityCredentialsSupplier_retrieveAwsSecurityCredentials(roleName, headers, transporter) {
+    const response = await transporter.request({
+        ...this.additionalGaxiosOptions,
+        url: `${this.securityCredentialsUrl}/${roleName}`,
+        responseType: 'json',
+        headers: headers,
+    });
+    return response.data;
+}, _DefaultAwsSecurityCredentialsSupplier_regionFromEnv_get = function _DefaultAwsSecurityCredentialsSupplier_regionFromEnv_get() {
+    // The AWS region can be provided through AWS_REGION or AWS_DEFAULT_REGION.
+    // Only one is required.
+    return (process.env['AWS_REGION'] || process.env['AWS_DEFAULT_REGION'] || null);
+}, _DefaultAwsSecurityCredentialsSupplier_securityCredentialsFromEnv_get = function _DefaultAwsSecurityCredentialsSupplier_securityCredentialsFromEnv_get() {
+    // Both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required.
+    if (process.env['AWS_ACCESS_KEY_ID'] &&
+        process.env['AWS_SECRET_ACCESS_KEY']) {
+        return {
+            accessKeyId: process.env['AWS_ACCESS_KEY_ID'],
+            secretAccessKey: process.env['AWS_SECRET_ACCESS_KEY'],
+            token: process.env['AWS_SESSION_TOKEN'],
+        };
+    }
+    return null;
+};
+
+
+/***/ }),
+
 /***/ 6270:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -22664,8 +21807,6 @@ const STS_REQUEST_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
  * The requested token exchange subject_token_type: rfc8693#section-2.1
  */
 const STS_SUBJECT_TOKEN_TYPE = 'urn:ietf:params:oauth:token-type:access_token';
-/** The STS access token exchange end point. */
-const STS_ACCESS_TOKEN_URL = 'https://sts.googleapis.com/v1/token';
 /**
  * The maximum number of access boundary rules a Credential Access Boundary
  * can contain.
@@ -22728,7 +21869,7 @@ class DownscopedClient extends authclient_1.AuthClient {
                 throw new Error('At least one permission should be defined in access boundary rules.');
             }
         }
-        this.stsCredential = new sts.StsCredentials(STS_ACCESS_TOKEN_URL);
+        this.stsCredential = new sts.StsCredentials(`https://sts.${this.universeDomain}/v1/token`);
         this.cachedDownscopedAccessToken = null;
     }
     /**
@@ -22789,10 +21930,10 @@ class DownscopedClient extends authclient_1.AuthClient {
      * Authenticates the provided HTTP request, processes it and resolves with the
      * returned response.
      * @param opts The HTTP request options.
-     * @param retry Whether the current attempt is a retry after a failed attempt.
+     * @param reAuthRetried Whether the current attempt is a retry after a failed attempt due to an auth failure
      * @return A promise that resolves with the successful response.
      */
-    async requestAsync(opts, retry = false) {
+    async requestAsync(opts, reAuthRetried = false) {
         let response;
         try {
             const requestHeaders = await this.getRequestHeaders();
@@ -22817,7 +21958,7 @@ class DownscopedClient extends authclient_1.AuthClient {
                 // - forceRefreshOnFailure is true
                 const isReadableStream = res.config.data instanceof stream.Readable;
                 const isAuthErr = statusCode === 401 || statusCode === 403;
-                if (!retry &&
+                if (!reAuthRetried &&
                     isAuthErr &&
                     !isReadableStream &&
                     this.forceRefreshOnFailure) {
@@ -22920,7 +22061,9 @@ exports.DownscopedClient = DownscopedClient;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getEnv = exports.clear = exports.GCPEnv = void 0;
+exports.GCPEnv = void 0;
+exports.clear = clear;
+exports.getEnv = getEnv;
 const gcpMetadata = __nccwpck_require__(3563);
 var GCPEnv;
 (function (GCPEnv) {
@@ -22935,7 +22078,6 @@ let envPromise;
 function clear() {
     envPromise = undefined;
 }
-exports.clear = clear;
 async function getEnv() {
     if (envPromise) {
         return envPromise;
@@ -22943,7 +22085,6 @@ async function getEnv() {
     envPromise = getEnvMemoized();
     return envPromise;
 }
-exports.getEnv = getEnv;
 async function getEnvMemoized() {
     let env = GCPEnv.NONE;
     if (isAppEngine()) {
@@ -23181,6 +22322,7 @@ const baseexternalclient_1 = __nccwpck_require__(40810);
  * The credentials JSON file type for external account authorized user clients.
  */
 exports.EXTERNAL_ACCOUNT_AUTHORIZED_USER_TYPE = 'external_account_authorized_user';
+const DEFAULT_TOKEN_URL = 'https://sts.{universeDomain}/v1/oauthtoken';
 /**
  * Handler for token refresh requests sent to the token_url endpoint for external
  * authorized user credentials.
@@ -23217,6 +22359,7 @@ class ExternalAccountAuthorizedUserHandler extends oauth2common_1.OAuthClientAut
             ...additionalHeaders,
         };
         const opts = {
+            ...ExternalAccountAuthorizedUserHandler.RETRY_CONFIG,
             url: this.url,
             method: 'POST',
             headers,
@@ -23263,7 +22406,11 @@ class ExternalAccountAuthorizedUserClient extends authclient_1.AuthClient {
      *   on 401/403 API request errors.
      */
     constructor(options, additionalOptions) {
+        var _a;
         super({ ...options, ...additionalOptions });
+        if (options.universe_domain) {
+            this.universeDomain = options.universe_domain;
+        }
         this.refreshToken = options.refresh_token;
         const clientAuth = {
             confidentialClientType: 'basic',
@@ -23271,7 +22418,7 @@ class ExternalAccountAuthorizedUserClient extends authclient_1.AuthClient {
             clientSecret: options.client_secret,
         };
         this.externalAccountAuthorizedUserHandler =
-            new ExternalAccountAuthorizedUserHandler(options.token_url, this.transporter, clientAuth);
+            new ExternalAccountAuthorizedUserHandler((_a = options.token_url) !== null && _a !== void 0 ? _a : DEFAULT_TOKEN_URL.replace('{universeDomain}', this.universeDomain), this.transporter, clientAuth);
         this.cachedAccessToken = null;
         this.quotaProjectId = options.quota_project_id;
         // As threshold could be zero,
@@ -23285,9 +22432,6 @@ class ExternalAccountAuthorizedUserClient extends authclient_1.AuthClient {
                 .eagerRefreshThresholdMillis;
         }
         this.forceRefreshOnFailure = !!(additionalOptions === null || additionalOptions === void 0 ? void 0 : additionalOptions.forceRefreshOnFailure);
-        if (options.universe_domain) {
-            this.universeDomain = options.universe_domain;
-        }
     }
     async getAccessToken() {
         // If cached access token is unavailable or expired, force refresh.
@@ -23321,10 +22465,10 @@ class ExternalAccountAuthorizedUserClient extends authclient_1.AuthClient {
      * Authenticates the provided HTTP request, processes it and resolves with the
      * returned response.
      * @param opts The HTTP request options.
-     * @param retry Whether the current attempt is a retry after a failed attempt.
+     * @param reAuthRetried Whether the current attempt is a retry after a failed attempt due to an auth failure.
      * @return A promise that resolves with the successful response.
      */
-    async requestAsync(opts, retry = false) {
+    async requestAsync(opts, reAuthRetried = false) {
         let response;
         try {
             const requestHeaders = await this.getRequestHeaders();
@@ -23349,7 +22493,7 @@ class ExternalAccountAuthorizedUserClient extends authclient_1.AuthClient {
                 // - forceRefreshOnFailure is true
                 const isReadableStream = res.config.data instanceof stream.Readable;
                 const isAuthErr = statusCode === 401 || statusCode === 403;
-                if (!retry &&
+                if (!reAuthRetried &&
                     isAuthErr &&
                     !isReadableStream &&
                     this.forceRefreshOnFailure) {
@@ -23468,8 +22612,97 @@ exports.ExternalAccountClient = ExternalAccountClient;
 
 /***/ }),
 
-/***/ 20695:
+/***/ 27646:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FileSubjectTokenSupplier = void 0;
+const util_1 = __nccwpck_require__(73837);
+const fs = __nccwpck_require__(57147);
+// fs.readfile is undefined in browser karma tests causing
+// `npm run browser-test` to fail as test.oauth2.ts imports this file via
+// src/index.ts.
+// Fallback to void function to avoid promisify throwing a TypeError.
+const readFile = (0, util_1.promisify)((_a = fs.readFile) !== null && _a !== void 0 ? _a : (() => { }));
+const realpath = (0, util_1.promisify)((_b = fs.realpath) !== null && _b !== void 0 ? _b : (() => { }));
+const lstat = (0, util_1.promisify)((_c = fs.lstat) !== null && _c !== void 0 ? _c : (() => { }));
+/**
+ * Internal subject token supplier implementation used when a file location
+ * is configured in the credential configuration used to build an {@link IdentityPoolClient}
+ */
+class FileSubjectTokenSupplier {
+    /**
+     * Instantiates a new file based subject token supplier.
+     * @param opts The file subject token supplier options to build the supplier
+     *   with.
+     */
+    constructor(opts) {
+        this.filePath = opts.filePath;
+        this.formatType = opts.formatType;
+        this.subjectTokenFieldName = opts.subjectTokenFieldName;
+    }
+    /**
+     * Returns the subject token stored at the file specified in the constructor.
+     * @param context {@link ExternalAccountSupplierContext} from the calling
+     *   {@link IdentityPoolClient}, contains the requested audience and subject
+     *   token type for the external account identity. Not used.
+     */
+    async getSubjectToken(context) {
+        // Make sure there is a file at the path. lstatSync will throw if there is
+        // nothing there.
+        let parsedFilePath = this.filePath;
+        try {
+            // Resolve path to actual file in case of symlink. Expect a thrown error
+            // if not resolvable.
+            parsedFilePath = await realpath(parsedFilePath);
+            if (!(await lstat(parsedFilePath)).isFile()) {
+                throw new Error();
+            }
+        }
+        catch (err) {
+            if (err instanceof Error) {
+                err.message = `The file at ${parsedFilePath} does not exist, or it is not a file. ${err.message}`;
+            }
+            throw err;
+        }
+        let subjectToken;
+        const rawText = await readFile(parsedFilePath, { encoding: 'utf8' });
+        if (this.formatType === 'text') {
+            subjectToken = rawText;
+        }
+        else if (this.formatType === 'json' && this.subjectTokenFieldName) {
+            const json = JSON.parse(rawText);
+            subjectToken = json[this.subjectTokenFieldName];
+        }
+        if (!subjectToken) {
+            throw new Error('Unable to parse the subject_token from the credential_source file');
+        }
+        return subjectToken;
+    }
+}
+exports.FileSubjectTokenSupplier = FileSubjectTokenSupplier;
+
+
+/***/ }),
+
+/***/ 20695:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -23486,8 +22719,20 @@ exports.ExternalAccountClient = ExternalAccountClient;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var _GoogleAuth_instances, _GoogleAuth_pendingAuthClient, _GoogleAuth_prepareAndCacheClient, _GoogleAuth_determineClient;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GoogleAuth = exports.CLOUD_SDK_CLIENT_ID = void 0;
+exports.GoogleAuth = exports.GoogleAuthExceptionMessages = exports.CLOUD_SDK_CLIENT_ID = void 0;
 const child_process_1 = __nccwpck_require__(32081);
 const fs = __nccwpck_require__(57147);
 const gcpMetadata = __nccwpck_require__(3563);
@@ -23503,15 +22748,25 @@ const refreshclient_1 = __nccwpck_require__(98790);
 const impersonated_1 = __nccwpck_require__(91103);
 const externalclient_1 = __nccwpck_require__(94381);
 const baseexternalclient_1 = __nccwpck_require__(40810);
+const authclient_1 = __nccwpck_require__(44627);
 const externalAccountAuthorizedUserClient_1 = __nccwpck_require__(38765);
+const util_1 = __nccwpck_require__(68905);
 exports.CLOUD_SDK_CLIENT_ID = '764086051850-6qr4p6gpi6hn506pt8ejuq83di341hur.apps.googleusercontent.com';
-const GoogleAuthExceptionMessages = {
+exports.GoogleAuthExceptionMessages = {
+    API_KEY_WITH_CREDENTIALS: 'API Keys and Credentials are mutually exclusive authentication methods and cannot be used together.',
     NO_PROJECT_ID_FOUND: 'Unable to detect a Project Id in the current environment. \n' +
         'To learn more about authentication and Google APIs, visit: \n' +
         'https://cloud.google.com/docs/authentication/getting-started',
+    NO_CREDENTIALS_FOUND: 'Unable to find credentials in current environment. \n' +
+        'To learn more about authentication and Google APIs, visit: \n' +
+        'https://cloud.google.com/docs/authentication/getting-started',
+    NO_ADC_FOUND: 'Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.',
+    NO_UNIVERSE_DOMAIN_FOUND: 'Unable to detect a Universe Domain in the current environment.\n' +
+        'To learn more about Universe Domain retrieval, visit: \n' +
+        'https://cloud.google.com/compute/docs/metadata/predefined-metadata-keys',
 };
 class GoogleAuth {
-    // Note:  this properly is only public to satisify unit tests.
+    // Note:  this properly is only public to satisfy unit tests.
     // https://github.com/Microsoft/TypeScript/issues/5228
     get isGCE() {
         return this.checkIsGCE;
@@ -23527,7 +22782,8 @@ class GoogleAuth {
      *
      * @param opts
      */
-    constructor(opts) {
+    constructor(opts = {}) {
+        _GoogleAuth_instances.add(this);
         /**
          * Caches a value indicating whether the auth layer is running on Google
          * Compute Engine.
@@ -23537,13 +22793,25 @@ class GoogleAuth {
         // To save the contents of the JSON credential file
         this.jsonContent = null;
         this.cachedCredential = null;
-        opts = opts || {};
+        /**
+         * A pending {@link AuthClient}. Used for concurrent {@link GoogleAuth.getClient} calls.
+         */
+        _GoogleAuth_pendingAuthClient.set(this, null);
+        this.clientOptions = {};
         this._cachedProjectId = opts.projectId || null;
         this.cachedCredential = opts.authClient || null;
         this.keyFilename = opts.keyFilename || opts.keyFile;
         this.scopes = opts.scopes;
+        this.clientOptions = opts.clientOptions || {};
         this.jsonContent = opts.credentials || null;
-        this.clientOptions = opts.clientOptions;
+        this.apiKey = opts.apiKey || this.clientOptions.apiKey || null;
+        // Cannot use both API Key + Credentials
+        if (this.apiKey && (this.jsonContent || this.clientOptions.credentials)) {
+            throw new RangeError(exports.GoogleAuthExceptionMessages.API_KEY_WITH_CREDENTIALS);
+        }
+        if (opts.universeDomain) {
+            this.clientOptions.universeDomain = opts.universeDomain;
+        }
     }
     // GAPIC client libraries should always use self-signed JWTs. The following
     // variables are set on the JWT client in order to indicate the type of library,
@@ -23575,7 +22843,7 @@ class GoogleAuth {
         }
         catch (e) {
             if (e instanceof Error &&
-                e.message === GoogleAuthExceptionMessages.NO_PROJECT_ID_FOUND) {
+                e.message === exports.GoogleAuthExceptionMessages.NO_PROJECT_ID_FOUND) {
                 return null;
             }
             else {
@@ -23583,7 +22851,7 @@ class GoogleAuth {
             }
         }
     }
-    /*
+    /**
      * A private method for finding and caching a projectId.
      *
      * Supports environments in order of precedence:
@@ -23606,7 +22874,7 @@ class GoogleAuth {
             return projectId;
         }
         else {
-            throw new Error(GoogleAuthExceptionMessages.NO_PROJECT_ID_FOUND);
+            throw new Error(exports.GoogleAuthExceptionMessages.NO_PROJECT_ID_FOUND);
         }
     }
     async getProjectIdAsync() {
@@ -23617,6 +22885,49 @@ class GoogleAuth {
             this._findProjectIdPromise = this.findAndCacheProjectId();
         }
         return this._findProjectIdPromise;
+    }
+    /**
+     * Retrieves a universe domain from the metadata server via
+     * {@link gcpMetadata.universe}.
+     *
+     * @returns a universe domain
+     */
+    async getUniverseDomainFromMetadataServer() {
+        var _a;
+        let universeDomain;
+        try {
+            universeDomain = await gcpMetadata.universe('universe-domain');
+            universeDomain || (universeDomain = authclient_1.DEFAULT_UNIVERSE);
+        }
+        catch (e) {
+            if (e && ((_a = e === null || e === void 0 ? void 0 : e.response) === null || _a === void 0 ? void 0 : _a.status) === 404) {
+                universeDomain = authclient_1.DEFAULT_UNIVERSE;
+            }
+            else {
+                throw e;
+            }
+        }
+        return universeDomain;
+    }
+    /**
+     * Retrieves, caches, and returns the universe domain in the following order
+     * of precedence:
+     * - The universe domain in {@link GoogleAuth.clientOptions}
+     * - An existing or ADC {@link AuthClient}'s universe domain
+     * - {@link gcpMetadata.universe}, if {@link Compute} client
+     *
+     * @returns The universe domain
+     */
+    async getUniverseDomain() {
+        let universeDomain = (0, util_1.originalOrCamelOptions)(this.clientOptions).get('universe_domain');
+        try {
+            universeDomain !== null && universeDomain !== void 0 ? universeDomain : (universeDomain = (await this.getClient()).universeDomain);
+        }
+        catch (_a) {
+            // client or ADC is not available
+            universeDomain !== null && universeDomain !== void 0 ? universeDomain : (universeDomain = authclient_1.DEFAULT_UNIVERSE);
+        }
+        return universeDomain;
     }
     /**
      * @returns Any scopes (user-specified or default scopes specified by the
@@ -23645,11 +22956,9 @@ class GoogleAuth {
         // This will also preserve one's configured quota project, in case they
         // set one directly on the credential previously.
         if (this.cachedCredential) {
-            return await this.prepareAndCacheADC(this.cachedCredential);
+            // cache, while preserving existing quota project preferences
+            return await __classPrivateFieldGet(this, _GoogleAuth_instances, "m", _GoogleAuth_prepareAndCacheClient).call(this, this.cachedCredential, null);
         }
-        // Since this is a 'new' ADC to cache we will use the environment variable
-        // if it's available. We prefer this value over the value from ADC.
-        const quotaProjectIdOverride = process.env['GOOGLE_CLOUD_QUOTA_PROJECT'];
         let credential;
         // Check for the existence of a local environment variable pointing to the
         // location of the credential file. This is typically used in local
@@ -23663,7 +22972,7 @@ class GoogleAuth {
             else if (credential instanceof baseexternalclient_1.BaseExternalAccountClient) {
                 credential.scopes = this.getAnyScopes();
             }
-            return await this.prepareAndCacheADC(credential, quotaProjectIdOverride);
+            return await __classPrivateFieldGet(this, _GoogleAuth_instances, "m", _GoogleAuth_prepareAndCacheClient).call(this, credential);
         }
         // Look in the well-known credential file location.
         credential =
@@ -23675,35 +22984,14 @@ class GoogleAuth {
             else if (credential instanceof baseexternalclient_1.BaseExternalAccountClient) {
                 credential.scopes = this.getAnyScopes();
             }
-            return await this.prepareAndCacheADC(credential, quotaProjectIdOverride);
+            return await __classPrivateFieldGet(this, _GoogleAuth_instances, "m", _GoogleAuth_prepareAndCacheClient).call(this, credential);
         }
         // Determine if we're running on GCE.
-        let isGCE;
-        try {
-            isGCE = await this._checkIsGCE();
+        if (await this._checkIsGCE()) {
+            options.scopes = this.getAnyScopes();
+            return await __classPrivateFieldGet(this, _GoogleAuth_instances, "m", _GoogleAuth_prepareAndCacheClient).call(this, new computeclient_1.Compute(options));
         }
-        catch (e) {
-            if (e instanceof Error) {
-                e.message = `Unexpected error determining execution environment: ${e.message}`;
-            }
-            throw e;
-        }
-        if (!isGCE) {
-            // We failed to find the default credentials. Bail out with an error.
-            throw new Error('Could not load the default credentials. Browse to https://cloud.google.com/docs/authentication/getting-started for more information.');
-        }
-        // For GCE, just return a default ComputeClient. It will take care of
-        // the rest.
-        options.scopes = this.getAnyScopes();
-        return await this.prepareAndCacheADC(new computeclient_1.Compute(options), quotaProjectIdOverride);
-    }
-    async prepareAndCacheADC(credential, quotaProjectIdOverride) {
-        const projectId = await this.getProjectIdOptional();
-        if (quotaProjectIdOverride) {
-            credential.quotaProjectId = quotaProjectIdOverride;
-        }
-        this.cachedCredential = credential;
-        return { credential, projectId };
+        throw new Error(exports.GoogleAuthExceptionMessages.NO_ADC_FOUND);
     }
     /**
      * Determines whether the auth layer is running on Google Compute Engine.
@@ -23812,7 +23100,7 @@ class GoogleAuth {
      * @returns JWT or UserRefresh Client with data
      */
     fromImpersonatedJSON(json) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d;
         if (!json) {
             throw new Error('Must pass in a JSON object containing an  impersonated refresh token');
         }
@@ -23825,8 +23113,7 @@ class GoogleAuth {
         if (!json.service_account_impersonation_url) {
             throw new Error('The incoming JSON object does not contain a service_account_impersonation_url field');
         }
-        // Create source client for impersonation
-        const sourceClient = new refreshclient_1.UserRefreshClient(json.source_credentials.client_id, json.source_credentials.client_secret, json.source_credentials.refresh_token);
+        const sourceClient = this.fromJSON(json.source_credentials);
         if (((_a = json.service_account_impersonation_url) === null || _a === void 0 ? void 0 : _a.length) > 256) {
             /**
              * Prevents DOS attacks.
@@ -23834,28 +23121,33 @@ class GoogleAuth {
              **/
             throw new RangeError(`Target principal is too long: ${json.service_account_impersonation_url}`);
         }
-        // Extreact service account from service_account_impersonation_url
-        const targetPrincipal = (_c = (_b = /(?<target>[^/]+):generateAccessToken$/.exec(json.service_account_impersonation_url)) === null || _b === void 0 ? void 0 : _b.groups) === null || _c === void 0 ? void 0 : _c.target;
+        // Extract service account from service_account_impersonation_url
+        const targetPrincipal = (_c = (_b = /(?<target>[^/]+):(generateAccessToken|generateIdToken)$/.exec(json.service_account_impersonation_url)) === null || _b === void 0 ? void 0 : _b.groups) === null || _c === void 0 ? void 0 : _c.target;
         if (!targetPrincipal) {
             throw new RangeError(`Cannot extract target principal from ${json.service_account_impersonation_url}`);
         }
         const targetScopes = (_d = this.getAnyScopes()) !== null && _d !== void 0 ? _d : [];
-        const client = new impersonated_1.Impersonated({
-            delegates: (_e = json.delegates) !== null && _e !== void 0 ? _e : [],
-            sourceClient: sourceClient,
-            targetPrincipal: targetPrincipal,
+        return new impersonated_1.Impersonated({
+            ...json,
+            sourceClient,
+            targetPrincipal,
             targetScopes: Array.isArray(targetScopes) ? targetScopes : [targetScopes],
         });
-        return client;
     }
     /**
      * Create a credentials instance using the given input options.
+     * This client is not cached.
+     *
+     * **Important**: If you accept a credential configuration (credential JSON/File/Stream) from an external source for authentication to Google Cloud, you must validate it before providing it to any Google API or library. Providing an unvalidated credential configuration to Google APIs can compromise the security of your systems and data. For more information, refer to {@link https://cloud.google.com/docs/authentication/external/externally-sourced-credentials Validate credential configurations from external sources}.
+     *
      * @param json The input object.
      * @param options The JWT or UserRefresh options for the client
      * @returns JWT or UserRefresh Client with data
      */
     fromJSON(json, options = {}) {
         let client;
+        // user's preferred universe domain
+        const preferredUniverseDomain = (0, util_1.originalOrCamelOptions)(options).get('universe_domain');
         if (json.type === refreshclient_1.USER_REFRESH_ACCOUNT_TYPE) {
             client = new refreshclient_1.UserRefreshClient(options);
             client.fromJSON(json);
@@ -23875,6 +23167,9 @@ class GoogleAuth {
             client = new jwtclient_1.JWT(options);
             this.setGapicJWTValues(client);
             client.fromJSON(json);
+        }
+        if (preferredUniverseDomain) {
+            client.universeDomain = preferredUniverseDomain;
         }
         return client;
     }
@@ -23912,15 +23207,15 @@ class GoogleAuth {
             if (!inputStream) {
                 throw new Error('Must pass in a stream containing the Google auth settings.');
             }
-            let s = '';
+            const chunks = [];
             inputStream
                 .setEncoding('utf8')
                 .on('error', reject)
-                .on('data', chunk => (s += chunk))
+                .on('data', chunk => chunks.push(chunk))
                 .on('end', () => {
                 try {
                     try {
-                        const data = JSON.parse(s);
+                        const data = JSON.parse(chunks.join(''));
                         const r = this._cacheClientFromJSON(data, options);
                         return resolve(r);
                     }
@@ -23946,15 +23241,14 @@ class GoogleAuth {
     }
     /**
      * Create a credentials instance using the given API key string.
+     * The created client is not cached. In order to create and cache it use the {@link GoogleAuth.getClient `getClient`} method after first providing an {@link GoogleAuth.apiKey `apiKey`}.
+     *
      * @param apiKey The API key string
      * @param options An optional options object.
      * @returns A JWT loaded from the key
      */
-    fromAPIKey(apiKey, options) {
-        options = options || {};
-        const client = new jwtclient_1.JWT(options);
-        client.fromAPIKey(apiKey);
-        return client;
+    fromAPIKey(apiKey, options = {}) {
+        return new jwtclient_1.JWT({ ...options, apiKey });
     }
     /**
      * Determines whether the current operating system is Windows.
@@ -24068,35 +23362,33 @@ class GoogleAuth {
     }
     async getCredentialsAsync() {
         const client = await this.getClient();
+        if (client instanceof impersonated_1.Impersonated) {
+            return { client_email: client.getTargetPrincipal() };
+        }
         if (client instanceof baseexternalclient_1.BaseExternalAccountClient) {
             const serviceAccountEmail = client.getServiceAccountEmail();
             if (serviceAccountEmail) {
-                return { client_email: serviceAccountEmail };
+                return {
+                    client_email: serviceAccountEmail,
+                    universe_domain: client.universeDomain,
+                };
             }
         }
         if (this.jsonContent) {
-            const credential = {
+            return {
                 client_email: this.jsonContent.client_email,
                 private_key: this.jsonContent.private_key,
+                universe_domain: this.jsonContent.universe_domain,
             };
-            return credential;
         }
-        const isGCE = await this._checkIsGCE();
-        if (!isGCE) {
-            throw new Error('Unknown error.');
+        if (await this._checkIsGCE()) {
+            const [client_email, universe_domain] = await Promise.all([
+                gcpMetadata.instance('service-accounts/default/email'),
+                this.getUniverseDomain(),
+            ]);
+            return { client_email, universe_domain };
         }
-        // For GCE, return the service account details from the metadata server
-        // NOTE: The trailing '/' at the end of service-accounts/ is very important!
-        // The GCF metadata server doesn't respect querystring params if this / is
-        // not included.
-        const data = await gcpMetadata.instance({
-            property: 'service-accounts/',
-            params: { recursive: 'true' },
-        });
-        if (!data || !data.default || !data.default.email) {
-            throw new Error('Failure from metadata server.');
-        }
-        return { client_email: data.default.email };
+        throw new Error(exports.GoogleAuthExceptionMessages.NO_CREDENTIALS_FOUND);
     }
     /**
      * Automatically obtain an {@link AuthClient `AuthClient`} based on the
@@ -24104,20 +23396,18 @@ class GoogleAuth {
      * Default Credentials.
      */
     async getClient() {
-        if (!this.cachedCredential) {
-            if (this.jsonContent) {
-                this._cacheClientFromJSON(this.jsonContent, this.clientOptions);
-            }
-            else if (this.keyFilename) {
-                const filePath = path.resolve(this.keyFilename);
-                const stream = fs.createReadStream(filePath);
-                await this.fromStreamAsync(stream, this.clientOptions);
-            }
-            else {
-                await this.getApplicationDefaultAsync(this.clientOptions);
-            }
+        if (this.cachedCredential) {
+            return this.cachedCredential;
         }
-        return this.cachedCredential;
+        // Use an existing auth client request, or cache a new one
+        __classPrivateFieldSet(this, _GoogleAuth_pendingAuthClient, __classPrivateFieldGet(this, _GoogleAuth_pendingAuthClient, "f") || __classPrivateFieldGet(this, _GoogleAuth_instances, "m", _GoogleAuth_determineClient).call(this), "f");
+        try {
+            return await __classPrivateFieldGet(this, _GoogleAuth_pendingAuthClient, "f");
+        }
+        finally {
+            // reset the pending auth client in case it is changed later
+            __classPrivateFieldSet(this, _GoogleAuth_pendingAuthClient, null, "f");
+        }
     }
     /**
      * Creates a client which will fetch an ID token for authorization.
@@ -24180,9 +23470,23 @@ class GoogleAuth {
      * Sign the given data with the current private key, or go out
      * to the IAM API to sign it.
      * @param data The data to be signed.
+     * @param endpoint A custom endpoint to use.
+     *
+     * @example
+     * ```
+     * sign('data', 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/');
+     * ```
      */
-    async sign(data) {
+    async sign(data, endpoint) {
         const client = await this.getClient();
+        const universe = await this.getUniverseDomain();
+        endpoint =
+            endpoint ||
+                `https://iamcredentials.${universe}/v1/projects/-/serviceAccounts/`;
+        if (client instanceof impersonated_1.Impersonated) {
+            const signed = await client.sign(data);
+            return signed.signedBlob;
+        }
         const crypto = (0, crypto_1.createCrypto)();
         if (client instanceof jwtclient_1.JWT && client.key) {
             const sign = await crypto.sign(client.key, data);
@@ -24192,22 +23496,52 @@ class GoogleAuth {
         if (!creds.client_email) {
             throw new Error('Cannot sign data without `client_email`.');
         }
-        return this.signBlob(crypto, creds.client_email, data);
+        return this.signBlob(crypto, creds.client_email, data, endpoint);
     }
-    async signBlob(crypto, emailOrUniqueId, data) {
-        const url = 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/' +
-            `${emailOrUniqueId}:signBlob`;
+    async signBlob(crypto, emailOrUniqueId, data, endpoint) {
+        const url = new URL(endpoint + `${emailOrUniqueId}:signBlob`);
         const res = await this.request({
             method: 'POST',
-            url,
+            url: url.href,
             data: {
                 payload: crypto.encodeBase64StringUtf8(data),
+            },
+            retry: true,
+            retryConfig: {
+                httpMethodsToRetry: ['POST'],
             },
         });
         return res.data.signedBlob;
     }
 }
 exports.GoogleAuth = GoogleAuth;
+_GoogleAuth_pendingAuthClient = new WeakMap(), _GoogleAuth_instances = new WeakSet(), _GoogleAuth_prepareAndCacheClient = async function _GoogleAuth_prepareAndCacheClient(credential, quotaProjectIdOverride = process.env['GOOGLE_CLOUD_QUOTA_PROJECT'] || null) {
+    const projectId = await this.getProjectIdOptional();
+    if (quotaProjectIdOverride) {
+        credential.quotaProjectId = quotaProjectIdOverride;
+    }
+    this.cachedCredential = credential;
+    return { credential, projectId };
+}, _GoogleAuth_determineClient = async function _GoogleAuth_determineClient() {
+    if (this.jsonContent) {
+        return this._cacheClientFromJSON(this.jsonContent, this.clientOptions);
+    }
+    else if (this.keyFilename) {
+        const filePath = path.resolve(this.keyFilename);
+        const stream = fs.createReadStream(filePath);
+        return await this.fromStreamAsync(stream, this.clientOptions);
+    }
+    else if (this.apiKey) {
+        const client = await this.fromAPIKey(this.apiKey, this.clientOptions);
+        client.scopes = this.scopes;
+        const { credential } = await __classPrivateFieldGet(this, _GoogleAuth_instances, "m", _GoogleAuth_prepareAndCacheClient).call(this, client);
+        return credential;
+    }
+    else {
+        const { credential } = await this.getApplicationDefaultAsync(this.clientOptions);
+        return credential;
+    }
+};
 /**
  * Export DefaultTransporter as a static property of the class.
  */
@@ -24283,20 +23617,12 @@ exports.IAMAuth = IAMAuth;
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IdentityPoolClient = void 0;
-const fs = __nccwpck_require__(57147);
-const util_1 = __nccwpck_require__(73837);
 const baseexternalclient_1 = __nccwpck_require__(40810);
-const util_2 = __nccwpck_require__(68905);
-// fs.readfile is undefined in browser karma tests causing
-// `npm run browser-test` to fail as test.oauth2.ts imports this file via
-// src/index.ts.
-// Fallback to void function to avoid promisify throwing a TypeError.
-const readFile = (0, util_1.promisify)((_a = fs.readFile) !== null && _a !== void 0 ? _a : (() => { }));
-const realpath = (0, util_1.promisify)((_b = fs.realpath) !== null && _b !== void 0 ? _b : (() => { }));
-const lstat = (0, util_1.promisify)((_c = fs.lstat) !== null && _c !== void 0 ? _c : (() => { }));
+const util_1 = __nccwpck_require__(68905);
+const filesubjecttokensupplier_1 = __nccwpck_require__(27646);
+const urlsubjecttokensupplier_1 = __nccwpck_require__(7428);
 /**
  * Defines the Url-sourced and file-sourced external account clients mainly
  * used for K8s and Azure workloads.
@@ -24318,125 +23644,69 @@ class IdentityPoolClient extends baseexternalclient_1.BaseExternalAccountClient 
      */
     constructor(options, additionalOptions) {
         super(options, additionalOptions);
-        const opts = (0, util_2.originalOrCamelOptions)(options);
+        const opts = (0, util_1.originalOrCamelOptions)(options);
         const credentialSource = opts.get('credential_source');
-        const credentialSourceOpts = (0, util_2.originalOrCamelOptions)(credentialSource);
-        this.file = credentialSourceOpts.get('file');
-        this.url = credentialSourceOpts.get('url');
-        this.headers = credentialSourceOpts.get('headers');
-        if (this.file && this.url) {
-            throw new Error('No valid Identity Pool "credential_source" provided, must be either file or url.');
+        const subjectTokenSupplier = opts.get('subject_token_supplier');
+        // Validate credential sourcing configuration.
+        if (!credentialSource && !subjectTokenSupplier) {
+            throw new Error('A credential source or subject token supplier must be specified.');
         }
-        else if (this.file && !this.url) {
-            this.credentialSourceType = 'file';
+        if (credentialSource && subjectTokenSupplier) {
+            throw new Error('Only one of credential source or subject token supplier can be specified.');
         }
-        else if (!this.file && this.url) {
-            this.credentialSourceType = 'url';
+        if (subjectTokenSupplier) {
+            this.subjectTokenSupplier = subjectTokenSupplier;
+            this.credentialSourceType = 'programmatic';
         }
         else {
-            throw new Error('No valid Identity Pool "credential_source" provided, must be either file or url.');
-        }
-        const formatOpts = (0, util_2.originalOrCamelOptions)(credentialSourceOpts.get('format'));
-        // Text is the default format type.
-        this.formatType = formatOpts.get('type') || 'text';
-        this.formatSubjectTokenFieldName = formatOpts.get('subject_token_field_name');
-        if (this.formatType !== 'json' && this.formatType !== 'text') {
-            throw new Error(`Invalid credential_source format "${this.formatType}"`);
-        }
-        if (this.formatType === 'json' && !this.formatSubjectTokenFieldName) {
-            throw new Error('Missing subject_token_field_name for JSON credential_source format');
+            const credentialSourceOpts = (0, util_1.originalOrCamelOptions)(credentialSource);
+            const formatOpts = (0, util_1.originalOrCamelOptions)(credentialSourceOpts.get('format'));
+            // Text is the default format type.
+            const formatType = formatOpts.get('type') || 'text';
+            const formatSubjectTokenFieldName = formatOpts.get('subject_token_field_name');
+            if (formatType !== 'json' && formatType !== 'text') {
+                throw new Error(`Invalid credential_source format "${formatType}"`);
+            }
+            if (formatType === 'json' && !formatSubjectTokenFieldName) {
+                throw new Error('Missing subject_token_field_name for JSON credential_source format');
+            }
+            const file = credentialSourceOpts.get('file');
+            const url = credentialSourceOpts.get('url');
+            const headers = credentialSourceOpts.get('headers');
+            if (file && url) {
+                throw new Error('No valid Identity Pool "credential_source" provided, must be either file or url.');
+            }
+            else if (file && !url) {
+                this.credentialSourceType = 'file';
+                this.subjectTokenSupplier = new filesubjecttokensupplier_1.FileSubjectTokenSupplier({
+                    filePath: file,
+                    formatType: formatType,
+                    subjectTokenFieldName: formatSubjectTokenFieldName,
+                });
+            }
+            else if (!file && url) {
+                this.credentialSourceType = 'url';
+                this.subjectTokenSupplier = new urlsubjecttokensupplier_1.UrlSubjectTokenSupplier({
+                    url: url,
+                    formatType: formatType,
+                    subjectTokenFieldName: formatSubjectTokenFieldName,
+                    headers: headers,
+                    additionalGaxiosOptions: IdentityPoolClient.RETRY_CONFIG,
+                });
+            }
+            else {
+                throw new Error('No valid Identity Pool "credential_source" provided, must be either file or url.');
+            }
         }
     }
     /**
      * Triggered when a external subject token is needed to be exchanged for a GCP
-     * access token via GCP STS endpoint.
-     * This uses the `options.credential_source` object to figure out how
-     * to retrieve the token using the current environment. In this case,
-     * this either retrieves the local credential from a file location (k8s
-     * workload) or by sending a GET request to a local metadata server (Azure
-     * workloads).
+     * access token via GCP STS endpoint. Gets a subject token by calling
+     * the configured {@link SubjectTokenSupplier}
      * @return A promise that resolves with the external subject token.
      */
     async retrieveSubjectToken() {
-        if (this.file) {
-            return await this.getTokenFromFile(this.file, this.formatType, this.formatSubjectTokenFieldName);
-        }
-        return await this.getTokenFromUrl(this.url, this.formatType, this.formatSubjectTokenFieldName, this.headers);
-    }
-    /**
-     * Looks up the external subject token in the file path provided and
-     * resolves with that token.
-     * @param file The file path where the external credential is located.
-     * @param formatType The token file or URL response type (JSON or text).
-     * @param formatSubjectTokenFieldName For JSON response types, this is the
-     *   subject_token field name. For Azure, this is access_token. For text
-     *   response types, this is ignored.
-     * @return A promise that resolves with the external subject token.
-     */
-    async getTokenFromFile(filePath, formatType, formatSubjectTokenFieldName) {
-        // Make sure there is a file at the path. lstatSync will throw if there is
-        // nothing there.
-        try {
-            // Resolve path to actual file in case of symlink. Expect a thrown error
-            // if not resolvable.
-            filePath = await realpath(filePath);
-            if (!(await lstat(filePath)).isFile()) {
-                throw new Error();
-            }
-        }
-        catch (err) {
-            if (err instanceof Error) {
-                err.message = `The file at ${filePath} does not exist, or it is not a file. ${err.message}`;
-            }
-            throw err;
-        }
-        let subjectToken;
-        const rawText = await readFile(filePath, { encoding: 'utf8' });
-        if (formatType === 'text') {
-            subjectToken = rawText;
-        }
-        else if (formatType === 'json' && formatSubjectTokenFieldName) {
-            const json = JSON.parse(rawText);
-            subjectToken = json[formatSubjectTokenFieldName];
-        }
-        if (!subjectToken) {
-            throw new Error('Unable to parse the subject_token from the credential_source file');
-        }
-        return subjectToken;
-    }
-    /**
-     * Sends a GET request to the URL provided and resolves with the returned
-     * external subject token.
-     * @param url The URL to call to retrieve the subject token. This is typically
-     *   a local metadata server.
-     * @param formatType The token file or URL response type (JSON or text).
-     * @param formatSubjectTokenFieldName For JSON response types, this is the
-     *   subject_token field name. For Azure, this is access_token. For text
-     *   response types, this is ignored.
-     * @param headers The optional additional headers to send with the request to
-     *   the metadata server url.
-     * @return A promise that resolves with the external subject token.
-     */
-    async getTokenFromUrl(url, formatType, formatSubjectTokenFieldName, headers) {
-        const opts = {
-            url,
-            method: 'GET',
-            headers,
-            responseType: formatType,
-        };
-        let subjectToken;
-        if (formatType === 'text') {
-            const response = await this.transporter.request(opts);
-            subjectToken = response.data;
-        }
-        else if (formatType === 'json' && formatSubjectTokenFieldName) {
-            const response = await this.transporter.request(opts);
-            subjectToken = response.data[formatSubjectTokenFieldName];
-        }
-        if (!subjectToken) {
-            throw new Error('Unable to parse the subject_token from the credential_source URL');
-        }
-        return subjectToken;
+        return this.subjectTokenSupplier.getSubjectToken(this.supplierContext);
     }
 }
 exports.IdentityPoolClient = IdentityPoolClient;
@@ -24469,8 +23739,8 @@ class IdTokenClient extends oauth2client_1.OAuth2Client {
     /**
      * Google ID Token client
      *
-     * Retrieve access token from the metadata server.
-     * See: https://developers.google.com/compute/docs/authentication
+     * Retrieve ID token from the metadata server.
+     * See: https://cloud.google.com/docs/authentication/get-id-token#metadata-server
      */
     constructor(options) {
         super(options);
@@ -24531,6 +23801,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Impersonated = exports.IMPERSONATED_ACCOUNT_TYPE = void 0;
 const oauth2client_1 = __nccwpck_require__(3936);
 const gaxios_1 = __nccwpck_require__(59555);
+const util_1 = __nccwpck_require__(68905);
 exports.IMPERSONATED_ACCOUNT_TYPE = 'impersonated_service_account';
 class Impersonated extends oauth2client_1.OAuth2Client {
     /**
@@ -24579,13 +23850,50 @@ class Impersonated extends oauth2client_1.OAuth2Client {
         this.delegates = (_c = options.delegates) !== null && _c !== void 0 ? _c : [];
         this.targetScopes = (_d = options.targetScopes) !== null && _d !== void 0 ? _d : [];
         this.lifetime = (_e = options.lifetime) !== null && _e !== void 0 ? _e : 3600;
-        this.endpoint = (_f = options.endpoint) !== null && _f !== void 0 ? _f : 'https://iamcredentials.googleapis.com';
+        const usingExplicitUniverseDomain = !!(0, util_1.originalOrCamelOptions)(options).get('universe_domain');
+        if (!usingExplicitUniverseDomain) {
+            // override the default universe with the source's universe
+            this.universeDomain = this.sourceClient.universeDomain;
+        }
+        else if (this.sourceClient.universeDomain !== this.universeDomain) {
+            // non-default universe and is not matching the source - this could be a credential leak
+            throw new RangeError(`Universe domain ${this.sourceClient.universeDomain} in source credentials does not match ${this.universeDomain} universe domain set for impersonated credentials.`);
+        }
+        this.endpoint =
+            (_f = options.endpoint) !== null && _f !== void 0 ? _f : `https://iamcredentials.${this.universeDomain}`;
+    }
+    /**
+     * Signs some bytes.
+     *
+     * {@link https://cloud.google.com/iam/docs/reference/credentials/rest/v1/projects.serviceAccounts/signBlob Reference Documentation}
+     * @param blobToSign String to sign.
+     *
+     * @returns A {@link SignBlobResponse} denoting the keyID and signedBlob in base64 string
+     */
+    async sign(blobToSign) {
+        await this.sourceClient.getAccessToken();
+        const name = `projects/-/serviceAccounts/${this.targetPrincipal}`;
+        const u = `${this.endpoint}/v1/${name}:signBlob`;
+        const body = {
+            delegates: this.delegates,
+            payload: Buffer.from(blobToSign).toString('base64'),
+        };
+        const res = await this.sourceClient.request({
+            ...Impersonated.RETRY_CONFIG,
+            url: u,
+            data: body,
+            method: 'POST',
+        });
+        return res.data;
+    }
+    /** The service account email to be impersonated. */
+    getTargetPrincipal() {
+        return this.targetPrincipal;
     }
     /**
      * Refreshes the access token.
-     * @param refreshToken Unused parameter
      */
-    async refreshToken(refreshToken) {
+    async refreshToken() {
         var _a, _b, _c, _d, _e, _f;
         try {
             await this.sourceClient.getAccessToken();
@@ -24597,6 +23905,7 @@ class Impersonated extends oauth2client_1.OAuth2Client {
                 lifetime: this.lifetime + 's',
             };
             const res = await this.sourceClient.request({
+                ...Impersonated.RETRY_CONFIG,
                 url: u,
                 data: body,
                 method: 'POST',
@@ -24638,7 +23947,7 @@ class Impersonated extends oauth2client_1.OAuth2Client {
      * @return an OpenID Connect ID token
      */
     async fetchIdToken(targetAudience, options) {
-        var _a;
+        var _a, _b;
         await this.sourceClient.getAccessToken();
         const name = `projects/-/serviceAccounts/${this.targetPrincipal}`;
         const u = `${this.endpoint}/v1/${name}:generateIdToken`;
@@ -24646,8 +23955,10 @@ class Impersonated extends oauth2client_1.OAuth2Client {
             delegates: this.delegates,
             audience: targetAudience,
             includeEmail: (_a = options === null || options === void 0 ? void 0 : options.includeEmail) !== null && _a !== void 0 ? _a : true,
+            useEmailAzp: (_b = options === null || options === void 0 ? void 0 : options.includeEmail) !== null && _b !== void 0 ? _b : true,
         };
         const res = await this.sourceClient.request({
+            ...Impersonated.RETRY_CONFIG,
             url: u,
             data: body,
             method: 'POST',
@@ -24883,6 +24194,7 @@ exports.JWT = void 0;
 const gtoken_1 = __nccwpck_require__(76031);
 const jwtaccess_1 = __nccwpck_require__(68740);
 const oauth2client_1 = __nccwpck_require__(3936);
+const authclient_1 = __nccwpck_require__(44627);
 class JWT extends oauth2client_1.OAuth2Client {
     constructor(optionsOrEmail, keyFile, key, scopes, subject, keyId) {
         const opts = optionsOrEmail && typeof optionsOrEmail === 'object'
@@ -24918,7 +24230,11 @@ class JWT extends oauth2client_1.OAuth2Client {
     async getRequestMetadataAsync(url) {
         url = this.defaultServicePath ? `https://${this.defaultServicePath}/` : url;
         const useSelfSignedJWT = (!this.hasUserScopes() && url) ||
-            (this.useJWTAccessWithScope && this.hasAnyScopes());
+            (this.useJWTAccessWithScope && this.hasAnyScopes()) ||
+            this.universeDomain !== authclient_1.DEFAULT_UNIVERSE;
+        if (this.subject && this.universeDomain !== authclient_1.DEFAULT_UNIVERSE) {
+            throw new RangeError(`Service Account user is configured for the credential. Domain-wide delegation is not supported in universes other than ${authclient_1.DEFAULT_UNIVERSE}`);
+        }
         if (!this.apiKey && useSelfSignedJWT) {
             if (this.additionalClaims &&
                 this.additionalClaims.target_audience) {
@@ -24942,10 +24258,13 @@ class JWT extends oauth2client_1.OAuth2Client {
                 else if (!url) {
                     scopes = this.defaultScopes;
                 }
+                const useScopes = this.useJWTAccessWithScope ||
+                    this.universeDomain !== authclient_1.DEFAULT_UNIVERSE;
                 const headers = await this.access.getRequestHeaders(url !== null && url !== void 0 ? url : undefined, this.additionalClaims, 
                 // Scopes take precedent over audience for signing,
-                // so we only provide them if useJWTAccessWithScope is on
-                this.useJWTAccessWithScope ? scopes : undefined);
+                // so we only provide them if `useJWTAccessWithScope` is on or
+                // if we are in a non-default universe
+                useScopes ? scopes : undefined);
                 return { headers: this.addSharedMetadataHeaders(headers) };
             }
         }
@@ -25060,6 +24379,10 @@ class JWT extends oauth2client_1.OAuth2Client {
     /**
      * Create a JWT credentials instance using the given input options.
      * @param json The input object.
+     *
+     * @remarks
+     *
+     * **Important**: If you accept a credential configuration (credential JSON/File/Stream) from an external source for authentication to Google Cloud, you must validate it before providing it to any Google API or library. Providing an unvalidated credential configuration to Google APIs can compromise the security of your systems and data. For more information, refer to {@link https://cloud.google.com/docs/authentication/external/externally-sourced-credentials Validate credential configurations from external sources}.
      */
     fromJSON(json) {
         if (!json) {
@@ -25077,6 +24400,7 @@ class JWT extends oauth2client_1.OAuth2Client {
         this.keyId = json.private_key_id;
         this.projectId = json.project_id;
         this.quotaProjectId = json.quota_project_id;
+        this.universeDomain = json.universe_domain || this.universeDomain;
     }
     fromStream(inputStream, callback) {
         if (callback) {
@@ -25223,7 +24547,7 @@ exports.LoginTicket = LoginTicket;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.OAuth2Client = exports.CertificateFormat = exports.CodeChallengeMethod = void 0;
+exports.OAuth2Client = exports.ClientAuthentication = exports.CertificateFormat = exports.CodeChallengeMethod = void 0;
 const gaxios_1 = __nccwpck_require__(59555);
 const querystring = __nccwpck_require__(63477);
 const stream = __nccwpck_require__(12781);
@@ -25241,6 +24565,16 @@ var CertificateFormat;
     CertificateFormat["PEM"] = "PEM";
     CertificateFormat["JWK"] = "JWK";
 })(CertificateFormat || (exports.CertificateFormat = CertificateFormat = {}));
+/**
+ * The client authentication type. Supported values are basic, post, and none.
+ * https://datatracker.ietf.org/doc/html/rfc7591#section-2
+ */
+var ClientAuthentication;
+(function (ClientAuthentication) {
+    ClientAuthentication["ClientSecretPost"] = "ClientSecretPost";
+    ClientAuthentication["ClientSecretBasic"] = "ClientSecretBasic";
+    ClientAuthentication["None"] = "None";
+})(ClientAuthentication || (exports.ClientAuthentication = ClientAuthentication = {}));
 class OAuth2Client extends authclient_1.AuthClient {
     constructor(optionsOrClientId, clientSecret, redirectUri) {
         const opts = optionsOrClientId && typeof optionsOrClientId === 'object'
@@ -25254,6 +24588,23 @@ class OAuth2Client extends authclient_1.AuthClient {
         this._clientId = opts.clientId;
         this._clientSecret = opts.clientSecret;
         this.redirectUri = opts.redirectUri;
+        this.endpoints = {
+            tokenInfoUrl: 'https://oauth2.googleapis.com/tokeninfo',
+            oauth2AuthBaseUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+            oauth2TokenUrl: 'https://oauth2.googleapis.com/token',
+            oauth2RevokeUrl: 'https://oauth2.googleapis.com/revoke',
+            oauth2FederatedSignonPemCertsUrl: 'https://www.googleapis.com/oauth2/v1/certs',
+            oauth2FederatedSignonJwkCertsUrl: 'https://www.googleapis.com/oauth2/v3/certs',
+            oauth2IapPublicKeyUrl: 'https://www.gstatic.com/iap/verify/public_key',
+            ...opts.endpoints,
+        };
+        this.clientAuthentication =
+            opts.clientAuthentication || ClientAuthentication.ClientSecretPost;
+        this.issuers = opts.issuers || [
+            'accounts.google.com',
+            'https://accounts.google.com',
+            this.universeDomain,
+        ];
     }
     /**
      * Generates URL for consent page landing.
@@ -25271,7 +24622,7 @@ class OAuth2Client extends authclient_1.AuthClient {
         if (Array.isArray(opts.scope)) {
             opts.scope = opts.scope.join(' ');
         }
-        const rootUrl = OAuth2Client.GOOGLE_OAUTH2_AUTH_BASE_URL_;
+        const rootUrl = this.endpoints.oauth2AuthBaseUrl.toString();
         return (rootUrl +
             '?' +
             querystring.stringify(opts));
@@ -25320,20 +24671,30 @@ class OAuth2Client extends authclient_1.AuthClient {
         }
     }
     async getTokenAsync(options) {
-        const url = OAuth2Client.GOOGLE_OAUTH2_TOKEN_URL_;
-        const values = {
-            code: options.code,
-            client_id: options.client_id || this._clientId,
-            client_secret: this._clientSecret,
-            redirect_uri: options.redirect_uri || this.redirectUri,
-            grant_type: 'authorization_code',
-            code_verifier: options.codeVerifier,
+        const url = this.endpoints.oauth2TokenUrl.toString();
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
         };
+        const values = {
+            client_id: options.client_id || this._clientId,
+            code_verifier: options.codeVerifier,
+            code: options.code,
+            grant_type: 'authorization_code',
+            redirect_uri: options.redirect_uri || this.redirectUri,
+        };
+        if (this.clientAuthentication === ClientAuthentication.ClientSecretBasic) {
+            const basic = Buffer.from(`${this._clientId}:${this._clientSecret}`);
+            headers['Authorization'] = `Basic ${basic.toString('base64')}`;
+        }
+        if (this.clientAuthentication === ClientAuthentication.ClientSecretPost) {
+            values.client_secret = this._clientSecret;
+        }
         const res = await this.transporter.request({
+            ...OAuth2Client.RETRY_CONFIG,
             method: 'POST',
             url,
             data: querystring.stringify(values),
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers,
         });
         const tokens = res.data;
         if (res.data && res.data.expires_in) {
@@ -25372,7 +24733,7 @@ class OAuth2Client extends authclient_1.AuthClient {
         if (!refreshToken) {
             throw new Error('No refresh token is set.');
         }
-        const url = OAuth2Client.GOOGLE_OAUTH2_TOKEN_URL_;
+        const url = this.endpoints.oauth2TokenUrl.toString();
         const data = {
             refresh_token: refreshToken,
             client_id: this._clientId,
@@ -25383,6 +24744,7 @@ class OAuth2Client extends authclient_1.AuthClient {
         try {
             // request for new token
             res = await this.transporter.request({
+                ...OAuth2Client.RETRY_CONFIG,
                 method: 'POST',
                 url,
                 data: querystring.stringify(data),
@@ -25525,14 +24887,26 @@ class OAuth2Client extends authclient_1.AuthClient {
     /**
      * Generates an URL to revoke the given token.
      * @param token The existing token to be revoked.
+     *
+     * @deprecated use instance method {@link OAuth2Client.getRevokeTokenURL}
      */
     static getRevokeTokenUrl(token) {
-        const parameters = querystring.stringify({ token });
-        return `${OAuth2Client.GOOGLE_OAUTH2_REVOKE_URL_}?${parameters}`;
+        return new OAuth2Client().getRevokeTokenURL(token).toString();
+    }
+    /**
+     * Generates a URL to revoke the given token.
+     *
+     * @param token The existing token to be revoked.
+     */
+    getRevokeTokenURL(token) {
+        const url = new URL(this.endpoints.oauth2RevokeUrl);
+        url.searchParams.append('token', token);
+        return url;
     }
     revokeToken(token, callback) {
         const opts = {
-            url: OAuth2Client.getRevokeTokenUrl(token),
+            ...OAuth2Client.RETRY_CONFIG,
+            url: this.getRevokeTokenURL(token).toString(),
             method: 'POST',
         };
         if (callback) {
@@ -25572,7 +24946,7 @@ class OAuth2Client extends authclient_1.AuthClient {
             return this.requestAsync(opts);
         }
     }
-    async requestAsync(opts, retry = false) {
+    async requestAsync(opts, reAuthRetried = false) {
         let r2;
         try {
             const r = await this.getRequestMetadataAsync(opts.url);
@@ -25624,11 +24998,14 @@ class OAuth2Client extends authclient_1.AuthClient {
                     this.refreshHandler;
                 const isReadableStream = res.config.data instanceof stream.Readable;
                 const isAuthErr = statusCode === 401 || statusCode === 403;
-                if (!retry && isAuthErr && !isReadableStream && mayRequireRefresh) {
+                if (!reAuthRetried &&
+                    isAuthErr &&
+                    !isReadableStream &&
+                    mayRequireRefresh) {
                     await this.refreshAccessTokenAsync();
                     return this.requestAsync(opts, true);
                 }
-                else if (!retry &&
+                else if (!reAuthRetried &&
                     isAuthErr &&
                     !isReadableStream &&
                     mayRequireRefreshWithNoRefreshToken) {
@@ -25662,7 +25039,7 @@ class OAuth2Client extends authclient_1.AuthClient {
             throw new Error('The verifyIdToken method requires an ID Token');
         }
         const response = await this.getFederatedSignonCertsAsync();
-        const login = await this.verifySignedJwtWithCertsAsync(options.idToken, response.certs, options.audience, OAuth2Client.ISSUERS_, options.maxExpiry);
+        const login = await this.verifySignedJwtWithCertsAsync(options.idToken, response.certs, options.audience, this.issuers, options.maxExpiry);
         return login;
     }
     /**
@@ -25674,12 +25051,13 @@ class OAuth2Client extends authclient_1.AuthClient {
      */
     async getTokenInfo(accessToken) {
         const { data } = await this.transporter.request({
+            ...OAuth2Client.RETRY_CONFIG,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 Authorization: `Bearer ${accessToken}`,
             },
-            url: OAuth2Client.GOOGLE_TOKEN_INFO_URL,
+            url: this.endpoints.tokenInfoUrl.toString(),
         });
         const info = Object.assign({
             expiry_date: new Date().getTime() + data.expires_in * 1000,
@@ -25711,16 +25089,19 @@ class OAuth2Client extends authclient_1.AuthClient {
         let url;
         switch (format) {
             case CertificateFormat.PEM:
-                url = OAuth2Client.GOOGLE_OAUTH2_FEDERATED_SIGNON_PEM_CERTS_URL_;
+                url = this.endpoints.oauth2FederatedSignonPemCertsUrl.toString();
                 break;
             case CertificateFormat.JWK:
-                url = OAuth2Client.GOOGLE_OAUTH2_FEDERATED_SIGNON_JWK_CERTS_URL_;
+                url = this.endpoints.oauth2FederatedSignonJwkCertsUrl.toString();
                 break;
             default:
                 throw new Error(`Unsupported certificate format ${format}`);
         }
         try {
-            res = await this.transporter.request({ url });
+            res = await this.transporter.request({
+                ...OAuth2Client.RETRY_CONFIG,
+                url,
+            });
         }
         catch (e) {
             if (e instanceof Error) {
@@ -25768,9 +25149,12 @@ class OAuth2Client extends authclient_1.AuthClient {
     }
     async getIapPublicKeysAsync() {
         let res;
-        const url = OAuth2Client.GOOGLE_OAUTH2_IAP_PUBLIC_KEY_URL_;
+        const url = this.endpoints.oauth2IapPublicKeyUrl.toString();
         try {
-            res = await this.transporter.request({ url });
+            res = await this.transporter.request({
+                ...OAuth2Client.RETRY_CONFIG,
+                url,
+            });
         }
         catch (e) {
             if (e instanceof Error) {
@@ -25798,7 +25182,7 @@ class OAuth2Client extends authclient_1.AuthClient {
     async verifySignedJwtWithCertsAsync(jwt, certs, requiredAudience, issuers, maxExpiry) {
         const crypto = (0, crypto_1.createCrypto)();
         if (!maxExpiry) {
-            maxExpiry = OAuth2Client.MAX_TOKEN_LIFETIME_SECS_;
+            maxExpiry = OAuth2Client.DEFAULT_MAX_TOKEN_LIFETIME_SECS_;
         }
         const segments = jwt.split('.');
         if (segments.length !== 3) {
@@ -25930,46 +25314,18 @@ class OAuth2Client extends authclient_1.AuthClient {
     }
 }
 exports.OAuth2Client = OAuth2Client;
+/**
+ * @deprecated use instance's {@link OAuth2Client.endpoints}
+ */
 OAuth2Client.GOOGLE_TOKEN_INFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
-/**
- * The base URL for auth endpoints.
- */
-OAuth2Client.GOOGLE_OAUTH2_AUTH_BASE_URL_ = 'https://accounts.google.com/o/oauth2/v2/auth';
-/**
- * The base endpoint for token retrieval.
- */
-OAuth2Client.GOOGLE_OAUTH2_TOKEN_URL_ = 'https://oauth2.googleapis.com/token';
-/**
- * The base endpoint to revoke tokens.
- */
-OAuth2Client.GOOGLE_OAUTH2_REVOKE_URL_ = 'https://oauth2.googleapis.com/revoke';
-/**
- * Google Sign on certificates in PEM format.
- */
-OAuth2Client.GOOGLE_OAUTH2_FEDERATED_SIGNON_PEM_CERTS_URL_ = 'https://www.googleapis.com/oauth2/v1/certs';
-/**
- * Google Sign on certificates in JWK format.
- */
-OAuth2Client.GOOGLE_OAUTH2_FEDERATED_SIGNON_JWK_CERTS_URL_ = 'https://www.googleapis.com/oauth2/v3/certs';
-/**
- * Google Sign on certificates in JWK format.
- */
-OAuth2Client.GOOGLE_OAUTH2_IAP_PUBLIC_KEY_URL_ = 'https://www.gstatic.com/iap/verify/public_key';
 /**
  * Clock skew - five minutes in seconds
  */
 OAuth2Client.CLOCK_SKEW_SECS_ = 300;
 /**
- * Max Token Lifetime is one day in seconds
+ * The default max Token Lifetime is one day in seconds
  */
-OAuth2Client.MAX_TOKEN_LIFETIME_SECS_ = 86400;
-/**
- * The allowed oauth token issuers.
- */
-OAuth2Client.ISSUERS_ = [
-    'accounts.google.com',
-    'https://accounts.google.com',
-];
+OAuth2Client.DEFAULT_MAX_TOKEN_LIFETIME_SECS_ = 86400;
 
 
 /***/ }),
@@ -25993,7 +25349,8 @@ OAuth2Client.ISSUERS_ = [
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getErrorFromOAuthErrorResponse = exports.OAuthClientAuthHandler = void 0;
+exports.OAuthClientAuthHandler = void 0;
+exports.getErrorFromOAuthErrorResponse = getErrorFromOAuthErrorResponse;
 const querystring = __nccwpck_require__(63477);
 const crypto_1 = __nccwpck_require__(78043);
 /** List of HTTP methods that accept request bodies. */
@@ -26109,6 +25466,23 @@ class OAuthClientAuthHandler {
             }
         }
     }
+    /**
+     * Retry config for Auth-related requests.
+     *
+     * @remarks
+     *
+     * This is not a part of the default {@link AuthClient.transporter transporter/gaxios}
+     * config as some downstream APIs would prefer if customers explicitly enable retries,
+     * such as GCS.
+     */
+    static get RETRY_CONFIG() {
+        return {
+            retry: true,
+            retryConfig: {
+                httpMethodsToRetry: ['GET', 'PUT', 'POST', 'HEAD', 'OPTIONS', 'DELETE'],
+            },
+        };
+    }
 }
 exports.OAuthClientAuthHandler = OAuthClientAuthHandler;
 /**
@@ -26152,7 +25526,75 @@ function getErrorFromOAuthErrorResponse(resp, err) {
     }
     return newError;
 }
-exports.getErrorFromOAuthErrorResponse = getErrorFromOAuthErrorResponse;
+
+
+/***/ }),
+
+/***/ 32460:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PassThroughClient = void 0;
+const authclient_1 = __nccwpck_require__(44627);
+/**
+ * An AuthClient without any Authentication information. Useful for:
+ * - Anonymous access
+ * - Local Emulators
+ * - Testing Environments
+ *
+ */
+class PassThroughClient extends authclient_1.AuthClient {
+    /**
+     * Creates a request without any authentication headers or checks.
+     *
+     * @remarks
+     *
+     * In testing environments it may be useful to change the provided
+     * {@link AuthClient.transporter} for any desired request overrides/handling.
+     *
+     * @param opts
+     * @returns The response of the request.
+     */
+    async request(opts) {
+        return this.transporter.request(opts);
+    }
+    /**
+     * A required method of the base class.
+     * Always will return an empty object.
+     *
+     * @returns {}
+     */
+    async getAccessToken() {
+        return {};
+    }
+    /**
+     * A required method of the base class.
+     * Always will return an empty object.
+     *
+     * @returns {}
+     */
+    async getRequestHeaders() {
+        return {};
+    }
+}
+exports.PassThroughClient = PassThroughClient;
+const a = new PassThroughClient();
+a.getAccessToken();
 
 
 /***/ }),
@@ -26565,6 +26007,7 @@ exports.PluggableAuthHandler = PluggableAuthHandler;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserRefreshClient = exports.USER_REFRESH_ACCOUNT_TYPE = void 0;
 const oauth2client_1 = __nccwpck_require__(3936);
+const querystring_1 = __nccwpck_require__(63477);
 exports.USER_REFRESH_ACCOUNT_TYPE = 'authorized_user';
 class UserRefreshClient extends oauth2client_1.OAuth2Client {
     constructor(optionsOrClientId, clientSecret, refreshToken, eagerRefreshThresholdMillis, forceRefreshOnFailure) {
@@ -26590,6 +26033,24 @@ class UserRefreshClient extends oauth2client_1.OAuth2Client {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     refreshToken) {
         return super.refreshTokenNoCache(this._refreshToken);
+    }
+    async fetchIdToken(targetAudience) {
+        const res = await this.transporter.request({
+            ...UserRefreshClient.RETRY_CONFIG,
+            url: this.endpoints.oauth2TokenUrl,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            method: 'POST',
+            data: (0, querystring_1.stringify)({
+                client_id: this._clientId,
+                client_secret: this._clientSecret,
+                grant_type: 'refresh_token',
+                refresh_token: this._refreshToken,
+                target_audience: targetAudience,
+            }),
+        });
+        return res.data.id_token;
     }
     /**
      * Create a UserRefreshClient credentials instance using the given input
@@ -26617,6 +26078,7 @@ class UserRefreshClient extends oauth2client_1.OAuth2Client {
         this._refreshToken = json.refresh_token;
         this.credentials.refresh_token = json.refresh_token;
         this.quotaProjectId = json.quota_project_id;
+        this.universeDomain = json.universe_domain || this.universeDomain;
     }
     fromStream(inputStream, callback) {
         if (callback) {
@@ -26647,6 +26109,16 @@ class UserRefreshClient extends oauth2client_1.OAuth2Client {
                 }
             });
         });
+    }
+    /**
+     * Create a UserRefreshClient credentials instance using the given input
+     * options.
+     * @param json The input object.
+     */
+    static fromJSON(json) {
+        const client = new UserRefreshClient();
+        client.fromJSON(json);
+        return client;
     }
 }
 exports.UserRefreshClient = UserRefreshClient;
@@ -26738,7 +26210,8 @@ class StsCredentials extends oauth2common_1.OAuthClientAuthHandler {
         // Inject additional STS headers if available.
         Object.assign(headers, additionalHeaders || {});
         const opts = {
-            url: this.tokenExchangeEndpoint,
+            ...StsCredentials.RETRY_CONFIG,
+            url: this.tokenExchangeEndpoint.toString(),
             method: 'POST',
             headers,
             data: querystring.stringify(values),
@@ -26766,6 +26239,77 @@ class StsCredentials extends oauth2common_1.OAuthClientAuthHandler {
     }
 }
 exports.StsCredentials = StsCredentials;
+
+
+/***/ }),
+
+/***/ 7428:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UrlSubjectTokenSupplier = void 0;
+/**
+ * Internal subject token supplier implementation used when a URL
+ * is configured in the credential configuration used to build an {@link IdentityPoolClient}
+ */
+class UrlSubjectTokenSupplier {
+    /**
+     * Instantiates a URL subject token supplier.
+     * @param opts The URL subject token supplier options to build the supplier with.
+     */
+    constructor(opts) {
+        this.url = opts.url;
+        this.formatType = opts.formatType;
+        this.subjectTokenFieldName = opts.subjectTokenFieldName;
+        this.headers = opts.headers;
+        this.additionalGaxiosOptions = opts.additionalGaxiosOptions;
+    }
+    /**
+     * Sends a GET request to the URL provided in the constructor and resolves
+     * with the returned external subject token.
+     * @param context {@link ExternalAccountSupplierContext} from the calling
+     *   {@link IdentityPoolClient}, contains the requested audience and subject
+     *   token type for the external account identity. Not used.
+     */
+    async getSubjectToken(context) {
+        const opts = {
+            ...this.additionalGaxiosOptions,
+            url: this.url,
+            method: 'GET',
+            headers: this.headers,
+            responseType: this.formatType,
+        };
+        let subjectToken;
+        if (this.formatType === 'text') {
+            const response = await context.transporter.request(opts);
+            subjectToken = response.data;
+        }
+        else if (this.formatType === 'json' && this.subjectTokenFieldName) {
+            const response = await context.transporter.request(opts);
+            subjectToken = response.data[this.subjectTokenFieldName];
+        }
+        if (!subjectToken) {
+            throw new Error('Unable to parse the subject_token from the credential_source URL');
+        }
+        return subjectToken;
+    }
+}
+exports.UrlSubjectTokenSupplier = UrlSubjectTokenSupplier;
 
 
 /***/ }),
@@ -26808,7 +26352,6 @@ class BrowserCrypto {
         // this method async as well.
         // To calculate SHA256 digest using SubtleCrypto, we first
         // need to convert an input string to an ArrayBuffer:
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const inputBuffer = new TextEncoder().encode(str);
         // Result is ArrayBuffer as well.
         const outputBuffer = await window.crypto.subtle.digest('SHA-256', inputBuffer);
@@ -26831,7 +26374,6 @@ class BrowserCrypto {
             name: 'RSASSA-PKCS1-v1_5',
             hash: { name: 'SHA-256' },
         };
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const dataArray = new TextEncoder().encode(data);
         const signatureArray = base64js.toByteArray(BrowserCrypto.padBase64(signature));
         const cryptoKey = await window.crypto.subtle.importKey('jwk', pubkey, algo, true, ['verify']);
@@ -26845,7 +26387,6 @@ class BrowserCrypto {
             name: 'RSASSA-PKCS1-v1_5',
             hash: { name: 'SHA-256' },
         };
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const dataArray = new TextEncoder().encode(data);
         const cryptoKey = await window.crypto.subtle.importKey('jwk', privateKey, algo, true, ['sign']);
         // SubtleCrypto's sign method is async so we must make
@@ -26855,12 +26396,10 @@ class BrowserCrypto {
     }
     decodeBase64StringUtf8(base64) {
         const uint8array = base64js.toByteArray(BrowserCrypto.padBase64(base64));
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const result = new TextDecoder().decode(uint8array);
         return result;
     }
     encodeBase64StringUtf8(text) {
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const uint8array = new TextEncoder().encode(text);
         const result = base64js.fromByteArray(uint8array);
         return result;
@@ -26876,7 +26415,6 @@ class BrowserCrypto {
         // this method async as well.
         // To calculate SHA256 digest using SubtleCrypto, we first
         // need to convert an input string to an ArrayBuffer:
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const inputBuffer = new TextEncoder().encode(str);
         // Result is ArrayBuffer as well.
         const outputBuffer = await window.crypto.subtle.digest('SHA-256', inputBuffer);
@@ -26895,7 +26433,6 @@ class BrowserCrypto {
         const rawKey = typeof key === 'string'
             ? key
             : String.fromCharCode(...new Uint16Array(key));
-        // eslint-disable-next-line node/no-unsupported-features/node-builtins
         const enc = new TextEncoder();
         const cryptoKey = await window.crypto.subtle.importKey('raw', enc.encode(rawKey), {
             name: 'HMAC',
@@ -26931,7 +26468,9 @@ exports.BrowserCrypto = BrowserCrypto;
 // limitations under the License.
 /* global window */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fromArrayBufferToHex = exports.hasBrowserCrypto = exports.createCrypto = void 0;
+exports.createCrypto = createCrypto;
+exports.hasBrowserCrypto = hasBrowserCrypto;
+exports.fromArrayBufferToHex = fromArrayBufferToHex;
 const crypto_1 = __nccwpck_require__(14693);
 const crypto_2 = __nccwpck_require__(30757);
 function createCrypto() {
@@ -26940,13 +26479,11 @@ function createCrypto() {
     }
     return new crypto_2.NodeCrypto();
 }
-exports.createCrypto = createCrypto;
 function hasBrowserCrypto() {
     return (typeof window !== 'undefined' &&
         typeof window.crypto !== 'undefined' &&
         typeof window.crypto.subtle !== 'undefined');
 }
-exports.hasBrowserCrypto = hasBrowserCrypto;
 /**
  * Converts an ArrayBuffer to a hexadecimal string.
  * @param arrayBuffer The ArrayBuffer to convert to hexadecimal string.
@@ -26962,7 +26499,6 @@ function fromArrayBufferToHex(arrayBuffer) {
     })
         .join('');
 }
-exports.fromArrayBufferToHex = fromArrayBufferToHex;
 
 
 /***/ }),
@@ -26996,7 +26532,7 @@ class NodeCrypto {
         return crypto.randomBytes(count).toString('base64');
     }
     async verify(pubkey, data, signature) {
-        const verifier = crypto.createVerify('sha256');
+        const verifier = crypto.createVerify('RSA-SHA256');
         verifier.update(data);
         verifier.end();
         return verifier.verify(pubkey, signature, 'base64');
@@ -27063,7 +26599,7 @@ function toBuffer(arrayBuffer) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GoogleAuth = exports.auth = exports.DefaultTransporter = exports.PluggableAuthClient = exports.DownscopedClient = exports.BaseExternalAccountClient = exports.ExternalAccountClient = exports.IdentityPoolClient = exports.AwsClient = exports.UserRefreshClient = exports.LoginTicket = exports.OAuth2Client = exports.CodeChallengeMethod = exports.Impersonated = exports.JWT = exports.JWTAccess = exports.IdTokenClient = exports.IAMAuth = exports.GCPEnv = exports.Compute = exports.AuthClient = exports.gcpMetadata = void 0;
+exports.GoogleAuth = exports.auth = exports.DefaultTransporter = exports.PassThroughClient = exports.ExecutableError = exports.PluggableAuthClient = exports.DownscopedClient = exports.BaseExternalAccountClient = exports.ExternalAccountClient = exports.IdentityPoolClient = exports.AwsRequestSigner = exports.AwsClient = exports.UserRefreshClient = exports.LoginTicket = exports.ClientAuthentication = exports.OAuth2Client = exports.CodeChallengeMethod = exports.Impersonated = exports.JWT = exports.JWTAccess = exports.IdTokenClient = exports.IAMAuth = exports.GCPEnv = exports.Compute = exports.DEFAULT_UNIVERSE = exports.AuthClient = exports.gaxios = exports.gcpMetadata = void 0;
 // Copyright 2017 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -27079,9 +26615,13 @@ exports.GoogleAuth = exports.auth = exports.DefaultTransporter = exports.Pluggab
 // limitations under the License.
 const googleauth_1 = __nccwpck_require__(20695);
 Object.defineProperty(exports, "GoogleAuth", ({ enumerable: true, get: function () { return googleauth_1.GoogleAuth; } }));
+// Export common deps to ensure types/instances are the exact match. Useful
+// for consistently configuring the library across versions.
 exports.gcpMetadata = __nccwpck_require__(3563);
+exports.gaxios = __nccwpck_require__(59555);
 var authclient_1 = __nccwpck_require__(44627);
 Object.defineProperty(exports, "AuthClient", ({ enumerable: true, get: function () { return authclient_1.AuthClient; } }));
+Object.defineProperty(exports, "DEFAULT_UNIVERSE", ({ enumerable: true, get: function () { return authclient_1.DEFAULT_UNIVERSE; } }));
 var computeclient_1 = __nccwpck_require__(96875);
 Object.defineProperty(exports, "Compute", ({ enumerable: true, get: function () { return computeclient_1.Compute; } }));
 var envDetect_1 = __nccwpck_require__(21380);
@@ -27099,12 +26639,15 @@ Object.defineProperty(exports, "Impersonated", ({ enumerable: true, get: functio
 var oauth2client_1 = __nccwpck_require__(3936);
 Object.defineProperty(exports, "CodeChallengeMethod", ({ enumerable: true, get: function () { return oauth2client_1.CodeChallengeMethod; } }));
 Object.defineProperty(exports, "OAuth2Client", ({ enumerable: true, get: function () { return oauth2client_1.OAuth2Client; } }));
+Object.defineProperty(exports, "ClientAuthentication", ({ enumerable: true, get: function () { return oauth2client_1.ClientAuthentication; } }));
 var loginticket_1 = __nccwpck_require__(74524);
 Object.defineProperty(exports, "LoginTicket", ({ enumerable: true, get: function () { return loginticket_1.LoginTicket; } }));
 var refreshclient_1 = __nccwpck_require__(98790);
 Object.defineProperty(exports, "UserRefreshClient", ({ enumerable: true, get: function () { return refreshclient_1.UserRefreshClient; } }));
 var awsclient_1 = __nccwpck_require__(71569);
 Object.defineProperty(exports, "AwsClient", ({ enumerable: true, get: function () { return awsclient_1.AwsClient; } }));
+var awsrequestsigner_1 = __nccwpck_require__(1754);
+Object.defineProperty(exports, "AwsRequestSigner", ({ enumerable: true, get: function () { return awsrequestsigner_1.AwsRequestSigner; } }));
 var identitypoolclient_1 = __nccwpck_require__(20117);
 Object.defineProperty(exports, "IdentityPoolClient", ({ enumerable: true, get: function () { return identitypoolclient_1.IdentityPoolClient; } }));
 var externalclient_1 = __nccwpck_require__(94381);
@@ -27115,6 +26658,9 @@ var downscopedclient_1 = __nccwpck_require__(6270);
 Object.defineProperty(exports, "DownscopedClient", ({ enumerable: true, get: function () { return downscopedclient_1.DownscopedClient; } }));
 var pluggable_auth_client_1 = __nccwpck_require__(44782);
 Object.defineProperty(exports, "PluggableAuthClient", ({ enumerable: true, get: function () { return pluggable_auth_client_1.PluggableAuthClient; } }));
+Object.defineProperty(exports, "ExecutableError", ({ enumerable: true, get: function () { return pluggable_auth_client_1.ExecutableError; } }));
+var passthrough_1 = __nccwpck_require__(32460);
+Object.defineProperty(exports, "PassThroughClient", ({ enumerable: true, get: function () { return passthrough_1.PassThroughClient; } }));
 var transporters_1 = __nccwpck_require__(72649);
 Object.defineProperty(exports, "DefaultTransporter", ({ enumerable: true, get: function () { return transporters_1.DefaultTransporter; } }));
 const auth = new googleauth_1.GoogleAuth();
@@ -27142,7 +26688,7 @@ exports.auth = auth;
 // See the License for the specific language governing permissions and
 // limitations under the License.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.validate = void 0;
+exports.validate = validate;
 // Accepts an options object passed from the user to the API.  In the
 // previous version of the API, it referred to a `Request` options object.
 // Now it refers to an Axiox Request Config object.  This is here to help
@@ -27161,7 +26707,6 @@ function validate(options) {
         }
     }
 }
-exports.validate = validate;
 
 
 /***/ }),
@@ -27212,7 +26757,8 @@ class DefaultTransporter {
                 opts.headers['User-Agent'] = DefaultTransporter.USER_AGENT;
             }
             else if (!uaValue.includes(`${PRODUCT_NAME}/`)) {
-                opts.headers['User-Agent'] = `${uaValue} ${DefaultTransporter.USER_AGENT}`;
+                opts.headers['User-Agent'] =
+                    `${uaValue} ${DefaultTransporter.USER_AGENT}`;
             }
             // track google-auth-library-nodejs version:
             if (!opts.headers['x-goog-api-client']) {
@@ -27308,7 +26854,9 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _LRUCache_instances, _LRUCache_cache, _LRUCache_moveToEnd, _LRUCache_evict;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LRUCache = exports.originalOrCamelOptions = exports.snakeToCamel = void 0;
+exports.LRUCache = void 0;
+exports.snakeToCamel = snakeToCamel;
+exports.originalOrCamelOptions = originalOrCamelOptions;
 /**
  * Returns the camel case of a provided string.
  *
@@ -27325,7 +26873,6 @@ exports.LRUCache = exports.originalOrCamelOptions = exports.snakeToCamel = void 
 function snakeToCamel(str) {
     return str.replace(/([_][^_])/g, match => match.slice(1).toUpperCase());
 }
-exports.snakeToCamel = snakeToCamel;
 /**
  * Get the value of `obj[key]` or `obj[camelCaseKey]`, with a preference
  * for original, non-camelCase key.
@@ -27346,7 +26893,6 @@ function originalOrCamelOptions(obj) {
     }
     return { get };
 }
-exports.originalOrCamelOptions = originalOrCamelOptions;
 /**
  * A simple LRU cache utility.
  * Not meant for external usage.
@@ -27416,8 +26962,546 @@ _LRUCache_cache = new WeakMap(), _LRUCache_instances = new WeakSet(), _LRUCache_
 
 /***/ }),
 
+/***/ 74118:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Colours = void 0;
+/**
+ * Handles figuring out if we can use ANSI colours and handing out the escape codes.
+ *
+ * This is for package-internal use only, and may change at any time.
+ *
+ * @private
+ * @internal
+ */
+class Colours {
+    /**
+     * @param stream The stream (e.g. process.stderr)
+     * @returns true if the stream should have colourization enabled
+     */
+    static isEnabled(stream) {
+        return (stream.isTTY &&
+            (typeof stream.getColorDepth === 'function'
+                ? stream.getColorDepth() > 2
+                : true));
+    }
+    static refresh() {
+        Colours.enabled = Colours.isEnabled(process.stderr);
+        if (!this.enabled) {
+            Colours.reset = '';
+            Colours.bright = '';
+            Colours.dim = '';
+            Colours.red = '';
+            Colours.green = '';
+            Colours.yellow = '';
+            Colours.blue = '';
+            Colours.magenta = '';
+            Colours.cyan = '';
+            Colours.white = '';
+            Colours.grey = '';
+        }
+        else {
+            Colours.reset = '\u001b[0m';
+            Colours.bright = '\u001b[1m';
+            Colours.dim = '\u001b[2m';
+            Colours.red = '\u001b[31m';
+            Colours.green = '\u001b[32m';
+            Colours.yellow = '\u001b[33m';
+            Colours.blue = '\u001b[34m';
+            Colours.magenta = '\u001b[35m';
+            Colours.cyan = '\u001b[36m';
+            Colours.white = '\u001b[37m';
+            Colours.grey = '\u001b[90m';
+        }
+    }
+}
+exports.Colours = Colours;
+Colours.enabled = false;
+Colours.reset = '';
+Colours.bright = '';
+Colours.dim = '';
+Colours.red = '';
+Colours.green = '';
+Colours.yellow = '';
+Colours.blue = '';
+Colours.magenta = '';
+Colours.cyan = '';
+Colours.white = '';
+Colours.grey = '';
+Colours.refresh();
+//# sourceMappingURL=colours.js.map
+
+/***/ }),
+
+/***/ 97306:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+__exportStar(__nccwpck_require__(13029), exports);
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 13029:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+// Copyright 2021-2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.env = exports.DebugLogBackendBase = exports.placeholder = exports.AdhocDebugLogger = exports.LogSeverity = void 0;
+exports.getNodeBackend = getNodeBackend;
+exports.getDebugBackend = getDebugBackend;
+exports.getStructuredBackend = getStructuredBackend;
+exports.setBackend = setBackend;
+exports.log = log;
+const node_events_1 = __nccwpck_require__(15673);
+const process = __importStar(__nccwpck_require__(97742));
+const util = __importStar(__nccwpck_require__(47261));
+const colours_1 = __nccwpck_require__(74118);
+// Some functions (as noted) are based on the Node standard library, from
+// the following file:
+//
+// https://github.com/nodejs/node/blob/main/lib/internal/util/debuglog.js
+/**
+ * This module defines an ad-hoc debug logger for Google Cloud Platform
+ * client libraries in Node. An ad-hoc debug logger is a tool which lets
+ * users use an external, unified interface (in this case, environment
+ * variables) to determine what logging they want to see at runtime. This
+ * isn't necessarily fed into the console, but is meant to be under the
+ * control of the user. The kind of logging that will be produced by this
+ * is more like "call retry happened", not "event you'd want to record
+ * in Cloud Logger".
+ *
+ * More for Googlers implementing libraries with it:
+ * go/cloud-client-logging-design
+ */
+/**
+ * Possible log levels. These are a subset of Cloud Observability levels.
+ * https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#LogSeverity
+ */
+var LogSeverity;
+(function (LogSeverity) {
+    LogSeverity["DEFAULT"] = "DEFAULT";
+    LogSeverity["DEBUG"] = "DEBUG";
+    LogSeverity["INFO"] = "INFO";
+    LogSeverity["WARNING"] = "WARNING";
+    LogSeverity["ERROR"] = "ERROR";
+})(LogSeverity || (exports.LogSeverity = LogSeverity = {}));
+/**
+ * Our logger instance. This actually contains the meat of dealing
+ * with log lines, including EventEmitter. This contains the function
+ * that will be passed back to users of the package.
+ */
+class AdhocDebugLogger extends node_events_1.EventEmitter {
+    /**
+     * @param upstream The backend will pass a function that will be
+     *   called whenever our logger function is invoked.
+     */
+    constructor(namespace, upstream) {
+        super();
+        this.namespace = namespace;
+        this.upstream = upstream;
+        this.func = Object.assign(this.invoke.bind(this), {
+            // Also add an instance pointer back to us.
+            instance: this,
+            // And pull over the EventEmitter functionality.
+            on: (event, listener) => this.on(event, listener),
+        });
+        // Convenience methods for log levels.
+        this.func.debug = (...args) => this.invokeSeverity(LogSeverity.DEBUG, ...args);
+        this.func.info = (...args) => this.invokeSeverity(LogSeverity.INFO, ...args);
+        this.func.warn = (...args) => this.invokeSeverity(LogSeverity.WARNING, ...args);
+        this.func.error = (...args) => this.invokeSeverity(LogSeverity.ERROR, ...args);
+        this.func.sublog = (namespace) => log(namespace, this.func);
+    }
+    invoke(fields, ...args) {
+        // Push out any upstream logger first.
+        if (this.upstream) {
+            this.upstream(fields, ...args);
+        }
+        // Emit sink events.
+        this.emit('log', fields, args);
+    }
+    invokeSeverity(severity, ...args) {
+        this.invoke({ severity }, ...args);
+    }
+}
+exports.AdhocDebugLogger = AdhocDebugLogger;
+/**
+ * This can be used in place of a real logger while waiting for Promises or disabling logging.
+ */
+exports.placeholder = new AdhocDebugLogger('', () => { }).func;
+/**
+ * The base class for debug logging backends. It's possible to use this, but the
+ * same non-guarantees above still apply (unstable interface, etc).
+ *
+ * @private
+ * @internal
+ */
+class DebugLogBackendBase {
+    constructor() {
+        var _a;
+        this.cached = new Map();
+        this.filters = [];
+        this.filtersSet = false;
+        // Look for the Node config variable for what systems to enable. We'll store
+        // these for the log method below, which will call setFilters() once.
+        let nodeFlag = (_a = process.env[exports.env.nodeEnables]) !== null && _a !== void 0 ? _a : '*';
+        if (nodeFlag === 'all') {
+            nodeFlag = '*';
+        }
+        this.filters = nodeFlag.split(',');
+    }
+    log(namespace, fields, ...args) {
+        try {
+            if (!this.filtersSet) {
+                this.setFilters();
+                this.filtersSet = true;
+            }
+            let logger = this.cached.get(namespace);
+            if (!logger) {
+                logger = this.makeLogger(namespace);
+                this.cached.set(namespace, logger);
+            }
+            logger(fields, ...args);
+        }
+        catch (e) {
+            // Silently ignore all errors; we don't want them to interfere with
+            // the user's running app.
+            // e;
+            console.error(e);
+        }
+    }
+}
+exports.DebugLogBackendBase = DebugLogBackendBase;
+// The basic backend. This one definitely works, but it's less feature-filled.
+//
+// Rather than using util.debuglog, this implements the same basic logic directly.
+// The reason for this decision is that debuglog checks the value of the
+// NODE_DEBUG environment variable before any user code runs; we therefore
+// can't pipe our own enables into it (and util.debuglog will never print unless
+// the user duplicates it into NODE_DEBUG, which isn't reasonable).
+//
+class NodeBackend extends DebugLogBackendBase {
+    constructor() {
+        super(...arguments);
+        // Default to allowing all systems, since we gate earlier based on whether the
+        // variable is empty.
+        this.enabledRegexp = /.*/g;
+    }
+    isEnabled(namespace) {
+        return this.enabledRegexp.test(namespace);
+    }
+    makeLogger(namespace) {
+        if (!this.enabledRegexp.test(namespace)) {
+            return () => { };
+        }
+        return (fields, ...args) => {
+            var _a;
+            // TODO: `fields` needs to be turned into a string here, one way or another.
+            const nscolour = `${colours_1.Colours.green}${namespace}${colours_1.Colours.reset}`;
+            const pid = `${colours_1.Colours.yellow}${process.pid}${colours_1.Colours.reset}`;
+            let level;
+            switch (fields.severity) {
+                case LogSeverity.ERROR:
+                    level = `${colours_1.Colours.red}${fields.severity}${colours_1.Colours.reset}`;
+                    break;
+                case LogSeverity.INFO:
+                    level = `${colours_1.Colours.magenta}${fields.severity}${colours_1.Colours.reset}`;
+                    break;
+                case LogSeverity.WARNING:
+                    level = `${colours_1.Colours.yellow}${fields.severity}${colours_1.Colours.reset}`;
+                    break;
+                default:
+                    level = (_a = fields.severity) !== null && _a !== void 0 ? _a : LogSeverity.DEFAULT;
+                    break;
+            }
+            const msg = util.formatWithOptions({ colors: colours_1.Colours.enabled }, ...args);
+            const filteredFields = Object.assign({}, fields);
+            delete filteredFields.severity;
+            const fieldsJson = Object.getOwnPropertyNames(filteredFields).length
+                ? JSON.stringify(filteredFields)
+                : '';
+            const fieldsColour = fieldsJson
+                ? `${colours_1.Colours.grey}${fieldsJson}${colours_1.Colours.reset}`
+                : '';
+            console.error('%s [%s|%s] %s%s', pid, nscolour, level, msg, fieldsJson ? ` ${fieldsColour}` : '');
+        };
+    }
+    // Regexp patterns below are from here:
+    // https://github.com/nodejs/node/blob/c0aebed4b3395bd65d54b18d1fd00f071002ac20/lib/internal/util/debuglog.js#L36
+    setFilters() {
+        const totalFilters = this.filters.join(',');
+        const regexp = totalFilters
+            .replace(/[|\\{}()[\]^$+?.]/g, '\\$&')
+            .replace(/\*/g, '.*')
+            .replace(/,/g, '$|^');
+        this.enabledRegexp = new RegExp(`^${regexp}$`, 'i');
+    }
+}
+/**
+ * @returns A backend based on Node util.debuglog; this is the default.
+ */
+function getNodeBackend() {
+    return new NodeBackend();
+}
+class DebugBackend extends DebugLogBackendBase {
+    constructor(pkg) {
+        super();
+        this.debugPkg = pkg;
+    }
+    makeLogger(namespace) {
+        const debugLogger = this.debugPkg(namespace);
+        return (fields, ...args) => {
+            // TODO: `fields` needs to be turned into a string here.
+            debugLogger(args[0], ...args.slice(1));
+        };
+    }
+    setFilters() {
+        var _a;
+        const existingFilters = (_a = process.env['NODE_DEBUG']) !== null && _a !== void 0 ? _a : '';
+        process.env['NODE_DEBUG'] = `${existingFilters}${existingFilters ? ',' : ''}${this.filters.join(',')}`;
+    }
+}
+/**
+ * Creates a "debug" package backend. The user must call require('debug') and pass
+ * the resulting object to this function.
+ *
+ * ```
+ *  setBackend(getDebugBackend(require('debug')))
+ * ```
+ *
+ * https://www.npmjs.com/package/debug
+ *
+ * Note: Google does not explicitly endorse or recommend this package; it's just
+ * being provided as an option.
+ *
+ * @returns A backend based on the npm "debug" package.
+ */
+function getDebugBackend(debugPkg) {
+    return new DebugBackend(debugPkg);
+}
+/**
+ * This pretty much works like the Node logger, but it outputs structured
+ * logging JSON matching Google Cloud's ingestion specs. Rather than handling
+ * its own output, it wraps another backend. The passed backend must be a subclass
+ * of `DebugLogBackendBase` (any of the backends exposed by this package will work).
+ */
+class StructuredBackend extends DebugLogBackendBase {
+    constructor(upstream) {
+        var _a;
+        super();
+        this.upstream = (_a = upstream) !== null && _a !== void 0 ? _a : new NodeBackend();
+    }
+    makeLogger(namespace) {
+        const debugLogger = this.upstream.makeLogger(namespace);
+        return (fields, ...args) => {
+            var _a;
+            const severity = (_a = fields.severity) !== null && _a !== void 0 ? _a : LogSeverity.INFO;
+            const json = Object.assign({
+                severity,
+                message: util.format(...args),
+            }, fields);
+            const jsonString = JSON.stringify(json);
+            debugLogger(fields, jsonString);
+        };
+    }
+    setFilters() {
+        this.upstream.setFilters();
+    }
+}
+/**
+ * Creates a "structured logging" backend. This pretty much works like the
+ * Node logger, but it outputs structured logging JSON matching Google
+ * Cloud's ingestion specs instead of plain text.
+ *
+ * ```
+ *  setBackend(getStructuredBackend())
+ * ```
+ *
+ * @param upstream If you want to use something besides the Node backend to
+ *   write the actual log lines into, pass that here.
+ * @returns A backend based on Google Cloud structured logging.
+ */
+function getStructuredBackend(upstream) {
+    return new StructuredBackend(upstream);
+}
+/**
+ * The environment variables that we standardized on, for all ad-hoc logging.
+ */
+exports.env = {
+    /**
+     * Filter wildcards specific to the Node syntax, and similar to the built-in
+     * utils.debuglog() environment variable. If missing, disables logging.
+     */
+    nodeEnables: 'GOOGLE_SDK_NODE_LOGGING',
+};
+// Keep a copy of all namespaced loggers so users can reliably .on() them.
+// Note that these cached functions will need to deal with changes in the backend.
+const loggerCache = new Map();
+// Our current global backend. This might be:
+let cachedBackend = undefined;
+/**
+ * Set the backend to use for our log output.
+ * - A backend object
+ * - null to disable logging
+ * - undefined for "nothing yet", defaults to the Node backend
+ *
+ * @param backend Results from one of the get*Backend() functions.
+ */
+function setBackend(backend) {
+    cachedBackend = backend;
+    loggerCache.clear();
+}
+/**
+ * Creates a logging function. Multiple calls to this with the same namespace
+ * will produce the same logger, with the same event emitter hooks.
+ *
+ * Namespaces can be a simple string ("system" name), or a qualified string
+ * (system:subsystem), which can be used for filtering, or for "system:*".
+ *
+ * @param namespace The namespace, a descriptive text string.
+ * @returns A function you can call that works similar to console.log().
+ */
+function log(namespace, parent) {
+    // If the enable flag isn't set, do nothing.
+    const enablesFlag = process.env[exports.env.nodeEnables];
+    if (!enablesFlag) {
+        return exports.placeholder;
+    }
+    // This might happen mostly if the typings are dropped in a user's code,
+    // or if they're calling from JavaScript.
+    if (!namespace) {
+        return exports.placeholder;
+    }
+    // Handle sub-loggers.
+    if (parent) {
+        namespace = `${parent.instance.namespace}:${namespace}`;
+    }
+    // Reuse loggers so things like event sinks are persistent.
+    const existing = loggerCache.get(namespace);
+    if (existing) {
+        return existing.func;
+    }
+    // Do we have a backend yet?
+    if (cachedBackend === null) {
+        // Explicitly disabled.
+        return exports.placeholder;
+    }
+    else if (cachedBackend === undefined) {
+        // One hasn't been made yet, so default to Node.
+        cachedBackend = getNodeBackend();
+    }
+    // The logger is further wrapped so we can handle the backend changing out.
+    const logger = (() => {
+        let previousBackend = undefined;
+        const newLogger = new AdhocDebugLogger(namespace, (fields, ...args) => {
+            if (previousBackend !== cachedBackend) {
+                // Did the user pass a custom backend?
+                if (cachedBackend === null) {
+                    // Explicitly disabled.
+                    return;
+                }
+                else if (cachedBackend === undefined) {
+                    // One hasn't been made yet, so default to Node.
+                    cachedBackend = getNodeBackend();
+                }
+                previousBackend = cachedBackend;
+            }
+            cachedBackend === null || cachedBackend === void 0 ? void 0 : cachedBackend.log(namespace, fields, ...args);
+        });
+        return newLogger;
+    })();
+    loggerCache.set(namespace, logger);
+    return logger.func;
+}
+//# sourceMappingURL=logging-utils.js.map
+
+/***/ }),
+
 /***/ 76031:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -27427,6 +27511,18 @@ _LRUCache_cache = new WeakMap(), _LRUCache_instances = new WeakSet(), _LRUCache_
  * Distributed under MIT license.
  * See file LICENSE for detail or copy at https://opensource.org/licenses/MIT
  */
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+};
+var _GoogleToken_instances, _GoogleToken_inFlightRequest, _GoogleToken_getTokenAsync, _GoogleToken_getTokenAsyncInner, _GoogleToken_ensureEmail, _GoogleToken_revokeTokenAsync, _GoogleToken_configure, _GoogleToken_requestToken;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GoogleToken = void 0;
 const fs = __nccwpck_require__(57147);
@@ -27467,10 +27563,12 @@ class GoogleToken {
      * @param options  Configuration object.
      */
     constructor(options) {
+        _GoogleToken_instances.add(this);
         this.transporter = {
             request: opts => (0, gaxios_1.request)(opts),
         };
-        this.configure(options);
+        _GoogleToken_inFlightRequest.set(this, void 0);
+        __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_configure).call(this, options);
     }
     /**
      * Returns whether the token has expired.
@@ -27512,10 +27610,10 @@ class GoogleToken {
         }, opts);
         if (callback) {
             const cb = callback;
-            this.getTokenAsync(opts).then(t => cb(null, t), callback);
+            __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_getTokenAsync).call(this, opts).then(t => cb(null, t), callback);
             return;
         }
-        return this.getTokenAsync(opts);
+        return __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_getTokenAsync).call(this, opts);
     }
     /**
      * Given a keyFile, extract the key and client email if available
@@ -27551,138 +27649,136 @@ class GoogleToken {
                     'Current supported extensions are *.json, and *.pem.', 'UNKNOWN_CERTIFICATE_TYPE');
         }
     }
-    async getTokenAsync(opts) {
-        if (this.inFlightRequest && !opts.forceRefresh) {
-            return this.inFlightRequest;
-        }
-        try {
-            return await (this.inFlightRequest = this.getTokenAsyncInner(opts));
-        }
-        finally {
-            this.inFlightRequest = undefined;
-        }
-    }
-    async getTokenAsyncInner(opts) {
-        if (this.isTokenExpiring() === false && opts.forceRefresh === false) {
-            return Promise.resolve(this.rawToken);
-        }
-        if (!this.key && !this.keyFile) {
-            throw new Error('No key or keyFile set.');
-        }
-        if (!this.key && this.keyFile) {
-            const creds = await this.getCredentials(this.keyFile);
-            this.key = creds.privateKey;
-            this.iss = creds.clientEmail || this.iss;
-            if (!creds.clientEmail) {
-                this.ensureEmail();
-            }
-        }
-        return this.requestToken();
-    }
-    ensureEmail() {
-        if (!this.iss) {
-            throw new ErrorWithCode('email is required.', 'MISSING_CREDENTIALS');
-        }
-    }
     revokeToken(callback) {
         if (callback) {
-            this.revokeTokenAsync().then(() => callback(), callback);
+            __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_revokeTokenAsync).call(this).then(() => callback(), callback);
             return;
         }
-        return this.revokeTokenAsync();
-    }
-    async revokeTokenAsync() {
-        if (!this.accessToken) {
-            throw new Error('No token to revoke.');
-        }
-        const url = GOOGLE_REVOKE_TOKEN_URL + this.accessToken;
-        await this.transporter.request({ url });
-        this.configure({
-            email: this.iss,
-            sub: this.sub,
-            key: this.key,
-            keyFile: this.keyFile,
-            scope: this.scope,
-            additionalClaims: this.additionalClaims,
-        });
-    }
-    /**
-     * Configure the GoogleToken for re-use.
-     * @param  {object} options Configuration object.
-     */
-    configure(options = {}) {
-        this.keyFile = options.keyFile;
-        this.key = options.key;
-        this.rawToken = undefined;
-        this.iss = options.email || options.iss;
-        this.sub = options.sub;
-        this.additionalClaims = options.additionalClaims;
-        if (typeof options.scope === 'object') {
-            this.scope = options.scope.join(' ');
-        }
-        else {
-            this.scope = options.scope;
-        }
-        this.eagerRefreshThresholdMillis = options.eagerRefreshThresholdMillis;
-        if (options.transporter) {
-            this.transporter = options.transporter;
-        }
-    }
-    /**
-     * Request the token from Google.
-     */
-    async requestToken() {
-        var _a, _b;
-        const iat = Math.floor(new Date().getTime() / 1000);
-        const additionalClaims = this.additionalClaims || {};
-        const payload = Object.assign({
-            iss: this.iss,
-            scope: this.scope,
-            aud: GOOGLE_TOKEN_URL,
-            exp: iat + 3600,
-            iat,
-            sub: this.sub,
-        }, additionalClaims);
-        const signedJWT = jws.sign({
-            header: { alg: 'RS256' },
-            payload,
-            secret: this.key,
-        });
-        try {
-            const r = await this.transporter.request({
-                method: 'POST',
-                url: GOOGLE_TOKEN_URL,
-                data: {
-                    grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                    assertion: signedJWT,
-                },
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                responseType: 'json',
-            });
-            this.rawToken = r.data;
-            this.expiresAt =
-                r.data.expires_in === null || r.data.expires_in === undefined
-                    ? undefined
-                    : (iat + r.data.expires_in) * 1000;
-            return this.rawToken;
-        }
-        catch (e) {
-            this.rawToken = undefined;
-            this.tokenExpires = undefined;
-            const body = e.response && ((_a = e.response) === null || _a === void 0 ? void 0 : _a.data)
-                ? (_b = e.response) === null || _b === void 0 ? void 0 : _b.data
-                : {};
-            if (body.error) {
-                const desc = body.error_description
-                    ? `: ${body.error_description}`
-                    : '';
-                e.message = `${body.error}${desc}`;
-            }
-            throw e;
-        }
+        return __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_revokeTokenAsync).call(this);
     }
 }
 exports.GoogleToken = GoogleToken;
+_GoogleToken_inFlightRequest = new WeakMap(), _GoogleToken_instances = new WeakSet(), _GoogleToken_getTokenAsync = async function _GoogleToken_getTokenAsync(opts) {
+    if (__classPrivateFieldGet(this, _GoogleToken_inFlightRequest, "f") && !opts.forceRefresh) {
+        return __classPrivateFieldGet(this, _GoogleToken_inFlightRequest, "f");
+    }
+    try {
+        return await (__classPrivateFieldSet(this, _GoogleToken_inFlightRequest, __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_getTokenAsyncInner).call(this, opts), "f"));
+    }
+    finally {
+        __classPrivateFieldSet(this, _GoogleToken_inFlightRequest, undefined, "f");
+    }
+}, _GoogleToken_getTokenAsyncInner = async function _GoogleToken_getTokenAsyncInner(opts) {
+    if (this.isTokenExpiring() === false && opts.forceRefresh === false) {
+        return Promise.resolve(this.rawToken);
+    }
+    if (!this.key && !this.keyFile) {
+        throw new Error('No key or keyFile set.');
+    }
+    if (!this.key && this.keyFile) {
+        const creds = await this.getCredentials(this.keyFile);
+        this.key = creds.privateKey;
+        this.iss = creds.clientEmail || this.iss;
+        if (!creds.clientEmail) {
+            __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_ensureEmail).call(this);
+        }
+    }
+    return __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_requestToken).call(this);
+}, _GoogleToken_ensureEmail = function _GoogleToken_ensureEmail() {
+    if (!this.iss) {
+        throw new ErrorWithCode('email is required.', 'MISSING_CREDENTIALS');
+    }
+}, _GoogleToken_revokeTokenAsync = async function _GoogleToken_revokeTokenAsync() {
+    if (!this.accessToken) {
+        throw new Error('No token to revoke.');
+    }
+    const url = GOOGLE_REVOKE_TOKEN_URL + this.accessToken;
+    await this.transporter.request({
+        url,
+        retry: true,
+    });
+    __classPrivateFieldGet(this, _GoogleToken_instances, "m", _GoogleToken_configure).call(this, {
+        email: this.iss,
+        sub: this.sub,
+        key: this.key,
+        keyFile: this.keyFile,
+        scope: this.scope,
+        additionalClaims: this.additionalClaims,
+    });
+}, _GoogleToken_configure = function _GoogleToken_configure(options = {}) {
+    this.keyFile = options.keyFile;
+    this.key = options.key;
+    this.rawToken = undefined;
+    this.iss = options.email || options.iss;
+    this.sub = options.sub;
+    this.additionalClaims = options.additionalClaims;
+    if (typeof options.scope === 'object') {
+        this.scope = options.scope.join(' ');
+    }
+    else {
+        this.scope = options.scope;
+    }
+    this.eagerRefreshThresholdMillis = options.eagerRefreshThresholdMillis;
+    if (options.transporter) {
+        this.transporter = options.transporter;
+    }
+}, _GoogleToken_requestToken = 
+/**
+ * Request the token from Google.
+ */
+async function _GoogleToken_requestToken() {
+    var _a, _b;
+    const iat = Math.floor(new Date().getTime() / 1000);
+    const additionalClaims = this.additionalClaims || {};
+    const payload = Object.assign({
+        iss: this.iss,
+        scope: this.scope,
+        aud: GOOGLE_TOKEN_URL,
+        exp: iat + 3600,
+        iat,
+        sub: this.sub,
+    }, additionalClaims);
+    const signedJWT = jws.sign({
+        header: { alg: 'RS256' },
+        payload,
+        secret: this.key,
+    });
+    try {
+        const r = await this.transporter.request({
+            method: 'POST',
+            url: GOOGLE_TOKEN_URL,
+            data: {
+                grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                assertion: signedJWT,
+            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            responseType: 'json',
+            retryConfig: {
+                httpMethodsToRetry: ['POST'],
+            },
+        });
+        this.rawToken = r.data;
+        this.expiresAt =
+            r.data.expires_in === null || r.data.expires_in === undefined
+                ? undefined
+                : (iat + r.data.expires_in) * 1000;
+        return this.rawToken;
+    }
+    catch (e) {
+        this.rawToken = undefined;
+        this.tokenExpires = undefined;
+        const body = e.response && ((_a = e.response) === null || _a === void 0 ? void 0 : _a.data)
+            ? (_b = e.response) === null || _b === void 0 ? void 0 : _b.data
+            : {};
+        if (body.error) {
+            const desc = body.error_description
+                ? `: ${body.error_description}`
+                : '';
+            e.message = `${body.error}${desc}`;
+        }
+        throw e;
+    }
+};
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -28133,8 +28229,20 @@ const tls = __importStar(__nccwpck_require__(24404));
 const assert_1 = __importDefault(__nccwpck_require__(39491));
 const debug_1 = __importDefault(__nccwpck_require__(38237));
 const agent_base_1 = __nccwpck_require__(70694);
+const url_1 = __nccwpck_require__(57310);
 const parse_proxy_response_1 = __nccwpck_require__(595);
 const debug = (0, debug_1.default)('https-proxy-agent');
+const setServernameFromNonIpHost = (options) => {
+    if (options.servername === undefined &&
+        options.host &&
+        !net.isIP(options.host)) {
+        return {
+            ...options,
+            servername: options.host,
+        };
+    }
+    return options;
+};
 /**
  * The `HttpsProxyAgent` implements an HTTP Agent subclass that connects to
  * the specified "HTTP(s) proxy server" in order to proxy HTTPS requests.
@@ -28151,7 +28259,7 @@ class HttpsProxyAgent extends agent_base_1.Agent {
     constructor(proxy, opts) {
         super(opts);
         this.options = { path: undefined };
-        this.proxy = typeof proxy === 'string' ? new URL(proxy) : proxy;
+        this.proxy = typeof proxy === 'string' ? new url_1.URL(proxy) : proxy;
         this.proxyHeaders = opts?.headers ?? {};
         debug('Creating new HttpsProxyAgent instance: %o', this.proxy.href);
         // Trim off the brackets from IPv6 addresses
@@ -28182,11 +28290,7 @@ class HttpsProxyAgent extends agent_base_1.Agent {
         let socket;
         if (proxy.protocol === 'https:') {
             debug('Creating `tls.Socket`: %o', this.connectOpts);
-            const servername = this.connectOpts.servername || this.connectOpts.host;
-            socket = tls.connect({
-                ...this.connectOpts,
-                servername: servername && net.isIP(servername) ? undefined : servername
-            });
+            socket = tls.connect(setServernameFromNonIpHost(this.connectOpts));
         }
         else {
             debug('Creating `net.Socket`: %o', this.connectOpts);
@@ -28222,11 +28326,9 @@ class HttpsProxyAgent extends agent_base_1.Agent {
                 // The proxy is connecting to a TLS server, so upgrade
                 // this socket connection to a TLS connection.
                 debug('Upgrading socket connection to TLS');
-                const servername = opts.servername || opts.host;
                 return tls.connect({
-                    ...omit(opts, 'host', 'path', 'port'),
+                    ...omit(setServernameFromNonIpHost(opts), 'host', 'path', 'port'),
                     socket,
-                    servername: net.isIP(servername) ? undefined : servername,
                 });
             }
             return socket;
@@ -29333,7 +29435,6 @@ var JSON = module.exports;
 /***/ 96010:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-var bufferEqual = __nccwpck_require__(9239);
 var Buffer = (__nccwpck_require__(21867).Buffer);
 var crypto = __nccwpck_require__(6113);
 var formatEcdsa = __nccwpck_require__(11728);
@@ -29470,10 +29571,25 @@ function createHmacSigner(bits) {
   }
 }
 
+var bufferEqual;
+var timingSafeEqual = 'timingSafeEqual' in crypto ? function timingSafeEqual(a, b) {
+  if (a.byteLength !== b.byteLength) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(a, b)
+} : function timingSafeEqual(a, b) {
+  if (!bufferEqual) {
+    bufferEqual = __nccwpck_require__(9239);
+  }
+
+  return bufferEqual(a, b)
+}
+
 function createHmacVerifier(bits) {
   return function verify(thing, signature, secret) {
     var computedSig = createHmacSigner(bits)(thing, secret);
-    return bufferEqual(Buffer.from(signature), Buffer.from(computedSig));
+    return timingSafeEqual(Buffer.from(signature), Buffer.from(computedSig));
   }
 }
 
@@ -29719,7 +29835,12 @@ function jwsSign(opts) {
 }
 
 function SignStream(opts) {
-  var secret = opts.secret||opts.privateKey||opts.key;
+  var secret = opts.secret;
+  secret = secret == null ? opts.privateKey : secret;
+  secret = secret == null ? opts.key : secret;
+  if (/^hs/i.test(opts.header.alg) === true && secret == null) {
+    throw new TypeError('secret must be a string or buffer or a KeyObject')
+  }
   var secretStream = new DataStream(secret);
   this.readable = true;
   this.header = opts.header;
@@ -29866,7 +29987,12 @@ function jwsDecode(jwsSig, opts) {
 
 function VerifyStream(opts) {
   opts = opts || {};
-  var secretOrKey = opts.secret||opts.publicKey||opts.key;
+  var secretOrKey = opts.secret;
+  secretOrKey = secretOrKey == null ? opts.publicKey : secretOrKey;
+  secretOrKey = secretOrKey == null ? opts.key : secretOrKey;
+  if (/^hs/i.test(opts.algorithm) === true && secretOrKey == null) {
+    throw new TypeError('secret must be a string or buffer or a KeyObject')
+  }
   var secretStream = new DataStream(secretOrKey);
   this.readable = true;
   this.algorithm = opts.algorithm;
@@ -29927,7 +30053,7 @@ module.exports = VerifyStream;
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.21';
+  var VERSION = '4.17.23';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
@@ -33681,7 +33807,7 @@ module.exports = VerifyStream;
           if (isArray(iteratee)) {
             return function(value) {
               return baseGet(value, iteratee.length === 1 ? iteratee[0] : iteratee);
-            }
+            };
           }
           return iteratee;
         });
@@ -34285,8 +34411,47 @@ module.exports = VerifyStream;
      */
     function baseUnset(object, path) {
       path = castPath(path, object);
-      object = parent(object, path);
-      return object == null || delete object[toKey(last(path))];
+
+      // Prevent prototype pollution, see: https://github.com/lodash/lodash/security/advisories/GHSA-xxjr-mmjv-4gpg
+      var index = -1,
+          length = path.length;
+
+      if (!length) {
+        return true;
+      }
+
+      var isRootPrimitive = object == null || (typeof object !== 'object' && typeof object !== 'function');
+
+      while (++index < length) {
+        var key = path[index];
+
+        // skip non-string keys (e.g., Symbols, numbers)
+        if (typeof key !== 'string') {
+          continue;
+        }
+
+        // Always block "__proto__" anywhere in the path if it's not expected
+        if (key === '__proto__' && !hasOwnProperty.call(object, '__proto__')) {
+          return false;
+        }
+
+        // Block "constructor.prototype" chains
+        if (key === 'constructor' &&
+            (index + 1) < length &&
+            typeof path[index + 1] === 'string' &&
+            path[index + 1] === 'prototype') {
+
+          // Allow ONLY when the path starts at a primitive root, e.g., _.unset(0, 'constructor.prototype.a')
+          if (isRootPrimitive && index === 0) {
+            continue;
+          }
+
+          return false;
+        }
+      }
+
+      var obj = parent(object, path);
+      return obj == null || delete obj[toKey(last(path))];
     }
 
     /**
@@ -47126,221 +47291,6 @@ module.exports = VerifyStream;
 
 /***/ }),
 
-/***/ 47426:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-/*!
- * mime-db
- * Copyright(c) 2014 Jonathan Ong
- * Copyright(c) 2015-2022 Douglas Christopher Wilson
- * MIT Licensed
- */
-
-/**
- * Module exports.
- */
-
-module.exports = __nccwpck_require__(53765)
-
-
-/***/ }),
-
-/***/ 43583:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-/*!
- * mime-types
- * Copyright(c) 2014 Jonathan Ong
- * Copyright(c) 2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-
-
-
-/**
- * Module dependencies.
- * @private
- */
-
-var db = __nccwpck_require__(47426)
-var extname = (__nccwpck_require__(71017).extname)
-
-/**
- * Module variables.
- * @private
- */
-
-var EXTRACT_TYPE_REGEXP = /^\s*([^;\s]*)(?:;|\s|$)/
-var TEXT_TYPE_REGEXP = /^text\//i
-
-/**
- * Module exports.
- * @public
- */
-
-exports.charset = charset
-exports.charsets = { lookup: charset }
-exports.contentType = contentType
-exports.extension = extension
-exports.extensions = Object.create(null)
-exports.lookup = lookup
-exports.types = Object.create(null)
-
-// Populate the extensions/types maps
-populateMaps(exports.extensions, exports.types)
-
-/**
- * Get the default charset for a MIME type.
- *
- * @param {string} type
- * @return {boolean|string}
- */
-
-function charset (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
-
-  // TODO: use media-typer
-  var match = EXTRACT_TYPE_REGEXP.exec(type)
-  var mime = match && db[match[1].toLowerCase()]
-
-  if (mime && mime.charset) {
-    return mime.charset
-  }
-
-  // default text/* to utf-8
-  if (match && TEXT_TYPE_REGEXP.test(match[1])) {
-    return 'UTF-8'
-  }
-
-  return false
-}
-
-/**
- * Create a full Content-Type header given a MIME type or extension.
- *
- * @param {string} str
- * @return {boolean|string}
- */
-
-function contentType (str) {
-  // TODO: should this even be in this module?
-  if (!str || typeof str !== 'string') {
-    return false
-  }
-
-  var mime = str.indexOf('/') === -1
-    ? exports.lookup(str)
-    : str
-
-  if (!mime) {
-    return false
-  }
-
-  // TODO: use content-type or other module
-  if (mime.indexOf('charset') === -1) {
-    var charset = exports.charset(mime)
-    if (charset) mime += '; charset=' + charset.toLowerCase()
-  }
-
-  return mime
-}
-
-/**
- * Get the default extension for a MIME type.
- *
- * @param {string} type
- * @return {boolean|string}
- */
-
-function extension (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
-
-  // TODO: use media-typer
-  var match = EXTRACT_TYPE_REGEXP.exec(type)
-
-  // get extensions
-  var exts = match && exports.extensions[match[1].toLowerCase()]
-
-  if (!exts || !exts.length) {
-    return false
-  }
-
-  return exts[0]
-}
-
-/**
- * Lookup the MIME type for a file path/extension.
- *
- * @param {string} path
- * @return {boolean|string}
- */
-
-function lookup (path) {
-  if (!path || typeof path !== 'string') {
-    return false
-  }
-
-  // get the extension ("ext" or ".ext" or full path)
-  var extension = extname('x.' + path)
-    .toLowerCase()
-    .substr(1)
-
-  if (!extension) {
-    return false
-  }
-
-  return exports.types[extension] || false
-}
-
-/**
- * Populate the extensions and types maps.
- * @private
- */
-
-function populateMaps (extensions, types) {
-  // source preference (least -> most)
-  var preference = ['nginx', 'apache', undefined, 'iana']
-
-  Object.keys(db).forEach(function forEachMimeType (type) {
-    var mime = db[type]
-    var exts = mime.extensions
-
-    if (!exts || !exts.length) {
-      return
-    }
-
-    // mime -> extensions
-    extensions[type] = exts
-
-    // extension -> mime
-    for (var i = 0; i < exts.length; i++) {
-      var extension = exts[i]
-
-      if (types[extension]) {
-        var from = preference.indexOf(db[types[extension]].source)
-        var to = preference.indexOf(mime.source)
-
-        if (types[extension] !== 'application/octet-stream' &&
-          (from > to || (from === to && types[extension].substr(0, 12) === 'application/'))) {
-          // skip the remapping
-          continue
-        }
-      }
-
-      // set the extension -> mime
-      types[extension] = type
-    }
-  })
-}
-
-
-/***/ }),
-
 /***/ 46038:
 /***/ ((module) => {
 
@@ -53226,12 +53176,13 @@ function shift (stream) {
 
 function getStateLength (state) {
   if (state.buffer.length) {
+    var idx = state.bufferIndex || 0
     // Since node 6.3.0 state.buffer is a BufferList not an array
     if (state.buffer.head) {
       return state.buffer.head.data.length
+    } else if (state.buffer.length - idx > 0 && state.buffer[idx]) {
+      return state.buffer[idx].length
     }
-
-    return state.buffer[0].length
   }
 
   return state.length
@@ -53540,137 +53491,6 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-
-/***/ }),
-
-/***/ 14526:
-/***/ ((module) => {
-
-const hexRegex = /^[-+]?0x[a-fA-F0-9]+$/;
-const numRegex = /^([\-\+])?(0*)(\.[0-9]+([eE]\-?[0-9]+)?|[0-9]+(\.[0-9]+([eE]\-?[0-9]+)?)?)$/;
-// const octRegex = /0x[a-z0-9]+/;
-// const binRegex = /0x[a-z0-9]+/;
-
-
-//polyfill
-if (!Number.parseInt && window.parseInt) {
-    Number.parseInt = window.parseInt;
-}
-if (!Number.parseFloat && window.parseFloat) {
-    Number.parseFloat = window.parseFloat;
-}
-
-  
-const consider = {
-    hex :  true,
-    leadingZeros: true,
-    decimalPoint: "\.",
-    eNotation: true
-    //skipLike: /regex/
-};
-
-function toNumber(str, options = {}){
-    // const options = Object.assign({}, consider);
-    // if(opt.leadingZeros === false){
-    //     options.leadingZeros = false;
-    // }else if(opt.hex === false){
-    //     options.hex = false;
-    // }
-
-    options = Object.assign({}, consider, options );
-    if(!str || typeof str !== "string" ) return str;
-    
-    let trimmedStr  = str.trim();
-    // if(trimmedStr === "0.0") return 0;
-    // else if(trimmedStr === "+0.0") return 0;
-    // else if(trimmedStr === "-0.0") return -0;
-
-    if(options.skipLike !== undefined && options.skipLike.test(trimmedStr)) return str;
-    else if (options.hex && hexRegex.test(trimmedStr)) {
-        return Number.parseInt(trimmedStr, 16);
-    // } else if (options.parseOct && octRegex.test(str)) {
-    //     return Number.parseInt(val, 8);
-    // }else if (options.parseBin && binRegex.test(str)) {
-    //     return Number.parseInt(val, 2);
-    }else{
-        //separate negative sign, leading zeros, and rest number
-        const match = numRegex.exec(trimmedStr);
-        if(match){
-            const sign = match[1];
-            const leadingZeros = match[2];
-            let numTrimmedByZeros = trimZeros(match[3]); //complete num without leading zeros
-            //trim ending zeros for floating number
-            
-            const eNotation = match[4] || match[6];
-            if(!options.leadingZeros && leadingZeros.length > 0 && sign && trimmedStr[2] !== ".") return str; //-0123
-            else if(!options.leadingZeros && leadingZeros.length > 0 && !sign && trimmedStr[1] !== ".") return str; //0123
-            else{//no leading zeros or leading zeros are allowed
-                const num = Number(trimmedStr);
-                const numStr = "" + num;
-                if(numStr.search(/[eE]/) !== -1){ //given number is long and parsed to eNotation
-                    if(options.eNotation) return num;
-                    else return str;
-                }else if(eNotation){ //given number has enotation
-                    if(options.eNotation) return num;
-                    else return str;
-                }else if(trimmedStr.indexOf(".") !== -1){ //floating number
-                    // const decimalPart = match[5].substr(1);
-                    // const intPart = trimmedStr.substr(0,trimmedStr.indexOf("."));
-
-                    
-                    // const p = numStr.indexOf(".");
-                    // const givenIntPart = numStr.substr(0,p);
-                    // const givenDecPart = numStr.substr(p+1);
-                    if(numStr === "0" && (numTrimmedByZeros === "") ) return num; //0.0
-                    else if(numStr === numTrimmedByZeros) return num; //0.456. 0.79000
-                    else if( sign && numStr === "-"+numTrimmedByZeros) return num;
-                    else return str;
-                }
-                
-                if(leadingZeros){
-                    // if(numTrimmedByZeros === numStr){
-                    //     if(options.leadingZeros) return num;
-                    //     else return str;
-                    // }else return str;
-                    if(numTrimmedByZeros === numStr) return num;
-                    else if(sign+numTrimmedByZeros === numStr) return num;
-                    else return str;
-                }
-
-                if(trimmedStr === numStr) return num;
-                else if(trimmedStr === sign+numStr) return num;
-                // else{
-                //     //number with +/- sign
-                //     trimmedStr.test(/[-+][0-9]);
-
-                // }
-                return str;
-            }
-            // else if(!eNotation && trimmedStr && trimmedStr !== Number(trimmedStr) ) return str;
-            
-        }else{ //non-numeric string
-            return str;
-        }
-    }
-}
-
-/**
- * 
- * @param {string} numStr without leading zeros
- * @returns 
- */
-function trimZeros(numStr){
-    if(numStr && numStr.indexOf(".") !== -1){//float
-        numStr = numStr.replace(/0+$/, ""); //remove ending zeros
-        if(numStr === ".")  numStr = "0";
-        else if(numStr[0] === ".")  numStr = "0"+numStr;
-        else if(numStr[numStr.length-1] === ".")  numStr = numStr.substr(0,numStr.length-1);
-        return numStr;
-    }
-    return numStr;
-}
-module.exports = toNumber
-
 
 /***/ }),
 
@@ -55511,34 +55331,24 @@ const _c = { fs: fs.constants, os: os.constants };
 /*
  * The working inner variables.
  */
-const
-  // the random characters to choose from
+const // the random characters to choose from
   RANDOM_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-
   TEMPLATE_PATTERN = /XXXXXX/,
-
   DEFAULT_TRIES = 3,
-
   CREATE_FLAGS = (_c.O_CREAT || _c.fs.O_CREAT) | (_c.O_EXCL || _c.fs.O_EXCL) | (_c.O_RDWR || _c.fs.O_RDWR),
-
   // constants are off on the windows platform and will not match the actual errno codes
   IS_WIN32 = os.platform() === 'win32',
   EBADF = _c.EBADF || _c.os.errno.EBADF,
   ENOENT = _c.ENOENT || _c.os.errno.ENOENT,
-
   DIR_MODE = 0o700 /* 448 */,
   FILE_MODE = 0o600 /* 384 */,
-
   EXIT = 'exit',
-
   // this will hold the objects need to be removed on exit
   _removeObjects = [],
-
   // API change in fs.rmdirSync leads to error when passing in a second parameter, e.g. the callback
   FN_RMDIR_SYNC = fs.rmdirSync.bind(fs);
 
-let
-  _gracefulCleanup = false;
+let _gracefulCleanup = false;
 
 /**
  * Recursively remove a directory and its contents.
@@ -55568,38 +55378,35 @@ function FN_RIMRAF_SYNC(dirPath) {
  * @param {?tmpNameCallback} callback the callback function
  */
 function tmpName(options, callback) {
-  const
-    args = _parseArguments(options, callback),
+  const args = _parseArguments(options, callback),
     opts = args[0],
     cb = args[1];
 
-  try {
-    _assertAndSanitizeOptions(opts);
-  } catch (err) {
-    return cb(err);
-  }
+  _assertAndSanitizeOptions(opts, function (err, sanitizedOptions) {
+    if (err) return cb(err);
 
-  let tries = opts.tries;
-  (function _getUniqueName() {
-    try {
-      const name = _generateTmpName(opts);
+    let tries = sanitizedOptions.tries;
+    (function _getUniqueName() {
+      try {
+        const name = _generateTmpName(sanitizedOptions);
 
-      // check whether the path exists then retry if needed
-      fs.stat(name, function (err) {
-        /* istanbul ignore else */
-        if (!err) {
+        // check whether the path exists then retry if needed
+        fs.stat(name, function (err) {
           /* istanbul ignore else */
-          if (tries-- > 0) return _getUniqueName();
+          if (!err) {
+            /* istanbul ignore else */
+            if (tries-- > 0) return _getUniqueName();
 
-          return cb(new Error('Could not get a unique tmp filename, max tries reached ' + name));
-        }
+            return cb(new Error('Could not get a unique tmp filename, max tries reached ' + name));
+          }
 
-        cb(null, name);
-      });
-    } catch (err) {
-      cb(err);
-    }
-  }());
+          cb(null, name);
+        });
+      } catch (err) {
+        cb(err);
+      }
+    })();
+  });
 }
 
 /**
@@ -55610,15 +55417,14 @@ function tmpName(options, callback) {
  * @throws {Error} if the options are invalid or could not generate a filename
  */
 function tmpNameSync(options) {
-  const
-    args = _parseArguments(options),
+  const args = _parseArguments(options),
     opts = args[0];
 
-  _assertAndSanitizeOptions(opts);
+  const sanitizedOptions = _assertAndSanitizeOptionsSync(opts);
 
-  let tries = opts.tries;
+  let tries = sanitizedOptions.tries;
   do {
-    const name = _generateTmpName(opts);
+    const name = _generateTmpName(sanitizedOptions);
     try {
       fs.statSync(name);
     } catch (e) {
@@ -55636,8 +55442,7 @@ function tmpNameSync(options) {
  * @param {?fileCallback} callback
  */
 function file(options, callback) {
-  const
-    args = _parseArguments(options, callback),
+  const args = _parseArguments(options, callback),
     opts = args[0],
     cb = args[1];
 
@@ -55674,13 +55479,12 @@ function file(options, callback) {
  * @throws {Error} if cannot create a file
  */
 function fileSync(options) {
-  const
-    args = _parseArguments(options),
+  const args = _parseArguments(options),
     opts = args[0];
 
   const discardOrDetachDescriptor = opts.discardDescriptor || opts.detachDescriptor;
   const name = tmpNameSync(opts);
-  var fd = fs.openSync(name, CREATE_FLAGS, opts.mode || FILE_MODE);
+  let fd = fs.openSync(name, CREATE_FLAGS, opts.mode || FILE_MODE);
   /* istanbul ignore else */
   if (opts.discardDescriptor) {
     fs.closeSync(fd);
@@ -55701,8 +55505,7 @@ function fileSync(options) {
  * @param {?dirCallback} callback
  */
 function dir(options, callback) {
-  const
-    args = _parseArguments(options, callback),
+  const args = _parseArguments(options, callback),
     opts = args[0],
     cb = args[1];
 
@@ -55729,8 +55532,7 @@ function dir(options, callback) {
  * @throws {Error} if it cannot create a directory
  */
 function dirSync(options) {
-  const
-    args = _parseArguments(options),
+  const args = _parseArguments(options),
     opts = args[0];
 
   const name = tmpNameSync(opts);
@@ -55781,8 +55583,7 @@ function _removeFileSync(fdPath) {
   } finally {
     try {
       fs.unlinkSync(fdPath[1]);
-    }
-    catch (e) {
+    } catch (e) {
       // reraise any unanticipated error
       if (!_isENOENT(e)) rethrownException = e;
     }
@@ -55854,7 +55655,6 @@ function _prepareRemoveCallback(removeFunction, fileOrDirName, sync, cleanupCall
 
   // if sync is true, the next parameter will be ignored
   return function _cleanupCallback(next) {
-
     /* istanbul ignore else */
     if (!called) {
       // remove cleanupCallback from cache
@@ -55867,7 +55667,7 @@ function _prepareRemoveCallback(removeFunction, fileOrDirName, sync, cleanupCall
       if (sync || removeFunction === FN_RMDIR_SYNC || removeFunction === FN_RIMRAF_SYNC) {
         return removeFunction(fileOrDirName);
       } else {
-        return removeFunction(fileOrDirName, next || function() {});
+        return removeFunction(fileOrDirName, next || function () {});
       }
     }
   };
@@ -55902,8 +55702,7 @@ function _garbageCollector() {
  * @private
  */
 function _randomChars(howMany) {
-  let
-    value = [],
+  let value = [],
     rnd = null;
 
   // make sure that we do not fail because we ran out of entropy
@@ -55913,22 +55712,11 @@ function _randomChars(howMany) {
     rnd = crypto.pseudoRandomBytes(howMany);
   }
 
-  for (var i = 0; i < howMany; i++) {
+  for (let i = 0; i < howMany; i++) {
     value.push(RANDOM_CHARS[rnd[i] % RANDOM_CHARS.length]);
   }
 
   return value.join('');
-}
-
-/**
- * Helper which determines whether a string s is blank, that is undefined, or empty or null.
- *
- * @private
- * @param {string} s
- * @returns {Boolean} true whether the string s is blank, false otherwise
- */
-function _isBlank(s) {
-  return s === null || _isUndefined(s) || !s.trim();
 }
 
 /**
@@ -55973,6 +55761,51 @@ function _parseArguments(options, callback) {
 }
 
 /**
+ * Resolve the specified path name in respect to tmpDir.
+ *
+ * The specified name might include relative path components, e.g. ../
+ * so we need to resolve in order to be sure that is is located inside tmpDir
+ *
+ * @private
+ */
+function _resolvePath(name, tmpDir, cb) {
+  const pathToResolve = path.isAbsolute(name) ? name : path.join(tmpDir, name);
+
+  fs.stat(pathToResolve, function (err) {
+    if (err) {
+      fs.realpath(path.dirname(pathToResolve), function (err, parentDir) {
+        if (err) return cb(err);
+
+        cb(null, path.join(parentDir, path.basename(pathToResolve)));
+      });
+    } else {
+      fs.realpath(pathToResolve, cb);
+    }
+  });
+}
+
+/**
+ * Resolve the specified path name in respect to tmpDir.
+ *
+ * The specified name might include relative path components, e.g. ../
+ * so we need to resolve in order to be sure that is is located inside tmpDir
+ *
+ * @private
+ */
+function _resolvePathSync(name, tmpDir) {
+  const pathToResolve = path.isAbsolute(name) ? name : path.join(tmpDir, name);
+
+  try {
+    fs.statSync(pathToResolve);
+    return fs.realpathSync(pathToResolve);
+  } catch (_err) {
+    const parentDir = fs.realpathSync(path.dirname(pathToResolve));
+
+    return path.join(parentDir, path.basename(pathToResolve));
+  }
+}
+
+/**
  * Generates a new temporary name.
  *
  * @param {Object} opts
@@ -55980,16 +55813,17 @@ function _parseArguments(options, callback) {
  * @private
  */
 function _generateTmpName(opts) {
-
   const tmpDir = opts.tmpdir;
 
   /* istanbul ignore else */
-  if (!_isUndefined(opts.name))
+  if (!_isUndefined(opts.name)) {
     return path.join(tmpDir, opts.dir, opts.name);
+  }
 
   /* istanbul ignore else */
-  if (!_isUndefined(opts.template))
+  if (!_isUndefined(opts.template)) {
     return path.join(tmpDir, opts.dir, opts.template).replace(TEMPLATE_PATTERN, _randomChars(6));
+  }
 
   // prefix and postfix
   const name = [
@@ -56005,33 +55839,32 @@ function _generateTmpName(opts) {
 }
 
 /**
- * Asserts whether the specified options are valid, also sanitizes options and provides sane defaults for missing
- * options.
+ * Asserts and sanitizes the basic options.
  *
- * @param {Options} options
  * @private
  */
-function _assertAndSanitizeOptions(options) {
+function _assertOptionsBase(options) {
+  if (!_isUndefined(options.name)) {
+    const name = options.name;
 
-  options.tmpdir = _getTmpDir(options);
+    // assert that name is not absolute and does not contain a path
+    if (path.isAbsolute(name)) throw new Error(`name option must not contain an absolute path, found "${name}".`);
 
-  const tmpDir = options.tmpdir;
-
-  /* istanbul ignore else */
-  if (!_isUndefined(options.name))
-    _assertIsRelative(options.name, 'name', tmpDir);
-  /* istanbul ignore else */
-  if (!_isUndefined(options.dir))
-    _assertIsRelative(options.dir, 'dir', tmpDir);
-  /* istanbul ignore else */
-  if (!_isUndefined(options.template)) {
-    _assertIsRelative(options.template, 'template', tmpDir);
-    if (!options.template.match(TEMPLATE_PATTERN))
-      throw new Error(`Invalid template, found "${options.template}".`);
+    // must not fail on valid .<name> or ..<name> or similar such constructs
+    const basename = path.basename(name);
+    if (basename === '..' || basename === '.' || basename !== name)
+      throw new Error(`name option must not contain a path, found "${name}".`);
   }
+
   /* istanbul ignore else */
-  if (!_isUndefined(options.tries) && isNaN(options.tries) || options.tries < 0)
+  if (!_isUndefined(options.template) && !options.template.match(TEMPLATE_PATTERN)) {
+    throw new Error(`Invalid template, found "${options.template}".`);
+  }
+
+  /* istanbul ignore else */
+  if ((!_isUndefined(options.tries) && isNaN(options.tries)) || options.tries < 0) {
     throw new Error(`Invalid tries, found "${options.tries}".`);
+  }
 
   // if a name was specified we will try once
   options.tries = _isUndefined(options.name) ? options.tries || DEFAULT_TRIES : 1;
@@ -56040,65 +55873,103 @@ function _assertAndSanitizeOptions(options) {
   options.discardDescriptor = !!options.discardDescriptor;
   options.unsafeCleanup = !!options.unsafeCleanup;
 
-  // sanitize dir, also keep (multiple) blanks if the user, purportedly sane, requests us to
-  options.dir = _isUndefined(options.dir) ? '' : path.relative(tmpDir, _resolvePath(options.dir, tmpDir));
-  options.template = _isUndefined(options.template) ? undefined : path.relative(tmpDir, _resolvePath(options.template, tmpDir));
-  // sanitize further if template is relative to options.dir
-  options.template = _isBlank(options.template) ? undefined : path.relative(options.dir, options.template);
-
   // for completeness' sake only, also keep (multiple) blanks if the user, purportedly sane, requests us to
-  options.name = _isUndefined(options.name) ? undefined : options.name;
   options.prefix = _isUndefined(options.prefix) ? '' : options.prefix;
   options.postfix = _isUndefined(options.postfix) ? '' : options.postfix;
 }
 
 /**
- * Resolve the specified path name in respect to tmpDir.
+ * Gets the relative directory to tmpDir.
  *
- * The specified name might include relative path components, e.g. ../
- * so we need to resolve in order to be sure that is is located inside tmpDir
- *
- * @param name
- * @param tmpDir
- * @returns {string}
  * @private
  */
-function _resolvePath(name, tmpDir) {
-  if (name.startsWith(tmpDir)) {
-    return path.resolve(name);
-  } else {
-    return path.resolve(path.join(tmpDir, name));
-  }
+function _getRelativePath(option, name, tmpDir, cb) {
+  if (_isUndefined(name)) return cb(null);
+
+  _resolvePath(name, tmpDir, function (err, resolvedPath) {
+    if (err) return cb(err);
+
+    const relativePath = path.relative(tmpDir, resolvedPath);
+
+    if (!resolvedPath.startsWith(tmpDir)) {
+      return cb(new Error(`${option} option must be relative to "${tmpDir}", found "${relativePath}".`));
+    }
+
+    cb(null, relativePath);
+  });
 }
 
 /**
- * Asserts whether specified name is relative to the specified tmpDir.
+ * Gets the relative path to tmpDir.
  *
- * @param {string} name
- * @param {string} option
- * @param {string} tmpDir
- * @throws {Error}
  * @private
  */
-function _assertIsRelative(name, option, tmpDir) {
-  if (option === 'name') {
-    // assert that name is not absolute and does not contain a path
-    if (path.isAbsolute(name))
-      throw new Error(`${option} option must not contain an absolute path, found "${name}".`);
-    // must not fail on valid .<name> or ..<name> or similar such constructs
-    let basename = path.basename(name);
-    if (basename === '..' || basename === '.' || basename !== name)
-      throw new Error(`${option} option must not contain a path, found "${name}".`);
+function _getRelativePathSync(option, name, tmpDir) {
+  if (_isUndefined(name)) return;
+
+  const resolvedPath = _resolvePathSync(name, tmpDir);
+  const relativePath = path.relative(tmpDir, resolvedPath);
+
+  if (!resolvedPath.startsWith(tmpDir)) {
+    throw new Error(`${option} option must be relative to "${tmpDir}", found "${relativePath}".`);
   }
-  else { // if (option === 'dir' || option === 'template') {
-    // assert that dir or template are relative to tmpDir
-    if (path.isAbsolute(name) && !name.startsWith(tmpDir)) {
-      throw new Error(`${option} option must be relative to "${tmpDir}", found "${name}".`);
+
+  return relativePath;
+}
+
+/**
+ * Asserts whether the specified options are valid, also sanitizes options and provides sane defaults for missing
+ * options.
+ *
+ * @private
+ */
+function _assertAndSanitizeOptions(options, cb) {
+  _getTmpDir(options, function (err, tmpDir) {
+    if (err) return cb(err);
+
+    options.tmpdir = tmpDir;
+
+    try {
+      _assertOptionsBase(options, tmpDir);
+    } catch (err) {
+      return cb(err);
     }
-    let resolvedPath = _resolvePath(name, tmpDir);
-    if (!resolvedPath.startsWith(tmpDir))
-      throw new Error(`${option} option must be relative to "${tmpDir}", found "${resolvedPath}".`);
-  }
+
+    // sanitize dir, also keep (multiple) blanks if the user, purportedly sane, requests us to
+    _getRelativePath('dir', options.dir, tmpDir, function (err, dir) {
+      if (err) return cb(err);
+
+      options.dir = _isUndefined(dir) ? '' : dir;
+
+      // sanitize further if template is relative to options.dir
+      _getRelativePath('template', options.template, tmpDir, function (err, template) {
+        if (err) return cb(err);
+
+        options.template = template;
+
+        cb(null, options);
+      });
+    });
+  });
+}
+
+/**
+ * Asserts whether the specified options are valid, also sanitizes options and provides sane defaults for missing
+ * options.
+ *
+ * @private
+ */
+function _assertAndSanitizeOptionsSync(options) {
+  const tmpDir = (options.tmpdir = _getTmpDirSync(options));
+
+  _assertOptionsBase(options, tmpDir);
+
+  const dir = _getRelativePathSync('dir', options.dir, tmpDir);
+  options.dir = _isUndefined(dir) ? '' : dir;
+
+  options.template = _getRelativePathSync('template', options.template, tmpDir);
+
+  return options;
 }
 
 /**
@@ -56156,11 +56027,18 @@ function setGracefulCleanup() {
  * Returns the currently configured tmp dir from os.tmpdir().
  *
  * @private
- * @param {?Options} options
- * @returns {string} the currently configured tmp dir
  */
-function _getTmpDir(options) {
-  return path.resolve(options && options.tmpdir || os.tmpdir());
+function _getTmpDir(options, cb) {
+  return fs.realpath((options && options.tmpdir) || os.tmpdir(), cb);
+}
+
+/**
+ * Returns the currently configured tmp dir from os.tmpdir().
+ *
+ * @private
+ */
+function _getTmpDirSync(options) {
+  return fs.realpathSync((options && options.tmpdir) || os.tmpdir());
 }
 
 // Install process exit listener
@@ -56261,7 +56139,7 @@ Object.defineProperty(module.exports, "tmpdir", ({
   enumerable: true,
   configurable: false,
   get: function () {
-    return _getTmpDir();
+    return _getTmpDirSync();
   }
 }));
 
@@ -82254,7 +82132,9 @@ const child_process_1 = __nccwpck_require__(32081);
 const github_1 = __nccwpck_require__(95438);
 const util = __importStar(__nccwpck_require__(92629));
 const versions_1 = __nccwpck_require__(13296);
-exports.github = (0, github_1.getOctokit)(util.getInput('github-pat'));
+// Strip x-access-token: prefix if present (used for git operations, not REST API)
+const githubPat = util.getInput('github-pat').replace(/^x-access-token:/, '');
+exports.github = (0, github_1.getOctokit)(githubPat);
 function gitCmd(command, execOpts) {
     const out = gitCmdMulti(command, execOpts);
     return out ? out[0] : undefined;
@@ -82674,6 +82554,14 @@ module.exports = require("node:crypto");
 
 "use strict";
 module.exports = require("node:events");
+
+/***/ }),
+
+/***/ 97742:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:process");
 
 /***/ }),
 
@@ -83213,7 +83101,7 @@ class Acl extends AclRoleAccessorMethods {
             method: 'POST',
             uri: '',
             qs: query,
-            maxRetries: 0,
+            maxRetries: 0, //explicitly set this value since this is a non-idempotent function
             json: {
                 entity: options.entity,
                 role: options.role.toUpperCase(),
@@ -83581,13 +83469,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -83597,7 +83495,7 @@ const index_js_1 = __nccwpck_require__(4052);
 const paginator_1 = __nccwpck_require__(46412);
 const promisify_1 = __nccwpck_require__(19203);
 const fs = __importStar(__nccwpck_require__(57147));
-const mime = __importStar(__nccwpck_require__(43583));
+const mime_1 = __importDefault(__nccwpck_require__(29994));
 const path = __importStar(__nccwpck_require__(71017));
 const p_limit_1 = __importDefault(__nccwpck_require__(57684));
 const util_1 = __nccwpck_require__(73837);
@@ -84287,6 +84185,12 @@ class Bucket extends index_js_1.ServiceObject {
             createMethod: storage.createBucket.bind(storage),
             methods,
         });
+        /**
+         * Indicates whether this Bucket object is a placeholder for an item
+         * that the API failed to retrieve (unreachable) due to partial failure.
+         * Consumers must check this flag before accessing other properties.
+         */
+        this.unreachable = false;
         this.name = name;
         this.storage = storage;
         this.userProject = options.userProject;
@@ -84364,7 +84268,7 @@ class Bucket extends index_js_1.ServiceObject {
      *     **Note**: For configuring a raw-formatted rule object to be passed as `action`
      *               please refer to the [examples]{@link https://cloud.google.com/storage/docs/managing-lifecycles#configexamples}.
      * @param {object} rule.condition Condition a bucket must meet before the
-     *     action occurson the bucket. Refer to followitn supported [conditions]{@link https://cloud.google.com/storage/docs/lifecycle#conditions}.
+     *     action occurs on the bucket. Refer to following supported [conditions]{@link https://cloud.google.com/storage/docs/lifecycle#conditions}.
      * @param {string} [rule.storageClass] When using the `setStorageClass`
      *     action, provide this option to dictate which storage class the object
      *     should update to.
@@ -84638,7 +84542,7 @@ class Bucket extends index_js_1.ServiceObject {
         const destinationFile = convertToFile(destination);
         callback = callback || index_js_1.util.noop;
         if (!destinationFile.metadata.contentType) {
-            const destinationContentType = mime.contentType(destinationFile.name);
+            const destinationContentType = mime_1.default.getType(destinationFile.name) || undefined;
             if (destinationContentType) {
                 destinationFile.metadata.contentType = destinationContentType;
             }
@@ -84664,6 +84568,7 @@ class Bucket extends index_js_1.ServiceObject {
             json: {
                 destination: {
                     contentType: destinationFile.metadata.contentType,
+                    contentEncoding: destinationFile.metadata.contentEncoding,
                 },
                 sourceObjects: sources.map(source => {
                     const sourceObject = {
@@ -84889,7 +84794,7 @@ class Bucket extends index_js_1.ServiceObject {
      * myBucket.createNotification('my-topic', callback);
      *
      * //-
-     * // Configure the nofiication by providing Notification metadata.
+     * // Configure the notification by providing Notification metadata.
      * //-
      * const metadata = {
      *   objectNamePrefix: 'prefix-'
@@ -84930,7 +84835,7 @@ class Bucket extends index_js_1.ServiceObject {
         if (body.topic.indexOf('projects') !== 0) {
             body.topic = 'projects/{{projectId}}/topics/' + body.topic;
         }
-        body.topic = '//pubsub.googleapis.com/' + body.topic;
+        body.topic = `//pubsub.${this.storage.universeDomain}/` + body.topic;
         if (!body.payloadFormat) {
             body.payloadFormat = 'JSON_API_V1';
         }
@@ -85457,6 +85362,10 @@ class Bucket extends index_js_1.ServiceObject {
      * @property {string} [endOffset] Filter results to objects whose names are
      * lexicographically before endOffset. If startOffset is also set, the objects
      * listed have names between startOffset (inclusive) and endOffset (exclusive).
+     * @property {boolean} [includeFoldersAsPrefixes] If true, includes folders and
+     * managed folders in the set of prefixes returned by the query. Only applicable if
+     * delimiter is set to / and autoPaginate is set to false.
+     * See: https://cloud.google.com/storage/docs/managed-folders
      * @property {boolean} [includeTrailingDelimiter] If true, objects that end in
      * exactly one instance of delimiter have their metadata included in items[]
      * in addition to the relevant part of the object name appearing in prefixes[].
@@ -85473,6 +85382,9 @@ class Bucket extends index_js_1.ServiceObject {
      *     or 1 page of results will be returned per call.
      * @property {string} [pageToken] A previously-returned page token
      *     representing part of the larger set of results to view.
+     * @property {boolean} [softDeleted] If true, only soft-deleted object versions will be
+     *     listed as distinct results in order of generation number. Note `soft_deleted` and
+     *     `versions` cannot be set to true simultaneously.
      * @property {string} [startOffset] Filter results to objects whose names are
      * lexicographically equal to or after startOffset. If endOffset is also set,
      * the objects listed have names between startOffset (inclusive) and endOffset (exclusive).
@@ -85497,6 +85409,10 @@ class Bucket extends index_js_1.ServiceObject {
      * @param {string} [query.endOffset] Filter results to objects whose names are
      * lexicographically before endOffset. If startOffset is also set, the objects
      * listed have names between startOffset (inclusive) and endOffset (exclusive).
+     * @param {boolean} [query.includeFoldersAsPrefixes] If true, includes folders and
+     * managed folders in the set of prefixes returned by the query. Only applicable if
+     * delimiter is set to / and autoPaginate is set to false.
+     * See: https://cloud.google.com/storage/docs/managed-folders
      * @param {boolean} [query.includeTrailingDelimiter] If true, objects that end in
      * exactly one instance of delimiter have their metadata included in items[]
      * in addition to the relevant part of the object name appearing in prefixes[].
@@ -85511,6 +85427,9 @@ class Bucket extends index_js_1.ServiceObject {
      *     or 1 page of results will be returned per call.
      * @param {string} [query.pageToken] A previously-returned page token
      *     representing part of the larger set of results to view.
+     * @param {boolean} [query.softDeleted] If true, only soft-deleted object versions will be
+     *     listed as distinct results in order of generation number. Note `soft_deleted` and
+     *     `versions` cannot be set to true simultaneously.
      * @param {string} [query.startOffset] Filter results to objects whose names are
      * lexicographically equal to or after startOffset. If endOffset is also set,
      * the objects listed have names between startOffset (inclusive) and endOffset (exclusive).
@@ -85625,6 +85544,11 @@ class Bucket extends index_js_1.ServiceObject {
             callback = queryOrCallback;
         }
         query = Object.assign({}, query);
+        if (query.fields &&
+            query.autoPaginate &&
+            !query.fields.includes('nextPageToken')) {
+            query.fields = `${query.fields},nextPageToken`;
+        }
         this.request({
             uri: '/o',
             qs: query,
@@ -85637,6 +85561,10 @@ class Bucket extends index_js_1.ServiceObject {
             const itemsArray = resp.items ? resp.items : [];
             const files = itemsArray.map((file) => {
                 const options = {};
+                if (query.fields) {
+                    const fileInstance = file;
+                    return fileInstance;
+                }
                 if (query.versions) {
                     options.generation = file.generation;
                 }
@@ -85814,7 +85742,7 @@ class Bucket extends index_js_1.ServiceObject {
      */
     /**
      * @typedef {object} GetBucketSignedUrlConfig
-     * @property {string} action Currently only supports "list" (HTTP: GET).
+     * @property {string} action Only listing objects within a bucket (HTTP: GET) is supported for bucket-level signed URLs.
      * @property {*} expires A timestamp when this link will expire. Any value
      *     given is passed to `new Date()`.
      *     Note: 'v4' supports maximum duration of 7 days (604800 seconds) from now.
@@ -85823,7 +85751,7 @@ class Bucket extends index_js_1.ServiceObject {
      * @property {boolean} [virtualHostedStyle=false] Use virtual hosted-style
      *     URLs ('https://mybucket.storage.googleapis.com/...') instead of path-style
      *     ('https://storage.googleapis.com/mybucket/...'). Virtual hosted-style URLs
-     *     should generally be preferred instaed of path-style URL.
+     *     should generally be preferred instead of path-style URL.
      *     Currently defaults to `false` for path-style, although this may change in a
      *     future major-version release.
      * @property {string} [cname] The cname for this bucket, i.e.,
@@ -85870,7 +85798,7 @@ class Bucket extends index_js_1.ServiceObject {
      * @param {boolean} [config.virtualHostedStyle=false] Use virtual hosted-style
      *     URLs ('https://mybucket.storage.googleapis.com/...') instead of path-style
      *     ('https://storage.googleapis.com/mybucket/...'). Virtual hosted-style URLs
-     *     should generally be preferred instaed of path-style URL.
+     *     should generally be preferred instead of path-style URL.
      *     Currently defaults to `false` for path-style, although this may change in a
      *     future major-version release.
      * @param {string} [config.cname] The cname for this bucket, i.e.,
@@ -85938,9 +85866,11 @@ class Bucket extends index_js_1.ServiceObject {
             cname: cfg.cname,
             extensionHeaders: cfg.extensionHeaders || {},
             queryParams: cfg.queryParams || {},
+            host: cfg.host,
+            signingEndpoint: cfg.signingEndpoint,
         };
         if (!this.signer) {
-            this.signer = new signer_js_1.URLSigner(this.storage.authClient, this);
+            this.signer = new signer_js_1.URLSigner(this.storage.authClient, this, undefined, this.storage);
         }
         this.signer
             .getSignedUrl(signConfig)
@@ -85958,7 +85888,7 @@ class Bucket extends index_js_1.ServiceObject {
      * @throws {Error} if a metageneration is not provided.
      *
      * @param {number|string} metageneration The bucket's metageneration. This is
-     *     accesssible from calling {@link File#getMetadata}.
+     *     accessible from calling {@link File#getMetadata}.
      * @param {BucketLockCallback} [callback] Callback function.
      * @returns {Promise<BucketLockResponse>}
      *
@@ -85991,6 +85921,25 @@ class Bucket extends index_js_1.ServiceObject {
                 ifMetagenerationMatch: metageneration,
             },
         }, callback);
+    }
+    /**
+     * @typedef {object} RestoreOptions Options for Bucket#restore(). See an
+     *     {@link https://cloud.google.com/storage/docs/json_api/v1/buckets/restore#resource| Object resource}.
+     * @param {number} [generation] If present, selects a specific revision of this object.
+     * @param {string} [projection] Specifies the set of properties to return. If used, must be 'full' or 'noAcl'.
+     */
+    /**
+     * Restores a soft-deleted bucket
+     * @param {RestoreOptions} options Restore options.
+     * @returns {Promise<Bucket>}
+     */
+    async restore(options) {
+        const [bucket] = await this.request({
+            method: 'POST',
+            uri: '/restore',
+            qs: options,
+        });
+        return bucket;
     }
     /**
      * @typedef {array} MakeBucketPrivateResponse
@@ -86886,7 +86835,7 @@ class Bucket extends index_js_1.ServiceObject {
             }, {
                 retries: numberOfRetries,
                 factor: this.storage.retryOptions.retryDelayMultiplier,
-                maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000,
+                maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000, //convert to milliseconds
                 maxRetryTime: this.storage.retryOptions.totalTimeout * 1000, //convert to milliseconds
             });
             if (!callback) {
@@ -87056,7 +87005,7 @@ paginator_1.paginator.extend(Bucket, 'getFiles');
  * that a callback is omitted.
  */
 (0, promisify_1.promisifyAll)(Bucket, {
-    exclude: ['cloudStorageURI', 'request', 'file', 'notification'],
+    exclude: ['cloudStorageURI', 'request', 'file', 'notification', 'restore'],
 });
 
 
@@ -87376,8 +87325,15 @@ class CRC32C {
         const crc32c = new CRC32C();
         await new Promise((resolve, reject) => {
             (0, fs_1.createReadStream)(file)
-                .on('data', (d) => crc32c.update(d))
-                .on('end', resolve)
+                .on('data', (d) => {
+                if (typeof d === 'string') {
+                    crc32c.update(Buffer.from(d));
+                }
+                else {
+                    crc32c.update(d);
+                }
+            })
+                .on('end', () => resolve())
                 .on('error', reject);
         });
         return crc32c;
@@ -87470,13 +87426,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
@@ -87490,7 +87456,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.File = exports.FileExceptionMessages = exports.RequestError = exports.STORAGE_POST_POLICY_BASE_URL = exports.ActionToHTTPMethod = void 0;
 const index_js_1 = __nccwpck_require__(4052);
 const promisify_1 = __nccwpck_require__(19203);
-const compressible_1 = __importDefault(__nccwpck_require__(96763));
 const crypto = __importStar(__nccwpck_require__(6113));
 const fs = __importStar(__nccwpck_require__(57147));
 const mime_1 = __importDefault(__nccwpck_require__(29994));
@@ -87504,6 +87469,7 @@ const signer_js_1 = __nccwpck_require__(59019);
 const util_js_1 = __nccwpck_require__(38064);
 const duplexify_1 = __importDefault(__nccwpck_require__(76599));
 const util_js_2 = __nccwpck_require__(59258);
+const crc32c_js_1 = __nccwpck_require__(55810);
 const hash_stream_validator_js_1 = __nccwpck_require__(40725);
 const async_retry_1 = __importDefault(__nccwpck_require__(33415));
 var ActionToHTTPMethod;
@@ -87514,17 +87480,36 @@ var ActionToHTTPMethod;
     ActionToHTTPMethod["resumable"] = "POST";
 })(ActionToHTTPMethod || (exports.ActionToHTTPMethod = ActionToHTTPMethod = {}));
 /**
- * @private
+ * @deprecated - no longer used
  */
 exports.STORAGE_POST_POLICY_BASE_URL = 'https://storage.googleapis.com';
 /**
  * @private
  */
 const GS_URL_REGEXP = /^gs:\/\/([a-z0-9_.-]+)\/(.+)$/;
+/**
+ * @private
+ * This regex will match compressible content types. These are primarily text/*, +json, +text, +xml content types.
+ * This was based off of mime-db and may periodically need to be updated if new compressible content types become
+ * standards.
+ */
+const COMPRESSIBLE_MIME_REGEX = new RegExp([
+    /^text\/|application\/ecmascript|application\/javascript|application\/json/,
+    /|application\/postscript|application\/rtf|application\/toml|application\/vnd.dart/,
+    /|application\/vnd.ms-fontobject|application\/wasm|application\/x-httpd-php|application\/x-ns-proxy-autoconfig/,
+    /|application\/x-sh(?!ockwave-flash)|application\/x-tar|application\/x-virtualbox-hdd|application\/x-virtualbox-ova|application\/x-virtualbox-ovf/,
+    /|^application\/x-virtualbox-vbox$|application\/x-virtualbox-vdi|application\/x-virtualbox-vhd|application\/x-virtualbox-vmdk/,
+    /|application\/xml|application\/xml-dtd|font\/otf|font\/ttf|image\/bmp|image\/vnd.adobe.photoshop|image\/vnd.microsoft.icon/,
+    /|image\/vnd.ms-dds|image\/x-icon|image\/x-ms-bmp|message\/rfc822|model\/gltf-binary|\+json|\+text|\+xml|\+yaml/,
+]
+    .map(r => r.source)
+    .join(''), 'i');
 class RequestError extends Error {
 }
 exports.RequestError = RequestError;
 const SEVEN_DAYS = 7 * 24 * 60 * 60;
+const GS_UTIL_URL_REGEX = /(gs):\/\/([a-z0-9_.-]+)\/(.+)/g;
+const HTTPS_PUBLIC_URL_REGEX = /(https):\/\/(storage\.googleapis\.com)\/([a-z0-9_.-]+)\/(.+)/g;
 var FileExceptionMessages;
 (function (FileExceptionMessages) {
     FileExceptionMessages["EXPIRATION_TIME_NA"] = "An expiration time is not available.";
@@ -87537,6 +87522,8 @@ var FileExceptionMessages;
     FileExceptionMessages["DOWNLOAD_MISMATCH"] = "The downloaded data did not match the data from the server. To be sure the content is the same, you should download the file again.";
     FileExceptionMessages["UPLOAD_MISMATCH_DELETE_FAIL"] = "The uploaded data did not match the data from the server.\n    As a precaution, we attempted to delete the file, but it was not successful.\n    To be sure the content is the same, you should try removing the file manually,\n    then uploading the file again.\n    \n\nThe delete attempt failed with this message:\n\n  ";
     FileExceptionMessages["UPLOAD_MISMATCH"] = "The uploaded data did not match the data from the server.\n    As a precaution, the file has been deleted.\n    To be sure the content is the same, you should try uploading the file again.";
+    FileExceptionMessages["MD5_RESUMED_UPLOAD"] = "MD5 cannot be used with a continued resumable upload as MD5 cannot be extended from an existing value";
+    FileExceptionMessages["MISSING_RESUME_CRC32C_FINAL_UPLOAD"] = "The CRC32C is missing for the final portion of a resumed upload, which is required for validation. Please provide `resumeCRC32C` if validation is required, or disable `validation`.";
 })(FileExceptionMessages || (exports.FileExceptionMessages = FileExceptionMessages = {}));
 /**
  * A File object is created from your {@link Bucket} object using
@@ -87823,6 +87810,11 @@ class File extends index_js_1.ServiceObject {
              * @param {options} [options] Configuration options.
              * @param {string} [options.userProject] The ID of the project which will be
              *     billed for the request.
+             * @param {number} [options.generation] The generation number to get
+             * @param {string} [options.restoreToken] If this is a soft-deleted object in an HNS-enabled bucket, returns the restore token which will
+             *    be necessary to restore it if there's a name conflict with another object.
+             * @param {boolean} [options.softDeleted] If true, returns the soft-deleted object.
+                  Object `generation` is required if `softDeleted` is set to True.
              * @param {GetFileCallback} [callback] Callback function.
              * @returns {Promise<GetFileResponse>}
              *
@@ -88668,6 +88660,8 @@ class File extends index_js_1.ServiceObject {
             userProject: options.userProject || this.userProject,
             retryOptions: retryOptions,
             params: (options === null || options === void 0 ? void 0 : options.preconditionOpts) || this.instancePreconditionOpts,
+            universeDomain: this.bucket.storage.universeDomain,
+            useAuthWithCustomEndpoint: this.storage.useAuthWithCustomEndpoint,
             [util_js_1.GCCL_GCS_CMD_KEY]: options[util_js_1.GCCL_GCS_CMD_KEY],
         }, callback);
         this.storage.retryOptions.autoRetry = this.instanceRetryValue;
@@ -88752,8 +88746,8 @@ class File extends index_js_1.ServiceObject {
      * NOTE: Writable streams will emit the `finish` event when the file is fully
      * uploaded.
      *
-     * See {@link https://cloud.google.com/storage/docs/json_api/v1/how-tos/upload| Upload Options (Simple or Resumable)}
-     * See {@link https://cloud.google.com/storage/docs/json_api/v1/objects/insert| Objects: insert API Documentation}
+     * See {@link https://cloud.google.com/storage/docs/json_api/v1/how-tos/upload Upload Options (Simple or Resumable)}
+     * See {@link https://cloud.google.com/storage/docs/json_api/v1/objects/insert Objects: insert API Documentation}
      *
      * @param {CreateWriteStreamOptions} [options] Configuration options.
      * @returns {WritableStream}
@@ -88818,6 +88812,22 @@ class File extends index_js_1.ServiceObject {
      *     // The file upload is complete.
      *   });
      * ```
+     *
+     * //-
+     * // <h4>Continuing a Resumable Upload</h4>
+     * //
+     * // One can capture a `uri` from a resumable upload to reuse later.
+     * // Additionally, for validation, one can also capture and pass `crc32c`.
+     * //-
+     * let uri: string | undefined = undefined;
+     * let resumeCRC32C: string | undefined = undefined;
+     *
+     * fs.createWriteStream()
+     *   .on('uri', link => {uri = link})
+     *   .on('crc32', crc32c => {resumeCRC32C = crc32c});
+     *
+     * // later...
+     * fs.createWriteStream({uri, resumeCRC32C});
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createWriteStream(options = {}) {
@@ -88835,7 +88845,7 @@ class File extends index_js_1.ServiceObject {
         }
         let gzip = options.gzip;
         if (gzip === 'auto') {
-            gzip = (0, compressible_1.default)(options.metadata.contentType || '');
+            gzip = COMPRESSIBLE_MIME_REGEX.test(options.metadata.contentType || '');
         }
         if (gzip) {
             options.metadata.contentEncoding = 'gzip';
@@ -88849,6 +88859,15 @@ class File extends index_js_1.ServiceObject {
         }
         else if (options.validation === false) {
             crc32c = false;
+            md5 = false;
+        }
+        if (options.offset) {
+            if (md5) {
+                throw new RangeError(FileExceptionMessages.MD5_RESUMED_UPLOAD);
+            }
+            if (crc32c && !options.isPartialUpload && !options.resumeCRC32C) {
+                throw new RangeError(FileExceptionMessages.MISSING_RESUME_CRC32C_FINAL_UPLOAD);
+            }
         }
         /**
          * A callback for determining when the underlying pipeline is complete.
@@ -88872,33 +88891,70 @@ class File extends index_js_1.ServiceObject {
                 emitStream.write(chunk, encoding, cb);
             },
         });
-        const emitStream = new util_js_2.PassThroughShim();
-        const hashCalculatingStream = new hash_stream_validator_js_1.HashStreamValidator({
-            crc32c,
-            md5,
-            crc32cGenerator: this.crc32cGenerator,
-            updateHashesOnly: true,
+        // If the write stream, which is returned to the caller, catches an error we need to make sure that
+        // at least one of the streams in the pipeline below gets notified so that they
+        // all get cleaned up / destroyed.
+        writeStream.once('error', e => {
+            emitStream.destroy(e);
         });
+        // If the write stream is closed, cleanup the pipeline below by calling destroy on one of the streams.
+        writeStream.once('close', () => {
+            emitStream.destroy();
+        });
+        const transformStreams = [];
+        if (gzip) {
+            transformStreams.push(zlib.createGzip());
+        }
+        const emitStream = new util_js_2.PassThroughShim();
+        // If `writeStream` is destroyed before the `writing` event, `emitStream` will not have any listeners. This prevents an unhandled error.
+        const noop = () => { };
+        emitStream.on('error', noop);
+        let hashCalculatingStream = null;
+        if (crc32c || md5) {
+            const crc32cInstance = options.resumeCRC32C
+                ? crc32c_js_1.CRC32C.from(options.resumeCRC32C)
+                : undefined;
+            hashCalculatingStream = new hash_stream_validator_js_1.HashStreamValidator({
+                crc32c,
+                crc32cInstance,
+                md5,
+                crc32cGenerator: this.crc32cGenerator,
+                updateHashesOnly: true,
+            });
+            transformStreams.push(hashCalculatingStream);
+        }
         const fileWriteStream = (0, duplexify_1.default)();
         let fileWriteStreamMetadataReceived = false;
         // Handing off emitted events to users
         emitStream.on('reading', () => writeStream.emit('reading'));
         emitStream.on('writing', () => writeStream.emit('writing'));
+        fileWriteStream.on('uri', evt => writeStream.emit('uri', evt));
         fileWriteStream.on('progress', evt => writeStream.emit('progress', evt));
         fileWriteStream.on('response', resp => writeStream.emit('response', resp));
         fileWriteStream.once('metadata', () => {
             fileWriteStreamMetadataReceived = true;
         });
-        writeStream.on('writing', () => {
+        writeStream.once('writing', () => {
             if (options.resumable === false) {
                 this.startSimpleUpload_(fileWriteStream, options);
             }
             else {
                 this.startResumableUpload_(fileWriteStream, options);
             }
-            (0, stream_1.pipeline)(emitStream, gzip ? zlib.createGzip() : new stream_1.PassThrough(), hashCalculatingStream, fileWriteStream, async (e) => {
+            // remove temporary noop listener as we now create a pipeline that handles the errors
+            emitStream.removeListener('error', noop);
+            (0, stream_1.pipeline)(emitStream, ...transformStreams, fileWriteStream, async (e) => {
                 if (e) {
                     return pipelineCallback(e);
+                }
+                // If this is a partial upload, we don't expect final metadata yet.
+                if (options.isPartialUpload) {
+                    // Emit CRC32c for this completed chunk if hash validation is active.
+                    if (hashCalculatingStream === null || hashCalculatingStream === void 0 ? void 0 : hashCalculatingStream.crc32c) {
+                        writeStream.emit('crc32c', hashCalculatingStream.crc32c);
+                    }
+                    // Resolve the pipeline for this *partial chunk*.
+                    return pipelineCallback();
                 }
                 // We want to make sure we've received the metadata from the server in order
                 // to properly validate the object's integrity. Depending on the type of upload,
@@ -88914,8 +88970,20 @@ class File extends index_js_1.ServiceObject {
                         return pipelineCallback(e);
                     }
                 }
+                // Emit the local CRC32C value for future validation, if validation is enabled.
+                if (hashCalculatingStream === null || hashCalculatingStream === void 0 ? void 0 : hashCalculatingStream.crc32c) {
+                    writeStream.emit('crc32c', hashCalculatingStream.crc32c);
+                }
                 try {
-                    await __classPrivateFieldGet(this, _File_instances, "m", _File_validateIntegrity).call(this, hashCalculatingStream, { crc32c, md5 });
+                    // Metadata may not be ready if the upload is a partial upload,
+                    // nothing to validate yet.
+                    const metadataNotReady = options.isPartialUpload && !this.metadata;
+                    if (hashCalculatingStream && !metadataNotReady) {
+                        await __classPrivateFieldGet(this, _File_instances, "m", _File_validateIntegrity).call(this, hashCalculatingStream, {
+                            crc32c,
+                            md5,
+                        });
+                    }
                     pipelineCallback();
                 }
                 catch (e) {
@@ -89008,7 +89076,7 @@ class File extends index_js_1.ServiceObject {
             options = {};
         }
         else {
-            options = optionsOrCallback;
+            options = Object.assign({}, optionsOrCallback);
         }
         let called = false;
         const callback = ((...args) => {
@@ -89018,20 +89086,28 @@ class File extends index_js_1.ServiceObject {
         });
         const destination = options.destination;
         delete options.destination;
+        if (options.encryptionKey) {
+            this.setEncryptionKey(options.encryptionKey);
+            delete options.encryptionKey;
+        }
         const fileStream = this.createReadStream(options);
         let receivedData = false;
         if (destination) {
             fileStream
                 .on('error', callback)
                 .once('data', data => {
-                // We know that the file exists the server - now we can truncate/write to a file
                 receivedData = true;
+                // We know that the file exists the server - now we can truncate/write to a file
                 const writable = fs.createWriteStream(destination);
                 writable.write(data);
                 fileStream
                     .pipe(writable)
-                    .on('error', callback)
-                    .on('finish', callback);
+                    .on('error', (err) => {
+                    callback(err, Buffer.from(''));
+                })
+                    .on('finish', () => {
+                    callback(null, data);
+                });
             })
                 .on('end', () => {
                 // In the case of an empty file no data will be received before the end event fires
@@ -89118,6 +89194,41 @@ class File extends index_js_1.ServiceObject {
         };
         this.interceptors.push(this.encryptionKeyInterceptor);
         return this;
+    }
+    /**
+     * Gets a reference to a Cloud Storage {@link File} file from the provided URL in string format.
+     * @param {string} publicUrlOrGsUrl the URL as a string. Must be of the format gs://bucket/file
+     *  or https://storage.googleapis.com/bucket/file.
+     * @param {Storage} storageInstance an instance of a Storage object.
+     * @param {FileOptions} [options] Configuration options
+     * @returns {File}
+     */
+    static from(publicUrlOrGsUrl, storageInstance, options) {
+        const gsMatches = [...publicUrlOrGsUrl.matchAll(GS_UTIL_URL_REGEX)];
+        const httpsMatches = [...publicUrlOrGsUrl.matchAll(HTTPS_PUBLIC_URL_REGEX)];
+        if (gsMatches.length > 0) {
+            const bucket = new bucket_js_1.Bucket(storageInstance, gsMatches[0][2]);
+            return new File(bucket, gsMatches[0][3], options);
+        }
+        else if (httpsMatches.length > 0) {
+            const bucket = new bucket_js_1.Bucket(storageInstance, httpsMatches[0][3]);
+            return new File(bucket, httpsMatches[0][4], options);
+        }
+        else {
+            throw new Error('URL string must be of format gs://bucket/file or https://storage.googleapis.com/bucket/file');
+        }
+    }
+    get(optionsOrCallback, cb) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const options = typeof optionsOrCallback === 'object' ? optionsOrCallback : {};
+        cb =
+            typeof optionsOrCallback === 'function'
+                ? optionsOrCallback
+                : cb;
+        super
+            .get(options)
+            .then(resp => cb(null, ...resp))
+            .catch(cb);
     }
     /**
      * @typedef {array} GetExpirationDateResponse
@@ -89321,7 +89432,7 @@ class File extends index_js_1.ServiceObject {
         };
         const policyString = JSON.stringify(policy);
         const policyBase64 = Buffer.from(policyString).toString('base64');
-        this.storage.authClient.sign(policyBase64).then(signature => {
+        this.storage.authClient.sign(policyBase64, options.signingEndpoint).then(signature => {
             callback(null, {
                 string: policyString,
                 base64: policyBase64,
@@ -89464,19 +89575,23 @@ class File extends index_js_1.ServiceObject {
             const policyString = (0, util_js_2.unicodeJSONStringify)(policy);
             const policyBase64 = Buffer.from(policyString).toString('base64');
             try {
-                const signature = await this.storage.authClient.sign(policyBase64);
+                const signature = await this.storage.authClient.sign(policyBase64, options.signingEndpoint);
                 const signatureHex = Buffer.from(signature, 'base64').toString('hex');
+                const universe = this.parent.storage.universeDomain;
                 fields['policy'] = policyBase64;
                 fields['x-goog-signature'] = signatureHex;
                 let url;
-                if (options.virtualHostedStyle) {
-                    url = `https://${this.bucket.name}.storage.googleapis.com/`;
+                if (this.storage.customEndpoint) {
+                    url = this.storage.apiEndpoint;
+                }
+                else if (options.virtualHostedStyle) {
+                    url = `https://${this.bucket.name}.storage.${universe}/`;
                 }
                 else if (options.bucketBoundHostname) {
                     url = `${options.bucketBoundHostname}/`;
                 }
                 else {
-                    url = `${exports.STORAGE_POST_POLICY_BASE_URL}/${this.bucket.name}/`;
+                    url = `https://storage.${universe}/${this.bucket.name}/`;
                 }
                 return {
                     url,
@@ -89526,9 +89641,9 @@ class File extends index_js_1.ServiceObject {
      * @param {string} [config.version='v2'] The signing version to use, either
      *     'v2' or 'v4'.
      * @param {boolean} [config.virtualHostedStyle=false] Use virtual hosted-style
-     *     URLs ('https://mybucket.storage.googleapis.com/...') instead of path-style
-     *     ('https://storage.googleapis.com/mybucket/...'). Virtual hosted-style URLs
-     *     should generally be preferred instaed of path-style URL.
+     *     URLs (e.g. 'https://mybucket.storage.googleapis.com/...') instead of path-style
+     *     (e.g. 'https://storage.googleapis.com/mybucket/...'). Virtual hosted-style URLs
+     *     should generally be preferred instead of path-style URL.
      *     Currently defaults to `false` for path-style, although this may change in a
      *     future major-version release.
      * @param {string} [config.cname] The cname for this bucket, i.e.,
@@ -89690,6 +89805,7 @@ class File extends index_js_1.ServiceObject {
             queryParams,
             contentMd5: cfg.contentMd5,
             contentType: cfg.contentType,
+            host: cfg.host,
         };
         if (cfg.cname) {
             signConfig.cname = cfg.cname;
@@ -89701,7 +89817,7 @@ class File extends index_js_1.ServiceObject {
             signConfig.virtualHostedStyle = cfg.virtualHostedStyle;
         }
         if (!this.signer) {
-            this.signer = new signer_js_1.URLSigner(this.storage.authClient, this.bucket, this);
+            this.signer = new signer_js_1.URLSigner(this.storage.authClient, this.bucket, this, this.storage);
         }
         this.signer
             .getSignedUrl(signConfig)
@@ -89933,6 +90049,160 @@ class File extends index_js_1.ServiceObject {
      */
     publicUrl() {
         return `${this.storage.apiEndpoint}/${this.bucket.name}/${encodeURIComponent(this.name)}`;
+    }
+    /**
+     * @typedef {array} MoveFileAtomicResponse
+     * @property {File} 0 The moved {@link File}.
+     * @property {object} 1 The full API response.
+     */
+    /**
+     * @callback MoveFileAtomicCallback
+     * @param {?Error} err Request error, if any.
+     * @param {File} movedFile The moved {@link File}.
+     * @param {object} apiResponse The full API response.
+     */
+    /**
+     * @typedef {object} MoveFileAtomicOptions Configuration options for File#moveFileAtomic(). See an
+     *     {@link https://cloud.google.com/storage/docs/json_api/v1/objects#resource| Object resource}.
+     * @property {string} [userProject] The ID of the project which will be
+     *     billed for the request.
+     * @property {object} [preconditionOpts] Precondition options.
+     * @property {number} [preconditionOpts.ifGenerationMatch] Makes the operation conditional on whether the object's current generation matches the given value.
+     */
+    /**
+     * Move this file within the same bucket.
+     * The source object must exist and be a live object.
+     * The source and destination object IDs must be different.
+     * Overwriting the destination object is allowed by default, but can be prevented
+     * using preconditions.
+     * If the destination path includes non-existent parent folders, they will be created.
+     *
+     * See {@link https://cloud.google.com/storage/docs/json_api/v1/objects/move| Objects: move API Documentation}
+     *
+     * @throws {Error} If the destination file is not provided.
+     *
+     * @param {string|File} destination Destination file name or File object within the same bucket..
+     * @param {MoveFileAtomicOptions} [options] Configuration options. See an
+     * @param {MoveFileAtomicCallback} [callback] Callback function.
+     * @returns {Promise<MoveFileAtomicResponse>}
+     *
+     * @example
+     * ```
+     * const {Storage} = require('@google-cloud/storage');
+     * const storage = new Storage();
+     *
+     * //-
+     * // Assume 'my-bucket' is a bucket.
+     * //-
+     * const bucket = storage.bucket('my-bucket');
+     * const file = bucket.file('my-image.png');
+     *
+     * //-
+     * // If you pass in a string for the destination, the file is copied to its
+     * // current bucket, under the new name provided.
+     * //-
+     * file.moveFileAtomic('moved-image.png', function(err, movedFile, apiResponse) {
+     *   // `my-bucket` now contains:
+     *   // - "moved-image.png"
+     *
+     *   // `movedFile` is an instance of a File object that refers to your new
+     *   // file.
+     * });
+     *
+     * //-
+     * // Move the file to a subdirectory, creating parent folders if necessary.
+     * //-
+     * file.moveFileAtomic('new-folder/subfolder/moved-image.png', function(err, movedFile, apiResponse) {
+     * // `my-bucket` now contains:
+     * // - "new-folder/subfolder/moved-image.png"
+     * });
+     *
+     * //-
+     * // Prevent overwriting an existing destination object using preconditions.
+     * //-
+     * file.moveFileAtomic('existing-destination.png', {
+     * preconditionOpts: {
+     * ifGenerationMatch: 0 // Fails if the destination object exists.
+     * }
+     * }, function(err, movedFile, apiResponse) {
+     * if (err) {
+     * // Handle the error (e.g., the destination object already exists).
+     * } else {
+     * // Move successful.
+     * }
+     * });
+     *
+     * //-
+     * // If the callback is omitted, we'll return a Promise.
+     * //-
+     * file.moveFileAtomic('moved-image.png).then(function(data) {
+     *   const newFile = data[0];
+     *   const apiResponse = data[1];
+     * });
+     *
+     * ```
+     * @example <caption>include:samples/files.js</caption>
+     * region_tag:storage_move_file
+     * Another example:
+     */
+    moveFileAtomic(destination, optionsOrCallback, callback) {
+        var _a, _b;
+        const noDestinationError = new Error(FileExceptionMessages.DESTINATION_NO_NAME);
+        if (!destination) {
+            throw noDestinationError;
+        }
+        let options = {};
+        if (typeof optionsOrCallback === 'function') {
+            callback = optionsOrCallback;
+        }
+        else if (optionsOrCallback) {
+            options = { ...optionsOrCallback };
+        }
+        callback = callback || index_js_1.util.noop;
+        let destName;
+        let newFile;
+        if (typeof destination === 'string') {
+            const parsedDestination = GS_URL_REGEXP.exec(destination);
+            if (parsedDestination !== null && parsedDestination.length === 3) {
+                destName = parsedDestination[2];
+            }
+            else {
+                destName = destination;
+            }
+        }
+        else if (destination instanceof File) {
+            destName = destination.name;
+            newFile = destination;
+        }
+        else {
+            throw noDestinationError;
+        }
+        newFile = newFile || this.bucket.file(destName);
+        if (!this.shouldRetryBasedOnPreconditionAndIdempotencyStrat(options === null || options === void 0 ? void 0 : options.preconditionOpts)) {
+            this.storage.retryOptions.autoRetry = false;
+        }
+        const query = {};
+        if (options.userProject !== undefined) {
+            query.userProject = options.userProject;
+            delete options.userProject;
+        }
+        if (((_a = options.preconditionOpts) === null || _a === void 0 ? void 0 : _a.ifGenerationMatch) !== undefined) {
+            query.ifGenerationMatch = (_b = options.preconditionOpts) === null || _b === void 0 ? void 0 : _b.ifGenerationMatch;
+            delete options.preconditionOpts;
+        }
+        this.request({
+            method: 'POST',
+            uri: `/moveTo/o/${encodeURIComponent(newFile.name)}`,
+            qs: query,
+            json: options,
+        }, (err, resp) => {
+            this.storage.retryOptions.autoRetry = this.instanceRetryValue;
+            if (err) {
+                callback(err, null, resp);
+                return;
+            }
+            callback(null, newFile, resp);
+        });
     }
     /**
      * @typedef {array} MoveResponse
@@ -90183,6 +90453,39 @@ class File extends index_js_1.ServiceObject {
         this.move(destinationFile, options, callback);
     }
     /**
+     * @typedef {object} RestoreOptions Options for File#restore(). See an
+     *     {@link https://cloud.google.com/storage/docs/json_api/v1/objects#resource| Object resource}.
+     * @param {string} [userProject] The ID of the project which will be
+     *     billed for the request.
+     * @param {number} [generation] If present, selects a specific revision of this object.
+     * @param {string} [restoreToken] Returns an option that must be specified when getting a soft-deleted object from an HNS-enabled
+     *  bucket that has a naming and generation conflict with another object in the same bucket.
+     * @param {string} [projection] Specifies the set of properties to return. If used, must be 'full' or 'noAcl'.
+     * @param {string | number} [ifGenerationMatch] Request proceeds if the generation of the target resource
+     *  matches the value used in the precondition.
+     *  If the values don't match, the request fails with a 412 Precondition Failed response.
+     * @param {string | number} [ifGenerationNotMatch] Request proceeds if the generation of the target resource does
+     *  not match the value used in the precondition. If the values match, the request fails with a 304 Not Modified response.
+     * @param {string | number} [ifMetagenerationMatch] Request proceeds if the meta-generation of the target resource
+     *  matches the value used in the precondition.
+     *  If the values don't match, the request fails with a 412 Precondition Failed response.
+     * @param {string | number} [ifMetagenerationNotMatch]  Request proceeds if the meta-generation of the target resource does
+     *  not match the value used in the precondition. If the values match, the request fails with a 304 Not Modified response.
+     */
+    /**
+     * Restores a soft-deleted file
+     * @param {RestoreOptions} options Restore options.
+     * @returns {Promise<File>}
+     */
+    async restore(options) {
+        const [file] = await this.request({
+            method: 'POST',
+            uri: '/restore',
+            qs: options,
+        });
+        return file;
+    }
+    /**
      * Makes request and applies userProject query parameter if necessary.
      *
      * @private
@@ -90323,7 +90626,9 @@ class File extends index_js_1.ServiceObject {
                     }
                     return bail(err);
                 };
-                if (typeof data === 'string' || Buffer.isBuffer(data)) {
+                if (typeof data === 'string' ||
+                    Buffer.isBuffer(data) ||
+                    data instanceof Uint8Array) {
                     writable
                         .on('error', handleError)
                         .on('finish', () => resolve())
@@ -90348,7 +90653,7 @@ class File extends index_js_1.ServiceObject {
         }, {
             retries: maxRetries,
             factor: this.storage.retryOptions.retryDelayMultiplier,
-            maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000,
+            maxTimeout: this.storage.retryOptions.maxRetryDelay * 1000, //convert to milliseconds
             maxRetryTime: this.storage.retryOptions.totalTimeout * 1000, //convert to milliseconds
         });
         if (!callback) {
@@ -90365,6 +90670,7 @@ class File extends index_js_1.ServiceObject {
         }
     }
     setMetadata(metadata, optionsOrCallback, cb) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const options = typeof optionsOrCallback === 'object' ? optionsOrCallback : {};
         cb =
             typeof optionsOrCallback === 'function'
@@ -90482,13 +90788,14 @@ class File extends index_js_1.ServiceObject {
         if (!this.shouldRetryBasedOnPreconditionAndIdempotencyStrat(options.preconditionOpts)) {
             retryOptions.autoRetry = false;
         }
-        const uploadStream = resumableUpload.upload({
+        const cfg = {
             authClient: this.storage.authClient,
             apiEndpoint: this.storage.apiEndpoint,
             bucket: this.bucket.name,
             customRequestOptions: this.getRequestInterceptors().reduce((reqOpts, interceptorFn) => interceptorFn(reqOpts), {}),
             file: this.name,
             generation: this.generation,
+            isPartialUpload: options.isPartialUpload,
             key: this.encryptionKey,
             kmsKeyName: this.kmsKeyName,
             metadata: options.metadata,
@@ -90502,11 +90809,24 @@ class File extends index_js_1.ServiceObject {
             params: (options === null || options === void 0 ? void 0 : options.preconditionOpts) || this.instancePreconditionOpts,
             chunkSize: options === null || options === void 0 ? void 0 : options.chunkSize,
             highWaterMark: options === null || options === void 0 ? void 0 : options.highWaterMark,
+            universeDomain: this.bucket.storage.universeDomain,
             [util_js_1.GCCL_GCS_CMD_KEY]: options[util_js_1.GCCL_GCS_CMD_KEY],
-        });
+        };
+        let uploadStream;
+        try {
+            uploadStream = resumableUpload.upload(cfg);
+        }
+        catch (error) {
+            dup.destroy(error);
+            this.storage.retryOptions.autoRetry = this.instanceRetryValue;
+            return;
+        }
         uploadStream
             .on('response', resp => {
             dup.emit('response', resp);
+        })
+            .on('uri', uri => {
+            dup.emit('uri', uri);
         })
             .on('metadata', metadata => {
             this.metadata = metadata;
@@ -90674,6 +90994,7 @@ async function _File_validateIntegrity(hashCalculatingStream, verify = {}) {
         'setEncryptionKey',
         'shouldRetryBasedOnPreconditionAndIdempotencyStrat',
         'getBufferFromReadable',
+        'restore',
     ],
 });
 
@@ -90729,17 +91050,37 @@ class HashStreamValidator extends stream_1.Transform {
         this.crc32cExpected = options.crc32cExpected;
         this.md5Expected = options.md5Expected;
         if (this.crc32cEnabled) {
-            const crc32cGenerator = options.crc32cGenerator || crc32c_js_1.CRC32C_DEFAULT_VALIDATOR_GENERATOR;
-            __classPrivateFieldSet(this, _HashStreamValidator_crc32cHash, crc32cGenerator(), "f");
+            if (options.crc32cInstance) {
+                __classPrivateFieldSet(this, _HashStreamValidator_crc32cHash, options.crc32cInstance, "f");
+            }
+            else {
+                const crc32cGenerator = options.crc32cGenerator || crc32c_js_1.CRC32C_DEFAULT_VALIDATOR_GENERATOR;
+                __classPrivateFieldSet(this, _HashStreamValidator_crc32cHash, crc32cGenerator(), "f");
+            }
         }
         if (this.md5Enabled) {
             __classPrivateFieldSet(this, _HashStreamValidator_md5Hash, (0, crypto_1.createHash)('md5'), "f");
         }
     }
-    _flush(callback) {
-        if (__classPrivateFieldGet(this, _HashStreamValidator_md5Hash, "f")) {
+    /**
+     * Return the current CRC32C value, if available.
+     */
+    get crc32c() {
+        var _a;
+        return (_a = __classPrivateFieldGet(this, _HashStreamValidator_crc32cHash, "f")) === null || _a === void 0 ? void 0 : _a.toString();
+    }
+    /**
+     * Return the calculated MD5 value, if available.
+     */
+    get md5Digest() {
+        if (__classPrivateFieldGet(this, _HashStreamValidator_md5Hash, "f") && !__classPrivateFieldGet(this, _HashStreamValidator_md5Digest, "f")) {
             __classPrivateFieldSet(this, _HashStreamValidator_md5Digest, __classPrivateFieldGet(this, _HashStreamValidator_md5Hash, "f").digest('base64'), "f");
         }
+        return __classPrivateFieldGet(this, _HashStreamValidator_md5Digest, "f");
+    }
+    _flush(callback) {
+        // Triggers the getter logic to finalize and cache the MD5 digest
+        this.md5Digest;
         if (this.updateHashesOnly) {
             callback();
             return;
@@ -91486,7 +91827,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Notification = exports.Iam = exports.HmacKey = exports.File = exports.Channel = exports.Bucket = exports.Storage = exports.IdempotencyStrategy = exports.ApiError = void 0;
+exports.Notification = exports.Iam = exports.HmacKey = exports.File = exports.Channel = exports.Bucket = exports.Storage = exports.RETRYABLE_ERR_FN_DEFAULT = exports.IdempotencyStrategy = exports.ApiError = void 0;
 /**
  * The `@google-cloud/storage` package has a single named export which is the
  * {@link Storage} (ES6) class, which should be instantiated with `new`.
@@ -91535,6 +91876,7 @@ var index_js_1 = __nccwpck_require__(4052);
 Object.defineProperty(exports, "ApiError", ({ enumerable: true, get: function () { return index_js_1.ApiError; } }));
 var storage_js_1 = __nccwpck_require__(33030);
 Object.defineProperty(exports, "IdempotencyStrategy", ({ enumerable: true, get: function () { return storage_js_1.IdempotencyStrategy; } }));
+Object.defineProperty(exports, "RETRYABLE_ERR_FN_DEFAULT", ({ enumerable: true, get: function () { return storage_js_1.RETRYABLE_ERR_FN_DEFAULT; } }));
 Object.defineProperty(exports, "Storage", ({ enumerable: true, get: function () { return storage_js_1.Storage; } }));
 var bucket_js_1 = __nccwpck_require__(23973);
 Object.defineProperty(exports, "Bucket", ({ enumerable: true, get: function () { return bucket_js_1.Bucket; } }));
@@ -91894,15 +92236,41 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Service = exports.DEFAULT_PROJECT_ID_TOKEN = void 0;
+/*!
+ * Copyright 2022 Google LLC. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+const google_auth_library_1 = __nccwpck_require__(20810);
 const uuid = __importStar(__nccwpck_require__(44458));
 const util_js_1 = __nccwpck_require__(38064);
 const util_js_2 = __nccwpck_require__(59258);
@@ -91935,7 +92303,10 @@ class Service {
         this.projectId = options.projectId || exports.DEFAULT_PROJECT_ID_TOKEN;
         this.projectIdRequired = config.projectIdRequired !== false;
         this.providedUserAgent = options.userAgent;
-        const reqCfg = {
+        this.universeDomain = options.universeDomain || google_auth_library_1.DEFAULT_UNIVERSE;
+        this.customEndpoint = config.customEndpoint || false;
+        this.useAuthWithCustomEndpoint = config.useAuthWithCustomEndpoint;
+        this.makeAuthenticatedRequest = util_js_1.util.makeAuthenticatedRequestFactory({
             ...config,
             projectIdRequired: this.projectIdRequired,
             projectId: this.projectId,
@@ -91943,12 +92314,12 @@ class Service {
             credentials: options.credentials,
             keyFile: options.keyFilename,
             email: options.email,
-            token: options.token,
-        };
-        this.makeAuthenticatedRequest =
-            util_js_1.util.makeAuthenticatedRequestFactory(reqCfg);
+            clientOptions: {
+                universeDomain: options.universeDomain,
+                ...options.clientOptions,
+            },
+        });
         this.authClient = this.makeAuthenticatedRequest.authClient;
-        this.getCredentials = this.makeAuthenticatedRequest.getCredentials;
         const isCloudFunctionEnv = !!process.env.FUNCTION_NAME;
         if (isCloudFunctionEnv) {
             this.interceptors.push({
@@ -92035,7 +92406,8 @@ class Service {
             'x-goog-api-client': `${(0, util_js_2.getRuntimeTrackingString)()} gccl/${pkg.version}-${(0, util_js_2.getModuleFormat)()} gccl-invocation-id/${uuid.v4()}`,
         };
         if (reqOpts[util_js_1.GCCL_GCS_CMD_KEY]) {
-            reqOpts.headers['x-goog-api-client'] += ` gccl-gcs-cmd/${reqOpts[util_js_1.GCCL_GCS_CMD_KEY]}`;
+            reqOpts.headers['x-goog-api-client'] +=
+                ` gccl-gcs-cmd/${reqOpts[util_js_1.GCCL_GCS_CMD_KEY]}`;
         }
         if (reqOpts.shouldReturnStream) {
             return this.makeAuthenticatedRequest(reqOpts);
@@ -92106,13 +92478,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -92122,7 +92504,7 @@ exports.util = exports.Util = exports.PartialFailureError = exports.ApiError = e
  * @module common/util
  */
 const projectify_1 = __nccwpck_require__(3497);
-const ent = __importStar(__nccwpck_require__(1151));
+const htmlEntities = __importStar(__nccwpck_require__(1263));
 const google_auth_library_1 = __nccwpck_require__(20810);
 const retry_request_1 = __importDefault(__nccwpck_require__(63515));
 const stream_1 = __nccwpck_require__(12781);
@@ -92208,7 +92590,7 @@ class ApiError extends Error {
             errors.forEach(({ message }) => messages.add(message));
         }
         else if (err.response && err.response.body) {
-            messages.add(ent.decode(err.response.body.toString()));
+            messages.add(htmlEntities.decode(err.response.body.toString()));
         }
         else if (!err.message) {
             messages.add('A failure occurred during this request.');
@@ -92455,12 +92837,12 @@ class Util {
             authClient = googleAutoAuthConfig.authClient;
         }
         else {
-            // Pass an `AuthClient` to `GoogleAuth`, if available
-            const config = {
+            // Pass an `AuthClient` & `clientOptions` to `GoogleAuth`, if available
+            authClient = new google_auth_library_1.GoogleAuth({
                 ...googleAutoAuthConfig,
                 authClient: googleAutoAuthConfig.authClient,
-            };
-            authClient = new google_auth_library_1.GoogleAuth(config);
+                clientOptions: googleAutoAuthConfig.clientOptions,
+            });
         }
         function makeAuthenticatedRequest(reqOpts, optionsOrCallback) {
             let stream;
@@ -93086,13 +93468,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -93107,9 +93499,12 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _Upload_instances, _Upload_gcclGcsCmd, _Upload_resetLocalBuffersCache, _Upload_addLocalBufferCache;
+var _Upload_instances, _Upload_hashValidator, _Upload_clientCrc32c, _Upload_clientMd5Hash, _Upload_gcclGcsCmd, _Upload_resetLocalBuffersCache, _Upload_addLocalBufferCache, _Upload_validateChecksum, _Upload_applyChecksumHeaders;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createURI = exports.upload = exports.Upload = exports.PROTOCOL_REGEX = void 0;
+exports.Upload = exports.PROTOCOL_REGEX = void 0;
+exports.upload = upload;
+exports.createURI = createURI;
+exports.checkUploadStatus = checkUploadStatus;
 const abort_controller_1 = __importDefault(__nccwpck_require__(61659));
 const crypto_1 = __nccwpck_require__(6113);
 const gaxios = __importStar(__nccwpck_require__(59555));
@@ -93117,32 +93512,37 @@ const google_auth_library_1 = __nccwpck_require__(20810);
 const stream_1 = __nccwpck_require__(12781);
 const async_retry_1 = __importDefault(__nccwpck_require__(33415));
 const uuid = __importStar(__nccwpck_require__(44458));
-const util_js_1 = __nccwpck_require__(38064);
-const util_js_2 = __nccwpck_require__(59258);
+const util_js_1 = __nccwpck_require__(59258);
+const util_js_2 = __nccwpck_require__(38064);
+const file_js_1 = __nccwpck_require__(4713);
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const package_json_helper_cjs_1 = __nccwpck_require__(28568);
+const hash_stream_validator_js_1 = __nccwpck_require__(40725);
 const NOT_FOUND_STATUS_CODE = 404;
 const RESUMABLE_INCOMPLETE_STATUS_CODE = 308;
-const DEFAULT_API_ENDPOINT_REGEX = /.*\.googleapis\.com/;
 const packageJson = (0, package_json_helper_cjs_1.getPackageJSON)();
 exports.PROTOCOL_REGEX = /^(\w*):\/\//;
 class Upload extends stream_1.Writable {
     constructor(cfg) {
+        var _a;
         super(cfg);
         _Upload_instances.add(this);
         this.numBytesWritten = 0;
         this.numRetries = 0;
         this.currentInvocationId = {
+            checkUploadStatus: uuid.v4(),
             chunk: uuid.v4(),
             uri: uuid.v4(),
-            offset: uuid.v4(),
         };
         /**
          * A cache of buffers written to this instance, ready for consuming
          */
         this.writeBuffers = [];
         this.numChunksReadInRequest = 0;
+        _Upload_hashValidator.set(this, void 0);
+        _Upload_clientCrc32c.set(this, void 0);
+        _Upload_clientMd5Hash.set(this, void 0);
         /**
          * An array of buffers used for caching the most recent upload chunk.
          * We should not assume that the server received all bytes sent in the request.
@@ -93156,16 +93556,40 @@ class Upload extends stream_1.Writable {
         if (!cfg.bucket || !cfg.file) {
             throw new Error('A bucket and file name are required');
         }
+        if (cfg.offset && !cfg.uri) {
+            throw new RangeError('Cannot provide an `offset` without providing a `uri`');
+        }
+        if (cfg.isPartialUpload && !cfg.chunkSize) {
+            throw new RangeError('Cannot set `isPartialUpload` without providing a `chunkSize`');
+        }
         cfg.authConfig = cfg.authConfig || {};
         cfg.authConfig.scopes = [
             'https://www.googleapis.com/auth/devstorage.full_control',
         ];
         this.authClient = cfg.authClient || new google_auth_library_1.GoogleAuth(cfg.authConfig);
-        this.apiEndpoint = 'https://storage.googleapis.com';
-        if (cfg.apiEndpoint) {
+        const universe = cfg.universeDomain || google_auth_library_1.DEFAULT_UNIVERSE;
+        this.apiEndpoint = `https://storage.${universe}`;
+        if (cfg.apiEndpoint && cfg.apiEndpoint !== this.apiEndpoint) {
             this.apiEndpoint = this.sanitizeEndpoint(cfg.apiEndpoint);
-            if (!DEFAULT_API_ENDPOINT_REGEX.test(cfg.apiEndpoint)) {
-                this.authClient = gaxios;
+            const hostname = new URL(this.apiEndpoint).hostname;
+            // check if it is a domain of a known universe
+            const isDomain = hostname === universe;
+            const isDefaultUniverseDomain = hostname === google_auth_library_1.DEFAULT_UNIVERSE;
+            // check if it is a subdomain of a known universe
+            // by checking a last (universe's length + 1) of a hostname
+            const isSubDomainOfUniverse = hostname.slice(-(universe.length + 1)) === `.${universe}`;
+            const isSubDomainOfDefaultUniverse = hostname.slice(-(google_auth_library_1.DEFAULT_UNIVERSE.length + 1)) ===
+                `.${google_auth_library_1.DEFAULT_UNIVERSE}`;
+            if (!isDomain &&
+                !isDefaultUniverseDomain &&
+                !isSubDomainOfUniverse &&
+                !isSubDomainOfDefaultUniverse) {
+                // Check if we should use auth with custom endpoint
+                if (cfg.useAuthWithCustomEndpoint !== true) {
+                    // Only bypass auth if explicitly not requested
+                    this.authClient = gaxios;
+                }
+                // Otherwise keep the authenticated client
             }
         }
         this.baseURI = `${this.apiEndpoint}/upload/storage/v1/b`;
@@ -93186,12 +93610,33 @@ class Upload extends stream_1.Writable {
         this.userProject = cfg.userProject;
         this.chunkSize = cfg.chunkSize;
         this.retryOptions = cfg.retryOptions;
+        this.isPartialUpload = (_a = cfg.isPartialUpload) !== null && _a !== void 0 ? _a : false;
+        __classPrivateFieldSet(this, _Upload_clientCrc32c, cfg.clientCrc32c, "f");
+        __classPrivateFieldSet(this, _Upload_clientMd5Hash, cfg.clientMd5Hash, "f");
+        const calculateCrc32c = !cfg.clientCrc32c && cfg.crc32c;
+        const calculateMd5 = !cfg.clientMd5Hash && cfg.md5;
+        if (calculateCrc32c || calculateMd5) {
+            __classPrivateFieldSet(this, _Upload_hashValidator, new hash_stream_validator_js_1.HashStreamValidator({
+                crc32c: calculateCrc32c,
+                md5: calculateMd5,
+                updateHashesOnly: true,
+            }), "f");
+        }
         if (cfg.key) {
-            const base64Key = Buffer.from(cfg.key).toString('base64');
-            this.encryption = {
-                key: base64Key,
-                hash: (0, crypto_1.createHash)('sha256').update(cfg.key).digest('base64'),
-            };
+            if (typeof cfg.key === 'string') {
+                const base64Key = Buffer.from(cfg.key).toString('base64');
+                this.encryption = {
+                    key: base64Key,
+                    hash: (0, crypto_1.createHash)('sha256').update(cfg.key).digest('base64'),
+                };
+            }
+            else {
+                const base64Key = cfg.key.toString('base64');
+                this.encryption = {
+                    key: base64Key,
+                    hash: (0, crypto_1.createHash)('sha256').update(cfg.key).digest('base64'),
+                };
+            }
         }
         this.predefinedAcl = cfg.predefinedAcl;
         if (cfg.private)
@@ -93201,7 +93646,10 @@ class Upload extends stream_1.Writable {
         const autoRetry = cfg.retryOptions.autoRetry;
         this.uriProvidedManually = !!cfg.uri;
         this.uri = cfg.uri;
-        this.numBytesWritten = 0;
+        if (this.offset) {
+            // we're resuming an incomplete upload
+            this.numBytesWritten = this.offset;
+        }
         this.numRetries = 0; // counter for number of retries currently executed
         if (!autoRetry) {
             cfg.retryOptions.maxRetries = 0;
@@ -93211,7 +93659,7 @@ class Upload extends stream_1.Writable {
             ? Number(cfg.metadata.contentLength)
             : NaN;
         this.contentLength = isNaN(contentLength) ? '*' : contentLength;
-        __classPrivateFieldSet(this, _Upload_gcclGcsCmd, cfg[util_js_1.GCCL_GCS_CMD_KEY], "f");
+        __classPrivateFieldSet(this, _Upload_gcclGcsCmd, cfg[util_js_2.GCCL_GCS_CMD_KEY], "f");
         this.once('writing', () => {
             if (this.uri) {
                 this.continueUploading();
@@ -93251,7 +93699,17 @@ class Upload extends stream_1.Writable {
     _write(chunk, encoding, readCallback = () => { }) {
         // Backwards-compatible event
         this.emit('writing');
-        this.writeBuffers.push(typeof chunk === 'string' ? Buffer.from(chunk, encoding) : chunk);
+        const bufferChunk = typeof chunk === 'string' ? Buffer.from(chunk, encoding) : chunk;
+        if (__classPrivateFieldGet(this, _Upload_hashValidator, "f")) {
+            try {
+                __classPrivateFieldGet(this, _Upload_hashValidator, "f").write(bufferChunk);
+            }
+            catch (e) {
+                this.destroy(e);
+                return;
+            }
+        }
+        this.writeBuffers.push(bufferChunk);
         this.once('readFromChunkBuffer', readCallback);
         process.nextTick(() => this.emit('wroteToChunkBuffer'));
     }
@@ -93302,7 +93760,6 @@ class Upload extends stream_1.Writable {
      * Retrieves data from upstream's buffer.
      *
      * @param limit The maximum amount to return from the buffer.
-     * @returns The data requested.
      */
     *pullFromChunkBuffer(limit) {
         while (limit) {
@@ -93400,7 +93857,7 @@ class Upload extends stream_1.Writable {
             headers['X-Upload-Content-Type'] = metadata.contentType;
             delete metadata.contentType;
         }
-        let googAPIClient = `${(0, util_js_2.getRuntimeTrackingString)()} gccl/${packageJson.version}-${(0, util_js_2.getModuleFormat)()} gccl-invocation-id/${this.currentInvocationId.uri}`;
+        let googAPIClient = `${(0, util_js_1.getRuntimeTrackingString)()} gccl/${packageJson.version}-${(0, util_js_1.getModuleFormat)()} gccl-invocation-id/${this.currentInvocationId.uri}`;
         if (__classPrivateFieldGet(this, _Upload_gcclGcsCmd, "f")) {
             googAPIClient += ` gccl-gcs-cmd/${__classPrivateFieldGet(this, _Upload_gcclGcsCmd, "f")}`;
         }
@@ -93414,7 +93871,7 @@ class Upload extends stream_1.Writable {
             }, this.params),
             data: metadata,
             headers: {
-                'User-Agent': (0, util_js_2.getUserAgentString)(),
+                'User-Agent': (0, util_js_1.getUserAgentString)(),
                 'x-goog-api-client': googAPIClient,
                 ...headers,
             },
@@ -93469,20 +93926,19 @@ class Upload extends stream_1.Writable {
         }, {
             retries: this.retryOptions.maxRetries,
             factor: this.retryOptions.retryDelayMultiplier,
-            maxTimeout: this.retryOptions.maxRetryDelay * 1000,
+            maxTimeout: this.retryOptions.maxRetryDelay * 1000, //convert to milliseconds
             maxRetryTime: this.retryOptions.totalTimeout * 1000, //convert to milliseconds
         });
         this.uri = uri;
         this.offset = 0;
+        // emit the newly generated URI for future reuse, if necessary.
+        this.emit('uri', uri);
         return uri;
     }
     async continueUploading() {
-        if (typeof this.offset === 'number') {
-            this.startUploading();
-            return;
-        }
-        await this.getAndSetOffset();
-        this.startUploading();
+        var _a;
+        (_a = this.offset) !== null && _a !== void 0 ? _a : (await this.getAndSetOffset());
+        return this.startUploading();
     }
     async startUploading() {
         const multiChunkMode = !!this.chunkSize;
@@ -93553,12 +94009,12 @@ class Upload extends stream_1.Writable {
                 }
             },
         });
-        let googAPIClient = `${(0, util_js_2.getRuntimeTrackingString)()} gccl/${packageJson.version}-${(0, util_js_2.getModuleFormat)()} gccl-invocation-id/${this.currentInvocationId.chunk}`;
+        let googAPIClient = `${(0, util_js_1.getRuntimeTrackingString)()} gccl/${packageJson.version}-${(0, util_js_1.getModuleFormat)()} gccl-invocation-id/${this.currentInvocationId.chunk}`;
         if (__classPrivateFieldGet(this, _Upload_gcclGcsCmd, "f")) {
             googAPIClient += ` gccl-gcs-cmd/${__classPrivateFieldGet(this, _Upload_gcclGcsCmd, "f")}`;
         }
         const headers = {
-            'User-Agent': (0, util_js_2.getUserAgentString)(),
+            'User-Agent': (0, util_js_1.getUserAgentString)(),
             'x-goog-api-client': googAPIClient,
         };
         // If using multiple chunk upload, set appropriate header
@@ -93566,20 +94022,25 @@ class Upload extends stream_1.Writable {
             // We need to know how much data is available upstream to set the `Content-Range` header.
             // https://cloud.google.com/storage/docs/performing-resumable-uploads#chunked-upload
             for await (const chunk of this.upstreamIterator(expectedUploadSize)) {
-                // This will conveniently track and keep the size of the buffers
+                // This will conveniently track and keep the size of the buffers.
+                // We will reach either the expected upload size or the remainder of the stream.
                 __classPrivateFieldGet(this, _Upload_instances, "m", _Upload_addLocalBufferCache).call(this, chunk);
             }
-            // We hit either the expected upload size or the remainder
+            // This is the sum from the `#addLocalBufferCache` calls
             const bytesToUpload = this.localWriteCacheByteLength;
             // Important: we want to know if the upstream has ended and the queue is empty before
             // unshifting data back into the queue. This way we will know if this is the last request or not.
             const isLastChunkOfUpload = !(await this.waitForNextChunk());
+            if (isLastChunkOfUpload && __classPrivateFieldGet(this, _Upload_hashValidator, "f")) {
+                __classPrivateFieldGet(this, _Upload_hashValidator, "f").end();
+            }
             // Important: put the data back in the queue for the actual upload
             this.prependLocalBufferToUpstream();
             let totalObjectSize = this.contentLength;
-            if (typeof this.contentLength !== 'number' && isLastChunkOfUpload) {
-                // Let's let the server know this is the last chunk since
-                // we didn't know the content-length beforehand.
+            if (typeof this.contentLength !== 'number' &&
+                isLastChunkOfUpload &&
+                !this.isPartialUpload) {
+                // Let's let the server know this is the last chunk of the object since we didn't set it before.
                 totalObjectSize = bytesToUpload + this.numBytesWritten;
             }
             // `- 1` as the ending byte is inclusive in the request.
@@ -93587,10 +94048,19 @@ class Upload extends stream_1.Writable {
             // `Content-Length` for multiple chunk uploads is the size of the chunk,
             // not the overall object
             headers['Content-Length'] = bytesToUpload;
-            headers['Content-Range'] = `bytes ${this.offset}-${endingByte}/${totalObjectSize}`;
+            headers['Content-Range'] =
+                `bytes ${this.offset}-${endingByte}/${totalObjectSize}`;
+            // Apply X-Goog-Hash header ONLY on the final chunk (WriteObject call)
+            if (isLastChunkOfUpload) {
+                __classPrivateFieldGet(this, _Upload_instances, "m", _Upload_applyChecksumHeaders).call(this, headers);
+            }
         }
         else {
             headers['Content-Range'] = `bytes ${this.offset}-*/${this.contentLength}`;
+            if (__classPrivateFieldGet(this, _Upload_hashValidator, "f")) {
+                __classPrivateFieldGet(this, _Upload_hashValidator, "f").end();
+            }
+            __classPrivateFieldGet(this, _Upload_instances, "m", _Upload_applyChecksumHeaders).call(this, headers);
         }
         const reqOpts = {
             method: 'PUT',
@@ -93602,7 +94072,7 @@ class Upload extends stream_1.Writable {
             const resp = await this.makeRequestStream(reqOpts);
             if (resp) {
                 responseReceived = true;
-                this.responseHandler(resp);
+                await this.responseHandler(resp);
             }
         }
         catch (e) {
@@ -93619,16 +94089,26 @@ class Upload extends stream_1.Writable {
     }
     // Process the API response to look for errors that came in
     // the response body.
-    responseHandler(resp) {
+    async responseHandler(resp) {
+        var _a, _b;
         if (resp.data.error) {
             this.destroy(resp.data.error);
             return;
         }
         // At this point we can safely create a new id for the chunk
         this.currentInvocationId.chunk = uuid.v4();
+        const moreDataToUpload = await this.waitForNextChunk();
         const shouldContinueWithNextMultiChunkRequest = this.chunkSize &&
             resp.status === RESUMABLE_INCOMPLETE_STATUS_CODE &&
-            resp.headers.range;
+            resp.headers.range &&
+            moreDataToUpload;
+        /**
+         * This is true when we're expecting to upload more data in a future request,
+         * yet the upstream for the upload session has been exhausted.
+         */
+        const shouldContinueUploadInAnotherRequest = this.isPartialUpload &&
+            resp.status === RESUMABLE_INCOMPLETE_STATUS_CODE &&
+            !moreDataToUpload;
         if (shouldContinueWithNextMultiChunkRequest) {
             // Use the upper value in this header to determine where to start the next chunk.
             // We should not assume that the server received all bytes sent in the request.
@@ -93652,7 +94132,8 @@ class Upload extends stream_1.Writable {
             // continue uploading next chunk
             this.continueUploading();
         }
-        else if (!this.isSuccessfulResponse(resp.status)) {
+        else if (!this.isSuccessfulResponse(resp.status) &&
+            !shouldContinueUploadInAnotherRequest) {
             const err = new Error('Upload failed');
             err.code = resp.status;
             err.name = 'Upload failed';
@@ -93661,7 +94142,18 @@ class Upload extends stream_1.Writable {
             }
             this.destroy(err);
         }
-        else {
+        else if (this.isSuccessfulResponse(resp.status)) {
+            const serverCrc32c = resp.data.crc32c;
+            const serverMd5 = resp.data.md5Hash;
+            if (__classPrivateFieldGet(this, _Upload_hashValidator, "f")) {
+                __classPrivateFieldGet(this, _Upload_hashValidator, "f").end();
+            }
+            const clientCrc32cToValidate = ((_a = __classPrivateFieldGet(this, _Upload_hashValidator, "f")) === null || _a === void 0 ? void 0 : _a.crc32c) || __classPrivateFieldGet(this, _Upload_clientCrc32c, "f");
+            const clientMd5HashToValidate = ((_b = __classPrivateFieldGet(this, _Upload_hashValidator, "f")) === null || _b === void 0 ? void 0 : _b.md5Digest) || __classPrivateFieldGet(this, _Upload_clientMd5Hash, "f");
+            if (__classPrivateFieldGet(this, _Upload_instances, "m", _Upload_validateChecksum).call(this, clientCrc32cToValidate, serverCrc32c, 'CRC32C') ||
+                __classPrivateFieldGet(this, _Upload_instances, "m", _Upload_validateChecksum).call(this, clientMd5HashToValidate, serverMd5, 'MD5')) {
+                return;
+            }
             // no need to keep the cache
             __classPrivateFieldGet(this, _Upload_instances, "m", _Upload_resetLocalBuffersCache).call(this);
             if (resp && resp.data) {
@@ -93672,9 +94164,21 @@ class Upload extends stream_1.Writable {
             // "finish" event fires.
             this.emit('uploadFinished');
         }
+        else {
+            // Handles the case where shouldContinueUploadInAnotherRequest is true
+            // and the response is not successful (e.g., 308 for a partial upload).
+            // This is the expected behavior for partial uploads that have finished their chunk.
+            this.emit('uploadFinished');
+        }
     }
-    async getAndSetOffset() {
-        let googAPIClient = `${(0, util_js_2.getRuntimeTrackingString)()} gccl/${packageJson.version}-${(0, util_js_2.getModuleFormat)()} gccl-invocation-id/${this.currentInvocationId.offset}`;
+    /**
+     * Check the status of an existing resumable upload.
+     *
+     * @param cfg A configuration to use. `uri` is required.
+     * @returns the current upload status
+     */
+    async checkUploadStatus(config = {}) {
+        let googAPIClient = `${(0, util_js_1.getRuntimeTrackingString)()} gccl/${packageJson.version}-${(0, util_js_1.getModuleFormat)()} gccl-invocation-id/${this.currentInvocationId.checkUploadStatus}`;
         if (__classPrivateFieldGet(this, _Upload_gcclGcsCmd, "f")) {
             googAPIClient += ` gccl-gcs-cmd/${__classPrivateFieldGet(this, _Upload_gcclGcsCmd, "f")}`;
         }
@@ -93684,18 +94188,37 @@ class Upload extends stream_1.Writable {
             headers: {
                 'Content-Length': 0,
                 'Content-Range': 'bytes */*',
-                'User-Agent': (0, util_js_2.getUserAgentString)(),
+                'User-Agent': (0, util_js_1.getUserAgentString)(),
                 'x-goog-api-client': googAPIClient,
             },
         };
         try {
             const resp = await this.makeRequest(opts);
             // Successfully got the offset we can now create a new offset invocation id
-            this.currentInvocationId.offset = uuid.v4();
+            this.currentInvocationId.checkUploadStatus = uuid.v4();
+            return resp;
+        }
+        catch (e) {
+            if (config.retry === false ||
+                !(e instanceof Error) ||
+                !this.retryOptions.retryableErrorFn(e)) {
+                throw e;
+            }
+            const retryDelay = this.getRetryDelay();
+            if (retryDelay <= 0) {
+                throw e;
+            }
+            await new Promise(res => setTimeout(res, retryDelay));
+            return this.checkUploadStatus(config);
+        }
+    }
+    async getAndSetOffset() {
+        try {
+            // we want to handle retries in this method.
+            const resp = await this.checkUploadStatus({ retry: false });
             if (resp.status === RESUMABLE_INCOMPLETE_STATUS_CODE) {
-                if (resp.headers.range) {
-                    const range = resp.headers.range;
-                    this.offset = Number(range.split('-')[1]) + 1;
+                if (typeof resp.headers.range === 'string') {
+                    this.offset = Number(resp.headers.range.split('-')[1]) + 1;
                     return;
                 }
             }
@@ -93795,7 +94318,7 @@ class Upload extends stream_1.Writable {
             else {
                 const retryDelay = this.getRetryDelay();
                 if (retryDelay <= 0) {
-                    this.destroy(new Error(`Retry total time limit exceeded - ${resp.data}`));
+                    this.destroy(new Error(`Retry total time limit exceeded - ${JSON.stringify(resp.data)}`));
                     return;
                 }
                 // Unshift the local cache back in case it's needed for the next request.
@@ -93813,11 +94336,14 @@ class Upload extends stream_1.Writable {
             this.numRetries++;
         }
         else {
-            this.destroy(new Error('Retry limit exceeded - ' + resp.data));
+            this.destroy(new Error(`Retry limit exceeded - ${JSON.stringify(resp.data)}`));
         }
     }
     /**
-     * @returns {number} the amount of time to wait before retrying the request
+     * The amount of time to wait before retrying the request, in milliseconds.
+     * If negative, do not retry.
+     *
+     * @returns the amount of time to wait, in milliseconds.
      */
     getRetryDelay() {
         const randomMs = Math.round(Math.random() * 1000);
@@ -93849,17 +94375,48 @@ class Upload extends stream_1.Writable {
     }
 }
 exports.Upload = Upload;
-_Upload_gcclGcsCmd = new WeakMap(), _Upload_instances = new WeakSet(), _Upload_resetLocalBuffersCache = function _Upload_resetLocalBuffersCache() {
+_Upload_hashValidator = new WeakMap(), _Upload_clientCrc32c = new WeakMap(), _Upload_clientMd5Hash = new WeakMap(), _Upload_gcclGcsCmd = new WeakMap(), _Upload_instances = new WeakSet(), _Upload_resetLocalBuffersCache = function _Upload_resetLocalBuffersCache() {
     this.localWriteCache = [];
     this.localWriteCacheByteLength = 0;
 }, _Upload_addLocalBufferCache = function _Upload_addLocalBufferCache(buf) {
     this.localWriteCache.push(buf);
     this.localWriteCacheByteLength += buf.byteLength;
+}, _Upload_validateChecksum = function _Upload_validateChecksum(clientHash, serverHash, hashType) {
+    // Only validate if both client and server hashes are present.
+    if (clientHash && serverHash) {
+        if (clientHash !== serverHash) {
+            const detailMessage = `${hashType} checksum mismatch. Client calculated: ${clientHash}, Server returned: ${serverHash}`;
+            const detailError = new Error(detailMessage);
+            const error = new file_js_1.RequestError(file_js_1.FileExceptionMessages.UPLOAD_MISMATCH);
+            error.code = 'FILE_NO_UPLOAD';
+            error.errors = [detailError];
+            this.destroy(error);
+            return true;
+        }
+    }
+    return false;
+}, _Upload_applyChecksumHeaders = function _Upload_applyChecksumHeaders(headers) {
+    var _a, _b;
+    const checksums = [];
+    if ((_a = __classPrivateFieldGet(this, _Upload_hashValidator, "f")) === null || _a === void 0 ? void 0 : _a.crc32cEnabled) {
+        checksums.push(`crc32c=${__classPrivateFieldGet(this, _Upload_hashValidator, "f").crc32c}`);
+    }
+    else if (__classPrivateFieldGet(this, _Upload_clientCrc32c, "f")) {
+        checksums.push(`crc32c=${__classPrivateFieldGet(this, _Upload_clientCrc32c, "f")}`);
+    }
+    if ((_b = __classPrivateFieldGet(this, _Upload_hashValidator, "f")) === null || _b === void 0 ? void 0 : _b.md5Enabled) {
+        checksums.push(`md5=${__classPrivateFieldGet(this, _Upload_hashValidator, "f").md5Digest}`);
+    }
+    else if (__classPrivateFieldGet(this, _Upload_clientMd5Hash, "f")) {
+        checksums.push(`md5=${__classPrivateFieldGet(this, _Upload_clientMd5Hash, "f")}`);
+    }
+    if (checksums.length > 0) {
+        headers['X-Goog-Hash'] = checksums.join(',');
+    }
 };
 function upload(cfg) {
     return new Upload(cfg);
 }
-exports.upload = upload;
 function createURI(cfg, callback) {
     const up = new Upload(cfg);
     if (!callback) {
@@ -93867,7 +94424,16 @@ function createURI(cfg, callback) {
     }
     up.createURI().then(r => callback(null, r), callback);
 }
-exports.createURI = createURI;
+/**
+ * Check the status of an existing resumable upload.
+ *
+ * @param cfg A configuration to use. `uri` is required.
+ * @returns the current upload status
+ */
+function checkUploadStatus(cfg) {
+    const up = new Upload(cfg);
+    return up.checkUploadStatus();
+}
 
 
 /***/ }),
@@ -93906,13 +94472,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SigningError = exports.URLSigner = exports.PATH_STYLED_HOST = exports.SignerExceptionMessages = void 0;
 const crypto = __importStar(__nccwpck_require__(6113));
@@ -93932,14 +94508,25 @@ const DEFAULT_SIGNING_VERSION = 'v2';
 const SEVEN_DAYS = 7 * 24 * 60 * 60;
 /**
  * @const {string}
- * @private
+ * @deprecated - unused
  */
 exports.PATH_STYLED_HOST = 'https://storage.googleapis.com';
 class URLSigner {
-    constructor(authClient, bucket, file) {
+    constructor(auth, bucket, file, 
+    /**
+     * A {@link Storage} object.
+     *
+     * @privateRemarks
+     *
+     * Technically this is a required field, however it would be a breaking change to
+     * move it before optional properties. In the next major we should refactor the
+     * constructor of this class to only accept a config object.
+     */
+    storage = new storage_js_1.Storage()) {
+        this.auth = auth;
         this.bucket = bucket;
         this.file = file;
-        this.authClient = authClient;
+        this.storage = storage;
     }
     getSignedUrl(cfg) {
         const expiresInSeconds = this.parseExpires(cfg.expires);
@@ -93955,7 +94542,7 @@ class URLSigner {
             customHost = cfg.cname;
         }
         else if (isVirtualHostedStyle) {
-            customHost = `https://${this.bucket.name}.storage.googleapis.com`;
+            customHost = `https://${this.bucket.name}.storage.${this.storage.universeDomain}`;
         }
         const secondsToMilliseconds = 1000;
         const config = Object.assign({}, cfg, {
@@ -93980,8 +94567,9 @@ class URLSigner {
             throw new Error(`Invalid signed URL version: ${version}. Supported versions are 'v2' and 'v4'.`);
         }
         return promise.then(query => {
+            var _a;
             query = Object.assign(query, cfg.queryParams);
-            const signedUrl = new url.URL(config.cname || exports.PATH_STYLED_HOST);
+            const signedUrl = new url.URL(((_a = cfg.host) === null || _a === void 0 ? void 0 : _a.toString()) || config.cname || this.storage.apiEndpoint);
             signedUrl.pathname = this.getResourcePath(!!config.cname, this.bucket.name, config.file);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             signedUrl.search = (0, util_js_1.qsStringify)(query);
@@ -93999,10 +94587,11 @@ class URLSigner {
             canonicalHeadersString + resourcePath,
         ].join('\n');
         const sign = async () => {
-            const authClient = this.authClient;
+            var _a;
+            const auth = this.auth;
             try {
-                const signature = await authClient.sign(blobToSign);
-                const credentials = await authClient.getCredentials();
+                const signature = await auth.sign(blobToSign, (_a = config.signingEndpoint) === null || _a === void 0 ? void 0 : _a.toString());
+                const credentials = await auth.getCredentials();
                 return {
                     GoogleAccessId: credentials.client_email,
                     Expires: config.expiration,
@@ -94019,6 +94608,7 @@ class URLSigner {
         return sign();
     }
     getSignedUrlV4(config) {
+        var _a;
         config.accessibleAt = config.accessibleAt
             ? config.accessibleAt
             : new Date();
@@ -94029,8 +94619,8 @@ class URLSigner {
             throw new Error(`Max allowed expiration is seven days (${SEVEN_DAYS} seconds).`);
         }
         const extensionHeaders = Object.assign({}, config.extensionHeaders);
-        const fqdn = new url.URL(config.cname || exports.PATH_STYLED_HOST);
-        extensionHeaders.host = fqdn.host;
+        const fqdn = new url.URL(((_a = config.host) === null || _a === void 0 ? void 0 : _a.toString()) || config.cname || this.storage.apiEndpoint);
+        extensionHeaders.host = fqdn.hostname;
         if (config.contentMd5) {
             extensionHeaders['content-md5'] = config.contentMd5;
         }
@@ -94054,7 +94644,8 @@ class URLSigner {
         const datestamp = (0, util_js_1.formatAsUTCISO)(config.accessibleAt);
         const credentialScope = `${datestamp}/auto/storage/goog4_request`;
         const sign = async () => {
-            const credentials = await this.authClient.getCredentials();
+            var _a;
+            const credentials = await this.auth.getCredentials();
             const credential = `${credentials.client_email}/${credentialScope}`;
             const dateISO = (0, util_js_1.formatAsUTCISO)(config.accessibleAt ? config.accessibleAt : new Date(), true);
             const queryParams = {
@@ -94079,7 +94670,7 @@ class URLSigner {
                 hash,
             ].join('\n');
             try {
-                const signature = await this.authClient.sign(blobToSign);
+                const signature = await this.auth.sign(blobToSign, (_a = config.signingEndpoint) === null || _a === void 0 ? void 0 : _a.toString());
                 const signatureHex = Buffer.from(signature, 'base64').toString('hex');
                 const signedQuery = Object.assign({}, queryParams, {
                     'X-Goog-Signature': signatureHex,
@@ -94225,6 +94816,7 @@ const util_js_1 = __nccwpck_require__(59258);
 const package_json_helper_cjs_1 = __nccwpck_require__(28568);
 const hmacKey_js_1 = __nccwpck_require__(64654);
 const crc32c_js_1 = __nccwpck_require__(55810);
+const google_auth_library_1 = __nccwpck_require__(20810);
 var IdempotencyStrategy;
 (function (IdempotencyStrategy) {
     IdempotencyStrategy[IdempotencyStrategy["RetryAlways"] = 0] = "RetryAlways";
@@ -94653,7 +95245,8 @@ class Storage extends index_js_1.Service {
      */
     constructor(options = {}) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
-        let apiEndpoint = 'https://storage.googleapis.com';
+        const universe = options.universeDomain || google_auth_library_1.DEFAULT_UNIVERSE;
+        let apiEndpoint = `https://storage.${universe}`;
         let customEndpoint = false;
         // Note: EMULATOR_HOST is an experimental configuration variable. Use apiEndpoint instead.
         const EMULATOR_HOST = process.env.STORAGE_EMULATOR_HOST;
@@ -94661,7 +95254,7 @@ class Storage extends index_js_1.Service {
             apiEndpoint = Storage.sanitizeEndpoint(EMULATOR_HOST);
             customEndpoint = true;
         }
-        if (options.apiEndpoint) {
+        if (options.apiEndpoint && options.apiEndpoint !== apiEndpoint) {
             apiEndpoint = Storage.sanitizeEndpoint(options.apiEndpoint);
             customEndpoint = true;
         }
@@ -94795,6 +95388,8 @@ class Storage extends index_js_1.Service {
      *     For more information, see {@link https://cloud.google.com/storage/docs/locations| Bucket Locations}.
      * @property {boolean} [dra=false] Specify the storage class as Durable Reduced
      *     Availability.
+     * @property {boolean} [enableObjectRetention=false] Specify whether or not object retention should be enabled on this bucket.
+     * @property {object} [hierarchicalNamespace.enabled=false] Specify whether or not to enable hierarchical namespace on this bucket.
      * @property {string} [location] Specify the bucket's location. If specifying
      *     a dual-region, the `customPlacementConfig` property should be set in conjunction.
      *     For more information, see {@link https://cloud.google.com/storage/docs/locations| Bucket Locations}.
@@ -94802,8 +95397,7 @@ class Storage extends index_js_1.Service {
      *     Multi-Regional.
      * @property {boolean} [nearline=false] Specify the storage class as Nearline.
      * @property {boolean} [regional=false] Specify the storage class as Regional.
-     * @property {boolean} [requesterPays=false] **Early Access Testers Only**
-     *     Force the use of the User Project metadata field to assign operational
+     * @property {boolean} [requesterPays=false] Force the use of the User Project metadata field to assign operational
      *     costs when an operation is made on a Bucket and its objects.
      * @property {string} [rpo] For dual-region buckets, controls whether turbo
      *      replication is enabled (`ASYNC_TURBO`) or disabled (`DEFAULT`).
@@ -94941,6 +95535,22 @@ class Storage extends index_js_1.Service {
             query.userProject = body.userProject;
             delete body.userProject;
         }
+        if (body.enableObjectRetention) {
+            query.enableObjectRetention = body.enableObjectRetention;
+            delete body.enableObjectRetention;
+        }
+        if (body.predefinedAcl) {
+            query.predefinedAcl = body.predefinedAcl;
+            delete body.predefinedAcl;
+        }
+        if (body.predefinedDefaultObjectAcl) {
+            query.predefinedDefaultObjectAcl = body.predefinedDefaultObjectAcl;
+            delete body.predefinedDefaultObjectAcl;
+        }
+        if (body.projection) {
+            query.projection = body.projection;
+            delete body.projection;
+        }
         this.request({
             method: 'POST',
             uri: '/b',
@@ -95072,6 +95682,8 @@ class Storage extends index_js_1.Service {
      *     representing part of the larger set of results to view.
      * @property {string} [userProject] The ID of the project which will be billed
      *     for the request.
+     *  @param {boolean} [softDeleted] If true, returns the soft-deleted object.
+     *     Object `generation` is required if `softDeleted` is set to True.
      */
     /**
      * @typedef {array} GetBucketsResponse
@@ -95152,11 +95764,23 @@ class Storage extends index_js_1.Service {
                 return;
             }
             const itemsArray = resp.items ? resp.items : [];
+            const unreachableArray = resp.unreachable ? resp.unreachable : [];
             const buckets = itemsArray.map((bucket) => {
                 const bucketInstance = this.bucket(bucket.id);
                 bucketInstance.metadata = bucket;
                 return bucketInstance;
             });
+            if (unreachableArray.length > 0) {
+                unreachableArray.forEach((fullPath) => {
+                    const name = fullPath.split('/').pop();
+                    if (name) {
+                        const placeholder = this.bucket(name);
+                        placeholder.unreachable = true;
+                        placeholder.metadata = {};
+                        buckets.push(placeholder);
+                    }
+                });
+            }
             const nextQuery = resp.nextPageToken
                 ? Object.assign({}, options, { pageToken: resp.nextPageToken })
                 : null;
@@ -95378,13 +96002,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
@@ -95396,12 +96030,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _XMLMultiPartUploadHelper_instances, _XMLMultiPartUploadHelper_setGoogApiClientHeaders, _XMLMultiPartUploadHelper_handleErrorResponse;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.TransferManager = exports.MultiPartUploadError = void 0;
+const file_js_1 = __nccwpck_require__(4713);
 const p_limit_1 = __importDefault(__nccwpck_require__(57684));
 const path = __importStar(__nccwpck_require__(71017));
 const fs_1 = __nccwpck_require__(57147);
 const crc32c_js_1 = __nccwpck_require__(55810);
 const google_auth_library_1 = __nccwpck_require__(20810);
-const fast_xml_parser_1 = __nccwpck_require__(12603);
+const fast_xml_parser_1 = __nccwpck_require__(74577);
 const async_retry_1 = __importDefault(__nccwpck_require__(33415));
 const crypto_1 = __nccwpck_require__(6113);
 const util_js_1 = __nccwpck_require__(38064);
@@ -95620,7 +96255,8 @@ _XMLMultiPartUploadHelper_instances = new WeakSet(), _XMLMultiPartUploadHelper_s
             headerFound = true;
             // Prepend command feature to value, if not already there
             if (!value.includes(GCCL_GCS_CMD_FEATURE.UPLOAD_SHARDED)) {
-                headers[key] = `${value} gccl-gcs-cmd/${GCCL_GCS_CMD_FEATURE.UPLOAD_SHARDED}`;
+                headers[key] =
+                    `${value} gccl-gcs-cmd/${GCCL_GCS_CMD_FEATURE.UPLOAD_SHARDED}`;
             }
         }
         else if (key.toLocaleLowerCase().trim() === 'user-agent') {
@@ -95662,6 +96298,8 @@ class TransferManager {
      * @typedef {object} UploadManyFilesOptions
      * @property {number} [concurrencyLimit] The number of concurrently executing promises
      * to use when uploading the files.
+     * @property {Function} [customDestinationBuilder] A function that will take the current path of a local file
+     * and return a string representing a custom path to be used to upload the file to GCS.
      * @property {boolean} [skipIfExists] Do not upload the file if it already exists in
      * the bucket. This will set the precondition ifGenerationMatch = 0.
      * @property {string} [prefix] A prefix to append to all of the uploaded files.
@@ -95731,9 +96369,9 @@ class TransferManager {
                 ...options.passthroughOptions,
                 [util_js_1.GCCL_GCS_CMD_KEY]: GCCL_GCS_CMD_FEATURE.UPLOAD_MANY,
             };
-            passThroughOptionsCopy.destination = filePath
-                .split(path.sep)
-                .join(path.posix.sep);
+            passThroughOptionsCopy.destination = options.customDestinationBuilder
+                ? options.customDestinationBuilder(filePath, options)
+                : filePath.split(path.sep).join(path.posix.sep);
             if (options.prefix) {
                 passThroughOptionsCopy.destination = path.posix.join(...options.prefix.split(path.sep), passThroughOptionsCopy.destination);
             }
@@ -95749,6 +96387,8 @@ class TransferManager {
      * @property {string} [stripPrefix] A prefix to remove from all of the downloaded files.
      * @property {object} [passthroughOptions] {@link DownloadOptions} Options to be passed through
      * to each individual download operation.
+     * @property {boolean} [skipIfExists] Do not download the file if it already exists in
+     * the destination.
      *
      */
     /**
@@ -95757,7 +96397,9 @@ class TransferManager {
      *
      * @param {array | string} [filesOrFolder] An array of file name strings or file objects to be downloaded. If
      * a string is provided this will be treated as a GCS prefix and all files with that prefix will be downloaded.
-     * @param {DownloadManyFilesOptions} [options] Configuration options.
+     * @param {DownloadManyFilesOptions} [options] Configuration options. Setting options.prefix or options.stripPrefix
+     * or options.passthroughOptions.destination will cause the downloaded files to be written to the file system
+     * instead of being returned as a buffer.
      * @returns {Promise<DownloadResponse[]>}
      *
      * @example
@@ -95810,13 +96452,26 @@ class TransferManager {
                 ...options.passthroughOptions,
                 [util_js_1.GCCL_GCS_CMD_KEY]: GCCL_GCS_CMD_FEATURE.DOWNLOAD_MANY,
             };
-            if (options.prefix) {
+            if (options.prefix || passThroughOptionsCopy.destination) {
                 passThroughOptionsCopy.destination = path.join(options.prefix || '', passThroughOptionsCopy.destination || '', file.name);
             }
             if (options.stripPrefix) {
                 passThroughOptionsCopy.destination = file.name.replace(regex, '');
             }
-            promises.push(limit(() => file.download(passThroughOptionsCopy)));
+            if (options.skipIfExists &&
+                (0, fs_1.existsSync)(passThroughOptionsCopy.destination || '')) {
+                continue;
+            }
+            promises.push(limit(async () => {
+                const destination = passThroughOptionsCopy.destination;
+                if (destination && destination.endsWith(path.sep)) {
+                    await fs_1.promises.mkdir(destination, { recursive: true });
+                    return Promise.resolve([
+                        Buffer.alloc(0),
+                    ]);
+                }
+                return file.download(passThroughOptionsCopy);
+            }));
         }
         return Promise.all(promises);
     }
@@ -95826,15 +96481,16 @@ class TransferManager {
      * to use when downloading the file.
      * @property {number} [chunkSizeBytes] The size in bytes of each chunk to be downloaded.
      * @property {string | boolean} [validation] Whether or not to perform a CRC32C validation check when download is complete.
+     * @property {boolean} [noReturnData] Whether or not to return the downloaded data. A `true` value here would be useful for files with a size that will not fit into memory.
      *
      */
     /**
      * Download a large file in chunks utilizing parallel download operations. This is a convenience method
      * that utilizes {@link File#download} to perform the download.
      *
-     * @param {object} [file | string] {@link File} to download.
+     * @param {File | string} fileOrName {@link File} to download.
      * @param {DownloadFileInChunksOptions} [options] Configuration options.
-     * @returns {Promise<DownloadResponse>}
+     * @returns {Promise<void | DownloadResponse>}
      *
      * @example
      * ```
@@ -95855,6 +96511,7 @@ class TransferManager {
     async downloadFileInChunks(fileOrName, options = {}) {
         let chunkSize = options.chunkSizeBytes || DOWNLOAD_IN_CHUNKS_DEFAULT_CHUNK_SIZE;
         let limit = (0, p_limit_1.default)(options.concurrencyLimit || DEFAULT_PARALLEL_CHUNKED_DOWNLOAD_LIMIT);
+        const noReturnData = Boolean(options.noReturnData);
         const promises = [];
         const file = typeof fileOrName === 'string'
             ? this.bucket.file(fileOrName)
@@ -95879,29 +96536,38 @@ class TransferManager {
                     end: chunkEnd,
                     [util_js_1.GCCL_GCS_CMD_KEY]: GCCL_GCS_CMD_FEATURE.DOWNLOAD_SHARDED,
                 });
-                return fileToWrite.write(resp[0], 0, resp[0].length, chunkStart);
+                const result = await fileToWrite.write(resp[0], 0, resp[0].length, chunkStart);
+                if (noReturnData)
+                    return;
+                return result.buffer;
             }));
             start += chunkSize;
         }
-        let results;
+        let chunks;
         try {
-            const data = await Promise.all(promises);
-            results = data.map(result => result.buffer);
-            if (options.validation === 'crc32c') {
-                await crc32c_js_1.CRC32C.fromFile(filePath);
-            }
-            return results;
+            chunks = await Promise.all(promises);
         }
         finally {
-            fileToWrite.close();
+            await fileToWrite.close();
         }
+        if (options.validation === 'crc32c' && fileInfo[0].metadata.crc32c) {
+            const downloadedCrc32C = await crc32c_js_1.CRC32C.fromFile(filePath);
+            if (!downloadedCrc32C.validate(fileInfo[0].metadata.crc32c)) {
+                const mismatchError = new file_js_1.RequestError(file_js_1.FileExceptionMessages.DOWNLOAD_MISMATCH);
+                mismatchError.code = 'CONTENT_DOWNLOAD_MISMATCH';
+                throw mismatchError;
+            }
+        }
+        if (noReturnData)
+            return;
+        return [Buffer.concat(chunks, size)];
     }
     /**
      * @typedef {object} UploadFileInChunksOptions
      * @property {number} [concurrencyLimit] The number of concurrently executing promises
      * to use when uploading the file.
      * @property {number} [chunkSizeBytes] The size in bytes of each chunk to be uploaded.
-     * @property {string} [uploadName] Name of the file when saving to GCS. If ommitted the name is taken from the file path.
+     * @property {string} [uploadName] Name of the file when saving to GCS. If omitted the name is taken from the file path.
      * @property {number} [maxQueueSize] The number of chunks to be uploaded to hold in memory concurrently. If not specified
      * defaults to the specified concurrency limit.
      * @property {string} [uploadId] If specified attempts to resume a previous upload.
@@ -95914,14 +96580,14 @@ class TransferManager {
      *
      */
     /**
-     * Upload a large file in chunks utilizing parallel upload opertions. If the upload fails, an uploadId and
+     * Upload a large file in chunks utilizing parallel upload operations. If the upload fails, an uploadId and
      * map containing all the successfully uploaded parts will be returned to the caller. These arguments can be used to
      * resume the upload.
      *
      * @param {string} [filePath] The path of the file to be uploaded
      * @param {UploadFileInChunksOptions} [options] Configuration options.
      * @param {MultiPartHelperGenerator} [generator] A function that will return a type that implements the MPU interface. Most users will not need to use this.
-     * @returns {Promise<void>} If successful a promise resolving to void, otherwise a error containing the message, uploadid, and parts map.
+     * @returns {Promise<void>} If successful a promise resolving to void, otherwise a error containing the message, uploadId, and parts map.
      *
      * @example
      * ```
@@ -96045,17 +96711,40 @@ var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? fun
 } : function (o, v) {
   o["default"] = v;
 });
-var __importStar = this && this.__importStar || function (mod) {
-  if (mod && mod.__esModule) return mod;
-  var result = {};
-  if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-  __setModuleDefault(result, mod);
-  return result;
-};
+var __importStar = this && this.__importStar || function () {
+  var ownKeys = function (o) {
+    ownKeys = Object.getOwnPropertyNames || function (o) {
+      var ar = [];
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+      return ar;
+    };
+    return ownKeys(o);
+  };
+  return function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+    __setModuleDefault(result, mod);
+    return result;
+  };
+}();
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.PassThroughShim = exports.getModuleFormat = exports.getDirName = exports.getUserAgentString = exports.getRuntimeTrackingString = exports.formatAsUTCISO = exports.convertObjKeysToSnakeCase = exports.unicodeJSONStringify = exports.objectKeyToLowercase = exports.qsStringify = exports.encodeURI = exports.fixedEncodeURIComponent = exports.objectEntries = exports.normalize = void 0;
+exports.PassThroughShim = void 0;
+exports.normalize = normalize;
+exports.objectEntries = objectEntries;
+exports.fixedEncodeURIComponent = fixedEncodeURIComponent;
+exports.encodeURI = encodeURI;
+exports.qsStringify = qsStringify;
+exports.objectKeyToLowercase = objectKeyToLowercase;
+exports.unicodeJSONStringify = unicodeJSONStringify;
+exports.convertObjKeysToSnakeCase = convertObjKeysToSnakeCase;
+exports.formatAsUTCISO = formatAsUTCISO;
+exports.getRuntimeTrackingString = getRuntimeTrackingString;
+exports.getUserAgentString = getUserAgentString;
+exports.getDirName = getDirName;
+exports.getModuleFormat = getModuleFormat;
 const path = __importStar(__nccwpck_require__(71017));
 const querystring = __importStar(__nccwpck_require__(63477));
 const stream_1 = __nccwpck_require__(12781);
@@ -96074,7 +96763,6 @@ function normalize(optionsOrCallback, cb) {
     callback
   };
 }
-exports.normalize = normalize;
 /**
  * Flatten an object into an Array of arrays, [[key, value], ..].
  * Implements Object.entries() for Node.js <8
@@ -96083,7 +96771,6 @@ exports.normalize = normalize;
 function objectEntries(obj) {
   return Object.keys(obj).map(key => [key, obj[key]]);
 }
-exports.objectEntries = objectEntries;
 /**
  * Encode `str` with encodeURIComponent, plus these
  * reserved characters: `! * ' ( )`.
@@ -96096,7 +96783,6 @@ exports.objectEntries = objectEntries;
 function fixedEncodeURIComponent(str) {
   return encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 }
-exports.fixedEncodeURIComponent = fixedEncodeURIComponent;
 /**
  * URI encode `uri` for generating signed URLs, using fixedEncodeURIComponent.
  *
@@ -96111,7 +96797,6 @@ function encodeURI(uri, encodeSlash) {
   // %2F if encodeSlash is `true`, or '/' if `false`.
   return uri.split('/').map(fixedEncodeURIComponent).join(encodeSlash ? '%2F' : '/');
 }
-exports.encodeURI = encodeURI;
 /**
  * Serialize an object to a URL query string using util.encodeURI(uri, true).
  * @param {string} url The object to serialize.
@@ -96122,7 +96807,6 @@ function qsStringify(qs) {
     encodeURIComponent: component => encodeURI(component, true)
   });
 }
-exports.qsStringify = qsStringify;
 function objectKeyToLowercase(object) {
   const newObj = {};
   for (let key of Object.keys(object)) {
@@ -96132,7 +96816,6 @@ function objectKeyToLowercase(object) {
   }
   return newObj;
 }
-exports.objectKeyToLowercase = objectKeyToLowercase;
 /**
  * JSON encode str, with unicode \u+ representation.
  * @param {object} obj The object to encode.
@@ -96141,7 +96824,6 @@ exports.objectKeyToLowercase = objectKeyToLowercase;
 function unicodeJSONStringify(obj) {
   return JSON.stringify(obj).replace(/[\u0080-\uFFFF]/g, char => '\\u' + ('0000' + char.charCodeAt(0).toString(16)).slice(-4));
 }
-exports.unicodeJSONStringify = unicodeJSONStringify;
 /**
  * Converts the given objects keys to snake_case
  * @param {object} obj object to convert keys to snake case.
@@ -96165,14 +96847,13 @@ function convertObjKeysToSnakeCase(obj) {
   }
   return obj;
 }
-exports.convertObjKeysToSnakeCase = convertObjKeysToSnakeCase;
 /**
  * Formats the provided date object as a UTC ISO string.
  * @param {Date} dateTimeToFormat date object to be formatted.
  * @param {boolean} includeTime flag to include hours, minutes, seconds in output.
  * @param {string} dateDelimiter delimiter between date components.
  * @param {string} timeDelimiter delimiter between time components.
- * @returns {string} UTC ISO format of provided date obect.
+ * @returns {string} UTC ISO format of provided date object.
  */
 function formatAsUTCISO(dateTimeToFormat, includeTime = false, dateDelimiter = '', timeDelimiter = '') {
   const year = dateTimeToFormat.getUTCFullYear();
@@ -96187,7 +96868,6 @@ function formatAsUTCISO(dateTimeToFormat, includeTime = false, dateDelimiter = '
   }
   return resultString;
 }
-exports.formatAsUTCISO = formatAsUTCISO;
 /**
  * Examines the runtime environment and returns the appropriate tracking string.
  * @returns {string} metrics tracking string based on the current runtime environment.
@@ -96210,7 +96890,6 @@ function getRuntimeTrackingString() {
     return `gl-node/${process.versions.node}`;
   }
 }
-exports.getRuntimeTrackingString = getRuntimeTrackingString;
 /**
  * Looks at package.json and creates the user-agent string to be applied to request headers.
  * @returns {string} user agent string.
@@ -96221,7 +96900,6 @@ function getUserAgentString() {
   .replace('/', '-'); // For UA spec-compliance purposes.
   return hyphenatedPackageName + '/' + pkg.version;
 }
-exports.getUserAgentString = getUserAgentString;
 function getDirName() {
   let dirToUse = '';
   try {
@@ -96233,11 +96911,9 @@ function getDirName() {
   }
   return dirToUse;
 }
-exports.getDirName = getDirName;
 function getModuleFormat() {
   return isEsm ? 'ESM' : 'CJS';
 }
-exports.getModuleFormat = getModuleFormat;
 class PassThroughShim extends stream_1.PassThrough {
   constructor() {
     super(...arguments);
@@ -96256,7 +96932,7 @@ class PassThroughShim extends stream_1.PassThrough {
       this.emit('writing');
       this.shouldEmitWriting = false;
     }
-    // Per the nodejs documention, callback must be invoked on the next tick
+    // Per the nodejs documentation, callback must be invoked on the next tick
     process.nextTick(() => {
       super._write(chunk, encoding, callback);
     });
@@ -96277,6 +96953,265 @@ class PassThroughShim extends stream_1.PassThrough {
 }
 exports.PassThroughShim = PassThroughShim;
 
+
+/***/ }),
+
+/***/ 1263:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.encode = encode;
+exports.decodeEntity = decodeEntity;
+exports.decode = decode;
+var named_references_js_1 = __nccwpck_require__(15197);
+var numeric_unicode_map_js_1 = __nccwpck_require__(24690);
+var surrogate_pairs_js_1 = __nccwpck_require__(77955);
+var allNamedReferences = __assign(__assign({}, named_references_js_1.namedReferences), { all: named_references_js_1.namedReferences.html5 });
+var encodeRegExps = {
+    specialChars: /[<>'"&]/g,
+    nonAscii: /[<>'"&\u0080-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,
+    nonAsciiPrintable: /[<>'"&\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,
+    nonAsciiPrintableOnly: /[\x01-\x08\x11-\x15\x17-\x1F\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g,
+    extensive: /[\x01-\x0c\x0e-\x1f\x21-\x2c\x2e-\x2f\x3a-\x40\x5b-\x60\x7b-\x7d\x7f-\uD7FF\uE000-\uFFFF\uDC00-\uDFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]?/g
+};
+var defaultEncodeOptions = {
+    mode: 'specialChars',
+    level: 'all',
+    numeric: 'decimal'
+};
+/** Encodes all the necessary (specified by `level`) characters in the text */
+function encode(text, _a) {
+    var _b = _a === void 0 ? defaultEncodeOptions : _a, _c = _b.mode, mode = _c === void 0 ? 'specialChars' : _c, _d = _b.numeric, numeric = _d === void 0 ? 'decimal' : _d, _e = _b.level, level = _e === void 0 ? 'all' : _e;
+    if (!text) {
+        return '';
+    }
+    var encodeRegExp = encodeRegExps[mode];
+    var references = allNamedReferences[level].characters;
+    var isHex = numeric === 'hexadecimal';
+    return String.prototype.replace.call(text, encodeRegExp, function (input) {
+        var result = references[input];
+        if (!result) {
+            var code = input.length > 1 ? (0, surrogate_pairs_js_1.getCodePoint)(input, 0) : input.charCodeAt(0);
+            result = (isHex ? '&#x' + code.toString(16) : '&#' + code) + ';';
+        }
+        return result;
+    });
+}
+var defaultDecodeOptions = {
+    scope: 'body',
+    level: 'all'
+};
+var strict = /&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);/g;
+var attribute = /&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+)[;=]?/g;
+var baseDecodeRegExps = {
+    xml: {
+        strict: strict,
+        attribute: attribute,
+        body: named_references_js_1.bodyRegExps.xml
+    },
+    html4: {
+        strict: strict,
+        attribute: attribute,
+        body: named_references_js_1.bodyRegExps.html4
+    },
+    html5: {
+        strict: strict,
+        attribute: attribute,
+        body: named_references_js_1.bodyRegExps.html5
+    }
+};
+var decodeRegExps = __assign(__assign({}, baseDecodeRegExps), { all: baseDecodeRegExps.html5 });
+var fromCharCode = String.fromCharCode;
+var outOfBoundsChar = fromCharCode(65533);
+var defaultDecodeEntityOptions = {
+    level: 'all'
+};
+function getDecodedEntity(entity, references, isAttribute, isStrict) {
+    var decodeResult = entity;
+    var decodeEntityLastChar = entity[entity.length - 1];
+    if (isAttribute && decodeEntityLastChar === '=') {
+        decodeResult = entity;
+    }
+    else if (isStrict && decodeEntityLastChar !== ';') {
+        decodeResult = entity;
+    }
+    else {
+        var decodeResultByReference = references[entity];
+        if (decodeResultByReference) {
+            decodeResult = decodeResultByReference;
+        }
+        else if (entity[0] === '&' && entity[1] === '#') {
+            var decodeSecondChar = entity[2];
+            var decodeCode = decodeSecondChar == 'x' || decodeSecondChar == 'X'
+                ? parseInt(entity.substr(3), 16)
+                : parseInt(entity.substr(2));
+            decodeResult =
+                decodeCode >= 0x10ffff
+                    ? outOfBoundsChar
+                    : decodeCode > 65535
+                        ? (0, surrogate_pairs_js_1.fromCodePoint)(decodeCode)
+                        : fromCharCode(numeric_unicode_map_js_1.numericUnicodeMap[decodeCode] || decodeCode);
+        }
+    }
+    return decodeResult;
+}
+/** Decodes a single entity */
+function decodeEntity(entity, _a) {
+    var _b = _a === void 0 ? defaultDecodeEntityOptions : _a, _c = _b.level, level = _c === void 0 ? 'all' : _c;
+    if (!entity) {
+        return '';
+    }
+    return getDecodedEntity(entity, allNamedReferences[level].entities, false, false);
+}
+/** Decodes all entities in the text */
+function decode(text, _a) {
+    var _b = _a === void 0 ? defaultDecodeOptions : _a, _c = _b.level, level = _c === void 0 ? 'all' : _c, _d = _b.scope, scope = _d === void 0 ? level === 'xml' ? 'strict' : 'body' : _d;
+    if (!text) {
+        return '';
+    }
+    var decodeRegExp = decodeRegExps[level][scope];
+    var references = allNamedReferences[level].entities;
+    var isAttribute = scope === 'attribute';
+    var isStrict = scope === 'strict';
+    return text.replace(decodeRegExp, function (entity) { return getDecodedEntity(entity, references, isAttribute, isStrict); });
+}
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 15197:
+/***/ (function(__unused_webpack_module, exports) {
+
+"use strict";
+
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.namedReferences = exports.bodyRegExps = void 0;
+// This file is autogenerated by tools/process-named-references.ts
+var pairDivider = "~";
+var blockDivider = "~~";
+function generateNamedReferences(input, prev) {
+    var entities = {};
+    var characters = {};
+    var blocks = input.split(blockDivider);
+    var isOptionalBlock = false;
+    for (var i = 0; blocks.length > i; i++) {
+        var entries = blocks[i].split(pairDivider);
+        for (var j = 0; j < entries.length; j += 2) {
+            var entity = entries[j];
+            var character = entries[j + 1];
+            var fullEntity = '&' + entity + ';';
+            entities[fullEntity] = character;
+            if (isOptionalBlock) {
+                entities['&' + entity] = character;
+            }
+            characters[character] = fullEntity;
+        }
+        isOptionalBlock = true;
+    }
+    return prev ?
+        { entities: __assign(__assign({}, entities), prev.entities), characters: __assign(__assign({}, characters), prev.characters) } :
+        { entities: entities, characters: characters };
+}
+exports.bodyRegExps = {
+    xml: /&(?:#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);?/g,
+    html4: /&notin;|&(?:nbsp|iexcl|cent|pound|curren|yen|brvbar|sect|uml|copy|ordf|laquo|not|shy|reg|macr|deg|plusmn|sup2|sup3|acute|micro|para|middot|cedil|sup1|ordm|raquo|frac14|frac12|frac34|iquest|Agrave|Aacute|Acirc|Atilde|Auml|Aring|AElig|Ccedil|Egrave|Eacute|Ecirc|Euml|Igrave|Iacute|Icirc|Iuml|ETH|Ntilde|Ograve|Oacute|Ocirc|Otilde|Ouml|times|Oslash|Ugrave|Uacute|Ucirc|Uuml|Yacute|THORN|szlig|agrave|aacute|acirc|atilde|auml|aring|aelig|ccedil|egrave|eacute|ecirc|euml|igrave|iacute|icirc|iuml|eth|ntilde|ograve|oacute|ocirc|otilde|ouml|divide|oslash|ugrave|uacute|ucirc|uuml|yacute|thorn|yuml|quot|amp|lt|gt|#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);?/g,
+    html5: /&centerdot;|&copysr;|&divideontimes;|&gtcc;|&gtcir;|&gtdot;|&gtlPar;|&gtquest;|&gtrapprox;|&gtrarr;|&gtrdot;|&gtreqless;|&gtreqqless;|&gtrless;|&gtrsim;|&ltcc;|&ltcir;|&ltdot;|&lthree;|&ltimes;|&ltlarr;|&ltquest;|&ltrPar;|&ltri;|&ltrie;|&ltrif;|&notin;|&notinE;|&notindot;|&notinva;|&notinvb;|&notinvc;|&notni;|&notniva;|&notnivb;|&notnivc;|&parallel;|&timesb;|&timesbar;|&timesd;|&(?:AElig|AMP|Aacute|Acirc|Agrave|Aring|Atilde|Auml|COPY|Ccedil|ETH|Eacute|Ecirc|Egrave|Euml|GT|Iacute|Icirc|Igrave|Iuml|LT|Ntilde|Oacute|Ocirc|Ograve|Oslash|Otilde|Ouml|QUOT|REG|THORN|Uacute|Ucirc|Ugrave|Uuml|Yacute|aacute|acirc|acute|aelig|agrave|amp|aring|atilde|auml|brvbar|ccedil|cedil|cent|copy|curren|deg|divide|eacute|ecirc|egrave|eth|euml|frac12|frac14|frac34|gt|iacute|icirc|iexcl|igrave|iquest|iuml|laquo|lt|macr|micro|middot|nbsp|not|ntilde|oacute|ocirc|ograve|ordf|ordm|oslash|otilde|ouml|para|plusmn|pound|quot|raquo|reg|sect|shy|sup1|sup2|sup3|szlig|thorn|times|uacute|ucirc|ugrave|uml|uuml|yacute|yen|yuml|#\d+|#[xX][\da-fA-F]+|[0-9a-zA-Z]+);?/g
+};
+exports.namedReferences = {};
+exports.namedReferences.xml = generateNamedReferences("lt~<~gt~>~quot~\"~apos~'~amp~&");
+exports.namedReferences.html4 = generateNamedReferences("apos~'~OElig~Œ~oelig~œ~Scaron~Š~scaron~š~Yuml~Ÿ~circ~ˆ~tilde~˜~ensp~ ~emsp~ ~thinsp~ ~zwnj~‌~zwj~‍~lrm~‎~rlm~‏~ndash~–~mdash~—~lsquo~‘~rsquo~’~sbquo~‚~ldquo~“~rdquo~”~bdquo~„~dagger~†~Dagger~‡~permil~‰~lsaquo~‹~rsaquo~›~euro~€~fnof~ƒ~Alpha~Α~Beta~Β~Gamma~Γ~Delta~Δ~Epsilon~Ε~Zeta~Ζ~Eta~Η~Theta~Θ~Iota~Ι~Kappa~Κ~Lambda~Λ~Mu~Μ~Nu~Ν~Xi~Ξ~Omicron~Ο~Pi~Π~Rho~Ρ~Sigma~Σ~Tau~Τ~Upsilon~Υ~Phi~Φ~Chi~Χ~Psi~Ψ~Omega~Ω~alpha~α~beta~β~gamma~γ~delta~δ~epsilon~ε~zeta~ζ~eta~η~theta~θ~iota~ι~kappa~κ~lambda~λ~mu~μ~nu~ν~xi~ξ~omicron~ο~pi~π~rho~ρ~sigmaf~ς~sigma~σ~tau~τ~upsilon~υ~phi~φ~chi~χ~psi~ψ~omega~ω~thetasym~ϑ~upsih~ϒ~piv~ϖ~bull~•~hellip~…~prime~′~Prime~″~oline~‾~frasl~⁄~weierp~℘~image~ℑ~real~ℜ~trade~™~alefsym~ℵ~larr~←~uarr~↑~rarr~→~darr~↓~harr~↔~crarr~↵~lArr~⇐~uArr~⇑~rArr~⇒~dArr~⇓~hArr~⇔~forall~∀~part~∂~exist~∃~empty~∅~nabla~∇~isin~∈~notin~∉~ni~∋~prod~∏~sum~∑~minus~−~lowast~∗~radic~√~prop~∝~infin~∞~ang~∠~and~∧~or~∨~cap~∩~cup~∪~int~∫~there4~∴~sim~∼~cong~≅~asymp~≈~ne~≠~equiv~≡~le~≤~ge~≥~sub~⊂~sup~⊃~nsub~⊄~sube~⊆~supe~⊇~oplus~⊕~otimes~⊗~perp~⊥~sdot~⋅~lceil~⌈~rceil~⌉~lfloor~⌊~rfloor~⌋~lang~〈~rang~〉~loz~◊~spades~♠~clubs~♣~hearts~♥~diams~♦~~nbsp~ ~iexcl~¡~cent~¢~pound~£~curren~¤~yen~¥~brvbar~¦~sect~§~uml~¨~copy~©~ordf~ª~laquo~«~not~¬~shy~­~reg~®~macr~¯~deg~°~plusmn~±~sup2~²~sup3~³~acute~´~micro~µ~para~¶~middot~·~cedil~¸~sup1~¹~ordm~º~raquo~»~frac14~¼~frac12~½~frac34~¾~iquest~¿~Agrave~À~Aacute~Á~Acirc~Â~Atilde~Ã~Auml~Ä~Aring~Å~AElig~Æ~Ccedil~Ç~Egrave~È~Eacute~É~Ecirc~Ê~Euml~Ë~Igrave~Ì~Iacute~Í~Icirc~Î~Iuml~Ï~ETH~Ð~Ntilde~Ñ~Ograve~Ò~Oacute~Ó~Ocirc~Ô~Otilde~Õ~Ouml~Ö~times~×~Oslash~Ø~Ugrave~Ù~Uacute~Ú~Ucirc~Û~Uuml~Ü~Yacute~Ý~THORN~Þ~szlig~ß~agrave~à~aacute~á~acirc~â~atilde~ã~auml~ä~aring~å~aelig~æ~ccedil~ç~egrave~è~eacute~é~ecirc~ê~euml~ë~igrave~ì~iacute~í~icirc~î~iuml~ï~eth~ð~ntilde~ñ~ograve~ò~oacute~ó~ocirc~ô~otilde~õ~ouml~ö~divide~÷~oslash~ø~ugrave~ù~uacute~ú~ucirc~û~uuml~ü~yacute~ý~thorn~þ~yuml~ÿ~quot~\"~amp~&~lt~<~gt~>");
+exports.namedReferences.html5 = generateNamedReferences("Abreve~Ă~Acy~А~Afr~𝔄~Amacr~Ā~And~⩓~Aogon~Ą~Aopf~𝔸~ApplyFunction~⁡~Ascr~𝒜~Assign~≔~Backslash~∖~Barv~⫧~Barwed~⌆~Bcy~Б~Because~∵~Bernoullis~ℬ~Bfr~𝔅~Bopf~𝔹~Breve~˘~Bscr~ℬ~Bumpeq~≎~CHcy~Ч~Cacute~Ć~Cap~⋒~CapitalDifferentialD~ⅅ~Cayleys~ℭ~Ccaron~Č~Ccirc~Ĉ~Cconint~∰~Cdot~Ċ~Cedilla~¸~CenterDot~·~Cfr~ℭ~CircleDot~⊙~CircleMinus~⊖~CirclePlus~⊕~CircleTimes~⊗~ClockwiseContourIntegral~∲~CloseCurlyDoubleQuote~”~CloseCurlyQuote~’~Colon~∷~Colone~⩴~Congruent~≡~Conint~∯~ContourIntegral~∮~Copf~ℂ~Coproduct~∐~CounterClockwiseContourIntegral~∳~Cross~⨯~Cscr~𝒞~Cup~⋓~CupCap~≍~DD~ⅅ~DDotrahd~⤑~DJcy~Ђ~DScy~Ѕ~DZcy~Џ~Darr~↡~Dashv~⫤~Dcaron~Ď~Dcy~Д~Del~∇~Dfr~𝔇~DiacriticalAcute~´~DiacriticalDot~˙~DiacriticalDoubleAcute~˝~DiacriticalGrave~`~DiacriticalTilde~˜~Diamond~⋄~DifferentialD~ⅆ~Dopf~𝔻~Dot~¨~DotDot~⃜~DotEqual~≐~DoubleContourIntegral~∯~DoubleDot~¨~DoubleDownArrow~⇓~DoubleLeftArrow~⇐~DoubleLeftRightArrow~⇔~DoubleLeftTee~⫤~DoubleLongLeftArrow~⟸~DoubleLongLeftRightArrow~⟺~DoubleLongRightArrow~⟹~DoubleRightArrow~⇒~DoubleRightTee~⊨~DoubleUpArrow~⇑~DoubleUpDownArrow~⇕~DoubleVerticalBar~∥~DownArrow~↓~DownArrowBar~⤓~DownArrowUpArrow~⇵~DownBreve~̑~DownLeftRightVector~⥐~DownLeftTeeVector~⥞~DownLeftVector~↽~DownLeftVectorBar~⥖~DownRightTeeVector~⥟~DownRightVector~⇁~DownRightVectorBar~⥗~DownTee~⊤~DownTeeArrow~↧~Downarrow~⇓~Dscr~𝒟~Dstrok~Đ~ENG~Ŋ~Ecaron~Ě~Ecy~Э~Edot~Ė~Efr~𝔈~Element~∈~Emacr~Ē~EmptySmallSquare~◻~EmptyVerySmallSquare~▫~Eogon~Ę~Eopf~𝔼~Equal~⩵~EqualTilde~≂~Equilibrium~⇌~Escr~ℰ~Esim~⩳~Exists~∃~ExponentialE~ⅇ~Fcy~Ф~Ffr~𝔉~FilledSmallSquare~◼~FilledVerySmallSquare~▪~Fopf~𝔽~ForAll~∀~Fouriertrf~ℱ~Fscr~ℱ~GJcy~Ѓ~Gammad~Ϝ~Gbreve~Ğ~Gcedil~Ģ~Gcirc~Ĝ~Gcy~Г~Gdot~Ġ~Gfr~𝔊~Gg~⋙~Gopf~𝔾~GreaterEqual~≥~GreaterEqualLess~⋛~GreaterFullEqual~≧~GreaterGreater~⪢~GreaterLess~≷~GreaterSlantEqual~⩾~GreaterTilde~≳~Gscr~𝒢~Gt~≫~HARDcy~Ъ~Hacek~ˇ~Hat~^~Hcirc~Ĥ~Hfr~ℌ~HilbertSpace~ℋ~Hopf~ℍ~HorizontalLine~─~Hscr~ℋ~Hstrok~Ħ~HumpDownHump~≎~HumpEqual~≏~IEcy~Е~IJlig~Ĳ~IOcy~Ё~Icy~И~Idot~İ~Ifr~ℑ~Im~ℑ~Imacr~Ī~ImaginaryI~ⅈ~Implies~⇒~Int~∬~Integral~∫~Intersection~⋂~InvisibleComma~⁣~InvisibleTimes~⁢~Iogon~Į~Iopf~𝕀~Iscr~ℐ~Itilde~Ĩ~Iukcy~І~Jcirc~Ĵ~Jcy~Й~Jfr~𝔍~Jopf~𝕁~Jscr~𝒥~Jsercy~Ј~Jukcy~Є~KHcy~Х~KJcy~Ќ~Kcedil~Ķ~Kcy~К~Kfr~𝔎~Kopf~𝕂~Kscr~𝒦~LJcy~Љ~Lacute~Ĺ~Lang~⟪~Laplacetrf~ℒ~Larr~↞~Lcaron~Ľ~Lcedil~Ļ~Lcy~Л~LeftAngleBracket~⟨~LeftArrow~←~LeftArrowBar~⇤~LeftArrowRightArrow~⇆~LeftCeiling~⌈~LeftDoubleBracket~⟦~LeftDownTeeVector~⥡~LeftDownVector~⇃~LeftDownVectorBar~⥙~LeftFloor~⌊~LeftRightArrow~↔~LeftRightVector~⥎~LeftTee~⊣~LeftTeeArrow~↤~LeftTeeVector~⥚~LeftTriangle~⊲~LeftTriangleBar~⧏~LeftTriangleEqual~⊴~LeftUpDownVector~⥑~LeftUpTeeVector~⥠~LeftUpVector~↿~LeftUpVectorBar~⥘~LeftVector~↼~LeftVectorBar~⥒~Leftarrow~⇐~Leftrightarrow~⇔~LessEqualGreater~⋚~LessFullEqual~≦~LessGreater~≶~LessLess~⪡~LessSlantEqual~⩽~LessTilde~≲~Lfr~𝔏~Ll~⋘~Lleftarrow~⇚~Lmidot~Ŀ~LongLeftArrow~⟵~LongLeftRightArrow~⟷~LongRightArrow~⟶~Longleftarrow~⟸~Longleftrightarrow~⟺~Longrightarrow~⟹~Lopf~𝕃~LowerLeftArrow~↙~LowerRightArrow~↘~Lscr~ℒ~Lsh~↰~Lstrok~Ł~Lt~≪~Map~⤅~Mcy~М~MediumSpace~ ~Mellintrf~ℳ~Mfr~𝔐~MinusPlus~∓~Mopf~𝕄~Mscr~ℳ~NJcy~Њ~Nacute~Ń~Ncaron~Ň~Ncedil~Ņ~Ncy~Н~NegativeMediumSpace~​~NegativeThickSpace~​~NegativeThinSpace~​~NegativeVeryThinSpace~​~NestedGreaterGreater~≫~NestedLessLess~≪~NewLine~\n~Nfr~𝔑~NoBreak~⁠~NonBreakingSpace~ ~Nopf~ℕ~Not~⫬~NotCongruent~≢~NotCupCap~≭~NotDoubleVerticalBar~∦~NotElement~∉~NotEqual~≠~NotEqualTilde~≂̸~NotExists~∄~NotGreater~≯~NotGreaterEqual~≱~NotGreaterFullEqual~≧̸~NotGreaterGreater~≫̸~NotGreaterLess~≹~NotGreaterSlantEqual~⩾̸~NotGreaterTilde~≵~NotHumpDownHump~≎̸~NotHumpEqual~≏̸~NotLeftTriangle~⋪~NotLeftTriangleBar~⧏̸~NotLeftTriangleEqual~⋬~NotLess~≮~NotLessEqual~≰~NotLessGreater~≸~NotLessLess~≪̸~NotLessSlantEqual~⩽̸~NotLessTilde~≴~NotNestedGreaterGreater~⪢̸~NotNestedLessLess~⪡̸~NotPrecedes~⊀~NotPrecedesEqual~⪯̸~NotPrecedesSlantEqual~⋠~NotReverseElement~∌~NotRightTriangle~⋫~NotRightTriangleBar~⧐̸~NotRightTriangleEqual~⋭~NotSquareSubset~⊏̸~NotSquareSubsetEqual~⋢~NotSquareSuperset~⊐̸~NotSquareSupersetEqual~⋣~NotSubset~⊂⃒~NotSubsetEqual~⊈~NotSucceeds~⊁~NotSucceedsEqual~⪰̸~NotSucceedsSlantEqual~⋡~NotSucceedsTilde~≿̸~NotSuperset~⊃⃒~NotSupersetEqual~⊉~NotTilde~≁~NotTildeEqual~≄~NotTildeFullEqual~≇~NotTildeTilde~≉~NotVerticalBar~∤~Nscr~𝒩~Ocy~О~Odblac~Ő~Ofr~𝔒~Omacr~Ō~Oopf~𝕆~OpenCurlyDoubleQuote~“~OpenCurlyQuote~‘~Or~⩔~Oscr~𝒪~Otimes~⨷~OverBar~‾~OverBrace~⏞~OverBracket~⎴~OverParenthesis~⏜~PartialD~∂~Pcy~П~Pfr~𝔓~PlusMinus~±~Poincareplane~ℌ~Popf~ℙ~Pr~⪻~Precedes~≺~PrecedesEqual~⪯~PrecedesSlantEqual~≼~PrecedesTilde~≾~Product~∏~Proportion~∷~Proportional~∝~Pscr~𝒫~Qfr~𝔔~Qopf~ℚ~Qscr~𝒬~RBarr~⤐~Racute~Ŕ~Rang~⟫~Rarr~↠~Rarrtl~⤖~Rcaron~Ř~Rcedil~Ŗ~Rcy~Р~Re~ℜ~ReverseElement~∋~ReverseEquilibrium~⇋~ReverseUpEquilibrium~⥯~Rfr~ℜ~RightAngleBracket~⟩~RightArrow~→~RightArrowBar~⇥~RightArrowLeftArrow~⇄~RightCeiling~⌉~RightDoubleBracket~⟧~RightDownTeeVector~⥝~RightDownVector~⇂~RightDownVectorBar~⥕~RightFloor~⌋~RightTee~⊢~RightTeeArrow~↦~RightTeeVector~⥛~RightTriangle~⊳~RightTriangleBar~⧐~RightTriangleEqual~⊵~RightUpDownVector~⥏~RightUpTeeVector~⥜~RightUpVector~↾~RightUpVectorBar~⥔~RightVector~⇀~RightVectorBar~⥓~Rightarrow~⇒~Ropf~ℝ~RoundImplies~⥰~Rrightarrow~⇛~Rscr~ℛ~Rsh~↱~RuleDelayed~⧴~SHCHcy~Щ~SHcy~Ш~SOFTcy~Ь~Sacute~Ś~Sc~⪼~Scedil~Ş~Scirc~Ŝ~Scy~С~Sfr~𝔖~ShortDownArrow~↓~ShortLeftArrow~←~ShortRightArrow~→~ShortUpArrow~↑~SmallCircle~∘~Sopf~𝕊~Sqrt~√~Square~□~SquareIntersection~⊓~SquareSubset~⊏~SquareSubsetEqual~⊑~SquareSuperset~⊐~SquareSupersetEqual~⊒~SquareUnion~⊔~Sscr~𝒮~Star~⋆~Sub~⋐~Subset~⋐~SubsetEqual~⊆~Succeeds~≻~SucceedsEqual~⪰~SucceedsSlantEqual~≽~SucceedsTilde~≿~SuchThat~∋~Sum~∑~Sup~⋑~Superset~⊃~SupersetEqual~⊇~Supset~⋑~TRADE~™~TSHcy~Ћ~TScy~Ц~Tab~\t~Tcaron~Ť~Tcedil~Ţ~Tcy~Т~Tfr~𝔗~Therefore~∴~ThickSpace~  ~ThinSpace~ ~Tilde~∼~TildeEqual~≃~TildeFullEqual~≅~TildeTilde~≈~Topf~𝕋~TripleDot~⃛~Tscr~𝒯~Tstrok~Ŧ~Uarr~↟~Uarrocir~⥉~Ubrcy~Ў~Ubreve~Ŭ~Ucy~У~Udblac~Ű~Ufr~𝔘~Umacr~Ū~UnderBar~_~UnderBrace~⏟~UnderBracket~⎵~UnderParenthesis~⏝~Union~⋃~UnionPlus~⊎~Uogon~Ų~Uopf~𝕌~UpArrow~↑~UpArrowBar~⤒~UpArrowDownArrow~⇅~UpDownArrow~↕~UpEquilibrium~⥮~UpTee~⊥~UpTeeArrow~↥~Uparrow~⇑~Updownarrow~⇕~UpperLeftArrow~↖~UpperRightArrow~↗~Upsi~ϒ~Uring~Ů~Uscr~𝒰~Utilde~Ũ~VDash~⊫~Vbar~⫫~Vcy~В~Vdash~⊩~Vdashl~⫦~Vee~⋁~Verbar~‖~Vert~‖~VerticalBar~∣~VerticalLine~|~VerticalSeparator~❘~VerticalTilde~≀~VeryThinSpace~ ~Vfr~𝔙~Vopf~𝕍~Vscr~𝒱~Vvdash~⊪~Wcirc~Ŵ~Wedge~⋀~Wfr~𝔚~Wopf~𝕎~Wscr~𝒲~Xfr~𝔛~Xopf~𝕏~Xscr~𝒳~YAcy~Я~YIcy~Ї~YUcy~Ю~Ycirc~Ŷ~Ycy~Ы~Yfr~𝔜~Yopf~𝕐~Yscr~𝒴~ZHcy~Ж~Zacute~Ź~Zcaron~Ž~Zcy~З~Zdot~Ż~ZeroWidthSpace~​~Zfr~ℨ~Zopf~ℤ~Zscr~𝒵~abreve~ă~ac~∾~acE~∾̳~acd~∿~acy~а~af~⁡~afr~𝔞~aleph~ℵ~amacr~ā~amalg~⨿~andand~⩕~andd~⩜~andslope~⩘~andv~⩚~ange~⦤~angle~∠~angmsd~∡~angmsdaa~⦨~angmsdab~⦩~angmsdac~⦪~angmsdad~⦫~angmsdae~⦬~angmsdaf~⦭~angmsdag~⦮~angmsdah~⦯~angrt~∟~angrtvb~⊾~angrtvbd~⦝~angsph~∢~angst~Å~angzarr~⍼~aogon~ą~aopf~𝕒~ap~≈~apE~⩰~apacir~⩯~ape~≊~apid~≋~approx~≈~approxeq~≊~ascr~𝒶~ast~*~asympeq~≍~awconint~∳~awint~⨑~bNot~⫭~backcong~≌~backepsilon~϶~backprime~‵~backsim~∽~backsimeq~⋍~barvee~⊽~barwed~⌅~barwedge~⌅~bbrk~⎵~bbrktbrk~⎶~bcong~≌~bcy~б~becaus~∵~because~∵~bemptyv~⦰~bepsi~϶~bernou~ℬ~beth~ℶ~between~≬~bfr~𝔟~bigcap~⋂~bigcirc~◯~bigcup~⋃~bigodot~⨀~bigoplus~⨁~bigotimes~⨂~bigsqcup~⨆~bigstar~★~bigtriangledown~▽~bigtriangleup~△~biguplus~⨄~bigvee~⋁~bigwedge~⋀~bkarow~⤍~blacklozenge~⧫~blacksquare~▪~blacktriangle~▴~blacktriangledown~▾~blacktriangleleft~◂~blacktriangleright~▸~blank~␣~blk12~▒~blk14~░~blk34~▓~block~█~bne~=⃥~bnequiv~≡⃥~bnot~⌐~bopf~𝕓~bot~⊥~bottom~⊥~bowtie~⋈~boxDL~╗~boxDR~╔~boxDl~╖~boxDr~╓~boxH~═~boxHD~╦~boxHU~╩~boxHd~╤~boxHu~╧~boxUL~╝~boxUR~╚~boxUl~╜~boxUr~╙~boxV~║~boxVH~╬~boxVL~╣~boxVR~╠~boxVh~╫~boxVl~╢~boxVr~╟~boxbox~⧉~boxdL~╕~boxdR~╒~boxdl~┐~boxdr~┌~boxh~─~boxhD~╥~boxhU~╨~boxhd~┬~boxhu~┴~boxminus~⊟~boxplus~⊞~boxtimes~⊠~boxuL~╛~boxuR~╘~boxul~┘~boxur~└~boxv~│~boxvH~╪~boxvL~╡~boxvR~╞~boxvh~┼~boxvl~┤~boxvr~├~bprime~‵~breve~˘~bscr~𝒷~bsemi~⁏~bsim~∽~bsime~⋍~bsol~\\~bsolb~⧅~bsolhsub~⟈~bullet~•~bump~≎~bumpE~⪮~bumpe~≏~bumpeq~≏~cacute~ć~capand~⩄~capbrcup~⩉~capcap~⩋~capcup~⩇~capdot~⩀~caps~∩︀~caret~⁁~caron~ˇ~ccaps~⩍~ccaron~č~ccirc~ĉ~ccups~⩌~ccupssm~⩐~cdot~ċ~cemptyv~⦲~centerdot~·~cfr~𝔠~chcy~ч~check~✓~checkmark~✓~cir~○~cirE~⧃~circeq~≗~circlearrowleft~↺~circlearrowright~↻~circledR~®~circledS~Ⓢ~circledast~⊛~circledcirc~⊚~circleddash~⊝~cire~≗~cirfnint~⨐~cirmid~⫯~cirscir~⧂~clubsuit~♣~colon~:~colone~≔~coloneq~≔~comma~,~commat~@~comp~∁~compfn~∘~complement~∁~complexes~ℂ~congdot~⩭~conint~∮~copf~𝕔~coprod~∐~copysr~℗~cross~✗~cscr~𝒸~csub~⫏~csube~⫑~csup~⫐~csupe~⫒~ctdot~⋯~cudarrl~⤸~cudarrr~⤵~cuepr~⋞~cuesc~⋟~cularr~↶~cularrp~⤽~cupbrcap~⩈~cupcap~⩆~cupcup~⩊~cupdot~⊍~cupor~⩅~cups~∪︀~curarr~↷~curarrm~⤼~curlyeqprec~⋞~curlyeqsucc~⋟~curlyvee~⋎~curlywedge~⋏~curvearrowleft~↶~curvearrowright~↷~cuvee~⋎~cuwed~⋏~cwconint~∲~cwint~∱~cylcty~⌭~dHar~⥥~daleth~ℸ~dash~‐~dashv~⊣~dbkarow~⤏~dblac~˝~dcaron~ď~dcy~д~dd~ⅆ~ddagger~‡~ddarr~⇊~ddotseq~⩷~demptyv~⦱~dfisht~⥿~dfr~𝔡~dharl~⇃~dharr~⇂~diam~⋄~diamond~⋄~diamondsuit~♦~die~¨~digamma~ϝ~disin~⋲~div~÷~divideontimes~⋇~divonx~⋇~djcy~ђ~dlcorn~⌞~dlcrop~⌍~dollar~$~dopf~𝕕~dot~˙~doteq~≐~doteqdot~≑~dotminus~∸~dotplus~∔~dotsquare~⊡~doublebarwedge~⌆~downarrow~↓~downdownarrows~⇊~downharpoonleft~⇃~downharpoonright~⇂~drbkarow~⤐~drcorn~⌟~drcrop~⌌~dscr~𝒹~dscy~ѕ~dsol~⧶~dstrok~đ~dtdot~⋱~dtri~▿~dtrif~▾~duarr~⇵~duhar~⥯~dwangle~⦦~dzcy~џ~dzigrarr~⟿~eDDot~⩷~eDot~≑~easter~⩮~ecaron~ě~ecir~≖~ecolon~≕~ecy~э~edot~ė~ee~ⅇ~efDot~≒~efr~𝔢~eg~⪚~egs~⪖~egsdot~⪘~el~⪙~elinters~⏧~ell~ℓ~els~⪕~elsdot~⪗~emacr~ē~emptyset~∅~emptyv~∅~emsp13~ ~emsp14~ ~eng~ŋ~eogon~ę~eopf~𝕖~epar~⋕~eparsl~⧣~eplus~⩱~epsi~ε~epsiv~ϵ~eqcirc~≖~eqcolon~≕~eqsim~≂~eqslantgtr~⪖~eqslantless~⪕~equals~=~equest~≟~equivDD~⩸~eqvparsl~⧥~erDot~≓~erarr~⥱~escr~ℯ~esdot~≐~esim~≂~excl~!~expectation~ℰ~exponentiale~ⅇ~fallingdotseq~≒~fcy~ф~female~♀~ffilig~ﬃ~fflig~ﬀ~ffllig~ﬄ~ffr~𝔣~filig~ﬁ~fjlig~fj~flat~♭~fllig~ﬂ~fltns~▱~fopf~𝕗~fork~⋔~forkv~⫙~fpartint~⨍~frac13~⅓~frac15~⅕~frac16~⅙~frac18~⅛~frac23~⅔~frac25~⅖~frac35~⅗~frac38~⅜~frac45~⅘~frac56~⅚~frac58~⅝~frac78~⅞~frown~⌢~fscr~𝒻~gE~≧~gEl~⪌~gacute~ǵ~gammad~ϝ~gap~⪆~gbreve~ğ~gcirc~ĝ~gcy~г~gdot~ġ~gel~⋛~geq~≥~geqq~≧~geqslant~⩾~ges~⩾~gescc~⪩~gesdot~⪀~gesdoto~⪂~gesdotol~⪄~gesl~⋛︀~gesles~⪔~gfr~𝔤~gg~≫~ggg~⋙~gimel~ℷ~gjcy~ѓ~gl~≷~glE~⪒~gla~⪥~glj~⪤~gnE~≩~gnap~⪊~gnapprox~⪊~gne~⪈~gneq~⪈~gneqq~≩~gnsim~⋧~gopf~𝕘~grave~`~gscr~ℊ~gsim~≳~gsime~⪎~gsiml~⪐~gtcc~⪧~gtcir~⩺~gtdot~⋗~gtlPar~⦕~gtquest~⩼~gtrapprox~⪆~gtrarr~⥸~gtrdot~⋗~gtreqless~⋛~gtreqqless~⪌~gtrless~≷~gtrsim~≳~gvertneqq~≩︀~gvnE~≩︀~hairsp~ ~half~½~hamilt~ℋ~hardcy~ъ~harrcir~⥈~harrw~↭~hbar~ℏ~hcirc~ĥ~heartsuit~♥~hercon~⊹~hfr~𝔥~hksearow~⤥~hkswarow~⤦~hoarr~⇿~homtht~∻~hookleftarrow~↩~hookrightarrow~↪~hopf~𝕙~horbar~―~hscr~𝒽~hslash~ℏ~hstrok~ħ~hybull~⁃~hyphen~‐~ic~⁣~icy~и~iecy~е~iff~⇔~ifr~𝔦~ii~ⅈ~iiiint~⨌~iiint~∭~iinfin~⧜~iiota~℩~ijlig~ĳ~imacr~ī~imagline~ℐ~imagpart~ℑ~imath~ı~imof~⊷~imped~Ƶ~in~∈~incare~℅~infintie~⧝~inodot~ı~intcal~⊺~integers~ℤ~intercal~⊺~intlarhk~⨗~intprod~⨼~iocy~ё~iogon~į~iopf~𝕚~iprod~⨼~iscr~𝒾~isinE~⋹~isindot~⋵~isins~⋴~isinsv~⋳~isinv~∈~it~⁢~itilde~ĩ~iukcy~і~jcirc~ĵ~jcy~й~jfr~𝔧~jmath~ȷ~jopf~𝕛~jscr~𝒿~jsercy~ј~jukcy~є~kappav~ϰ~kcedil~ķ~kcy~к~kfr~𝔨~kgreen~ĸ~khcy~х~kjcy~ќ~kopf~𝕜~kscr~𝓀~lAarr~⇚~lAtail~⤛~lBarr~⤎~lE~≦~lEg~⪋~lHar~⥢~lacute~ĺ~laemptyv~⦴~lagran~ℒ~langd~⦑~langle~⟨~lap~⪅~larrb~⇤~larrbfs~⤟~larrfs~⤝~larrhk~↩~larrlp~↫~larrpl~⤹~larrsim~⥳~larrtl~↢~lat~⪫~latail~⤙~late~⪭~lates~⪭︀~lbarr~⤌~lbbrk~❲~lbrace~{~lbrack~[~lbrke~⦋~lbrksld~⦏~lbrkslu~⦍~lcaron~ľ~lcedil~ļ~lcub~{~lcy~л~ldca~⤶~ldquor~„~ldrdhar~⥧~ldrushar~⥋~ldsh~↲~leftarrow~←~leftarrowtail~↢~leftharpoondown~↽~leftharpoonup~↼~leftleftarrows~⇇~leftrightarrow~↔~leftrightarrows~⇆~leftrightharpoons~⇋~leftrightsquigarrow~↭~leftthreetimes~⋋~leg~⋚~leq~≤~leqq~≦~leqslant~⩽~les~⩽~lescc~⪨~lesdot~⩿~lesdoto~⪁~lesdotor~⪃~lesg~⋚︀~lesges~⪓~lessapprox~⪅~lessdot~⋖~lesseqgtr~⋚~lesseqqgtr~⪋~lessgtr~≶~lesssim~≲~lfisht~⥼~lfr~𝔩~lg~≶~lgE~⪑~lhard~↽~lharu~↼~lharul~⥪~lhblk~▄~ljcy~љ~ll~≪~llarr~⇇~llcorner~⌞~llhard~⥫~lltri~◺~lmidot~ŀ~lmoust~⎰~lmoustache~⎰~lnE~≨~lnap~⪉~lnapprox~⪉~lne~⪇~lneq~⪇~lneqq~≨~lnsim~⋦~loang~⟬~loarr~⇽~lobrk~⟦~longleftarrow~⟵~longleftrightarrow~⟷~longmapsto~⟼~longrightarrow~⟶~looparrowleft~↫~looparrowright~↬~lopar~⦅~lopf~𝕝~loplus~⨭~lotimes~⨴~lowbar~_~lozenge~◊~lozf~⧫~lpar~(~lparlt~⦓~lrarr~⇆~lrcorner~⌟~lrhar~⇋~lrhard~⥭~lrtri~⊿~lscr~𝓁~lsh~↰~lsim~≲~lsime~⪍~lsimg~⪏~lsqb~[~lsquor~‚~lstrok~ł~ltcc~⪦~ltcir~⩹~ltdot~⋖~lthree~⋋~ltimes~⋉~ltlarr~⥶~ltquest~⩻~ltrPar~⦖~ltri~◃~ltrie~⊴~ltrif~◂~lurdshar~⥊~luruhar~⥦~lvertneqq~≨︀~lvnE~≨︀~mDDot~∺~male~♂~malt~✠~maltese~✠~map~↦~mapsto~↦~mapstodown~↧~mapstoleft~↤~mapstoup~↥~marker~▮~mcomma~⨩~mcy~м~measuredangle~∡~mfr~𝔪~mho~℧~mid~∣~midast~*~midcir~⫰~minusb~⊟~minusd~∸~minusdu~⨪~mlcp~⫛~mldr~…~mnplus~∓~models~⊧~mopf~𝕞~mp~∓~mscr~𝓂~mstpos~∾~multimap~⊸~mumap~⊸~nGg~⋙̸~nGt~≫⃒~nGtv~≫̸~nLeftarrow~⇍~nLeftrightarrow~⇎~nLl~⋘̸~nLt~≪⃒~nLtv~≪̸~nRightarrow~⇏~nVDash~⊯~nVdash~⊮~nacute~ń~nang~∠⃒~nap~≉~napE~⩰̸~napid~≋̸~napos~ŉ~napprox~≉~natur~♮~natural~♮~naturals~ℕ~nbump~≎̸~nbumpe~≏̸~ncap~⩃~ncaron~ň~ncedil~ņ~ncong~≇~ncongdot~⩭̸~ncup~⩂~ncy~н~neArr~⇗~nearhk~⤤~nearr~↗~nearrow~↗~nedot~≐̸~nequiv~≢~nesear~⤨~nesim~≂̸~nexist~∄~nexists~∄~nfr~𝔫~ngE~≧̸~nge~≱~ngeq~≱~ngeqq~≧̸~ngeqslant~⩾̸~nges~⩾̸~ngsim~≵~ngt~≯~ngtr~≯~nhArr~⇎~nharr~↮~nhpar~⫲~nis~⋼~nisd~⋺~niv~∋~njcy~њ~nlArr~⇍~nlE~≦̸~nlarr~↚~nldr~‥~nle~≰~nleftarrow~↚~nleftrightarrow~↮~nleq~≰~nleqq~≦̸~nleqslant~⩽̸~nles~⩽̸~nless~≮~nlsim~≴~nlt~≮~nltri~⋪~nltrie~⋬~nmid~∤~nopf~𝕟~notinE~⋹̸~notindot~⋵̸~notinva~∉~notinvb~⋷~notinvc~⋶~notni~∌~notniva~∌~notnivb~⋾~notnivc~⋽~npar~∦~nparallel~∦~nparsl~⫽⃥~npart~∂̸~npolint~⨔~npr~⊀~nprcue~⋠~npre~⪯̸~nprec~⊀~npreceq~⪯̸~nrArr~⇏~nrarr~↛~nrarrc~⤳̸~nrarrw~↝̸~nrightarrow~↛~nrtri~⋫~nrtrie~⋭~nsc~⊁~nsccue~⋡~nsce~⪰̸~nscr~𝓃~nshortmid~∤~nshortparallel~∦~nsim~≁~nsime~≄~nsimeq~≄~nsmid~∤~nspar~∦~nsqsube~⋢~nsqsupe~⋣~nsubE~⫅̸~nsube~⊈~nsubset~⊂⃒~nsubseteq~⊈~nsubseteqq~⫅̸~nsucc~⊁~nsucceq~⪰̸~nsup~⊅~nsupE~⫆̸~nsupe~⊉~nsupset~⊃⃒~nsupseteq~⊉~nsupseteqq~⫆̸~ntgl~≹~ntlg~≸~ntriangleleft~⋪~ntrianglelefteq~⋬~ntriangleright~⋫~ntrianglerighteq~⋭~num~#~numero~№~numsp~ ~nvDash~⊭~nvHarr~⤄~nvap~≍⃒~nvdash~⊬~nvge~≥⃒~nvgt~>⃒~nvinfin~⧞~nvlArr~⤂~nvle~≤⃒~nvlt~<⃒~nvltrie~⊴⃒~nvrArr~⤃~nvrtrie~⊵⃒~nvsim~∼⃒~nwArr~⇖~nwarhk~⤣~nwarr~↖~nwarrow~↖~nwnear~⤧~oS~Ⓢ~oast~⊛~ocir~⊚~ocy~о~odash~⊝~odblac~ő~odiv~⨸~odot~⊙~odsold~⦼~ofcir~⦿~ofr~𝔬~ogon~˛~ogt~⧁~ohbar~⦵~ohm~Ω~oint~∮~olarr~↺~olcir~⦾~olcross~⦻~olt~⧀~omacr~ō~omid~⦶~ominus~⊖~oopf~𝕠~opar~⦷~operp~⦹~orarr~↻~ord~⩝~order~ℴ~orderof~ℴ~origof~⊶~oror~⩖~orslope~⩗~orv~⩛~oscr~ℴ~osol~⊘~otimesas~⨶~ovbar~⌽~par~∥~parallel~∥~parsim~⫳~parsl~⫽~pcy~п~percnt~%~period~.~pertenk~‱~pfr~𝔭~phiv~ϕ~phmmat~ℳ~phone~☎~pitchfork~⋔~planck~ℏ~planckh~ℎ~plankv~ℏ~plus~+~plusacir~⨣~plusb~⊞~pluscir~⨢~plusdo~∔~plusdu~⨥~pluse~⩲~plussim~⨦~plustwo~⨧~pm~±~pointint~⨕~popf~𝕡~pr~≺~prE~⪳~prap~⪷~prcue~≼~pre~⪯~prec~≺~precapprox~⪷~preccurlyeq~≼~preceq~⪯~precnapprox~⪹~precneqq~⪵~precnsim~⋨~precsim~≾~primes~ℙ~prnE~⪵~prnap~⪹~prnsim~⋨~profalar~⌮~profline~⌒~profsurf~⌓~propto~∝~prsim~≾~prurel~⊰~pscr~𝓅~puncsp~ ~qfr~𝔮~qint~⨌~qopf~𝕢~qprime~⁗~qscr~𝓆~quaternions~ℍ~quatint~⨖~quest~?~questeq~≟~rAarr~⇛~rAtail~⤜~rBarr~⤏~rHar~⥤~race~∽̱~racute~ŕ~raemptyv~⦳~rangd~⦒~range~⦥~rangle~⟩~rarrap~⥵~rarrb~⇥~rarrbfs~⤠~rarrc~⤳~rarrfs~⤞~rarrhk~↪~rarrlp~↬~rarrpl~⥅~rarrsim~⥴~rarrtl~↣~rarrw~↝~ratail~⤚~ratio~∶~rationals~ℚ~rbarr~⤍~rbbrk~❳~rbrace~}~rbrack~]~rbrke~⦌~rbrksld~⦎~rbrkslu~⦐~rcaron~ř~rcedil~ŗ~rcub~}~rcy~р~rdca~⤷~rdldhar~⥩~rdquor~”~rdsh~↳~realine~ℛ~realpart~ℜ~reals~ℝ~rect~▭~rfisht~⥽~rfr~𝔯~rhard~⇁~rharu~⇀~rharul~⥬~rhov~ϱ~rightarrow~→~rightarrowtail~↣~rightharpoondown~⇁~rightharpoonup~⇀~rightleftarrows~⇄~rightleftharpoons~⇌~rightrightarrows~⇉~rightsquigarrow~↝~rightthreetimes~⋌~ring~˚~risingdotseq~≓~rlarr~⇄~rlhar~⇌~rmoust~⎱~rmoustache~⎱~rnmid~⫮~roang~⟭~roarr~⇾~robrk~⟧~ropar~⦆~ropf~𝕣~roplus~⨮~rotimes~⨵~rpar~)~rpargt~⦔~rppolint~⨒~rrarr~⇉~rscr~𝓇~rsh~↱~rsqb~]~rsquor~’~rthree~⋌~rtimes~⋊~rtri~▹~rtrie~⊵~rtrif~▸~rtriltri~⧎~ruluhar~⥨~rx~℞~sacute~ś~sc~≻~scE~⪴~scap~⪸~sccue~≽~sce~⪰~scedil~ş~scirc~ŝ~scnE~⪶~scnap~⪺~scnsim~⋩~scpolint~⨓~scsim~≿~scy~с~sdotb~⊡~sdote~⩦~seArr~⇘~searhk~⤥~searr~↘~searrow~↘~semi~;~seswar~⤩~setminus~∖~setmn~∖~sext~✶~sfr~𝔰~sfrown~⌢~sharp~♯~shchcy~щ~shcy~ш~shortmid~∣~shortparallel~∥~sigmav~ς~simdot~⩪~sime~≃~simeq~≃~simg~⪞~simgE~⪠~siml~⪝~simlE~⪟~simne~≆~simplus~⨤~simrarr~⥲~slarr~←~smallsetminus~∖~smashp~⨳~smeparsl~⧤~smid~∣~smile~⌣~smt~⪪~smte~⪬~smtes~⪬︀~softcy~ь~sol~/~solb~⧄~solbar~⌿~sopf~𝕤~spadesuit~♠~spar~∥~sqcap~⊓~sqcaps~⊓︀~sqcup~⊔~sqcups~⊔︀~sqsub~⊏~sqsube~⊑~sqsubset~⊏~sqsubseteq~⊑~sqsup~⊐~sqsupe~⊒~sqsupset~⊐~sqsupseteq~⊒~squ~□~square~□~squarf~▪~squf~▪~srarr~→~sscr~𝓈~ssetmn~∖~ssmile~⌣~sstarf~⋆~star~☆~starf~★~straightepsilon~ϵ~straightphi~ϕ~strns~¯~subE~⫅~subdot~⪽~subedot~⫃~submult~⫁~subnE~⫋~subne~⊊~subplus~⪿~subrarr~⥹~subset~⊂~subseteq~⊆~subseteqq~⫅~subsetneq~⊊~subsetneqq~⫋~subsim~⫇~subsub~⫕~subsup~⫓~succ~≻~succapprox~⪸~succcurlyeq~≽~succeq~⪰~succnapprox~⪺~succneqq~⪶~succnsim~⋩~succsim~≿~sung~♪~supE~⫆~supdot~⪾~supdsub~⫘~supedot~⫄~suphsol~⟉~suphsub~⫗~suplarr~⥻~supmult~⫂~supnE~⫌~supne~⊋~supplus~⫀~supset~⊃~supseteq~⊇~supseteqq~⫆~supsetneq~⊋~supsetneqq~⫌~supsim~⫈~supsub~⫔~supsup~⫖~swArr~⇙~swarhk~⤦~swarr~↙~swarrow~↙~swnwar~⤪~target~⌖~tbrk~⎴~tcaron~ť~tcedil~ţ~tcy~т~tdot~⃛~telrec~⌕~tfr~𝔱~therefore~∴~thetav~ϑ~thickapprox~≈~thicksim~∼~thkap~≈~thksim~∼~timesb~⊠~timesbar~⨱~timesd~⨰~tint~∭~toea~⤨~top~⊤~topbot~⌶~topcir~⫱~topf~𝕥~topfork~⫚~tosa~⤩~tprime~‴~triangle~▵~triangledown~▿~triangleleft~◃~trianglelefteq~⊴~triangleq~≜~triangleright~▹~trianglerighteq~⊵~tridot~◬~trie~≜~triminus~⨺~triplus~⨹~trisb~⧍~tritime~⨻~trpezium~⏢~tscr~𝓉~tscy~ц~tshcy~ћ~tstrok~ŧ~twixt~≬~twoheadleftarrow~↞~twoheadrightarrow~↠~uHar~⥣~ubrcy~ў~ubreve~ŭ~ucy~у~udarr~⇅~udblac~ű~udhar~⥮~ufisht~⥾~ufr~𝔲~uharl~↿~uharr~↾~uhblk~▀~ulcorn~⌜~ulcorner~⌜~ulcrop~⌏~ultri~◸~umacr~ū~uogon~ų~uopf~𝕦~uparrow~↑~updownarrow~↕~upharpoonleft~↿~upharpoonright~↾~uplus~⊎~upsi~υ~upuparrows~⇈~urcorn~⌝~urcorner~⌝~urcrop~⌎~uring~ů~urtri~◹~uscr~𝓊~utdot~⋰~utilde~ũ~utri~▵~utrif~▴~uuarr~⇈~uwangle~⦧~vArr~⇕~vBar~⫨~vBarv~⫩~vDash~⊨~vangrt~⦜~varepsilon~ϵ~varkappa~ϰ~varnothing~∅~varphi~ϕ~varpi~ϖ~varpropto~∝~varr~↕~varrho~ϱ~varsigma~ς~varsubsetneq~⊊︀~varsubsetneqq~⫋︀~varsupsetneq~⊋︀~varsupsetneqq~⫌︀~vartheta~ϑ~vartriangleleft~⊲~vartriangleright~⊳~vcy~в~vdash~⊢~vee~∨~veebar~⊻~veeeq~≚~vellip~⋮~verbar~|~vert~|~vfr~𝔳~vltri~⊲~vnsub~⊂⃒~vnsup~⊃⃒~vopf~𝕧~vprop~∝~vrtri~⊳~vscr~𝓋~vsubnE~⫋︀~vsubne~⊊︀~vsupnE~⫌︀~vsupne~⊋︀~vzigzag~⦚~wcirc~ŵ~wedbar~⩟~wedge~∧~wedgeq~≙~wfr~𝔴~wopf~𝕨~wp~℘~wr~≀~wreath~≀~wscr~𝓌~xcap~⋂~xcirc~◯~xcup~⋃~xdtri~▽~xfr~𝔵~xhArr~⟺~xharr~⟷~xlArr~⟸~xlarr~⟵~xmap~⟼~xnis~⋻~xodot~⨀~xopf~𝕩~xoplus~⨁~xotime~⨂~xrArr~⟹~xrarr~⟶~xscr~𝓍~xsqcup~⨆~xuplus~⨄~xutri~△~xvee~⋁~xwedge~⋀~yacy~я~ycirc~ŷ~ycy~ы~yfr~𝔶~yicy~ї~yopf~𝕪~yscr~𝓎~yucy~ю~zacute~ź~zcaron~ž~zcy~з~zdot~ż~zeetrf~ℨ~zfr~𝔷~zhcy~ж~zigrarr~⇝~zopf~𝕫~zscr~𝓏~~AMP~&~COPY~©~GT~>~LT~<~QUOT~\"~REG~®", exports.namedReferences['html4']);
+//# sourceMappingURL=named-references.js.map
+
+/***/ }),
+
+/***/ 24690:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.numericUnicodeMap = void 0;
+exports.numericUnicodeMap = {
+    0: 65533,
+    128: 8364,
+    130: 8218,
+    131: 402,
+    132: 8222,
+    133: 8230,
+    134: 8224,
+    135: 8225,
+    136: 710,
+    137: 8240,
+    138: 352,
+    139: 8249,
+    140: 338,
+    142: 381,
+    145: 8216,
+    146: 8217,
+    147: 8220,
+    148: 8221,
+    149: 8226,
+    150: 8211,
+    151: 8212,
+    152: 732,
+    153: 8482,
+    154: 353,
+    155: 8250,
+    156: 339,
+    158: 382,
+    159: 376
+};
+//# sourceMappingURL=numeric-unicode-map.js.map
+
+/***/ }),
+
+/***/ 77955:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.highSurrogateTo = exports.highSurrogateFrom = exports.getCodePoint = exports.fromCodePoint = void 0;
+exports.fromCodePoint = String.fromCodePoint ||
+    function (astralCodePoint) {
+        return String.fromCharCode(Math.floor((astralCodePoint - 0x10000) / 0x400) + 0xd800, ((astralCodePoint - 0x10000) % 0x400) + 0xdc00);
+    };
+// @ts-expect-error - String.prototype.codePointAt might not exist in older node versions
+exports.getCodePoint = String.prototype.codePointAt
+    ? function (input, position) {
+        return input.codePointAt(position);
+    }
+    : function (input, position) {
+        return (input.charCodeAt(position) - 0xd800) * 0x400 + input.charCodeAt(position + 1) - 0xdc00 + 0x10000;
+    };
+exports.highSurrogateFrom = 0xd800;
+exports.highSurrogateTo = 0xdbff;
+//# sourceMappingURL=surrogate-pairs.js.map
 
 /***/ }),
 
@@ -105348,27 +106283,26 @@ exports.getPackageJSON = getPackageJSON;
 
 /***/ }),
 
+/***/ 74577:
+/***/ ((module) => {
+
+(()=>{"use strict";var t={d:(e,n)=>{for(var i in n)t.o(n,i)&&!t.o(e,i)&&Object.defineProperty(e,i,{enumerable:!0,get:n[i]})},o:(t,e)=>Object.prototype.hasOwnProperty.call(t,e),r:t=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})}},e={};t.r(e),t.d(e,{XMLBuilder:()=>gt,XMLParser:()=>it,XMLValidator:()=>xt});const n=":A-Za-z_\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD",i=new RegExp("^["+n+"]["+n+"\\-.\\d\\u00B7\\u0300-\\u036F\\u203F-\\u2040]*$");function s(t,e){const n=[];let i=e.exec(t);for(;i;){const s=[];s.startIndex=e.lastIndex-i[0].length;const r=i.length;for(let t=0;t<r;t++)s.push(i[t]);n.push(s),i=e.exec(t)}return n}const r=function(t){return!(null==i.exec(t))},o={allowBooleanAttributes:!1,unpairedTags:[]};function a(t,e){e=Object.assign({},o,e);const n=[];let i=!1,s=!1;"\ufeff"===t[0]&&(t=t.substr(1));for(let r=0;r<t.length;r++)if("<"===t[r]&&"?"===t[r+1]){if(r+=2,r=u(t,r),r.err)return r}else{if("<"!==t[r]){if(l(t[r]))continue;return m("InvalidChar","char '"+t[r]+"' is not expected.",N(t,r))}{let o=r;if(r++,"!"===t[r]){r=d(t,r);continue}{let a=!1;"/"===t[r]&&(a=!0,r++);let h="";for(;r<t.length&&">"!==t[r]&&" "!==t[r]&&"\t"!==t[r]&&"\n"!==t[r]&&"\r"!==t[r];r++)h+=t[r];if(h=h.trim(),"/"===h[h.length-1]&&(h=h.substring(0,h.length-1),r--),!b(h)){let e;return e=0===h.trim().length?"Invalid space after '<'.":"Tag '"+h+"' is an invalid name.",m("InvalidTag",e,N(t,r))}const p=c(t,r);if(!1===p)return m("InvalidAttr","Attributes for '"+h+"' have open quote.",N(t,r));let f=p.value;if(r=p.index,"/"===f[f.length-1]){const n=r-f.length;f=f.substring(0,f.length-1);const s=g(f,e);if(!0!==s)return m(s.err.code,s.err.msg,N(t,n+s.err.line));i=!0}else if(a){if(!p.tagClosed)return m("InvalidTag","Closing tag '"+h+"' doesn't have proper closing.",N(t,r));if(f.trim().length>0)return m("InvalidTag","Closing tag '"+h+"' can't have attributes or invalid starting.",N(t,o));if(0===n.length)return m("InvalidTag","Closing tag '"+h+"' has not been opened.",N(t,o));{const e=n.pop();if(h!==e.tagName){let n=N(t,e.tagStartPos);return m("InvalidTag","Expected closing tag '"+e.tagName+"' (opened in line "+n.line+", col "+n.col+") instead of closing tag '"+h+"'.",N(t,o))}0==n.length&&(s=!0)}}else{const a=g(f,e);if(!0!==a)return m(a.err.code,a.err.msg,N(t,r-f.length+a.err.line));if(!0===s)return m("InvalidXml","Multiple possible root nodes found.",N(t,r));-1!==e.unpairedTags.indexOf(h)||n.push({tagName:h,tagStartPos:o}),i=!0}for(r++;r<t.length;r++)if("<"===t[r]){if("!"===t[r+1]){r++,r=d(t,r);continue}if("?"!==t[r+1])break;if(r=u(t,++r),r.err)return r}else if("&"===t[r]){const e=x(t,r);if(-1==e)return m("InvalidChar","char '&' is not expected.",N(t,r));r=e}else if(!0===s&&!l(t[r]))return m("InvalidXml","Extra text at the end",N(t,r));"<"===t[r]&&r--}}}return i?1==n.length?m("InvalidTag","Unclosed tag '"+n[0].tagName+"'.",N(t,n[0].tagStartPos)):!(n.length>0)||m("InvalidXml","Invalid '"+JSON.stringify(n.map(t=>t.tagName),null,4).replace(/\r?\n/g,"")+"' found.",{line:1,col:1}):m("InvalidXml","Start tag expected.",1)}function l(t){return" "===t||"\t"===t||"\n"===t||"\r"===t}function u(t,e){const n=e;for(;e<t.length;e++)if("?"==t[e]||" "==t[e]){const i=t.substr(n,e-n);if(e>5&&"xml"===i)return m("InvalidXml","XML declaration allowed only at the start of the document.",N(t,e));if("?"==t[e]&&">"==t[e+1]){e++;break}continue}return e}function d(t,e){if(t.length>e+5&&"-"===t[e+1]&&"-"===t[e+2]){for(e+=3;e<t.length;e++)if("-"===t[e]&&"-"===t[e+1]&&">"===t[e+2]){e+=2;break}}else if(t.length>e+8&&"D"===t[e+1]&&"O"===t[e+2]&&"C"===t[e+3]&&"T"===t[e+4]&&"Y"===t[e+5]&&"P"===t[e+6]&&"E"===t[e+7]){let n=1;for(e+=8;e<t.length;e++)if("<"===t[e])n++;else if(">"===t[e]&&(n--,0===n))break}else if(t.length>e+9&&"["===t[e+1]&&"C"===t[e+2]&&"D"===t[e+3]&&"A"===t[e+4]&&"T"===t[e+5]&&"A"===t[e+6]&&"["===t[e+7])for(e+=8;e<t.length;e++)if("]"===t[e]&&"]"===t[e+1]&&">"===t[e+2]){e+=2;break}return e}const h='"',p="'";function c(t,e){let n="",i="",s=!1;for(;e<t.length;e++){if(t[e]===h||t[e]===p)""===i?i=t[e]:i!==t[e]||(i="");else if(">"===t[e]&&""===i){s=!0;break}n+=t[e]}return""===i&&{value:n,index:e,tagClosed:s}}const f=new RegExp("(\\s*)([^\\s=]+)(\\s*=)?(\\s*(['\"])(([\\s\\S])*?)\\5)?","g");function g(t,e){const n=s(t,f),i={};for(let t=0;t<n.length;t++){if(0===n[t][1].length)return m("InvalidAttr","Attribute '"+n[t][2]+"' has no space in starting.",y(n[t]));if(void 0!==n[t][3]&&void 0===n[t][4])return m("InvalidAttr","Attribute '"+n[t][2]+"' is without value.",y(n[t]));if(void 0===n[t][3]&&!e.allowBooleanAttributes)return m("InvalidAttr","boolean attribute '"+n[t][2]+"' is not allowed.",y(n[t]));const s=n[t][2];if(!E(s))return m("InvalidAttr","Attribute '"+s+"' is an invalid name.",y(n[t]));if(Object.prototype.hasOwnProperty.call(i,s))return m("InvalidAttr","Attribute '"+s+"' is repeated.",y(n[t]));i[s]=1}return!0}function x(t,e){if(";"===t[++e])return-1;if("#"===t[e])return function(t,e){let n=/\d/;for("x"===t[e]&&(e++,n=/[\da-fA-F]/);e<t.length;e++){if(";"===t[e])return e;if(!t[e].match(n))break}return-1}(t,++e);let n=0;for(;e<t.length;e++,n++)if(!(t[e].match(/\w/)&&n<20)){if(";"===t[e])break;return-1}return e}function m(t,e,n){return{err:{code:t,msg:e,line:n.line||n,col:n.col}}}function E(t){return r(t)}function b(t){return r(t)}function N(t,e){const n=t.substring(0,e).split(/\r?\n/);return{line:n.length,col:n[n.length-1].length+1}}function y(t){return t.startIndex+t[1].length}const T={preserveOrder:!1,attributeNamePrefix:"@_",attributesGroupName:!1,textNodeName:"#text",ignoreAttributes:!0,removeNSPrefix:!1,allowBooleanAttributes:!1,parseTagValue:!0,parseAttributeValue:!1,trimValues:!0,cdataPropName:!1,numberParseOptions:{hex:!0,leadingZeros:!0,eNotation:!0},tagValueProcessor:function(t,e){return e},attributeValueProcessor:function(t,e){return e},stopNodes:[],alwaysCreateTextNode:!1,isArray:()=>!1,commentPropName:!1,unpairedTags:[],processEntities:!0,htmlEntities:!1,ignoreDeclaration:!1,ignorePiTags:!1,transformTagName:!1,transformAttributeName:!1,updateTag:function(t,e,n){return t},captureMetaData:!1,maxNestedTags:100,strictReservedNames:!0};function w(t){return"boolean"==typeof t?{enabled:t,maxEntitySize:1e4,maxExpansionDepth:10,maxTotalExpansions:1e3,maxExpandedLength:1e5,allowedTags:null,tagFilter:null}:"object"==typeof t&&null!==t?{enabled:!1!==t.enabled,maxEntitySize:t.maxEntitySize??1e4,maxExpansionDepth:t.maxExpansionDepth??10,maxTotalExpansions:t.maxTotalExpansions??1e3,maxExpandedLength:t.maxExpandedLength??1e5,allowedTags:t.allowedTags??null,tagFilter:t.tagFilter??null}:w(!0)}const v=function(t){const e=Object.assign({},T,t);return e.processEntities=w(e.processEntities),e};let O;O="function"!=typeof Symbol?"@@xmlMetadata":Symbol("XML Node Metadata");class I{constructor(t){this.tagname=t,this.child=[],this[":@"]=Object.create(null)}add(t,e){"__proto__"===t&&(t="#__proto__"),this.child.push({[t]:e})}addChild(t,e){"__proto__"===t.tagname&&(t.tagname="#__proto__"),t[":@"]&&Object.keys(t[":@"]).length>0?this.child.push({[t.tagname]:t.child,":@":t[":@"]}):this.child.push({[t.tagname]:t.child}),void 0!==e&&(this.child[this.child.length-1][O]={startIndex:e})}static getMetaDataSymbol(){return O}}class P{constructor(t){this.suppressValidationErr=!t,this.options=t}readDocType(t,e){const n=Object.create(null);if("O"!==t[e+3]||"C"!==t[e+4]||"T"!==t[e+5]||"Y"!==t[e+6]||"P"!==t[e+7]||"E"!==t[e+8])throw new Error("Invalid Tag instead of DOCTYPE");{e+=9;let i=1,s=!1,r=!1,o="";for(;e<t.length;e++)if("<"!==t[e]||r)if(">"===t[e]){if(r?"-"===t[e-1]&&"-"===t[e-2]&&(r=!1,i--):i--,0===i)break}else"["===t[e]?s=!0:o+=t[e];else{if(s&&S(t,"!ENTITY",e)){let i,s;if(e+=7,[i,s,e]=this.readEntityExp(t,e+1,this.suppressValidationErr),-1===s.indexOf("&")){const t=i.replace(/[.\-+*:]/g,"\\.");n[i]={regx:RegExp(`&${t};`,"g"),val:s}}}else if(s&&S(t,"!ELEMENT",e)){e+=8;const{index:n}=this.readElementExp(t,e+1);e=n}else if(s&&S(t,"!ATTLIST",e))e+=8;else if(s&&S(t,"!NOTATION",e)){e+=9;const{index:n}=this.readNotationExp(t,e+1,this.suppressValidationErr);e=n}else{if(!S(t,"!--",e))throw new Error("Invalid DOCTYPE");r=!0}i++,o=""}if(0!==i)throw new Error("Unclosed DOCTYPE")}return{entities:n,i:e}}readEntityExp(t,e){e=A(t,e);let n="";for(;e<t.length&&!/\s/.test(t[e])&&'"'!==t[e]&&"'"!==t[e];)n+=t[e],e++;if(C(n),e=A(t,e),!this.suppressValidationErr){if("SYSTEM"===t.substring(e,e+6).toUpperCase())throw new Error("External entities are not supported");if("%"===t[e])throw new Error("Parameter entities are not supported")}let i="";if([e,i]=this.readIdentifierVal(t,e,"entity"),!1!==this.options.enabled&&this.options.maxEntitySize&&i.length>this.options.maxEntitySize)throw new Error(`Entity "${n}" size (${i.length}) exceeds maximum allowed size (${this.options.maxEntitySize})`);return[n,i,--e]}readNotationExp(t,e){e=A(t,e);let n="";for(;e<t.length&&!/\s/.test(t[e]);)n+=t[e],e++;!this.suppressValidationErr&&C(n),e=A(t,e);const i=t.substring(e,e+6).toUpperCase();if(!this.suppressValidationErr&&"SYSTEM"!==i&&"PUBLIC"!==i)throw new Error(`Expected SYSTEM or PUBLIC, found "${i}"`);e+=i.length,e=A(t,e);let s=null,r=null;if("PUBLIC"===i)[e,s]=this.readIdentifierVal(t,e,"publicIdentifier"),'"'!==t[e=A(t,e)]&&"'"!==t[e]||([e,r]=this.readIdentifierVal(t,e,"systemIdentifier"));else if("SYSTEM"===i&&([e,r]=this.readIdentifierVal(t,e,"systemIdentifier"),!this.suppressValidationErr&&!r))throw new Error("Missing mandatory system identifier for SYSTEM notation");return{notationName:n,publicIdentifier:s,systemIdentifier:r,index:--e}}readIdentifierVal(t,e,n){let i="";const s=t[e];if('"'!==s&&"'"!==s)throw new Error(`Expected quoted string, found "${s}"`);for(e++;e<t.length&&t[e]!==s;)i+=t[e],e++;if(t[e]!==s)throw new Error(`Unterminated ${n} value`);return[++e,i]}readElementExp(t,e){e=A(t,e);let n="";for(;e<t.length&&!/\s/.test(t[e]);)n+=t[e],e++;if(!this.suppressValidationErr&&!r(n))throw new Error(`Invalid element name: "${n}"`);let i="";if("E"===t[e=A(t,e)]&&S(t,"MPTY",e))e+=4;else if("A"===t[e]&&S(t,"NY",e))e+=2;else if("("===t[e]){for(e++;e<t.length&&")"!==t[e];)i+=t[e],e++;if(")"!==t[e])throw new Error("Unterminated content model")}else if(!this.suppressValidationErr)throw new Error(`Invalid Element Expression, found "${t[e]}"`);return{elementName:n,contentModel:i.trim(),index:e}}readAttlistExp(t,e){e=A(t,e);let n="";for(;e<t.length&&!/\s/.test(t[e]);)n+=t[e],e++;C(n),e=A(t,e);let i="";for(;e<t.length&&!/\s/.test(t[e]);)i+=t[e],e++;if(!C(i))throw new Error(`Invalid attribute name: "${i}"`);e=A(t,e);let s="";if("NOTATION"===t.substring(e,e+8).toUpperCase()){if(s="NOTATION","("!==t[e=A(t,e+=8)])throw new Error(`Expected '(', found "${t[e]}"`);e++;let n=[];for(;e<t.length&&")"!==t[e];){let i="";for(;e<t.length&&"|"!==t[e]&&")"!==t[e];)i+=t[e],e++;if(i=i.trim(),!C(i))throw new Error(`Invalid notation name: "${i}"`);n.push(i),"|"===t[e]&&(e++,e=A(t,e))}if(")"!==t[e])throw new Error("Unterminated list of notations");e++,s+=" ("+n.join("|")+")"}else{for(;e<t.length&&!/\s/.test(t[e]);)s+=t[e],e++;const n=["CDATA","ID","IDREF","IDREFS","ENTITY","ENTITIES","NMTOKEN","NMTOKENS"];if(!this.suppressValidationErr&&!n.includes(s.toUpperCase()))throw new Error(`Invalid attribute type: "${s}"`)}e=A(t,e);let r="";return"#REQUIRED"===t.substring(e,e+8).toUpperCase()?(r="#REQUIRED",e+=8):"#IMPLIED"===t.substring(e,e+7).toUpperCase()?(r="#IMPLIED",e+=7):[e,r]=this.readIdentifierVal(t,e,"ATTLIST"),{elementName:n,attributeName:i,attributeType:s,defaultValue:r,index:e}}}const A=(t,e)=>{for(;e<t.length&&/\s/.test(t[e]);)e++;return e};function S(t,e,n){for(let i=0;i<e.length;i++)if(e[i]!==t[n+i+1])return!1;return!0}function C(t){if(r(t))return t;throw new Error(`Invalid entity name ${t}`)}const $=/^[-+]?0x[a-fA-F0-9]+$/,V=/^([\-\+])?(0*)([0-9]*(\.[0-9]*)?)$/,D={hex:!0,leadingZeros:!0,decimalPoint:".",eNotation:!0};const j=/^([-+])?(0*)(\d*(\.\d*)?[eE][-\+]?\d+)$/;class L{constructor(t){var e;if(this.options=t,this.currentNode=null,this.tagsNodeStack=[],this.docTypeEntities={},this.lastEntities={apos:{regex:/&(apos|#39|#x27);/g,val:"'"},gt:{regex:/&(gt|#62|#x3E);/g,val:">"},lt:{regex:/&(lt|#60|#x3C);/g,val:"<"},quot:{regex:/&(quot|#34|#x22);/g,val:'"'}},this.ampEntity={regex:/&(amp|#38|#x26);/g,val:"&"},this.htmlEntities={space:{regex:/&(nbsp|#160);/g,val:" "},cent:{regex:/&(cent|#162);/g,val:"¢"},pound:{regex:/&(pound|#163);/g,val:"£"},yen:{regex:/&(yen|#165);/g,val:"¥"},euro:{regex:/&(euro|#8364);/g,val:"€"},copyright:{regex:/&(copy|#169);/g,val:"©"},reg:{regex:/&(reg|#174);/g,val:"®"},inr:{regex:/&(inr|#8377);/g,val:"₹"},num_dec:{regex:/&#([0-9]{1,7});/g,val:(t,e)=>K(e,10,"&#")},num_hex:{regex:/&#x([0-9a-fA-F]{1,6});/g,val:(t,e)=>K(e,16,"&#x")}},this.addExternalEntities=F,this.parseXml=R,this.parseTextData=M,this.resolveNameSpace=k,this.buildAttributesMap=U,this.isItStopNode=X,this.replaceEntitiesValue=Y,this.readStopNodeData=q,this.saveTextToParentTag=G,this.addChild=B,this.ignoreAttributesFn="function"==typeof(e=this.options.ignoreAttributes)?e:Array.isArray(e)?t=>{for(const n of e){if("string"==typeof n&&t===n)return!0;if(n instanceof RegExp&&n.test(t))return!0}}:()=>!1,this.entityExpansionCount=0,this.currentExpandedLength=0,this.options.stopNodes&&this.options.stopNodes.length>0){this.stopNodesExact=new Set,this.stopNodesWildcard=new Set;for(let t=0;t<this.options.stopNodes.length;t++){const e=this.options.stopNodes[t];"string"==typeof e&&(e.startsWith("*.")?this.stopNodesWildcard.add(e.substring(2)):this.stopNodesExact.add(e))}}}}function F(t){const e=Object.keys(t);for(let n=0;n<e.length;n++){const i=e[n],s=i.replace(/[.\-+*:]/g,"\\.");this.lastEntities[i]={regex:new RegExp("&"+s+";","g"),val:t[i]}}}function M(t,e,n,i,s,r,o){if(void 0!==t&&(this.options.trimValues&&!i&&(t=t.trim()),t.length>0)){o||(t=this.replaceEntitiesValue(t,e,n));const i=this.options.tagValueProcessor(e,t,n,s,r);return null==i?t:typeof i!=typeof t||i!==t?i:this.options.trimValues||t.trim()===t?Z(t,this.options.parseTagValue,this.options.numberParseOptions):t}}function k(t){if(this.options.removeNSPrefix){const e=t.split(":"),n="/"===t.charAt(0)?"/":"";if("xmlns"===e[0])return"";2===e.length&&(t=n+e[1])}return t}const _=new RegExp("([^\\s=]+)\\s*(=\\s*(['\"])([\\s\\S]*?)\\3)?","gm");function U(t,e,n){if(!0!==this.options.ignoreAttributes&&"string"==typeof t){const i=s(t,_),r=i.length,o={};for(let t=0;t<r;t++){const s=this.resolveNameSpace(i[t][1]);if(this.ignoreAttributesFn(s,e))continue;let r=i[t][4],a=this.options.attributeNamePrefix+s;if(s.length)if(this.options.transformAttributeName&&(a=this.options.transformAttributeName(a)),"__proto__"===a&&(a="#__proto__"),void 0!==r){this.options.trimValues&&(r=r.trim()),r=this.replaceEntitiesValue(r,n,e);const t=this.options.attributeValueProcessor(s,r,e);o[a]=null==t?r:typeof t!=typeof r||t!==r?t:Z(r,this.options.parseAttributeValue,this.options.numberParseOptions)}else this.options.allowBooleanAttributes&&(o[a]=!0)}if(!Object.keys(o).length)return;if(this.options.attributesGroupName){const t={};return t[this.options.attributesGroupName]=o,t}return o}}const R=function(t){t=t.replace(/\r\n?/g,"\n");const e=new I("!xml");let n=e,i="",s="";this.entityExpansionCount=0,this.currentExpandedLength=0;const r=new P(this.options.processEntities);for(let o=0;o<t.length;o++)if("<"===t[o])if("/"===t[o+1]){const e=z(t,">",o,"Closing Tag is not closed.");let r=t.substring(o+2,e).trim();if(this.options.removeNSPrefix){const t=r.indexOf(":");-1!==t&&(r=r.substr(t+1))}this.options.transformTagName&&(r=this.options.transformTagName(r)),n&&(i=this.saveTextToParentTag(i,n,s));const a=s.substring(s.lastIndexOf(".")+1);if(r&&-1!==this.options.unpairedTags.indexOf(r))throw new Error(`Unpaired tag can not be used as closing tag: </${r}>`);let l=0;a&&-1!==this.options.unpairedTags.indexOf(a)?(l=s.lastIndexOf(".",s.lastIndexOf(".")-1),this.tagsNodeStack.pop()):l=s.lastIndexOf("."),s=s.substring(0,l),n=this.tagsNodeStack.pop(),i="",o=e}else if("?"===t[o+1]){let e=W(t,o,!1,"?>");if(!e)throw new Error("Pi Tag is not closed.");if(i=this.saveTextToParentTag(i,n,s),this.options.ignoreDeclaration&&"?xml"===e.tagName||this.options.ignorePiTags);else{const t=new I(e.tagName);t.add(this.options.textNodeName,""),e.tagName!==e.tagExp&&e.attrExpPresent&&(t[":@"]=this.buildAttributesMap(e.tagExp,s,e.tagName)),this.addChild(n,t,s,o)}o=e.closeIndex+1}else if("!--"===t.substr(o+1,3)){const e=z(t,"--\x3e",o+4,"Comment is not closed.");if(this.options.commentPropName){const r=t.substring(o+4,e-2);i=this.saveTextToParentTag(i,n,s),n.add(this.options.commentPropName,[{[this.options.textNodeName]:r}])}o=e}else if("!D"===t.substr(o+1,2)){const e=r.readDocType(t,o);this.docTypeEntities=e.entities,o=e.i}else if("!["===t.substr(o+1,2)){const e=z(t,"]]>",o,"CDATA is not closed.")-2,r=t.substring(o+9,e);i=this.saveTextToParentTag(i,n,s);let a=this.parseTextData(r,n.tagname,s,!0,!1,!0,!0);null==a&&(a=""),this.options.cdataPropName?n.add(this.options.cdataPropName,[{[this.options.textNodeName]:r}]):n.add(this.options.textNodeName,a),o=e+2}else{let r=W(t,o,this.options.removeNSPrefix),a=r.tagName;const l=r.rawTagName;let u=r.tagExp,d=r.attrExpPresent,h=r.closeIndex;if(this.options.transformTagName){const t=this.options.transformTagName(a);u===a&&(u=t),a=t}if(this.options.strictReservedNames&&(a===this.options.commentPropName||a===this.options.cdataPropName))throw new Error(`Invalid tag name: ${a}`);n&&i&&"!xml"!==n.tagname&&(i=this.saveTextToParentTag(i,n,s,!1));const p=n;p&&-1!==this.options.unpairedTags.indexOf(p.tagname)&&(n=this.tagsNodeStack.pop(),s=s.substring(0,s.lastIndexOf("."))),a!==e.tagname&&(s+=s?"."+a:a);const c=o;if(this.isItStopNode(this.stopNodesExact,this.stopNodesWildcard,s,a)){let e="";if(u.length>0&&u.lastIndexOf("/")===u.length-1)"/"===a[a.length-1]?(a=a.substr(0,a.length-1),s=s.substr(0,s.length-1),u=a):u=u.substr(0,u.length-1),o=r.closeIndex;else if(-1!==this.options.unpairedTags.indexOf(a))o=r.closeIndex;else{const n=this.readStopNodeData(t,l,h+1);if(!n)throw new Error(`Unexpected end of ${l}`);o=n.i,e=n.tagContent}const i=new I(a);a!==u&&d&&(i[":@"]=this.buildAttributesMap(u,s,a)),e&&(e=this.parseTextData(e,a,s,!0,d,!0,!0)),s=s.substr(0,s.lastIndexOf(".")),i.add(this.options.textNodeName,e),this.addChild(n,i,s,c)}else{if(u.length>0&&u.lastIndexOf("/")===u.length-1){if("/"===a[a.length-1]?(a=a.substr(0,a.length-1),s=s.substr(0,s.length-1),u=a):u=u.substr(0,u.length-1),this.options.transformTagName){const t=this.options.transformTagName(a);u===a&&(u=t),a=t}const t=new I(a);a!==u&&d&&(t[":@"]=this.buildAttributesMap(u,s,a)),this.addChild(n,t,s,c),s=s.substr(0,s.lastIndexOf("."))}else{if(-1!==this.options.unpairedTags.indexOf(a)){const t=new I(a);a!==u&&d&&(t[":@"]=this.buildAttributesMap(u,s)),this.addChild(n,t,s,c),s=s.substr(0,s.lastIndexOf(".")),o=r.closeIndex;continue}{const t=new I(a);if(this.tagsNodeStack.length>this.options.maxNestedTags)throw new Error("Maximum nested tags exceeded");this.tagsNodeStack.push(n),a!==u&&d&&(t[":@"]=this.buildAttributesMap(u,s,a)),this.addChild(n,t,s,c),n=t}}i="",o=h}}else i+=t[o];return e.child};function B(t,e,n,i){this.options.captureMetaData||(i=void 0);const s=this.options.updateTag(e.tagname,n,e[":@"]);!1===s||("string"==typeof s?(e.tagname=s,t.addChild(e,i)):t.addChild(e,i))}const Y=function(t,e,n){if(-1===t.indexOf("&"))return t;const i=this.options.processEntities;if(!i.enabled)return t;if(i.allowedTags&&!i.allowedTags.includes(e))return t;if(i.tagFilter&&!i.tagFilter(e,n))return t;for(let e in this.docTypeEntities){const n=this.docTypeEntities[e],s=t.match(n.regx);if(s){if(this.entityExpansionCount+=s.length,i.maxTotalExpansions&&this.entityExpansionCount>i.maxTotalExpansions)throw new Error(`Entity expansion limit exceeded: ${this.entityExpansionCount} > ${i.maxTotalExpansions}`);const e=t.length;if(t=t.replace(n.regx,n.val),i.maxExpandedLength&&(this.currentExpandedLength+=t.length-e,this.currentExpandedLength>i.maxExpandedLength))throw new Error(`Total expanded content size exceeded: ${this.currentExpandedLength} > ${i.maxExpandedLength}`)}}if(-1===t.indexOf("&"))return t;for(let e in this.lastEntities){const n=this.lastEntities[e];t=t.replace(n.regex,n.val)}if(-1===t.indexOf("&"))return t;if(this.options.htmlEntities)for(let e in this.htmlEntities){const n=this.htmlEntities[e];t=t.replace(n.regex,n.val)}return t.replace(this.ampEntity.regex,this.ampEntity.val)};function G(t,e,n,i){return t&&(void 0===i&&(i=0===e.child.length),void 0!==(t=this.parseTextData(t,e.tagname,n,!1,!!e[":@"]&&0!==Object.keys(e[":@"]).length,i))&&""!==t&&e.add(this.options.textNodeName,t),t=""),t}function X(t,e,n,i){return!(!e||!e.has(i))||!(!t||!t.has(n))}function z(t,e,n,i){const s=t.indexOf(e,n);if(-1===s)throw new Error(i);return s+e.length-1}function W(t,e,n,i=">"){const s=function(t,e,n=">"){let i,s="";for(let r=e;r<t.length;r++){let e=t[r];if(i)e===i&&(i="");else if('"'===e||"'"===e)i=e;else if(e===n[0]){if(!n[1])return{data:s,index:r};if(t[r+1]===n[1])return{data:s,index:r}}else"\t"===e&&(e=" ");s+=e}}(t,e+1,i);if(!s)return;let r=s.data;const o=s.index,a=r.search(/\s/);let l=r,u=!0;-1!==a&&(l=r.substring(0,a),r=r.substring(a+1).trimStart());const d=l;if(n){const t=l.indexOf(":");-1!==t&&(l=l.substr(t+1),u=l!==s.data.substr(t+1))}return{tagName:l,tagExp:r,closeIndex:o,attrExpPresent:u,rawTagName:d}}function q(t,e,n){const i=n;let s=1;for(;n<t.length;n++)if("<"===t[n])if("/"===t[n+1]){const r=z(t,">",n,`${e} is not closed`);if(t.substring(n+2,r).trim()===e&&(s--,0===s))return{tagContent:t.substring(i,n),i:r};n=r}else if("?"===t[n+1])n=z(t,"?>",n+1,"StopNode is not closed.");else if("!--"===t.substr(n+1,3))n=z(t,"--\x3e",n+3,"StopNode is not closed.");else if("!["===t.substr(n+1,2))n=z(t,"]]>",n,"StopNode is not closed.")-2;else{const i=W(t,n,">");i&&((i&&i.tagName)===e&&"/"!==i.tagExp[i.tagExp.length-1]&&s++,n=i.closeIndex)}}function Z(t,e,n){if(e&&"string"==typeof t){const e=t.trim();return"true"===e||"false"!==e&&function(t,e={}){if(e=Object.assign({},D,e),!t||"string"!=typeof t)return t;let n=t.trim();if(void 0!==e.skipLike&&e.skipLike.test(n))return t;if("0"===t)return 0;if(e.hex&&$.test(n))return function(t){if(parseInt)return parseInt(t,16);if(Number.parseInt)return Number.parseInt(t,16);if(window&&window.parseInt)return window.parseInt(t,16);throw new Error("parseInt, Number.parseInt, window.parseInt are not supported")}(n);if(n.includes("e")||n.includes("E"))return function(t,e,n){if(!n.eNotation)return t;const i=e.match(j);if(i){let s=i[1]||"";const r=-1===i[3].indexOf("e")?"E":"e",o=i[2],a=s?t[o.length+1]===r:t[o.length]===r;return o.length>1&&a?t:1!==o.length||!i[3].startsWith(`.${r}`)&&i[3][0]!==r?n.leadingZeros&&!a?(e=(i[1]||"")+i[3],Number(e)):t:Number(e)}return t}(t,n,e);{const s=V.exec(n);if(s){const r=s[1]||"",o=s[2];let a=(i=s[3])&&-1!==i.indexOf(".")?("."===(i=i.replace(/0+$/,""))?i="0":"."===i[0]?i="0"+i:"."===i[i.length-1]&&(i=i.substring(0,i.length-1)),i):i;const l=r?"."===t[o.length+1]:"."===t[o.length];if(!e.leadingZeros&&(o.length>1||1===o.length&&!l))return t;{const i=Number(n),s=String(i);if(0===i)return i;if(-1!==s.search(/[eE]/))return e.eNotation?i:t;if(-1!==n.indexOf("."))return"0"===s||s===a||s===`${r}${a}`?i:t;let l=o?a:n;return o?l===s||r+l===s?i:t:l===s||l===r+s?i:t}}return t}var i}(t,n)}return void 0!==t?t:""}function K(t,e,n){const i=Number.parseInt(t,e);return i>=0&&i<=1114111?String.fromCodePoint(i):n+t+";"}const Q=I.getMetaDataSymbol();function J(t,e){return H(t,e)}function H(t,e,n){let i;const s={};for(let r=0;r<t.length;r++){const o=t[r],a=tt(o);let l="";if(l=void 0===n?a:n+"."+a,a===e.textNodeName)void 0===i?i=o[a]:i+=""+o[a];else{if(void 0===a)continue;if(o[a]){let t=H(o[a],e,l);const n=nt(t,e);o[":@"]?et(t,o[":@"],l,e):1!==Object.keys(t).length||void 0===t[e.textNodeName]||e.alwaysCreateTextNode?0===Object.keys(t).length&&(e.alwaysCreateTextNode?t[e.textNodeName]="":t=""):t=t[e.textNodeName],void 0!==o[Q]&&"object"==typeof t&&null!==t&&(t[Q]=o[Q]),void 0!==s[a]&&Object.prototype.hasOwnProperty.call(s,a)?(Array.isArray(s[a])||(s[a]=[s[a]]),s[a].push(t)):e.isArray(a,l,n)?s[a]=[t]:s[a]=t}}}return"string"==typeof i?i.length>0&&(s[e.textNodeName]=i):void 0!==i&&(s[e.textNodeName]=i),s}function tt(t){const e=Object.keys(t);for(let t=0;t<e.length;t++){const n=e[t];if(":@"!==n)return n}}function et(t,e,n,i){if(e){const s=Object.keys(e),r=s.length;for(let o=0;o<r;o++){const r=s[o];i.isArray(r,n+"."+r,!0,!0)?t[r]=[e[r]]:t[r]=e[r]}}}function nt(t,e){const{textNodeName:n}=e,i=Object.keys(t).length;return 0===i||!(1!==i||!t[n]&&"boolean"!=typeof t[n]&&0!==t[n])}class it{constructor(t){this.externalEntities={},this.options=v(t)}parse(t,e){if("string"!=typeof t&&t.toString)t=t.toString();else if("string"!=typeof t)throw new Error("XML data is accepted in String or Bytes[] form.");if(e){!0===e&&(e={});const n=a(t,e);if(!0!==n)throw Error(`${n.err.msg}:${n.err.line}:${n.err.col}`)}const n=new L(this.options);n.addExternalEntities(this.externalEntities);const i=n.parseXml(t);return this.options.preserveOrder||void 0===i?i:J(i,this.options)}addEntity(t,e){if(-1!==e.indexOf("&"))throw new Error("Entity value can't have '&'");if(-1!==t.indexOf("&")||-1!==t.indexOf(";"))throw new Error("An entity must be set without '&' and ';'. Eg. use '#xD' for '&#xD;'");if("&"===e)throw new Error("An entity with value '&' is not permitted");this.externalEntities[t]=e}static getMetaDataSymbol(){return I.getMetaDataSymbol()}}function st(t,e){let n="";return e.format&&e.indentBy.length>0&&(n="\n"),rt(t,e,"",n)}function rt(t,e,n,i){let s="",r=!1;if(!Array.isArray(t)){if(null!=t){let n=t.toString();return n=ut(n,e),n}return""}for(let o=0;o<t.length;o++){const a=t[o],l=ot(a);if(void 0===l)continue;let u="";if(u=0===n.length?l:`${n}.${l}`,l===e.textNodeName){let t=a[l];lt(u,e)||(t=e.tagValueProcessor(l,t),t=ut(t,e)),r&&(s+=i),s+=t,r=!1;continue}if(l===e.cdataPropName){r&&(s+=i),s+=`<![CDATA[${a[l][0][e.textNodeName]}]]>`,r=!1;continue}if(l===e.commentPropName){s+=i+`\x3c!--${a[l][0][e.textNodeName]}--\x3e`,r=!0;continue}if("?"===l[0]){const t=at(a[":@"],e),n="?xml"===l?"":i;let o=a[l][0][e.textNodeName];o=0!==o.length?" "+o:"",s+=n+`<${l}${o}${t}?>`,r=!0;continue}let d=i;""!==d&&(d+=e.indentBy);const h=i+`<${l}${at(a[":@"],e)}`,p=rt(a[l],e,u,d);-1!==e.unpairedTags.indexOf(l)?e.suppressUnpairedNode?s+=h+">":s+=h+"/>":p&&0!==p.length||!e.suppressEmptyNode?p&&p.endsWith(">")?s+=h+`>${p}${i}</${l}>`:(s+=h+">",p&&""!==i&&(p.includes("/>")||p.includes("</"))?s+=i+e.indentBy+p+i:s+=p,s+=`</${l}>`):s+=h+"/>",r=!0}return s}function ot(t){const e=Object.keys(t);for(let n=0;n<e.length;n++){const i=e[n];if(Object.prototype.hasOwnProperty.call(t,i)&&":@"!==i)return i}}function at(t,e){let n="";if(t&&!e.ignoreAttributes)for(let i in t){if(!Object.prototype.hasOwnProperty.call(t,i))continue;let s=e.attributeValueProcessor(i,t[i]);s=ut(s,e),!0===s&&e.suppressBooleanAttributes?n+=` ${i.substr(e.attributeNamePrefix.length)}`:n+=` ${i.substr(e.attributeNamePrefix.length)}="${s}"`}return n}function lt(t,e){let n=(t=t.substr(0,t.length-e.textNodeName.length-1)).substr(t.lastIndexOf(".")+1);for(let i in e.stopNodes)if(e.stopNodes[i]===t||e.stopNodes[i]==="*."+n)return!0;return!1}function ut(t,e){if(t&&t.length>0&&e.processEntities)for(let n=0;n<e.entities.length;n++){const i=e.entities[n];t=t.replace(i.regex,i.val)}return t}const dt={attributeNamePrefix:"@_",attributesGroupName:!1,textNodeName:"#text",ignoreAttributes:!0,cdataPropName:!1,format:!1,indentBy:"  ",suppressEmptyNode:!1,suppressUnpairedNode:!0,suppressBooleanAttributes:!0,tagValueProcessor:function(t,e){return e},attributeValueProcessor:function(t,e){return e},preserveOrder:!1,commentPropName:!1,unpairedTags:[],entities:[{regex:new RegExp("&","g"),val:"&amp;"},{regex:new RegExp(">","g"),val:"&gt;"},{regex:new RegExp("<","g"),val:"&lt;"},{regex:new RegExp("'","g"),val:"&apos;"},{regex:new RegExp('"',"g"),val:"&quot;"}],processEntities:!0,stopNodes:[],oneListGroup:!1};function ht(t){var e;this.options=Object.assign({},dt,t),!0===this.options.ignoreAttributes||this.options.attributesGroupName?this.isAttribute=function(){return!1}:(this.ignoreAttributesFn="function"==typeof(e=this.options.ignoreAttributes)?e:Array.isArray(e)?t=>{for(const n of e){if("string"==typeof n&&t===n)return!0;if(n instanceof RegExp&&n.test(t))return!0}}:()=>!1,this.attrPrefixLen=this.options.attributeNamePrefix.length,this.isAttribute=ft),this.processTextOrObjNode=pt,this.options.format?(this.indentate=ct,this.tagEndChar=">\n",this.newLine="\n"):(this.indentate=function(){return""},this.tagEndChar=">",this.newLine="")}function pt(t,e,n,i){const s=this.j2x(t,n+1,i.concat(e));return void 0!==t[this.options.textNodeName]&&1===Object.keys(t).length?this.buildTextValNode(t[this.options.textNodeName],e,s.attrStr,n):this.buildObjectNode(s.val,e,s.attrStr,n)}function ct(t){return this.options.indentBy.repeat(t)}function ft(t){return!(!t.startsWith(this.options.attributeNamePrefix)||t===this.options.textNodeName)&&t.substr(this.attrPrefixLen)}ht.prototype.build=function(t){return this.options.preserveOrder?st(t,this.options):(Array.isArray(t)&&this.options.arrayNodeName&&this.options.arrayNodeName.length>1&&(t={[this.options.arrayNodeName]:t}),this.j2x(t,0,[]).val)},ht.prototype.j2x=function(t,e,n){let i="",s="";const r=n.join(".");for(let o in t)if(Object.prototype.hasOwnProperty.call(t,o))if(void 0===t[o])this.isAttribute(o)&&(s+="");else if(null===t[o])this.isAttribute(o)||o===this.options.cdataPropName?s+="":"?"===o[0]?s+=this.indentate(e)+"<"+o+"?"+this.tagEndChar:s+=this.indentate(e)+"<"+o+"/"+this.tagEndChar;else if(t[o]instanceof Date)s+=this.buildTextValNode(t[o],o,"",e);else if("object"!=typeof t[o]){const n=this.isAttribute(o);if(n&&!this.ignoreAttributesFn(n,r))i+=this.buildAttrPairStr(n,""+t[o]);else if(!n)if(o===this.options.textNodeName){let e=this.options.tagValueProcessor(o,""+t[o]);s+=this.replaceEntitiesValue(e)}else s+=this.buildTextValNode(t[o],o,"",e)}else if(Array.isArray(t[o])){const i=t[o].length;let r="",a="";for(let l=0;l<i;l++){const i=t[o][l];if(void 0===i);else if(null===i)"?"===o[0]?s+=this.indentate(e)+"<"+o+"?"+this.tagEndChar:s+=this.indentate(e)+"<"+o+"/"+this.tagEndChar;else if("object"==typeof i)if(this.options.oneListGroup){const t=this.j2x(i,e+1,n.concat(o));r+=t.val,this.options.attributesGroupName&&i.hasOwnProperty(this.options.attributesGroupName)&&(a+=t.attrStr)}else r+=this.processTextOrObjNode(i,o,e,n);else if(this.options.oneListGroup){let t=this.options.tagValueProcessor(o,i);t=this.replaceEntitiesValue(t),r+=t}else r+=this.buildTextValNode(i,o,"",e)}this.options.oneListGroup&&(r=this.buildObjectNode(r,o,a,e)),s+=r}else if(this.options.attributesGroupName&&o===this.options.attributesGroupName){const e=Object.keys(t[o]),n=e.length;for(let s=0;s<n;s++)i+=this.buildAttrPairStr(e[s],""+t[o][e[s]])}else s+=this.processTextOrObjNode(t[o],o,e,n);return{attrStr:i,val:s}},ht.prototype.buildAttrPairStr=function(t,e){return e=this.options.attributeValueProcessor(t,""+e),e=this.replaceEntitiesValue(e),this.options.suppressBooleanAttributes&&"true"===e?" "+t:" "+t+'="'+e+'"'},ht.prototype.buildObjectNode=function(t,e,n,i){if(""===t)return"?"===e[0]?this.indentate(i)+"<"+e+n+"?"+this.tagEndChar:this.indentate(i)+"<"+e+n+this.closeTag(e)+this.tagEndChar;{let s="</"+e+this.tagEndChar,r="";return"?"===e[0]&&(r="?",s=""),!n&&""!==n||-1!==t.indexOf("<")?!1!==this.options.commentPropName&&e===this.options.commentPropName&&0===r.length?this.indentate(i)+`\x3c!--${t}--\x3e`+this.newLine:this.indentate(i)+"<"+e+n+r+this.tagEndChar+t+this.indentate(i)+s:this.indentate(i)+"<"+e+n+r+">"+t+s}},ht.prototype.closeTag=function(t){let e="";return-1!==this.options.unpairedTags.indexOf(t)?this.options.suppressUnpairedNode||(e="/"):e=this.options.suppressEmptyNode?"/":`></${t}`,e},ht.prototype.buildTextValNode=function(t,e,n,i){if(!1!==this.options.cdataPropName&&e===this.options.cdataPropName)return this.indentate(i)+`<![CDATA[${t}]]>`+this.newLine;if(!1!==this.options.commentPropName&&e===this.options.commentPropName)return this.indentate(i)+`\x3c!--${t}--\x3e`+this.newLine;if("?"===e[0])return this.indentate(i)+"<"+e+n+"?"+this.tagEndChar;{let s=this.options.tagValueProcessor(e,t);return s=this.replaceEntitiesValue(s),""===s?this.indentate(i)+"<"+e+n+this.closeTag(e)+this.tagEndChar:this.indentate(i)+"<"+e+n+">"+s+"</"+e+this.tagEndChar}},ht.prototype.replaceEntitiesValue=function(t){if(t&&t.length>0&&this.options.processEntities)for(let e=0;e<this.options.entities.length;e++){const n=this.options.entities[e];t=t.replace(n.regex,n.val)}return t};const gt=ht,xt={validate:a};module.exports=e})();
+
+/***/ }),
+
 /***/ 35458:
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"7.5.0","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=14"},"repository":"googleapis/nodejs-storage","main":"./build/cjs/src/index.js","types":"./build/cjs/src/index.d.ts","type":"module","exports":{".":{"import":{"types":"./build/esm/src/index.d.ts","default":"./build/esm/src/index.js"},"require":{"types":"./build/cjs/src/index.d.ts","default":"./build/cjs/src/index.js"}}},"files":["build/cjs/src","build/cjs/package.json","!build/cjs/src/**/*.map","build/esm/src","!build/esm/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"all-test":"npm test && npm run system-test && npm run samples-test","benchwrapper":"node bin/benchwrapper.js","check":"gts check","clean":"rm -rf build/","compile:cjs":"tsc -p ./tsconfig.cjs.json","compile:esm":"tsc -p .","compile":"npm run compile:cjs && npm run compile:esm","conformance-test":"mocha --parallel build/cjs/conformance-test/ --require build/cjs/conformance-test/globalHooks.js","docs-test":"linkinator docs","docs":"jsdoc -c .jsdoc.json","fix":"gts fix","lint":"gts check","postcompile":"cp ./src/package-json-helper.cjs ./build/cjs/src && cp ./src/package-json-helper.cjs ./build/esm/src","postcompile:cjs":"babel --plugins gapic-tools/build/src/replaceImportMetaUrl,gapic-tools/build/src/toggleESMFlagVariable build/cjs/src/util.js -o build/cjs/src/util.js && cp internal-tooling/helpers/package.cjs.json build/cjs/package.json","precompile":"rm -rf build/","preconformance-test":"npm run compile:cjs -- --sourceMap","predocs-test":"npm run docs","predocs":"npm run compile:cjs -- --sourceMap","prelint":"cd samples; npm link ../; npm install","prepare":"npm run compile","presystem-test:esm":"npm run compile:esm","presystem-test":"npm run compile -- --sourceMap","pretest":"npm run compile -- --sourceMap","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","system-test:esm":"mocha build/esm/system-test --timeout 600000 --exit","system-test":"mocha build/cjs/system-test --timeout 600000 --exit","test":"c8 mocha build/cjs/test"},"dependencies":{"@google-cloud/paginator":"^5.0.0","@google-cloud/projectify":"^4.0.0","@google-cloud/promisify":"^4.0.0","abort-controller":"^3.0.0","async-retry":"^1.3.3","compressible":"^2.0.12","duplexify":"^4.0.0","ent":"^2.2.0","fast-xml-parser":"^4.3.0","gaxios":"^6.0.2","google-auth-library":"^9.0.0","mime":"^3.0.0","mime-types":"^2.0.8","p-limit":"^3.0.1","retry-request":"^7.0.0","teeny-request":"^9.0.0","uuid":"^8.0.0"},"devDependencies":{"@babel/cli":"^7.22.10","@babel/core":"^7.22.11","@google-cloud/pubsub":"^4.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.7.0","@types/async-retry":"^1.4.3","@types/compressible":"^2.0.0","@types/ent":"^2.2.1","@types/mime":"^3.0.0","@types/mime-types":"^2.1.0","@types/mocha":"^9.1.1","@types/mockery":"^1.4.29","@types/node":"^20.4.4","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/request":"^2.48.4","@types/sinon":"^10.0.15","@types/tmp":"0.2.5","@types/uuid":"^8.0.0","@types/yargs":"^17.0.10","c8":"^8.0.0","form-data":"^4.0.0","gapic-tools":"^0.2.0","gts":"^5.0.0","jsdoc":"^4.0.0","jsdoc-fresh":"^3.0.0","jsdoc-region-tag":"^3.0.0","linkinator":"^4.0.0","mocha":"^9.2.2","mockery":"^2.1.0","nock":"~13.3.0","node-fetch":"^2.6.7","pack-n-play":"^2.0.0","proxyquire":"^2.1.3","sinon":"^17.0.0","tmp":"^0.2.0","typescript":"^5.1.6","yargs":"^17.3.1"}}');
+module.exports = JSON.parse('{"name":"@google-cloud/storage","description":"Cloud Storage Client Library for Node.js","version":"7.19.0","license":"Apache-2.0","author":"Google Inc.","engines":{"node":">=14"},"repository":"googleapis/nodejs-storage","main":"./build/cjs/src/index.js","types":"./build/cjs/src/index.d.ts","type":"module","exports":{".":{"import":{"types":"./build/esm/src/index.d.ts","default":"./build/esm/src/index.js"},"require":{"types":"./build/cjs/src/index.d.ts","default":"./build/cjs/src/index.js"}}},"files":["build/cjs/src","build/cjs/package.json","!build/cjs/src/**/*.map","build/esm/src","!build/esm/src/**/*.map"],"keywords":["google apis client","google api client","google apis","google api","google","google cloud platform","google cloud","cloud","google storage","storage"],"scripts":{"all-test":"npm test && npm run system-test && npm run samples-test","benchwrapper":"node bin/benchwrapper.js","check":"gts check","clean":"rm -rf build/","compile:cjs":"tsc -p ./tsconfig.cjs.json","compile:esm":"tsc -p .","compile":"npm run compile:cjs && npm run compile:esm","conformance-test":"mocha --parallel build/cjs/conformance-test/ --require build/cjs/conformance-test/globalHooks.js","docs-test":"linkinator docs","docs":"jsdoc -c .jsdoc.json","fix":"gts fix","lint":"gts check","postcompile":"cp ./src/package-json-helper.cjs ./build/cjs/src && cp ./src/package-json-helper.cjs ./build/esm/src","postcompile:cjs":"babel --plugins gapic-tools/build/src/replaceImportMetaUrl,gapic-tools/build/src/toggleESMFlagVariable build/cjs/src/util.js -o build/cjs/src/util.js && cp internal-tooling/helpers/package.cjs.json build/cjs/package.json","precompile":"rm -rf build/","preconformance-test":"npm run compile:cjs -- --sourceMap","predocs-test":"npm run docs","predocs":"npm run compile:cjs -- --sourceMap","prelint":"cd samples; npm link ../; npm install","prepare":"npm run compile","presystem-test:esm":"npm run compile:esm","presystem-test":"npm run compile -- --sourceMap","pretest":"npm run compile -- --sourceMap","samples-test":"npm link && cd samples/ && npm link ../ && npm test && cd ../","system-test:esm":"mocha build/esm/system-test --timeout 600000 --exit","system-test":"mocha build/cjs/system-test --timeout 600000 --exit","test":"c8 mocha build/cjs/test"},"dependencies":{"@google-cloud/paginator":"^5.0.0","@google-cloud/projectify":"^4.0.0","@google-cloud/promisify":"<4.1.0","abort-controller":"^3.0.0","async-retry":"^1.3.3","duplexify":"^4.1.3","fast-xml-parser":"^5.3.4","gaxios":"^6.0.2","google-auth-library":"^9.6.3","html-entities":"^2.5.2","mime":"^3.0.0","p-limit":"^3.0.1","retry-request":"^7.0.0","teeny-request":"^9.0.0","uuid":"^8.0.0"},"devDependencies":{"@babel/cli":"^7.22.10","@babel/core":"^7.22.11","@google-cloud/pubsub":"^4.0.0","@grpc/grpc-js":"^1.0.3","@grpc/proto-loader":"^0.8.0","@types/async-retry":"^1.4.3","@types/duplexify":"^3.6.4","@types/mime":"^3.0.0","@types/mocha":"^9.1.1","@types/mockery":"^1.4.29","@types/node":"^24.0.0","@types/node-fetch":"^2.1.3","@types/proxyquire":"^1.3.28","@types/request":"^2.48.4","@types/sinon":"^17.0.0","@types/tmp":"0.2.6","@types/uuid":"^8.0.0","@types/yargs":"^17.0.10","c8":"^9.0.0","form-data":"^4.0.4","gapic-tools":"^0.4.0","gts":"^5.0.0","jsdoc":"^4.0.4","jsdoc-fresh":"^5.0.0","jsdoc-region-tag":"^4.0.0","linkinator":"^3.0.0","mocha":"^9.2.2","mockery":"^2.1.0","nock":"~13.5.0","node-fetch":"^2.6.7","pack-n-play":"^2.0.0","proxyquire":"^2.1.3","sinon":"^18.0.0","nise":"6.0.0","path-to-regexp":"6.3.0","tmp":"^0.2.0","typescript":"^5.1.6","yargs":"^17.3.1"}}');
 
 /***/ }),
 
-/***/ 12077:
+/***/ 6318:
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"Aacute;":"Á","Aacute":"Á","aacute;":"á","aacute":"á","Abreve;":"Ă","abreve;":"ă","ac;":"∾","acd;":"∿","acE;":"∾̳","Acirc;":"Â","Acirc":"Â","acirc;":"â","acirc":"â","acute;":"´","acute":"´","Acy;":"А","acy;":"а","AElig;":"Æ","AElig":"Æ","aelig;":"æ","aelig":"æ","af;":"⁡","Afr;":"𝔄","afr;":"𝔞","Agrave;":"À","Agrave":"À","agrave;":"à","agrave":"à","alefsym;":"ℵ","aleph;":"ℵ","Alpha;":"Α","alpha;":"α","Amacr;":"Ā","amacr;":"ā","amalg;":"⨿","AMP;":"&","AMP":"&","amp;":"&","amp":"&","And;":"⩓","and;":"∧","andand;":"⩕","andd;":"⩜","andslope;":"⩘","andv;":"⩚","ang;":"∠","ange;":"⦤","angle;":"∠","angmsd;":"∡","angmsdaa;":"⦨","angmsdab;":"⦩","angmsdac;":"⦪","angmsdad;":"⦫","angmsdae;":"⦬","angmsdaf;":"⦭","angmsdag;":"⦮","angmsdah;":"⦯","angrt;":"∟","angrtvb;":"⊾","angrtvbd;":"⦝","angsph;":"∢","angst;":"Å","angzarr;":"⍼","Aogon;":"Ą","aogon;":"ą","Aopf;":"𝔸","aopf;":"𝕒","ap;":"≈","apacir;":"⩯","apE;":"⩰","ape;":"≊","apid;":"≋","apos;":"\'","ApplyFunction;":"⁡","approx;":"≈","approxeq;":"≊","Aring;":"Å","Aring":"Å","aring;":"å","aring":"å","Ascr;":"𝒜","ascr;":"𝒶","Assign;":"≔","ast;":"*","asymp;":"≈","asympeq;":"≍","Atilde;":"Ã","Atilde":"Ã","atilde;":"ã","atilde":"ã","Auml;":"Ä","Auml":"Ä","auml;":"ä","auml":"ä","awconint;":"∳","awint;":"⨑","backcong;":"≌","backepsilon;":"϶","backprime;":"‵","backsim;":"∽","backsimeq;":"⋍","Backslash;":"∖","Barv;":"⫧","barvee;":"⊽","Barwed;":"⌆","barwed;":"⌅","barwedge;":"⌅","bbrk;":"⎵","bbrktbrk;":"⎶","bcong;":"≌","Bcy;":"Б","bcy;":"б","bdquo;":"„","becaus;":"∵","Because;":"∵","because;":"∵","bemptyv;":"⦰","bepsi;":"϶","bernou;":"ℬ","Bernoullis;":"ℬ","Beta;":"Β","beta;":"β","beth;":"ℶ","between;":"≬","Bfr;":"𝔅","bfr;":"𝔟","bigcap;":"⋂","bigcirc;":"◯","bigcup;":"⋃","bigodot;":"⨀","bigoplus;":"⨁","bigotimes;":"⨂","bigsqcup;":"⨆","bigstar;":"★","bigtriangledown;":"▽","bigtriangleup;":"△","biguplus;":"⨄","bigvee;":"⋁","bigwedge;":"⋀","bkarow;":"⤍","blacklozenge;":"⧫","blacksquare;":"▪","blacktriangle;":"▴","blacktriangledown;":"▾","blacktriangleleft;":"◂","blacktriangleright;":"▸","blank;":"␣","blk12;":"▒","blk14;":"░","blk34;":"▓","block;":"█","bne;":"=⃥","bnequiv;":"≡⃥","bNot;":"⫭","bnot;":"⌐","Bopf;":"𝔹","bopf;":"𝕓","bot;":"⊥","bottom;":"⊥","bowtie;":"⋈","boxbox;":"⧉","boxDL;":"╗","boxDl;":"╖","boxdL;":"╕","boxdl;":"┐","boxDR;":"╔","boxDr;":"╓","boxdR;":"╒","boxdr;":"┌","boxH;":"═","boxh;":"─","boxHD;":"╦","boxHd;":"╤","boxhD;":"╥","boxhd;":"┬","boxHU;":"╩","boxHu;":"╧","boxhU;":"╨","boxhu;":"┴","boxminus;":"⊟","boxplus;":"⊞","boxtimes;":"⊠","boxUL;":"╝","boxUl;":"╜","boxuL;":"╛","boxul;":"┘","boxUR;":"╚","boxUr;":"╙","boxuR;":"╘","boxur;":"└","boxV;":"║","boxv;":"│","boxVH;":"╬","boxVh;":"╫","boxvH;":"╪","boxvh;":"┼","boxVL;":"╣","boxVl;":"╢","boxvL;":"╡","boxvl;":"┤","boxVR;":"╠","boxVr;":"╟","boxvR;":"╞","boxvr;":"├","bprime;":"‵","Breve;":"˘","breve;":"˘","brvbar;":"¦","brvbar":"¦","Bscr;":"ℬ","bscr;":"𝒷","bsemi;":"⁏","bsim;":"∽","bsime;":"⋍","bsol;":"\\\\","bsolb;":"⧅","bsolhsub;":"⟈","bull;":"•","bullet;":"•","bump;":"≎","bumpE;":"⪮","bumpe;":"≏","Bumpeq;":"≎","bumpeq;":"≏","Cacute;":"Ć","cacute;":"ć","Cap;":"⋒","cap;":"∩","capand;":"⩄","capbrcup;":"⩉","capcap;":"⩋","capcup;":"⩇","capdot;":"⩀","CapitalDifferentialD;":"ⅅ","caps;":"∩︀","caret;":"⁁","caron;":"ˇ","Cayleys;":"ℭ","ccaps;":"⩍","Ccaron;":"Č","ccaron;":"č","Ccedil;":"Ç","Ccedil":"Ç","ccedil;":"ç","ccedil":"ç","Ccirc;":"Ĉ","ccirc;":"ĉ","Cconint;":"∰","ccups;":"⩌","ccupssm;":"⩐","Cdot;":"Ċ","cdot;":"ċ","cedil;":"¸","cedil":"¸","Cedilla;":"¸","cemptyv;":"⦲","cent;":"¢","cent":"¢","CenterDot;":"·","centerdot;":"·","Cfr;":"ℭ","cfr;":"𝔠","CHcy;":"Ч","chcy;":"ч","check;":"✓","checkmark;":"✓","Chi;":"Χ","chi;":"χ","cir;":"○","circ;":"ˆ","circeq;":"≗","circlearrowleft;":"↺","circlearrowright;":"↻","circledast;":"⊛","circledcirc;":"⊚","circleddash;":"⊝","CircleDot;":"⊙","circledR;":"®","circledS;":"Ⓢ","CircleMinus;":"⊖","CirclePlus;":"⊕","CircleTimes;":"⊗","cirE;":"⧃","cire;":"≗","cirfnint;":"⨐","cirmid;":"⫯","cirscir;":"⧂","ClockwiseContourIntegral;":"∲","CloseCurlyDoubleQuote;":"”","CloseCurlyQuote;":"’","clubs;":"♣","clubsuit;":"♣","Colon;":"∷","colon;":":","Colone;":"⩴","colone;":"≔","coloneq;":"≔","comma;":",","commat;":"@","comp;":"∁","compfn;":"∘","complement;":"∁","complexes;":"ℂ","cong;":"≅","congdot;":"⩭","Congruent;":"≡","Conint;":"∯","conint;":"∮","ContourIntegral;":"∮","Copf;":"ℂ","copf;":"𝕔","coprod;":"∐","Coproduct;":"∐","COPY;":"©","COPY":"©","copy;":"©","copy":"©","copysr;":"℗","CounterClockwiseContourIntegral;":"∳","crarr;":"↵","Cross;":"⨯","cross;":"✗","Cscr;":"𝒞","cscr;":"𝒸","csub;":"⫏","csube;":"⫑","csup;":"⫐","csupe;":"⫒","ctdot;":"⋯","cudarrl;":"⤸","cudarrr;":"⤵","cuepr;":"⋞","cuesc;":"⋟","cularr;":"↶","cularrp;":"⤽","Cup;":"⋓","cup;":"∪","cupbrcap;":"⩈","CupCap;":"≍","cupcap;":"⩆","cupcup;":"⩊","cupdot;":"⊍","cupor;":"⩅","cups;":"∪︀","curarr;":"↷","curarrm;":"⤼","curlyeqprec;":"⋞","curlyeqsucc;":"⋟","curlyvee;":"⋎","curlywedge;":"⋏","curren;":"¤","curren":"¤","curvearrowleft;":"↶","curvearrowright;":"↷","cuvee;":"⋎","cuwed;":"⋏","cwconint;":"∲","cwint;":"∱","cylcty;":"⌭","Dagger;":"‡","dagger;":"†","daleth;":"ℸ","Darr;":"↡","dArr;":"⇓","darr;":"↓","dash;":"‐","Dashv;":"⫤","dashv;":"⊣","dbkarow;":"⤏","dblac;":"˝","Dcaron;":"Ď","dcaron;":"ď","Dcy;":"Д","dcy;":"д","DD;":"ⅅ","dd;":"ⅆ","ddagger;":"‡","ddarr;":"⇊","DDotrahd;":"⤑","ddotseq;":"⩷","deg;":"°","deg":"°","Del;":"∇","Delta;":"Δ","delta;":"δ","demptyv;":"⦱","dfisht;":"⥿","Dfr;":"𝔇","dfr;":"𝔡","dHar;":"⥥","dharl;":"⇃","dharr;":"⇂","DiacriticalAcute;":"´","DiacriticalDot;":"˙","DiacriticalDoubleAcute;":"˝","DiacriticalGrave;":"`","DiacriticalTilde;":"˜","diam;":"⋄","Diamond;":"⋄","diamond;":"⋄","diamondsuit;":"♦","diams;":"♦","die;":"¨","DifferentialD;":"ⅆ","digamma;":"ϝ","disin;":"⋲","div;":"÷","divide;":"÷","divide":"÷","divideontimes;":"⋇","divonx;":"⋇","DJcy;":"Ђ","djcy;":"ђ","dlcorn;":"⌞","dlcrop;":"⌍","dollar;":"$","Dopf;":"𝔻","dopf;":"𝕕","Dot;":"¨","dot;":"˙","DotDot;":"⃜","doteq;":"≐","doteqdot;":"≑","DotEqual;":"≐","dotminus;":"∸","dotplus;":"∔","dotsquare;":"⊡","doublebarwedge;":"⌆","DoubleContourIntegral;":"∯","DoubleDot;":"¨","DoubleDownArrow;":"⇓","DoubleLeftArrow;":"⇐","DoubleLeftRightArrow;":"⇔","DoubleLeftTee;":"⫤","DoubleLongLeftArrow;":"⟸","DoubleLongLeftRightArrow;":"⟺","DoubleLongRightArrow;":"⟹","DoubleRightArrow;":"⇒","DoubleRightTee;":"⊨","DoubleUpArrow;":"⇑","DoubleUpDownArrow;":"⇕","DoubleVerticalBar;":"∥","DownArrow;":"↓","Downarrow;":"⇓","downarrow;":"↓","DownArrowBar;":"⤓","DownArrowUpArrow;":"⇵","DownBreve;":"̑","downdownarrows;":"⇊","downharpoonleft;":"⇃","downharpoonright;":"⇂","DownLeftRightVector;":"⥐","DownLeftTeeVector;":"⥞","DownLeftVector;":"↽","DownLeftVectorBar;":"⥖","DownRightTeeVector;":"⥟","DownRightVector;":"⇁","DownRightVectorBar;":"⥗","DownTee;":"⊤","DownTeeArrow;":"↧","drbkarow;":"⤐","drcorn;":"⌟","drcrop;":"⌌","Dscr;":"𝒟","dscr;":"𝒹","DScy;":"Ѕ","dscy;":"ѕ","dsol;":"⧶","Dstrok;":"Đ","dstrok;":"đ","dtdot;":"⋱","dtri;":"▿","dtrif;":"▾","duarr;":"⇵","duhar;":"⥯","dwangle;":"⦦","DZcy;":"Џ","dzcy;":"џ","dzigrarr;":"⟿","Eacute;":"É","Eacute":"É","eacute;":"é","eacute":"é","easter;":"⩮","Ecaron;":"Ě","ecaron;":"ě","ecir;":"≖","Ecirc;":"Ê","Ecirc":"Ê","ecirc;":"ê","ecirc":"ê","ecolon;":"≕","Ecy;":"Э","ecy;":"э","eDDot;":"⩷","Edot;":"Ė","eDot;":"≑","edot;":"ė","ee;":"ⅇ","efDot;":"≒","Efr;":"𝔈","efr;":"𝔢","eg;":"⪚","Egrave;":"È","Egrave":"È","egrave;":"è","egrave":"è","egs;":"⪖","egsdot;":"⪘","el;":"⪙","Element;":"∈","elinters;":"⏧","ell;":"ℓ","els;":"⪕","elsdot;":"⪗","Emacr;":"Ē","emacr;":"ē","empty;":"∅","emptyset;":"∅","EmptySmallSquare;":"◻","emptyv;":"∅","EmptyVerySmallSquare;":"▫","emsp;":" ","emsp13;":" ","emsp14;":" ","ENG;":"Ŋ","eng;":"ŋ","ensp;":" ","Eogon;":"Ę","eogon;":"ę","Eopf;":"𝔼","eopf;":"𝕖","epar;":"⋕","eparsl;":"⧣","eplus;":"⩱","epsi;":"ε","Epsilon;":"Ε","epsilon;":"ε","epsiv;":"ϵ","eqcirc;":"≖","eqcolon;":"≕","eqsim;":"≂","eqslantgtr;":"⪖","eqslantless;":"⪕","Equal;":"⩵","equals;":"=","EqualTilde;":"≂","equest;":"≟","Equilibrium;":"⇌","equiv;":"≡","equivDD;":"⩸","eqvparsl;":"⧥","erarr;":"⥱","erDot;":"≓","Escr;":"ℰ","escr;":"ℯ","esdot;":"≐","Esim;":"⩳","esim;":"≂","Eta;":"Η","eta;":"η","ETH;":"Ð","ETH":"Ð","eth;":"ð","eth":"ð","Euml;":"Ë","Euml":"Ë","euml;":"ë","euml":"ë","euro;":"€","excl;":"!","exist;":"∃","Exists;":"∃","expectation;":"ℰ","ExponentialE;":"ⅇ","exponentiale;":"ⅇ","fallingdotseq;":"≒","Fcy;":"Ф","fcy;":"ф","female;":"♀","ffilig;":"ﬃ","fflig;":"ﬀ","ffllig;":"ﬄ","Ffr;":"𝔉","ffr;":"𝔣","filig;":"ﬁ","FilledSmallSquare;":"◼","FilledVerySmallSquare;":"▪","fjlig;":"fj","flat;":"♭","fllig;":"ﬂ","fltns;":"▱","fnof;":"ƒ","Fopf;":"𝔽","fopf;":"𝕗","ForAll;":"∀","forall;":"∀","fork;":"⋔","forkv;":"⫙","Fouriertrf;":"ℱ","fpartint;":"⨍","frac12;":"½","frac12":"½","frac13;":"⅓","frac14;":"¼","frac14":"¼","frac15;":"⅕","frac16;":"⅙","frac18;":"⅛","frac23;":"⅔","frac25;":"⅖","frac34;":"¾","frac34":"¾","frac35;":"⅗","frac38;":"⅜","frac45;":"⅘","frac56;":"⅚","frac58;":"⅝","frac78;":"⅞","frasl;":"⁄","frown;":"⌢","Fscr;":"ℱ","fscr;":"𝒻","gacute;":"ǵ","Gamma;":"Γ","gamma;":"γ","Gammad;":"Ϝ","gammad;":"ϝ","gap;":"⪆","Gbreve;":"Ğ","gbreve;":"ğ","Gcedil;":"Ģ","Gcirc;":"Ĝ","gcirc;":"ĝ","Gcy;":"Г","gcy;":"г","Gdot;":"Ġ","gdot;":"ġ","gE;":"≧","ge;":"≥","gEl;":"⪌","gel;":"⋛","geq;":"≥","geqq;":"≧","geqslant;":"⩾","ges;":"⩾","gescc;":"⪩","gesdot;":"⪀","gesdoto;":"⪂","gesdotol;":"⪄","gesl;":"⋛︀","gesles;":"⪔","Gfr;":"𝔊","gfr;":"𝔤","Gg;":"⋙","gg;":"≫","ggg;":"⋙","gimel;":"ℷ","GJcy;":"Ѓ","gjcy;":"ѓ","gl;":"≷","gla;":"⪥","glE;":"⪒","glj;":"⪤","gnap;":"⪊","gnapprox;":"⪊","gnE;":"≩","gne;":"⪈","gneq;":"⪈","gneqq;":"≩","gnsim;":"⋧","Gopf;":"𝔾","gopf;":"𝕘","grave;":"`","GreaterEqual;":"≥","GreaterEqualLess;":"⋛","GreaterFullEqual;":"≧","GreaterGreater;":"⪢","GreaterLess;":"≷","GreaterSlantEqual;":"⩾","GreaterTilde;":"≳","Gscr;":"𝒢","gscr;":"ℊ","gsim;":"≳","gsime;":"⪎","gsiml;":"⪐","GT;":">","GT":">","Gt;":"≫","gt;":">","gt":">","gtcc;":"⪧","gtcir;":"⩺","gtdot;":"⋗","gtlPar;":"⦕","gtquest;":"⩼","gtrapprox;":"⪆","gtrarr;":"⥸","gtrdot;":"⋗","gtreqless;":"⋛","gtreqqless;":"⪌","gtrless;":"≷","gtrsim;":"≳","gvertneqq;":"≩︀","gvnE;":"≩︀","Hacek;":"ˇ","hairsp;":" ","half;":"½","hamilt;":"ℋ","HARDcy;":"Ъ","hardcy;":"ъ","hArr;":"⇔","harr;":"↔","harrcir;":"⥈","harrw;":"↭","Hat;":"^","hbar;":"ℏ","Hcirc;":"Ĥ","hcirc;":"ĥ","hearts;":"♥","heartsuit;":"♥","hellip;":"…","hercon;":"⊹","Hfr;":"ℌ","hfr;":"𝔥","HilbertSpace;":"ℋ","hksearow;":"⤥","hkswarow;":"⤦","hoarr;":"⇿","homtht;":"∻","hookleftarrow;":"↩","hookrightarrow;":"↪","Hopf;":"ℍ","hopf;":"𝕙","horbar;":"―","HorizontalLine;":"─","Hscr;":"ℋ","hscr;":"𝒽","hslash;":"ℏ","Hstrok;":"Ħ","hstrok;":"ħ","HumpDownHump;":"≎","HumpEqual;":"≏","hybull;":"⁃","hyphen;":"‐","Iacute;":"Í","Iacute":"Í","iacute;":"í","iacute":"í","ic;":"⁣","Icirc;":"Î","Icirc":"Î","icirc;":"î","icirc":"î","Icy;":"И","icy;":"и","Idot;":"İ","IEcy;":"Е","iecy;":"е","iexcl;":"¡","iexcl":"¡","iff;":"⇔","Ifr;":"ℑ","ifr;":"𝔦","Igrave;":"Ì","Igrave":"Ì","igrave;":"ì","igrave":"ì","ii;":"ⅈ","iiiint;":"⨌","iiint;":"∭","iinfin;":"⧜","iiota;":"℩","IJlig;":"Ĳ","ijlig;":"ĳ","Im;":"ℑ","Imacr;":"Ī","imacr;":"ī","image;":"ℑ","ImaginaryI;":"ⅈ","imagline;":"ℐ","imagpart;":"ℑ","imath;":"ı","imof;":"⊷","imped;":"Ƶ","Implies;":"⇒","in;":"∈","incare;":"℅","infin;":"∞","infintie;":"⧝","inodot;":"ı","Int;":"∬","int;":"∫","intcal;":"⊺","integers;":"ℤ","Integral;":"∫","intercal;":"⊺","Intersection;":"⋂","intlarhk;":"⨗","intprod;":"⨼","InvisibleComma;":"⁣","InvisibleTimes;":"⁢","IOcy;":"Ё","iocy;":"ё","Iogon;":"Į","iogon;":"į","Iopf;":"𝕀","iopf;":"𝕚","Iota;":"Ι","iota;":"ι","iprod;":"⨼","iquest;":"¿","iquest":"¿","Iscr;":"ℐ","iscr;":"𝒾","isin;":"∈","isindot;":"⋵","isinE;":"⋹","isins;":"⋴","isinsv;":"⋳","isinv;":"∈","it;":"⁢","Itilde;":"Ĩ","itilde;":"ĩ","Iukcy;":"І","iukcy;":"і","Iuml;":"Ï","Iuml":"Ï","iuml;":"ï","iuml":"ï","Jcirc;":"Ĵ","jcirc;":"ĵ","Jcy;":"Й","jcy;":"й","Jfr;":"𝔍","jfr;":"𝔧","jmath;":"ȷ","Jopf;":"𝕁","jopf;":"𝕛","Jscr;":"𝒥","jscr;":"𝒿","Jsercy;":"Ј","jsercy;":"ј","Jukcy;":"Є","jukcy;":"є","Kappa;":"Κ","kappa;":"κ","kappav;":"ϰ","Kcedil;":"Ķ","kcedil;":"ķ","Kcy;":"К","kcy;":"к","Kfr;":"𝔎","kfr;":"𝔨","kgreen;":"ĸ","KHcy;":"Х","khcy;":"х","KJcy;":"Ќ","kjcy;":"ќ","Kopf;":"𝕂","kopf;":"𝕜","Kscr;":"𝒦","kscr;":"𝓀","lAarr;":"⇚","Lacute;":"Ĺ","lacute;":"ĺ","laemptyv;":"⦴","lagran;":"ℒ","Lambda;":"Λ","lambda;":"λ","Lang;":"⟪","lang;":"⟨","langd;":"⦑","langle;":"⟨","lap;":"⪅","Laplacetrf;":"ℒ","laquo;":"«","laquo":"«","Larr;":"↞","lArr;":"⇐","larr;":"←","larrb;":"⇤","larrbfs;":"⤟","larrfs;":"⤝","larrhk;":"↩","larrlp;":"↫","larrpl;":"⤹","larrsim;":"⥳","larrtl;":"↢","lat;":"⪫","lAtail;":"⤛","latail;":"⤙","late;":"⪭","lates;":"⪭︀","lBarr;":"⤎","lbarr;":"⤌","lbbrk;":"❲","lbrace;":"{","lbrack;":"[","lbrke;":"⦋","lbrksld;":"⦏","lbrkslu;":"⦍","Lcaron;":"Ľ","lcaron;":"ľ","Lcedil;":"Ļ","lcedil;":"ļ","lceil;":"⌈","lcub;":"{","Lcy;":"Л","lcy;":"л","ldca;":"⤶","ldquo;":"“","ldquor;":"„","ldrdhar;":"⥧","ldrushar;":"⥋","ldsh;":"↲","lE;":"≦","le;":"≤","LeftAngleBracket;":"⟨","LeftArrow;":"←","Leftarrow;":"⇐","leftarrow;":"←","LeftArrowBar;":"⇤","LeftArrowRightArrow;":"⇆","leftarrowtail;":"↢","LeftCeiling;":"⌈","LeftDoubleBracket;":"⟦","LeftDownTeeVector;":"⥡","LeftDownVector;":"⇃","LeftDownVectorBar;":"⥙","LeftFloor;":"⌊","leftharpoondown;":"↽","leftharpoonup;":"↼","leftleftarrows;":"⇇","LeftRightArrow;":"↔","Leftrightarrow;":"⇔","leftrightarrow;":"↔","leftrightarrows;":"⇆","leftrightharpoons;":"⇋","leftrightsquigarrow;":"↭","LeftRightVector;":"⥎","LeftTee;":"⊣","LeftTeeArrow;":"↤","LeftTeeVector;":"⥚","leftthreetimes;":"⋋","LeftTriangle;":"⊲","LeftTriangleBar;":"⧏","LeftTriangleEqual;":"⊴","LeftUpDownVector;":"⥑","LeftUpTeeVector;":"⥠","LeftUpVector;":"↿","LeftUpVectorBar;":"⥘","LeftVector;":"↼","LeftVectorBar;":"⥒","lEg;":"⪋","leg;":"⋚","leq;":"≤","leqq;":"≦","leqslant;":"⩽","les;":"⩽","lescc;":"⪨","lesdot;":"⩿","lesdoto;":"⪁","lesdotor;":"⪃","lesg;":"⋚︀","lesges;":"⪓","lessapprox;":"⪅","lessdot;":"⋖","lesseqgtr;":"⋚","lesseqqgtr;":"⪋","LessEqualGreater;":"⋚","LessFullEqual;":"≦","LessGreater;":"≶","lessgtr;":"≶","LessLess;":"⪡","lesssim;":"≲","LessSlantEqual;":"⩽","LessTilde;":"≲","lfisht;":"⥼","lfloor;":"⌊","Lfr;":"𝔏","lfr;":"𝔩","lg;":"≶","lgE;":"⪑","lHar;":"⥢","lhard;":"↽","lharu;":"↼","lharul;":"⥪","lhblk;":"▄","LJcy;":"Љ","ljcy;":"љ","Ll;":"⋘","ll;":"≪","llarr;":"⇇","llcorner;":"⌞","Lleftarrow;":"⇚","llhard;":"⥫","lltri;":"◺","Lmidot;":"Ŀ","lmidot;":"ŀ","lmoust;":"⎰","lmoustache;":"⎰","lnap;":"⪉","lnapprox;":"⪉","lnE;":"≨","lne;":"⪇","lneq;":"⪇","lneqq;":"≨","lnsim;":"⋦","loang;":"⟬","loarr;":"⇽","lobrk;":"⟦","LongLeftArrow;":"⟵","Longleftarrow;":"⟸","longleftarrow;":"⟵","LongLeftRightArrow;":"⟷","Longleftrightarrow;":"⟺","longleftrightarrow;":"⟷","longmapsto;":"⟼","LongRightArrow;":"⟶","Longrightarrow;":"⟹","longrightarrow;":"⟶","looparrowleft;":"↫","looparrowright;":"↬","lopar;":"⦅","Lopf;":"𝕃","lopf;":"𝕝","loplus;":"⨭","lotimes;":"⨴","lowast;":"∗","lowbar;":"_","LowerLeftArrow;":"↙","LowerRightArrow;":"↘","loz;":"◊","lozenge;":"◊","lozf;":"⧫","lpar;":"(","lparlt;":"⦓","lrarr;":"⇆","lrcorner;":"⌟","lrhar;":"⇋","lrhard;":"⥭","lrm;":"‎","lrtri;":"⊿","lsaquo;":"‹","Lscr;":"ℒ","lscr;":"𝓁","Lsh;":"↰","lsh;":"↰","lsim;":"≲","lsime;":"⪍","lsimg;":"⪏","lsqb;":"[","lsquo;":"‘","lsquor;":"‚","Lstrok;":"Ł","lstrok;":"ł","LT;":"<","LT":"<","Lt;":"≪","lt;":"<","lt":"<","ltcc;":"⪦","ltcir;":"⩹","ltdot;":"⋖","lthree;":"⋋","ltimes;":"⋉","ltlarr;":"⥶","ltquest;":"⩻","ltri;":"◃","ltrie;":"⊴","ltrif;":"◂","ltrPar;":"⦖","lurdshar;":"⥊","luruhar;":"⥦","lvertneqq;":"≨︀","lvnE;":"≨︀","macr;":"¯","macr":"¯","male;":"♂","malt;":"✠","maltese;":"✠","Map;":"⤅","map;":"↦","mapsto;":"↦","mapstodown;":"↧","mapstoleft;":"↤","mapstoup;":"↥","marker;":"▮","mcomma;":"⨩","Mcy;":"М","mcy;":"м","mdash;":"—","mDDot;":"∺","measuredangle;":"∡","MediumSpace;":" ","Mellintrf;":"ℳ","Mfr;":"𝔐","mfr;":"𝔪","mho;":"℧","micro;":"µ","micro":"µ","mid;":"∣","midast;":"*","midcir;":"⫰","middot;":"·","middot":"·","minus;":"−","minusb;":"⊟","minusd;":"∸","minusdu;":"⨪","MinusPlus;":"∓","mlcp;":"⫛","mldr;":"…","mnplus;":"∓","models;":"⊧","Mopf;":"𝕄","mopf;":"𝕞","mp;":"∓","Mscr;":"ℳ","mscr;":"𝓂","mstpos;":"∾","Mu;":"Μ","mu;":"μ","multimap;":"⊸","mumap;":"⊸","nabla;":"∇","Nacute;":"Ń","nacute;":"ń","nang;":"∠⃒","nap;":"≉","napE;":"⩰̸","napid;":"≋̸","napos;":"ŉ","napprox;":"≉","natur;":"♮","natural;":"♮","naturals;":"ℕ","nbsp;":" ","nbsp":" ","nbump;":"≎̸","nbumpe;":"≏̸","ncap;":"⩃","Ncaron;":"Ň","ncaron;":"ň","Ncedil;":"Ņ","ncedil;":"ņ","ncong;":"≇","ncongdot;":"⩭̸","ncup;":"⩂","Ncy;":"Н","ncy;":"н","ndash;":"–","ne;":"≠","nearhk;":"⤤","neArr;":"⇗","nearr;":"↗","nearrow;":"↗","nedot;":"≐̸","NegativeMediumSpace;":"​","NegativeThickSpace;":"​","NegativeThinSpace;":"​","NegativeVeryThinSpace;":"​","nequiv;":"≢","nesear;":"⤨","nesim;":"≂̸","NestedGreaterGreater;":"≫","NestedLessLess;":"≪","NewLine;":"\\n","nexist;":"∄","nexists;":"∄","Nfr;":"𝔑","nfr;":"𝔫","ngE;":"≧̸","nge;":"≱","ngeq;":"≱","ngeqq;":"≧̸","ngeqslant;":"⩾̸","nges;":"⩾̸","nGg;":"⋙̸","ngsim;":"≵","nGt;":"≫⃒","ngt;":"≯","ngtr;":"≯","nGtv;":"≫̸","nhArr;":"⇎","nharr;":"↮","nhpar;":"⫲","ni;":"∋","nis;":"⋼","nisd;":"⋺","niv;":"∋","NJcy;":"Њ","njcy;":"њ","nlArr;":"⇍","nlarr;":"↚","nldr;":"‥","nlE;":"≦̸","nle;":"≰","nLeftarrow;":"⇍","nleftarrow;":"↚","nLeftrightarrow;":"⇎","nleftrightarrow;":"↮","nleq;":"≰","nleqq;":"≦̸","nleqslant;":"⩽̸","nles;":"⩽̸","nless;":"≮","nLl;":"⋘̸","nlsim;":"≴","nLt;":"≪⃒","nlt;":"≮","nltri;":"⋪","nltrie;":"⋬","nLtv;":"≪̸","nmid;":"∤","NoBreak;":"⁠","NonBreakingSpace;":" ","Nopf;":"ℕ","nopf;":"𝕟","Not;":"⫬","not;":"¬","not":"¬","NotCongruent;":"≢","NotCupCap;":"≭","NotDoubleVerticalBar;":"∦","NotElement;":"∉","NotEqual;":"≠","NotEqualTilde;":"≂̸","NotExists;":"∄","NotGreater;":"≯","NotGreaterEqual;":"≱","NotGreaterFullEqual;":"≧̸","NotGreaterGreater;":"≫̸","NotGreaterLess;":"≹","NotGreaterSlantEqual;":"⩾̸","NotGreaterTilde;":"≵","NotHumpDownHump;":"≎̸","NotHumpEqual;":"≏̸","notin;":"∉","notindot;":"⋵̸","notinE;":"⋹̸","notinva;":"∉","notinvb;":"⋷","notinvc;":"⋶","NotLeftTriangle;":"⋪","NotLeftTriangleBar;":"⧏̸","NotLeftTriangleEqual;":"⋬","NotLess;":"≮","NotLessEqual;":"≰","NotLessGreater;":"≸","NotLessLess;":"≪̸","NotLessSlantEqual;":"⩽̸","NotLessTilde;":"≴","NotNestedGreaterGreater;":"⪢̸","NotNestedLessLess;":"⪡̸","notni;":"∌","notniva;":"∌","notnivb;":"⋾","notnivc;":"⋽","NotPrecedes;":"⊀","NotPrecedesEqual;":"⪯̸","NotPrecedesSlantEqual;":"⋠","NotReverseElement;":"∌","NotRightTriangle;":"⋫","NotRightTriangleBar;":"⧐̸","NotRightTriangleEqual;":"⋭","NotSquareSubset;":"⊏̸","NotSquareSubsetEqual;":"⋢","NotSquareSuperset;":"⊐̸","NotSquareSupersetEqual;":"⋣","NotSubset;":"⊂⃒","NotSubsetEqual;":"⊈","NotSucceeds;":"⊁","NotSucceedsEqual;":"⪰̸","NotSucceedsSlantEqual;":"⋡","NotSucceedsTilde;":"≿̸","NotSuperset;":"⊃⃒","NotSupersetEqual;":"⊉","NotTilde;":"≁","NotTildeEqual;":"≄","NotTildeFullEqual;":"≇","NotTildeTilde;":"≉","NotVerticalBar;":"∤","npar;":"∦","nparallel;":"∦","nparsl;":"⫽⃥","npart;":"∂̸","npolint;":"⨔","npr;":"⊀","nprcue;":"⋠","npre;":"⪯̸","nprec;":"⊀","npreceq;":"⪯̸","nrArr;":"⇏","nrarr;":"↛","nrarrc;":"⤳̸","nrarrw;":"↝̸","nRightarrow;":"⇏","nrightarrow;":"↛","nrtri;":"⋫","nrtrie;":"⋭","nsc;":"⊁","nsccue;":"⋡","nsce;":"⪰̸","Nscr;":"𝒩","nscr;":"𝓃","nshortmid;":"∤","nshortparallel;":"∦","nsim;":"≁","nsime;":"≄","nsimeq;":"≄","nsmid;":"∤","nspar;":"∦","nsqsube;":"⋢","nsqsupe;":"⋣","nsub;":"⊄","nsubE;":"⫅̸","nsube;":"⊈","nsubset;":"⊂⃒","nsubseteq;":"⊈","nsubseteqq;":"⫅̸","nsucc;":"⊁","nsucceq;":"⪰̸","nsup;":"⊅","nsupE;":"⫆̸","nsupe;":"⊉","nsupset;":"⊃⃒","nsupseteq;":"⊉","nsupseteqq;":"⫆̸","ntgl;":"≹","Ntilde;":"Ñ","Ntilde":"Ñ","ntilde;":"ñ","ntilde":"ñ","ntlg;":"≸","ntriangleleft;":"⋪","ntrianglelefteq;":"⋬","ntriangleright;":"⋫","ntrianglerighteq;":"⋭","Nu;":"Ν","nu;":"ν","num;":"#","numero;":"№","numsp;":" ","nvap;":"≍⃒","nVDash;":"⊯","nVdash;":"⊮","nvDash;":"⊭","nvdash;":"⊬","nvge;":"≥⃒","nvgt;":">⃒","nvHarr;":"⤄","nvinfin;":"⧞","nvlArr;":"⤂","nvle;":"≤⃒","nvlt;":"<⃒","nvltrie;":"⊴⃒","nvrArr;":"⤃","nvrtrie;":"⊵⃒","nvsim;":"∼⃒","nwarhk;":"⤣","nwArr;":"⇖","nwarr;":"↖","nwarrow;":"↖","nwnear;":"⤧","Oacute;":"Ó","Oacute":"Ó","oacute;":"ó","oacute":"ó","oast;":"⊛","ocir;":"⊚","Ocirc;":"Ô","Ocirc":"Ô","ocirc;":"ô","ocirc":"ô","Ocy;":"О","ocy;":"о","odash;":"⊝","Odblac;":"Ő","odblac;":"ő","odiv;":"⨸","odot;":"⊙","odsold;":"⦼","OElig;":"Œ","oelig;":"œ","ofcir;":"⦿","Ofr;":"𝔒","ofr;":"𝔬","ogon;":"˛","Ograve;":"Ò","Ograve":"Ò","ograve;":"ò","ograve":"ò","ogt;":"⧁","ohbar;":"⦵","ohm;":"Ω","oint;":"∮","olarr;":"↺","olcir;":"⦾","olcross;":"⦻","oline;":"‾","olt;":"⧀","Omacr;":"Ō","omacr;":"ō","Omega;":"Ω","omega;":"ω","Omicron;":"Ο","omicron;":"ο","omid;":"⦶","ominus;":"⊖","Oopf;":"𝕆","oopf;":"𝕠","opar;":"⦷","OpenCurlyDoubleQuote;":"“","OpenCurlyQuote;":"‘","operp;":"⦹","oplus;":"⊕","Or;":"⩔","or;":"∨","orarr;":"↻","ord;":"⩝","order;":"ℴ","orderof;":"ℴ","ordf;":"ª","ordf":"ª","ordm;":"º","ordm":"º","origof;":"⊶","oror;":"⩖","orslope;":"⩗","orv;":"⩛","oS;":"Ⓢ","Oscr;":"𝒪","oscr;":"ℴ","Oslash;":"Ø","Oslash":"Ø","oslash;":"ø","oslash":"ø","osol;":"⊘","Otilde;":"Õ","Otilde":"Õ","otilde;":"õ","otilde":"õ","Otimes;":"⨷","otimes;":"⊗","otimesas;":"⨶","Ouml;":"Ö","Ouml":"Ö","ouml;":"ö","ouml":"ö","ovbar;":"⌽","OverBar;":"‾","OverBrace;":"⏞","OverBracket;":"⎴","OverParenthesis;":"⏜","par;":"∥","para;":"¶","para":"¶","parallel;":"∥","parsim;":"⫳","parsl;":"⫽","part;":"∂","PartialD;":"∂","Pcy;":"П","pcy;":"п","percnt;":"%","period;":".","permil;":"‰","perp;":"⊥","pertenk;":"‱","Pfr;":"𝔓","pfr;":"𝔭","Phi;":"Φ","phi;":"φ","phiv;":"ϕ","phmmat;":"ℳ","phone;":"☎","Pi;":"Π","pi;":"π","pitchfork;":"⋔","piv;":"ϖ","planck;":"ℏ","planckh;":"ℎ","plankv;":"ℏ","plus;":"+","plusacir;":"⨣","plusb;":"⊞","pluscir;":"⨢","plusdo;":"∔","plusdu;":"⨥","pluse;":"⩲","PlusMinus;":"±","plusmn;":"±","plusmn":"±","plussim;":"⨦","plustwo;":"⨧","pm;":"±","Poincareplane;":"ℌ","pointint;":"⨕","Popf;":"ℙ","popf;":"𝕡","pound;":"£","pound":"£","Pr;":"⪻","pr;":"≺","prap;":"⪷","prcue;":"≼","prE;":"⪳","pre;":"⪯","prec;":"≺","precapprox;":"⪷","preccurlyeq;":"≼","Precedes;":"≺","PrecedesEqual;":"⪯","PrecedesSlantEqual;":"≼","PrecedesTilde;":"≾","preceq;":"⪯","precnapprox;":"⪹","precneqq;":"⪵","precnsim;":"⋨","precsim;":"≾","Prime;":"″","prime;":"′","primes;":"ℙ","prnap;":"⪹","prnE;":"⪵","prnsim;":"⋨","prod;":"∏","Product;":"∏","profalar;":"⌮","profline;":"⌒","profsurf;":"⌓","prop;":"∝","Proportion;":"∷","Proportional;":"∝","propto;":"∝","prsim;":"≾","prurel;":"⊰","Pscr;":"𝒫","pscr;":"𝓅","Psi;":"Ψ","psi;":"ψ","puncsp;":" ","Qfr;":"𝔔","qfr;":"𝔮","qint;":"⨌","Qopf;":"ℚ","qopf;":"𝕢","qprime;":"⁗","Qscr;":"𝒬","qscr;":"𝓆","quaternions;":"ℍ","quatint;":"⨖","quest;":"?","questeq;":"≟","QUOT;":"\\"","QUOT":"\\"","quot;":"\\"","quot":"\\"","rAarr;":"⇛","race;":"∽̱","Racute;":"Ŕ","racute;":"ŕ","radic;":"√","raemptyv;":"⦳","Rang;":"⟫","rang;":"⟩","rangd;":"⦒","range;":"⦥","rangle;":"⟩","raquo;":"»","raquo":"»","Rarr;":"↠","rArr;":"⇒","rarr;":"→","rarrap;":"⥵","rarrb;":"⇥","rarrbfs;":"⤠","rarrc;":"⤳","rarrfs;":"⤞","rarrhk;":"↪","rarrlp;":"↬","rarrpl;":"⥅","rarrsim;":"⥴","Rarrtl;":"⤖","rarrtl;":"↣","rarrw;":"↝","rAtail;":"⤜","ratail;":"⤚","ratio;":"∶","rationals;":"ℚ","RBarr;":"⤐","rBarr;":"⤏","rbarr;":"⤍","rbbrk;":"❳","rbrace;":"}","rbrack;":"]","rbrke;":"⦌","rbrksld;":"⦎","rbrkslu;":"⦐","Rcaron;":"Ř","rcaron;":"ř","Rcedil;":"Ŗ","rcedil;":"ŗ","rceil;":"⌉","rcub;":"}","Rcy;":"Р","rcy;":"р","rdca;":"⤷","rdldhar;":"⥩","rdquo;":"”","rdquor;":"”","rdsh;":"↳","Re;":"ℜ","real;":"ℜ","realine;":"ℛ","realpart;":"ℜ","reals;":"ℝ","rect;":"▭","REG;":"®","REG":"®","reg;":"®","reg":"®","ReverseElement;":"∋","ReverseEquilibrium;":"⇋","ReverseUpEquilibrium;":"⥯","rfisht;":"⥽","rfloor;":"⌋","Rfr;":"ℜ","rfr;":"𝔯","rHar;":"⥤","rhard;":"⇁","rharu;":"⇀","rharul;":"⥬","Rho;":"Ρ","rho;":"ρ","rhov;":"ϱ","RightAngleBracket;":"⟩","RightArrow;":"→","Rightarrow;":"⇒","rightarrow;":"→","RightArrowBar;":"⇥","RightArrowLeftArrow;":"⇄","rightarrowtail;":"↣","RightCeiling;":"⌉","RightDoubleBracket;":"⟧","RightDownTeeVector;":"⥝","RightDownVector;":"⇂","RightDownVectorBar;":"⥕","RightFloor;":"⌋","rightharpoondown;":"⇁","rightharpoonup;":"⇀","rightleftarrows;":"⇄","rightleftharpoons;":"⇌","rightrightarrows;":"⇉","rightsquigarrow;":"↝","RightTee;":"⊢","RightTeeArrow;":"↦","RightTeeVector;":"⥛","rightthreetimes;":"⋌","RightTriangle;":"⊳","RightTriangleBar;":"⧐","RightTriangleEqual;":"⊵","RightUpDownVector;":"⥏","RightUpTeeVector;":"⥜","RightUpVector;":"↾","RightUpVectorBar;":"⥔","RightVector;":"⇀","RightVectorBar;":"⥓","ring;":"˚","risingdotseq;":"≓","rlarr;":"⇄","rlhar;":"⇌","rlm;":"‏","rmoust;":"⎱","rmoustache;":"⎱","rnmid;":"⫮","roang;":"⟭","roarr;":"⇾","robrk;":"⟧","ropar;":"⦆","Ropf;":"ℝ","ropf;":"𝕣","roplus;":"⨮","rotimes;":"⨵","RoundImplies;":"⥰","rpar;":")","rpargt;":"⦔","rppolint;":"⨒","rrarr;":"⇉","Rrightarrow;":"⇛","rsaquo;":"›","Rscr;":"ℛ","rscr;":"𝓇","Rsh;":"↱","rsh;":"↱","rsqb;":"]","rsquo;":"’","rsquor;":"’","rthree;":"⋌","rtimes;":"⋊","rtri;":"▹","rtrie;":"⊵","rtrif;":"▸","rtriltri;":"⧎","RuleDelayed;":"⧴","ruluhar;":"⥨","rx;":"℞","Sacute;":"Ś","sacute;":"ś","sbquo;":"‚","Sc;":"⪼","sc;":"≻","scap;":"⪸","Scaron;":"Š","scaron;":"š","sccue;":"≽","scE;":"⪴","sce;":"⪰","Scedil;":"Ş","scedil;":"ş","Scirc;":"Ŝ","scirc;":"ŝ","scnap;":"⪺","scnE;":"⪶","scnsim;":"⋩","scpolint;":"⨓","scsim;":"≿","Scy;":"С","scy;":"с","sdot;":"⋅","sdotb;":"⊡","sdote;":"⩦","searhk;":"⤥","seArr;":"⇘","searr;":"↘","searrow;":"↘","sect;":"§","sect":"§","semi;":";","seswar;":"⤩","setminus;":"∖","setmn;":"∖","sext;":"✶","Sfr;":"𝔖","sfr;":"𝔰","sfrown;":"⌢","sharp;":"♯","SHCHcy;":"Щ","shchcy;":"щ","SHcy;":"Ш","shcy;":"ш","ShortDownArrow;":"↓","ShortLeftArrow;":"←","shortmid;":"∣","shortparallel;":"∥","ShortRightArrow;":"→","ShortUpArrow;":"↑","shy;":"­","shy":"­","Sigma;":"Σ","sigma;":"σ","sigmaf;":"ς","sigmav;":"ς","sim;":"∼","simdot;":"⩪","sime;":"≃","simeq;":"≃","simg;":"⪞","simgE;":"⪠","siml;":"⪝","simlE;":"⪟","simne;":"≆","simplus;":"⨤","simrarr;":"⥲","slarr;":"←","SmallCircle;":"∘","smallsetminus;":"∖","smashp;":"⨳","smeparsl;":"⧤","smid;":"∣","smile;":"⌣","smt;":"⪪","smte;":"⪬","smtes;":"⪬︀","SOFTcy;":"Ь","softcy;":"ь","sol;":"/","solb;":"⧄","solbar;":"⌿","Sopf;":"𝕊","sopf;":"𝕤","spades;":"♠","spadesuit;":"♠","spar;":"∥","sqcap;":"⊓","sqcaps;":"⊓︀","sqcup;":"⊔","sqcups;":"⊔︀","Sqrt;":"√","sqsub;":"⊏","sqsube;":"⊑","sqsubset;":"⊏","sqsubseteq;":"⊑","sqsup;":"⊐","sqsupe;":"⊒","sqsupset;":"⊐","sqsupseteq;":"⊒","squ;":"□","Square;":"□","square;":"□","SquareIntersection;":"⊓","SquareSubset;":"⊏","SquareSubsetEqual;":"⊑","SquareSuperset;":"⊐","SquareSupersetEqual;":"⊒","SquareUnion;":"⊔","squarf;":"▪","squf;":"▪","srarr;":"→","Sscr;":"𝒮","sscr;":"𝓈","ssetmn;":"∖","ssmile;":"⌣","sstarf;":"⋆","Star;":"⋆","star;":"☆","starf;":"★","straightepsilon;":"ϵ","straightphi;":"ϕ","strns;":"¯","Sub;":"⋐","sub;":"⊂","subdot;":"⪽","subE;":"⫅","sube;":"⊆","subedot;":"⫃","submult;":"⫁","subnE;":"⫋","subne;":"⊊","subplus;":"⪿","subrarr;":"⥹","Subset;":"⋐","subset;":"⊂","subseteq;":"⊆","subseteqq;":"⫅","SubsetEqual;":"⊆","subsetneq;":"⊊","subsetneqq;":"⫋","subsim;":"⫇","subsub;":"⫕","subsup;":"⫓","succ;":"≻","succapprox;":"⪸","succcurlyeq;":"≽","Succeeds;":"≻","SucceedsEqual;":"⪰","SucceedsSlantEqual;":"≽","SucceedsTilde;":"≿","succeq;":"⪰","succnapprox;":"⪺","succneqq;":"⪶","succnsim;":"⋩","succsim;":"≿","SuchThat;":"∋","Sum;":"∑","sum;":"∑","sung;":"♪","Sup;":"⋑","sup;":"⊃","sup1;":"¹","sup1":"¹","sup2;":"²","sup2":"²","sup3;":"³","sup3":"³","supdot;":"⪾","supdsub;":"⫘","supE;":"⫆","supe;":"⊇","supedot;":"⫄","Superset;":"⊃","SupersetEqual;":"⊇","suphsol;":"⟉","suphsub;":"⫗","suplarr;":"⥻","supmult;":"⫂","supnE;":"⫌","supne;":"⊋","supplus;":"⫀","Supset;":"⋑","supset;":"⊃","supseteq;":"⊇","supseteqq;":"⫆","supsetneq;":"⊋","supsetneqq;":"⫌","supsim;":"⫈","supsub;":"⫔","supsup;":"⫖","swarhk;":"⤦","swArr;":"⇙","swarr;":"↙","swarrow;":"↙","swnwar;":"⤪","szlig;":"ß","szlig":"ß","Tab;":"\\t","target;":"⌖","Tau;":"Τ","tau;":"τ","tbrk;":"⎴","Tcaron;":"Ť","tcaron;":"ť","Tcedil;":"Ţ","tcedil;":"ţ","Tcy;":"Т","tcy;":"т","tdot;":"⃛","telrec;":"⌕","Tfr;":"𝔗","tfr;":"𝔱","there4;":"∴","Therefore;":"∴","therefore;":"∴","Theta;":"Θ","theta;":"θ","thetasym;":"ϑ","thetav;":"ϑ","thickapprox;":"≈","thicksim;":"∼","ThickSpace;":"  ","thinsp;":" ","ThinSpace;":" ","thkap;":"≈","thksim;":"∼","THORN;":"Þ","THORN":"Þ","thorn;":"þ","thorn":"þ","Tilde;":"∼","tilde;":"˜","TildeEqual;":"≃","TildeFullEqual;":"≅","TildeTilde;":"≈","times;":"×","times":"×","timesb;":"⊠","timesbar;":"⨱","timesd;":"⨰","tint;":"∭","toea;":"⤨","top;":"⊤","topbot;":"⌶","topcir;":"⫱","Topf;":"𝕋","topf;":"𝕥","topfork;":"⫚","tosa;":"⤩","tprime;":"‴","TRADE;":"™","trade;":"™","triangle;":"▵","triangledown;":"▿","triangleleft;":"◃","trianglelefteq;":"⊴","triangleq;":"≜","triangleright;":"▹","trianglerighteq;":"⊵","tridot;":"◬","trie;":"≜","triminus;":"⨺","TripleDot;":"⃛","triplus;":"⨹","trisb;":"⧍","tritime;":"⨻","trpezium;":"⏢","Tscr;":"𝒯","tscr;":"𝓉","TScy;":"Ц","tscy;":"ц","TSHcy;":"Ћ","tshcy;":"ћ","Tstrok;":"Ŧ","tstrok;":"ŧ","twixt;":"≬","twoheadleftarrow;":"↞","twoheadrightarrow;":"↠","Uacute;":"Ú","Uacute":"Ú","uacute;":"ú","uacute":"ú","Uarr;":"↟","uArr;":"⇑","uarr;":"↑","Uarrocir;":"⥉","Ubrcy;":"Ў","ubrcy;":"ў","Ubreve;":"Ŭ","ubreve;":"ŭ","Ucirc;":"Û","Ucirc":"Û","ucirc;":"û","ucirc":"û","Ucy;":"У","ucy;":"у","udarr;":"⇅","Udblac;":"Ű","udblac;":"ű","udhar;":"⥮","ufisht;":"⥾","Ufr;":"𝔘","ufr;":"𝔲","Ugrave;":"Ù","Ugrave":"Ù","ugrave;":"ù","ugrave":"ù","uHar;":"⥣","uharl;":"↿","uharr;":"↾","uhblk;":"▀","ulcorn;":"⌜","ulcorner;":"⌜","ulcrop;":"⌏","ultri;":"◸","Umacr;":"Ū","umacr;":"ū","uml;":"¨","uml":"¨","UnderBar;":"_","UnderBrace;":"⏟","UnderBracket;":"⎵","UnderParenthesis;":"⏝","Union;":"⋃","UnionPlus;":"⊎","Uogon;":"Ų","uogon;":"ų","Uopf;":"𝕌","uopf;":"𝕦","UpArrow;":"↑","Uparrow;":"⇑","uparrow;":"↑","UpArrowBar;":"⤒","UpArrowDownArrow;":"⇅","UpDownArrow;":"↕","Updownarrow;":"⇕","updownarrow;":"↕","UpEquilibrium;":"⥮","upharpoonleft;":"↿","upharpoonright;":"↾","uplus;":"⊎","UpperLeftArrow;":"↖","UpperRightArrow;":"↗","Upsi;":"ϒ","upsi;":"υ","upsih;":"ϒ","Upsilon;":"Υ","upsilon;":"υ","UpTee;":"⊥","UpTeeArrow;":"↥","upuparrows;":"⇈","urcorn;":"⌝","urcorner;":"⌝","urcrop;":"⌎","Uring;":"Ů","uring;":"ů","urtri;":"◹","Uscr;":"𝒰","uscr;":"𝓊","utdot;":"⋰","Utilde;":"Ũ","utilde;":"ũ","utri;":"▵","utrif;":"▴","uuarr;":"⇈","Uuml;":"Ü","Uuml":"Ü","uuml;":"ü","uuml":"ü","uwangle;":"⦧","vangrt;":"⦜","varepsilon;":"ϵ","varkappa;":"ϰ","varnothing;":"∅","varphi;":"ϕ","varpi;":"ϖ","varpropto;":"∝","vArr;":"⇕","varr;":"↕","varrho;":"ϱ","varsigma;":"ς","varsubsetneq;":"⊊︀","varsubsetneqq;":"⫋︀","varsupsetneq;":"⊋︀","varsupsetneqq;":"⫌︀","vartheta;":"ϑ","vartriangleleft;":"⊲","vartriangleright;":"⊳","Vbar;":"⫫","vBar;":"⫨","vBarv;":"⫩","Vcy;":"В","vcy;":"в","VDash;":"⊫","Vdash;":"⊩","vDash;":"⊨","vdash;":"⊢","Vdashl;":"⫦","Vee;":"⋁","vee;":"∨","veebar;":"⊻","veeeq;":"≚","vellip;":"⋮","Verbar;":"‖","verbar;":"|","Vert;":"‖","vert;":"|","VerticalBar;":"∣","VerticalLine;":"|","VerticalSeparator;":"❘","VerticalTilde;":"≀","VeryThinSpace;":" ","Vfr;":"𝔙","vfr;":"𝔳","vltri;":"⊲","vnsub;":"⊂⃒","vnsup;":"⊃⃒","Vopf;":"𝕍","vopf;":"𝕧","vprop;":"∝","vrtri;":"⊳","Vscr;":"𝒱","vscr;":"𝓋","vsubnE;":"⫋︀","vsubne;":"⊊︀","vsupnE;":"⫌︀","vsupne;":"⊋︀","Vvdash;":"⊪","vzigzag;":"⦚","Wcirc;":"Ŵ","wcirc;":"ŵ","wedbar;":"⩟","Wedge;":"⋀","wedge;":"∧","wedgeq;":"≙","weierp;":"℘","Wfr;":"𝔚","wfr;":"𝔴","Wopf;":"𝕎","wopf;":"𝕨","wp;":"℘","wr;":"≀","wreath;":"≀","Wscr;":"𝒲","wscr;":"𝓌","xcap;":"⋂","xcirc;":"◯","xcup;":"⋃","xdtri;":"▽","Xfr;":"𝔛","xfr;":"𝔵","xhArr;":"⟺","xharr;":"⟷","Xi;":"Ξ","xi;":"ξ","xlArr;":"⟸","xlarr;":"⟵","xmap;":"⟼","xnis;":"⋻","xodot;":"⨀","Xopf;":"𝕏","xopf;":"𝕩","xoplus;":"⨁","xotime;":"⨂","xrArr;":"⟹","xrarr;":"⟶","Xscr;":"𝒳","xscr;":"𝓍","xsqcup;":"⨆","xuplus;":"⨄","xutri;":"△","xvee;":"⋁","xwedge;":"⋀","Yacute;":"Ý","Yacute":"Ý","yacute;":"ý","yacute":"ý","YAcy;":"Я","yacy;":"я","Ycirc;":"Ŷ","ycirc;":"ŷ","Ycy;":"Ы","ycy;":"ы","yen;":"¥","yen":"¥","Yfr;":"𝔜","yfr;":"𝔶","YIcy;":"Ї","yicy;":"ї","Yopf;":"𝕐","yopf;":"𝕪","Yscr;":"𝒴","yscr;":"𝓎","YUcy;":"Ю","yucy;":"ю","Yuml;":"Ÿ","yuml;":"ÿ","yuml":"ÿ","Zacute;":"Ź","zacute;":"ź","Zcaron;":"Ž","zcaron;":"ž","Zcy;":"З","zcy;":"з","Zdot;":"Ż","zdot;":"ż","zeetrf;":"ℨ","ZeroWidthSpace;":"​","Zeta;":"Ζ","zeta;":"ζ","Zfr;":"ℨ","zfr;":"𝔷","ZHcy;":"Ж","zhcy;":"ж","zigrarr;":"⇝","Zopf;":"ℤ","zopf;":"𝕫","Zscr;":"𝒵","zscr;":"𝓏","zwj;":"‍","zwnj;":"‌"}');
-
-/***/ }),
-
-/***/ 3123:
-/***/ ((module) => {
-
-"use strict";
-module.exports = JSON.parse('{"9":"Tab;","10":"NewLine;","33":"excl;","34":"quot;","35":"num;","36":"dollar;","37":"percnt;","38":"amp;","39":"apos;","40":"lpar;","41":"rpar;","42":"midast;","43":"plus;","44":"comma;","46":"period;","47":"sol;","58":"colon;","59":"semi;","60":"lt;","61":"equals;","62":"gt;","63":"quest;","64":"commat;","91":"lsqb;","92":"bsol;","93":"rsqb;","94":"Hat;","95":"UnderBar;","96":"grave;","123":"lcub;","124":"VerticalLine;","125":"rcub;","160":"NonBreakingSpace;","161":"iexcl;","162":"cent;","163":"pound;","164":"curren;","165":"yen;","166":"brvbar;","167":"sect;","168":"uml;","169":"copy;","170":"ordf;","171":"laquo;","172":"not;","173":"shy;","174":"reg;","175":"strns;","176":"deg;","177":"pm;","178":"sup2;","179":"sup3;","180":"DiacriticalAcute;","181":"micro;","182":"para;","183":"middot;","184":"Cedilla;","185":"sup1;","186":"ordm;","187":"raquo;","188":"frac14;","189":"half;","190":"frac34;","191":"iquest;","192":"Agrave;","193":"Aacute;","194":"Acirc;","195":"Atilde;","196":"Auml;","197":"Aring;","198":"AElig;","199":"Ccedil;","200":"Egrave;","201":"Eacute;","202":"Ecirc;","203":"Euml;","204":"Igrave;","205":"Iacute;","206":"Icirc;","207":"Iuml;","208":"ETH;","209":"Ntilde;","210":"Ograve;","211":"Oacute;","212":"Ocirc;","213":"Otilde;","214":"Ouml;","215":"times;","216":"Oslash;","217":"Ugrave;","218":"Uacute;","219":"Ucirc;","220":"Uuml;","221":"Yacute;","222":"THORN;","223":"szlig;","224":"agrave;","225":"aacute;","226":"acirc;","227":"atilde;","228":"auml;","229":"aring;","230":"aelig;","231":"ccedil;","232":"egrave;","233":"eacute;","234":"ecirc;","235":"euml;","236":"igrave;","237":"iacute;","238":"icirc;","239":"iuml;","240":"eth;","241":"ntilde;","242":"ograve;","243":"oacute;","244":"ocirc;","245":"otilde;","246":"ouml;","247":"divide;","248":"oslash;","249":"ugrave;","250":"uacute;","251":"ucirc;","252":"uuml;","253":"yacute;","254":"thorn;","255":"yuml;","256":"Amacr;","257":"amacr;","258":"Abreve;","259":"abreve;","260":"Aogon;","261":"aogon;","262":"Cacute;","263":"cacute;","264":"Ccirc;","265":"ccirc;","266":"Cdot;","267":"cdot;","268":"Ccaron;","269":"ccaron;","270":"Dcaron;","271":"dcaron;","272":"Dstrok;","273":"dstrok;","274":"Emacr;","275":"emacr;","278":"Edot;","279":"edot;","280":"Eogon;","281":"eogon;","282":"Ecaron;","283":"ecaron;","284":"Gcirc;","285":"gcirc;","286":"Gbreve;","287":"gbreve;","288":"Gdot;","289":"gdot;","290":"Gcedil;","292":"Hcirc;","293":"hcirc;","294":"Hstrok;","295":"hstrok;","296":"Itilde;","297":"itilde;","298":"Imacr;","299":"imacr;","302":"Iogon;","303":"iogon;","304":"Idot;","305":"inodot;","306":"IJlig;","307":"ijlig;","308":"Jcirc;","309":"jcirc;","310":"Kcedil;","311":"kcedil;","312":"kgreen;","313":"Lacute;","314":"lacute;","315":"Lcedil;","316":"lcedil;","317":"Lcaron;","318":"lcaron;","319":"Lmidot;","320":"lmidot;","321":"Lstrok;","322":"lstrok;","323":"Nacute;","324":"nacute;","325":"Ncedil;","326":"ncedil;","327":"Ncaron;","328":"ncaron;","329":"napos;","330":"ENG;","331":"eng;","332":"Omacr;","333":"omacr;","336":"Odblac;","337":"odblac;","338":"OElig;","339":"oelig;","340":"Racute;","341":"racute;","342":"Rcedil;","343":"rcedil;","344":"Rcaron;","345":"rcaron;","346":"Sacute;","347":"sacute;","348":"Scirc;","349":"scirc;","350":"Scedil;","351":"scedil;","352":"Scaron;","353":"scaron;","354":"Tcedil;","355":"tcedil;","356":"Tcaron;","357":"tcaron;","358":"Tstrok;","359":"tstrok;","360":"Utilde;","361":"utilde;","362":"Umacr;","363":"umacr;","364":"Ubreve;","365":"ubreve;","366":"Uring;","367":"uring;","368":"Udblac;","369":"udblac;","370":"Uogon;","371":"uogon;","372":"Wcirc;","373":"wcirc;","374":"Ycirc;","375":"ycirc;","376":"Yuml;","377":"Zacute;","378":"zacute;","379":"Zdot;","380":"zdot;","381":"Zcaron;","382":"zcaron;","402":"fnof;","437":"imped;","501":"gacute;","567":"jmath;","710":"circ;","711":"Hacek;","728":"breve;","729":"dot;","730":"ring;","731":"ogon;","732":"tilde;","733":"DiacriticalDoubleAcute;","785":"DownBreve;","913":"Alpha;","914":"Beta;","915":"Gamma;","916":"Delta;","917":"Epsilon;","918":"Zeta;","919":"Eta;","920":"Theta;","921":"Iota;","922":"Kappa;","923":"Lambda;","924":"Mu;","925":"Nu;","926":"Xi;","927":"Omicron;","928":"Pi;","929":"Rho;","931":"Sigma;","932":"Tau;","933":"Upsilon;","934":"Phi;","935":"Chi;","936":"Psi;","937":"Omega;","945":"alpha;","946":"beta;","947":"gamma;","948":"delta;","949":"epsilon;","950":"zeta;","951":"eta;","952":"theta;","953":"iota;","954":"kappa;","955":"lambda;","956":"mu;","957":"nu;","958":"xi;","959":"omicron;","960":"pi;","961":"rho;","962":"varsigma;","963":"sigma;","964":"tau;","965":"upsilon;","966":"phi;","967":"chi;","968":"psi;","969":"omega;","977":"vartheta;","978":"upsih;","981":"varphi;","982":"varpi;","988":"Gammad;","989":"gammad;","1008":"varkappa;","1009":"varrho;","1013":"varepsilon;","1014":"bepsi;","1025":"IOcy;","1026":"DJcy;","1027":"GJcy;","1028":"Jukcy;","1029":"DScy;","1030":"Iukcy;","1031":"YIcy;","1032":"Jsercy;","1033":"LJcy;","1034":"NJcy;","1035":"TSHcy;","1036":"KJcy;","1038":"Ubrcy;","1039":"DZcy;","1040":"Acy;","1041":"Bcy;","1042":"Vcy;","1043":"Gcy;","1044":"Dcy;","1045":"IEcy;","1046":"ZHcy;","1047":"Zcy;","1048":"Icy;","1049":"Jcy;","1050":"Kcy;","1051":"Lcy;","1052":"Mcy;","1053":"Ncy;","1054":"Ocy;","1055":"Pcy;","1056":"Rcy;","1057":"Scy;","1058":"Tcy;","1059":"Ucy;","1060":"Fcy;","1061":"KHcy;","1062":"TScy;","1063":"CHcy;","1064":"SHcy;","1065":"SHCHcy;","1066":"HARDcy;","1067":"Ycy;","1068":"SOFTcy;","1069":"Ecy;","1070":"YUcy;","1071":"YAcy;","1072":"acy;","1073":"bcy;","1074":"vcy;","1075":"gcy;","1076":"dcy;","1077":"iecy;","1078":"zhcy;","1079":"zcy;","1080":"icy;","1081":"jcy;","1082":"kcy;","1083":"lcy;","1084":"mcy;","1085":"ncy;","1086":"ocy;","1087":"pcy;","1088":"rcy;","1089":"scy;","1090":"tcy;","1091":"ucy;","1092":"fcy;","1093":"khcy;","1094":"tscy;","1095":"chcy;","1096":"shcy;","1097":"shchcy;","1098":"hardcy;","1099":"ycy;","1100":"softcy;","1101":"ecy;","1102":"yucy;","1103":"yacy;","1105":"iocy;","1106":"djcy;","1107":"gjcy;","1108":"jukcy;","1109":"dscy;","1110":"iukcy;","1111":"yicy;","1112":"jsercy;","1113":"ljcy;","1114":"njcy;","1115":"tshcy;","1116":"kjcy;","1118":"ubrcy;","1119":"dzcy;","8194":"ensp;","8195":"emsp;","8196":"emsp13;","8197":"emsp14;","8199":"numsp;","8200":"puncsp;","8201":"ThinSpace;","8202":"VeryThinSpace;","8203":"ZeroWidthSpace;","8204":"zwnj;","8205":"zwj;","8206":"lrm;","8207":"rlm;","8208":"hyphen;","8211":"ndash;","8212":"mdash;","8213":"horbar;","8214":"Vert;","8216":"OpenCurlyQuote;","8217":"rsquor;","8218":"sbquo;","8220":"OpenCurlyDoubleQuote;","8221":"rdquor;","8222":"ldquor;","8224":"dagger;","8225":"ddagger;","8226":"bullet;","8229":"nldr;","8230":"mldr;","8240":"permil;","8241":"pertenk;","8242":"prime;","8243":"Prime;","8244":"tprime;","8245":"bprime;","8249":"lsaquo;","8250":"rsaquo;","8254":"OverBar;","8257":"caret;","8259":"hybull;","8260":"frasl;","8271":"bsemi;","8279":"qprime;","8287":"MediumSpace;","8288":"NoBreak;","8289":"ApplyFunction;","8290":"it;","8291":"InvisibleComma;","8364":"euro;","8411":"TripleDot;","8412":"DotDot;","8450":"Copf;","8453":"incare;","8458":"gscr;","8459":"Hscr;","8460":"Poincareplane;","8461":"quaternions;","8462":"planckh;","8463":"plankv;","8464":"Iscr;","8465":"imagpart;","8466":"Lscr;","8467":"ell;","8469":"Nopf;","8470":"numero;","8471":"copysr;","8472":"wp;","8473":"primes;","8474":"rationals;","8475":"Rscr;","8476":"Rfr;","8477":"Ropf;","8478":"rx;","8482":"trade;","8484":"Zopf;","8487":"mho;","8488":"Zfr;","8489":"iiota;","8492":"Bscr;","8493":"Cfr;","8495":"escr;","8496":"expectation;","8497":"Fscr;","8499":"phmmat;","8500":"oscr;","8501":"aleph;","8502":"beth;","8503":"gimel;","8504":"daleth;","8517":"DD;","8518":"DifferentialD;","8519":"exponentiale;","8520":"ImaginaryI;","8531":"frac13;","8532":"frac23;","8533":"frac15;","8534":"frac25;","8535":"frac35;","8536":"frac45;","8537":"frac16;","8538":"frac56;","8539":"frac18;","8540":"frac38;","8541":"frac58;","8542":"frac78;","8592":"slarr;","8593":"uparrow;","8594":"srarr;","8595":"ShortDownArrow;","8596":"leftrightarrow;","8597":"varr;","8598":"UpperLeftArrow;","8599":"UpperRightArrow;","8600":"searrow;","8601":"swarrow;","8602":"nleftarrow;","8603":"nrightarrow;","8605":"rightsquigarrow;","8606":"twoheadleftarrow;","8607":"Uarr;","8608":"twoheadrightarrow;","8609":"Darr;","8610":"leftarrowtail;","8611":"rightarrowtail;","8612":"mapstoleft;","8613":"UpTeeArrow;","8614":"RightTeeArrow;","8615":"mapstodown;","8617":"larrhk;","8618":"rarrhk;","8619":"looparrowleft;","8620":"rarrlp;","8621":"leftrightsquigarrow;","8622":"nleftrightarrow;","8624":"lsh;","8625":"rsh;","8626":"ldsh;","8627":"rdsh;","8629":"crarr;","8630":"curvearrowleft;","8631":"curvearrowright;","8634":"olarr;","8635":"orarr;","8636":"lharu;","8637":"lhard;","8638":"upharpoonright;","8639":"upharpoonleft;","8640":"RightVector;","8641":"rightharpoondown;","8642":"RightDownVector;","8643":"LeftDownVector;","8644":"rlarr;","8645":"UpArrowDownArrow;","8646":"lrarr;","8647":"llarr;","8648":"uuarr;","8649":"rrarr;","8650":"downdownarrows;","8651":"ReverseEquilibrium;","8652":"rlhar;","8653":"nLeftarrow;","8654":"nLeftrightarrow;","8655":"nRightarrow;","8656":"Leftarrow;","8657":"Uparrow;","8658":"Rightarrow;","8659":"Downarrow;","8660":"Leftrightarrow;","8661":"vArr;","8662":"nwArr;","8663":"neArr;","8664":"seArr;","8665":"swArr;","8666":"Lleftarrow;","8667":"Rrightarrow;","8669":"zigrarr;","8676":"LeftArrowBar;","8677":"RightArrowBar;","8693":"duarr;","8701":"loarr;","8702":"roarr;","8703":"hoarr;","8704":"forall;","8705":"complement;","8706":"PartialD;","8707":"Exists;","8708":"NotExists;","8709":"varnothing;","8711":"nabla;","8712":"isinv;","8713":"notinva;","8715":"SuchThat;","8716":"NotReverseElement;","8719":"Product;","8720":"Coproduct;","8721":"sum;","8722":"minus;","8723":"mp;","8724":"plusdo;","8726":"ssetmn;","8727":"lowast;","8728":"SmallCircle;","8730":"Sqrt;","8733":"vprop;","8734":"infin;","8735":"angrt;","8736":"angle;","8737":"measuredangle;","8738":"angsph;","8739":"VerticalBar;","8740":"nsmid;","8741":"spar;","8742":"nspar;","8743":"wedge;","8744":"vee;","8745":"cap;","8746":"cup;","8747":"Integral;","8748":"Int;","8749":"tint;","8750":"oint;","8751":"DoubleContourIntegral;","8752":"Cconint;","8753":"cwint;","8754":"cwconint;","8755":"CounterClockwiseContourIntegral;","8756":"therefore;","8757":"because;","8758":"ratio;","8759":"Proportion;","8760":"minusd;","8762":"mDDot;","8763":"homtht;","8764":"Tilde;","8765":"bsim;","8766":"mstpos;","8767":"acd;","8768":"wreath;","8769":"nsim;","8770":"esim;","8771":"TildeEqual;","8772":"nsimeq;","8773":"TildeFullEqual;","8774":"simne;","8775":"NotTildeFullEqual;","8776":"TildeTilde;","8777":"NotTildeTilde;","8778":"approxeq;","8779":"apid;","8780":"bcong;","8781":"CupCap;","8782":"HumpDownHump;","8783":"HumpEqual;","8784":"esdot;","8785":"eDot;","8786":"fallingdotseq;","8787":"risingdotseq;","8788":"coloneq;","8789":"eqcolon;","8790":"eqcirc;","8791":"cire;","8793":"wedgeq;","8794":"veeeq;","8796":"trie;","8799":"questeq;","8800":"NotEqual;","8801":"equiv;","8802":"NotCongruent;","8804":"leq;","8805":"GreaterEqual;","8806":"LessFullEqual;","8807":"GreaterFullEqual;","8808":"lneqq;","8809":"gneqq;","8810":"NestedLessLess;","8811":"NestedGreaterGreater;","8812":"twixt;","8813":"NotCupCap;","8814":"NotLess;","8815":"NotGreater;","8816":"NotLessEqual;","8817":"NotGreaterEqual;","8818":"lsim;","8819":"gtrsim;","8820":"NotLessTilde;","8821":"NotGreaterTilde;","8822":"lg;","8823":"gtrless;","8824":"ntlg;","8825":"ntgl;","8826":"Precedes;","8827":"Succeeds;","8828":"PrecedesSlantEqual;","8829":"SucceedsSlantEqual;","8830":"prsim;","8831":"succsim;","8832":"nprec;","8833":"nsucc;","8834":"subset;","8835":"supset;","8836":"nsub;","8837":"nsup;","8838":"SubsetEqual;","8839":"supseteq;","8840":"nsubseteq;","8841":"nsupseteq;","8842":"subsetneq;","8843":"supsetneq;","8845":"cupdot;","8846":"uplus;","8847":"SquareSubset;","8848":"SquareSuperset;","8849":"SquareSubsetEqual;","8850":"SquareSupersetEqual;","8851":"SquareIntersection;","8852":"SquareUnion;","8853":"oplus;","8854":"ominus;","8855":"otimes;","8856":"osol;","8857":"odot;","8858":"ocir;","8859":"oast;","8861":"odash;","8862":"plusb;","8863":"minusb;","8864":"timesb;","8865":"sdotb;","8866":"vdash;","8867":"LeftTee;","8868":"top;","8869":"UpTee;","8871":"models;","8872":"vDash;","8873":"Vdash;","8874":"Vvdash;","8875":"VDash;","8876":"nvdash;","8877":"nvDash;","8878":"nVdash;","8879":"nVDash;","8880":"prurel;","8882":"vltri;","8883":"vrtri;","8884":"trianglelefteq;","8885":"trianglerighteq;","8886":"origof;","8887":"imof;","8888":"mumap;","8889":"hercon;","8890":"intercal;","8891":"veebar;","8893":"barvee;","8894":"angrtvb;","8895":"lrtri;","8896":"xwedge;","8897":"xvee;","8898":"xcap;","8899":"xcup;","8900":"diamond;","8901":"sdot;","8902":"Star;","8903":"divonx;","8904":"bowtie;","8905":"ltimes;","8906":"rtimes;","8907":"lthree;","8908":"rthree;","8909":"bsime;","8910":"cuvee;","8911":"cuwed;","8912":"Subset;","8913":"Supset;","8914":"Cap;","8915":"Cup;","8916":"pitchfork;","8917":"epar;","8918":"ltdot;","8919":"gtrdot;","8920":"Ll;","8921":"ggg;","8922":"LessEqualGreater;","8923":"gtreqless;","8926":"curlyeqprec;","8927":"curlyeqsucc;","8928":"nprcue;","8929":"nsccue;","8930":"nsqsube;","8931":"nsqsupe;","8934":"lnsim;","8935":"gnsim;","8936":"prnsim;","8937":"succnsim;","8938":"ntriangleleft;","8939":"ntriangleright;","8940":"ntrianglelefteq;","8941":"ntrianglerighteq;","8942":"vellip;","8943":"ctdot;","8944":"utdot;","8945":"dtdot;","8946":"disin;","8947":"isinsv;","8948":"isins;","8949":"isindot;","8950":"notinvc;","8951":"notinvb;","8953":"isinE;","8954":"nisd;","8955":"xnis;","8956":"nis;","8957":"notnivc;","8958":"notnivb;","8965":"barwedge;","8966":"doublebarwedge;","8968":"LeftCeiling;","8969":"RightCeiling;","8970":"lfloor;","8971":"RightFloor;","8972":"drcrop;","8973":"dlcrop;","8974":"urcrop;","8975":"ulcrop;","8976":"bnot;","8978":"profline;","8979":"profsurf;","8981":"telrec;","8982":"target;","8988":"ulcorner;","8989":"urcorner;","8990":"llcorner;","8991":"lrcorner;","8994":"sfrown;","8995":"ssmile;","9005":"cylcty;","9006":"profalar;","9014":"topbot;","9021":"ovbar;","9023":"solbar;","9084":"angzarr;","9136":"lmoustache;","9137":"rmoustache;","9140":"tbrk;","9141":"UnderBracket;","9142":"bbrktbrk;","9180":"OverParenthesis;","9181":"UnderParenthesis;","9182":"OverBrace;","9183":"UnderBrace;","9186":"trpezium;","9191":"elinters;","9251":"blank;","9416":"oS;","9472":"HorizontalLine;","9474":"boxv;","9484":"boxdr;","9488":"boxdl;","9492":"boxur;","9496":"boxul;","9500":"boxvr;","9508":"boxvl;","9516":"boxhd;","9524":"boxhu;","9532":"boxvh;","9552":"boxH;","9553":"boxV;","9554":"boxdR;","9555":"boxDr;","9556":"boxDR;","9557":"boxdL;","9558":"boxDl;","9559":"boxDL;","9560":"boxuR;","9561":"boxUr;","9562":"boxUR;","9563":"boxuL;","9564":"boxUl;","9565":"boxUL;","9566":"boxvR;","9567":"boxVr;","9568":"boxVR;","9569":"boxvL;","9570":"boxVl;","9571":"boxVL;","9572":"boxHd;","9573":"boxhD;","9574":"boxHD;","9575":"boxHu;","9576":"boxhU;","9577":"boxHU;","9578":"boxvH;","9579":"boxVh;","9580":"boxVH;","9600":"uhblk;","9604":"lhblk;","9608":"block;","9617":"blk14;","9618":"blk12;","9619":"blk34;","9633":"square;","9642":"squf;","9643":"EmptyVerySmallSquare;","9645":"rect;","9646":"marker;","9649":"fltns;","9651":"xutri;","9652":"utrif;","9653":"utri;","9656":"rtrif;","9657":"triangleright;","9661":"xdtri;","9662":"dtrif;","9663":"triangledown;","9666":"ltrif;","9667":"triangleleft;","9674":"lozenge;","9675":"cir;","9708":"tridot;","9711":"xcirc;","9720":"ultri;","9721":"urtri;","9722":"lltri;","9723":"EmptySmallSquare;","9724":"FilledSmallSquare;","9733":"starf;","9734":"star;","9742":"phone;","9792":"female;","9794":"male;","9824":"spadesuit;","9827":"clubsuit;","9829":"heartsuit;","9830":"diams;","9834":"sung;","9837":"flat;","9838":"natural;","9839":"sharp;","10003":"checkmark;","10007":"cross;","10016":"maltese;","10038":"sext;","10072":"VerticalSeparator;","10098":"lbbrk;","10099":"rbbrk;","10184":"bsolhsub;","10185":"suphsol;","10214":"lobrk;","10215":"robrk;","10216":"LeftAngleBracket;","10217":"RightAngleBracket;","10218":"Lang;","10219":"Rang;","10220":"loang;","10221":"roang;","10229":"xlarr;","10230":"xrarr;","10231":"xharr;","10232":"xlArr;","10233":"xrArr;","10234":"xhArr;","10236":"xmap;","10239":"dzigrarr;","10498":"nvlArr;","10499":"nvrArr;","10500":"nvHarr;","10501":"Map;","10508":"lbarr;","10509":"rbarr;","10510":"lBarr;","10511":"rBarr;","10512":"RBarr;","10513":"DDotrahd;","10514":"UpArrowBar;","10515":"DownArrowBar;","10518":"Rarrtl;","10521":"latail;","10522":"ratail;","10523":"lAtail;","10524":"rAtail;","10525":"larrfs;","10526":"rarrfs;","10527":"larrbfs;","10528":"rarrbfs;","10531":"nwarhk;","10532":"nearhk;","10533":"searhk;","10534":"swarhk;","10535":"nwnear;","10536":"toea;","10537":"tosa;","10538":"swnwar;","10547":"rarrc;","10549":"cudarrr;","10550":"ldca;","10551":"rdca;","10552":"cudarrl;","10553":"larrpl;","10556":"curarrm;","10557":"cularrp;","10565":"rarrpl;","10568":"harrcir;","10569":"Uarrocir;","10570":"lurdshar;","10571":"ldrushar;","10574":"LeftRightVector;","10575":"RightUpDownVector;","10576":"DownLeftRightVector;","10577":"LeftUpDownVector;","10578":"LeftVectorBar;","10579":"RightVectorBar;","10580":"RightUpVectorBar;","10581":"RightDownVectorBar;","10582":"DownLeftVectorBar;","10583":"DownRightVectorBar;","10584":"LeftUpVectorBar;","10585":"LeftDownVectorBar;","10586":"LeftTeeVector;","10587":"RightTeeVector;","10588":"RightUpTeeVector;","10589":"RightDownTeeVector;","10590":"DownLeftTeeVector;","10591":"DownRightTeeVector;","10592":"LeftUpTeeVector;","10593":"LeftDownTeeVector;","10594":"lHar;","10595":"uHar;","10596":"rHar;","10597":"dHar;","10598":"luruhar;","10599":"ldrdhar;","10600":"ruluhar;","10601":"rdldhar;","10602":"lharul;","10603":"llhard;","10604":"rharul;","10605":"lrhard;","10606":"UpEquilibrium;","10607":"ReverseUpEquilibrium;","10608":"RoundImplies;","10609":"erarr;","10610":"simrarr;","10611":"larrsim;","10612":"rarrsim;","10613":"rarrap;","10614":"ltlarr;","10616":"gtrarr;","10617":"subrarr;","10619":"suplarr;","10620":"lfisht;","10621":"rfisht;","10622":"ufisht;","10623":"dfisht;","10629":"lopar;","10630":"ropar;","10635":"lbrke;","10636":"rbrke;","10637":"lbrkslu;","10638":"rbrksld;","10639":"lbrksld;","10640":"rbrkslu;","10641":"langd;","10642":"rangd;","10643":"lparlt;","10644":"rpargt;","10645":"gtlPar;","10646":"ltrPar;","10650":"vzigzag;","10652":"vangrt;","10653":"angrtvbd;","10660":"ange;","10661":"range;","10662":"dwangle;","10663":"uwangle;","10664":"angmsdaa;","10665":"angmsdab;","10666":"angmsdac;","10667":"angmsdad;","10668":"angmsdae;","10669":"angmsdaf;","10670":"angmsdag;","10671":"angmsdah;","10672":"bemptyv;","10673":"demptyv;","10674":"cemptyv;","10675":"raemptyv;","10676":"laemptyv;","10677":"ohbar;","10678":"omid;","10679":"opar;","10681":"operp;","10683":"olcross;","10684":"odsold;","10686":"olcir;","10687":"ofcir;","10688":"olt;","10689":"ogt;","10690":"cirscir;","10691":"cirE;","10692":"solb;","10693":"bsolb;","10697":"boxbox;","10701":"trisb;","10702":"rtriltri;","10703":"LeftTriangleBar;","10704":"RightTriangleBar;","10716":"iinfin;","10717":"infintie;","10718":"nvinfin;","10723":"eparsl;","10724":"smeparsl;","10725":"eqvparsl;","10731":"lozf;","10740":"RuleDelayed;","10742":"dsol;","10752":"xodot;","10753":"xoplus;","10754":"xotime;","10756":"xuplus;","10758":"xsqcup;","10764":"qint;","10765":"fpartint;","10768":"cirfnint;","10769":"awint;","10770":"rppolint;","10771":"scpolint;","10772":"npolint;","10773":"pointint;","10774":"quatint;","10775":"intlarhk;","10786":"pluscir;","10787":"plusacir;","10788":"simplus;","10789":"plusdu;","10790":"plussim;","10791":"plustwo;","10793":"mcomma;","10794":"minusdu;","10797":"loplus;","10798":"roplus;","10799":"Cross;","10800":"timesd;","10801":"timesbar;","10803":"smashp;","10804":"lotimes;","10805":"rotimes;","10806":"otimesas;","10807":"Otimes;","10808":"odiv;","10809":"triplus;","10810":"triminus;","10811":"tritime;","10812":"iprod;","10815":"amalg;","10816":"capdot;","10818":"ncup;","10819":"ncap;","10820":"capand;","10821":"cupor;","10822":"cupcap;","10823":"capcup;","10824":"cupbrcap;","10825":"capbrcup;","10826":"cupcup;","10827":"capcap;","10828":"ccups;","10829":"ccaps;","10832":"ccupssm;","10835":"And;","10836":"Or;","10837":"andand;","10838":"oror;","10839":"orslope;","10840":"andslope;","10842":"andv;","10843":"orv;","10844":"andd;","10845":"ord;","10847":"wedbar;","10854":"sdote;","10858":"simdot;","10861":"congdot;","10862":"easter;","10863":"apacir;","10864":"apE;","10865":"eplus;","10866":"pluse;","10867":"Esim;","10868":"Colone;","10869":"Equal;","10871":"eDDot;","10872":"equivDD;","10873":"ltcir;","10874":"gtcir;","10875":"ltquest;","10876":"gtquest;","10877":"LessSlantEqual;","10878":"GreaterSlantEqual;","10879":"lesdot;","10880":"gesdot;","10881":"lesdoto;","10882":"gesdoto;","10883":"lesdotor;","10884":"gesdotol;","10885":"lessapprox;","10886":"gtrapprox;","10887":"lneq;","10888":"gneq;","10889":"lnapprox;","10890":"gnapprox;","10891":"lesseqqgtr;","10892":"gtreqqless;","10893":"lsime;","10894":"gsime;","10895":"lsimg;","10896":"gsiml;","10897":"lgE;","10898":"glE;","10899":"lesges;","10900":"gesles;","10901":"eqslantless;","10902":"eqslantgtr;","10903":"elsdot;","10904":"egsdot;","10905":"el;","10906":"eg;","10909":"siml;","10910":"simg;","10911":"simlE;","10912":"simgE;","10913":"LessLess;","10914":"GreaterGreater;","10916":"glj;","10917":"gla;","10918":"ltcc;","10919":"gtcc;","10920":"lescc;","10921":"gescc;","10922":"smt;","10923":"lat;","10924":"smte;","10925":"late;","10926":"bumpE;","10927":"preceq;","10928":"succeq;","10931":"prE;","10932":"scE;","10933":"prnE;","10934":"succneqq;","10935":"precapprox;","10936":"succapprox;","10937":"prnap;","10938":"succnapprox;","10939":"Pr;","10940":"Sc;","10941":"subdot;","10942":"supdot;","10943":"subplus;","10944":"supplus;","10945":"submult;","10946":"supmult;","10947":"subedot;","10948":"supedot;","10949":"subseteqq;","10950":"supseteqq;","10951":"subsim;","10952":"supsim;","10955":"subsetneqq;","10956":"supsetneqq;","10959":"csub;","10960":"csup;","10961":"csube;","10962":"csupe;","10963":"subsup;","10964":"supsub;","10965":"subsub;","10966":"supsup;","10967":"suphsub;","10968":"supdsub;","10969":"forkv;","10970":"topfork;","10971":"mlcp;","10980":"DoubleLeftTee;","10982":"Vdashl;","10983":"Barv;","10984":"vBar;","10985":"vBarv;","10987":"Vbar;","10988":"Not;","10989":"bNot;","10990":"rnmid;","10991":"cirmid;","10992":"midcir;","10993":"topcir;","10994":"nhpar;","10995":"parsim;","11005":"parsl;","64256":"fflig;","64257":"filig;","64258":"fllig;","64259":"ffilig;","64260":"ffllig;"}');
+module.exports = JSON.parse('{"name":"gaxios","version":"6.7.1","description":"A simple common HTTP client specifically for Google APIs and services.","main":"build/src/index.js","types":"build/src/index.d.ts","files":["build/src"],"scripts":{"lint":"gts check","test":"c8 mocha build/test","presystem-test":"npm run compile","system-test":"mocha build/system-test --timeout 80000","compile":"tsc -p .","fix":"gts fix","prepare":"npm run compile","pretest":"npm run compile","webpack":"webpack","prebrowser-test":"npm run compile","browser-test":"node build/browser-test/browser-test-runner.js","docs":"compodoc src/","docs-test":"linkinator docs","predocs-test":"npm run docs","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","prelint":"cd samples; npm link ../; npm install","clean":"gts clean","precompile":"gts clean"},"repository":"googleapis/gaxios","keywords":["google"],"engines":{"node":">=14"},"author":"Google, LLC","license":"Apache-2.0","devDependencies":{"@babel/plugin-proposal-private-methods":"^7.18.6","@compodoc/compodoc":"1.1.19","@types/cors":"^2.8.6","@types/express":"^4.16.1","@types/extend":"^3.0.1","@types/mocha":"^9.0.0","@types/multiparty":"0.0.36","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^20.0.0","@types/node-fetch":"^2.5.7","@types/sinon":"^17.0.0","@types/tmp":"0.2.6","@types/uuid":"^10.0.0","abort-controller":"^3.0.0","assert":"^2.0.0","browserify":"^17.0.0","c8":"^8.0.0","cheerio":"1.0.0-rc.10","cors":"^2.8.5","execa":"^5.0.0","express":"^4.16.4","form-data":"^4.0.0","gts":"^5.0.0","is-docker":"^2.0.0","karma":"^6.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-remap-coverage":"^0.1.5","karma-sourcemap-loader":"^0.4.0","karma-webpack":"5.0.0","linkinator":"^3.0.0","mocha":"^8.0.0","multiparty":"^4.2.1","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","puppeteer":"^19.0.0","sinon":"^18.0.0","stream-browserify":"^3.0.0","tmp":"0.2.3","ts-loader":"^8.0.0","typescript":"^5.1.6","webpack":"^5.35.0","webpack-cli":"^4.0.0"},"dependencies":{"extend":"^3.0.2","https-proxy-agent":"^7.0.1","is-stream":"^2.0.0","node-fetch":"^2.6.9","uuid":"^9.0.1"}}');
 
 /***/ }),
 
@@ -105376,15 +106310,7 @@ module.exports = JSON.parse('{"9":"Tab;","10":"NewLine;","33":"excl;","34":"quot
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"google-auth-library","version":"9.2.0","author":"Google Inc.","description":"Google APIs Authentication Client Library for Node.js","engines":{"node":">=14"},"main":"./build/src/index.js","types":"./build/src/index.d.ts","repository":"googleapis/google-auth-library-nodejs.git","keywords":["google","api","google apis","client","client library"],"dependencies":{"base64-js":"^1.3.0","ecdsa-sig-formatter":"^1.0.11","gaxios":"^6.0.0","gcp-metadata":"^6.0.0","gtoken":"^7.0.0","jws":"^4.0.0"},"devDependencies":{"@compodoc/compodoc":"^1.1.7","@types/base64-js":"^1.2.5","@types/chai":"^4.1.7","@types/jws":"^3.1.0","@types/mocha":"^9.0.0","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^20.4.2","@types/sinon":"^10.0.0","assert-rejects":"^1.0.0","c8":"^8.0.0","chai":"^4.2.0","codecov":"^3.0.2","execa":"^5.0.0","gts":"^5.0.0","is-docker":"^2.0.0","karma":"^6.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-sourcemap-loader":"^0.4.0","karma-webpack":"^5.0.0","keypair":"^1.0.4","linkinator":"^4.0.0","mocha":"^9.2.2","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","puppeteer":"^21.0.0","sinon":"^15.0.0","ts-loader":"^8.0.0","typescript":"^5.1.6","webpack":"^5.21.2","webpack-cli":"^4.0.0"},"files":["build/src","!build/src/**/*.map"],"scripts":{"test":"c8 mocha build/test","clean":"gts clean","prepare":"npm run compile","lint":"gts check","compile":"tsc -p .","fix":"gts fix","pretest":"npm run compile -- --sourceMap","docs":"compodoc src/","samples-setup":"cd samples/ && npm link ../ && npm run setup && cd ../","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 60000","presystem-test":"npm run compile -- --sourceMap","webpack":"webpack","browser-test":"karma start","docs-test":"linkinator docs","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean"},"license":"Apache-2.0"}');
-
-/***/ }),
-
-/***/ 53765:
-/***/ ((module) => {
-
-"use strict";
-module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"iana"},"application/3gpdash-qoe-report+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/3gpp-ims+xml":{"source":"iana","compressible":true},"application/3gpphal+json":{"source":"iana","compressible":true},"application/3gpphalforms+json":{"source":"iana","compressible":true},"application/a2l":{"source":"iana"},"application/ace+cbor":{"source":"iana"},"application/activemessage":{"source":"iana"},"application/activity+json":{"source":"iana","compressible":true},"application/alto-costmap+json":{"source":"iana","compressible":true},"application/alto-costmapfilter+json":{"source":"iana","compressible":true},"application/alto-directory+json":{"source":"iana","compressible":true},"application/alto-endpointcost+json":{"source":"iana","compressible":true},"application/alto-endpointcostparams+json":{"source":"iana","compressible":true},"application/alto-endpointprop+json":{"source":"iana","compressible":true},"application/alto-endpointpropparams+json":{"source":"iana","compressible":true},"application/alto-error+json":{"source":"iana","compressible":true},"application/alto-networkmap+json":{"source":"iana","compressible":true},"application/alto-networkmapfilter+json":{"source":"iana","compressible":true},"application/alto-updatestreamcontrol+json":{"source":"iana","compressible":true},"application/alto-updatestreamparams+json":{"source":"iana","compressible":true},"application/aml":{"source":"iana"},"application/andrew-inset":{"source":"iana","extensions":["ez"]},"application/applefile":{"source":"iana"},"application/applixware":{"source":"apache","extensions":["aw"]},"application/at+jwt":{"source":"iana"},"application/atf":{"source":"iana"},"application/atfx":{"source":"iana"},"application/atom+xml":{"source":"iana","compressible":true,"extensions":["atom"]},"application/atomcat+xml":{"source":"iana","compressible":true,"extensions":["atomcat"]},"application/atomdeleted+xml":{"source":"iana","compressible":true,"extensions":["atomdeleted"]},"application/atomicmail":{"source":"iana"},"application/atomsvc+xml":{"source":"iana","compressible":true,"extensions":["atomsvc"]},"application/atsc-dwd+xml":{"source":"iana","compressible":true,"extensions":["dwd"]},"application/atsc-dynamic-event-message":{"source":"iana"},"application/atsc-held+xml":{"source":"iana","compressible":true,"extensions":["held"]},"application/atsc-rdt+json":{"source":"iana","compressible":true},"application/atsc-rsat+xml":{"source":"iana","compressible":true,"extensions":["rsat"]},"application/atxml":{"source":"iana"},"application/auth-policy+xml":{"source":"iana","compressible":true},"application/bacnet-xdd+zip":{"source":"iana","compressible":false},"application/batch-smtp":{"source":"iana"},"application/bdoc":{"compressible":false,"extensions":["bdoc"]},"application/beep+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/calendar+json":{"source":"iana","compressible":true},"application/calendar+xml":{"source":"iana","compressible":true,"extensions":["xcs"]},"application/call-completion":{"source":"iana"},"application/cals-1840":{"source":"iana"},"application/captive+json":{"source":"iana","compressible":true},"application/cbor":{"source":"iana"},"application/cbor-seq":{"source":"iana"},"application/cccex":{"source":"iana"},"application/ccmp+xml":{"source":"iana","compressible":true},"application/ccxml+xml":{"source":"iana","compressible":true,"extensions":["ccxml"]},"application/cdfx+xml":{"source":"iana","compressible":true,"extensions":["cdfx"]},"application/cdmi-capability":{"source":"iana","extensions":["cdmia"]},"application/cdmi-container":{"source":"iana","extensions":["cdmic"]},"application/cdmi-domain":{"source":"iana","extensions":["cdmid"]},"application/cdmi-object":{"source":"iana","extensions":["cdmio"]},"application/cdmi-queue":{"source":"iana","extensions":["cdmiq"]},"application/cdni":{"source":"iana"},"application/cea":{"source":"iana"},"application/cea-2018+xml":{"source":"iana","compressible":true},"application/cellml+xml":{"source":"iana","compressible":true},"application/cfw":{"source":"iana"},"application/city+json":{"source":"iana","compressible":true},"application/clr":{"source":"iana"},"application/clue+xml":{"source":"iana","compressible":true},"application/clue_info+xml":{"source":"iana","compressible":true},"application/cms":{"source":"iana"},"application/cnrp+xml":{"source":"iana","compressible":true},"application/coap-group+json":{"source":"iana","compressible":true},"application/coap-payload":{"source":"iana"},"application/commonground":{"source":"iana"},"application/conference-info+xml":{"source":"iana","compressible":true},"application/cose":{"source":"iana"},"application/cose-key":{"source":"iana"},"application/cose-key-set":{"source":"iana"},"application/cpl+xml":{"source":"iana","compressible":true,"extensions":["cpl"]},"application/csrattrs":{"source":"iana"},"application/csta+xml":{"source":"iana","compressible":true},"application/cstadata+xml":{"source":"iana","compressible":true},"application/csvm+json":{"source":"iana","compressible":true},"application/cu-seeme":{"source":"apache","extensions":["cu"]},"application/cwt":{"source":"iana"},"application/cybercash":{"source":"iana"},"application/dart":{"compressible":true},"application/dash+xml":{"source":"iana","compressible":true,"extensions":["mpd"]},"application/dash-patch+xml":{"source":"iana","compressible":true,"extensions":["mpp"]},"application/dashdelta":{"source":"iana"},"application/davmount+xml":{"source":"iana","compressible":true,"extensions":["davmount"]},"application/dca-rft":{"source":"iana"},"application/dcd":{"source":"iana"},"application/dec-dx":{"source":"iana"},"application/dialog-info+xml":{"source":"iana","compressible":true},"application/dicom":{"source":"iana"},"application/dicom+json":{"source":"iana","compressible":true},"application/dicom+xml":{"source":"iana","compressible":true},"application/dii":{"source":"iana"},"application/dit":{"source":"iana"},"application/dns":{"source":"iana"},"application/dns+json":{"source":"iana","compressible":true},"application/dns-message":{"source":"iana"},"application/docbook+xml":{"source":"apache","compressible":true,"extensions":["dbk"]},"application/dots+cbor":{"source":"iana"},"application/dskpp+xml":{"source":"iana","compressible":true},"application/dssc+der":{"source":"iana","extensions":["dssc"]},"application/dssc+xml":{"source":"iana","compressible":true,"extensions":["xdssc"]},"application/dvcs":{"source":"iana"},"application/ecmascript":{"source":"iana","compressible":true,"extensions":["es","ecma"]},"application/edi-consent":{"source":"iana"},"application/edi-x12":{"source":"iana","compressible":false},"application/edifact":{"source":"iana","compressible":false},"application/efi":{"source":"iana"},"application/elm+json":{"source":"iana","charset":"UTF-8","compressible":true},"application/elm+xml":{"source":"iana","compressible":true},"application/emergencycalldata.cap+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/emergencycalldata.comment+xml":{"source":"iana","compressible":true},"application/emergencycalldata.control+xml":{"source":"iana","compressible":true},"application/emergencycalldata.deviceinfo+xml":{"source":"iana","compressible":true},"application/emergencycalldata.ecall.msd":{"source":"iana"},"application/emergencycalldata.providerinfo+xml":{"source":"iana","compressible":true},"application/emergencycalldata.serviceinfo+xml":{"source":"iana","compressible":true},"application/emergencycalldata.subscriberinfo+xml":{"source":"iana","compressible":true},"application/emergencycalldata.veds+xml":{"source":"iana","compressible":true},"application/emma+xml":{"source":"iana","compressible":true,"extensions":["emma"]},"application/emotionml+xml":{"source":"iana","compressible":true,"extensions":["emotionml"]},"application/encaprtp":{"source":"iana"},"application/epp+xml":{"source":"iana","compressible":true},"application/epub+zip":{"source":"iana","compressible":false,"extensions":["epub"]},"application/eshop":{"source":"iana"},"application/exi":{"source":"iana","extensions":["exi"]},"application/expect-ct-report+json":{"source":"iana","compressible":true},"application/express":{"source":"iana","extensions":["exp"]},"application/fastinfoset":{"source":"iana"},"application/fastsoap":{"source":"iana"},"application/fdt+xml":{"source":"iana","compressible":true,"extensions":["fdt"]},"application/fhir+json":{"source":"iana","charset":"UTF-8","compressible":true},"application/fhir+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/fido.trusted-apps+json":{"compressible":true},"application/fits":{"source":"iana"},"application/flexfec":{"source":"iana"},"application/font-sfnt":{"source":"iana"},"application/font-tdpfr":{"source":"iana","extensions":["pfr"]},"application/font-woff":{"source":"iana","compressible":false},"application/framework-attributes+xml":{"source":"iana","compressible":true},"application/geo+json":{"source":"iana","compressible":true,"extensions":["geojson"]},"application/geo+json-seq":{"source":"iana"},"application/geopackage+sqlite3":{"source":"iana"},"application/geoxacml+xml":{"source":"iana","compressible":true},"application/gltf-buffer":{"source":"iana"},"application/gml+xml":{"source":"iana","compressible":true,"extensions":["gml"]},"application/gpx+xml":{"source":"apache","compressible":true,"extensions":["gpx"]},"application/gxf":{"source":"apache","extensions":["gxf"]},"application/gzip":{"source":"iana","compressible":false,"extensions":["gz"]},"application/h224":{"source":"iana"},"application/held+xml":{"source":"iana","compressible":true},"application/hjson":{"extensions":["hjson"]},"application/http":{"source":"iana"},"application/hyperstudio":{"source":"iana","extensions":["stk"]},"application/ibe-key-request+xml":{"source":"iana","compressible":true},"application/ibe-pkg-reply+xml":{"source":"iana","compressible":true},"application/ibe-pp-data":{"source":"iana"},"application/iges":{"source":"iana"},"application/im-iscomposing+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/index":{"source":"iana"},"application/index.cmd":{"source":"iana"},"application/index.obj":{"source":"iana"},"application/index.response":{"source":"iana"},"application/index.vnd":{"source":"iana"},"application/inkml+xml":{"source":"iana","compressible":true,"extensions":["ink","inkml"]},"application/iotp":{"source":"iana"},"application/ipfix":{"source":"iana","extensions":["ipfix"]},"application/ipp":{"source":"iana"},"application/isup":{"source":"iana"},"application/its+xml":{"source":"iana","compressible":true,"extensions":["its"]},"application/java-archive":{"source":"apache","compressible":false,"extensions":["jar","war","ear"]},"application/java-serialized-object":{"source":"apache","compressible":false,"extensions":["ser"]},"application/java-vm":{"source":"apache","compressible":false,"extensions":["class"]},"application/javascript":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["js","mjs"]},"application/jf2feed+json":{"source":"iana","compressible":true},"application/jose":{"source":"iana"},"application/jose+json":{"source":"iana","compressible":true},"application/jrd+json":{"source":"iana","compressible":true},"application/jscalendar+json":{"source":"iana","compressible":true},"application/json":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["json","map"]},"application/json-patch+json":{"source":"iana","compressible":true},"application/json-seq":{"source":"iana"},"application/json5":{"extensions":["json5"]},"application/jsonml+json":{"source":"apache","compressible":true,"extensions":["jsonml"]},"application/jwk+json":{"source":"iana","compressible":true},"application/jwk-set+json":{"source":"iana","compressible":true},"application/jwt":{"source":"iana"},"application/kpml-request+xml":{"source":"iana","compressible":true},"application/kpml-response+xml":{"source":"iana","compressible":true},"application/ld+json":{"source":"iana","compressible":true,"extensions":["jsonld"]},"application/lgr+xml":{"source":"iana","compressible":true,"extensions":["lgr"]},"application/link-format":{"source":"iana"},"application/load-control+xml":{"source":"iana","compressible":true},"application/lost+xml":{"source":"iana","compressible":true,"extensions":["lostxml"]},"application/lostsync+xml":{"source":"iana","compressible":true},"application/lpf+zip":{"source":"iana","compressible":false},"application/lxf":{"source":"iana"},"application/mac-binhex40":{"source":"iana","extensions":["hqx"]},"application/mac-compactpro":{"source":"apache","extensions":["cpt"]},"application/macwriteii":{"source":"iana"},"application/mads+xml":{"source":"iana","compressible":true,"extensions":["mads"]},"application/manifest+json":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["webmanifest"]},"application/marc":{"source":"iana","extensions":["mrc"]},"application/marcxml+xml":{"source":"iana","compressible":true,"extensions":["mrcx"]},"application/mathematica":{"source":"iana","extensions":["ma","nb","mb"]},"application/mathml+xml":{"source":"iana","compressible":true,"extensions":["mathml"]},"application/mathml-content+xml":{"source":"iana","compressible":true},"application/mathml-presentation+xml":{"source":"iana","compressible":true},"application/mbms-associated-procedure-description+xml":{"source":"iana","compressible":true},"application/mbms-deregister+xml":{"source":"iana","compressible":true},"application/mbms-envelope+xml":{"source":"iana","compressible":true},"application/mbms-msk+xml":{"source":"iana","compressible":true},"application/mbms-msk-response+xml":{"source":"iana","compressible":true},"application/mbms-protection-description+xml":{"source":"iana","compressible":true},"application/mbms-reception-report+xml":{"source":"iana","compressible":true},"application/mbms-register+xml":{"source":"iana","compressible":true},"application/mbms-register-response+xml":{"source":"iana","compressible":true},"application/mbms-schedule+xml":{"source":"iana","compressible":true},"application/mbms-user-service-description+xml":{"source":"iana","compressible":true},"application/mbox":{"source":"iana","extensions":["mbox"]},"application/media-policy-dataset+xml":{"source":"iana","compressible":true,"extensions":["mpf"]},"application/media_control+xml":{"source":"iana","compressible":true},"application/mediaservercontrol+xml":{"source":"iana","compressible":true,"extensions":["mscml"]},"application/merge-patch+json":{"source":"iana","compressible":true},"application/metalink+xml":{"source":"apache","compressible":true,"extensions":["metalink"]},"application/metalink4+xml":{"source":"iana","compressible":true,"extensions":["meta4"]},"application/mets+xml":{"source":"iana","compressible":true,"extensions":["mets"]},"application/mf4":{"source":"iana"},"application/mikey":{"source":"iana"},"application/mipc":{"source":"iana"},"application/missing-blocks+cbor-seq":{"source":"iana"},"application/mmt-aei+xml":{"source":"iana","compressible":true,"extensions":["maei"]},"application/mmt-usd+xml":{"source":"iana","compressible":true,"extensions":["musd"]},"application/mods+xml":{"source":"iana","compressible":true,"extensions":["mods"]},"application/moss-keys":{"source":"iana"},"application/moss-signature":{"source":"iana"},"application/mosskey-data":{"source":"iana"},"application/mosskey-request":{"source":"iana"},"application/mp21":{"source":"iana","extensions":["m21","mp21"]},"application/mp4":{"source":"iana","extensions":["mp4s","m4p"]},"application/mpeg4-generic":{"source":"iana"},"application/mpeg4-iod":{"source":"iana"},"application/mpeg4-iod-xmt":{"source":"iana"},"application/mrb-consumer+xml":{"source":"iana","compressible":true},"application/mrb-publish+xml":{"source":"iana","compressible":true},"application/msc-ivr+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/msc-mixer+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/msword":{"source":"iana","compressible":false,"extensions":["doc","dot"]},"application/mud+json":{"source":"iana","compressible":true},"application/multipart-core":{"source":"iana"},"application/mxf":{"source":"iana","extensions":["mxf"]},"application/n-quads":{"source":"iana","extensions":["nq"]},"application/n-triples":{"source":"iana","extensions":["nt"]},"application/nasdata":{"source":"iana"},"application/news-checkgroups":{"source":"iana","charset":"US-ASCII"},"application/news-groupinfo":{"source":"iana","charset":"US-ASCII"},"application/news-transmission":{"source":"iana"},"application/nlsml+xml":{"source":"iana","compressible":true},"application/node":{"source":"iana","extensions":["cjs"]},"application/nss":{"source":"iana"},"application/oauth-authz-req+jwt":{"source":"iana"},"application/oblivious-dns-message":{"source":"iana"},"application/ocsp-request":{"source":"iana"},"application/ocsp-response":{"source":"iana"},"application/octet-stream":{"source":"iana","compressible":false,"extensions":["bin","dms","lrf","mar","so","dist","distz","pkg","bpk","dump","elc","deploy","exe","dll","deb","dmg","iso","img","msi","msp","msm","buffer"]},"application/oda":{"source":"iana","extensions":["oda"]},"application/odm+xml":{"source":"iana","compressible":true},"application/odx":{"source":"iana"},"application/oebps-package+xml":{"source":"iana","compressible":true,"extensions":["opf"]},"application/ogg":{"source":"iana","compressible":false,"extensions":["ogx"]},"application/omdoc+xml":{"source":"apache","compressible":true,"extensions":["omdoc"]},"application/onenote":{"source":"apache","extensions":["onetoc","onetoc2","onetmp","onepkg"]},"application/opc-nodeset+xml":{"source":"iana","compressible":true},"application/oscore":{"source":"iana"},"application/oxps":{"source":"iana","extensions":["oxps"]},"application/p21":{"source":"iana"},"application/p21+zip":{"source":"iana","compressible":false},"application/p2p-overlay+xml":{"source":"iana","compressible":true,"extensions":["relo"]},"application/parityfec":{"source":"iana"},"application/passport":{"source":"iana"},"application/patch-ops-error+xml":{"source":"iana","compressible":true,"extensions":["xer"]},"application/pdf":{"source":"iana","compressible":false,"extensions":["pdf"]},"application/pdx":{"source":"iana"},"application/pem-certificate-chain":{"source":"iana"},"application/pgp-encrypted":{"source":"iana","compressible":false,"extensions":["pgp"]},"application/pgp-keys":{"source":"iana","extensions":["asc"]},"application/pgp-signature":{"source":"iana","extensions":["asc","sig"]},"application/pics-rules":{"source":"apache","extensions":["prf"]},"application/pidf+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/pidf-diff+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/pkcs10":{"source":"iana","extensions":["p10"]},"application/pkcs12":{"source":"iana"},"application/pkcs7-mime":{"source":"iana","extensions":["p7m","p7c"]},"application/pkcs7-signature":{"source":"iana","extensions":["p7s"]},"application/pkcs8":{"source":"iana","extensions":["p8"]},"application/pkcs8-encrypted":{"source":"iana"},"application/pkix-attr-cert":{"source":"iana","extensions":["ac"]},"application/pkix-cert":{"source":"iana","extensions":["cer"]},"application/pkix-crl":{"source":"iana","extensions":["crl"]},"application/pkix-pkipath":{"source":"iana","extensions":["pkipath"]},"application/pkixcmp":{"source":"iana","extensions":["pki"]},"application/pls+xml":{"source":"iana","compressible":true,"extensions":["pls"]},"application/poc-settings+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/postscript":{"source":"iana","compressible":true,"extensions":["ai","eps","ps"]},"application/ppsp-tracker+json":{"source":"iana","compressible":true},"application/problem+json":{"source":"iana","compressible":true},"application/problem+xml":{"source":"iana","compressible":true},"application/provenance+xml":{"source":"iana","compressible":true,"extensions":["provx"]},"application/prs.alvestrand.titrax-sheet":{"source":"iana"},"application/prs.cww":{"source":"iana","extensions":["cww"]},"application/prs.cyn":{"source":"iana","charset":"7-BIT"},"application/prs.hpub+zip":{"source":"iana","compressible":false},"application/prs.nprend":{"source":"iana"},"application/prs.plucker":{"source":"iana"},"application/prs.rdf-xml-crypt":{"source":"iana"},"application/prs.xsf+xml":{"source":"iana","compressible":true},"application/pskc+xml":{"source":"iana","compressible":true,"extensions":["pskcxml"]},"application/pvd+json":{"source":"iana","compressible":true},"application/qsig":{"source":"iana"},"application/raml+yaml":{"compressible":true,"extensions":["raml"]},"application/raptorfec":{"source":"iana"},"application/rdap+json":{"source":"iana","compressible":true},"application/rdf+xml":{"source":"iana","compressible":true,"extensions":["rdf","owl"]},"application/reginfo+xml":{"source":"iana","compressible":true,"extensions":["rif"]},"application/relax-ng-compact-syntax":{"source":"iana","extensions":["rnc"]},"application/remote-printing":{"source":"iana"},"application/reputon+json":{"source":"iana","compressible":true},"application/resource-lists+xml":{"source":"iana","compressible":true,"extensions":["rl"]},"application/resource-lists-diff+xml":{"source":"iana","compressible":true,"extensions":["rld"]},"application/rfc+xml":{"source":"iana","compressible":true},"application/riscos":{"source":"iana"},"application/rlmi+xml":{"source":"iana","compressible":true},"application/rls-services+xml":{"source":"iana","compressible":true,"extensions":["rs"]},"application/route-apd+xml":{"source":"iana","compressible":true,"extensions":["rapd"]},"application/route-s-tsid+xml":{"source":"iana","compressible":true,"extensions":["sls"]},"application/route-usd+xml":{"source":"iana","compressible":true,"extensions":["rusd"]},"application/rpki-ghostbusters":{"source":"iana","extensions":["gbr"]},"application/rpki-manifest":{"source":"iana","extensions":["mft"]},"application/rpki-publication":{"source":"iana"},"application/rpki-roa":{"source":"iana","extensions":["roa"]},"application/rpki-updown":{"source":"iana"},"application/rsd+xml":{"source":"apache","compressible":true,"extensions":["rsd"]},"application/rss+xml":{"source":"apache","compressible":true,"extensions":["rss"]},"application/rtf":{"source":"iana","compressible":true,"extensions":["rtf"]},"application/rtploopback":{"source":"iana"},"application/rtx":{"source":"iana"},"application/samlassertion+xml":{"source":"iana","compressible":true},"application/samlmetadata+xml":{"source":"iana","compressible":true},"application/sarif+json":{"source":"iana","compressible":true},"application/sarif-external-properties+json":{"source":"iana","compressible":true},"application/sbe":{"source":"iana"},"application/sbml+xml":{"source":"iana","compressible":true,"extensions":["sbml"]},"application/scaip+xml":{"source":"iana","compressible":true},"application/scim+json":{"source":"iana","compressible":true},"application/scvp-cv-request":{"source":"iana","extensions":["scq"]},"application/scvp-cv-response":{"source":"iana","extensions":["scs"]},"application/scvp-vp-request":{"source":"iana","extensions":["spq"]},"application/scvp-vp-response":{"source":"iana","extensions":["spp"]},"application/sdp":{"source":"iana","extensions":["sdp"]},"application/secevent+jwt":{"source":"iana"},"application/senml+cbor":{"source":"iana"},"application/senml+json":{"source":"iana","compressible":true},"application/senml+xml":{"source":"iana","compressible":true,"extensions":["senmlx"]},"application/senml-etch+cbor":{"source":"iana"},"application/senml-etch+json":{"source":"iana","compressible":true},"application/senml-exi":{"source":"iana"},"application/sensml+cbor":{"source":"iana"},"application/sensml+json":{"source":"iana","compressible":true},"application/sensml+xml":{"source":"iana","compressible":true,"extensions":["sensmlx"]},"application/sensml-exi":{"source":"iana"},"application/sep+xml":{"source":"iana","compressible":true},"application/sep-exi":{"source":"iana"},"application/session-info":{"source":"iana"},"application/set-payment":{"source":"iana"},"application/set-payment-initiation":{"source":"iana","extensions":["setpay"]},"application/set-registration":{"source":"iana"},"application/set-registration-initiation":{"source":"iana","extensions":["setreg"]},"application/sgml":{"source":"iana"},"application/sgml-open-catalog":{"source":"iana"},"application/shf+xml":{"source":"iana","compressible":true,"extensions":["shf"]},"application/sieve":{"source":"iana","extensions":["siv","sieve"]},"application/simple-filter+xml":{"source":"iana","compressible":true},"application/simple-message-summary":{"source":"iana"},"application/simplesymbolcontainer":{"source":"iana"},"application/sipc":{"source":"iana"},"application/slate":{"source":"iana"},"application/smil":{"source":"iana"},"application/smil+xml":{"source":"iana","compressible":true,"extensions":["smi","smil"]},"application/smpte336m":{"source":"iana"},"application/soap+fastinfoset":{"source":"iana"},"application/soap+xml":{"source":"iana","compressible":true},"application/sparql-query":{"source":"iana","extensions":["rq"]},"application/sparql-results+xml":{"source":"iana","compressible":true,"extensions":["srx"]},"application/spdx+json":{"source":"iana","compressible":true},"application/spirits-event+xml":{"source":"iana","compressible":true},"application/sql":{"source":"iana"},"application/srgs":{"source":"iana","extensions":["gram"]},"application/srgs+xml":{"source":"iana","compressible":true,"extensions":["grxml"]},"application/sru+xml":{"source":"iana","compressible":true,"extensions":["sru"]},"application/ssdl+xml":{"source":"apache","compressible":true,"extensions":["ssdl"]},"application/ssml+xml":{"source":"iana","compressible":true,"extensions":["ssml"]},"application/stix+json":{"source":"iana","compressible":true},"application/swid+xml":{"source":"iana","compressible":true,"extensions":["swidtag"]},"application/tamp-apex-update":{"source":"iana"},"application/tamp-apex-update-confirm":{"source":"iana"},"application/tamp-community-update":{"source":"iana"},"application/tamp-community-update-confirm":{"source":"iana"},"application/tamp-error":{"source":"iana"},"application/tamp-sequence-adjust":{"source":"iana"},"application/tamp-sequence-adjust-confirm":{"source":"iana"},"application/tamp-status-query":{"source":"iana"},"application/tamp-status-response":{"source":"iana"},"application/tamp-update":{"source":"iana"},"application/tamp-update-confirm":{"source":"iana"},"application/tar":{"compressible":true},"application/taxii+json":{"source":"iana","compressible":true},"application/td+json":{"source":"iana","compressible":true},"application/tei+xml":{"source":"iana","compressible":true,"extensions":["tei","teicorpus"]},"application/tetra_isi":{"source":"iana"},"application/thraud+xml":{"source":"iana","compressible":true,"extensions":["tfi"]},"application/timestamp-query":{"source":"iana"},"application/timestamp-reply":{"source":"iana"},"application/timestamped-data":{"source":"iana","extensions":["tsd"]},"application/tlsrpt+gzip":{"source":"iana"},"application/tlsrpt+json":{"source":"iana","compressible":true},"application/tnauthlist":{"source":"iana"},"application/token-introspection+jwt":{"source":"iana"},"application/toml":{"compressible":true,"extensions":["toml"]},"application/trickle-ice-sdpfrag":{"source":"iana"},"application/trig":{"source":"iana","extensions":["trig"]},"application/ttml+xml":{"source":"iana","compressible":true,"extensions":["ttml"]},"application/tve-trigger":{"source":"iana"},"application/tzif":{"source":"iana"},"application/tzif-leap":{"source":"iana"},"application/ubjson":{"compressible":false,"extensions":["ubj"]},"application/ulpfec":{"source":"iana"},"application/urc-grpsheet+xml":{"source":"iana","compressible":true},"application/urc-ressheet+xml":{"source":"iana","compressible":true,"extensions":["rsheet"]},"application/urc-targetdesc+xml":{"source":"iana","compressible":true,"extensions":["td"]},"application/urc-uisocketdesc+xml":{"source":"iana","compressible":true},"application/vcard+json":{"source":"iana","compressible":true},"application/vcard+xml":{"source":"iana","compressible":true},"application/vemmi":{"source":"iana"},"application/vividence.scriptfile":{"source":"apache"},"application/vnd.1000minds.decision-model+xml":{"source":"iana","compressible":true,"extensions":["1km"]},"application/vnd.3gpp-prose+xml":{"source":"iana","compressible":true},"application/vnd.3gpp-prose-pc3ch+xml":{"source":"iana","compressible":true},"application/vnd.3gpp-v2x-local-service-information":{"source":"iana"},"application/vnd.3gpp.5gnas":{"source":"iana"},"application/vnd.3gpp.access-transfer-events+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.bsf+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.gmop+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.gtpc":{"source":"iana"},"application/vnd.3gpp.interworking-data":{"source":"iana"},"application/vnd.3gpp.lpp":{"source":"iana"},"application/vnd.3gpp.mc-signalling-ear":{"source":"iana"},"application/vnd.3gpp.mcdata-affiliation-command+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcdata-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcdata-payload":{"source":"iana"},"application/vnd.3gpp.mcdata-service-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcdata-signalling":{"source":"iana"},"application/vnd.3gpp.mcdata-ue-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcdata-user-profile+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-affiliation-command+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-floor-request+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-location-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-mbms-usage-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-service-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-signed+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-ue-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-ue-init-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcptt-user-profile+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-affiliation-command+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-affiliation-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-location-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-mbms-usage-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-service-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-transmission-request+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-ue-config+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mcvideo-user-profile+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.mid-call+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.ngap":{"source":"iana"},"application/vnd.3gpp.pfcp":{"source":"iana"},"application/vnd.3gpp.pic-bw-large":{"source":"iana","extensions":["plb"]},"application/vnd.3gpp.pic-bw-small":{"source":"iana","extensions":["psb"]},"application/vnd.3gpp.pic-bw-var":{"source":"iana","extensions":["pvb"]},"application/vnd.3gpp.s1ap":{"source":"iana"},"application/vnd.3gpp.sms":{"source":"iana"},"application/vnd.3gpp.sms+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.srvcc-ext+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.srvcc-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.state-and-event-info+xml":{"source":"iana","compressible":true},"application/vnd.3gpp.ussd+xml":{"source":"iana","compressible":true},"application/vnd.3gpp2.bcmcsinfo+xml":{"source":"iana","compressible":true},"application/vnd.3gpp2.sms":{"source":"iana"},"application/vnd.3gpp2.tcap":{"source":"iana","extensions":["tcap"]},"application/vnd.3lightssoftware.imagescal":{"source":"iana"},"application/vnd.3m.post-it-notes":{"source":"iana","extensions":["pwn"]},"application/vnd.accpac.simply.aso":{"source":"iana","extensions":["aso"]},"application/vnd.accpac.simply.imp":{"source":"iana","extensions":["imp"]},"application/vnd.acucobol":{"source":"iana","extensions":["acu"]},"application/vnd.acucorp":{"source":"iana","extensions":["atc","acutc"]},"application/vnd.adobe.air-application-installer-package+zip":{"source":"apache","compressible":false,"extensions":["air"]},"application/vnd.adobe.flash.movie":{"source":"iana"},"application/vnd.adobe.formscentral.fcdt":{"source":"iana","extensions":["fcdt"]},"application/vnd.adobe.fxp":{"source":"iana","extensions":["fxp","fxpl"]},"application/vnd.adobe.partial-upload":{"source":"iana"},"application/vnd.adobe.xdp+xml":{"source":"iana","compressible":true,"extensions":["xdp"]},"application/vnd.adobe.xfdf":{"source":"iana","extensions":["xfdf"]},"application/vnd.aether.imp":{"source":"iana"},"application/vnd.afpc.afplinedata":{"source":"iana"},"application/vnd.afpc.afplinedata-pagedef":{"source":"iana"},"application/vnd.afpc.cmoca-cmresource":{"source":"iana"},"application/vnd.afpc.foca-charset":{"source":"iana"},"application/vnd.afpc.foca-codedfont":{"source":"iana"},"application/vnd.afpc.foca-codepage":{"source":"iana"},"application/vnd.afpc.modca":{"source":"iana"},"application/vnd.afpc.modca-cmtable":{"source":"iana"},"application/vnd.afpc.modca-formdef":{"source":"iana"},"application/vnd.afpc.modca-mediummap":{"source":"iana"},"application/vnd.afpc.modca-objectcontainer":{"source":"iana"},"application/vnd.afpc.modca-overlay":{"source":"iana"},"application/vnd.afpc.modca-pagesegment":{"source":"iana"},"application/vnd.age":{"source":"iana","extensions":["age"]},"application/vnd.ah-barcode":{"source":"iana"},"application/vnd.ahead.space":{"source":"iana","extensions":["ahead"]},"application/vnd.airzip.filesecure.azf":{"source":"iana","extensions":["azf"]},"application/vnd.airzip.filesecure.azs":{"source":"iana","extensions":["azs"]},"application/vnd.amadeus+json":{"source":"iana","compressible":true},"application/vnd.amazon.ebook":{"source":"apache","extensions":["azw"]},"application/vnd.amazon.mobi8-ebook":{"source":"iana"},"application/vnd.americandynamics.acc":{"source":"iana","extensions":["acc"]},"application/vnd.amiga.ami":{"source":"iana","extensions":["ami"]},"application/vnd.amundsen.maze+xml":{"source":"iana","compressible":true},"application/vnd.android.ota":{"source":"iana"},"application/vnd.android.package-archive":{"source":"apache","compressible":false,"extensions":["apk"]},"application/vnd.anki":{"source":"iana"},"application/vnd.anser-web-certificate-issue-initiation":{"source":"iana","extensions":["cii"]},"application/vnd.anser-web-funds-transfer-initiation":{"source":"apache","extensions":["fti"]},"application/vnd.antix.game-component":{"source":"iana","extensions":["atx"]},"application/vnd.apache.arrow.file":{"source":"iana"},"application/vnd.apache.arrow.stream":{"source":"iana"},"application/vnd.apache.thrift.binary":{"source":"iana"},"application/vnd.apache.thrift.compact":{"source":"iana"},"application/vnd.apache.thrift.json":{"source":"iana"},"application/vnd.api+json":{"source":"iana","compressible":true},"application/vnd.aplextor.warrp+json":{"source":"iana","compressible":true},"application/vnd.apothekende.reservation+json":{"source":"iana","compressible":true},"application/vnd.apple.installer+xml":{"source":"iana","compressible":true,"extensions":["mpkg"]},"application/vnd.apple.keynote":{"source":"iana","extensions":["key"]},"application/vnd.apple.mpegurl":{"source":"iana","extensions":["m3u8"]},"application/vnd.apple.numbers":{"source":"iana","extensions":["numbers"]},"application/vnd.apple.pages":{"source":"iana","extensions":["pages"]},"application/vnd.apple.pkpass":{"compressible":false,"extensions":["pkpass"]},"application/vnd.arastra.swi":{"source":"iana"},"application/vnd.aristanetworks.swi":{"source":"iana","extensions":["swi"]},"application/vnd.artisan+json":{"source":"iana","compressible":true},"application/vnd.artsquare":{"source":"iana"},"application/vnd.astraea-software.iota":{"source":"iana","extensions":["iota"]},"application/vnd.audiograph":{"source":"iana","extensions":["aep"]},"application/vnd.autopackage":{"source":"iana"},"application/vnd.avalon+json":{"source":"iana","compressible":true},"application/vnd.avistar+xml":{"source":"iana","compressible":true},"application/vnd.balsamiq.bmml+xml":{"source":"iana","compressible":true,"extensions":["bmml"]},"application/vnd.balsamiq.bmpr":{"source":"iana"},"application/vnd.banana-accounting":{"source":"iana"},"application/vnd.bbf.usp.error":{"source":"iana"},"application/vnd.bbf.usp.msg":{"source":"iana"},"application/vnd.bbf.usp.msg+json":{"source":"iana","compressible":true},"application/vnd.bekitzur-stech+json":{"source":"iana","compressible":true},"application/vnd.bint.med-content":{"source":"iana"},"application/vnd.biopax.rdf+xml":{"source":"iana","compressible":true},"application/vnd.blink-idb-value-wrapper":{"source":"iana"},"application/vnd.blueice.multipass":{"source":"iana","extensions":["mpm"]},"application/vnd.bluetooth.ep.oob":{"source":"iana"},"application/vnd.bluetooth.le.oob":{"source":"iana"},"application/vnd.bmi":{"source":"iana","extensions":["bmi"]},"application/vnd.bpf":{"source":"iana"},"application/vnd.bpf3":{"source":"iana"},"application/vnd.businessobjects":{"source":"iana","extensions":["rep"]},"application/vnd.byu.uapi+json":{"source":"iana","compressible":true},"application/vnd.cab-jscript":{"source":"iana"},"application/vnd.canon-cpdl":{"source":"iana"},"application/vnd.canon-lips":{"source":"iana"},"application/vnd.capasystems-pg+json":{"source":"iana","compressible":true},"application/vnd.cendio.thinlinc.clientconf":{"source":"iana"},"application/vnd.century-systems.tcp_stream":{"source":"iana"},"application/vnd.chemdraw+xml":{"source":"iana","compressible":true,"extensions":["cdxml"]},"application/vnd.chess-pgn":{"source":"iana"},"application/vnd.chipnuts.karaoke-mmd":{"source":"iana","extensions":["mmd"]},"application/vnd.ciedi":{"source":"iana"},"application/vnd.cinderella":{"source":"iana","extensions":["cdy"]},"application/vnd.cirpack.isdn-ext":{"source":"iana"},"application/vnd.citationstyles.style+xml":{"source":"iana","compressible":true,"extensions":["csl"]},"application/vnd.claymore":{"source":"iana","extensions":["cla"]},"application/vnd.cloanto.rp9":{"source":"iana","extensions":["rp9"]},"application/vnd.clonk.c4group":{"source":"iana","extensions":["c4g","c4d","c4f","c4p","c4u"]},"application/vnd.cluetrust.cartomobile-config":{"source":"iana","extensions":["c11amc"]},"application/vnd.cluetrust.cartomobile-config-pkg":{"source":"iana","extensions":["c11amz"]},"application/vnd.coffeescript":{"source":"iana"},"application/vnd.collabio.xodocuments.document":{"source":"iana"},"application/vnd.collabio.xodocuments.document-template":{"source":"iana"},"application/vnd.collabio.xodocuments.presentation":{"source":"iana"},"application/vnd.collabio.xodocuments.presentation-template":{"source":"iana"},"application/vnd.collabio.xodocuments.spreadsheet":{"source":"iana"},"application/vnd.collabio.xodocuments.spreadsheet-template":{"source":"iana"},"application/vnd.collection+json":{"source":"iana","compressible":true},"application/vnd.collection.doc+json":{"source":"iana","compressible":true},"application/vnd.collection.next+json":{"source":"iana","compressible":true},"application/vnd.comicbook+zip":{"source":"iana","compressible":false},"application/vnd.comicbook-rar":{"source":"iana"},"application/vnd.commerce-battelle":{"source":"iana"},"application/vnd.commonspace":{"source":"iana","extensions":["csp"]},"application/vnd.contact.cmsg":{"source":"iana","extensions":["cdbcmsg"]},"application/vnd.coreos.ignition+json":{"source":"iana","compressible":true},"application/vnd.cosmocaller":{"source":"iana","extensions":["cmc"]},"application/vnd.crick.clicker":{"source":"iana","extensions":["clkx"]},"application/vnd.crick.clicker.keyboard":{"source":"iana","extensions":["clkk"]},"application/vnd.crick.clicker.palette":{"source":"iana","extensions":["clkp"]},"application/vnd.crick.clicker.template":{"source":"iana","extensions":["clkt"]},"application/vnd.crick.clicker.wordbank":{"source":"iana","extensions":["clkw"]},"application/vnd.criticaltools.wbs+xml":{"source":"iana","compressible":true,"extensions":["wbs"]},"application/vnd.cryptii.pipe+json":{"source":"iana","compressible":true},"application/vnd.crypto-shade-file":{"source":"iana"},"application/vnd.cryptomator.encrypted":{"source":"iana"},"application/vnd.cryptomator.vault":{"source":"iana"},"application/vnd.ctc-posml":{"source":"iana","extensions":["pml"]},"application/vnd.ctct.ws+xml":{"source":"iana","compressible":true},"application/vnd.cups-pdf":{"source":"iana"},"application/vnd.cups-postscript":{"source":"iana"},"application/vnd.cups-ppd":{"source":"iana","extensions":["ppd"]},"application/vnd.cups-raster":{"source":"iana"},"application/vnd.cups-raw":{"source":"iana"},"application/vnd.curl":{"source":"iana"},"application/vnd.curl.car":{"source":"apache","extensions":["car"]},"application/vnd.curl.pcurl":{"source":"apache","extensions":["pcurl"]},"application/vnd.cyan.dean.root+xml":{"source":"iana","compressible":true},"application/vnd.cybank":{"source":"iana"},"application/vnd.cyclonedx+json":{"source":"iana","compressible":true},"application/vnd.cyclonedx+xml":{"source":"iana","compressible":true},"application/vnd.d2l.coursepackage1p0+zip":{"source":"iana","compressible":false},"application/vnd.d3m-dataset":{"source":"iana"},"application/vnd.d3m-problem":{"source":"iana"},"application/vnd.dart":{"source":"iana","compressible":true,"extensions":["dart"]},"application/vnd.data-vision.rdz":{"source":"iana","extensions":["rdz"]},"application/vnd.datapackage+json":{"source":"iana","compressible":true},"application/vnd.dataresource+json":{"source":"iana","compressible":true},"application/vnd.dbf":{"source":"iana","extensions":["dbf"]},"application/vnd.debian.binary-package":{"source":"iana"},"application/vnd.dece.data":{"source":"iana","extensions":["uvf","uvvf","uvd","uvvd"]},"application/vnd.dece.ttml+xml":{"source":"iana","compressible":true,"extensions":["uvt","uvvt"]},"application/vnd.dece.unspecified":{"source":"iana","extensions":["uvx","uvvx"]},"application/vnd.dece.zip":{"source":"iana","extensions":["uvz","uvvz"]},"application/vnd.denovo.fcselayout-link":{"source":"iana","extensions":["fe_launch"]},"application/vnd.desmume.movie":{"source":"iana"},"application/vnd.dir-bi.plate-dl-nosuffix":{"source":"iana"},"application/vnd.dm.delegation+xml":{"source":"iana","compressible":true},"application/vnd.dna":{"source":"iana","extensions":["dna"]},"application/vnd.document+json":{"source":"iana","compressible":true},"application/vnd.dolby.mlp":{"source":"apache","extensions":["mlp"]},"application/vnd.dolby.mobile.1":{"source":"iana"},"application/vnd.dolby.mobile.2":{"source":"iana"},"application/vnd.doremir.scorecloud-binary-document":{"source":"iana"},"application/vnd.dpgraph":{"source":"iana","extensions":["dpg"]},"application/vnd.dreamfactory":{"source":"iana","extensions":["dfac"]},"application/vnd.drive+json":{"source":"iana","compressible":true},"application/vnd.ds-keypoint":{"source":"apache","extensions":["kpxx"]},"application/vnd.dtg.local":{"source":"iana"},"application/vnd.dtg.local.flash":{"source":"iana"},"application/vnd.dtg.local.html":{"source":"iana"},"application/vnd.dvb.ait":{"source":"iana","extensions":["ait"]},"application/vnd.dvb.dvbisl+xml":{"source":"iana","compressible":true},"application/vnd.dvb.dvbj":{"source":"iana"},"application/vnd.dvb.esgcontainer":{"source":"iana"},"application/vnd.dvb.ipdcdftnotifaccess":{"source":"iana"},"application/vnd.dvb.ipdcesgaccess":{"source":"iana"},"application/vnd.dvb.ipdcesgaccess2":{"source":"iana"},"application/vnd.dvb.ipdcesgpdd":{"source":"iana"},"application/vnd.dvb.ipdcroaming":{"source":"iana"},"application/vnd.dvb.iptv.alfec-base":{"source":"iana"},"application/vnd.dvb.iptv.alfec-enhancement":{"source":"iana"},"application/vnd.dvb.notif-aggregate-root+xml":{"source":"iana","compressible":true},"application/vnd.dvb.notif-container+xml":{"source":"iana","compressible":true},"application/vnd.dvb.notif-generic+xml":{"source":"iana","compressible":true},"application/vnd.dvb.notif-ia-msglist+xml":{"source":"iana","compressible":true},"application/vnd.dvb.notif-ia-registration-request+xml":{"source":"iana","compressible":true},"application/vnd.dvb.notif-ia-registration-response+xml":{"source":"iana","compressible":true},"application/vnd.dvb.notif-init+xml":{"source":"iana","compressible":true},"application/vnd.dvb.pfr":{"source":"iana"},"application/vnd.dvb.service":{"source":"iana","extensions":["svc"]},"application/vnd.dxr":{"source":"iana"},"application/vnd.dynageo":{"source":"iana","extensions":["geo"]},"application/vnd.dzr":{"source":"iana"},"application/vnd.easykaraoke.cdgdownload":{"source":"iana"},"application/vnd.ecdis-update":{"source":"iana"},"application/vnd.ecip.rlp":{"source":"iana"},"application/vnd.eclipse.ditto+json":{"source":"iana","compressible":true},"application/vnd.ecowin.chart":{"source":"iana","extensions":["mag"]},"application/vnd.ecowin.filerequest":{"source":"iana"},"application/vnd.ecowin.fileupdate":{"source":"iana"},"application/vnd.ecowin.series":{"source":"iana"},"application/vnd.ecowin.seriesrequest":{"source":"iana"},"application/vnd.ecowin.seriesupdate":{"source":"iana"},"application/vnd.efi.img":{"source":"iana"},"application/vnd.efi.iso":{"source":"iana"},"application/vnd.emclient.accessrequest+xml":{"source":"iana","compressible":true},"application/vnd.enliven":{"source":"iana","extensions":["nml"]},"application/vnd.enphase.envoy":{"source":"iana"},"application/vnd.eprints.data+xml":{"source":"iana","compressible":true},"application/vnd.epson.esf":{"source":"iana","extensions":["esf"]},"application/vnd.epson.msf":{"source":"iana","extensions":["msf"]},"application/vnd.epson.quickanime":{"source":"iana","extensions":["qam"]},"application/vnd.epson.salt":{"source":"iana","extensions":["slt"]},"application/vnd.epson.ssf":{"source":"iana","extensions":["ssf"]},"application/vnd.ericsson.quickcall":{"source":"iana"},"application/vnd.espass-espass+zip":{"source":"iana","compressible":false},"application/vnd.eszigno3+xml":{"source":"iana","compressible":true,"extensions":["es3","et3"]},"application/vnd.etsi.aoc+xml":{"source":"iana","compressible":true},"application/vnd.etsi.asic-e+zip":{"source":"iana","compressible":false},"application/vnd.etsi.asic-s+zip":{"source":"iana","compressible":false},"application/vnd.etsi.cug+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvcommand+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvdiscovery+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvprofile+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvsad-bc+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvsad-cod+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvsad-npvr+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvservice+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvsync+xml":{"source":"iana","compressible":true},"application/vnd.etsi.iptvueprofile+xml":{"source":"iana","compressible":true},"application/vnd.etsi.mcid+xml":{"source":"iana","compressible":true},"application/vnd.etsi.mheg5":{"source":"iana"},"application/vnd.etsi.overload-control-policy-dataset+xml":{"source":"iana","compressible":true},"application/vnd.etsi.pstn+xml":{"source":"iana","compressible":true},"application/vnd.etsi.sci+xml":{"source":"iana","compressible":true},"application/vnd.etsi.simservs+xml":{"source":"iana","compressible":true},"application/vnd.etsi.timestamp-token":{"source":"iana"},"application/vnd.etsi.tsl+xml":{"source":"iana","compressible":true},"application/vnd.etsi.tsl.der":{"source":"iana"},"application/vnd.eu.kasparian.car+json":{"source":"iana","compressible":true},"application/vnd.eudora.data":{"source":"iana"},"application/vnd.evolv.ecig.profile":{"source":"iana"},"application/vnd.evolv.ecig.settings":{"source":"iana"},"application/vnd.evolv.ecig.theme":{"source":"iana"},"application/vnd.exstream-empower+zip":{"source":"iana","compressible":false},"application/vnd.exstream-package":{"source":"iana"},"application/vnd.ezpix-album":{"source":"iana","extensions":["ez2"]},"application/vnd.ezpix-package":{"source":"iana","extensions":["ez3"]},"application/vnd.f-secure.mobile":{"source":"iana"},"application/vnd.familysearch.gedcom+zip":{"source":"iana","compressible":false},"application/vnd.fastcopy-disk-image":{"source":"iana"},"application/vnd.fdf":{"source":"iana","extensions":["fdf"]},"application/vnd.fdsn.mseed":{"source":"iana","extensions":["mseed"]},"application/vnd.fdsn.seed":{"source":"iana","extensions":["seed","dataless"]},"application/vnd.ffsns":{"source":"iana"},"application/vnd.ficlab.flb+zip":{"source":"iana","compressible":false},"application/vnd.filmit.zfc":{"source":"iana"},"application/vnd.fints":{"source":"iana"},"application/vnd.firemonkeys.cloudcell":{"source":"iana"},"application/vnd.flographit":{"source":"iana","extensions":["gph"]},"application/vnd.fluxtime.clip":{"source":"iana","extensions":["ftc"]},"application/vnd.font-fontforge-sfd":{"source":"iana"},"application/vnd.framemaker":{"source":"iana","extensions":["fm","frame","maker","book"]},"application/vnd.frogans.fnc":{"source":"iana","extensions":["fnc"]},"application/vnd.frogans.ltf":{"source":"iana","extensions":["ltf"]},"application/vnd.fsc.weblaunch":{"source":"iana","extensions":["fsc"]},"application/vnd.fujifilm.fb.docuworks":{"source":"iana"},"application/vnd.fujifilm.fb.docuworks.binder":{"source":"iana"},"application/vnd.fujifilm.fb.docuworks.container":{"source":"iana"},"application/vnd.fujifilm.fb.jfi+xml":{"source":"iana","compressible":true},"application/vnd.fujitsu.oasys":{"source":"iana","extensions":["oas"]},"application/vnd.fujitsu.oasys2":{"source":"iana","extensions":["oa2"]},"application/vnd.fujitsu.oasys3":{"source":"iana","extensions":["oa3"]},"application/vnd.fujitsu.oasysgp":{"source":"iana","extensions":["fg5"]},"application/vnd.fujitsu.oasysprs":{"source":"iana","extensions":["bh2"]},"application/vnd.fujixerox.art-ex":{"source":"iana"},"application/vnd.fujixerox.art4":{"source":"iana"},"application/vnd.fujixerox.ddd":{"source":"iana","extensions":["ddd"]},"application/vnd.fujixerox.docuworks":{"source":"iana","extensions":["xdw"]},"application/vnd.fujixerox.docuworks.binder":{"source":"iana","extensions":["xbd"]},"application/vnd.fujixerox.docuworks.container":{"source":"iana"},"application/vnd.fujixerox.hbpl":{"source":"iana"},"application/vnd.fut-misnet":{"source":"iana"},"application/vnd.futoin+cbor":{"source":"iana"},"application/vnd.futoin+json":{"source":"iana","compressible":true},"application/vnd.fuzzysheet":{"source":"iana","extensions":["fzs"]},"application/vnd.genomatix.tuxedo":{"source":"iana","extensions":["txd"]},"application/vnd.gentics.grd+json":{"source":"iana","compressible":true},"application/vnd.geo+json":{"source":"iana","compressible":true},"application/vnd.geocube+xml":{"source":"iana","compressible":true},"application/vnd.geogebra.file":{"source":"iana","extensions":["ggb"]},"application/vnd.geogebra.slides":{"source":"iana"},"application/vnd.geogebra.tool":{"source":"iana","extensions":["ggt"]},"application/vnd.geometry-explorer":{"source":"iana","extensions":["gex","gre"]},"application/vnd.geonext":{"source":"iana","extensions":["gxt"]},"application/vnd.geoplan":{"source":"iana","extensions":["g2w"]},"application/vnd.geospace":{"source":"iana","extensions":["g3w"]},"application/vnd.gerber":{"source":"iana"},"application/vnd.globalplatform.card-content-mgt":{"source":"iana"},"application/vnd.globalplatform.card-content-mgt-response":{"source":"iana"},"application/vnd.gmx":{"source":"iana","extensions":["gmx"]},"application/vnd.google-apps.document":{"compressible":false,"extensions":["gdoc"]},"application/vnd.google-apps.presentation":{"compressible":false,"extensions":["gslides"]},"application/vnd.google-apps.spreadsheet":{"compressible":false,"extensions":["gsheet"]},"application/vnd.google-earth.kml+xml":{"source":"iana","compressible":true,"extensions":["kml"]},"application/vnd.google-earth.kmz":{"source":"iana","compressible":false,"extensions":["kmz"]},"application/vnd.gov.sk.e-form+xml":{"source":"iana","compressible":true},"application/vnd.gov.sk.e-form+zip":{"source":"iana","compressible":false},"application/vnd.gov.sk.xmldatacontainer+xml":{"source":"iana","compressible":true},"application/vnd.grafeq":{"source":"iana","extensions":["gqf","gqs"]},"application/vnd.gridmp":{"source":"iana"},"application/vnd.groove-account":{"source":"iana","extensions":["gac"]},"application/vnd.groove-help":{"source":"iana","extensions":["ghf"]},"application/vnd.groove-identity-message":{"source":"iana","extensions":["gim"]},"application/vnd.groove-injector":{"source":"iana","extensions":["grv"]},"application/vnd.groove-tool-message":{"source":"iana","extensions":["gtm"]},"application/vnd.groove-tool-template":{"source":"iana","extensions":["tpl"]},"application/vnd.groove-vcard":{"source":"iana","extensions":["vcg"]},"application/vnd.hal+json":{"source":"iana","compressible":true},"application/vnd.hal+xml":{"source":"iana","compressible":true,"extensions":["hal"]},"application/vnd.handheld-entertainment+xml":{"source":"iana","compressible":true,"extensions":["zmm"]},"application/vnd.hbci":{"source":"iana","extensions":["hbci"]},"application/vnd.hc+json":{"source":"iana","compressible":true},"application/vnd.hcl-bireports":{"source":"iana"},"application/vnd.hdt":{"source":"iana"},"application/vnd.heroku+json":{"source":"iana","compressible":true},"application/vnd.hhe.lesson-player":{"source":"iana","extensions":["les"]},"application/vnd.hl7cda+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/vnd.hl7v2+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/vnd.hp-hpgl":{"source":"iana","extensions":["hpgl"]},"application/vnd.hp-hpid":{"source":"iana","extensions":["hpid"]},"application/vnd.hp-hps":{"source":"iana","extensions":["hps"]},"application/vnd.hp-jlyt":{"source":"iana","extensions":["jlt"]},"application/vnd.hp-pcl":{"source":"iana","extensions":["pcl"]},"application/vnd.hp-pclxl":{"source":"iana","extensions":["pclxl"]},"application/vnd.httphone":{"source":"iana"},"application/vnd.hydrostatix.sof-data":{"source":"iana","extensions":["sfd-hdstx"]},"application/vnd.hyper+json":{"source":"iana","compressible":true},"application/vnd.hyper-item+json":{"source":"iana","compressible":true},"application/vnd.hyperdrive+json":{"source":"iana","compressible":true},"application/vnd.hzn-3d-crossword":{"source":"iana"},"application/vnd.ibm.afplinedata":{"source":"iana"},"application/vnd.ibm.electronic-media":{"source":"iana"},"application/vnd.ibm.minipay":{"source":"iana","extensions":["mpy"]},"application/vnd.ibm.modcap":{"source":"iana","extensions":["afp","listafp","list3820"]},"application/vnd.ibm.rights-management":{"source":"iana","extensions":["irm"]},"application/vnd.ibm.secure-container":{"source":"iana","extensions":["sc"]},"application/vnd.iccprofile":{"source":"iana","extensions":["icc","icm"]},"application/vnd.ieee.1905":{"source":"iana"},"application/vnd.igloader":{"source":"iana","extensions":["igl"]},"application/vnd.imagemeter.folder+zip":{"source":"iana","compressible":false},"application/vnd.imagemeter.image+zip":{"source":"iana","compressible":false},"application/vnd.immervision-ivp":{"source":"iana","extensions":["ivp"]},"application/vnd.immervision-ivu":{"source":"iana","extensions":["ivu"]},"application/vnd.ims.imsccv1p1":{"source":"iana"},"application/vnd.ims.imsccv1p2":{"source":"iana"},"application/vnd.ims.imsccv1p3":{"source":"iana"},"application/vnd.ims.lis.v2.result+json":{"source":"iana","compressible":true},"application/vnd.ims.lti.v2.toolconsumerprofile+json":{"source":"iana","compressible":true},"application/vnd.ims.lti.v2.toolproxy+json":{"source":"iana","compressible":true},"application/vnd.ims.lti.v2.toolproxy.id+json":{"source":"iana","compressible":true},"application/vnd.ims.lti.v2.toolsettings+json":{"source":"iana","compressible":true},"application/vnd.ims.lti.v2.toolsettings.simple+json":{"source":"iana","compressible":true},"application/vnd.informedcontrol.rms+xml":{"source":"iana","compressible":true},"application/vnd.informix-visionary":{"source":"iana"},"application/vnd.infotech.project":{"source":"iana"},"application/vnd.infotech.project+xml":{"source":"iana","compressible":true},"application/vnd.innopath.wamp.notification":{"source":"iana"},"application/vnd.insors.igm":{"source":"iana","extensions":["igm"]},"application/vnd.intercon.formnet":{"source":"iana","extensions":["xpw","xpx"]},"application/vnd.intergeo":{"source":"iana","extensions":["i2g"]},"application/vnd.intertrust.digibox":{"source":"iana"},"application/vnd.intertrust.nncp":{"source":"iana"},"application/vnd.intu.qbo":{"source":"iana","extensions":["qbo"]},"application/vnd.intu.qfx":{"source":"iana","extensions":["qfx"]},"application/vnd.iptc.g2.catalogitem+xml":{"source":"iana","compressible":true},"application/vnd.iptc.g2.conceptitem+xml":{"source":"iana","compressible":true},"application/vnd.iptc.g2.knowledgeitem+xml":{"source":"iana","compressible":true},"application/vnd.iptc.g2.newsitem+xml":{"source":"iana","compressible":true},"application/vnd.iptc.g2.newsmessage+xml":{"source":"iana","compressible":true},"application/vnd.iptc.g2.packageitem+xml":{"source":"iana","compressible":true},"application/vnd.iptc.g2.planningitem+xml":{"source":"iana","compressible":true},"application/vnd.ipunplugged.rcprofile":{"source":"iana","extensions":["rcprofile"]},"application/vnd.irepository.package+xml":{"source":"iana","compressible":true,"extensions":["irp"]},"application/vnd.is-xpr":{"source":"iana","extensions":["xpr"]},"application/vnd.isac.fcs":{"source":"iana","extensions":["fcs"]},"application/vnd.iso11783-10+zip":{"source":"iana","compressible":false},"application/vnd.jam":{"source":"iana","extensions":["jam"]},"application/vnd.japannet-directory-service":{"source":"iana"},"application/vnd.japannet-jpnstore-wakeup":{"source":"iana"},"application/vnd.japannet-payment-wakeup":{"source":"iana"},"application/vnd.japannet-registration":{"source":"iana"},"application/vnd.japannet-registration-wakeup":{"source":"iana"},"application/vnd.japannet-setstore-wakeup":{"source":"iana"},"application/vnd.japannet-verification":{"source":"iana"},"application/vnd.japannet-verification-wakeup":{"source":"iana"},"application/vnd.jcp.javame.midlet-rms":{"source":"iana","extensions":["rms"]},"application/vnd.jisp":{"source":"iana","extensions":["jisp"]},"application/vnd.joost.joda-archive":{"source":"iana","extensions":["joda"]},"application/vnd.jsk.isdn-ngn":{"source":"iana"},"application/vnd.kahootz":{"source":"iana","extensions":["ktz","ktr"]},"application/vnd.kde.karbon":{"source":"iana","extensions":["karbon"]},"application/vnd.kde.kchart":{"source":"iana","extensions":["chrt"]},"application/vnd.kde.kformula":{"source":"iana","extensions":["kfo"]},"application/vnd.kde.kivio":{"source":"iana","extensions":["flw"]},"application/vnd.kde.kontour":{"source":"iana","extensions":["kon"]},"application/vnd.kde.kpresenter":{"source":"iana","extensions":["kpr","kpt"]},"application/vnd.kde.kspread":{"source":"iana","extensions":["ksp"]},"application/vnd.kde.kword":{"source":"iana","extensions":["kwd","kwt"]},"application/vnd.kenameaapp":{"source":"iana","extensions":["htke"]},"application/vnd.kidspiration":{"source":"iana","extensions":["kia"]},"application/vnd.kinar":{"source":"iana","extensions":["kne","knp"]},"application/vnd.koan":{"source":"iana","extensions":["skp","skd","skt","skm"]},"application/vnd.kodak-descriptor":{"source":"iana","extensions":["sse"]},"application/vnd.las":{"source":"iana"},"application/vnd.las.las+json":{"source":"iana","compressible":true},"application/vnd.las.las+xml":{"source":"iana","compressible":true,"extensions":["lasxml"]},"application/vnd.laszip":{"source":"iana"},"application/vnd.leap+json":{"source":"iana","compressible":true},"application/vnd.liberty-request+xml":{"source":"iana","compressible":true},"application/vnd.llamagraphics.life-balance.desktop":{"source":"iana","extensions":["lbd"]},"application/vnd.llamagraphics.life-balance.exchange+xml":{"source":"iana","compressible":true,"extensions":["lbe"]},"application/vnd.logipipe.circuit+zip":{"source":"iana","compressible":false},"application/vnd.loom":{"source":"iana"},"application/vnd.lotus-1-2-3":{"source":"iana","extensions":["123"]},"application/vnd.lotus-approach":{"source":"iana","extensions":["apr"]},"application/vnd.lotus-freelance":{"source":"iana","extensions":["pre"]},"application/vnd.lotus-notes":{"source":"iana","extensions":["nsf"]},"application/vnd.lotus-organizer":{"source":"iana","extensions":["org"]},"application/vnd.lotus-screencam":{"source":"iana","extensions":["scm"]},"application/vnd.lotus-wordpro":{"source":"iana","extensions":["lwp"]},"application/vnd.macports.portpkg":{"source":"iana","extensions":["portpkg"]},"application/vnd.mapbox-vector-tile":{"source":"iana","extensions":["mvt"]},"application/vnd.marlin.drm.actiontoken+xml":{"source":"iana","compressible":true},"application/vnd.marlin.drm.conftoken+xml":{"source":"iana","compressible":true},"application/vnd.marlin.drm.license+xml":{"source":"iana","compressible":true},"application/vnd.marlin.drm.mdcf":{"source":"iana"},"application/vnd.mason+json":{"source":"iana","compressible":true},"application/vnd.maxar.archive.3tz+zip":{"source":"iana","compressible":false},"application/vnd.maxmind.maxmind-db":{"source":"iana"},"application/vnd.mcd":{"source":"iana","extensions":["mcd"]},"application/vnd.medcalcdata":{"source":"iana","extensions":["mc1"]},"application/vnd.mediastation.cdkey":{"source":"iana","extensions":["cdkey"]},"application/vnd.meridian-slingshot":{"source":"iana"},"application/vnd.mfer":{"source":"iana","extensions":["mwf"]},"application/vnd.mfmp":{"source":"iana","extensions":["mfm"]},"application/vnd.micro+json":{"source":"iana","compressible":true},"application/vnd.micrografx.flo":{"source":"iana","extensions":["flo"]},"application/vnd.micrografx.igx":{"source":"iana","extensions":["igx"]},"application/vnd.microsoft.portable-executable":{"source":"iana"},"application/vnd.microsoft.windows.thumbnail-cache":{"source":"iana"},"application/vnd.miele+json":{"source":"iana","compressible":true},"application/vnd.mif":{"source":"iana","extensions":["mif"]},"application/vnd.minisoft-hp3000-save":{"source":"iana"},"application/vnd.mitsubishi.misty-guard.trustweb":{"source":"iana"},"application/vnd.mobius.daf":{"source":"iana","extensions":["daf"]},"application/vnd.mobius.dis":{"source":"iana","extensions":["dis"]},"application/vnd.mobius.mbk":{"source":"iana","extensions":["mbk"]},"application/vnd.mobius.mqy":{"source":"iana","extensions":["mqy"]},"application/vnd.mobius.msl":{"source":"iana","extensions":["msl"]},"application/vnd.mobius.plc":{"source":"iana","extensions":["plc"]},"application/vnd.mobius.txf":{"source":"iana","extensions":["txf"]},"application/vnd.mophun.application":{"source":"iana","extensions":["mpn"]},"application/vnd.mophun.certificate":{"source":"iana","extensions":["mpc"]},"application/vnd.motorola.flexsuite":{"source":"iana"},"application/vnd.motorola.flexsuite.adsi":{"source":"iana"},"application/vnd.motorola.flexsuite.fis":{"source":"iana"},"application/vnd.motorola.flexsuite.gotap":{"source":"iana"},"application/vnd.motorola.flexsuite.kmr":{"source":"iana"},"application/vnd.motorola.flexsuite.ttc":{"source":"iana"},"application/vnd.motorola.flexsuite.wem":{"source":"iana"},"application/vnd.motorola.iprm":{"source":"iana"},"application/vnd.mozilla.xul+xml":{"source":"iana","compressible":true,"extensions":["xul"]},"application/vnd.ms-3mfdocument":{"source":"iana"},"application/vnd.ms-artgalry":{"source":"iana","extensions":["cil"]},"application/vnd.ms-asf":{"source":"iana"},"application/vnd.ms-cab-compressed":{"source":"iana","extensions":["cab"]},"application/vnd.ms-color.iccprofile":{"source":"apache"},"application/vnd.ms-excel":{"source":"iana","compressible":false,"extensions":["xls","xlm","xla","xlc","xlt","xlw"]},"application/vnd.ms-excel.addin.macroenabled.12":{"source":"iana","extensions":["xlam"]},"application/vnd.ms-excel.sheet.binary.macroenabled.12":{"source":"iana","extensions":["xlsb"]},"application/vnd.ms-excel.sheet.macroenabled.12":{"source":"iana","extensions":["xlsm"]},"application/vnd.ms-excel.template.macroenabled.12":{"source":"iana","extensions":["xltm"]},"application/vnd.ms-fontobject":{"source":"iana","compressible":true,"extensions":["eot"]},"application/vnd.ms-htmlhelp":{"source":"iana","extensions":["chm"]},"application/vnd.ms-ims":{"source":"iana","extensions":["ims"]},"application/vnd.ms-lrm":{"source":"iana","extensions":["lrm"]},"application/vnd.ms-office.activex+xml":{"source":"iana","compressible":true},"application/vnd.ms-officetheme":{"source":"iana","extensions":["thmx"]},"application/vnd.ms-opentype":{"source":"apache","compressible":true},"application/vnd.ms-outlook":{"compressible":false,"extensions":["msg"]},"application/vnd.ms-package.obfuscated-opentype":{"source":"apache"},"application/vnd.ms-pki.seccat":{"source":"apache","extensions":["cat"]},"application/vnd.ms-pki.stl":{"source":"apache","extensions":["stl"]},"application/vnd.ms-playready.initiator+xml":{"source":"iana","compressible":true},"application/vnd.ms-powerpoint":{"source":"iana","compressible":false,"extensions":["ppt","pps","pot"]},"application/vnd.ms-powerpoint.addin.macroenabled.12":{"source":"iana","extensions":["ppam"]},"application/vnd.ms-powerpoint.presentation.macroenabled.12":{"source":"iana","extensions":["pptm"]},"application/vnd.ms-powerpoint.slide.macroenabled.12":{"source":"iana","extensions":["sldm"]},"application/vnd.ms-powerpoint.slideshow.macroenabled.12":{"source":"iana","extensions":["ppsm"]},"application/vnd.ms-powerpoint.template.macroenabled.12":{"source":"iana","extensions":["potm"]},"application/vnd.ms-printdevicecapabilities+xml":{"source":"iana","compressible":true},"application/vnd.ms-printing.printticket+xml":{"source":"apache","compressible":true},"application/vnd.ms-printschematicket+xml":{"source":"iana","compressible":true},"application/vnd.ms-project":{"source":"iana","extensions":["mpp","mpt"]},"application/vnd.ms-tnef":{"source":"iana"},"application/vnd.ms-windows.devicepairing":{"source":"iana"},"application/vnd.ms-windows.nwprinting.oob":{"source":"iana"},"application/vnd.ms-windows.printerpairing":{"source":"iana"},"application/vnd.ms-windows.wsd.oob":{"source":"iana"},"application/vnd.ms-wmdrm.lic-chlg-req":{"source":"iana"},"application/vnd.ms-wmdrm.lic-resp":{"source":"iana"},"application/vnd.ms-wmdrm.meter-chlg-req":{"source":"iana"},"application/vnd.ms-wmdrm.meter-resp":{"source":"iana"},"application/vnd.ms-word.document.macroenabled.12":{"source":"iana","extensions":["docm"]},"application/vnd.ms-word.template.macroenabled.12":{"source":"iana","extensions":["dotm"]},"application/vnd.ms-works":{"source":"iana","extensions":["wps","wks","wcm","wdb"]},"application/vnd.ms-wpl":{"source":"iana","extensions":["wpl"]},"application/vnd.ms-xpsdocument":{"source":"iana","compressible":false,"extensions":["xps"]},"application/vnd.msa-disk-image":{"source":"iana"},"application/vnd.mseq":{"source":"iana","extensions":["mseq"]},"application/vnd.msign":{"source":"iana"},"application/vnd.multiad.creator":{"source":"iana"},"application/vnd.multiad.creator.cif":{"source":"iana"},"application/vnd.music-niff":{"source":"iana"},"application/vnd.musician":{"source":"iana","extensions":["mus"]},"application/vnd.muvee.style":{"source":"iana","extensions":["msty"]},"application/vnd.mynfc":{"source":"iana","extensions":["taglet"]},"application/vnd.nacamar.ybrid+json":{"source":"iana","compressible":true},"application/vnd.ncd.control":{"source":"iana"},"application/vnd.ncd.reference":{"source":"iana"},"application/vnd.nearst.inv+json":{"source":"iana","compressible":true},"application/vnd.nebumind.line":{"source":"iana"},"application/vnd.nervana":{"source":"iana"},"application/vnd.netfpx":{"source":"iana"},"application/vnd.neurolanguage.nlu":{"source":"iana","extensions":["nlu"]},"application/vnd.nimn":{"source":"iana"},"application/vnd.nintendo.nitro.rom":{"source":"iana"},"application/vnd.nintendo.snes.rom":{"source":"iana"},"application/vnd.nitf":{"source":"iana","extensions":["ntf","nitf"]},"application/vnd.noblenet-directory":{"source":"iana","extensions":["nnd"]},"application/vnd.noblenet-sealer":{"source":"iana","extensions":["nns"]},"application/vnd.noblenet-web":{"source":"iana","extensions":["nnw"]},"application/vnd.nokia.catalogs":{"source":"iana"},"application/vnd.nokia.conml+wbxml":{"source":"iana"},"application/vnd.nokia.conml+xml":{"source":"iana","compressible":true},"application/vnd.nokia.iptv.config+xml":{"source":"iana","compressible":true},"application/vnd.nokia.isds-radio-presets":{"source":"iana"},"application/vnd.nokia.landmark+wbxml":{"source":"iana"},"application/vnd.nokia.landmark+xml":{"source":"iana","compressible":true},"application/vnd.nokia.landmarkcollection+xml":{"source":"iana","compressible":true},"application/vnd.nokia.n-gage.ac+xml":{"source":"iana","compressible":true,"extensions":["ac"]},"application/vnd.nokia.n-gage.data":{"source":"iana","extensions":["ngdat"]},"application/vnd.nokia.n-gage.symbian.install":{"source":"iana","extensions":["n-gage"]},"application/vnd.nokia.ncd":{"source":"iana"},"application/vnd.nokia.pcd+wbxml":{"source":"iana"},"application/vnd.nokia.pcd+xml":{"source":"iana","compressible":true},"application/vnd.nokia.radio-preset":{"source":"iana","extensions":["rpst"]},"application/vnd.nokia.radio-presets":{"source":"iana","extensions":["rpss"]},"application/vnd.novadigm.edm":{"source":"iana","extensions":["edm"]},"application/vnd.novadigm.edx":{"source":"iana","extensions":["edx"]},"application/vnd.novadigm.ext":{"source":"iana","extensions":["ext"]},"application/vnd.ntt-local.content-share":{"source":"iana"},"application/vnd.ntt-local.file-transfer":{"source":"iana"},"application/vnd.ntt-local.ogw_remote-access":{"source":"iana"},"application/vnd.ntt-local.sip-ta_remote":{"source":"iana"},"application/vnd.ntt-local.sip-ta_tcp_stream":{"source":"iana"},"application/vnd.oasis.opendocument.chart":{"source":"iana","extensions":["odc"]},"application/vnd.oasis.opendocument.chart-template":{"source":"iana","extensions":["otc"]},"application/vnd.oasis.opendocument.database":{"source":"iana","extensions":["odb"]},"application/vnd.oasis.opendocument.formula":{"source":"iana","extensions":["odf"]},"application/vnd.oasis.opendocument.formula-template":{"source":"iana","extensions":["odft"]},"application/vnd.oasis.opendocument.graphics":{"source":"iana","compressible":false,"extensions":["odg"]},"application/vnd.oasis.opendocument.graphics-template":{"source":"iana","extensions":["otg"]},"application/vnd.oasis.opendocument.image":{"source":"iana","extensions":["odi"]},"application/vnd.oasis.opendocument.image-template":{"source":"iana","extensions":["oti"]},"application/vnd.oasis.opendocument.presentation":{"source":"iana","compressible":false,"extensions":["odp"]},"application/vnd.oasis.opendocument.presentation-template":{"source":"iana","extensions":["otp"]},"application/vnd.oasis.opendocument.spreadsheet":{"source":"iana","compressible":false,"extensions":["ods"]},"application/vnd.oasis.opendocument.spreadsheet-template":{"source":"iana","extensions":["ots"]},"application/vnd.oasis.opendocument.text":{"source":"iana","compressible":false,"extensions":["odt"]},"application/vnd.oasis.opendocument.text-master":{"source":"iana","extensions":["odm"]},"application/vnd.oasis.opendocument.text-template":{"source":"iana","extensions":["ott"]},"application/vnd.oasis.opendocument.text-web":{"source":"iana","extensions":["oth"]},"application/vnd.obn":{"source":"iana"},"application/vnd.ocf+cbor":{"source":"iana"},"application/vnd.oci.image.manifest.v1+json":{"source":"iana","compressible":true},"application/vnd.oftn.l10n+json":{"source":"iana","compressible":true},"application/vnd.oipf.contentaccessdownload+xml":{"source":"iana","compressible":true},"application/vnd.oipf.contentaccessstreaming+xml":{"source":"iana","compressible":true},"application/vnd.oipf.cspg-hexbinary":{"source":"iana"},"application/vnd.oipf.dae.svg+xml":{"source":"iana","compressible":true},"application/vnd.oipf.dae.xhtml+xml":{"source":"iana","compressible":true},"application/vnd.oipf.mippvcontrolmessage+xml":{"source":"iana","compressible":true},"application/vnd.oipf.pae.gem":{"source":"iana"},"application/vnd.oipf.spdiscovery+xml":{"source":"iana","compressible":true},"application/vnd.oipf.spdlist+xml":{"source":"iana","compressible":true},"application/vnd.oipf.ueprofile+xml":{"source":"iana","compressible":true},"application/vnd.oipf.userprofile+xml":{"source":"iana","compressible":true},"application/vnd.olpc-sugar":{"source":"iana","extensions":["xo"]},"application/vnd.oma-scws-config":{"source":"iana"},"application/vnd.oma-scws-http-request":{"source":"iana"},"application/vnd.oma-scws-http-response":{"source":"iana"},"application/vnd.oma.bcast.associated-procedure-parameter+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.drm-trigger+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.imd+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.ltkm":{"source":"iana"},"application/vnd.oma.bcast.notification+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.provisioningtrigger":{"source":"iana"},"application/vnd.oma.bcast.sgboot":{"source":"iana"},"application/vnd.oma.bcast.sgdd+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.sgdu":{"source":"iana"},"application/vnd.oma.bcast.simple-symbol-container":{"source":"iana"},"application/vnd.oma.bcast.smartcard-trigger+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.sprov+xml":{"source":"iana","compressible":true},"application/vnd.oma.bcast.stkm":{"source":"iana"},"application/vnd.oma.cab-address-book+xml":{"source":"iana","compressible":true},"application/vnd.oma.cab-feature-handler+xml":{"source":"iana","compressible":true},"application/vnd.oma.cab-pcc+xml":{"source":"iana","compressible":true},"application/vnd.oma.cab-subs-invite+xml":{"source":"iana","compressible":true},"application/vnd.oma.cab-user-prefs+xml":{"source":"iana","compressible":true},"application/vnd.oma.dcd":{"source":"iana"},"application/vnd.oma.dcdc":{"source":"iana"},"application/vnd.oma.dd2+xml":{"source":"iana","compressible":true,"extensions":["dd2"]},"application/vnd.oma.drm.risd+xml":{"source":"iana","compressible":true},"application/vnd.oma.group-usage-list+xml":{"source":"iana","compressible":true},"application/vnd.oma.lwm2m+cbor":{"source":"iana"},"application/vnd.oma.lwm2m+json":{"source":"iana","compressible":true},"application/vnd.oma.lwm2m+tlv":{"source":"iana"},"application/vnd.oma.pal+xml":{"source":"iana","compressible":true},"application/vnd.oma.poc.detailed-progress-report+xml":{"source":"iana","compressible":true},"application/vnd.oma.poc.final-report+xml":{"source":"iana","compressible":true},"application/vnd.oma.poc.groups+xml":{"source":"iana","compressible":true},"application/vnd.oma.poc.invocation-descriptor+xml":{"source":"iana","compressible":true},"application/vnd.oma.poc.optimized-progress-report+xml":{"source":"iana","compressible":true},"application/vnd.oma.push":{"source":"iana"},"application/vnd.oma.scidm.messages+xml":{"source":"iana","compressible":true},"application/vnd.oma.xcap-directory+xml":{"source":"iana","compressible":true},"application/vnd.omads-email+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/vnd.omads-file+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/vnd.omads-folder+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/vnd.omaloc-supl-init":{"source":"iana"},"application/vnd.onepager":{"source":"iana"},"application/vnd.onepagertamp":{"source":"iana"},"application/vnd.onepagertamx":{"source":"iana"},"application/vnd.onepagertat":{"source":"iana"},"application/vnd.onepagertatp":{"source":"iana"},"application/vnd.onepagertatx":{"source":"iana"},"application/vnd.openblox.game+xml":{"source":"iana","compressible":true,"extensions":["obgx"]},"application/vnd.openblox.game-binary":{"source":"iana"},"application/vnd.openeye.oeb":{"source":"iana"},"application/vnd.openofficeorg.extension":{"source":"apache","extensions":["oxt"]},"application/vnd.openstreetmap.data+xml":{"source":"iana","compressible":true,"extensions":["osm"]},"application/vnd.opentimestamps.ots":{"source":"iana"},"application/vnd.openxmlformats-officedocument.custom-properties+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.customxmlproperties+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawing+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawingml.chart+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawingml.chartshapes+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawingml.diagramcolors+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawingml.diagramdata+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawingml.diagramlayout+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.drawingml.diagramstyle+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.extended-properties+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.commentauthors+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.comments+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.handoutmaster+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.notesmaster+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.notesslide+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.presentation":{"source":"iana","compressible":false,"extensions":["pptx"]},"application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.presprops+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.slide":{"source":"iana","extensions":["sldx"]},"application/vnd.openxmlformats-officedocument.presentationml.slide+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.slidelayout+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.slidemaster+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.slideshow":{"source":"iana","extensions":["ppsx"]},"application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.slideupdateinfo+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.tablestyles+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.tags+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.template":{"source":"iana","extensions":["potx"]},"application/vnd.openxmlformats-officedocument.presentationml.template.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.presentationml.viewprops+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.calcchain+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.connections+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.externallink+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.pivotcachedefinition+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.pivotcacherecords+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.pivottable+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.querytable+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.revisionheaders+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.revisionlog+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.sharedstrings+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":{"source":"iana","compressible":false,"extensions":["xlsx"]},"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.sheetmetadata+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.tablesinglecells+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.template":{"source":"iana","extensions":["xltx"]},"application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.usernames+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.volatiledependencies+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.theme+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.themeoverride+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.vmldrawing":{"source":"iana"},"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.document":{"source":"iana","compressible":false,"extensions":["docx"]},"application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.template":{"source":"iana","extensions":["dotx"]},"application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-officedocument.wordprocessingml.websettings+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-package.core-properties+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml":{"source":"iana","compressible":true},"application/vnd.openxmlformats-package.relationships+xml":{"source":"iana","compressible":true},"application/vnd.oracle.resource+json":{"source":"iana","compressible":true},"application/vnd.orange.indata":{"source":"iana"},"application/vnd.osa.netdeploy":{"source":"iana"},"application/vnd.osgeo.mapguide.package":{"source":"iana","extensions":["mgp"]},"application/vnd.osgi.bundle":{"source":"iana"},"application/vnd.osgi.dp":{"source":"iana","extensions":["dp"]},"application/vnd.osgi.subsystem":{"source":"iana","extensions":["esa"]},"application/vnd.otps.ct-kip+xml":{"source":"iana","compressible":true},"application/vnd.oxli.countgraph":{"source":"iana"},"application/vnd.pagerduty+json":{"source":"iana","compressible":true},"application/vnd.palm":{"source":"iana","extensions":["pdb","pqa","oprc"]},"application/vnd.panoply":{"source":"iana"},"application/vnd.paos.xml":{"source":"iana"},"application/vnd.patentdive":{"source":"iana"},"application/vnd.patientecommsdoc":{"source":"iana"},"application/vnd.pawaafile":{"source":"iana","extensions":["paw"]},"application/vnd.pcos":{"source":"iana"},"application/vnd.pg.format":{"source":"iana","extensions":["str"]},"application/vnd.pg.osasli":{"source":"iana","extensions":["ei6"]},"application/vnd.piaccess.application-licence":{"source":"iana"},"application/vnd.picsel":{"source":"iana","extensions":["efif"]},"application/vnd.pmi.widget":{"source":"iana","extensions":["wg"]},"application/vnd.poc.group-advertisement+xml":{"source":"iana","compressible":true},"application/vnd.pocketlearn":{"source":"iana","extensions":["plf"]},"application/vnd.powerbuilder6":{"source":"iana","extensions":["pbd"]},"application/vnd.powerbuilder6-s":{"source":"iana"},"application/vnd.powerbuilder7":{"source":"iana"},"application/vnd.powerbuilder7-s":{"source":"iana"},"application/vnd.powerbuilder75":{"source":"iana"},"application/vnd.powerbuilder75-s":{"source":"iana"},"application/vnd.preminet":{"source":"iana"},"application/vnd.previewsystems.box":{"source":"iana","extensions":["box"]},"application/vnd.proteus.magazine":{"source":"iana","extensions":["mgz"]},"application/vnd.psfs":{"source":"iana"},"application/vnd.publishare-delta-tree":{"source":"iana","extensions":["qps"]},"application/vnd.pvi.ptid1":{"source":"iana","extensions":["ptid"]},"application/vnd.pwg-multiplexed":{"source":"iana"},"application/vnd.pwg-xhtml-print+xml":{"source":"iana","compressible":true},"application/vnd.qualcomm.brew-app-res":{"source":"iana"},"application/vnd.quarantainenet":{"source":"iana"},"application/vnd.quark.quarkxpress":{"source":"iana","extensions":["qxd","qxt","qwd","qwt","qxl","qxb"]},"application/vnd.quobject-quoxdocument":{"source":"iana"},"application/vnd.radisys.moml+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-audit+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-audit-conf+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-audit-conn+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-audit-dialog+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-audit-stream+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-conf+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog-base+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog-fax-detect+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog-fax-sendrecv+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog-group+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog-speech+xml":{"source":"iana","compressible":true},"application/vnd.radisys.msml-dialog-transform+xml":{"source":"iana","compressible":true},"application/vnd.rainstor.data":{"source":"iana"},"application/vnd.rapid":{"source":"iana"},"application/vnd.rar":{"source":"iana","extensions":["rar"]},"application/vnd.realvnc.bed":{"source":"iana","extensions":["bed"]},"application/vnd.recordare.musicxml":{"source":"iana","extensions":["mxl"]},"application/vnd.recordare.musicxml+xml":{"source":"iana","compressible":true,"extensions":["musicxml"]},"application/vnd.renlearn.rlprint":{"source":"iana"},"application/vnd.resilient.logic":{"source":"iana"},"application/vnd.restful+json":{"source":"iana","compressible":true},"application/vnd.rig.cryptonote":{"source":"iana","extensions":["cryptonote"]},"application/vnd.rim.cod":{"source":"apache","extensions":["cod"]},"application/vnd.rn-realmedia":{"source":"apache","extensions":["rm"]},"application/vnd.rn-realmedia-vbr":{"source":"apache","extensions":["rmvb"]},"application/vnd.route66.link66+xml":{"source":"iana","compressible":true,"extensions":["link66"]},"application/vnd.rs-274x":{"source":"iana"},"application/vnd.ruckus.download":{"source":"iana"},"application/vnd.s3sms":{"source":"iana"},"application/vnd.sailingtracker.track":{"source":"iana","extensions":["st"]},"application/vnd.sar":{"source":"iana"},"application/vnd.sbm.cid":{"source":"iana"},"application/vnd.sbm.mid2":{"source":"iana"},"application/vnd.scribus":{"source":"iana"},"application/vnd.sealed.3df":{"source":"iana"},"application/vnd.sealed.csf":{"source":"iana"},"application/vnd.sealed.doc":{"source":"iana"},"application/vnd.sealed.eml":{"source":"iana"},"application/vnd.sealed.mht":{"source":"iana"},"application/vnd.sealed.net":{"source":"iana"},"application/vnd.sealed.ppt":{"source":"iana"},"application/vnd.sealed.tiff":{"source":"iana"},"application/vnd.sealed.xls":{"source":"iana"},"application/vnd.sealedmedia.softseal.html":{"source":"iana"},"application/vnd.sealedmedia.softseal.pdf":{"source":"iana"},"application/vnd.seemail":{"source":"iana","extensions":["see"]},"application/vnd.seis+json":{"source":"iana","compressible":true},"application/vnd.sema":{"source":"iana","extensions":["sema"]},"application/vnd.semd":{"source":"iana","extensions":["semd"]},"application/vnd.semf":{"source":"iana","extensions":["semf"]},"application/vnd.shade-save-file":{"source":"iana"},"application/vnd.shana.informed.formdata":{"source":"iana","extensions":["ifm"]},"application/vnd.shana.informed.formtemplate":{"source":"iana","extensions":["itp"]},"application/vnd.shana.informed.interchange":{"source":"iana","extensions":["iif"]},"application/vnd.shana.informed.package":{"source":"iana","extensions":["ipk"]},"application/vnd.shootproof+json":{"source":"iana","compressible":true},"application/vnd.shopkick+json":{"source":"iana","compressible":true},"application/vnd.shp":{"source":"iana"},"application/vnd.shx":{"source":"iana"},"application/vnd.sigrok.session":{"source":"iana"},"application/vnd.simtech-mindmapper":{"source":"iana","extensions":["twd","twds"]},"application/vnd.siren+json":{"source":"iana","compressible":true},"application/vnd.smaf":{"source":"iana","extensions":["mmf"]},"application/vnd.smart.notebook":{"source":"iana"},"application/vnd.smart.teacher":{"source":"iana","extensions":["teacher"]},"application/vnd.snesdev-page-table":{"source":"iana"},"application/vnd.software602.filler.form+xml":{"source":"iana","compressible":true,"extensions":["fo"]},"application/vnd.software602.filler.form-xml-zip":{"source":"iana"},"application/vnd.solent.sdkm+xml":{"source":"iana","compressible":true,"extensions":["sdkm","sdkd"]},"application/vnd.spotfire.dxp":{"source":"iana","extensions":["dxp"]},"application/vnd.spotfire.sfs":{"source":"iana","extensions":["sfs"]},"application/vnd.sqlite3":{"source":"iana"},"application/vnd.sss-cod":{"source":"iana"},"application/vnd.sss-dtf":{"source":"iana"},"application/vnd.sss-ntf":{"source":"iana"},"application/vnd.stardivision.calc":{"source":"apache","extensions":["sdc"]},"application/vnd.stardivision.draw":{"source":"apache","extensions":["sda"]},"application/vnd.stardivision.impress":{"source":"apache","extensions":["sdd"]},"application/vnd.stardivision.math":{"source":"apache","extensions":["smf"]},"application/vnd.stardivision.writer":{"source":"apache","extensions":["sdw","vor"]},"application/vnd.stardivision.writer-global":{"source":"apache","extensions":["sgl"]},"application/vnd.stepmania.package":{"source":"iana","extensions":["smzip"]},"application/vnd.stepmania.stepchart":{"source":"iana","extensions":["sm"]},"application/vnd.street-stream":{"source":"iana"},"application/vnd.sun.wadl+xml":{"source":"iana","compressible":true,"extensions":["wadl"]},"application/vnd.sun.xml.calc":{"source":"apache","extensions":["sxc"]},"application/vnd.sun.xml.calc.template":{"source":"apache","extensions":["stc"]},"application/vnd.sun.xml.draw":{"source":"apache","extensions":["sxd"]},"application/vnd.sun.xml.draw.template":{"source":"apache","extensions":["std"]},"application/vnd.sun.xml.impress":{"source":"apache","extensions":["sxi"]},"application/vnd.sun.xml.impress.template":{"source":"apache","extensions":["sti"]},"application/vnd.sun.xml.math":{"source":"apache","extensions":["sxm"]},"application/vnd.sun.xml.writer":{"source":"apache","extensions":["sxw"]},"application/vnd.sun.xml.writer.global":{"source":"apache","extensions":["sxg"]},"application/vnd.sun.xml.writer.template":{"source":"apache","extensions":["stw"]},"application/vnd.sus-calendar":{"source":"iana","extensions":["sus","susp"]},"application/vnd.svd":{"source":"iana","extensions":["svd"]},"application/vnd.swiftview-ics":{"source":"iana"},"application/vnd.sycle+xml":{"source":"iana","compressible":true},"application/vnd.syft+json":{"source":"iana","compressible":true},"application/vnd.symbian.install":{"source":"apache","extensions":["sis","sisx"]},"application/vnd.syncml+xml":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["xsm"]},"application/vnd.syncml.dm+wbxml":{"source":"iana","charset":"UTF-8","extensions":["bdm"]},"application/vnd.syncml.dm+xml":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["xdm"]},"application/vnd.syncml.dm.notification":{"source":"iana"},"application/vnd.syncml.dmddf+wbxml":{"source":"iana"},"application/vnd.syncml.dmddf+xml":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["ddf"]},"application/vnd.syncml.dmtnds+wbxml":{"source":"iana"},"application/vnd.syncml.dmtnds+xml":{"source":"iana","charset":"UTF-8","compressible":true},"application/vnd.syncml.ds.notification":{"source":"iana"},"application/vnd.tableschema+json":{"source":"iana","compressible":true},"application/vnd.tao.intent-module-archive":{"source":"iana","extensions":["tao"]},"application/vnd.tcpdump.pcap":{"source":"iana","extensions":["pcap","cap","dmp"]},"application/vnd.think-cell.ppttc+json":{"source":"iana","compressible":true},"application/vnd.tmd.mediaflex.api+xml":{"source":"iana","compressible":true},"application/vnd.tml":{"source":"iana"},"application/vnd.tmobile-livetv":{"source":"iana","extensions":["tmo"]},"application/vnd.tri.onesource":{"source":"iana"},"application/vnd.trid.tpt":{"source":"iana","extensions":["tpt"]},"application/vnd.triscape.mxs":{"source":"iana","extensions":["mxs"]},"application/vnd.trueapp":{"source":"iana","extensions":["tra"]},"application/vnd.truedoc":{"source":"iana"},"application/vnd.ubisoft.webplayer":{"source":"iana"},"application/vnd.ufdl":{"source":"iana","extensions":["ufd","ufdl"]},"application/vnd.uiq.theme":{"source":"iana","extensions":["utz"]},"application/vnd.umajin":{"source":"iana","extensions":["umj"]},"application/vnd.unity":{"source":"iana","extensions":["unityweb"]},"application/vnd.uoml+xml":{"source":"iana","compressible":true,"extensions":["uoml"]},"application/vnd.uplanet.alert":{"source":"iana"},"application/vnd.uplanet.alert-wbxml":{"source":"iana"},"application/vnd.uplanet.bearer-choice":{"source":"iana"},"application/vnd.uplanet.bearer-choice-wbxml":{"source":"iana"},"application/vnd.uplanet.cacheop":{"source":"iana"},"application/vnd.uplanet.cacheop-wbxml":{"source":"iana"},"application/vnd.uplanet.channel":{"source":"iana"},"application/vnd.uplanet.channel-wbxml":{"source":"iana"},"application/vnd.uplanet.list":{"source":"iana"},"application/vnd.uplanet.list-wbxml":{"source":"iana"},"application/vnd.uplanet.listcmd":{"source":"iana"},"application/vnd.uplanet.listcmd-wbxml":{"source":"iana"},"application/vnd.uplanet.signal":{"source":"iana"},"application/vnd.uri-map":{"source":"iana"},"application/vnd.valve.source.material":{"source":"iana"},"application/vnd.vcx":{"source":"iana","extensions":["vcx"]},"application/vnd.vd-study":{"source":"iana"},"application/vnd.vectorworks":{"source":"iana"},"application/vnd.vel+json":{"source":"iana","compressible":true},"application/vnd.verimatrix.vcas":{"source":"iana"},"application/vnd.veritone.aion+json":{"source":"iana","compressible":true},"application/vnd.veryant.thin":{"source":"iana"},"application/vnd.ves.encrypted":{"source":"iana"},"application/vnd.vidsoft.vidconference":{"source":"iana"},"application/vnd.visio":{"source":"iana","extensions":["vsd","vst","vss","vsw"]},"application/vnd.visionary":{"source":"iana","extensions":["vis"]},"application/vnd.vividence.scriptfile":{"source":"iana"},"application/vnd.vsf":{"source":"iana","extensions":["vsf"]},"application/vnd.wap.sic":{"source":"iana"},"application/vnd.wap.slc":{"source":"iana"},"application/vnd.wap.wbxml":{"source":"iana","charset":"UTF-8","extensions":["wbxml"]},"application/vnd.wap.wmlc":{"source":"iana","extensions":["wmlc"]},"application/vnd.wap.wmlscriptc":{"source":"iana","extensions":["wmlsc"]},"application/vnd.webturbo":{"source":"iana","extensions":["wtb"]},"application/vnd.wfa.dpp":{"source":"iana"},"application/vnd.wfa.p2p":{"source":"iana"},"application/vnd.wfa.wsc":{"source":"iana"},"application/vnd.windows.devicepairing":{"source":"iana"},"application/vnd.wmc":{"source":"iana"},"application/vnd.wmf.bootstrap":{"source":"iana"},"application/vnd.wolfram.mathematica":{"source":"iana"},"application/vnd.wolfram.mathematica.package":{"source":"iana"},"application/vnd.wolfram.player":{"source":"iana","extensions":["nbp"]},"application/vnd.wordperfect":{"source":"iana","extensions":["wpd"]},"application/vnd.wqd":{"source":"iana","extensions":["wqd"]},"application/vnd.wrq-hp3000-labelled":{"source":"iana"},"application/vnd.wt.stf":{"source":"iana","extensions":["stf"]},"application/vnd.wv.csp+wbxml":{"source":"iana"},"application/vnd.wv.csp+xml":{"source":"iana","compressible":true},"application/vnd.wv.ssp+xml":{"source":"iana","compressible":true},"application/vnd.xacml+json":{"source":"iana","compressible":true},"application/vnd.xara":{"source":"iana","extensions":["xar"]},"application/vnd.xfdl":{"source":"iana","extensions":["xfdl"]},"application/vnd.xfdl.webform":{"source":"iana"},"application/vnd.xmi+xml":{"source":"iana","compressible":true},"application/vnd.xmpie.cpkg":{"source":"iana"},"application/vnd.xmpie.dpkg":{"source":"iana"},"application/vnd.xmpie.plan":{"source":"iana"},"application/vnd.xmpie.ppkg":{"source":"iana"},"application/vnd.xmpie.xlim":{"source":"iana"},"application/vnd.yamaha.hv-dic":{"source":"iana","extensions":["hvd"]},"application/vnd.yamaha.hv-script":{"source":"iana","extensions":["hvs"]},"application/vnd.yamaha.hv-voice":{"source":"iana","extensions":["hvp"]},"application/vnd.yamaha.openscoreformat":{"source":"iana","extensions":["osf"]},"application/vnd.yamaha.openscoreformat.osfpvg+xml":{"source":"iana","compressible":true,"extensions":["osfpvg"]},"application/vnd.yamaha.remote-setup":{"source":"iana"},"application/vnd.yamaha.smaf-audio":{"source":"iana","extensions":["saf"]},"application/vnd.yamaha.smaf-phrase":{"source":"iana","extensions":["spf"]},"application/vnd.yamaha.through-ngn":{"source":"iana"},"application/vnd.yamaha.tunnel-udpencap":{"source":"iana"},"application/vnd.yaoweme":{"source":"iana"},"application/vnd.yellowriver-custom-menu":{"source":"iana","extensions":["cmp"]},"application/vnd.youtube.yt":{"source":"iana"},"application/vnd.zul":{"source":"iana","extensions":["zir","zirz"]},"application/vnd.zzazz.deck+xml":{"source":"iana","compressible":true,"extensions":["zaz"]},"application/voicexml+xml":{"source":"iana","compressible":true,"extensions":["vxml"]},"application/voucher-cms+json":{"source":"iana","compressible":true},"application/vq-rtcpxr":{"source":"iana"},"application/wasm":{"source":"iana","compressible":true,"extensions":["wasm"]},"application/watcherinfo+xml":{"source":"iana","compressible":true,"extensions":["wif"]},"application/webpush-options+json":{"source":"iana","compressible":true},"application/whoispp-query":{"source":"iana"},"application/whoispp-response":{"source":"iana"},"application/widget":{"source":"iana","extensions":["wgt"]},"application/winhlp":{"source":"apache","extensions":["hlp"]},"application/wita":{"source":"iana"},"application/wordperfect5.1":{"source":"iana"},"application/wsdl+xml":{"source":"iana","compressible":true,"extensions":["wsdl"]},"application/wspolicy+xml":{"source":"iana","compressible":true,"extensions":["wspolicy"]},"application/x-7z-compressed":{"source":"apache","compressible":false,"extensions":["7z"]},"application/x-abiword":{"source":"apache","extensions":["abw"]},"application/x-ace-compressed":{"source":"apache","extensions":["ace"]},"application/x-amf":{"source":"apache"},"application/x-apple-diskimage":{"source":"apache","extensions":["dmg"]},"application/x-arj":{"compressible":false,"extensions":["arj"]},"application/x-authorware-bin":{"source":"apache","extensions":["aab","x32","u32","vox"]},"application/x-authorware-map":{"source":"apache","extensions":["aam"]},"application/x-authorware-seg":{"source":"apache","extensions":["aas"]},"application/x-bcpio":{"source":"apache","extensions":["bcpio"]},"application/x-bdoc":{"compressible":false,"extensions":["bdoc"]},"application/x-bittorrent":{"source":"apache","extensions":["torrent"]},"application/x-blorb":{"source":"apache","extensions":["blb","blorb"]},"application/x-bzip":{"source":"apache","compressible":false,"extensions":["bz"]},"application/x-bzip2":{"source":"apache","compressible":false,"extensions":["bz2","boz"]},"application/x-cbr":{"source":"apache","extensions":["cbr","cba","cbt","cbz","cb7"]},"application/x-cdlink":{"source":"apache","extensions":["vcd"]},"application/x-cfs-compressed":{"source":"apache","extensions":["cfs"]},"application/x-chat":{"source":"apache","extensions":["chat"]},"application/x-chess-pgn":{"source":"apache","extensions":["pgn"]},"application/x-chrome-extension":{"extensions":["crx"]},"application/x-cocoa":{"source":"nginx","extensions":["cco"]},"application/x-compress":{"source":"apache"},"application/x-conference":{"source":"apache","extensions":["nsc"]},"application/x-cpio":{"source":"apache","extensions":["cpio"]},"application/x-csh":{"source":"apache","extensions":["csh"]},"application/x-deb":{"compressible":false},"application/x-debian-package":{"source":"apache","extensions":["deb","udeb"]},"application/x-dgc-compressed":{"source":"apache","extensions":["dgc"]},"application/x-director":{"source":"apache","extensions":["dir","dcr","dxr","cst","cct","cxt","w3d","fgd","swa"]},"application/x-doom":{"source":"apache","extensions":["wad"]},"application/x-dtbncx+xml":{"source":"apache","compressible":true,"extensions":["ncx"]},"application/x-dtbook+xml":{"source":"apache","compressible":true,"extensions":["dtb"]},"application/x-dtbresource+xml":{"source":"apache","compressible":true,"extensions":["res"]},"application/x-dvi":{"source":"apache","compressible":false,"extensions":["dvi"]},"application/x-envoy":{"source":"apache","extensions":["evy"]},"application/x-eva":{"source":"apache","extensions":["eva"]},"application/x-font-bdf":{"source":"apache","extensions":["bdf"]},"application/x-font-dos":{"source":"apache"},"application/x-font-framemaker":{"source":"apache"},"application/x-font-ghostscript":{"source":"apache","extensions":["gsf"]},"application/x-font-libgrx":{"source":"apache"},"application/x-font-linux-psf":{"source":"apache","extensions":["psf"]},"application/x-font-pcf":{"source":"apache","extensions":["pcf"]},"application/x-font-snf":{"source":"apache","extensions":["snf"]},"application/x-font-speedo":{"source":"apache"},"application/x-font-sunos-news":{"source":"apache"},"application/x-font-type1":{"source":"apache","extensions":["pfa","pfb","pfm","afm"]},"application/x-font-vfont":{"source":"apache"},"application/x-freearc":{"source":"apache","extensions":["arc"]},"application/x-futuresplash":{"source":"apache","extensions":["spl"]},"application/x-gca-compressed":{"source":"apache","extensions":["gca"]},"application/x-glulx":{"source":"apache","extensions":["ulx"]},"application/x-gnumeric":{"source":"apache","extensions":["gnumeric"]},"application/x-gramps-xml":{"source":"apache","extensions":["gramps"]},"application/x-gtar":{"source":"apache","extensions":["gtar"]},"application/x-gzip":{"source":"apache"},"application/x-hdf":{"source":"apache","extensions":["hdf"]},"application/x-httpd-php":{"compressible":true,"extensions":["php"]},"application/x-install-instructions":{"source":"apache","extensions":["install"]},"application/x-iso9660-image":{"source":"apache","extensions":["iso"]},"application/x-iwork-keynote-sffkey":{"extensions":["key"]},"application/x-iwork-numbers-sffnumbers":{"extensions":["numbers"]},"application/x-iwork-pages-sffpages":{"extensions":["pages"]},"application/x-java-archive-diff":{"source":"nginx","extensions":["jardiff"]},"application/x-java-jnlp-file":{"source":"apache","compressible":false,"extensions":["jnlp"]},"application/x-javascript":{"compressible":true},"application/x-keepass2":{"extensions":["kdbx"]},"application/x-latex":{"source":"apache","compressible":false,"extensions":["latex"]},"application/x-lua-bytecode":{"extensions":["luac"]},"application/x-lzh-compressed":{"source":"apache","extensions":["lzh","lha"]},"application/x-makeself":{"source":"nginx","extensions":["run"]},"application/x-mie":{"source":"apache","extensions":["mie"]},"application/x-mobipocket-ebook":{"source":"apache","extensions":["prc","mobi"]},"application/x-mpegurl":{"compressible":false},"application/x-ms-application":{"source":"apache","extensions":["application"]},"application/x-ms-shortcut":{"source":"apache","extensions":["lnk"]},"application/x-ms-wmd":{"source":"apache","extensions":["wmd"]},"application/x-ms-wmz":{"source":"apache","extensions":["wmz"]},"application/x-ms-xbap":{"source":"apache","extensions":["xbap"]},"application/x-msaccess":{"source":"apache","extensions":["mdb"]},"application/x-msbinder":{"source":"apache","extensions":["obd"]},"application/x-mscardfile":{"source":"apache","extensions":["crd"]},"application/x-msclip":{"source":"apache","extensions":["clp"]},"application/x-msdos-program":{"extensions":["exe"]},"application/x-msdownload":{"source":"apache","extensions":["exe","dll","com","bat","msi"]},"application/x-msmediaview":{"source":"apache","extensions":["mvb","m13","m14"]},"application/x-msmetafile":{"source":"apache","extensions":["wmf","wmz","emf","emz"]},"application/x-msmoney":{"source":"apache","extensions":["mny"]},"application/x-mspublisher":{"source":"apache","extensions":["pub"]},"application/x-msschedule":{"source":"apache","extensions":["scd"]},"application/x-msterminal":{"source":"apache","extensions":["trm"]},"application/x-mswrite":{"source":"apache","extensions":["wri"]},"application/x-netcdf":{"source":"apache","extensions":["nc","cdf"]},"application/x-ns-proxy-autoconfig":{"compressible":true,"extensions":["pac"]},"application/x-nzb":{"source":"apache","extensions":["nzb"]},"application/x-perl":{"source":"nginx","extensions":["pl","pm"]},"application/x-pilot":{"source":"nginx","extensions":["prc","pdb"]},"application/x-pkcs12":{"source":"apache","compressible":false,"extensions":["p12","pfx"]},"application/x-pkcs7-certificates":{"source":"apache","extensions":["p7b","spc"]},"application/x-pkcs7-certreqresp":{"source":"apache","extensions":["p7r"]},"application/x-pki-message":{"source":"iana"},"application/x-rar-compressed":{"source":"apache","compressible":false,"extensions":["rar"]},"application/x-redhat-package-manager":{"source":"nginx","extensions":["rpm"]},"application/x-research-info-systems":{"source":"apache","extensions":["ris"]},"application/x-sea":{"source":"nginx","extensions":["sea"]},"application/x-sh":{"source":"apache","compressible":true,"extensions":["sh"]},"application/x-shar":{"source":"apache","extensions":["shar"]},"application/x-shockwave-flash":{"source":"apache","compressible":false,"extensions":["swf"]},"application/x-silverlight-app":{"source":"apache","extensions":["xap"]},"application/x-sql":{"source":"apache","extensions":["sql"]},"application/x-stuffit":{"source":"apache","compressible":false,"extensions":["sit"]},"application/x-stuffitx":{"source":"apache","extensions":["sitx"]},"application/x-subrip":{"source":"apache","extensions":["srt"]},"application/x-sv4cpio":{"source":"apache","extensions":["sv4cpio"]},"application/x-sv4crc":{"source":"apache","extensions":["sv4crc"]},"application/x-t3vm-image":{"source":"apache","extensions":["t3"]},"application/x-tads":{"source":"apache","extensions":["gam"]},"application/x-tar":{"source":"apache","compressible":true,"extensions":["tar"]},"application/x-tcl":{"source":"apache","extensions":["tcl","tk"]},"application/x-tex":{"source":"apache","extensions":["tex"]},"application/x-tex-tfm":{"source":"apache","extensions":["tfm"]},"application/x-texinfo":{"source":"apache","extensions":["texinfo","texi"]},"application/x-tgif":{"source":"apache","extensions":["obj"]},"application/x-ustar":{"source":"apache","extensions":["ustar"]},"application/x-virtualbox-hdd":{"compressible":true,"extensions":["hdd"]},"application/x-virtualbox-ova":{"compressible":true,"extensions":["ova"]},"application/x-virtualbox-ovf":{"compressible":true,"extensions":["ovf"]},"application/x-virtualbox-vbox":{"compressible":true,"extensions":["vbox"]},"application/x-virtualbox-vbox-extpack":{"compressible":false,"extensions":["vbox-extpack"]},"application/x-virtualbox-vdi":{"compressible":true,"extensions":["vdi"]},"application/x-virtualbox-vhd":{"compressible":true,"extensions":["vhd"]},"application/x-virtualbox-vmdk":{"compressible":true,"extensions":["vmdk"]},"application/x-wais-source":{"source":"apache","extensions":["src"]},"application/x-web-app-manifest+json":{"compressible":true,"extensions":["webapp"]},"application/x-www-form-urlencoded":{"source":"iana","compressible":true},"application/x-x509-ca-cert":{"source":"iana","extensions":["der","crt","pem"]},"application/x-x509-ca-ra-cert":{"source":"iana"},"application/x-x509-next-ca-cert":{"source":"iana"},"application/x-xfig":{"source":"apache","extensions":["fig"]},"application/x-xliff+xml":{"source":"apache","compressible":true,"extensions":["xlf"]},"application/x-xpinstall":{"source":"apache","compressible":false,"extensions":["xpi"]},"application/x-xz":{"source":"apache","extensions":["xz"]},"application/x-zmachine":{"source":"apache","extensions":["z1","z2","z3","z4","z5","z6","z7","z8"]},"application/x400-bp":{"source":"iana"},"application/xacml+xml":{"source":"iana","compressible":true},"application/xaml+xml":{"source":"apache","compressible":true,"extensions":["xaml"]},"application/xcap-att+xml":{"source":"iana","compressible":true,"extensions":["xav"]},"application/xcap-caps+xml":{"source":"iana","compressible":true,"extensions":["xca"]},"application/xcap-diff+xml":{"source":"iana","compressible":true,"extensions":["xdf"]},"application/xcap-el+xml":{"source":"iana","compressible":true,"extensions":["xel"]},"application/xcap-error+xml":{"source":"iana","compressible":true},"application/xcap-ns+xml":{"source":"iana","compressible":true,"extensions":["xns"]},"application/xcon-conference-info+xml":{"source":"iana","compressible":true},"application/xcon-conference-info-diff+xml":{"source":"iana","compressible":true},"application/xenc+xml":{"source":"iana","compressible":true,"extensions":["xenc"]},"application/xhtml+xml":{"source":"iana","compressible":true,"extensions":["xhtml","xht"]},"application/xhtml-voice+xml":{"source":"apache","compressible":true},"application/xliff+xml":{"source":"iana","compressible":true,"extensions":["xlf"]},"application/xml":{"source":"iana","compressible":true,"extensions":["xml","xsl","xsd","rng"]},"application/xml-dtd":{"source":"iana","compressible":true,"extensions":["dtd"]},"application/xml-external-parsed-entity":{"source":"iana"},"application/xml-patch+xml":{"source":"iana","compressible":true},"application/xmpp+xml":{"source":"iana","compressible":true},"application/xop+xml":{"source":"iana","compressible":true,"extensions":["xop"]},"application/xproc+xml":{"source":"apache","compressible":true,"extensions":["xpl"]},"application/xslt+xml":{"source":"iana","compressible":true,"extensions":["xsl","xslt"]},"application/xspf+xml":{"source":"apache","compressible":true,"extensions":["xspf"]},"application/xv+xml":{"source":"iana","compressible":true,"extensions":["mxml","xhvml","xvml","xvm"]},"application/yang":{"source":"iana","extensions":["yang"]},"application/yang-data+json":{"source":"iana","compressible":true},"application/yang-data+xml":{"source":"iana","compressible":true},"application/yang-patch+json":{"source":"iana","compressible":true},"application/yang-patch+xml":{"source":"iana","compressible":true},"application/yin+xml":{"source":"iana","compressible":true,"extensions":["yin"]},"application/zip":{"source":"iana","compressible":false,"extensions":["zip"]},"application/zlib":{"source":"iana"},"application/zstd":{"source":"iana"},"audio/1d-interleaved-parityfec":{"source":"iana"},"audio/32kadpcm":{"source":"iana"},"audio/3gpp":{"source":"iana","compressible":false,"extensions":["3gpp"]},"audio/3gpp2":{"source":"iana"},"audio/aac":{"source":"iana"},"audio/ac3":{"source":"iana"},"audio/adpcm":{"source":"apache","extensions":["adp"]},"audio/amr":{"source":"iana","extensions":["amr"]},"audio/amr-wb":{"source":"iana"},"audio/amr-wb+":{"source":"iana"},"audio/aptx":{"source":"iana"},"audio/asc":{"source":"iana"},"audio/atrac-advanced-lossless":{"source":"iana"},"audio/atrac-x":{"source":"iana"},"audio/atrac3":{"source":"iana"},"audio/basic":{"source":"iana","compressible":false,"extensions":["au","snd"]},"audio/bv16":{"source":"iana"},"audio/bv32":{"source":"iana"},"audio/clearmode":{"source":"iana"},"audio/cn":{"source":"iana"},"audio/dat12":{"source":"iana"},"audio/dls":{"source":"iana"},"audio/dsr-es201108":{"source":"iana"},"audio/dsr-es202050":{"source":"iana"},"audio/dsr-es202211":{"source":"iana"},"audio/dsr-es202212":{"source":"iana"},"audio/dv":{"source":"iana"},"audio/dvi4":{"source":"iana"},"audio/eac3":{"source":"iana"},"audio/encaprtp":{"source":"iana"},"audio/evrc":{"source":"iana"},"audio/evrc-qcp":{"source":"iana"},"audio/evrc0":{"source":"iana"},"audio/evrc1":{"source":"iana"},"audio/evrcb":{"source":"iana"},"audio/evrcb0":{"source":"iana"},"audio/evrcb1":{"source":"iana"},"audio/evrcnw":{"source":"iana"},"audio/evrcnw0":{"source":"iana"},"audio/evrcnw1":{"source":"iana"},"audio/evrcwb":{"source":"iana"},"audio/evrcwb0":{"source":"iana"},"audio/evrcwb1":{"source":"iana"},"audio/evs":{"source":"iana"},"audio/flexfec":{"source":"iana"},"audio/fwdred":{"source":"iana"},"audio/g711-0":{"source":"iana"},"audio/g719":{"source":"iana"},"audio/g722":{"source":"iana"},"audio/g7221":{"source":"iana"},"audio/g723":{"source":"iana"},"audio/g726-16":{"source":"iana"},"audio/g726-24":{"source":"iana"},"audio/g726-32":{"source":"iana"},"audio/g726-40":{"source":"iana"},"audio/g728":{"source":"iana"},"audio/g729":{"source":"iana"},"audio/g7291":{"source":"iana"},"audio/g729d":{"source":"iana"},"audio/g729e":{"source":"iana"},"audio/gsm":{"source":"iana"},"audio/gsm-efr":{"source":"iana"},"audio/gsm-hr-08":{"source":"iana"},"audio/ilbc":{"source":"iana"},"audio/ip-mr_v2.5":{"source":"iana"},"audio/isac":{"source":"apache"},"audio/l16":{"source":"iana"},"audio/l20":{"source":"iana"},"audio/l24":{"source":"iana","compressible":false},"audio/l8":{"source":"iana"},"audio/lpc":{"source":"iana"},"audio/melp":{"source":"iana"},"audio/melp1200":{"source":"iana"},"audio/melp2400":{"source":"iana"},"audio/melp600":{"source":"iana"},"audio/mhas":{"source":"iana"},"audio/midi":{"source":"apache","extensions":["mid","midi","kar","rmi"]},"audio/mobile-xmf":{"source":"iana","extensions":["mxmf"]},"audio/mp3":{"compressible":false,"extensions":["mp3"]},"audio/mp4":{"source":"iana","compressible":false,"extensions":["m4a","mp4a"]},"audio/mp4a-latm":{"source":"iana"},"audio/mpa":{"source":"iana"},"audio/mpa-robust":{"source":"iana"},"audio/mpeg":{"source":"iana","compressible":false,"extensions":["mpga","mp2","mp2a","mp3","m2a","m3a"]},"audio/mpeg4-generic":{"source":"iana"},"audio/musepack":{"source":"apache"},"audio/ogg":{"source":"iana","compressible":false,"extensions":["oga","ogg","spx","opus"]},"audio/opus":{"source":"iana"},"audio/parityfec":{"source":"iana"},"audio/pcma":{"source":"iana"},"audio/pcma-wb":{"source":"iana"},"audio/pcmu":{"source":"iana"},"audio/pcmu-wb":{"source":"iana"},"audio/prs.sid":{"source":"iana"},"audio/qcelp":{"source":"iana"},"audio/raptorfec":{"source":"iana"},"audio/red":{"source":"iana"},"audio/rtp-enc-aescm128":{"source":"iana"},"audio/rtp-midi":{"source":"iana"},"audio/rtploopback":{"source":"iana"},"audio/rtx":{"source":"iana"},"audio/s3m":{"source":"apache","extensions":["s3m"]},"audio/scip":{"source":"iana"},"audio/silk":{"source":"apache","extensions":["sil"]},"audio/smv":{"source":"iana"},"audio/smv-qcp":{"source":"iana"},"audio/smv0":{"source":"iana"},"audio/sofa":{"source":"iana"},"audio/sp-midi":{"source":"iana"},"audio/speex":{"source":"iana"},"audio/t140c":{"source":"iana"},"audio/t38":{"source":"iana"},"audio/telephone-event":{"source":"iana"},"audio/tetra_acelp":{"source":"iana"},"audio/tetra_acelp_bb":{"source":"iana"},"audio/tone":{"source":"iana"},"audio/tsvcis":{"source":"iana"},"audio/uemclip":{"source":"iana"},"audio/ulpfec":{"source":"iana"},"audio/usac":{"source":"iana"},"audio/vdvi":{"source":"iana"},"audio/vmr-wb":{"source":"iana"},"audio/vnd.3gpp.iufp":{"source":"iana"},"audio/vnd.4sb":{"source":"iana"},"audio/vnd.audiokoz":{"source":"iana"},"audio/vnd.celp":{"source":"iana"},"audio/vnd.cisco.nse":{"source":"iana"},"audio/vnd.cmles.radio-events":{"source":"iana"},"audio/vnd.cns.anp1":{"source":"iana"},"audio/vnd.cns.inf1":{"source":"iana"},"audio/vnd.dece.audio":{"source":"iana","extensions":["uva","uvva"]},"audio/vnd.digital-winds":{"source":"iana","extensions":["eol"]},"audio/vnd.dlna.adts":{"source":"iana"},"audio/vnd.dolby.heaac.1":{"source":"iana"},"audio/vnd.dolby.heaac.2":{"source":"iana"},"audio/vnd.dolby.mlp":{"source":"iana"},"audio/vnd.dolby.mps":{"source":"iana"},"audio/vnd.dolby.pl2":{"source":"iana"},"audio/vnd.dolby.pl2x":{"source":"iana"},"audio/vnd.dolby.pl2z":{"source":"iana"},"audio/vnd.dolby.pulse.1":{"source":"iana"},"audio/vnd.dra":{"source":"iana","extensions":["dra"]},"audio/vnd.dts":{"source":"iana","extensions":["dts"]},"audio/vnd.dts.hd":{"source":"iana","extensions":["dtshd"]},"audio/vnd.dts.uhd":{"source":"iana"},"audio/vnd.dvb.file":{"source":"iana"},"audio/vnd.everad.plj":{"source":"iana"},"audio/vnd.hns.audio":{"source":"iana"},"audio/vnd.lucent.voice":{"source":"iana","extensions":["lvp"]},"audio/vnd.ms-playready.media.pya":{"source":"iana","extensions":["pya"]},"audio/vnd.nokia.mobile-xmf":{"source":"iana"},"audio/vnd.nortel.vbk":{"source":"iana"},"audio/vnd.nuera.ecelp4800":{"source":"iana","extensions":["ecelp4800"]},"audio/vnd.nuera.ecelp7470":{"source":"iana","extensions":["ecelp7470"]},"audio/vnd.nuera.ecelp9600":{"source":"iana","extensions":["ecelp9600"]},"audio/vnd.octel.sbc":{"source":"iana"},"audio/vnd.presonus.multitrack":{"source":"iana"},"audio/vnd.qcelp":{"source":"iana"},"audio/vnd.rhetorex.32kadpcm":{"source":"iana"},"audio/vnd.rip":{"source":"iana","extensions":["rip"]},"audio/vnd.rn-realaudio":{"compressible":false},"audio/vnd.sealedmedia.softseal.mpeg":{"source":"iana"},"audio/vnd.vmx.cvsd":{"source":"iana"},"audio/vnd.wave":{"compressible":false},"audio/vorbis":{"source":"iana","compressible":false},"audio/vorbis-config":{"source":"iana"},"audio/wav":{"compressible":false,"extensions":["wav"]},"audio/wave":{"compressible":false,"extensions":["wav"]},"audio/webm":{"source":"apache","compressible":false,"extensions":["weba"]},"audio/x-aac":{"source":"apache","compressible":false,"extensions":["aac"]},"audio/x-aiff":{"source":"apache","extensions":["aif","aiff","aifc"]},"audio/x-caf":{"source":"apache","compressible":false,"extensions":["caf"]},"audio/x-flac":{"source":"apache","extensions":["flac"]},"audio/x-m4a":{"source":"nginx","extensions":["m4a"]},"audio/x-matroska":{"source":"apache","extensions":["mka"]},"audio/x-mpegurl":{"source":"apache","extensions":["m3u"]},"audio/x-ms-wax":{"source":"apache","extensions":["wax"]},"audio/x-ms-wma":{"source":"apache","extensions":["wma"]},"audio/x-pn-realaudio":{"source":"apache","extensions":["ram","ra"]},"audio/x-pn-realaudio-plugin":{"source":"apache","extensions":["rmp"]},"audio/x-realaudio":{"source":"nginx","extensions":["ra"]},"audio/x-tta":{"source":"apache"},"audio/x-wav":{"source":"apache","extensions":["wav"]},"audio/xm":{"source":"apache","extensions":["xm"]},"chemical/x-cdx":{"source":"apache","extensions":["cdx"]},"chemical/x-cif":{"source":"apache","extensions":["cif"]},"chemical/x-cmdf":{"source":"apache","extensions":["cmdf"]},"chemical/x-cml":{"source":"apache","extensions":["cml"]},"chemical/x-csml":{"source":"apache","extensions":["csml"]},"chemical/x-pdb":{"source":"apache"},"chemical/x-xyz":{"source":"apache","extensions":["xyz"]},"font/collection":{"source":"iana","extensions":["ttc"]},"font/otf":{"source":"iana","compressible":true,"extensions":["otf"]},"font/sfnt":{"source":"iana"},"font/ttf":{"source":"iana","compressible":true,"extensions":["ttf"]},"font/woff":{"source":"iana","extensions":["woff"]},"font/woff2":{"source":"iana","extensions":["woff2"]},"image/aces":{"source":"iana","extensions":["exr"]},"image/apng":{"compressible":false,"extensions":["apng"]},"image/avci":{"source":"iana","extensions":["avci"]},"image/avcs":{"source":"iana","extensions":["avcs"]},"image/avif":{"source":"iana","compressible":false,"extensions":["avif"]},"image/bmp":{"source":"iana","compressible":true,"extensions":["bmp"]},"image/cgm":{"source":"iana","extensions":["cgm"]},"image/dicom-rle":{"source":"iana","extensions":["drle"]},"image/emf":{"source":"iana","extensions":["emf"]},"image/fits":{"source":"iana","extensions":["fits"]},"image/g3fax":{"source":"iana","extensions":["g3"]},"image/gif":{"source":"iana","compressible":false,"extensions":["gif"]},"image/heic":{"source":"iana","extensions":["heic"]},"image/heic-sequence":{"source":"iana","extensions":["heics"]},"image/heif":{"source":"iana","extensions":["heif"]},"image/heif-sequence":{"source":"iana","extensions":["heifs"]},"image/hej2k":{"source":"iana","extensions":["hej2"]},"image/hsj2":{"source":"iana","extensions":["hsj2"]},"image/ief":{"source":"iana","extensions":["ief"]},"image/jls":{"source":"iana","extensions":["jls"]},"image/jp2":{"source":"iana","compressible":false,"extensions":["jp2","jpg2"]},"image/jpeg":{"source":"iana","compressible":false,"extensions":["jpeg","jpg","jpe"]},"image/jph":{"source":"iana","extensions":["jph"]},"image/jphc":{"source":"iana","extensions":["jhc"]},"image/jpm":{"source":"iana","compressible":false,"extensions":["jpm"]},"image/jpx":{"source":"iana","compressible":false,"extensions":["jpx","jpf"]},"image/jxr":{"source":"iana","extensions":["jxr"]},"image/jxra":{"source":"iana","extensions":["jxra"]},"image/jxrs":{"source":"iana","extensions":["jxrs"]},"image/jxs":{"source":"iana","extensions":["jxs"]},"image/jxsc":{"source":"iana","extensions":["jxsc"]},"image/jxsi":{"source":"iana","extensions":["jxsi"]},"image/jxss":{"source":"iana","extensions":["jxss"]},"image/ktx":{"source":"iana","extensions":["ktx"]},"image/ktx2":{"source":"iana","extensions":["ktx2"]},"image/naplps":{"source":"iana"},"image/pjpeg":{"compressible":false},"image/png":{"source":"iana","compressible":false,"extensions":["png"]},"image/prs.btif":{"source":"iana","extensions":["btif"]},"image/prs.pti":{"source":"iana","extensions":["pti"]},"image/pwg-raster":{"source":"iana"},"image/sgi":{"source":"apache","extensions":["sgi"]},"image/svg+xml":{"source":"iana","compressible":true,"extensions":["svg","svgz"]},"image/t38":{"source":"iana","extensions":["t38"]},"image/tiff":{"source":"iana","compressible":false,"extensions":["tif","tiff"]},"image/tiff-fx":{"source":"iana","extensions":["tfx"]},"image/vnd.adobe.photoshop":{"source":"iana","compressible":true,"extensions":["psd"]},"image/vnd.airzip.accelerator.azv":{"source":"iana","extensions":["azv"]},"image/vnd.cns.inf2":{"source":"iana"},"image/vnd.dece.graphic":{"source":"iana","extensions":["uvi","uvvi","uvg","uvvg"]},"image/vnd.djvu":{"source":"iana","extensions":["djvu","djv"]},"image/vnd.dvb.subtitle":{"source":"iana","extensions":["sub"]},"image/vnd.dwg":{"source":"iana","extensions":["dwg"]},"image/vnd.dxf":{"source":"iana","extensions":["dxf"]},"image/vnd.fastbidsheet":{"source":"iana","extensions":["fbs"]},"image/vnd.fpx":{"source":"iana","extensions":["fpx"]},"image/vnd.fst":{"source":"iana","extensions":["fst"]},"image/vnd.fujixerox.edmics-mmr":{"source":"iana","extensions":["mmr"]},"image/vnd.fujixerox.edmics-rlc":{"source":"iana","extensions":["rlc"]},"image/vnd.globalgraphics.pgb":{"source":"iana"},"image/vnd.microsoft.icon":{"source":"iana","compressible":true,"extensions":["ico"]},"image/vnd.mix":{"source":"iana"},"image/vnd.mozilla.apng":{"source":"iana"},"image/vnd.ms-dds":{"compressible":true,"extensions":["dds"]},"image/vnd.ms-modi":{"source":"iana","extensions":["mdi"]},"image/vnd.ms-photo":{"source":"apache","extensions":["wdp"]},"image/vnd.net-fpx":{"source":"iana","extensions":["npx"]},"image/vnd.pco.b16":{"source":"iana","extensions":["b16"]},"image/vnd.radiance":{"source":"iana"},"image/vnd.sealed.png":{"source":"iana"},"image/vnd.sealedmedia.softseal.gif":{"source":"iana"},"image/vnd.sealedmedia.softseal.jpg":{"source":"iana"},"image/vnd.svf":{"source":"iana"},"image/vnd.tencent.tap":{"source":"iana","extensions":["tap"]},"image/vnd.valve.source.texture":{"source":"iana","extensions":["vtf"]},"image/vnd.wap.wbmp":{"source":"iana","extensions":["wbmp"]},"image/vnd.xiff":{"source":"iana","extensions":["xif"]},"image/vnd.zbrush.pcx":{"source":"iana","extensions":["pcx"]},"image/webp":{"source":"apache","extensions":["webp"]},"image/wmf":{"source":"iana","extensions":["wmf"]},"image/x-3ds":{"source":"apache","extensions":["3ds"]},"image/x-cmu-raster":{"source":"apache","extensions":["ras"]},"image/x-cmx":{"source":"apache","extensions":["cmx"]},"image/x-freehand":{"source":"apache","extensions":["fh","fhc","fh4","fh5","fh7"]},"image/x-icon":{"source":"apache","compressible":true,"extensions":["ico"]},"image/x-jng":{"source":"nginx","extensions":["jng"]},"image/x-mrsid-image":{"source":"apache","extensions":["sid"]},"image/x-ms-bmp":{"source":"nginx","compressible":true,"extensions":["bmp"]},"image/x-pcx":{"source":"apache","extensions":["pcx"]},"image/x-pict":{"source":"apache","extensions":["pic","pct"]},"image/x-portable-anymap":{"source":"apache","extensions":["pnm"]},"image/x-portable-bitmap":{"source":"apache","extensions":["pbm"]},"image/x-portable-graymap":{"source":"apache","extensions":["pgm"]},"image/x-portable-pixmap":{"source":"apache","extensions":["ppm"]},"image/x-rgb":{"source":"apache","extensions":["rgb"]},"image/x-tga":{"source":"apache","extensions":["tga"]},"image/x-xbitmap":{"source":"apache","extensions":["xbm"]},"image/x-xcf":{"compressible":false},"image/x-xpixmap":{"source":"apache","extensions":["xpm"]},"image/x-xwindowdump":{"source":"apache","extensions":["xwd"]},"message/cpim":{"source":"iana"},"message/delivery-status":{"source":"iana"},"message/disposition-notification":{"source":"iana","extensions":["disposition-notification"]},"message/external-body":{"source":"iana"},"message/feedback-report":{"source":"iana"},"message/global":{"source":"iana","extensions":["u8msg"]},"message/global-delivery-status":{"source":"iana","extensions":["u8dsn"]},"message/global-disposition-notification":{"source":"iana","extensions":["u8mdn"]},"message/global-headers":{"source":"iana","extensions":["u8hdr"]},"message/http":{"source":"iana","compressible":false},"message/imdn+xml":{"source":"iana","compressible":true},"message/news":{"source":"iana"},"message/partial":{"source":"iana","compressible":false},"message/rfc822":{"source":"iana","compressible":true,"extensions":["eml","mime"]},"message/s-http":{"source":"iana"},"message/sip":{"source":"iana"},"message/sipfrag":{"source":"iana"},"message/tracking-status":{"source":"iana"},"message/vnd.si.simp":{"source":"iana"},"message/vnd.wfa.wsc":{"source":"iana","extensions":["wsc"]},"model/3mf":{"source":"iana","extensions":["3mf"]},"model/e57":{"source":"iana"},"model/gltf+json":{"source":"iana","compressible":true,"extensions":["gltf"]},"model/gltf-binary":{"source":"iana","compressible":true,"extensions":["glb"]},"model/iges":{"source":"iana","compressible":false,"extensions":["igs","iges"]},"model/mesh":{"source":"iana","compressible":false,"extensions":["msh","mesh","silo"]},"model/mtl":{"source":"iana","extensions":["mtl"]},"model/obj":{"source":"iana","extensions":["obj"]},"model/step":{"source":"iana"},"model/step+xml":{"source":"iana","compressible":true,"extensions":["stpx"]},"model/step+zip":{"source":"iana","compressible":false,"extensions":["stpz"]},"model/step-xml+zip":{"source":"iana","compressible":false,"extensions":["stpxz"]},"model/stl":{"source":"iana","extensions":["stl"]},"model/vnd.collada+xml":{"source":"iana","compressible":true,"extensions":["dae"]},"model/vnd.dwf":{"source":"iana","extensions":["dwf"]},"model/vnd.flatland.3dml":{"source":"iana"},"model/vnd.gdl":{"source":"iana","extensions":["gdl"]},"model/vnd.gs-gdl":{"source":"apache"},"model/vnd.gs.gdl":{"source":"iana"},"model/vnd.gtw":{"source":"iana","extensions":["gtw"]},"model/vnd.moml+xml":{"source":"iana","compressible":true},"model/vnd.mts":{"source":"iana","extensions":["mts"]},"model/vnd.opengex":{"source":"iana","extensions":["ogex"]},"model/vnd.parasolid.transmit.binary":{"source":"iana","extensions":["x_b"]},"model/vnd.parasolid.transmit.text":{"source":"iana","extensions":["x_t"]},"model/vnd.pytha.pyox":{"source":"iana"},"model/vnd.rosette.annotated-data-model":{"source":"iana"},"model/vnd.sap.vds":{"source":"iana","extensions":["vds"]},"model/vnd.usdz+zip":{"source":"iana","compressible":false,"extensions":["usdz"]},"model/vnd.valve.source.compiled-map":{"source":"iana","extensions":["bsp"]},"model/vnd.vtu":{"source":"iana","extensions":["vtu"]},"model/vrml":{"source":"iana","compressible":false,"extensions":["wrl","vrml"]},"model/x3d+binary":{"source":"apache","compressible":false,"extensions":["x3db","x3dbz"]},"model/x3d+fastinfoset":{"source":"iana","extensions":["x3db"]},"model/x3d+vrml":{"source":"apache","compressible":false,"extensions":["x3dv","x3dvz"]},"model/x3d+xml":{"source":"iana","compressible":true,"extensions":["x3d","x3dz"]},"model/x3d-vrml":{"source":"iana","extensions":["x3dv"]},"multipart/alternative":{"source":"iana","compressible":false},"multipart/appledouble":{"source":"iana"},"multipart/byteranges":{"source":"iana"},"multipart/digest":{"source":"iana"},"multipart/encrypted":{"source":"iana","compressible":false},"multipart/form-data":{"source":"iana","compressible":false},"multipart/header-set":{"source":"iana"},"multipart/mixed":{"source":"iana"},"multipart/multilingual":{"source":"iana"},"multipart/parallel":{"source":"iana"},"multipart/related":{"source":"iana","compressible":false},"multipart/report":{"source":"iana"},"multipart/signed":{"source":"iana","compressible":false},"multipart/vnd.bint.med-plus":{"source":"iana"},"multipart/voice-message":{"source":"iana"},"multipart/x-mixed-replace":{"source":"iana"},"text/1d-interleaved-parityfec":{"source":"iana"},"text/cache-manifest":{"source":"iana","compressible":true,"extensions":["appcache","manifest"]},"text/calendar":{"source":"iana","extensions":["ics","ifb"]},"text/calender":{"compressible":true},"text/cmd":{"compressible":true},"text/coffeescript":{"extensions":["coffee","litcoffee"]},"text/cql":{"source":"iana"},"text/cql-expression":{"source":"iana"},"text/cql-identifier":{"source":"iana"},"text/css":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["css"]},"text/csv":{"source":"iana","compressible":true,"extensions":["csv"]},"text/csv-schema":{"source":"iana"},"text/directory":{"source":"iana"},"text/dns":{"source":"iana"},"text/ecmascript":{"source":"iana"},"text/encaprtp":{"source":"iana"},"text/enriched":{"source":"iana"},"text/fhirpath":{"source":"iana"},"text/flexfec":{"source":"iana"},"text/fwdred":{"source":"iana"},"text/gff3":{"source":"iana"},"text/grammar-ref-list":{"source":"iana"},"text/html":{"source":"iana","compressible":true,"extensions":["html","htm","shtml"]},"text/jade":{"extensions":["jade"]},"text/javascript":{"source":"iana","compressible":true},"text/jcr-cnd":{"source":"iana"},"text/jsx":{"compressible":true,"extensions":["jsx"]},"text/less":{"compressible":true,"extensions":["less"]},"text/markdown":{"source":"iana","compressible":true,"extensions":["markdown","md"]},"text/mathml":{"source":"nginx","extensions":["mml"]},"text/mdx":{"compressible":true,"extensions":["mdx"]},"text/mizar":{"source":"iana"},"text/n3":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["n3"]},"text/parameters":{"source":"iana","charset":"UTF-8"},"text/parityfec":{"source":"iana"},"text/plain":{"source":"iana","compressible":true,"extensions":["txt","text","conf","def","list","log","in","ini"]},"text/provenance-notation":{"source":"iana","charset":"UTF-8"},"text/prs.fallenstein.rst":{"source":"iana"},"text/prs.lines.tag":{"source":"iana","extensions":["dsc"]},"text/prs.prop.logic":{"source":"iana"},"text/raptorfec":{"source":"iana"},"text/red":{"source":"iana"},"text/rfc822-headers":{"source":"iana"},"text/richtext":{"source":"iana","compressible":true,"extensions":["rtx"]},"text/rtf":{"source":"iana","compressible":true,"extensions":["rtf"]},"text/rtp-enc-aescm128":{"source":"iana"},"text/rtploopback":{"source":"iana"},"text/rtx":{"source":"iana"},"text/sgml":{"source":"iana","extensions":["sgml","sgm"]},"text/shaclc":{"source":"iana"},"text/shex":{"source":"iana","extensions":["shex"]},"text/slim":{"extensions":["slim","slm"]},"text/spdx":{"source":"iana","extensions":["spdx"]},"text/strings":{"source":"iana"},"text/stylus":{"extensions":["stylus","styl"]},"text/t140":{"source":"iana"},"text/tab-separated-values":{"source":"iana","compressible":true,"extensions":["tsv"]},"text/troff":{"source":"iana","extensions":["t","tr","roff","man","me","ms"]},"text/turtle":{"source":"iana","charset":"UTF-8","extensions":["ttl"]},"text/ulpfec":{"source":"iana"},"text/uri-list":{"source":"iana","compressible":true,"extensions":["uri","uris","urls"]},"text/vcard":{"source":"iana","compressible":true,"extensions":["vcard"]},"text/vnd.a":{"source":"iana"},"text/vnd.abc":{"source":"iana"},"text/vnd.ascii-art":{"source":"iana"},"text/vnd.curl":{"source":"iana","extensions":["curl"]},"text/vnd.curl.dcurl":{"source":"apache","extensions":["dcurl"]},"text/vnd.curl.mcurl":{"source":"apache","extensions":["mcurl"]},"text/vnd.curl.scurl":{"source":"apache","extensions":["scurl"]},"text/vnd.debian.copyright":{"source":"iana","charset":"UTF-8"},"text/vnd.dmclientscript":{"source":"iana"},"text/vnd.dvb.subtitle":{"source":"iana","extensions":["sub"]},"text/vnd.esmertec.theme-descriptor":{"source":"iana","charset":"UTF-8"},"text/vnd.familysearch.gedcom":{"source":"iana","extensions":["ged"]},"text/vnd.ficlab.flt":{"source":"iana"},"text/vnd.fly":{"source":"iana","extensions":["fly"]},"text/vnd.fmi.flexstor":{"source":"iana","extensions":["flx"]},"text/vnd.gml":{"source":"iana"},"text/vnd.graphviz":{"source":"iana","extensions":["gv"]},"text/vnd.hans":{"source":"iana"},"text/vnd.hgl":{"source":"iana"},"text/vnd.in3d.3dml":{"source":"iana","extensions":["3dml"]},"text/vnd.in3d.spot":{"source":"iana","extensions":["spot"]},"text/vnd.iptc.newsml":{"source":"iana"},"text/vnd.iptc.nitf":{"source":"iana"},"text/vnd.latex-z":{"source":"iana"},"text/vnd.motorola.reflex":{"source":"iana"},"text/vnd.ms-mediapackage":{"source":"iana"},"text/vnd.net2phone.commcenter.command":{"source":"iana"},"text/vnd.radisys.msml-basic-layout":{"source":"iana"},"text/vnd.senx.warpscript":{"source":"iana"},"text/vnd.si.uricatalogue":{"source":"iana"},"text/vnd.sosi":{"source":"iana"},"text/vnd.sun.j2me.app-descriptor":{"source":"iana","charset":"UTF-8","extensions":["jad"]},"text/vnd.trolltech.linguist":{"source":"iana","charset":"UTF-8"},"text/vnd.wap.si":{"source":"iana"},"text/vnd.wap.sl":{"source":"iana"},"text/vnd.wap.wml":{"source":"iana","extensions":["wml"]},"text/vnd.wap.wmlscript":{"source":"iana","extensions":["wmls"]},"text/vtt":{"source":"iana","charset":"UTF-8","compressible":true,"extensions":["vtt"]},"text/x-asm":{"source":"apache","extensions":["s","asm"]},"text/x-c":{"source":"apache","extensions":["c","cc","cxx","cpp","h","hh","dic"]},"text/x-component":{"source":"nginx","extensions":["htc"]},"text/x-fortran":{"source":"apache","extensions":["f","for","f77","f90"]},"text/x-gwt-rpc":{"compressible":true},"text/x-handlebars-template":{"extensions":["hbs"]},"text/x-java-source":{"source":"apache","extensions":["java"]},"text/x-jquery-tmpl":{"compressible":true},"text/x-lua":{"extensions":["lua"]},"text/x-markdown":{"compressible":true,"extensions":["mkd"]},"text/x-nfo":{"source":"apache","extensions":["nfo"]},"text/x-opml":{"source":"apache","extensions":["opml"]},"text/x-org":{"compressible":true,"extensions":["org"]},"text/x-pascal":{"source":"apache","extensions":["p","pas"]},"text/x-processing":{"compressible":true,"extensions":["pde"]},"text/x-sass":{"extensions":["sass"]},"text/x-scss":{"extensions":["scss"]},"text/x-setext":{"source":"apache","extensions":["etx"]},"text/x-sfv":{"source":"apache","extensions":["sfv"]},"text/x-suse-ymp":{"compressible":true,"extensions":["ymp"]},"text/x-uuencode":{"source":"apache","extensions":["uu"]},"text/x-vcalendar":{"source":"apache","extensions":["vcs"]},"text/x-vcard":{"source":"apache","extensions":["vcf"]},"text/xml":{"source":"iana","compressible":true,"extensions":["xml"]},"text/xml-external-parsed-entity":{"source":"iana"},"text/yaml":{"compressible":true,"extensions":["yaml","yml"]},"video/1d-interleaved-parityfec":{"source":"iana"},"video/3gpp":{"source":"iana","extensions":["3gp","3gpp"]},"video/3gpp-tt":{"source":"iana"},"video/3gpp2":{"source":"iana","extensions":["3g2"]},"video/av1":{"source":"iana"},"video/bmpeg":{"source":"iana"},"video/bt656":{"source":"iana"},"video/celb":{"source":"iana"},"video/dv":{"source":"iana"},"video/encaprtp":{"source":"iana"},"video/ffv1":{"source":"iana"},"video/flexfec":{"source":"iana"},"video/h261":{"source":"iana","extensions":["h261"]},"video/h263":{"source":"iana","extensions":["h263"]},"video/h263-1998":{"source":"iana"},"video/h263-2000":{"source":"iana"},"video/h264":{"source":"iana","extensions":["h264"]},"video/h264-rcdo":{"source":"iana"},"video/h264-svc":{"source":"iana"},"video/h265":{"source":"iana"},"video/iso.segment":{"source":"iana","extensions":["m4s"]},"video/jpeg":{"source":"iana","extensions":["jpgv"]},"video/jpeg2000":{"source":"iana"},"video/jpm":{"source":"apache","extensions":["jpm","jpgm"]},"video/jxsv":{"source":"iana"},"video/mj2":{"source":"iana","extensions":["mj2","mjp2"]},"video/mp1s":{"source":"iana"},"video/mp2p":{"source":"iana"},"video/mp2t":{"source":"iana","extensions":["ts"]},"video/mp4":{"source":"iana","compressible":false,"extensions":["mp4","mp4v","mpg4"]},"video/mp4v-es":{"source":"iana"},"video/mpeg":{"source":"iana","compressible":false,"extensions":["mpeg","mpg","mpe","m1v","m2v"]},"video/mpeg4-generic":{"source":"iana"},"video/mpv":{"source":"iana"},"video/nv":{"source":"iana"},"video/ogg":{"source":"iana","compressible":false,"extensions":["ogv"]},"video/parityfec":{"source":"iana"},"video/pointer":{"source":"iana"},"video/quicktime":{"source":"iana","compressible":false,"extensions":["qt","mov"]},"video/raptorfec":{"source":"iana"},"video/raw":{"source":"iana"},"video/rtp-enc-aescm128":{"source":"iana"},"video/rtploopback":{"source":"iana"},"video/rtx":{"source":"iana"},"video/scip":{"source":"iana"},"video/smpte291":{"source":"iana"},"video/smpte292m":{"source":"iana"},"video/ulpfec":{"source":"iana"},"video/vc1":{"source":"iana"},"video/vc2":{"source":"iana"},"video/vnd.cctv":{"source":"iana"},"video/vnd.dece.hd":{"source":"iana","extensions":["uvh","uvvh"]},"video/vnd.dece.mobile":{"source":"iana","extensions":["uvm","uvvm"]},"video/vnd.dece.mp4":{"source":"iana"},"video/vnd.dece.pd":{"source":"iana","extensions":["uvp","uvvp"]},"video/vnd.dece.sd":{"source":"iana","extensions":["uvs","uvvs"]},"video/vnd.dece.video":{"source":"iana","extensions":["uvv","uvvv"]},"video/vnd.directv.mpeg":{"source":"iana"},"video/vnd.directv.mpeg-tts":{"source":"iana"},"video/vnd.dlna.mpeg-tts":{"source":"iana"},"video/vnd.dvb.file":{"source":"iana","extensions":["dvb"]},"video/vnd.fvt":{"source":"iana","extensions":["fvt"]},"video/vnd.hns.video":{"source":"iana"},"video/vnd.iptvforum.1dparityfec-1010":{"source":"iana"},"video/vnd.iptvforum.1dparityfec-2005":{"source":"iana"},"video/vnd.iptvforum.2dparityfec-1010":{"source":"iana"},"video/vnd.iptvforum.2dparityfec-2005":{"source":"iana"},"video/vnd.iptvforum.ttsavc":{"source":"iana"},"video/vnd.iptvforum.ttsmpeg2":{"source":"iana"},"video/vnd.motorola.video":{"source":"iana"},"video/vnd.motorola.videop":{"source":"iana"},"video/vnd.mpegurl":{"source":"iana","extensions":["mxu","m4u"]},"video/vnd.ms-playready.media.pyv":{"source":"iana","extensions":["pyv"]},"video/vnd.nokia.interleaved-multimedia":{"source":"iana"},"video/vnd.nokia.mp4vr":{"source":"iana"},"video/vnd.nokia.videovoip":{"source":"iana"},"video/vnd.objectvideo":{"source":"iana"},"video/vnd.radgamettools.bink":{"source":"iana"},"video/vnd.radgamettools.smacker":{"source":"iana"},"video/vnd.sealed.mpeg1":{"source":"iana"},"video/vnd.sealed.mpeg4":{"source":"iana"},"video/vnd.sealed.swf":{"source":"iana"},"video/vnd.sealedmedia.softseal.mov":{"source":"iana"},"video/vnd.uvvu.mp4":{"source":"iana","extensions":["uvu","uvvu"]},"video/vnd.vivo":{"source":"iana","extensions":["viv"]},"video/vnd.youtube.yt":{"source":"iana"},"video/vp8":{"source":"iana"},"video/vp9":{"source":"iana"},"video/webm":{"source":"apache","compressible":false,"extensions":["webm"]},"video/x-f4v":{"source":"apache","extensions":["f4v"]},"video/x-fli":{"source":"apache","extensions":["fli"]},"video/x-flv":{"source":"apache","compressible":false,"extensions":["flv"]},"video/x-m4v":{"source":"apache","extensions":["m4v"]},"video/x-matroska":{"source":"apache","compressible":false,"extensions":["mkv","mk3d","mks"]},"video/x-mng":{"source":"apache","extensions":["mng"]},"video/x-ms-asf":{"source":"apache","extensions":["asf","asx"]},"video/x-ms-vob":{"source":"apache","extensions":["vob"]},"video/x-ms-wm":{"source":"apache","extensions":["wm"]},"video/x-ms-wmv":{"source":"apache","compressible":false,"extensions":["wmv"]},"video/x-ms-wmx":{"source":"apache","extensions":["wmx"]},"video/x-ms-wvx":{"source":"apache","extensions":["wvx"]},"video/x-msvideo":{"source":"apache","extensions":["avi"]},"video/x-sgi-movie":{"source":"apache","extensions":["movie"]},"video/x-smv":{"source":"apache","extensions":["smv"]},"x-conference/x-cooltalk":{"source":"apache","extensions":["ice"]},"x-shader/x-fragment":{"compressible":true},"x-shader/x-vertex":{"compressible":true}}');
+module.exports = JSON.parse('{"name":"google-auth-library","version":"9.15.1","author":"Google Inc.","description":"Google APIs Authentication Client Library for Node.js","engines":{"node":">=14"},"main":"./build/src/index.js","types":"./build/src/index.d.ts","repository":"googleapis/google-auth-library-nodejs.git","keywords":["google","api","google apis","client","client library"],"dependencies":{"base64-js":"^1.3.0","ecdsa-sig-formatter":"^1.0.11","gaxios":"^6.1.1","gcp-metadata":"^6.1.0","gtoken":"^7.0.0","jws":"^4.0.0"},"devDependencies":{"@types/base64-js":"^1.2.5","@types/chai":"^4.1.7","@types/jws":"^3.1.0","@types/mocha":"^9.0.0","@types/mv":"^2.1.0","@types/ncp":"^2.0.1","@types/node":"^20.4.2","@types/sinon":"^17.0.0","assert-rejects":"^1.0.0","c8":"^8.0.0","chai":"^4.2.0","cheerio":"1.0.0-rc.12","codecov":"^3.0.2","engine.io":"6.6.2","gts":"^5.0.0","is-docker":"^2.0.0","jsdoc":"^4.0.0","jsdoc-fresh":"^3.0.0","jsdoc-region-tag":"^3.0.0","karma":"^6.0.0","karma-chrome-launcher":"^3.0.0","karma-coverage":"^2.0.0","karma-firefox-launcher":"^2.0.0","karma-mocha":"^2.0.0","karma-sourcemap-loader":"^0.4.0","karma-webpack":"5.0.0","keypair":"^1.0.4","linkinator":"^4.0.0","mocha":"^9.2.2","mv":"^2.1.1","ncp":"^2.0.0","nock":"^13.0.0","null-loader":"^4.0.0","pdfmake":"0.2.12","puppeteer":"^21.0.0","sinon":"^18.0.0","ts-loader":"^8.0.0","typescript":"^5.1.6","webpack":"^5.21.2","webpack-cli":"^4.0.0"},"files":["build/src","!build/src/**/*.map"],"scripts":{"test":"c8 mocha build/test","clean":"gts clean","prepare":"npm run compile","lint":"gts check","compile":"tsc -p .","fix":"gts fix","pretest":"npm run compile -- --sourceMap","docs":"jsdoc -c .jsdoc.json","samples-setup":"cd samples/ && npm link ../ && npm run setup && cd ../","samples-test":"cd samples/ && npm link ../ && npm test && cd ../","system-test":"mocha build/system-test --timeout 60000","presystem-test":"npm run compile -- --sourceMap","webpack":"webpack","browser-test":"karma start","docs-test":"linkinator docs","predocs-test":"npm run docs","prelint":"cd samples; npm link ../; npm install","precompile":"gts clean"},"license":"Apache-2.0"}');
 
 /***/ }),
 

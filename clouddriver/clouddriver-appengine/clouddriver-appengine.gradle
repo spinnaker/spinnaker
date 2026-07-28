@@ -29,7 +29,7 @@ dependencies {
   implementation "org.apache.commons:commons-compress:$commonsCompressVersion"
   implementation "org.apache.groovy:groovy"
   implementation "org.apache.groovy:groovy-json"
-  implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.13.1.202206130422-r"
+  implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch"
   implementation "org.springframework.boot:spring-boot-actuator"
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.cloud:spring-cloud-context"

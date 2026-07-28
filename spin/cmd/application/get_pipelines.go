@@ -19,10 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type getPipelinesOptions struct {
@@ -76,7 +73,14 @@ func getPipelines(cmd *cobra.Command, options *getPipelinesOptions, args []strin
 		return nil, errors.New("Application name must be passed in")
 	}
 
-	app, resp, err := options.GateClient.ApplicationControllerApi.GetPipelines(options.GateClient.Context, options.applicationName, &gate.ApplicationControllerApiGetPipelinesOpts{Expand: optional.NewBool(options.expand), Statuses: optional.NewString(options.status)})
+	req := options.GateClient.ApplicationControllerAPI.GetPipelines(options.GateClient.Context, options.applicationName)
+	if options.expand {
+		req = req.Expand(options.expand)
+	}
+	if options.status != "" {
+		req = req.Statuses(options.status)
+	}
+	app, resp, err := req.Execute()
 	if resp != nil {
 		switch resp.StatusCode {
 		case http.StatusOK:

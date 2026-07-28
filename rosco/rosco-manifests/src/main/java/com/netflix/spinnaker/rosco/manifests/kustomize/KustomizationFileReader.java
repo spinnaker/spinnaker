@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.rosco.manifests.kustomize;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import com.netflix.spinnaker.kork.core.RetrySupport;
@@ -33,8 +35,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.representer.Representer;
 
 @Component
 @Slf4j
@@ -43,6 +43,9 @@ public class KustomizationFileReader {
   private final RetrySupport retrySupport = new RetrySupport();
   private static final List<String> KUSTOMIZATION_FILENAMES =
       ImmutableList.of("kustomization.yaml", "kustomization.yml", "kustomization");
+
+  private static final ObjectMapper objectMapper =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   public KustomizationFileReader(ClouddriverService clouddriverService) {
     this.clouddriverService = clouddriverService;
@@ -89,10 +92,11 @@ public class KustomizationFileReader {
   }
 
   private Kustomization convert(Artifact artifact) throws IOException {
-    Representer representer = new Representer();
-    representer.getPropertyUtils().setSkipMissingProperties(true);
-    return YamlHelper.newYamlRepresenter(new Constructor(Kustomization.class), representer)
-        .load(downloadFile(artifact));
+    // Use SafeConstructor to parse untrusted YAML into safe standard types (Map/List/String) only,
+    // then map to the Kustomization POJO via Jackson. This prevents arbitrary object instantiation
+    // via YAML tags.
+    Map<String, Object> rawMap = YamlHelper.newYamlSafeConstructor().load(downloadFile(artifact));
+    return objectMapper.convertValue(rawMap, Kustomization.class);
   }
 
   private InputStream downloadFile(Artifact artifact) throws IOException {

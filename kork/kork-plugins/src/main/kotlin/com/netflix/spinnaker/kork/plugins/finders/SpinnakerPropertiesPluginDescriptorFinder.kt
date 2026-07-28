@@ -40,6 +40,9 @@ class SpinnakerPropertiesPluginDescriptorFinder(
 
   override fun createPluginDescriptorInstance(): DefaultPluginDescriptor = SpinnakerPluginDescriptor()
 
+  /**
+   * Companion object holding constants for plugin descriptor properties.
+   */
   companion object {
     /**
      * The property key for the unsafe configuration.

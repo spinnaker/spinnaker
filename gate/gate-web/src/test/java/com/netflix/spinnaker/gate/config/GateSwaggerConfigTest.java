@@ -24,12 +24,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
@@ -37,6 +39,13 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("swaggertest")
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
 public class GateSwaggerConfigTest {
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockitoBean ApplicationService applicationService;
 
   @Autowired private MockMvc mockMvc;
 

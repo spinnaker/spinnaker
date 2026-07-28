@@ -1,6 +1,7 @@
+import { useRouter } from '@uirouter/react';
 import React from 'react';
 
-import { ReactInjector } from '../../../reactShims';
+import { locationChangeSuccess$ } from '../../../navigation/routerContext';
 import { CopyToClipboard, logger } from '../../../utils';
 
 export interface IExecutionPermalinkProps {
@@ -8,18 +9,19 @@ export interface IExecutionPermalinkProps {
 }
 
 export const ExecutionPermalink = ({ standalone }: IExecutionPermalinkProps) => {
+  const router = useRouter();
   const asPermalink = (link: string) => (standalone ? link : link.replace('/executions', '/executions/details'));
 
   const [url, setUrl] = React.useState(asPermalink(location.href));
 
   React.useEffect(() => {
-    const subscription = ReactInjector.stateEvents.locationChangeSuccess.subscribe((newUrl) => {
+    const subscription = locationChangeSuccess$(router).subscribe((newUrl) => {
       if (url !== newUrl) {
         setUrl(asPermalink(newUrl));
       }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [router]);
 
   const handlePermalinkClick = (): void => {
     logger.log({ category: 'Pipeline', action: 'Permalink clicked' });

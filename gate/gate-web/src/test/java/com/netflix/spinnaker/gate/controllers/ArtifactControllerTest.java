@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.gate.Main;
+import com.netflix.spinnaker.gate.services.ApplicationService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector;
 import java.io.InputStream;
@@ -37,9 +38,9 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.WebApplicationContext;
@@ -56,9 +57,16 @@ public class ArtifactControllerTest {
 
   private MockMvc mockMvc;
 
-  @MockBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not
+   * available.
+   */
+  @MockitoBean private ApplicationService applicationService;
 
-  @MockBean private ClouddriverService mockClouddriverService;
+  @MockitoBean private ClouddriverServiceSelector mockClouddriverServiceSelector;
+
+  @MockitoBean private ClouddriverService mockClouddriverService;
 
   @Autowired private ObjectMapper objectMapper;
 

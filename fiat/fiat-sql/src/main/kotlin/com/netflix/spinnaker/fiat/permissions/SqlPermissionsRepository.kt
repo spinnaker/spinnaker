@@ -148,6 +148,12 @@ class SqlPermissionsRepository(
         return this.getUserRoles(emptySet())
     }
 
+    override fun isEmpty(): Boolean {
+        return withRetry(RetryCategory.READ) {
+            !jooq.fetchExists(jooq.selectOne().from(USER))
+        }
+    }
+
     override fun getAllByRoles(anyRoles: List<String>?): Map<String, Set<Role>> {
         if (anyRoles == null) {
             return getAllById()

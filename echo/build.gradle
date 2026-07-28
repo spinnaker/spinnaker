@@ -18,16 +18,13 @@ plugins {
   id 'io.spinnaker.project' apply false
   alias(libs.plugins.kotlin.jvm) apply false
   alias(libs.plugins.kotlin.allopen) apply false
-  id 'com.adarshr.test-logger' version '2.1.0'
+  id 'com.adarshr.test-logger' version '4.0.0'
 }
-
 allprojects {
-  apply plugin: "io.spinnaker.project"
-}
-
-subprojects {
+  apply plugin: 'io.spinnaker.project'
   group = "io.spinnaker.echo"
-
+}
+subprojects {
   if (name != "echo-bom") {
     apply plugin: "java-library"
     apply plugin: "groovy"
@@ -84,9 +81,13 @@ subprojects {
       testImplementation "org.spockframework:spock-spring"
       testImplementation "org.springframework:spring-test"
       testImplementation "org.hamcrest:hamcrest-core"
+      testImplementation "com.squareup.okhttp3:mockwebserver"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
       testRuntimeOnly "org.objenesis:objenesis"
+
+
     }
   }
 }

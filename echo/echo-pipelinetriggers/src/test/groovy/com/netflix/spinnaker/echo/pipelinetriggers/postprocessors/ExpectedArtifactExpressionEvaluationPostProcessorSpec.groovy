@@ -1,6 +1,5 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.postprocessors
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.test.RetrofitStubs
@@ -100,5 +99,25 @@ class ExpectedArtifactExpressionEvaluationPostProcessorSpec extends Specificatio
     then:
     evaluatedArtifact.name == '{foo=bar}'
     evaluatedArtifact.version == '77'
+  }
+  def 'block arbitrary java objects like process runners from resolving'() {
+    given:
+    def artifact = ExpectedArtifact.builder()
+      .matchArtifact(
+        Artifact.builder()
+          .name('${ new java.lang.ProcessBuilder("echo", "bob", ">", "/tmp/bad-process.txt").start().toString() }')
+          .version('77')
+          .type('maven/file')
+          .build())
+      .id('goodId')
+      .build()
+    def inputPipeline = createPipelineWith([artifact], trigger).withTrigger(trigger)
+
+    when:
+    def outputPipeline = artifactPostProcessor.processPipeline(inputPipeline)
+    def evaluatedArtifact = outputPipeline.expectedArtifacts[0].matchArtifact
+
+    then:
+    evaluatedArtifact.name == '${ new java.lang.ProcessBuilder("echo", "bob", ">", "/tmp/bad-process.txt").start().toString() }'
   }
 }

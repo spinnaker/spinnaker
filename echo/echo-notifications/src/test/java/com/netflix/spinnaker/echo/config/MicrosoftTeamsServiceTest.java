@@ -18,26 +18,46 @@ package com.netflix.spinnaker.echo.config;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsService;
+import com.netflix.spinnaker.echo.microsoftteams.MicrosoftTeamsTemplateEngine;
 import com.netflix.spinnaker.echo.test.config.Retrofit2BasicLogTestConfig;
 import com.netflix.spinnaker.echo.test.config.Retrofit2TestConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @SpringBootTest(
     classes = {
       MicrosoftTeamsConfig.class,
       Retrofit2TestConfig.class,
-      Retrofit2BasicLogTestConfig.class
+      Retrofit2BasicLogTestConfig.class,
+      MicrosoftTeamsServiceTest.TestConfig.class
     },
     properties = "microsoftteams.enabled=true")
 public class MicrosoftTeamsServiceTest {
 
   @Autowired private MicrosoftTeamsService microsoftTeamsService;
 
+  @Autowired private MicrosoftTeamsTemplateEngine microsoftTeamsTemplateEngine;
+
   @Test
   void testMicrosoftTeamsServiceConfiguration() {
     assertNotNull(microsoftTeamsService);
+  }
+
+  @Test
+  void testMicrosoftTeamsTemplateEngineConfiguration() {
+    assertNotNull(microsoftTeamsTemplateEngine);
+  }
+
+  @Configuration
+  static class TestConfig {
+    @Bean
+    public ObjectMapper objectMapper() {
+      return new ObjectMapper();
+    }
   }
 }

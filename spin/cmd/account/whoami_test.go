@@ -22,8 +22,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestAccountWhoami_basic(t *testing.T) {
@@ -65,8 +65,7 @@ func testAccountWhoamiSuccess() *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-const whoamiJson = `[
-{
+const whoamiJson = `{
 	"email": "pcmusic@example.com",
 	"username": "pcmusic@example.com",
 	"firstName": "A. G.",
@@ -92,5 +91,4 @@ const whoamiJson = `[
 	"credentialsNonExpired": true,
 	"accountNonLocked": true
 }
-]
 `

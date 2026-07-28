@@ -49,13 +49,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.stubbing.Answer;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 public class CreateServerGroupWithArtifactsSpec extends EcsSpec {
 
-  @MockBean ArtifactDownloader mockArtifactDownloader;
+  @MockitoBean ArtifactDownloader mockArtifactDownloader;
 
-  @MockBean ArtifactCredentialsRepository mockArtifactCredentialsRepository;
+  @MockitoBean ArtifactCredentialsRepository mockArtifactCredentialsRepository;
 
   private ArtifactCredentials mockArtifactCredentials = mock(ArtifactCredentials.class);
 

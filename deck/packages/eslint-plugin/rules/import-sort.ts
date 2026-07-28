@@ -142,9 +142,9 @@ const printImportDeclaration = (context, importDeclaration) => {
  * Returns a custom textual representation of import declarations which will be used to verify if they are already
  * sorted. For example
  *
- *   `import React, {useState, useCallback} from 'react';\nimport angular from 'angular';`
+ *   `import React, {useState, useCallback} from 'react';\nimport axios from 'axios';`
  *    will be written as
- *   `react: React, useState, useCallback\nangular: angular`
+ *   `react: React, useState, useCallback\naxios: axios`
  */
 const getText = (importDeclarations) => {
   return importDeclarations.reduce((output, importDeclaration) => {

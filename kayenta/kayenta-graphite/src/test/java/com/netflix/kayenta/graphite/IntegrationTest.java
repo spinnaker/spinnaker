@@ -47,12 +47,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
+import org.springframework.security.config.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.configuration.ObjectPostProcessorConfiguration;
 import org.springframework.test.context.ContextConfiguration;
@@ -80,7 +80,11 @@ class CanaryMetricConfigWithResults {
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(
-    classes = {TestConfig.class, TaskExecutorBuilder.class, AuthenticationConfiguration.class})
+    classes = {
+      TestConfig.class,
+      SimpleAsyncTaskExecutorBuilder.class,
+      AuthenticationConfiguration.class
+    })
 public class IntegrationTest {
 
   @Autowired private ResourceLoader resourceLoader;

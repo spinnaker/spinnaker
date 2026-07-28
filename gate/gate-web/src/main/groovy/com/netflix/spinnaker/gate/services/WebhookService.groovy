@@ -22,7 +22,6 @@ import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import io.cloudevents.CloudEvent
 
@@ -57,13 +56,14 @@ class WebhookService {
     })
   }
 
-  ResponseEntity<Void> webhooks(String source, CloudEvent cdEvent, String ceDataJsonString) {
+  Map webhooks(String source, CloudEvent cdEvent, String ceDataJsonString) {
     return AuthenticatedRequest.allowAnonymous( {
       Retrofit2SyncCall.execute(echoService.webhooks(source, cdEvent, ceDataJsonString, cdEvent.getId(), cdEvent.getSpecVersion().V1.toString(), cdEvent.getType(), cdEvent.getSource().toString()))
     })
   }
 
-  List preconfiguredWebhooks() {
+  /** Retrieve preconfigured webhook definitions from orca. */
+  List<Map<String, Object>> preconfiguredWebhooks() {
     return AuthenticatedRequest.allowAnonymous({
       Retrofit2SyncCall.execute(orcaServiceSelector.select().preconfiguredWebhooks())
     })

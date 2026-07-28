@@ -238,7 +238,13 @@ public class LambdaCloudDriverUtils {
     String acc = inp.getAccount();
     String fName = inp.getFunctionName();
     String appPrefix = String.format("%s-", inp.getAppName());
-    if (!fName.startsWith(appPrefix)) {
+    // IF someone replaces the function name with a hard coded NON prefixed name, ALL
+    // this does is break the deploys which then query for the app prefixed name and no longer find
+    // it due to a mismatch
+    // the UI by default prefixes the app name, but bypassing the UI to set the function name via an
+    // expression or similar
+    // ... well, this is not good.  Remove this whole prefix check in the future ideally.
+    if (config.isPrefixApplicationNameToFunction() && !fName.startsWith(appPrefix)) {
       fName = String.format("%s-%s", inp.getAppName(), inp.getFunctionName());
     }
     String url = cloudDriverUrl + CLOUDDRIVER_GET_PATH;

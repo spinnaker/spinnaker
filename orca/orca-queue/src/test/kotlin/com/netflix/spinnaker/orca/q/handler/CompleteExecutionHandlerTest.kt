@@ -34,16 +34,16 @@ import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.StartWaitingExecutions
 import com.netflix.spinnaker.q.Queue
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.check
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.never
-import com.nhaarman.mockito_kotlin.reset
-import com.nhaarman.mockito_kotlin.verify
-import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
-import com.nhaarman.mockito_kotlin.whenever
+import org.mockito.kotlin.any
+import org.mockito.kotlin.check
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.whenever
 import java.time.Duration
 import java.util.UUID
 import kotlin.collections.set
@@ -54,8 +54,8 @@ import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
-import com.nhaarman.mockito_kotlin.times
-import com.nhaarman.mockito_kotlin.argumentCaptor
+import org.mockito.kotlin.times
+import org.mockito.kotlin.argumentCaptor
 
 
 object CompleteExecutionHandlerTest : SubjectSpek<CompleteExecutionHandler>({

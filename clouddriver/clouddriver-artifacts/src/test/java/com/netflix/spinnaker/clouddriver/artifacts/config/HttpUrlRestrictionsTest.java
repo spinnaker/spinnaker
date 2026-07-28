@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import okhttp3.HttpUrl;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class HttpUrlRestrictionsTest {
@@ -65,6 +66,16 @@ public class HttpUrlRestrictionsTest {
             .rejectVerbatimIps(true)
             .rejectedIps(List.of("10.0.0.0/8"))
             .build();
+    assertThat(restrictions.validateURI(HttpUrl.parse("http://google.com"))).hasHost("google.com");
+  }
+
+  @Test
+  public void blockIPRangesWhenResolvedRbndr() {
+    var restrictions =
+        HttpUrlRestrictions.builder()
+            .rejectVerbatimIps(true)
+            .rejectedIps(List.of("10.0.0.0/8"))
+            .build();
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -73,7 +84,6 @@ public class HttpUrlRestrictionsTest {
                     "http://0a010203.0a010204.rbndr.us"))); // Make sure a host lookup that returns
     // a 10. address ALSO fails when
     // restricted.
-    assertThat(restrictions.validateURI(HttpUrl.parse("http://google.com"))).hasHost("google.com");
   }
 
   @Test
@@ -98,9 +108,19 @@ public class HttpUrlRestrictionsTest {
             .rejectVerbatimIps(true)
             .rejectedIps(List.of("192.168.0.0/16"))
             .build();
+    assertThat(restrictions.validateURI(HttpUrl.parse("http://google.com"))).hasHost("google.com");
+  }
+
+  @Test
+  @Disabled // rbndr.us seems to be down - need antoher DNS REbinding attack solution
+  public void allowAHostIfResolvesInIpListRbndr() {
+    var restrictions =
+        HttpUrlRestrictions.builder()
+            .rejectVerbatimIps(true)
+            .rejectedIps(List.of("192.168.0.0/16"))
+            .build();
     assertThat(restrictions.validateURI(HttpUrl.parse("http://0a010203.0a010204.rbndr.us")))
         .hasHost("0a010203.0a010204.rbndr.us");
-    assertThat(restrictions.validateURI(HttpUrl.parse("http://google.com"))).hasHost("google.com");
   }
 
   @Test
@@ -125,6 +145,29 @@ public class HttpUrlRestrictionsTest {
 
     assertThat(restrictions.validateURI(HttpUrl.parse("http://example.com")))
         .hasHost("example.com");
+  }
+
+  @Test
+  @Disabled // rbndr.us seems to not be resolving atm :(
+  void blockDefaultRestrictedDomainsRbndr() {
+    // explicitly deny the test server we're hitting.
+    HttpUrlRestrictions restrictions = HttpUrlRestrictions.builder().build();
+    List<String> invalidDomains =
+        List.of(
+            "http://spin-clouddriver",
+            "http://spin-clouddriver.prod",
+            "http://spin-clouddriver.spinnaker.svc.cluster.local",
+            "http://spin-clouddriver.spinnaker",
+            "http://spinnaker-clouddriver:12345",
+            "http://spinnaker-clouddriver.spinnaker:12345",
+            "http://spin-clouddriver.local");
+    invalidDomains.forEach(
+        domain -> {
+          Assertions.assertThrows(
+              IllegalArgumentException.class,
+              () -> restrictions.validateURI(HttpUrl.parse(domain)));
+        });
+
     assertThat(restrictions.validateURI(HttpUrl.parse("http://0a010203.0a010204.rbndr.us")))
         .hasHost("0a010203.0a010204.rbndr.us");
   }

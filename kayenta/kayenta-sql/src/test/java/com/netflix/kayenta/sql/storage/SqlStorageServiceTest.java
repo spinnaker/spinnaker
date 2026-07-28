@@ -42,31 +42,38 @@ import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
+@ExtendWith(MockitoExtension.class)
 public class SqlStorageServiceTest {
+  @MockitoBean // Can't be on TestConfiguration until
+  // https://github.com/spring-projects/spring-framework/issues/33934 gets some more
+  // attention
+  private SqlCanaryArchiveRepo sqlCanaryArchiveRepo;
 
+  @MockitoBean private SqlCanaryConfigRepo sqlCanaryConfigRepo;
+
+  @MockitoBean private SqlMetricSetPairsRepo sqlMetricSetPairsRepo;
+
+  @MockitoBean private SqlMetricSetsRepo sqlMetricSetsRepo;
   private static ObjectMapper objectMapper =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @TestConfiguration
   static class SqlStorageServiceTestConfig {
 
-    @MockBean private SqlCanaryArchiveRepo sqlCanaryArchiveRepo;
-
-    @MockBean private SqlCanaryConfigRepo sqlCanaryConfigRepo;
-
-    @MockBean private SqlMetricSetPairsRepo sqlMetricSetPairsRepo;
-
-    @MockBean private SqlMetricSetsRepo sqlMetricSetsRepo;
-
     @Bean
-    public SqlStorageService sqlStorageService() {
+    public SqlStorageService sqlStorageService(
+        SqlCanaryArchiveRepo sqlCanaryArchiveRepo,
+        SqlCanaryConfigRepo sqlCanaryConfigRepo,
+        SqlMetricSetPairsRepo sqlMetricSetPairsRepo,
+        SqlMetricSetsRepo sqlMetricSetsRepo) {
       return new SqlStorageService(
           objectMapper,
           sqlCanaryArchiveRepo,
@@ -76,14 +83,6 @@ public class SqlStorageServiceTest {
           new ArrayList<>());
     }
   }
-
-  @Autowired private SqlCanaryArchiveRepo sqlCanaryArchiveRepo;
-
-  @Autowired private SqlCanaryConfigRepo sqlCanaryConfigRepo;
-
-  @Autowired private SqlMetricSetPairsRepo sqlMetricSetPairsRepo;
-
-  @Autowired private SqlMetricSetsRepo sqlMetricSetsRepo;
 
   @Autowired private SqlStorageService sqlStorageService;
 

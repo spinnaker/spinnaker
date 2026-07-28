@@ -518,7 +518,11 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * urlMapsInsert.execute() >> urlMapsInsertOp
 
       1 * computeMock.regionTargetHttpsProxies() >> targetHttpsProxies
-      1 * targetHttpsProxies.insert(PROJECT_NAME, REGION, {it.urlMap == urlMapsInsertOp.targetLink}) >> targetHttpsProxiesInsert
+      1 * targetHttpsProxies.insert(PROJECT_NAME, REGION, {
+        it.urlMap == urlMapsInsertOp.targetLink &&
+          it.sslCertificates?.size() == 1 &&
+          it.sslCertificates[0].endsWith("/regions/${REGION}/sslCertificates/my-cert")
+      }) >> targetHttpsProxiesInsert
       1 * targetHttpsProxiesInsert.execute() >> targetHttpsProxiesInsertOp
 
       2 * computeMock.forwardingRules() >> forwardingRules
@@ -538,6 +542,15 @@ class UpsertGoogleInternalHttpLoadBalancerAtomicOperationUnitSpec extends Specif
       1 * targetHttpsProxyOperationGet.execute() >> healthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
+  }
+
+  void "first ssl certificate name helper handles null and empty list"() {
+    expect:
+      UpsertGoogleInternalHttpLoadBalancerAtomicOperation.getFirstSslCertificateName(null) == null
+      UpsertGoogleInternalHttpLoadBalancerAtomicOperation.getFirstSslCertificateName([]) == null
+      UpsertGoogleInternalHttpLoadBalancerAtomicOperation.getFirstSslCertificateName(
+        ["https://www.googleapis.com/compute/v1/projects/${PROJECT_NAME}/regions/${REGION}/sslCertificates/my-cert".toString()]
+      ) == "my-cert"
   }
 
   void "should update health check when it exists and needs updated"() {

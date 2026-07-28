@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.github;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
@@ -27,7 +26,7 @@ import retrofit2.http.Path;
 
 public interface GithubService {
   @POST("repos/{repo}/statuses/{sha}")
-  Call<Response<ResponseBody>> updateCheck(
+  Call<ResponseBody> updateCheck(
       @Header("Authorization") String token,
       @Path(value = "repo", encoded = true) String repo,
       @Path("sha") String sha,

@@ -21,14 +21,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
-import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
@@ -54,11 +54,11 @@ class TemporarySQSQueueTest {
   void shouldCreateAndTeardownTemporarySqsQueue() {
     Topic topic1 = Topic.builder().topicArn("arn:aws:sns:us-west-2:123:not_my_topic").build();
     Topic topic2 = Topic.builder().topicArn("arn:aws:sns:us-west-2:123:my_topic").build();
-    ListTopicsResponse listTopicsResponse =
-        ListTopicsResponse.builder().topics(topic1, topic2).build();
 
     ListTopicsIterable paginator = mock(ListTopicsIterable.class);
-    when(paginator.iterator()).thenReturn(List.of(listTopicsResponse).iterator());
+    SdkIterable<Topic> topics = mock(SdkIterable.class);
+    when(topics.stream()).thenReturn(Stream.of(topic1, topic2));
+    when(paginator.topics()).thenReturn(topics);
     when(snsClient.listTopicsPaginator(any(ListTopicsRequest.class))).thenReturn(paginator);
 
     CreateQueueResponse createQueueResponse =

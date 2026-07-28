@@ -21,11 +21,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 
-	gate "github.com/spinnaker/spin/gateapi"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 type retroOptions struct {
@@ -143,16 +141,15 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 		"executionRequest": executionRequest,
 	}
 
-	initiateOptionalParams := &gate.V2CanaryControllerApiInitiateCanaryWithConfigOpts{}
+	options.Ui.Info("Initiating canary execution for supplied canary config")
+	initiateReq := options.GateClient.V2CanaryControllerAPI.InitiateCanaryWithConfig(options.GateClient.Context).RequestBody(adhocRequest)
 	if options.metricsAccount != "" {
-		initiateOptionalParams.MetricsAccountName = optional.NewString(options.metricsAccount)
+		initiateReq = initiateReq.MetricsAccountName(options.metricsAccount)
 	}
 	if options.storageAccount != "" {
-		initiateOptionalParams.StorageAccountName = optional.NewString(options.storageAccount)
+		initiateReq = initiateReq.StorageAccountName(options.storageAccount)
 	}
-
-	options.Ui.Info("Initiating canary execution for supplied canary config")
-	canaryExecutionResp, initiateResp, initiateErr := options.GateClient.V2CanaryControllerApi.InitiateCanaryWithConfig(options.GateClient.Context, adhocRequest, initiateOptionalParams)
+	canaryExecutionResp, initiateResp, initiateErr := initiateReq.Execute()
 
 	if initiateErr != nil {
 		return initiateErr
@@ -167,12 +164,12 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 	canaryExecutionId := canaryExecutionResp["canaryExecutionId"].(string)
 	options.Ui.Info(fmt.Sprintf("Spawned canary execution with id %s, polling for completion...", canaryExecutionId))
 
-	queryOptionalParams := &gate.V2CanaryControllerApiGetCanaryResultOpts{}
+	queryReq := options.GateClient.V2CanaryControllerAPI.GetCanaryResult(options.GateClient.Context, canaryExecutionId)
 	if options.storageAccount != "" {
-		queryOptionalParams.StorageAccountName = optional.NewString(options.storageAccount)
+		queryReq = queryReq.StorageAccountName(options.storageAccount)
 	}
 
-	canaryResult, canaryResultResp, canaryResultErr := options.GateClient.V2CanaryControllerApi.GetCanaryResult(options.GateClient.Context, canaryExecutionId, queryOptionalParams)
+	canaryResult, canaryResultResp, canaryResultErr := queryReq.Execute()
 	if canaryResultErr != nil {
 		return canaryResultErr
 	}
@@ -187,7 +184,11 @@ func retroCanaryConfig(cmd *cobra.Command, options *retroOptions) error {
 
 	retries := 0
 	for retries < 10 && !complete && canaryResultErr == nil {
-		canaryResult, canaryResultResp, canaryResultErr = options.GateClient.V2CanaryControllerApi.GetCanaryResult(options.GateClient.Context, canaryExecutionId, queryOptionalParams)
+		retryQueryReq := options.GateClient.V2CanaryControllerAPI.GetCanaryResult(options.GateClient.Context, canaryExecutionId)
+		if options.storageAccount != "" {
+			retryQueryReq = retryQueryReq.StorageAccountName(options.storageAccount)
+		}
+		canaryResult, canaryResultResp, canaryResultErr = retryQueryReq.Execute()
 		complete = canaryResult["complete"].(bool)
 		time.Sleep(retrySleepCycle)
 		retries += 1

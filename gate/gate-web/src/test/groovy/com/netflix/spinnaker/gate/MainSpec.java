@@ -12,9 +12,9 @@ import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
@@ -22,19 +22,19 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ActiveProfiles("test")
 @TestPropertySource(properties = {"spring.config.location=classpath:gate-test.yml"})
 public class MainSpec {
-  @MockBean private ClouddriverService mockClouddriverService;
+  @MockitoBean private ClouddriverService mockClouddriverService;
 
-  @MockBean private ServiceClientProvider serviceClientProvider;
+  @MockitoBean private ServiceClientProvider serviceClientProvider;
 
-  @MockBean private ApplicationService mockApplicationService;
+  @MockitoBean private ApplicationService mockApplicationService;
 
-  @MockBean private PermissionService mockPermissionService;
+  @MockitoBean private PermissionService mockPermissionService;
 
-  @MockBean private FiatService mockFiatService;
+  @MockitoBean private FiatService mockFiatService;
 
-  @MockBean private ExtendedFiatService mockExtendedFiatService;
+  @MockitoBean private ExtendedFiatService mockExtendedFiatService;
 
-  @MockBean private Front50Service mockFront50Service;
+  @MockitoBean private Front50Service mockFront50Service;
 
   @Test
   public void startupTest() {

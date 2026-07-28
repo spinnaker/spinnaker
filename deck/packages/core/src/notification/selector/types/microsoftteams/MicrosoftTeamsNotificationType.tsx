@@ -14,7 +14,7 @@ export class MicrosoftTeamsNotificationType extends React.Component<INotificatio
           <TextInput
             inputClassName={'form-control input-sm'}
             {...props}
-            placeholder="URL starts with https://outlook.office.com/webhook/"
+            placeholder="URL starts with https://[region].webhook.office.com/webhookb2/"
           />
         )}
         required={true}

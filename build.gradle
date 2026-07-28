@@ -2,7 +2,7 @@ defaultTasks 'build'
 
 // Exclude UI, CLI, and plugin projects from main lifecycle tasks
 def mainProjects = gradle.includedBuilds.findAll {
-  it.name != 'deck' && it.name != 'deck-kayenta' && it.name != 'spin' && it.name != 'spinnaker-gradle-project'
+  it.name != 'deck' && it.name != 'spin' && it.name != 'spinnaker-gradle-project'
 }
 
 // We need top-level meta tasks, as Gradle does not automatically recurse through included builds to find tasks
@@ -40,6 +40,12 @@ tasks.register('publish') { task ->
 tasks.register('publishToNexus') { task ->
   mainProjects.each { build ->
     task.dependsOn build.task(':publishToNexus')
+  }
+}
+
+tasks.register('findNexusStagingRepository') { task ->
+  mainProjects.each { build ->
+    task.dependsOn build.task(':findNexusStagingRepository')
   }
 }
 

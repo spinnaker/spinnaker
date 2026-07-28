@@ -3,7 +3,6 @@
  */
 
 import type { Rule } from 'eslint';
-import type { CallExpression, Literal } from 'estree';
 import * as _ from 'lodash/fp';
 
 import { getCallChain, getCallingIdentifierName, isLiteral } from '../utils/utils';
@@ -15,7 +14,8 @@ const ruleModule: Rule.RuleModule = {
       /**
        * Look for chains of CallExpressions that are part of a REST().path() call
        */
-      CallExpression(node: CallExpression & Rule.NodeParentExtension) {
+      CallExpression(_node: any) {
+        const node = _node;
         const callingIdentifierName = getCallingIdentifierName(node);
         if (node.parent.type === 'MemberExpression' || callingIdentifierName !== 'REST') {
           return undefined;
@@ -32,8 +32,8 @@ const ruleModule: Rule.RuleModule = {
         const restCall = callChain[0];
         const pathCall = callChain[1];
 
-        const restArg = restCall.arguments[0] as Literal;
-        const firstPathArg = pathCall.arguments[0] as Literal;
+        const restArg = restCall.arguments[0] as any;
+        const firstPathArg = pathCall.arguments[0] as any;
 
         // Only REST('literal').path('literal', ...)
         // Ignores: REST(variable) and REST().path(variable)

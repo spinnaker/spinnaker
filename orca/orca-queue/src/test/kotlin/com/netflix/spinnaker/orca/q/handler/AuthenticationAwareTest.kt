@@ -11,9 +11,9 @@ import com.netflix.spinnaker.orca.api.test.stage
 import com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it

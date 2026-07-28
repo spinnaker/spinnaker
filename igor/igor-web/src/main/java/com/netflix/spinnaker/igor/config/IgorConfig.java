@@ -33,7 +33,7 @@ import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.task.TaskSchedulerCustomizer;
+import org.springframework.boot.task.ThreadPoolTaskSchedulerCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,6 +42,7 @@ import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -50,6 +51,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableScheduling
 @Import(PluginsAutoConfiguration.class)
 public class IgorConfig implements WebMvcConfigurer {
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setPatternParser(null); // Disable PathPatternParser to use AntPathMatcher
+  }
 
   private final Registry registry;
 
@@ -118,7 +124,8 @@ public class IgorConfig implements WebMvcConfigurer {
   }
 
   @Bean
-  TaskSchedulerCustomizer taskSchedulerCustomizer(IgorConfigurationProperties igorProperties) {
+  ThreadPoolTaskSchedulerCustomizer taskSchedulerCustomizer(
+      IgorConfigurationProperties igorProperties) {
     return (scheduler) ->
         scheduler.setPoolSize(igorProperties.getSpinnaker().getBuild().getSchedulerPoolSize());
   }

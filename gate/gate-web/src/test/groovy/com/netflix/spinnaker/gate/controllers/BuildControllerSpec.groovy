@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.Main
+import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.IgorService
 import groovy.json.JsonSlurper
 import org.spockframework.spring.SpringBean
@@ -41,6 +42,11 @@ class BuildControllerSpec extends Specification {
 
   @Autowired
   private MockMvc mockMvc
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not available.
+   */
+  @SpringBean ApplicationService applicationService = Mock()
   @SpringBean IgorService igorService = Mock()
   @Shared def MASTER = 'MASTER'
   @Shared def BUILD_NUMBER = 123
@@ -71,7 +77,6 @@ class BuildControllerSpec extends Specification {
 
     given:
     1 * igorService.getBuildMasters(masterType) >> Calls.response(jenkinsMasters)
-    0 * igorService.getBuildMasters('wercker') >> _
     0 * igorService.getBuildMasters() >> _
 
     when:
@@ -85,26 +90,6 @@ class BuildControllerSpec extends Specification {
     endpoint << ["/v2/builds", "/v3/builds"]
   }
 
-  @Unroll
-  void 'should get a list of wercker masters'() {
-    def masterType = 'wercker'
-    def werckerMasters = ['wercker-prod', 'wercker-staging']
-
-    given:
-    1 * igorService.getBuildMasters(masterType) >> Calls.response(werckerMasters)
-    0 * igorService.getBuildMasters('jenkins') >> _
-    0 * igorService.getBuildMasters() >> _
-
-    when:
-    MockHttpServletResponse response = mockMvc.perform(get(endpoint).param('type', masterType)
-      .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-    then:
-    new JsonSlurper().parseText(response.contentAsString) == werckerMasters
-
-    where:
-    endpoint << ["/v2/builds", "/v3/builds"]
-  }
 
   @Unroll
   void 'should get a list of jobs for a master'() {

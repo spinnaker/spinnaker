@@ -23,8 +23,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/pipeline"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/pipeline"
 )
 
 func TestExecutionCancel_basic(t *testing.T) {
@@ -83,6 +83,7 @@ func TestExecutionCancel_failure(t *testing.T) {
 // to direct requests to. Responds with a 200 and a well-formed pipeline get response.
 func testGateExecutionCancelSuccess() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		if strings.Contains(r.URL.String(), "/version") {
 			payload := map[string]string{
 				"version": "Unknown",
@@ -90,7 +91,7 @@ func testGateExecutionCancelSuccess() *httptest.Server {
 			b, _ := json.Marshal(&payload)
 			fmt.Fprintln(w, string(b))
 		} else {
-			fmt.Fprintln(w, "")
+			fmt.Fprintln(w, "{}")
 		}
 	}))
 }

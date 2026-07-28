@@ -5,9 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/spinnaker/spin/cmd/gateclient"
-	"github.com/spinnaker/spin/cmd/output"
-	"github.com/spinnaker/spin/version"
+	"github.com/spinnaker/spinnaker/spin/cmd/gateclient"
+	"github.com/spinnaker/spinnaker/spin/cmd/output"
+	"github.com/spinnaker/spinnaker/spin/version"
 )
 
 type RootOptions struct {

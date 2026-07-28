@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.cf;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
@@ -27,7 +27,7 @@ public abstract class DirectManifest {
               new YAMLFactory()
                   .enable(YAMLGenerator.Feature.MINIMIZE_QUOTES)
                   .enable(YAMLGenerator.Feature.INDENT_ARRAYS))
-          .setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
+          .setPropertyNamingStrategy(PropertyNamingStrategies.KebabCaseStrategy.INSTANCE);
 
   abstract String toManifestYml();
 }

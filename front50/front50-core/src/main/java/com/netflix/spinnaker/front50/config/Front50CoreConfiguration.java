@@ -44,7 +44,7 @@ public class Front50CoreConfiguration {
   }
 
   @Bean
-  Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
+  public Jackson2ObjectMapperBuilderCustomizer defaultObjectMapperCustomizer(List<Module> modules) {
     return jacksonObjectMapperBuilder -> {
       modules.addAll(List.of(new Front50ApiModule()));
       jacksonObjectMapperBuilder.modules(modules);

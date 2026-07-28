@@ -34,6 +34,7 @@ dependencies {
   testImplementation("com.squareup.retrofit2:converter-jackson")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly("org.springframework:spring-test")
 
   test {

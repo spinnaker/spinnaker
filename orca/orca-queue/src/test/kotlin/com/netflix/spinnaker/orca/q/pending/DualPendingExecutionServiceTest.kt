@@ -12,8 +12,8 @@ import com.netflix.spinnaker.orca.q.RestartStage
 import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.q.redis.pending.RedisPendingExecutionService
 import com.netflix.spinnaker.q.Message
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.util.UUID
 import org.assertj.core.api.Assertions
 import org.jetbrains.spek.api.dsl.describe

@@ -19,4 +19,5 @@ dependencies {
   implementation "com.squareup.retrofit2:converter-jackson"
 
   testImplementation "io.spinnaker.kork:kork-jedis-test"
+  testImplementation "org.mock-server:mockserver-junit-jupiter:5.15.0"
 }

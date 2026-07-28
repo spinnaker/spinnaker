@@ -43,6 +43,7 @@ import redis.clients.jedis.resps.GeoRadiusResponse;
 import redis.clients.jedis.resps.ScanResult;
 import redis.clients.jedis.resps.Slowlog;
 import redis.clients.jedis.resps.Tuple;
+import redis.clients.jedis.util.KeyValue;
 
 /**
  * Instruments: - Timer for each command - Distribution summary for all payload sizes - Error rates
@@ -948,7 +949,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<String> configGet(String pattern) {
+  public Map<String, String> configGet(String pattern) {
     String command = "configGet";
     return instrumented(command, () -> delegated.configGet(pattern));
   }
@@ -1525,12 +1526,6 @@ public class InstrumentedJedis extends Jedis {
   public byte[] get(byte[] key) {
     String command = "get";
     return instrumented(command, () -> delegated.get(key));
-  }
-
-  @Override
-  public String quit() {
-    String command = "quit";
-    return instrumented(command, () -> delegated.quit());
   }
 
   @Override
@@ -2113,13 +2108,13 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<byte[]> blpop(double timeout, byte[]... args) {
+  public KeyValue<byte[], byte[]> blpop(double timeout, byte[]... args) {
     String command = "blpop";
     return instrumented(command, () -> delegated.blpop(timeout, args));
   }
 
   @Override
-  public List<byte[]> brpop(double timeout, byte[]... args) {
+  public KeyValue<byte[], byte[]> brpop(double timeout, byte[]... args) {
     String command = "brpop";
     return instrumented(command, () -> delegated.brpop(timeout, args));
   }
@@ -2390,7 +2385,7 @@ public class InstrumentedJedis extends Jedis {
   }
 
   @Override
-  public List<byte[]> configGet(byte[] pattern) {
+  public Map<byte[], byte[]> configGet(byte[] pattern) {
     String command = "configGet";
     return instrumented(command, () -> delegated.configGet(pattern));
   }
@@ -2398,7 +2393,7 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public String configResetStat() {
     String command = "configResetStat";
-    return instrumented(command, () -> delegated.configResetStat());
+    return instrumented(command, delegated::configResetStat);
   }
 
   @Override
@@ -2410,7 +2405,7 @@ public class InstrumentedJedis extends Jedis {
   @Override
   public boolean isConnected() {
     String command = "isConnected";
-    return instrumented(command, () -> delegated.isConnected());
+    return instrumented(command, delegated::isConnected);
   }
 
   @Override

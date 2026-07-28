@@ -22,8 +22,10 @@ import com.netflix.spinnaker.gate.security.FormLoginRequestBuilder
 import com.netflix.spinnaker.gate.security.GateSystemTest
 import com.netflix.spinnaker.gate.security.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.gate.services.AccountLookupService
+import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import groovy.util.logging.Slf4j
+import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -34,7 +36,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
-import org.springframework.util.Base64Utils
 import spock.lang.Specification
 
 import jakarta.servlet.http.Cookie
@@ -53,6 +54,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @TestPropertySource("/basic-auth.properties")
 class BasicAuthSpec extends Specification {
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not available.
+   */
+  @SpringBean ApplicationService applicationService = Mock()
 
   @Autowired
   MockMvc mockMvc
@@ -76,7 +83,7 @@ class BasicAuthSpec extends Specification {
       .cookie(sessionCookie))
       .andDo(print())
       .andExpect(status().is(302))
-      .andExpect(redirectedUrl("http://localhost/credentials?continue"))
+      .andExpect(redirectedUrl("http://localhost/credentials"))
       .andDo(extractSession)
 
     def result = mockMvc.perform(get("/credentials").cookie(sessionCookie))
@@ -91,7 +98,7 @@ class BasicAuthSpec extends Specification {
   def "should return user object on correct credentials"() {
     when:
     def result = mockMvc.perform(get("/auth/user")
-      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64Utils.encodeToString("basic-user:basic-password".getBytes())))
+      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString("basic-user:basic-password".getBytes())))
       .andDo(print())
       .andExpect(status().isOk())
       .andReturn()
@@ -103,7 +110,7 @@ class BasicAuthSpec extends Specification {
   def "should redirect to login on bad credentials"() {
     when:
     def result = mockMvc.perform(get("/auth/user")
-      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64Utils.encodeToString("basic-user:badbad".getBytes())))
+      .header(HttpHeaders.AUTHORIZATION, "Basic " + Base64.getEncoder().encodeToString("basic-user:badbad".getBytes())))
       .andDo(print())
       .andExpect(status().is3xxRedirection())
       .andExpect(header().string("Location", "http://localhost/login"))

@@ -36,13 +36,13 @@ import io.restassured.response.Response;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 public class LoadBalancersSpec extends EcsSpec {
 
   @Autowired private ProviderRegistry providerRegistry;
 
-  @MockBean EcsAccountMapper mockEcsAccountMapper;
+  @MockitoBean EcsAccountMapper mockEcsAccountMapper;
 
   @Test
   public void getLoadBalancersTest() {

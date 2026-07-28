@@ -53,7 +53,7 @@ public class FriggaReflectiveNamer implements Namer<Object> {
   }
 
   private void setName(Object obj, String name) {
-    Class clazz = obj.getClass();
+    Class<?> clazz = obj.getClass();
 
     // First walk up the object hierarchy and try to find some "setName" method to call
     while (clazz != Object.class) {
@@ -88,7 +88,7 @@ public class FriggaReflectiveNamer implements Namer<Object> {
   }
 
   private String getName(Object obj) {
-    Class clazz = obj.getClass();
+    Class<?> clazz = obj.getClass();
 
     // If the object is a String, just return it.
     if (clazz == String.class) {

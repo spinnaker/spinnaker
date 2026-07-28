@@ -31,10 +31,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
+import org.assertj.core.api.Assertions.assertThat
 
 internal class SqlConfigurationTests {
 
@@ -55,14 +52,12 @@ internal class SqlConfigurationTests {
 
     @Test
     fun `should have 2 JOOQ configured one for each H2 and MySQL`() {
-      expectThat(applicationContext.getBeansOfType(DSLContext::class.java).size).isEqualTo(2)
-      expectThat(sqlProperties.connectionPools.size).isEqualTo(2)
-      expectThat(applicationContext.getBean("jooq")).isNotNull()
-      expectThat(applicationContext.getBean("jooq")).isA<DSLContext>()
-      expectThat(applicationContext.getBean("secondaryJooq")).isNotNull()
-      expectThat(applicationContext.getBean("secondaryJooq")).isA<DSLContext>()
-      expectThat(applicationContext.getBean("liquibase")).isNotNull()
-      expectThat(applicationContext.getBean("secondaryLiquibase")).isNotNull()
+      assertThat(applicationContext.getBeansOfType(DSLContext::class.java)).hasSize(2)
+      assertThat(sqlProperties.connectionPools).hasSize(2)
+      assertThat(applicationContext.getBean("jooq")).isNotNull().isInstanceOf(DSLContext::class.java)
+      assertThat(applicationContext.getBean("secondaryJooq")).isNotNull().isInstanceOf(DSLContext::class.java)
+      assertThat(applicationContext.getBean("liquibase")).isNotNull()
+      assertThat(applicationContext.getBean("secondaryLiquibase")).isNotNull()
     }
   }
 
@@ -83,11 +78,10 @@ internal class SqlConfigurationTests {
 
     @Test
     fun `should have 1 JOOQ configured for MYSQL`() {
-      expectThat(applicationContext.getBeansOfType(DSLContext::class.java).size).isEqualTo(1)
-      expectThat(sqlProperties.connectionPools.size).isEqualTo(2)
-      expectThat(applicationContext.getBean("jooq")).isNotNull()
-      expectThat(applicationContext.getBean("jooq")).isA<DSLContext>()
-      expectThat(applicationContext.getBean("liquibase")).isNotNull()
+      assertThat(applicationContext.getBeansOfType(DSLContext::class.java)).hasSize(1)
+      assertThat(sqlProperties.connectionPools).hasSize(2)
+      assertThat(applicationContext.getBean("jooq")).isNotNull().isInstanceOf(DSLContext::class.java)
+      assertThat(applicationContext.getBean("liquibase")).isNotNull()
     }
   }
 }

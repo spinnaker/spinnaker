@@ -1,29 +1,28 @@
-FROM python:3.12-alpine3.20
+FROM python:3.14-alpine3.24
 LABEL maintainer="sig-platform@spinnaker.io"
 ARG TARGETARCH
 
-ENV KUBECTL_RELEASE=1.15.10
-ENV AWS_BINARY_RELEASE_DATE=2020-02-22
-ENV AWS_CLI_VERSION=1.18.18
+ENV KUBECTL_RELEASE=1.30.14
+ENV AWS_IAM_AUTHENTICATOR_VERSION=0.7.18
 
 RUN apk --no-cache add --update \
       bash \
       curl \
       openjdk17-jre \
       openssl \
-  && pip3 install --upgrade awscli==${AWS_CLI_VERSION} \
-  && apk --purge del \
+      aws-cli \
   && rm -rf /var/cache/apk
 
 RUN echo '#!/usr/bin/env bash' > /usr/local/bin/hal && \
   echo '/opt/halyard/bin/hal "$@"' >> /usr/local/bin/hal && \
   chmod +x /usr/local/bin/hal
 
-RUN curl -f -LO --retry 3 --retry-delay 3 https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_RELEASE}/bin/linux/${TARGETARCH}/kubectl && \
+RUN curl -f -LO --retry 3 --retry-delay 3 https://dl.k8s.io/release/v${KUBECTL_RELEASE}/bin/linux/${TARGETARCH}/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin/kubectl
 
-RUN curl -f -o /usr/local/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/${KUBECTL_RELEASE}/${AWS_BINARY_RELEASE_DATE}/bin/linux/${TARGETARCH}/aws-iam-authenticator && \
+RUN curl -f -Lo /usr/local/bin/aws-iam-authenticator \
+    https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v${AWS_IAM_AUTHENTICATOR_VERSION}/aws-iam-authenticator_${AWS_IAM_AUTHENTICATOR_VERSION}_linux_${TARGETARCH} && \
   chmod +x /usr/local/bin/aws-iam-authenticator
 
 RUN addgroup -S -g 1000 spinnaker

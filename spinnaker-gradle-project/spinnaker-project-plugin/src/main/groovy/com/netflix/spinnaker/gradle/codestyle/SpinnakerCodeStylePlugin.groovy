@@ -107,7 +107,7 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
           void execute(FormatExtension formatExtension) {
             formatExtension.target('**/.gitignore', 'src/**/*.json', 'src/**/*.yml', 'src/**/*.yaml', 'config/*.yml', 'halconfig/*.yml', '**/*.gradle')
             formatExtension.trimTrailingWhitespace()
-            formatExtension.indentWithSpaces(2)
+            formatExtension.leadingTabsToSpaces(2)
             formatExtension.endWithNewline()
           }
         }
@@ -115,11 +115,17 @@ class SpinnakerCodeStylePlugin implements Plugin<Project> {
 
       project.afterEvaluate {
         project.tasks.named("spotlessApply") {
-          it.dependsOn project.subprojects*.tasks*.named('spotlessApply').minus(null)
+          def subprojectTasks = project.subprojects.collect { subproject ->
+            subproject.tasks.findByName('spotlessApply')
+          }.minus(null)
+          it.dependsOn subprojectTasks
         }
 
         project.tasks.named("spotlessCheck") {
-          it.dependsOn project.subprojects*.tasks*.named('spotlessCheck').minus(null)
+          def subprojectTasks = project.subprojects.collect { subproject ->
+            subproject.tasks.findByName('spotlessCheck')
+          }.minus(null)
+          it.dependsOn subprojectTasks
         }
       }
     }

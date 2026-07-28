@@ -138,6 +138,11 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
     return Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
   }
 
+  protected static String getFirstSslCertificateName(TargetHttpsProxy targetHttpsProxy) {
+    def sslCertificates = targetHttpsProxy?.getSslCertificates()
+    return sslCertificates ? Utils.getLocalName(sslCertificates[0]) : null
+  }
+
   class ForwardingRuleCallbacks {
 
     List<GoogleHttpLoadBalancer> loadBalancers
@@ -265,8 +270,13 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
 
     @Override
     void onSuccess(TargetHttpsProxy targetHttpsProxy, HttpHeaders responseHeaders) throws IOException {
-      // SslCertificates is a required field for TargetHttpsProxy, and contains exactly one cert.
-      googleLoadBalancer.certificate = Utils.getLocalName((targetHttpsProxy.getSslCertificates()[0]))
+      // When certificateMap is set on a TargetHttpsProxy, the GCP API may return an empty or
+      // absent sslCertificates list because certificateMap takes precedence over sslCertificates.
+      // See: https://cloud.google.com/compute/docs/reference/rest/v1/targetHttpsProxies
+      // The certificateMap URL returned by the API is normalized to its local name so it matches
+      // the short-name form used in the deploy/update paths (GCEUtil.buildCertificateMapUrl).
+      googleLoadBalancer.certificate = getFirstSslCertificateName(targetHttpsProxy)
+      googleLoadBalancer.certificateMap = Utils.getLocalName(targetHttpsProxy?.getCertificateMap())
 
       def urlMapURL = targetHttpsProxy?.urlMap
       if (urlMapURL) {

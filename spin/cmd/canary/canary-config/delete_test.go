@@ -20,9 +20,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/cmd/canary"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/cmd/canary"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 func TestCanaryConfigDelete_basic(t *testing.T) {

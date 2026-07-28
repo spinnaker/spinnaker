@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
+import com.fasterxml.jackson.databind.EnumNamingStrategies
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.kork.retrofit.util.CustomConverterFactory
@@ -25,7 +27,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 import java.text.SimpleDateFormat
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
@@ -56,9 +57,9 @@ class BakeryConfiguration {
 
   static ObjectMapper bakeryConfiguredObjectMapper() {
     def objectMapper = new ObjectMapper()
-      .setPropertyNamingStrategy(new SnakeCaseStrategy())
+      .setPropertyNamingStrategy(PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE)
       .setDateFormat(new SimpleDateFormat("YYYYMMDDHHmm"))
-      .setSerializationInclusion(NON_NULL)
+      .setDefaultPropertyInclusion(NON_NULL)
       .disable(FAIL_ON_UNKNOWN_PROPERTIES)
 
   }

@@ -2,4 +2,7 @@ dependencies {
   implementation project(":gate-core")
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-security" // for deprecated User class
+  implementation "io.spinnaker.kork:kork-retrofit"
+  implementation "io.spinnaker.kork:kork-annotations"
+  implementation "com.github.ben-manes.caffeine:caffeine"
 }

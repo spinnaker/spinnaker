@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spinnaker.gate.Main
+import com.netflix.spinnaker.gate.services.ApplicationService
+import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -34,6 +36,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles('alloworigincors')
 @TestPropertySource(properties = ["spring.config.location=classpath:gate-test.yml"])
 class GateCorsAllowedOriginConfigSpec extends Specification {
+
+  /**
+   * To prevent the background thread that refreshes the applications cache, which makes calls to
+   * clouddriver and front50 that fail and pollute the logs because those services are not available.
+   */
+  @SpringBean ApplicationService applicationService = Mock()
 
   @Autowired
   private MockMvc mvc

@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.config
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import com.fasterxml.jackson.databind.PropertyNamingStrategy
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
@@ -28,7 +29,7 @@ class GremlinConfiguration {
     val mapper = OrcaObjectMapper
       .newInstance()
       .setPropertyNamingStrategy(
-        PropertyNamingStrategy.SNAKE_CASE
+        PropertyNamingStrategies.SnakeCaseStrategy.INSTANCE
       )
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // we want Instant serialized as ISO string
 

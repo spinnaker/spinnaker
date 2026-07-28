@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.sql.pipeline.persistence
 
-import com.nhaarman.mockito_kotlin.mock
+import org.mockito.kotlin.mock
 import dev.minutest.junit.JUnit5Minutests
 import dev.minutest.rootContext
 import org.assertj.core.api.AbstractAssert

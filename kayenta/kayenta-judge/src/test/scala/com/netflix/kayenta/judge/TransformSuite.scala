@@ -21,11 +21,11 @@ import com.netflix.kayenta.judge.detectors.{IQRDetector, KSigmaDetector}
 import com.netflix.kayenta.judge.preprocessing.Transforms
 import com.netflix.kayenta.judge.utils.RandomUtils
 import org.apache.commons.math3.stat.StatUtils
-import org.scalatest.FunSuite
-import org.scalatest.Matchers._
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers._
 
 
-class TransformSuite extends FunSuite {
+class TransformSuite extends AnyFunSuite {
 
   test("Remove Single NaN"){
     val testData = Array(0.0, 1.0, Double.NaN, 1.0, 0.0)

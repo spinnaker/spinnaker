@@ -122,10 +122,18 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
 
   @VisibleForTesting
   void initializeQueue() {
-    String queueUrl =
-        PubSubUtils.ensureQueueExists(
-            amazonSQS, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
-    PubSubUtils.subscribeToTopic(amazonSNS, topicARN, queueARN);
+    String queueUrl;
+    if (subscription.isSkipQueueBootstrap()) {
+      queueUrl = PubSubUtils.getQueueUrl(amazonSQS, queueARN);
+      log.info(
+          "skipQueueBootstrap=true for {}; resolving queue URL only, not calling setQueueAttributes/subscribe",
+          queueARN);
+    } else {
+      queueUrl =
+          PubSubUtils.ensureQueueExists(
+              amazonSQS, queueARN, topicARN, subscription.getSqsMessageRetentionPeriodSeconds());
+      PubSubUtils.subscribeToTopic(amazonSNS, topicARN, queueARN);
+    }
 
     this.subscriptionInfo =
         AmazonSubscriptionInformation.builder()

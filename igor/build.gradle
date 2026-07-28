@@ -20,11 +20,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.igor"
 }
 
 subprojects {
-  group = "io.spinnaker.igor"
-
   if (name != "igor-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
@@ -58,8 +57,8 @@ subprojects {
       testImplementation "org.assertj:assertj-core"
       testRuntimeOnly "cglib:cglib-nodep"
       testRuntimeOnly "org.objenesis:objenesis"
-      testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
       testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+      testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     }
 
     test {

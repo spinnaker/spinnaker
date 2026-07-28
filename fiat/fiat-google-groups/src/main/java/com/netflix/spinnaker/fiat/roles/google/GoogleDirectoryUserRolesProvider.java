@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -93,7 +94,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     }
 
     Collection<String> userEmails = users.stream().map(ExternalUser::getId).toList();
-    HashMap<String, Collection<Role>> emailGroupsMap = new HashMap<>();
+    Map<String, Collection<Role>> emailGroupsMap = new ConcurrentHashMap<>();
     // Per some discussion... the google batch APIs have challenges.  Eg. they do an
     // "all-or-nothing" type operation
     // and may randomly fail.  So we use a custom thread pool to parallelize the requests and use a
@@ -138,7 +139,10 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     return emailGroupsMap;
   }
 
-  private Collection<Role> getRolesForEmail(String email) throws IOException {
+  // TODO:  Move the directory stuff to a mock object vs. spying on the code methods. that'd provide
+  // better tests
+  @VisibleForTesting
+  protected Collection<Role> getRolesForEmail(String email) throws IOException {
     // Check if this is a managed service account, we should never check google groups for
     // these
     if (email.endsWith(SERVICE_ACCOUNT_SUFFIX) || email.endsWith(SHARED_SERVICE_ACCOUNT_SUFFIX)) {
@@ -146,9 +150,12 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
       return new HashSet<>();
     }
     log.debug("Fetching group information for " + email);
-    return getGroupsFromEmailRecursively(email).getGroups().stream()
-        .flatMap(toRoleFn())
-        .collect(Collectors.toSet());
+
+    Groups groups = getGroupsFromEmailRecursively(email);
+    if (groups == null || groups.getGroups() == null || groups.getGroups().isEmpty()) {
+      return new ArrayList<>();
+    }
+    return groups.getGroups().stream().flatMap(toRoleFn()).collect(Collectors.toSet());
   }
 
   @Override
@@ -201,6 +208,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
         || groups.getGroups() == null
         || groups.getGroups().isEmpty()
         || !config.isExpandIndirectGroups()) {
+      log.debug("NO groups found!");
       return groups;
     }
     final Set<String> collectedGroup = new HashSet<>();

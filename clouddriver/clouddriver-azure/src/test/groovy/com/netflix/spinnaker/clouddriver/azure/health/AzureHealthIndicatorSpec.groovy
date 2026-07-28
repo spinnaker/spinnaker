@@ -33,13 +33,9 @@ class AzureHealthIndicatorSpec extends Specification {
   AccountCredentialsProvider accountCredentialsProvider
 
   private void setupMocks(def mockResourceManager, def mockCredentials, def mockAccountCredentials) {
-    def credentialsField = AzureNamedAccountCredentials.getDeclaredField("credentials")
-    credentialsField.accessible = true
-    credentialsField.set(mockAccountCredentials, mockCredentials)
-
-    def resourceManagerField = AzureCredentials.getDeclaredField("resourceManagerClient")
-    resourceManagerField.accessible = true
-    resourceManagerField.set(mockCredentials, mockResourceManager)
+    // Configure mocks to return the expected values
+    mockAccountCredentials.getCredentials() >> mockCredentials
+    mockCredentials.getResourceManagerClient() >> mockResourceManager
 
     accountCredentialsProvider = Mock(AccountCredentialsProvider)
     accountCredentialsProvider.all >> [mockAccountCredentials]

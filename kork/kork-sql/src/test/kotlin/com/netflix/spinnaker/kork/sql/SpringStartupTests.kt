@@ -24,18 +24,14 @@ import org.jooq.impl.DSL.table
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.getBeansOfType
+//import org.springframework.beans.factory.getBeansOfType
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Import
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import strikt.api.expectThat
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
+import org.assertj.core.api.Assertions.assertThat
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
@@ -62,17 +58,17 @@ internal class SpringStartupTests {
 
   @Test
   fun `uses SqlHealthIndicator`() {
-    expectThat(dbHealthIndicator).isA<SqlHealthIndicator>()
+    assertThat(dbHealthIndicator).isInstanceOf(SqlHealthIndicator::class.java)
 
-    expectThat(
+    assertThat(
       jooq
         .insertInto(table("healthcheck"), listOf(field("id")))
         .values(true).execute()
     ).isEqualTo(1)
 
-    expectThat(applicationContext.getBeansOfType(DSLContext::class.java).size).isEqualTo(1)
-    expectThat(applicationContext.getBean("jooq")).isNotNull()
-    expectThat(applicationContext.getBean("liquibase")).isNotNull()
+    assertThat(applicationContext.getBeansOfType(DSLContext::class.java)).hasSize(1)
+    assertThat(applicationContext.getBean("jooq")).isNotNull()
+    assertThat(applicationContext.getBean("liquibase")).isNotNull()
   }
 }
 

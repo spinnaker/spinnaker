@@ -1,5 +1,3 @@
-import { module } from 'angular';
-
 import type { ISecurityGroup, ISecurityGroupsByAccount } from '@spinnaker/core';
 
 export class AwsSecurityGroupReader {
@@ -19,6 +17,3 @@ export class AwsSecurityGroupReader {
     return indexedSecurityGroups[container.account][container.region][securityGroupId];
   }
 }
-
-export const AWS_SECURITY_GROUP_READER = 'spinnaker.amazon.securityGroup.reader';
-module(AWS_SECURITY_GROUP_READER, []).service('awsSecurityGroupReader', AwsSecurityGroupReader);

@@ -23,6 +23,5 @@ public enum BuildServiceProvider {
   TRAVIS,
   CONCOURSE,
   GITLAB_CI,
-  WERCKER,
   GCB;
 }

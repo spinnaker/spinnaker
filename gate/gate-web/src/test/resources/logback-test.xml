@@ -6,7 +6,7 @@
     </encoder>
   </appender>
 
-  <logger name="org.opensaml" level="DEBUG"/>
+  <logger name="org.opensaml" level="INFO"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

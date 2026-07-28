@@ -206,10 +206,10 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   @Override
   public Map<String, UserPermission> resolveResources(
       @NonNull Map<String, Collection<Role>> userToRoles) {
-    return userToRoles.entrySet().stream()
+    return userToRoles.entrySet().parallelStream()
         .map(
             entry -> {
-              final String userId = entry.getKey();
+              final String userId = String.valueOf(entry.getKey());
               final Set<Role> userRoles = new HashSet<>(entry.getValue());
               final boolean isAdmin = hasAdminRole(userRoles);
 
@@ -220,7 +220,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
                   .setAccountManager(hasAccountManagerRole(userRoles))
                   .addResources(getResources(userId, userRoles, isAdmin));
             })
-        .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+        .collect(Collectors.toConcurrentMap(UserPermission::getId, Function.identity()));
   }
 
   private Set<Resource> getResources(String userId, Set<Role> userRoles, boolean isAdmin) {

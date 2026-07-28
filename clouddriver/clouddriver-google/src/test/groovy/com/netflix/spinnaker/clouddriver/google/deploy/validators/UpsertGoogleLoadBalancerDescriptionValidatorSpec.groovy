@@ -234,6 +234,143 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "pass validation with certificateMap for global HTTP"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : "my-map",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "pass validation when certificateMap is a full Certificate Manager URL"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : "//certificatemanager.googleapis.com/projects/my-project/locations/global/certificateMaps/my-map",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  @Unroll
+  void "fail validation when certificateMap name is invalid: #mapName"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : mapName,
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("certificateMap",
+        "upsertGoogleLoadBalancerDescription.certificateMap.invalidName")
+
+    where:
+      mapName << ["  ", "1map", "-map", "map-", "MAP", "map_name", "map.name"]
+  }
+
+  void "fail validation when both certificate and certificateMap are provided for global HTTP"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.HTTP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : "legacy-cert",
+        "certificateMap"  : "my-map",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("certificate OR certificateMap",
+        "upsertGoogleLoadBalancerDescription.certificateAndCertificateMap.mutuallyExclusive")
+  }
+
+  void "fail validation when certificateMap is provided for internal managed HTTP"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.INTERNAL_MANAGED,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : PORT_RANGE,
+        "defaultService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+        "certificate"     : null,
+        "certificateMap"  : "my-map",
+        "hostRules"       : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("certificateMap",
+        "upsertGoogleLoadBalancerDescription.certificateMap.internalManagedNotSupported")
+  }
+
   void "fail with improperly formatted ports"() {
     setup:
       def input = [
@@ -489,6 +626,31 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('certificate', _)
+  }
+
+  void "(ssl) fail when certificateMap is provided"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : SSL_PROXY_PORT_RANGE,
+        "certificate"     : CERTIFICATE,
+        "certificateMap"  : "my-map",
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(ValidationErrors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue("certificateMap", "upsertGoogleLoadBalancerDescription.certificateMap.notSupported")
   }
 
   void "(tcp) pass validation with proper description inputs"() {

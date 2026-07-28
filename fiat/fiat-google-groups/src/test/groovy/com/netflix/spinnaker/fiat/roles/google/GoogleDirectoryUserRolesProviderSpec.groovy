@@ -120,6 +120,56 @@ class GoogleDirectoryUserRolesProviderSpec extends Specification {
   }
 
   @Unroll
+  def "should handle a case where groups is null for some unknown reason"() {
+    given:
+    config.expandIndirectGroups = expandIndirectGroups
+    def provider = Spy(GoogleDirectoryUserRolesProvider) {
+      getGroupsFromEmail("root@example.com") >> new Groups(groups: null)
+    }
+    provider.setConfig(config)
+
+    when:
+    def result = provider.loadRoles(ExternalUser.forId("root@example.com"))
+
+    then:
+    result.size() == totalEmails
+    result.stream().map { it.getName()}.toList().containsAll(groupsContent)
+
+    where:
+    expandIndirectGroups | totalEmails | groupsContent
+    true                 | 0           | List.of()
+    false                | 0           | List.of()
+
+  }
+
+
+  @Unroll
+  def "should handle a case where groups is null for some unknown reason when multi loading roles"() {
+    given:
+    config.expandIndirectGroups = expandIndirectGroups
+    def provider = Spy(GoogleDirectoryUserRolesProvider) {
+      getGroupsFromEmailRecursively("root@example.com") >> new Groups(groups: null)
+    }
+    provider.setConfig(config)
+
+    when:
+    // to note hitting roles for email instead of multiloadroles... b/c Mock objects with fork join pools don't work so well together
+    def result = provider.getRolesForEmail("root@example.com")
+
+    then:
+    result.size() == totalEmails
+    result.stream().map { it.getName()}.toList().containsAll(groupsContent)
+
+    where:
+    expandIndirectGroups | totalEmails | groupsContent
+    true                 | 0           | List.of()
+    false                | 0           | List.of()
+
+  }
+
+
+
+  @Unroll
   def "verify that 403 and 429 and 500 errors trigger a retry"() {
     given:
     def retryHandler = new GoogleDirectoryUserRolesProvider().getGCPBackoffHandlerForGoogleApiRateLImitedCalls();

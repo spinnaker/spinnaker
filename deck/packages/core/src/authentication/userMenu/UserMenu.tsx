@@ -1,3 +1,4 @@
+import { UISref } from '@uirouter/react';
 import * as React from 'react';
 import { Dropdown } from 'react-bootstrap';
 
@@ -10,8 +11,10 @@ import './userMenu.less';
 export const UserMenu = () => {
   const authenticatedUser = AuthenticationService.getAuthenticatedUser();
   const showLogOutDropdown = authenticatedUser.authenticated;
+  const canMintApiTokens = authenticatedUser.canMintApiTokens ?? false;
+  const isAdmin = authenticatedUser.isAdmin ?? false;
 
-  if (!SETTINGS.authEnabled) {
+  if (!SETTINGS.authEnabled || !showLogOutDropdown) {
     return null;
   }
 
@@ -23,9 +26,31 @@ export const UserMenu = () => {
           <span className="hidden-xs hidden-sm hidden-md">{authenticatedUser.name}</span>
         </Dropdown.Toggle>
         {showLogOutDropdown && (
-          <Dropdown.Menu>
-            <li className="sp-padding-xs" onClick={() => AuthenticationInitializer.logOut()}>
-              Log Out
+          <Dropdown.Menu pullRight>
+            {isAdmin && (
+              <>
+                <li role="presentation">
+                  <UISref to="home.globalBanners">
+                    <a role="menuitem">Global Banners</a>
+                  </UISref>
+                </li>
+                <li role="presentation" className="divider" />
+              </>
+            )}
+            {canMintApiTokens && (
+              <>
+                <li role="presentation">
+                  <UISref to="home.apiTokens">
+                    <a role="menuitem">API Tokens</a>
+                  </UISref>
+                </li>
+                <li role="presentation" className="divider" />
+              </>
+            )}
+            <li role="presentation">
+              <a role="menuitem" style={{ cursor: 'pointer' }} onClick={() => AuthenticationInitializer.logOut()}>
+                Log Out
+              </a>
             </li>
           </Dropdown.Menu>
         )}

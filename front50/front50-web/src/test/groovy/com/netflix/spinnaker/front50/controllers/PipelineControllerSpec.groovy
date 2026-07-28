@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.front50.controllers
 
+import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator
 import com.netflix.spinnaker.front50.api.validator.ValidatorErrors
+import com.netflix.spinnaker.front50.config.Front50CoreConfiguration
 import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
@@ -35,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
-@ContextConfiguration(classes = [TestConfiguration, AuthorizationSupport, PipelineController, PipelineControllerConfig])
+@ContextConfiguration(classes = [TestConfiguration, AuthorizationSupport, PipelineController, PipelineControllerConfig, Front50CoreConfiguration])
 class PipelineControllerSpec extends Specification {
 
   @Autowired
@@ -49,6 +51,7 @@ class PipelineControllerSpec extends Specification {
 
   @Autowired
   private AuthorizationSupport authorizationSupport
+  @Autowired ObjectMapper objectMapper
 
   @Unroll
   def "should fail the pipeline when staleCheck is true and conditions are met"() {
@@ -278,7 +281,7 @@ class PipelineControllerSpec extends Specification {
     pipelineDAO.history(testPipelineId, 20) >> pipelineList
 
     def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
-      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      pipelineDAO, objectMapper, Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
       fiatPermissionEvaluator, authorizationSupport
     )).build()
 

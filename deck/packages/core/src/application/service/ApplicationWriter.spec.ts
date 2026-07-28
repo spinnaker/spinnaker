@@ -1,5 +1,3 @@
-import { mock } from 'angular';
-
 import type { IApplicationAttributes } from './ApplicationWriter';
 import { ApplicationWriter } from './ApplicationWriter';
 import type { IJob } from '../../task/taskExecutor';
@@ -7,14 +5,6 @@ import { TaskExecutor } from '../../task/taskExecutor';
 import Spy = jasmine.Spy;
 
 describe('ApplicationWriter', function () {
-  let $q: ng.IQService;
-
-  beforeEach(
-    mock.inject(function (_$q_: ng.IQService) {
-      $q = _$q_;
-    }),
-  );
-
   describe('update an application', function () {
     it('should execute task', function () {
       spyOn(TaskExecutor, 'executeTask');
@@ -47,7 +37,7 @@ describe('ApplicationWriter', function () {
 
   describe('delete an application', function () {
     it('should execute task', function () {
-      spyOn(TaskExecutor, 'executeTask').and.returnValue($q.when({} as any));
+      spyOn(TaskExecutor, 'executeTask').and.returnValue(Promise.resolve({} as any));
 
       const application: IApplicationAttributes = {
         name: 'foo',

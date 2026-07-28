@@ -53,7 +53,7 @@ class PipelineConfigController {
   @Operation(summary = "Convert a pipeline config to a pipeline template.")
   @RequestMapping(value = "/{pipelineConfigId}/convertToTemplate", method = RequestMethod.GET)
   String convertPipelineConfigToPipelineTemplate(@PathVariable("pipelineConfigId") String pipelineConfigId) {
-    Map pipelineConfig = Retrofit2SyncCall.execute(front50Service.getAllPipelineConfigs()).find { (pipelineConfigId == it.get("id")) }
+    Map<String, Object> pipelineConfig = Retrofit2SyncCall.execute(front50Service.getAllPipelineConfigs()).find { (pipelineConfigId == it.get("id")) }
     if (pipelineConfig == null) {
       throw new NotFoundException("Pipeline config '${pipelineConfigId}' could not be found")
     }

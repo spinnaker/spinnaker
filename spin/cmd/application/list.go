@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"net/http"
 
-	gate "github.com/spinnaker/spin/gateapi"
-
 	"github.com/spf13/cobra"
 )
 
@@ -51,7 +49,7 @@ func NewListCmd(appOptions *applicationOptions) *cobra.Command {
 }
 
 func listApplication(cmd *cobra.Command, options *listOptions, args []string) error {
-	appList, resp, err := options.GateClient.ApplicationControllerApi.GetAllApplications(options.GateClient.Context, &gate.ApplicationControllerApiGetAllApplicationsOpts{})
+	appList, resp, err := options.GateClient.ApplicationControllerAPI.GetAllApplications(options.GateClient.Context).Execute()
 	if err != nil {
 		return err
 	}

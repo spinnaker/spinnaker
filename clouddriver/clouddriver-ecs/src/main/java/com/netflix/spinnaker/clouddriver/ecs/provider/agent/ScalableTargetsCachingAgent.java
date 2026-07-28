@@ -92,10 +92,10 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
     Collection<CacheData> newData = newDataMap.get(SCALABLE_TARGETS.toString());
 
     Set<String> oldKeys =
-        providerCache.getAll(SCALABLE_TARGETS.toString()).stream()
-            .map(CacheData::getId)
-            .filter(this::keyAccountRegionFilter)
-            .collect(Collectors.toSet());
+        new HashSet<>(
+            providerCache.filterIdentifiers(
+                SCALABLE_TARGETS.toString(),
+                Keys.buildGlob(SCALABLE_TARGETS, accountName, region)));
 
     Map<String, Collection<String>> evictionsByKey = computeEvictableData(newData, oldKeys);
 
@@ -110,7 +110,9 @@ public class ScalableTargetsCachingAgent implements CachingAgent, AccountAware {
 
     Map<String, Collection<String>> evictionsByKey = new HashMap<>();
     evictionsByKey.put(SCALABLE_TARGETS.toString(), evictedKeys);
-    log.info("Evicting " + evictedKeys.size() + " scalable targets in " + getAgentType());
+    if (log.isInfoEnabled()) {
+      log.info("Evicting {} scalable targets in {}", evictedKeys.size(), getAgentType());
+    }
     return evictionsByKey;
   }
 

@@ -112,3 +112,4 @@ priority_rules:
           and:
             - label=no-squash
     priority: 2250
+    allow_checks_interruption: true

@@ -15,7 +15,7 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache
 
-import com.amazonaws.services.servicediscovery.model.ServiceSummary
+import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.clouddriver.ecs.cache.client.ServiceDiscoveryCacheClient
@@ -48,11 +48,11 @@ class ServiceDiscoveryCacheClientSpec extends Specification {
       id: serviceId
     )
 
-    def originalServiceEntry = new ServiceSummary(
-      name: serviceName,
-      id: serviceId,
-      arn: serviceArn
-    );
+    def originalServiceEntry = ServiceSummary.builder()
+      .name(serviceName)
+      .id(serviceId)
+      .arn(serviceArn)
+      .build()
 
     def attributes = ServiceDiscoveryCachingAgent.convertServiceToAttributes(account, region, originalServiceEntry)
     cacheView.get(SERVICE_DISCOVERY_REGISTRIES.ns, key) >> new DefaultCacheData(key, attributes, Collections.emptyMap())

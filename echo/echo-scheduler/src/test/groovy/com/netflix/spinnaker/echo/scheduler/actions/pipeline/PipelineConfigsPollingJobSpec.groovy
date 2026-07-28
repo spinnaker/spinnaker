@@ -19,10 +19,12 @@ package com.netflix.spinnaker.echo.scheduler.actions.pipeline
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
+import org.quartz.CronScheduleBuilder
 import org.quartz.CronTrigger
 import org.quartz.JobDataMap
 import org.quartz.JobExecutionContext
 import org.quartz.Scheduler
+import org.quartz.TriggerBuilder
 import org.quartz.TriggerKey
 import org.quartz.impl.triggers.CronTriggerImpl
 import spock.lang.Specification
@@ -71,7 +73,7 @@ class PipelineConfigsPollingJobSpec extends Specification {
     given:
     Pipeline pipeline = buildPipeline([])
     pipelineCache.getPipelinesSync() >> PipelineCache.decorateTriggers([pipeline])
-    CronTrigger trigger1 = makeTrigger("1", "America/New_York", true)
+    def trigger1 = makeTrigger("1", "America/New_York", true)
 
     scheduler.getTriggerKeys(_) >> [trigger1.key]
 
@@ -141,14 +143,19 @@ class PipelineConfigsPollingJobSpec extends Specification {
       .build()
   }
 
-  private static CronTrigger makeTrigger(String id, String timezone, boolean rebake) {
+  private static org.quartz.Trigger makeTrigger(String id, String timezone, boolean rebake) {
     return makeTrigger(id, timezone, rebake, id + " 10 0/12 1/1 * ? *")
   }
 
-  private static CronTrigger makeTrigger(String id, String timezone, boolean rebake, String cronExpression) {
-    def trigger = new CronTriggerImpl(
-      "key" + id, PipelineConfigsPollingJob.PIPELINE_TRIGGER_GROUP_PREFIX, "job", "job",
-      cronExpression)
+  private static org.quartz.Trigger makeTrigger(String id, String timezone, boolean rebake, String cronExpression) {
+    def trigger = TriggerBuilder
+      .newTrigger()
+      .withIdentity("key"+id, PipelineConfigsPollingJob.PIPELINE_TRIGGER_GROUP_PREFIX)
+      .forJob("job", "job")
+      .withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build()
+//    def trigger = new CronTriggerImpl(
+//      "key" + id, PipelineConfigsPollingJob.PIPELINE_TRIGGER_GROUP_PREFIX, "job", "job",
+//      cronExpression)
 
     trigger.jobDataMap.put("application", "app" + id)
     trigger.jobDataMap.put("id", "id" + id)

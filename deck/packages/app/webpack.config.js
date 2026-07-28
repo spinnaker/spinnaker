@@ -10,7 +10,20 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 
 const DECK_ROOT = path.resolve(`${__dirname}/../..`);
-const NODE_MODULE_PATH = path.resolve(`${DECK_ROOT}/node_modules`);
+const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
+const STYLEGUIDE_PACKAGE_ROOT = path.dirname(
+  require.resolve('@spinnaker/styleguide/package.json', { paths: [__dirname] }),
+);
+const REACT_VIRTUALIZED_COMMONJS = require.resolve('react-virtualized/dist/commonjs/index.js', {
+  paths: [CORE_PACKAGE_ROOT],
+});
+const SHARED_PACKAGE_ALIASES = ['@uirouter/core', '@uirouter/react', 'react', 'react-dom'];
+const SHARED_PACKAGE_ALIAS_RESOLUTIONS = Object.fromEntries(
+  SHARED_PACKAGE_ALIASES.map((packageName) => [
+    packageName,
+    path.dirname(require.resolve(`${packageName}/package.json`, { paths: [CORE_PACKAGE_ROOT] })),
+  ]),
+);
 const CACHE_INVALIDATE = getCacheInvalidateString();
 const SETTINGS_PATH = process.env.SETTINGS_PATH || './src/settings.js';
 const THREADS = getThreadLoaderThreads();
@@ -27,12 +40,28 @@ function configure(env, webpackOpts) {
   console.log('Webpack mode: ' + WEBPACK_MODE);
 
   const plugins = [
-    new ESLintPlugin({ failOnError: ESLINT_FAIL_ON_ERROR, threads: 4 }),
-    new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true }),
-    new CopyWebpackPlugin([
-      { from: `${NODE_MODULE_PATH}/@spinnaker/styleguide/public/styleguide.html`, to: `./styleguide.html` },
-      { from: `./public/plugin-manifest.json`, to: `./plugin-manifest.json` },
-    ]),
+    // eslint plugin isn't fully compatible with eslint 9 TypeScript changes,
+    // so we use the use-at-your-own-risk version with experimental TS compatibility
+    new ESLintPlugin({ failOnError: ESLINT_FAIL_ON_ERROR, threads: 4, eslintPath: 'eslint/use-at-your-own-risk' }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        diagnosticOptions: {
+          syntactics: true,
+        },
+      },
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: `${STYLEGUIDE_PACKAGE_ROOT}/public/styleguide.html`,
+          to: `./styleguide.html`,
+        },
+        {
+          from: `./public/plugin-manifest.json`,
+          to: `./plugin-manifest.json`,
+        },
+      ],
+    }),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: 'index.deck',
@@ -82,9 +111,7 @@ function configure(env, webpackOpts) {
       minimizer: IS_PRODUCTION
         ? [
             new TerserPlugin({
-              cache: true,
               parallel: true,
-              sourceMap: true,
               terserOptions: {
                 ecma: 2017,
                 mangle: false,
@@ -97,19 +124,15 @@ function configure(env, webpackOpts) {
         : [], // Disable minification unless production
     },
     resolve: {
-      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less', '.html'],
+      extensions: ['.json', '.ts', '.tsx', '.js', '.jsx', '.css', '.less'],
       alias: {
-        coreImports: path.resolve(
-          NODE_MODULE_PATH,
-          '@spinnaker',
-          'core',
-          'src',
-          'presentation',
-          'less',
-          'imports',
-          'commonImports.less',
-        ),
+        ...SHARED_PACKAGE_ALIAS_RESOLUTIONS,
+        '@spinnaker/core': CORE_PACKAGE_ROOT,
+        coreImports: path.resolve(CORE_PACKAGE_ROOT, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
         root: DECK_ROOT,
+        // Fix react-virtualized circular dependency issue with webpack 5
+        // https://github.com/bvaughn/react-virtualized/issues/1632
+        'react-virtualized$': REACT_VIRTUALIZED_COMMONJS,
       },
     },
     module: {
@@ -126,7 +149,7 @@ function configure(env, webpackOpts) {
             { loader: 'thread-loader', options: { workers: THREADS } },
             { loader: 'babel-loader' },
           ],
-          exclude: /(node_modules(?!\/clipboard)|settings\.js)/,
+          exclude: /(node_modules(?!\/clipboard)|settings\.js|packages\/[^/]+\/dist\/)/,
         },
         {
           test: /\.tsx?$/,
@@ -151,10 +174,6 @@ function configure(env, webpackOpts) {
           use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
         },
         {
-          test: /\.html$/,
-          use: [{ loader: 'ngtemplate-loader?relativeTo=' + path.resolve(__dirname) + '/' }, { loader: 'html-loader' }],
-        },
-        {
           test: /\.(woff|woff2|otf|ttf|eot|png|gif|ico|svg)$/,
           use: [{ loader: 'file-loader', options: { name: '[name].[hash:5].[ext]' } }],
         },
@@ -171,7 +190,12 @@ function configure(env, webpackOpts) {
               options: {
                 filterSourceMappingUrl: (url, resourcePath) => {
                   if (IS_PRODUCTION) return true;
+                  // Skip source maps that cause issues with thread-loader
                   if (/.*\/node_modules\/(rxjs-compat|graphql-tag)\/.*/.test(resourcePath)) {
+                    return false;
+                  }
+                  // Skip @spinnaker package source maps (pre-bundled, causes thread-loader issues)
+                  if (/\/packages\/[^/]+\/dist\//.test(resourcePath)) {
                     return false;
                   }
                   return true;
@@ -184,15 +208,20 @@ function configure(env, webpackOpts) {
     },
     plugins,
     devServer: {
-      hot: true,
-      disableHostCheck: true,
+      hot: false,
+      allowedHosts: 'all',
+      client: {
+        overlay: false,
+      },
       historyApiFallback: {
         index: '/',
       },
       port: process.env.DECK_PORT || 9000,
       host: process.env.DECK_HOST || 'localhost',
-      https: process.env.DECK_HTTPS === 'true',
-      stats: 'errors-only',
+      server: process.env.DECK_HTTPS === 'true' ? 'https' : 'http',
+      devMiddleware: {
+        stats: 'errors-only',
+      },
     },
     externals: {
       'react/addons': 'react',
@@ -202,11 +231,14 @@ function configure(env, webpackOpts) {
   };
 
   if (process.env.DECK_CERT) {
-    config.devServer.cert = fs.readFileSync(process.env.DECK_CERT);
-    config.devServer.key = fs.readFileSync(process.env.DECK_KEY);
-    if (process.env.DECK_CA_CERT) {
-      config.devServer.ca = fs.readFileSync(process.env.DECK_CA_CERT);
-    }
+    config.devServer.server = {
+      type: 'https',
+      options: {
+        cert: fs.readFileSync(process.env.DECK_CERT),
+        key: fs.readFileSync(process.env.DECK_KEY),
+        ca: process.env.DECK_CA_CERT ? fs.readFileSync(process.env.DECK_CA_CERT) : undefined,
+      },
+    };
   }
 
   return config;
@@ -215,7 +247,7 @@ function configure(env, webpackOpts) {
 // invalidate cache-loader cache when these change
 function getCacheInvalidateString() {
   return JSON.stringify({
-    YARN_LOCK: md5(fs.readFileSync(`${DECK_ROOT}/yarn.lock`)),
+    PNPM_LOCK: md5(fs.readFileSync(`${DECK_ROOT}/pnpm-lock.yaml`)),
     WEBPACK_CONFIG: md5(fs.readFileSync(__filename)),
   });
 }

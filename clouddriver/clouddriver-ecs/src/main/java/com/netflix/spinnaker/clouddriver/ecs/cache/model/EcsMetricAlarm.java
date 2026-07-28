@@ -16,21 +16,38 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.cache.model;
 
-import com.amazonaws.services.cloudwatch.model.MetricAlarm;
+import java.util.Collection;
+import java.util.Collections;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Plain POJO replacement for the former v1-SDK-inheriting EcsMetricAlarm. The v2 SDK equivalent
+ * ({@code software.amazon.awssdk.services.cloudwatch.model.MetricAlarm}) is {@code final} and
+ * cannot be extended. This class adds Spinnaker-specific fields ({@code accountName}, {@code
+ * region}) that don't exist on the SDK type.
+ */
 @Data
-public class EcsMetricAlarm extends MetricAlarm {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EcsMetricAlarm {
+  private String alarmArn;
+  private String alarmName;
   private String accountName;
   private String region;
+  @Builder.Default private Collection<String> alarmActions = Collections.emptyList();
+  @Builder.Default private Collection<String> okActions = Collections.emptyList();
+  @Builder.Default private Collection<String> insufficientDataActions = Collections.emptyList();
 
-  public EcsMetricAlarm withAccountName(String accountName) {
-    setAccountName(accountName);
-    return this;
+  // Kept setOKActions/getOKActions for backward compat with cache client code
+  public void setOKActions(Collection<String> okActions) {
+    this.okActions = okActions;
   }
 
-  public EcsMetricAlarm withRegion(String region) {
-    setRegion(region);
-    return this;
+  public Collection<String> getOKActions() {
+    return okActions;
   }
 }

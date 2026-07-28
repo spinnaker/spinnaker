@@ -22,19 +22,19 @@ import com.netflix.spinnaker.fiat.shared.FiatService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {Application.class})
 @TestPropertySource(properties = {"spring.config.location=classpath:echo-test.yml"})
 public class ApplicationSpec {
-  @MockBean Front50Service front50Service;
+  @MockitoBean Front50Service front50Service;
 
-  @MockBean OrcaService orcaService;
+  @MockitoBean OrcaService orcaService;
 
-  @MockBean FiatService fiatService;
+  @MockitoBean FiatService fiatService;
 
   @Test
   public void startupTest() {}

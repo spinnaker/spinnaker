@@ -105,10 +105,18 @@ public class HttpClientUtils {
 
               int statusCode = response.getCode();
 
+              // getAttribute in latest releases returns a null but getRequest does work.  Fallback
+              // in case we're not a HttpCoreContext type for some reason, though
+              // it is unlikely those others work.  Seems buggy in the latest releases of apache
+              // client requests...
               HttpRequest currentReq =
-                  (HttpRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+                  context instanceof HttpCoreContext coreContext
+                      ? coreContext.getRequest()
+                      : (HttpRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+              String requestUri =
+                  currentReq != null ? currentReq.getRequestUri() : "unknown - bad request";
 
-              LOGGER.info("Response code {} for {}", statusCode, currentReq.getRequestUri());
+              LOGGER.info("Response code {} for {}", statusCode, requestUri);
 
               if (statusCode >= HttpStatus.SC_OK && statusCode <= 299) {
                 return false;
@@ -131,10 +139,7 @@ public class HttpClientUtils {
                     String redirectLocation = response.getFirstHeader(LOCATION_HEADER).getValue();
                     urlRestrictions.validateURI(redirectLocation);
 
-                    LOGGER.info(
-                        "Attempt redirect from {} to {} ",
-                        currentReq.getRequestUri(),
-                        redirectLocation);
+                    LOGGER.debug("Attempt redirect from {} to {} ", requestUri, redirectLocation);
 
                     // set redirect strategy for future execution (builder is used to build client)
                     httpClientBuilder.setRedirectStrategy(laxRedirectStrategy);
@@ -146,7 +151,7 @@ public class HttpClientUtils {
               } catch (ProtocolException protocolException) {
                 LOGGER.error(
                     "Failed redirect from {} to {}. Error: {}",
-                    currentReq.getRequestUri(),
+                    requestUri,
                     response.getFirstHeader(LOCATION_HEADER).getValue(),
                     protocolException.getMessage());
               } catch (Exception e) {
@@ -157,9 +162,7 @@ public class HttpClientUtils {
                 throw new RetryRequestException(
                     String.format(
                         "Not retrying %s. Count %d, Max %d",
-                        currentReq.getRequestUri(),
-                        execCount,
-                        httpClientProperties.getMaxRetryAttempts()));
+                        requestUri, execCount, httpClientProperties.getMaxRetryAttempts()));
               }
 
               LOGGER.error(

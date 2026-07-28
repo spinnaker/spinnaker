@@ -16,12 +16,12 @@ jobs:
   update-monorepo:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.remote-ref == 'master' && 'main' || inputs.remote-ref }}
           fetch-depth: 0
 
-      - uses: actions/create-github-app-token@v2
+      - uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}

@@ -1,3 +1,9 @@
+apply plugin: 'io.spinnaker.project'
+
+spinnakerCodeStyle {
+  enabled = false
+}
+
 tasks.findByName('bintrayUpload')?.enabled = false
 
 subprojects {

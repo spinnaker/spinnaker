@@ -19,10 +19,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-
-	gate "github.com/spinnaker/spin/gateapi"
 )
 
 type cancelPipelineOptions struct {
@@ -73,7 +70,11 @@ func cancelPipelineWithID(options *cancelPipelineOptions, id string) error {
 		return errors.New("execution ID must be passed in")
 	}
 
-	resp, err := options.GateClient.ApplicationControllerApi.CancelPipeline1(options.GateClient.Context, id, &gate.ApplicationControllerApiCancelPipeline1Opts{Reason: optional.NewString(options.reason)})
+	req := options.GateClient.ApplicationControllerAPI.CancelPipeline1(options.GateClient.Context, id)
+	if options.reason != "" {
+		req = req.Reason(options.reason)
+	}
+	resp, err := req.Execute()
 
 	if resp != nil {
 		switch resp.StatusCode {

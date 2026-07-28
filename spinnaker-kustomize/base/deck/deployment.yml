@@ -12,9 +12,6 @@ spec:
           value: 0.0.0.0
         - name: DECK_PORT
           value: "9000"
-        envFrom:
-        - configMapRef:
-            name: deck-env
         image: ghcr.io/spinnaker/deck:main-latest
         name: deck
         ports:

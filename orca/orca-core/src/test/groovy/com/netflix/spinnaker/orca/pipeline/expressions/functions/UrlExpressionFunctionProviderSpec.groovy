@@ -60,13 +60,13 @@ class UrlExpressionFunctionProviderSpec extends Specification {
 
     then:
     SpelHelperFunctionException e1 = thrown()
-    e1.cause.message.startsWith('could not determine a constructor for the tag tag:yaml.org,2002:java.io.FileInputStream')
+    e1.cause.message.startsWith('Global tag is not allowed: tag:yaml.org,2002:java.io.FileInputStream')
 
     when:
     UrlExpressionFunctionProvider.readYaml("!!java.io.FileInputStream [/dev/null]")
 
     then:
     SpelHelperFunctionException e2 = thrown()
-    e2.cause.message.startsWith('could not determine a constructor for the tag tag:yaml.org,2002:java.io.FileInputStream')
+    e2.cause.message.startsWith('Global tag is not allowed: tag:yaml.org,2002:java.io.FileInputStream')
   }
 }

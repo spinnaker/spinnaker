@@ -5,24 +5,38 @@ This package is an ESLint plugin containing:
 - A base ESLint config
   - Parser configured for typescript
   - A set of default plugins, e.g. `react-hooks` plugin
-  - Recommended rule sets, e.g. `prettier/@typescript-eslint`
+  - Recommended rule sets, e.g. `prettier`, `@typescript-eslint/recommended`
     - Specific from the recommended rule sets are disabled
 - Custom ESLint rules specific to Spinnaker
 
 ### Use
 
-To use the rules, create a `.eslintrc.js` containing:
+This plugin requires **ESLint 9+** and uses the flat config format.
+
+To use the rules, create an `eslint.config.js` containing:
 
 ```js
-module.exports = {
-  plugins: ['@spinnaker/eslint-plugin'],
-  extends: ['plugin:@spinnaker/base'],
-};
+const { defineConfig } = require('eslint/config');
+const spinnakerEslintPlugin = require('@spinnaker/eslint-plugin');
+const { FlatCompat } = require('@eslint/eslintrc');
+const js = require('@eslint/js');
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+  recommendedConfig: js.configs.recommended,
+});
+
+module.exports = defineConfig([{
+  plugins: {
+    '@spinnaker': spinnakerEslintPlugin,
+  },
+  extends: compat.extends('plugin:@spinnaker/base'),
+}]);
 ```
 
 ## Creating a custom lint rule
 
-This `yarn create-rule` command will:
+This `pnpm create-rule` command will:
 
 - Scaffolds a sample rule
 - Scaffolds a test for the sample rule
@@ -179,8 +193,7 @@ ruleTester.run('my-cool-rule', rule, {
 Run the tests from `/packages/eslint-plugin`:
 
 ```
-❯ yarn test
-yarn run v1.22.4
+❯ pnpm test
 $ jest
  PASS  test/my-cool-rule.spec.js
 
@@ -189,12 +202,11 @@ Tests:       3 passed, 3 total
 Snapshots:   0 total
 Time:        1.095s
 Ran all test suites.
-✨  Done in 1.69s.
 ```
 
-While writing tests, it's useful to run Jest in watch mode: `yarn test --watch`
+While writing tests, it's useful to run Jest in watch mode: `pnpm test --watch`
 
-If you need to debug your tests, run `yarn test:debug` and launch the Chrome Debugger
+If you need to debug your tests, run `pnpm test:debug` and launch the Chrome Debugger
 (enter `chrome://inspect` into the Chrome URL bar).
 
 You can (and should) run your work-in-progress rule against the spinnaker OSS codebase:

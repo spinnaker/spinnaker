@@ -6,48 +6,69 @@ import { ManifestReader } from '@spinnaker/core';
 import type { IKubernetesServerGroupManagerDetailsProps } from './ServerGroupManagerDetails';
 import type { IKubernetesServerGroupManager } from '../../interfaces';
 
+interface IServerGroupManagerDetailsState {
+  serverGroupManager?: IKubernetesServerGroupManager;
+  manifest?: IManifest;
+  loading: boolean;
+}
+
 export function useKubernetesServerGroupManagerDetails(
   props: IKubernetesServerGroupManagerDetailsProps,
   autoClose: () => void,
 ): [IKubernetesServerGroupManager | undefined, IManifest | undefined, boolean] {
-  const [serverGroupManager, setServerGroupManager] = useState<IKubernetesServerGroupManager | undefined>();
-  const [manifest, setManifest] = useState<IManifest | undefined>();
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<IServerGroupManagerDetailsState>({ loading: true });
+  const { serverGroupManager: params, app } = props;
+  const { accountId, region, name } = params;
+  const loadedRequestedManager =
+    state.serverGroupManager?.name === name &&
+    state.serverGroupManager?.region === region &&
+    state.serverGroupManager?.account === accountId;
 
   useEffect(() => {
-    if (serverGroupManager) {
-      return;
+    if (loadedRequestedManager) {
+      return undefined;
     }
 
-    const { serverGroupManager: params, app } = props;
-    const { accountId, region, name } = params;
+    let cancelled = false;
+    const dataSource = app.getDataSource('serverGroupManagers');
 
-    setLoading(true);
+    setState((current) =>
+      current.loading && !current.serverGroupManager && !current.manifest ? current : { loading: true },
+    );
 
-    const serverGroupManagerDetails = app
-      .getDataSource('serverGroupManagers')
-      .data.find(
+    dataSource.ready().then(() => {
+      if (cancelled) {
+        return;
+      }
+
+      const serverGroupManagerDetails = dataSource.data.find(
         (manager: IServerGroupManager) =>
           manager.name === name && manager.region === region && manager.account === accountId,
       );
 
-    if (!serverGroupManagerDetails) {
-      autoClose();
-      return;
-    }
+      if (!serverGroupManagerDetails) {
+        autoClose();
+        return;
+      }
 
-    ManifestReader.getManifest(accountId, region, name)
-      .then((manifest: IManifest) => {
-        setManifest(manifest);
-        setServerGroupManager(serverGroupManagerDetails);
-      })
-      .catch((error) => {
-        console.error('Error fetching manifest:', error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [autoClose, props, serverGroupManager]);
+      ManifestReader.getManifest(accountId, region, name)
+        .then((manifest: IManifest) => {
+          if (!cancelled) {
+            setState({ manifest, serverGroupManager: serverGroupManagerDetails, loading: false });
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            console.error('Error fetching manifest:', error);
+            autoClose();
+          }
+        });
+    });
 
-  return [serverGroupManager, manifest, loading];
+    return () => {
+      cancelled = true;
+    };
+  }, [accountId, app, autoClose, loadedRequestedManager, name, region]);
+
+  return [state.serverGroupManager, state.manifest, state.loading];
 }

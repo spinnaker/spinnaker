@@ -31,6 +31,7 @@ import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigPro
 import com.netflix.spinnaker.gate.converters.JsonHttpMessageConverter
 import com.netflix.spinnaker.gate.converters.YamlHttpMessageConverter
 import com.netflix.spinnaker.gate.filters.RequestLoggingFilter
+import com.netflix.spinnaker.gate.filters.RequestMetricsFilter
 import com.netflix.spinnaker.gate.filters.RequestSheddingFilter
 import com.netflix.spinnaker.gate.filters.ResetAuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
@@ -351,6 +352,18 @@ class GateConfig {
   FilterRegistrationBean<ProvidedIdRequestFilter> providedIdRequestFilter(ProvidedIdRequestFilterConfigurationProperties providedIdRequestFilterConfigurationProperties) {
     def frb = new FilterRegistrationBean<>(new ProvidedIdRequestFilter(providedIdRequestFilterConfigurationProperties));
     frb.order = Ordered.HIGHEST_PRECEDENCE + 2
+    return frb
+  }
+
+  /**
+   * Per-request {@code gate.requests} counter tagged with auth mechanism, principal kind, method,
+   * and response status. Inspects the {@code SecurityContext} in a try/finally after the inner
+   * chain completes, so Spring Security has already run by then.
+   */
+  @Bean
+  FilterRegistrationBean<RequestMetricsFilter> requestMetricsFilter() {
+    def frb = new FilterRegistrationBean<>(new RequestMetricsFilter(registry))
+    frb.order = Ordered.LOWEST_PRECEDENCE - 2
     return frb
   }
 

@@ -1,6 +1,6 @@
 apply plugin: 'io.spinnaker.package'
 
-mainClassName='com.netflix.kayenta.Main'
+application.mainClass = 'com.netflix.kayenta.Main'
 
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
@@ -37,4 +37,5 @@ dependencies {
   implementation "io.spinnaker.kork:kork-plugins"
   runtimeOnly "io.spinnaker.kork:kork-secrets-aws"
   runtimeOnly "io.spinnaker.kork:kork-secrets-gcp"
+  runtimeOnly "io.spinnaker.kork:kork-secrets-k8s"
 }

@@ -1,4 +1,3 @@
-import { module } from 'angular';
 import { defaults } from 'lodash';
 
 import type {
@@ -70,7 +69,7 @@ export class EcsServerGroupTransformer {
     return view;
   }
 
-  public normalizeServerGroup(serverGroup: IAmazonServerGroup): PromiseLike<IAmazonServerGroup> {
+  public normalizeServerGroup(serverGroup: IAmazonServerGroup): Promise<IAmazonServerGroup> {
     serverGroup.instances.forEach((instance: IInstance) => {
       instance.vpcId = serverGroup.vpcId;
     });
@@ -112,6 +111,3 @@ export class EcsServerGroupTransformer {
     return command;
   }
 }
-
-export const ECS_SERVER_GROUP_TRANSFORMER = 'spinnaker.ecs.serverGroup.transformer';
-module(ECS_SERVER_GROUP_TRANSFORMER, []).service('ecsServerGroupTransformer', EcsServerGroupTransformer);

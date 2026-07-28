@@ -16,20 +16,28 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
-import java.util.List;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBindingDetails;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
 public interface ServiceKeyService {
-  @POST("v2/service_keys")
-  Call<Resource<ServiceCredentials>> createServiceKey(@Body CreateServiceKey body);
+  @POST("v3/service_credential_bindings")
+  Call<ServiceCredentialBinding> createServiceKey(@Body CreateServiceCredentialBinding body);
 
-  @GET("v2/service_keys")
-  Call<Page<ServiceKey>> getServiceKey(
-      @Query("page") Integer page, @Query("q") List<String> queryParams);
+  @GET("v3/service_credential_bindings/{guid}/details")
+  Call<ServiceCredentialBindingDetails> getServiceKeyDetails(@Path("guid") String guid);
 
-  @DELETE("v2/service_keys/{guid}")
+  @GET("v3/service_credential_bindings")
+  Call<Pagination<ServiceCredentialBinding>> getServiceKey(
+      @Query("page") Integer page,
+      @Query("service_instance_guids") String serviceInstanceGuid,
+      @Query("names") String name,
+      @Query("type") String type);
+
+  @DELETE("v3/service_credential_bindings/{guid}")
   Call<ResponseBody> deleteServiceKey(@Path("guid") String guid);
 }

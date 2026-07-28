@@ -1,5 +1,4 @@
 import type { Rule } from 'eslint';
-import type { ImportDeclaration } from 'estree';
 
 import { getRelativeImport, getSourceFileDetails } from '../utils/import-aliases';
 
@@ -20,7 +19,8 @@ const rule = function (context: Rule.RuleContext) {
   }
 
   return {
-    ImportDeclaration: function (node: ImportDeclaration) {
+    ImportDeclaration: function (_node: any) {
+      const node = _node;
       if (node.source.type !== 'Literal' || !node.source.value) {
         return;
       }

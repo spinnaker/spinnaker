@@ -24,6 +24,16 @@ import java.util.Set;
 public interface FunctionProvider {
   Collection<? extends Function> getAllFunctions();
 
+  /**
+   * Returns all functions filtered by account and/or region.
+   *
+   * @param account the account to filter by (null for all accounts)
+   * @param region the region to filter by (null for all regions)
+   * @return a collection of functions matching the criteria
+   */
+  @Empty
+  Collection<? extends Function> getAllFunctions(String account, String region);
+
   Function getFunction(String account, String region, String functionName);
 
   /**

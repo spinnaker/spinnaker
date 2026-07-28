@@ -22,6 +22,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties("kustomize")
 public class RoscoKustomizeConfigurationProperties {
+  /** Kustomize v3 is end-of-life upstream; scheduled for removal in Spinnaker 2026.4.x. */
+  @Deprecated private String v3ExecutablePath = "kustomize";
+
   private String v4ExecutablePath = "kustomize4";
-  private String v3ExecutablePath = "kustomize";
+  private String v5ExecutablePath = "kustomize5";
 }

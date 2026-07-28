@@ -21,8 +21,6 @@ import com.netflix.spinnaker.keel.persistence.KeelRepository
 import com.netflix.spinnaker.keel.telemetry.VerificationCompleted
 import com.netflix.spinnaker.keel.test.configuredTestObjectMapper
 import com.netflix.spinnaker.keel.test.deliveryConfig
-import dev.minutest.junit.JUnit5Minutests
-import dev.minutest.rootContext
 import io.mockk.Called
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -30,17 +28,144 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
+import org.springframework.mock.env.MockEnvironment
 import strikt.api.expect
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import org.springframework.core.env.Environment as SpringEnv
 
-class ImageTaggerTests : JUnit5Minutests {
-  object Fixture {
-    private val mapper = configuredTestObjectMapper()
-    val taskLauncher: TaskLauncher = mockk() {
-      coEvery {
-        submitJob(
+class ImageTaggerTests {
+  private val mapper = configuredTestObjectMapper()
+  private val taskLauncher: TaskLauncher = mockk() {
+    coEvery {
+      submitJob(
+        user = any(),
+        application = "waffles",
+        environmentName = any(),
+        resourceId = any(),
+        notifications = emptySet(),
+        description = any(),
+        correlationId = any(),
+        stages = any()
+      )
+    } returns Task("123", "blah")
+  }
+  private val springEnv: MockEnvironment = MockEnvironment().apply {
+    setProperty("keel.image.tagging.enabled", "true")
+  }
+
+  private val artifact = DebianArtifact(
+    reference = "waffle",
+    name = "waffle",
+    deliveryConfigName = "waffles",
+    vmOptions = VirtualMachineOptions(baseOs = "butter-classic", regions = setOf("table", "plate"))
+  )
+  private val env = Environment(
+    name = "breakfast",
+    verifyWith = listOf(
+      DummyVerification("bacon"),
+      DummyVerification("eggs")
+    )
+  )
+  private val config: DeliveryConfig = deliveryConfig(application = "waffles", configName = "waffles", env = env, artifact = artifact)
+
+  private val spectator: Registry = NoopRegistry()
+  private val keelRepository: KeelRepository = mockk() {
+    every { getDeliveryConfigForApplication("waffles") } returns config
+  }
+  private val actionRepository: ActionRepository = mockk() {
+    every { allPassed(any(), ActionType.VERIFICATION) } returns false
+  }
+
+  private val tagger: ImageTagger = ImageTagger(mapper, taskLauncher, actionRepository, keelRepository, springEnv, spectator)
+  private val ec2images = listOf(CurrentImages(
+    ResourceKind.parseKind("ec2/cluster@v1.1"),
+    listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),
+    "my-resource"
+  ))
+
+  private val titusImages = listOf(CurrentImages(
+    ResourceKind.parseKind("titus/cluster@v1.1"),
+    listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),
+    "my-resource"
+  ))
+
+  private val eventWithImages = VerificationCompleted(
+    application = "waffles",
+    deliveryConfigName = "waffles-manifest",
+    environmentName = "breakfast",
+    artifactReference = "waffle",
+    artifactType = DEBIAN,
+    artifactVersion = "waffle-buttermilk-2.0",
+    verificationType = "taste-test",
+    verificationId = "my/docker:tag",
+    status = PASS,
+    metadata = mapOf(
+      "taste" to "excellent",
+      "task" to "eater=emily",
+      "images" to ec2images
+    )
+  )
+  private val eventWithoutImages = eventWithImages.copy(metadata = emptyMap())
+  private val failedEvent = eventWithImages.copy(status = FAIL)
+  private val notEc2Event = eventWithoutImages.copy(
+    metadata = mapOf(
+      "taste" to "excellent",
+      "task" to "eater=emily",
+      "images" to titusImages
+    )
+  )
+  private val malformedImagesEvent = eventWithImages.copy(metadata = mapOf("images" to "pictures"))
+
+  @Nested
+  inner class IgnoredEvents {
+    @Test
+    fun `failed verification`() {
+      tagger.onVerificationCompleted(failedEvent)
+      verify { taskLauncher wasNot Called}
+    }
+
+    @Test
+    fun `not ec2 cluster`() {
+      tagger.onVerificationCompleted(notEc2Event)
+      verify { taskLauncher wasNot Called}
+    }
+
+    @Test
+    fun `no images`() {
+      tagger.onVerificationCompleted(eventWithoutImages)
+      verify { taskLauncher wasNot Called}
+    }
+
+    @Test
+    fun `malformed images`() {
+      tagger.onVerificationCompleted(malformedImagesEvent)
+      verify { taskLauncher wasNot Called}
+    }
+
+    @Test
+    fun `verifications not complete yet`() {
+      tagger.onVerificationCompleted(eventWithImages)
+      verify { taskLauncher wasNot Called}
+    }
+  }
+
+  @Nested
+  inner class Ec2Events {
+    @BeforeEach
+    fun setup() {
+      every { actionRepository.allPassed(any(), ActionType.VERIFICATION) } returns true
+    }
+
+    @Test
+    fun `task launched to tag`() {
+      tagger.onVerificationCompleted(eventWithImages)
+      val jobSlot = slot<List<Map<String,Any?>>>()
+      coVerify(exactly = 1) {
+        taskLauncher.submitJob(
           user = any(),
           application = "waffles",
           environmentName = any(),
@@ -48,135 +173,16 @@ class ImageTaggerTests : JUnit5Minutests {
           notifications = emptySet(),
           description = any(),
           correlationId = any(),
-          stages = any()
+          stages = capture(jobSlot)
         )
-      } returns Task("123", "blah")
-    }
-    private val springEnv: SpringEnv = mockk {
-      every { getProperty("keel.image.tagging.enabled", Boolean::class.java, any()) } returns true
-    }
-    val artifact = DebianArtifact(
-      reference = "waffle",
-      name = "waffle",
-      deliveryConfigName = "waffles",
-      vmOptions = VirtualMachineOptions(baseOs = "butter-classic", regions = setOf("table", "plate"))
-    )
-    val env = Environment(
-      name = "breakfast",
-      verifyWith = listOf(
-        DummyVerification("bacon"),
-        DummyVerification("eggs")
-      )
-    )
-    val config: DeliveryConfig = deliveryConfig(application = "waffles", configName = "waffles", env = env, artifact = artifact)
-
-    val spectator: Registry = NoopRegistry()
-    val keelRepository: KeelRepository = mockk() {
-      every { getDeliveryConfigForApplication("waffles") } returns config
-    }
-    val actionRepository: ActionRepository = mockk() {
-      every { allPassed(any(), ActionType.VERIFICATION) } returns false
-    }
-
-    val tagger: ImageTagger = ImageTagger(mapper, taskLauncher, actionRepository, keelRepository, springEnv, spectator)
-    val ec2images = listOf(CurrentImages(
-      ResourceKind.parseKind("ec2/cluster@v1.1"),
-      listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),
-      "my-resource"
-    ))
-
-    val titusImages = listOf(CurrentImages(
-      ResourceKind.parseKind("titus/cluster@v1.1"),
-      listOf(ImageInRegion("us-east-1", "my-waffles-are-great", "kitchen")),
-      "my-resource"
-    ))
-
-    val eventWithImages = VerificationCompleted(
-      application = "waffles",
-      deliveryConfigName = "waffles-manifest",
-      environmentName = "breakfast",
-      artifactReference = "waffle",
-      artifactType = DEBIAN,
-      artifactVersion = "waffle-buttermilk-2.0",
-      verificationType = "taste-test",
-      verificationId = "my/docker:tag",
-      status = PASS,
-      metadata = mapOf(
-        "taste" to "excellent",
-        "task" to "eater=emily",
-        "images" to ec2images
-      )
-    )
-    val eventWithoutImages = eventWithImages.copy(metadata = emptyMap())
-    val failedEvent = eventWithImages.copy(status = FAIL)
-    val notEc2Event = eventWithoutImages.copy(
-      metadata = mapOf(
-        "taste" to "excellent",
-        "task" to "eater=emily",
-        "images" to titusImages
-      )
-    )
-    val malformedImagesEvent = eventWithImages.copy(metadata = mapOf("images" to "pictures"))
-  }
-
-  fun tests() = rootContext<Fixture> {
-    fixture { Fixture }
-
-    context("ignored events") {
-      test("failed verification") {
-        tagger.onVerificationCompleted(failedEvent)
-        verify { taskLauncher wasNot Called}
       }
-
-      test("not ec2 cluster") {
-        tagger.onVerificationCompleted(notEc2Event)
-        verify { taskLauncher wasNot Called}
-      }
-
-      test("no images") {
-        tagger.onVerificationCompleted(eventWithoutImages)
-        verify { taskLauncher wasNot Called}
-      }
-
-      test("malformed images") {
-        tagger.onVerificationCompleted(malformedImagesEvent)
-        verify { taskLauncher wasNot Called}
-      }
-
-      test("verifications not complete yet") {
-        tagger.onVerificationCompleted(eventWithImages)
-        verify { taskLauncher wasNot Called}
-      }
-    }
-
-    context("ec2 events") {
-      before {
-        every { actionRepository.allPassed(any(), ActionType.VERIFICATION) } returns true
-      }
-
-      test("task launched to tag") {
-        tagger.onVerificationCompleted(eventWithImages)
-        val jobSlot = slot<List<Map<String,Any?>>>()
-        coVerify(exactly = 1) {
-          taskLauncher.submitJob(
-            user = any(),
-            application = "waffles",
-            environmentName = any(),
-            resourceId = any(),
-            notifications = emptySet(),
-            description = any(),
-            correlationId = any(),
-            stages = capture(jobSlot)
+      expect {
+        with(jobSlot.captured) {
+          that(size).isEqualTo(1)
+          that(first()["type"]).isEqualTo("upsertImageTags")
+          that(first()["tags"]).isA<Map<String,Any?>>().isEqualTo(
+            mapOf("latest tested" to true, "breakfast" to "environment:passed")
           )
-        }
-        expect {
-          with(jobSlot.captured) {
-            that(size).isEqualTo(1)
-            that(first()["type"]).isEqualTo("upsertImageTags")
-            that(first()["tags"]).isA<Map<String,Any?>>().isEqualTo(
-              mapOf("latest tested" to true, "breakfast" to "environment:passed")
-            )
-          }
         }
       }
     }

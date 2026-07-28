@@ -1,8 +1,6 @@
 import { ApolloProvider } from '@apollo/client';
-import { module } from 'angular';
 import classNames from 'classnames';
 import React from 'react';
-import { react2angular } from 'react2angular';
 
 import type { Application } from '../../application';
 import { createApolloClient } from '../graphql/client';
@@ -11,7 +9,6 @@ import {
   useFetchApplicationManagementStatusQuery,
   useToggleManagementMutation,
 } from '../graphql/graphql-sdk';
-import { withErrorBoundary } from '../../presentation/SpinErrorBoundary';
 import { ValidationMessage } from '../../presentation/forms/validation';
 import { logger } from '../../utils';
 import { getDocsUrl } from '../utils/defaults';
@@ -104,7 +101,7 @@ const ManagedResourceConfigInternal = ({ application }: IManagedResourceConfigPr
   );
 };
 
-const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
+export const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
   const { client } = React.useMemo(createApolloClient, []);
 
   return (
@@ -113,9 +110,3 @@ const ManagedResourceConfig = (props: IManagedResourceConfigProps) => {
     </ApolloProvider>
   );
 };
-
-export const MANAGED_RESOURCE_CONFIG = 'spinnaker.core.managedResourceConfig.component';
-module(MANAGED_RESOURCE_CONFIG, []).component(
-  'managedResourceConfig',
-  react2angular(withErrorBoundary(ManagedResourceConfig, 'managedResourceConfig'), ['application']),
-);

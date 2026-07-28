@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.netflix.spinnaker.kork.artifacts.ArtifactTypes;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import com.netflix.spinnaker.kork.yaml.YamlHelper;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
@@ -106,7 +107,9 @@ public class ServiceManifest {
     private final TypeReference<Map<String, Object>> mapTypeReference =
         new TypeReference<Map<String, Object>>() {};
 
-    private final ObjectMapper yamlObjectMapper = new ObjectMapper(new YAMLFactory());
+    private final ObjectMapper yamlObjectMapper =
+        new ObjectMapper(
+            YAMLFactory.builder().loaderOptions(YamlHelper.getLoaderOptions()).build());
 
     @Override
     public Map<String, Object> deserialize(JsonParser parser, DeserializationContext context)

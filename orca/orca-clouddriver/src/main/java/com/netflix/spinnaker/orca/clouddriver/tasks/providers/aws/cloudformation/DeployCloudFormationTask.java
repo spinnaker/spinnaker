@@ -115,13 +115,13 @@ public class DeployCloudFormationTask implements CloudProviderAware, Task {
     Object templateBody = task.get("templateBody");
 
     if (templateBody instanceof Map && !((Map) templateBody).isEmpty()) {
-      templateBody = YamlHelper.newYaml().dump(templateBody);
+      templateBody = YamlHelper.newYamlSafeConstructor().dump(templateBody);
       task.put("templateBody", templateBody);
     } else if (templateBody instanceof List && !((List) templateBody).isEmpty()) {
       templateBody =
           ((List<?>) templateBody)
               .stream()
-                  .map(part -> YamlHelper.newYaml().dump(part))
+                  .map(part -> YamlHelper.newYamlSafeConstructor().dump(part))
                   .collect(Collectors.joining("\n---\n"));
       task.put("templateBody", templateBody);
     }

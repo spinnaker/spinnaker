@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.ecs.provider.agent
 
-import com.amazonaws.auth.AWSCredentialsProvider
-import com.amazonaws.services.cloudwatch.AmazonCloudWatch
-import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult
-import com.amazonaws.services.cloudwatch.model.Dimension
-import com.amazonaws.services.cloudwatch.model.MetricAlarm
-import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.ecs.cache.Keys
-import com.netflix.spinnaker.clouddriver.ecs.cache.model.EcsMetricAlarm
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsRequest
+import software.amazon.awssdk.services.cloudwatch.model.DescribeAlarmsResponse
+import software.amazon.awssdk.services.cloudwatch.model.Dimension
+import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,69 +33,67 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
   String ACCOUNT = 'test-account'
   @Shared
   String REGION = 'us-west-1'
-  AmazonCloudWatch cloudWatch
+  CloudWatchClient cloudWatch
   AmazonClientProvider clientProvider
   ProviderCache providerCache
-  AWSCredentialsProvider credentialsProvider
 
   @Subject
   EcsCloudMetricAlarmCachingAgent agent
 
   def setup() {
-    cloudWatch = Mock(AmazonCloudWatch)
+    cloudWatch = Mock(CloudWatchClient)
     clientProvider = Mock(AmazonClientProvider)
     providerCache = Mock(ProviderCache)
-    credentialsProvider = Mock(AWSCredentialsProvider)
     agent = new EcsCloudMetricAlarmCachingAgent(CommonCachingAgent.netflixAmazonCredentials, 'us-west-1', clientProvider)
-
   }
 
   def 'should get a list of cloud watch alarms'() {
     given:
-    def metricAlarm = new EcsMetricAlarm().withAlarmName("alarm-name").withAlarmArn("alarmArn")
+    def metricAlarm = MetricAlarm.builder().alarmName("alarm-name").alarmArn("alarmArn").build()
 
     when:
     def alarms = agent.fetchMetricAlarms(cloudWatch)
 
     then:
-    cloudWatch.describeAlarms(_) >> new DescribeAlarmsResult().withMetricAlarms(metricAlarm)
+    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms([metricAlarm]).build()
     alarms.contains(metricAlarm)
   }
 
   def 'should generate fresh data'() {
     given:
-    Set metricAlarms = [new EcsMetricAlarm().withAlarmName("alarm-name-1").withAlarmArn("alarmArn-1").withAccountName(ACCOUNT).withRegion(REGION),
-                        new EcsMetricAlarm().withAlarmName("alarm-name-2").withAlarmArn("alarmArn-2").withAccountName(ACCOUNT).withRegion(REGION)]
+    Set metricAlarms = [
+      MetricAlarm.builder().alarmName("alarm-name-1").alarmArn("alarmArn-1").build(),
+      MetricAlarm.builder().alarmName("alarm-name-2").alarmArn("alarmArn-2").build()
+    ]
     when:
     def cacheData = agent.generateFreshData(metricAlarms)
 
     then:
     cacheData.size() == 1
     cacheData.get(Keys.Namespace.ALARMS.ns).size() == metricAlarms.size()
-    metricAlarms*.alarmName.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().alarmName)
-    metricAlarms*.alarmArn.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().alarmArn)
-    metricAlarms*.accountName.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().accountName)
-    metricAlarms*.region.containsAll(cacheData.get(Keys.Namespace.ALARMS.ns)*.getAttributes().region)
   }
 
   def 'should evict old keys when id is appended'() {
     given:
-    def metricAlarm1 = new MetricAlarm().withAlarmName("alarm-name-1").withAlarmArn("alarmArn-1").withDimensions([new Dimension().withName("ClusterName").withValue("my-cluster")])
-    def metricAlarm2 = new MetricAlarm().withAlarmName("alarm-name-2").withAlarmArn("alarmArn-2").withDimensions([new Dimension().withName("ClusterName").withValue("my-cluster")])
+    def metricAlarm1 = MetricAlarm.builder().alarmName("alarm-name-1").alarmArn("alarmArn-1")
+      .dimensions([Dimension.builder().name("ClusterName").value("my-cluster").build()])
+      .build()
+    def metricAlarm2 = MetricAlarm.builder().alarmName("alarm-name-2").alarmArn("alarmArn-2")
+      .dimensions([Dimension.builder().name("ClusterName").value("my-cluster").build()])
+      .build()
     def attributes1 = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(metricAlarm1, ACCOUNT, REGION)
     def attributes2 = EcsCloudMetricAlarmCachingAgent.convertMetricAlarmToAttributes(metricAlarm2, ACCOUNT, REGION)
     def metricAlarms = [metricAlarm1, metricAlarm2]
-    def describeAlarmsResult = new DescribeAlarmsResult().withMetricAlarms(metricAlarms)
-    cloudWatch.describeAlarms(_) >> describeAlarmsResult
-    clientProvider.getAmazonCloudWatch(_, _, _) >> cloudWatch
+    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms(metricAlarms).build()
+    clientProvider.getAmazonCloudWatchV2(_, _) >> cloudWatch
 
-    def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.getAlarmArn())
-    def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.getAlarmArn())
-    def oldData = [new DefaultCacheData(oldKey1, attributes1, [:]), new DefaultCacheData(oldKey2, attributes2, [:])]
-    providerCache.getAll(Keys.Namespace.ALARMS.ns) >> oldData
+    def oldKey1 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm1.alarmArn())
+    def oldKey2 = Keys.buildKey(Keys.Namespace.ALARMS.ns, ACCOUNT, REGION, metricAlarm2.alarmArn())
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> [oldKey1, oldKey2]
 
-    def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.getAlarmArn(), "my-cluster")
-    def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.getAlarmArn(), "my-cluster")
+    def newKey1 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm1.alarmArn(), "my-cluster")
+    def newKey2 = Keys.getAlarmKey(ACCOUNT, REGION, metricAlarm2.alarmArn(), "my-cluster")
 
     when:
     def cacheResult = agent.loadData(providerCache)
@@ -108,6 +104,25 @@ class EcsCloudMetricAlarmCachingAgentSpec extends Specification {
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns].size() == 2
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.id.containsAll([newKey1, newKey2])
     cacheResult.cacheResults[Keys.Namespace.ALARMS.ns]*.attributes.containsAll([attributes1, attributes2])
+  }
+
+  def 'should use filterIdentifiers with account and region glob for evictions'() {
+    given:
+    def metricAlarm = MetricAlarm.builder().alarmName("alarm-name").alarmArn("alarmArn").build()
+    clientProvider.getAmazonCloudWatchV2(_, _) >> cloudWatch
+    cloudWatch.describeAlarms(_ as DescribeAlarmsRequest) >> DescribeAlarmsResponse.builder().metricAlarms([metricAlarm]).build()
+
+    def expectedGlob = Keys.buildGlob(Keys.Namespace.ALARMS, ACCOUNT, REGION)
+    def oldKey = Keys.getAlarmKey(ACCOUNT, REGION, "old-alarm", "")
+    def oldIdentifiers = [oldKey]
+    providerCache.filterIdentifiers(Keys.Namespace.ALARMS.ns, expectedGlob) >> oldIdentifiers
+
+    when:
+    def result = agent.loadData(providerCache)
+
+    then:
+    result.evictions[Keys.Namespace.ALARMS.ns] != null
+    result.evictions[Keys.Namespace.ALARMS.ns].containsAll(oldIdentifiers)
   }
 
 }

@@ -1,54 +1,46 @@
-import { mock } from 'angular';
-
 import { ApplicationDataSourceRegistry } from './ApplicationDataSourceRegistry';
 import type { IApplicationDataSourceAttribute } from './ApplicationReader';
 import { ApplicationReader } from './ApplicationReader';
 import { mockHttpClient } from '../../api/mock/jasmine';
 import type { Application } from '../application.model';
 import type { ClusterService } from '../../cluster/cluster.service';
-import { CLUSTER_SERVICE } from '../../cluster/cluster.service';
-import { LOAD_BALANCER_DATA_SOURCE } from '../../loadBalancer/loadBalancer.dataSource';
+import { registerLoadBalancerDataSource } from '../../loadBalancer/loadBalancer.dataSource';
 import type { LoadBalancerReader } from '../../loadBalancer/loadBalancer.read.service';
-import { LOAD_BALANCER_READ_SERVICE } from '../../loadBalancer/loadBalancer.read.service';
-import { SECURITY_GROUP_DATA_SOURCE } from '../../securityGroup/securityGroup.dataSource';
+import { registerSecurityGroupDataSource } from '../../securityGroup/securityGroup.dataSource';
 import type { SecurityGroupReader } from '../../securityGroup/securityGroupReader.service';
-import { SECURITY_GROUP_READER } from '../../securityGroup/securityGroupReader.service';
-import { SERVER_GROUP_DATA_SOURCE } from '../../serverGroup/serverGroup.dataSource';
+import { registerServerGroupDataSource } from '../../serverGroup/serverGroup.dataSource';
+import { nativePromiseService } from '../../utils/nativePromiseService';
 
 import Spy = jasmine.Spy;
 
 describe('ApplicationReader', function () {
   let securityGroupReader: SecurityGroupReader;
-  let loadBalancerReader: any;
+  let loadBalancerReader: LoadBalancerReader;
   let clusterService: ClusterService;
-  let $q: ng.IQService;
 
-  beforeEach(() => ApplicationDataSourceRegistry.clearDataSources());
+  beforeEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+    securityGroupReader = {
+      loadSecurityGroupsByApplicationName: () => Promise.resolve([]),
+      loadSecurityGroups: () => Promise.resolve([]),
+      getApplicationSecurityGroups: () => Promise.resolve([]),
+    } as any;
+    loadBalancerReader = { loadLoadBalancers: () => Promise.resolve([]) } as any;
+    clusterService = {
+      loadServerGroups: () => Promise.resolve([]),
+      createServerGroupClusters: () => [],
+      addServerGroupsToApplication: (_application: Application, serverGroups: any[]) => serverGroups,
+      addTasksToServerGroups: () => undefined,
+      addExecutionsToServerGroups: () => undefined,
+    } as any;
+    registerSecurityGroupDataSource(securityGroupReader);
+    registerServerGroupDataSource(clusterService);
+    registerLoadBalancerDataSource(nativePromiseService, loadBalancerReader);
+  });
 
-  beforeEach(
-    mock.module(
-      SECURITY_GROUP_DATA_SOURCE,
-      SERVER_GROUP_DATA_SOURCE,
-      LOAD_BALANCER_DATA_SOURCE,
-      SECURITY_GROUP_READER,
-      CLUSTER_SERVICE,
-      LOAD_BALANCER_READ_SERVICE,
-    ),
-  );
-
-  beforeEach(
-    mock.inject(function (
-      _securityGroupReader_: SecurityGroupReader,
-      _clusterService_: ClusterService,
-      _$q_: ng.IQService,
-      _loadBalancerReader_: LoadBalancerReader,
-    ) {
-      securityGroupReader = _securityGroupReader_;
-      clusterService = _clusterService_;
-      loadBalancerReader = _loadBalancerReader_;
-      $q = _$q_;
-    }),
-  );
+  afterEach(() => {
+    ApplicationDataSourceRegistry.clearDataSources();
+  });
 
   describe('load application', function () {
     let application: Application = null;
@@ -60,21 +52,20 @@ describe('ApplicationReader', function () {
         response.attributes['dataSources'] = dataSources;
       }
       http.expectGET('/applications/deck').respond(200, response);
-      spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue($q.when([]));
-      spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue($q.when([]));
-      spyOn(clusterService, 'loadServerGroups').and.returnValue($q.when([]));
-      spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue($q.when([] as any));
+      spyOn(securityGroupReader, 'loadSecurityGroupsByApplicationName').and.returnValue(Promise.resolve([]));
+      spyOn(loadBalancerReader, 'loadLoadBalancers').and.returnValue(Promise.resolve([]));
+      spyOn(clusterService, 'loadServerGroups').and.returnValue(Promise.resolve([]));
+      spyOn(securityGroupReader, 'loadSecurityGroups').and.returnValue(Promise.resolve([] as any));
       spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function (
         _app: Application,
         groupsByName: any,
       ) {
-        return $q.when(groupsByName || []);
+        return Promise.resolve(groupsByName || []);
       });
 
-      ApplicationReader.getApplication('deck').then((app) => {
-        application = app;
-      });
+      const applicationPromise = ApplicationReader.getApplication('deck');
       await http.flush();
+      application = await applicationPromise;
     }
 
     it('loads all data sources if dataSource attribute is missing', async function () {

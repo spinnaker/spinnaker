@@ -46,11 +46,11 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
 import retrofit2.mock.Calls;
@@ -86,15 +86,15 @@ public class PipelineServiceTest {
   @Qualifier("authenticatedRequestFilter")
   private FilterRegistrationBean filterRegistrationBean;
 
-  @MockBean ClouddriverServiceSelector clouddriverServiceSelector;
+  @MockitoBean ClouddriverServiceSelector clouddriverServiceSelector;
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockitoBean ClouddriverService clouddriverService;
 
   /** To prevent periodic calls to service's /health endpoints */
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   /** To prevent periodic calls to load accounts from clouddriver */
-  @MockBean DefaultProviderLookupService defaultProviderLookupService;
+  @MockitoBean DefaultProviderLookupService defaultProviderLookupService;
 
   private static final String APPLICATION_NAME = "my-application";
   private static final String PIPELINE_NAME = "my-pipeline-name";

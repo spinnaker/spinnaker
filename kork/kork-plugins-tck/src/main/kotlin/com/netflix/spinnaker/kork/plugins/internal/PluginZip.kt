@@ -161,6 +161,9 @@ class PluginZip private constructor(builder: Builder) {
     }
   }
 
+  /**
+   * Companion object for PluginZip utility methods.
+   */
   companion object {
     /**
      * Create the [PluginZip] properties file manifest.

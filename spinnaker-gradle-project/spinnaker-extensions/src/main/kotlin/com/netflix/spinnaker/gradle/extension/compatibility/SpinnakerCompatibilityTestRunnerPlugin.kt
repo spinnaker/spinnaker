@@ -27,6 +27,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginExtension
@@ -36,8 +37,10 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.register
 import java.lang.IllegalStateException
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -70,7 +73,7 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
         }
       }
 
-      val test = project.tasks.create<CompatibilityTestTask>("compatibilityTest-${project.name}-${config.version}") {
+      val test = project.tasks.register<CompatibilityTestTask>("compatibilityTest-${project.name}-${config.version}") {
         description = "Runs compatibility tests for Spinnaker ${config.version}"
         group = GROUP
         testClassesDirs = project.sourceSets.getByName(sourceSet).output.classesDirs
@@ -87,25 +90,31 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
           it.services[plugin.serviceName]?.version ?: throw IllegalStateException("Could not find version for service ${plugin.serviceName}")
         }
 
-        project.dependencies.platform("io.spinnaker.${plugin.serviceName}:${plugin.serviceName}-bom:$resolvedServiceVersion").apply {
-          force = true
-        }.also {
-          project.dependencies.add(runtimeConfiguration, it)
+        val platformDependency = project.dependencies.platform("io.spinnaker.${plugin.serviceName}:${plugin.serviceName}-bom:$resolvedServiceVersion")
+        project.dependencies.add(runtimeConfiguration, platformDependency)
+
+        // Force the BOM version using dependency constraints
+        project.configurations.getByName(runtimeConfiguration).resolutionStrategy.eachDependency {
+          if (requested.group == "io.spinnaker.${plugin.serviceName}" && requested.name == "${plugin.serviceName}-bom") {
+            useVersion(resolvedServiceVersion)
+            because("Force BOM version for compatibility testing")
+          }
         }
 
         // Copy the kotlin test compilation options into the generated compile tasks.
         project.compileKotlinTask("compileTestKotlin")?.also { compileTestKt ->
           project.compileKotlinTask("compileCompatibility-${config.version}Kotlin")?.apply {
-            kotlinOptions {
-              languageVersion = compileTestKt.kotlinOptions.languageVersion
-              jvmTarget = compileTestKt.kotlinOptions.jvmTarget
+            compilerOptions {
+
+              languageVersion = compileTestKt.compilerOptions.languageVersion
+              jvmTarget = compileTestKt.compilerOptions.jvmTarget
             }
           } ?: throw IllegalStateException("Could not find compileKotlin task for source set $sourceSet")
         }
 
-        test.afterSuite { descriptor, result ->
+        test.get().afterSuite { descriptor, result ->
           if (descriptor.parent == null) {
-            test.result.asFile.get().writeText(
+            test.get().result.asFile.get().writeText(
               PluginObjectMapper.mapper.writeValueAsString(CompatibilityTestResult(
                 platformVersion = config.version,
                 serviceVersion = resolvedServiceVersion,
@@ -148,12 +157,11 @@ class SpinnakerCompatibilityTestRunnerPlugin : Plugin<Project> {
 internal val Project.sourceSets: SourceSetContainer
   get() = project.extensions.getByType<JavaPluginExtension>().sourceSets
 
-internal var Dependency.force: Boolean
-  get() = withGroovyBuilder { getProperty("force") as Boolean }
-  set(value) = withGroovyBuilder { "force"(value) }
-
 private val SourceSet.kotlin: SourceDirectorySet
-  get() = withConvention(KotlinSourceSet::class) { kotlin }
+  get() {
+    val kotlinExtension = (this as ExtensionAware).extensions.getByName("kotlin") as SourceDirectorySet
+    return kotlinExtension
+  }
 
 private fun Project.compileKotlinTask(task: String): KotlinCompile? =
   tasks.findByName(task) as KotlinCompile?

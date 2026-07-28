@@ -3,7 +3,7 @@ import { from as observableFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import type { IAccount, IStageConfigProps } from '@spinnaker/core';
-import { AccountService, NgReact, SpelText, StageConfigField, StageConstants, TextInput } from '@spinnaker/core';
+import { AccountService, SpelText, StageConfigField, StageConstants, TargetSelect, TextInput } from '@spinnaker/core';
 import { AccountRegionClusterSelector } from '../../../presentation';
 
 export interface ICloudFoundryRunTaskStageConfigState {
@@ -49,7 +49,6 @@ export class CloudFoundryRunJobStageConfig extends React.Component<
     const { application, stage } = this.props;
     const { target, jobName, command, logsUrl } = stage;
     const { accounts } = this.state;
-    const { TargetSelect } = NgReact;
 
     return (
       <div className="cloudfoundry-resize-asg-stage form-horizontal">

@@ -58,10 +58,4 @@ class TestKitConfiguration {
   fun memoryPendingExecutionService(): PendingExecutionService =
     InMemoryPendingExecutionService()
 
-  @Bean
-  fun filterChain(http: HttpSecurity): SecurityFilterChain {
-    http.csrf().disable()
-      .authorizeHttpRequests { it.anyRequest().permitAll() }
-    return http.build()
-  }
 }

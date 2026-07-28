@@ -35,6 +35,56 @@ mv ./gate-web/swagger2.json ./gate-web/swagger.json
 cat ./gate-web/swagger.json | jq --argjson rbschema "$RB_OPT_SCHEMA" '.paths.["/pipelines/{application}/{pipelineNameOrId}"].post.requestBody = $rbschema' > ./gate-web/swagger2.json
 mv ./gate-web/swagger2.json ./gate-web/swagger.json
 
+# Fix CloudEventData type from null to object (swagger codegen doesn't handle "type": "null")
+cat ./gate-web/swagger.json | jq '.components.schemas.CloudEventData.type = "object"' > ./gate-web/swagger2.json
+mv ./gate-web/swagger2.json ./gate-web/swagger.json
+
+# Fix properties with type arrays containing "null" - convert to single type with nullable: true
+# swagger-codegen v3 doesn't handle ["string", "null"] properly for Go
+cat ./gate-web/swagger.json | jq '
+  walk(
+    if type == "object" and .type? and (.type | type == "array") then
+      if (.type | contains(["null"])) then
+        .type = (.type | map(select(. != "null")) | .[0]) | .nullable = true
+      else .
+      end
+    else .
+    end
+  )
+' > ./gate-web/swagger2.json
+mv ./gate-web/swagger2.json ./gate-web/swagger.json
+
+# Fix properties without type (add "object" as default type)
+# Fix additionalProperties without type (add {})
+# Fix DefaultPluginDescriptor.pluginVersion without type
+cat ./gate-web/swagger.json | jq '
+  walk(
+    if type == "object" then
+      if .properties? then
+        .properties = (.properties | to_entries | map(
+          if (.value | has("type") or has("$ref") or has("items") or has("oneOf") or has("anyOf") or has("allOf") or has("additionalProperties")) | not then
+            .value.type = "object"
+          else .
+          end | .
+        ) | from_entries)
+      else . end |
+      if .properties? then
+        .properties = (.properties | to_entries | map(
+          if .value.additionalProperties? and (.value.additionalProperties | type == "object") then
+            if (.value.additionalProperties | has("type") or has("$ref") or has("items")) | not then
+              .value.additionalProperties = {}
+            else .
+            end
+          else .
+          end | .
+        ) | from_entries)
+      else . end
+    else .
+    end
+  )
+' > ./gate-web/swagger2.json
+mv ./gate-web/swagger2.json ./gate-web/swagger.json
+
 touch swagger/swagger.json
 cat gate-web/swagger.json | json_pp > swagger/swagger.json
 rm gate-web/swagger.json

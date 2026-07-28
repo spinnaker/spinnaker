@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.kork.plugins
 
 import com.netflix.spinnaker.kork.exceptions.IntegrationException
-import com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.api.PluginSdks
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
@@ -54,7 +53,7 @@ internal enum class ClassKind {
   PLUGIN,
   EXTENSION;
 
-  override fun toString(): String = super.toString().toLowerCase()
+  override fun toString(): String = super.toString().lowercase()
 }
 
 internal fun Class<*>.createWithConstructor(
@@ -78,6 +77,7 @@ internal fun Class<*>.createWithConstructor(
 
   val ctor = declaredConstructors.first()
 
+  @Suppress("DEPRECATION") // ExtensionConfiguration is deprecated in favor of PluginConfiguration
   val args = ctor.parameterTypes.map { paramType ->
     when {
       paramType == PluginWrapper::class.java && classKind == ClassKind.PLUGIN -> pluginWrapper
@@ -98,11 +98,11 @@ internal fun Class<*>.createWithConstructor(
           paramType.getAnnotation(PluginConfiguration::class.java).value
         )
       }
-      paramType.isAnnotationPresent(ExtensionConfiguration::class.java) -> {
+      paramType.isAnnotationPresent(com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration::class.java) -> {
         configFactory.createExtensionConfig(
           paramType,
           pluginWrapper?.descriptor?.pluginId,
-          paramType.getAnnotation(ExtensionConfiguration::class.java).value
+          paramType.getAnnotation(com.netflix.spinnaker.kork.plugins.api.ExtensionConfiguration::class.java).value
         )
       }
       else -> {
@@ -120,7 +120,7 @@ internal fun Class<*>.createWithConstructor(
 
 internal fun Class<*>.newInstanceSafely(kind: ClassKind): Any =
   try {
-    newInstance()
+    getDeclaredConstructor().newInstance()
   } catch (ie: InstantiationException) {
     throw IntegrationException("Failed to instantiate $kind '${declaringClass.simpleName}'", ie)
   } catch (iae: IllegalAccessException) {

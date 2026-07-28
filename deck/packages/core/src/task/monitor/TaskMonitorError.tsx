@@ -3,33 +3,32 @@ import React from 'react';
 
 import { TrafficGuardHelperLink } from '../TrafficGuardHelperLink';
 import type { ITask } from '../../domain';
+import type { IRouterInjectedProps } from '../../navigation/routerContext';
+import { withRouter } from '../../navigation/routerContext';
 import { Markdown } from '../../presentation';
-import { ReactInjector } from '../../reactShims/react.injector';
 
 export interface ITaskMonitorErrorProps {
   errorMessage: string;
   task?: ITask;
 }
 
-export class TaskMonitorError extends React.Component<ITaskMonitorErrorProps> {
+class TaskMonitorErrorComponent extends React.Component<ITaskMonitorErrorProps & IRouterInjectedProps> {
   private getBaseState() {
-    const { $stateParams } = ReactInjector;
-    return `home.${$stateParams.project ? 'project' : 'applications'}.application`;
+    return `home.${this.props.stateParams.project ? 'project' : 'applications'}.application`;
   }
 
   private getParams(extras: RawParams): RawParams {
-    const { project, application } = ReactInjector.$stateParams;
+    const { project, application } = this.props.stateParams;
     return { project, application, ...extras };
   }
 
   public render() {
     const { errorMessage, task } = this.props;
-    const { $state } = ReactInjector;
     if (!errorMessage) {
       return null;
     }
     const taskLink = task.id
-      ? $state.href(this.getBaseState() + '.tasks.taskDetails', this.getParams({ taskId: task.id }))
+      ? this.props.stateService.href(this.getBaseState() + '.tasks.taskDetails', this.getParams({ taskId: task.id }))
       : null;
     return (
       <div className="col-md-12 overlay-modal-error">
@@ -51,3 +50,6 @@ export class TaskMonitorError extends React.Component<ITaskMonitorErrorProps> {
     );
   }
 }
+
+export const TaskMonitorError = withRouter(TaskMonitorErrorComponent);
+TaskMonitorError.displayName = 'TaskMonitorError';

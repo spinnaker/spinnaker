@@ -43,7 +43,7 @@ public class HeaderAuthConfigurerAdapter {
 
   @Bean
   // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(2)
+  @Order(3)
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http);
     http.addFilter(requestHeaderAuthenticationFilter);

@@ -45,6 +45,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("io.spinnaker.kork:kork-retrofit2")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly "org.junit.platform:junit-platform-launcher"
   testRuntimeOnly("org.spockframework:spock-spring")
 
 }

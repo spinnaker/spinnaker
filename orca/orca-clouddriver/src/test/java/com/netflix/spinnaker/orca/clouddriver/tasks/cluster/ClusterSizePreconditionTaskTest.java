@@ -112,6 +112,6 @@ public class ClusterSizePreconditionTaskTest {
         .isExactlyInstanceOf(JsonParseException.class)
         .hasMessage(
             "Unexpected character ('n' (code 110)): was expecting double-quote to start field name\n"
-                + " at [Source: (okio.Buffer$inputStream$1); line: 1, column: 3]");
+                + " at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 1, column: 2]");
   }
 }

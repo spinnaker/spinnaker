@@ -1,7 +1,7 @@
 interface IResource {
-  name: String;
+  name: string;
   labels: {
-    [key: string]: String;
+    [key: string]: string;
   };
 }
 

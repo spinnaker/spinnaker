@@ -59,7 +59,7 @@ public class CDEventsSenderService {
             .create(CDEventsSenderClient.class);
     String jsonEvent = converterFactory.convertCDEventToJson(cdEvent);
     log.info("Sending CDEvent Json {} ", jsonEvent);
-    return Retrofit2SyncCall.execute(
+    return Retrofit2SyncCall.executeCall(
         cdEventsSenderClient.sendCDEvent(jsonEvent, getRelativePath(eventsBrokerUrl)));
   }
 

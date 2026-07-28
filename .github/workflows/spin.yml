@@ -31,15 +31,15 @@ on:
       - '.github/workflows/spin.yml'
 
 env:
-  REGISTRY_REGION: us-docker.pkg.dev
-  CONTAINER_REGISTRY: us-docker.pkg.dev/spinnaker-community/docker
+  REGISTRY_REGION: ghcr.io/spinnaker
+  CONTAINER_REGISTRY: ghcr.io/spinnaker
   GCS_BUCKET: 'spinnaker-artifacts/spin'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/version
         id: version
@@ -59,7 +59,7 @@ jobs:
           distribution: zulu
           cache: ${{ !env.ACT && 'gradle' || '' }}
 
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}

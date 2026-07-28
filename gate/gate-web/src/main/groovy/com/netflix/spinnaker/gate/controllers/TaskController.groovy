@@ -38,7 +38,7 @@ class TaskController {
 
   @Operation(summary = "Delete task")
   @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-  Map deleteTask(@PathVariable("id") String id) {
+  void deleteTask(@PathVariable("id") String id) {
     taskService.deleteTask(id)
   }
 
@@ -50,13 +50,13 @@ class TaskController {
 
   @Operation(summary = "Cancel task")
   @RequestMapping(value = "/{id}/cancel", method = RequestMethod.PUT)
-  Map cancelTask(@PathVariable("id") String id) {
+  void cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
   }
 
   @Operation(summary = "Cancel tasks")
   @RequestMapping(value = "/cancel", method = RequestMethod.PUT)
-  Map cancelTasks(@RequestParam List<String> ids) {
+  void cancelTasks(@RequestParam List<String> ids) {
     taskService.cancelTasks(ids)
   }
 

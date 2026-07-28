@@ -41,7 +41,7 @@ export function ScriptExecutionDetails(props: IExecutionDetailsSectionProps) {
       )}
 
       {!scriptRanAndFailed && stage.context.buildInfo && stage.context.buildInfo.url && (
-        <div className="row ng-scope">
+        <div className="row">
           <div className="col-md-12">
             <div className="well alert alert-info">
               <a href={`${stage.context.buildInfo.url}consoleText`} target="_blank">

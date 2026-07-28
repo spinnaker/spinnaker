@@ -22,7 +22,7 @@ import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
 import javax.annotation.ParametersAreNullableByDefault;
 import lombok.Builder;
 import lombok.Value;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
 @NonnullByDefault
 @Value

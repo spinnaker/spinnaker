@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.MdcCopyingAsyncTaskExecutor
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -67,6 +68,7 @@ public class GateWebConfig implements WebMvcConfigurer {
   ResponseHeaderInterceptorConfigurationProperties responseHeaderInterceptorConfigurationProperties
 
   @Autowired
+  @Qualifier("applicationTaskExecutor")
   AsyncTaskExecutor asyncTaskExecutor
 
   @Override
@@ -125,6 +127,8 @@ public class GateWebConfig implements WebMvcConfigurer {
   @Override
   void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
     configurer.favorPathExtension(false)
+      .defaultContentType(org.springframework.http.MediaType.APPLICATION_JSON)
+      .mediaType("html", org.springframework.http.MediaType.TEXT_HTML)
   }
 
   @Override

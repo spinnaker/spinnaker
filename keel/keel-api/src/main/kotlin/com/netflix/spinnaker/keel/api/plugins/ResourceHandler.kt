@@ -39,7 +39,6 @@ import java.util.concurrent.Executor
  * @param R the resolved model type.
  */
 interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
-  @JvmDefault
   val name: String
     get() = extensionClass.simpleName
 
@@ -65,7 +64,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @param resource the resource as persisted in the Keel database.
    */
-  @JvmDefault
   suspend fun desired(resource: Resource<S>): R =
     TODO("Not implemented")
 
@@ -76,7 +74,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * This method should *only* be overridden by Java-based implementations. Kotlin-based implementations
    * should override [desired] instead.
    */
-  @JvmDefault
   fun desiredAsync(resource: Resource<S>, executor: Executor): CompletableFuture<R> =
     TODO("Not implemented")
 
@@ -92,7 +89,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * Note: Java-based plugins should override [currentAsync] instead.
    */
-  @JvmDefault
   suspend fun current(resource: Resource<S>): R? =
     TODO("Not implemented")
 
@@ -103,7 +99,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * This method should *only* be overridden by Java-based implementations. Kotlin-based implementations
    * should override [current] instead.
    */
-  @JvmDefault
   fun currentAsync(resource: Resource<S>, executor: Executor): CompletableFuture<R?> =
     TODO("Not implemented")
 
@@ -113,7 +108,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * The default value is to take action on all changes. Only override if needed.
    */
-  @JvmDefault
   suspend fun willTakeAction(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -129,7 +123,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  @JvmDefault
   suspend fun create(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -146,7 +139,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  @JvmDefault
   suspend fun update(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -161,7 +153,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    *
    * @return a list of tasks launched to actuate the resource.
    */
-  @JvmDefault
   suspend fun upsert(
     resource: Resource<S>,
     resourceDiff: ResourceDiff<R>
@@ -172,20 +163,17 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
   /**
    * Delete a resource as the desired state is that it should no longer exist.
    */
-  @JvmDefault
   suspend fun delete(resource: Resource<S>): List<Task> = TODO("Not implemented")
 
   /**
    * Generate a spec from currently existing resources.
    */
-  @JvmDefault
   suspend fun export(exportable: Exportable): S = TODO("Not implemented")
 
   /**
    * Generates an artifact from a currently existing resource.
    * Note: this only applies to resources that use artifacts, like clusters.
    */
-  @JvmDefault
   suspend fun exportArtifact(exportable: Exportable): DeliveryArtifact =
     TODO("Not implemented or not supported with this handler")
 
@@ -193,7 +181,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * @return `true` if this plugin is still busy running a previous actuation for [resource],
    * `false` otherwise.
    */
-  @JvmDefault
   suspend fun actuationInProgress(resource: Resource<S>): Boolean = false
 
   /**
@@ -202,7 +189,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * The default implementation achieves this by publishing an [ArtifactVersionDeploying] event via the
    * [EventPublisher], and should *not* be overridden by plugin implementations.
    */
-  @JvmDefault
   fun notifyArtifactDeploying(resource: Resource<S>, artifactVersion: String) =
     eventPublisher?.publishEvent(ArtifactVersionDeploying(resource.id, artifactVersion))
 
@@ -212,7 +198,6 @@ interface ResourceHandler<S : ResourceSpec, R : Any> : SpinnakerExtensionPoint {
    * The default implementation achieves this by publishing an [ArtifactVersionDeployed] event via the
    * [EventPublisher], and should *not* be overridden by plugin implementations.
    */
-  @JvmDefault
   fun notifyArtifactDeployed(resource: Resource<S>, artifactVersion: String) =
     eventPublisher?.publishEvent(ArtifactVersionDeployed(resource.id, artifactVersion))
 }

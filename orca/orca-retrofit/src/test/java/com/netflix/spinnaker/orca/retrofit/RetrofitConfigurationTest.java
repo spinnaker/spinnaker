@@ -32,7 +32,7 @@ import java.util.List;
 import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
-import org.springframework.boot.task.TaskExecutorBuilder;
+import org.springframework.boot.task.SimpleAsyncTaskExecutorBuilder;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +42,7 @@ class RetrofitConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
           .withBean(NoopRegistry.class)
-          .withBean(TaskExecutorBuilder.class)
+          .withBean(SimpleAsyncTaskExecutorBuilder.class)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(
               UserConfigurations.of(

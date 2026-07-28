@@ -274,12 +274,51 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
     Integer desired
   }
 
-  @Canonical
   static class Source {
     String account
     String region
     String asgName
     Boolean useSourceCapacity
+
+    // Constructor that normalizes empty strings to null
+    Source(String account = null, String region = null, String asgName = null, Boolean useSourceCapacity = null) {
+      this.account = (account == "" ? null : account)
+      this.region = (region == "" ? null : region)
+      this.asgName = (asgName == "" ? null : asgName)
+      this.useSourceCapacity = useSourceCapacity
+    }
+
+    // Map-based constructor for named parameters
+    Source(Map params) {
+      this.account = params.account == "" ? null : params.account
+      this.region = params.region == "" ? null : params.region
+      this.asgName = params.asgName == "" ? null : params.asgName
+      this.useSourceCapacity = params.useSourceCapacity
+    }
+
+    boolean equals(o) {
+      if (this.is(o)) return true
+      if (getClass() != o.class) return false
+      Source source = (Source) o
+      if (account != source.account) return false
+      if (region != source.region) return false
+      if (asgName != source.asgName) return false
+      if (useSourceCapacity != source.useSourceCapacity) return false
+      return true
+    }
+
+    int hashCode() {
+      int result
+      result = (account != null ? account.hashCode() : 0)
+      result = 31 * result + (region != null ? region.hashCode() : 0)
+      result = 31 * result + (asgName != null ? asgName.hashCode() : 0)
+      result = 31 * result + (useSourceCapacity != null ? useSourceCapacity.hashCode() : 0)
+      return result
+    }
+
+    String toString() {
+      return "Source($account, $region, $asgName, $useSourceCapacity)"
+    }
   }
 
   @Canonical

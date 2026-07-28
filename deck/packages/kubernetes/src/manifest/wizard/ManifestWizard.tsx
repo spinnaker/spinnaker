@@ -47,7 +47,7 @@ export class ManifestWizard extends React.Component<IKubernetesManifestModalProp
       taskMonitor: new TaskMonitor({
         application: props.application,
         title: `${this.props.isNew ? 'Deploying' : 'Updating'} your manifest`,
-        modalInstance: TaskMonitor.modalInstanceEmulation(() => this.props.dismissModal()),
+        onDismiss: () => this.props.dismissModal(),
       }),
     };
   }

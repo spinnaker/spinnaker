@@ -21,6 +21,7 @@ import com.netflix.spinnaker.kork.plugins.api.PluginConfiguration
 import com.netflix.spinnaker.kork.plugins.config.ConfigFactory
 import com.netflix.spinnaker.kork.plugins.v2.basePackageName
 import org.pf4j.Plugin
+import org.pf4j.PluginWrapper
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider
 import org.springframework.core.io.ResourceLoader
@@ -37,15 +38,16 @@ import org.springframework.util.ClassUtils
  */
 class PluginConfigurationRegisteringCustomizer(
   private val configFactory: ConfigFactory,
+  private val pluginWrapper: PluginWrapper,
   private var classResolver: ClassResolver? = null
 ) : PluginApplicationContextCustomizer {
 
   override fun accept(plugin: Plugin, context: ConfigurableApplicationContext) {
-    val resolver = classResolver ?: DefaultClassResolver(plugin.wrapper.pluginClassLoader)
+    val resolver = classResolver ?: DefaultClassResolver(pluginWrapper.pluginClassLoader)
 
     ClassPathScanningCandidateComponentProvider(false, context.environment)
       .apply {
-        resourceLoader = PathMatchingResourcePatternResolver(plugin.wrapper.pluginClassLoader)
+        resourceLoader = PathMatchingResourcePatternResolver(pluginWrapper.pluginClassLoader)
         addIncludeFilter(AnnotationTypeFilter(PluginConfiguration::class.java))
       }
       .findCandidateComponents(plugin.basePackageName)
@@ -54,7 +56,7 @@ class PluginConfigurationRegisteringCustomizer(
         val cls = resolver.resolveClassName(it)
         configFactory.createPluginConfig(
           cls,
-          plugin.wrapper.pluginId,
+          pluginWrapper.pluginId,
           cls.getAnnotation(PluginConfiguration::class.java).value
         )
       }

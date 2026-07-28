@@ -19,11 +19,11 @@ package com.netflix.kayenta.judge
 import com.netflix.kayenta.canary.results.CanaryAnalysisResult
 import com.netflix.kayenta.judge.classifiers.metric.{High, Low, Nodata, Pass}
 import com.netflix.kayenta.judge.scorers.WeightedSumScorer
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.collection.JavaConverters._
 
-class ScorerSuite extends FunSuite {
+class ScorerSuite extends AnyFunSuite {
 
   test("Weighted Sum Group Scorer: Single Metric Pass") {
     val groupWeights = Map[String, Double]()

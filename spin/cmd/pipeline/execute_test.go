@@ -24,8 +24,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spinnaker/spin/cmd"
-	"github.com/spinnaker/spin/util"
+	"github.com/spinnaker/spinnaker/spin/cmd"
+	"github.com/spinnaker/spinnaker/spin/util"
 )
 
 // TODO(jacobkiefer): This test overlaps heavily with pipeline_save_test.go,
@@ -142,10 +142,12 @@ func testGatePipelineExecuteSuccess() *httptest.Server {
 		resp := http.Response{StatusCode: 201}
 		b, _ := json.Marshal(&resp)
 
+		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusAccepted)
 		fmt.Fprintln(w, string(b)) // Write empty 201.
 	}))
 	mux.Handle("/applications/app/executions/search", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("content-type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, strings.TrimSpace(executions))
 	}))

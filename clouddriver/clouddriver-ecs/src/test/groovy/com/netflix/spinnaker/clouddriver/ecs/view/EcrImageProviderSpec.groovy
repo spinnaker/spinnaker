@@ -1,13 +1,11 @@
 package com.netflix.spinnaker.clouddriver.ecs.view
 
 import com.netflix.spinnaker.clouddriver.ecs.provider.view.EcrImageProvider
-import org.junit.jupiter.api.Test
 import spock.lang.Specification
 
 class EcrImageProviderSpec extends Specification {
 
-  @Test
-  void shouldHandleEcrRepositoryUrl() {
+  def shouldHandleEcrRepositoryUrl() {
     given:
     EcrImageProvider ecrImageProvider = new EcrImageProvider(null, null)
     String ecrRepositoryUrl = "123456789012.dkr.ecr.us-west-2.amazonaws.com/continuous-delivery:latest"
@@ -27,8 +25,7 @@ class EcrImageProviderSpec extends Specification {
     ecrIdentifier == "latest"
   }
 
-  @Test
-  void shouldHandleEcrSubOrgRepositoryUrl() {
+  def shouldHandleEcrSubOrgRepositoryUrl() {
     given:
     EcrImageProvider ecrImageProvider = new EcrImageProvider(null, null)
     String ecrRepositoryUrl = "123456789012.dkr.ecr.us-west-2.amazonaws.com/sub-org/continuous-delivery:latest"
@@ -47,8 +44,7 @@ class EcrImageProviderSpec extends Specification {
     ecrIdentifier == "latest"
   }
 
-  @Test
-  void shouldHandleEcrSha256RepositoryUrl() {
+  def shouldHandleEcrSha256RepositoryUrl() {
     given:
     EcrImageProvider ecrImageProvider = new EcrImageProvider(null, null)
     String ecrRepositoryUrl = "123456789012.dkr.ecr.us-east-1.amazonaws.com/continuous-delivery@sha256:e87afa4e9a1b5b2b10b596526881acb6e7007dbff43f37270921ba84dbeda428"
@@ -67,8 +63,7 @@ class EcrImageProviderSpec extends Specification {
     ecrIdentifier == "sha256:e87afa4e9a1b5b2b10b596526881acb6e7007dbff43f37270921ba84dbeda428"
   }
 
-  @Test
-  void shouldNotHandleNonEcrRepositoryUrl() {
+  def shouldNotHandleNonEcrRepositoryUrl() {
     given:
     EcrImageProvider ecrImageProvider = new EcrImageProvider(null, null)
     String ecrRepositoryUrl = "mydockerregistry.com/continuous-delivery:latest"
@@ -80,8 +75,7 @@ class EcrImageProviderSpec extends Specification {
     !canHandle
   }
 
-  @Test
-  void shouldNotHandleShortEcrRepoName() {
+  def shouldNotHandleShortEcrRepoName() {
     given:
     EcrImageProvider ecrImageProvider = new EcrImageProvider(null, null)
     String ecrRepositoryUrl = "123456789012.dkr.ecr.us-west-2.amazonaws.com/n:latest"
@@ -93,8 +87,7 @@ class EcrImageProviderSpec extends Specification {
     !canHandle
   }
 
-  @Test
-  void shouldNotHandleMissingRepoName() {
+  def shouldNotHandleMissingRepoName() {
     given:
     EcrImageProvider ecrImageProvider = new EcrImageProvider(null, null)
     String domainNameOnly = "123456789012.dkr.ecr.us-east-1.amazonaws.com"

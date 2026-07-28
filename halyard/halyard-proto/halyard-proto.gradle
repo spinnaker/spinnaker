@@ -35,15 +35,10 @@ protobuf {
       task.descriptorSetOptions.includeImports = true
     }
   }
-  generatedFilesBaseDir = "${projectDir}/build-gen/proto"
 }
 
 idea {
   module {
-    sourceDirs += file("${projectDir}/build-gen/proto/main/java")
+    sourceDirs += file("${buildDir}/generated/sources/proto/main/java")
   }
-}
-
-clean {
-  delete "${projectDir}/build-gen"
 }

@@ -22,11 +22,10 @@ plugins {
 
 allprojects {
   apply plugin: 'io.spinnaker.project'
+  group = "io.spinnaker.front50"
 }
 
 subprojects { project ->
-  group = "io.spinnaker.front50"
-
   if (name != "front50-bom") {
     apply plugin: 'java-library'
     apply plugin: 'groovy'
@@ -68,6 +67,9 @@ subprojects { project ->
       testImplementation("org.hamcrest:hamcrest-core")
       testRuntimeOnly("cglib:cglib-nodep")
       testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+      testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+      testImplementation("org.assertj:assertj-core")
+
       testRuntimeOnly("org.objenesis:objenesis")
     }
   }

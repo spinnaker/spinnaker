@@ -1,32 +1,18 @@
-import { mock } from 'angular';
-
 import type { Application } from '../application/application.model';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
-import { PROVIDER_SERVICE_DELEGATE } from '../cloudProvider';
 import type { IInstance, IServerGroup } from '../domain';
 import type { IMultiInstanceGroup } from './instance.write.service';
 import { InstanceWriter } from './instance.write.service';
-import { REACT_MODULE } from '../reactShims';
 import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
 import * as State from '../state';
 import type { IJob, ITaskCommand } from '../task/taskExecutor';
 import { TaskExecutor } from '../task/taskExecutor';
 
 describe('Service: instance writer', function () {
-  let $q: ng.IQService;
-  let $scope: ng.IScope;
-
-  beforeEach(mock.module(REACT_MODULE, PROVIDER_SERVICE_DELEGATE));
-  beforeEach(
-    mock.inject((_$q_: ng.IQService, $rootScope: ng.IRootScopeService) => {
-      $q = _$q_;
-      $scope = $rootScope.$new();
-      State.initialize();
-    }),
-  );
+  beforeEach(() => State.initialize());
 
   describe('terminate and decrement server group', () => {
-    it('should set setMaxToNewDesired flag based on current server group capacity', function () {
+    it('should set setMaxToNewDesired flag based on current server group capacity', async function () {
       const serverGroup = {
         asg: {
           minSize: 4,
@@ -55,19 +41,77 @@ describe('Service: instance writer', function () {
         executedTask = task.job[0];
         return undefined;
       });
-      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue($q.when(serverGroup as any));
+      spyOn(ServerGroupReader, 'getServerGroup').and.returnValue(Promise.resolve(serverGroup as any));
 
-      InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, application, {});
-      $scope.$digest();
-      $scope.$digest();
+      await InstanceWriter.terminateInstanceAndShrinkServerGroup(instance, application, {});
 
       expect(TaskExecutor.executeTask).toHaveBeenCalled();
       expect(executedTask['setMaxToNewDesired']).toBe(true);
     });
   });
 
+  describe('single-instance discovery operations', () => {
+    const instance: IInstance = {
+      account: 'test',
+      cloudProvider: 'gce',
+      health: [],
+      healthState: 'Up',
+      id: 'instance-1',
+      launchTime: 1,
+      name: 'instance-1',
+      region: 'us-central1',
+      serverGroup: 'fnord-v001',
+      zone: 'us-central1-a',
+    };
+    const application: Application = ApplicationModelBuilder.createApplicationForTests('app');
+    let task: ITaskCommand;
+
+    beforeEach(() => {
+      task = null;
+      spyOn(TaskExecutor, 'executeTask').and.callFake((command: ITaskCommand) => {
+        task = command;
+        return undefined;
+      });
+    });
+
+    it('includes confirmation params in the enable task payload', () => {
+      InstanceWriter.enableInstanceInDiscovery(instance, application, { reason: 'operator requested' });
+
+      expect(task.job).toEqual([
+        {
+          asgName: 'fnord-v001',
+          cloudProvider: 'gce',
+          credentials: 'test',
+          instanceIds: ['instance-1'],
+          reason: 'operator requested',
+          region: 'us-central1',
+          serverGroupName: 'fnord-v001',
+          type: 'enableInstancesInDiscovery',
+        },
+      ]);
+    });
+
+    it('includes confirmation params in the disable task payload', () => {
+      InstanceWriter.disableInstanceInDiscovery(instance, application, { reason: 'operator requested' });
+
+      expect(task.job).toEqual([
+        {
+          asgName: 'fnord-v001',
+          cloudProvider: 'gce',
+          credentials: 'test',
+          instanceIds: ['instance-1'],
+          reason: 'operator requested',
+          region: 'us-central1',
+          serverGroupName: 'fnord-v001',
+          type: 'disableInstancesInDiscovery',
+        },
+      ]);
+    });
+  });
+
   describe('multi-instance operations', () => {
     let task: ITaskCommand, serverGroupA: IServerGroup, serverGroupB: IServerGroup;
+    const providerServiceDelegate = { hasDelegate: () => false } as any;
 
     function getInstanceGroup(serverGroup: IServerGroup): IMultiInstanceGroup {
       return State.ClusterState.multiselectModel.getOrCreateInstanceGroup(serverGroup);
@@ -126,7 +170,11 @@ describe('Service: instance writer', function () {
         zone: 'a',
         launchTime: 2,
       });
-      InstanceWriter.terminateInstances([getInstanceGroup(serverGroupA), getInstanceGroup(serverGroupB)], application);
+      InstanceWriter.terminateInstances(
+        [getInstanceGroup(serverGroupA), getInstanceGroup(serverGroupB)],
+        application,
+        providerServiceDelegate,
+      );
 
       expect(task.job.length).toBe(1);
 
@@ -158,7 +206,11 @@ describe('Service: instance writer', function () {
         zone: 'a',
         launchTime: 2,
       });
-      InstanceWriter.terminateInstancesAndShrinkServerGroups([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.terminateInstancesAndShrinkServerGroups(
+        [getInstanceGroup(serverGroupA)],
+        application,
+        providerServiceDelegate,
+      );
 
       expect(task.job.length).toBe(1);
 
@@ -185,7 +237,7 @@ describe('Service: instance writer', function () {
         launchTime: 2,
       });
 
-      InstanceWriter.terminateInstances([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.terminateInstances([getInstanceGroup(serverGroupA)], application, providerServiceDelegate);
       expect(task.description).toBe('Terminate 1 instance');
 
       addInstance(serverGroupA, {
@@ -196,7 +248,7 @@ describe('Service: instance writer', function () {
         zone: 'a',
         launchTime: 1,
       });
-      InstanceWriter.terminateInstances([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.terminateInstances([getInstanceGroup(serverGroupA)], application, providerServiceDelegate);
       expect(task.description).toBe('Terminate 2 instances');
     });
 
@@ -211,7 +263,7 @@ describe('Service: instance writer', function () {
         launchTime: 2,
       });
 
-      InstanceWriter.rebootInstances([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.rebootInstances([getInstanceGroup(serverGroupA)], application, providerServiceDelegate);
       expect(task.description).toBe('Reboot 1 instance');
 
       addInstance(serverGroupA, {
@@ -222,7 +274,7 @@ describe('Service: instance writer', function () {
         zone: 'a',
         launchTime: 1,
       });
-      InstanceWriter.rebootInstances([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.rebootInstances([getInstanceGroup(serverGroupA)], application, providerServiceDelegate);
       expect(task.description).toBe('Reboot 2 instances');
     });
 
@@ -237,7 +289,11 @@ describe('Service: instance writer', function () {
         launchTime: 2,
       });
 
-      InstanceWriter.disableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.disableInstancesInDiscovery(
+        [getInstanceGroup(serverGroupA)],
+        application,
+        providerServiceDelegate,
+      );
       expect(task.description).toBe('Disable 1 instance in discovery');
 
       addInstance(serverGroupA, {
@@ -248,7 +304,11 @@ describe('Service: instance writer', function () {
         zone: 'a',
         launchTime: 1,
       });
-      InstanceWriter.disableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.disableInstancesInDiscovery(
+        [getInstanceGroup(serverGroupA)],
+        application,
+        providerServiceDelegate,
+      );
       expect(task.description).toBe('Disable 2 instances in discovery');
     });
 
@@ -263,7 +323,7 @@ describe('Service: instance writer', function () {
         launchTime: 2,
       });
 
-      InstanceWriter.enableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.enableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application, providerServiceDelegate);
       expect(task.description).toBe('Enable 1 instance in discovery');
 
       addInstance(serverGroupA, {
@@ -274,7 +334,7 @@ describe('Service: instance writer', function () {
         zone: 'a',
         launchTime: 1,
       });
-      InstanceWriter.enableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application);
+      InstanceWriter.enableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application, providerServiceDelegate);
       expect(task.description).toBe('Enable 2 instances in discovery');
     });
   });

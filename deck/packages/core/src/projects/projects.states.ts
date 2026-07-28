@@ -1,37 +1,25 @@
-import type { StateParams } from '@uirouter/angularjs';
-import { module } from 'angular';
-
 import { ProjectHeader } from './ProjectHeader';
 import { Projects } from './Projects';
 import type { ApplicationStateProvider } from '../application/application.state.provider';
-import { APPLICATION_STATE_PROVIDER } from '../application/application.state.provider';
-import { CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER } from './dashboard/dashboard.controller';
+import { registerApplicationState } from '../application/applicationState.registration';
+import { ProjectDashboard } from './dashboard/ProjectDashboard';
 import type { IProject } from '../domain/IProject';
 import type { INestedState, StateConfigProvider } from '../navigation/state.provider';
-import { STATE_CONFIG_PROVIDER } from '../navigation/state.provider';
 import { ProjectReader } from './service/ProjectReader';
 
-export interface IProjectStateParms extends StateParams {
+export interface IProjectStateParms {
   project: string;
 }
 
-export const PROJECTS_STATES_CONFIG = 'spinnaker.core.projects.state.config';
-module(PROJECTS_STATES_CONFIG, [
-  CORE_PROJECTS_DASHBOARD_DASHBOARD_CONTROLLER,
-  APPLICATION_STATE_PROVIDER,
-  STATE_CONFIG_PROVIDER,
-]).config([
-  'stateConfigProvider',
-  'applicationStateProvider',
-  (stateConfigProvider: StateConfigProvider, applicationStateProvider: ApplicationStateProvider) => {
+registerApplicationState(
+  (applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
     const dashboard: INestedState = {
       name: 'dashboard',
       url: '/dashboard',
       views: {
         detail: {
-          templateUrl: require('../projects/dashboard/dashboard.html'),
-          controller: 'ProjectDashboardCtrl',
-          controllerAs: 'vm',
+          component: ProjectDashboard,
+          $type: 'react',
         },
       },
       data: {
@@ -104,4 +92,4 @@ module(PROJECTS_STATES_CONFIG, [
 
     stateConfigProvider.addRewriteRule('/projects/{project}', '/projects/{project}/dashboard');
   },
-]);
+);

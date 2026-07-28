@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.client;
 
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.State.SUCCEEDED;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.CREATE_SERVICE_KEY;
-import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.LastOperation.Type.DELETE_SERVICE_KEY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.State.SUCCEEDED;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.Type.CREATE_SERVICE_KEY;
+import static com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.LastOperation.Type.DELETE_SERVICE_KEY;
 import static com.netflix.spinnaker.clouddriver.cloudfoundry.utils.TestUtils.assertThrows;
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -34,12 +32,16 @@ import static org.mockito.Mockito.when;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceInstanceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.ServiceKeyResponse;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.CreateServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Pagination;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Relationship;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBinding;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ServiceCredentialBindingDetails;
+import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.ToOneRelationship;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServiceInstance;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.vavr.collection.HashMap;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import okhttp3.MediaType;
@@ -72,20 +74,6 @@ class ServiceKeysTest {
               "details", singleton("detail"))
           .toJavaMap();
 
-  {
-    when(serviceInstanceService.findService(any(), anyList()))
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    Page.singleton(new Service().setLabel("service1"), "service-guid"))));
-
-    when(serviceInstanceService.findServicePlans(any(), anyList()))
-        .thenReturn(
-            Calls.response(
-                Response.success(
-                    Page.singleton(new ServicePlan().setName("ServicePlan1"), "plan-guid"))));
-  }
-
   @Test
   void createServiceKeyShouldReturnSuccessWhenServiceKeyIsCreated() {
     when(spaces.getServiceInstanceByNameAndSpace(any(), any()))
@@ -94,13 +82,19 @@ class ServiceKeysTest {
                 .name(serviceKeyName)
                 .id(serviceInstanceId)
                 .build());
-    ServiceCredentials serviceCredentials = new ServiceCredentials().setCredentials(credentials);
-    Resource<ServiceCredentials> resource = new Resource<>();
-    resource.setEntity(serviceCredentials);
+    ServiceCredentialBinding binding = new ServiceCredentialBinding();
+    binding.setGuid(serviceKeyId);
+    binding.setName(serviceKeyName);
+    binding.setType("key");
     when(serviceKeyService.createServiceKey(any()))
-        .thenReturn(Calls.response(Response.success(resource)));
-    CreateServiceKey requestBody =
-        new CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(serviceInstanceId);
+        .thenReturn(Calls.response(Response.success(binding)));
+    when(serviceKeyService.getServiceKeyDetails(serviceKeyId))
+        .thenReturn(
+            Calls.response(
+                Response.success(
+                    new ServiceCredentialBindingDetails().setCredentials(credentials))));
+    CreateServiceCredentialBinding requestBody =
+        CreateServiceCredentialBinding.forServiceKey(serviceKeyName, serviceInstanceId);
 
     ServiceKeyResponse expectedResults = new ServiceKeyResponse();
     expectedResults.setServiceKey(credentials);
@@ -108,8 +102,8 @@ class ServiceKeysTest {
     expectedResults.setState(SUCCEEDED);
     expectedResults.setServiceInstanceName(serviceInstanceName);
     expectedResults.setServiceKeyName(serviceKeyName);
-    when(serviceKeyService.getServiceKey(any(), any()))
-        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPage())));
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPagination())));
 
     ServiceKeyResponse results =
         serviceKeys.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName);
@@ -143,10 +137,10 @@ class ServiceKeysTest {
                 .name(serviceKeyName)
                 .id(serviceInstanceId)
                 .build());
-    CreateServiceKey requestBody =
-        new CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(serviceInstanceId);
-    when(serviceKeyService.getServiceKey(any(), any()))
-        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPage())));
+    CreateServiceCredentialBinding requestBody =
+        CreateServiceCredentialBinding.forServiceKey(serviceKeyName, serviceInstanceId);
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPagination())));
 
     when(serviceKeyService.createServiceKey(any()))
         .thenReturn(
@@ -175,9 +169,15 @@ class ServiceKeysTest {
                 .name(serviceKeyName)
                 .id(serviceInstanceId)
                 .build());
-    when(serviceKeyService.getServiceKey(any(), any()))
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
         .thenReturn(
-            Calls.response(Response.success(createServiceKeyPage(serviceKeyName, serviceKeyId))));
+            Calls.response(
+                Response.success(createServiceKeyPagination(serviceKeyName, serviceKeyId))));
+    when(serviceKeyService.getServiceKeyDetails(serviceKeyId))
+        .thenReturn(
+            Calls.response(
+                Response.success(
+                    new ServiceCredentialBindingDetails().setCredentials(credentials))));
 
     ServiceKeyResponse expectedResults = new ServiceKeyResponse();
     expectedResults.setServiceKey(credentials);
@@ -195,45 +195,32 @@ class ServiceKeysTest {
 
   @Test
   void getServiceKeyShouldSucceed() {
-    ServiceKey serviceKey =
-        new ServiceKey()
-            .setName("service-key")
-            .setCredentials(singletonMap("username", "user1"))
-            .setServiceInstanceGuid("service-instance-guid");
     String serviceKeyGuid = "service-key-guid";
-    Page<ServiceKey> page = Page.singleton(serviceKey, serviceKeyGuid);
-    when(serviceKeyService.getServiceKey(any(), any()))
-        .thenReturn(Calls.response(Response.success(page)));
-    Resource<ServiceKey> expectedResource =
-        new Resource<ServiceKey>()
-            .setEntity(serviceKey)
-            .setMetadata(new Resource.Metadata().setGuid(serviceKeyGuid));
+    ServiceCredentialBinding expectedBinding =
+        createServiceKeyBinding("service-key", serviceKeyGuid);
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(singletonPagination(expectedBinding))));
 
-    Optional<Resource<ServiceKey>> serviceKeyResults =
+    Optional<ServiceCredentialBinding> serviceKeyResults =
         serviceKeys.getServiceKey("service-instance-guid", "service-key");
 
     assertThat(serviceKeyResults.isPresent()).isTrue();
-    assertThat(serviceKeyResults.get()).isEqualTo(expectedResource);
+    assertThat(serviceKeyResults.get()).isEqualTo(expectedBinding);
     verify(serviceKeyService)
-        .getServiceKey(
-            any(),
-            eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+        .getServiceKey(any(), eq("service-instance-guid"), eq("service-key"), eq("key"));
   }
 
   @Test
   void getServiceKeyShouldReturnEmptyOptionalWhenNotPresent() {
-    Page<ServiceKey> page = new Page<ServiceKey>().setTotalResults(0).setTotalPages(1);
-    when(serviceKeyService.getServiceKey(any(), any()))
-        .thenReturn(Calls.response(Response.success(page)));
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPagination())));
 
-    Optional<Resource<ServiceKey>> serviceKeyResults =
+    Optional<ServiceCredentialBinding> serviceKeyResults =
         serviceKeys.getServiceKey("service-instance-guid", "service-key");
 
     assertThat(serviceKeyResults.isPresent()).isFalse();
     verify(serviceKeyService)
-        .getServiceKey(
-            any(),
-            eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+        .getServiceKey(any(), eq("service-instance-guid"), eq("service-key"), eq("key"));
   }
 
   @Test
@@ -244,9 +231,10 @@ class ServiceKeysTest {
                 .name(serviceInstanceName)
                 .id(serviceInstanceId)
                 .build());
-    when(serviceKeyService.getServiceKey(any(), any()))
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
         .thenReturn(
-            Calls.response(Response.success(createServiceKeyPage(serviceKeyName, serviceKeyId))));
+            Calls.response(
+                Response.success(createServiceKeyPagination(serviceKeyName, serviceKeyId))));
     when(serviceKeyService.deleteServiceKey(any()))
         .thenReturn(Calls.response(Response.success(202, null)));
     ServiceKeyResponse expectedResponse =
@@ -263,9 +251,7 @@ class ServiceKeysTest {
     assertThat(response).isEqualTo(expectedResponse);
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService)
-        .getServiceKey(
-            any(),
-            eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+        .getServiceKey(any(), eq(serviceInstanceId), eq(serviceKeyName), eq("key"));
     verify(serviceKeyService).deleteServiceKey(serviceKeyId);
   }
 
@@ -277,8 +263,8 @@ class ServiceKeysTest {
                 .name(serviceInstanceName)
                 .id(serviceInstanceId)
                 .build());
-    when(serviceKeyService.getServiceKey(any(), any()))
-        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPage())));
+    when(serviceKeyService.getServiceKey(any(), any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPagination())));
     ServiceKeyResponse expectedResponse =
         (ServiceKeyResponse)
             new ServiceKeyResponse()
@@ -293,9 +279,7 @@ class ServiceKeysTest {
     assertThat(response).isEqualTo(expectedResponse);
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
     verify(serviceKeyService)
-        .getServiceKey(
-            any(),
-            eq(Arrays.asList("service_instance_guid:service-instance-guid", "name:service-key")));
+        .getServiceKey(any(), eq(serviceInstanceId), eq(serviceKeyName), eq("key"));
     verify(serviceKeyService, never()).deleteServiceKey(any());
   }
 
@@ -308,16 +292,37 @@ class ServiceKeysTest {
         CloudFoundryApiException.class,
         "Cloud Foundry API returned with error(s): Cannot find service 'service-instance' in region 'org > space'");
     verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
-    verify(serviceKeyService, never()).getServiceKey(any(), any());
+    verify(serviceKeyService, never()).getServiceKey(any(), any(), any(), any());
     verify(serviceKeyService, never()).deleteServiceKey(any());
   }
 
-  private Page<ServiceKey> createServiceKeyPage(String serviceKeyName, String serviceKeyId) {
-    return Page.singleton(
-        new ServiceKey().setName(serviceKeyName).setCredentials(credentials), serviceKeyId);
+  private ServiceCredentialBinding createServiceKeyBinding(String name, String guid) {
+    ServiceCredentialBinding binding = new ServiceCredentialBinding();
+    binding.setGuid(guid);
+    binding.setName(name);
+    binding.setType("key");
+    binding.setRelationships(
+        Map.of("service_instance", new ToOneRelationship(new Relationship(serviceInstanceId))));
+    return binding;
   }
 
-  private Page<ServiceKey> createEmptyServiceKeyPage() {
-    return new Page<ServiceKey>().setTotalPages(1).setTotalResults(0);
+  private Pagination<ServiceCredentialBinding> createServiceKeyPagination(
+      String serviceKeyName, String serviceKeyId) {
+    return singletonPagination(createServiceKeyBinding(serviceKeyName, serviceKeyId));
+  }
+
+  private Pagination<ServiceCredentialBinding> singletonPagination(
+      ServiceCredentialBinding binding) {
+    Pagination<ServiceCredentialBinding> pagination = new Pagination<>();
+    pagination.setPagination(new Pagination.Details().setTotalPages(1));
+    pagination.setResources(java.util.Collections.singletonList(binding));
+    return pagination;
+  }
+
+  private Pagination<ServiceCredentialBinding> createEmptyServiceKeyPagination() {
+    Pagination<ServiceCredentialBinding> pagination = new Pagination<>();
+    pagination.setPagination(new Pagination.Details().setTotalPages(1));
+    pagination.setResources(java.util.Collections.emptyList());
+    return pagination;
   }
 }

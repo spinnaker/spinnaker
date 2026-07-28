@@ -62,10 +62,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import retrofit2.mock.Calls;
 
 /**
@@ -96,17 +96,17 @@ class IapAuthIntegrationTest {
 
   @Autowired ObjectMapper objectMapper;
 
-  @MockBean ClouddriverService clouddriverService;
+  @MockitoBean ClouddriverService clouddriverService;
 
-  @MockBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
+  @MockitoBean DownstreamServicesHealthIndicator downstreamServicesHealthIndicator;
 
   @SpyBean IapAuthenticationFilter iapAuthenticationFilter;
 
-  @MockBean FiatService fiatService;
+  @MockitoBean FiatService fiatService;
 
   @SpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
 
-  @MockBean Front50Service front50Service;
+  @MockitoBean Front50Service front50Service;
 
   private KeyPair testKeyPair;
   private String publicKeyId;

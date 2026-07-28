@@ -33,7 +33,7 @@ class GeneratedTestPlugin {
    */
   var name: String = "Generated"
     set(value) {
-      field = value.capitalize()
+      field = value.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 
   /**
@@ -49,7 +49,7 @@ class GeneratedTestPlugin {
   /**
    * The plugin ID of the generated plugin.
    */
-  var pluginId: String = "spinnaker.${name.toLowerCase()}-testplugin"
+  var pluginId: String = "spinnaker.${name.lowercase()}-testplugin"
   internal var sources: MutableList<SourceFile> = mutableListOf()
   internal var pluginClass: SourceFile? = null
 
@@ -113,9 +113,7 @@ class GeneratedTestPlugin {
    * Generates the plugin into the given [rootPath].
    */
   fun generate(rootPath: Path? = null): GenerateResult {
-    if (generated) {
-      throw IllegalStateException("A test plugin instance cannot be generated more than once")
-    }
+    check(!generated) { "A test plugin instance cannot be generated more than once" }
 
     return TestPluginGenerator(this, rootPath ?: Files.createTempDirectory("generatedplugin")).let {
       it.generate()
