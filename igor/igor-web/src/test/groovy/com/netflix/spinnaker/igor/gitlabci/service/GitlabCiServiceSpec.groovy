@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.igor.gitlabci.service
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.igor.config.GitlabCiProperties.GitlabCiHost
 import com.netflix.spinnaker.igor.gitlabci.client.GitlabCiClient
 import com.netflix.spinnaker.igor.gitlabci.client.model.Job

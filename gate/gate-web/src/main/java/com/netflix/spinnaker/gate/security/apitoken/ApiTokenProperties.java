@@ -59,9 +59,9 @@ public class ApiTokenProperties {
   private String redisKeyPrefix = "api-token";
 
   /**
-   * How often (seconds) Gate re-checks a token's principal against Fiat when {@code
-   * reject-if-no-principal-permissions} is enabled. Last-check timestamp is stored on the token so
-   * all Gate replicas share the throttle.
+   * How often (seconds) Gate re-checks a token's principal against the local {@code
+   * PermissionService} when {@code reject-if-no-principal-permissions} is enabled. Last-check
+   * timestamp is stored on the token so all Gate replicas share the throttle.
    */
   private int rejectCheckIntervalSeconds = 60;
 
@@ -71,12 +71,12 @@ public class ApiTokenProperties {
   /** Maximum lifetime for service-account tokens (typically longer than user tokens). */
   private int maxServiceAccountTokenLifetimeDays = 365;
 
-  /** Fiat roles permitted to mint tokens. Admins always bypass this check. */
+  /** Roles permitted to mint tokens. Admins always bypass this check. */
   private List<String> allowedMintingRoles = new ArrayList<>();
 
   /**
-   * When {@code true} (and Fiat is enabled), reject tokens whose principal has been deprovisioned
-   * (no Fiat roles). Throttled by {@link #rejectCheckIntervalSeconds}.
+   * When {@code true} (and the {@code PermissionService} is enabled), reject tokens whose principal
+   * has been deprovisioned (no roles). Throttled by {@link #rejectCheckIntervalSeconds}.
    */
   private boolean rejectIfNoPrincipalPermissions = false;
 }

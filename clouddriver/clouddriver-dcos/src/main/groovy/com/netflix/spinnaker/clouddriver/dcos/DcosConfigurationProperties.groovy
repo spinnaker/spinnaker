@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.dcos
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import groovy.transform.ToString
 import mesosphere.dcos.client.Config
 import mesosphere.dcos.client.model.DCOSAuthCredentials

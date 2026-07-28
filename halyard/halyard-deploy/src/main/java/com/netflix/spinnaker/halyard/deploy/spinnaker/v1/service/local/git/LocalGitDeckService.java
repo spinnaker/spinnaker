@@ -74,9 +74,6 @@ public class LocalGitDeckService extends DeckService implements LocalGitService<
       setEnvTrue("AUTH_ENABLED");
       setEnv("DECK_HOST", "0.0.0.0");
     }
-    if (security.getAuthz().isEnabled()) {
-      setEnvTrue("FIAT_ENABLED");
-    }
     return new Settings(security.getUiSecurity())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setHost(security.getAuthn().isEnabled() ? "0.0.0.0" : getDefaultHost())

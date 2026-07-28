@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.model.resources.Account
-import com.netflix.spinnaker.fiat.model.resources.Role
-import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.token.AuthorizationProperties
+import com.netflix.spinnaker.security.token.SpinnakerTokenClaims
+import com.netflix.spinnaker.security.token.SpinnakerTokenVerifier
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.preconfigured.jobs.TitusPreconfiguredJobProperties
@@ -73,12 +72,11 @@ class OperationsControllerSpec extends Specification {
   def pipelineTemplateService = Mock(PipelineTemplateService)
   def webhookService = Mock(WebhookService)
   def artifactUtils = Mock(ArtifactUtils)
-  def fiatService = Mock(FiatService)
-  def fiatStatus = Mock(FiatStatus) {
-    _ * isEnabled() >> { return false }
-  }
+  def tokenVerifier = Mock(SpinnakerTokenVerifier)
   def front50Service = Mock(Front50Service)
   def jobService = Mock(JobService)
+
+  static final String TOKEN = "test-identity-token"
 
   @Subject
     controller = new OperationsController(
@@ -90,8 +88,7 @@ class OperationsControllerSpec extends Specification {
       contextParameterProcessor: new ContextParameterProcessor(),
       webhookService: webhookService,
       artifactUtils: artifactUtils,
-      fiatService: fiatService,
-      fiatStatus: fiatStatus,
+      tokenVerifier: tokenVerifier,
       front50Service: front50Service,
       jobService: jobService
     )
@@ -643,20 +640,14 @@ class OperationsControllerSpec extends Specification {
       mapper.convertValue(config, PipelineExecutionImpl)
     }
 
-    UserPermission userPermission = new UserPermission()
-    userPermission.addResource(new Role("test"))
-
-    def account = new Account().setName("account")
-    def role = new Role().setName("role")
-    def permission = new UserPermission().setId("foo").setAccounts([account] as Set).setRoles([role] as Set)
-
-    fiatService.getUserPermission(*_) >> permission.getView()
+    // Roles are read from the verified identity token. This user only has "test".
+    AuthenticatedRequest.set(Header.IDENTITY_TOKEN, TOKEN)
+    tokenVerifier.verify(TOKEN) >> SpinnakerTokenClaims.builder("user@example.com").roles(["test"]).build()
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
 
     then:
-    1 * controller.fiatStatus.isEnabled() >> { return true }
     1 * webhookService.preconfiguredWebhooks >> [
       createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", ["READ": [], "WRITE": []]),
       createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]])
@@ -664,6 +655,9 @@ class OperationsControllerSpec extends Specification {
     preconfiguredWebhooks == [
       [label: "Webhook #1", description: "Description #1", type: "webhook_1", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null, parameterData: null]
     ]
+
+    cleanup:
+    AuthenticatedRequest.clear()
   }
 
   def "should return protected preconfigured webhooks if user have the role"() {
@@ -675,21 +669,14 @@ class OperationsControllerSpec extends Specification {
       mapper.convertValue(config, PipelineExecutionImpl)
     }
 
-
-    UserPermission userPermission = new UserPermission()
-    userPermission.addResource(new Role("some-role"))
-
-    def account = new Account().setName("account")
-    def role = new Role().setName("some-role")
-    def permission = new UserPermission().setId("foo").setAccounts([account] as Set).setRoles([role] as Set)
-
-    fiatService.getUserPermission(*_) >> Calls.response(permission.getView())
+    // The verified identity token carries the required role.
+    AuthenticatedRequest.set(Header.IDENTITY_TOKEN, TOKEN)
+    tokenVerifier.verify(TOKEN) >> SpinnakerTokenClaims.builder("user@example.com").roles(["some-role"]).build()
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
 
     then:
-    1 * controller.fiatStatus.isEnabled() >> { return true }
     1 * webhookService.preconfiguredWebhooks >> [
       createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", ["READ": [], "WRITE": []]),
       createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]])
@@ -698,27 +685,48 @@ class OperationsControllerSpec extends Specification {
       [label: "Webhook #1", description: "Description #1", type: "webhook_1", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null, parameterData: null],
       [label: "Webhook #2", description: "Description #2", type: "webhook_2", waitForCompletion: true, preconfiguredProperties: preconfiguredProperties, noUserConfigurableFields: true, parameters: null, parameterData: null]
     ]
+
+    cleanup:
+    AuthenticatedRequest.clear()
   }
 
-  def "should return unrestricted preconfigured webhooks if fiat is unavailable"() {
+  def "should return all preconfigured webhooks permissively when no verified identity token is available"() {
     given:
-    UserPermission userPermission = new UserPermission()
-    userPermission.addResource(new Role("test"))
+    // No identity token on the request (cleared in setup) -> permissive: do not fail closed, show all.
 
     when:
     def preconfiguredWebhooks = controller.preconfiguredWebhooks()
 
     then:
-    1 * fiatService.getUserPermission(*_) >> {
-      throw new IllegalStateException("Sorry, Fiat is unavailable")
-    }
-    1 * controller.fiatStatus.isEnabled() >> { return true }
+    0 * tokenVerifier.verify(_)
     1 * webhookService.preconfiguredWebhooks >> [
         createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", [:]),
         createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]]),
         createPreconfiguredWebhook("Webhook #3", "Description #3", "webhook_3", ["READ": ["anonymous"], "WRITE": ["anonymous"]])
     ]
+    preconfiguredWebhooks*.label == ["Webhook #1", "Webhook #2", "Webhook #3"]
+  }
+
+  def "should filter preconfigured webhooks as an anonymous user when strict and no verified token"() {
+    given:
+    // Strict fail-closed authorization is enabled, and no identity token is on the request.
+    controller.authorizationProperties = new AuthorizationProperties(enabled: true, strict: true)
+
+    when:
+    def preconfiguredWebhooks = controller.preconfiguredWebhooks()
+
+    then:
+    0 * tokenVerifier.verify(_)
+    1 * webhookService.preconfiguredWebhooks >> [
+        createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1", [:]),
+        createPreconfiguredWebhook("Webhook #2", "Description #2", "webhook_2", ["READ": ["some-role"], "WRITE": ["some-role"]]),
+        createPreconfiguredWebhook("Webhook #3", "Description #3", "webhook_3", ["READ": [], "WRITE": []])
+    ]
+    // Only webhooks readable without any role are shown; the role-gated Webhook #2 is hidden.
     preconfiguredWebhooks*.label == ["Webhook #1", "Webhook #3"]
+
+    cleanup:
+    AuthenticatedRequest.clear()
   }
 
   def "should start pipeline by config id with provided trigger"() {

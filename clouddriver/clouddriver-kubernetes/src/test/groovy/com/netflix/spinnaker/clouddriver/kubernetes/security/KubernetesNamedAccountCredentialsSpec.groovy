@@ -27,7 +27,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesManifestName
 import com.netflix.spinnaker.clouddriver.kubernetes.names.KubernetesNamerRegistry
 import com.netflix.spinnaker.clouddriver.kubernetes.op.handler.KubernetesUnregisteredCustomResourceHandler
 import com.netflix.spinnaker.clouddriver.kubernetes.op.job.KubectlJobExecutor
-import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.security.authz.Authorization
 import com.netflix.spinnaker.kork.configserver.ConfigFileService
 import spock.lang.Specification
 
@@ -86,6 +86,56 @@ class KubernetesNamedAccountCredentialsSpec extends Specification {
     cleanup:
       Files.delete(file1)
       Files.delete(file2)
+  }
+
+  void 'getPermissions is non-null and unrestricted when neither permissions nor requiredGroupMembership are set'() {
+    given: 'an account with no explicit permissions block and no requiredGroupMembership'
+      def accountDef = new ManagedAccount()
+      accountDef.setName("test")
+      accountDef.setCacheThreads(1)
+      accountDef.setServiceAccount(true)
+      def account = new KubernetesNamedAccountCredentials(accountDef, credentialFactory)
+
+    expect: 'the resolver sees a non-null, unrestricted ACL (a null ACL would deny every non-admin)'
+      account.getPermissions() != null
+      !account.getPermissions().isRestricted()
+  }
+
+  void 'getPermissions derives READ and WRITE from requiredGroupMembership when no explicit permissions block is set'() {
+    given: 'an account configured with the legacy requiredGroupMembership'
+      def accountDef = new ManagedAccount()
+      accountDef.setName("test")
+      accountDef.setCacheThreads(1)
+      accountDef.setServiceAccount(true)
+      accountDef.setRequiredGroupMembership(["tf-sg - spinnaker service accounts"])
+      def account = new KubernetesNamedAccountCredentials(accountDef, credentialFactory)
+
+    when: 'resolving the effective ACL'
+      def permissions = account.getPermissions()
+
+    then: 'the RGM group is granted both READ and WRITE (not a null ACL)'
+      permissions != null
+      permissions.isRestricted()
+      permissions.get(Authorization.READ).contains("tf-sg - spinnaker service accounts")
+      permissions.get(Authorization.WRITE).contains("tf-sg - spinnaker service accounts")
+  }
+
+  void 'getPermissions returns the explicit permissions block when one is configured'() {
+    given: 'an account configured with an explicit permissions block'
+      def accountDef = new ManagedAccount()
+      accountDef.setName("test")
+      accountDef.setCacheThreads(1)
+      accountDef.setServiceAccount(true)
+      accountDef.getPermissions().add(Authorization.WRITE, "deployers")
+      def account = new KubernetesNamedAccountCredentials(accountDef, credentialFactory)
+
+    when: 'resolving the effective ACL'
+      def permissions = account.getPermissions()
+
+    then: 'the explicit block is returned'
+      permissions != null
+      permissions.isRestricted()
+      permissions.get(Authorization.WRITE).contains("deployers")
   }
 
   void 'getting namespaces makes no calls to kubernetes'() {

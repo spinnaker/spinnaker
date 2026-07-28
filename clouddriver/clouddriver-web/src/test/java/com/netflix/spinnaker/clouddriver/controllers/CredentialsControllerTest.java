@@ -32,12 +32,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -49,7 +49,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 public class CredentialsControllerTest {
   @Autowired private MockMvc mockMvc;
 
-  @MockitoBean private AccountCredentialsProvider accountCredentialsProvider;
+  @MockBean private AccountCredentialsProvider accountCredentialsProvider;
 
   @Test
   @WithAnonymousUser
@@ -70,6 +70,33 @@ public class CredentialsControllerTest {
         .getCredentials("testAccount");
     MockHttpServletRequestBuilder builder =
         MockMvcRequestBuilders.get("/credentials/testAccount/authorized")
+            .accept(MediaType.APPLICATION_JSON)
+            .characterEncoding(StandardCharsets.UTF_8.toString());
+
+    MvcResult result = mockMvc.perform(builder).andDo(print()).andReturn();
+
+    assertThat(result.getResponse().getStatus()).isNotEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  @WithAnonymousUser
+  public void testGetAccountCredentialsDetailsUnauthorized() throws Exception {
+    MockHttpServletRequestBuilder builder =
+        MockMvcRequestBuilders.get("/credentials/testAccount")
+            .accept(MediaType.APPLICATION_JSON)
+            .characterEncoding(StandardCharsets.UTF_8.toString());
+
+    mockMvc.perform(builder).andDo(print()).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @WithMockUser(value = "testUser")
+  public void testGetAccountCredentialsDetailsAuthorized() throws Exception {
+    doReturn(new TestAccountCredentials())
+        .when(accountCredentialsProvider)
+        .getCredentials("testAccount");
+    MockHttpServletRequestBuilder builder =
+        MockMvcRequestBuilders.get("/credentials/testAccount")
             .accept(MediaType.APPLICATION_JSON)
             .characterEncoding(StandardCharsets.UTF_8.toString());
 

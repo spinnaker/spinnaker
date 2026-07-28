@@ -17,11 +17,8 @@
 package com.netflix.spinnaker.gate
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.ErrorConfiguration
 import com.netflix.spinnaker.config.okhttp3.OkHttpClientProvider
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.config.controllers.PipelineControllerConfigProperties
 import com.netflix.spinnaker.gate.controllers.ApplicationController
@@ -74,7 +71,6 @@ class FunctionalSpec extends Specification {
   static PipelineService pipelineService
   static ServiceConfiguration serviceConfiguration
   static AccountLookupService accountLookupService
-  static FiatStatus fiatStatus
 
   ConfigurableApplicationContext ctx
 
@@ -106,7 +102,6 @@ class FunctionalSpec extends Specification {
     accountLookupService = Mock(AccountLookupService)
     pipelineService = Mock(PipelineService)
     serviceConfiguration = new ServiceConfiguration()
-    fiatStatus = Mock(FiatStatus)
 
     System.setProperty("server.port", "0") // to get a random port
     System.setProperty("saml.enabled", "false")
@@ -268,23 +263,8 @@ class FunctionalSpec extends Specification {
     }
 
     @Bean
-    FiatClientConfigurationProperties fiatClientConfigurationProperties() {
-      new FiatClientConfigurationProperties(enabled: false)
-    }
-
-    @Bean
     SpringDynamicConfigService dynamicConfigService() {
       new SpringDynamicConfigService()
-    }
-
-    @Bean
-    FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
-                          FiatClientConfigurationProperties fiatClientConfigurationProperties) {
-      new FiatStatus(
-        new NoopRegistry(),
-        dynamicConfigService,
-        fiatClientConfigurationProperties
-      )
     }
 
     @Bean

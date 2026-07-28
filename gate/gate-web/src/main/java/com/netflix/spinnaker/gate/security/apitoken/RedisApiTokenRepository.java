@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
@@ -87,8 +88,15 @@ public class RedisApiTokenRepository {
     }
   }
 
-  /** Bounded retry for optimistic-locking timestamp updates; these fields are best-effort. */
-  private static final int MAX_TIMESTAMP_UPDATE_ATTEMPTS = 3;
+  /**
+   * Bounded retry for optimistic-locking timestamp updates; these fields are best-effort. Attempts
+   * are separated by {@link #backOffBeforeRetry} — a budget this small with no backoff lets one
+   * writer be starved out of every attempt by a writer already mid-transaction.
+   */
+  private static final int MAX_TIMESTAMP_UPDATE_ATTEMPTS = 10;
+
+  /** Upper bound on the jittered pause before an optimistic-lock retry. */
+  private static final long MAX_RETRY_BACKOFF_MILLIS = 50;
 
   /**
    * Backstop TTL applied to the name index key by {@code SET NX EX} in {@link #save} before the
@@ -307,24 +315,33 @@ public class RedisApiTokenRepository {
   }
 
   /**
-   * Update {@code lastFiatCheckAt} on the id and hash keys, preserving TTLs. The optimistic lock
+   * Update {@code lastAuthCheckAt} on the id and hash keys, preserving TTLs. The optimistic lock
    * matters here — a concurrent {@link #updateLastUsed} clobbering a fresh check timestamp would
-   * trigger a redundant Fiat call.
+   * trigger a redundant permission check against the local {@code PermissionService}.
    */
-  public void updateLastFiatCheck(String id, String sha256Hex, Instant checkedAt) {
+  public void updateLastAuthCheck(String id, String sha256Hex, Instant checkedAt) {
     updateTokenWithOptimisticLock(
         id,
         sha256Hex,
-        "lastFiatCheckAt",
-        record -> record.setLastFiatCheckAt(checkedAt.toString()));
+        "lastAuthCheckAt",
+        record -> record.setLastAuthCheckAt(checkedAt.toString()));
   }
 
   /**
    * WATCH/MULTI/EXEC read-modify-write of the JSON record on both id and hash keys, preserving
-   * TTLs. Retries up to {@link #MAX_TIMESTAMP_UPDATE_ATTEMPTS} times on WATCH conflict; if every
-   * attempt loses the race, throws {@link TokenOperationFailedException} rather than silently
-   * dropping the update — a quietly-lost {@code lastFiatCheckAt} write would let a revoked
-   * principal keep passing the Fiat-check throttle.
+   * TTLs. Retries up to {@link #MAX_TIMESTAMP_UPDATE_ATTEMPTS} times on WATCH conflict, backing off
+   * between attempts.
+   *
+   * <p>Both timestamp fields live in the same JSON blob, so concurrent {@code lastUsedAt} and
+   * {@code lastAuthCheckAt} writers contend even though they mutate disjoint fields. Exhausting the
+   * budget therefore drops the update rather than raising: neither field is worth failing a request
+   * over, and neither caller could act on the failure. A dropped {@code lastAuthCheckAt} only
+   * leaves the re-check throttle un-advanced, so the next request re-runs the permission check — it
+   * fails toward more checking, not less. A dropped {@code lastUsedAt} costs a stale last-used
+   * report.
+   *
+   * <p>Atomicity is still guaranteed: a write lands whole or not at all, so a concurrent writer can
+   * never null out the sibling field.
    */
   private void updateTokenWithOptimisticLock(
       String id, String sha256Hex, String fieldName, Consumer<TokenRecord> mutator) {
@@ -333,6 +350,9 @@ public class RedisApiTokenRepository {
 
     try (Jedis jedis = jedisPool.getResource()) {
       for (int attempt = 0; attempt < MAX_TIMESTAMP_UPDATE_ATTEMPTS; attempt++) {
+        if (attempt > 0) {
+          backOffBeforeRetry(attempt);
+        }
         jedis.watch(idKey, hashKey);
 
         String json = jedis.get(idKey);
@@ -366,13 +386,26 @@ public class RedisApiTokenRepository {
         }
       }
       log.warn(
-          "Gave up updating {} for token id={} after {} WATCH conflicts; another writer kept "
-              + "winning the race.",
+          "Dropped the {} update for token id={} after {} WATCH conflicts; another writer kept "
+              + "winning the race. The field is best-effort, so the request is unaffected.",
           fieldName,
           id,
           MAX_TIMESTAMP_UPDATE_ATTEMPTS);
-      throw new TokenOperationFailedException(
-          "Token update aborted due to concurrent modification; retry.");
+    }
+  }
+
+  /**
+   * Jittered pause before the next optimistic-lock attempt. Retrying immediately is close to
+   * useless: the losing writer re-WATCHes and re-reads in lockstep with the winner's next
+   * transaction and loses again, burning its whole budget in a few milliseconds. The jitter is what
+   * decorrelates the two writers.
+   */
+  private static void backOffBeforeRetry(int attempt) {
+    long ceiling = Math.min(1L << attempt, MAX_RETRY_BACKOFF_MILLIS);
+    try {
+      Thread.sleep(ThreadLocalRandom.current().nextLong(1, ceiling + 1));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
   }
 

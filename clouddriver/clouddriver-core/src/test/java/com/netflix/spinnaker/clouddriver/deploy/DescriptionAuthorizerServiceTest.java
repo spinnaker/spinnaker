@@ -32,8 +32,8 @@ import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig;
 import com.netflix.spinnaker.clouddriver.security.resources.AccountNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable;
 import com.netflix.spinnaker.clouddriver.security.resources.ResourcesNameable;
-import com.netflix.spinnaker.fiat.model.resources.ResourceType;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.ResourceType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -55,7 +55,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class DescriptionAuthorizerServiceTest {
 
   private final DefaultRegistry registry = new DefaultRegistry();
-  private final FiatPermissionEvaluator evaluator = mock(FiatPermissionEvaluator.class);
+  private final PolicyDecisionPointPermissionEvaluator evaluator =
+      mock(PolicyDecisionPointPermissionEvaluator.class);
   private final AccountDefinitionSecretManager secretManager =
       mock(AccountDefinitionSecretManager.class);
   private SecurityConfig.OperationsSecurityConfigurationProperties opsSecurityConfigProps;
@@ -99,7 +100,6 @@ public class DescriptionAuthorizerServiceTest {
     verify(secretManager).canAccessAccountWithSecrets(username, "testAccount");
     verify(evaluator, times(3))
         .hasPermission(any(Authentication.class), anyString(), anyString(), anyString());
-    verify(evaluator, times(1)).storeWholePermission();
 
     verifySuccessMetric(hasPermission, "TestDescription");
   }
@@ -132,7 +132,6 @@ public class DescriptionAuthorizerServiceTest {
     }
     verify(evaluator, never())
         .hasPermission(any(Authentication.class), anyString(), anyString(), anyString());
-    verify(evaluator, never()).storeWholePermission();
 
     verifySuccessMetric(expectedNumberOfErrors == 0, "TestImageTaggingDescription");
 

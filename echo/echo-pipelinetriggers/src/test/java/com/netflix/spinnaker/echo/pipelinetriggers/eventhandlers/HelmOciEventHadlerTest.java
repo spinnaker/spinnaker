@@ -17,10 +17,6 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
@@ -31,7 +27,6 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,19 +45,13 @@ public class HelmOciEventHadlerTest {
   private NoopRegistry registry = new NoopRegistry();
   private ObjectMapper objectMapper = EchoObjectMapper.getInstance();
   private TestEventHandlerSupport testEventSupport = new TestEventHandlerSupport();
-  private FiatPermissionEvaluator fiatPermissionEvaluator;
   private AtomicInteger nextId = new AtomicInteger(1);
 
   private HelmOciEventHandler eventHandler;
 
   @BeforeEach
   public void setUp() {
-    fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);
-    when(fiatPermissionEvaluator.hasPermission(
-            any(String.class), any(String.class), eq("APPLICATION"), eq("EXECUTE")))
-        .thenReturn(true);
-
-    eventHandler = new HelmOciEventHandler(registry, objectMapper, fiatPermissionEvaluator);
+    eventHandler = new HelmOciEventHandler(registry, objectMapper);
   }
 
   // Override the createHelmOciEvent method from RetrofitStubs

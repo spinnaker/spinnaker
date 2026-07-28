@@ -22,7 +22,7 @@ import static lombok.EqualsAndHashCode.Include;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.KubernetesAccountProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.*;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -87,6 +87,22 @@ public class KubernetesNamedAccountCredentials
   @SuppressWarnings("deprecation")
   public List<String> getRequiredGroupMembership() {
     return requiredGroupMembership;
+  }
+
+  /**
+   * The account's effective ACL. The constructor stores a restricted {@code permissions} block in
+   * {@link #permissions} and otherwise leaves it {@code null}, recording any legacy {@code
+   * requiredGroupMembership} instead. The owner-local {@code ClouddriverResourceAclResolver} reads
+   * this for PDP decisions, where a {@code null} result is treated as "ACL unresolvable" and denies
+   * the account. So when no explicit {@code permissions} block is set we must fall back to the
+   * superclass's {@code requiredGroupMembership}-derived permissions (which is {@link
+   * Permissions#EMPTY} — i.e. unrestricted — when no RGM is configured), never {@code null}.
+   * Without this, every unrestricted or RGM-based account would resolve to {@code null} and be
+   * denied for non-admins.
+   */
+  @Override
+  public Permissions getPermissions() {
+    return permissions != null ? permissions : super.getPermissions();
   }
 
   /**

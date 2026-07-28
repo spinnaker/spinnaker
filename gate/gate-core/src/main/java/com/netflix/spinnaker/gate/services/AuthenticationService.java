@@ -17,85 +17,72 @@
 
 package com.netflix.spinnaker.gate.services;
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
+import com.netflix.spinnaker.gate.security.token.GateIdentityService;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import io.micrometer.core.annotation.Counted;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/** Facade for logging in an authenticated user and obtaining Fiat authorities. */
+/**
+ * Facade for logging in an authenticated user and obtaining their granted authorities. Roles are
+ * resolved locally via {@code kork-roles} and translated to Spring authorities.
+ */
 @Log4j2
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-  private final FiatStatus fiatStatus;
-  private final FiatService fiatService;
-  private final FiatPermissionEvaluator permissionEvaluator;
 
-  @Setter(
-      onParam_ = {@Qualifier("fiatLoginService")},
-      onMethod_ = {@Autowired(required = false)})
-  private FiatService fiatLoginService;
+  @Autowired(required = false)
+  @Setter
+  private GateIdentityService identityService;
 
-  private FiatService getFiatServiceForLogin() {
-    return fiatLoginService != null ? fiatLoginService : fiatService;
-  }
-
-  @Counted("fiat.login")
+  @Counted("authz.login")
   public Collection<? extends GrantedAuthority> login(String userid) {
-    if (!fiatStatus.isEnabled()) {
+    if (identityService == null) {
       return Set.of();
     }
-
     return AuthenticatedRequest.allowAnonymous(
-        () -> {
-          Retrofit2SyncCall.execute(getFiatServiceForLogin().loginUser(userid));
-          return resolveAuthorities(userid);
-        });
+        () -> toAuthorities(identityService.resolveAndCacheRoles(userid, List.of())));
   }
 
-  @Counted("fiat.login")
+  @Counted("authz.login")
   public Collection<? extends GrantedAuthority> loginWithRoles(
       String userid, Collection<String> roles) {
-    if (!fiatStatus.isEnabled()) {
+    if (identityService == null) {
       return Set.of();
     }
-
     return AuthenticatedRequest.allowAnonymous(
-        () -> {
-          Retrofit2SyncCall.execute(getFiatServiceForLogin().loginWithRoles(userid, roles));
-          return resolveAuthorities(userid);
-        });
+        () -> toAuthorities(identityService.resolveAndCacheRoles(userid, roles)));
   }
 
-  @Counted("fiat.logout")
+  @Counted("authz.logout")
   public void logout(String userid) {
-    if (!fiatStatus.isEnabled()) {
-      return;
+    if (identityService != null) {
+      identityService.invalidate(userid);
     }
-
-    Retrofit2SyncCall.execute(getFiatServiceForLogin().logoutUser(userid));
-    permissionEvaluator.invalidatePermission(userid);
   }
 
-  private Collection<? extends GrantedAuthority> resolveAuthorities(String userid) {
-    permissionEvaluator.invalidatePermission(userid);
-    var permission = permissionEvaluator.getPermission(userid);
-    if (permission == null) {
-      throw new UsernameNotFoundException(
-          String.format("No user found in Fiat named '%s'", userid));
+  /** Translate resolved role names into Spring authorities, adding admin/account-manager flags. */
+  private Collection<? extends GrantedAuthority> toAuthorities(Set<String> roles) {
+    List<GrantedAuthority> authorities = new ArrayList<>();
+    for (String role : roles) {
+      authorities.add(SpinnakerAuthorities.forRoleName(role));
     }
-    return permission.toGrantedAuthorities();
+    if (identityService.isAdmin(roles)) {
+      authorities.add(SpinnakerAuthorities.ADMIN_AUTHORITY);
+    }
+    if (identityService.isAccountManager(roles)) {
+      authorities.add(SpinnakerAuthorities.ACCOUNT_MANAGER_AUTHORITY);
+    }
+    return authorities;
   }
 }

@@ -26,7 +26,7 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionMapper
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSecretManager
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
-import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.security.authz.Authorization
 import com.netflix.spinnaker.kork.secrets.SecretSession
 import com.netflix.spinnaker.kork.sql.test.SqlTestUtil
 import org.mockito.kotlin.mock

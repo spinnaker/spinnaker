@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.kork.annotations.Beta;
+import com.netflix.spinnaker.security.authz.Authorization;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;

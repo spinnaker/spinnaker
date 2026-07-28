@@ -25,28 +25,36 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
-/**
- * In combination with HeaderAuthConfigurerAdapter, authenticate the X-SPINNAKER-USER header using
- * permissions obtained from fiat.
- */
+/** Authenticates the {@code X-SPINNAKER-USER} header using roles resolved at login. */
 @ConditionalOnProperty("header.enabled")
+@Configuration
 @SpinnakerAuthConfig
 @EnableWebSecurity
-@Configuration
 public class HeaderAuthConfigurerAdapter {
   @Autowired AuthConfig authConfig;
 
   @Autowired RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
 
+  /**
+   * Ordered ahead of X509Config's catch-all chain ({@code @Order(3)}) and after the API-token chain
+   * ({@code @Order(0)}) — see {@code ApiTokenAuthConfigurerAdapter}. The chain is scoped by the
+   * request matcher {@link AuthConfig#configure} installs.
+   */
   @Bean
-  // ManagedDeliverySchemaEndpointConfiguration#schemaSecurityFilterChain should go first
-  @Order(3)
-  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  @Order(2)
+  public SecurityFilterChain headerSecurityFilterChain(HttpSecurity http) throws Exception {
     authConfig.configure(http);
     http.addFilter(requestHeaderAuthenticationFilter);
+
+    // Header auth is stateless: each request provides X-SPINNAKER-USER (and a signed identity
+    // token), so there's no need for callers to support session cookies or to persist a security
+    // context between requests.
+    http.sessionManagement(
+        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     return http.build();
   }
 }

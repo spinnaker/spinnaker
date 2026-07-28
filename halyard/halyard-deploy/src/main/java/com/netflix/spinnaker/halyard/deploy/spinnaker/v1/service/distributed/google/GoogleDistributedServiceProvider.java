@@ -41,8 +41,6 @@ public class GoogleDistributedServiceProvider extends DistributedServiceProvider
 
   @Autowired GoogleEchoService echoService;
 
-  @Autowired GoogleFiatService fiatService;
-
   @Autowired GoogleFront50Service front50Service;
 
   @Autowired GoogleGateService gateService;

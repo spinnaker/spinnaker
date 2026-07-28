@@ -24,8 +24,7 @@ dependencies {
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("org.jgrapht:jgrapht-core:1.5.1")
   implementation("io.spinnaker.kork:kork-web")
-  implementation("io.spinnaker.fiat:fiat-api")
-  implementation("io.spinnaker.fiat:fiat-core")
+  implementation("io.spinnaker.kork:kork-authz")
   implementation(project(":keel-ec2-api"))  // needed for resource dependency logic
 
   testImplementation(project(":keel-test"))

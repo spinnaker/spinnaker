@@ -11,7 +11,7 @@ dependencies {
   implementation "io.spinnaker.clouddriver:clouddriver-azure"
   implementation "io.spinnaker.clouddriver:clouddriver-cloudfoundry"
   implementation "io.spinnaker.clouddriver:clouddriver-security"
-  implementation "io.spinnaker.fiat:fiat-core"
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "io.spinnaker.front50:front50-core"
   implementation "io.spinnaker.front50:front50-gcs"
   implementation "io.spinnaker.front50:front50-s3"

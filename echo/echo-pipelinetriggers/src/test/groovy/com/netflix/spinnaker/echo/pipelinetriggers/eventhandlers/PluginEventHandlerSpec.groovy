@@ -20,7 +20,6 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.trigger.PluginEvent
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -30,10 +29,9 @@ import java.util.function.Predicate
 class PluginEventHandlerSpec extends Specification {
   def registry = new NoopRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
-  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  def eventHandler = new PluginEventHandler(registry, objectMapper, fiatPermissionEvaluator)
+  def eventHandler = new PluginEventHandler(registry, objectMapper)
 
   @Unroll
   def "matchTriggerFor matches on pluginEventType"() {

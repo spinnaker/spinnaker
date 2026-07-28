@@ -16,43 +16,19 @@
 
 package com.netflix.spinnaker.front50
 
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatService
-import com.netflix.spinnaker.front50.config.FiatConfigurationProperties
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContext
-import org.springframework.security.core.context.SecurityContextHolder
-import retrofit2.mock.Calls
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ServiceAccountsServiceSpec extends Specification {
   ServiceAccountDAO serviceAccountDAO = Mock(ServiceAccountDAO)
-  FiatService fiatService = Mock(FiatService)
-  FiatClientConfigurationProperties fiatClientConfigurationProperties = Mock(FiatClientConfigurationProperties) {
-    isEnabled() >> true
-  }
-  FiatConfigurationProperties fiatConfigurationProperties = Mock(FiatConfigurationProperties) {
-    getRoleSync() >> Mock(FiatConfigurationProperties.RoleSyncConfigurationProperties) {
-      isEnabled() >> true
-    }
-  }
-  FiatPermissionEvaluator fiatPermissionsEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  def service = new ServiceAccountsService(
-    serviceAccountDAO,
-    Optional.of(fiatService),
-    fiatClientConfigurationProperties,
-    fiatConfigurationProperties,
-    fiatPermissionsEvaluator
-  )
+  def service = new ServiceAccountsService(serviceAccountDAO)
 
-  def "should invalidate local cache"() {
+  def "creating a service account persists it to the owner-local store"() {
     given:
     def serviceAccount = new ServiceAccount(
       name: "test-svc-acct",
@@ -60,25 +36,18 @@ class ServiceAccountsServiceSpec extends Specification {
         "test-role"
       ]
     )
-    def authentication = Mock(Authentication) {
-      getPrincipal() >> (Object)"principal"
-    }
-    def securityContext = Mock(SecurityContext) {
-      getAuthentication() >> authentication
-    }
-    SecurityContextHolder.setContext(securityContext)
-    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> false
 
     when:
-    serviceAccountDAO.create(serviceAccount.id, serviceAccount) >> serviceAccount
     service.createServiceAccount(serviceAccount)
 
     then:
-    1 * fiatPermissionsEvaluator.invalidatePermission(_)
-    1 * fiatService.sync(["test-role"]) >> Calls.response(null)
+    // Owner-local enforcement: Front50 owns service-account ACLs. The run-as minter resolves
+    // roles from this store at mint time, so there is no external service to sync to.
+    1 * serviceAccountDAO.create(serviceAccount.id, serviceAccount) >> serviceAccount
+    0 * _
   }
 
-  def "deleting multiple service account should call sync once"() {
+  def "deleting multiple service accounts removes each from the local store"() {
     given:
     def serviceAccounts = [
       new ServiceAccount(
@@ -93,7 +62,6 @@ class ServiceAccountsServiceSpec extends Specification {
           "test-role-2"
         ]
       )]
-    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> false
 
     when:
     service.deleteServiceAccounts(serviceAccounts)
@@ -101,7 +69,7 @@ class ServiceAccountsServiceSpec extends Specification {
     then:
     1 * serviceAccountDAO.delete("test-svc-acct-1")
     1 * serviceAccountDAO.delete("test-svc-acct-2")
-    1 * fiatService.sync(['test-role-1', 'test-role-2']) >> Calls.response(null)
+    0 * _
   }
 
   def "unknown managed service accounts should not throw exception"() {
@@ -113,7 +81,7 @@ class ServiceAccountsServiceSpec extends Specification {
     def test2ServiceAccount = new ServiceAccount(
       name: "test-2@managed-service-account"
     )
-    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> false
+
     when:
     service.deleteManagedServiceAccounts(prefixes)
 
@@ -121,35 +89,6 @@ class ServiceAccountsServiceSpec extends Specification {
     1 * serviceAccountDAO.findById(test1ServiceAccount.id) >> test1ServiceAccount
     1 * serviceAccountDAO.findById(test2ServiceAccount.id) >> { throw new NotFoundException(test2ServiceAccount.id) }
     1 * serviceAccountDAO.delete(test1ServiceAccount.id)
-    1 * fiatService.logoutUser(_) >> Calls.response(null)
-    1 * fiatService.sync(_) >> Calls.response(1L)
     0 * serviceAccountDAO.delete(test2ServiceAccount.id)
-  }
-
-  def "should sync service accounts only with new endpoint if configured"() {
-    given:
-    def serviceAccount = new ServiceAccount(
-            name: "test-svc-acct",
-            memberOf: [
-                    "test-role"
-            ]
-    )
-    def authentication = Mock(Authentication) {
-      getPrincipal() >> (Object)"principal"
-    }
-    def securityContext = Mock(SecurityContext) {
-      getAuthentication() >> authentication
-    }
-    SecurityContextHolder.setContext(securityContext)
-    fiatConfigurationProperties.isDisableRoleSyncWhenSavingServiceAccounts() >> true
-
-    when:
-    serviceAccountDAO.create(serviceAccount.id, serviceAccount) >> serviceAccount
-    service.createServiceAccount(serviceAccount)
-
-    then:
-    1 * fiatPermissionsEvaluator.invalidatePermission(_)
-    1 * fiatService.syncServiceAccount("test-svc-acct", ["test-role"]) >> Calls.response(1L)
-    0 * fiatService.sync(["test-role"])
   }
 }

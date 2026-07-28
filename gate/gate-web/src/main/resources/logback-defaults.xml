@@ -6,6 +6,15 @@
     </encoder>
   </appender>
 
+  <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <includeMdc>true</includeMdc>
+      <excludeMdcKeyName>X-SPINNAKER-ACCOUNTS</excludeMdcKeyName>
+      <excludeMdcKeyName>X-SPINNAKER-IDENTITY-TOKEN</excludeMdcKeyName>
+      <includeContext>false</includeContext>
+    </encoder>
+  </appender>
+
   <logger name="org.opensaml" level="DEBUG"/>
 
   <root level="INFO">

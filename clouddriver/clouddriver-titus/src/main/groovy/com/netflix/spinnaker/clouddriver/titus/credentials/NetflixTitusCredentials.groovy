@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.security.TitusCredentials
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 
 class NetflixTitusCredentials extends AbstractAccountCredentials<TitusCredentials> {
   private static final String CLOUD_PROVIDER = TitusCloudProvider.ID

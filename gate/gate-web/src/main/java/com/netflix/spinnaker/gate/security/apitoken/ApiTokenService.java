@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.gate.security.apitoken;
 
-import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import jakarta.annotation.PreDestroy;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,9 +35,9 @@ import lombok.extern.slf4j.Slf4j;
  * Resolves API token hashes to {@link TokenRecord}s, using Redis as the authoritative store
  * (revocation is therefore instantly visible across all Gate replicas).
  *
- * <p>When {@code api-tokens.reject-if-no-principal-permissions} is {@code true}, Fiat is called at
- * most once per {@code reject-check-interval-seconds} per token; the last-check timestamp is stored
- * on the token record so the throttle is shared across replicas.
+ * <p>When {@code api-tokens.reject-if-no-principal-permissions} is {@code true}, the local {@link
+ * PermissionService} is consulted at most once per {@code reject-check-interval-seconds} per token;
+ * the last-check timestamp is stored on the token record so the throttle is shared across replicas.
  */
 @Slf4j
 public class ApiTokenService {
@@ -69,7 +69,7 @@ public class ApiTokenService {
 
   /**
    * Resolve a SHA-256 hex hash to a {@link TokenRecord}. Returns empty if the hash is unknown in
-   * Redis, or if the principal no longer has Fiat permissions (when {@code
+   * Redis, or if the principal no longer has any permissions (when {@code
    * reject-if-no-principal-permissions} is enabled and the check interval has elapsed).
    *
    * @param tokenHash SHA-256 hex of the raw token value
@@ -83,22 +83,24 @@ public class ApiTokenService {
     TokenRecord record = opt.get();
 
     if (properties.isRejectIfNoPrincipalPermissions()) {
-      boolean checkNeeded = isFiatCheckNeeded(record);
+      boolean checkNeeded = isAuthCheckNeeded(record);
       if (checkNeeded) {
-        if (!principalHasPermissions(record.getPrincipalId())) {
+        if (!principalHasPermissions(record)) {
           log.info(
-              "Rejecting API token id={} — principal '{}' has no Fiat permissions",
+              "Rejecting API token id={} — principal '{}' has no permissions",
               record.getId(),
               record.getPrincipalId());
           return Optional.empty();
         }
         Instant now = Instant.now();
+        // Best-effort: this only advances the re-check throttle. Losing the write means the next
+        // request re-checks, so it must never fail authentication — including on a Redis blip.
         try {
-          redisRepo.updateLastFiatCheck(record.getId(), tokenHash, now);
-        } catch (RedisApiTokenRepository.TokenOperationFailedException e) {
-          log.debug("Fiat-check timestamp update lost WATCH race; skipping — request proceeds", e);
+          redisRepo.updateLastAuthCheck(record.getId(), tokenHash, now);
+        } catch (RuntimeException e) {
+          log.debug("Could not advance the auth-check timestamp; request proceeds", e);
         }
-        record.setLastFiatCheckAt(now.toString());
+        record.setLastAuthCheckAt(now.toString());
       }
     }
 
@@ -106,38 +108,73 @@ public class ApiTokenService {
   }
 
   /**
-   * Returns {@code true} if the principal has at least one Fiat permission, or if Fiat is disabled.
+   * Returns {@code true} if the principal has at least one permission, or if the {@link
+   * PermissionService} is disabled.
+   *
+   * <p>Role resolution mirrors {@link ApiTokenAuthenticationFilter} — see {@link
+   * #resolveRolesForCheck}. Consulting only the user role provider would reject every
+   * service-account token, and every token in a deployment with no role provider at all.
    *
    * <ul>
-   *   <li><b>404</b> — user definitively absent from Fiat; returns {@code false}.
-   *   <li><b>Any other error</b> — Fiat temporarily unavailable; fails open, returns {@code true}.
+   *   <li><b>404</b> — user definitively absent from the permission store; returns {@code false}.
+   *   <li><b>Any other error</b> — permission lookup temporarily unavailable; fails open, returns
+   *       {@code true}.
    * </ul>
    */
-  public boolean principalHasPermissions(String principalId) {
+  public boolean principalHasPermissions(TokenRecord record) {
     if (!permissionService.isEnabled()) {
       return true;
     }
+    String principalId = record.getPrincipalId();
     try {
-      Set<Role.View> roles = permissionService.getRolesForTokenAuth(principalId);
-      return roles != null && !roles.isEmpty();
+      return !resolveRolesForCheck(record).isEmpty();
     } catch (SpinnakerHttpException e) {
       if (e.getResponseCode() == 404) {
-        log.info("Principal '{}' not found in Fiat (404) — treating as departed", principalId);
+        log.info("Principal '{}' not found (404) — treating as departed", principalId);
         return false;
       }
       log.warn(
-          "Fiat returned HTTP {} for principal '{}' — failing open: {}",
+          "Permission lookup returned HTTP {} for principal '{}' — failing open: {}",
           e.getResponseCode(),
           principalId,
           e.getMessage());
       return true;
     } catch (Exception e) {
       log.warn(
-          "Could not reach Fiat for principal '{}' — failing open: {}",
+          "Could not resolve permissions for principal '{}' — failing open: {}",
           principalId,
           e.getMessage());
       return true;
     }
+  }
+
+  /**
+   * The roles the deprovisioning check treats as evidence the principal is still live. Kept in step
+   * with {@link ApiTokenAuthenticationFilter}'s resolution so the check can never reject a token
+   * the filter would have authenticated:
+   *
+   * <ul>
+   *   <li>service accounts resolve from the SA's Front50 {@code memberOf} — the user role provider
+   *       never knows a service account;
+   *   <li>with no role provider configured, roles can't be re-derived from a principal id (there is
+   *       no live login session here), so the snapshot captured on the token at creation is
+   *       authoritative. Gated on there being no provider so provider-backed deployments never keep
+   *       a deprovisioned user alive off a stale snapshot.
+   * </ul>
+   */
+  private Set<String> resolveRolesForCheck(TokenRecord record) {
+    String principalId = record.getPrincipalId();
+    if ("SERVICE_ACCOUNT".equalsIgnoreCase(record.getPrincipalType())) {
+      return permissionService.resolveServiceAccountRoles(principalId);
+    }
+    Set<String> roles = permissionService.getRolesForTokenAuth(principalId);
+    if ((roles == null || roles.isEmpty()) && !permissionService.hasUserRolesResolver()) {
+      List<String> snapshot = record.getRoles();
+      if (snapshot != null && !snapshot.isEmpty()) {
+        return new LinkedHashSet<>(snapshot);
+      }
+    }
+    return roles == null ? Set.of() : roles;
   }
 
   /**
@@ -147,7 +184,7 @@ public class ApiTokenService {
    *
    * <ol>
    *   <li>Subsystem disabled → no.
-   *   <li>Fiat admin → yes.
+   *   <li>Admin → yes.
    *   <li>No minting roles configured → no (for non-admins).
    *   <li>Otherwise the user must hold at least one configured minting role.
    * </ol>
@@ -163,11 +200,11 @@ public class ApiTokenService {
     if (allowed == null || allowed.isEmpty()) {
       return false;
     }
-    Collection<Role.View> userRoles = permissionService.getRoles(username);
+    Collection<String> userRoles = permissionService.getRoles(username);
     if (userRoles == null || userRoles.isEmpty()) {
       return false;
     }
-    return userRoles.stream().map(Role.View::getName).anyMatch(allowed::contains);
+    return userRoles.stream().anyMatch(allowed::contains);
   }
 
   /**
@@ -206,8 +243,8 @@ public class ApiTokenService {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  private boolean isFiatCheckNeeded(TokenRecord record) {
-    String lastCheck = record.getLastFiatCheckAt();
+  private boolean isAuthCheckNeeded(TokenRecord record) {
+    String lastCheck = record.getLastAuthCheckAt();
     if (lastCheck == null || lastCheck.isBlank()) {
       return true;
     }

@@ -1,11 +1,12 @@
 package com.netflix.spinnaker.front50.controllers
 
-import com.fasterxml.jackson.databind.Module
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.front50.config.security.Front50PermissionEvaluator
+import com.netflix.spinnaker.security.authz.ResourceAclResolver
 import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.validator.PipelineValidator
 import com.netflix.spinnaker.front50.api.validator.ValidatorErrors
+import com.netflix.spinnaker.front50.config.AuthorizationConfig
 import com.netflix.spinnaker.front50.config.Front50CoreConfiguration
 import com.netflix.spinnaker.front50.config.controllers.PipelineControllerConfig
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(controllers = [PipelineController])
-@ContextConfiguration(classes = [TestConfiguration, AuthorizationSupport, PipelineController, PipelineControllerConfig, Front50CoreConfiguration])
+@ContextConfiguration(classes = [TestConfiguration, AuthorizationSupport, AuthorizationConfig, PipelineController, PipelineControllerConfig, Front50CoreConfiguration])
 class PipelineControllerSpec extends Specification {
 
   @Autowired
@@ -47,18 +48,17 @@ class PipelineControllerSpec extends Specification {
   PipelineControllerConfig pipelineControllerConfig
 
   @Autowired
-  FiatPermissionEvaluator fiatPermissionEvaluator
+  Front50PermissionEvaluator permissionEvaluator
 
   @Autowired
   private AuthorizationSupport authorizationSupport
-  @Autowired ObjectMapper objectMapper
 
   @Unroll
   def "should fail the pipeline when staleCheck is true and conditions are met"() {
     given:
     def staleCheck_true = true
     def staleCheck_false = false
-    def localFiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
+    def localPermissionEvaluator = Mock(Front50PermissionEvaluator)
     def pipelinesBatch1 = [
       [      id          : "1",
              name        : "test-pipeline",
@@ -88,11 +88,11 @@ class PipelineControllerSpec extends Specification {
       void bulkImport(Collection<Pipeline> items) {}
     }
 
-    _ * localFiatPermissionEvaluator.hasPermission(_, "test-application", "APPLICATION", "WRITE") >> true
+    _ * localPermissionEvaluator.hasPermission(_, "test-application", "APPLICATION", "WRITE") >> true
 
     def pipelineController = new PipelineController(
       pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
-      localFiatPermissionEvaluator, authorizationSupport)
+      localPermissionEvaluator, authorizationSupport)
 
     when: "staleCheck is true and conditions are met"
     def response = pipelineController.batchUpdate(pipelinesBatch1, staleCheck_true)
@@ -143,7 +143,7 @@ class PipelineControllerSpec extends Specification {
 
     def pipelineController = new PipelineController(
       pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
-      fiatPermissionEvaluator, authorizationSupport)
+      permissionEvaluator, authorizationSupport)
 
     when:
     pipelineControllerConfig.getSave().refreshCacheOnDuplicatesCheck = true
@@ -238,7 +238,7 @@ class PipelineControllerSpec extends Specification {
           [new MockValidator()] as List<PipelineValidator>,
           Optional.empty(),
           pipelineControllerConfig,
-          fiatPermissionEvaluator,
+          permissionEvaluator,
           authorizationSupport
         )
       )
@@ -281,8 +281,8 @@ class PipelineControllerSpec extends Specification {
     pipelineDAO.history(testPipelineId, 20) >> pipelineList
 
     def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
-      pipelineDAO, objectMapper, Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
-      fiatPermissionEvaluator, authorizationSupport
+      pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
+      permissionEvaluator, authorizationSupport
     )).build()
 
     when:
@@ -321,7 +321,7 @@ class PipelineControllerSpec extends Specification {
 
     def mockMvcWithController = MockMvcBuilders.standaloneSetup(new PipelineController(
       pipelineDAO, new ObjectMapper(), Optional.empty(), [], Optional.empty(), pipelineControllerConfig,
-      fiatPermissionEvaluator, authorizationSupport
+      permissionEvaluator, authorizationSupport
     )).build()
 
     when:
@@ -344,8 +344,13 @@ class PipelineControllerSpec extends Specification {
     }
 
     @Bean
-    FiatPermissionEvaluator fiatPermissionEvaluator() {
-      detachedMockFactory.Stub(FiatPermissionEvaluator)
+    Front50PermissionEvaluator permissionEvaluator() {
+      detachedMockFactory.Stub(Front50PermissionEvaluator)
+    }
+
+    @Bean
+    ResourceAclResolver resourceAclResolver() {
+      detachedMockFactory.Stub(ResourceAclResolver)
     }
   }
 

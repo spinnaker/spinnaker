@@ -6,11 +6,7 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator
-import com.netflix.spinnaker.fiat.model.Authorization
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.model.resources.Account
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
+import com.netflix.spinnaker.echo.pipelinetriggers.runas.RunAsTokenService
 import com.netflix.spinnaker.kork.discovery.DiscoveryStatusListener
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
@@ -26,8 +22,7 @@ class PipelineInitiatorSpec extends Specification {
   def registry = new NoopRegistry()
   def noopDynamicConfigService = new DynamicConfigService.NoopDynamicConfig()
   def orca = Mock(OrcaService)
-  def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
-  def fiatStatus = Mock(FiatStatus)
+  def runAsTokenService = Mock(RunAsTokenService)
   def objectMapper = Mock(ObjectMapper)
   def quietPeriodIndicator = Mock(QuietPeriodIndicator)
   def contextProvider = new AuthenticatedRequestContextProvider()
@@ -35,23 +30,6 @@ class PipelineInitiatorSpec extends Specification {
 
   Optional<String> capturedSpinnakerUser
   Optional<String> capturedSpinnakerAccounts
-
-  def userPermissions = [
-      "anonymous": new UserPermission.View(
-          accounts: [
-              account("account1", ["READ"]),
-              account("account2", ["READ", "WRITE"]),
-              account("account3", ["READ", "WRITE"])
-          ] as Set<Account.View>
-      ),
-      "not-anonymous": new UserPermission.View(
-          accounts: [
-              account("account1", ["READ", "WRITE"]),
-              account("account2", ["READ", "WRITE"]),
-              account("account3", ["READ", "WRITE"])
-          ] as Set<Account.View>
-      )
-  ]
 
   void setup() {
     capturedSpinnakerUser = Optional.empty()
@@ -63,7 +41,7 @@ class PipelineInitiatorSpec extends Specification {
     given:
     def dynamicConfigService = Mock(DynamicConfigService)
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, dynamicConfigService, activator, 5, 5000
+      registry, orca, Optional.of(runAsTokenService), MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, dynamicConfigService, activator, 5, 5000
     )
 
     def pipeline = Pipeline
@@ -84,38 +62,34 @@ class PipelineInitiatorSpec extends Specification {
     1 * activator.isEnabled() >> upInDiscovery
     _ * dynamicConfigService.isEnabled('scheduler.triggers', true) >> !suppress
     _ * dynamicConfigService.isEnabled("orca", true) >> enabled
-    _ * fiatStatus.isEnabled() >> enabled
-    _ * fiatStatus.isLegacyFallbackEnabled() >> legacyFallbackEnabled
 
-    (legacyFallbackEnabled ? 1 : 0) * fiatPermissionEvaluator.getPermission(user ?: "anonymous") >> {
-      return userPermissions.get(user ?: "anonymous")
-    }
+    // A fresh short-lived run-as token is minted/propagated from Front50 for each trigger
+    // attempt (no remote permission lookup, no account resolution).
+    expectedTriggerCalls * runAsTokenService.propagateRunAsToken(expectedSpinnakerUser, _)
 
     expectedTriggerCalls * orca.trigger(pipeline) >> {
       captureAuthorizationContext()
       Calls.response(new OrcaService.TriggerResponse())
     }
 
-    capturedSpinnakerUser.orElse(null) == expectedSpinnakerUser
-    capturedSpinnakerAccounts.orElse(null)?.split(",") as Set<String> == expectedSpinnakerAccounts?.split(",") as Set<String>
+    capturedSpinnakerUser.orElse(null) == (expectedTriggerCalls > 0 ? expectedSpinnakerUser : null)
 
     where:
-    user            | upInDiscovery | enabled | suppress | legacyFallbackEnabled || expectedTriggerCalls || expectedSpinnakerUser || expectedSpinnakerAccounts
-    "anonymous"     | false         | true    | false    | false                 || 0                    || null                  || null                          // down in discovery
-    "anonymous"     | true          | false   | false    | false                 || 0                    || null                  || null                          // orca not enabled
-    null            | true          | true    | true     | false                 || 0                    || null                  || null                          // cron triggers enabled but suppressed
-    "anonymous"     | true          | true    | false    | false                 || 1                    || "anonymous"           || null                          // fallback disabled (no accounts)
-    "anonymous"     | true          | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // fallback enabled (all WRITE accounts)
-    "not-anonymous" | true          | true    | false    | true                  || 1                    || "not-anonymous"       || "account1,account2,account3"  // fallback enabled (all WRITE accounts)
-    null            | true          | true    | false    | true                  || 1                    || "anonymous"           || "account2,account3"           // null trigger user should default to 'anonymous'
+    user            | upInDiscovery | enabled | suppress || expectedTriggerCalls || expectedSpinnakerUser
+    "anonymous"     | false         | true    | false    || 0                    || "anonymous"      // down in discovery
+    "anonymous"     | true          | false   | false    || 0                    || "anonymous"      // orca not enabled
+    null            | true          | true    | true     || 0                    || "anonymous"      // cron triggers enabled but suppressed
+    "anonymous"     | true          | true    | false    || 1                    || "anonymous"      // triggered as anonymous
+    "not-anonymous" | true          | true    | false    || 1                    || "not-anonymous"  // triggered as service account
+    null            | true          | true    | false    || 1                    || "anonymous"      // null trigger user defaults to 'anonymous'
   }
 
-  def "propages auth headers to orca calls without runAs"() {
+  def "propagates auth headers to orca calls without runAs"() {
     given:
     RequestContext context = contextProvider.get()
     def executor = Executors.newFixedThreadPool(2)
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.of(fiatPermissionEvaluator), fiatStatus, executor, objectMapper, quietPeriodIndicator, noopDynamicConfigService, activator, 5, 5000
+      registry, orca, Optional.of(runAsTokenService), executor, objectMapper, quietPeriodIndicator, noopDynamicConfigService, activator, 5, 5000
     )
 
     Trigger trigger = (new Trigger.TriggerBuilder().type("cron").build()).atPropagateAuth(true)
@@ -144,8 +118,9 @@ class PipelineInitiatorSpec extends Specification {
 
     then:
     1 * activator.isEnabled() >> true
-    _ * fiatStatus.isEnabled() >> true
-    _ * fiatStatus.isLegacyFallbackEnabled() >> false
+
+    // propagateAuth re-uses the caller's existing identity unchanged - no run-as token is minted.
+    0 * runAsTokenService.propagateRunAsToken(_, _)
 
     1 * orca.trigger(pipeline) >> {
       captureAuthorizationContext()
@@ -160,7 +135,7 @@ class PipelineInitiatorSpec extends Specification {
   def "calls orca #expectedPlanCalls to plan pipeline if templated"() {
     given:
     def pipelineInitiator = new PipelineInitiator(
-      registry, orca, Optional.empty(), fiatStatus, MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, noopDynamicConfigService, activator, 5, 5000
+      registry, orca, Optional.empty(), MoreExecutors.newDirectExecutorService(), objectMapper, quietPeriodIndicator, noopDynamicConfigService, activator, 5, 5000
     )
 
     def pipeline = Pipeline.builder()
@@ -176,7 +151,6 @@ class PipelineInitiatorSpec extends Specification {
     pipelineInitiator.startPipeline(pipeline, PipelineInitiator.TriggerSource.CRON_SCHEDULER)
 
     then:
-    1 * fiatStatus.isEnabled() >> true
     1 * activator.isEnabled() >> true
     expectedPlanCalls * orca.plan(_, true) >> Calls.response(pipelineMap)
     objectMapper.convertValue(pipelineMap, Pipeline.class) >> pipeline
@@ -198,14 +172,5 @@ class PipelineInitiatorSpec extends Specification {
   private captureAuthorizationContext() {
       capturedSpinnakerUser = contextProvider.get().getUser()
       capturedSpinnakerAccounts = contextProvider.get().getAccounts()
-  }
-
-  private static Account.View account(String name, Collection<String> authorizations) {
-    def accountView = new Account.View()
-
-    accountView.name = name
-    accountView.authorizations = authorizations.collect { Authorization.valueOf(it) }
-
-    return accountView
   }
 }

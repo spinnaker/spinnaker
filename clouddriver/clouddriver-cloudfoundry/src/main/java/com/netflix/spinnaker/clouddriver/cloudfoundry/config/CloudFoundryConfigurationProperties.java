@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cloudfoundry.config;
 
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.*;
 import lombok.*;
 import org.springframework.beans.factory.DisposableBean;

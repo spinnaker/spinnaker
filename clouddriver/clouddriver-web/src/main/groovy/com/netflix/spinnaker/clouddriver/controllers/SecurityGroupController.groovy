@@ -43,7 +43,7 @@ class SecurityGroupController {
   @Autowired
   List<SecurityGroupProvider> securityGroupProviders
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Map<String, Map<String, Set<SecurityGroupSummary>>>> list() {

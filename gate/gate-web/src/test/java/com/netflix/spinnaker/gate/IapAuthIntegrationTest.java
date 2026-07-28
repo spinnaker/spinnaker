@@ -23,16 +23,10 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.Main;
 import com.netflix.spinnaker.gate.health.DownstreamServicesHealthIndicator;
+import com.netflix.spinnaker.gate.services.PermissionService;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -55,7 +49,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +75,6 @@ import retrofit2.mock.Calls;
       "google.iap.issuerId=https://cloud.google.com/iap",
       "spring.config.location=classpath:gate-test.yml",
       "services.front50.applicationRefreshInitialDelayMs=3600000",
-      "services.fiat.enabled=true",
       "logging.level.com.netflix.spinnaker.gate.security.iap=DEBUG",
       "management.health.redis.enabled=false",
       "management.endpoints.web.exposure.include=beans"
@@ -102,9 +94,7 @@ class IapAuthIntegrationTest {
 
   @SpyBean IapAuthenticationFilter iapAuthenticationFilter;
 
-  @MockitoBean FiatService fiatService;
-
-  @SpyBean FiatPermissionEvaluator fiatPermissionEvaluator;
+  @SpyBean PermissionService permissionService;
 
   @MockitoBean Front50Service front50Service;
 
@@ -134,7 +124,7 @@ class IapAuthIntegrationTest {
 
   @AfterEach
   void cleanup() {
-    fiatPermissionEvaluator.invalidatePermission(TEST_EMAIL);
+    permissionService.logout(TEST_EMAIL);
   }
 
   @Test
@@ -142,28 +132,13 @@ class IapAuthIntegrationTest {
 
     String jwtToken = createValidJWT(TEST_EMAIL);
 
-    when(fiatService.loginUser(TEST_EMAIL)).thenReturn(Calls.response((Void) null));
-    when(fiatService.getUserPermission(TEST_EMAIL))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(TEST_EMAIL)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
-
     // Use sessions as ... we don't want to re-auth on this
     HttpClient client = HttpClient.newBuilder().cookieHandler(new CookieManager()).build();
     assertThat(callGate(client, "http://localhost:" + port + "/auth/user", jwtToken))
         .containsEntry("email", TEST_EMAIL)
         .containsEntry("username", TEST_EMAIL);
-    verify(fiatService).loginUser(TEST_EMAIL);
-    verify(fiatService).getUserPermission(TEST_EMAIL);
+    // Roles are now resolved locally at login (kork-roles) rather than fetched from Fiat.
+    verify(permissionService).login(TEST_EMAIL);
 
     // Let's test a bean endpoint that's auth restricted normally that ALSO doesn't do a lot of
     // calls
@@ -189,21 +164,6 @@ class IapAuthIntegrationTest {
   void testSecondRequestWithCachedSignatureStillAuthenticates() throws Exception {
     String jwtToken = createValidJWT(TEST_EMAIL);
 
-    when(fiatService.loginUser(TEST_EMAIL)).thenReturn(Calls.response((Void) null));
-    when(fiatService.getUserPermission(TEST_EMAIL))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(TEST_EMAIL)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
-
     HttpClient client = HttpClient.newBuilder().cookieHandler(new CookieManager()).build();
     // First request - should authenticate and cache signature
     assertThat(callGate(client, "http://localhost:" + port + "/auth/user", jwtToken))
@@ -215,9 +175,8 @@ class IapAuthIntegrationTest {
         .containsEntry("email", TEST_EMAIL)
         .containsEntry("username", TEST_EMAIL);
 
-    // With cached signature, login is only called once (first request)
-    // But getUserPermission may be called multiple times by FiatPermissionEvaluator
-    verify(fiatService, times(1)).loginUser(TEST_EMAIL);
+    // With the signature cached in the session, login is only resolved once (first request).
+    verify(permissionService, times(1)).login(TEST_EMAIL);
   }
 
   @Test

@@ -125,7 +125,13 @@ class OkHttp3ClientConfiguration {
      * Recommend to add logging as the last interceptor, because this will also log the information
      * which you added with previous interceptors to your request.
      */
-    okHttpClientBuilder.addInterceptor(new HttpLoggingInterceptor().setLevel(retrofit2LogLevel))
+    HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor().setLevel(retrofit2LogLevel)
+    // Never log service-to-service credentials even at HEADERS/BODY log level.
+    loggingInterceptor.redactHeader("X-Service-Identity")
+    // The K8s provider carries a raw bearer JWT on this header; see
+    // com.netflix.spinnaker.security.s2s.config.ServiceToServiceProperties.K8s#tokenHeader.
+    loggingInterceptor.redactHeader("X-Service-Identity-Token")
+    okHttpClientBuilder.addInterceptor(loggingInterceptor)
 
     if (!okHttpClientConfigurationProperties.keyStore && !okHttpClientConfigurationProperties.trustStore) {
       return okHttpClientBuilder

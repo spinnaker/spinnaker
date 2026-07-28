@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;

@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpClientComponents;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
@@ -47,8 +46,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
       WebhookService.class
     })
 public class MtlsConfigurationKeystoreTest extends MtlsConfigurationTestBase {
-  @MockitoBean FiatService fiatService;
-
   @MockitoBean OortService oortService;
 
   static class KeyStoreTestConfiguration {

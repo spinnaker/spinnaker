@@ -8,6 +8,7 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution.LastModifiedDetails
 import com.netflix.spinnaker.orca.api.test.pipeline
 import com.netflix.spinnaker.orca.api.test.stage
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.echo.pipeline.ManualJudgmentStage
 import com.netflix.spinnaker.orca.pipeline.WaitStage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -243,6 +244,63 @@ class AuthenticationAwareTest : SubjectSpek<AuthenticationAware> ({
         MDC.put("foo", "bar")
         with(subject) { stage.withAuth {} }
         assertThat(MDC.get("foo")).isEqualTo("bar")
+      }
+    }
+
+    describe("StageExecution.withAuth restores the ambient identity context") {
+      // Queue-worker threads are pooled, so the identity context set up for one execution must not
+      // survive into the next task handled by the same thread. These tests assert that withAuth
+      // (via runAs/propagate with restoreOriginalContext = true) leaves the caller's identity
+      // context exactly as it found it.
+      val userHeader = Header.USER.getHeader()
+
+      it("restores the ambient user after running as the execution user") {
+        val pipeline = pipeline {
+          stage {
+            type = "wait"
+          }
+        }
+        pipeline.authentication = PipelineExecution.AuthenticationDetails("execution-user")
+        val stage = pipeline.stages.first()
+
+        try {
+          MDC.put(userHeader, "ambient-user")
+
+          var userDuringBlock: String? = null
+          with(subject) {
+            stage.withAuth {
+              userDuringBlock = MDC.get(userHeader)
+            }
+          }
+
+          // The block runs as the execution's user...
+          assertThat(userDuringBlock).isEqualTo("execution-user")
+          // ...but the original ambient user is restored afterwards.
+          assertThat(MDC.get(userHeader)).isEqualTo("ambient-user")
+        } finally {
+          MDC.clear()
+        }
+      }
+
+      it("does not leak the execution user when there was no ambient user") {
+        val pipeline = pipeline {
+          stage {
+            type = "wait"
+          }
+        }
+        pipeline.authentication = PipelineExecution.AuthenticationDetails("execution-user")
+        val stage = pipeline.stages.first()
+
+        try {
+          MDC.clear()
+
+          with(subject) { stage.withAuth {} }
+
+          // Running as the execution user must not bleed into the (empty) ambient context.
+          assertThat(MDC.get(userHeader)).isNull()
+        } finally {
+          MDC.clear()
+        }
       }
     }
 })

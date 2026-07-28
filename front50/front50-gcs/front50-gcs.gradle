@@ -39,6 +39,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot"
   testImplementation "com.google.http-client:google-http-client"
   testImplementation "com.google.cloud:google-cloud-core"
+  testImplementation "io.spinnaker.kork:kork-authz"
   testImplementation "io.strikt:strikt-core"
   testImplementation "io.mockk:mockk"
   testImplementation "org.junit.jupiter:junit-jupiter-api"

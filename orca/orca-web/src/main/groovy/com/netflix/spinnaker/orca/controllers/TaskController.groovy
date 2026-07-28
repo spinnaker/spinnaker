@@ -150,7 +150,7 @@ class TaskController {
     ).collect { convert(it) }
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(filterObject.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<OrchestrationViewModel> list() {
@@ -604,7 +604,7 @@ class TaskController {
     executionOperator.resume(PIPELINE, id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), false)
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.GONE)
@@ -612,7 +612,7 @@ class TaskController {
     []
   }
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @PostFilter("hasPermission(this.getPipeline(filterObject)?.application, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
   @ResponseStatus(HttpStatus.GONE)

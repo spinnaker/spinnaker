@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.controllers;
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.gate.security.GatePermissionEvaluator;
 import com.netflix.spinnaker.gate.services.internal.OrcaServiceSelector;
 import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
   public final OrcaServiceSelector orcaService;
-  private FiatPermissionEvaluator fiatPermissionEvaluator;
+  private GatePermissionEvaluator permissionEvaluator;
 
   /**
    * VERY simple endpoint that returns whether the user is an "admin" or not. This enables the UI to
@@ -43,7 +43,7 @@ public class AdminController {
         "username",
         SecurityContextHolder.getContext().getAuthentication().getName(),
         "isAdmin",
-        fiatPermissionEvaluator.isAdmin());
+        permissionEvaluator.isAdmin());
   }
 
   /**
@@ -60,7 +60,7 @@ public class AdminController {
    */
   @Operation(summary = "Admin endpoint to force cancel an execution")
   @PutMapping(value = "/executions/forceCancel")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
   public void killZombie(
       @Parameter(description = "The execution id of the specific pipeline")
           @RequestParam(value = "executionId")
@@ -104,8 +104,8 @@ public class AdminController {
    *     to false.
    */
   @PostMapping("/executions/hydrate")
-  @PreAuthorize("@fiatPermissionEvaluator.isAdmin()")
-  public Map<String, Object> rehydrate(
+  @PreAuthorize("@spinnakerPermissionEvaluator.isAdmin()")
+  public Map rehydrate(
       @Parameter(description = "The execution id of the specific pipeline to rehydrate.")
           @RequestParam(value = "executionId")
           String executionId,

@@ -24,7 +24,6 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
@@ -281,15 +280,6 @@ class WebhookConfigurationTest {
     @Bean
     UserConfiguredUrlRestrictions userConfiguredUrlRestrictions() {
       return new UserConfiguredUrlRestrictions.Builder().build();
-    }
-
-    /**
-     * WebhookConfiguration has @ComponentScan("com.netflix.spinnaker.orca.webhook") which picks up
-     * PreconfiguredWebhookStage, which depends on FiatService.
-     */
-    @Bean
-    FiatService fiatService() {
-      return mock(FiatService.class);
     }
 
     @Bean

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.front50.spring
 
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
@@ -47,7 +46,6 @@ class DependentPipelineExecutionListener implements ExecutionListener {
 
   private final Front50Service front50Service
   private final DependentPipelineStarter dependentPipelineStarter
-  private final FiatStatus fiatStatus
   private final List<ExecutionPreprocessor> executionPreprocessors
 
   private final ContextParameterProcessor contextParameterProcessor
@@ -57,13 +55,11 @@ class DependentPipelineExecutionListener implements ExecutionListener {
   @Autowired
   DependentPipelineExecutionListener(Front50Service front50Service,
                                      DependentPipelineStarter dependentPipelineStarter,
-                                     FiatStatus fiatStatus,
                                      Optional<List<ExecutionPreprocessor>> pipelinePreprocessors,
                                      ContextParameterProcessor contextParameterProcessor,
                                      Front50ConfigurationProperties front50ConfigurationProperties) {
     this.front50Service = front50Service
     this.dependentPipelineStarter = dependentPipelineStarter
-    this.fiatStatus = fiatStatus
     this.executionPreprocessors = pipelinePreprocessors.orElse(null)
     this.contextParameterProcessor = contextParameterProcessor
     this.front50ConfigurationProperties = front50ConfigurationProperties
@@ -118,7 +114,7 @@ class DependentPipelineExecutionListener implements ExecutionListener {
           ) {
             PipelineExecution.AuthenticationDetails authenticatedUser = null
 
-            if (fiatStatus.enabled && trigger.runAsUser) {
+            if (trigger.runAsUser) {
               authenticatedUser = new PipelineExecution.AuthenticationDetails(trigger.runAsUser)
             }
 

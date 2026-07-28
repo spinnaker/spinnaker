@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredent
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import groovy.transform.TupleConstructor
 
 import static com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfigurationProperties.ManagedAccount.GcloudReleaseTrack

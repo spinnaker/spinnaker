@@ -84,6 +84,28 @@ class AuthenticatedRequestSpec extends Specification {
     MDC.clear()
   }
 
+  void "should propagate the identity token across the thread boundary"() {
+    when:
+    MDC.clear()
+    MDC.put(Header.USER.header, "spinnaker-user")
+    MDC.put(Header.IDENTITY_TOKEN.header, "signed-identity-token")
+
+    def closure = AuthenticatedRequest.propagate({
+      assert AuthenticatedRequest.get(Header.IDENTITY_TOKEN).get() == "signed-identity-token"
+      return true
+    })
+
+    // simulate the work running on another thread that no longer has the original MDC
+    MDC.clear()
+    closure.call()
+
+    then:
+    noExceptionThrown()
+
+    cleanup:
+    MDC.clear()
+  }
+
   void "should propagate headers"() {
     when:
     MDC.clear()

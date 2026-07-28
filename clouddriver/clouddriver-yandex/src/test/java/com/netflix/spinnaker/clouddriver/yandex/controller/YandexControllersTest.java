@@ -41,9 +41,7 @@ import org.springframework.test.web.servlet.MockMvc;
       "sql.enabled = false",
       "spring.application.name = clouddriver",
       "yandex.enabled = true",
-      "services.front50.baseUrl = http://localhost",
-      "services.fiat.enabled = false",
-      "services.fiat.baseUrl = http://localhost"
+      "services.front50.baseUrl = http://localhost"
     })
 class YandexControllersTest {
   @Autowired private MockMvc mockMvc;

@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.keel.retrofit
 
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import okhttp3.logging.HttpLoggingInterceptor
 import org.springframework.beans.factory.annotation.Value
@@ -41,9 +40,6 @@ class KeelRetrofitConfiguration {
 
   /**
    * This bean gets highest precedence so that metrics interceptors can rely on the data supplied by this interceptor.
-   *
-   * Also, we wire up [FiatPermissionEvaluator] lazily to allow spring to wire up the OkHttpClient
-   * fully and avoid circular dependency problem.
    */
   @Bean
   @ConditionalOnMissingBean

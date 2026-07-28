@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.gate.security.apitoken;
 
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.gate.filters.AuthRequestAttributes;
 import com.netflix.spinnaker.gate.filters.AuthTypeResolver;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
+import com.netflix.spinnaker.gate.security.token.GateIdentityService;
 import com.netflix.spinnaker.gate.services.PermissionService;
+import com.netflix.spinnaker.kork.common.Header;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.SpinnakerAuthorities;
 import com.netflix.spinnaker.security.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,15 +31,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -66,19 +71,19 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
   private final ApiTokenProperties properties;
   private final ApiTokenService apiTokenService;
   private final PermissionService permissionService;
-  private final FiatPermissionEvaluator permissionEvaluator;
+  private final GateIdentityService identityService;
   private final AllowedAccountsSupport allowedAccountsSupport;
 
   public ApiTokenAuthenticationFilter(
       ApiTokenProperties properties,
       ApiTokenService apiTokenService,
       PermissionService permissionService,
-      FiatPermissionEvaluator permissionEvaluator,
+      GateIdentityService identityService,
       AllowedAccountsSupport allowedAccountsSupport) {
     this.properties = properties;
     this.apiTokenService = apiTokenService;
     this.permissionService = permissionService;
-    this.permissionEvaluator = permissionEvaluator;
+    this.identityService = identityService;
     this.allowedAccountsSupport = allowedAccountsSupport;
   }
 
@@ -106,7 +111,8 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
 
     // SECURITY: kork's AuthenticatedRequestFilter copies X-Spinnaker-* headers into MDC and then
     // re-emits MDC entries as outbound headers on every downstream call, which would leak the
-    // plaintext token to Fiat logs. Clear it from MDC and wrap the request so it can't be re-read.
+    // plaintext token to downstream service logs. Clear it from MDC and wrap the request so it
+    // can't be re-read.
     if (request.getHeader(HEADER_X_SPINNAKER_TOKEN) != null) {
       MDC.remove(HEADER_X_SPINNAKER_TOKEN.toUpperCase(Locale.ROOT));
       request = new TokenHeaderStrippingRequestWrapper(request);
@@ -117,7 +123,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    // Mark as a token request before we know whether it resolves: FiatSessionFilter / DPoP key off
+    // Mark as a token request before we know whether it resolves: downstream filters / DPoP key off
     // these attributes to skip session-flow logic, and the metrics filter uses them for tagging.
     request.setAttribute(AuthRequestAttributes.IS_API_TOKEN, Boolean.TRUE);
     request.setAttribute(AuthTypeResolver.AUTH_TYPE_ATTRIBUTE, AuthTypeResolver.TYPE_API_TOKEN);
@@ -136,28 +142,52 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
     String principalKind = normalisePrincipalKind(record.getPrincipalType());
 
     PreAuthenticatedAuthenticationToken authentication;
+    String identityToken = null;
     if (permissionService.isEnabled()) {
-      // Read the cached view; do NOT call permissionService.login() here. That triggers a Fiat
-      // role-provider re-resolve, which returns an empty role set for OIDC users (whose roles
-      // come from the groups claim via loginWithRoles) and silently demotes the live session.
-      UserPermission.View view = permissionEvaluator.getPermission(principalId);
-      if (view == null) {
-        log.warn(
-            "API token resolved to principal '{}' but Fiat returned no permission view — rejecting",
-            principalId);
-        chain.doFilter(request, response);
-        return;
+      // Edge token-exchange: resolve the principal's roles via kork-roles at request time (backed
+      // by GateIdentityService's short-TTL per-principal cache to absorb high-volume CI traffic),
+      // then mint a signed identity token. allowAnonymous keeps any stale X-SPINNAKER-USER in MDC
+      // from leaking to the role providers, since we run before the SecurityContext is populated.
+      Set<String> roles;
+      if ("SERVICE_ACCOUNT".equalsIgnoreCase(record.getPrincipalType())) {
+        // Service accounts are owned by Front50: resolve their roles from the SA's memberOf (merged
+        // via the same resolver used by login / run-as), not from the user role provider — which
+        // never knows a service account. This restores the Fiat behaviour where SA tokens carry the
+        // roles defined on the service account.
+        roles = new LinkedHashSet<>(permissionService.resolveServiceAccountRoles(principalId));
+      } else {
+        roles =
+            AuthenticatedRequest.allowAnonymous(
+                () -> new LinkedHashSet<>(identityService.rolesFor(principalId)));
+        // EXTERNAL fallback: with no role provider, roles can't be resolved from the principal id
+        // at
+        // exchange time (there's no live login session here), so live resolution comes back empty.
+        // Recover the roles captured on the token at creation. Gated on there being no provider so
+        // provider-backed deployments never serve a stale snapshot (they resolve live, which keeps
+        // revocation/refresh authoritative).
+        if (roles.isEmpty() && !identityService.hasUserRolesResolver()) {
+          List<String> snapshot = record.getRoles();
+          if (snapshot != null && !snapshot.isEmpty()) {
+            roles = new LinkedHashSet<>(snapshot);
+          }
+        }
       }
-      User user = buildUserPrincipal(principalId, view);
+      User user = buildUserPrincipal(principalId, roles);
       authentication =
-          new PreAuthenticatedAuthenticationToken(user, "N/A", view.toGrantedAuthorities());
+          new PreAuthenticatedAuthenticationToken(user, "N/A", buildAuthorities(roles));
+      identityToken = identityService.mintToken(principalId, roles);
     } else {
-      // Fiat disabled: still produce a User principal so /auth/user has a body and @SpinnakerUser
+      // Authz disabled: still produce a User principal so /auth/user has a body and @SpinnakerUser
       // resolves; roles/allowedAccounts are empty.
-      User user = buildUserPrincipal(principalId, null);
+      User user = buildUserPrincipal(principalId, List.of());
       authentication = new PreAuthenticatedAuthenticationToken(user, "N/A", List.of());
     }
     SecurityContextHolder.getContext().setAuthentication(authentication);
+    if (identityToken != null) {
+      // Propagate the minted token downstream (kork's outbound interceptor re-emits MDC
+      // X-SPINNAKER-* headers); the propagation filter sees it set and skips re-minting.
+      AuthenticatedRequest.set(Header.IDENTITY_TOKEN, identityToken);
+    }
 
     request.setAttribute(AuthTypeResolver.PRINCIPAL_KIND_ATTRIBUTE, principalKind);
     request.setAttribute(API_TOKEN_ID_ATTRIBUTE, record.getId());
@@ -172,17 +202,28 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
    * Build the {@link User} principal so the {@code @SpinnakerUser} argument resolver populates
    * controller params correctly. (A raw String principal would silently resolve to {@code null}.)
    */
-  private User buildUserPrincipal(String principalId, UserPermission.View view) {
+  private User buildUserPrincipal(String principalId, Collection<String> roleNames) {
     User user = new User();
     user.setUsername(principalId);
     user.setEmail(principalId);
-    Collection<String> roleNames =
-        view == null
-            ? List.of()
-            : view.getRoles().stream().map(Role.View::getName).collect(Collectors.toList());
     user.setRoles(roleNames);
     user.setAllowedAccounts(allowedAccountsSupport.filterAllowedAccounts(principalId, roleNames));
     return user;
+  }
+
+  /** ROLE_* authorities for the resolved roles, plus admin / account-manager flags. */
+  private List<GrantedAuthority> buildAuthorities(Set<String> roles) {
+    List<GrantedAuthority> authorities = new ArrayList<>();
+    for (String role : roles) {
+      authorities.add(SpinnakerAuthorities.forRoleName(role));
+    }
+    if (identityService.isAdmin(roles)) {
+      authorities.add(SpinnakerAuthorities.ADMIN_AUTHORITY);
+    }
+    if (identityService.isAccountManager(roles)) {
+      authorities.add(SpinnakerAuthorities.ACCOUNT_MANAGER_AUTHORITY);
+    }
+    return authorities;
   }
 
   /**

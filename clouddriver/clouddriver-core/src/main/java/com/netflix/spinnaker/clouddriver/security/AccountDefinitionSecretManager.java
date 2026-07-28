@@ -58,9 +58,10 @@ public class AccountDefinitionSecretManager {
   }
 
   /**
-   * Indicates if the given username is authorized to access the given account. When Fiat is
-   * enabled, this allows admins to access accounts along with users who have both WRITE permission
-   * on the account and are authorized to use any provided {@link UserSecretReference} data.
+   * Indicates if the given username is authorized to access the given account. When authorization
+   * is enabled, this allows admins to access accounts along with users who have both WRITE
+   * permission on the account and are authorized to use any provided {@link UserSecretReference}
+   * data.
    *
    * @param username username to check for authorization to use the given account
    * @param accountName the name of the account to check access to

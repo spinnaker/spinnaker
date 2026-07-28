@@ -30,7 +30,7 @@ import com.netflix.spinnaker.clouddriver.names.NamerRegistry
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
 import com.netflix.spinnaker.moniker.Namer
 import groovy.transform.TupleConstructor

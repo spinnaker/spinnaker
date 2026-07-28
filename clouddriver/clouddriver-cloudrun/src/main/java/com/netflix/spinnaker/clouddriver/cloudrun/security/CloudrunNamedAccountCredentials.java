@@ -21,7 +21,7 @@ import com.google.api.services.run.v1.CloudRun;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider;
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;

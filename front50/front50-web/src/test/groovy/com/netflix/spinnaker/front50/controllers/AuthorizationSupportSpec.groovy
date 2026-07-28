@@ -16,19 +16,23 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.front50.api.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.api.model.pipeline.Trigger
+import com.netflix.spinnaker.front50.config.AuthorizationConfig
+import com.netflix.spinnaker.security.authz.ResourceAclResolver
+import org.springframework.security.access.PermissionEvaluator
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class AuthorizationSupportSpec extends Specification {
 
-  FiatPermissionEvaluator evaluator = Mock(FiatPermissionEvaluator)
+  PermissionEvaluator evaluator = Mock(PermissionEvaluator)
+  ResourceAclResolver resourceAclResolver = Mock(ResourceAclResolver)
+  AuthorizationConfig authorizationConfig = new AuthorizationConfig()
 
   @Subject
-  AuthorizationSupport authorizationSupport = new AuthorizationSupport(evaluator)
+  AuthorizationSupport authorizationSupport = new AuthorizationSupport(evaluator, resourceAclResolver, authorizationConfig)
 
   @Unroll
   def "should validate run as user access"() {

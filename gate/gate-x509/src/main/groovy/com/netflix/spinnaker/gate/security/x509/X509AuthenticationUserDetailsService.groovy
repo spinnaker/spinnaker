@@ -20,10 +20,6 @@ import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.fiat.model.UserPermission
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.kork.core.RetrySupport
@@ -73,15 +69,6 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
   @Autowired
   DynamicConfigService dynamicConfigService
-
-  @Autowired
-  FiatPermissionEvaluator fiatPermissionEvaluator
-
-  @Autowired
-  FiatClientConfigurationProperties fiatClientConfigurationProperties
-
-  @Autowired
-  FiatStatus fiatStatus
 
   @Autowired
   Registry registry
@@ -148,9 +135,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       if (loginDebounceEnabled) {
         final Duration debounceWindow = Duration.ofSeconds(dynamicConfigService.getConfig(Long, 'x509.loginDebounce.debounceWindowSeconds', TimeUnit.MINUTES.toSeconds(5)))
         final Optional<Instant> lastDebounced = Optional.ofNullable(loginDebounce.getIfPresent(email))
-        boolean needsCachedPermission = !fiatPermissionEvaluator.hasCachedPermission(email)
-        shouldLogin = needsCachedPermission ||
-          lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
+        shouldLogin = lastDebounced.map({ now.isAfter(it.plus(debounceWindow)) }).orElse(true)
       } else {
         shouldLogin = true
       }
@@ -165,7 +150,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
 
       if (shouldLogin) {
         def id = registry
-          .createId("fiat.login")
+          .createId("authz.login")
           .withTag("type", "x509")
 
         try {
@@ -179,21 +164,17 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
             }
           }, 5, Duration.ofSeconds(2), false)
 
-          id = id.withTag("success", true).withTag("fallback", "none")
+          id = id.withTag("success", true)
         } catch (Exception e) {
           log.debug(
-            "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+            "Unsuccessful X509 authentication (user: {}, roleCount: {}, roles: {})",
             email,
             roles.size(),
             roles,
-            fiatClientConfigurationProperties.legacyFallback,
             e
           )
-          id = id.withTag("success", false).withTag("fallback", fiatClientConfigurationProperties.legacyFallback)
-
-          if (!fiatClientConfigurationProperties.legacyFallback) {
-            throw e
-          }
+          id = id.withTag("success", false)
+          throw e
         } finally {
           registry.counter(id).increment()
         }
@@ -203,13 +184,10 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
         }
       }
 
-      if (fiatStatus.isEnabled()) {
-        def permission = fiatPermissionEvaluator.getPermission(email)
-        def roleNames = permission?.getRoles()?.collect { it -> it.getName() }
-        log.debug("Extracted roles from fiat permissions for user {}: {}", email, roleNames)
-        if (roleNames) {
-          roles.addAll(roleNames)
-        }
+      // Enrich with the roles resolved locally (kork-roles) and cached at login.
+      def resolvedRoles = permissionService.getRoles(email)
+      if (resolvedRoles) {
+        roles.addAll(resolvedRoles)
       }
 
       return roles.unique(/* mutate = */false)

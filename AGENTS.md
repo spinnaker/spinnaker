@@ -22,7 +22,6 @@
 | `front50`     | Metadata persistence          | 8080       |
 | `echo`        | Event routing/CRON scheduling | 8089       |
 | `igor`        | CI/SCM integrations           | 8088       |
-| `fiat`        | Authorization service         | 7003       |
 | `rosco`       | Image bakery (Packer/Helm)    | 8087       |
 | `kayenta`     | Automated canary analysis     | 8090       |
 | `kork`        | Shared service libraries      | -          |
@@ -51,7 +50,6 @@ pnpm build
 - `/front50/` - Metadata store
 - `/echo/` - Events/notifications
 - `/igor/` - CI integrations
-- `/fiat/` - Authorization
 - `/rosco/` - Image bakery
 - `/kayenta/` - Canary analysis
 - `/kork/` - Shared libraries
@@ -103,7 +101,6 @@ pnpm lint
 /front50/               # Metadata persistence
 /echo/                  # Event routing
 /igor/                  # CI/SCM integration
-/fiat/                  # Authorization
 /rosco/                 # Image bakery
 /kayenta/               # Canary analysis
 /kork/                  # Shared libraries
@@ -128,6 +125,6 @@ pnpm lint
 ## Security Considerations
 - Never commit secrets, API keys, or credentials
 - Be cautious with cloud provider configurations
-- Review authorization changes in Fiat carefully
+- Review authorization changes carefully
 - Validate input in Gate API endpoints
 - Follow OWASP guidelines for web security in deck

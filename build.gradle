@@ -109,10 +109,6 @@ tasks.register('echo') {
   it.dependsOn gradle.includedBuild('echo').task(':echo-web:run')
 }
 
-tasks.register('fiat') {
-  it.dependsOn gradle.includedBuild('fiat').task(':fiat-web:run')
-}
-
 tasks.register('front50') {
   it.dependsOn gradle.includedBuild('front50').task(':front50-web:run')
 }
@@ -145,7 +141,6 @@ tasks.register('run') {
   dependsOn 'clouddriver'
   dependsOn 'deck'
   dependsOn 'echo'
-  dependsOn 'fiat'
   dependsOn 'front50'
   dependsOn 'gate'
   dependsOn 'igor'

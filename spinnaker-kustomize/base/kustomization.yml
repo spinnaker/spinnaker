@@ -5,7 +5,6 @@ resources:
 - ./clouddriver
 - ./deck
 - ./echo
-- ./fiat
 - ./front50
 - ./igor
 - ./gate

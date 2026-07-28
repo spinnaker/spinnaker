@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.igor.travis.service
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.igor.build.artifact.decorator.DebDetailsDecorator
 import com.netflix.spinnaker.igor.build.artifact.decorator.RpmDetailsDecorator
 import com.netflix.spinnaker.igor.build.model.GenericBuild

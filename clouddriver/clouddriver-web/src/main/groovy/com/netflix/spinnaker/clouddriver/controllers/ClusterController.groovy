@@ -70,7 +70,7 @@ class ClusterController {
   @Autowired
   Optional<List<ServerGroupViewModelPostProcessor>> serverGroupExtensions = Optional.empty()
 
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#application, 'APPLICATION', 'READ')")
+  @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Set<String>> listByAccount(@PathVariable String application) {

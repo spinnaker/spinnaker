@@ -28,8 +28,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Constants and utilities for working with Spring Security GrantedAuthority objects specific to
- * Spinnaker and Fiat. Spinnaker-specific roles are represented here as granted authorities with the
- * {@code SPINNAKER_} prefix.
+ * Spinnaker. Spinnaker-specific roles are represented here as granted authorities with the {@code
+ * SPINNAKER_} prefix.
  */
 public class SpinnakerAuthorities {
   private static final String ROLE_PREFIX = "ROLE_";
@@ -39,8 +39,20 @@ public class SpinnakerAuthorities {
   /** Granted authority for Spinnaker administrators. */
   public static final GrantedAuthority ADMIN_AUTHORITY = new SimpleGrantedAuthority(ADMIN);
 
+  public static final String ACCOUNT_MANAGER = "SPINNAKER_ACCOUNT_MANAGER";
+
+  /** Granted authority for Spinnaker account managers. */
+  public static final GrantedAuthority ACCOUNT_MANAGER_AUTHORITY =
+      new SimpleGrantedAuthority(ACCOUNT_MANAGER);
+
   /** Granted authority for anonymous users. */
   public static final GrantedAuthority ANONYMOUS_AUTHORITY = forRoleName("ANONYMOUS");
+
+  /** Checks if the given user is a Spinnaker account manager. */
+  public static boolean isAccountManager(@Nullable Authentication authentication) {
+    return authentication != null
+        && authentication.getAuthorities().contains(SpinnakerAuthorities.ACCOUNT_MANAGER_AUTHORITY);
+  }
 
   /** Creates a granted authority corresponding to the provided name of a role. */
   @Nonnull

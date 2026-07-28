@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1
 
-import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.security.authz.Authorization
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account
 import spock.lang.Specification
 

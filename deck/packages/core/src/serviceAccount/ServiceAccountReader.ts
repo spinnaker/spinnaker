@@ -3,7 +3,7 @@ import { SETTINGS } from '../config/settings';
 
 export class ServiceAccountReader {
   public static getServiceAccounts(): Promise<string[]> {
-    if (!SETTINGS.feature.fiatEnabled) {
+    if (!SETTINGS.feature.authzEnabled) {
       return Promise.resolve([]);
     } else {
       return REST('/auth/user/serviceAccounts').get();
@@ -11,7 +11,7 @@ export class ServiceAccountReader {
   }
 
   public static getServiceAccountsForApplication(application: string): Promise<string[]> {
-    if (!SETTINGS.feature.fiatEnabled) {
+    if (!SETTINGS.feature.authzEnabled) {
       return Promise.resolve([]);
     } else {
       return REST('/auth/user/serviceAccounts').query({ application: application }).get();

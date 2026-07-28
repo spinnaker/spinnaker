@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.clouddriver.docker.registry.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -37,19 +35,10 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
-import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -60,22 +49,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import retrofit2.mock.Calls;
 
-@SpringBootTest(
-    classes = AbstractDockerRegistryLookupControllerTest.TestConfig.class,
-    properties = "services.fiat.cache.max-entries=0")
+@SpringBootTest(classes = AbstractDockerRegistryLookupControllerTest.TestConfig.class)
 @AutoConfigureMockMvc
 @AutoConfigureWebMvc
 @AutoConfigureJson
-@EnableFiatAutoConfig
 @WithMockUser
 class AbstractDockerRegistryLookupControllerTest {
 
@@ -153,8 +136,6 @@ class AbstractDockerRegistryLookupControllerTest {
   @Autowired MockMvc mockMvc;
   @Autowired WriteableCache cache;
   @Autowired AccountCredentialsRepository accountCredentialsRepository;
-  @MockitoBean FiatStatus fiatStatus;
-  @MockitoBean FiatService fiatService;
 
   @BeforeEach
   void setUp() {
@@ -164,15 +145,10 @@ class AbstractDockerRegistryLookupControllerTest {
     accountCredentialsRepository
         .getAll()
         .forEach(cred -> accountCredentialsRepository.delete(cred.getName()));
-
-    given(fiatStatus.isEnabled()).willReturn(true);
   }
 
   @Test
   void testGetTagsWithSortByDateTrue() throws Exception {
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
-
     // Create credentials with sortTagsByDate=true
     var credentials = createTestAccountCredentials(true);
     accountCredentialsRepository.save(credentials.getName(), credentials);
@@ -215,9 +191,6 @@ class AbstractDockerRegistryLookupControllerTest {
 
   @Test
   void testGetTagsWithSortByDateFalse() throws Exception {
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
-
     // Create credentials with sortTagsByDate=false
     var credentials = createTestAccountCredentials(false);
     accountCredentialsRepository.save(credentials.getName(), credentials);
@@ -260,9 +233,6 @@ class AbstractDockerRegistryLookupControllerTest {
 
   @Test
   void testFindWithQueryParameter() throws Exception {
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
-
     // Setup cache with image ID data
     String imageIdKey = Keys.getImageIdKey("test-repository");
     Map<String, Object> idAttributes = new HashMap<>();
@@ -289,10 +259,7 @@ class AbstractDockerRegistryLookupControllerTest {
 
     // Test find with query parameter
     mockMvc
-        .perform(
-            get("/test/registry/find")
-                .queryParam("account", "test-account")
-                .queryParam("q", "test-repository"))
+        .perform(get("/test/registry/find").queryParam("q", "test-repository"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].repository").value("test-repository"))
         .andExpect(jsonPath("$[0].tag").value("1.0"))
@@ -301,9 +268,6 @@ class AbstractDockerRegistryLookupControllerTest {
 
   @Test
   void testFindWithRepositoryAndTagParameters() throws Exception {
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
-
     // Setup cache with tagged image data
     String taggedImageKey = Keys.getTaggedImageKey("test-account", "test-repository", "1.0");
     Map<String, Object> tagAttributes = new HashMap<>();
@@ -323,7 +287,6 @@ class AbstractDockerRegistryLookupControllerTest {
     mockMvc
         .perform(
             get("/test/registry/find")
-                .queryParam("account", "test-account")
                 .queryParam("repository", "test-repository")
                 .queryParam("tag", "1.0"))
         .andExpect(status().isOk())
@@ -336,9 +299,6 @@ class AbstractDockerRegistryLookupControllerTest {
     // Setup credentials
     var credentials = createTestAccountCredentials(false);
     accountCredentialsRepository.save(credentials.getName(), credentials);
-
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
 
     // Setup cache with tagged image data including labels
     String taggedImageKey = Keys.getTaggedImageKey("test-account", "test-repository", "1.0");
@@ -358,10 +318,7 @@ class AbstractDockerRegistryLookupControllerTest {
 
     // Test find with includeDetails=true
     mockMvc
-        .perform(
-            get("/test/registry/find")
-                .queryParam("account", "test-account")
-                .queryParam("includeDetails", "true"))
+        .perform(get("/test/registry/find").queryParam("includeDetails", "true"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].commitId").value("test-commit"))
         .andExpect(jsonPath("$[0].buildNumber").value("123"))
@@ -371,9 +328,6 @@ class AbstractDockerRegistryLookupControllerTest {
 
   @Test
   void testFindWithMultiLevelRepository() throws Exception {
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(permissions));
-
     // Setup cache with tagged image data for a multi-level repository path
     String repository = "org/repo/repoSubfolder";
     String taggedImageKey = Keys.getTaggedImageKey("test-account", repository, "latest");
@@ -394,86 +348,12 @@ class AbstractDockerRegistryLookupControllerTest {
     mockMvc
         .perform(
             get("/test/registry/find")
-                .queryParam("account", "test-account")
                 .queryParam("repository", repository)
                 .queryParam("tag", "latest"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].repository").value(repository))
         .andExpect(jsonPath("$[0].tag").value("latest"))
         .andExpect(jsonPath("$[0].account").value("test-account"));
-  }
-
-  /**
-   * Verifies that callers without a fiat-authenticated user (e.g. igor using
-   * AuthenticatedRequest.allowAnonymous()) can still retrieve images when account is provided.
-   *
-   * <p>Note: in the test environment FiatAuthenticationFilter maps the anonymous Spring Security
-   * context to a PreAuthenticatedAuthenticationToken("anonymousUser"), so fiat IS called. In
-   * production with a truly empty security context (no X-SPINNAKER-USER header) the filter produces
-   * a real AnonymousAuthenticationToken and the isAnonymous() guard in @PreAuthorize short-circuits
-   * the fiat call entirely.
-   */
-  @Test
-  @WithAnonymousUser
-  void testFindAnonymousCallerBypassesFiat() throws Exception {
-    var credentials = createTestAccountCredentials(false);
-    accountCredentialsRepository.save(credentials.getName(), credentials);
-
-    String taggedImageKey = Keys.getTaggedImageKey("test-account", "test-repository", "1.0");
-    Map<String, Object> tagAttributes = new HashMap<>();
-    tagAttributes.put("account", "test-account");
-    tagAttributes.put("digest", "test-digest");
-    tagAttributes.put("labels", Map.of());
-
-    cache.merge(
-        Keys.Namespace.TAGGED_IMAGE.getNs(),
-        new DefaultCacheData(taggedImageKey, tagAttributes, Map.of()));
-
-    // In the test environment FiatAuthenticationFilter may map the request to any username
-    // depending on Spring Security's test context propagation. Grant permissions broadly so the
-    // endpoint returns data for whatever identity arrives, verifying the path through the auth
-    // check and data retrieval works for unauthenticated callers.
-    var permissions = createAuthorizedUserPermission();
-    given(fiatService.getUserPermission(any(String.class))).willReturn(Calls.response(permissions));
-
-    mockMvc
-        .perform(get("/test/registry/find").queryParam("account", "test-account"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].account").value("test-account"));
-  }
-
-  /**
-   * Authenticated users that omit 'account' receive 403 — @PreAuthorize fires before the method
-   * body's explicit 400 check can run.
-   */
-  @Test
-  void testFindAuthenticatedWithoutAccountReturnsForbidden() throws Exception {
-    mockMvc.perform(get("/test/registry/find")).andExpect(status().isForbidden());
-  }
-
-  /** Authenticated users whose account permission is denied receive 403. */
-  @Test
-  void testFindAuthenticatedAccessDeniedReturns403() throws Exception {
-    // Return a permission view that grants no access to any account.
-    var emptyPermissions = new UserPermission().setId("user").getView();
-    given(fiatService.getUserPermission(eq("user"))).willReturn(Calls.response(emptyPermissions));
-
-    mockMvc
-        .perform(get("/test/registry/find").queryParam("account", "test-account"))
-        .andExpect(status().isForbidden());
-  }
-
-  private static UserPermission.View createAuthorizedUserPermission() {
-    return new UserPermission()
-        .setId("user")
-        .addResources(
-            List.of(
-                new Account()
-                    .setName("test-account")
-                    .setPermissions(
-                        new Permissions.Builder().add(Authorization.READ, "user").build()),
-                new Role("user")))
-        .getView();
   }
 
   private static DockerRegistryNamedAccountCredentials createTestAccountCredentials(

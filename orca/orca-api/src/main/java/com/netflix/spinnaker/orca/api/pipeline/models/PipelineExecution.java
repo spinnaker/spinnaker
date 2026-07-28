@@ -199,6 +199,52 @@ public interface PipelineExecution {
       this.allowedAccounts = Set.copyOf(allowedAccounts);
     }
 
+    /**
+     * The roles the launching subject was authorized with, decoded from the verified identity token
+     * at launch. This is the durable record of the <em>admission-time</em> grant: roles never
+     * change mid-execution, so they are captured once and reused for the whole lifecycle rather
+     * than re-resolved. Across Orca's async stage boundary (where the original token has expired
+     * and no request header survives) they are re-materialized into a fresh, short-lived identity
+     * token for downstream authorization. Empty when the launch carried no signed token
+     * (authorization disabled).
+     *
+     * <p>Deliberately <em>not</em> the signed bearer token: a role list is not a replayable
+     * credential, so persisting it (rather than the token) keeps no usable credential at rest.
+     */
+    private List<String> roles = Collections.emptyList();
+
+    /** Whether the launching subject's roles granted Spinnaker admin (captured at launch). */
+    private boolean admin;
+
+    /**
+     * Whether the launching subject's roles granted account-manager status (captured at launch).
+     */
+    private boolean accountManager;
+
+    public List<String> getRoles() {
+      return roles;
+    }
+
+    public void setRoles(Collection<String> roles) {
+      this.roles = roles == null ? Collections.emptyList() : List.copyOf(roles);
+    }
+
+    public boolean isAdmin() {
+      return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+      this.admin = admin;
+    }
+
+    public boolean isAccountManager() {
+      return accountManager;
+    }
+
+    public void setAccountManager(boolean accountManager) {
+      this.accountManager = accountManager;
+    }
+
     public AuthenticationDetails() {
       this(null, Collections.emptySet());
     }

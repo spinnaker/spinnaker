@@ -5,16 +5,11 @@
 kork: &kork
 - 'kork/**'
 
-fiat: &fiat
-- 'fiat/**'
-- *kork
-
 buildtool:
 - 'buildtool/**'
 
 clouddriver: &clouddriver
 - 'clouddriver/**'
-- *fiat
 - *kork
 
 deck:
@@ -22,17 +17,14 @@ deck:
 
 echo: &echo
 - 'echo/**'
-- *fiat
 - *kork
 
 front50: &front50
 - 'front50/**'
-- *fiat
 - *kork
 
 gate: &gate
 - 'gate/**'
-- *fiat
 - *kork
 
 halyard: &halyard
@@ -40,17 +32,14 @@ halyard: &halyard
 
 igor: &igor
 - 'igor/**'
-- *fiat
 - *kork
 
 orca: &orca
 - 'orca/**'
-- *fiat
 - *kork
 
 kayenta: &kayenta
 - 'kayenta/**'
-- *fiat
 - *kork
 - *orca
 

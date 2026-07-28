@@ -19,7 +19,7 @@ export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
     validator: IServiceAccountAccessValidationConfig,
     _config: IStageOrTriggerTypeConfig,
   ): PromiseLike<string> {
-    if (SETTINGS.feature.fiatEnabled) {
+    if (SETTINGS.feature.authzEnabled) {
       return ServiceAccountReader.getServiceAccounts().then((serviceAccounts: string[]) => {
         if (stage.runAsUser && !serviceAccounts.includes(stage.runAsUser)) {
           return validator.message;

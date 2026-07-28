@@ -39,20 +39,15 @@ import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository;
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
-import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,20 +57,26 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import retrofit2.mock.Calls;
 
-@SpringBootTest(classes = TestConfig.class, properties = "services.fiat.cache.max-entries=0")
+/**
+ * Owner-local authorization: the controller's {@code @PreAuthorize}/{@code @PostFilter} annotations
+ * bind to a {@code PermissionEvaluator} bean (named {@code spinnakerPermissionEvaluator}). These
+ * tests drive that evaluator directly via {@link TestPermissionEvaluator#readableAccounts}.
+ */
+@SpringBootTest(classes = TestConfig.class)
 @AutoConfigureMockMvc
 @AutoConfigureWebMvc
 @AutoConfigureJson
-@EnableFiatAutoConfig
 @WithMockUser
 class DockerRegistryHelmOciLookupControllerTest {
   @Import(DockerRegistryHelmOciLookupController.class)
+  @EnableGlobalMethodSecurity(prePostEnabled = true)
   static class TestConfig {
     @Bean
     WriteableCache cache() {
@@ -107,13 +108,39 @@ class DockerRegistryHelmOciLookupControllerTest {
     ObjectMapper objectMapper() {
       return new ObjectMapper();
     }
+
+    @Bean(name = "spinnakerPermissionEvaluator")
+    TestPermissionEvaluator spinnakerPermissionEvaluator() {
+      return new TestPermissionEvaluator();
+    }
+  }
+
+  /**
+   * Minimal {@link PermissionEvaluator} standing in for the owner-local evaluator: grants {@code
+   * ACCOUNT}/{@code READ} only for account names explicitly added to {@link #readableAccounts}.
+   */
+  static class TestPermissionEvaluator implements PermissionEvaluator {
+    final Set<String> readableAccounts = new HashSet<>();
+
+    @Override
+    public boolean hasPermission(Authentication authentication, Object target, Object permission) {
+      return false;
+    }
+
+    @Override
+    public boolean hasPermission(
+        Authentication authentication,
+        Serializable targetId,
+        String targetType,
+        Object permission) {
+      return readableAccounts.contains(String.valueOf(targetId));
+    }
   }
 
   @Autowired MockMvc mockMvc;
   @Autowired WriteableCache cache;
   @Autowired AccountCredentialsRepository accountCredentialsRepository;
-  @MockitoBean FiatStatus fiatStatus;
-  @MockitoBean FiatService fiatService;
+  @Autowired TestPermissionEvaluator permissionEvaluator;
 
   @BeforeEach
   void setUp() {
@@ -129,18 +156,12 @@ class DockerRegistryHelmOciLookupControllerTest {
         .getAll()
         .forEach(cred -> accountCredentialsRepository.delete(cred.getName()));
 
-    given(fiatStatus.isEnabled()).willReturn(true);
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
-    given(fiatService.getUserPermission("userForbidden"))
-        .willReturn(Calls.response(createUnauthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.clear();
   }
 
   @Test
-  @WithMockUser
   void authorizedToReadTags() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
 
     mockMvc
         .perform(
@@ -151,11 +172,7 @@ class DockerRegistryHelmOciLookupControllerTest {
   }
 
   @Test
-  @WithMockUser(username = "userForbidden")
   void notAuthorizedToReadTags() throws Exception {
-    given(fiatService.getUserPermission("userForbidden"))
-        .willReturn(Calls.response(createUnauthorizedUserPermission()));
-
     mockMvc
         .perform(
             get("/dockerRegistry/charts/tags")
@@ -166,49 +183,41 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void canSearchForAuthorizedItems() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
     cache.merge(
         Keys.Namespace.TAGGED_HELM_OCI_IMAGE.getNs(), createTestAccountTaggedImageCacheData());
     var credentials = createTestAccountCredentials(false, List.of("test-repository"));
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/charts/find").queryParam("account", "test-account"))
+        .perform(get("/dockerRegistry/charts/find"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].account").value("test-account"))
         .andExpect(jsonPath("$[0].artifact.type").value("helm/image"));
   }
 
   @Test
-  @WithMockUser(username = "userForbidden")
   void filtersOutUnauthorizedItems() throws Exception {
-    given(fiatService.getUserPermission("userForbidden"))
-        .willReturn(Calls.response(createUnauthorizedUserPermission()));
     cache.merge(
         Keys.Namespace.TAGGED_HELM_OCI_IMAGE.getNs(), createTestAccountTaggedImageCacheData());
     var credentials = createTestAccountCredentials(false, List.of("test-repository"));
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(get("/dockerRegistry/charts/find").queryParam("account", "test-account"))
-        .andExpect(status().isForbidden());
+        .perform(get("/dockerRegistry/charts/find"))
+        .andExpectAll(status().isOk(), jsonPath("$.length()").value(0));
   }
 
   @Test
   void generatesCorrectArtifactType() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
     cache.merge(
         Keys.Namespace.TAGGED_HELM_OCI_IMAGE.getNs(), createTestAccountTaggedImageCacheData());
     var credentials = createTestAccountCredentials(false, List.of("test-repository"));
     accountCredentialsRepository.save(credentials.getName(), credentials);
 
     mockMvc
-        .perform(
-            get("/dockerRegistry/charts/find")
-                .queryParam("account", "test-account")
-                .queryParam("includeDetails", "true"))
+        .perform(get("/dockerRegistry/charts/find").queryParam("includeDetails", "true"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].artifact.type").value("helm/image"))
         .andExpect(jsonPath("$[0].artifact.metadata.registry").value("test-registry"))
@@ -217,8 +226,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void findWithQueryParameter() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
 
     // Setup cache with image ID data
     String imageIdKey = Keys.getImageIdKey("test-repository");
@@ -247,10 +255,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
     // Test find with query parameter
     mockMvc
-        .perform(
-            get("/dockerRegistry/charts/find")
-                .queryParam("account", "test-account")
-                .queryParam("q", "test-repository"))
+        .perform(get("/dockerRegistry/charts/find").queryParam("q", "test-repository"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].repository").value("test-repository"))
         .andExpect(jsonPath("$[0].tag").value("1.0"))
@@ -259,8 +264,8 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void findWithAccountFilter() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
+    permissionEvaluator.readableAccounts.add("other-account");
 
     // Setup multiple accounts in cache
     String taggedImageKey1 =
@@ -307,8 +312,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void findWithRepositoryAndTagFilters() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
 
     // Setup multiple repository/tag combinations
     String taggedImageKey1 = Keys.getHelmOciTaggedImageKey("test-account", "repo1", "tag1");
@@ -344,7 +348,6 @@ class DockerRegistryHelmOciLookupControllerTest {
     mockMvc
         .perform(
             get("/dockerRegistry/charts/find")
-                .queryParam("account", "test-account")
                 .queryParam("repository", "repo1")
                 .queryParam("tag", "tag1"))
         .andExpect(status().isOk())
@@ -355,8 +358,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void testTagsSortingByDate() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
 
     // Create credentials with sortTagsByDate=true
     var credentials = createTestAccountCredentials(true, List.of("test-repository"));
@@ -400,8 +402,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void testLookupOptionsWithAllParameters() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
 
     // Setup cache with tagged image data
     String taggedImageKey = Keys.getHelmOciTaggedImageKey("test-account", "test-repository", "1.0");
@@ -445,8 +446,7 @@ class DockerRegistryHelmOciLookupControllerTest {
 
   @Test
   void testEmptyResults() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
+    permissionEvaluator.readableAccounts.add("test-account");
 
     // Setup credentials but no cache data
     var credentials = createTestAccountCredentials(false, List.of());
@@ -454,43 +454,20 @@ class DockerRegistryHelmOciLookupControllerTest {
 
     // Test find with no matching results
     mockMvc
-        .perform(get("/dockerRegistry/charts/find").queryParam("account", "test-account"))
+        .perform(get("/dockerRegistry/charts/find"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(0));
   }
 
   @Test
   void testNonExistentAccount() throws Exception {
-    given(fiatService.getUserPermission("user"))
-        .willReturn(Calls.response(createAuthorizedUserPermission()));
-
-    // Test tags with non-existent account
+    // Test tags with non-existent account (no READ permission granted)
     mockMvc
         .perform(
             get("/dockerRegistry/charts/tags")
                 .queryParam("account", "non-existent-account")
                 .queryParam("repository", "test-repository"))
         .andExpect(status().isForbidden());
-  }
-
-  private static UserPermission.View createAuthorizedUserPermission() {
-    return new UserPermission()
-        .setId("user")
-        .addResources(
-            List.of(
-                new Account()
-                    .setName("test-account")
-                    .setPermissions(
-                        new Permissions.Builder().add(Authorization.READ, "user").build()),
-                new Role("user")))
-        .getView();
-  }
-
-  private static UserPermission.View createUnauthorizedUserPermission() {
-    return new UserPermission()
-        .setId("userForbidden")
-        .addResources(List.of(new Role("userForbidden")))
-        .getView();
   }
 
   private static CacheData createTestAccountTaggedImageCacheData() {

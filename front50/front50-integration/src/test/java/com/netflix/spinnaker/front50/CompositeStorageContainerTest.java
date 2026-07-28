@@ -144,8 +144,7 @@ class CompositeStorageContainerTest {
             Map.entry("sql.migration.password", mysql.getPassword()),
             Map.entry("sql.secondaryMigration.jdbcUrl", jdbcUrlSecondary),
             Map.entry("sql.secondaryMigration.user", mysqlSecondary.getUsername()),
-            Map.entry("sql.secondaryMigration.password", mysqlSecondary.getPassword()),
-            Map.entry("services.fiat.baseUrl", "http://nowhere"));
+            Map.entry("sql.secondaryMigration.password", mysqlSecondary.getPassword()));
     ObjectMapper mapper = new ObjectMapper();
     return mapper.writeValueAsString(properties);
   }

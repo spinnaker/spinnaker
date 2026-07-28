@@ -5,15 +5,12 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import okhttp3.Interceptor
 import okhttp3.Interceptor.Chain
 import okhttp3.Response
-import org.slf4j.LoggerFactory
 
 /**
  * Okhttp3 interceptor that adds the X-SPINNAKER-* headers to enable authorization and tracing with downstream
  * Spinnaker services.
  */
 class SpinnakerHeadersInterceptor : Interceptor {
-  private val log by lazy { LoggerFactory.getLogger(javaClass) }
-
   override fun intercept(chain: Chain): Response {
     var request = chain.request()
     val headers = mutableMapOf<String, String>()
@@ -26,18 +23,10 @@ class SpinnakerHeadersInterceptor : Interceptor {
       headers[Header.REQUEST_ID.header] = id
     }
 
-    // add account information so that downstream services can use that as a fallback if fiat is down
-    request.header(Header.USER.header)?.also { user ->
-      // TODO: move the call to fiat to retrieve account permission up in the stack to avoid circular dependency
-      //  with new OkHttpClient setup in kork.
-      /*
-      AuthenticatedRequest.allowAnonymous {
-        val accounts = fiatPermissionEvaluator.getPermission(user).accounts.joinToString(",") { it.name }
-        log.trace("Adding X-SPINNAKER-ACCOUNTS: $accounts to ${request.method} ${request.url}")
-        headers[Header.ACCOUNTS.header] = accounts
-      }
-      */
-    }
+    // Historically keel attached an X-SPINNAKER-ACCOUNTS header here, resolving the caller's account
+    // permissions from Fiat, so downstream services had a fallback when Fiat was unavailable. Fiat
+    // has since been removed: downstream services now derive permissions from the verified identity
+    // token, so no account header is attached here.
 
     request = request.newBuilder().let { builder ->
       headers.forEach { (header, value) ->

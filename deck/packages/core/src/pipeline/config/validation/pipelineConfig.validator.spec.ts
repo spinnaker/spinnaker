@@ -59,7 +59,7 @@ describe('pipelineConfigValidator', () => {
   beforeEach(() => Registry.reinitialize());
 
   beforeEach(function () {
-    SETTINGS.feature.fiatEnabled = true;
+    SETTINGS.feature.authzEnabled = true;
   });
 
   beforeEach(() => {

@@ -15,8 +15,10 @@
  */
 package com.netflix.spinnaker.orca.front50
 
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.orca.front50.model.Application
+import com.netflix.spinnaker.orca.front50.model.ExecutionTokenRequest
+import com.netflix.spinnaker.orca.front50.model.RunAsTokenResponse
+import com.netflix.spinnaker.orca.front50.model.ServiceAccount
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
 import com.netflix.spinnaker.orca.front50.model.DeliveryConfig
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
@@ -26,6 +28,8 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -51,6 +55,18 @@ interface Front50Service {
 
   @PATCH("v2/applications/{applicationName}")
   Call<ResponseBody> update(@Path("applicationName") String applicationName, @Body Application application)
+
+  /**
+   * The application's permission record: a serialized {@code Application.Permission} ({@code name}
+   * + {@code permissions} map). A 404 means the application has no permission record, i.e. it is
+   * unrestricted unless global default application permissions apply.
+   *
+   * @param effective pass true for authorization decisions: Front50 then merges in the global
+   * default application permissions, so {@code authz.application.default-permissions} need only be
+   * configured there.
+   */
+  @GET("permissions/applications/{applicationName}")
+  Call<Map> getApplicationPermission(@Path("applicationName") String applicationName, @Query("effective") boolean effective)
 
   @DELETE("permissions/applications/{applicationName}")
   Call<ResponseBody> deletePermission(@Path("applicationName") String applicationName)
@@ -175,6 +191,18 @@ interface Front50Service {
 
   @POST("serviceAccounts")
   Call<ResponseBody> saveServiceAccount(@Body ServiceAccount serviceAccount)
+
+  @GET("serviceAccounts")
+  Call<List<ServiceAccount>> getServiceAccounts()
+
+  // Re-issues a fresh identity token for an in-flight execution's already-admitted subject.
+  // Authorization is the service-to-service caller identity: Front50 requires the authenticated
+  // caller to be Orca (authz.s2s), so no signed assertion or signing key is needed. The
+  // already-admitted subject and roles are sent in the body and trusted because the channel is
+  // authenticated (mTLS / mesh / Kubernetes ServiceAccount token).
+  @POST("auth/issueExecutionToken")
+  @Headers("Accept: application/json")
+  Call<RunAsTokenResponse> issueExecutionToken(@Body ExecutionTokenRequest request)
 
   @GET("deliveries/{id}")
   Call<DeliveryConfig> getDeliveryConfig(@Path("id") String id)

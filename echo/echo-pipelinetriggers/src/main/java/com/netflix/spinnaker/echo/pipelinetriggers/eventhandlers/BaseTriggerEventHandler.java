@@ -24,9 +24,7 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.TriggerEvent;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
-import com.netflix.spinnaker.security.AuthenticatedRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,16 +47,11 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
     implements TriggerEventHandler<T> {
   private final Registry registry;
-  private final FiatPermissionEvaluator fiatPermissionEvaluator;
   protected final ObjectMapper objectMapper;
 
-  public BaseTriggerEventHandler(
-      Registry registry,
-      ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator) {
+  public BaseTriggerEventHandler(Registry registry, ObjectMapper objectMapper) {
     this.registry = registry;
     this.objectMapper = objectMapper;
-    this.fiatPermissionEvaluator = fiatPermissionEvaluator;
   }
 
   @Override
@@ -77,7 +70,6 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
                     .stream())
         .filter(this::isValidTrigger)
         .filter(matchTriggerFor(event))
-        .filter(this::canAccessApplication)
         .map(trigger -> withMatchingTrigger(event, trigger))
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -121,37 +113,6 @@ public abstract class BaseTriggerEventHandler<T extends TriggerEvent>
     List<Artifact> results = new ArrayList<>();
     Optional.ofNullable(getArtifactsFromEvent(event, trigger)).ifPresent(results::addAll);
     return results;
-  }
-
-  protected boolean canAccessApplication(Trigger trigger) {
-    String runAsUser = trigger.getRunAsUser();
-    if (runAsUser == null) {
-      runAsUser = "anonymous";
-    }
-    String user = runAsUser;
-    String application = trigger.getParent().getApplication();
-    boolean hasPermission =
-        AuthenticatedRequest.allowAnonymous(
-            () ->
-                fiatPermissionEvaluator.hasPermission(user, application, "APPLICATION", "EXECUTE"));
-    if (!hasPermission) {
-      log.info(
-          "The user '{}' does not have access to execute pipelines in the application '{}', skipped triggering of pipeline '{}'.",
-          user,
-          application,
-          trigger.getParent().getName());
-      registry
-          .counter(
-              "trigger.errors.accessdenied",
-              "application",
-              application,
-              "user",
-              user,
-              "pipeline",
-              trigger.getParent().getName())
-          .increment();
-    }
-    return hasPermission;
   }
 
   protected abstract Predicate<Trigger> matchTriggerFor(T event);

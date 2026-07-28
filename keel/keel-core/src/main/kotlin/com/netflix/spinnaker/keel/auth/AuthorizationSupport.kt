@@ -17,7 +17,7 @@
  */
 package com.netflix.spinnaker.keel.auth
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator
 import com.netflix.spinnaker.keel.api.AccountAwareLocations
 import com.netflix.spinnaker.keel.api.Locatable
 import com.netflix.spinnaker.keel.persistence.KeelRepository
@@ -32,6 +32,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class AuthorizationSupport(
-  private val permissionEvaluator: FiatPermissionEvaluator,
+  private val permissionEvaluator: PolicyDecisionPointPermissionEvaluator,
   private val repository: KeelRepository,
   private val dynamicConfigService: DynamicConfigService
 ) {
@@ -54,7 +55,15 @@ class AuthorizationSupport(
     override fun toString() = name.toLowerCase()
   }
 
-  private fun enabled() = dynamicConfigService.isEnabled("keel.authorization", true)
+  /**
+   * Authorization is gated on the shared master switch [authz.enabled]. It defaults to `false`
+   * (authorization disabled), matching the other migrated services: out of the box keel allows
+   * access (like the old `services.fiat.enabled=false`), and an operator opts into enforcement by
+   * flipping the flag. When enabled, decisions are delegated to the kork
+   * [PolicyDecisionPointPermissionEvaluator] using the roles carried on the caller's verified
+   * identity token (admin/account-manager short-circuits included).
+   */
+  private fun enabled() = dynamicConfigService.isEnabled("authz.enabled", false)
 
   /**
    * @return true if a user has the permission to access the resource at the level requested
@@ -63,7 +72,14 @@ class AuthorizationSupport(
    * the spring auth context.
    */
   fun hasPermission(email: String, resourceName: String, resourceType: AuthorizationResourceType, authorization: PermissionLevel): Boolean {
-    return permissionEvaluator.hasPermission(email, resourceName, resourceType.name.toLowerCase(), authorization.name)
+    if (!enabled()) return true
+    // The pre-Fiat-removal model resolved an arbitrary user's roles/permissions by calling Fiat
+    // remotely. There is no owner-local source for another user's roles in keel, so we build an
+    // Authentication carrying only the email (no roles) and let the evaluator decide. In permissive
+    // mode (the default) this returns true above; when enforcing, a caller with no token-sourced
+    // roles is denied unless they are an admin. See docs/authorization.md.
+    val authentication: Authentication = UsernamePasswordAuthenticationToken(email, "N/A", emptyList())
+    return permissionEvaluator.hasPermission(authentication, resourceName, resourceType.name.toLowerCase(), authorization.name)
   }
 
   /**

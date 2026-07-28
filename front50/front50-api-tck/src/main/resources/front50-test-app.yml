@@ -5,11 +5,6 @@ spring:
     database:
       replace: none
 
-services:
-  fiat:
-    enabled: false
-    baseUrl: http://localhost:7003
-
 sql:
   enabled: true
   connectionPools:

@@ -19,12 +19,6 @@ package com.netflix.spinnaker.gate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableSet;
-import com.netflix.spinnaker.fiat.model.Authorization;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Account;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.gate.security.saml.SecuritySamlProperties;
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService;
 import com.netflix.spinnaker.gate.services.internal.Front50Service;
@@ -40,7 +34,6 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
@@ -79,8 +72,6 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
   protected static final String REGISTRATION_ID = "SSO";
 
   @MockitoBean ClouddriverService clouddriverService;
-
-  @MockitoBean FiatService fiatService;
 
   @MockitoBean Front50Service front50Service;
 
@@ -200,21 +191,6 @@ abstract class AbstractSAMLConfigurationIntegrationTest {
 
   protected void assertFullSamlAuthenticationFlowUsingABrowserWorks() throws Exception {
     createSamlApplicationInKeycloak(port);
-
-    when(fiatService.loginUser(TEST_EMAIL)).thenReturn(Calls.response((Void) null));
-    when(fiatService.getUserPermission(TEST_EMAIL))
-        .thenReturn(
-            Calls.response(
-                new UserPermission.View()
-                    .setName(TEST_EMAIL)
-                    .setAdmin(false)
-                    .setAccounts(
-                        Set.of(
-                            new Account.View()
-                                .setName("test-account")
-                                .setAuthorizations(ImmutableSet.of(Authorization.WRITE))))
-                    .setRoles(
-                        Set.of(new Role.View().setName("testRole").setSource(Role.Source.LDAP)))));
 
     WebDriver driver = new HtmlUnitDriver(true);
     driver.get("http://localhost:" + port + "/beans");

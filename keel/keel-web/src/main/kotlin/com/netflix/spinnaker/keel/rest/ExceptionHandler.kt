@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.InvalidTypeIdException
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
-import com.netflix.spinnaker.fiat.model.resources.ResourceType.SERVICE_ACCOUNT
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator.AuthorizationFailure
+import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import com.netflix.spinnaker.keel.api.ResourceSpec
 import com.netflix.spinnaker.keel.api.plugins.ResourceHandler
 import com.netflix.spinnaker.keel.api.plugins.UnsupportedKind
@@ -24,7 +22,6 @@ import com.netflix.spinnaker.keel.persistence.NoSuchArtifactException
 import com.netflix.spinnaker.keel.persistence.NoSuchDeliveryConfigException
 import com.netflix.spinnaker.keel.persistence.NoSuchResourceException
 import com.netflix.spinnaker.keel.retrofit.UnparseableResponseException
-import com.netflix.spinnaker.security.AuthenticatedRequest
 import java.time.Instant
 import java.time.format.DateTimeParseException
 import org.slf4j.LoggerFactory
@@ -105,26 +102,15 @@ class ExceptionHandler(
   @ResponseStatus(FORBIDDEN)
   fun onAccessDenied(e: AccessDeniedException): ApiError {
     log.error(e.message)
-    val authFailure: AuthorizationFailure? = FiatPermissionEvaluator.getAuthorizationFailure().orElse(null)
-    val message = if (authFailure != null) {
-      val user = "User ${AuthenticatedRequest.getSpinnakerUser().orElse("")}"
-      val permission = authFailure.authorization.let { if (it == null) "access" else "${it.name.lowercase()} permission" }
-      val resourceType = authFailure.resourceType.toString().lowercase().replace('_', ' ')
-      "Access denied. $user does not have $permission to the ${authFailure.resourceName} $resourceType specified in the request. " +
-        if (authFailure.resourceType == SERVICE_ACCOUNT) {
-          "Please make sure you have access to the service account specified in your delivery config."
-        } else {
-          "Please check that the service account specified in your delivery config has access to this application along " +
-            "with all the cloud accounts included in the delivery config."
-        }
+    // With Fiat removed there is no thread-local authorization-failure detail to enrich the
+    // response with; AuthorizationSupport already throws an AccessDeniedException carrying a
+    // descriptive message, so surface that (falling back to a generic hint).
+    val message = if (e.message == null || e.message == "Access is denied") {
+      "Access denied. Please make sure you have access to the service account specified in your delivery config. " +
+        "If you do have access, check that the service account has access to this application along with all the " +
+        "cloud accounts included in the delivery config."
     } else {
-      if (e.message == null || e.message == "Access is denied") {
-        "Access denied. Please make sure you have access to the service account specified in your delivery config. " +
-          "If you do have access, check that the service account has access to this application along with all the " +
-          "cloud accounts included in the delivery config."
-      } else {
-        e.message!!
-      }
+      e.message!!
     }
     return ApiError(FORBIDDEN, message)
   }
@@ -133,22 +119,20 @@ class ExceptionHandler(
     val (rootCause, problemPath) = findRootCause()
 
     return ParsingErrorDetails(
-      error = when (rootCause) {
-        // In Jackson 2.18+, missing Kotlin parameters are indicated by MismatchedInputException
-        // Check the message to see if it's about missing parameters
-        is MismatchedInputException -> {
-          if (rootCause.message?.contains("value failed for", ignoreCase = true) == true ||
-              rootCause.message?.contains("required", ignoreCase = true) == true) {
-            ParsingError.MISSING_PROPERTY
-          } else {
-            ParsingError.INVALID_TYPE
-          }
+      error = when (this) {
+        // caters to missing properties at the root-level (e.g. serviceAccount)
+        is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
+        else -> when (rootCause) {
+          is MissingKotlinParameterException -> ParsingError.MISSING_PROPERTY
+          is NullPointerException -> ParsingError.INVALID_VALUE
+          is IllegalStateException -> ParsingError.INVALID_VALUE
+          is IllegalArgumentException -> ParsingError.INVALID_VALUE
+          is MismatchedInputException -> ParsingError.INVALID_TYPE
+          is InvalidTypeIdException -> ParsingError.INVALID_TYPE
+          is InvalidFormatException -> ParsingError.INVALID_FORMAT
+          is DateTimeParseException -> ParsingError.INVALID_FORMAT
+          else -> ParsingError.OTHER
         }
-        is NullPointerException -> ParsingError.INVALID_VALUE
-        is IllegalStateException -> ParsingError.INVALID_VALUE
-        is IllegalArgumentException -> ParsingError.INVALID_VALUE
-        is DateTimeParseException -> ParsingError.INVALID_FORMAT
-        else -> ParsingError.OTHER
       },
       message = rootCause.message,
       location = mapOf(
@@ -230,7 +214,7 @@ enum class ParsingError : ApiErrorType {
   OTHER;
 
   @JsonValue
-  fun toLowerCase() = name.lowercase()
+  fun toLowerCase() = name.toLowerCase()
 }
 
 interface ApiErrorDetails {

@@ -21,7 +21,6 @@ import static net.logstash.logback.argument.StructuredArguments.entries;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices;
 import com.netflix.spinnaker.gate.services.PermissionService;
@@ -68,8 +67,6 @@ public class OAuthUserInfoServiceHelper {
 
   private final AllowedAccountsSupport allowedAccountsSupport;
 
-  private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
-
   private final Registry registry;
 
   private SpinnakerProviderTokenServices providerTokenServices;
@@ -83,7 +80,6 @@ public class OAuthUserInfoServiceHelper {
       PermissionService permissionService,
       Front50Service front50Service,
       AllowedAccountsSupport allowedAccountsSupport,
-      FiatClientConfigurationProperties fiatClientConfigurationProperties,
       Registry registry,
       Optional<SpinnakerProviderTokenServices> providerTokenServices) {
     this.userInfoMapping = userInfoMapping;
@@ -91,7 +87,6 @@ public class OAuthUserInfoServiceHelper {
     this.permissionService = permissionService;
     this.front50Service = front50Service;
     this.allowedAccountsSupport = allowedAccountsSupport;
-    this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
     this.registry = registry;
     this.providerTokenServices = providerTokenServices.orElse(null);
   }
@@ -103,8 +98,8 @@ public class OAuthUserInfoServiceHelper {
    * <p>This method extracts user identity information (email, first name, last name, username,
    * roles) from the provider's user attributes according to the configured {@link
    * OAuth2SsoConfig.UserInfoMapping}. It also applies account filtering through {@link
-   * AllowedAccountsSupport}, validates user info requirements, and triggers a login in Fiat to
-   * establish authorization context.
+   * AllowedAccountsSupport}, validates user info requirements, and triggers a login to establish
+   * authorization context.
    *
    * @param oAuth2User the raw user object returned by the OAuth2 provider
    * @param userRequest the associated user request, including access token and client registration
@@ -135,8 +130,8 @@ public class OAuthUserInfoServiceHelper {
    *
    * <p>This method extracts identity information (email, first name, last name, username, roles)
    * from the OIDC claims and user attributes, applies account filtering through {@link
-   * AllowedAccountsSupport}, and triggers a Fiat login to establish authorization context. Unlike
-   * {@link #getSpinnakerOAuth2User}, this method also preserves the OIDC-specific {@link
+   * AllowedAccountsSupport}, and triggers a login to establish authorization context. Unlike {@link
+   * #getSpinnakerOAuth2User}, this method also preserves the OIDC-specific {@link
    * org.springframework.security.oauth2.core.oidc.OidcIdToken} and {@link
    * org.springframework.security.oauth2.core.oidc.OidcUserInfo}.
    *
@@ -191,7 +186,7 @@ public class OAuthUserInfoServiceHelper {
     List<String> roles = Optional.ofNullable(getRoles(details)).orElse(Collections.emptyList());
     // Service accounts are already logged in.
     if (!isServiceAccount) {
-      var id = registry.createId("fiat.login").withTag("type", "oauth2");
+      var id = registry.createId("authz.login").withTag("type", "oauth2");
 
       try {
         retrySupport.retry(
@@ -211,22 +206,16 @@ public class OAuthUserInfoServiceHelper {
             username,
             roles.size(),
             roles);
-        id = id.withTag("success", true).withTag("fallback", "none");
+        id = id.withTag("success", true);
       } catch (Exception e) {
         log.debug(
-            "Unsuccessful oauth2 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
+            "Unsuccessful oauth2 authentication (user: {}, roleCount: {}, roles: {})",
             username,
             roles.size(),
             roles,
-            fiatClientConfigurationProperties.isLegacyFallback(),
             e);
-        id =
-            id.withTag("success", false)
-                .withTag("fallback", fiatClientConfigurationProperties.isLegacyFallback());
-
-        if (!fiatClientConfigurationProperties.isLegacyFallback()) {
-          throw e;
-        }
+        id = id.withTag("success", false);
+        throw e;
       } finally {
         registry.counter(id).increment();
       }

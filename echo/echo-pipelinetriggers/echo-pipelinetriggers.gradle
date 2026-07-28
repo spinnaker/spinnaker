@@ -17,14 +17,13 @@
 dependencies {
   implementation project(':echo-model')
   implementation "io.spinnaker.kork:kork-artifacts"
-  implementation "io.spinnaker.fiat:fiat-api"
-  implementation "io.spinnaker.fiat:fiat-core"
   implementation "com.squareup.retrofit2:retrofit"
   implementation "com.squareup.retrofit2:converter-jackson"
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
 
   implementation project(':echo-core')
+  implementation "io.spinnaker.kork:kork-authz"
   implementation "io.spinnaker.kork:kork-core"
   implementation "io.spinnaker.kork:kork-security"
   implementation "io.spinnaker.kork:kork-web"

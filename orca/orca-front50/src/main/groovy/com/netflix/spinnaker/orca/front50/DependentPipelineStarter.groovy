@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import com.netflix.spinnaker.kork.artifacts.model.ExpectedArtifact
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger
@@ -29,6 +30,7 @@ import com.netflix.spinnaker.orca.api.pipeline.ExecutionPreprocessor
 import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher
 import com.netflix.spinnaker.orca.pipeline.util.ArtifactUtils
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.security.RunAsTokenProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.BeansException
@@ -50,6 +52,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
   List<ExecutionPreprocessor> executionPreprocessors
   ArtifactUtils artifactUtils
   Registry registry
+  RunAsTokenProvider runAsTokenProvider
 
   @Autowired
   DependentPipelineStarter(ApplicationContext applicationContext,
@@ -57,13 +60,15 @@ class DependentPipelineStarter implements ApplicationContextAware {
                            ContextParameterProcessor contextParameterProcessor,
                            Optional<List<ExecutionPreprocessor>> executionPreprocessors,
                            Optional<ArtifactUtils> artifactUtils,
-                           Registry registry) {
+                           Registry registry,
+                           Optional<RunAsTokenProvider> runAsTokenProvider) {
     this.applicationContext = applicationContext
     this.objectMapper = objectMapper
     this.contextParameterProcessor = contextParameterProcessor
     this.executionPreprocessors = executionPreprocessors.orElse(new ArrayList<>())
     this.artifactUtils = artifactUtils.orElse(null)
     this.registry = registry
+    this.runAsTokenProvider = runAsTokenProvider.orElse(null)
   }
 
   PipelineExecution trigger(Map pipelineConfig,
@@ -186,9 +191,18 @@ class DependentPipelineStarter implements ApplicationContextAware {
       log.debug('running pipeline {}:{}', pipelineConfig.id, objectMapper.writeValueAsString(processedPipeline))
     }
 
+    // A dependent pipeline always runs as its configured runAsUser service account. Under
+    // owner-local authorization the launch thread carries only an unsigned X-SPINNAKER-USER header
+    // (no signed token), so the service account's roles are invisible and the launch-time
+    // authorization checks (e.g. EnabledPipelineValidator's Front50 lookup) would be denied. Issue a
+    // signed identity token for that service account and stamp it before launch; the new execution
+    // independently captures its own admission grant, so its later stages authenticate too.
+    String identityToken = resolveIdentityToken(pipelineConfig, authenticationDetails)
+
     Callable<PipelineExecution> callable
     if (artifactError == null) {
       callable = {
+        stampIdentityToken(identityToken)
         return executionLauncher().start(PIPELINE, processedPipeline, parentPipeline.getRootId()).with {
           Id id = registry.createId("pipelines.triggered")
               .withTag("application", Optional.ofNullable(it.getApplication()).orElse("null"))
@@ -199,6 +213,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
       } as Callable<PipelineExecution>
     } else {
       callable = {
+        stampIdentityToken(identityToken)
         return executionLauncher().fail(PIPELINE, processedPipeline, parentPipeline.getRootId(), artifactError)
       } as Callable<PipelineExecution>
     }
@@ -209,6 +224,34 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
+  }
+
+  /**
+   * Issue the signed identity token to present for the dependent pipeline launch: a freshly issued
+   * token for the trigger's configured {@code runAsUser} service account, bound to the pipeline
+   * being triggered. Authorized by the service-identity assertion Orca signs (no prior token, no
+   * shared secret); since the subject is a managed service account, its roles are re-resolved from
+   * Front50's {@code memberOf} (the empty role list signals this). Returns {@code null} when no
+   * provider is wired, the trigger has no runAsUser, or a token cannot be obtained, in which case
+   * the launch proceeds with the unsigned {@code X-SPINNAKER-USER} header (today's permissive
+   * behavior).
+   */
+  private String resolveIdentityToken(Map pipelineConfig,
+                                      PipelineExecution.AuthenticationDetails authenticationDetails) {
+    if (runAsTokenProvider == null || !authenticationDetails?.user) {
+      return null
+    }
+    return runAsTokenProvider.issueExecutionToken(
+        authenticationDetails.user,
+        authenticationDetails.roles,
+        authenticationDetails.admin,
+        authenticationDetails.accountManager).orElse(null)
+  }
+
+  private static void stampIdentityToken(String identityToken) {
+    if (identityToken) {
+      AuthenticatedRequest.set(Header.IDENTITY_TOKEN, identityToken)
+    }
   }
 
   /**

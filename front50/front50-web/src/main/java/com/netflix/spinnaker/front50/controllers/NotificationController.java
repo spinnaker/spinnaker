@@ -84,8 +84,7 @@ public class NotificationController {
         });
   }
 
-  @PreAuthorize(
-      "@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#name, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("hasPermission(#name, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "{type}/{name}", method = RequestMethod.POST)
   public void save(
       @PathVariable(value = "type") String type,
@@ -96,8 +95,7 @@ public class NotificationController {
     }
   }
 
-  @PreAuthorize(
-      "@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#name, 'APPLICATION', 'WRITE')")
+  @PreAuthorize("hasPermission(#name, 'APPLICATION', 'WRITE')")
   @RequestMapping(value = "{type}/{name}", method = RequestMethod.DELETE)
   public void delete(
       @PathVariable(value = "type") String type, @PathVariable(value = "name") String name) {

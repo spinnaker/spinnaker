@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.fiat.model.resources.Role.View;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenProperties;
 import com.netflix.spinnaker.gate.security.apitoken.ApiTokenService;
 import com.netflix.spinnaker.gate.security.apitoken.RedisApiTokenRepository;
@@ -120,8 +119,13 @@ class ApiTokenControllerTest {
   // ---------------------------------------------------------------------------
 
   private void setCurrentUser(String username) {
+    setCurrentUser(username, List.of());
+  }
+
+  private void setCurrentUser(String username, java.util.Collection<String> roles) {
     User user = new User();
     user.setUsername(username);
+    user.setRoles(new java.util.ArrayList<>(roles));
     UsernamePasswordAuthenticationToken auth =
         new UsernamePasswordAuthenticationToken(user, null, List.of());
     SecurityContextHolder.getContext().setAuthentication(auth);
@@ -197,9 +201,7 @@ class ApiTokenControllerTest {
     void mintingRoleUserCreatesToken() throws Exception {
       setCurrentUser(USER_EMAIL);
       when(permissionService.isAdmin(USER_EMAIL)).thenReturn(false);
-      View roleView = new View();
-      roleView.setName("api-minters");
-      when(permissionService.getRoles(USER_EMAIL)).thenReturn(java.util.Set.of(roleView));
+      when(permissionService.getRoles(USER_EMAIL)).thenReturn(java.util.Set.of("api-minters"));
       when(redisRepo.findByPrincipal("USER", USER_EMAIL)).thenReturn(List.of());
 
       mockMvc
@@ -212,6 +214,58 @@ class ApiTokenControllerTest {
           .andExpect(jsonPath("$.hashRef").doesNotExist());
 
       verify(redisRepo).save(any(TokenRecord.class), anyString());
+    }
+
+    @Test
+    @DisplayName(
+        "USER token snapshots the creator's roles onto the record (so EXTERNAL token auth can"
+            + " recover them at exchange time)")
+    void userTokenSnapshotsCreatorRoles() throws Exception {
+      setCurrentUser(USER_EMAIL, List.of("deploy-team", "api-minters"));
+      when(permissionService.isAdmin(USER_EMAIL)).thenReturn(false);
+      when(permissionService.getRoles(USER_EMAIL))
+          .thenReturn(java.util.Set.of("deploy-team", "api-minters"));
+      when(redisRepo.findByPrincipal("USER", USER_EMAIL)).thenReturn(List.of());
+
+      mockMvc
+          .perform(
+              post("/auth/apiTokens")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(Map.of("name", "my-ci-token"))))
+          .andExpect(status().isCreated());
+
+      ArgumentCaptor<TokenRecord> captor = ArgumentCaptor.forClass(TokenRecord.class);
+      verify(redisRepo).save(captor.capture(), anyString());
+      assertThat(captor.getValue().getRoles())
+          .containsExactlyInAnyOrder("deploy-team", "api-minters");
+    }
+
+    @Test
+    @DisplayName(
+        "SERVICE_ACCOUNT token does not snapshot the creating admin's roles (they aren't the SA's)")
+    void saTokenDoesNotSnapshotRoles() throws Exception {
+      String saName = "ci-bot";
+      setCurrentUser(ADMIN_EMAIL, List.of("admins"));
+      when(permissionService.isAdmin(ADMIN_EMAIL)).thenReturn(true);
+      when(front50Service.getTokenEligibleServiceAccounts())
+          .thenReturn(Calls.response(List.of(Map.of("name", saName))));
+      when(redisRepo.findByPrincipal("SERVICE_ACCOUNT", saName)).thenReturn(List.of());
+
+      mockMvc
+          .perform(
+              post("/auth/apiTokens")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(
+                      objectMapper.writeValueAsString(
+                          Map.of(
+                              "name", "ci-token",
+                              "principalType", "SERVICE_ACCOUNT",
+                              "principalId", saName))))
+          .andExpect(status().isCreated());
+
+      ArgumentCaptor<TokenRecord> captor = ArgumentCaptor.forClass(TokenRecord.class);
+      verify(redisRepo).save(captor.capture(), anyString());
+      assertThat(captor.getValue().getRoles()).isNull();
     }
 
     @Test
@@ -401,9 +455,7 @@ class ApiTokenControllerTest {
     void userTokenDefaultExpiryApplied() throws Exception {
       setCurrentUser(USER_EMAIL);
       when(permissionService.isAdmin(USER_EMAIL)).thenReturn(false);
-      View roleView = new View();
-      roleView.setName("api-minters");
-      when(permissionService.getRoles(USER_EMAIL)).thenReturn(java.util.Set.of(roleView));
+      when(permissionService.getRoles(USER_EMAIL)).thenReturn(java.util.Set.of("api-minters"));
       when(redisRepo.findByPrincipal("USER", USER_EMAIL)).thenReturn(List.of());
 
       mockMvc
@@ -454,9 +506,7 @@ class ApiTokenControllerTest {
     void userTokenExceedingMaxExpiryIsBadRequest() throws Exception {
       setCurrentUser(USER_EMAIL);
       when(permissionService.isAdmin(USER_EMAIL)).thenReturn(false);
-      View roleView = new View();
-      roleView.setName("api-minters");
-      when(permissionService.getRoles(USER_EMAIL)).thenReturn(java.util.Set.of(roleView));
+      when(permissionService.getRoles(USER_EMAIL)).thenReturn(java.util.Set.of("api-minters"));
       when(redisRepo.findByPrincipal("USER", USER_EMAIL)).thenReturn(List.of());
 
       String tooFar = Instant.now().plus(200, ChronoUnit.DAYS).toString();

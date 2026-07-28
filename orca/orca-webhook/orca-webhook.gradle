@@ -35,7 +35,10 @@ dependencies {
 
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone")
   testImplementation("com.squareup.retrofit2:retrofit-mock")
-  testImplementation("com.squareup.okhttp3:mockwebserver")
+  // Pin to match the okhttp 5.x that io.kubernetes:client-java drags onto the
+  // classpath; the platform-managed 4.12.0 mockwebserver references okhttp3.internal.Util,
+  // which was removed in okhttp 5.x (NoClassDefFoundError at runtime otherwise).
+  testImplementation("com.squareup.okhttp3:mockwebserver:5.1.0")
   testImplementation("io.spinnaker.kork:kork-test")
   testImplementation("org.assertj:assertj-core")
   testImplementation("org.bouncycastle:bcpkix-jdk18on")
@@ -47,8 +50,8 @@ dependencies {
   testImplementation("org.apache.groovy:groovy-json")
   testRuntimeOnly("net.bytebuddy:byte-buddy")
 
-  implementation("io.spinnaker.fiat:fiat-api")
-  implementation("io.spinnaker.fiat:fiat-core")
+  implementation("io.spinnaker.kork:kork-authz")
+  implementation("io.spinnaker.kork:kork-security")
   implementation("org.apache.httpcomponents.client5:httpclient5")
   implementation("org.springframework.security:spring-security-config")
   implementation("org.springframework.security:spring-security-core")

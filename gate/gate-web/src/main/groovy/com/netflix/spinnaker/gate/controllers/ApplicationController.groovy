@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.security.GateApplicationResource
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
+import com.netflix.spinnaker.security.authz.ProtectedResource
 import groovy.util.logging.Slf4j
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,7 +65,7 @@ class ApplicationController {
 
   @Operation(summary = "Retrieve a list of applications")
   @RequestMapping(method = RequestMethod.GET)
-  @PostFilter("hasPermission(filterObject.get('name'), 'APPLICATION', 'READ')")
+  @PostFilter("hasPermission(this.asProtectedApplication(filterObject), 'READ')")
   List<HashMap<String, Object>> getAllApplications(
     @Parameter(name = "account", required = false, description = "filters results to only include applications deployed in the specified account")
     @RequestParam(value = "account", required = false) String account,
@@ -82,6 +84,18 @@ class ApplicationController {
         }
         ((String) it.email ?: "").toLowerCase() == owner.toLowerCase()
       }
+  }
+
+  /**
+   * Adapts an application entry (as returned by {@link ApplicationService#getAllApplications}) to a
+   * {@link ProtectedResource} so the {@code getAllApplications} {@code @PostFilter} authorizes it
+   * via the owner-provided embedded ACL. Front50 owns applications and embeds each application's
+   * permissions in the {@code permissions} attribute; Gate filters its cached list locally against
+   * those owner-provided ACLs (admins bypass, unrestricted applications are readable by everyone).
+   * Referenced as {@code this.asProtectedApplication(filterObject)} from the SpEL filter.
+   */
+  ProtectedResource asProtectedApplication(Map<String, Object> application) {
+    return GateApplicationResource.from(application)
   }
 
   @Operation(summary = "Retrieve an application's details")

@@ -45,8 +45,6 @@ services:
   keel:
     baseUrl: http://localhost:8087
     enabled: false
-  fiat:
-    enabled: false
   flapjack:
     enabled: false
   igor:

@@ -38,10 +38,6 @@ spinnaker:
       com.netflix.orca.version.not.supported.plugin:
         enabled: true
 
-services:
-  fiat:
-    baseUrl: https://fiat.net
-
 clouddriver:
   baseUrl: https://clouddriver.net
   readOnly:

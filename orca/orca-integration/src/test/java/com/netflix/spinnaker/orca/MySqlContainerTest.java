@@ -83,8 +83,6 @@ public class MySqlContainerTest extends BaseContainerTest {
         Map.of(
             "sql.enabled",
             "true",
-            "services.fiat.baseUrl",
-            "http://nowhere",
             "sql.connectionPool",
             connectionPool,
             "redis.enabled",

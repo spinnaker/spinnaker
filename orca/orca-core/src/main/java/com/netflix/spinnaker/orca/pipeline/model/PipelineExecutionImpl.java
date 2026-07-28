@@ -27,12 +27,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.api.pipeline.models.Trigger;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.token.SpinnakerTokenClaims;
 import de.huxhorn.sulky.ulid.ULID;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -525,11 +527,16 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
     public static Optional<AuthenticationDetails> build() {
       Optional<String> spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser();
       Optional<String> spinnakerAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts();
-      if (spinnakerUserOptional.isPresent() || spinnakerAccountsOptional.isPresent()) {
-        return Optional.of(
+      Optional<String> identityTokenOptional = AuthenticatedRequest.get(Header.IDENTITY_TOKEN);
+      if (spinnakerUserOptional.isPresent()
+          || spinnakerAccountsOptional.isPresent()
+          || identityTokenOptional.isPresent()) {
+        AuthenticationDetails details =
             new AuthenticationDetails(
                 spinnakerUserOptional.orElse(null),
-                spinnakerAccountsOptional.map(s -> s.split(",")).orElse(new String[0])));
+                spinnakerAccountsOptional.map(s -> s.split(",")).orElse(new String[0]));
+        captureGrant(details, identityTokenOptional);
+        return Optional.of(details);
       }
 
       return Optional.empty();
@@ -537,10 +544,37 @@ public class PipelineExecutionImpl implements PipelineExecution, Serializable {
 
     public static Optional<AuthenticationDetails> buildWithoutAccounts() {
       Optional<String> spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser();
-      if (spinnakerUserOptional.isPresent()) {
-        return Optional.of(new AuthenticationDetails(spinnakerUserOptional.orElse(null)));
+      Optional<String> identityTokenOptional = AuthenticatedRequest.get(Header.IDENTITY_TOKEN);
+      if (spinnakerUserOptional.isPresent() || identityTokenOptional.isPresent()) {
+        AuthenticationDetails details =
+            new AuthenticationDetails(spinnakerUserOptional.orElse(null));
+        captureGrant(details, identityTokenOptional);
+        return Optional.of(details);
       }
       return Optional.empty();
+    }
+
+    /**
+     * Capture the admission-time authorization grant (roles + admin/account-manager flags) by
+     * decoding the verified identity token present on the launching request. We persist these
+     * claims rather than the signed token itself: a role list is not a replayable credential, and
+     * roles never change mid-execution, so this is the durable record that is later re-materialized
+     * into a fresh token at each async stage boundary. Best-effort: a malformed token simply leaves
+     * the grant empty (downstream falls back to today's unsigned-header behavior).
+     */
+    private static void captureGrant(
+        AuthenticationDetails details, Optional<String> identityTokenOptional) {
+      identityTokenOptional.ifPresent(
+          token -> {
+            try {
+              SpinnakerTokenClaims claims = SpinnakerTokenClaims.fromTrustedToken(token);
+              details.setRoles(claims.getRoles());
+              details.setAdmin(claims.isAdmin());
+              details.setAccountManager(claims.isAccountManager());
+            } catch (RuntimeException e) {
+              log.warn("Unable to decode identity token claims at launch; grant left empty", e);
+            }
+          });
     }
   }
 }

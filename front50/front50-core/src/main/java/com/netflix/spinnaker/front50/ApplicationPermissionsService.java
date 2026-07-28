@@ -15,21 +15,16 @@
  */
 package com.netflix.spinnaker.front50;
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
-import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.front50.config.FiatConfigurationProperties;
 import com.netflix.spinnaker.front50.events.ApplicationPermissionEventListener;
 import com.netflix.spinnaker.front50.events.ApplicationPermissionEventListener.Type;
 import com.netflix.spinnaker.front50.model.application.Application.Permission;
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO;
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
-import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import com.netflix.spinnaker.security.authz.Permissions;
+import com.netflix.spinnaker.security.authz.config.ApplicationDefaultPermissionsProperties;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -51,25 +46,19 @@ public class ApplicationPermissionsService {
   private static final Logger log = LoggerFactory.getLogger(ApplicationPermissionsService.class);
 
   private final ApplicationDAO applicationDAO;
-  private final Optional<FiatService> fiatService;
   private final Optional<ApplicationPermissionDAO> applicationPermissionDAO;
-  private final FiatConfigurationProperties fiatConfigurationProperties;
-  private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
   private final Collection<ApplicationPermissionEventListener> applicationPermissionEventListeners;
+  private final ApplicationDefaultPermissionsProperties applicationDefaultPermissions;
 
   public ApplicationPermissionsService(
       ApplicationDAO applicationDAO,
-      Optional<FiatService> fiatService,
       Optional<ApplicationPermissionDAO> applicationPermissionDAO,
-      FiatConfigurationProperties fiatConfigurationProperties,
-      FiatClientConfigurationProperties fiatClientConfigurationProperties,
-      Collection<ApplicationPermissionEventListener> applicationPermissionEventListeners) {
+      Collection<ApplicationPermissionEventListener> applicationPermissionEventListeners,
+      ApplicationDefaultPermissionsProperties applicationDefaultPermissions) {
     this.applicationDAO = applicationDAO;
-    this.fiatService = fiatService;
     this.applicationPermissionDAO = applicationPermissionDAO;
-    this.fiatConfigurationProperties = fiatConfigurationProperties;
-    this.fiatClientConfigurationProperties = fiatClientConfigurationProperties;
     this.applicationPermissionEventListeners = applicationPermissionEventListeners;
+    this.applicationDefaultPermissions = applicationDefaultPermissions;
   }
 
   public Set<Permission> getAllApplicationPermissions() {
@@ -92,41 +81,102 @@ public class ApplicationPermissionsService {
     return new HashSet<>(actualPermissions.values());
   }
 
+  /**
+   * The grants every application receives regardless of its own ACL. Exposed so an editor can show
+   * them as inherited — including when creating an application, where there is no record to read
+   * them from yet.
+   */
+  public Permissions getDefaultApplicationPermissions() {
+    return applicationDefaultPermissions.toPermissions();
+  }
+
+  /** The application's own stored grants, exactly as persisted. */
   public Permission getApplicationPermission(@Nonnull String appName) {
-    return applicationPermissionDAO().findById(appName);
+    return getApplicationPermission(appName, false);
+  }
+
+  /**
+   * @param effective when true, return the ACL that authorization decisions must be made against —
+   *     the application's own grants with the global default application permissions merged in.
+   *     Front50 is the authoritative owner of both halves, so serving the effective ACL here keeps
+   *     {@code authz.application.default-permissions} configured in exactly one service; consumers
+   *     that resolve application ACLs remotely no longer need a copy of it to reach the same
+   *     decision Front50 would.
+   */
+  public Permission getApplicationPermission(@Nonnull String appName, boolean effective) {
+    if (!effective) {
+      return applicationPermissionDAO().findById(appName);
+    }
+
+    Permissions defaults = applicationDefaultPermissions.toPermissions();
+    Permission stored;
+    try {
+      stored = applicationPermissionDAO().findById(appName);
+    } catch (NotFoundException e) {
+      // No ACL of its own. If defaults are configured the application is still restricted to them,
+      // so answer with those; otherwise there is genuinely nothing here and the caller's
+      // unknown-application handling should decide.
+      if (!defaults.isRestricted()) {
+        throw e;
+      }
+      Permission defaulted = new Permission();
+      defaulted.setName(appName);
+      defaulted.setPermissions(defaults);
+      return defaulted;
+    }
+
+    Permission result = stored.copy();
+    result.setPermissions(defaults.merge(stored.getPermissions()));
+    return result;
   }
 
   public Permission createApplicationPermission(@Nonnull Permission newPermission) {
     return performWrite(
         supportingEventListeners(Type.PRE_CREATE),
         supportingEventListeners(Type.POST_CREATE),
-        (unused, newPerm) -> {
-          Permission perm = applicationPermissionDAO().create(newPerm.getId(), newPerm);
-          syncUsers(perm, null);
-          return perm;
-        },
+        (unused, newPerm) -> applicationPermissionDAO().create(newPerm.getId(), newPerm),
         null,
-        newPermission);
+        storableGrants(newPermission));
   }
 
   public Permission updateApplicationPermission(
       @Nonnull String appName, @Nonnull Permission newPermission, boolean skipListeners) {
+    Permission storable = storableGrants(newPermission);
     if (skipListeners) {
-      return update(appName, newPermission);
+      return update(appName, storable);
     }
     return performWrite(
         supportingEventListeners(Type.PRE_UPDATE),
         supportingEventListeners(Type.POST_UPDATE),
         (unused, newPerm) -> update(appName, newPerm),
         null,
-        newPermission);
+        storable);
+  }
+
+  /**
+   * Strips the global default application permissions from an incoming ACL so only the
+   * application's own grants are persisted.
+   *
+   * <p>Clients read the effective ACL (own grants plus defaults) and submit the whole list back on
+   * save — Deck's application edit form does exactly this, and it posts the permissions it loaded
+   * whether or not the user touched them. Without this, every save would bake the defaults into the
+   * application's own record, where they could no longer be told apart from a deliberate grant and
+   * would survive being removed from the defaults.
+   */
+  private Permission storableGrants(@Nonnull Permission permission) {
+    Permissions defaults = applicationDefaultPermissions.toPermissions();
+    if (!defaults.isRestricted() || permission.getPermissions() == null) {
+      return permission;
+    }
+    Permission stripped = permission.copy();
+    stripped.setPermissions(permission.getPermissions().subtract(defaults));
+    return stripped;
   }
 
   private Permission update(@Nonnull String appName, @Nonnull Permission newPermission) {
     try {
-      Permission oldPerm = applicationPermissionDAO().findById(appName);
+      applicationPermissionDAO().findById(appName);
       applicationPermissionDAO().update(appName, newPermission);
-      syncUsers(newPermission, oldPerm);
     } catch (NotFoundException e) {
       createApplicationPermission(newPermission);
     }
@@ -147,47 +197,10 @@ public class ApplicationPermissionsService {
         supportingEventListeners(Type.POST_DELETE),
         (unused, newPerm) -> {
           applicationPermissionDAO().delete(appName);
-          syncUsers(null, oldPerm);
           return newPerm;
         },
         oldPerm,
         null);
-  }
-
-  private void syncUsers(Permission newPermission, Permission oldPermission) {
-    if (!fiatClientConfigurationProperties.isEnabled() || !fiatService.isPresent()) {
-      return;
-    }
-
-    // Specifically using an empty list here instead of null, because an empty list will update
-    // the anonymous user's app list.
-    Set<String> roles = new HashSet<>();
-
-    Optional.ofNullable(newPermission)
-        .ifPresent(
-            newPerm -> {
-              Permissions permissions = newPerm.getPermissions();
-              if (permissions != null && permissions.isRestricted()) {
-                roles.addAll(permissions.allGroups());
-              }
-            });
-
-    Optional.ofNullable(oldPermission)
-        .ifPresent(
-            oldPerm -> {
-              Permissions permissions = oldPerm.getPermissions();
-              if (permissions != null && permissions.isRestricted()) {
-                roles.addAll(permissions.allGroups());
-              }
-            });
-
-    if (fiatConfigurationProperties.getRoleSync().isEnabled()) {
-      try {
-        Retrofit2SyncCall.execute(fiatService.get().sync(new ArrayList<>(roles)));
-      } catch (SpinnakerServerException e) {
-        log.warn("Error syncing users", e);
-      }
-    }
   }
 
   private ApplicationPermissionDAO applicationPermissionDAO() {

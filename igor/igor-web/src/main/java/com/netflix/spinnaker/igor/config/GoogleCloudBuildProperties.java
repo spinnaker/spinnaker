@@ -18,10 +18,10 @@ package com.netflix.spinnaker.igor.config;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import com.netflix.spinnaker.igor.model.BuildServiceProvider;
 import com.netflix.spinnaker.igor.service.BuildService;
 import com.netflix.spinnaker.kork.annotations.NonnullByDefault;
+import com.netflix.spinnaker.security.authz.Permissions;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

@@ -21,20 +21,20 @@ import com.netflix.spinnaker.clouddriver.model.EntityTags
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
 /**
- * Support for controllers requiring authorization checks from Fiat.
+ * Support for controllers requiring authorization checks.
  */
 @Component
 class AuthorizationSupport {
 
   @Autowired
-  FiatPermissionEvaluator permissionEvaluator
+  PolicyDecisionPointPermissionEvaluator permissionEvaluator
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider

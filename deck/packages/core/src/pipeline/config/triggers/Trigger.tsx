@@ -118,7 +118,7 @@ function TriggerForm(triggerFormProps: ITriggerProps & { formik: FormikProps<ITr
   // The actual trigger component for the specific trigger type
   const TriggerComponent = (triggerConfig && triggerConfig.component) || EmptyComponent;
 
-  const showRunAsUser = SETTINGS.feature.fiatEnabled && !SETTINGS.feature.managedServiceAccounts;
+  const showRunAsUser = SETTINGS.feature.authzEnabled && !SETTINGS.feature.managedServiceAccounts;
   const fieldSetClassName = classNames({ 'templated-pipeline-item': trigger.inherited, Trigger: true });
 
   const availableExpectedArtifacts = pipeline.expectedArtifacts || [];

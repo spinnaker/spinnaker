@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.config;
 
 import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
 import java.util.List;
@@ -38,7 +37,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * exclude @Configuration's from this scan, as picking those up can affect your tests.
  */
 @Configuration
-@EnableFiatAutoConfig
 @ComponentScan(
     basePackages = {"com.netflix.spinnaker.echo"},
     excludeFilters = @Filter(value = Configuration.class, type = FilterType.ANNOTATION))

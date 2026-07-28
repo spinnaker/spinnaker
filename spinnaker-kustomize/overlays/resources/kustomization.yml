@@ -65,21 +65,6 @@ patches:
     group: apps
     version: v1
     kind: Deployment
-    name: fiat
-- patch: |-
-    - op: replace
-      path: /spec/replicas
-      value: 1
-    - op: replace
-      path: /spec/template/spec/containers/0/resources
-      value:
-        limits:
-          cpu: 1
-          memory: 1Gi
-  target:
-    group: apps
-    version: v1
-    kind: Deployment
     name: front50
 - patch: |-
     - op: replace

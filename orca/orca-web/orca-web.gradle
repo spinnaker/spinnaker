@@ -62,8 +62,9 @@ dependencies {
   implementation("io.spinnaker.kork:kork-web")
   implementation("io.spinnaker.kork:kork-plugins")
   implementation("net.logstash.logback:logstash-logback-encoder")
-  implementation("io.spinnaker.fiat:fiat-api")
-  implementation("io.spinnaker.fiat:fiat-core")
+  implementation("io.spinnaker.kork:kork-authz")
+  implementation("io.spinnaker.kork:kork-security")
+  implementation("org.springframework.security:spring-security-config")
   implementation("io.spinnaker.kork:kork-retrofit")
 
   runtimeOnly("io.spinnaker.kork:kork-runtime")

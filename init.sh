@@ -5,7 +5,6 @@ git subtree add -P clouddriver git@github.com:spinnaker/clouddriver.git master
 git subtree add -P deck git@github.com:spinnaker/deck.git master
 git subtree add -P deck/packages/kayenta git@github.com:spinnaker/deck-kayenta.git master
 git subtree add -P echo git@github.com:spinnaker/echo.git master
-git subtree add -P fiat git@github.com:spinnaker/fiat.git master
 git subtree add -P front50 git@github.com:spinnaker/front50.git master
 git subtree add -P gate git@github.com:spinnaker/gate.git master
 git subtree add -P halyard git@github.com:spinnaker/halyard.git master

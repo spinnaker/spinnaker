@@ -32,7 +32,7 @@ import com.netflix.spinnaker.clouddriver.titus.deploy.actions.PrepareTitusDeploy
 import com.netflix.spinnaker.clouddriver.titus.deploy.actions.SubmitTitusJob
 import com.netflix.spinnaker.clouddriver.titus.deploy.description.TitusDeployDescription
 import com.netflix.spinnaker.config.AwsConfiguration
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import com.netflix.spinnaker.kork.test.mimicker.DataContainer
 import com.netflix.spinnaker.kork.test.mimicker.Mimicker
 import com.netflix.spinnaker.moniker.Moniker
@@ -107,13 +107,12 @@ class PrepareTitusDeployActionSpec extends Specification {
 
   def "merges source details when no asg name is provided"() {
     given:
-    def securityGroupId = mimicker.aws().securityGroupId
-    TitusDeployDescription description = createTitusDeployDescription(securityGroupId)
+    TitusDeployDescription description = createTitusDeployDescription(mimicker.aws().securityGroupId)
     description.source = new TitusDeployDescription.Source(
       account: fixture.accountName,
       region: fixture.region,
       asgName: fixture.monikerName,
-      useSourceCapacity: true
+      useSourceCapacity: mimicker.random().trueOrFalse()
     )
 
     and:
@@ -146,14 +145,18 @@ class PrepareTitusDeployActionSpec extends Specification {
 
     result.events.isEmpty() == true
     result.nextCommand instanceof SubmitTitusJob.SubmitTitusJobCommand
-    with(result.nextCommand.description) {
-      securityGroups == [securityGroupId]
+    result.nextCommand.description.with {
+      securityGroups == ["hello"]
       capacity.min == instancesMin
       capacity.max == instancesMax
       capacity.desired == instancesDesired
       labels == [passThru: "label value"]
-      env == [passThru: "environment value", SPINNAKER_ACCOUNT: fixture.accountName]
+      env == [passThru: "environment value"]
       containerAttributes == [passThru: "containerAttributes value"]
+      serviceJobProcesses == [
+        disableIncreaseDesired: true,
+        disableDecreaseDesired: true
+      ]
     }
 
     where:

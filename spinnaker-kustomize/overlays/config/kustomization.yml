@@ -19,10 +19,6 @@ configMapGenerator:
   files:
   - files/echo-local.yml
 - behavior: merge
-  name: fiat
-  files:
-  - files/fiat-local.yml
-- behavior: merge
   name: front50
   files:
   - files/front50-local.yml

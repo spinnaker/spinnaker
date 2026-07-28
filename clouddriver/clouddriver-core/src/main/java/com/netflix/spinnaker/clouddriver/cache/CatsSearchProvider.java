@@ -23,7 +23,7 @@ import com.netflix.spinnaker.cats.cache.Cache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 import com.netflix.spinnaker.clouddriver.search.SearchProvider;
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
+import com.netflix.spinnaker.security.authz.PolicyDecisionPointPermissionEvaluator;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -66,7 +66,7 @@ public class CatsSearchProvider implements SearchProvider, Runnable {
   private final AtomicReference<Map<String, Collection<String>>> cachedIdentifiersByType =
       new AtomicReference<>(new HashMap<>());
 
-  private final FiatPermissionEvaluator permissionEvaluator;
+  private final PolicyDecisionPointPermissionEvaluator permissionEvaluator;
   private final List<KeyParser> keyParsers;
 
   private final ScheduledExecutorService scheduledExecutorService;
@@ -76,7 +76,7 @@ public class CatsSearchProvider implements SearchProvider, Runnable {
       Cache cacheView,
       List<SearchableProvider> providers,
       ProviderRegistry providerRegistry,
-      Optional<FiatPermissionEvaluator> permissionEvaluator,
+      Optional<PolicyDecisionPointPermissionEvaluator> permissionEvaluator,
       Optional<List<KeyParser>> keyParsers) {
     this.catsInMemorySearchProperties = catsInMemorySearchProperties;
     this.cacheView = cacheView;

@@ -18,10 +18,10 @@ package com.netflix.spinnaker.igor.config;
 
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
-import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.igor.IgorConfigurationProperties;
 import com.netflix.spinnaker.igor.artifacts.ArtifactServices;
+import com.netflix.spinnaker.igor.config.security.IgorSecurityConfig;
 import com.netflix.spinnaker.igor.service.BuildServices;
 import com.netflix.spinnaker.kork.artifacts.parsing.DefaultJinjavaFactory;
 import com.netflix.spinnaker.kork.artifacts.parsing.JinjaArtifactExtractor;
@@ -47,9 +47,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @Slf4j
-@EnableFiatAutoConfig
 @EnableScheduling
-@Import(PluginsAutoConfiguration.class)
+@Import({PluginsAutoConfiguration.class, IgorSecurityConfig.class})
 public class IgorConfig implements WebMvcConfigurer {
 
   @Override

@@ -76,7 +76,7 @@ public class V2PipelineTemplateController {
     return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 
-  // TODO(jacobkiefer): Add fiat authz
+  // TODO(jacobkiefer): Add authz
   @RequestMapping(value = "versions", method = RequestMethod.GET)
   Map<String, List<PipelineTemplate>> listVersions(
       @RequestParam(required = false, value = "scopes") List<String> scopes) {
@@ -137,7 +137,7 @@ public class V2PipelineTemplateController {
         nonEmptyTag ? String.format("%s:%s", id, tag) : pipelineTemplate.undecoratedId();
     pipelineTemplate.setTag(tag);
     pipelineTemplate.setLastModified(System.currentTimeMillis());
-    // TODO(jacobkiefer): setLastModifiedBy() user here for Fiat?
+    // TODO(jacobkiefer): setLastModifiedBy() user here?
 
     getPipelineTemplateDAO().update(templateId, pipelineTemplate);
     saveLatest(pipelineTemplate, tag);

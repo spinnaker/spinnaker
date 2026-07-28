@@ -20,10 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.NoopRegistry;
@@ -32,7 +28,6 @@ import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.AbstractOCIRegistryEvent;
 import com.netflix.spinnaker.echo.model.trigger.DockerEvent;
 import com.netflix.spinnaker.echo.model.trigger.HelmOciEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.Collections;
 import java.util.List;
@@ -43,7 +38,6 @@ public class AbstractOCIRegistryEventHandlerTest {
 
   private Registry registry;
   private ObjectMapper objectMapper;
-  private FiatPermissionEvaluator fiatPermissionEvaluator;
 
   private TestDockerEventHandler dockerEventHandler;
   private TestHelmOciEventHandler helmOciEventHandler;
@@ -52,13 +46,9 @@ public class AbstractOCIRegistryEventHandlerTest {
   public void setUp() {
     registry = new NoopRegistry();
     objectMapper = new ObjectMapper();
-    fiatPermissionEvaluator = mock(FiatPermissionEvaluator.class);
-    when(fiatPermissionEvaluator.hasPermission(anyString(), any(), any(), any())).thenReturn(true);
 
-    dockerEventHandler =
-        new TestDockerEventHandler(registry, objectMapper, fiatPermissionEvaluator);
-    helmOciEventHandler =
-        new TestHelmOciEventHandler(registry, objectMapper, fiatPermissionEvaluator);
+    dockerEventHandler = new TestDockerEventHandler(registry, objectMapper);
+    helmOciEventHandler = new TestHelmOciEventHandler(registry, objectMapper);
   }
 
   @Test
@@ -211,11 +201,8 @@ public class AbstractOCIRegistryEventHandlerTest {
   private static class TestDockerEventHandler extends AbstractOCIRegistryEventHandler<DockerEvent> {
     private static final List<String> SUPPORTED_TYPES = Collections.singletonList("docker");
 
-    public TestDockerEventHandler(
-        Registry registry,
-        ObjectMapper objectMapper,
-        FiatPermissionEvaluator fiatPermissionEvaluator) {
-      super(registry, objectMapper, fiatPermissionEvaluator);
+    public TestDockerEventHandler(Registry registry, ObjectMapper objectMapper) {
+      super(registry, objectMapper);
     }
 
     @Override
@@ -249,11 +236,8 @@ public class AbstractOCIRegistryEventHandlerTest {
       extends AbstractOCIRegistryEventHandler<HelmOciEvent> {
     private static final List<String> SUPPORTED_TYPES = Collections.singletonList("helm/oci");
 
-    public TestHelmOciEventHandler(
-        Registry registry,
-        ObjectMapper objectMapper,
-        FiatPermissionEvaluator fiatPermissionEvaluator) {
-      super(registry, objectMapper, fiatPermissionEvaluator);
+    public TestHelmOciEventHandler(Registry registry, ObjectMapper objectMapper) {
+      super(registry, objectMapper);
     }
 
     @Override

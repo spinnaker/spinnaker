@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.CredentialsService
@@ -45,15 +43,10 @@ class CredentialsControllerSpec extends Specification {
   }
 
   void setup() {
-    def fiatStatus = Mock(FiatStatus) {
-      _ * isEnabled() >> { return false }
-    }
-
     @Subject
-    CredentialsService credentialsService = new CredentialsService(accountLookupService, fiatStatus)
+    CredentialsService credentialsService = new CredentialsService(accountLookupService)
 
-    FiatPermissionEvaluator fpe = Stub(FiatPermissionEvaluator)
-    AllowedAccountsSupport allowedAccountsSupport = new AllowedAccountsSupport(fiatStatus, fpe, credentialsService)
+    AllowedAccountsSupport allowedAccountsSupport = new AllowedAccountsSupport(credentialsService)
 
     def contentNegotiationManagerFactoryBean = new ContentNegotiationManagerFactoryBean()
     contentNegotiationManagerFactoryBean.addMediaType("json", MediaType.APPLICATION_JSON)

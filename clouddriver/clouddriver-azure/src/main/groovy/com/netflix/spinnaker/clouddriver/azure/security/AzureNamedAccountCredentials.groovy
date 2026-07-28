@@ -21,7 +21,7 @@ import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureCust
 import com.netflix.spinnaker.clouddriver.azure.resources.vmimage.model.AzureVMImage
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials
 
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 

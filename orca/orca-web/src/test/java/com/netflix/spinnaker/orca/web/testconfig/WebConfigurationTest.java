@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.filters.ProvidedIdRequestFilterConfigurationProperties;
 import com.netflix.spinnaker.orca.capabilities.CapabilitiesService;
@@ -32,33 +31,26 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.persistence.VersionsRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService;
 import com.netflix.spinnaker.orca.web.config.WebConfiguration;
+import com.netflix.spinnaker.orca.webhook.grpc.GrpcServiceRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 
 class WebConfigurationTest {
 
-  // WebConfiguration has an @EnableFiatAutoConfig annotation, which brings in
-  // fiat's FiatAuthenticationConfig's class.  FiatAuthenticationConfig has
-  //
-  // @ComponentScan("com.netflix.spinnaker.fiat.shared")
-  //
-  // which creates a FiatAccessDeniedExceptionHandler bean because it has
-  // a @ControllerAdvice annotation.
-  //
-  // FiatAuthenticationConfig also provides a FiatAccessDeniedExceptionHandler
-  // bean.  Until that's fixed, use
-  //
-  // .allowBeanDefinitionOverriding(true).
+  // WebConfiguration imports OrcaSecurityConfig (the verifier-only, token-carried security chain).
+  // OrcaSecurityConfig is @EnableWebSecurity, so a servlet-aware context is required; use
+  // WebApplicationContextRunner.
   //
   // Because WebConfiguration also brings in all of orca's controllers, supply
   // all the beans they depend on.
-  private final ApplicationContextRunner runner =
-      new ApplicationContextRunner()
+  private final WebApplicationContextRunner runner =
+      new WebApplicationContextRunner()
           .withBean(NoopRegistry.class)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(
@@ -128,13 +120,18 @@ class WebConfigurationTest {
     }
 
     @Bean
-    FiatService fiatService() {
-      return mock(FiatService.class);
+    DynamicConfigService dynamicConfigService() {
+      return mock(DynamicConfigService.class);
     }
 
     @Bean
-    DynamicConfigService dynamicConfigService() {
-      return mock(DynamicConfigService.class);
+    GrpcServiceRegistry grpcServiceRegistry() {
+      return mock(GrpcServiceRegistry.class);
+    }
+
+    @Bean
+    VersionsRepository versionsRepository() {
+      return mock(VersionsRepository.class);
     }
 
     @Bean

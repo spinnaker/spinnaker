@@ -39,7 +39,7 @@ public class HeaderAuthenticationDetailsSource
   @Override
   public PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails buildDetails(
       HttpServletRequest request) {
-    // Note that there's a choice about whether to call fiat here, or in
+    // Note that there's a choice about whether to resolve roles here, or in
     // HeaderAuthenticationUserDetailsService.createUserDetails.  To try to act
     // more like the gate-oauth module (see
     // SpinnakerUserInfoTokenServices.loadAuthentication), let's leave
@@ -47,7 +47,7 @@ public class HeaderAuthenticationDetailsSource
     // HeaderAuthenticationUserDetailsService.createUserDetails to build a kork
     // User object with the appropriate roles + allowedAccounts from which it
     // derives authorities.  If we ever migrate to using GrantedAuthorities and
-    // can ditch the kork User object, the logic to call fiat likely moves here.
+    // can ditch the kork User object, the role-resolution logic likely moves here.
     return new PreAuthenticatedGrantedAuthoritiesWebAuthenticationDetails(request, Set.of());
   }
 }

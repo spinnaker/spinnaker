@@ -66,8 +66,7 @@ public class RedisContainerTest extends BaseContainerTest {
   private String getSpringApplicationJson() throws JsonProcessingException {
     String redisUrl = "redis://" + REDIS_NETWORK_ALIAS + ":" + REDIS_PORT;
     logger.info("-------------- redisUrl: '{}'", redisUrl);
-    Map<String, String> properties =
-        Map.of("redis.connection", redisUrl, "services.fiat.baseUrl", "http://nowhere");
+    Map<String, String> properties = Map.of("redis.connection", redisUrl);
     ObjectMapper mapper = new ObjectMapper();
     return mapper.writeValueAsString(properties);
   }

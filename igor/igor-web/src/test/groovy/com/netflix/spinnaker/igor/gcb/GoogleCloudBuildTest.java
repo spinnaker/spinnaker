@@ -67,8 +67,7 @@ import org.springframework.test.web.servlet.MockMvc;
       RedisConfig.class,
       LockManagerConfig.class,
       GoogleCloudBuildTestConfig.class
-    },
-    properties = {"fiat.enabled=false"})
+    })
 @TestPropertySource(
     properties = {
       "spring.config.location=classpath:gcb/gcb-test.yml",

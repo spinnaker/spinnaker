@@ -15,8 +15,6 @@ images:
   newTag: main-latest
 - name: ghcr.io/spinnaker/echo
   newTag: main-latest
-- name: ghcr.io/spinnaker/fiat
-  newTag: main-latest
 - name: ghcr.io/spinnaker/front50
   newTag: main-latest
 - name: ghcr.io/spinnaker/gate

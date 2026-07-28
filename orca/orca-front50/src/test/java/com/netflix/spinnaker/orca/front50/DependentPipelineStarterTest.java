@@ -114,7 +114,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     // Test with authenticated user
     PipelineExecution result =
@@ -193,7 +194,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     // when
     PipelineExecution result =
@@ -261,7 +263,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     // when
     PipelineExecution result =
@@ -316,7 +319,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     when(executionLauncher.start(any(), any(), any()))
         .thenAnswer(
@@ -384,7 +388,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -472,7 +477,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -562,7 +568,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -660,7 +667,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(
@@ -744,7 +752,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     // Use a list to be able to extract from within a lambda.
     List<Exception> error = new ArrayList<>();
@@ -813,7 +822,8 @@ class DependentPipelineStarterTest {
             new ContextParameterProcessor(),
             Optional.empty(),
             Optional.of(artifactUtils),
-            new NoopRegistry());
+            new NoopRegistry(),
+            Optional.empty());
 
     when(executionLauncher.start(eq(PIPELINE), any(), any()))
         .thenAnswer(

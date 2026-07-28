@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials;
 import com.netflix.spinnaker.clouddriver.aws.security.config.AccountsConfiguration.Account;
-import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import com.netflix.spinnaker.security.authz.Permissions;
 import org.junit.jupiter.api.Test;
 
 public class EcsAccountBuilderTest {

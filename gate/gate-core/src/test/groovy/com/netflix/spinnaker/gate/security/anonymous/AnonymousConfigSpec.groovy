@@ -16,37 +16,27 @@
 
 package com.netflix.spinnaker.gate.security.anonymous
 
-import com.netflix.spinnaker.fiat.shared.FiatStatus
 import com.netflix.spinnaker.gate.services.CredentialsService
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AnonymousConfigSpec extends Specification {
   @Unroll
-  def "should update accounts when fiat is not enabled"() {
+  def "should sync anonymous accounts to the locally-known accounts"() {
     setup:
-    def fiatStatus = Mock(FiatStatus)
     def credentialsService = Mock(CredentialsService) {
       getAccountNames(*_) >> newAccounts
     }
 
     and:
-    AnonymousConfig config = new AnonymousConfig(credentialsService, fiatStatus)
+    AnonymousConfig config = new AnonymousConfig(credentialsService)
     config.anonymousAllowedAccounts.addAll(oldAccounts)
 
     when:
     config.updateAnonymousAccounts()
 
     then:
-    1 * fiatStatus.isEnabled() >> { return true }
-    config.anonymousAllowedAccounts == oldAccounts
-
-    when:
-    config.updateAnonymousAccounts()
-
-    then:
-    1 * fiatStatus.isEnabled() >> { return false }
-    config.anonymousAllowedAccounts == newAccounts
+    config.anonymousAllowedAccounts as Set == newAccounts as Set
 
     where:
     oldAccounts || newAccounts

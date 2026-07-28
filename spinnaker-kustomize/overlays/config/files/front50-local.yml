@@ -19,7 +19,7 @@
 ## store. Only accounts listed here are returned by
 ## GET /serviceAccounts/tokenEligible.
 ##
-## Each name MUST match the Fiat identity used to authorize pipelines.
+## Each name MUST match the service-account identity used to authorize pipelines.
 #service-accounts:
 #  - name: deploy-bot
 #    memberOf:

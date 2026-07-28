@@ -25,7 +25,6 @@ import com.netflix.spinnaker.echo.Application;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.services.Front50Service;
-import com.netflix.spinnaker.fiat.shared.FiatService;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,8 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -44,15 +43,13 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(classes = {Application.class})
 @TestPropertySource(properties = {"spring.config.location=classpath:echo-test.yml"})
 public class TelemetrySpec {
-  @MockitoBean Front50Service front50Service;
+  @MockBean Front50Service front50Service;
 
-  @MockitoBean OrcaService orcaService;
-
-  @MockitoBean FiatService fiatService;
+  @MockBean OrcaService orcaService;
 
   @Autowired WebApplicationContext wac;
 
-  @MockitoBean PipelineCache pipelineCache;
+  @MockBean PipelineCache pipelineCache;
 
   @Autowired CircuitBreakerRegistry circuitBreakerRegistry;
 

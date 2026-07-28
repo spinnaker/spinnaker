@@ -21,7 +21,6 @@ import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.config.PipelineTriggerConfiguration;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.GitEvent;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import java.util.*;
 import java.util.function.Function;
@@ -54,9 +53,8 @@ public class GitEventHandler extends BaseTriggerEventHandler<GitEvent> {
   public GitEventHandler(
       Registry registry,
       ObjectMapper objectMapper,
-      FiatPermissionEvaluator fiatPermissionEvaluator,
       PipelineTriggerConfiguration pipelineTriggerConfiguration) {
-    super(registry, objectMapper, fiatPermissionEvaluator);
+    super(registry, objectMapper);
     this.pipelineTriggerConfiguration = pipelineTriggerConfiguration;
   }
 

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.docker.registry.config
 
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinition
-import com.netflix.spinnaker.fiat.model.resources.Permissions
+import com.netflix.spinnaker.security.authz.Permissions
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 

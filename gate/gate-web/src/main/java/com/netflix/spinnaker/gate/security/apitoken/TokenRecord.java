@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.gate.security.apitoken;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -51,6 +54,16 @@ public class TokenRecord {
   private String principalType;
   private String createdByUserId;
 
+  /**
+   * Snapshot of the principal's roles captured at token-creation time. This is the authoritative
+   * role source for token authentication in {@code EXTERNAL} group-membership mode (no {@code
+   * UserRolesProvider}), where a principal's roles only ever exist on its live login session and
+   * cannot be re-resolved from the principal id alone at token-exchange time. Provider-backed
+   * deployments resolve roles live on each request (which keeps revocation/refresh working) and so
+   * ignore this snapshot. Absent (null) on legacy records and on service-account tokens.
+   */
+  private List<String> roles;
+
   /** ISO-8601 expiry timestamp; absent for non-expiring service-account tokens. */
   private String expiresAt;
 
@@ -58,9 +71,16 @@ public class TokenRecord {
   private String createdAt;
 
   /**
-   * ISO-8601 timestamp of the last time Gate verified this principal against Fiat. Used to throttle
-   * Fiat checks to at most once per {@code rejectCheckIntervalSeconds}. Stored in Redis alongside
-   * the other fields so all Gate instances share the same throttle state.
+   * ISO-8601 timestamp of the last time Gate verified this principal against the local {@code
+   * PermissionService}. Used to throttle permission checks to at most once per {@code
+   * rejectCheckIntervalSeconds}. Stored in Redis alongside the other fields so all Gate instances
+   * share the same throttle state.
+   *
+   * <p>{@code @JsonAlias("lastFiatCheckAt")} preserves backward compatibility: tokens persisted to
+   * Redis under the old field name still deserialize. New records are written under {@code
+   * lastAuthCheckAt}.
    */
-  private String lastFiatCheckAt;
+  @JsonProperty("lastAuthCheckAt")
+  @JsonAlias("lastFiatCheckAt")
+  private String lastAuthCheckAt;
 }

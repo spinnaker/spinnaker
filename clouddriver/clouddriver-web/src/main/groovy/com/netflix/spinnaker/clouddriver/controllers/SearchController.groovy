@@ -52,7 +52,7 @@ class SearchController {
    * @param filters (optional) a map of key-value pairs to further filter the keys
    * @return a list {@link SearchResultSet)s
    */
-  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
+  @PreAuthorize("permitAll()")
   @RequestMapping(value = '/search', method = RequestMethod.GET)
   List<SearchResultSet> search(@RequestParam(value = "q", defaultValue = "", required = false) String query,
                                @RequestParam(value = "type") List<String> type,

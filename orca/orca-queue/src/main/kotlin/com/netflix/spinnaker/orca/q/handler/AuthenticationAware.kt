@@ -16,17 +16,31 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.kork.common.Header
 import com.netflix.spinnaker.orca.AuthenticatedStage
 import com.netflix.spinnaker.orca.ExecutionContext
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import com.netflix.spinnaker.orca.security.RunAsTokenProvider
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import java.util.concurrent.Callable
 import org.apache.commons.lang3.StringUtils
 
 interface AuthenticationAware {
 
   val stageNavigator: StageNavigator
+
+  /**
+   * Optional provider that re-issues the execution's identity token. When present, Orca asks the
+   * token authority (Front50) at each stage boundary (here, where the authentication context is set
+   * up) to issue a fresh, short-lived token for the subject + roles captured at admission, and
+   * propagates it on [Header.IDENTITY_TOKEN]. So long executions never carry a use-expired token
+   * while the subject and roles stay those admission granted (never re-resolved). Defaults to null
+   * so implementors that don't wire it (and tests) keep the legacy behavior.
+   */
+  val runAsTokenProvider: RunAsTokenProvider?
+    get() = null
 
   fun StageExecution.withAuth(block: () -> Unit) {
     val currentUser = retrieveAuthenticatedUser(this) ?: execution.authentication
@@ -48,13 +62,50 @@ interface AuthenticationAware {
         )
       )
       if (StringUtils.isNotBlank(currentUser?.user)) {
-        AuthenticatedRequest.runAs(currentUser.user, currentUser.allowedAccounts, true, block).call()
+        AuthenticatedRequest.runAs(
+          currentUser.user,
+          currentUser.allowedAccounts,
+          true,
+          Callable {
+            propagateIdentityToken(currentUser)
+            block()
+          }
+        ).call()
       } else {
-        AuthenticatedRequest.propagate(block, true).call()
+        AuthenticatedRequest.propagate(
+          {
+            propagateIdentityToken(currentUser)
+            block()
+          },
+          true
+        ).call()
       }
     } finally {
       ExecutionContext.clear()
     }
+  }
+
+  /**
+   * Stamp a fresh identity token onto [Header.IDENTITY_TOKEN] for this stage by re-issuing it from
+   * the admission-time grant (subject + roles) captured on the execution. Best-effort: if no
+   * provider is wired, no subject is present, or issuance fails, leave the legacy propagated
+   * identity rather than failing an already-admitted execution.
+   */
+  private fun StageExecution.propagateIdentityToken(currentUser: PipelineExecution.AuthenticationDetails?) {
+    val provider = runAsTokenProvider ?: return
+    val auth = currentUser ?: return
+    val subject = auth.user
+    if (StringUtils.isBlank(subject)) {
+      return
+    }
+    provider
+      .issueExecutionToken(
+        subject,
+        auth.roles,
+        auth.isAdmin,
+        auth.isAccountManager
+      )
+      .ifPresent { AuthenticatedRequest.set(Header.IDENTITY_TOKEN, it) }
   }
 
   fun retrieveAuthenticatedUser(stage: StageExecution) : PipelineExecution.AuthenticationDetails? {

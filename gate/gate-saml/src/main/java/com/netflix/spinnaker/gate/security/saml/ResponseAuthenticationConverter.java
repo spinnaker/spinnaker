@@ -36,7 +36,7 @@ import org.springframework.security.saml2.provider.service.authentication.Saml2A
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.util.CollectionUtils;
 
-/** Handles conversion of an authenticated SAML user into a Spinnaker user and populating Fiat. */
+/** Handles conversion of an authenticated SAML user into a Spinnaker user. */
 @Log4j2
 @RequiredArgsConstructor
 public class ResponseAuthenticationConverter

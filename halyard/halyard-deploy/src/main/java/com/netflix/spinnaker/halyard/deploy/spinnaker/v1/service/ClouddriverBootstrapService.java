@@ -23,7 +23,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ClouddriverBoot
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,16 +44,6 @@ public abstract class ClouddriverBootstrapService extends ClouddriverService {
   public List<Profile> getProfiles(
       DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
-
-    // Due to a "feature" in how spring merges profiles, list entries (including
-    // requiredGroupMembership) are
-    // merged rather than overwritten. Including the base profile will prevent fiat-enabled setups
-    // from deploying
-    // anything since the deploying account will be restricted from performing any operations
-    profiles =
-        profiles.stream()
-            .filter(p -> !p.getName().equals("clouddriver.yml"))
-            .collect(Collectors.toList());
 
     String filename = "clouddriver-bootstrap.yml";
     String path = Paths.get(getConfigOutputPath(), filename).toString();

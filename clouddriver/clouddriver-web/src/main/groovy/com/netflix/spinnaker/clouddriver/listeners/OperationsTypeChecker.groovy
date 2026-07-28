@@ -41,7 +41,7 @@ import java.lang.reflect.Method
 @Component
 class OperationsTypeChecker implements ApplicationListener<ContextRefreshedEvent>, ApplicationContextAware {
 
-  private static List<Class> FIAT_SECURED_INTERFACES = [
+  private static List<Class> AUTHORIZATION_SECURED_INTERFACES = [
       AccountNameable,
       ApplicationNameable,
       ResourcesNameable
@@ -58,7 +58,8 @@ class OperationsTypeChecker implements ApplicationListener<ContextRefreshedEvent
 
   /**
    * This method searches the ApplicationContext for items that should appear in the
-   * {@link AtomicOperationsRegistry} and checks them for the proper Fiat interface implementations.
+   * {@link AtomicOperationsRegistry} and checks them for the proper authorization interface
+   * implementations.
    */
   @Override
   void onApplicationEvent(ContextRefreshedEvent event) {
@@ -78,12 +79,12 @@ class OperationsTypeChecker implements ApplicationListener<ContextRefreshedEvent
 
         def convertedType = getConvertDescriptionReturnType(instance)
         if (!convertedType || Object.class == convertedType) {
-          log.warn("Can't determine return type for converter $beanName, so Fiat security checks cannot be performed")
+          log.warn("Can't determine return type for converter $beanName, so security checks cannot be performed")
           return
         }
 
-        if (!isFiatSecured(convertedType)) {
-          def msg = "Operation description ${convertedType.simpleName} is NOT secured by Fiat authorization checks."
+        if (!isAuthorizationSecured(convertedType)) {
+          def msg = "Operation description ${convertedType.simpleName} is NOT secured by authorization checks."
 
           switch(opsSecurityConfigProps.onMissingSecuredCheck) {
             case SecurityConfig.SecurityAction.WARN:
@@ -111,9 +112,9 @@ class OperationsTypeChecker implements ApplicationListener<ContextRefreshedEvent
     return instance instanceof AtomicOperationConverter
   }
 
-  static boolean isFiatSecured(Class convertedType) {
+  static boolean isAuthorizationSecured(Class convertedType) {
     List interfaces = ClassUtils.getAllInterfaces(convertedType)
-    def intersection =  FIAT_SECURED_INTERFACES.intersect(interfaces)
+    def intersection =  AUTHORIZATION_SECURED_INTERFACES.intersect(interfaces)
     if (!intersection.isEmpty()) {
       log.debug("Description $convertedType.simpleName implements ${intersection*.simpleName}")
     }

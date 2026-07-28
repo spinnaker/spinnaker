@@ -50,7 +50,7 @@ class IapAuthenticationFilterSpec extends Specification {
     SecurityContextHolder.clearContext()
   }
 
-  def "should verify JWT Token and login to fiat using the email from payload"() {
+  def "should verify JWT Token and login using the email from payload"() {
 
     def request = new MockHttpServletRequest()
     def response = new MockHttpServletResponse()

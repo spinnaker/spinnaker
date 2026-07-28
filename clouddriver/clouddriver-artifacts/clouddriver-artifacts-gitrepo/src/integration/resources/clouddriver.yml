@@ -55,7 +55,5 @@ redis:
     enabled: false
 
 services:
-  fiat:
-    baseUrl: http://fiat.net
   front50:
     baseUrl: http://front50.net

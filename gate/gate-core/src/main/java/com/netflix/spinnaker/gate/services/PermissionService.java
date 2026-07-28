@@ -17,27 +17,20 @@
 
 package com.netflix.spinnaker.gate.services;
 
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatService;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest;
 import com.netflix.spinnaker.gate.security.SpinnakerUser;
-import com.netflix.spinnaker.gate.services.internal.ExtendedFiatService;
-import com.netflix.spinnaker.kork.core.RetrySupport;
-import com.netflix.spinnaker.kork.exceptions.SpinnakerException;
-import com.netflix.spinnaker.kork.exceptions.SystemException;
+import com.netflix.spinnaker.gate.security.token.GateIdentityService;
+import com.netflix.spinnaker.gate.services.internal.Front50Service;
+import com.netflix.spinnaker.gate.services.internal.ServiceAccount;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
-import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
-import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -45,209 +38,207 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
+/**
+ * Authorization facade. Roles are resolved at login (locally, via {@code kork-roles}) and carried
+ * in the signed identity token; this service reads them back from the {@link GateIdentityService}
+ * role cache. There is no central permission store to consult or sync.
+ */
 @Log4j2
 @Component
 @RequiredArgsConstructor
 public class PermissionService {
-  private final FiatService fiatService;
-  private final ExtendedFiatService extendedFiatService;
-  private final ServiceAccountFilterConfigProps serviceAccountFilterConfigProps;
-  private final FiatPermissionEvaluator permissionEvaluator;
-  private final FiatStatus fiatStatus;
+  private final Front50Service front50Service;
 
-  @Setter(
-      onParam_ = {@Qualifier("fiatLoginService")},
-      onMethod_ = {@Autowired(required = false)})
-  private FiatService fiatLoginService;
+  /**
+   * Edge identity facade; resolves and caches a caller's roles. Set by Spring when the
+   * identity-token machinery is configured; {@code null} only when authorization is not configured
+   * (e.g. unit tests, anonymous/no-auth deployments).
+   */
+  @Autowired(required = false)
+  @Setter
+  private GateIdentityService identityService;
 
+  /** Whether owner-local/token-based authorization is configured. */
   public boolean isEnabled() {
-    return fiatStatus.isEnabled();
+    return identityService != null;
   }
 
-  private FiatService getFiatServiceForLogin() {
-    return fiatLoginService != null ? fiatLoginService : fiatService;
-  }
-
+  /**
+   * Resolve the caller's roles at login (locally, via {@code kork-roles}) and cache them so the
+   * identity token can be (re-)minted on each downstream request.
+   */
   public void login(final String userId) {
-    if (fiatStatus.isEnabled()) {
-      try {
-        AuthenticatedRequest.allowAnonymous(
-            () -> {
-              Retrofit2SyncCall.execute(getFiatServiceForLogin().loginUser(userId));
-              permissionEvaluator.invalidatePermission(userId);
-              return null;
-            });
-      } catch (SpinnakerServerException e) {
-        throw UpstreamBadRequest.classifyError(e);
-      }
+    if (identityService == null) {
+      return;
     }
+    AuthenticatedRequest.allowAnonymous(
+        () -> {
+          identityService.resolveAndCacheRoles(userId, List.of());
+          return null;
+        });
   }
 
+  /**
+   * Resolve + merge the caller's roles (provider roles unioned with the roles asserted by the auth
+   * mechanism) at login and cache them.
+   */
   public void loginWithRoles(final String userId, final Collection<String> roles) {
-    if (fiatStatus.isEnabled()) {
-      try {
-        AuthenticatedRequest.allowAnonymous(
-            () -> {
-              Retrofit2SyncCall.execute(getFiatServiceForLogin().loginWithRoles(userId, roles));
-              permissionEvaluator.invalidatePermission(userId);
-              return null;
-            });
-      } catch (SpinnakerServerException e) {
-        throw UpstreamBadRequest.classifyError(e);
-      }
+    if (identityService == null) {
+      return;
     }
+    AuthenticatedRequest.allowAnonymous(
+        () -> {
+          identityService.resolveAndCacheRoles(userId, roles);
+          return null;
+        });
   }
 
   public void logout(String userId) {
-    if (fiatStatus.isEnabled()) {
-      try {
-        Retrofit2SyncCall.execute(getFiatServiceForLogin().logoutUser(userId));
-        permissionEvaluator.invalidatePermission(userId);
-      } catch (SpinnakerServerException e) {
-        throw UpstreamBadRequest.classifyError(e);
-      }
-    }
-  }
-
-  public void sync() {
-    if (fiatStatus.isEnabled()) {
-      try {
-        Retrofit2SyncCall.execute(getFiatServiceForLogin().sync(List.of()));
-      } catch (SpinnakerServerException e) {
-        throw UpstreamBadRequest.classifyError(e);
-      }
-    }
-  }
-
-  public Set<Role.View> getRoles(String userId) {
-    if (!fiatStatus.isEnabled()) {
-      return Set.of();
-    }
-    try {
-      var permission = permissionEvaluator.getPermission(userId);
-      var roles = permission != null ? permission.getRoles() : null;
-      return roles != null ? roles : Set.of();
-    } catch (SpinnakerServerException e) {
-      throw UpstreamBadRequest.classifyError(e);
+    if (identityService != null) {
+      identityService.invalidate(userId);
     }
   }
 
   /**
-   * Fetches roles by calling Fiat directly (bypassing the local cache) and propagates HTTP errors
-   * so callers can distinguish a legitimate empty-roles response from a transient failure (e.g.
-   * Fiat returns 503 when its permissions repository is empty). Used by API token authentication.
+   * No-op: there is no central permission store to sync. Roles are resolved at login and carried in
+   * the signed identity token. Retained for API compatibility.
    */
-  public Set<Role.View> getRolesForTokenAuth(String userId) {
-    if (!fiatStatus.isEnabled()) {
-      return Set.of();
-    }
-    // allowAnonymous: the token filter calls this before the SecurityContext is populated, so any
-    // X-SPINNAKER-USER lingering in MDC would otherwise be forwarded to Fiat.
-    UserPermission.View permission =
-        AuthenticatedRequest.allowAnonymous(
-            () -> Retrofit2SyncCall.execute(fiatService.getUserPermission(userId)));
-    if (permission == null) {
-      return Set.of();
-    }
-    var roles = permission.getRoles();
-    return roles != null ? roles : Set.of();
+  public void sync() {
+    // intentionally empty
   }
 
-  List<UserPermission.View> lookupServiceAccounts(String userId) {
+  public Set<String> getRoles(String userId) {
+    if (identityService == null) {
+      return Set.of();
+    }
+    return new LinkedHashSet<>(identityService.rolesFor(userId));
+  }
+
+  /**
+   * Resolves the principal's roles for API-token authentication. Run under {@code allowAnonymous}
+   * since the token filter calls this before the {@code SecurityContext} is populated.
+   */
+  public Set<String> getRolesForTokenAuth(String userId) {
+    if (identityService == null) {
+      return Set.of();
+    }
+    return AuthenticatedRequest.allowAnonymous(
+        () -> new LinkedHashSet<>(identityService.rolesFor(userId)));
+  }
+
+  /**
+   * Whether a role provider is configured. When {@code false}, roles cannot be re-resolved from a
+   * principal id alone, so callers must supply their own role source — a service account's Front50
+   * {@code memberOf}, or the roles snapshotted on an API token at creation.
+   */
+  public boolean hasUserRolesResolver() {
+    return identityService != null && identityService.hasUserRolesResolver();
+  }
+
+  /**
+   * Resolve the roles for a managed service-account principal. Service accounts are owned by
+   * Front50, so their roles come from the SA's {@code memberOf} (not the user role provider),
+   * merged via the same resolver used by login and Front50's run-as token endpoint. The {@code
+   * memberOf} lookup is lazy — performed only on a role-cache miss — so high-volume CI traffic
+   * using SA tokens doesn't hit Front50 on every request. Run under {@code allowAnonymous} since
+   * the token filter calls this before the {@code SecurityContext} is populated.
+   */
+  public Set<String> resolveServiceAccountRoles(String serviceAccountName) {
+    if (identityService == null) {
+      return Set.of();
+    }
+    return AuthenticatedRequest.allowAnonymous(
+        () ->
+            new LinkedHashSet<>(
+                identityService.rolesFor(
+                    serviceAccountName, () -> serviceAccountMemberOf(serviceAccountName))));
+  }
+
+  /**
+   * The Front50-defined {@code memberOf} roles for a managed service account (empty if unknown).
+   */
+  private List<String> serviceAccountMemberOf(String serviceAccountName) {
+    if (serviceAccountName == null || serviceAccountName.isBlank()) {
+      return List.of();
+    }
+    List<ServiceAccount> serviceAccounts;
     try {
-      return Retrofit2SyncCall.execute(extendedFiatService.getUserServiceAccounts(userId));
-    } catch (SpinnakerHttpException e) {
-      if (e.getResponseCode() == 404) {
-        return List.of();
-      }
-      boolean shouldRetry = HttpStatus.valueOf(e.getResponseCode()).is5xxServerError();
-      throw new SystemException("getUserServiceAccounts failed", e).setRetryable(shouldRetry);
+      serviceAccounts =
+          AuthenticatedRequest.allowAnonymous(
+              () -> Retrofit2SyncCall.execute(front50Service.getServiceAccounts()));
     } catch (SpinnakerServerException e) {
-      throw new SystemException("getUserServiceAccounts failed", e).setRetryable(e.getRetryable());
+      throw UpstreamBadRequest.classifyError(e);
     }
+    if (serviceAccounts == null) {
+      return List.of();
+    }
+    return serviceAccounts.stream()
+        .filter(sa -> serviceAccountName.equalsIgnoreCase(sa.getName()))
+        .findFirst()
+        .map(ServiceAccount::getMemberOf)
+        .orElse(List.of());
   }
 
+  /**
+   * Downstream services enforce their own per-application ACLs, so Gate returns the full set of
+   * service accounts the user belongs to.
+   */
   public List<String> getServiceAccountsForApplication(
       @SpinnakerUser final User user, @Nonnull final String application) {
-    var matchAuthorizations = serviceAccountFilterConfigProps.getMatchAuthorizations();
-    boolean requiresFiltering =
-        fiatStatus.isEnabled()
-            && serviceAccountFilterConfigProps.isEnabled()
-            && user != null
-            && StringUtils.hasLength(application)
-            && !CollectionUtils.isEmpty(matchAuthorizations);
-    if (!requiresFiltering) {
-      return getServiceAccounts(user);
-    }
-
-    List<String> filteredServiceAccounts;
-    RetrySupport retry = new RetrySupport();
-    try {
-      var serviceAccounts =
-          retry.retry(
-              () -> lookupServiceAccounts(user.getUsername()), 3, Duration.ofMillis(50), false);
-      filteredServiceAccounts =
-          serviceAccounts.stream()
-              .filter(
-                  permission ->
-                      permission.getApplications().stream()
-                          .anyMatch(
-                              app ->
-                                  application.equalsIgnoreCase(app.getName())
-                                      && !Collections.disjoint(
-                                          matchAuthorizations, app.getAuthorizations())))
-              .map(UserPermission.View::getName)
-              .collect(Collectors.toList());
-    } catch (SpinnakerException se) {
-      log.error(
-          "failed to lookup user {} service accounts for application {}, falling back to all user service accounts",
-          user,
-          application,
-          se);
-      return getServiceAccounts(user);
-    }
-
-    // if there are no service accounts for the requested application, fall back to the full list of
-    // service accounts for the user to avoid a chicken and egg problem of trying to enable security
-    // for the first time on an application
-    return !filteredServiceAccounts.isEmpty() ? filteredServiceAccounts : getServiceAccounts(user);
+    return getServiceAccounts(user);
   }
 
+  /**
+   * Returns the names of the Front50-managed service accounts the user may act as — i.e. those
+   * whose {@code memberOf} roles intersect the user's resolved roles.
+   */
   public List<String> getServiceAccounts(@SpinnakerUser User user) {
     if (user == null) {
       log.debug("getServiceAccounts: Spinnaker user is null.");
       return List.of();
     }
-
-    if (!fiatStatus.isEnabled()) {
-      log.debug("getServiceAccounts: Fiat disabled.");
+    if (identityService == null) {
+      log.debug("getServiceAccounts: authorization disabled.");
       return List.of();
     }
 
+    Set<String> userRoles =
+        getRoles(user.getUsername()).stream()
+            .filter(Objects::nonNull)
+            .map(role -> role.toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+    if (userRoles.isEmpty()) {
+      return List.of();
+    }
+
+    List<ServiceAccount> serviceAccounts;
     try {
-      var permission = permissionEvaluator.getPermission(user.getUsername());
-      if (permission == null) {
-        return List.of();
-      }
-      return permission.getServiceAccounts().stream()
-          .map(ServiceAccount.View::getName)
-          .collect(Collectors.toList());
+      serviceAccounts =
+          AuthenticatedRequest.allowAnonymous(
+              () -> Retrofit2SyncCall.execute(front50Service.getServiceAccounts()));
     } catch (SpinnakerServerException e) {
       throw UpstreamBadRequest.classifyError(e);
     }
+    if (serviceAccounts == null) {
+      return List.of();
+    }
+    return serviceAccounts.stream()
+        .filter(
+            sa ->
+                sa.getMemberOf().stream()
+                    .filter(Objects::nonNull)
+                    .map(role -> role.toLowerCase(Locale.ROOT))
+                    .anyMatch(userRoles::contains))
+        .map(ServiceAccount::getName)
+        .collect(Collectors.toList());
   }
 
   public boolean isAdmin(String userId) {
-    if (!fiatStatus.isEnabled()) {
+    if (identityService == null) {
       return false;
     }
-    var permission = permissionEvaluator.getPermission(userId);
-    return permission != null && permission.isAdmin();
+    return identityService.isAdmin(identityService.rolesFor(userId));
   }
 }

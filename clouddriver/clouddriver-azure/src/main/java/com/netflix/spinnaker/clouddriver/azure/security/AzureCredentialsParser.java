@@ -20,8 +20,7 @@ import com.netflix.spinnaker.clouddriver.azure.config.AzureConfigurationProperti
 import com.netflix.spinnaker.clouddriver.names.NamerRegistry;
 import com.netflix.spinnaker.credentials.definition.CredentialsParser;
 import com.netflix.spinnaker.moniker.Namer;
-import java.util.Map;
-import java.util.Set;
+import com.netflix.spinnaker.security.authz.Permissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -64,17 +63,13 @@ public class AzureCredentialsParser
           e.getMessage());
     }
 
-    // getPermissions() returns Map<Authorization, Set<String>> from permissions.build().toMap()
-    // We need to create a Permissions object from this map
-    com.netflix.spinnaker.fiat.model.resources.Permissions permissions = null;
+    // managedAccount.getPermissions() returns a Permissions.Builder; build it into an immutable
+    // Permissions (Permissions.EMPTY when no roles are configured).
+    Permissions permissions = null;
     try {
-      Map<com.netflix.spinnaker.fiat.model.Authorization, Set<String>> permissionsMap =
-          managedAccount.getPermissions();
-      if (permissionsMap != null && !permissionsMap.isEmpty()) {
-        permissions =
-            new com.netflix.spinnaker.fiat.model.resources.Permissions.Builder()
-                .set(permissionsMap)
-                .build();
+      Permissions.Builder permissionsBuilder = managedAccount.getPermissions();
+      if (permissionsBuilder != null && !permissionsBuilder.isEmpty()) {
+        permissions = permissionsBuilder.build();
       }
     } catch (Exception e) {
       log.warn(

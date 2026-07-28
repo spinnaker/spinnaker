@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskExecutionInterceptor
 import com.netflix.spinnaker.orca.TaskResolver
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask
+import com.netflix.spinnaker.orca.security.RunAsTokenProvider
 import com.netflix.spinnaker.orca.api.pipeline.Task
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
@@ -100,6 +101,7 @@ class RunTaskHandler(
   private val registry: Registry,
   private val dynamicConfigService: DynamicConfigService,
   private val retriableLock: RetriableLock,
+  override val runAsTokenProvider: RunAsTokenProvider? = null,
 ) : OrcaMessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
 
   /**

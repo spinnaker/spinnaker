@@ -22,11 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.Hashing;
-import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.Role;
-import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
-import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
-import com.netflix.spinnaker.fiat.shared.FiatStatus;
+import com.netflix.spinnaker.kork.common.Header;
 import com.netflix.spinnaker.kork.exceptions.UserException;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
@@ -34,12 +30,19 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
+import com.netflix.spinnaker.orca.front50.model.ServiceAccount;
 import com.netflix.spinnaker.orca.front50.pipeline.SavePipelineStage;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
+import com.netflix.spinnaker.security.token.AuthorizationProperties;
+import com.netflix.spinnaker.security.token.SpinnakerTokenClaims;
+import com.netflix.spinnaker.security.token.SpinnakerTokenVerifier;
+import com.netflix.spinnaker.security.token.TokenValidationException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -49,6 +52,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -56,30 +60,44 @@ import org.springframework.stereotype.Component;
 import retrofit2.Response;
 
 /**
- * Save a pipeline-scoped Fiat Service Account. The roles from this service account are used for
+ * Save a pipeline-scoped managed service account. The roles from this service account are used for
  * authorization decisions when the pipeline is executed from an automated trigger.
+ *
+ * <p>Owner-local / token-carried model: the saving user's roles + admin flag are read from the
+ * cryptographically verified identity token on the request ({@link Header#IDENTITY_TOKEN},
+ * mirroring {@code EvaluatePermissionsTask}) rather than from a remote {@code getPermission}
+ * lookup, and the managed service account's current roles are read from Front50 (its own
+ * service-account store). The privilege-escalation guard is preserved: the saving user must hold
+ * all roles being assigned to the pipeline (or be an administrator).
+ *
+ * <p>Authorization disabled / permissive: when no verified identity token is available (no token,
+ * no verifier wired, or {@code authz.enabled} still off), the role-subset guard is skipped so the
+ * save proceeds instead of failing closed — the same posture as the migrated {@code
+ * EvaluatePermissionsTask}. This permissive default can be flipped to fail-closed by setting {@code
+ * authz.strict=true} (with {@code authz.enabled=true}): the role-subset guard then denies the save
+ * whenever no verified token is present rather than allowing it.
  */
 @Component
 @Slf4j
 public class SaveServiceAccountTask implements RetryableTask {
 
-  private final FiatStatus fiatStatus;
   private final Front50Service front50Service;
-  private final FiatPermissionEvaluator fiatPermissionEvaluator;
+  private final SpinnakerTokenVerifier tokenVerifier;
+  private final AuthorizationProperties authorizationProperties;
   private final ObjectMapper objectMapper;
   private final boolean useSharedManagedServiceAccounts;
 
   @Autowired
   SaveServiceAccountTask(
-      Optional<FiatStatus> fiatStatus,
       Optional<Front50Service> front50Service,
-      Optional<FiatPermissionEvaluator> fiatPermissionEvaluator,
+      Optional<SpinnakerTokenVerifier> tokenVerifier,
+      Optional<AuthorizationProperties> authorizationProperties,
       ObjectMapper objectMapper,
       @Value("${tasks.use-shared-managed-service-accounts:false}")
           boolean useSharedManagedServiceAccounts) {
-    this.fiatStatus = fiatStatus.get();
-    this.front50Service = front50Service.get();
-    this.fiatPermissionEvaluator = fiatPermissionEvaluator.get();
+    this.front50Service = front50Service.orElse(null);
+    this.tokenVerifier = tokenVerifier.orElse(null);
+    this.authorizationProperties = authorizationProperties.orElseGet(AuthorizationProperties::new);
     this.objectMapper = objectMapper;
     this.useSharedManagedServiceAccounts = useSharedManagedServiceAccounts;
   }
@@ -98,10 +116,6 @@ public class SaveServiceAccountTask implements RetryableTask {
   @SuppressWarnings("unchecked")
   @Override
   public TaskResult execute(@Nonnull StageExecution stage) {
-    if (!fiatStatus.isEnabled()) {
-      throw new UnsupportedOperationException("Fiat is not enabled, cannot save roles.");
-    }
-
     if (front50Service == null) {
       throw new UnsupportedOperationException(
           "Front50 is not enabled, no way to save pipeline. Fix this by setting front50.enabled: true");
@@ -109,10 +123,15 @@ public class SaveServiceAccountTask implements RetryableTask {
 
     boolean isBulkSavingPipelines =
         (boolean) stage.getContext().getOrDefault("isBulkSavingPipelines", false);
+
     if (isBulkSavingPipelines) {
       return executeBulk(stage);
+    } else {
+      return executeSingleSave(stage);
     }
+  }
 
+  private TaskResult executeSingleSave(@Nonnull StageExecution stage) {
     if (!stage.getContext().containsKey("pipeline")) {
       throw new IllegalArgumentException("pipeline context must be provided");
     }
@@ -297,31 +316,108 @@ public class SaveServiceAccountTask implements RetryableTask {
       return true;
     }
 
-    UserPermission.View permission = fiatPermissionEvaluator.getPermission(user);
-    if (permission == null) { // Should never happen?
-      return false;
-    }
-
-    if (permission.isAdmin()) {
+    Optional<SpinnakerTokenClaims> claims = resolveVerifiedClaims();
+    if (claims.isEmpty()) {
+      if (authorizationProperties.isEnabled() && authorizationProperties.isStrict()) {
+        // Fail closed: the operator has opted into strict authorization but there is no
+        // cryptographically verified token to evaluate the role-subset guard against.
+        log.warn(
+            "Denying managed service account save for user {}: no verified identity token was present and authz.strict is enabled",
+            user);
+        return false;
+      }
+      // Permissive: no cryptographically verified roles to evaluate the subset guard against. Don't
+      // fail closed during rollout (mirrors EvaluatePermissionsTask / the previous behavior when
+      // authorization was disabled).
+      log.debug(
+          "No verified identity token available for user {}; skipping role-subset guard (permissive)",
+          user);
       return true;
     }
 
-    // User has to have all the pipeline roles.
-    Set<String> userRoles =
-        permission.getRoles().stream().map(Role.View::getName).collect(Collectors.toSet());
+    SpinnakerTokenClaims tokenClaims = claims.get();
+    if (tokenClaims.isAdmin()) {
+      return true;
+    }
 
-    return userRoles.containsAll(pipelineRoles);
+    // The saving user must hold ALL roles being assigned to the pipeline's service account.
+    Set<String> userRoles =
+        tokenClaims.getRoles().stream()
+            .map(role -> role.toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+
+    return pipelineRoles.stream()
+        .map(role -> role.toLowerCase(Locale.ROOT))
+        .allMatch(userRoles::contains);
   }
 
+  /**
+   * Whether the managed service account's stored roles differ from {@code pipelineRoles}. The
+   * current roles are read from Front50 (the owner of managed service accounts). A service account
+   * that does not yet exist (or null roles) is treated as changed so it gets created/updated.
+   */
   private boolean pipelineRolesChanged(String serviceAccountName, List<String> pipelineRoles) {
-    UserPermission.View permission = fiatPermissionEvaluator.getPermission(serviceAccountName);
-    if (permission == null || pipelineRoles == null) { // check if user has all permissions
+    if (pipelineRoles == null) {
       return true;
     }
 
-    Set<String> currentRoles =
-        permission.getRoles().stream().map(Role.View::getName).collect(Collectors.toSet());
+    Set<String> currentRoles = getServiceAccountRoles(serviceAccountName);
+    if (currentRoles == null) {
+      return true;
+    }
 
-    return !currentRoles.equals(new HashSet<>(pipelineRoles));
+    Set<String> normalizedCurrent =
+        currentRoles.stream().map(r -> r.toLowerCase(Locale.ROOT)).collect(Collectors.toSet());
+    Set<String> normalizedPipeline =
+        pipelineRoles.stream().map(r -> r.toLowerCase(Locale.ROOT)).collect(Collectors.toSet());
+
+    return !normalizedCurrent.equals(normalizedPipeline);
+  }
+
+  /**
+   * Reads the current roles ({@code memberOf}) for a managed service account from Front50's own
+   * store. Returns {@code null} when the service account does not exist so the caller treats it as
+   * a (new) change.
+   */
+  private Set<String> getServiceAccountRoles(String serviceAccountName) {
+    List<ServiceAccount> serviceAccounts;
+    try {
+      serviceAccounts = Retrofit2SyncCall.execute(front50Service.getServiceAccounts());
+    } catch (Exception e) {
+      log.warn(
+          "Unable to read managed service accounts from Front50; treating {} as changed",
+          serviceAccountName,
+          e);
+      return null;
+    }
+    if (serviceAccounts == null) {
+      return null;
+    }
+    return serviceAccounts.stream()
+        .filter(sa -> serviceAccountName.equalsIgnoreCase(sa.getName()))
+        .findFirst()
+        .map(sa -> new HashSet<>(sa.getMemberOf() == null ? List.of() : sa.getMemberOf()))
+        .orElse(null);
+  }
+
+  /**
+   * Resolve the saving user's roles from the verified identity token on the current request.
+   * Returns empty in permissive situations (no verifier wired, no token present, or an invalid
+   * token) so the caller can skip the subset guard rather than fail closed during rollout.
+   */
+  private Optional<SpinnakerTokenClaims> resolveVerifiedClaims() {
+    if (tokenVerifier == null) {
+      return Optional.empty();
+    }
+    String token = AuthenticatedRequest.get(Header.IDENTITY_TOKEN).orElse(null);
+    if (StringUtils.isBlank(token)) {
+      return Optional.empty();
+    }
+    try {
+      return Optional.of(tokenVerifier.verify(token));
+    } catch (TokenValidationException e) {
+      log.warn("Ignoring invalid identity token while saving managed service account", e);
+      return Optional.empty();
+    }
   }
 }
