@@ -638,7 +638,9 @@ class SqlExecutionRepository(
               .statusIn(criteria.statuses)
           },
           seek = {
-            it.orderBy(field("id").desc()).limit(criteria.pageSize)
+            it.orderBy(field("id").desc())
+              .limit(criteria.pageSize)
+              .offset((criteria.page - 1) * criteria.pageSize)
           }
         )
       } else {
@@ -651,7 +653,9 @@ class SqlExecutionRepository(
               .statusIn(criteria.statuses)
           },
           seek = {
-            it.orderBy(field("id").desc()).limit(criteria.pageSize)
+            it.orderBy(field("id").desc())
+              .limit(criteria.pageSize)
+              .offset((criteria.page - 1) * criteria.pageSize)
           }
         )
       }
