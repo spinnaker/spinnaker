@@ -1,3 +1,4 @@
+import '../account/management/accountmanagement.states';
 import '../apitoken/apitoken.states';
 import '../application/applications.state.provider';
 import '../application/config/appConfig.states';
