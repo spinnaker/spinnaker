@@ -56,8 +56,7 @@ public class DeleteWarmPoolAtomicOperation implements AtomicOperation<Void> {
       deleteWarmPool(asg.getServerGroupName(), asg.getRegion());
     }
     getTask()
-        .updateStatus(
-            BASE_PHASE, "Finished Delete Warm Pool operation for " + descriptor + ".");
+        .updateStatus(BASE_PHASE, "Finished Delete Warm Pool operation for " + descriptor + ".");
     return null;
   }
 
@@ -68,12 +67,12 @@ public class DeleteWarmPoolAtomicOperation implements AtomicOperation<Void> {
       AsgService asgService = regionScopedProvider.getAsgService();
       AutoScalingGroup asg = asgService.getAutoScalingGroup(asgName);
       if (asg == null) {
-        getTask().updateStatus(BASE_PHASE, "No ASG named '" + asgName + "' found in " + region + ".");
+        getTask()
+            .updateStatus(BASE_PHASE, "No ASG named '" + asgName + "' found in " + region + ".");
         return;
       }
       getTask()
-          .updateStatus(
-              BASE_PHASE, "Deleting warm pool for " + asgName + " in " + region + "...");
+          .updateStatus(BASE_PHASE, "Deleting warm pool for " + asgName + " in " + region + "...");
       asgService.deleteWarmPool(asgName, description.getForceDelete());
     } catch (Exception e) {
       getTask()

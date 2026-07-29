@@ -54,9 +54,7 @@ public abstract class AbstractWarmPoolTask implements CloudProviderAware, Task {
 
     Map<String, Object> stageContext = new HashMap<>(stage.getContext());
     stageContext.put(
-        "asgs",
-        Collections.singletonList(
-            Map.of("serverGroupName", asgName, "region", region)));
+        "asgs", Collections.singletonList(Map.of("serverGroupName", asgName, "region", region)));
 
     StageData stageData = stage.mapTo(StageData.class);
     stageData.setAsgName(asgName);

@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
+import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -60,8 +59,7 @@ class ModifyWarmPoolStageTest {
     context.put("action", action);
 
     StageExecutionImpl stage =
-        new StageExecutionImpl(
-            PipelineExecutionImpl.newPipeline("orca"), "", "", context);
+        new StageExecutionImpl(PipelineExecutionImpl.newPipeline("orca"), "", "", context);
 
     Map<String, Object> asgMap = new HashMap<>();
     asgMap.put("warmPoolConfiguration", warmPoolConfiguration);

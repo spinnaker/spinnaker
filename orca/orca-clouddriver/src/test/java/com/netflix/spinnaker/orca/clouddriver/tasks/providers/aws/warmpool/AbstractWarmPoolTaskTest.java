@@ -45,7 +45,8 @@ class AbstractWarmPoolTaskTest {
     when(katoService.requestOperations(any(), any())).thenReturn(new TaskId("1"));
 
     TargetServerGroupResolver resolver = mock(TargetServerGroupResolver.class);
-    when(resolver.resolve(any())).thenReturn(Collections.singletonList(tsg("targetAsg", "us-west-1")));
+    when(resolver.resolve(any()))
+        .thenReturn(Collections.singletonList(tsg("targetAsg", "us-west-1")));
 
     Map<String, Object> context = new HashMap<>();
     context.put("region", "us-west-1");
@@ -72,7 +73,8 @@ class AbstractWarmPoolTaskTest {
     when(katoService.requestOperations(any(), any())).thenReturn(new TaskId("1"));
 
     TargetServerGroupResolver resolver = mock(TargetServerGroupResolver.class);
-    when(resolver.resolve(any())).thenReturn(Collections.singletonList(tsg("targetAsg", "us-west-1")));
+    when(resolver.resolve(any()))
+        .thenReturn(Collections.singletonList(tsg("targetAsg", "us-west-1")));
 
     Map<String, Object> ctx = new HashMap<>();
     ctx.put("region", "us-west-1");
@@ -94,7 +96,8 @@ class AbstractWarmPoolTaskTest {
             argThat(
                 ops -> {
                   Map<String, Object> desc =
-                      (Map<String, Object>) ((Map) ops.iterator().next()).get("upsertWarmPoolDescription");
+                      (Map<String, Object>)
+                          ((Map) ops.iterator().next()).get("upsertWarmPoolDescription");
                   List<Map<String, String>> asgs = (List<Map<String, String>>) desc.get("asgs");
                   return asgs.get(0).get("serverGroupName").equals("targetAsg")
                       && asgs.get(0).get("region").equals("us-west-1")

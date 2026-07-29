@@ -56,8 +56,7 @@ public class UpsertWarmPoolAtomicOperation implements AtomicOperation<Void> {
       upsertWarmPool(asg.getServerGroupName(), asg.getRegion());
     }
     getTask()
-        .updateStatus(
-            BASE_PHASE, "Finished Upsert Warm Pool operation for " + descriptor + ".");
+        .updateStatus(BASE_PHASE, "Finished Upsert Warm Pool operation for " + descriptor + ".");
     return null;
   }
 
@@ -68,7 +67,8 @@ public class UpsertWarmPoolAtomicOperation implements AtomicOperation<Void> {
       AsgService asgService = regionScopedProvider.getAsgService();
       AutoScalingGroup asg = asgService.getAutoScalingGroup(asgName);
       if (asg == null) {
-        getTask().updateStatus(BASE_PHASE, "No ASG named '" + asgName + "' found in " + region + ".");
+        getTask()
+            .updateStatus(BASE_PHASE, "No ASG named '" + asgName + "' found in " + region + ".");
         return;
       }
       getTask()
