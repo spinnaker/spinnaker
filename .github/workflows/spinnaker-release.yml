@@ -146,13 +146,6 @@ jobs:
     with:
       publish-debs: true
       version-override: ${{ needs.version.outputs.version }}
-  halyard:
-    needs: version
-    uses: ./.github/workflows/halyard.yml
-    secrets: inherit
-    with:
-      publish-debs: true
-      version-override: ${{ needs.version.outputs.version }}
   igor:
     needs: version
     uses: ./.github/workflows/igor.yml
@@ -204,7 +197,7 @@ jobs:
   # Only push the actual build tag once we've completed the artifact builds
   write-build-tag:
     runs-on: ubuntu-latest
-    needs: [version, clouddriver, deck, echo, fiat, front50, gate, halyard, igor, kayenta, keel, orca, rosco, spin, libs]
+    needs: [version, clouddriver, deck, echo, fiat, front50, gate, igor, kayenta, keel, orca, rosco, spin, libs]
     steps:
       - uses: actions/checkout@v7
       - name: Write release build tag
