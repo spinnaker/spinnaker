@@ -29,7 +29,6 @@ dependencies {
   implementation "io.spinnaker.kork:kork-retrofit"
   implementation "io.spinnaker.kork:kork-web"
   implementation "io.spinnaker.kork:kork-security"
-  implementation "com.netflix.spectator:spectator-api"
   implementation "com.github.ben-manes.caffeine:guava"
   implementation "org.apache.commons:commons-lang3"
 

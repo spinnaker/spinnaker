@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.gate.plugins.deck
 
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
 import com.netflix.spinnaker.kork.plugins.SpringPluginStatusProvider
 import com.netflix.spinnaker.kork.plugins.SpringStrictPluginLoaderStatusProvider
 import com.netflix.spinnaker.kork.plugins.bundle.PluginBundleExtractor
@@ -39,7 +39,7 @@ class DeckPluginCache(
   private val pluginBundleExtractor: PluginBundleExtractor,
   private val springPluginStatusProvider: SpringPluginStatusProvider,
   private val pluginInfoReleaseProvider: PluginInfoReleaseProvider,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val springStrictPluginLoaderStatusProvider: SpringStrictPluginLoaderStatusProvider,
   private val pluginsCacheDirectory: Optional<String>
 ) {
@@ -49,11 +49,11 @@ class DeckPluginCache(
   private val cache: MutableSet<PluginCacheEntry> = mutableSetOf()
   private var cachePopulated: Boolean = false
 
-  private val versionsId = registry.createId("plugins.deckCache.versions")
-  private val hitsId = registry.createId("plugins.deckCache.hits")
-  private val missesId = registry.createId("plugins.deckCache.misses")
-  private val downloadDurationId = registry.createId("plugins.deckCache.downloadDuration")
-  private val refreshDurationId = registry.createId("plugins.deckCache.refreshDuration")
+  private val versionsMetricName = "plugins.deckCache.versions"
+  private val hitsMetricName = "plugins.deckCache.hits"
+  private val missesMetricName = "plugins.deckCache.misses"
+  private val downloadDurationMetricName = "plugins.deckCache.downloadDuration"
+  private val refreshDurationMetricName = "plugins.deckCache.refreshDuration"
   private val CACHE_ROOT_PATH = if (pluginsCacheDirectory.isPresent) {
     Paths.get(pluginsCacheDirectory.get())
   } else {
@@ -71,7 +71,7 @@ class DeckPluginCache(
     initialDelay = 0
   )
   internal fun refresh() {
-    registry.timer(refreshDurationId).record {
+    registry.timer(refreshDurationMetricName).record(Runnable {
       log.info("Refreshing plugin cache")
 
       updateManager.refresh()
@@ -92,12 +92,12 @@ class DeckPluginCache(
       cache.addAll(newCache)
 
       cache.forEach {
-        registry.counter(versionsId.withPluginTags(it.plugin.id, it.plugin.version)).increment()
+        registry.counter(versionsMetricName, it.plugin.pluginTags()).increment()
       }
 
       cachePopulated = true
       log.info("Cached ${cache.size} deck plugins")
-    }
+    })
   }
 
   fun isCachePopulated(): Boolean = cachePopulated
@@ -113,7 +113,7 @@ class DeckPluginCache(
     val cachePath = CACHE_ROOT_PATH.resolve("$pluginId/$pluginVersion")
     if (!cachePath.toFile().isDirectory) {
       try {
-        registry.timer(downloadDurationId.withPluginTags(pluginId, pluginVersion)).record {
+        registry.timer(downloadDurationMetricName, pluginTags(pluginId, pluginVersion)).record(Runnable {
           log.info("Downloading plugin '$pluginId@$pluginVersion'")
           val deckPluginPath = pluginBundleExtractor.extractService(
             updateManager.downloadPluginRelease(pluginId, pluginVersion),
@@ -123,7 +123,7 @@ class DeckPluginCache(
           log.info("Adding plugin '$pluginId@$pluginVersion' to local cache: $cachePath")
           Files.createDirectories(cachePath)
           Files.move(deckPluginPath, cachePath, StandardCopyOption.REPLACE_EXISTING)
-        }
+        })
       } catch (e: PluginRuntimeException) {
         log.warn("Unable to download plugin {}@{}", pluginId, pluginVersion)
         if (springStrictPluginLoaderStatusProvider.isStrictPluginLoading()) {
@@ -132,15 +132,17 @@ class DeckPluginCache(
           return null
         }
       }
-      registry.counter(missesId.withPluginTags(pluginId, pluginVersion)).increment()
+      registry.counter(missesMetricName, pluginTags(pluginId, pluginVersion)).increment()
     } else {
-      registry.counter(hitsId.withPluginTags(pluginId, pluginVersion)).increment()
+      registry.counter(hitsMetricName, pluginTags(pluginId, pluginVersion)).increment()
     }
     return cachePath
   }
 
-  private fun Id.withPluginTags(pluginId: String, version: String): Id =
-    withTags("pluginId", pluginId, "version", version)
+  private fun pluginTags(pluginId: String, version: String) =
+    Tags.of("pluginId", pluginId, "version", version)
+
+  private fun DeckPluginVersion.pluginTags() = pluginTags(id, version)
 
   /**
    * @param plugin The plugin version metadata

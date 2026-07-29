@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.gate.ratelimit
 
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration
 import com.netflix.spinnaker.gate.security.RequestIdentityExtractor
 import org.springframework.security.core.Authentication
@@ -32,7 +32,7 @@ import jakarta.servlet.http.HttpServletResponse
 
 class RateLimitingFilterSpec extends Specification {
 
-  Registry registry = new NoopRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   RateLimiter rateLimiter = Mock()
 

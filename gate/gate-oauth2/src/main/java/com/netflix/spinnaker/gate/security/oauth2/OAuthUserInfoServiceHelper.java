@@ -20,7 +20,6 @@ import static net.logstash.logback.argument.StructuredArguments.entries;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
 import com.netflix.spinnaker.gate.security.AllowedAccountsSupport;
 import com.netflix.spinnaker.gate.security.oauth2.provider.SpinnakerProviderTokenServices;
@@ -30,6 +29,8 @@ import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerServerException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +71,7 @@ public class OAuthUserInfoServiceHelper {
 
   private final FiatClientConfigurationProperties fiatClientConfigurationProperties;
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   private SpinnakerProviderTokenServices providerTokenServices;
 
@@ -84,7 +85,7 @@ public class OAuthUserInfoServiceHelper {
       Front50Service front50Service,
       AllowedAccountsSupport allowedAccountsSupport,
       FiatClientConfigurationProperties fiatClientConfigurationProperties,
-      Registry registry,
+      MeterRegistry registry,
       Optional<SpinnakerProviderTokenServices> providerTokenServices) {
     this.userInfoMapping = userInfoMapping;
     this.userInfoRequirements = userInfoRequirements;
@@ -191,7 +192,7 @@ public class OAuthUserInfoServiceHelper {
     List<String> roles = Optional.ofNullable(getRoles(details)).orElse(Collections.emptyList());
     // Service accounts are already logged in.
     if (!isServiceAccount) {
-      var id = registry.createId("fiat.login").withTag("type", "oauth2");
+      var tags = Tags.of("type", "oauth2");
 
       try {
         retrySupport.retry(
@@ -211,7 +212,7 @@ public class OAuthUserInfoServiceHelper {
             username,
             roles.size(),
             roles);
-        id = id.withTag("success", true).withTag("fallback", "none");
+        tags = tags.and("success", "true").and("fallback", "none");
       } catch (Exception e) {
         log.debug(
             "Unsuccessful oauth2 authentication (user: {}, roleCount: {}, roles: {}, legacyFallback: {})",
@@ -220,15 +221,17 @@ public class OAuthUserInfoServiceHelper {
             roles,
             fiatClientConfigurationProperties.isLegacyFallback(),
             e);
-        id =
-            id.withTag("success", false)
-                .withTag("fallback", fiatClientConfigurationProperties.isLegacyFallback());
+        tags =
+            tags.and("success", "false")
+                .and(
+                    "fallback",
+                    String.valueOf(fiatClientConfigurationProperties.isLegacyFallback()));
 
         if (!fiatClientConfigurationProperties.isLegacyFallback()) {
           throw e;
         }
       } finally {
-        registry.counter(id).increment();
+        registry.counter("fiat.login", tags).increment();
       }
     }
 

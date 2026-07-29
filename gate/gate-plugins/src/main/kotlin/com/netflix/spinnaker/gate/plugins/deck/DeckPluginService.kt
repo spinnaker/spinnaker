@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.plugins.deck
 
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
 import java.io.File
 import org.slf4j.LoggerFactory
 
@@ -25,13 +25,13 @@ import org.slf4j.LoggerFactory
  */
 open class DeckPluginService(
   private val pluginCache: DeckPluginCache,
-  private val registry: Registry
+  private val registry: MeterRegistry
 ) {
 
   private val log by lazy { LoggerFactory.getLogger(javaClass) }
 
-  private val assetHitsId = registry.createId("plugins.deckAssets.hits")
-  private val assetMissesId = registry.createId("plugins.deckAssets.misses")
+  private val assetHitsMetricName = "plugins.deckAssets.hits"
+  private val assetMissesMetricName = "plugins.deckAssets.misses"
 
   /**
    * Returns a list of all plugin versions that Deck should know how to load.
@@ -65,10 +65,10 @@ open class DeckPluginService(
     }
     if (localAsset == null || !localAsset.exists()) {
       log.error("Unable to find requested plugin asset '$assetPath' for '$pluginId@$pluginVersion'")
-      registry.counter(assetMissesId).increment()
+      registry.counter(assetMissesMetricName).increment()
       return null
     }
-    registry.counter(assetHitsId).increment()
+    registry.counter(assetHitsMetricName).increment()
 
     return PluginAsset.from(localAsset)
   }

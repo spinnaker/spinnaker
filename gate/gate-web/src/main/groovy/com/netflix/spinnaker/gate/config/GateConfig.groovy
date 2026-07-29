@@ -38,6 +38,7 @@ import com.netflix.spinnaker.gate.plugins.deck.DeckPluginConfiguration
 import com.netflix.spinnaker.gate.plugins.web.PluginWebConfiguration
 import com.netflix.spinnaker.gate.services.internal.*
 import com.netflix.spinnaker.kork.client.ServiceClientProvider
+import io.micrometer.core.instrument.MeterRegistry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider
@@ -93,7 +94,7 @@ class GateConfig {
   }
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   @Autowired
   ServiceConfiguration serviceConfiguration

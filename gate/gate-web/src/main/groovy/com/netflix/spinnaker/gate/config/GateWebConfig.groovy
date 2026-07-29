@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.filters.ContentCachingFilter
 import com.netflix.spinnaker.gate.interceptors.RequestContextInterceptor
 import com.netflix.spinnaker.gate.interceptors.ResponseHeaderInterceptor
@@ -58,9 +57,6 @@ public class GateWebConfig implements WebMvcConfigurer {
 
   @Autowired
   DynamicConfigService dynamicConfigService
-
-  @Autowired
-  Registry spectatorRegistry
 
   @Value('${rate-limit.learning:true}')
   Boolean rateLimitLearningMode
