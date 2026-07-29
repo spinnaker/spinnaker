@@ -33,7 +33,6 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "org.springframework:spring-context"
-  implementation "com.netflix.spectator:spectator-api"
   implementation "org.apache.commons:commons-lang3"
   implementation "commons-codec:commons-codec"
 

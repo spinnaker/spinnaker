@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.fiat.shared;
 
-import com.netflix.spectator.api.Registry;
-import com.netflix.spectator.api.patterns.PolledMeter;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ public class FiatStatus {
 
   @Autowired
   public FiatStatus(
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     this.dynamicConfigService = dynamicConfigService;
@@ -51,15 +50,13 @@ public class FiatStatus {
     this.grantedAuthoritiesEnabled =
         new AtomicBoolean(fiatClientConfigurationProperties.getGrantedAuthorities().isEnabled());
 
-    PolledMeter.using(registry)
-        .withName("fiat.enabled")
-        .monitorValue(enabled, value -> enabled.get() ? 1 : 0);
-    PolledMeter.using(registry)
-        .withName("fiat.legacyFallback.enabled")
-        .monitorValue(legacyFallbackEnabled, value -> legacyFallbackEnabled.get() ? 1 : 0);
-    PolledMeter.using(registry)
-        .withName("fiat.granted-authorities.enabled")
-        .monitorValue(grantedAuthoritiesEnabled, value -> grantedAuthoritiesEnabled.get() ? 1 : 0);
+    registry.gauge("fiat.enabled", enabled, value -> value.get() ? 1 : 0);
+    registry.gauge(
+        "fiat.legacyFallback.enabled", legacyFallbackEnabled, value -> value.get() ? 1 : 0);
+    registry.gauge(
+        "fiat.granted-authorities.enabled",
+        grantedAuthoritiesEnabled,
+        value -> value.get() ? 1 : 0);
   }
 
   public boolean isEnabled() {

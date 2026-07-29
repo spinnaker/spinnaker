@@ -16,7 +16,6 @@
  */
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties;
@@ -155,7 +154,7 @@ public class Front50WebConfig implements WebMvcConfigurer {
   @Bean
   public FiatStatus fiatStatus(
       DynamicConfigService dynamicConfigService,
-      Registry registry,
+      MeterRegistry registry,
       FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);
   }

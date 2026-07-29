@@ -23,8 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
@@ -94,12 +92,6 @@ class DockerRegistryImageLookupControllerTest {
     @Bean
     MeterRegistry registry() {
       return new SimpleMeterRegistry();
-    }
-
-    // fiat-api's FiatPermissionEvaluator still requires a Spectator Registry bean.
-    @Bean
-    Registry spectatorRegistry() {
-      return new NoopRegistry();
     }
 
     @Bean

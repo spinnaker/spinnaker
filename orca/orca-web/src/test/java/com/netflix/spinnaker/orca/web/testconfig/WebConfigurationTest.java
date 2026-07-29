@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.web.testconfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spinnaker.config.TaskControllerConfigurationProperties;
 import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
@@ -60,7 +59,6 @@ class WebConfigurationTest {
   // all the beans they depend on.
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
-          .withBean(NoopRegistry.class)
           .withBean(SimpleMeterRegistry.class)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(

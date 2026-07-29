@@ -19,7 +19,6 @@ package com.netflix.spinnaker.gate.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.DefaultServiceEndpoint
 import com.netflix.spinnaker.config.PluginsAutoConfiguration
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
@@ -384,14 +383,14 @@ class GateConfig {
 
   @Bean
   FiatStatus fiatStatus(DynamicConfigService dynamicConfigService,
-                        Registry registry,
+                        MeterRegistry registry,
                         FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties)
   }
 
   @Bean
   FiatPermissionEvaluator fiatPermissionEvaluator(FiatStatus fiatStatus,
-                                                  Registry registry,
+                                                  MeterRegistry registry,
                                                   FiatService fiatService,
                                                   FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatPermissionEvaluator(registry, fiatService, fiatClientConfigurationProperties, fiatStatus)

@@ -18,9 +18,8 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.config.UserRolesSyncerConfig
@@ -63,7 +62,7 @@ class UserRolesSyncerSpec extends Specification {
   private static final String UNRESTRICTED = UnrestrictedResourceConfig.UNRESTRICTED_USERNAME
 
   @Shared
-  Registry registry = new NoopRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   @Shared
   SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry()

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.echo.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper;
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCacheConfigurationProperties;
@@ -57,7 +56,7 @@ public class PipelineTriggerConfiguration {
 
   @Bean
   public FiatStatus fiatStatus(
-      Registry registry,
+      MeterRegistry registry,
       DynamicConfigService dynamicConfigService,
       FiatClientConfigurationProperties fiatClientConfigurationProperties) {
     return new FiatStatus(registry, dynamicConfigService, fiatClientConfigurationProperties);

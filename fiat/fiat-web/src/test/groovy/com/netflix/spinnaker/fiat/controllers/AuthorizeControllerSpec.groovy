@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.fiat.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.config.FiatSystemTest
 import com.netflix.spinnaker.config.TestUserRoleProviderConfig
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
@@ -58,7 +58,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @FiatSystemTest
 class AuthorizeControllerSpec extends Specification {
   @Shared
-  Registry registry = new NoopRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   @Autowired
   WebApplicationContext wac
