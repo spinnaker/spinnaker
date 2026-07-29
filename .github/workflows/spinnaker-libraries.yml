@@ -24,7 +24,6 @@ on:
       - 'fiat/**'
       - 'front50/**'
       - 'gate/**'
-      - 'halyard/**'
       - 'igor/**'
       - 'kayenta/**'
       - 'keel/**'
