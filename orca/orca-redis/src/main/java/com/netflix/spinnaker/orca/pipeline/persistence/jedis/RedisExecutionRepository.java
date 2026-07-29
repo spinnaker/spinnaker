@@ -413,6 +413,8 @@ public class RedisExecutionRepository implements ExecutionRepository {
   @Override
   public @Nonnull Observable<PipelineExecution> retrievePipelinesForPipelineConfigId(
       @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria) {
+    int offset = (criteria.getPage() - 1) * criteria.getPageSize();
+
     /*
      * Fetch pipeline ids from the primary redis (and secondary if configured)
      */
@@ -461,7 +463,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
                         ? pipelineIds
                         : redisClientDelegate.withCommandsClient(
                             p -> {
-                              return p.zrevrange(key, 0, (criteria.getPageSize() - 1));
+                              return p.zrevrange(key, offset, offset + criteria.getPageSize() - 1);
                             });
 
     /*
@@ -469,8 +471,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
      */
     List<String> currentPipelineIds =
         filteredPipelineIdsByDelegate.getOrDefault(redisClientDelegate, new ArrayList<>());
-    currentPipelineIds =
-        currentPipelineIds.subList(0, Math.min(criteria.getPageSize(), currentPipelineIds.size()));
+    currentPipelineIds = paginate(currentPipelineIds, offset, criteria.getPageSize());
 
     Observable<PipelineExecution> currentObservable = null;
     try {
@@ -493,9 +494,7 @@ public class RedisExecutionRepository implements ExecutionRepository {
           filteredPipelineIdsByDelegate.getOrDefault(
               previousRedisClientDelegate.get(), new ArrayList<>());
       previousPipelineIds.removeAll(currentPipelineIds);
-      previousPipelineIds =
-          previousPipelineIds.subList(
-              0, Math.min(criteria.getPageSize(), previousPipelineIds.size()));
+      previousPipelineIds = paginate(previousPipelineIds, offset, criteria.getPageSize());
 
       Observable<PipelineExecution> previousObservable = null;
       try {
@@ -515,6 +514,12 @@ public class RedisExecutionRepository implements ExecutionRepository {
     }
 
     return currentObservable;
+  }
+
+  private static List<String> paginate(List<String> ids, int offset, int pageSize) {
+    int from = Math.min(offset, ids.size());
+    int to = Math.min(offset + pageSize, ids.size());
+    return ids.subList(from, to);
   }
 
   @Override

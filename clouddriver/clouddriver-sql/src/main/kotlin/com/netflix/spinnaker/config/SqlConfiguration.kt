@@ -128,7 +128,7 @@ class SqlConfiguration {
   }
 
   @Bean
-  @ConditionalOnProperty("account.storage.enabled")
+  @ConditionalOnProperty("account.storage.enabled", matchIfMissing = true)
   fun sqlAccountDefinitionRepository(
     jooq: DSLContext,
     clock: Clock,

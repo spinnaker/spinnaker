@@ -15,9 +15,20 @@ node {
   // Pulls node version from package.json.
   def packageSlurper = new JsonSlurper()
   def packageJson = packageSlurper.parse file('package.json')
+  def packageManager = packageJson.packageManager
+  def pnpmVersionMatcher = packageManager instanceof String
+    ? packageManager =~ /^pnpm@(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)$/
+    : null
+
+  if (pnpmVersionMatcher == null || !pnpmVersionMatcher.matches()) {
+    def actualPackageManager = packageManager == null ? 'missing' : "'${packageManager}'"
+    throw new GradleException(
+      "deck/package.json packageManager must be an exact pnpm version in the form 'pnpm@<major>.<minor>.<patch>'; found ${actualPackageManager}"
+    )
+  }
 
   version = packageJson.engines.node.replaceAll(/[^\d\.]/, '')
-  pnpmVersion = "11.1.1"
+  pnpmVersion = pnpmVersionMatcher.group(1)
 }
 
 pnpmInstall {
@@ -31,6 +42,14 @@ task modules(type: PnpmTask) {
   environment = [
     "NODE_ENV": "production",
   ]
+}
+
+// Package builds write outside Gradle's build directory.
+clean {
+  delete file('.cache-loader')
+  delete file('packages').listFiles()
+    .findAll { it.isDirectory() }
+    .collect { new File(it, 'dist') }
 }
 
 task eslintPluginCompile(type: PnpmTask) {
