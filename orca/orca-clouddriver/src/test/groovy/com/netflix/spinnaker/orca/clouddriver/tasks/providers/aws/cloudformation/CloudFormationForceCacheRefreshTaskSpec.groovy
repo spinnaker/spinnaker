@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.cloudformation
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
@@ -53,7 +53,7 @@ class CloudFormationForceCacheRefreshTaskSpec extends Specification {
   def cacheService = Mock(CloudDriverCacheService)
   def cacheStatusService = Mock(CloudDriverCacheStatusService)
   def objectMapper = new ObjectMapper()
-  def registry = new DefaultRegistry()
+  def registry = new SimpleMeterRegistry()
   def now = Instant.now()
 
   @Subject task = new CloudFormationForceCacheRefreshTask(registry, cacheService, cacheStatusService, objectMapper)

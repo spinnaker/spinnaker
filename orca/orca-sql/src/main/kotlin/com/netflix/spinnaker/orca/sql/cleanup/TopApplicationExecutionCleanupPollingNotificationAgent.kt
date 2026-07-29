@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.OrcaSqlProperties
 import com.netflix.spinnaker.config.TopApplicationExecutionCleanupAgentConfigurationProperties
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
 import com.netflix.spinnaker.orca.notifications.scheduling.PipelineDependencyCleanupOperator
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import io.micrometer.core.instrument.MeterRegistry
 import java.util.concurrent.atomic.AtomicInteger
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component
 class TopApplicationExecutionCleanupPollingNotificationAgent(
   clusterLock: NotificationClusterLock,
   private val jooq: DSLContext,
-  registry: Registry,
+  registry: MeterRegistry,
   private val executionRepository: ExecutionRepository,
   private val configurationProperties: TopApplicationExecutionCleanupAgentConfigurationProperties,
   private val orcaSqlProperties: OrcaSqlProperties,
@@ -127,7 +127,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent(
       deletedExecutionCount.addAndGet(ids.size)
 
       executionRepository.delete(ExecutionType.ORCHESTRATION, ids)
-      registry.counter(deletedId.withTag("application", application)).add(ids.size.toDouble())
+      registry.counter(deletedMetricName, "application", application).increment(ids.size.toDouble())
     }
 
     return deletedExecutionCount.toInt()

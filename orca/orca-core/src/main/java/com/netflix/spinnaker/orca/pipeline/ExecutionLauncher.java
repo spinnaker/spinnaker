@@ -25,7 +25,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.exceptions.HasAdditionalAttributes;
 import com.netflix.spinnaker.kork.exceptions.SystemException;
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.util.StringUtils;
 import java.time.Clock;
 import java.util.Collections;
@@ -69,7 +69,7 @@ public class ExecutionLauncher {
   private final ExecutionRunner executionRunner;
   private final Clock clock;
   private final Optional<PipelineValidator> pipelineValidator;
-  private final Optional<Registry> registry;
+  private final Optional<MeterRegistry> registry;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final ExecutionConfigurationProperties executionConfigurationProperties;
   private final ProvidedIdRequestFilterConfigurationProperties
@@ -83,7 +83,7 @@ public class ExecutionLauncher {
       Clock clock,
       ApplicationEventPublisher applicationEventPublisher,
       Optional<PipelineValidator> pipelineValidator,
-      Optional<Registry> registry,
+      Optional<MeterRegistry> registry,
       ExecutionConfigurationProperties executionConfigurationProperties,
       ProvidedIdRequestFilterConfigurationProperties
           providedIdRequestFilterConfigurationProperties) {

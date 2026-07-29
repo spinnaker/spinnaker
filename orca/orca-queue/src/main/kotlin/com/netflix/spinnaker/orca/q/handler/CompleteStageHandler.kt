@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.PercentileTimer
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.CANCELED
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus.FAILED_CONTINUE
@@ -47,6 +45,10 @@ import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.appendAfterStages
 import com.netflix.spinnaker.orca.q.buildAfterStages
 import com.netflix.spinnaker.q.Queue
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import kotlin.collections.List
@@ -77,7 +79,7 @@ class CompleteStageHandler(
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
   override val contextParameterProcessor: ContextParameterProcessor,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   override val stageDefinitionBuilderFactory: StageDefinitionBuilderFactory
 ) : OrcaMessageHandler<CompleteStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
@@ -180,19 +182,15 @@ class CompleteStageHandler(
       return
     }
 
-    val id = registry.createId("stage.invocations.duration")
-      .withTag("status", stage.status.toString())
-      .withTag("stageType", stage.type)
-      .let { id ->
-        // TODO rz - Need to check synthetics for their cloudProvider.
-        stage.context["cloudProvider"]?.let {
-          id.withTag("cloudProvider", it.toString())
-        } ?: id
-      }.let { id ->
-        stage.additionalMetricTags?.let {
-          id.withTags(stage.additionalMetricTags)
-        } ?: id
-      }
+    var tags = Tags.of("status", stage.status.toString(), "stageType", stage.type)
+
+    // TODO rz - Need to check synthetics for their cloudProvider.
+    stage.context["cloudProvider"]?.let {
+      tags = tags.and("cloudProvider", it.toString())
+    }
+    stage.additionalMetricTags?.let { additionalTags ->
+      tags = tags.and(additionalTags.map { Tag.of(it.key, it.value) })
+    }
 
     // If startTime was not set, then assume this was instantaneous.
     // In practice 0 startTimes can happen if there is
@@ -202,8 +200,10 @@ class CompleteStageHandler(
     val endTime = stage.endTime ?: clock.millis()
     val startTime = stage.startTime ?: endTime
 
-    PercentileTimer
-      .get(registry, id)
+    Timer.builder("stage.invocations.duration")
+      .tags(tags)
+      .publishPercentileHistogram()
+      .register(registry)
       .record(endTime - startTime, TimeUnit.MILLISECONDS)
   }
 

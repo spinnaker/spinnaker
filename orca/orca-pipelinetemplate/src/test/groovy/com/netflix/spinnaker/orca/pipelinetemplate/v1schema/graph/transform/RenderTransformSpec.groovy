@@ -16,9 +16,6 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition
@@ -33,6 +30,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateModule
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import spock.lang.Specification
 
 class RenderTransformSpec extends Specification {
@@ -41,12 +40,7 @@ class RenderTransformSpec extends Specification {
 
   Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 
-  Registry registry = Mock() {
-    clock() >> Mock(Clock) {
-      monotonicTime() >> 0L
-    }
-    timer(_) >> Mock(Timer)
-  }
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   def 'should render template'() {
     given:

@@ -22,8 +22,6 @@ import static java.lang.String.format;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionType;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
@@ -36,6 +34,8 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionLauncher;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -70,7 +70,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
       ObjectMapper objectMapper,
       CloudDriverService cloudDriverService,
       RetrySupport retrySupport,
-      Registry registry,
+      MeterRegistry registry,
       ExecutionLauncher executionLauncher,
       ExecutionRepository executionRepository,
       @Value("${pollers.restore-pinned-server-groups.username:spinnaker}") String username) {
@@ -92,7 +92,7 @@ public class RestorePinnedServerGroupsPoller extends AbstractPollingNotification
       ObjectMapper objectMapper,
       CloudDriverService cloudDriverService,
       RetrySupport retrySupport,
-      Registry registry,
+      MeterRegistry registry,
       ExecutionLauncher executionLauncher,
       ExecutionRepository executionRepository,
       String username,

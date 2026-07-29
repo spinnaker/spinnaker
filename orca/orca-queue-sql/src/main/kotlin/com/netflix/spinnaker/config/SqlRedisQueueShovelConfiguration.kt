@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.jedis.JedisDriverProperties
 import com.netflix.spinnaker.kork.jedis.JedisPoolFactory
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.q.redis.AbstractRedisQueue
 import com.netflix.spinnaker.q.redis.RedisClusterQueue
 import com.netflix.spinnaker.q.redis.RedisQueue
 import com.netflix.spinnaker.q.sql.SqlQueue
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.Optional
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -59,7 +59,7 @@ class SqlRedisQueueShovelConfiguration {
     mapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>,
     redisQueueProperties: RedisQueueProperties,
-    registry: Registry,
+    registry: MeterRegistry,
     discoveryActivator: Activator,
     dynamicConfigService: DynamicConfigService
   ): QueueShovel {
@@ -104,7 +104,7 @@ class SqlRedisQueueShovelConfiguration {
     mapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>,
     redisQueueProperties: RedisQueueProperties,
-    registry: Registry,
+    registry: MeterRegistry,
     discoveryActivator: Activator,
     dynamicConfigService: DynamicConfigService
   ): QueueShovel {
@@ -143,7 +143,7 @@ class SqlRedisQueueShovelConfiguration {
     mapper: ObjectMapper,
     serializationMigrator: Optional<SerializationMigrator>,
     sqlQueueProperties: SqlQueueProperties,
-    registry: Registry,
+    registry: MeterRegistry,
     discoveryActivator: Activator,
     dynamicConfigService: DynamicConfigService
   ): QueueShovel {

@@ -35,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateService;
 import com.netflix.spinnaker.orca.web.config.WebConfiguration;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -60,6 +61,7 @@ class WebConfigurationTest {
   private final ApplicationContextRunner runner =
       new ApplicationContextRunner()
           .withBean(NoopRegistry.class)
+          .withBean(SimpleMeterRegistry.class)
           .withAllowBeanDefinitionOverriding(true)
           .withConfiguration(
               UserConfigurations.of(TestDependencyConfiguration.class, WebConfiguration.class));

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.telemetry;
 
 import static java.lang.String.format;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -28,10 +28,10 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 public abstract class AbstractMetricsPostProcessor<T> implements BeanPostProcessor {
 
   private final Class<T> beanType;
-  protected final Registry registry;
+  protected final MeterRegistry registry;
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
-  protected AbstractMetricsPostProcessor(Class<T> beanType, Registry registry) {
+  protected AbstractMetricsPostProcessor(Class<T> beanType, MeterRegistry registry) {
     this.beanType = beanType;
     this.registry = registry;
   }

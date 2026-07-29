@@ -15,8 +15,8 @@
  */
 package com.netflix.spinnaker.orca.sql
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.q.Activator
+import io.micrometer.core.instrument.MeterRegistry
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -34,7 +34,7 @@ import org.springframework.scheduling.annotation.Scheduled
  */
 class SqlHealthcheckActivator(
   private val jooq: DSLContext,
-  private val registry: Registry,
+  private val registry: MeterRegistry,
   private val unhealthyThreshold: Int = 2,
   private val healthyThreshold: Int = 10
 ) : Activator {
@@ -46,8 +46,6 @@ class SqlHealthcheckActivator(
 
   private val healthyCounter = AtomicInteger(0)
   private val unhealthyCounter = AtomicInteger(0)
-
-  private val invocationId = registry.createId("sql.queueActivator.invocations")
 
   override val enabled: Boolean
     get() = _enabled.get()
@@ -80,7 +78,9 @@ class SqlHealthcheckActivator(
         }
       }
     } finally {
-      registry.counter(invocationId.withTag("status", if (enabled) "enabled" else "disabled")).increment()
+      registry.counter(
+        "sql.queueActivator.invocations", "status", if (enabled) "enabled" else "disabled"
+      ).increment()
     }
   }
 }

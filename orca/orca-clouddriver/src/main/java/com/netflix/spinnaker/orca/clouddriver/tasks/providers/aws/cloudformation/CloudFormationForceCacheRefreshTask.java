@@ -24,8 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.retrofit.Retrofit2SyncCall;
 import com.netflix.spinnaker.orca.api.pipeline.OverridableTimeoutRetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
@@ -33,6 +31,8 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService;
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.*;
@@ -54,8 +54,7 @@ public class CloudFormationForceCacheRefreshTask
 
   Clock clock = Clock.systemUTC();
   private final ObjectMapper objectMapper;
-  private final Registry registry;
-  private final Id durationTimerId;
+  private final MeterRegistry registry;
 
   private final long backoffPeriod = TimeUnit.SECONDS.toMillis(10);
   private final long timeout = TimeUnit.MINUTES.toMillis(20);
@@ -65,7 +64,7 @@ public class CloudFormationForceCacheRefreshTask
   private final CloudDriverCacheStatusService cacheStatusService;
 
   public CloudFormationForceCacheRefreshTask(
-      Registry registry,
+      MeterRegistry registry,
       CloudDriverCacheService cacheService,
       CloudDriverCacheStatusService cacheStatusService,
       ObjectMapper objectMapper) {
@@ -74,7 +73,6 @@ public class CloudFormationForceCacheRefreshTask
     this.cacheService = cacheService;
     this.cacheStatusService = cacheStatusService;
     this.objectMapper = objectMapper;
-    this.durationTimerId = registry.createId("cloudformationStackForceCacheRefreshTask.duration");
   }
 
   @Override
@@ -89,7 +87,9 @@ public class CloudFormationForceCacheRefreshTask
           "{}: Force cache refresh never finished processing... assuming the cache is in sync and continuing...",
           stage.getExecution().getId());
       registry
-          .timer(durationTimerId.withTags("success", "true", "outcome", "autoSucceed"))
+          .timer(
+              "cloudformationStackForceCacheRefreshTask.duration",
+              Tags.of("success", "true", "outcome", "autoSucceed"))
           .record(duration, TimeUnit.MILLISECONDS);
       return TaskResult.SUCCEEDED;
     }

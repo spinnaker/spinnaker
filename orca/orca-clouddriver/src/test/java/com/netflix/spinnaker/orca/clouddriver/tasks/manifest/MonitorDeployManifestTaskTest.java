@@ -25,8 +25,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.retrofit.exceptions.SpinnakerHttpException;
@@ -44,6 +42,8 @@ import com.netflix.spinnaker.orca.clouddriver.model.TaskOwner;
 import com.netflix.spinnaker.orca.pipeline.model.PipelineExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl;
 import com.netflix.spinnaker.orca.pipeline.model.TaskExecutionImpl;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +84,7 @@ final class MonitorDeployManifestTaskTest {
 
   @Spy private RetrySupport retrySupport;
 
-  private final Registry noopRegistry = new NoopRegistry();
+  private final MeterRegistry noopRegistry = new SimpleMeterRegistry();
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 

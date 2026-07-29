@@ -16,33 +16,32 @@
 
 package com.netflix.spinnaker.orca.sql.cleanup
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
-import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.patterns.LongTaskTimer
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationClusterLock
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.LongTaskTimer
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 abstract class AbstractCleanupPollingAgent(
   clusterLock: NotificationClusterLock,
   private val pollingIntervalMs: Long,
-  val registry: Registry
+  val registry: MeterRegistry
 ) : AbstractPollingNotificationAgent(clusterLock) {
 
   val log: Logger = LoggerFactory.getLogger(javaClass)
   val completedStatuses = ExecutionStatus.COMPLETED.map { it.toString() }
 
-  val deletedId: Id = registry.createId("pollers.$notificationType.deleted")
+  val deletedMetricName: String = "pollers.$notificationType.deleted"
   val errorsCounter: Counter = registry.counter("pollers.$notificationType.errors")
-  val invocationTimer: LongTaskTimer = LongTaskTimer.get(registry, registry.createId("pollers.$notificationType.timing"))
+  val invocationTimer: LongTaskTimer = LongTaskTimer.builder("pollers.$notificationType.timing").register(registry)
 
   abstract fun performCleanup()
 
   override fun tick() {
-    val timerId = invocationTimer.start()
+    val sample = invocationTimer.start()
     val startTime = System.currentTimeMillis()
 
     try {
@@ -52,7 +51,7 @@ abstract class AbstractCleanupPollingAgent(
       log.error("Agent $notificationType failed to perform cleanup", e)
     } finally {
       log.info("Agent $notificationType completed in ${System.currentTimeMillis() - startTime}ms")
-      invocationTimer.stop(timerId)
+      sample.stop()
     }
   }
 

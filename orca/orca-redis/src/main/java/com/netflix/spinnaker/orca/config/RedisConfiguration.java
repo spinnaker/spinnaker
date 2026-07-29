@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.orca.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.jedis.JedisClientConfiguration;
 import com.netflix.spinnaker.kork.jedis.RedisClientSelector;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
@@ -63,7 +62,6 @@ public class RedisConfiguration {
   @Bean
   @ConditionalOnProperty(value = "execution-repository.redis.enabled", matchIfMissing = true)
   public ExecutionRepository redisExecutionRepository(
-      Registry registry,
       MeterRegistry meterRegistry,
       RedisClientSelector redisClientSelector,
       @Qualifier("queryAllScheduler") Scheduler queryAllScheduler,
@@ -72,7 +70,7 @@ public class RedisConfiguration {
       @Value("${keiko.queue.redis.queue-name:}") String bufferedPrefix) {
     ExecutionRepository repository =
         new RedisExecutionRepository(
-            registry,
+            meterRegistry,
             redisClientSelector,
             queryAllScheduler,
             queryByAppScheduler,

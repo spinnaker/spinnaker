@@ -20,7 +20,6 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.EVENT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.kork.api.expressions.ExpressionFunctionProvider;
 import com.netflix.spinnaker.kork.artifacts.artifactstore.ArtifactStoreConfiguration;
@@ -53,6 +52,7 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilderFactory;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Clock;
@@ -181,7 +181,7 @@ public class OrcaConfiguration {
 
   @Bean
   public ApplicationListener<ExecutionEvent> onCompleteMetricExecutionListenerAdapter(
-      Registry registry, ExecutionRepository repository) {
+      MeterRegistry registry, ExecutionRepository repository) {
     return new ExecutionListenerAdapter(new MetricsExecutionListener(registry), repository);
   }
 

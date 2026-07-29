@@ -25,9 +25,9 @@ import org.springframework.context.ApplicationEventPublisher
 import javax.annotation.Nonnull
 import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.TestConfiguration
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
@@ -51,7 +51,7 @@ class PipelineExecutionLauncherSpec extends Specification {
       Clock.systemDefaultZone(),
       applicationEventPublisher,
       Optional.of(pipelineValidator),
-      Optional.<Registry> empty(),
+      Optional.<MeterRegistry> empty(),
       new ExecutionConfigurationProperties(),
       providedIdRequestFilterConfigurationProperties
     )

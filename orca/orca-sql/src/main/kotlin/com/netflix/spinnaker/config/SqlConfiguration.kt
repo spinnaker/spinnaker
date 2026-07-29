@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
@@ -134,13 +133,13 @@ class SqlConfiguration {
   @Bean
   fun sqlActiveExecutionsMonitor(
     @Qualifier("sqlExecutionRepository") executionRepository: ExecutionStatisticsRepository,
-    registry: Registry,
+    registry: MeterRegistry,
     @Value("\${monitor.active-executions.refresh.frequency.ms:60000}") refreshFrequencyMs: Long
   ) =
     SqlActiveExecutionsMonitor(executionRepository, registry, refreshFrequencyMs)
 
   @Bean
-  fun sqlHealthcheckActivator(dsl: DSLContext, registry: Registry) =
+  fun sqlHealthcheckActivator(dsl: DSLContext, registry: MeterRegistry) =
     SqlHealthcheckActivator(dsl, registry)
 
   @Bean("dbHealthIndicator")

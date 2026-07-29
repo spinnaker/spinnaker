@@ -17,9 +17,8 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
 import com.google.common.collect.ForwardingMap;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.api.pipeline.models.PipelineExecution;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,16 +32,16 @@ public class AlertOnAccessMap extends ForwardingMap<String, Object> {
 
   private final PipelineExecution execution;
   private final Map<String, Object> delegate;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
   public AlertOnAccessMap(
-      PipelineExecution execution, Registry registry, Map<String, Object> delegate) {
+      PipelineExecution execution, MeterRegistry registry, Map<String, Object> delegate) {
     this.execution = execution;
     this.registry = registry;
     this.delegate = delegate;
   }
 
-  public AlertOnAccessMap(PipelineExecution execution, Registry registry) {
+  public AlertOnAccessMap(PipelineExecution execution, MeterRegistry registry) {
     this(execution, registry, new HashMap<>());
   }
 
@@ -62,12 +61,14 @@ public class AlertOnAccessMap extends ForwardingMap<String, Object> {
           execution.getType(),
           execution.getId(),
           Optional.ofNullable(execution.getName()).orElseGet(execution::getDescription));
-      Id counterId =
-          registry
-              .createId("global.context.access")
-              .withTag("application", execution.getApplication())
-              .withTag("key", String.valueOf(key));
-      registry.counter(counterId).increment();
+      registry
+          .counter(
+              "global.context.access",
+              "application",
+              execution.getApplication(),
+              "key",
+              String.valueOf(key))
+          .increment();
     }
     return value;
   }

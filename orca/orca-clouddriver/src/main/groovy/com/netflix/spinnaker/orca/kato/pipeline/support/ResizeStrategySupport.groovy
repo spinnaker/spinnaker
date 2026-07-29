@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.strategies.RollingRedBlackStageData
@@ -26,6 +25,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
 import com.netflix.spinnaker.orca.pipeline.model.StageExecutionImpl
 import groovy.util.logging.Slf4j
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -37,7 +37,7 @@ public class ResizeStrategySupport {
   CloudDriverService cloudDriverService
 
   @Autowired
-  Registry registry
+  MeterRegistry registry
 
   static ResizeStrategy.Source getSource(TargetServerGroupResolver targetServerGroupResolver,
                                          StageData stageData,
