@@ -54,10 +54,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && startsWith(github.ref, 'refs/heads/release-'))
     uses: ./.github/workflows/gate.yml
     secrets: inherit
-  halyard:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && startsWith(github.ref, 'refs/heads/release-'))
-    uses: ./.github/workflows/halyard.yml
-    secrets: inherit
   igor:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'create' && startsWith(github.ref, 'refs/heads/release-'))
     uses: ./.github/workflows/igor.yml
