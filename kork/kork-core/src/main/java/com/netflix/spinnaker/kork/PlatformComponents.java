@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.kork;
 
-import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
+import com.netflix.spinnaker.kork.metrics.GcLoggingConfiguration;
+import com.netflix.spinnaker.kork.metrics.SpectatorBridgeConfiguration;
 import io.github.resilience4j.circuitbreaker.autoconfigure.CircuitBreakersHealthIndicatorAutoConfiguration;
 import io.github.resilience4j.ratelimiter.autoconfigure.RateLimitersHealthIndicatorAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -26,7 +27,8 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @Import({
   BootstrapComponents.class,
-  SpectatorConfiguration.class,
+  GcLoggingConfiguration.class,
+  SpectatorBridgeConfiguration.class,
 })
 @ImportAutoConfiguration(
     exclude = {

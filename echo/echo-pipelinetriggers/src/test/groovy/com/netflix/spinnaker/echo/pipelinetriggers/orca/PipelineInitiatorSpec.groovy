@@ -2,7 +2,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.util.concurrent.MoreExecutors
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.QuietPeriodIndicator
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 import retrofit2.mock.Calls
 
 class PipelineInitiatorSpec extends Specification {
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def noopDynamicConfigService = new DynamicConfigService.NoopDynamicConfig()
   def orca = Mock(OrcaService)
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)

@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.tomcat.x509;
 
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 import java.util.Optional;
 import javax.net.ssl.TrustManager;
@@ -28,9 +28,10 @@ public class BlocklistingJSSESocketFactory extends JSSEUtil {
   private static final String BLOCKLIST_PREFIX = "blocklist:";
 
   private final Blocklist blocklist;
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public BlocklistingJSSESocketFactory(SSLHostConfigCertificate certificate, Registry registry) {
+  public BlocklistingJSSESocketFactory(
+      SSLHostConfigCertificate certificate, MeterRegistry registry) {
     super(certificate);
     this.registry = Objects.requireNonNull(registry);
     String blocklistFile =

@@ -7,7 +7,6 @@ dependencies {
   api "org.springframework.boot:spring-boot-starter-actuator"
   api "redis.clients:jedis"
   api project(":kork-core")
-  api "com.netflix.spectator:spectator-api"
 
   implementation "com.fasterxml.jackson.core:jackson-databind"
   implementation "org.apache.commons:commons-lang3"

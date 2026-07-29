@@ -22,8 +22,6 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
-import com.netflix.spectator.api.Counter;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.kork.annotations.VisibleForTesting;
 import com.netflix.spinnaker.kork.aws.ARN;
 import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonMessageAcknowledger;
@@ -31,6 +29,8 @@ import com.netflix.spinnaker.kork.pubsub.aws.api.AmazonPubsubMessageHandler;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubConfig;
 import com.netflix.spinnaker.kork.pubsub.aws.config.AmazonPubsubProperties;
 import com.netflix.spinnaker.kork.pubsub.model.PubsubSubscriber;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
   private final AmazonPubsubProperties.AmazonPubsubSubscription subscription;
   private final AmazonPubsubMessageHandler messageHandler;
   private final AmazonMessageAcknowledger messageAcknowledger;
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final Supplier<Boolean> isEnabled;
 
   private final ARN queueARN;
@@ -61,7 +61,7 @@ public class SQSSubscriber implements Runnable, PubsubSubscriber {
       AmazonSNS amazonSNS,
       AmazonSQS amazonSQS,
       Supplier<Boolean> isEnabled,
-      Registry registry) {
+      MeterRegistry registry) {
     this.subscription = subscription;
     this.messageHandler = messageHandler;
     this.messageAcknowledger = messageAcknowledger;

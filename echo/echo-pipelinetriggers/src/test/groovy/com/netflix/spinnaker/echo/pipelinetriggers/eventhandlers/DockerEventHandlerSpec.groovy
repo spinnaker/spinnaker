@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.test.RetrofitStubs
@@ -27,7 +27,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 class DockerEventHandlerSpec extends Specification implements RetrofitStubs {
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def handlerSupport = new EventHandlerSupport()
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)

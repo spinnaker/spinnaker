@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.model.trigger.PluginEvent
@@ -28,7 +28,7 @@ import spock.lang.Unroll
 import java.util.function.Predicate
 
 class PluginEventHandlerSpec extends Specification {
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def objectMapper = EchoObjectMapper.getInstance()
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 

@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.rosco.jobs.local
 
-import com.netflix.spectator.api.DefaultRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.jobs.JobRequest
 import com.netflix.spinnaker.rosco.providers.util.TestDefaults
@@ -58,7 +58,7 @@ Final output
 
       @Subject
       def jobExecutorLocal = new JobExecutorLocal(
-          registry: new DefaultRegistry(),
+          registry: new SimpleMeterRegistry(),
           timeoutMinutes: 1)
 
     when:
@@ -88,7 +88,7 @@ Final output
 
       @Subject
       def jobExecutorLocal = new JobExecutorLocal(
-          registry: new DefaultRegistry(),
+          registry: new SimpleMeterRegistry(),
           timeoutMinutes: 1)
 
     when:

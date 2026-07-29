@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.echo.pipelinetriggers
 
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.config.QuietPeriodIndicatorConfigurationProperties
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import spock.lang.Specification
@@ -26,7 +26,7 @@ import java.time.Instant
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 class QuietPeriodIndicatorSpec extends Specification {
-  def registry = new NoopRegistry()
+  def registry = new SimpleMeterRegistry()
   def dynamicConfigService = Mock(DynamicConfigService)
   def goodStartDate = "2018-01-01T00:00:00Z"
   def goodEndDate = "2018-02-01T00:00:00Z"

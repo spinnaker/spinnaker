@@ -34,6 +34,7 @@ import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
 import com.netflix.spinnaker.kork.version.ServiceVersion
+import io.micrometer.core.instrument.MeterRegistry
 import org.jooq.DSLContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -101,6 +102,7 @@ class SqlConfiguration {
     objectMapper: ObjectMapper,
     applicationEventPublisher: ApplicationEventPublisher,
     registry: Registry,
+    meterRegistry: MeterRegistry,
     subtypeLocators: List<SubtypeLocator>
   ): EventRepository {
     // TODO(rz): ObjectMapperSubtypeConfigurer should become a standard kork feature. This is pretty gross.
@@ -112,7 +114,7 @@ class SqlConfiguration {
       applicationEventPublisher,
       registry
     ).let {
-      InstrumentedProxy.proxy(registry, it, "eventRepository", mapOf("backend" to "sql"))
+      InstrumentedProxy.proxy(meterRegistry, it, "eventRepository", mapOf("backend" to "sql"))
     }
   }
 

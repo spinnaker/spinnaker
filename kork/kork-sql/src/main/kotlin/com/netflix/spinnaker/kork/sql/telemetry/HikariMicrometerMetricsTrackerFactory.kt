@@ -15,20 +15,20 @@
  */
 package com.netflix.spinnaker.kork.sql.telemetry
 
-import com.netflix.spectator.api.Registry
 import com.zaxxer.hikari.metrics.IMetricsTracker
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory
 import com.zaxxer.hikari.metrics.PoolStats
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.scheduling.annotation.Scheduled
 
 /**
- * Records HikariCP metrics into Spectator.
+ * Records HikariCP metrics into Micrometer.
  */
-class HikariSpectatorMetricsTrackerFactory(
-  private val registry: Registry
+class HikariMicrometerMetricsTrackerFactory(
+  private val registry: MeterRegistry
 ) : MetricsTrackerFactory {
 
-  private val trackers: MutableMap<String, HikariSpectatorMetricsTracker> = mutableMapOf()
+  private val trackers: MutableMap<String, HikariMicrometerMetricsTracker> = mutableMapOf()
 
   /**
    * Record all connection pools' statistics.
@@ -39,7 +39,7 @@ class HikariSpectatorMetricsTrackerFactory(
   }
 
   override fun create(poolName: String, poolStats: PoolStats): IMetricsTracker =
-    HikariSpectatorMetricsTracker(poolName, poolStats, registry).let {
+    HikariMicrometerMetricsTracker(poolName, poolStats, registry).let {
       trackers.putIfAbsent(poolName, it)
       it
     }

@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.NoopRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.echo.api.events.Metadata
 import com.netflix.spinnaker.echo.jackson.EchoObjectMapper
 import com.netflix.spinnaker.echo.model.Pipeline
@@ -34,7 +34,7 @@ class ArtifactoryEventHandlerSpec extends Specification {
   def fiatPermissionEvaluator = Mock(FiatPermissionEvaluator)
 
   @Subject
-  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new NoopRegistry(), EchoObjectMapper.getInstance(), fiatPermissionEvaluator)
+  private ArtifactoryEventHandler eventHandler = new ArtifactoryEventHandler(new SimpleMeterRegistry(), EchoObjectMapper.getInstance(), fiatPermissionEvaluator)
 
   void setup() {
     fiatPermissionEvaluator.hasPermission(_ as String, _ as String, "APPLICATION", "EXECUTE") >> true

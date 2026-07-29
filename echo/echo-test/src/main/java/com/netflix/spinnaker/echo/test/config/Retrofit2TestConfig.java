@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.echo.test.config;
 
-import com.netflix.spectator.api.NoopRegistry;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.OkHttp3ClientConfiguration;
 import com.netflix.spinnaker.config.OkHttpMetricsInterceptorProperties;
 import com.netflix.spinnaker.okhttp.OkHttp3MetricsInterceptor;
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties;
 import com.netflix.spinnaker.okhttp.Retrofit2EncodeCorrectionInterceptor;
 import com.netflix.spinnaker.okhttp.SpinnakerRequestHeaderInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Collections;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -48,13 +48,14 @@ public class Retrofit2TestConfig {
   }
 
   @Bean
-  public Registry registry() {
-    return new NoopRegistry();
+  public MeterRegistry registry() {
+    return new SimpleMeterRegistry();
   }
 
   @Bean
   public OkHttp3MetricsInterceptor okHttp3MetricsInterceptor(
-      Registry registry, OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
+      MeterRegistry registry,
+      OkHttpMetricsInterceptorProperties okHttpMetricsInterceptorProperties) {
     return new OkHttp3MetricsInterceptor(() -> registry, okHttpMetricsInterceptorProperties);
   }
 

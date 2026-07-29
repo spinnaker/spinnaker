@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.plugins.proxy.aspects
 
-import com.netflix.spectator.api.Id
+import io.micrometer.core.instrument.Tags
 
 /**
  * Interface representing invocation state, used with [InvocationAspect] to process method
@@ -24,6 +24,14 @@ import com.netflix.spectator.api.Id
  * be declared with `val`.
  */
 interface InvocationState
+
+/**
+ * A metric name paired with its base tags, prior to registration with a MeterRegistry.
+ *
+ * @param name The metric name
+ * @param tags The base tags to apply to the metric
+ */
+data class MetricId(val name: String, val tags: Tags)
 
 /**
  * Tracks the state of a method invocation for the purposes of metrics collection.
@@ -35,7 +43,7 @@ interface InvocationState
 data class MetricInvocationState(
   internal val extensionName: String,
   internal val startTimeMs: Long,
-  internal val timingId: Id?
+  internal val timingId: MetricId?
 ) : InvocationState
 
 /**

@@ -1,7 +1,6 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.resources.Application;
@@ -19,6 +18,7 @@ import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableConfigurationProperties(FiatServerConfigurationProperties.class)
 public class FiatConfig implements WebMvcConfigurer {
 
-  @Autowired private Registry registry;
+  @Autowired private MeterRegistry registry;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {

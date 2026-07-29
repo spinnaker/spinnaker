@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.kork.tomcat.x509;
 
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.security.cert.CRLReason;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateRevokedException;
@@ -29,19 +28,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ssl.X509TrustManager;
 
 public class BlocklistingX509TrustManager implements X509TrustManager {
+  private static final String CHECK_CLIENT_TRUSTED = "ssl.blocklist.checkClientTrusted";
+
   // Hookpoint for shutoff via property monitor:
   public static AtomicBoolean BLOCKLIST_ENABLED = new AtomicBoolean(true);
   private final X509TrustManager delegate;
   private final Blocklist blocklist;
-  private final Registry registry;
-  private final Id checkClientTrusted;
+  private final MeterRegistry registry;
 
   public BlocklistingX509TrustManager(
-      X509TrustManager delegate, Blocklist blocklist, Registry registry) {
+      X509TrustManager delegate, Blocklist blocklist, MeterRegistry registry) {
     this.delegate = Objects.requireNonNull(delegate);
     this.blocklist = Objects.requireNonNull(blocklist);
     this.registry = Objects.requireNonNull(registry);
-    checkClientTrusted = registry.createId("ssl.blocklist.checkClientTrusted");
   }
 
   @Override
@@ -63,9 +62,7 @@ public class BlocklistingX509TrustManager implements X509TrustManager {
           }
         }
       } finally {
-        registry
-            .counter(checkClientTrusted.withTag("rejected", Boolean.toString(rejected)))
-            .increment();
+        registry.counter(CHECK_CLIENT_TRUSTED, "rejected", Boolean.toString(rejected)).increment();
       }
     }
 

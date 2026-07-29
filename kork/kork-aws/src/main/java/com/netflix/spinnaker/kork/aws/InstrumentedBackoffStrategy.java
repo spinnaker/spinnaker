@@ -20,18 +20,18 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Objects;
 
 public class InstrumentedBackoffStrategy implements RetryPolicy.BackoffStrategy {
-  private final Registry registry;
+  private final MeterRegistry registry;
   private final RetryPolicy.BackoffStrategy delegate;
 
-  public InstrumentedBackoffStrategy(Registry registry) {
+  public InstrumentedBackoffStrategy(MeterRegistry registry) {
     this(registry, PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY);
   }
 
-  public InstrumentedBackoffStrategy(Registry registry, RetryPolicy.BackoffStrategy delegate) {
+  public InstrumentedBackoffStrategy(MeterRegistry registry, RetryPolicy.BackoffStrategy delegate) {
     this.registry = Objects.requireNonNull(registry, "registry");
     this.delegate = Objects.requireNonNull(delegate, "delegate");
   }
@@ -42,8 +42,7 @@ public class InstrumentedBackoffStrategy implements RetryPolicy.BackoffStrategy 
       int retriesAttempted) {
     long delay = delegate.delayBeforeNextRetry(originalRequest, exception, retriesAttempted);
     registry
-        .distributionSummary(
-            "AWS_delay", AwsMetricsSupport.buildExceptionTags(originalRequest, exception))
+        .summary("AWS_delay", AwsMetricsSupport.buildExceptionTags(originalRequest, exception))
         .record(delay);
     return delay;
   }

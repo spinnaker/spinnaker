@@ -17,12 +17,12 @@ package com.netflix.spinnaker.echo.pipelinetriggers.eventhandlers;
 import static com.netflix.spinnaker.echo.pipelinetriggers.artifacts.ArtifactMatcher.isJsonPathConstraintInPayload;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.echo.model.Pipeline;
 import com.netflix.spinnaker.echo.model.Trigger;
 import com.netflix.spinnaker.echo.model.trigger.CDEvent;
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator;
 import com.netflix.spinnaker.kork.artifacts.model.Artifact;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -43,7 +43,7 @@ public class CDEventsWebhookHandler extends BaseTriggerEventHandler<CDEvent> {
 
   @Autowired
   public CDEventsWebhookHandler(
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper objectMapper,
       FiatPermissionEvaluator fiatPermissionEvaluator) {
     super(registry, objectMapper, fiatPermissionEvaluator);

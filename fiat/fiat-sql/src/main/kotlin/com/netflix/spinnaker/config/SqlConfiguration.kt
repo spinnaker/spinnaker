@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.model.resources.Resource
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
 import com.netflix.spinnaker.fiat.permissions.SqlPermissionsRepository
@@ -24,6 +23,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.config.DefaultSqlConfiguration
 import com.netflix.spinnaker.kork.sql.config.SqlProperties
 import com.netflix.spinnaker.kork.telemetry.InstrumentedProxy
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.slf4j.MDCContext
@@ -60,7 +60,7 @@ class SqlConfiguration {
     @ObsoleteCoroutinesApi
     fun sqlPermissionsRepository(
         objectMapper: ObjectMapper,
-        registry: Registry,
+        registry: MeterRegistry,
         jooq: DSLContext,
         sqlProperties: SqlProperties,
         resources: List<Resource>,

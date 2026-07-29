@@ -16,11 +16,11 @@
 package com.netflix.spinnaker.igor.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.igor.polling.LockService;
 import com.netflix.spinnaker.kork.jedis.RedisClientDelegate;
 import com.netflix.spinnaker.kork.jedis.lock.RedisLockManager;
 import com.netflix.spinnaker.kork.lock.LockManager;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Optional;
@@ -44,7 +44,7 @@ public class LockManagerConfig {
   @Bean
   LockManager redisLockManager(
       Clock clock,
-      Registry registry,
+      MeterRegistry registry,
       ObjectMapper mapper,
       RedisClientDelegate redisClientDelegate) {
     return new RedisLockManager(

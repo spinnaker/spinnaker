@@ -38,6 +38,7 @@ import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.web.context.AuthenticatedRequestContextProvider;
 import com.netflix.spinnaker.kork.web.context.RequestContextProvider;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -65,7 +66,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 })
 public class Front50WebConfig implements WebMvcConfigurer {
 
-  @Autowired private Registry registry;
+  @Autowired private MeterRegistry registry;
 
   @Bean
   public TaskScheduler taskScheduler() {

@@ -38,6 +38,7 @@ import com.netflix.spinnaker.orca.sql.SqlHealthcheckActivator
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.ExecutionStatisticsRepository
 import com.netflix.spinnaker.orca.sql.pipeline.persistence.SqlExecutionRepository
 import com.netflix.spinnaker.orca.sql.telemetry.SqlActiveExecutionsMonitor
+import io.micrometer.core.instrument.MeterRegistry
 import java.time.Clock
 import java.util.Optional
 import javax.sql.DataSource
@@ -76,7 +77,7 @@ class SqlConfiguration {
   fun sqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     interlink: Optional<Interlink>,
@@ -106,7 +107,7 @@ class SqlConfiguration {
   fun secondarySqlExecutionRepository(
     dsl: DSLContext,
     mapper: ObjectMapper,
-    registry: Registry,
+    registry: MeterRegistry,
     properties: SqlProperties,
     orcaSqlProperties: OrcaSqlProperties,
     @Value("\${execution-repository.sql.secondary.pool-name}") poolName: String,

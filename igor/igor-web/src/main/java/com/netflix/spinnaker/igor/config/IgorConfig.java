@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.igor.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.config.PluginsAutoConfiguration;
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig;
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.kork.artifacts.parsing.JinjavaFactory;
 import com.netflix.spinnaker.kork.core.RetrySupport;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
 import groovy.util.logging.Slf4j;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,9 +57,9 @@ public class IgorConfig implements WebMvcConfigurer {
     configurer.setPatternParser(null); // Disable PathPatternParser to use AntPathMatcher
   }
 
-  private final Registry registry;
+  private final MeterRegistry registry;
 
-  public IgorConfig(Registry registry) {
+  public IgorConfig(MeterRegistry registry) {
     this.registry = registry;
   }
 
