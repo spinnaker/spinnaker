@@ -1,5 +1,4 @@
 packages:
-  - '../deck-kayenta'
   - 'packages/*'
 overrides:
   '@types/react': 16.14.10
@@ -12,7 +11,6 @@ overrides:
   rxjs: 6.6.7
   typescript: 5.0.4
 allowBuilds:
-  '@spinnaker/kayenta': true
   bufferutil: true
   core-js: true
   cypress: true

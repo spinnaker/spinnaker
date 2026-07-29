@@ -22,16 +22,19 @@ import com.netflix.spinnaker.clouddriver.security.AccountDefinitionSource;
 import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty({"account.storage.enabled", "account.storage.aws.enabled"})
+@ConditionalOnProperty(
+    value = {"account.storage.enabled", "account.storage.aws.enabled"},
+    matchIfMissing = true)
 public class AmazonAccountDefinitionSourceConfiguration {
   @Bean
   public CredentialsDefinitionSource<AccountsConfiguration.Account> amazonAccountSource(
-      AccountDefinitionRepository repository,
+      @Nullable AccountDefinitionRepository repository,
       Optional<List<CredentialsDefinitionSource<AccountsConfiguration.Account>>> additionalSources,
       AccountsConfiguration accountProperties) {
     return new AccountDefinitionSource<>(

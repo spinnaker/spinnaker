@@ -17,12 +17,8 @@ clouddriver: &clouddriver
 - *fiat
 - *kork
 
-deck-kayenta: &deck-kayenta
-- 'deck-kayenta/**'
-
 deck:
 - 'deck/**'
-- *deck-kayenta
 
 echo: &echo
 - 'echo/**'
@@ -38,9 +34,6 @@ gate: &gate
 - 'gate/**'
 - *fiat
 - *kork
-
-halyard: &halyard
-- 'halyard/**'
 
 igor: &igor
 - 'igor/**'

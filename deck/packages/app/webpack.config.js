@@ -11,7 +11,6 @@ const webpack = require('webpack');
 
 const DECK_ROOT = path.resolve(`${__dirname}/../..`);
 const CORE_PACKAGE_ROOT = path.dirname(require.resolve('@spinnaker/core/package.json', { paths: [__dirname] }));
-const KAYENTA_PACKAGE_ROOT = path.resolve(DECK_ROOT, '../deck-kayenta');
 const STYLEGUIDE_PACKAGE_ROOT = path.dirname(
   require.resolve('@spinnaker/styleguide/package.json', { paths: [__dirname] }),
 );
@@ -129,9 +128,7 @@ function configure(env, webpackOpts) {
       alias: {
         ...SHARED_PACKAGE_ALIAS_RESOLUTIONS,
         '@spinnaker/core': CORE_PACKAGE_ROOT,
-        '@spinnaker/kayenta': path.resolve(KAYENTA_PACKAGE_ROOT, 'src'),
         coreImports: path.resolve(CORE_PACKAGE_ROOT, 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
-        kayenta: path.resolve(KAYENTA_PACKAGE_ROOT, 'src', 'kayenta'),
         root: DECK_ROOT,
         // Fix react-virtualized circular dependency issue with webpack 5
         // https://github.com/bvaughn/react-virtualized/issues/1632
