@@ -16,7 +16,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.Spaces;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.moniker.Moniker;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
@@ -50,7 +50,7 @@ class CloudFoundryServerGroupCachingAgentTest {
       new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
   private CloudFoundryCredentials credentials = mock(CloudFoundryCredentials.class);
-  private Registry registry = mock(Registry.class);
+  private MeterRegistry registry = mock(MeterRegistry.class);
   private final Clock internalClock = Clock.fixed(now, ZoneId.systemDefault());
   private CloudFoundryServerGroupCachingAgent cloudFoundryServerGroupCachingAgent =
       new CloudFoundryServerGroupCachingAgent(credentials, registry);

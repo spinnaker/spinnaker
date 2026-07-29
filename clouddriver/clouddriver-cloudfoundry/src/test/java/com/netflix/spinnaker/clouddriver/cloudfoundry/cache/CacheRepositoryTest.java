@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.AgentDataType;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.mem.InMemoryCache;
@@ -39,6 +38,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import okhttp3.OkHttpClient;
@@ -134,7 +134,7 @@ class CacheRepositoryTest {
     when(credentials.getClient()).thenReturn(client);
 
     CloudFoundryServerGroupCachingAgent agent =
-        new CloudFoundryServerGroupCachingAgent(credentials, mock(Registry.class));
+        new CloudFoundryServerGroupCachingAgent(credentials, mock(MeterRegistry.class));
 
     CacheResult result = agent.loadData(providerCache);
     List<String> authoritativeTypes =

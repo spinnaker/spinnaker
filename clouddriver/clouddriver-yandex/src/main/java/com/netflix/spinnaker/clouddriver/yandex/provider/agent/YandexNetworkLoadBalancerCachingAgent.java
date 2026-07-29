@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.yandex.provider.agent;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
 import com.netflix.spinnaker.cats.cache.DefaultCacheData;
@@ -32,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.yandex.model.YandexCloudLoadBalancer;
 import com.netflix.spinnaker.clouddriver.yandex.provider.Keys;
 import com.netflix.spinnaker.clouddriver.yandex.security.YandexCloudCredentials;
 import com.netflix.spinnaker.clouddriver.yandex.service.YandexCloudFacade;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Collection;
@@ -59,7 +59,7 @@ public class YandexNetworkLoadBalancerCachingAgent
   public YandexNetworkLoadBalancerCachingAgent(
       YandexCloudCredentials credentials,
       ObjectMapper objectMapper,
-      Registry registry,
+      MeterRegistry registry,
       YandexCloudFacade yandexCloudFacade) {
     super(credentials, objectMapper, yandexCloudFacade);
     this.metricsSupport =

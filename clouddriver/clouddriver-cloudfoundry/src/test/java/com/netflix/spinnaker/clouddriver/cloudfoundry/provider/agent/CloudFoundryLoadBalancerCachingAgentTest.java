@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.cats.agent.CacheResult;
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult;
 import com.netflix.spinnaker.cats.cache.CacheData;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.RouteId;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.moniker.Moniker;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
@@ -47,7 +47,7 @@ class CloudFoundryLoadBalancerCachingAgentTest {
   private ObjectMapper objectMapper =
       new ObjectMapper().disable(MapperFeature.DEFAULT_VIEW_INCLUSION);
   private CloudFoundryClient cloudFoundryClient = mock(CloudFoundryClient.class);
-  private Registry registry = mock(Registry.class);
+  private MeterRegistry registry = mock(MeterRegistry.class);
   private final Clock internalClock = Clock.fixed(now, ZoneId.systemDefault());
   private CloudFoundryCredentials credentials = mock(CloudFoundryCredentials.class);
   private CloudFoundryLoadBalancerCachingAgent cloudFoundryLoadBalancerCachingAgent =

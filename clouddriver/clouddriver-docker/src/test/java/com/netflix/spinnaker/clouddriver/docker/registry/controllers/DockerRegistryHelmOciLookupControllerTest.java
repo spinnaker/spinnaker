@@ -49,6 +49,8 @@ import com.netflix.spinnaker.fiat.shared.FiatService;
 import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService;
 import com.netflix.spinnaker.kork.dynamicconfig.SpringDynamicConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -94,7 +96,13 @@ class DockerRegistryHelmOciLookupControllerTest {
     }
 
     @Bean
-    Registry registry() {
+    MeterRegistry registry() {
+      return new SimpleMeterRegistry();
+    }
+
+    // fiat-api's FiatPermissionEvaluator still requires a Spectator Registry bean.
+    @Bean
+    Registry spectatorRegistry() {
       return new NoopRegistry();
     }
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties;
 import com.netflix.spinnaker.clouddriver.docker.registry.config.DockerRegistryConfigurationProperties.ManagedAccount;
 import com.netflix.spinnaker.clouddriver.docker.registry.health.DockerRegistryHealthIndicator;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinitionSource;
 import com.netflix.spinnaker.credentials.poller.Poller;
 import com.netflix.spinnaker.kork.client.ServiceClientProvider;
 import com.netflix.spinnaker.kork.docker.service.DockerOkClientProvider;
+import io.micrometer.core.instrument.MeterRegistry;
 import javax.annotation.Nullable;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -62,7 +62,7 @@ public class DockerRegistryConfiguration {
 
   @Bean
   public DockerRegistryHealthIndicator dockerRegistryHealthIndicator(
-      Registry registry,
+      MeterRegistry registry,
       CredentialsRepository<DockerRegistryNamedAccountCredentials> credentialsRepository) {
     return new DockerRegistryHealthIndicator(registry, credentialsRepository);
   }
