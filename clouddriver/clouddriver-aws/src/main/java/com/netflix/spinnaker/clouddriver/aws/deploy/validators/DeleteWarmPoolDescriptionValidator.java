@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.aws.deploy.description
+package com.netflix.spinnaker.clouddriver.aws.deploy.validators;
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteWarmPoolDescription;
+import com.netflix.spinnaker.clouddriver.deploy.ValidationErrors;
+import java.util.List;
+import org.springframework.stereotype.Component;
 
-class UpsertWarmPoolDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
-
-  List<AsgDescription> asgs = []
-
-  Integer minSize
-  Integer maxGroupPreparedCapacity
-  String poolState
-  Boolean reuseOnScaleIn
+@Component
+public class DeleteWarmPoolDescriptionValidator
+    extends AmazonDescriptionValidationSupport<DeleteWarmPoolDescription> {
 
   @Override
-  Collection<String> getServerGroupNames() {
-    return asgs.collect { it.serverGroupName }
+  public void validate(
+      List priorDescriptions, DeleteWarmPoolDescription description, ValidationErrors errors) {
+    validateAsgs(description, errors);
   }
 }

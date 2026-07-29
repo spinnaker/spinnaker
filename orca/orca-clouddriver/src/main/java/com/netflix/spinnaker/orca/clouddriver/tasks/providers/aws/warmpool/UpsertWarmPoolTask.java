@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.warmpool
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.warmpool;
 
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Component;
 
 @Component
-class DeleteWarmPoolTask extends AbstractWarmPoolTask {
-  String type = "deleteWarmPoolDescription"
+public class UpsertWarmPoolTask extends AbstractWarmPoolTask {
+
+  @Override
+  public String getType() {
+    return "upsertWarmPoolDescription";
+  }
 }

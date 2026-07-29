@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.clouddriver.aws.deploy.description
+package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.warmpool;
 
-import com.netflix.spinnaker.clouddriver.security.resources.ServerGroupsNameable
+import org.springframework.stereotype.Component;
 
-class DeleteWarmPoolDescription extends AbstractAmazonCredentialsDescription implements ServerGroupsNameable {
-
-  List<AsgDescription> asgs = []
-
-  Boolean forceDelete
+@Component
+public class DeleteWarmPoolTask extends AbstractWarmPoolTask {
 
   @Override
-  Collection<String> getServerGroupNames() {
-    return asgs.collect { it.serverGroupName }
+  public String getType() {
+    return "deleteWarmPoolDescription";
   }
 }
