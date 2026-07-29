@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.front50.config;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.SwiftStorageService;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableConfigurationProperties(SwiftProperties.class)
 public class SwiftConfig {
 
-  @Autowired Registry registry;
+  @Autowired MeterRegistry registry;
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 

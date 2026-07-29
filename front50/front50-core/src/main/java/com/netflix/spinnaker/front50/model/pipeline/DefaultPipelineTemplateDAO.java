@@ -15,13 +15,13 @@
  */
 package com.netflix.spinnaker.front50.model.pipeline;
 
-import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.config.StorageServiceConfigurationProperties;
 import com.netflix.spinnaker.front50.model.ObjectKeyLoader;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.reactivex.rxjava3.core.Scheduler;
 import org.springframework.util.Assert;
 
@@ -33,7 +33,7 @@ public class DefaultPipelineTemplateDAO extends StorageServiceSupport<PipelineTe
       Scheduler scheduler,
       ObjectKeyLoader objectKeyLoader,
       StorageServiceConfigurationProperties.PerObjectType configurationProperties,
-      Registry registry,
+      MeterRegistry registry,
       CircuitBreakerRegistry circuitBreakerRegistry) {
     super(
         ObjectType.PIPELINE_TEMPLATE,

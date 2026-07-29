@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.front50.model
 
-import com.netflix.spectator.api.DefaultRegistry
-import com.netflix.spectator.api.Registry
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import com.netflix.spinnaker.front50.model.application.Application
 import org.openstack4j.api.storage.ObjectStorageContainerService
 import org.openstack4j.api.storage.ObjectStorageObjectService
@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
 class SwiftStorageServiceSpec extends Specification {
 
   @Shared
-  Registry registry = new DefaultRegistry()
+  MeterRegistry registry = new SimpleMeterRegistry()
 
   @Shared
   String CONTAINER_NAME = "TestContainer"
