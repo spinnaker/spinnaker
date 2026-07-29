@@ -27,8 +27,7 @@ import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricSet.MetricSetBuilder;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.spectator.api.Id;
-import com.netflix.spectator.api.Registry;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -49,7 +48,7 @@ public class InfluxDbMetricsService implements MetricsService {
 
   @Autowired private final AccountCredentialsRepository accountCredentialsRepository;
 
-  @Autowired private final Registry registry;
+  @Autowired private final MeterRegistry registry;
 
   @Autowired private final InfluxDbQueryBuilder queryBuilder;
 
@@ -88,15 +87,14 @@ public class InfluxDbMetricsService implements MetricsService {
 
   private List<InfluxDbResult> queryInfluxdb(
       InfluxDbRemoteService remoteService, String metricSetName, String query) {
-    long startTime = registry.clock().monotonicTime();
+    long startTime = registry.config().clock().monotonicTime();
     List<InfluxDbResult> influxDbResults;
 
     try {
       influxDbResults = remoteService.query(metricSetName, query);
     } finally {
-      long endTime = registry.clock().monotonicTime();
-      Id influxDbFetchTimerId = registry.createId("influxdb.fetchTime");
-      registry.timer(influxDbFetchTimerId).record(endTime - startTime, TimeUnit.NANOSECONDS);
+      long endTime = registry.config().clock().monotonicTime();
+      registry.timer("influxdb.fetchTime").record(endTime - startTime, TimeUnit.NANOSECONDS);
     }
     return influxDbResults;
   }
