@@ -4,7 +4,6 @@ git tag -f echo-main-0
 git tag -f fiat-main-0
 git tag -f front50-main-0
 git tag -f gate-main-0
-git tag -f halyard-main-0
 git tag -f igor-main-0
 git tag -f kayenta-main-0
 git tag -f keel-main-0

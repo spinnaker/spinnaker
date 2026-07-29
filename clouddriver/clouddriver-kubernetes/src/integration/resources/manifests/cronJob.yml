@@ -8,6 +8,8 @@ spec:
     spec:
       template:
         spec:
+          securityContext:
+            runAsNonRoot: true
           containers:
             - name: myapp
               image: 'index.docker.io/library/alpine:3.12'
